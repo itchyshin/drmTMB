@@ -475,6 +475,137 @@ test_that("confint marks invalid Wald standard errors unavailable by row", {
   expect_equal(ci$conf.status, rep("wald_unavailable", 2L))
 })
 
+test_that("confint returns Wald intervals for direct random-effect targets", {
+  dat <- new_profile_group_data(n_id = 14, n_each = 5, seed = 20260653)
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  ci <- stats::confint(fit, level = 0.90)
+  re_ci <- stats::confint(
+    fit,
+    parm = "random_effects",
+    level = 0.90,
+    method = "wald"
+  )
+  vc_ci <- stats::confint(
+    fit,
+    parm = "variance_components",
+    level = 0.90,
+    method = "wald"
+  )
+  cor_ci <- re_ci[re_ci$transformation == "tanh", , drop = FALSE]
+  cor_position <- which(names(fit$opt$par) == "eta_cor_mu")[[1L]]
+  cor_se <- sqrt(fit$sdr$cov.fixed[cor_position, cor_position])
+  cor_eta <- fit$opt$par[[cor_position]]
+  sd_ci <- re_ci[re_ci$transformation == "exp", , drop = FALSE]
+  sd_position <- which(names(fit$opt$par) == "log_sd_mu")[[1L]]
+  sd_se <- sqrt(fit$sdr$cov.fixed[sd_position, sd_position])
+  sd_eta <- fit$opt$par[[sd_position]]
+  z <- stats::qnorm(0.95)
+
+  expect_true("sigma" %in% ci$parm)
+  expect_true("sd:mu:(1 + x | p | ID):(Intercept)" %in% ci$parm)
+  expect_true("sd:mu:(1 + x | p | ID):x" %in% ci$parm)
+  expect_true("cor:mu:cor((Intercept),x | p | ID)" %in% ci$parm)
+  expect_equal(unique(ci$method), "wald")
+  expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(ci$lower[ci$transformation == "exp"] > 0))
+  expect_true(all(abs(ci$lower[ci$transformation == "tanh"]) < 1))
+  expect_true(all(abs(ci$upper[ci$transformation == "tanh"]) < 1))
+  expect_equal(
+    sd_ci$lower[[1L]],
+    exp(sd_eta - z * sd_se),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    sd_ci$upper[[1L]],
+    exp(sd_eta + z * sd_se),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    cor_ci$lower,
+    0.999999 * tanh(cor_eta - z * cor_se),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    cor_ci$upper,
+    0.999999 * tanh(cor_eta + z * cor_se),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    re_ci$parm,
+    c(
+      "sd:mu:(1 + x | p | ID):(Intercept)",
+      "sd:mu:(1 + x | p | ID):x",
+      "cor:mu:cor((Intercept),x | p | ID)"
+    )
+  )
+  expect_equal(
+    vc_ci$parm,
+    c(
+      "sigma",
+      "sd:mu:(1 + x | p | ID):(Intercept)",
+      "sd:mu:(1 + x | p | ID):x"
+    )
+  )
+})
+
+test_that("confint returns bootstrap intervals for direct targets", {
+  dat <- new_profile_group_data(n_id = 8, n_each = 4, seed = 20260654)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "variance_components",
+    method = "bootstrap",
+    R = 3,
+    seed = 20260655
+  )
+
+  expect_equal(ci$parm, c("sigma", "sd:mu:(1 | ID)"))
+  expect_equal(ci$method, rep("bootstrap", 2L))
+  expect_true(all(ci$conf.status %in% c("bootstrap", "bootstrap_unavailable")))
+  expect_true(all(ci$bootstrap.n <= 3L))
+  expect_true(all(ci$bootstrap.failed >= 0L))
+  expect_equal(unique(ci$bootstrap.parallel), "none")
+  expect_equal(unique(ci$bootstrap.workers), 1L)
+  if (all(ci$conf.status == "bootstrap")) {
+    expect_true(all(ci$lower > 0))
+    expect_true(all(ci$upper > 0))
+  }
+})
+
+test_that("confint bootstrap refits scalar phylogenetic SD targets", {
+  sim <- new_profile_phylo_data(seed = 20260656, n_tip = 4L, n_each = 4L)
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "variance_components",
+    method = "bootstrap",
+    R = 2,
+    seed = 20260657
+  )
+
+  expect_equal(ci$parm, c("sigma", "sd:mu:phylo(1 | species)"))
+  expect_equal(ci$method, rep("bootstrap", 2L))
+  expect_true(all(ci$conf.status %in% c("bootstrap", "bootstrap_unavailable")))
+  expect_equal(unique(ci$bootstrap.parallel), "none")
+  expect_equal(unique(ci$bootstrap.workers), 1L)
+})
+
 test_that("interval inventory covers Student-t fixed-effect shape targets", {
   set.seed(20260618)
   n <- 120
@@ -627,6 +758,34 @@ test_that("confint profile intervals transform constant sigma targets", {
   expect_gt(ci$lower, 0)
   expect_lt(ci$lower, mean(stats::sigma(fit)))
   expect_gt(ci$upper, mean(stats::sigma(fit)))
+
+  fast_ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    profile_precision = "fast"
+  )
+  manual_fast_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "sigma",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.5,
+    ytol = 2
+  )
+  manual_fast_ci <- stats::confint(manual_fast_profile, level = 0.80)
+  expect_equal(
+    fast_ci$lower,
+    exp(unname(manual_fast_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    fast_ci$upper,
+    exp(unname(manual_fast_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
 })
 
 test_that("confint profile intervals transform newdata sigma targets", {
@@ -1360,7 +1519,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
     "between 0 and 1"
   )
   expect_error(
-    stats::confint(fit, method = "bootstrap"),
+    stats::confint(fit, method = "parametric_bootstrap"),
     "not implemented"
   )
   expect_error(

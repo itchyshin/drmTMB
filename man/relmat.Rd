@@ -21,15 +21,19 @@ A formula marker; never evaluated by users.
 }
 \description{
 \code{relmat()} marks syntax for a validated user-supplied relatedness matrix. It
-is the lower-level route for dependence structures that are not best named as
-\code{animal()}, \code{phylo()}, or \code{spatial()}: for example a genomic relationship
-matrix, a laboratory relatedness kernel, or a precision matrix built outside
-\code{drmTMB} and checked by the analyst.
+is the lower-level route for latent group-level dependence structures that
+are not best named as \code{animal()}, \code{phylo()}, or \code{spatial()}: for example a
+genomic relationship matrix, a laboratory relatedness kernel, or a graph,
+river-network, areal, or Gaussian Markov random-field precision matrix built
+outside \code{drmTMB} and checked by the analyst. If the matrix is known sampling
+covariance among observed estimates, use \code{\link[=meta_V]{meta_V()}} instead.
 }
 \details{
 Use \code{K} for a covariance or relatedness matrix and \code{Q} for an inverse
-covariance or precision matrix. The fitted known-matrix routes are a
-univariate Gaussian \code{mu} random intercept, for example
+covariance or precision matrix. A correlation matrix with diagonal 1 is a
+natural \code{K} input because the fitted relatedness SD supplies the latent
+variance scale. The fitted known-matrix routes are a univariate Gaussian
+\code{mu} random intercept, for example
 \code{relmat(1 | line, Q = Q)}, the first bivariate Gaussian q=2 location
 covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the constant
 all-four q=4 location-scale block from matching labelled terms in \code{mu1},

@@ -277,8 +277,8 @@ distributional regression models using TMB.
   `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`,
   `animal(1 | id, Ainv = Ainv)`, and a lower-level
   `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` escape hatch. Treat
-  `relmat()` as the likely public replacement for older `gr()`-style
-  low-level wording rather than teaching both names. Keep `V` for known
+  `relmat()` as the public replacement for deprecated `gr()`-style low-level
+  wording rather than teaching both names. Keep `V` for known
   sampling covariance in the preferred `meta_V(..., V = V)` design; do not
   reuse `V` for additive genetic or phylogenetic relatedness.
 - Keep animal-model examples grounded in eco-evo questions rather than
@@ -1362,11 +1362,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
 | 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
 | 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
-| 170 | Bootstrap intervals | Done: the audit found bootstrap needs a deterministic simulate-refit harness, target extractor, failure ledger, and runtime/reproducibility policy before coding. |
-| 171 | Bootstrap intervals | Done by deferral: the audit did not pass, so no public `method = "bootstrap"` prototype was added. |
-| 172 | Bootstrap intervals | Done by boundary: no bootstrap interval-status columns are emitted yet because unsupported bootstrap requests error before interval-table creation. |
+| 170 | Bootstrap intervals | Superseded by the fast-CI slice: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
+| 171 | Bootstrap intervals | Done for the first public boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
+| 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata. Unsupported non-direct routes still stop before interval work. |
 | 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
-| 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`, and unsupported bootstrap requests now report that bootstrap intervals are not implemented. |
+| 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`; direct bootstrap rows report refit success/failure metadata, while unsupported bootstrap surfaces still give explicit unavailable errors. |
 | 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
 | 176 | Phase 6/13 gate | Done: the interval-readiness revisit is closed with tests, docs, known-limitations updates, check-log evidence, and an after-phase note. |
 | 177 | Gaussian random slopes | Done: ordinary Gaussian `mu` supports multiple independent numeric slopes and one correlated intercept-plus-one-slope block; arbitrary correlated multi-slope blocks were moved to Slices 178-181. |
@@ -1419,7 +1419,7 @@ This is the current random-effect status before the non-Gaussian revisit:
 | 195 | Zero-inflation, hurdle, and one-inflation random effects | Done: `zi`, `hu`, planned `zoi`, and planned `coi` random-effect requests now receive component-specific boundaries. Fixed-effect zero-inflation and hurdle paths remain implemented; count-side random effects in zero-inflated or hurdle routes, bounded-response `zoi`/`coi` likelihoods, and covariance among `mu`, `sigma`, shape, inflation, hurdle, or one-inflation random effects remain future work until likelihood, interval, and recovery evidence exists. |
 | 196 | Ordinal mixed models | Done: cumulative-logit `mu` random-effect bar terms now have an ordinal-specific boundary. The first future ordinal mixed target remains a random intercept such as `(1 | id)`; ordinal random slopes, scale/discrimination formulas, known covariance, phylo/spatial ordinal effects, and `ordinal::clmm` comparator recovery stay planned. |
 | 197 | Structured non-Gaussian random effects | Done: phylogenetic, spatial, animal, and `relmat()` structured markers now have a structured non-Gaussian boundary. Structured count, bounded, ordinal, shape, inflation, and hurdle paths stay deferred until ordinary family-specific random effects and their intervals are stable. The first fitted animal/`relmat()` slice is Gaussian `mu` only. |
-| 197a | Animal/relmat reference surface | Done locally: `animal()` and `relmat()` are documented and parsed as structured-effect markers, the reference index leads with animal/phylo/spatial/relmat rather than `gr()`, and `gr()` is demoted to a reserved legacy marker. Later slices add known-matrix Gaussian `mu` intercept fitting for `A`/`Ainv` and `K`/`Q`, dense pedigree fitting for `animal(pedigree = ...)`, and one numeric univariate Gaussian `mu` slope; sparse large-pedigree construction, multiple slopes, and slope correlations remain planned. |
+| 197a | Animal/relmat reference surface | Done locally: `animal()` and `relmat()` are documented and parsed as structured-effect markers, the reference index leads with animal/phylo/spatial/relmat rather than `gr()`, and `gr()` is deprecated as a public marker while kept as a compatibility placeholder. Later slices add known-matrix Gaussian `mu` intercept fitting for `A`/`Ainv` and `K`/`Q`, dense pedigree fitting for `animal(pedigree = ...)`, and one numeric univariate Gaussian `mu` slope; sparse large-pedigree construction, multiple slopes, and slope correlations remain planned. |
 | 198 | Non-Gaussian interval readiness | Done locally: `summary(conf.int = TRUE)` now handles fitted non-Gaussian paths with no summary-level parameter rows, including cumulative-logit ordinal fits with fixed effects or cutpoints only; Wald coefficient intervals remain available, empty coefficient/parameter tables keep explicit interval-status columns, and profile targets stay discoverable through `profile_targets()`/`confint()`. |
 | 199 | Reader-facing family docs | Done locally: the model map, family chooser, and structural-dependence article now show implemented, planned, and unsupported states for non-Gaussian random effects and the structural-dependence ladder: animal, phylogeny, spatial, phylogeny plus spatial, then lower-level `relmat()` known-dependence matrices. |
 | 200 | Focused non-Gaussian recovery tests | Done locally: ordinary non-zero-inflated Poisson `mu` random-effect recovery now includes a factor-predictor random-intercept case and a weak-SD boundary case that exercises `check_drm()` lower-boundary diagnostics. |
@@ -1829,8 +1829,9 @@ as the whole comprehensive simulation programme.
   aggregate-bias overview for quick screening. Slices 869-878 add compact
   interval-coverage summaries for Wald, profile, and bootstrap coverage
   artifacts when present. Slices 879-888 add run-manifest summaries for status,
-  warnings, errors, skipped rows, and elapsed time. This is simulation
-  infrastructure, not a public `confint(method = "bootstrap")` promise.
+  warnings, errors, skipped rows, and elapsed time. This simulation
+  infrastructure is separate from the later public direct-target
+  `confint(method = "bootstrap")` route.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the

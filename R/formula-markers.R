@@ -26,22 +26,29 @@ meta_known_V <- function(V) {
   invisible(NULL)
 }
 
-#' Legacy reserved known-covariance group effect marker
+#' Deprecated legacy known-covariance group effect marker
 #'
-#' `gr()` is an older reserved marker for group-level effects with a
-#' user-supplied covariance matrix. New user-facing documentation should prefer
-#' the biological and matrix-specific structured-effect markers: [animal()] for
-#' pedigree or additive-relatedness animal models, [phylo()] for phylogenetic
-#' dependence, [spatial()] for spatial dependence, and [relmat()] for a
-#' validated user-supplied relatedness or precision matrix. `gr()` remains
-#' reserved while that clearer surface is completed.
+#' `gr()` is deprecated as a public formula marker in `drmTMB 0.1.3.9000`.
+#' Use [relmat()] for a validated lower-level user-supplied relatedness or
+#' precision matrix, [animal()] for pedigree or additive-relatedness animal
+#' models, [phylo()] for phylogenetic dependence, or [spatial()] for spatial
+#' dependence. The exported `gr()` placeholder remains only for compatibility
+#' with older design notes and should not be used in new model formulas.
 #'
 #' @param group Grouping factor.
 #' @param cov Known covariance or precision structure.
 #'
 #' @return A formula marker; never evaluated by users.
+#' @keywords internal
 #' @export
 gr <- function(group, cov) {
+  .Deprecated(
+    msg = paste(
+      "`gr()` is deprecated as a public drmTMB formula marker.",
+      "Use `relmat()` for lower-level known relatedness matrices,",
+      "or `animal()`, `phylo()`, or `spatial()` for biological structured effects."
+    )
+  )
   invisible(NULL)
 }
 
@@ -137,9 +144,13 @@ phylo <- function(term, tree) {
 #' frame with one row per site or one row per observation. The univariate
 #' Gaussian location path also supports one numeric slope,
 #' `spatial(1 + x | site, coords = coords)`, as independent intercept and slope
-#' fields with separate SDs and no intercept-slope correlation. Mesh inputs,
-#' scale formulas, multiple structured slopes, slope correlations, and bivariate
-#' spatial blocks remain planned.
+#' fields with separate SDs and no intercept-slope correlation. Matching
+#' labelled bivariate Gaussian `mu1`/`mu2` terms fit the first q=2
+#' coordinate-spatial location covariance, and matching labelled all-four
+#' `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
+#' location-scale block. Mesh inputs, standalone spatial scale formulas,
+#' multiple structured slopes, slope correlations, predictor-dependent spatial
+#' `corpair()` regression, and non-Gaussian spatial effects remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
@@ -152,6 +163,14 @@ phylo <- function(term, tree) {
 #' @examples
 #' # Fitted for univariate Gaussian mu with coords:
 #' bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ z)
+#' # Fitted first q=2 bivariate spatial location block:
+#' bf(
+#'   mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+#'   mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+#'   sigma1 = ~ 1,
+#'   sigma2 = ~ 1,
+#'   rho12 = ~ 1
+#' )
 #' # Planned:
 #' bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 spatial <- function(term, coords = NULL, mesh = NULL) {
@@ -161,14 +180,18 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' User-supplied relatedness structured-effect marker
 #'
 #' `relmat()` marks syntax for a validated user-supplied relatedness matrix. It
-#' is the lower-level route for dependence structures that are not best named as
-#' `animal()`, `phylo()`, or `spatial()`: for example a genomic relationship
-#' matrix, a laboratory relatedness kernel, or a precision matrix built outside
-#' `drmTMB` and checked by the analyst.
+#' is the lower-level route for latent group-level dependence structures that
+#' are not best named as `animal()`, `phylo()`, or `spatial()`: for example a
+#' genomic relationship matrix, a laboratory relatedness kernel, or a graph,
+#' river-network, areal, or Gaussian Markov random-field precision matrix built
+#' outside `drmTMB` and checked by the analyst. If the matrix is known sampling
+#' covariance among observed estimates, use [meta_V()] instead.
 #'
 #' Use `K` for a covariance or relatedness matrix and `Q` for an inverse
-#' covariance or precision matrix. The fitted known-matrix routes are a
-#' univariate Gaussian `mu` random intercept, for example
+#' covariance or precision matrix. A correlation matrix with diagonal 1 is a
+#' natural `K` input because the fitted relatedness SD supplies the latent
+#' variance scale. The fitted known-matrix routes are a univariate Gaussian
+#' `mu` random intercept, for example
 #' `relmat(1 | line, Q = Q)`, the first bivariate Gaussian q=2 location
 #' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
 #' all-four q=4 location-scale block from matching labelled terms in `mu1`,

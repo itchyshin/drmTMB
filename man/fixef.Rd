@@ -27,3 +27,14 @@ list of coefficient vectors.
 parameter, or all fixed-effect coefficient blocks when \code{dpar = NULL}.
 It is a mixed-model-friendly alias for \code{coef()}.
 }
+\examples{
+set.seed(20260525)
+dat <- data.frame(
+  y = 0.2 + 0.6 * seq(-1, 1, length.out = 24) + rnorm(24, sd = 0.5),
+  x = seq(-1, 1, length.out = 24)
+)
+fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
+fixef(fit)
+fixef(fit, "mu")
+coef(fit, "sigma")
+}

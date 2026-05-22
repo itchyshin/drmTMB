@@ -2,6 +2,1500 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - First Four Figure-PR Slices
+
+Goal: start the next slice set after the Confidence Eye cleanup by keeping the
+existing draft PR as the review surface, rebuilding the figure-heavy articles,
+auditing rendered alt text, and adding explicit captions to the
+`figure-gallery` article.
+
+Team roles:
+
+- Ada kept the scope to the first four slices rather than reopening the whole
+  25-slice backlog at once.
+- Florence checked that captions reinforce the case-by-case visual grammar.
+- Fisher checked that captions name the correct uncertainty source or absence
+  of interval evidence.
+- Pat checked that readers can distinguish raw observations, fitted rows,
+  point summaries, support boundaries, and simulation replicates.
+- Grace rebuilt the relevant pkgdown articles and ran browser QA over a local
+  static server.
+- Rose recorded the split between alt text and captions as a future guardrail.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-22-first-four-slices-pr-qa.md`
+- `docs/dev-log/after-task/2026-05-22-first-four-slices-pr-qa.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+air format vignettes/figure-gallery.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('figure-gallery','model-workflow','bivariate-coscale','simulation-plot-grammar')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+python3 -m http.server 8472 --bind 127.0.0.1 -d pkgdown-site
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Browser QA over `http://127.0.0.1:8472/` found 21 content images, 0 missing
+alt texts, and 21 captions in `figure-gallery`; 5 images and 0 missing alt
+texts in `model-workflow`; 2 images and 0 missing alt texts in
+`bivariate-coscale`; and 5 images and 0 missing alt texts in
+`simulation-plot-grammar`.
+
+Outcomes:
+
+- Draft PR #297 already exists for `codex/cpp-helper-extraction`, so this work
+  updates that PR rather than opening a duplicate.
+- All 21 `figure-gallery` figures now have explicit captions naming the
+  inferential target, data grain, scale, and uncertainty source or boundary.
+- The other three figure-heavy articles passed the first alt-text audit; their
+  page-specific caption or figure-polish passes remain separate queued slices.
+- `pkgdown::check_pkgdown()` reported no problems after the caption and audit
+  updates.
+
+## 2026-05-22 - Confidence Eye Gallery Cleanup
+
+Goal: repair the remaining figure-gallery Confidence Eye examples after the
+rejected correlation-row draft kept resurfacing from stale rendered artifacts,
+then complete a case-by-case visual triage of the remaining gallery figures.
+
+Team roles:
+
+- Ada kept the target fixed to the rendered `figure-gallery` PNGs and stopped
+  treating contact sheets as sufficient evidence. After the case-by-case review,
+  Ada kept Confidence Eyes only for the row-wise interval summaries rather than
+  applying them to line plots, raw-data displays, or simulation summaries.
+- Florence enforced the default Confidence Eye contract: pale finite confidence
+  region, hollow estimate circle, vertical scale grid, dotted zero line where
+  zero is meaningful, no filled dots, no CI bars, no outlines, and no in-plot
+  title/subtitle. The Confidence Eye row displays keep the bottom axis for a
+  consistent scale anchor.
+- Fisher checked that fixed-effect rows use Wald intervals on the fitted
+  coefficient scale, SD rows are shaped on the log-SD scale, and correlation
+  rows are shaped on Fisher's `z`/atanh scale.
+- Pat and Darwin checked the broader principle: raw data remain warranted when
+  they show sample grain, spread, outliers, repeated-measures structure, or the
+  biological pattern behind a fitted summary.
+- Grace rebuilt the figure-gallery article and refreshed the stale
+  `pkgdown-site/dev` mirror before evidence images were copied, then ran the
+  full `devtools::test()` suite before commit.
+- Rose recorded the failure mode: stale local-site and audit PNGs can become
+  misleading project evidence if they are not refreshed or labelled rejected,
+  and one good figure should not become a universal plotting rule.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `R/plot-corpairs.R`
+- `NEWS.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/README.md`
+- `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/figure-gallery-correlation-raindrops.png`
+- `docs/dev-log/figure-audits/2026-05-20-raindrop-coverage-rescue/figure-gallery-raindrop-coefficients.png`
+- `docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/correlation-display-1.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/confidence-eye-correlation-display-fixed.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-coefficient-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-variance-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-mixed-confidence-eye.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-location-scale-fit-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-parameter-surface-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-residual-scale-check-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-random-effect-sd-surface-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-discrete-comparison-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-cat-cat-interaction-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-display-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-factor-grid-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-interaction-grid-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-emmeans-boundary-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-correlation-boundaries-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-simulation-bias-polished.png`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/figure-gallery-simulation-coverage-polished.png`
+
+Checks run:
+
+```sh
+air format R/plot-corpairs.R vignettes/figure-gallery.Rmd docs/design/39-visualization-grammar.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-confidence-eye-gallery-cleanup.md man/plot_corpairs.Rd NEWS.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The live `figure-gallery` coefficient, variance-component, mixed-parameter,
+  and correlation-row Confidence Eye figures now use the clean default visual
+  grammar rather than the rejected filled-point/CI-line draft. The
+  variance-component figure remains the closest visual anchor; the coefficient,
+  mixed-parameter, and correlation-row evidence images were refreshed to match
+  its bottom-axis, slim-lens, hollow-point treatment.
+- The stale `pkgdown-site/dev` mirror was refreshed from the current public
+  article render.
+- The remaining non-Confidence-Eye gallery figures were inspected one by one.
+  Raw-data, model-surface, point-summary, simulation, and support-boundary
+  displays kept their purpose-specific grammar.
+- The direct prediction and `emmeans` point-summary family was polished with a
+  compact point-interval theme and clearer titles; the temperature-slice EMM
+  display now uses connected trends plus intervals.
+- The broader gallery theme was softened, the parameter-surface example now
+  labels `sigma ~ temperature` as a shared sigma curve, support rugs and
+  support-boundary strips were tightened, and simulation target/reference lines
+  now use dotted styling.
+- The focused `plot-corpairs` tests and full `devtools::test()` suite passed
+  after the helper geometry and gallery source changes.
+- `git diff --check` was clean and `pkgdown::check_pkgdown()` reported no
+  problems.
+
+## 2026-05-22 - Confidence Eye Correlation Plot Repair
+
+Goal: repair the rejected Confidence Eye figure work by fixing the actual
+correlation-row display and the exported `plot_corpairs()` helper, so the
+default visual grammar is a pale finite confidence region plus a hollow point
+estimate, with conventional CI lines available only as an optional variant.
+
+Team roles:
+
+- Ada re-scoped after the wrong figure was being discussed and named the exact
+  rendered target, chunk, and helper before editing further.
+- Boole checked the `ggplot2` data mapping, including explicit ribbon grouping
+  and the effect of switching `plot_corpairs()` to numeric y positions.
+- Noether checked that correlation rows use the guarded Fisher-z/atanh scale
+  for the eye shape and return to the correlation scale on the x-axis.
+- Fisher kept interval provenance explicit: finite bounds with supported
+  `conf.status` and `interval_source` get eyes; unsupported rows remain
+  point-only.
+- Pat checked that the rendered figure no longer asks users to decode
+  duplicated labels or internal helper history.
+- Florence checked the final rendered target for the desired visual grammar:
+  pale confidence regions, hollow circles, no default CI bars, and no outer
+  eye outlines.
+- Grace rebuilt the reference page, affected articles, full pkgdown site, and
+  ran focused tests.
+- Rose recorded the process failure: figure QA must name the rendered image
+  path, chunk name, and title before the team starts editing or reviewing.
+
+Files changed:
+
+- `R/plot-corpairs.R`
+- `tests/testthat/test-plot-corpairs.R`
+- `man/plot_corpairs.Rd`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/bivariate-coscale.Rmd`
+- `vignettes/location-scale.Rmd`
+- `NEWS.md`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-22-rendered-article-checklist.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/figure-audits/2026-05-22-article-figures/README.md`
+
+Checks run:
+
+```sh
+air format R/plot-corpairs.R tests/testthat/test-plot-corpairs.R vignettes/figure-gallery.Rmd NEWS.md docs/design/39-visualization-grammar.md docs/dev-log/check-log.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-22-confidence-eye-correlation-repair.md docs/dev-log/figure-audits/2026-05-22-article-figures/README.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'plot-corpairs', reporter = 'summary')"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_reference(topics = 'plot_corpairs', lazy = FALSE, preview = FALSE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = TRUE); pkgdown::build_article('location-scale', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-corpairs|corpairs|predict-parameters', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+```
+
+Outcomes:
+
+- `plot_corpairs()` now defaults to Confidence Eye regions for finite,
+  provenance-supported correlation intervals and hollow point estimates for all
+  rows.
+- Conventional CI segments remain available through
+  `interval_style = "line"`; they are no longer the default.
+- The figure-gallery correlation-row display now matches the intended design:
+  residual, group, phylogenetic, spatial, animal, and `relmat()` rows use pale
+  confidence regions and hollow circles without default CI bars.
+- The older tracked correlation-display audit PNG was refreshed too, because
+  it still showed the rejected filled-point and CI-line hybrid.
+- A new canonical evidence image,
+  `confidence-eye-correlation-display-fixed.png`, was added so future review
+  can point to an uncached filename.
+- The bivariate-coscale quick `corpairs()` plot now relies on the helper's
+  hollow point estimates instead of overlaying a second point layer.
+- Focused `plot-corpairs`, `corpairs`, and `predict-parameters` tests passed.
+- Full pkgdown build and `pkgdown::check_pkgdown()` passed.
+- Full `devtools::test(reporter = "summary")` passed.
+
+## 2026-05-22 - Rendered Article Checklist And Start Here Audit
+
+Goal: begin the article audit sweep proper by recording a rendered-page
+checklist for all 26 pkgdown articles and tightening the `Start Here` triad:
+`drmTMB`, `model-map`, and `model-workflow`.
+
+Team roles:
+
+- Ada kept the slice to rendered inventory and first-user prose edits, with no
+  formula grammar, likelihood, or API change.
+- Pat checked that a new applied reader sees a first model, a status map, and a
+  post-fit workflow in that order.
+- Darwin checked that the opening pages start from scientific questions rather
+  than a feature ledger.
+- Fisher checked that the checklist records CI/profile/bootstrap and interval
+  status as audit risks rather than treating pkgdown success as statistical
+  validation.
+- Florence checked that figure-heavy pages are explicitly queued for direct
+  rendered-image audit instead of being silently passed from source inspection.
+- Boole and Noether checked that the Start Here edits did not imply new syntax
+  or change the parameter contract.
+- Emmy checked that the `model-map` remains the capability authority and
+  `model-workflow` remains the post-fit extractor/interval hub.
+- Grace rebuilt the three touched articles and the full pkgdown site.
+- Rose recorded stale-status scans and kept related GitHub issues open as
+  broader ledgers.
+
+Files changed:
+
+- `vignettes/drmTMB.Rmd`
+- `vignettes/model-map.Rmd`
+- `vignettes/model-workflow.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-article-checklist.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-start-here-audit.md`
+
+Checks run:
+
+```sh
+air format vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-rendered-start-here-audit.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('drmTMB', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'Start here when you want to fit a first model|broader implemented map lives|If you have not fit a model yet|In the `Start Here` path|Rendered Article Checklist|bivariate-coscale|simulation-plot-grammar' vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-22-rendered-article-checklist.md pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/model-workflow.html -S
+rg -n 'bootstrap|profile_precision|variance_components|random_effects|correlations|Wald|Fisher|atanh|log-SD|derived_interval_unavailable|gr\(|meta_known_V|meta_V|spatial q=4|q=4 spatial|Poisson q=1|ordinary Poisson|profile_targets|conf\.status' vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd -S
+rg -n 'gr\(|meta_known_V|meta_V|bootstrap|profile_precision|variance_components|random_effects|correlations|Fisher|atanh|log-SD|derived_interval_unavailable|Poisson q=1|q=4 spatial|spatial q=4' R man tests/testthat -S
+gh issue list --search "article audit OR tutorial navigation OR figure gallery OR confidence eye OR profile bootstrap" --limit 20
+git diff --check
+```
+
+Outcomes:
+
+- The new rendered checklist covers all 26 pkgdown articles, their current
+  navigation group, rendered title, rendered figure count, first verdict, and
+  next audit action.
+- `drmTMB` now opens with the first-user task: fit a first model, check the
+  fitted object, and find the next article.
+- `model-map` now tells users who have not fitted a model yet to start with
+  the getting-started article before using the status map.
+- `model-workflow` now states its role in the Start Here path: checked tables,
+  predictions, intervals, residuals, and simulation checks after the first fit
+  and status map.
+- Full pkgdown build and `pkgdown::check_pkgdown()` passed.
+- The rendered search found the new Start Here text in generated HTML.
+- Stale-status scans confirmed that the triad mentions bootstrap as
+  `confint()` direct-target support, keeps `summary(..., method = "bootstrap")`
+  unsupported, names `profile_precision = "fast"`, uses log-SD language for
+  SD intervals, and names the guarded Fisher-z/atanh scale for correlations.
+- Issue search found #31, #58, #255, #265, #57, #4, and #147 as related open
+  ledgers. None were closed by this slice.
+- Figure follow-ups were recorded for `figure-gallery`,
+  `simulation-plot-grammar`, `bivariate-coscale`, and `model-workflow`.
+
+## 2026-05-22 - Article Audit Sweep Map And Navigation Slice
+
+Goal: start the comprehensive article audit with a durable map, a bounded
+pkgdown navigation-only reorganization, and rendered evidence that the public
+article index is no longer mixing first-user tutorials, figure guidance,
+structured-dependence route maps, and validation material in one long Tutorials
+bucket.
+
+Team roles:
+
+- Ada coordinated this as an audit and navigation slice, not a broad prose
+  rewrite or feature implementation.
+- Aquinas reviewed the pkgdown navigation as a spawned reviewer and recommended
+  a first-user path, a separate structured-dependence path, and moving
+  `figure-gallery` out of early Tutorials.
+- Goodall reviewed the applied-user path as a spawned reviewer and recommended
+  `drmTMB` -> `model-map` -> `model-workflow` as the visible starting route.
+- Helmholtz reviewed developer-note/system drift as a spawned reviewer and
+  recommended keeping raw design and dev-log ledgers internal while exposing
+  stable source, formula, and family-contributor notes.
+- Pat and Darwin checked that the public grouping now starts from applied
+  decisions before advanced details.
+- Fisher checked that `implementation-map`, `testing-likelihoods`, and
+  `simulation-plot-grammar` sit in a validation/evidence path rather than the
+  first tutorial path.
+- Florence kept `figure-gallery` tied to the inference, diagnostics, and
+  figures path so the figure audit can happen as its own quality gate.
+- Boole and Noether checked that the structural-dependence split does not
+  imply new syntax or new likelihood support.
+- Emmy checked that `source-map`, `formula-grammar`, and `adding-families`
+  remain the stable developer-note entry points.
+- Grace rebuilt pkgdown and checked the rendered article index.
+- Rose tied the slice to the broader article audit, figure audit, and
+  developer-note cleanup rather than treating navigation as the whole fix.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/dev-log/audits/2026-05-22-article-audit-sweep-map.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-article-audit-sweep-map.md`
+
+Checks run:
+
+```sh
+air format _pkgdown.yml vignettes/phylogenetic-spatial.Rmd docs/dev-log/audits/2026-05-22-article-audit-sweep-map.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-article-audit-sweep-map.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('phylogenetic-spatial', new_process = FALSE, quiet = TRUE)"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'Diagnostics & Validation|Start Here|Choose Your Model|Applied Family Tutorials|Structural dependence details|Simulation and Validation|Inference, Diagnostics, and Figures' _pkgdown.yml pkgdown-site/articles/index.html pkgdown-site/articles/phylogenetic-spatial.html -S
+gh issue list --search "article audit OR tutorial navigation OR pkgdown navigation OR developer notes OR figure gallery" --limit 20
+git diff --check
+```
+
+Outcomes:
+
+- The new audit map records the current 26-article surface, the proposed
+  article hierarchy, developer-note policy, authority hierarchy, first stale
+  scans, and the first sweep slices.
+- The pkgdown navbar now separates first-user model guides, applied tutorials,
+  structured-dependence articles, and diagnostics/validation material.
+- The article index now has `Start Here`, `Choose Your Model`, `Applied Family
+  Tutorials`, `Structured Dependence`, `Inference, Diagnostics, and Figures`,
+  `Simulation and Validation`, and `Developer Notes` groups.
+- `figure-gallery` moved out of early Tutorials and into the inference,
+  diagnostics, and figures path.
+- `implementation-map` moved out of first-user model guides and into the
+  simulation/validation path.
+- `phylogenetic-spatial` is now titled `Structural dependence details`, with a
+  matching vignette index entry and rendered article title.
+- Full pkgdown rebuild and `pkgdown::check_pkgdown()` passed; rendered HTML
+  searches found the expected navigation labels.
+- Issue search found #31, #58, #57, and #255 as related open ledgers. None were
+  closed by this slice.
+
+## 2026-05-22 - relmat Use-Case Clarification
+
+Goal: make the `relmat()` article convincing about when a covariance,
+correlation, or precision matrix belongs in a latent known-matrix
+random-effect layer rather than in meta-analysis sampling covariance.
+
+Team roles:
+
+- Ada kept this as a public documentation clarification with no likelihood,
+  parser, or TMB change.
+- Boole checked the syntax boundary between `relmat(1 | id, K = K)`,
+  `relmat(1 | id, Q = Q)`, `animal()`, `phylo()`, `spatial()`, and
+  `meta_V(V = V)`.
+- Fisher checked that the new equations separate latent group-level covariance
+  from observation-level known sampling covariance.
+- Pat checked that the page now gives concrete examples rather than only an
+  abstract matrix description.
+- Grace rebuilt the reference page, the relmat article, and the full pkgdown
+  site.
+- Rose checked that the issue remains tied to the broader animal/relmat and
+  tutorial ledgers rather than being treated as complete feature work.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `man/relmat.Rd`
+- `vignettes/relmat-known-matrices.Rmd`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-relmat-use-cases.md`
+
+Checks run:
+
+```sh
+air format R/formula-markers.R vignettes/relmat-known-matrices.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('relmat-known-matrices', new_process = FALSE, quiet = TRUE)"
+rg -n 'When is|Choosing|Two concrete examples|Genomic or marker-based|graph, network, river|correlation matrix with diagonal 1|known sampling covariance|fit_grm\$sdpars\$mu' vignettes/relmat-known-matrices.Rmd man/relmat.Rd pkgdown-site/articles/relmat-known-matrices.html pkgdown-site/reference/relmat.html -S
+Rscript -e "devtools::test(filter = 'package-skeleton|animal-relmat-gaussian|check-drm', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+git diff --check
+gh issue list --search "relmat known matrix K Q covariance precision" --limit 20
+```
+
+Outcomes:
+
+- The relmat article now states the latent model explicitly:
+  `u_id ~ N(0, sd_relmat^2 K)` or
+  `u_id ~ N(0, sd_relmat^2 Q^-1)`.
+- The page now says a correlation matrix with diagonal 1 is often the clearest
+  `K` input because the fitted relatedness SD supplies the latent variance
+  scale.
+- The page now separates four use cases: marker/genomic relatedness, lab or
+  ecological kernels, precomputed inverse relatedness, and external
+  graph/network/river/areal/GMRF precision matrices.
+- Two concrete examples were added: a genomic relationship matrix among lines
+  and a river-network precision matrix among reaches.
+- The reference docs now say `relmat()` is for latent group-level structure,
+  while `meta_V(V = V)` is for known sampling covariance among observed
+  estimates.
+- Focused tests, pkgdown checks, and the full pkgdown site build passed.
+- Issue search found #147 and #31 as broader open ledgers; no issue was closed.
+
+## 2026-05-22 - Reference And Figure Audit 30-Slice Closeout
+
+Goal: finish the next function-reference and figure-gallery audit slices by
+making model-fit extractors easier to discover, clearing stale status wording,
+fixing clipped status-matrix figures, and leaving a repeatable reference-audit
+script for future comprehensive passes.
+
+Team roles:
+
+- Ada coordinated the closeout as a documentation, reference, and figure QA
+  pass with no likelihood or formula-grammar implementation change.
+- Boole checked that the public formula examples still use the current
+  `phylo()`, `spatial()`, `animal()`, and `relmat()` routes rather than
+  resurrecting deprecated `gr()` syntax.
+- Emmy checked the S3 extractor surface, including `vcov.drmTMB`,
+  `fixef()`, `ranef()`, `weights()`, `rho12()`, and `fitted()`.
+- Fisher checked interval wording: fast Wald remains the routine fixed-effect
+  path; profile should be filtered with `profile_targets(ready_only = TRUE)`
+  and `profile_precision = "fast"` before long phylogenetic, spatial, animal,
+  or relatedness runs.
+- Florence rechecked the rendered status-boundary figures after the first
+  version clipped labels; the repaired version moves text beside markers.
+- Pat checked that examples are runnable and start from applied-user tasks.
+- Grace ran roxygen, examples, full tests, pkgdown checks/builds, and
+  `devtools::check()`.
+- Rose updated the audit ledger, stale-wording scans, and remaining figure
+  limits.
+
+Files changed:
+
+- `R/check.R`
+- `R/drmTMB.R`
+- `R/formula-markers.R`
+- `R/methods.R`
+- `R/profile.R`
+- `man/check_drm.Rd`
+- `man/confint.drmTMB.Rd`
+- `man/drmTMB.Rd`
+- `man/fitted.drmTMB.Rd`
+- `man/fixef.Rd`
+- `man/model-fit-extractors.Rd`
+- `man/profile_targets.Rd`
+- `man/ranef.Rd`
+- `man/rho12.Rd`
+- `man/spatial.Rd`
+- `man/weights.drmTMB.Rd`
+- `vignettes/figure-gallery.Rmd`
+- `vignettes/formula-grammar.Rmd`
+- `tools/reference-audit.R`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/*.png`
+- `docs/dev-log/after-task/2026-05-22-reference-figure-audit-30-slices.md`
+
+Checks run:
+
+```sh
+air format R/check.R R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R vignettes/figure-gallery.Rmd vignettes/formula-grammar.Rmd docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md docs/dev-log/figure-audits/2026-05-21-correlation-gallery-q2-refresh/figure-audit.md docs/dev-log/figure-audits/2026-05-22-status-matrix-reference-pass/figure-audit.md tools/reference-audit.R
+Rscript -e "devtools::document()"
+Rscript tools/reference-audit.R
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+rg -n 'Tile plot showing|bivariate spatial blocks remain planned|Fisher.s `z`|fitted q2 rows; spatial now also has a constant q4 block|fitted q2 row' R man vignettes docs/dev-log/figure-audits docs/dev-log/audits -S
+git diff --check
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "devtools::check()"
+gh issue list --search "reference audit OR figure gallery OR visualization layer OR confidence intervals OR profile_targets" --limit 20
+```
+
+Outcomes:
+
+- All reference topics now have runnable examples except the package overview
+  and deprecated `gr()` marker, which are intentionally example-free.
+- `vcov.drmTMB` is documented in the grouped model-fit extractor page.
+- The extractor examples now cover `drmTMB()`, `fixef()`, `ranef()`,
+  `weights()`, `rho12()`, `fitted()`, and `vcov()`.
+- `confint()` and `profile_targets()` now make the fast path clearer:
+  ordinary fixed-effect work can use default Wald intervals, while expensive
+  variance and correlation profiles should be filtered and can start with
+  `profile_precision = "fast"`.
+- `check_drm()` now says Hessian or `sdreport()` warnings are inference and
+  identifiability signals, not automatic proof that point estimates are
+  unusable.
+- `spatial()` and the formula grammar now name the current q=2 and first
+  q=4 structured routes more accurately.
+- The two status-boundary figures in the figure gallery were rerendered and
+  inspected as PNGs after the first repair still clipped text.
+- `Rscript tools/reference-audit.R`, `git diff --check`, full
+  `devtools::test(reporter = "summary")`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` passed.
+- `devtools::check()` completed with 0 errors, 0 warnings, and 1 NOTE:
+  `checking for future file timestamps ... unable to verify current time`.
+- Issue search found #58, #255, #31, #147, #265, #128, #33, #5, and #61 as
+  broader overlapping ledgers; no issue was closed by this documentation and
+  figure closeout.
+- A future "Confidence Eye" visual-design idea was recorded as a separate
+  figure-language direction, not part of the current status-matrix repair.
+
+## 2026-05-22 - Reference Model-Fit Extractors
+
+Goal: continue the comprehensive function/reference audit by fixing the grouped
+model-fit extractor page.
+
+Team roles:
+
+- Ada kept this as a reference-page slice with no behavior change.
+- Pat checked that the example shows the base-R model-comparison path users
+  expect.
+- Fisher checked that `deviance()` is described as negative twice log
+  likelihood, not a saturated-model GLM deviance.
+- Emmy checked that `logLik.drmTMB` is now represented in the grouped Rd topic.
+- Grace regenerated Rd and rebuilt the reference page.
+- Rose updated the function-reference audit so grouped model-fit extractors are
+  no longer the next open target.
+
+Files changed:
+
+- `R/methods.R`
+- `man/model-fit-extractors.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-model-fit-extractors.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(20260524); n <- 36; x <- seq(-1.5, 1.5, length.out = n); dat <- data.frame(y = 0.3 + 0.6 * x + rnorm(n, sd = 0.7), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat); print(logLik(fit)); print(nobs(fit)); print(df.residual(fit)); print(deviance(fit)); print(AIC(fit)); print(BIC(fit))'
+air format R/methods.R
+Rscript -e "devtools::test(filter = 'gaussian-location-scale|biv-gaussian|student-location-scale', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'logLik\(\)|AIC\(|BIC\(|complete-case|negative twice log-likelihood|logLik.drmTMB|df.residual\(fit\)' R/methods.R man/model-fit-extractors.Rd pkgdown-site/reference/model-fit-extractors.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "model-fit extractors logLik AIC BIC reference" --limit 20
+```
+
+Outcomes:
+
+- `logLik.drmTMB` is now part of the grouped model-fit extractor reference
+  topic, with usage and alias entries.
+- The page now states that `logLik()` carries `df` and `nobs` attributes for
+  `AIC()` and `BIC()`.
+- The example uses a non-degenerate Gaussian location-scale fit and shows
+  `logLik()`, `nobs()`, `df.residual()`, `deviance()`, `AIC()`, and `BIC()`.
+- Issue search found no matching open issue to close.
+
+## 2026-05-22 - Reference Grid And Marginal Examples
+
+Goal: continue the comprehensive function/reference audit by improving the
+`prediction_grid()` and `marginal_parameters()` reference pages.
+
+Team roles:
+
+- Ada kept this as a reference-prose/example slice with no behavior change.
+- Pat checked that the examples show the choice between adjusted prediction
+  grids and empirical averaging.
+- Fisher checked that the example interval rows are finite and do not imply
+  marginal uncertainty support.
+- Emmy checked that `prediction_grid()`, `predict_parameters()`, and
+  `marginal_parameters()` still compose through their current table contracts.
+- Grace regenerated Rd and rebuilt the reference pages.
+- Rose updated the function-reference audit so grid/marginal pages are no
+  longer listed as the next open target.
+
+Files changed:
+
+- `R/prediction-grid.R`
+- `R/marginal-parameters.R`
+- `man/prediction_grid.Rd`
+- `man/marginal_parameters.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-grid-marginal-parameters.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(20260523); n <- 48; x <- seq(-1.5, 1.5, length.out = n); habitat <- factor(rep(c("reef", "sand"), length.out = n)); eta <- 0.4 + 0.7 * x + ifelse(habitat == "reef", 0.25, -0.15); sigma <- exp(-0.35 + 0.15 * x); dat <- data.frame(y = eta + rnorm(n, sd = sigma), x = x, habitat = habitat); fit <- drmTMB(bf(y ~ x + habitat, sigma ~ x), data = dat); grid <- prediction_grid(fit, focal = "x", at = list(x = c(-1, 0, 1)), condition = list(habitat = "reef")); print(predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), conf.int = TRUE)); empirical_grid <- prediction_grid(fit, focal = "habitat", at = list(habitat = levels(dat$habitat)), margin = "empirical"); print(marginal_parameters(fit, newdata = empirical_grid, dpar = "mu", by = "habitat")); print(marginal_parameters(fit, newdata = empirical_grid, dpar = c("mu", "sigma"), by = "habitat"))'
+air format R/prediction-grid.R R/marginal-parameters.R
+Rscript -e "devtools::test(filter = 'prediction-grid|marginal-parameters|predict-parameters|plot-parameter-surface', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'mean_reference|empirical|averages rather than row-level predictions|finite|wald|marginal_parameters\\(|prediction_grid\\(' R/prediction-grid.R R/marginal-parameters.R man/prediction_grid.Rd man/marginal_parameters.Rd pkgdown-site/reference/prediction_grid.html pkgdown-site/reference/marginal_parameters.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "prediction_grid marginal_parameters reference OR prediction marginal examples" --limit 20
+```
+
+Outcomes:
+
+- `prediction_grid()` now states when to use `mean_reference` versus
+  `empirical` grids.
+- `prediction_grid()` shows a stable adjusted-prediction example that feeds
+  finite Wald rows through `predict_parameters()`.
+- `marginal_parameters()` now says it is for averages rather than row-level
+  predictions and no longer frames plotting helpers as future-only.
+- `marginal_parameters()` now demonstrates empirical-grid averaging by
+  habitat with explicit point-only interval provenance.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
+## 2026-05-22 - Reference Correlation And Prediction Examples
+
+Goal: continue the comprehensive function/reference audit by making the
+`corpairs()` and `predict_parameters()` reference pages clearer about fast
+reader paths, interval provenance, and when to choose related extractors.
+
+Team roles:
+
+- Ada kept this as a reference-prose/example slice with no behavior change.
+- Pat checked that applied users can tell when to use `rho12()`, `corpairs()`,
+  `predict_parameters()`, or `marginal_parameters()`.
+- Fisher checked that interval wording does not imply bootstrap or broad
+  profile support for derived correlation tables.
+- Emmy checked that the extractor and plotting-table contracts stay coherent.
+- Grace regenerated Rd and rebuilt the reference pages.
+- Rose updated the function-reference audit so this target is no longer the
+  next open item.
+
+Files changed:
+
+- `R/methods.R`
+- `R/predict-parameters.R`
+- `man/corpairs.Rd`
+- `man/predict_parameters.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-reference-corpairs-predict-parameters.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(1); n <- 40; x <- rnorm(n); z1 <- rnorm(n); z2 <- rnorm(n); mu1 <- 0.2 + 0.5 * x; mu2 <- -0.1 + 0.4 * x; sigma1 <- exp(-0.2 + 0.15 * z1); sigma2 <- exp(0.1 - 0.1 * z2); rho <- 0.35; e1 <- rnorm(n); e2 <- rho * e1 + sqrt(1 - rho^2) * rnorm(n); dat <- data.frame(y1 = mu1 + sigma1 * e1, y2 = mu2 + sigma2 * e2, x = x, z1 = z1, z2 = z2); fit <- drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2, rho12 = ~ 1), family = c(gaussian(), gaussian()), data = dat); pairs <- corpairs(fit); print(pairs); print(corpairs(fit, level = "residual")); set.seed(20260522); n <- 36; x <- seq(-1.5, 1.5, length.out = n); sigma <- exp(-0.35 + 0.2 * x); dat <- data.frame(y = 0.4 + 0.7 * x + rnorm(n, sd = sigma), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat); grid <- data.frame(x = c(-1, 0, 1)); pred <- predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), conf.int = TRUE); print(pred); print(predict_parameters(fit, newdata = grid, dpar = "sigma", type = "link", include_newdata = FALSE, conf.int = TRUE))'
+air format R/methods.R R/predict-parameters.R
+Rscript -e "devtools::test(filter = 'corpairs|predict-parameters|plot-parameter-surface|plot-corpairs', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'Bootstrap intervals are not a `corpairs\\(\\)` route|Use `rho12\\(\\)`|Use `marginal_parameters\\(\\)`|Profile intervals are opt-in|delta method|wald' R/methods.R R/predict-parameters.R man/corpairs.Rd man/predict_parameters.Rd pkgdown-site/reference/corpairs.html pkgdown-site/reference/predict_parameters.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "corpairs predict_parameters reference OR correlation prediction examples" --limit 20
+```
+
+Outcomes:
+
+- `corpairs()` now tells readers to use `rho12()` for the residual-correlation
+  curve and `corpairs()` for fitted residual, group, phylogenetic, spatial,
+  animal, and `relmat()` correlation rows.
+- `corpairs()` now explicitly says profile intervals are opt-in, should be
+  filtered before long runs, and bootstrap intervals are not a `corpairs()`
+  route.
+- `predict_parameters()` now points row-level prediction users to
+  `marginal_parameters()` when they actually need averages over rows.
+- The `predict_parameters()` example now uses a stable enough toy fit to show
+  finite Wald intervals rather than `wald_unavailable`.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
+## 2026-05-21 - Deprecated Legacy gr() Marker
+
+Goal: close the reference-audit decision about the old `gr()` marker by
+deprecating it as public syntax while keeping a compatibility placeholder.
+
+Team roles:
+
+- Ada kept this as a small API/documentation compatibility slice.
+- Boole checked that `relmat()` remains the public low-level known-relatedness
+  syntax and that biological routes stay `animal()`, `phylo()`, and
+  `spatial()`.
+- Emmy checked the exported marker and pkgdown grouping boundary.
+- Grace regenerated roxygen and reference pages.
+- Rose updated the audit ledger so `gr()` is no longer left as a future
+  undecided item.
+
+Files changed:
+
+- `R/formula-markers.R`
+- `tests/testthat/test-package-skeleton.R`
+- `_pkgdown.yml`
+- `NEWS.md`
+- `ROADMAP.md`
+- `docs/design/00-vision.md`
+- `docs/design/01-formula-grammar.md`
+- `docs/design/09-phylogenetic-and-spatial-speed.md`
+- `docs/design/16-phylo-spatial-common-math.md`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-gr-deprecation.md`
+- `man/gr.Rd`
+
+Checks run:
+
+```sh
+air format R/formula-markers.R tests/testthat/test-package-skeleton.R _pkgdown.yml NEWS.md ROADMAP.md docs/design/00-vision.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-gr-deprecation.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'package-skeleton|gaussian-location-scale|formula-grammar', reporter = 'summary')"
+Rscript -e "pkgdown::build_reference()"
+rg -n 'gr\(\)|deprecated|Deprecated marker internals|relmat\(\)' R/formula-markers.R man/gr.Rd _pkgdown.yml NEWS.md ROADMAP.md docs/design/00-vision.md docs/design/01-formula-grammar.md docs/design/09-phylogenetic-and-spatial-speed.md docs/design/16-phylo-spatial-common-math.md docs/dev-log/audits/2026-05-21-function-reference-inventory.md pkgdown-site/reference/gr.html pkgdown-site/reference/index.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "gr deprecated OR relmat gr OR reserved marker" --limit 20
+```
+
+Outcomes:
+
+- Direct calls to `gr()` now warn that the public marker is deprecated while
+  returning the same no-op placeholder value for compatibility.
+- `relmat()` is now named consistently as the public low-level route for
+  validated known-relatedness matrices.
+- The pkgdown reference index groups `gr()` under deprecated marker internals,
+  away from the main structured-effect reader path.
+- No formula grammar, likelihood, or TMB implementation changed.
+- Issue search found no matching open issue to close.
+
+## 2026-05-21 - Reference Plot Helper Examples
+
+Goal: continue the comprehensive function/reference/figure audit by improving
+the rendered `plot_parameter_surface()` and `plot_corpairs()` reference
+examples.
+
+Team roles:
+
+- Ada kept this to reference examples and rendered evidence.
+- Florence judged the generated reference PNGs rather than accepting runnable
+  example code as enough.
+- Fisher checked that interval provenance remained explicit in the fixture
+  tables.
+- Pat checked whether the examples teach the helper contract without a
+  pathological toy fit.
+- Emmy checked that the helpers still consume compatible tables and do not grow
+  new API.
+- Grace regenerated Rd and reference pages.
+- Rose recorded the fragile-toy-model pattern for later reference audits.
+
+Files changed:
+
+- `R/plot-parameter-surface.R`
+- `R/plot-corpairs.R`
+- `man/plot_parameter_surface.Rd`
+- `man/plot_corpairs.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-reference-plot-helper-examples.md`
+
+Checks run:
+
+```sh
+air format R/plot-parameter-surface.R R/plot-corpairs.R docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/figure-audits/2026-05-21-reference-plot-helpers/figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-reference-plot-helper-examples.md
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+find pkgdown-site/reference -maxdepth 1 \( -name 'plot_*.png' -o -name '*corpairs*.png' -o -name '*surface*.png' \) -print -exec file {} \;
+rg -n 'theme_minimal|sigma block|phylo mu1-mu2|conf.status = "wald"|plot_parameter_surface\(pred|plot_corpairs\(pairs' R/plot-parameter-surface.R R/plot-corpairs.R man/plot_parameter_surface.Rd man/plot_corpairs.Rd pkgdown-site/reference/plot_parameter_surface.html pkgdown-site/reference/plot_corpairs.html -S
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs|predict-parameters|corpairs', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "plot helper reference figure OR visualization layer OR corpairs predict_parameters" --limit 20
+```
+
+Outcomes:
+
+- `plot_parameter_surface()` now uses a controlled compatible long table with
+  sensible `mu` and `sigma` response-scale ranges and visible Wald ribbons.
+- `plot_corpairs()` now uses short labels and four rows, including point-only
+  and profile-interval rows, so the rendered reference figure is not visually
+  empty.
+- The helper APIs did not change.
+- The rendered reference PNGs were inspected after `pkgdown::build_reference()`.
+- Issue search found #58; it remains open as the broader visualization-layer
+  ledger.
+
+## 2026-05-21 - Reference CI Fast Examples
+
+Goal: continue the comprehensive function/reference audit by making the
+`confint()` and `summary()` reference pages show the fast direct CI workflow
+and the `profile_precision = "fast"` option explicitly.
+
+Team roles:
+
+- Ada kept this as a reference-page slice after the rendered figure pass.
+- Jason checked local `gllvmTMB` source for what it actually does before
+  borrowing any language.
+- Fisher checked the default order: fast Wald first, targeted profile second,
+  bootstrap only when refit-based uncertainty is worth the cost.
+- Gauss and Noether checked that the examples still match the log-SD and
+  guarded Fisher z/atanh correlation-link contract.
+- Emmy checked the S3 reference boundary: `confint()` gets bootstrap examples,
+  while `summary()` still points users to `confint(..., method = "bootstrap")`.
+- Grace regenerated Rd and rebuilt the pkgdown reference pages.
+- Rose recorded the stale-generated-reference pattern.
+
+Files changed:
+
+- `R/profile.R`
+- `R/methods.R`
+- `man/confint.drmTMB.Rd`
+- `man/summary.drmTMB.Rd`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-reference-ci-fast-examples.md`
+
+Checks run:
+
+```sh
+air format R/profile.R R/methods.R docs/dev-log/audits/2026-05-21-function-reference-inventory.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-reference-ci-fast-examples.md
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::build_reference()"
+Rscript -e "devtools::load_all(quiet = TRUE); dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2)); fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat); print(confint(fit)); print(confint(fit, parm = 'variance_components')); print(confint(fit, parm = 'sigma', method = 'profile', profile_precision = 'fast')); print(summary(fit, conf.int = TRUE, method = 'profile', ci_parm = 'sigma', profile_precision = 'fast'))"
+rg -n 'confint\(fit|variance_components|profile_precision = "fast"|method = "bootstrap"|bootstrap intervals are not implemented|not implemented yet' R/profile.R R/methods.R man/confint.drmTMB.Rd man/summary.drmTMB.Rd pkgdown-site/reference/confint.drmTMB.html pkgdown-site/reference/summary.drmTMB.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "bootstrap intervals OR confidence interval OR profile" --limit 20
+```
+
+Outcomes:
+
+- The `confint()` reference examples now show the fast direct Wald default,
+  the `variance_components` shortcut, a targeted fast profile call, and a
+  commented direct-target bootstrap call.
+- The `summary()` profile example now uses `profile_precision = "fast"`.
+- The documented toy-model calls completed, including the fast profile example.
+- Rebuilding reference pages removed stale local HTML that still said bootstrap
+  intervals were not implemented for `confint()`.
+- The local `gllvmTMB` source check found fixed-effect Wald `confint()` and a
+  simulation path designed for parametric-bootstrap redraws; the drmTMB docs
+  now make the fast direct path obvious while keeping bootstrap targeted.
+- Issue search found #265, #58, #4, #255, #147, #33, #5, #60, #128, and #31;
+  none were closed by this reference-page example slice.
+
+## 2026-05-21 - Simulation Plot Grammar Rendered Pass
+
+Goal: continue the comprehensive function/page/figure audit by inspecting the
+rendered `simulation-plot-grammar` figures and making unsupported simulation
+cells visible instead of silently blank.
+
+Team roles:
+
+- Ada kept this as a rendered-page correction, not a new simulation claim.
+- Florence inspected the active PNGs as scientific figures rather than source
+  chunks.
+- Fisher checked that fixture replicate rows, aggregate RMSE, MCSE intervals,
+  and unsupported cells were not blurred together.
+- Curie checked that the display contract still matches Phase 18 artifact
+  grain.
+- Pat checked whether a reader can tell unsupported from omitted.
+- Grace rebuilt the article and inventoried active HTML image references.
+- Rose recorded the repeated missing-cell pattern in the audit ledger.
+
+Files changed:
+
+- `vignettes/simulation-plot-grammar.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-simulation-plot-grammar/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-simulation-plot-grammar-rendered-pass.md`
+
+Checks run:
+
+```sh
+air format vignettes/simulation-plot-grammar.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/figure-audits/2026-05-21-simulation-plot-grammar/figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-simulation-plot-grammar-rendered-pass.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
+rg -n 'simulation-plot-grammar_files/figure-html|<img' pkgdown-site/articles/simulation-plot-grammar.html -S
+rg -n 'not targeted|replicate-block proportions|unsupported cells stay visible|fixture replicate errors|RMSE and 95% MCSE' vignettes/simulation-plot-grammar.Rmd pkgdown-site/articles/simulation-plot-grammar.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "simulation plot grammar OR simulation figures OR replicate-level simulation artifacts OR uncertainty displays" --limit 20
+```
+
+Outcomes:
+
+- The active rendered page references five article figures:
+  `bias-rmse-display-1.png`, `bias-rmse-display-2.png`,
+  `coverage-power-display-1.png`, `convergence-runtime-display-1.png`, and
+  `failure-ledger-display-1.png`.
+- Bias and RMSE panels now show grey `not targeted` labels for unsupported
+  surface/estimand cells.
+- Coverage/power already showed missing cells and retained replicate-block
+  dots plus binomial MCSE intervals.
+- The convergence/runtime and failure-ledger panels were inspected after
+  render; the failure ledger remains a later polish item, not this slice's
+  main target.
+- GitHub issue search found #255, #59, #58, and #61; none were closed by this
+  narrow rendered-page pass.
+
+## 2026-05-21 - Structural Dependence Fast CI Clarification
+
+Goal: continue the comprehensive page audit by rendering
+`phylogenetic-spatial` and making its covariance-interval guidance show both
+the fast direct Wald screen and the targeted profile route for long structured
+targets.
+
+Team roles:
+
+- Ada kept this to article guidance and audit evidence.
+- Fisher separated routine fast intervals from final boundary-sensitive
+  profile checks.
+- Gauss and Noether checked the SD log-scale and correlation atanh-scale
+  wording.
+- Pat checked that an applied user can find the fast option before waiting on a
+  phylogenetic profile.
+- Grace rendered the article and confirmed there are no active article figures
+  beyond the pkgdown logo.
+- Rose recorded this as audit progress rather than a new modelling claim.
+
+Files changed:
+
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-structural-dependence-fast-ci.md`
+
+Checks run:
+
+```sh
+air format vignettes/phylogenetic-spatial.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-structural-dependence-fast-ci.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('phylogenetic-spatial', new_process = FALSE, quiet = TRUE)"
+rg -n 'phylogenetic-spatial_files/figure-html|<img' pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'confint\(fit_phylo_mean, parm = "variance_components"\)|profile_precision = "fast"|quick direct Wald screen|Use Wald intervals only|not a public `confint\(method = "bootstrap"\)` route' vignettes/phylogenetic-spatial.Rmd pkgdown-site/articles/phylogenetic-spatial.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|phylo-gaussian|spatial-gaussian', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "phylogenetic spatial profile CI OR profile_precision OR confidence interval" --limit 20
+```
+
+Outcomes:
+
+- The rendered structural-dependence page has no active article figures beyond
+  the pkgdown logo.
+- The structured-interval section now shows
+  `confint(fit_phylo_mean, parm = "variance_components")` as a quick direct
+  Wald screen before a long profile run.
+- The profile example now includes `profile_precision = "fast"` as the quicker
+  first pass for long phylogenetic or spatial SD/correlation targets.
+- The article still tells users to treat boundary-sensitive SD and correlation
+  rows as profile-diagnostic targets before final reporting.
+- Focused `profile-targets`, `phylo-gaussian`, and `spatial-gaussian` tests,
+  `git diff --check`, and `pkgdown::check_pkgdown()` passed.
+- GitHub issue search found related learning-path, structured-slope,
+  visualization, and bootstrap ledgers; none were closed by this narrow text
+  clarification.
+
+## 2026-05-21 - Implementation Map Interval Sync
+
+Goal: continue the comprehensive page audit by rendering `model-map` and
+`implementation-map`, then correcting stale implementation-map wording that
+still described Wald intervals as fixed-effect-only and public bootstrap as
+unavailable.
+
+Team roles:
+
+- Ada kept this as a map-consistency slice rather than another inference-code
+  change.
+- Fisher checked the default Wald, targeted profile, and bootstrap boundary.
+- Gauss and Noether checked the SD log-scale and correlation atanh-scale
+  wording.
+- Pat checked whether the maps now point applied users to the fastest reliable
+  CI order.
+- Grace rendered the map pages and confirmed they have no active article
+  figures beyond the pkgdown logo.
+- Rose found the stale implementation-map paragraph and recorded the scan
+  pattern.
+
+Files changed:
+
+- `vignettes/implementation-map.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-implementation-map-interval-sync.md`
+
+Checks run:
+
+```sh
+air format vignettes/implementation-map.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-interval-sync.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('implementation-map', new_process = FALSE, quiet = TRUE)"
+rg -n 'model-map_files/figure-html|implementation-map_files/figure-html|<img' pkgdown-site/articles/model-map.html pkgdown-site/articles/implementation-map.html
+rg -n 'Use Wald intervals only|not a public `confint\(method = "bootstrap"\)` route|private simulation infrastructure, not a public|fixed-effect-only|Wald intervals are fixed-effect-only' vignettes/implementation-map.Rmd pkgdown-site/articles/implementation-map.html vignettes/model-map.Rmd pkgdown-site/articles/model-map.html README.md ROADMAP.md docs/design/34-validation-debt-register.md -S
+rg -n 'direct bootstrap only through selected `confint\(\)` targets|narrow public simulate/refit route|Use fast Wald intervals for routine fixed-effect coefficients and selected direct fitted targets' vignettes/implementation-map.Rmd pkgdown-site/articles/implementation-map.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "implementation map interval OR bootstrap intervals OR confidence interval" --limit 20
+```
+
+Outcomes:
+
+- `model-map` already had the current interval route; `implementation-map` did
+  not.
+- `implementation-map` now states that default Wald intervals cover routine
+  fixed effects and selected direct fitted targets when `sdreport()` covariance
+  is available.
+- The page now names the scale contract: SD Wald intervals use the fitted
+  log-SD scale, and direct correlation Wald intervals use the guarded atanh
+  correlation-link scale.
+- The public bootstrap boundary now matches the package: selected direct
+  `confint()` targets have a narrow simulate/refit route, while `summary()`,
+  `corpairs()`, prediction tables, q4 derived rows, repeatability, and
+  phylogenetic signal remain separate work.
+- The rendered `model-map` and `implementation-map` pages have no active
+  article figures beyond the pkgdown logo.
+- GitHub issue search found #265 as the broad bootstrap interval ledger, plus
+  broader visualization and simulation artifact issues; #265 remains open.
+- Focused `profile-targets` and `summary` tests, `git diff --check`, and
+  `pkgdown::check_pkgdown()` passed.
+
+## 2026-05-21 - Model Workflow Rendered Figure Pass
+
+Goal: continue the comprehensive audit by inspecting the active rendered
+`model-workflow` figures, fixing a formula/display mismatch in the `sigma`
+panels, and recording the page-level figure evidence.
+
+Team roles:
+
+- Ada kept the slice focused on the rendered workflow article.
+- Florence judged the plots against the reader-facing figure standard rather
+  than accepting default ggplot output.
+- Fisher checked that habitat colour did not imply a `sigma` formula term that
+  was not fitted.
+- Pat checked whether the figures explain the fastest post-fit workflow to an
+  applied reader.
+- Grace rebuilt the article and inventoried active HTML image references.
+- Rose recorded the stale-pkgdown-image lesson in the audit and team log.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md`
+- `docs/dev-log/team-improvements.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-model-workflow-rendered-pass.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+air format vignettes/model-workflow.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-model-workflow-rendered-pass.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+rg -n "model-workflow_files/figure-html|<img" pkgdown-site/articles/model-workflow.html
+rg -n 'sigma \(habitat not in formula\)|Because `sigma ~ temperature` has no habitat term|fig.alt' vignettes/model-workflow.Rmd pkgdown-site/articles/model-workflow.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "model workflow figure OR figure audit OR confidence interval" --limit 20
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|predict-parameters', reporter = 'summary')"
+```
+
+Outcomes:
+
+- The active rendered `model-workflow` page now references five named figures,
+  each with figure alt text.
+- The combined `mu`/`sigma` display now uses habitat colour only where habitat
+  is in the fitted formula. The `sigma` panel uses a neutral line labelled
+  "sigma (habitat not in formula)".
+- The standalone `sigma` surface now filters duplicate habitat rows and
+  explains why one line is shown.
+- The two-point habitat contrast, raw-data panel, and fitted `mu` panel now use
+  the article theme and stable colour palette.
+- The audit records that active HTML image references, not ignored pkgdown
+  directory listings, are the authoritative figure inventory after chunk labels
+  change.
+- GitHub issue search found #58 as the broad visualization ledger; it remains
+  open because this slice only fixes the `model-workflow` article figures.
+- Focused `plot-parameter-surface` and `predict-parameters` tests passed.
+
+## 2026-05-21 - Figure Gallery Rendered Pass
+
+Goal: complete the first full rendered pass through `figure-gallery` after the
+gllvmTMB-informed polish, compact the sparse point-interval panels, and record
+which figures still need later Florence redesign.
+
+Team roles:
+
+- Ada kept this to rendered figure polish and audit evidence.
+- Florence inspected the remaining gallery PNGs for visual hierarchy and
+  wasted space.
+- Pat checked whether row labels and legends were doing redundant work.
+- Fisher kept the interval and visual-data-grain claims unchanged.
+- Rose recorded watchlist figures rather than pretending the gallery is now
+  publication-polished.
+- Grace re-rendered the article after the compact-panel edits.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-figure-gallery-rendered-pass.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- All 21 rendered `figure-gallery` PNGs were inventoried and inspected
+  directly.
+- Sparse point-interval panels are more compact: random-effect SD components,
+  `predict_parameters()` habitat contrasts, the simple `emmeans` display, and
+  the factor-conditioned `emmeans` display no longer waste as much vertical
+  space.
+- Redundant habitat legends were removed where the y-axis row labels already
+  say `reef` and `kelp`.
+- Two status-tile figures remain on the Florence watchlist:
+  `emmeans-boundary-strip` and `correlation-layer-boundaries`.
+
+## 2026-05-21 - gllvmTMB-Informed Figure Polish
+
+Goal: continue Step 3 of the comprehensive audit by learning from the local
+`gllvmTMB` covariance/correlation plotting branch and applying the transferable
+visual lessons to the first `drmTMB` figure-gallery raindrop and SD-surface
+panels.
+
+Team roles:
+
+- Ada kept the slice visual and documentation-focused rather than changing
+  inference machinery.
+- Jason read the local `gllvmTMB` plotting helper branch and separated design
+  lessons from code that should not be copied.
+- Florence led the visual standard: row labels should do useful work, legends
+  should not dominate dense panels, and sparse figures need meaningful design
+  support.
+- Fisher checked that the `sd(site)` surface still avoids raw response points
+  on an SD axis and does not draw unsupported intervals.
+- Pat and Rose checked that the public story is reader-first rather than
+  storage-mechanics-first.
+- Grace re-rendered the gallery page and reran pkgdown checks.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-21-gllvmtmb-visual-lessons.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-gllvmtmb-informed-figure-polish.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+rg -n 'Parameter class|colour = "Layer"|Fisher-z scale|direct random-effect SD surface' vignettes/figure-gallery.Rmd pkgdown-site/articles/figure-gallery.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The local `gllvmTMB` visual lesson was row-label-first plotting: hide
+  redundant legends when row labels already identify the target, keep rows
+  visible when intervals are missing, and describe raindrops as frequentist
+  compatibility displays rather than posterior densities.
+- The coefficient and correlation raindrop displays now remove redundant
+  legends and use row labels to name the parameter class or structured layer.
+- The modelled `sd(site)` surface now includes a site-level reef-cover rug,
+  making the design support visible without plotting raw `growth` observations
+  on an SD axis.
+- The full figure audit remains open. This slice improves three first-pass
+  panels; it does not certify the full `figure-gallery` page or the remaining
+  high-risk articles.
+
+## 2026-05-21 - Function Inventory and Figure Audit Kickoff
+
+Goal: begin the real comprehensive audit after packaging the CI/C++/audit-map
+branch: inventory exported functions and pkgdown pages, then start the
+rendered figure audit without pretending the full figure review is finished.
+
+Team roles:
+
+- Ada packaged the prior work into three commits, then opened the first
+  function/page/figure audit slice.
+- Emmy checked exported functions, S3 methods, man pages, and pkgdown
+  reference grouping.
+- Pat and Rose checked page status, stale interval wording, and reader-facing
+  drift.
+- Florence led the rendered-figure standard, with Fisher checking uncertainty
+  source and visual data grain.
+- Grace ran full validation before the packaging commits and rendered the
+  high-priority figure pages from the local package.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `vignettes/figure-gallery.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-21-function-reference-inventory.md`
+- `docs/dev-log/audits/2026-05-21-page-status-inventory.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+
+Checks run:
+
+```sh
+git status --short --branch
+git log -5 --oneline
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = FALSE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = FALSE)"
+rg -n 'direct random-effect SD surface|direct random-effect SD surfaces|Fisher.s z scale|Fisher-z.*public|stacked' vignettes/figure-gallery.Rmd vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md pkgdown-site/articles/figure-gallery.html pkgdown-site/articles/model-workflow.html -S
+git diff --check
+```
+
+Outcomes:
+
+- The validated CI/C++/audit-map work is committed in three commits:
+  `1b889134` C++ helpers, `42929588` fast direct CI routes, and `8f2fd999`
+  CI/figure audit maps.
+- The function inventory found 32 exported names, 26 registered S3 methods,
+  40 man topics, and no exported function missing from `_pkgdown.yml`.
+- The first page inventory identified `model-workflow`, `figure-gallery`,
+  `model-map`, `implementation-map`, `phylogenetic-spatial`, and
+  `simulation-plot-grammar` as the highest-risk rendered pages.
+- The rendered figure kickoff inspected five high-risk gallery figures:
+  random-effect SD surface, coefficient intervals, correlation display, bias
+  simulation panel, and coverage simulation panel.
+- Two figure/prose inconsistencies were fixed: modelled `sd(site)` surfaces are
+  no longer called direct SD targets, and the correlation-display figure now
+  says guarded correlation-link scale rather than Fisher-z scale.
+- The simulation bias panel now labels unsupported cells as "not targeted",
+  and the coverage-panel subtitle names faint block dots as replicate-block
+  coverage values.
+- The figure audit is started, not complete. Remaining Florence-led fixes
+  include lighter legends in raindrop displays, a less visually empty
+  random-effect SD surface, and a full one-by-one rendered gallery audit.
+
+## 2026-05-21 - gllvmTMB CI Audit and Comprehensive Audit Launch
+
+Goal: answer the follow-up question about whether `gllvmTMB` had a faster
+profile/CI pattern worth learning from, make the fast `drmTMB` CI workflow
+visible in a user-facing article, and start the comprehensive function, page,
+and figure audit as bounded slices rather than another sprawling cleanup.
+
+Team roles:
+
+- Ada coordinated the source-only sister-package audit, workflow article
+  update, roadmap cleanup, and audit-map launch.
+- Jason inspected the local `gllvmTMB` profile, bootstrap, and correlation
+  interval code without porting source.
+- Fisher separated the default inference rule: fast Wald for routine direct
+  targets, targeted profile for likelihood-shape checks, and bootstrap only
+  when refit-based uncertainty is worth the runtime.
+- Gauss and Noether checked the scale story: SD intervals use the optimized
+  log-SD scale, direct correlation intervals use the fitted guarded atanh
+  scale, and sample-correlation Fisher-z `n_eff` intervals should not become
+  the default for model-parameter correlations.
+- Emmy checked the S3/documentation boundary: `confint()` has the first
+  direct-target bootstrap route, while `summary()` and `corpairs()` still do
+  not run bootstrap intervals.
+- Pat and Rose removed current public wording that still told users bootstrap
+  was unavailable, and launched the broader inconsistency audit.
+- Florence queued the rendered figure gate; no figure was declared fixed from
+  source inspection alone.
+- Grace ran the article render, pkgdown, focused tests, documentation, and
+  whitespace checks.
+
+Files changed:
+
+- `R/methods.R`
+- `man/summary.drmTMB.Rd`
+- `ROADMAP.md`
+- `vignettes/model-workflow.Rmd`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/68-gllvmtmb-profile-ci-audit.md`
+- `docs/design/69-comprehensive-function-page-figure-audit.md`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-ci-audit-workflow-map.md`
+
+Checks run:
+
+```sh
+air format ROADMAP.md vignettes/model-workflow.Rmd docs/design/68-gllvmtmb-profile-ci-audit.md docs/design/69-comprehensive-function-page-figure-audit.md docs/dev-log/audits/2026-05-21-function-page-figure-audit.md
+air format docs/design/34-validation-debt-register.md
+air format R/methods.R
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::document()"
+rg -n 'bootstrap intervals are not implemented|method = "bootstrap"\).*stop|not a public `method` value|unsupported bootstrap requests now report that bootstrap intervals are not implemented|public `confint\(method = "bootstrap"\)` promise|not a public `confint\(\)` default' README.md ROADMAP.md docs/design vignettes R man tests/testthat -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary|control', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The local `gllvmTMB` audit found that the fast profile pattern is still
+  `TMB::tmbprofile()` with coarser defaults (`ystep = 0.5`, `ytol = 2`), not a
+  separate hand-written C++ profile engine.
+- `vignettes/model-workflow.Rmd` now shows the practical order for long fits:
+  `confint(fit)`, `confint(fit, parm = "variance_components")`, targeted
+  profile with `profile_precision = "fast"`, and direct-target bootstrap
+  pilots through `confint(..., method = "bootstrap")`.
+- The roadmap and validation-debt register now distinguish direct `confint()`
+  bootstrap support from the still-missing `summary()`, `corpairs()`,
+  prediction-table, q4-derived, repeatability, and phylogenetic-signal
+  bootstrap routes.
+- `docs/design/69-comprehensive-function-page-figure-audit.md` and
+  `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md` start the
+  broader function/page/figure audit and make the rendered figure gate
+  explicit.
+- The rendered `model-workflow` article contains the new fast-CI text. A first
+  `pkgdown::build_article()` call in a clean process picked up an older
+  installed package and failed to find `profile_targets()`; rerunning with the
+  local package loaded and `new_process = FALSE` rendered successfully.
+- The final stale-wording scan only found intentional current-boundary text:
+  `summary()` and `corpairs()` still stop for bootstrap, and the audit map
+  stores the scan pattern itself.
+- Focused tests, `git diff --check`, and `pkgdown::check_pkgdown()` passed.
+
+## 2026-05-21 - Fast Direct Wald, Targeted Profile, and Bootstrap CIs
+
+Goal: respond to Ayumi's Bergmann CI timing report by making the fitted-model
+fast interval route honest and useful: default Wald intervals now cover direct
+scale, random-effect SD, and correlation targets; targeted profile intervals
+can use a quick first-pass precision; and `confint()` has a bounded
+simulate/refit bootstrap route for selected direct targets.
+
+Team roles:
+
+- Ada integrated the API, docs, tests, and validation evidence while keeping
+  this separate from the active C++ helper-extraction lane.
+- Fisher set the inference rule: fast Wald intervals are appropriate for
+  routine fixed effects and direct screening of variance/correlation targets,
+  while profile or bootstrap remains the follow-up when likelihood shape or
+  refit uncertainty matters.
+- Gauss and Noether checked that SD intervals are computed on the fitted
+  log-SD scale and correlations on the guarded Fisher-z/atanh scale before
+  transforming back to response-scale SDs and correlations.
+- Emmy checked the S3 `confint()` and `summary()` contracts, target aliases,
+  bootstrap refit metadata, and roxygen help pages.
+- Curie kept the test evidence focused on direct Wald targets, ordinary and
+  scalar-phylogenetic bootstrap smoke behavior, and `profile_precision =
+  "fast"` forwarding to `TMB::tmbprofile()`.
+- Grace ran package-level documentation, pkgdown, full tests, and R CMD check.
+- Pat and Rose kept the README, model map, and profile design note clear about
+  the fast option and the remaining derived-interval boundaries.
+
+Files changed:
+
+- `R/profile.R`
+- `R/methods.R`
+- `tests/testthat/test-profile-targets.R`
+- `tests/testthat/test-summary.R`
+- `man/confint.drmTMB.Rd`
+- `man/summary.drmTMB.Rd`
+- `README.md`
+- `NEWS.md`
+- `vignettes/model-map.Rmd`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-fast-ci-routes.md`
+
+Checks run:
+
+```sh
+air format R/profile.R R/methods.R tests/testthat/test-profile-targets.R tests/testthat/test-summary.R README.md NEWS.md docs/design/12-profile-likelihood-cis.md vignettes/model-map.Rmd
+Rscript -e "devtools::test(filter = 'profile-targets|summary|control', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+```
+
+Outcomes:
+
+- `confint()` now defaults to Wald intervals for fixed effects plus direct
+  constant scale, random-effect SD, random-effect correlation, and constant
+  residual `rho12` targets when `TMB::sdreport()` covariance is available.
+- SD Wald intervals use the fitted log-SD scale and are exponentiated;
+  correlation Wald intervals use the guarded Fisher-z/atanh scale and are
+  transformed back to the correlation scale.
+- `parm = "fixed_effects"`, `"random_effects"`, `"variance_components"`, or
+  `"correlations"` can select coherent target sets for `confint()`.
+- `profile_precision = "fast"` supplies `ystep = 0.5` and `ytol = 2` to
+  `TMB::tmbprofile()` unless the caller overrides those controls, giving a
+  quick first-pass profile for long SD or correlation targets such as
+  phylogenetic SDs.
+- `confint(..., method = "bootstrap")` now runs selected direct-target
+  simulate/refit percentile intervals with refit success/failure counts; this
+  includes a tiny scalar `phylo(1 | species, tree = tree)` smoke test, but the
+  route is intentionally not yet wired into `summary()`, `corpairs()`, derived
+  q4 summaries, repeatability, or phylogenetic signal.
+- Focused tests, full `devtools::test(reporter = "summary")`,
+  `pkgdown::check_pkgdown()`, `git diff --check`, and
+  `devtools::check(error_on = "never", env_vars =
+  c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))` all passed. R CMD check completed
+  with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-21 - C++ Helper Extraction
+
+Goal: start the C++ modularization plan with the smallest safe mechanical move:
+extract branch-free numeric transforms and NB2 count-kernel helpers from
+`src/drmTMB.cpp` without changing formula grammar, likelihood branches, report
+names, profile targets, or R-to-TMB ABI declarations.
+
+Team roles:
+
+- Ada kept this to the first pure-helper boundary.
+- Gauss and Noether checked that helper bodies and numerical transforms moved
+  without changing likelihood parameterization.
+- Curie kept the focused test gate on NB2 count kernels and cumulative-logit
+  probability helpers.
+- Emmy checked that branch bodies, report names, and ABI declarations stayed in
+  `src/drmTMB.cpp`.
+- Grace caught and closed the `.hpp` R-CMD-check warning by switching the
+  planned header filenames to `.h`.
+- Rose recorded the source-map drift lesson for later C++ slices.
+
+Files changed:
+
+- `src/drmTMB.cpp`
+- `src/drm_numeric.h`
+- `src/drm_count_kernels.h`
+- `docs/design/36-cpp-modularization-source-map.md`
+- `vignettes/source-map.Rmd`
+- `docs/dev-log/after-task/2026-05-21-cpp-helper-extraction.md`
+
+Checks run:
+
+```sh
+air format src/drmTMB.cpp src/drm_numeric.h src/drm_count_kernels.h docs/design/36-cpp-modularization-source-map.md vignettes/source-map.Rmd
+Rscript -e "devtools::test(filter = 'count-kernels|cumulative-logit', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+rg -n "drm_numeric.h|drm_count_kernels.h|first pass has moved|first modularization slice|drm_log1p_exp_stable|NB2 count-kernel" docs/design/36-cpp-modularization-source-map.md vignettes/source-map.Rmd pkgdown-site/articles/source-map.html
+git diff --check
+```
+
+Outcomes:
+
+- `drm_log1p_pos()`, `drm_log1p_exp_stable()`, `drm_log1mexp()`,
+  `drm_log_inv_logit()`, `drm_log1m_inv_logit()`, and
+  `drm_log_inv_logit_diff()` now live in `src/drm_numeric.h`.
+- `drm_nbinom2_log_count_product()`, `drm_nbinom2_log_density()`, and
+  `drm_nbinom2_log_p0()` now live in `src/drm_count_kernels.h`.
+- The source map and rendered source-map article now describe the landed first
+  helper extraction.
+- A first `devtools::check()` pass caught the `.hpp` filename warning; the
+  final `.h` version completed with 0 errors, 0 warnings, and 0 notes.
+- Branch bodies, `DATA_*`/`PARAMETER_*` declarations, report names,
+  `ADREPORT()` calls, public syntax, and fitted-surface boundaries did not
+  move.
+
 ## 2026-05-21 - C++ Modularization Plan Refresh
 
 Goal: answer the post-Poisson-q1 question about whether the C++ modularization

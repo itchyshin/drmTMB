@@ -30,3 +30,17 @@ The returned blocks use the internal \code{drmTMB} structure: \code{values} are 
 model scale, \code{latent} are the corresponding standard-normal latent effects,
 and \code{terms} split model-scale values by random-effect term.
 }
+\examples{
+set.seed(20260525)
+id <- factor(rep(letters[1:8], each = 8))
+x <- rep(seq(-1, 1, length.out = 8), times = 8)
+u <- rnorm(nlevels(id), sd = 0.9)
+dat <- data.frame(
+  y = 0.2 + 0.7 * x + u[id] + rnorm(length(x), sd = 0.3),
+  x = x,
+  id = id
+)
+fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
+names(ranef(fit))
+head(ranef(fit, "mu")$terms[["(1 | id)"]])
+}

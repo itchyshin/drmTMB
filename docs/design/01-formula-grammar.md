@@ -90,7 +90,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `animal(1 | p | id, pedigree = ped)`, `animal(1 | p | id, A = A)`, or `animal(1 | p | id, Ainv = Ainv)` in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled animal-model terms estimate two location SDs and one animal mean-mean correlation from the same pedigree-derived or known matrix. |
 | labelled `animal(1 | p | id, pedigree = ped)`, `animal(1 | p | id, A = A)`, or `animal(1 | p | id, Ainv = Ainv)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant all-four animal-model location-scale block estimates four endpoint SDs and six latent animal correlations from the same matrix. Partial, unlabelled, mismatched, slope, direct-SD, and predictor-dependent `corpair()` forms remain rejected or planned. |
 | `animal(1 + x | id, pedigree = ped)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent animal-model intercept and slope fields; multiple animal slopes and slope correlations remain planned. |
-| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | Lower-level user-supplied relatedness route for a univariate Gaussian `mu` random intercept. Matching labelled bivariate q=2 `mu1`/`mu2` terms are implemented in the detailed rules below. This replaces, rather than duplicates, older `gr()`-style low-level wording for known latent relatedness matrices. |
+| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | Lower-level user-supplied relatedness route for a univariate Gaussian `mu` random intercept. Matching labelled bivariate q=2 `mu1`/`mu2` terms are implemented in the detailed rules below. This replaces the deprecated `gr()` wording for known latent relatedness matrices. |
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled lower-level relatedness terms estimate two location SDs and one mean-mean correlation from the same known latent matrix. |
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant all-four lower-level known-matrix location-scale block estimates four endpoint SDs and six latent relatedness correlations from the same matrix. Partial, unlabelled, mismatched, slope, direct-SD, and predictor-dependent `corpair()` forms remain rejected or planned. |
 | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent relatedness intercept and slope fields; multiple `relmat()` slopes and slope correlations remain planned. |
@@ -653,7 +653,8 @@ bf(y ~ x1 + phylo(1 | species, tree = tree), sigma ~ x2)
 Here `tree` is the name of an ultrametric phylogeny object with branch lengths.
 The fitted implementation builds the sparse augmented A-inverse internally
 using the Hadfield and Nakagawa route. Dense covariance matrices are lower-level
-comparator or `gr()` inputs, not the main public phylogeny API.
+comparator or `relmat()` inputs; deprecated `gr()` is not the main public
+phylogeny API.
 
 The implemented coordinate spatial syntax is:
 
@@ -853,7 +854,7 @@ Not every parameter should accept random effects at the same development stage.
 | `animal(1 | id, A = A)` / `animal(1 | id, Ainv = Ainv)` | Implemented first slice for a univariate Gaussian `mu` animal-model random intercept using a precomputed additive relatedness or inverse-relatedness matrix. |
 | `animal(1 | p | id, pedigree = ped)` / `animal(1 | p | id, A = A)` / `animal(1 | p | id, Ainv = Ainv)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Sparse large-pedigree construction, multiple slopes, slope correlations, standalone scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
 | `animal(1 + x | id, pedigree = ped)` | Implemented one numeric animal-model random slope for univariate Gaussian `mu`; it estimates independent `animal(1 | id)` and `animal(0 + x | id)` fields with no slope correlation. |
-| `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Implemented first slice for a lower-level univariate Gaussian `mu` random intercept with user-supplied latent relatedness covariance or precision. Prefer one public low-level name, not both `relmat()` and `gr()`. |
+| `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Implemented first slice for a lower-level univariate Gaussian `mu` random intercept with user-supplied latent relatedness covariance or precision. `relmat()` is the public low-level name; `gr()` is deprecated legacy syntax. |
 | `relmat(1 | p | id, K = K)` / `relmat(1 | p | id, Q = Q)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Multiple slopes, slope correlations, standalone scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
 | `relmat(1 + x | id, K = K)` / `relmat(1 + x | id, Q = Q)` | Implemented one numeric relatedness random slope for univariate Gaussian `mu`; it estimates independent `relmat(1 | id)` and `relmat(0 + x | id)` fields with no slope correlation. |
 | `phylo(1 + x | species, tree = tree)` | Implemented one numeric phylogenetic random slope for univariate Gaussian `mu`; it estimates independent `phylo(1 | species)` and `phylo(0 + x | species)` fields with no slope correlation. |
@@ -913,9 +914,8 @@ Not every parameter should accept random effects at the same development stage.
   routes remain unsupported
   until they have their own evidence. Keep `pedigree`, `A`, `Ainv`, `K`, or
   `Q` for relatedness and precision inputs; keep `V` for known sampling covariance in
-  the preferred `meta_V(..., V = V)` design. If `gr()` is retained, treat it as
-  a compatibility alias or internal reserved marker rather than a second public
-  teaching path.
+  the preferred `meta_V(..., V = V)` design. `gr()` is deprecated legacy syntax
+  and should not be taught as a second public low-level path.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use

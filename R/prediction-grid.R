@@ -6,6 +6,10 @@
 #' were fixed, and which grid rule was used so later interpretation and plotting
 #' helpers do not hide those choices.
 #'
+#' Use `margin = "mean_reference"` for adjusted predictions at named covariate
+#' values. Use `margin = "empirical"` when the target is an average over the
+#' fitted covariate distribution after replacing one or more focal predictors.
+#'
 #' With `margin = "mean_reference"`, focal terms vary across the requested grid
 #' and all other predictors are set to reference values: numeric predictors use
 #' their fitted-row mean, factors use their first fitted level, character
@@ -41,20 +45,30 @@
 #'   `n_source_rows`, and `n_grid_rows`.
 #'
 #' @examples
-#' dat <- data.frame(
-#'   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
-#'   x = c(-1, -0.5, 0, 0.5, 1, 1.5),
-#'   habitat = factor(rep(c("reef", "kelp"), each = 3))
-#' )
+#' set.seed(20260523)
+#' n <- 48
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' habitat <- factor(rep(c("reef", "sand"), length.out = n))
+#' eta <- 0.4 + 0.7 * x + ifelse(habitat == "reef", 0.25, -0.15)
+#' sigma <- exp(-0.35 + 0.15 * x)
+#' dat <- data.frame(y = eta + rnorm(n, sd = sigma), x = x, habitat = habitat)
 #' fit <- drmTMB(bf(y ~ x + habitat, sigma ~ x), data = dat)
 #'
 #' grid <- prediction_grid(
 #'   fit,
 #'   focal = "x",
-#'   at = list(x = c(0, 1)),
+#'   at = list(x = c(-1, 0, 1)),
 #'   condition = list(habitat = "reef")
 #' )
-#' predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"))
+#' predict_parameters(fit, newdata = grid, dpar = c("mu", "sigma"), conf.int = TRUE)
+#'
+#' empirical_grid <- prediction_grid(
+#'   fit,
+#'   focal = "habitat",
+#'   at = list(habitat = levels(dat$habitat)),
+#'   margin = "empirical"
+#' )
+#' marginal_parameters(fit, newdata = empirical_grid, dpar = "mu", by = "habitat")
 #' @export
 prediction_grid <- function(object, ...) {
   UseMethod("prediction_grid")

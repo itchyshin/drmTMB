@@ -35,7 +35,8 @@ Primary speed path:
 - use the Hadfield and Nakagawa A-inverse trick for phylogenetic random
   effects;
 - prefer sparse precision matrices when available;
-- reserve `gr()` for a later low-level known-covariance group-effect term;
+- use `relmat()` for lower-level known-relatedness matrices instead of reviving
+  the deprecated `gr()` marker;
 - expose structured random-effect syntax such as
   `phylo(1 | species, tree = tree)` as the high-level user-facing term.
   Public `phylo()` should require an ultrametric tree with branch lengths; a

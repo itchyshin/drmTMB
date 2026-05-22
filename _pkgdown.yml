@@ -19,7 +19,7 @@ development:
 
 navbar:
   structure:
-    left: [intro, reference, model_guides, tutorials, validation, developer, news]
+    left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
     right: [search, github]
   components:
     model_guides:
@@ -27,8 +27,6 @@ navbar:
       menu:
         - text: What can I fit today?
           href: articles/model-map.html
-        - text: Implementation map
-          href: articles/implementation-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
@@ -50,8 +48,6 @@ navbar:
           href: articles/robust-student.html
         - text: Count abundance and extra zeros
           href: articles/count-nbinom2.html
-        - text: Figure gallery
-          href: articles/figure-gallery.html
         - text: Proportions and success rates
           href: articles/proportion-beta-binomial.html
         - text: Changing residual coupling with rho12
@@ -70,9 +66,13 @@ navbar:
           href: articles/relmat-known-matrices.html
         - text: Structural dependence details
           href: articles/phylogenetic-spatial.html
-    validation:
-      text: Simulation & Comparison
+    diagnostics:
+      text: Diagnostics & Validation
       menu:
+        - text: Figure gallery
+          href: articles/figure-gallery.html
+        - text: Implementation map
+          href: articles/implementation-map.html
         - text: Testing likelihoods and comparators
           href: articles/testing-likelihoods.html
         - text: Simulation plot grammar
@@ -116,8 +116,8 @@ reference:
       - spatial
       - relmat
       - corpair
-  - title: Reserved marker internals
-    desc: Older reserved formula markers kept out of the main reader path.
+  - title: Deprecated marker internals
+    desc: Older deprecated formula markers kept out of the main reader path.
     contents:
       - gr
   - title: Model fitting and post-fit tools
@@ -153,32 +153,38 @@ articles:
   - title: Getting Started
     contents:
       - drmTMB
-  - title: Model Guides
+  - title: Start Here
     contents:
       - model-map
-      - implementation-map
+      - model-workflow
+  - title: Choose Your Model
+    contents:
       - which-scale
       - distribution-families
-      - model-workflow
-      - convergence
-      - large-data
-  - title: Tutorials
-    contents:
       - location-scale
+      - bivariate-coscale
+      - meta-analysis
+  - title: Applied Family Tutorials
+    contents:
       - robust-student
       - count-nbinom2
-      - figure-gallery
       - proportion-beta-binomial
-      - meta-analysis
-      - bivariate-coscale
+  - title: Structured Dependence
+    contents:
       - structural-dependence
       - animal-models
       - phylogenetic-models
       - spatial-models
       - relmat-known-matrices
       - phylogenetic-spatial
-  - title: Simulation & Comparison
+  - title: Inference, Diagnostics, and Figures
     contents:
+      - convergence
+      - large-data
+      - figure-gallery
+  - title: Simulation and Validation
+    contents:
+      - implementation-map
       - testing-likelihoods
       - simulation-plot-grammar
   - title: Developer Notes

@@ -20,19 +20,18 @@ Gaussian location-scale model, the location part models the expected response
 `mu`, while the scale part models the residual standard deviation `sigma`.
 That residual scale is not just a nuisance parameter; it can be the scientific
 answer when the question is about individual variability, predictability, or
-heterogeneous heterogeneity.
+remaining heterogeneity after the mean model is accounted for.
 
 If you are fitting your first model, start with the
 [worked growth example](#worked-example-growth-mean-and-predictability), then
 return to the syntax overview below when you want to adapt the formula.
 
-The first implemented `drmTMB` model class is Gaussian location-scale
-regression with fixed effects, optional random effects in the location formula,
-residual-scale random intercepts and independent random slopes in the `sigma`
-formula, and random-effect scale formulas such as `sd(id) ~ x_group`. The same
-pattern will be used throughout the documentation: write the model symbolically
-first, then show the matching R syntax, fit the model, and interpret the fitted
-output.
+The core Gaussian location-scale route supports fixed effects, optional random
+effects in the location formula, residual-scale random intercepts and
+independent random slopes in the `sigma` formula, and random-effect scale
+formulas such as `sd(id) ~ x_group`. The same pattern is used throughout the
+documentation: write the model symbolically first, show the matching R syntax,
+fit the model, and interpret the fitted output.
 
 Current syntax:
 
@@ -870,15 +869,17 @@ y \mid \mu, \sigma, V
 - Correlated residual-scale slope blocks, slope-specific `sd()` targets,
   labelled-block `sd()` targets, cross-formula labelled covariance sharing
   beyond the first random-intercept slice, phylogenetic slopes, standalone or
-  partial phylogenetic scale terms, spatial `sigma`, bivariate spatial
-  covariance, mesh/SPDE spatial fields, multiple spatial slopes, and
-  non-Gaussian random effects are planned but not implemented in this Gaussian
-  tutorial.
+  partial phylogenetic scale terms, spatial `sigma`, mesh/SPDE spatial fields,
+  multiple spatial slopes, spatial `corpair()` regression, and non-Gaussian
+  random effects are planned but not implemented in this Gaussian tutorial.
 - Intercept-only phylogenetic random effects are implemented in univariate
   Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
 - Coordinate-spatial random effects are implemented in univariate Gaussian `mu`
   formulas as `spatial(1 | site, coords = coords)` and one numeric
-  `spatial(1 + x | site, coords = coords)` slope.
+  `spatial(1 + x | site, coords = coords)` slope. Matching labelled
+  coordinate-spatial q=2 `mu1`/`mu2` and constant q=4 location-scale blocks are
+  fitted in bivariate Gaussian models; read the structural-dependence articles
+  before treating those first slices as routine coverage evidence.
 
 Multiple random-effect scale components use explicit `sd()` formulas, not
 extra residual `sigma` formulas:

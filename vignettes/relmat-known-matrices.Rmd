@@ -11,11 +11,92 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-Use `relmat()` when a latent random-effect layer has a known covariance or
-precision matrix that is not naturally a pedigree, a species tree, or a spatial
-coordinate surface. It is the lower-level known-relatedness route. It should not
-be used for known sampling covariance among observed effect-size estimates;
-that belongs to the meta-analysis route.
+Use `relmat()` when the dependence is among latent group-level deviations and
+the matrix is already known. The matrix can be a covariance, a correlation, or
+an inverse covariance/precision matrix. The common case is a correlation-like
+matrix among lines, strains, plots, populations, or experimental units:
+
+```text
+u_id ~ N(0, sd_relmat^2 K)
+y_i  = mu_i + u_id[i] + error_i
+```
+
+If the natural input is a precision matrix, use `Q` instead:
+
+```text
+u_id ~ N(0, sd_relmat^2 Q^-1)
+```
+
+This is a higher-level random-effect structure. It is not the same as known
+sampling covariance among observed effect-size estimates; that observation-level
+matrix belongs to the meta-analysis route with `meta_V(V = V)`.
+
+## When is `relmat()` the right tool?
+
+Use `relmat()` only after the named biological or spatial route is not the
+better description.
+
+| Situation | Use | Why |
+| --- | --- | --- |
+| Genomic or marker-based similarity among inbred lines, strains, or cultivars | `relmat(1 | line, K = G)` | `G` is often a correlation or genomic relationship matrix. The fitted SD turns it into the latent covariance `sd_relmat^2 G`. |
+| A lab, assay, or ecological kernel among experimental units | `relmat(1 | unit, K = K_unit)` | The matrix says which unit-level deviations should be similar, but it is not a pedigree, species tree, or coordinate-spatial surface. |
+| A precomputed inverse relatedness matrix from another tool | `relmat(1 | id, Q = Q_id)` | The natural object is already precision-like, so `drmTMB` does not need to invert a dense covariance matrix. |
+| A graph, network, river, areal, or custom Gaussian Markov random-field precision that was built and checked outside `drmTMB` | `relmat(1 | node, Q = Q_node)` | The scientific structure is a latent node-level field with a known precision, but it is not the current coordinate `spatial()` route. |
+
+Do not use `relmat()` just because you have any covariance matrix. If the
+matrix is known sampling covariance for observed estimates, use
+`meta_V(V = V)`. If the matrix is additive relatedness from a pedigree or animal
+model, use `animal()`. If it comes from an ultrametric species tree, use
+`phylo()`. If coordinates define the dependence, use `spatial()`.
+
+## Choosing `K` or `Q`
+
+Use `K` when the matrix is easiest to interpret as relatedness, covariance, or
+correlation. A correlation matrix with diagonal 1 is usually the clearest input:
+the fitted `sd_relmat` then controls the variance scale of the latent
+deviations. A covariance matrix with non-unit diagonal is also allowed, but then
+the diagonal scale is part of the known structure.
+
+Use `Q` when the matrix is easiest to interpret as an inverse covariance or
+precision. This is common when another model, pedigree engine, graph model, or
+Gaussian Markov random-field construction gives a sparse precision matrix. In
+that case the latent covariance is proportional to `solve(Q)`, but the model can
+work with `Q` directly.
+
+## Two concrete examples
+
+Suppose `G` is a marker-derived genomic relationship matrix among experimental
+lines. The scientific question is whether lines that are genomically similar
+also have similar unexplained deviations in seed mass:
+
+```r
+fit_grm <- drmTMB(
+  bf(seed_mass ~ temperature + relmat(1 | line, K = G), sigma ~ temperature),
+  data = dat,
+  family = gaussian()
+)
+```
+
+Here `G` can be a correlation matrix. `fit_grm$sdpars$mu` reports the estimated
+line-level SD that multiplies that known relatedness matrix. This is not known
+sampling error; it is latent among-line structure left after the fixed effects.
+
+Now suppose `Q_river` is a positive-definite precision matrix for sites on a
+river network, built outside `drmTMB` from an adjacency or flow model. The
+scientific question is whether nearby or connected sites have similar latent
+condition deviations:
+
+```r
+fit_river <- drmTMB(
+  bf(condition ~ treatment + relmat(1 | reach, Q = Q_river), sigma ~ 1),
+  data = dat,
+  family = gaussian()
+)
+```
+
+This is a good `Q` example because the natural object is already an inverse
+covariance. The model estimates the SD of the latent site field while the known
+precision controls the pattern of similarity across reaches.
 
 ## What is fitted today
 

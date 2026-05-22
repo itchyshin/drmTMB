@@ -29,24 +29,64 @@ The examples here use small simulated data so the page can build quickly. They
 are meant to show figure patterns, not biological conclusions. The interaction
 figures deliberately keep three pieces visible: the observed data, the fitted
 surface or cell means, and the conditioning values used to make the display.
+Across the gallery, the right display depends on the figure's job. Raw data are
+often warranted and sometimes preferred, especially when the reader needs to see
+sample grain, spread, outliers, or repeated-measures structure. When the figure
+makes an inferential claim, pair the estimate with uncertainty if the fitted
+object or simulation output provides it: a slope estimate can be a line with a
+confidence band, a cell mean can be a point with an interval, and selected
+row-wise summaries can use Confidence Eyes. When uncertainty is unavailable or
+outside the current support boundary, the figure should say so rather than
+drawing a decorative interval.
+
+The examples keep consistency within a figure family rather than forcing one
+geometry everywhere. Raw-data displays, model-surface displays, row-wise
+interval summaries, simulation summaries, and support-boundary strips each use
+their own grammar because they answer different reader questions.
 
 ```{r setup}
 library(drmTMB)
 library(ggplot2)
 
 theme_drmtmb_gallery <- function() {
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 10.5) +
     theme(
       panel.grid.minor = element_blank(),
       panel.grid.major.x = element_blank(),
-      axis.title = element_text(colour = "grey15"),
+      axis.title = element_text(size = 10.5, colour = "grey15"),
+      axis.text = element_text(size = 9.5, colour = "grey30"),
       plot.title.position = "plot",
-      plot.title = element_text(face = "bold"),
-      plot.subtitle = element_text(colour = "grey30"),
-      strip.text = element_text(face = "bold"),
+      plot.title = element_text(size = 12.5, face = "bold"),
+      plot.subtitle = element_text(size = 10.2, colour = "grey30"),
+      strip.text = element_text(size = 10, face = "bold"),
       legend.position = "bottom",
       legend.title = element_text(colour = "grey20"),
-      legend.key.width = grid::unit(1.1, "lines")
+      legend.text = element_text(size = 9.5),
+      legend.key.width = grid::unit(1.0, "lines"),
+      plot.margin = margin(5.5, 9, 5.5, 5.5)
+    )
+}
+theme_confidence_eye <- function() {
+  theme_drmtmb_gallery() +
+    theme(
+      axis.line.x = element_line(colour = "grey35", linewidth = 0.35),
+      axis.ticks.x = element_line(colour = "grey35", linewidth = 0.35),
+      axis.ticks.length.x = grid::unit(3, "pt"),
+      panel.grid.major.x = element_line(colour = "grey88", linewidth = 0.35),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+}
+theme_point_interval_gallery <- function() {
+  theme_drmtmb_gallery() +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey90", linewidth = 0.35),
+      panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.35),
+      axis.title = element_text(size = 10, colour = "grey15"),
+      axis.text = element_text(size = 10, colour = "grey30"),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 10, colour = "grey30"),
+      plot.margin = margin(5.5, 10, 5.5, 5.5)
     )
 }
 
@@ -74,11 +114,11 @@ surface_palette <- c(
   "Proportion" = gallery_colour("green"),
   "Count" = gallery_colour("pink")
 )
-make_raindrop_distribution <- function(
+make_confidence_eye_distribution <- function(
   parameter,
   estimate,
   std_error,
-  transform = c("identity", "exp"),
+  transform = c("identity", "exp", "tanh"),
   null_value = 0,
   level = 0.95,
   n = 500
@@ -93,41 +133,40 @@ make_raindrop_distribution <- function(
   value <- switch(
     transform,
     identity = theta,
-    exp = exp(theta)
+    exp = exp(theta),
+    tanh = tanh(theta)
   )
-  compatibility <- cutoff - 0.5 * ((theta - estimate) / std_error)^2
-  height <- pmax(compatibility, 0) / cutoff
+  height <- pmax(cutoff - 0.5 * ((theta - estimate) / std_error)^2, 0) /
+    cutoff
   data.frame(
     parameter = parameter,
     theta = theta,
     value = value,
     cdf = pnorm(theta, mean = estimate, sd = std_error),
     height = height,
-    null_value = switch(transform, identity = null_value, exp = exp(null_value)),
-    estimate_value = switch(transform, identity = estimate, exp = exp(estimate))
+    null_value = switch(
+      transform,
+      identity = null_value,
+      exp = exp(null_value),
+      tanh = tanh(null_value)
+    ),
+    estimate_value = switch(
+      transform,
+      identity = estimate,
+      exp = exp(estimate),
+      tanh = tanh(estimate)
+    )
   )
+}
+guard_rho <- function(x) pmin(pmax(x, -0.999999), 0.999999)
+response_scale_se_to_log_se <- function(estimate, std_error) {
+  ifelse(is.finite(estimate) & estimate > 0, std_error / estimate, NA_real_)
+}
+response_scale_se_to_z_se <- function(estimate, std_error) {
+  rho <- guard_rho(estimate)
+  std_error / pmax(1 - rho^2, .Machine$double.eps)
 }
 
-make_confidence_intervals <- function(
-  parameter,
-  estimate,
-  std_error,
-  transform = c("identity", "exp"),
-  levels = c(0.66, 0.95)
-) {
-  transform <- match.arg(transform)
-  z_low <- qnorm((1 - levels) / 2)
-  z_high <- qnorm(1 - (1 - levels) / 2)
-  low <- estimate + z_low * std_error
-  high <- estimate + z_high * std_error
-  data.frame(
-    parameter = parameter,
-    level = sprintf("%d%%", round(100 * levels)),
-    y = seq(0.10, 0.22, length.out = length(levels)),
-    xmin = switch(transform, identity = low, exp = exp(low)),
-    xmax = switch(transform, identity = high, exp = exp(high))
-  )
-}
 scale_drmtmb_colour <- scale_colour_manual(
   values = habitat_palette,
   limits = names(habitat_palette)
@@ -145,7 +184,7 @@ Start with the figure most readers expect: raw observations, fitted mean, and a
 categorical-by-continuous interaction: the temperature slope differs by
 habitat.
 
-```{r location-scale-fit, fig.alt="Scatterplot of simulated growth against temperature for two habitats, with fitted mean lines and 95 percent confidence bands for each habitat."}
+```{r location-scale-fit, fig.cap="Raw observations and fitted `mu` surfaces for a Gaussian location-scale model; ribbons are 95% Wald confidence bands from `predict_parameters()`.", fig.alt="Scatterplot of simulated growth against temperature for two habitats, with fitted mean lines and 95 percent confidence bands for each habitat."}
 set.seed(2591)
 n <- 160
 habitat_levels <- c("reef", "kelp")
@@ -189,6 +228,7 @@ pred_growth$panel <- factor(
 )
 
 pred_mu <- pred_growth[pred_growth$dpar == "mu", , drop = FALSE]
+pred_sigma <- pred_growth[pred_growth$dpar == "sigma", , drop = FALSE]
 
 ggplot(fish, aes(temperature, growth, colour = habitat)) +
   geom_point(alpha = 0.35, size = 1.4) +
@@ -216,7 +256,8 @@ ggplot(fish, aes(temperature, growth, colour = habitat)) +
     colour = "Habitat",
     fill = "Habitat"
   ) +
-  theme_drmtmb_gallery()
+  theme_drmtmb_gallery() +
+  guides(fill = "none")
 ```
 
 ## Distributional-parameter surfaces
@@ -226,22 +267,39 @@ table with one row per distributional parameter, and
 `plot_parameter_surface()` draws estimate lines plus finite interval bands when
 they are present.
 
-```{r parameter-surface, fig.alt="Two-panel plot showing fitted expected growth and residual standard deviation surfaces along temperature for reef and kelp habitats."}
+```{r parameter-surface, fig.cap="Fitted response-scale `mu` and `sigma` surfaces; `sigma` is shared across habitats because the scale formula contains temperature but not habitat.", fig.alt="Two-panel plot showing fitted expected growth surfaces by habitat and a shared residual standard deviation surface along temperature."}
+pred_surface <- rbind(
+  pred_mu,
+  pred_sigma[pred_sigma$habitat == levels(fish$habitat)[1], , drop = FALSE]
+)
+pred_surface$surface_group <- as.character(pred_surface$habitat)
+pred_surface$surface_group[pred_surface$dpar == "sigma"] <- "shared sigma"
+surface_group_palette <- c(
+  habitat_palette,
+  "shared sigma" = gallery_colour("green")
+)
+
 plot_parameter_surface(
-  pred_growth,
+  pred_surface,
   x = "temperature",
-  colour = "habitat",
+  colour = "surface_group",
   dpar = c("mu", "sigma"),
   facet = "panel"
 ) +
-  scale_drmtmb_colour +
-  scale_drmtmb_fill +
+  scale_colour_manual(
+    values = surface_group_palette,
+    breaks = c("reef", "kelp", "shared sigma")
+  ) +
+  scale_fill_manual(
+    values = surface_group_palette,
+    breaks = c("reef", "kelp", "shared sigma")
+  ) +
   labs(
-    title = "Location and residual-scale surfaces",
-    subtitle = "Both panels use the same prediction grid",
+    title = "Mean and residual-scale surfaces",
+    subtitle = "The sigma surface is shared because sigma ~ temperature",
     x = "Temperature anomaly",
     y = "Estimate on response scale",
-    colour = "Habitat"
+    colour = NULL
   ) +
   theme_drmtmb_gallery()
 ```
@@ -256,7 +314,7 @@ magnitude after subtracting the fitted `mu`: under a Gaussian model,
 `E(|residual|) = sigma * sqrt(2 / pi)`. This keeps the observed scatter visible
 without putting raw response points on a `sigma` axis.
 
-```{r residual-scale-observed-check, fig.alt="Scatterplot of absolute residual magnitudes against temperature, with a fitted expected absolute residual curve derived from the residual sigma surface."}
+```{r residual-scale-observed-check, fig.cap="Observed absolute residual magnitudes compared with the fitted expectation implied by the response-scale `sigma` surface.", fig.alt="Scatterplot of absolute residual magnitudes against temperature, with a fitted expected absolute residual curve derived from the residual sigma surface."}
 pred_row_growth <- predict_parameters(
   fit_growth,
   newdata = fish,
@@ -273,7 +331,6 @@ scale_check <- merge(row_mu, row_sigma, by = "row")
 scale_check <- cbind(fish[scale_check$row, ], scale_check)
 scale_check$abs_residual <- abs(scale_check$growth - scale_check$fitted_mu)
 
-pred_sigma <- pred_growth[pred_growth$dpar == "sigma", , drop = FALSE]
 pred_sigma$expected_abs_residual <- pred_sigma$estimate * sqrt(2 / pi)
 pred_sigma$quantity <- "Expected absolute residual"
 
@@ -294,7 +351,7 @@ ggplot(scale_check, aes(temperature, abs_residual, colour = habitat)) +
   )) +
   labs(
     title = "Residual magnitudes carry the scale information",
-    subtitle = "Points are row residual magnitudes; the green curve is sigma converted to E(abs residual)",
+    subtitle = "Points are absolute residuals; the green curve is sigma * sqrt(2 / pi)",
     x = "Temperature anomaly",
     y = "Absolute residual",
     colour = NULL
@@ -303,30 +360,35 @@ ggplot(scale_check, aes(temperature, abs_residual, colour = habitat)) +
   theme_drmtmb_gallery()
 ```
 
-Confidence intervals are only one slice through the uncertainty surface.
-[Raindrop plots](https://doi.org/10.1198/0003130032369) add the missing visual
-cue: values near the estimate are more compatible with the fitted model than
-values near the interval boundary. The code below uses a normal likelihood
-approximation from the estimate and standard error, draws the 95% raindrop
-cutoff, and keeps the no-effect line, estimate, and interval width visible
-together. Both rows are shown on the fitted coefficient scale so the no-effect
-line has the same meaning; the `sigma` row is a log-SD effect, so positive
-values mean one unit of temperature increases residual scale. This shared-axis
-display is only appropriate when the predictor scale is common or standardized;
-coefficients for different predictors or different units should be faceted,
-standardized, or converted to a named contrast before visual comparison.
+Confidence intervals are only one slice through the uncertainty surface. This
+gallery calls the fuller display a Confidence Eye: a pale confidence region
+with a hollow point-estimate circle. The idea is close to
+[Raindrop plots](https://doi.org/10.1198/0003130032369), but the name and use
+are deliberately distinct. A Confidence Eye is not a posterior density; it is a
+frequentist compatibility display that gives confidence intervals a visible
+shape without adding interval bars, filled estimate dots, or outlines by
+default. The code below uses a normal likelihood approximation from the estimate
+and standard error, draws the finite 95% confidence region, and keeps the no-effect
+line and hollow estimate circle visible together. Both rows are shown on the
+fitted coefficient
+scale so the no-effect line has the same meaning; the `sigma` row is a log-SD
+effect, so positive values mean one unit of temperature increases residual
+scale. This shared-axis display is only appropriate when the predictor scale is
+common or standardized; coefficients for different predictors or different
+units should be faceted, standardized, or converted to a named contrast before
+visual comparison.
 
-```{r confidence-distribution-slopes, fig.width=7.2, fig.height=3.1, fig.alt="Raindrop confidence rows for the fitted mu temperature slope and log residual SD temperature effect, with a shared no-effect reference line, estimate dots, and central interval bars."}
+```{r confidence-distribution-slopes, fig.width=7.2, fig.height=3.1, fig.cap="Confidence Eye display for fixed-effect slope estimates; pale regions are finite 95% Wald confidence regions and hollow circles are point estimates.", fig.alt="Confidence Eye rows for the fitted mu temperature slope and log residual SD temperature effect, with a shared no-effect reference line, pale finite confidence regions, and hollow point-estimate circles."}
 coef_growth <- summary(fit_growth)$coefficients
 confidence_curves <- rbind(
-  make_raindrop_distribution(
+  make_confidence_eye_distribution(
     parameter = "mu temperature slope",
     estimate = coef_growth["mu:temperature", "estimate"],
     std_error = coef_growth["mu:temperature", "std_error"],
     transform = "identity",
     null_value = 0
   ),
-  make_raindrop_distribution(
+  make_confidence_eye_distribution(
     parameter = "sigma temperature log-SD effect",
     estimate = coef_growth["sigma:temperature", "estimate"],
     std_error = coef_growth["sigma:temperature", "std_error"],
@@ -339,33 +401,7 @@ confidence_curves$parameter <- factor(
   levels = rev(c("mu temperature slope", "sigma temperature log-SD effect"))
 )
 confidence_curves$y <- as.numeric(confidence_curves$parameter)
-confidence_curves$drop_height <- 0.24 * confidence_curves$height
-confidence_intervals <- rbind(
-  make_confidence_intervals(
-    parameter = "mu temperature slope",
-    estimate = coef_growth["mu:temperature", "estimate"],
-    std_error = coef_growth["mu:temperature", "std_error"],
-    transform = "identity"
-  ),
-  make_confidence_intervals(
-    parameter = "sigma temperature log-SD effect",
-    estimate = coef_growth["sigma:temperature", "estimate"],
-    std_error = coef_growth["sigma:temperature", "std_error"],
-    transform = "identity"
-  )
-)
-confidence_intervals$parameter <- factor(
-  confidence_intervals$parameter,
-  levels = levels(confidence_curves$parameter)
-)
-confidence_intervals$y <- as.numeric(confidence_intervals$parameter)
-confidence_intervals$level <- factor(
-  confidence_intervals$level,
-  levels = c("95%", "66%")
-)
-confidence_intervals <- confidence_intervals[
-  order(confidence_intervals$parameter, confidence_intervals$level),
-]
+confidence_curves$drop_height <- 0.17 * confidence_curves$height
 confidence_reference <- unique(
   confidence_curves[c("parameter", "null_value", "estimate_value")]
 )
@@ -377,56 +413,43 @@ confidence_palette <- c(
 
 ggplot(confidence_curves, aes(value, ymin = y - drop_height, ymax = y + drop_height)) +
   geom_ribbon(aes(fill = parameter), alpha = 0.24, colour = NA) +
-  geom_line(aes(y = y + drop_height, colour = parameter), linewidth = 0.55, alpha = 0.85) +
-  geom_line(aes(y = y - drop_height, colour = parameter), linewidth = 0.55, alpha = 0.85) +
   geom_vline(
     xintercept = 0,
-    linetype = "dashed",
+    linetype = "dotted",
     colour = "grey45",
     linewidth = 0.45
-  ) +
-  geom_segment(
-    data = confidence_intervals,
-    aes(
-      x = xmin,
-      xend = xmax,
-      y = y,
-      yend = y,
-      colour = parameter,
-      linewidth = level,
-      alpha = level
-    ),
-    inherit.aes = FALSE,
-    lineend = "round"
   ) +
   geom_point(
     data = confidence_reference,
     aes(x = estimate_value, y = y, colour = parameter),
     inherit.aes = FALSE,
-    size = 2.4
+    shape = 21,
+    fill = "white",
+    size = 3.1,
+    stroke = 1.1
   ) +
   scale_colour_manual(values = confidence_palette) +
   scale_fill_manual(values = confidence_palette) +
-  scale_linewidth_manual(values = c("95%" = 1.2, "66%" = 4.8)) +
-  scale_alpha_manual(values = c("95%" = 0.50, "66%" = 0.85)) +
   scale_y_continuous(
     breaks = seq_along(levels(confidence_curves$parameter)),
     labels = levels(confidence_curves$parameter),
     expand = expansion(mult = c(0.28, 0.32))
   ) +
-  coord_cartesian(xlim = c(-0.1, 0.9)) +
+  scale_x_continuous(
+    breaks = c(0, 0.25, 0.50, 0.75),
+    expand = expansion(mult = 0.04)
+  ) +
+  coord_cartesian(xlim = c(-0.05, 0.82)) +
   labs(
-    title = "Raindrop rows show coefficient compatibility",
-    subtitle = "Drops use the 95% likelihood cutoff; points and bars show estimates, 66%, and 95% intervals",
-    x = "Coefficient on fitted scale (0 = no effect)",
+    title = NULL,
+    subtitle = NULL,
+    x = "Coefficient",
     y = NULL,
     colour = "Parameter"
   ) +
-  theme_drmtmb_gallery() +
+  theme_confidence_eye() +
   theme(
-    legend.position = "none",
-    panel.grid.major.y = element_line(colour = "grey90"),
-    panel.grid.minor = element_blank()
+    legend.position = "none"
   )
 ```
 
@@ -436,7 +459,7 @@ questions and often live on bounded response scales. The next panel set uses
 three fitted models and the same plotting helper, but each panel names the
 estimand explicitly.
 
-```{r shape-inflation-rho12-panels, fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
+```{r shape-inflation-rho12-panels, fig.cap="Response-scale distributional-parameter panels for `nu`, `zi`, and residual `rho12`; ribbons are 95% Wald confidence bands.", fig.alt="Three-panel plot showing a Student-t degrees-of-freedom shape parameter, a zero-inflation probability, and a residual rho12 correlation along a predictor gradient with 95 percent confidence bands."}
 set.seed(2594)
 n_tail <- 2500
 tail_dat <- data.frame(tail_pressure = runif(n_tail, -1.5, 1.5))
@@ -588,7 +611,7 @@ figures. Residual `sigma` is the observation-level standard deviation. A
 group-level SD, such as the SD of site intercepts or temperature slopes, is
 among-group variation in a fitted random effect.
 
-```{r random-effect-variance-components, fig.alt="Dot plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD on their fitted response-scale units."}
+```{r random-effect-variance-components, fig.height=3.05, fig.cap="Confidence Eye display for residual and among-site standard deviations; SD intervals are shaped on the fitted log-SD scale and displayed as SDs.", fig.alt="Confidence Eye plot comparing residual sigma, among-site intercept SD, and among-site temperature-slope SD, with pale finite Wald confidence regions and hollow point-estimate circles."}
 set.seed(2621)
 n_site <- 24
 n_site_obs <- 6
@@ -638,8 +661,27 @@ variance_components <- data.frame(
       "sd:mu:(1 + temperature | site):temperature",
       "estimate"
     ]
+  ),
+  response_std_error = c(
+    component_rows["sigma", "std_error"],
+    component_rows[
+      "sd:mu:(1 + temperature | site):(Intercept)",
+      "std_error"
+    ],
+    component_rows[
+      "sd:mu:(1 + temperature | site):temperature",
+      "std_error"
+    ]
   )
 )
+variance_components$link_estimate <- log(variance_components$estimate)
+variance_components$link_std_error <- response_scale_se_to_log_se(
+  variance_components$estimate,
+  variance_components$response_std_error
+)
+variance_components <- variance_components[
+  is.finite(variance_components$link_std_error),
+]
 variance_components$component <- factor(
   variance_components$component,
   levels = rev(variance_components$component)
@@ -655,48 +697,113 @@ component_palette <- c(
   "Group slope SD" = gallery_colour("orange")
 )
 
-ggplot(variance_components, aes(estimate, component, colour = component_type)) +
-  geom_segment(
-    aes(x = 0, xend = estimate, yend = component),
-    linewidth = 0.7,
-    alpha = 0.55
+component_cloud <- do.call(
+  rbind,
+  lapply(seq_len(nrow(variance_components)), function(i) {
+    row <- variance_components[i, ]
+    make_confidence_eye_distribution(
+      parameter = row$component,
+      estimate = row$link_estimate,
+      std_error = row$link_std_error,
+      transform = "exp"
+    )
+  })
+)
+component_cloud <- merge(
+  component_cloud,
+  variance_components[c("component", "component_type")],
+  by.x = "parameter",
+  by.y = "component"
+)
+component_cloud$parameter <- factor(
+  component_cloud$parameter,
+  levels = levels(variance_components$component)
+)
+component_cloud$y_index <- as.numeric(component_cloud$parameter)
+component_cloud$ymin <- component_cloud$y_index -
+  0.17 * component_cloud$height
+component_cloud$ymax <- component_cloud$y_index +
+  0.17 * component_cloud$height
+variance_components$y_index <- as.numeric(variance_components$component)
+
+ggplot() +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    colour = "grey45",
+    linewidth = 0.45
   ) +
-  geom_point(size = 2.8) +
+  geom_ribbon(
+    data = component_cloud,
+    aes(
+      value,
+      ymin = ymin,
+      ymax = ymax,
+      fill = component_type,
+      group = parameter
+    ),
+    alpha = 0.24,
+    colour = NA
+  ) +
+  geom_point(
+    data = variance_components,
+    aes(estimate, y_index, colour = component_type),
+    shape = 21,
+    fill = "white",
+    size = 3.1,
+    stroke = 1.1
+  ) +
   scale_colour_manual(values = component_palette) +
+  scale_fill_manual(values = component_palette) +
+  scale_y_continuous(
+    breaks = seq_along(levels(variance_components$component)),
+    labels = levels(variance_components$component),
+    expand = expansion(add = 0.35)
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 0.1, 0.2, 0.3, 0.4),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
+  coord_cartesian(xlim = c(-0.02, 0.48)) +
   labs(
-    title = "Residual scale and group-level SDs are different quantities",
-    subtitle = "The slope SD measures among-site variation in temperature responses",
-    x = "Fitted standard deviation",
+    title = NULL,
+    subtitle = NULL,
+    x = "Standard deviation",
     y = NULL,
     colour = "Component"
   ) +
-  theme_drmtmb_gallery() +
-  guides(colour = "none")
+  theme_confidence_eye() +
+  guides(colour = "none", fill = "none")
 ```
 
-The dot plot compares three standard deviations, but only one is residual
-`sigma`. The other two are random-effect SDs: how much sites differ in baseline
-growth, and how much sites differ in the temperature slope. For intervals on
-these SDs, use `profile_targets(fit_re_slopes)` to choose direct profile-ready
-targets rather than treating the quick point plot as an uncertainty analysis.
+The plot compares three standard deviations, but only one is residual `sigma`.
+The other two are random-effect SDs: how much sites differ in baseline growth,
+and how much sites differ in the temperature slope. The eyes are fast Wald
+summaries on the log-SD scale. For slower likelihood-profile intervals on these
+SDs, use `profile_targets(fit_re_slopes)` to choose direct profile-ready
+targets rather than profiling every fixed effect by default.
 
-Readers used to Bayesian model summaries often expect one display that keeps
-fixed effects, standard deviations, and correlations together. For this
-frequentist fit, a direct interval plot is clearer than a cloud: the point is
-the estimate, the thick bar is the central 66% Wald interval, and the thin bar
-is the 95% Wald interval.
+Readers used to Bayesian model summaries often expect one compact display that
+keeps fixed effects, standard deviations, and correlations together. For this
+frequentist fit, the Confidence Eye keeps the confidence region visually
+subordinate to the estimate: the pale eye is the finite 95% Wald confidence
+region and the hollow circle is the point estimate. This compact panel is a
+row-by-row reading aid rather than a magnitude comparison across parameter
+classes. Fixed effects use their fitted coefficient scale, SDs are shaped on the
+log-SD scale and shown back as SDs, and the correlation is shaped on Fisher's
+`z` scale and shown back as a correlation.
 
-```{r coefficient-intervals, fig.alt="Coefficient interval panel showing fixed effects, residual and group-level standard deviations, and the random intercept-slope correlation, with zero reference line, estimate dots, and 66 and 95 percent interval bars."}
+```{r coefficient-intervals, fig.height=4.4, fig.cap="Mixed-parameter Confidence Eye display; fixed effects use fitted-scale Wald intervals, SD rows use log-SD shaping, and the correlation row uses Fisher-z shaping.", fig.alt="Compact Confidence Eye display showing fixed effects, residual and group-level standard deviations, and the random intercept-slope correlation as pale finite confidence regions with hollow point-estimate circles."}
 fixed_rows <- summary(fit_re_slopes)$coefficients
 parameter_rows <- summary(fit_re_slopes)$parameters
 coefficient_specs <- data.frame(
   group = c(
     "Fixed effects",
     "Fixed effects",
-    "SD parameters",
-    "SD parameters",
-    "SD parameters",
-    "Correlation"
+    "SDs (log-scale Wald)",
+    "SDs (log-scale Wald)",
+    "SDs (log-scale Wald)",
+    "Correlation (Fisher-z Wald)"
   ),
   parameter = c(
     "mu intercept",
@@ -705,6 +812,14 @@ coefficient_specs <- data.frame(
     "site intercept SD",
     "site temperature-slope SD",
     "intercept-slope correlation"
+  ),
+  display = c(
+    "mu\nintercept",
+    "mu\ntemperature slope",
+    "residual\nsigma",
+    "site\nintercept SD",
+    "site temperature-\nslope SD",
+    "intercept-slope\ncorrelation"
   ),
   estimate = c(
     fixed_rows["mu:(Intercept)", "estimate"],
@@ -723,7 +838,7 @@ coefficient_specs <- data.frame(
       "estimate"
     ]
   ),
-  std_error = c(
+  response_std_error = c(
     fixed_rows["mu:(Intercept)", "std_error"],
     fixed_rows["mu:temperature", "std_error"],
     parameter_rows["sigma", "std_error"],
@@ -740,156 +855,124 @@ coefficient_specs <- data.frame(
       "std_error"
     ]
   ),
-  null_value = c(0, 0, 0, 0, 0, 0)
+  transform = c("identity", "identity", "exp", "exp", "exp", "tanh"),
+  reference = c(0, 0, 0, 0, 0, 0),
+  stringsAsFactors = FALSE
 )
-coefficient_levels <- rev(coefficient_specs$parameter)
-coefficient_specs$parameter <- factor(
-  coefficient_specs$parameter,
-  levels = coefficient_levels
+coefficient_specs$link_estimate <- coefficient_specs$estimate
+coefficient_specs$link_std_error <- coefficient_specs$response_std_error
+sd_rows <- coefficient_specs$transform == "exp"
+coefficient_specs$link_estimate[sd_rows] <- log(coefficient_specs$estimate[sd_rows])
+coefficient_specs$link_std_error[sd_rows] <- response_scale_se_to_log_se(
+  coefficient_specs$estimate[sd_rows],
+  coefficient_specs$response_std_error[sd_rows]
 )
-coefficient_intervals <- do.call(
-  rbind,
-  lapply(seq_len(nrow(coefficient_specs)), function(i) {
-    row <- coefficient_specs[i, ]
-    make_confidence_intervals(
-      parameter = row$parameter,
-      estimate = row$estimate,
-      std_error = row$std_error,
-      transform = "identity"
-    )
-  })
+cor_rows <- coefficient_specs$transform == "tanh"
+coefficient_specs$link_estimate[cor_rows] <- atanh(
+  guard_rho(coefficient_specs$estimate[cor_rows])
 )
-coefficient_intervals <- merge(
-  coefficient_intervals,
-  coefficient_specs[c("parameter", "group")],
-  by = "parameter"
+coefficient_specs$link_std_error[cor_rows] <- response_scale_se_to_z_se(
+  coefficient_specs$estimate[cor_rows],
+  coefficient_specs$response_std_error[cor_rows]
 )
-coefficient_intervals$parameter <- factor(
-  coefficient_intervals$parameter,
-  levels = coefficient_levels
+coefficient_specs <- coefficient_specs[is.finite(coefficient_specs$link_std_error), ]
+coefficient_specs$row_id <- rev(seq_len(nrow(coefficient_specs)))
+coefficient_specs$group <- factor(
+  coefficient_specs$group,
+  levels = c(
+    "Fixed effects",
+    "SDs (log-scale Wald)",
+    "Correlation (Fisher-z Wald)"
+  )
 )
-coefficient_intervals$level <- factor(
-  coefficient_intervals$level,
-  levels = c("95%", "66%")
-)
-coefficient_intervals <- coefficient_intervals[
-  order(coefficient_intervals$parameter, coefficient_intervals$level),
-]
 coefficient_cloud <- do.call(
   rbind,
   lapply(seq_len(nrow(coefficient_specs)), function(i) {
     row <- coefficient_specs[i, ]
-    make_raindrop_distribution(
+    make_confidence_eye_distribution(
       parameter = row$parameter,
-      estimate = row$estimate,
-      std_error = row$std_error,
-      transform = "identity"
+      estimate = row$link_estimate,
+      std_error = row$link_std_error,
+      transform = row$transform
     )
   })
 )
 coefficient_cloud <- merge(
   coefficient_cloud,
-  coefficient_specs[c("parameter", "group")],
-  by = "parameter"
+  coefficient_specs[c("parameter", "group", "display", "row_id")],
+  by = "parameter",
+  sort = FALSE
 )
-coefficient_cloud$parameter <- factor(
-  coefficient_cloud$parameter,
-  levels = coefficient_levels
+coefficient_cloud$group <- factor(
+  coefficient_cloud$group,
+  levels = levels(coefficient_specs$group)
 )
-coefficient_cloud$y_index <- as.numeric(coefficient_cloud$parameter)
-coefficient_cloud$ymin <- coefficient_cloud$y_index -
-  0.20 * coefficient_cloud$height
-coefficient_cloud$ymax <- coefficient_cloud$y_index +
-  0.20 * coefficient_cloud$height
-coefficient_intervals$parameter <- factor(
-  coefficient_intervals$parameter,
-  levels = coefficient_levels
-)
-coefficient_intervals$y_index <- as.numeric(coefficient_intervals$parameter)
-coefficient_specs$parameter <- factor(
-  coefficient_specs$parameter,
-  levels = coefficient_levels
-)
-coefficient_specs$y_index <- as.numeric(coefficient_specs$parameter)
+coefficient_cloud$ymin <- coefficient_cloud$row_id -
+  0.17 * coefficient_cloud$height
+coefficient_cloud$ymax <- coefficient_cloud$row_id +
+  0.17 * coefficient_cloud$height
 
 interval_group_palette <- c(
   "Fixed effects" = gallery_colour("blue"),
-  "SD parameters" = gallery_colour("green"),
-  "Correlation" = gallery_colour("orange")
+  "SDs (log-scale Wald)" = gallery_colour("green"),
+  "Correlation (Fisher-z Wald)" = gallery_colour("orange")
 )
 
 ggplot() +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey55") +
+  geom_vline(
+    xintercept = seq(-0.5, 0.75, by = 0.25),
+    colour = "grey90",
+    linewidth = 0.35
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    colour = "grey55",
+    linewidth = 0.55
+  ) +
   geom_ribbon(
     data = coefficient_cloud,
     aes(x = value, ymin = ymin, ymax = ymax, fill = group, group = parameter),
-    alpha = 0.18,
+    alpha = 0.24,
     colour = NA
-  ) +
-  geom_line(
-    data = coefficient_cloud,
-    aes(x = value, y = ymin, colour = group, group = parameter),
-    linewidth = 0.55,
-    alpha = 0.85
-  ) +
-  geom_line(
-    data = coefficient_cloud,
-    aes(x = value, y = ymax, colour = group, group = parameter),
-    linewidth = 0.55,
-    alpha = 0.85
-  ) +
-  geom_segment(
-    data = coefficient_intervals[coefficient_intervals$level == "95%", ],
-    aes(
-      x = xmin,
-      xend = xmax,
-      y = y_index - 0.25,
-      yend = y_index - 0.25,
-      colour = group
-    ),
-    linewidth = 1.0,
-    alpha = 0.45,
-    lineend = "round"
-  ) +
-  geom_segment(
-    data = coefficient_intervals[coefficient_intervals$level == "66%", ],
-    aes(
-      x = xmin,
-      xend = xmax,
-      y = y_index - 0.25,
-      yend = y_index - 0.25,
-      colour = group
-    ),
-    linewidth = 3.4,
-    alpha = 0.72,
-    lineend = "round"
   ) +
   geom_point(
     data = coefficient_specs,
-    aes(x = estimate, y = y_index, colour = group),
-    size = 2.3
+    aes(x = estimate, y = row_id, colour = group),
+    shape = 21,
+    fill = "white",
+    size = 3.1,
+    stroke = 1.1
   ) +
   scale_colour_manual(values = interval_group_palette) +
   scale_fill_manual(values = interval_group_palette) +
+  scale_x_continuous(
+    limits = c(-0.5, 0.75),
+    breaks = c(-0.5, 0, 0.5),
+    expand = expansion(mult = 0.04)
+  ) +
   scale_y_continuous(
-    breaks = seq_along(coefficient_levels),
-    labels = coefficient_levels,
-    limits = c(0.65, length(coefficient_levels) + 0.35)
+    breaks = coefficient_specs$row_id,
+    labels = coefficient_specs$display,
+    expand = expansion(add = 0.42)
   ) +
   labs(
-    title = "Coefficient raindrops separate fixed effects, SDs, and correlations",
-    subtitle = "Drops are Wald compatibility displays; bars show central 66% and 95% intervals",
-    x = "Estimate on displayed scale",
+    title = NULL,
+    subtitle = NULL,
+    x = "Estimate",
     y = NULL,
-    colour = "Parameter class"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
   theme(
-    legend.position = "bottom",
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank()
+    axis.text.y = element_text(size = 10.5, colour = "grey30"),
+    axis.ticks.y = element_blank(),
+    axis.line.x = element_line(colour = "grey35", linewidth = 0.35),
+    axis.ticks.x = element_line(colour = "grey35", linewidth = 0.35),
+    axis.ticks.length.x = grid::unit(3, "pt"),
+    panel.grid = element_blank()
   ) +
-  guides(fill = "none")
+  guides(colour = "none", fill = "none")
 ```
 
 A random-slope figure should show repeated site behaviour. The translucent
@@ -897,7 +980,7 @@ lines below are conditional site-level trajectories: each site borrows strength
 from the population fit, but sites can still differ in both intercept and
 temperature slope.
 
-```{r random-slope-modes, fig.alt="Repeated-measures random-slope plot with grey observed site data, translucent site-level fitted trajectories, and a darker population-average fitted line."}
+```{r random-slope-modes, fig.cap="Repeated-measures raw observations with conditional site trajectories and the population-average fitted trend; the figure shows fitted modes, not interval uncertainty.", fig.alt="Repeated-measures random-slope plot with grey observed site data, translucent site-level fitted trajectories, and a darker population-average fitted line."}
 site_intercept <- ranef(fit_re_slopes, "mu")$terms[[
   "(1 + temperature | site):(Intercept)"
 ]]
@@ -967,7 +1050,7 @@ ggplot() +
     "Higher than average" = gallery_colour("orange")
   )) +
   labs(
-    title = "Translucent site trajectories show random slopes",
+    title = "Site trajectories show random slopes",
     subtitle = "Grey points are repeated site observations; the dark line is the population slope",
     x = "Temperature anomaly",
     y = "Growth",
@@ -980,7 +1063,7 @@ A direct `sd(site) ~ reef_cover` formula asks a third question: does a
 site-level predictor change the among-site SD in expected growth? The
 prediction table keeps this target as `sd(site)`, not residual `sigma`.
 
-```{r random-effect-sd-surface, fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because direct random-effect SD surfaces do not yet supply Wald intervals."}
+```{r random-effect-sd-surface, fig.cap="Fitted among-site random-intercept SD surface along reef cover; the rug shows site-level support and no Wald band is drawn for this derived surface.", fig.alt="Line plot showing a fitted among-site random-intercept SD surface along reef cover, with no confidence band because modelled random-effect SD surfaces do not yet supply Wald intervals."}
 set.seed(2622)
 n_sd_site <- 28
 n_sd_each <- 5
@@ -1027,6 +1110,15 @@ plot_parameter_surface(
   scale_colour_manual(values = c(
     "Among-site SD" = gallery_colour("green")
   )) +
+  geom_rug(
+    data = site_sd_data,
+    aes(x = reef_cover),
+    inherit.aes = FALSE,
+    sides = "b",
+    colour = "grey55",
+    alpha = 0.50,
+    linewidth = 0.45
+  ) +
   geom_point(
     data = pred_site_sd[seq(1, nrow(pred_site_sd), length.out = 9), ],
     aes(reef_cover, estimate),
@@ -1039,7 +1131,7 @@ plot_parameter_surface(
   ) +
   labs(
     title = "Fitted among-site SD surface",
-    subtitle = "The line is a derived SD estimate; no Wald interval is drawn for this surface yet",
+    subtitle = "Rug marks site-level support; no Wald interval is drawn yet",
     x = "Reef cover",
     y = "Estimated among-site SD",
     colour = NULL
@@ -1049,10 +1141,11 @@ plot_parameter_surface(
 ```
 
 This line is a fitted random-effect SD surface. It should not be read as a raw
-growth curve, and it should not be overlaid with raw `growth` points. The
-table behind the plot reports `conf.status = "wald_unavailable"`, which is the
-honest interval boundary until a profile or bootstrap route is attached to
-these derived surfaces.
+growth curve, and it should not be overlaid with raw `growth` points. The grey
+rug marks show where the site-level predictor was observed. The table behind
+the plot reports `conf.status = "wald_unavailable"`, which is the honest
+interval boundary until a profile or bootstrap route is attached to these
+derived surfaces.
 
 ## Discrete comparisons
 
@@ -1060,7 +1153,7 @@ For a factor predictor, the same plotting helper uses interval bars rather than
 ribbons. This is useful for compact tutorial figures and estimated marginal
 comparisons.
 
-```{r discrete-comparison, fig.height=3.1, fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
+```{r discrete-comparison, fig.height=2.05, fig.cap="Fitted habitat means at average temperature; points and horizontal intervals are response-scale Wald summaries from `predict_parameters()`.", fig.alt="Compact horizontal point interval plot comparing expected growth between reef and kelp habitats at average temperature."}
 habitat_grid <- data.frame(
   temperature = 0,
   habitat = factor(c("reef", "kelp"), levels = levels(fish$habitat))
@@ -1076,19 +1169,21 @@ ggplot(pred_habitat, aes(estimate, habitat, colour = habitat)
 ) +
   geom_segment(
     aes(x = conf.low, xend = conf.high, yend = habitat),
-    linewidth = 0.75
+    linewidth = 0.75,
+    lineend = "round"
   ) +
-  geom_point(size = 2.5) +
+  geom_point(size = 2.7) +
   scale_drmtmb_colour +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.08))) +
   labs(
-    title = "Estimated habitat contrast at average temperature",
+    title = "Fitted habitat means at average temperature",
     subtitle = "Intervals are Wald intervals from predict_parameters()",
     x = "Expected growth",
     y = NULL,
-    colour = "Habitat"
+    colour = NULL
   ) +
-  theme_drmtmb_gallery() +
-  theme(legend.position = "bottom")
+  theme_point_interval_gallery() +
+  guides(colour = "none")
 ```
 
 ## Categorical by categorical interaction
@@ -1098,7 +1193,7 @@ position dodging so the uncertainty intervals do not sit on top of each other.
 Raw observations can sit behind the intervals when they help readers see the
 data support for each cell.
 
-```{r cat-cat-interaction, fig.alt="Categorical by categorical interaction plot showing raw growth observations and fitted growth intervals for each habitat and season combination."}
+```{r cat-cat-interaction, fig.cap="Habitat-by-season fitted mean summaries over raw observations; intervals are Wald intervals for the fitted `mu` cells.", fig.alt="Categorical by categorical interaction plot showing raw growth observations and fitted growth intervals for each habitat and season combination."}
 set.seed(2592)
 n_cell <- 30
 reef <- expand.grid(
@@ -1161,7 +1256,7 @@ ggplot(pred_cat_cat, aes(habitat, estimate, colour = season)) +
   ) +
   scale_colour_manual(values = season_palette) +
   labs(
-    title = "Categorical by categorical interaction",
+    title = "Habitat-season fitted means",
     subtitle = "Small points are observations; intervals are fitted cell means",
     x = "Habitat",
     y = "Growth",
@@ -1178,7 +1273,7 @@ figures. The same rule applies: keep the target and conditioning values
 visible. These displays are `mu` summaries, not `sigma`, fitted-response,
 random-effect, or bivariate summaries.
 
-```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.1, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
+```{r emmeans-display, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.05, fig.cap="Estimated marginal mean `mu` summaries for habitat at temperature zero, using the `emmeans` bridge for fixed-effect univariate means.", fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats conditioned at temperature zero."}
 emm_habitat <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1193,26 +1288,28 @@ emm_habitat <- suppressMessages(
 ggplot(emm_habitat, aes(emmean, habitat, colour = habitat)) +
   geom_segment(
     aes(x = asymp.LCL, xend = asymp.UCL, yend = habitat),
-    linewidth = 0.75
+    linewidth = 0.75,
+    lineend = "round"
   ) +
-  geom_point(size = 2.5) +
+  geom_point(size = 2.7) +
   scale_drmtmb_colour +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.08))) +
   labs(
-    title = "Estimated marginal mean growth",
+    title = "Estimated marginal means from emmeans",
     subtitle = "Supported fixed-effect mu target, conditioned at temperature = 0",
     x = "Expected growth",
     y = NULL,
-    colour = "Habitat"
+    colour = NULL
   ) +
-  theme_drmtmb_gallery() +
-  theme(legend.position = "bottom")
+  theme_point_interval_gallery() +
+  guides(colour = "none")
 ```
 
 `emmeans` reference grids can also condition on a factor. In the next display,
 the `mu` cell means are grouped by season, so the reader sees the fitted
 habitat contrast inside each season rather than a single averaged contrast.
 
-```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.2, fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
+```{r emmeans-factor-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=2.45, fig.cap="Season-conditioned estimated marginal mean `mu` summaries; intervals come from the `emmeans` fixed-effect reference grid.", fig.alt="Compact horizontal point interval plot of estimated marginal mean growth for reef and kelp habitats shown separately for dry and wet seasons."}
 emm_season <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1229,23 +1326,25 @@ emm_season$habitat_y <- emm_season$habitat_index + emm_season$season_offset
 ggplot(emm_season, aes(emmean, habitat_y, colour = season)) +
   geom_segment(
     aes(x = asymp.LCL, xend = asymp.UCL, yend = habitat_y),
-    linewidth = 0.7
+    linewidth = 0.7,
+    lineend = "round"
   ) +
-  geom_point(size = 2.4) +
+  geom_point(size = 2.6) +
   scale_colour_manual(values = season_palette) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.08))) +
   scale_y_continuous(
     breaks = seq_along(levels(emm_season$habitat)),
     labels = levels(emm_season$habitat),
     limits = c(0.65, length(levels(emm_season$habitat)) + 0.35)
   ) +
   labs(
-    title = "Factor-conditioned estimated marginal means",
+    title = "Season-conditioned marginal means",
     subtitle = "Habitat mu summaries are shown separately for each season",
     x = "Expected growth",
     y = "Habitat",
     colour = "Season"
   ) +
-  theme_drmtmb_gallery() +
+  theme_point_interval_gallery() +
   theme(legend.position = "bottom")
 ```
 
@@ -1253,7 +1352,7 @@ For a numeric interaction, use an explicit reference grid. Here `temperature`
 is held at three named values so the habitat contrast does not hide the
 conditioning rule.
 
-```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
+```{r emmeans-interaction-grid, eval = has_ggplot2 && requireNamespace("emmeans", quietly = TRUE), fig.height=3.35, fig.cap="Estimated marginal mean `mu` trends for habitat across three named temperature values; intervals are fixed-effect `emmeans` intervals.", fig.alt="Point interval plot of estimated marginal mean growth for reef and kelp habitats at three temperature values."}
 emm_temperature <- suppressMessages(
   as.data.frame(
     emmeans::emmeans(
@@ -1270,28 +1369,27 @@ emm_temperature$temperature_slice <- factor(
   labels = c("cooler", "average", "warmer")
 )
 
-temperature_position <- position_dodge(width = 0.42)
-
 ggplot(emm_temperature, aes(temperature_slice, emmean, colour = habitat)) +
+  geom_line(
+    aes(group = habitat),
+    linewidth = 0.65,
+    alpha = 0.85
+  ) +
   geom_errorbar(
     aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    position = temperature_position,
     width = 0.08,
     linewidth = 0.65
   ) +
-  geom_point(
-    position = temperature_position,
-    size = 2.3
-  ) +
+  geom_point(size = 2.5) +
   scale_drmtmb_colour +
   labs(
-    title = "Estimated marginal means across an interaction grid",
+    title = "Marginal means across temperature slices",
     subtitle = "The same fixed-effect mu bridge, evaluated at named temperature slices",
     x = "Temperature slice",
     y = "Expected growth",
     colour = "Habitat"
   ) +
-  theme_drmtmb_gallery()
+  theme_point_interval_gallery()
 ```
 
 Empirical marginal summaries use a different rule. `prediction_grid(...,
@@ -1301,7 +1399,7 @@ itself is still a plug-in point summary, so the interval bars below are a
 display approximation: they average row-wise Wald prediction limits from
 `predict_parameters(conf.int = TRUE)` within each habitat.
 
-```{r empirical-marginal-summary, fig.alt="Point-and-interval plot of empirical marginal expected growth for reef and kelp habitats, where points are plug-in marginal means and bars average row-wise Wald prediction limits."}
+```{r empirical-marginal-summary, fig.cap="Empirical marginal `mu` summaries by habitat; faint marks are fitted-row predictions and bars average row-wise Wald limits as a display approximation.", fig.alt="Point-and-interval plot of empirical marginal expected growth for reef and kelp habitats, where points are plug-in marginal means and bars average row-wise Wald prediction limits."}
 empirical_habitat_grid <- prediction_grid(
   fit_growth,
   focal = "habitat",
@@ -1369,11 +1467,7 @@ ggplot(empirical_habitat_rowwise, aes(habitat, estimate, fill = habitat)) +
   scale_drmtmb_fill +
   labs(
     title = "Empirical marginal mu summary",
-    subtitle = paste(
-      "Faint fitted-row mu predictions are not raw responses;",
-      "points/bars average row-wise 95% Wald prediction limits",
-      sep = "\n"
-    ),
+    subtitle = "Faint marks are fitted-row mu predictions; points/bars average row-wise Wald limits",
     x = NULL,
     y = "Average expected growth",
     colour = "Habitat",
@@ -1388,7 +1482,7 @@ current `emmeans` bridge is for fixed-effect univariate `mu`; other targets
 should use parameter prediction, `corpairs()`, profile intervals, or a future
 feature-specific design.
 
-```{r emmeans-boundary-strip, fig.alt="Tile plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as unsupported boundaries."}
+```{r emmeans-boundary-strip, fig.height=3.6, fig.cap="Support-boundary strip for `emmeans`; fixed-effect univariate `mu` is supported, while other targets show the fitted route to use instead.", fig.alt="Marker plot showing fixed-effect univariate mu as the supported emmeans target and sigma, bivariate, zero-inflated, hurdle, ordinal, and random-effect targets as boundary routes with alternatives named beside each marker."}
 emmeans_boundary <- data.frame(
   target = c(
     "Fixed-effect univariate mu",
@@ -1407,6 +1501,14 @@ emmeans_boundary <- data.frame(
     "Unsupported boundary"
   )
 )
+emmeans_boundary$route <- c(
+  "supported EMMs",
+  "predict_parameters()",
+  "separate bivariate design",
+  "family-specific marginal route",
+  "ordinal support later",
+  "ranef(), profile_targets()"
+)
 emmeans_boundary$target <- factor(
   emmeans_boundary$target,
   levels = rev(emmeans_boundary$target)
@@ -1417,36 +1519,59 @@ emmeans_boundary$status <- factor(
 )
 emmeans_boundary$status_label <- ifelse(
   emmeans_boundary$status == "Supported emmeans route",
-  "supported\nmu EMM",
-  "unsupported\nboundary"
-)
-emmeans_boundary$status_text_colour <- ifelse(
-  emmeans_boundary$status == "Supported emmeans route",
-  "white",
-  "grey10"
+  "supported",
+  "boundary"
 )
 
-ggplot(emmeans_boundary, aes(status, target, fill = status)) +
-  geom_tile(width = 0.84, height = 0.72, colour = "white", linewidth = 0.6) +
+ggplot(emmeans_boundary, aes(y = target)) +
+  geom_segment(
+    aes(x = 0.92, xend = 2.35, yend = target),
+    colour = "grey86",
+    linewidth = 0.35
+  ) +
+  geom_point(
+    aes(x = 1, fill = status),
+    shape = 21,
+    size = 3.4,
+    colour = "white",
+    stroke = 0.8
+  ) +
   geom_text(
-    aes(label = status_label, colour = status_text_colour),
-    size = 3.1,
-    lineheight = 0.9
+    aes(x = 1.14, label = status_label, colour = status),
+    hjust = 0,
+    size = 2.85,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(x = 1.65, label = route),
+    hjust = 0,
+    size = 2.75,
+    colour = "grey25"
   ) +
   scale_fill_manual(values = c(
     "Supported emmeans route" = "#0072B2",
     "Unsupported boundary" = "#E69F00"
   )) +
-  scale_colour_identity() +
+  scale_colour_manual(values = c(
+    "Supported emmeans route" = "#0072B2",
+    "Unsupported boundary" = "#8A5700"
+  )) +
+  scale_x_continuous(
+    limits = c(0.86, 2.55),
+    breaks = c(1.14, 1.65),
+    labels = c("Status", "Current route")
+  ) +
   labs(
     title = "Current emmeans support boundary",
     subtitle = "Only fixed-effect univariate mu is advertised as an emmeans target",
-    x = "Current status",
+    x = NULL,
     y = NULL,
     fill = "Status"
   ) +
   theme_drmtmb_gallery() +
   theme(
+    axis.text.x = element_text(size = 8.8, face = "bold", colour = "grey35"),
+    axis.ticks.x = element_blank(),
     panel.grid = element_blank(),
     legend.position = "none"
   )
@@ -1458,7 +1583,7 @@ For two continuous predictors, choose scientifically meaningful slices of one
 predictor and show fitted slopes across the other. The values should be named
 in the legend so the reader can interpret the conditioning.
 
-```{r cont-cont-interaction, fig.alt="Continuous by continuous interaction plot showing raw observations in grey and fitted temperature slopes at low, average, and high moisture with confidence bands."}
+```{r cont-cont-interaction, fig.cap="Continuous-by-continuous fitted `mu` interaction over raw observations; ribbons are 95% Wald confidence bands at low, average, and high moisture.", fig.alt="Continuous by continuous interaction plot showing raw observations in grey and fitted temperature slopes at low, average, and high moisture with confidence bands."}
 set.seed(2593)
 n_cc <- 180
 soil <- data.frame(
@@ -1544,63 +1669,41 @@ ordinary-group correlations, phylogenetic correlations, coordinate-spatial
 correlations, animal-model correlations, and lower-level `relmat()`
 correlations are not the same parameter even when all are correlations. A
 fitted workflow should start from `corpairs(fit)` and keep the interval
-provenance columns. This gallery uses a compact compatible table so the page
-builds quickly while preserving the same required columns.
+provenance columns.
 
-```{r correlation-display, fig.height=5.6, fig.alt="Row-aligned raindrop confidence displays for residual rho12, ordinary group, phylogenetic, spatial, animal, and relmat q2 correlation rows, each with an estimate dot, interval bar, and separate layer label."}
+A Confidence Eye should appear only when finite interval bounds exist. The
+compact example below mimics a `corpairs()`-style result for fitted correlation
+layers. The pale eye is the finite 95% confidence region, transformed on
+Fisher's `z` scale for correlations. The hollow circle marks the estimate.
+Rows without finite bounds should remain point-only diagnostics; the plot
+should not invent an eye.
+
+```{r correlation-display, fig.width=7.6, fig.height=5.4, fig.cap="Correlation-row Confidence Eye display; finite 95% regions are shaped on Fisher's z scale and shown on the correlation scale.", fig.alt="Correlation-row Confidence Eye plot for residual rho12, group intercept-slope, phylogenetic, spatial, animal, and relmat location-location rows, with pale finite confidence regions and hollow point-estimate circles."}
 pair_table <- data.frame(
-  level = c(
-    "residual",
-    "group",
-    "phylogenetic",
-    "spatial",
-    "animal",
-    "relmat"
-  ),
+  level = c("residual", "group", "phylogenetic", "spatial", "animal", "relmat"),
   class = c(
     "residual",
-    "mean-slope",
-    rep("mean-mean", 4)
+    "intercept-slope",
+    "location-location",
+    "location-location",
+    "location-location",
+    "location-location"
   ),
   parameter = c(
     "rho12",
-    "cor((Intercept),temperature | site)",
-    "cor(mu1,mu2 | phylo | species)",
-    "cor(mu1,mu2 | spatial | site)",
-    "cor(mu1,mu2 | animal | individual)",
-    "cor(mu1,mu2 | relmat | line)"
+    "cor((Intercept), x | id)",
+    "cor(mu1, mu2 | phylo)",
+    "cor(mu1, mu2 | spatial)",
+    "cor(mu1, mu2 | animal)",
+    "cor(mu1, mu2 | relmat)"
   ),
   estimate = c(-0.32, 0.44, 0.61, 0.38, 0.52, -0.27),
-  modelled = c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE),
-  conf.low = c(-0.54, 0.12, 0.29, 0.05, 0.17, -0.58),
-  conf.high = c(-0.05, 0.68, 0.79, 0.63, 0.74, 0.11),
-  conf.status = c("wald", rep("profile", 5)),
-  interval_source = c(
-    "illustrative_wald",
-    rep("illustrative_profile", 5)
-  ),
-  layer = c(
-    "Residual coscale",
-    "Ordinary group",
-    "Phylogenetic",
-    "Coordinate spatial",
-    "Animal model",
-    "relmat"
-  )
-)
-pair_table$layer <- factor(
-  pair_table$layer,
-  levels = c(
-    "Residual coscale",
-    "Ordinary group",
-    "Phylogenetic",
-    "Coordinate spatial",
-    "Animal model",
-    "relmat"
-  )
-)
-pair_table$display <- factor(
-  c(
+  modelled = rep(TRUE, 6),
+  conf.low = c(-0.54, 0.12, 0.32, 0.05, 0.18, -0.58),
+  conf.high = c(-0.05, 0.68, 0.80, 0.63, 0.75, 0.10),
+  conf.status = rep("profile", 6),
+  interval_source = rep("illustrative_profile", 6),
+  display = c(
     "Residual\nrho12",
     "Group\nintercept-slope",
     "Phylogenetic\nlocation-location",
@@ -1608,32 +1711,28 @@ pair_table$display <- factor(
     "Animal\nlocation-location",
     "relmat\nlocation-location"
   ),
-  levels = c(
-    "Residual\nrho12",
-    "Group\nintercept-slope",
-    "Phylogenetic\nlocation-location",
-    "Spatial\nlocation-location",
-    "Animal\nlocation-location",
-    "relmat\nlocation-location"
-  )
+  stringsAsFactors = FALSE
 )
-
+pair_table$row_id <- rev(seq_len(nrow(pair_table)))
+pair_table$has_interval <- is.finite(pair_table$conf.low) &
+  is.finite(pair_table$conf.high)
 correlation_palette <- c(
-  "Residual coscale" = gallery_colour("blue"),
-  "Ordinary group" = gallery_colour("green"),
-  "Phylogenetic" = gallery_colour("orange"),
-  "Coordinate spatial" = gallery_colour("sky"),
-  "Animal model" = gallery_colour("pink"),
+  "residual" = gallery_colour("blue"),
+  "group" = gallery_colour("green"),
+  "phylogenetic" = gallery_colour("orange"),
+  "spatial" = gallery_colour("sky"),
+  "animal" = gallery_colour("pink"),
   "relmat" = gallery_colour("charcoal")
 )
-pair_table$display <- factor(pair_table$display, levels = rev(levels(pair_table$display)))
-pair_table$row_id <- as.numeric(pair_table$display)
-make_correlation_raindrop <- function(row, level = 0.95, n = 240) {
-  z_estimate <- atanh(row$estimate)
-  z_low <- atanh(row$conf.low)
-  z_high <- atanh(row$conf.high)
+make_correlation_confidence_eye <- function(row, level = 0.95, n = 240) {
+  if (!all(is.finite(c(row$estimate, row$conf.low, row$conf.high)))) {
+    return(data.frame())
+  }
+  z_estimate <- atanh(guard_rho(row$estimate))
+  z_low <- atanh(guard_rho(row$conf.low))
+  z_high <- atanh(guard_rho(row$conf.high))
   z_cutoff <- qnorm(1 - (1 - level) / 2)
-  z_se <- (z_high - z_low) / (2 * z_cutoff)
+  z_se <- max((z_high - z_low) / (2 * z_cutoff), .Machine$double.eps)
   cutoff <- 0.5 * qchisq(level, df = 1)
   z <- seq(
     z_estimate - sqrt(2 * cutoff) * z_se,
@@ -1641,8 +1740,8 @@ make_correlation_raindrop <- function(row, level = 0.95, n = 240) {
     length.out = n
   )
   rho <- tanh(z)
-  compatibility <- cutoff - 0.5 * ((z - z_estimate) / z_se)^2
-  height <- pmax(compatibility, 0) / cutoff * 0.28
+  height <- pmax(cutoff - 0.5 * ((z - z_estimate) / z_se)^2, 0) /
+    cutoff * 0.17
   data.frame(
     rho = rho,
     height = height,
@@ -1650,70 +1749,79 @@ make_correlation_raindrop <- function(row, level = 0.95, n = 240) {
     ymax = row$row_id + height,
     row_id = row$row_id,
     display = row$display,
-    layer = row$layer
+    level = row$level
   )
 }
 correlation_cloud <- do.call(
   rbind,
-  lapply(seq_len(nrow(pair_table)), function(i) {
-    make_correlation_raindrop(pair_table[i, ])
-  })
+  lapply(seq_len(nrow(pair_table)), function(i) make_correlation_confidence_eye(pair_table[i, ]))
 )
 
-ggplot(correlation_cloud, aes(rho, ymin = ymin, ymax = ymax)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey65") +
-  geom_ribbon(aes(fill = layer), alpha = 0.20, colour = NA) +
-  geom_segment(
-    data = pair_table,
-    aes(x = conf.low, xend = conf.high, y = row_id, yend = row_id),
-    colour = "grey25",
-    linewidth = 0.35,
-    inherit.aes = FALSE
+ggplot() +
+  geom_vline(
+    xintercept = seq(-1, 1, by = 0.5),
+    colour = "grey90",
+    linewidth = 0.35
+  ) +
+  geom_vline(xintercept = 0, colour = "grey55", linewidth = 0.55, linetype = "dotted") +
+  geom_ribbon(
+    data = correlation_cloud,
+    aes(
+      rho,
+      ymin = ymin,
+      ymax = ymax,
+      fill = level,
+      group = interaction(level, display)
+    ),
+    alpha = 0.24,
+    colour = NA
   ) +
   geom_point(
     data = pair_table,
-    aes(estimate, row_id, colour = layer),
-    size = 2.8,
+    aes(estimate, row_id, colour = level),
+    shape = 21,
+    fill = "white",
+    size = 3.1,
+    stroke = 1.1,
     inherit.aes = FALSE
   ) +
   scale_colour_manual(values = correlation_palette) +
   scale_fill_manual(values = correlation_palette, guide = "none") +
   scale_x_continuous(
     limits = c(-1, 1),
-    breaks = seq(-1, 1, by = 0.5)
+    breaks = seq(-1, 1, by = 0.5),
+    expand = expansion(mult = 0.04)
   ) +
   scale_y_continuous(
     breaks = pair_table$row_id,
     labels = pair_table$display,
-    expand = expansion(mult = c(0.16, 0.18))
+    expand = expansion(add = 0.42)
   ) +
   labs(
-    title = "Correlation rows can use raindrop confidence displays",
-    subtitle = "Drops use the 95% likelihood cutoff on Fisher's z scale; points mark fitted correlations",
+    title = NULL,
+    subtitle = NULL,
     x = "Correlation estimate",
     y = NULL,
-    colour = "Layer"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
   theme(
-    axis.text.y = element_text(size = 10, lineheight = 0.95),
-    panel.grid.major.y = element_line(colour = "grey90")
-)
+    axis.text.y = element_text(size = 10.5, colour = "grey30"),
+    axis.ticks.y = element_blank(),
+    axis.line.x = element_line(colour = "grey35", linewidth = 0.35),
+    axis.ticks.x = element_line(colour = "grey35", linewidth = 0.35),
+    axis.ticks.length.x = grid::unit(3, "pt"),
+    panel.grid = element_blank()
+  ) +
+  guides(colour = "none", fill = "none")
 ```
 
-The residual row is the fitted within-observation coscale `rho12`. The group
-row is a latent random-effect correlation, here an intercept-slope row from an
-ordinary grouped model. The phylogenetic row is a species-level structured
-location-location correlation. The spatial, animal, and `relmat()` rows are
-the first q=2 structured location-location rows now supported by their fitted
-subsets. The shaded shapes are raindrop-style confidence displays derived from
-the reported correlation estimate and 95% interval on Fisher's `z` scale. They
-borrow the visual intuition of posterior-density plots and orchard-style
-summaries, but they remain frequentist compatibility displays: values near the
-centre are more compatible with the fitted estimate than values near the
-interval boundary, and the shapes are not posterior draws.
+The figure should be read as an uncertainty display, not as a new model class.
+Rows with finite bounds get default Confidence Eyes. Rows without finite bounds
+should be shown as point-only diagnostics. This prevents the plot from implying
+uncertainty evidence that the fitted object or extractor did not provide.
 
-```{r correlation-layer-boundaries, fig.alt="Tile plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partly fitted q4 or regression extensions separated from planned boundaries."}
+```{r correlation-layer-boundaries, fig.height=3.7, fig.cap="Support-boundary strip for correlation layers; fitted q=2 rows, partial richer q=4 or regression rows, and planned residual-`rho12` routes are kept separate.", fig.alt="Marker plot showing fitted q2 support for residual, ordinary group, phylogenetic, spatial, animal, and relmat correlation layers, with partial richer q4 or regression routes separated from planned residual-rho12 boundaries."}
 layer_boundary <- expand.grid(
   layer = c(
     "Residual rho12",
@@ -1724,73 +1832,57 @@ layer_boundary <- expand.grid(
     "relmat"
   ),
   target = c("Constant q2 row", "Regression or q4/scale extension"),
-  KEEP.OUT.ATTRS = FALSE,
   stringsAsFactors = FALSE
 )
-layer_boundary$status <- "Planned boundary"
-layer_boundary$status[
-  layer_boundary$target == "Constant q2 row"
-] <- "Fitted first-slice row"
-layer_boundary$status[
-  layer_boundary$layer == "Ordinary group" &
-    layer_boundary$target == "Regression or q4/scale extension"
-] <- "Partly fitted"
-layer_boundary$status[
-  layer_boundary$layer == "Phylogenetic" &
-    layer_boundary$target == "Regression or q4/scale extension"
-] <- "Partly fitted"
-layer_boundary$status[
-  layer_boundary$layer == "Spatial" &
-    layer_boundary$target == "Regression or q4/scale extension"
-] <- "Partly fitted"
+layer_boundary$support <- "Planned"
+layer_boundary$support[
+  layer_boundary$target == "Constant q2 row" &
+    layer_boundary$layer %in% c(
+      "Residual rho12",
+      "Ordinary group",
+      "Phylogenetic",
+      "Spatial",
+      "Animal",
+      "relmat"
+    )
+] <- "Fitted q2"
+layer_boundary$support[
+  layer_boundary$target == "Regression or q4/scale extension" &
+    layer_boundary$layer %in% c("Spatial", "relmat")
+] <- "Partial q4"
+layer_boundary$support <- factor(
+  layer_boundary$support,
+  levels = c("Fitted q2", "Partial q4", "Planned")
+)
 layer_boundary$layer <- factor(
   layer_boundary$layer,
-  levels = rev(c(
+  levels = c(
     "Residual rho12",
     "Ordinary group",
     "Phylogenetic",
     "Spatial",
     "Animal",
     "relmat"
-  ))
+  )
 )
 layer_boundary$target <- factor(
   layer_boundary$target,
   levels = c("Constant q2 row", "Regression or q4/scale extension")
 )
-layer_boundary$status <- factor(
-  layer_boundary$status,
-  levels = c("Fitted first-slice row", "Partly fitted", "Planned boundary")
-)
-layer_boundary$status_label <- c(
-  "Fitted first-slice row" = "fitted\nq2 row",
-  "Partly fitted" = "partly\nfitted",
-  "Planned boundary" = "planned\nboundary"
-)[as.character(layer_boundary$status)]
-layer_boundary$status_text_colour <- c(
-  "Fitted first-slice row" = "white",
-  "Partly fitted" = "white",
-  "Planned boundary" = "grey10"
-)[as.character(layer_boundary$status)]
-layer_status_palette <- c(
-  "Fitted first-slice row" = gallery_colour("blue"),
-  "Partly fitted" = gallery_colour("green"),
-  "Planned boundary" = gallery_colour("yellow")
-)
-
-ggplot(layer_boundary, aes(target, layer, fill = status)) +
-  geom_tile(width = 0.82, height = 0.72, colour = "white", linewidth = 0.6) +
-  geom_text(
-    aes(label = status_label, colour = status_text_colour),
-    size = 3.1,
-    lineheight = 0.9
+ggplot(layer_boundary, aes(target, layer, fill = support)) +
+  geom_tile(colour = "white", linewidth = 1) +
+  geom_text(aes(label = support), size = 2.8, colour = "white", fontface = "bold") +
+  scale_fill_manual(
+    values = c(
+      "Fitted q2" = gallery_colour("green"),
+      "Partial q4" = gallery_colour("orange"),
+      "Planned" = gallery_colour("charcoal")
+    )
   ) +
-  scale_fill_manual(values = layer_status_palette) +
-  scale_colour_identity() +
   labs(
-    title = "Correlation-layer support boundary",
-    subtitle = "Spatial, animal, and relmat have constant q2 rows; spatial now also has a constant q4 block",
-    x = "Correlation target",
+    title = "Correlation layers have different support boundaries",
+    subtitle = "q2 constants are separate from richer regression and q4 extensions",
+    x = NULL,
     y = NULL,
     fill = "Status"
   ) +
@@ -1801,12 +1893,8 @@ ggplot(layer_boundary, aes(target, layer, fill = status)) +
   )
 ```
 
-The status strip is not an estimate plot. It separates the fitted constant q=2
-rows from richer correlation surfaces. Spatial, animal, and `relmat()` q=2
-location-location rows now have fitted first-slice evidence, and spatial,
-animal, plus `relmat()` q=4 location-scale blocks have constant first-slice
-evidence. Spatial, animal, and `relmat()` predictor-dependent `corpair()`
-regressions and standalone structured `sigma` correlations remain planned.
+The grid prevents a common mistake: seeing one fitted correlation route and
+assuming all correlation layers now share the same regression and q4 support.
 
 ## Simulation operating characteristics
 
@@ -1814,7 +1902,7 @@ Simulation figures answer different questions from model-interpretation
 figures. They should show bias, error, coverage, runtime, and failures beside
 the model surface being tested.
 
-```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.alt="Simulation summary plots showing fixture replicate-error bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
+```{r simulation-operating-characteristics, fig.width=8.6, fig.height=4.8, fig.cap="Simulation grammar fixture showing replicate-error bias clouds with MCSE intervals and coverage block proportions with binomial MCSE whiskers.", fig.alt="Simulation summary plots showing fixture replicate-error bias clouds with mean and MCSE intervals, plus interval coverage points with binomial MCSE whiskers, by estimand across Gaussian location-scale, proportion, and count surfaces."}
 sim_targets <- data.frame(
   surface = rep(
     c("Gaussian location-scale", "Proportion", "Count"),
@@ -1934,9 +2022,10 @@ sim_rain$estimand_label <- factor(
   estimand_labels[sim_rain$estimand],
   levels = levels(sim_summary$estimand_label)
 )
+sim_bias_missing <- sim_summary[is.na(sim_summary$bias), , drop = FALSE]
 
 ggplot(sim_rain, aes(bias_error, estimand_label)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_vline(xintercept = 0, linetype = "dotted", colour = "grey60") +
   geom_violin(
     aes(
       fill = surface
@@ -1974,6 +2063,15 @@ ggplot(sim_rain, aes(bias_error, estimand_label)) +
     size = 2.6,
     na.rm = TRUE
   ) +
+  geom_text(
+    data = sim_bias_missing,
+    aes(x = -0.47, y = estimand_label, label = "not\ntargeted"),
+    colour = "grey55",
+    size = 2.25,
+    lineheight = 0.9,
+    hjust = 0,
+    inherit.aes = FALSE
+  ) +
   facet_wrap(
     ~surface,
     nrow = 1,
@@ -1983,7 +2081,7 @@ ggplot(sim_rain, aes(bias_error, estimand_label)) +
   scale_fill_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Bias by estimand",
-    subtitle = "Faint dots sample fixture replicate errors; large points and bars are mean bias with 95% MCSE intervals",
+    subtitle = "Faint dots are fixture replicate errors; large points and bars show mean bias with 95% MCSE intervals",
     x = NULL,
     y = "Estimate minus truth",
     colour = "Surface"
@@ -2015,7 +2113,7 @@ sim_coverage_blocks <- do.call(
 sim_coverage_missing <- sim_summary[is.na(sim_summary$coverage), , drop = FALSE]
 
 ggplot(sim_coverage_present, aes(coverage, estimand_label, colour = surface)) +
-  geom_vline(xintercept = 0.95, linetype = "dashed", colour = "grey60") +
+  geom_vline(xintercept = 0.95, linetype = "dotted", colour = "grey60") +
   geom_point(
     data = sim_coverage_blocks,
     aes(block_coverage, estimand_label, colour = surface),
@@ -2054,7 +2152,7 @@ ggplot(sim_coverage_present, aes(coverage, estimand_label, colour = surface)) +
   scale_colour_manual(values = surface_palette, drop = FALSE) +
   labs(
     title = "Interval coverage",
-    subtitle = "Block dots; large points and bars show coverage with 95% binomial MCSE",
+    subtitle = "Faint block dots sample replicate-block coverage; large points and bars show 95% binomial MCSE",
     x = "Empirical coverage",
     y = NULL,
     colour = "Surface"
@@ -2171,7 +2269,7 @@ gallery_source_map <- data.frame(
     "fixed-effect shape, inflation, and residual rho12",
     "ordinary Gaussian random-slope fit",
     "shrunken deviations, not variance intervals",
-    "direct random-effect SD surface without Wald bands",
+    "modelled random-effect SD surface without Wald bands",
     "fixed-effect univariate mu",
     "fixed-effect univariate mu",
     "fixed-effect univariate mu only",

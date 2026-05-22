@@ -146,6 +146,77 @@ issues, or pull requests.
   and the spatial q4 fitted slice exposed stale q2-gate wording in roadmap and
   validation ledgers.
 
+## 2026-05-21 - Active HTML Figure Inventory
+
+- Improvement implemented: rendered pkgdown figure audits should inventory the
+  active `<img>` references in the rebuilt HTML before counting PNGs in the
+  ignored figure directory. The directory can retain stale files from earlier
+  chunk labels, which makes the figure count look larger than the page a reader
+  actually sees.
+- Improvement implemented: when a figure uses a shared plotting helper, Fisher
+  and Noether should still check that the displayed aesthetics match the fitted
+  formula. A legend can imply an unsupported model term even when the plotted
+  intervals and estimates are numerically correct.
+- Trigger: the `model-workflow` page initially appeared to have 18 rendered
+  PNGs, but only five were active in the HTML. The old `sigma` panels also
+  coloured duplicate habitat rows even though the model was `sigma ~
+  temperature`.
+
+## 2026-05-22 - Confidence Eye Default
+
+- Improvement implemented: Confidence Eye plots are the default visual grammar
+  for finite-interval displays that need more than a flat CI bar. The default
+  is a pale finite confidence region plus a hollow point-estimate circle. It
+  does not use filled points, outer outlines, center bars, or separate CI bars.
+  Optional CI lines or caps are acceptable only for explicitly labelled
+  print-accessibility, diagnostic, or reader-preference variants.
+- Improvement implemented: Fisher should keep the statistical provenance
+  explicit: Wald intervals use the model scale or response scale stated in the
+  figure, correlations use a Fisher-z/`atanh` scale when finite bounds are
+  transformed, and the display is not a Bayesian posterior density.
+- Trigger: the first figure-gallery Confidence Eye pass showed that adding
+  bars and outlines by default made the display less memorable than the
+  user-facing idea needed. The later failed render with duplicated axis labels
+  showed that figure code is not evidence; every changed figure needs direct
+  rendered-image inspection before prose is rewritten.
+- Trigger: the follow-up correction briefly chased the wrong figure chunk. For
+  figure QA, the active target must be named by rendered image path, chunk name,
+  and title before edits begin, so Ada, Boole, Noether, Fisher, Pat, Grace,
+  Florence, and Rose are judging the same artifact.
+- Trigger: a later rendered check was over-interpreted as banning row guides.
+  For Confidence Eye defaults, Florence and Fisher should allow subtle row
+  guides when they help row tracking, but reject dark lines that read like CI
+  bars or compete with the pale confidence region.
+- Trigger: an older tracked audit PNG still showed the rejected filled-point
+  and CI-line hybrid after the live article figure had been repaired. Rendered
+  audit artifacts are part of the project surface when they are shown to the
+  user; refresh them or label them as rejected/before-state evidence.
+- Trigger: reusing the same PNG path in the chat caused the app to show a
+  cached old thumbnail. When a visual correction is the point of the task, use
+  a fresh evidence filename for the final proof image.
+- Trigger: `pkgdown-site/dev/articles/figure-gallery_files/` still contained
+  an older rejected PNG after `pkgdown::build_article()` refreshed only the
+  public `pkgdown-site/articles/` copy. Grace should check both rendered mirrors
+  before visual evidence is shown from local site files.
+- Trigger: the mixed coefficient/SD/correlation display still looked wrong
+  after the pure correlation figure was fixed. Florence should reject faceted
+  or strip-labelled Confidence Eye examples unless the facets solve a genuine
+  reader problem; the default should start from the clean reference image.
+- Trigger: later comparison against the reference image showed that the
+  coefficient and SD examples still used fatter eye geometry than the accepted
+  correlation display. Florence should treat eye half-height and hollow-point
+  size as part of the visual contract, not incidental ggplot tuning.
+- Trigger: the variance-component Confidence Eye was the closest accepted
+  example and used a bottom axis that helped anchor the scale. Keep bottom-axis
+  treatment consistent across the Confidence Eye row-display family unless a
+  specific figure has a stronger reason to omit it.
+- Trigger: the repair discussion exposed a broader failure mode: turning one
+  good figure into a universal rule. Use case-by-case visual grammar. Raw-data
+  figures, fitted model estimates, row-wise interval summaries, simulation
+  summaries, and support-boundary strips need different geometry, but each
+  family should keep consistent colours, labels, uncertainty provenance, and
+  axis language.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the

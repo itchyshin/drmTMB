@@ -309,7 +309,10 @@ test_that("formula markers are no-op placeholders", {
   expect_null(animal(1 | id, A = A))
   expect_null(animal(1 | id, Ainv = Ainv))
   expect_null(animal(1 + x | id, pedigree = pedigree))
-  expect_null(gr(id, cov = diag(1)))
+  expect_warning(
+    expect_null(gr(id, cov = diag(1))),
+    "deprecated"
+  )
   expect_null(phylo(1 | species, tree = tree))
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))

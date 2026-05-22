@@ -8,9 +8,15 @@
   object,
   parm = NULL,
   level = 0.95,
-  method = c("wald", "profile"),
+  method = c("wald", "profile", "bootstrap"),
   newdata = NULL,
   trace = FALSE,
+  profile_precision = c("default", "fast"),
+  R = 199L,
+  seed = NULL,
+  parallel = c("none", "multicore"),
+  workers = 1L,
+  refit_control = NULL,
   ...
 )
 }
@@ -18,14 +24,16 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{parm}{Optional character or integer vector selecting interval targets.
-\code{NULL} selects all fixed effects for Wald intervals. Profile intervals
-require explicit target names.}
+\code{NULL} selects all direct Wald-ready targets for Wald intervals. Profile
+intervals require explicit target names or target-set shortcuts. Supported
+shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
+\code{"variance_components"}, and \code{"correlations"}.}
 
 \item{level}{Confidence level.}
 
-\item{method}{Interval method: \code{"wald"} or \code{"profile"}. Parametric bootstrap
-intervals are not implemented yet. If \code{newdata} is supplied and \code{method} is
-omitted, \code{method = "profile"} is used.}
+\item{method}{Interval method: \code{"wald"}, \code{"profile"}, or \code{"bootstrap"}. If
+\code{newdata} is supplied and \code{method} is omitted, \code{method = "profile"} is
+used.}
 
 \item{newdata}{Optional data frame for response-scale profile intervals for
 predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or fitted
@@ -34,6 +42,26 @@ fixed-effect linear predictor and then transforming the interval to the
 response scale.}
 
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
+
+\item{profile_precision}{Profile-control shortcut. \code{"default"} leaves
+\code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls unchanged. \code{"fast"} supplies
+\code{ystep = 0.5} and \code{ytol = 2} unless the caller supplies those controls in
+\code{...}, giving a quicker first-pass profile for long variance-component or
+correlation targets.}
+
+\item{R}{Number of parametric-bootstrap refits when
+\code{method = "bootstrap"}.}
+
+\item{seed}{Optional seed for bootstrap simulation.}
+
+\item{parallel}{Bootstrap backend: \code{"none"} or Unix \code{"multicore"}.}
+
+\item{workers}{Requested bootstrap workers. Multicore execution is capped at
+the number of bootstrap refits and at 10 workers.}
+
+\item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
+refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
+bootstrap intervals use refit point estimates.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"}. \code{drmTMB} supplies the profiled \code{obj}, \code{name},
@@ -44,13 +72,20 @@ response scale.}
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
 \code{conf.status}, \code{profile.boundary}, and \code{profile.message}. Successful rows
-currently use \code{conf.status = "wald"} or \code{conf.status = "profile"};
+currently use \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"};
 profile rows mark intervals that land near a lower SD boundary or
 correlation boundary.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald
-intervals are fast and are returned for fixed-effect coefficients by default.
+intervals are fast and are returned for fixed-effect coefficients and direct
+response-scale parameter targets by default. Direct Wald targets include
+constant residual-scale, random-effect standard-deviation, random-effect
+correlation, and constant residual-correlation rows when the fitted TMB
+parameter and \code{TMB::sdreport()} covariance are available.
+Correlation Wald intervals are computed on the fitted TMB correlation-link
+scale, equivalent to a guarded Fisher z/atanh transform, and then returned on
+the correlation scale.
 Profile-likelihood intervals are slower because nuisance parameters are
 re-optimized; this first public profile path supports explicit fixed-effect,
 constant distributional-scale, random-effect standard-deviation,
@@ -73,9 +108,19 @@ correlation, \code{parm = "rho12"} profiles the residual correlation and reports
 the interval on the response correlation scale. For fits with constant
 \code{sigma}, \code{sigma1}, or \code{sigma2}, \code{parm = "sigma"} and friends report
 response-scale intervals.
+
+The fastest routine route is \code{confint(fit)}, which uses Wald intervals for
+fixed effects and direct response-scale targets. For long phylogenetic,
+spatial, animal-model, or relatedness fits, profile only the needed
+variance-component or correlation rows and start with
+\code{profile_precision = "fast"} before spending time on a denser profile.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 confint(fit)
+confint(fit, parm = "variance_components")
+confint(fit, parm = "sigma", method = "profile", profile_precision = "fast")
+# Direct-target parametric bootstrap is available when refit cost is worth it:
+# confint(fit, parm = "sigma", method = "bootstrap", R = 99)
 }

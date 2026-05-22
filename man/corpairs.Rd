@@ -66,7 +66,7 @@ provenance vocabulary as prediction tables.
 }
 \description{
 \code{corpairs()} returns a long table of fitted correlation pairs from a
-\code{drmTMB} model. The first implementation reports correlations that are
+\code{drmTMB} model. The current implementation reports correlations that are
 already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
 group-level \code{mu} random-effect correlations, matched univariate and
 same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks, and
@@ -78,9 +78,17 @@ six derived endpoint correlations; block-diagonal q4 fallback fits report
 the direct \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} block correlations.
 }
 \details{
-The table is intentionally more explicit than \code{rho12()} or \code{corpars}
-because future double-hierarchical, phylogenetic, spatial, and study-level
-models will contain several scientifically different correlations.
+Use \code{corpairs()} when the question is about correlations among fitted
+residual, ordinary group-level, phylogenetic, coordinate-spatial,
+animal-model, or \code{relmat()} latent effects. Use \code{\link[=rho12]{rho12()}} when the only
+target is the residual correlation curve of a bivariate model.
+
+The table is intentionally more explicit than \code{rho12()} or \code{corpars} because
+double-hierarchical, phylogenetic, spatial, animal-model, and lower-level
+relatedness models can contain several scientifically different
+correlations. Profile intervals are opt-in and can be slow; filter with
+\code{level}, \code{group}, \code{block}, or \code{class} before requesting \code{conf.int = TRUE} on
+large models. Bootstrap intervals are not a \code{corpairs()} route.
 }
 \examples{
 set.seed(1)
@@ -113,5 +121,10 @@ fit <- drmTMB(
   family = c(gaussian(), gaussian()),
   data = dat
 )
-corpairs(fit)
+pairs <- corpairs(fit)
+pairs
+corpairs(fit, level = "residual")
+
+# Profile intervals are opt-in and can be slow for large models.
+# corpairs(fit, level = "residual", conf.int = TRUE)
 }

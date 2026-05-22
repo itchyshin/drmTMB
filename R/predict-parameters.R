@@ -2,14 +2,17 @@
 #'
 #' `predict_parameters()` returns predicted distributional parameters from a
 #' `drmTMB` fit in one long data frame. It is a compact data surface for
-#' interpretation tables and future plotting or marginalisation helpers: the
-#' same grid can hold location/mean, scale, shape, probability, and coscale
+#' interpretation tables, plotting helpers, and marginalisation helpers: the
+#' same grid can hold location or mean, scale, shape, probability, and coscale
 #' quantities.
 #'
 #' The helper calls [predict.drmTMB()] for each requested distributional
 #' parameter. With `newdata = NULL`, predictions use the fitted rows. With
 #' `newdata` supplied, predictions are fixed-effect, population-level
-#' predictions for those rows, matching [predict.drmTMB()].
+#' predictions for those rows, matching [predict.drmTMB()]. Use this table when
+#' the reader needs distributional-parameter values on an explicit covariate
+#' grid. Use [marginal_parameters()] when the target is an average over rows
+#' rather than a row-by-row prediction table.
 #'
 #' By default, the table includes interval provenance columns with
 #' `conf.status = "not_requested"` and
@@ -17,7 +20,9 @@
 #' supplied for ordinary fixed-effect distributional parameters, the helper
 #' adds Wald fixed-effect intervals from the fitted coefficient covariance and
 #' records the requested confidence level. These are population-level intervals
-#' for the supplied grid; they do not include random-effect mode uncertainty,
+#' for the supplied grid. Link-scale intervals are computed on the linear
+#' predictor scale; response-scale intervals use the model link and a delta
+#' method standard error. They do not include random-effect mode uncertainty,
 #' profile-likelihood uncertainty, or uncertainty for direct random-effect scale
 #' models.
 #'
@@ -44,16 +49,30 @@
 #'   columns are appended after those core columns.
 #'
 #' @examples
+#' set.seed(20260522)
+#' n <- 36
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' sigma <- exp(-0.35 + 0.2 * x)
 #' dat <- data.frame(
-#'   y = c(0.2, 0.5, 1.1, 1.4, 1.8, 2.2),
-#'   x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+#'   y = 0.4 + 0.7 * x + rnorm(n, sd = sigma),
+#'   x = x
 #' )
 #' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
-#' grid <- data.frame(x = c(0, 1))
-#' predict_parameters(
+#' grid <- data.frame(x = c(-1, 0, 1))
+#' pred <- predict_parameters(
 #'   fit,
 #'   newdata = grid,
 #'   dpar = c("mu", "sigma"),
+#'   conf.int = TRUE
+#' )
+#' pred
+#'
+#' predict_parameters(
+#'   fit,
+#'   newdata = grid,
+#'   dpar = "sigma",
+#'   type = "link",
+#'   include_newdata = FALSE,
 #'   conf.int = TRUE
 #' )
 #' @export

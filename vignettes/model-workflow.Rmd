@@ -8,7 +8,64 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
+
+workflow_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(
+        colour = "grey90",
+        linewidth = 0.3
+      ),
+      panel.grid.major.y = ggplot2::element_line(
+        colour = "grey87",
+        linewidth = 0.35
+      ),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      strip.background = ggplot2::element_rect(fill = "grey92", colour = NA),
+      strip.text = ggplot2::element_text(face = "bold", colour = "grey15"),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_text(colour = "grey20")
+    )
+}
+
+workflow_habitat_scales <- function() {
+  list(
+    ggplot2::scale_colour_manual(
+      values = c("reef" = "#0072B2", "kelp" = "#D55E00")
+    ),
+    ggplot2::scale_fill_manual(
+      values = c("reef" = "#0072B2", "kelp" = "#D55E00")
+    )
+  )
+}
+
+workflow_distributional_scales <- function() {
+  list(
+    ggplot2::scale_colour_manual(
+      values = c(
+        "kelp" = "#D55E00",
+        "reef" = "#0072B2",
+        "sigma (habitat not in formula)" = "grey35"
+      )
+    ),
+    ggplot2::scale_fill_manual(
+      values = c(
+        "kelp" = "#D55E00",
+        "reef" = "#0072B2",
+        "sigma (habitat not in formula)" = "grey35"
+      )
+    )
+  )
+}
 ```
 
 After fitting a distributional model, the next question is not only "what are
@@ -17,7 +74,10 @@ distributional parameters, predicts to meaningful covariate values, examines
 residuals, and simulates from the fitted model.
 
 This article uses a small growth example, but the same workflow applies to
-other Gaussian location-scale models in `drmTMB`.
+other Gaussian location-scale models in `drmTMB`. In the `Start Here` path,
+read it after the getting-started fit and the model-status map: this page is
+where estimates become checked tables, predictions, intervals, residuals, and
+simulation checks.
 
 ## Fit the model
 
@@ -156,23 +216,80 @@ random-effect variance and the residual variance used in that ratio.
 
 When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
 constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
-errors. Treat those as quick local approximations. For fitted direct SD or
-correlation targets, profile-likelihood confidence intervals remain the safer
-interval route. `drmTMB` is a frequentist package, so these are confidence
+errors. `confint()` uses those same optimized-parameter covariances for its
+fast default Wald intervals. SD intervals are formed on the fitted log-SD scale
+and exponentiated; correlation intervals are formed on the fitted guarded
+atanh scale and transformed back with the model's correlation transform.
+Treat these as quick local approximations, then reserve profile or bootstrap
+work for the SD or correlation rows that need likelihood-shape or refit-based
+uncertainty. `drmTMB` is a frequentist package, so these are confidence
 intervals, not Bayesian credible intervals:
 
 ```{r}
 profile_targets(fit_site)
 ```
 
+The fastest fitted-model interval check is the default Wald route:
+
+```{r}
+confint(fit_site)
+```
+
+For a long mixed or phylogenetic model, narrow the table before doing anything
+expensive:
+
+```{r}
+confint(fit_site, parm = "variance_components")
+```
+
+The variance-component shortcut returns constant scale targets and direct
+random-effect SD targets. The companion shortcuts `"fixed_effects"`,
+`"random_effects"`, and `"correlations"` keep large interval tables readable.
+When a report needs a likelihood profile for a specific SD or correlation row,
+copy the exact target name from `profile_targets()` and profile only that
+target. `profile_precision = "fast"` supplies coarser `TMB::tmbprofile()`
+controls (`ystep = 0.5`, `ytol = 2`) unless you override them in `...`; it is
+useful as a first pass for long phylogenetic or spatial SD profiles:
+
 ```{r, eval = FALSE}
 summary(
   fit_site,
   conf.int = TRUE,
   method = "profile",
-  ci_parm = "sd:mu:(1 | site)"
+  ci_parm = "sd:mu:(1 | site)",
+  profile_precision = "fast"
 )
 ```
+
+The same target can be requested directly:
+
+```{r, eval = FALSE}
+confint(
+  fit_site,
+  parm = "sd:mu:(1 | site)",
+  method = "profile",
+  profile_precision = "fast"
+)
+```
+
+When refit-based uncertainty is the point of the analysis, use the bounded
+bootstrap route in `confint()` for selected direct targets. Start with a small
+pilot to estimate runtime, then increase `R` for the final analysis:
+
+```{r, eval = FALSE}
+confint(
+  fit_site,
+  parm = "variance_components",
+  method = "bootstrap",
+  R = 99,
+  seed = 20260521
+)
+```
+
+Bootstrap rows record successful and failed refits in `bootstrap.n` and
+`bootstrap.failed`. On Unix-like systems, `parallel = "multicore"` and
+`workers = ...` can run refits in parallel; `drmTMB` caps bootstrap workers at
+10 to avoid accidental oversubscription.
 
 Each distributional parameter has its own coefficient vector:
 
@@ -198,8 +315,8 @@ Use the scale of the fitted parameter when deciding what to report:
 | `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
 
 For confidence intervals, keep the fast default summary separate from the
-expensive profile step. Wald 95% confidence intervals are available for fixed
-effects:
+expensive profile or bootstrap step. Wald 95% confidence intervals are
+available for fixed effects and direct response-scale parameter rows:
 
 ```{r}
 summary(fit, conf.int = TRUE)
@@ -288,11 +405,11 @@ one summary. Successful profile rows also include `profile.boundary` and
 `profile.message`; values other than `"ok"` tell you to check boundary or
 near-correlation-limit behaviour before interpreting the interval.
 
-For correlations, use profile intervals for fitted-model inference when the
-target is profile-ready. The Phase 18 simulation helpers also include a
-Fisher-z back-transformed Wald route for coverage tables with supplied
-correlation standard errors, but that helper is a simulation producer contract,
-not a public `confint()` default for fitted correlation rows.
+For correlations, the fast Wald route uses the model's fitted correlation-link
+scale, which is a guarded Fisher-z/atanh transform for current correlation
+parameters. This differs from a sample-correlation Fisher-z interval with an
+effective sample size: `drmTMB` is using the TMB covariance of the fitted
+correlation parameter, not a separate `n_eff` heuristic.
 
 Use `profile_targets(fit)` before asking for a profile interval. A row is
 profile-ready only when it maps to a direct TMB target and the fitted object
@@ -306,22 +423,26 @@ Read `conf.status` as an action column:
 
 | `conf.status` | What it means | What to do next |
 | --- | --- | --- |
-| `wald` | A Wald interval was returned for a fixed-effect row. | Use it for routine fixed-effect summaries, while remembering it is asymptotic. |
+| `wald` | A Wald interval was returned for a fixed-effect or direct parameter row. | Use it for routine summaries and as the fastest screen for large models, while remembering it is asymptotic. |
 | `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
+| `bootstrap` | A simulate/refit percentile interval was returned by `confint()`. | Check `bootstrap.n` and `bootstrap.failed`; increase `R` only after a small runtime pilot works. |
 | `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
 | `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
 | `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
 | `wald_unavailable` | Wald uncertainty is not available for this row, or `sdreport()` was skipped or failed. | Use a profile-ready target when one exists; otherwise report the missing interval explicitly. |
+| `bootstrap_unavailable` | Fewer than two bootstrap refits produced a finite estimate for the requested target. | Treat the interval as unavailable; inspect model convergence, refit controls, and the bootstrap failure count before increasing `R`. |
 | `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
 | `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
 
-Parametric-bootstrap intervals are still a planned interval route, not a public
-`method` value. Calls such as `confint(fit, method = "bootstrap")`,
-`summary(fit, conf.int = TRUE, method = "bootstrap")`, or
-`corpairs(fit, conf.int = TRUE, method = "bootstrap")` stop before interval
-work begins. For now, use Wald intervals for routine fixed-effect summaries,
-profile intervals for direct profile-ready targets, and explicit simulation
-studies when bootstrap coverage is the scientific target.
+Bootstrap intervals are public only through `confint()` for selected direct
+targets. `summary(fit, conf.int = TRUE, method = "bootstrap")` and
+`corpairs(fit, conf.int = TRUE, method = "bootstrap")` still stop before
+interval work begins, and derived q4 covariance rows, repeatability, and
+phylogenetic signal still need separate interval designs. For long applied
+models, the practical default is therefore: Wald for routine reporting,
+targeted `profile_precision = "fast"` profile checks for important SD or
+correlation rows, and bootstrap only when refit-based uncertainty is worth the
+runtime.
 
 ## Predict distributional parameters
 
@@ -447,8 +568,8 @@ grid values. By default, prediction tables are point-estimate summaries with
 `conf.int = TRUE` on an explicit `newdata` grid, ordinary fixed-effect
 distributional parameters receive Wald fixed-effect intervals with
 `conf.status = "wald"` and `interval_source = "wald"`. Rows that cannot receive
-that interval, such as direct random-effect SD surfaces, keep an explicit
-unavailable status instead of silently drawing a band.
+that interval, such as modelled random-effect SD surfaces evaluated on a grid,
+keep an explicit unavailable status instead of silently drawing a band.
 
 ## Predict a random-effect SD surface
 
@@ -514,7 +635,7 @@ sd_site_surface
 
 The table reports the `random-effect-sd-model` component. Its estimates are
 random-intercept SDs, not residual SDs and not raw responses. If you request a
-Wald interval for this direct random-effect SD surface, the table keeps the
+Wald interval for this modelled random-effect SD surface, the table keeps the
 point estimate and marks the interval status explicitly:
 
 ```{r}
@@ -578,7 +699,7 @@ The first optional plotting helper consumes that table directly. For a figure,
 use a denser grid than the small printed table and request intervals before
 plotting:
 
-```{r}
+```{r temperature-surface-plot, fig.alt = "Faceted fitted mu and sigma surfaces over temperature. The mu facet has separate kelp and reef lines, while the sigma facet uses one grey line because habitat is not in the sigma formula."}
 temperature_plot_grid <- prediction_grid(
   fit,
   focal = c("temperature", "habitat"),
@@ -600,7 +721,27 @@ unique(pred_temperature[, c(
 )])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_parameter_surface(pred_temperature, x = "temperature", colour = "habitat")
+  pred_temperature_display <- pred_temperature[
+    pred_temperature$dpar == "mu" | pred_temperature$habitat == "reef",
+  ]
+  pred_temperature_display$display <- ifelse(
+    pred_temperature_display$dpar == "sigma",
+    "sigma (habitat not in formula)",
+    as.character(pred_temperature_display$habitat)
+  )
+  pred_temperature_display$display <- factor(
+    pred_temperature_display$display,
+    levels = c("kelp", "reef", "sigma (habitat not in formula)")
+  )
+
+  plot_parameter_surface(
+    pred_temperature_display,
+    x = "temperature",
+    colour = "display"
+  ) +
+    workflow_distributional_scales() +
+    workflow_theme() +
+    ggplot2::labs(colour = NULL)
 }
 ```
 
@@ -608,7 +749,7 @@ For a discrete focal predictor, the same interval columns draw interval bars
 rather than a ribbon. This example asks for 90% Wald intervals, so the table
 records `conf.level = 0.9` on rows where `conf.status = "wald"`:
 
-```{r}
+```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.alt = "Two habitat-level fitted mu estimates with vertical Wald confidence intervals at temperature zero."}
 habitat_plot_grid <- prediction_grid(
   fit,
   focal = "habitat",
@@ -631,7 +772,8 @@ unique(pred_habitat[, c(
 )])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE)
+  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE) +
+    workflow_theme()
 }
 ```
 
@@ -646,18 +788,20 @@ decisions inside a plot.
 For reports, pair model surfaces with the raw response pattern. The raw-data
 panel uses the observed response scale:
 
-```{r}
+```{r raw-growth-plot, fig.alt = "Observed growth values over temperature, coloured by habitat, showing the raw response pattern before model surfaces are drawn."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(
     fish,
     ggplot2::aes(x = temperature, y = growth, colour = habitat)
   ) +
-    ggplot2::geom_point(alpha = 0.65) +
+    ggplot2::geom_point(alpha = 0.68, size = 1.8) +
+    workflow_habitat_scales() +
     ggplot2::labs(
       x = "Temperature",
       y = "Observed growth",
       colour = "Habitat"
-    )
+    ) +
+    workflow_theme()
 }
 ```
 
@@ -669,7 +813,7 @@ Wald fixed-effect intervals in `pred_temperature`; if those columns were absent
 or marked `interval_source = "not_available"`, the helper would draw only
 lines and points:
 
-```{r}
+```{r mu-temperature-plot, fig.alt = "Fitted mu response-scale surface over temperature with separate kelp and reef Wald confidence bands."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_parameter_surface(
     pred_temperature,
@@ -677,19 +821,29 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     colour = "habitat",
     dpar = "mu",
     facet = NULL
-  )
+  ) +
+    workflow_habitat_scales() +
+    workflow_theme()
 }
 ```
 
-```{r}
+Because `sigma ~ temperature` has no habitat term, the `sigma` plot keeps one
+row per temperature. That avoids drawing two identical habitat lines on top of
+each other.
+
+```{r sigma-temperature-plot, fig.alt = "Fitted sigma response-scale surface over temperature with one Wald confidence band because habitat is not in the sigma formula."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
+  pred_sigma_temperature <- pred_temperature[
+    pred_temperature$dpar == "sigma" & pred_temperature$habitat == "reef",
+  ]
+
   plot_parameter_surface(
-    pred_temperature,
+    pred_sigma_temperature,
     x = "temperature",
-    colour = "habitat",
     dpar = "sigma",
     facet = NULL
-  )
+  ) +
+    workflow_theme()
 }
 ```
 

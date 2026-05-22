@@ -10,6 +10,7 @@ plot_corpairs(
   facet = NULL,
   label = NULL,
   interval = TRUE,
+  interval_style = c("eye", "line"),
   ...
 )
 }
@@ -33,6 +34,10 @@ from \code{level}, \code{class}, and \code{parameter}.}
 \item{interval}{Logical; draw finite \code{conf.low}/\code{conf.high} intervals when
 those columns are present.}
 
+\item{interval_style}{Character scalar. \code{"eye"} draws the default Confidence
+Eye region plus hollow point estimate. \code{"line"} draws conventional interval
+segments. Ignored when \code{interval = FALSE}.}
+
 \item{...}{Reserved for future options.}
 }
 \value{
@@ -45,26 +50,44 @@ a correlation layer. Build the table first with \code{\link[=corpairs]{corpairs(
 table to this helper.
 }
 \details{
-The helper draws one point per correlation row. If the table contains finite
-\code{conf.low} and \code{conf.high} bounds plus interval provenance columns that
-describe a real interval, it draws interval segments for those rows only. Rows
-without supported bounds remain visible as point estimates and keep their
-display interval status attached to the plotted data.
+The helper draws one hollow point per correlation row. If the table contains
+finite \code{conf.low} and \code{conf.high} bounds plus interval provenance columns
+that describe a real interval, the default draws a pale Confidence Eye for
+those rows only, using a guarded Fisher-z/atanh correlation scale to shape
+the eye. The zero-correlation reference is dotted. Rows without supported
+bounds remain visible as point estimates and keep their display interval
+status attached to the plotted data. Set \code{interval_style = "line"} for a
+conventional CI-line variant.
 }
 \examples{
 pairs <- data.frame(
-  level = c("residual", "group"),
-  class = c("residual", "mean-slope"),
-  parameter = c("rho12", "cor((Intercept),x | p | id)"),
-  estimate = c(0.25, 0.45),
-  modelled = c(FALSE, FALSE),
-  conf.low = c(NA, 0.10),
-  conf.high = c(NA, 0.72),
-  conf.status = c("not_requested", "profile"),
-  interval_source = c("not_available", "profile")
+  level = c("residual", "group", "phylo", "group"),
+  class = c("residual", "mean-slope", "structured", "scale-scale"),
+  parameter = c(
+    "rho12",
+    "cor((Intercept),x | p | id)",
+    "cor(mu1,mu2 | species)",
+    "cor(sigma1,sigma2 | site)"
+  ),
+  label = c(
+    "residual rho12",
+    "mean-slope cor",
+    "phylo mu1-mu2",
+    "sigma block"
+  ),
+  estimate = c(0.25, 0.45, -0.30, 0.12),
+  modelled = c(FALSE, FALSE, FALSE, FALSE),
+  conf.low = c(NA, 0.10, -0.55, -0.12),
+  conf.high = c(NA, 0.72, -0.08, 0.34),
+  conf.status = c("not_requested", "profile", "profile", "profile"),
+  interval_source = c("not_available", "profile", "profile", "profile")
 )
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_corpairs(pairs)
-  plot_corpairs(pairs, facet = "level")
+  plot_corpairs(pairs, label = "label") +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank()
+    )
 }
 }

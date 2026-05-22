@@ -14,21 +14,16 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
-`drmTMB` is being developed as a model-first package: the documentation should
-pair symbolic equations with the R syntax that fits them. The current
-implementation includes Gaussian location-scale models with fixed effects,
-ordinary location and scale random effects, group-level random-effect scale
-formulae such as `sd(id) ~ x_group`, fixed-effect non-Gaussian families,
-known-covariance Gaussian meta-analysis, bivariate Gaussian residual coupling
-with `rho12 ~ predictors`, first ordinary bivariate covariance blocks,
-phylogenetic Gaussian covariance slices, and coordinate-based spatial `mu`
-intercept, one-slope, and q=2 bivariate location-covariance fields. The
-articles "What can I fit today?" and
-"Choosing response families" give the broader implemented map.
+`drmTMB` fits distributional regression models for one or two responses. Start
+here when you want to fit a first model, check that the fitted object matches
+your scientific question, and find the next article without reading the whole
+roadmap.
 
-The current package is already useful for one central workflow: write one
-formula for each parameter you want to estimate, then check that the fitted
-model matches the symbolic model you had in mind.
+The central workflow is simple: write one formula for each parameter you want
+to estimate, then check that the fitted model matches the symbolic model you had
+in mind. The broader implemented map lives in
+[What can I fit today?](model-map.html), and family choice lives in
+[Choosing response families](distribution-families.html).
 
 ## Install the preview
 

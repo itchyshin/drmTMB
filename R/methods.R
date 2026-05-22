@@ -52,6 +52,17 @@ print.drmTMB <- function(x, ...) {
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
 #'   list of coefficient vectors.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' dat <- data.frame(
+#'   y = 0.2 + 0.6 * seq(-1, 1, length.out = 24) + rnorm(24, sd = 0.5),
+#'   x = seq(-1, 1, length.out = 24)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ x), data = dat)
+#' fixef(fit)
+#' fixef(fit, "mu")
+#' coef(fit, "sigma")
 fixef <- function(object, ...) {
   UseMethod("fixef")
 }
@@ -79,6 +90,20 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
 #'   one random-effect block.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' id <- factor(rep(letters[1:8], each = 8))
+#' x <- rep(seq(-1, 1, length.out = 8), times = 8)
+#' u <- rnorm(nlevels(id), sd = 0.9)
+#' dat <- data.frame(
+#'   y = 0.2 + 0.7 * x + u[id] + rnorm(length(x), sd = 0.3),
+#'   x = x,
+#'   id = id
+#' )
+#' fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
+#' names(ranef(fit))
+#' head(ranef(fit, "mu")$terms[["(1 | id)"]])
 ranef <- function(object, ...) {
   UseMethod("ranef")
 }
@@ -116,6 +141,15 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #'   complete response pair for bivariate Gaussian models.
 #' @importFrom stats weights
 #' @export
+#'
+#' @examples
+#' dat <- data.frame(
+#'   y = c(0.2, 0.5, 1.1, 1.4),
+#'   x = c(-1, 0, 1, 2),
+#'   w = c(1, 1, 0.5, 2)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat, weights = w)
+#' weights(fit)
 weights.drmTMB <- function(object, ...) {
   object$model$weights
 }
@@ -136,6 +170,25 @@ weights.drmTMB <- function(object, ...) {
 #' @return A numeric vector of residual correlations, or Fisher-z-like linear
 #'   predictors when `type = "link"`.
 #' @export
+#'
+#' @examples
+#' set.seed(20260525)
+#' n <- 36
+#' x <- seq(-1, 1, length.out = n)
+#' e1 <- rnorm(n)
+#' e2 <- 0.4 * e1 + sqrt(1 - 0.4^2) * rnorm(n)
+#' dat <- data.frame(
+#'   y1 = 0.2 + 0.5 * x + e1,
+#'   y2 = -0.1 + 0.3 * x + e2,
+#'   x = x
+#' )
+#' fit <- drmTMB(
+#'   bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ x),
+#'   family = biv_gaussian(),
+#'   data = dat
+#' )
+#' head(rho12(fit))
+#' rho12(fit, newdata = data.frame(x = c(-0.5, 0, 0.5)))
 rho12 <- function(object, ...) {
   UseMethod("rho12")
 }
@@ -160,7 +213,7 @@ rho12.drmTMB <- function(
 #' Extract fitted correlation pairs
 #'
 #' `corpairs()` returns a long table of fitted correlation pairs from a
-#' `drmTMB` model. The first implementation reports correlations that are
+#' `drmTMB` model. The current implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate and
 #' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
@@ -171,9 +224,17 @@ rho12.drmTMB <- function(
 #' six derived endpoint correlations; block-diagonal q4 fallback fits report
 #' the direct `mu1`/`mu2` and `sigma1`/`sigma2` block correlations.
 #'
-#' The table is intentionally more explicit than `rho12()` or `corpars`
-#' because future double-hierarchical, phylogenetic, spatial, and study-level
-#' models will contain several scientifically different correlations.
+#' Use `corpairs()` when the question is about correlations among fitted
+#' residual, ordinary group-level, phylogenetic, coordinate-spatial,
+#' animal-model, or `relmat()` latent effects. Use [rho12()] when the only
+#' target is the residual correlation curve of a bivariate model.
+#'
+#' The table is intentionally more explicit than `rho12()` or `corpars` because
+#' double-hierarchical, phylogenetic, spatial, animal-model, and lower-level
+#' relatedness models can contain several scientifically different
+#' correlations. Profile intervals are opt-in and can be slow; filter with
+#' `level`, `group`, `block`, or `class` before requesting `conf.int = TRUE` on
+#' large models. Bootstrap intervals are not a `corpairs()` route.
 #'
 #' @param object A `drmTMB` fit.
 #' @param level Optional character vector of correlation levels to keep, such
@@ -239,7 +300,12 @@ rho12.drmTMB <- function(
 #'   family = c(gaussian(), gaussian()),
 #'   data = dat
 #' )
-#' corpairs(fit)
+#' pairs <- corpairs(fit)
+#' pairs
+#' corpairs(fit, level = "residual")
+#'
+#' # Profile intervals are opt-in and can be slow for large models.
+#' # corpairs(fit, level = "residual", conf.int = TRUE)
 #' @export
 corpairs <- function(object, ...) {
   UseMethod("corpairs")
@@ -1541,6 +1607,11 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' @return A numeric vector for univariate fits, or a two-column matrix for
 #'   bivariate Gaussian fits.
 #' @export
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' fitted(fit)
 fitted.drmTMB <- function(object, ...) {
   drm_fitted_response(object)
 }
@@ -1554,6 +1625,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
   object$coefficients[[dpar]]
 }
 
+#' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
   cov_fixed <- drm_sdreport_cov_fixed(object)
@@ -1675,6 +1747,51 @@ drm_standard_error_status <- function(object) {
   )
 }
 
+#' Extract standard model-fit quantities
+#'
+#' These methods expose `drmTMB` fits to standard base-R model summary and
+#' comparison helpers.
+#'
+#' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
+#' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
+#' top-level parameter count, and fitted-row count consistently.
+#' `nobs()` returns the number of fitted rows after complete-case filtering.
+#' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
+#' top-level parameters recorded in `logLik()`. `deviance()` returns
+#' `-2 * logLik`; for these likelihood-based distributional models this is an
+#' absolute negative twice log-likelihood value, not a saturated-model GLM
+#' deviance. `vcov()` returns the fixed-effect covariance matrix from
+#' `TMB::sdreport()` with rows and columns labelled by distributional
+#' parameter and coefficient. It intentionally does not include random-effect
+#' conditional modes or derived response-scale quantities.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return `logLik()` returns an object of class `"logLik"`. The other methods
+#'   return numeric scalars.
+#'
+#' @examples
+#' set.seed(20260524)
+#' n <- 36
+#' x <- seq(-1.5, 1.5, length.out = n)
+#' dat <- data.frame(
+#'   y = 0.3 + 0.6 * x + rnorm(n, sd = 0.7),
+#'   x = x
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#'
+#' logLik(fit)
+#' nobs(fit)
+#' df.residual(fit)
+#' deviance(fit)
+#' AIC(fit)
+#' BIC(fit)
+#' vcov(fit)
+#' @name model-fit-extractors
+NULL
+
+#' @rdname model-fit-extractors
 #' @export
 logLik.drmTMB <- function(object, ...) {
   out <- object$logLik
@@ -1683,25 +1800,6 @@ logLik.drmTMB <- function(object, ...) {
   class(out) <- "logLik"
   out
 }
-
-#' Extract standard model-fit quantities
-#'
-#' These methods expose `drmTMB` fits to standard base-R model summary and
-#' comparison helpers.
-#'
-#' `nobs()` returns the number of fitted rows after complete-case filtering.
-#' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
-#' top-level parameters recorded in `logLik()`. `deviance()` returns
-#' `-2 * logLik`; for these likelihood-based distributional models this is an
-#' absolute negative twice log-likelihood value, not a saturated-model GLM
-#' deviance.
-#'
-#' @param object A `drmTMB` fit.
-#' @param ... Reserved for future extractor options.
-#'
-#' @return Numeric scalar.
-#' @name model-fit-extractors
-NULL
 
 #' @rdname model-fit-extractors
 #' @export
@@ -2419,31 +2517,40 @@ sigma.drmTMB <- function(object, ...) {
 #' include delta-method standard errors; descriptive fitted ranges and derived
 #' variance ratios do not.
 #' Confidence intervals are opt-in: fast Wald intervals are available for fixed
-#' effects, and slower profile-likelihood intervals are available for selected
-#' direct profile targets. Profile summaries keep Wald intervals for fixed
-#' effects unless fixed-effect profile targets are selected. Interval-aware
-#' tables include `conf.status` so rows without intervals can say whether an
-#' interval was not requested, needs `newdata`, is ready but unselected, or is
-#' currently unavailable. Use `summary(fit, conf.int = TRUE)` for fixed-effect
-#' Wald confidence intervals, and use `method = "profile"` with `ci_parm` for
-#' direct response-scale targets such as `sigma`, `rho12`, or a random-effect
-#' SD.
+#' effects and direct response-scale parameter rows, and slower
+#' profile-likelihood intervals are available for selected direct profile
+#' targets. Profile summaries keep Wald intervals for fixed effects unless
+#' fixed-effect profile targets are selected. Interval-aware tables include
+#' `conf.status` so rows without intervals can say whether an interval was not
+#' requested, needs `newdata`, is ready but unselected, or is currently
+#' unavailable. Use `summary(fit, conf.int = TRUE)` for fixed-effect and direct
+#' parameter Wald confidence intervals, and use `method = "profile"` with
+#' `ci_parm` for direct response-scale targets such as `sigma`, `rho12`, or a
+#' random-effect SD. Correlation Wald intervals use the fitted TMB
+#' correlation-link scale, equivalent to a guarded Fisher z/atanh transform,
+#' before returning lower and upper bounds on the correlation scale.
 #'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
 #' @param level Confidence level for intervals.
 #' @param method Interval method used when `conf.int = TRUE`: `"wald"` for
-#'   fixed-effect intervals or `"profile"` for profile-likelihood intervals on
-#'   selected direct targets. Parametric bootstrap intervals are not implemented
-#'   yet.
+#'   fast direct intervals or `"profile"` for profile-likelihood intervals on
+#'   selected direct targets. `summary()` does not run bootstrap intervals yet;
+#'   use `confint(..., method = "bootstrap")` for the current direct-target
+#'   bootstrap route.
 #' @param ci_parm Optional character or integer vector selecting confidence
-#'   interval targets. For `method = "wald"`, targets must be fixed effects. For
-#'   `method = "profile"`, targets use the [profile_targets()] namespace, such
-#'   as `"sigma"`, `"rho12"`, `"sd:mu:(1 | id)"`, or
-#'   `"cor:mu:cor((Intercept),x | id)"`. `NULL` selects all fixed effects for
-#'   Wald intervals and all currently ready direct targets for profile
-#'   intervals.
+#'   interval targets. For `method = "wald"` and `method = "profile"`, targets
+#'   use the [profile_targets()] namespace, such as `"sigma"`, `"rho12"`,
+#'   `"sd:mu:(1 | id)"`, or `"cor:mu:cor((Intercept),x | id)"`. `NULL` selects
+#'   all direct Wald-ready targets for Wald intervals and currently ready direct
+#'   non-fixed targets for profile intervals. This keeps large profile runs
+#'   focused on scale, variance-component, and correlation rows unless
+#'   fixed-effect profile targets are requested explicitly.
 #' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
+#' @param profile_precision Profile-control shortcut used with
+#'   `method = "profile"`. `"default"` leaves [TMB::tmbprofile()] controls
+#'   unchanged, while `"fast"` supplies `ystep = 0.5` and `ytol = 2` unless the
+#'   caller supplies those controls in `...`.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `conf.int = TRUE` and `method = "profile"`.
 #'
@@ -2454,7 +2561,13 @@ sigma.drmTMB <- function(object, ...) {
 #' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 #' summary(fit)
 #' summary(fit, conf.int = TRUE)
-#' summary(fit, conf.int = TRUE, method = "profile", ci_parm = "sigma")
+#' summary(
+#'   fit,
+#'   conf.int = TRUE,
+#'   method = "profile",
+#'   ci_parm = "sigma",
+#'   profile_precision = "fast"
+#' )
 #' @export
 summary.drmTMB <- function(
   object,
@@ -2463,12 +2576,18 @@ summary.drmTMB <- function(
   method = c("wald", "profile"),
   ci_parm = NULL,
   trace = FALSE,
+  profile_precision = c("default", "fast"),
   ...
 ) {
+  profile_precision_missing <- missing(profile_precision)
   validate_summary_conf_int(conf.int)
   validate_summary_trace(trace)
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
+  profile_precision <- resolve_profile_precision(
+    profile_precision,
+    missing_arg = profile_precision_missing
+  )
 
   dots <- list(...)
   if (!conf.int && length(dots) > 0L) {
@@ -2508,6 +2627,7 @@ summary.drmTMB <- function(
         ci_parm = ci_parm,
         level = level,
         trace = trace,
+        profile_precision = profile_precision,
         ...
       )
       coefficient_ci <- summary_profile_coefficient_ci(
@@ -3075,12 +3195,15 @@ drm_summary_profile_confint <- function(
   ci_parm,
   level,
   trace,
+  profile_precision = c("default", "fast"),
   ...
 ) {
   targets <- drm_profile_targets(object)
   if (is.null(ci_parm)) {
     targets <- targets[
-      targets$target_type == "direct" & targets$profile_ready,
+      targets$target_type == "direct" &
+        targets$profile_ready &
+        targets$target_class != "fixed-effect",
       ,
       drop = FALSE
     ]
@@ -3089,12 +3212,18 @@ drm_summary_profile_confint <- function(
     }
     ci_parm <- targets$parm
   }
-  drm_profile_confint(
-    object,
-    parm = ci_parm,
-    level = level,
-    trace = trace,
-    ...
+  profile_args <- profile_precision_args(profile_precision, list(...))
+  do.call(
+    drm_profile_confint,
+    c(
+      list(
+        object = object,
+        parm = ci_parm,
+        level = level,
+        trace = trace
+      ),
+      profile_args
+    )
   )
 }
 

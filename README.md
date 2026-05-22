@@ -206,7 +206,7 @@ Read status words consistently:
 | Phylogenetic structured effects | First slices fitted for Gaussian univariate `mu` intercepts and one numeric slope, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, q=2 phylogenetic `corpair()` regression, and ordinary Poisson q=1 `mu` intercepts | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets but still need fit-specific profile diagnostics; the Poisson q=1 route is smoke-level with a direct `log_sd_phylo` target | Multiple phylogenetic slopes, slope correlations, standalone or partial phylogenetic scale terms, structured `rho12`, NB2 or zero-inflated phylogenetic effects, and predictor-dependent q=4 correlations remain planned |
 | Coordinate spatial structured effects | First slices fitted for Gaussian `mu`: `spatial(1 | site, coords = coords)`, one numeric `spatial(1 + x | site, coords = coords)` slope in univariate models, matching bivariate `mu1`/`mu2` `spatial(1 | p | site, coords = coords)` terms, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` spatial q=4 terms | `sdpars$mu`, `ranef("spatial_mu")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, and `summary()$covariance` expose the coordinate fields, the q=2 spatial mean-mean row, and the six derived q=4 spatial rows; q=4 is fitted extractor/diagnostic smoke, not formal coverage evidence | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, standalone spatial `sigma`, direct-SD surfaces, spatial `corpair()` regression, and non-Gaussian spatial effects remain planned |
 | Animal and lower-level relatedness structured effects | Gaussian `mu` intercepts and one numeric slope are fitted for `animal(1 + x | id, pedigree = ...)`, `animal(1 + x | id, A/Ainv = ...)`, and `relmat(1 + x | id, K/Q = ...)`; matching labelled `mu1`/`mu2` terms fit q=2 bivariate location covariance, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit constant q=4 location-scale covariance | `sdpars$mu`, `corpars$animal` / `corpars$relmat`, `ranef("animal_mu")`, `ranef("relmat_mu")`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` expose the fitted structured fields; q=4 correlations are derived-only | Large-pedigree sparse precision construction, multiple structured slopes, slope correlations, standalone `sigma` relatedness models, predictor-dependent `corpair()` regressions, non-Gaussian relatedness effects, and generic direct-SD grammar remain planned |
-| Profile intervals and diagnostics | First slice for fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted q=2 `corpair()` values | Interval output uses `conf.status`, `profile.boundary`, and `profile.message`; derived q=4 rows report `derived_interval_unavailable` | Profile support is target-specific, and public bootstrap intervals are not implemented yet |
+| Profile intervals and diagnostics | First slice for fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, fitted q=2 `corpair()` values, and `confint(..., method = "bootstrap")` simulate/refit intervals for direct targets | `confint()` defaults to fast direct Wald intervals when `sdreport()` is available; SD Wald intervals use the log-SD scale, correlation Wald intervals use a guarded Fisher-z/atanh scale, `profile_precision = "fast"` gives a quicker first-pass profile, and interval output uses `conf.status`, `profile.boundary`, `profile.message`, and bootstrap success/failure counts | Profile and bootstrap support is target-specific; derived q=4 rows report `derived_interval_unavailable` |
 | Large-data fit controls | Opt-in controls for memory-light fitted objects, sparse fixed-effect `mu` matrices, and Gaussian sufficient-statistic aggregation | `check_drm()` reports sparse design and aggregation diagnostics where fitted | These controls are first univariate Gaussian paths, not broad scalability claims |
 | Reserved or planned neighbours | Reserved/rejected or design-only for coefficient-specific `sd()` slopes, random effects in `rho12`, shape random effects, ID-level skewness such as future `skew(id) ~ x`, phylogenetic slopes, mesh/SPDE, spatial `corpair()`, broader bivariate random slopes, and mixed composed families | Planned-feature errors should fire before fitting; no interval target is advertised | These need likelihood code, recovery tests, diagnostics, documentation, and after-task evidence before use |
 
@@ -269,18 +269,20 @@ standalone spatial scale routes, direct spatial SD surfaces,
 predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial
 effects are still planned rather than landing-page workflows.
 
-For uncertainty, `confint()` returns Wald intervals for fixed effects,
-including shape and coscale formula coefficients, by default when
-`TMB::sdreport()` has been computed. Profile-likelihood intervals are available
-only for explicit direct targets. Use `profile_targets(fit)` to see which SD,
-correlation, scale, or `rho12` targets are ready. Interval-aware summaries use
-`conf.status` to separate returned intervals from rows that need `newdata`,
-derived-profile methods, or refitting with `control = drm_control(se = TRUE)`
-for Wald standard errors; profile rows also report `profile.boundary` and
-`profile.message` so boundary or near-correlation-limit intervals are visible
-before interpretation. Fisher-z Wald correlation intervals are reserved for
-Phase 18 simulation coverage producers, not the fitted-model `confint()`
-default.
+For uncertainty, `confint()` defaults to the fast path when `TMB::sdreport()`
+has been computed: Wald intervals for fixed-effect coefficients plus direct
+constant scale, random-effect SD, random-effect correlation, and constant
+`rho12` targets. SD intervals are formed on the fitted log-SD scale and
+exponentiated; correlation intervals are formed on the guarded Fisher-z/atanh
+scale and transformed back to correlations. For long phylogenetic or spatial
+fits, start with a narrow target set such as
+`confint(fit, parm = "variance_components")` or the specific
+`sd:mu:phylo(...)` row from `profile_targets(fit)`. Use `method = "profile"`
+only for selected direct targets when likelihood shape matters;
+`profile_precision = "fast"` supplies quicker `TMB::tmbprofile()` controls for
+a first-pass interval. `method = "bootstrap"` runs simulate/refit percentile
+intervals and reports successful and failed refits for cases where refit-based
+uncertainty is needed.
 
 ## Project status
 

@@ -85,3 +85,12 @@ Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.
 }
+\examples{
+set.seed(20260525)
+dat <- data.frame(
+  y = 0.2 + 0.6 * seq(-1, 1, length.out = 24) + rnorm(24, sd = 0.5),
+  x = seq(-1, 1, length.out = 24)
+)
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+fit
+}
