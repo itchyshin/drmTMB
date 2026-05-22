@@ -726,18 +726,19 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   ]
   pred_temperature_display$display <- ifelse(
     pred_temperature_display$dpar == "sigma",
-    "sigma (habitat not in formula)",
+    "sigma",
     as.character(pred_temperature_display$habitat)
   )
   pred_temperature_display$display <- factor(
     pred_temperature_display$display,
-    levels = c("kelp", "reef", "sigma (habitat not in formula)")
+    levels = c("kelp", "reef", "sigma")
   )
 
   plot_parameter_surface(
     pred_temperature_display,
     x = "temperature",
-    colour = "display"
+    colour = "display",
+    point = FALSE
   ) +
     workflow_distributional_scales() +
     workflow_theme() +
@@ -749,7 +750,7 @@ For a discrete focal predictor, the same interval columns draw interval bars
 rather than a ribbon. This example asks for 90% Wald intervals, so the table
 records `conf.level = 0.9` on rows where `conf.status = "wald"`:
 
-```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.cap = "Fitted habitat-level `mu` estimates at temperature zero; vertical intervals are 90% Wald confidence intervals requested from `predict_parameters()`.", fig.alt = "Two habitat-level fitted mu estimates with vertical Wald confidence intervals at temperature zero."}
+```{r habitat-contrast-plot, fig.width = 5.8, fig.height = 2.7, fig.cap = "Fitted habitat-level `mu` estimates at temperature zero; horizontal intervals are 90% Wald confidence intervals requested from `predict_parameters()`.", fig.alt = "Two habitat-level fitted mu estimates with horizontal Wald confidence intervals at temperature zero."}
 habitat_plot_grid <- prediction_grid(
   fit,
   focal = "habitat",
@@ -772,8 +773,15 @@ unique(pred_habitat[, c(
 )])
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_parameter_surface(pred_habitat, x = "habitat", line = FALSE) +
-    workflow_theme()
+  plot_parameter_surface(
+    pred_habitat,
+    x = "habitat",
+    line = FALSE,
+    facet = NULL
+  ) +
+    ggplot2::coord_flip() +
+    workflow_theme() +
+    ggplot2::labs(x = NULL)
 }
 ```
 
@@ -820,7 +828,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     x = "temperature",
     colour = "habitat",
     dpar = "mu",
-    facet = NULL
+    facet = NULL,
+    point = FALSE
   ) +
     workflow_habitat_scales() +
     workflow_theme()
@@ -841,7 +850,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     pred_sigma_temperature,
     x = "temperature",
     dpar = "sigma",
-    facet = NULL
+    facet = NULL,
+    point = FALSE
   ) +
     workflow_theme()
 }

@@ -2,6 +2,69 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 11-15
+
+Goal: continue the rendered-figure QA sequence after PR #299 by improving the
+next article figures that still looked visually heavier than their statistical
+purpose required.
+
+Roles: Ada coordinated the small slice and merged PR #299 before starting from
+fresh `main`. Florence inspected the changed rendered PNGs. Fisher checked
+that uncertainty source and geometry still matched the claim. Pat and Darwin
+checked whether readers could decode each figure without implementation
+history. Grace checked rendered HTML and alt-text counts. Noether checked that
+axis labels still named the fitted estimand. Rose caught the caption/alt-text
+drift after the habitat contrast was flipped. These were role perspectives,
+not spawned agents.
+
+Files changed:
+
+- `vignettes/model-workflow.Rmd`
+- `vignettes/bivariate-coscale.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-11-15.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-11-15.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 299 --squash --delete-branch --subject "Add structural correlation figure QA slices (#299)"
+git checkout -b codex/rendered-figure-qa-11-15
+air format vignettes/model-workflow.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = TRUE)"
+air format vignettes/bivariate-coscale.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'plot-parameter-surface|plot-corpairs')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Rendered HTML inventory after the edits found 5 article images and 0 missing
+alt text in `model-workflow`; 2 article images and 0 missing alt text in
+`bivariate-coscale`; 5 article images and 0 missing alt text in
+`simulation-plot-grammar`; 21 article images and 0 missing alt text in
+`figure-gallery`; and 2 article images and 0 missing alt text in
+`phylogenetic-spatial`. Reference example images for `plot_corpairs()` and
+`plot_parameter_surface()` still lack article-style alt text in generated
+pkgdown HTML.
+
+Result:
+
+- Dense continuous prediction grids in `model-workflow` now render as fitted
+  line-and-ribbon surfaces instead of line, ribbon, and many grid points.
+- The `model-workflow` habitat contrast is now a compact horizontal
+  point-interval display with matching caption and alt text.
+- The `bivariate-coscale` residual-versus-individual Confidence Eye display
+  keeps 95% profile intervals and the dotted zero reference, but no longer
+  spends space on a redundant legend.
+- Targeted plot-helper tests passed with 88 passing expectations,
+  `pkgdown::check_pkgdown()` found no problems, and `git diff --check` was
+  clean.
+
+Next action: open the PR, update issue #58, then continue the
+rendered-reference accessibility question or the next figure-heavy article
+with a clear data-grain mismatch after this slice merges.
+
 ## 2026-05-22 - Rendered Figure QA Slices 6-10
 
 Goal: continue the figure QA sequence after PR #298 by improving the next
