@@ -53,10 +53,10 @@
 #'   ),
 #'   estimate = c(0.25, 0.45, -0.30, 0.12),
 #'   modelled = c(FALSE, FALSE, FALSE, FALSE),
-#'   conf.low = c(NA, 0.10, -0.55, -0.12),
-#'   conf.high = c(NA, 0.72, -0.08, 0.34),
-#'   conf.status = c("not_requested", "profile", "profile", "profile"),
-#'   interval_source = c("not_available", "profile", "profile", "profile")
+#'   conf.low = c(0.05, 0.10, -0.55, -0.12),
+#'   conf.high = c(0.43, 0.72, -0.08, 0.34),
+#'   conf.status = rep("profile", 4),
+#'   interval_source = rep("profile", 4)
 #' )
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   plot_corpairs(pairs, label = "label") +

@@ -144,6 +144,20 @@ rho12(fit_relmat_q2)
 unit-level location deviations. `rho12()` reports the residual correlation
 between responses after fixed effects and random effects have been included.
 
+For reports, do not leave the q=2 known-matrix correlation as a lone dot when
+interval evidence is available. Request interval provenance first, then plot the
+explicit table:
+
+```r
+relmat_pairs <- corpairs(fit_relmat_q2, level = "relmat", conf.int = TRUE)
+plot_corpairs(relmat_pairs)
+```
+
+That plot should be read as a latent known-matrix correlation display, not as a
+residual `rho12` plot. The q=4 rows below are different: current q=4 `relmat()`
+correlations are derived rows, so their tables may expose point estimates and
+`conf.status` without profile Confidence Eyes.
+
 When the scientific question is whether known-matrix deviations in means and
 residual scales covary, use the same labelled `relmat()` term in all four
 bivariate endpoint formulas:
