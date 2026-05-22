@@ -2,6 +2,226 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - gllvmTMB CI Audit and Comprehensive Audit Launch
+
+Goal: answer the follow-up question about whether `gllvmTMB` had a faster
+profile/CI pattern worth learning from, make the fast `drmTMB` CI workflow
+visible in a user-facing article, and start the comprehensive function, page,
+and figure audit as bounded slices rather than another sprawling cleanup.
+
+Team roles:
+
+- Ada coordinated the source-only sister-package audit, workflow article
+  update, roadmap cleanup, and audit-map launch.
+- Jason inspected the local `gllvmTMB` profile, bootstrap, and correlation
+  interval code without porting source.
+- Fisher separated the default inference rule: fast Wald for routine direct
+  targets, targeted profile for likelihood-shape checks, and bootstrap only
+  when refit-based uncertainty is worth the runtime.
+- Gauss and Noether checked the scale story: SD intervals use the optimized
+  log-SD scale, direct correlation intervals use the fitted guarded atanh
+  scale, and sample-correlation Fisher-z `n_eff` intervals should not become
+  the default for model-parameter correlations.
+- Emmy checked the S3/documentation boundary: `confint()` has the first
+  direct-target bootstrap route, while `summary()` and `corpairs()` still do
+  not run bootstrap intervals.
+- Pat and Rose removed current public wording that still told users bootstrap
+  was unavailable, and launched the broader inconsistency audit.
+- Florence queued the rendered figure gate; no figure was declared fixed from
+  source inspection alone.
+- Grace ran the article render, pkgdown, focused tests, documentation, and
+  whitespace checks.
+
+Files changed:
+
+- `R/methods.R`
+- `man/summary.drmTMB.Rd`
+- `ROADMAP.md`
+- `vignettes/model-workflow.Rmd`
+- `docs/design/34-validation-debt-register.md`
+- `docs/design/68-gllvmtmb-profile-ci-audit.md`
+- `docs/design/69-comprehensive-function-page-figure-audit.md`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-ci-audit-workflow-map.md`
+
+Checks run:
+
+```sh
+air format ROADMAP.md vignettes/model-workflow.Rmd docs/design/68-gllvmtmb-profile-ci-audit.md docs/design/69-comprehensive-function-page-figure-audit.md docs/dev-log/audits/2026-05-21-function-page-figure-audit.md
+air format docs/design/34-validation-debt-register.md
+air format R/methods.R
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-workflow', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::document()"
+rg -n 'bootstrap intervals are not implemented|method = "bootstrap"\).*stop|not a public `method` value|unsupported bootstrap requests now report that bootstrap intervals are not implemented|public `confint\(method = "bootstrap"\)` promise|not a public `confint\(\)` default' README.md ROADMAP.md docs/design vignettes R man tests/testthat -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary|control', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The local `gllvmTMB` audit found that the fast profile pattern is still
+  `TMB::tmbprofile()` with coarser defaults (`ystep = 0.5`, `ytol = 2`), not a
+  separate hand-written C++ profile engine.
+- `vignettes/model-workflow.Rmd` now shows the practical order for long fits:
+  `confint(fit)`, `confint(fit, parm = "variance_components")`, targeted
+  profile with `profile_precision = "fast"`, and direct-target bootstrap
+  pilots through `confint(..., method = "bootstrap")`.
+- The roadmap and validation-debt register now distinguish direct `confint()`
+  bootstrap support from the still-missing `summary()`, `corpairs()`,
+  prediction-table, q4-derived, repeatability, and phylogenetic-signal
+  bootstrap routes.
+- `docs/design/69-comprehensive-function-page-figure-audit.md` and
+  `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md` start the
+  broader function/page/figure audit and make the rendered figure gate
+  explicit.
+- The rendered `model-workflow` article contains the new fast-CI text. A first
+  `pkgdown::build_article()` call in a clean process picked up an older
+  installed package and failed to find `profile_targets()`; rerunning with the
+  local package loaded and `new_process = FALSE` rendered successfully.
+- The final stale-wording scan only found intentional current-boundary text:
+  `summary()` and `corpairs()` still stop for bootstrap, and the audit map
+  stores the scan pattern itself.
+- Focused tests, `git diff --check`, and `pkgdown::check_pkgdown()` passed.
+
+## 2026-05-21 - Fast Direct Wald, Targeted Profile, and Bootstrap CIs
+
+Goal: respond to Ayumi's Bergmann CI timing report by making the fitted-model
+fast interval route honest and useful: default Wald intervals now cover direct
+scale, random-effect SD, and correlation targets; targeted profile intervals
+can use a quick first-pass precision; and `confint()` has a bounded
+simulate/refit bootstrap route for selected direct targets.
+
+Team roles:
+
+- Ada integrated the API, docs, tests, and validation evidence while keeping
+  this separate from the active C++ helper-extraction lane.
+- Fisher set the inference rule: fast Wald intervals are appropriate for
+  routine fixed effects and direct screening of variance/correlation targets,
+  while profile or bootstrap remains the follow-up when likelihood shape or
+  refit uncertainty matters.
+- Gauss and Noether checked that SD intervals are computed on the fitted
+  log-SD scale and correlations on the guarded Fisher-z/atanh scale before
+  transforming back to response-scale SDs and correlations.
+- Emmy checked the S3 `confint()` and `summary()` contracts, target aliases,
+  bootstrap refit metadata, and roxygen help pages.
+- Curie kept the test evidence focused on direct Wald targets, ordinary and
+  scalar-phylogenetic bootstrap smoke behavior, and `profile_precision =
+  "fast"` forwarding to `TMB::tmbprofile()`.
+- Grace ran package-level documentation, pkgdown, full tests, and R CMD check.
+- Pat and Rose kept the README, model map, and profile design note clear about
+  the fast option and the remaining derived-interval boundaries.
+
+Files changed:
+
+- `R/profile.R`
+- `R/methods.R`
+- `tests/testthat/test-profile-targets.R`
+- `tests/testthat/test-summary.R`
+- `man/confint.drmTMB.Rd`
+- `man/summary.drmTMB.Rd`
+- `README.md`
+- `NEWS.md`
+- `vignettes/model-map.Rmd`
+- `docs/design/12-profile-likelihood-cis.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-fast-ci-routes.md`
+
+Checks run:
+
+```sh
+air format R/profile.R R/methods.R tests/testthat/test-profile-targets.R tests/testthat/test-summary.R README.md NEWS.md docs/design/12-profile-likelihood-cis.md vignettes/model-map.Rmd
+Rscript -e "devtools::test(filter = 'profile-targets|summary|control', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+```
+
+Outcomes:
+
+- `confint()` now defaults to Wald intervals for fixed effects plus direct
+  constant scale, random-effect SD, random-effect correlation, and constant
+  residual `rho12` targets when `TMB::sdreport()` covariance is available.
+- SD Wald intervals use the fitted log-SD scale and are exponentiated;
+  correlation Wald intervals use the guarded Fisher-z/atanh scale and are
+  transformed back to the correlation scale.
+- `parm = "fixed_effects"`, `"random_effects"`, `"variance_components"`, or
+  `"correlations"` can select coherent target sets for `confint()`.
+- `profile_precision = "fast"` supplies `ystep = 0.5` and `ytol = 2` to
+  `TMB::tmbprofile()` unless the caller overrides those controls, giving a
+  quick first-pass profile for long SD or correlation targets such as
+  phylogenetic SDs.
+- `confint(..., method = "bootstrap")` now runs selected direct-target
+  simulate/refit percentile intervals with refit success/failure counts; this
+  includes a tiny scalar `phylo(1 | species, tree = tree)` smoke test, but the
+  route is intentionally not yet wired into `summary()`, `corpairs()`, derived
+  q4 summaries, repeatability, or phylogenetic signal.
+- Focused tests, full `devtools::test(reporter = "summary")`,
+  `pkgdown::check_pkgdown()`, `git diff --check`, and
+  `devtools::check(error_on = "never", env_vars =
+  c("_R_CHECK_SYSTEM_CLOCK_" = "FALSE"))` all passed. R CMD check completed
+  with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-21 - C++ Helper Extraction
+
+Goal: start the C++ modularization plan with the smallest safe mechanical move:
+extract branch-free numeric transforms and NB2 count-kernel helpers from
+`src/drmTMB.cpp` without changing formula grammar, likelihood branches, report
+names, profile targets, or R-to-TMB ABI declarations.
+
+Team roles:
+
+- Ada kept this to the first pure-helper boundary.
+- Gauss and Noether checked that helper bodies and numerical transforms moved
+  without changing likelihood parameterization.
+- Curie kept the focused test gate on NB2 count kernels and cumulative-logit
+  probability helpers.
+- Emmy checked that branch bodies, report names, and ABI declarations stayed in
+  `src/drmTMB.cpp`.
+- Grace caught and closed the `.hpp` R-CMD-check warning by switching the
+  planned header filenames to `.h`.
+- Rose recorded the source-map drift lesson for later C++ slices.
+
+Files changed:
+
+- `src/drmTMB.cpp`
+- `src/drm_numeric.h`
+- `src/drm_count_kernels.h`
+- `docs/design/36-cpp-modularization-source-map.md`
+- `vignettes/source-map.Rmd`
+- `docs/dev-log/after-task/2026-05-21-cpp-helper-extraction.md`
+
+Checks run:
+
+```sh
+air format src/drmTMB.cpp src/drm_numeric.h src/drm_count_kernels.h docs/design/36-cpp-modularization-source-map.md vignettes/source-map.Rmd
+Rscript -e "devtools::test(filter = 'count-kernels|cumulative-logit', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never', env_vars = c('_R_CHECK_SYSTEM_CLOCK_' = 'FALSE'))"
+rg -n "drm_numeric.h|drm_count_kernels.h|first pass has moved|first modularization slice|drm_log1p_exp_stable|NB2 count-kernel" docs/design/36-cpp-modularization-source-map.md vignettes/source-map.Rmd pkgdown-site/articles/source-map.html
+git diff --check
+```
+
+Outcomes:
+
+- `drm_log1p_pos()`, `drm_log1p_exp_stable()`, `drm_log1mexp()`,
+  `drm_log_inv_logit()`, `drm_log1m_inv_logit()`, and
+  `drm_log_inv_logit_diff()` now live in `src/drm_numeric.h`.
+- `drm_nbinom2_log_count_product()`, `drm_nbinom2_log_density()`, and
+  `drm_nbinom2_log_p0()` now live in `src/drm_count_kernels.h`.
+- The source map and rendered source-map article now describe the landed first
+  helper extraction.
+- A first `devtools::check()` pass caught the `.hpp` filename warning; the
+  final `.h` version completed with 0 errors, 0 warnings, and 0 notes.
+- Branch bodies, `DATA_*`/`PARAMETER_*` declarations, report names,
+  `ADREPORT()` calls, public syntax, and fitted-surface boundaries did not
+  move.
+
 ## 2026-05-21 - C++ Modularization Plan Refresh
 
 Goal: answer the post-Poisson-q1 question about whether the C++ modularization

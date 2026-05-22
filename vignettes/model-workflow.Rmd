@@ -156,23 +156,80 @@ random-effect variance and the residual variance used in that ratio.
 
 When `TMB::sdreport()` succeeds, direct response-scale parameter rows such as
 constant `sigma` and `sd:mu:(1 | site)` also include delta-method standard
-errors. Treat those as quick local approximations. For fitted direct SD or
-correlation targets, profile-likelihood confidence intervals remain the safer
-interval route. `drmTMB` is a frequentist package, so these are confidence
+errors. `confint()` uses those same optimized-parameter covariances for its
+fast default Wald intervals. SD intervals are formed on the fitted log-SD scale
+and exponentiated; correlation intervals are formed on the fitted guarded
+atanh scale and transformed back with the model's correlation transform.
+Treat these as quick local approximations, then reserve profile or bootstrap
+work for the SD or correlation rows that need likelihood-shape or refit-based
+uncertainty. `drmTMB` is a frequentist package, so these are confidence
 intervals, not Bayesian credible intervals:
 
 ```{r}
 profile_targets(fit_site)
 ```
 
+The fastest fitted-model interval check is the default Wald route:
+
+```{r}
+confint(fit_site)
+```
+
+For a long mixed or phylogenetic model, narrow the table before doing anything
+expensive:
+
+```{r}
+confint(fit_site, parm = "variance_components")
+```
+
+The variance-component shortcut returns constant scale targets and direct
+random-effect SD targets. The companion shortcuts `"fixed_effects"`,
+`"random_effects"`, and `"correlations"` keep large interval tables readable.
+When a report needs a likelihood profile for a specific SD or correlation row,
+copy the exact target name from `profile_targets()` and profile only that
+target. `profile_precision = "fast"` supplies coarser `TMB::tmbprofile()`
+controls (`ystep = 0.5`, `ytol = 2`) unless you override them in `...`; it is
+useful as a first pass for long phylogenetic or spatial SD profiles:
+
 ```{r, eval = FALSE}
 summary(
   fit_site,
   conf.int = TRUE,
   method = "profile",
-  ci_parm = "sd:mu:(1 | site)"
+  ci_parm = "sd:mu:(1 | site)",
+  profile_precision = "fast"
 )
 ```
+
+The same target can be requested directly:
+
+```{r, eval = FALSE}
+confint(
+  fit_site,
+  parm = "sd:mu:(1 | site)",
+  method = "profile",
+  profile_precision = "fast"
+)
+```
+
+When refit-based uncertainty is the point of the analysis, use the bounded
+bootstrap route in `confint()` for selected direct targets. Start with a small
+pilot to estimate runtime, then increase `R` for the final analysis:
+
+```{r, eval = FALSE}
+confint(
+  fit_site,
+  parm = "variance_components",
+  method = "bootstrap",
+  R = 99,
+  seed = 20260521
+)
+```
+
+Bootstrap rows record successful and failed refits in `bootstrap.n` and
+`bootstrap.failed`. On Unix-like systems, `parallel = "multicore"` and
+`workers = ...` can run refits in parallel; `drmTMB` caps bootstrap workers at
+10 to avoid accidental oversubscription.
 
 Each distributional parameter has its own coefficient vector:
 
@@ -198,8 +255,8 @@ Use the scale of the fitted parameter when deciding what to report:
 | `profile_targets(fit)` | interval target inventory | whether a fitted SD or correlation target can receive a profile interval |
 
 For confidence intervals, keep the fast default summary separate from the
-expensive profile step. Wald 95% confidence intervals are available for fixed
-effects:
+expensive profile or bootstrap step. Wald 95% confidence intervals are
+available for fixed effects and direct response-scale parameter rows:
 
 ```{r}
 summary(fit, conf.int = TRUE)
@@ -288,11 +345,11 @@ one summary. Successful profile rows also include `profile.boundary` and
 `profile.message`; values other than `"ok"` tell you to check boundary or
 near-correlation-limit behaviour before interpreting the interval.
 
-For correlations, use profile intervals for fitted-model inference when the
-target is profile-ready. The Phase 18 simulation helpers also include a
-Fisher-z back-transformed Wald route for coverage tables with supplied
-correlation standard errors, but that helper is a simulation producer contract,
-not a public `confint()` default for fitted correlation rows.
+For correlations, the fast Wald route uses the model's fitted correlation-link
+scale, which is a guarded Fisher-z/atanh transform for current correlation
+parameters. This differs from a sample-correlation Fisher-z interval with an
+effective sample size: `drmTMB` is using the TMB covariance of the fitted
+correlation parameter, not a separate `n_eff` heuristic.
 
 Use `profile_targets(fit)` before asking for a profile interval. A row is
 profile-ready only when it maps to a direct TMB target and the fitted object
@@ -306,22 +363,26 @@ Read `conf.status` as an action column:
 
 | `conf.status` | What it means | What to do next |
 | --- | --- | --- |
-| `wald` | A Wald interval was returned for a fixed-effect row. | Use it for routine fixed-effect summaries, while remembering it is asymptotic. |
+| `wald` | A Wald interval was returned for a fixed-effect or direct parameter row. | Use it for routine summaries and as the fastest screen for large models, while remembering it is asymptotic. |
 | `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
+| `bootstrap` | A simulate/refit percentile interval was returned by `confint()`. | Check `bootstrap.n` and `bootstrap.failed`; increase `R` only after a small runtime pilot works. |
 | `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
 | `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
 | `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
 | `wald_unavailable` | Wald uncertainty is not available for this row, or `sdreport()` was skipped or failed. | Use a profile-ready target when one exists; otherwise report the missing interval explicitly. |
+| `bootstrap_unavailable` | Fewer than two bootstrap refits produced a finite estimate for the requested target. | Treat the interval as unavailable; inspect model convergence, refit controls, and the bootstrap failure count before increasing `R`. |
 | `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
 | `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
 
-Parametric-bootstrap intervals are still a planned interval route, not a public
-`method` value. Calls such as `confint(fit, method = "bootstrap")`,
-`summary(fit, conf.int = TRUE, method = "bootstrap")`, or
-`corpairs(fit, conf.int = TRUE, method = "bootstrap")` stop before interval
-work begins. For now, use Wald intervals for routine fixed-effect summaries,
-profile intervals for direct profile-ready targets, and explicit simulation
-studies when bootstrap coverage is the scientific target.
+Bootstrap intervals are public only through `confint()` for selected direct
+targets. `summary(fit, conf.int = TRUE, method = "bootstrap")` and
+`corpairs(fit, conf.int = TRUE, method = "bootstrap")` still stop before
+interval work begins, and derived q4 covariance rows, repeatability, and
+phylogenetic signal still need separate interval designs. For long applied
+models, the practical default is therefore: Wald for routine reporting,
+targeted `profile_precision = "fast"` profile checks for important SD or
+correlation rows, and bootstrap only when refit-based uncertainty is worth the
+runtime.
 
 ## Predict distributional parameters
 

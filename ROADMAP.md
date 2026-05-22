@@ -1362,11 +1362,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
 | 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
 | 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
-| 170 | Bootstrap intervals | Done: the audit found bootstrap needs a deterministic simulate-refit harness, target extractor, failure ledger, and runtime/reproducibility policy before coding. |
-| 171 | Bootstrap intervals | Done by deferral: the audit did not pass, so no public `method = "bootstrap"` prototype was added. |
-| 172 | Bootstrap intervals | Done by boundary: no bootstrap interval-status columns are emitted yet because unsupported bootstrap requests error before interval-table creation. |
+| 170 | Bootstrap intervals | Superseded by the fast-CI slice: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
+| 171 | Bootstrap intervals | Done for the first public boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
+| 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata. Unsupported non-direct routes still stop before interval work. |
 | 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
-| 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`, and unsupported bootstrap requests now report that bootstrap intervals are not implemented. |
+| 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`; direct bootstrap rows report refit success/failure metadata, while unsupported bootstrap surfaces still give explicit unavailable errors. |
 | 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
 | 176 | Phase 6/13 gate | Done: the interval-readiness revisit is closed with tests, docs, known-limitations updates, check-log evidence, and an after-phase note. |
 | 177 | Gaussian random slopes | Done: ordinary Gaussian `mu` supports multiple independent numeric slopes and one correlated intercept-plus-one-slope block; arbitrary correlated multi-slope blocks were moved to Slices 178-181. |
@@ -1829,8 +1829,9 @@ as the whole comprehensive simulation programme.
   aggregate-bias overview for quick screening. Slices 869-878 add compact
   interval-coverage summaries for Wald, profile, and bootstrap coverage
   artifacts when present. Slices 879-888 add run-manifest summaries for status,
-  warnings, errors, skipped rows, and elapsed time. This is simulation
-  infrastructure, not a public `confint(method = "bootstrap")` promise.
+  warnings, errors, skipped rows, and elapsed time. This simulation
+  infrastructure is separate from the later public direct-target
+  `confint(method = "bootstrap")` route.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the
