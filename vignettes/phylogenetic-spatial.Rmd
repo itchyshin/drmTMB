@@ -1,8 +1,8 @@
 ---
-title: "Structural dependence"
+title: "Structural dependence details"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Structural dependence}
+  %\VignetteIndexEntry{Structural dependence details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -2,6 +2,82 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Article Audit Sweep Map And Navigation Slice
+
+Goal: start the comprehensive article audit with a durable map, a bounded
+pkgdown navigation-only reorganization, and rendered evidence that the public
+article index is no longer mixing first-user tutorials, figure guidance,
+structured-dependence route maps, and validation material in one long Tutorials
+bucket.
+
+Team roles:
+
+- Ada coordinated this as an audit and navigation slice, not a broad prose
+  rewrite or feature implementation.
+- Aquinas reviewed the pkgdown navigation as a spawned reviewer and recommended
+  a first-user path, a separate structured-dependence path, and moving
+  `figure-gallery` out of early Tutorials.
+- Goodall reviewed the applied-user path as a spawned reviewer and recommended
+  `drmTMB` -> `model-map` -> `model-workflow` as the visible starting route.
+- Helmholtz reviewed developer-note/system drift as a spawned reviewer and
+  recommended keeping raw design and dev-log ledgers internal while exposing
+  stable source, formula, and family-contributor notes.
+- Pat and Darwin checked that the public grouping now starts from applied
+  decisions before advanced details.
+- Fisher checked that `implementation-map`, `testing-likelihoods`, and
+  `simulation-plot-grammar` sit in a validation/evidence path rather than the
+  first tutorial path.
+- Florence kept `figure-gallery` tied to the inference, diagnostics, and
+  figures path so the figure audit can happen as its own quality gate.
+- Boole and Noether checked that the structural-dependence split does not
+  imply new syntax or new likelihood support.
+- Emmy checked that `source-map`, `formula-grammar`, and `adding-families`
+  remain the stable developer-note entry points.
+- Grace rebuilt pkgdown and checked the rendered article index.
+- Rose tied the slice to the broader article audit, figure audit, and
+  developer-note cleanup rather than treating navigation as the whole fix.
+
+Files changed:
+
+- `_pkgdown.yml`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/dev-log/audits/2026-05-22-article-audit-sweep-map.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-22-article-audit-sweep-map.md`
+
+Checks run:
+
+```sh
+air format _pkgdown.yml vignettes/phylogenetic-spatial.Rmd docs/dev-log/audits/2026-05-22-article-audit-sweep-map.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-22-article-audit-sweep-map.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('phylogenetic-spatial', new_process = FALSE, quiet = TRUE)"
+Rscript -e "pkgdown::build_site()"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'Diagnostics & Validation|Start Here|Choose Your Model|Applied Family Tutorials|Structural dependence details|Simulation and Validation|Inference, Diagnostics, and Figures' _pkgdown.yml pkgdown-site/articles/index.html pkgdown-site/articles/phylogenetic-spatial.html -S
+gh issue list --search "article audit OR tutorial navigation OR pkgdown navigation OR developer notes OR figure gallery" --limit 20
+git diff --check
+```
+
+Outcomes:
+
+- The new audit map records the current 26-article surface, the proposed
+  article hierarchy, developer-note policy, authority hierarchy, first stale
+  scans, and the first sweep slices.
+- The pkgdown navbar now separates first-user model guides, applied tutorials,
+  structured-dependence articles, and diagnostics/validation material.
+- The article index now has `Start Here`, `Choose Your Model`, `Applied Family
+  Tutorials`, `Structured Dependence`, `Inference, Diagnostics, and Figures`,
+  `Simulation and Validation`, and `Developer Notes` groups.
+- `figure-gallery` moved out of early Tutorials and into the inference,
+  diagnostics, and figures path.
+- `implementation-map` moved out of first-user model guides and into the
+  simulation/validation path.
+- `phylogenetic-spatial` is now titled `Structural dependence details`, with a
+  matching vignette index entry and rendered article title.
+- Full pkgdown rebuild and `pkgdown::check_pkgdown()` passed; rendered HTML
+  searches found the expected navigation labels.
+- Issue search found #31, #58, #57, and #255 as related open ledgers. None were
+  closed by this slice.
+
 ## 2026-05-22 - relmat Use-Case Clarification
 
 Goal: make the `relmat()` article convincing about when a covariance,
