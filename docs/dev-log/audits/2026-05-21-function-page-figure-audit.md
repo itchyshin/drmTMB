@@ -78,6 +78,18 @@ This launch note does not claim any figure was visually inspected after render.
 - Detailed figure evidence is in
   `docs/dev-log/figure-audits/2026-05-21-model-workflow/figure-audit.md`.
 
+2026-05-21 implementation-map interval pass:
+
+- The rendered page has no article figures beyond the pkgdown logo, so this was
+  a status/prose consistency pass.
+- The interval paragraph no longer says Wald intervals are fixed-effect-only
+  or that public `confint(method = "bootstrap")` is unavailable.
+- The implementation map now matches the model map: default Wald covers
+  selected direct fixed, scale, SD, correlation, and constant `rho12` targets;
+  `profile_precision = "fast"` remains the quicker profile option; direct
+  bootstrap is limited to selected `confint()` targets; and derived or
+  non-`confint()` bootstrap routes remain unavailable.
+
 ## Next Tables To Fill
 
 Function/reference table columns:

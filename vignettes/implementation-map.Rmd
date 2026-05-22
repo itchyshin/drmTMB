@@ -56,7 +56,7 @@ Every status row should be read across the same dimensions:
 | Random-effect scope | Whether random intercepts, random slopes, and cross-parameter or bivariate combinations are fitted, first-slice, planned, or blocked. |
 | Extractor route | Which of `sdpars`, `corpars`, `ranef()`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` exposes the result. |
 | Evidence tier | Whether the surface has smoke evidence, artifact writers, small-grid admission, formal operating-characteristic evidence, or only diagnostic/failure-ledger evidence. |
-| Interval tier | Whether intervals are Wald fixed-effect, direct profile-ready, profile-proven, derived-unavailable, private bootstrap smoke, not requested, or unavailable. |
+| Interval tier | Whether intervals are fast Wald, direct profile-ready, profile-proven, direct bootstrap, derived-unavailable, private bootstrap smoke, not requested, or unavailable. |
 | User route | What to fit now, and what smaller fitted route to use when the requested model is planned. |
 
 Simulation and interval evidence are deliberately separate from fitted support.
@@ -66,16 +66,23 @@ A model can be fitted and still have only smoke or diagnostic evidence.
 | --- | --- |
 | Formal small grid | Likelihood, parser, extractors, diagnostics, interval status, focused recovery tests, and an ADEMP sheet exist. |
 | Smoke/artifact only | The route is fitted and inspectable, but it does not yet have enough recovery or coverage evidence for broad claims. |
-| Interval-heavy opt-in | Profiles or private bootstrap checks are expensive or partial; status tables must show success, failure, or not-requested rows. |
+| Interval-heavy opt-in | Profiles or bootstrap checks are expensive or partial; status tables must show success, failure, or not-requested rows. |
 | Diagnostic/failure ledger | The fit teaches us about boundaries or hard cases, but it is not a user-facing operating-characteristic claim. |
 | Planned/blocked | Syntax or design may exist, but the fitter should reject the route or route users to a supported alternative. |
 
-Use Wald intervals only for fixed-effect formula coefficients with finite
-standard errors. Do not use them as a shortcut for public SDs, correlations,
-q=4 correlations, residual `rho12`, or weak-Hessian variance components. Direct
-profile targets can be mechanically available but still fail in a given fit.
-Bootstrap artifacts in Phase 18 are private simulation infrastructure, not a
-public `confint(method = "bootstrap")` route.
+Use fast Wald intervals for routine fixed-effect coefficients and selected
+direct fitted targets when `TMB::sdreport()` supplies the optimized-parameter
+covariance. Direct SD intervals use the fitted log-SD scale before
+exponentiating, and direct correlation intervals use the guarded atanh
+correlation-link scale before returning to the correlation scale. Do not use
+Wald intervals as a shortcut for derived q=4 correlations, repeatability,
+phylogenetic signal, unavailable rows, or weak-Hessian fits that need
+fit-specific diagnostics. Direct profile targets can be mechanically available
+but still fail in a given fit. `confint(method = "bootstrap")` now provides a
+narrow public simulate/refit route for selected direct targets, while Phase 18
+bootstrap artifacts remain private simulation infrastructure and do not imply
+bootstrap support in `summary()`, `corpairs()`, prediction tables, or derived
+summaries.
 
 ## Family and component map
 
@@ -109,7 +116,7 @@ is useful, but it is not the same as a formal coverage claim.
 | Ordinary Gaussian `sigma` | fitted | independent `log(sigma)` slopes | no correlated scale slopes yet | smoke and small-grid evidence for independent slopes | direct SD targets and Wald fixed effects |
 | `sd(group)` | fitted for unlabelled Gaussian `mu` intercept SD | no coefficient-specific slope SD yet | direct SD surface | focused recovery | coefficient intervals only where direct; row-specific SDs are derived |
 | Bivariate ordinary Gaussian | q=2 intercepts fitted | matching slope-only `mu1`/`mu2` fitted | selected q=2, same-response `mu`/`sigma`, all-four q=4 intercept blocks | q=2 admitted; q=4 smoke/diagnostic | q=2 direct profile; q=4 derived-unavailable |
-| Residual `rho12` | not a random effect | predictor-dependent fixed effects | residual coscale only | admitted and interval-heavy | direct profile; private bootstrap smoke only |
+| Residual `rho12` | not a random effect | predictor-dependent fixed effects | residual coscale only | admitted and interval-heavy | default direct Wald for constant rows; direct profile for constant or supplied `newdata` rows; direct bootstrap only through selected `confint()` targets |
 | Phylogenetic Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 `mu1`/`mu2` and q=4 location-scale fitted, with Ayumi hard cases diagnostic | small controlled grids; full-species hard cases stay diagnostic | direct targets for q=2; q=4 derived-unavailable |
 | Coordinate spatial Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 `mu1`/`mu2` fitted; constant all-four q=4 fitted | q=2 admitted; q=4 extractor/diagnostic smoke only | fixed-effect Wald and opt-in profiles for q=2 artifacts; q=4 derived-unavailable |
 | Animal Gaussian | `mu` intercept fitted | one `mu` slope fitted | q=2 and q=4 fitted for small dense or known-matrix routes | q=2/q=4 smoke artifacts, not broad coverage | q=2 fixed-effect Wald plus opt-in profile status; q=4 derived-unavailable |

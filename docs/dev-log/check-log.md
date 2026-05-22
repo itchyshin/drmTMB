@@ -2,6 +2,69 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - Implementation Map Interval Sync
+
+Goal: continue the comprehensive page audit by rendering `model-map` and
+`implementation-map`, then correcting stale implementation-map wording that
+still described Wald intervals as fixed-effect-only and public bootstrap as
+unavailable.
+
+Team roles:
+
+- Ada kept this as a map-consistency slice rather than another inference-code
+  change.
+- Fisher checked the default Wald, targeted profile, and bootstrap boundary.
+- Gauss and Noether checked the SD log-scale and correlation atanh-scale
+  wording.
+- Pat checked whether the maps now point applied users to the fastest reliable
+  CI order.
+- Grace rendered the map pages and confirmed they have no active article
+  figures beyond the pkgdown logo.
+- Rose found the stale implementation-map paragraph and recorded the scan
+  pattern.
+
+Files changed:
+
+- `vignettes/implementation-map.Rmd`
+- `docs/dev-log/audits/2026-05-21-function-page-figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-implementation-map-interval-sync.md`
+
+Checks run:
+
+```sh
+air format vignettes/implementation-map.Rmd docs/dev-log/audits/2026-05-21-function-page-figure-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-21-implementation-map-interval-sync.md
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('implementation-map', new_process = FALSE, quiet = TRUE)"
+rg -n 'model-map_files/figure-html|implementation-map_files/figure-html|<img' pkgdown-site/articles/model-map.html pkgdown-site/articles/implementation-map.html
+rg -n 'Use Wald intervals only|not a public `confint\(method = "bootstrap"\)` route|private simulation infrastructure, not a public|fixed-effect-only|Wald intervals are fixed-effect-only' vignettes/implementation-map.Rmd pkgdown-site/articles/implementation-map.html vignettes/model-map.Rmd pkgdown-site/articles/model-map.html README.md ROADMAP.md docs/design/34-validation-debt-register.md -S
+rg -n 'direct bootstrap only through selected `confint\(\)` targets|narrow public simulate/refit route|Use fast Wald intervals for routine fixed-effect coefficients and selected direct fitted targets' vignettes/implementation-map.Rmd pkgdown-site/articles/implementation-map.html -S
+Rscript -e "devtools::test(filter = 'profile-targets|summary', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+gh issue list --search "implementation map interval OR bootstrap intervals OR confidence interval" --limit 20
+```
+
+Outcomes:
+
+- `model-map` already had the current interval route; `implementation-map` did
+  not.
+- `implementation-map` now states that default Wald intervals cover routine
+  fixed effects and selected direct fitted targets when `sdreport()` covariance
+  is available.
+- The page now names the scale contract: SD Wald intervals use the fitted
+  log-SD scale, and direct correlation Wald intervals use the guarded atanh
+  correlation-link scale.
+- The public bootstrap boundary now matches the package: selected direct
+  `confint()` targets have a narrow simulate/refit route, while `summary()`,
+  `corpairs()`, prediction tables, q4 derived rows, repeatability, and
+  phylogenetic signal remain separate work.
+- The rendered `model-map` and `implementation-map` pages have no active
+  article figures beyond the pkgdown logo.
+- GitHub issue search found #265 as the broad bootstrap interval ledger, plus
+  broader visualization and simulation artifact issues; #265 remains open.
+- Focused `profile-targets` and `summary` tests, `git diff --check`, and
+  `pkgdown::check_pkgdown()` passed.
+
 ## 2026-05-21 - Model Workflow Rendered Figure Pass
 
 Goal: continue the comprehensive audit by inspecting the active rendered
