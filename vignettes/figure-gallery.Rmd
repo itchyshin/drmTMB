@@ -878,18 +878,17 @@ ggplot() +
   ) +
   labs(
     title = "Coefficient raindrops separate fixed effects, SDs, and correlations",
-    subtitle = "Drops are Wald compatibility displays; bars show central 66% and 95% intervals",
+    subtitle = "Drops are Wald compatibility displays; row labels identify the parameter class",
     x = "Estimate on displayed scale",
     y = NULL,
-    colour = "Parameter class"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
   theme(
-    legend.position = "bottom",
     panel.grid.major.y = element_blank(),
     panel.grid.minor = element_blank()
   ) +
-  guides(fill = "none")
+  guides(colour = "none", fill = "none")
 ```
 
 A random-slope figure should show repeated site behaviour. The translucent
@@ -1027,6 +1026,15 @@ plot_parameter_surface(
   scale_colour_manual(values = c(
     "Among-site SD" = gallery_colour("green")
   )) +
+  geom_rug(
+    data = site_sd_data,
+    aes(x = reef_cover),
+    inherit.aes = FALSE,
+    sides = "b",
+    colour = "grey55",
+    alpha = 0.38,
+    linewidth = 0.35
+  ) +
   geom_point(
     data = pred_site_sd[seq(1, nrow(pred_site_sd), length.out = 9), ],
     aes(reef_cover, estimate),
@@ -1039,7 +1047,7 @@ plot_parameter_surface(
   ) +
   labs(
     title = "Fitted among-site SD surface",
-    subtitle = "The line is a derived SD estimate; no Wald interval is drawn for this surface yet",
+    subtitle = "Rug marks observed site-level reef-cover support; no Wald interval is drawn yet",
     x = "Reef cover",
     y = "Estimated among-site SD",
     colour = NULL
@@ -1049,10 +1057,11 @@ plot_parameter_surface(
 ```
 
 This line is a fitted random-effect SD surface. It should not be read as a raw
-growth curve, and it should not be overlaid with raw `growth` points. The
-table behind the plot reports `conf.status = "wald_unavailable"`, which is the
-honest interval boundary until a profile or bootstrap route is attached to
-these derived surfaces.
+growth curve, and it should not be overlaid with raw `growth` points. The grey
+rug marks show where the site-level predictor was observed. The table behind
+the plot reports `conf.status = "wald_unavailable"`, which is the honest
+interval boundary until a profile or bootstrap route is attached to these
+derived surfaces.
 
 ## Discrete comparisons
 
@@ -1689,16 +1698,17 @@ ggplot(correlation_cloud, aes(rho, ymin = ymin, ymax = ymax)) +
   ) +
   labs(
     title = "Correlation rows can use raindrop confidence displays",
-    subtitle = "Drops use a guarded correlation-link scale; points mark fitted correlations",
+    subtitle = "Drops use a guarded correlation-link scale; row labels name the layer",
     x = "Correlation estimate",
     y = NULL,
-    colour = "Layer"
+    colour = NULL
   ) +
   theme_drmtmb_gallery() +
   theme(
     axis.text.y = element_text(size = 10, lineheight = 0.95),
     panel.grid.major.y = element_line(colour = "grey90")
-)
+  ) +
+  guides(colour = "none", fill = "none")
 ```
 
 The residual row is the fitted within-observation coscale `rho12`. The group

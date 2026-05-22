@@ -2,6 +2,60 @@
 
 Record meaningful development checks here.
 
+## 2026-05-21 - gllvmTMB-Informed Figure Polish
+
+Goal: continue Step 3 of the comprehensive audit by learning from the local
+`gllvmTMB` covariance/correlation plotting branch and applying the transferable
+visual lessons to the first `drmTMB` figure-gallery raindrop and SD-surface
+panels.
+
+Team roles:
+
+- Ada kept the slice visual and documentation-focused rather than changing
+  inference machinery.
+- Jason read the local `gllvmTMB` plotting helper branch and separated design
+  lessons from code that should not be copied.
+- Florence led the visual standard: row labels should do useful work, legends
+  should not dominate dense panels, and sparse figures need meaningful design
+  support.
+- Fisher checked that the `sd(site)` surface still avoids raw response points
+  on an SD axis and does not draw unsupported intervals.
+- Pat and Rose checked that the public story is reader-first rather than
+  storage-mechanics-first.
+- Grace re-rendered the gallery page and reran pkgdown checks.
+
+Files changed:
+
+- `vignettes/figure-gallery.Rmd`
+- `docs/dev-log/audits/2026-05-21-gllvmtmb-visual-lessons.md`
+- `docs/dev-log/figure-audits/2026-05-21-audit-kickoff/figure-audit.md`
+- `docs/dev-log/check-log.md`
+- `docs/dev-log/after-task/2026-05-21-gllvmtmb-informed-figure-polish.md`
+
+Checks run:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('figure-gallery', new_process = FALSE, quiet = TRUE)"
+rg -n 'Parameter class|colour = "Layer"|Fisher-z scale|direct random-effect SD surface' vignettes/figure-gallery.Rmd pkgdown-site/articles/figure-gallery.html -S
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Outcomes:
+
+- The local `gllvmTMB` visual lesson was row-label-first plotting: hide
+  redundant legends when row labels already identify the target, keep rows
+  visible when intervals are missing, and describe raindrops as frequentist
+  compatibility displays rather than posterior densities.
+- The coefficient and correlation raindrop displays now remove redundant
+  legends and use row labels to name the parameter class or structured layer.
+- The modelled `sd(site)` surface now includes a site-level reef-cover rug,
+  making the design support visible without plotting raw `growth` observations
+  on an SD axis.
+- The full figure audit remains open. This slice improves three first-pass
+  panels; it does not certify the full `figure-gallery` page or the remaining
+  high-risk articles.
+
 ## 2026-05-21 - Function Inventory and Figure Audit Kickoff
 
 Goal: begin the real comprehensive audit after packaging the CI/C++/audit-map
