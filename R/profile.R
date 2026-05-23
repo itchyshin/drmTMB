@@ -52,7 +52,8 @@
 #'   `corpair()` values. Each row is profiled separately by profiling its
 #'   fixed-effect linear predictor and then transforming the interval to the
 #'   response scale.
-#' @param trace Logical; passed to [TMB::tmbprofile()] for profile intervals.
+#' @param trace Logical; passed to [TMB::tmbprofile()] when the `tmbprofile`
+#'   profile engine is used.
 #' @param profile_precision Profile-control shortcut. `"default"` leaves
 #'   [TMB::tmbprofile()] controls unchanged. `"fast"` supplies
 #'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
@@ -61,6 +62,12 @@
 #' @param profile_maxit Optional positive whole number passed to
 #'   [TMB::tmbprofile()] as `maxit` when `method = "profile"`. Use this as a
 #'   per-target adaptive-step budget for long or exploratory profile runs.
+#' @param profile_engine Profile engine for direct fitted-object targets.
+#'   `"auto"` uses a scalar endpoint solver for direct scale, SD, and
+#'   correlation targets when no [TMB::tmbprofile()] controls are supplied, and
+#'   otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the scalar
+#'   endpoint solver, while `"tmbprofile"` preserves the previous full-profile
+#'   route for comparison and debugging.
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
@@ -73,16 +80,16 @@
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
-#'   `method = "profile"`. `drmTMB` supplies the profiled `obj`, `name`,
-#'   `lincomb`, and `trace` arguments internally; set the profile target with
-#'   `parm`.
+#'   `method = "profile"` and the `tmbprofile` profile engine is used.
+#'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
+#'   arguments internally; set the profile target with `parm`.
 #'
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
-#'   `conf.status`, `profile.boundary`, and `profile.message`. Successful rows
-#'   currently use `conf.status = "wald"`, `"profile"`, or `"bootstrap"`;
-#'   profile rows mark intervals that land near a lower SD boundary or
-#'   correlation boundary.
+#'   `profile.engine`, `conf.status`, `profile.boundary`, and
+#'   `profile.message`. Successful rows currently use
+#'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`; profile rows mark
+#'   intervals that land near a lower SD boundary or correlation boundary.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -102,6 +109,7 @@ confint.drmTMB <- function(
   trace = FALSE,
   profile_precision = c("default", "fast"),
   profile_maxit = NULL,
+  profile_engine = c("auto", "endpoint", "tmbprofile"),
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -112,6 +120,7 @@ confint.drmTMB <- function(
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
+  profile_engine <- match.arg(profile_engine)
   method <- validate_interval_method(
     method,
     c("wald", "profile", "bootstrap"),
@@ -130,6 +139,7 @@ confint.drmTMB <- function(
     parallel,
     missing_arg = parallel_missing
   )
+  profile_dots <- list(...)
 
   if (identical(method, "wald")) {
     if (!is.null(newdata)) {
@@ -137,8 +147,7 @@ confint.drmTMB <- function(
         "{.arg newdata} is only used when {.code method = \"profile\"}."
       )
     }
-    dots <- list(...)
-    if (length(dots) > 0L) {
+    if (length(profile_dots) > 0L) {
       cli::cli_abort(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
       )
@@ -153,8 +162,7 @@ confint.drmTMB <- function(
         "{.arg newdata} is not used when {.code method = \"bootstrap\"}."
       )
     }
-    dots <- list(...)
-    if (length(dots) > 0L) {
+    if (length(profile_dots) > 0L) {
       cli::cli_abort(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
       )
@@ -181,9 +189,15 @@ confint.drmTMB <- function(
   }
 
   if (!is.null(newdata)) {
+    if (identical(profile_engine, "endpoint")) {
+      cli::cli_abort(c(
+        "{.code profile_engine = \"endpoint\"} is only available for direct fitted-object scalar targets.",
+        i = "Use {.code profile_engine = \"tmbprofile\"} or {.code profile_engine = \"auto\"} for row-specific {.arg newdata} profiles."
+      ))
+    }
     profile_args <- profile_precision_args(
       profile_precision,
-      list(...),
+      profile_dots,
       profile_maxit = profile_maxit
     )
     return(do.call(
@@ -215,9 +229,23 @@ confint.drmTMB <- function(
     parm,
     fixed_only = FALSE
   )
+  tmbprofile_controls <- profile_tmbprofile_controls_requested(
+    profile_precision_missing = profile_precision_missing,
+    profile_maxit = profile_maxit,
+    dots = profile_dots
+  )
+  if (identical(profile_engine, "endpoint") && tmbprofile_controls) {
+    cli::cli_abort(c(
+      "{.code profile_engine = \"endpoint\"} does not use {.fun TMB::tmbprofile} controls.",
+      i = "Remove {.arg profile_precision}, {.arg profile_maxit}, and {.arg ...}, or use {.code profile_engine = \"tmbprofile\"}."
+    ))
+  }
+  if (identical(profile_engine, "auto") && tmbprofile_controls) {
+    profile_engine <- "tmbprofile"
+  }
   profile_args <- profile_precision_args(
     profile_precision,
-    list(...),
+    profile_dots,
     profile_maxit = profile_maxit
   )
   do.call(
@@ -229,7 +257,8 @@ confint.drmTMB <- function(
         level = level,
         trace = trace,
         parallel = parallel,
-        workers = workers
+        workers = workers,
+        profile_engine = profile_engine
       ),
       profile_args
     )
@@ -363,6 +392,16 @@ validate_profile_maxit <- function(profile_maxit) {
     )
   }
   as.integer(profile_maxit)
+}
+
+profile_tmbprofile_controls_requested <- function(
+  profile_precision_missing,
+  profile_maxit,
+  dots
+) {
+  !isTRUE(profile_precision_missing) ||
+    !is.null(profile_maxit) ||
+    length(dots) > 0L
 }
 
 profile_precision_args <- function(
@@ -681,9 +720,11 @@ drm_profile_confint <- function(
   trace = FALSE,
   parallel = "none",
   workers = 1L,
+  profile_engine = c("tmbprofile", "auto", "endpoint"),
   ...
 ) {
   validate_profile_level(level)
+  profile_engine <- match.arg(profile_engine)
   profile_check_tmbprofile_dots(...)
   if (is.null(object$obj)) {
     cli::cli_abort(c(
@@ -704,6 +745,7 @@ drm_profile_confint <- function(
       target = targets[i, , drop = FALSE],
       level = level,
       trace = trace,
+      profile_engine = profile_engine,
       ...
     )
   }
@@ -824,6 +866,7 @@ drm_profile_response_newdata_confint <- function(
       tmb_parameter = internal,
       index = NA_integer_,
       method = "profile",
+      profile.engine = "tmbprofile",
       conf.status = "profile",
       profile.boundary = diagnostics$boundary,
       profile.message = diagnostics$message,
@@ -888,6 +931,7 @@ drm_wald_confint <- function(object, parm, level) {
     tmb_parameter = targets$tmb_parameter,
     index = targets$index,
     method = "wald",
+    profile.engine = NA_character_,
     conf.status = ifelse(interval_ready, "wald", "wald_unavailable"),
     profile.boundary = NA,
     profile.message = NA_character_,
@@ -970,6 +1014,7 @@ drm_bootstrap_confint <- function(
       tmb_parameter = target$tmb_parameter,
       index = target$index,
       method = "bootstrap",
+      profile.engine = NA_character_,
       conf.status = status,
       profile.boundary = NA,
       profile.message = message,
@@ -1205,6 +1250,7 @@ empty_confint_table <- function(method = character()) {
     tmb_parameter = character(),
     index = integer(),
     method = rep(method, 0L),
+    profile.engine = character(),
     conf.status = character(),
     profile.boundary = logical(),
     profile.message = character(),
@@ -1217,8 +1263,10 @@ drm_profile_target_confint <- function(
   target,
   level,
   trace,
+  profile_engine = c("tmbprofile", "auto", "endpoint"),
   ...
 ) {
+  profile_engine <- match.arg(profile_engine)
   implemented_classes <- c(
     "fixed-effect",
     "distributional-scale",
@@ -1239,6 +1287,47 @@ drm_profile_target_confint <- function(
     ))
   }
 
+  if (identical(profile_engine, "endpoint")) {
+    return(drm_profile_target_endpoint_confint(
+      object = object,
+      target = target,
+      level = level
+    ))
+  }
+
+  if (
+    identical(profile_engine, "auto") &&
+      profile_endpoint_target_supported(target)
+  ) {
+    endpoint <- tryCatch(
+      drm_profile_target_endpoint_confint(
+        object = object,
+        target = target,
+        level = level
+      ),
+      error = function(err) err
+    )
+    if (!inherits(endpoint, "error")) {
+      return(endpoint)
+    }
+  }
+
+  drm_profile_target_tmbprofile_confint(
+    object = object,
+    target = target,
+    level = level,
+    trace = trace,
+    ...
+  )
+}
+
+drm_profile_target_tmbprofile_confint <- function(
+  object,
+  target,
+  level,
+  trace,
+  ...
+) {
   lincomb <- profile_lincomb(object, target)
   prof <- drm_tmbprofile(
     object = object,
@@ -1267,11 +1356,259 @@ drm_profile_target_confint <- function(
     tmb_parameter = target$tmb_parameter,
     index = target$index,
     method = "profile",
+    profile.engine = "tmbprofile",
     conf.status = "profile",
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
     stringsAsFactors = FALSE
   )
+}
+
+drm_profile_target_endpoint_confint <- function(object, target, level) {
+  result <- drm_profile_endpoint_result(
+    object = object,
+    target = target,
+    level = level
+  )
+  interval <- result$interval
+  diagnostics <- profile_interval_diagnostics(
+    interval,
+    transformation = target$transformation
+  )
+
+  data.frame(
+    parm = target$parm,
+    level = level,
+    lower = interval[[1L]],
+    upper = interval[[2L]],
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    method = "profile",
+    profile.engine = "endpoint",
+    conf.status = "profile",
+    profile.boundary = diagnostics$boundary,
+    profile.message = diagnostics$message,
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_profile_endpoint_result <- function(
+  object,
+  target,
+  level,
+  root_tol = 1e-4,
+  max_bracket_steps = 40L
+) {
+  if (!profile_endpoint_target_supported(target)) {
+    cli::cli_abort(c(
+      "Profile endpoint engine is only implemented for direct scalar scale, SD, and correlation targets.",
+      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}} and transformation {.val {target$transformation}}."
+    ))
+  }
+  if (is.null(object$obj)) {
+    cli::cli_abort(c(
+      "Profile confidence intervals require the TMB object retained in {.code fit$obj}.",
+      i = "Refit with {.code drm_control(keep_tmb_object = TRUE)} before using {.code method = \"profile\"}."
+    ))
+  }
+
+  position <- profile_target_opt_positions(object, target)
+  if (!is.finite(position) || is.na(position)) {
+    cli::cli_abort(c(
+      "Profile target {.val {target$parm}} cannot be mapped to an optimized scalar parameter.",
+      i = "Check {.code profile_targets(fit)} before using {.code profile_engine = \"endpoint\"}."
+    ))
+  }
+  position <- as.integer(position)
+
+  drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
+  theta_hat <- unname(object$opt$par[[position]])
+  nll_hat <- unname(object$opt$objective)
+  cutoff <- stats::qchisq(level, df = 1) / 2
+  control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
+    object$control$optimizer
+  } else {
+    list()
+  }
+
+  evaluator <- profile_endpoint_evaluator(
+    object = object,
+    target_position = position,
+    control = control
+  )
+  lower <- profile_endpoint_crossing(
+    evaluator = evaluator,
+    theta_hat = theta_hat,
+    nll_hat = nll_hat,
+    cutoff = cutoff,
+    direction = -1,
+    root_tol = root_tol,
+    max_bracket_steps = max_bracket_steps,
+    target_name = target$parm
+  )
+  upper <- profile_endpoint_crossing(
+    evaluator = evaluator,
+    theta_hat = theta_hat,
+    nll_hat = nll_hat,
+    cutoff = cutoff,
+    direction = 1,
+    root_tol = root_tol,
+    max_bracket_steps = max_bracket_steps,
+    target_name = target$parm
+  )
+
+  link_interval <- c(lower$theta, upper$theta)
+  interval <- profile_transform_interval(link_interval, target)
+  list(
+    link_interval = link_interval,
+    interval = interval,
+    cutoff = cutoff,
+    lower_root_error = lower$root_error,
+    upper_root_error = upper$root_error,
+    n_eval = lower$n_eval + upper$n_eval,
+    target_position = position
+  )
+}
+
+profile_endpoint_target_supported <- function(target) {
+  nrow(target) == 1L &&
+    isTRUE(target$profile_ready[[1L]]) &&
+    identical(target$target_type[[1L]], "direct") &&
+    target$target_class[[1L]] %in%
+      c(
+        "distributional-scale",
+        "random-effect-sd",
+        "random-effect-correlation",
+        "residual-correlation"
+      ) &&
+    target$transformation[[1L]] %in% c("exp", "tanh", "rho12_tanh")
+}
+
+profile_endpoint_evaluator <- function(object, target_position, control) {
+  par0 <- object$opt$par
+  free <- seq_along(par0) != target_position
+  start_free <- par0[free]
+
+  evaluate <- function(theta, start) {
+    full0 <- par0
+    fn_free <- function(pfree) {
+      full <- full0
+      full[free] <- pfree
+      full[[target_position]] <- theta
+      object$obj$fn(full)
+    }
+    gr_free <- function(pfree) {
+      full <- full0
+      full[free] <- pfree
+      full[[target_position]] <- theta
+      object$obj$gr(full)[free]
+    }
+    opt <- stats::nlminb(start, fn_free, gr_free, control = control)
+    opt_message <- opt$message
+    if (is.null(opt_message) || length(opt_message) == 0L) {
+      opt_message <- "unknown"
+    }
+    opt_gradient <- tryCatch(
+      gr_free(opt$par),
+      error = function(err) rep(NA_real_, length(opt$par))
+    )
+    max_abs_gradient <- suppressWarnings(max(abs(opt_gradient), na.rm = TRUE))
+    if (!is.finite(max_abs_gradient)) {
+      max_abs_gradient <- NA_real_
+    }
+    convergence_tolerated <- opt$convergence %in% c(0L, 1L)
+    if (
+      !is.finite(opt$objective) ||
+        is.null(opt$convergence) ||
+        !convergence_tolerated
+    ) {
+      cli::cli_abort(c(
+        "Constrained endpoint optimization failed.",
+        i = "Target internal value: {format(theta, digits = 6)}.",
+        i = "Maximum absolute gradient: {format(max_abs_gradient, digits = 4)}.",
+        x = "Optimizer message: {opt_message[[1L]]}"
+      ))
+    }
+    list(nll = unname(opt$objective), par = opt$par)
+  }
+
+  list(evaluate = evaluate, start_free = start_free)
+}
+
+profile_endpoint_crossing <- function(
+  evaluator,
+  theta_hat,
+  nll_hat,
+  cutoff,
+  direction,
+  root_tol,
+  max_bracket_steps,
+  target_name
+) {
+  n_eval <- 0L
+  last_free <- evaluator$start_free
+  eval_root <- function(theta) {
+    n_eval <<- n_eval + 1L
+    out <- evaluator$evaluate(theta, last_free)
+    last_free <<- out$par
+    out$nll - nll_hat - cutoff
+  }
+
+  at_hat <- eval_root(theta_hat)
+  if (!is.finite(at_hat) || at_hat >= 0) {
+    cli::cli_abort(c(
+      "Could not start endpoint profile for target {.val {target_name}}.",
+      i = "The fitted optimum did not evaluate below the likelihood-ratio cutoff."
+    ))
+  }
+
+  step <- profile_endpoint_initial_step(theta_hat, direction)
+  outer <- theta_hat + direction * step
+  outer_value <- eval_root(outer)
+  for (i in seq_len(max_bracket_steps)) {
+    if (is.finite(outer_value) && outer_value >= 0) {
+      break
+    }
+    step <- step * 1.6
+    outer <- theta_hat + direction * step
+    outer_value <- eval_root(outer)
+  }
+  if (!is.finite(outer_value) || outer_value < 0) {
+    cli::cli_abort(c(
+      "Could not bracket profile endpoint for target {.val {target_name}}.",
+      i = "This can indicate a flat, one-sided, or boundary-limited profile."
+    ))
+  }
+
+  interval <- sort(c(theta_hat, outer))
+  root <- stats::uniroot(
+    eval_root,
+    interval = interval,
+    tol = root_tol
+  )
+  root_error <- abs(root$f.root)
+  if (!is.finite(root_error) || root_error > 5e-3) {
+    cli::cli_abort(c(
+      "Endpoint profile root for target {.val {target_name}} did not satisfy the likelihood-ratio equation closely enough.",
+      i = "Absolute root error: {format(root_error, digits = 4)}.",
+      i = "Try {.code profile_engine = \"tmbprofile\"} for the full profile path."
+    ))
+  }
+  list(
+    theta = root$root,
+    root_error = root_error,
+    n_eval = n_eval
+  )
+}
+
+profile_endpoint_initial_step <- function(theta_hat, direction) {
+  step <- max(0.25, abs(theta_hat) * 0.05)
+  if (!is.finite(step) || step <= 0) {
+    step <- 0.25
+  }
+  step
 }
 
 profile_check_tmbprofile_dots <- function(...) {

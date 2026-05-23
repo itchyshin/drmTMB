@@ -13,6 +13,7 @@
   trace = FALSE,
   profile_precision = c("default", "fast"),
   profile_maxit = NULL,
+  profile_engine = c("auto", "endpoint", "tmbprofile"),
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -42,7 +43,8 @@ predictor-dependent \code{sigma}, \code{sigma1}, \code{sigma2}, \code{rho12}, or
 fixed-effect linear predictor and then transforming the interval to the
 response scale.}
 
-\item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} for profile intervals.}
+\item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when the \code{tmbprofile}
+profile engine is used.}
 
 \item{profile_precision}{Profile-control shortcut. \code{"default"} leaves
 \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls unchanged. \code{"fast"} supplies
@@ -53,6 +55,13 @@ correlation targets.}
 \item{profile_maxit}{Optional positive whole number passed to
 \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} as \code{maxit} when \code{method = "profile"}. Use this as a
 per-target adaptive-step budget for long or exploratory profile runs.}
+
+\item{profile_engine}{Profile engine for direct fitted-object targets.
+\code{"auto"} uses a scalar endpoint solver for direct scale, SD, and
+correlation targets when no \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls are supplied, and
+otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. \code{"endpoint"} requires the scalar
+endpoint solver, while \code{"tmbprofile"} preserves the previous full-profile
+route for comparison and debugging.}
 
 \item{R}{Number of parametric-bootstrap refits when
 \code{method = "bootstrap"}.}
@@ -71,17 +80,17 @@ refits. The default skips \code{TMB::sdreport()} and drops the TMB object becaus
 bootstrap intervals use refit point estimates.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
-\code{method = "profile"}. \code{drmTMB} supplies the profiled \code{obj}, \code{name},
-\code{lincomb}, and \code{trace} arguments internally; set the profile target with
-\code{parm}.}
+\code{method = "profile"} and the \code{tmbprofile} profile engine is used.
+\code{drmTMB} supplies the profiled \code{obj}, \code{name}, \code{lincomb}, and \code{trace}
+arguments internally; set the profile target with \code{parm}.}
 }
 \value{
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
-\code{conf.status}, \code{profile.boundary}, and \code{profile.message}. Successful rows
-currently use \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"};
-profile rows mark intervals that land near a lower SD boundary or
-correlation boundary.
+\code{profile.engine}, \code{conf.status}, \code{profile.boundary}, and
+\code{profile.message}. Successful rows currently use
+\code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}; profile rows mark
+intervals that land near a lower SD boundary or correlation boundary.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald

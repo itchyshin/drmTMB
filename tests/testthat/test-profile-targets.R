@@ -421,6 +421,23 @@ expect_profile_target_contract <- function(targets) {
   ))
 }
 
+expect_endpoint_profile_result <- function(fit, parm, level = 0.80) {
+  targets <- profile_targets(fit)
+  target <- targets[targets$parm == parm, , drop = FALSE]
+  expect_equal(nrow(target), 1L)
+  result <- drmTMB:::drm_profile_endpoint_result(
+    object = fit,
+    target = target,
+    level = level
+  )
+  expect_true(all(is.finite(result$link_interval)))
+  expect_true(all(is.finite(result$interval)))
+  expect_lte(result$lower_root_error, 5e-3)
+  expect_lte(result$upper_root_error, 5e-3)
+  expect_gt(result$n_eval, 0L)
+  result
+}
+
 test_that("profile target inventory lists fixed effects", {
   set.seed(20260590)
   n <- 80
@@ -541,6 +558,7 @@ test_that("confint returns Wald fixed-effect intervals", {
       "tmb_parameter",
       "index",
       "method",
+      "profile.engine",
       "conf.status",
       "profile.boundary",
       "profile.message"
@@ -1003,6 +1021,7 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
       "tmb_parameter",
       "index",
       "method",
+      "profile.engine",
       "conf.status",
       "profile.boundary",
       "profile.message"
@@ -1569,6 +1588,232 @@ test_that("confint profile intervals transform phylogenetic SD targets", {
   expect_equal(ci$lower, exp(unname(manual_ci[1L, "lower"])), tolerance = 1e-12)
   expect_equal(ci$upper, exp(unname(manual_ci[1L, "upper"])), tolerance = 1e-12)
   expect_gt(ci$lower, 0)
+})
+
+test_that("endpoint profile engine solves constant sigma endpoints", {
+  set.seed(20260671)
+  n <- 90
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  auto_ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile"
+  )
+  result <- expect_endpoint_profile_result(fit, "sigma", level = 0.80)
+  sigma_hat <- mean(stats::sigma(fit))
+
+  expect_equal(ci$profile.engine, "endpoint")
+  expect_equal(auto_ci$profile.engine, "endpoint")
+  expect_equal(ci$lower, exp(result$link_interval[[1L]]), tolerance = 1e-8)
+  expect_equal(ci$upper, exp(result$link_interval[[2L]]), tolerance = 1e-8)
+  expect_gt(ci$lower, 0)
+  expect_lt(ci$lower, sigma_hat)
+  expect_gt(ci$upper, sigma_hat)
+})
+
+test_that("endpoint profile engine solves constant rho12 endpoints", {
+  dat <- new_profile_biv_data(
+    n = 130,
+    beta_rho12 = c(0.35, 0),
+    seed = 20260672
+  )
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~1),
+    family = c(gaussian(), gaussian()),
+    data = dat
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "rho12",
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  result <- expect_endpoint_profile_result(fit, "rho12", level = 0.80)
+  rho_hat <- mean(rho12(fit))
+
+  expect_equal(ci$profile.engine, "endpoint")
+  expect_equal(
+    ci$lower,
+    drmTMB:::rho_response(result$link_interval[[1L]]),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    ci$upper,
+    drmTMB:::rho_response(result$link_interval[[2L]]),
+    tolerance = 1e-8
+  )
+  expect_true(abs(ci$lower) < 1)
+  expect_true(abs(ci$upper) < 1)
+  expect_lt(ci$lower, rho_hat)
+  expect_gt(ci$upper, rho_hat)
+})
+
+test_that("endpoint profile engine solves ordinary SD and correlation endpoints", {
+  dat <- new_profile_group_data(n_id = 24, n_each = 6, seed = 20260673)
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | p | ID)),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+  sd_parm <- "sd:mu:(1 + x | p | ID):(Intercept)"
+  cor_parm <- "cor:mu:cor((Intercept),x | p | ID)"
+
+  ci <- stats::confint(
+    fit,
+    parm = c(sd_parm, cor_parm),
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  sd_result <- expect_endpoint_profile_result(fit, sd_parm, level = 0.80)
+  cor_result <- expect_endpoint_profile_result(fit, cor_parm, level = 0.80)
+
+  expect_equal(ci$parm, c(sd_parm, cor_parm))
+  expect_equal(ci$profile.engine, rep("endpoint", 2L))
+  expect_equal(
+    ci$lower[[1L]],
+    exp(sd_result$link_interval[[1L]]),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    ci$upper[[1L]],
+    exp(sd_result$link_interval[[2L]]),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    ci$lower[[2L]],
+    0.999999 * tanh(cor_result$link_interval[[1L]]),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    ci$upper[[2L]],
+    0.999999 * tanh(cor_result$link_interval[[2L]]),
+    tolerance = 1e-8
+  )
+  expect_gt(ci$lower[[1L]], 0)
+  expect_true(abs(ci$lower[[2L]]) < 1)
+  expect_true(abs(ci$upper[[2L]]) < 1)
+})
+
+test_that("endpoint profile engine solves phylogenetic SD endpoints", {
+  sim <- new_profile_phylo_data(seed = 20260674, n_tip = 16L, n_each = 6L)
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(),
+    data = sim$data,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+
+  phylo_parm <- "sd:mu:phylo(1 | species)"
+  ci <- stats::confint(
+    fit,
+    parm = phylo_parm,
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  result <- expect_endpoint_profile_result(fit, phylo_parm, level = 0.80)
+
+  expect_equal(ci$parm, phylo_parm)
+  expect_equal(ci$profile.engine, "endpoint")
+  expect_equal(ci$lower, exp(result$link_interval[[1L]]), tolerance = 1e-8)
+  expect_equal(ci$upper, exp(result$link_interval[[2L]]), tolerance = 1e-8)
+  expect_gt(ci$lower, 0)
+})
+
+test_that("endpoint engine keeps unsupported targets on current profile paths", {
+  set.seed(20260675)
+  n <- 60
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
+  fixed_ci <- stats::confint(
+    fit,
+    parm = "fixef:mu:x",
+    level = 0.80,
+    method = "profile",
+    profile_engine = "auto",
+    trace = FALSE,
+    ystep = 0.40
+  )
+
+  expect_equal(fixed_ci$profile.engine, "tmbprofile")
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      level = 0.80,
+      method = "profile",
+      profile_engine = "endpoint"
+    ),
+    "direct scalar scale, SD, and correlation"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "sigma",
+      level = 0.80,
+      method = "profile",
+      newdata = data.frame(x = 0),
+      profile_engine = "endpoint"
+    ),
+    "direct fitted-object scalar targets"
+  )
+})
+
+test_that("endpoint profile intervals can split target work across workers", {
+  testthat::skip_on_os("windows")
+  dat <- new_profile_group_data(n_id = 18, n_each = 5, seed = 20260676)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 400, iter.max = 400)
+  )
+  parm <- c("sigma", "sd:mu:(1 | ID)")
+
+  serial <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+  multicore <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint",
+    parallel = "multicore",
+    workers = 2
+  )
+
+  expect_equal(multicore$parm, serial$parm)
+  expect_equal(multicore$lower, serial$lower, tolerance = 1e-8)
+  expect_equal(multicore$upper, serial$upper, tolerance = 1e-8)
+  expect_equal(multicore$profile.engine, rep("endpoint", 2L))
 })
 
 test_that("meta_V fits keep interval targets on estimated quantities", {
@@ -2402,6 +2647,15 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
       parm = q4_parms[[1L]],
       method = "profile",
       trace = FALSE
+    ),
+    "not ready for direct profiling"
+  )
+  expect_error(
+    stats::confint(
+      fit_q4,
+      parm = q4_parms[[1L]],
+      method = "profile",
+      profile_engine = "endpoint"
     ),
     "not ready for direct profiling"
   )

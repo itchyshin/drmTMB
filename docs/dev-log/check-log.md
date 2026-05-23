@@ -2,6 +2,103 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Fast Scalar Profile Endpoints
+
+Goal: add an endpoint-only scalar profile engine for direct profile-ready
+scale, SD, and correlation targets, preserve the current `TMB::tmbprofile()`
+route for comparison and unsupported targets, and record timing evidence for
+the expensive phylogenetic SD case.
+
+Roles: Ada integrated the public API and benchmark evidence. Fisher checked the
+likelihood-ratio endpoint equation and the endpoint-versus-`tmbprofile`
+interval differences. Gauss reviewed the constrained `nlminb()` path and the
+false-convergence handling. Emmy checked the `confint()` output contract and
+internal profile helper boundary. Grace ran package validation and kept the
+benchmark outside CRAN tests. Rose checked that no general "faster profiles"
+claim was made beyond the benchmarked direct scalar targets. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `profile_engine = c("auto", "endpoint", "tmbprofile")` to
+  `confint.drmTMB()`.
+- Routed `profile_engine = "auto"` to the endpoint engine for direct scalar
+  distributional scale, random-effect SD, random-effect correlation, and
+  constant residual `rho12` targets when no `TMB::tmbprofile()` controls are
+  supplied.
+- Preserved `profile_engine = "tmbprofile"` as the previous full-profile route
+  for fixed effects, `newdata` rows, linear-combination profiles, and debugging.
+- Added `profile.engine` to profile, Wald, and bootstrap `confint()` output.
+- Added endpoint correctness tests for `sigma`, constant `rho12`, ordinary
+  random-effect SD and correlation, phylogenetic SD, unsupported target
+  fallbacks, and Unix multicore endpoint target splitting.
+- Added `bench/profile-scalar-endpoint.R` and documented the benchmark matrix
+  in `bench/README.md`.
+- Recorded benchmark evidence in
+  `docs/dev-log/benchmarks/profile-scalar-endpoint.csv`.
+- Updated `NEWS.md`, `docs/design/12-profile-likelihood-cis.md`, and
+  `man/confint.drmTMB.Rd`.
+
+Benchmark summary:
+
+| Rows | Species | Target | `tmbprofile` sec | Endpoint sec | Speedup | Endpoint - `tmbprofile` lower | Endpoint - `tmbprofile` upper | Endpoint root errors |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 10,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 21.750 | 16.241 | 1.339x | 6.87e-06 | -4.34e-06 | 0.00103, 0.000862 |
+| 100,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 234.136 | 123.110 | 1.902x | -1.06e-05 | 3.53e-07 | 0.00180, 0.000054 |
+| 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 251.120 | 152.011 | 1.652x | -3.68e-06 | 1.24e-05 | 0.00119, 0.00378 |
+| 10,000 | 1,000 | `sigma` | 33.008 | 31.387 | 1.052x | 1.54e-06 | -9.37e-07 | 0.00106, 0.000681 |
+
+The endpoint root check uses a stated likelihood-ratio equation tolerance of
+0.005 on `profile_nll(theta) - nll_hat - qchisq(level, 1) / 2`. All benchmarked
+endpoint rows satisfy that tolerance. The 100,000 row / 10,000 species stretch
+case was not run; the current large-phylogeny speed claim is therefore limited
+to the completed 5,000-species pressure row.
+
+Commands run:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R bench/profile-scalar-endpoint.R bench/README.md docs/design/12-profile-likelihood-cis.md NEWS.md
+Rscript -e "devtools::load_all(quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --target "sd:mu:phylo(1 | species)" --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 1000 --target "sd:mu:phylo(1 | species)" --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+perl -e 'alarm 900; exec @ARGV' Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 5000 --target 'sd:mu:phylo(1 | species)' --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --target sigma --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'profile-targets|corpairs|summary', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never', args = '--no-manual')"
+Rscript -e "pkgdown::build_site()"
+rg -n "profile_engine|profile\\.engine|endpoint-only|endpoint engine|tmbprofile" R/profile.R man/confint.drmTMB.Rd docs/design/12-profile-likelihood-cis.md bench/README.md NEWS.md pkgdown-site/reference/confint.drmTMB.html pkgdown-site/news/index.html pkgdown-site/search.json
+rg -n "all profiles are faster|faster profiles generally|10,000 species|10000 species|derived.*endpoint|newdata.*endpoint" README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat pkgdown-site -g '!*.png' -g '!*.jpg'
+git diff --check
+gh issue list --search "profile endpoint confint phylogenetic SD" --limit 20
+```
+
+Validation:
+
+- `devtools::load_all(quiet = TRUE)` passed.
+- `devtools::test(filter = 'profile-targets')` passed after the endpoint and
+  multicore tests were added.
+- `devtools::test(filter = 'profile-targets|corpairs|summary')` passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check(error_on = 'never', args = '--no-manual')` passed with
+  0 errors, 0 warnings, and 0 notes.
+- `pkgdown::build_site()` completed and rebuilt the reference, NEWS, and article
+  pages.
+- The profile-engine scan found the new argument, output column, benchmark
+  wording, and rendered reference/NEWS pages.
+- The stale-claim scan found no unsupported "all profiles are faster" claim. It
+  found only intended derived/newdata endpoint-boundary wording and older large
+  data planning mentions of 10,000 species.
+- `git diff --check` was clean.
+- `gh issue list --search "profile endpoint confint phylogenetic SD" --limit
+  20` returned no open issue rows needing update.
+- Benchmark rows recorded both engine identity and convergence/failure status;
+  all final rows in the CSV converged.
+
 ## 2026-05-23 - Rendered Figure QA Slices 46-50
 
 Goal: finish the previous rendered-figure PR, then improve the focused
