@@ -102,6 +102,67 @@ Notes:
   calls with `stats::` and ignoring `.git` in `.Rbuildignore` made
   `R CMD check` note-free.
 
+## 2026-05-22 - Rendered Figure QA Slices 41-45
+
+Goal: continue the rendered-figure QA sequence after PR #305 by adding
+case-specific figures to the focused `spatial-models` and
+`phylogenetic-models` guide articles without changing model behaviour,
+formula grammar, plotting helpers, or interval methods.
+
+Roles: Ada merged PR #305 and started a clean branch. Florence inspected the
+five rendered article PNGs. Fisher checked that site-level spatial fields,
+spatial SDs, phylogenetic SDs, and latent correlation Confidence Eyes used the
+correct visual data grain. Pat and Darwin checked whether the figures helped
+applied readers separate raw response scale, structured location SDs, residual
+`sigma`, and latent correlation rows. Grace checked article rebuilds, alt text,
+targeted tests, and pkgdown. Noether checked axes against estimands. Rose
+watched for one-rule-fits-all drift and caught one rendered title-clipping
+issue in the spatial map. These were role perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/spatial-models.Rmd`
+- `vignettes/phylogenetic-models.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-41-45.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-41-45.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 305 --squash --delete-branch --subject "Polish scale figure QA slices (#305)"
+git checkout -b codex/rendered-figure-qa-41-45
+air format vignettes/spatial-models.Rmd vignettes/phylogenetic-models.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('spatial-models','phylogenetic-models')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'spatial-gaussian|phylo|plot-corpairs', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Result:
+
+- `spatial-models` now has a rendered coordinate-site map of fitted
+  conditional spatial location deviations, a fitted spatial-SD display with a
+  finite Wald interval for the intercept field and a labelled boundary
+  point-only slope row, and a spatial q=2 mean-mean Confidence Eye with a 95%
+  profile interval and dotted zero line.
+- `phylogenetic-models` now has a fitted residual-`sigma` versus
+  phylogenetic-location-SD display with 95% Wald intervals, plus a
+  phylogenetic q=2 mean-mean Confidence Eye with a 95% profile interval and
+  dotted zero line.
+- Raw observations remain out of SD and correlation axes. The site map is
+  explicitly labelled as conditional fitted location deviations. The
+  near-boundary spatial depth-slope SD does not draw an infinite interval.
+- The two articles rebuilt successfully. Rendered image inspection covered
+  five article images: three in `spatial-models` and two in
+  `phylogenetic-models`. Article-image alt-text inspection found 0 missing alt
+  attributes. Targeted phylogenetic, spatial, and `plot_corpairs()` tests
+  passed, `git diff --check` was clean, and `pkgdown::check_pkgdown()` found no
+  problems.
+
+Next action: open the PR and update issue #58.
+
 ## 2026-05-22 - Rendered Figure QA Slices 36-40
 
 Goal: continue the rendered-figure QA sequence after PR #304 by adding or
