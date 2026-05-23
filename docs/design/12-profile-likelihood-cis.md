@@ -18,19 +18,27 @@ correlation-link scale, equivalent to a guarded Fisher z/atanh scale, and then
 transformed back to correlations.
 
 `confint(fit, parm = "fixef:mu:x", method = "profile")` profiles explicit
-direct targets when likelihood shape matters. `profile_precision = "fast"`
-sets coarser `TMB::tmbprofile()` controls (`ystep = 0.5`, `ytol = 2`) unless
-the caller supplies those controls directly, so long-running variance-component
-profiles can start with a quick first pass. Direct ordinary random-effect SD,
-ordinary random-effect correlation, and phylogenetic `mu` SD targets are
-transformed back to the response scale. Constant `sigma`, `sigma1`, `sigma2`,
-and residual `rho12` can also be profiled as direct response-scale targets with
-names such as `parm = "sigma"` or `parm = "rho12"`. When `sigma`, `sigma1`,
-`sigma2`, or `rho12` depends on predictors, use `confint()` with
-`method = "profile"` and `newdata` to profile each supplied row. The
-corresponding `rho12` call profiles the fixed-effect linear predictor for that
-row and transforms the interval to the response scale. The first direct
-covariance rows are also profile-ready:
+direct targets when likelihood shape matters. The default
+`profile_engine = "auto"` uses the endpoint-only scalar profiler for direct
+constant scale, random-effect SD, random-effect correlation, and constant
+residual `rho12` targets when no `TMB::tmbprofile()` controls are supplied. It
+preserves the general `TMB::tmbprofile()` path for fixed effects, `newdata`
+row-specific profiles, linear combinations, and derived targets. Use
+`profile_engine = "tmbprofile"` to force the previous full-profile route for
+comparison and debugging, and use `profile_engine = "endpoint"` to require the
+endpoint-only route. Profile output records the engine in `profile.engine`.
+`profile_precision = "fast"` sets coarser `TMB::tmbprofile()` controls
+(`ystep = 0.5`, `ytol = 2`) unless the caller supplies those controls directly,
+so long-running variance-component profiles can still start with a quick first
+pass on the general engine. Direct ordinary random-effect SD, ordinary
+random-effect correlation, and phylogenetic `mu` SD targets are transformed
+back to the response scale. Constant `sigma`, `sigma1`, `sigma2`, and residual
+`rho12` can also be profiled as direct response-scale targets with names such
+as `parm = "sigma"` or `parm = "rho12"`. When `sigma`, `sigma1`, `sigma2`, or
+`rho12` depends on predictors, use `confint()` with `method = "profile"` and
+`newdata` to profile each supplied row. The corresponding `rho12` call profiles
+the fixed-effect linear predictor for that row and transforms the interval to
+the response scale. The first direct covariance rows are also profile-ready:
 the univariate and same-response bivariate `mu`/`sigma` random-intercept
 correlations in `corpars$mu_sigma`, the bivariate `mu1`/`mu2` random-intercept
 correlation in `corpars$mu`, and the bivariate `sigma1`/`sigma2`
@@ -101,6 +109,40 @@ every dataset will cross the likelihood-ratio threshold on both sides.
 Predictor-row profiles are valid only after the user supplies `newdata`;
 derived summaries must stay status-only until a validated derived interval
 method exists.
+
+## Fast Scalar Endpoint Engine
+
+The endpoint engine is deliberately narrower than `TMB::tmbprofile()`. For one
+direct scalar target, it fixes that optimized internal parameter at a candidate
+value, optimizes the remaining fixed parameters with `nlminb()`, warm-starts
+from the previous constrained optimum, and solves each endpoint with
+`uniroot()` against
+
+```text
+profile_nll(theta) - nll_hat = qchisq(level, 1) / 2.
+```
+
+The current endpoint implementation seeds the first bracket step from the
+`TMB::sdreport()` covariance when it is available. Under a locally quadratic
+profile, the internal-scale endpoint distance is approximately
+`sqrt(qchisq(level, 1)) * se`; the implementation steps slightly beyond that
+distance, then expands only if the likelihood-ratio cutoff has not been
+crossed. If the covariance is unavailable or invalid, it falls back to the
+fixed internal-scale step used by the first endpoint implementation. When a
+single endpoint-supported target is profiled with Unix
+`parallel = "multicore"`, the lower and upper endpoints are sent to separate
+workers; when multiple targets are requested, multicore remains at the
+target-loop level to avoid nested parallelism.
+
+This is appropriate for direct log-SD, log-scale, and atanh-style correlation
+parameters. It is not a derived-quantity engine: repeatability, phylogenetic
+signal, q4 derived correlations, row-specific `newdata` linear combinations,
+and arbitrary fixed-effect contrasts stay on the existing profile or status-only
+paths until a separate method is designed. The development benchmark
+`bench/profile-scalar-endpoint.R` compares `profile_engine = "tmbprofile"` and
+`profile_engine = "endpoint"` on the same Gaussian phylogenetic fit, optionally
+adding an `endpoint-multicore` row through `--endpoint-workers`. The
+phylogenetic SD target remains the primary timing evidence.
 
 ## Slices 165-168 Profile Example Bridge
 

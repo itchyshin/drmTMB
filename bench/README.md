@@ -17,6 +17,24 @@ Run it from the package root. The script loads the local development checkout
 with `devtools::load_all()` when available; otherwise it uses an installed
 `drmTMB`.
 
+The scalar-profile harness compares the current `TMB::tmbprofile()` route with
+the endpoint-only scalar profiler on the same fitted Gaussian phylogenetic
+model. The primary target is the phylogenetic SD interval because that is the
+expensive user-facing profile case:
+
+```sh
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 \
+  --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+```
+
+Use `--targets all` to add the constant `sigma` interval to the same run. The
+script records elapsed seconds, returned bounds, engine identity, Git and R/TMB
+versions, endpoint root errors, and endpoint-versus-`tmbprofile` differences.
+Use `--endpoint-workers 2` to add an `endpoint-multicore` row that profiles the
+lower and upper endpoints for one scalar target on separate Unix forked workers.
+This is useful when the expensive user task is one phylogenetic SD interval
+rather than a batch of many independent targets.
+
 If an existing output CSV was created by an older benchmark schema, choose a
 new `--output` path or remove the old ignored CSV before appending new rows.
 The benchmark schema can change as diagnostics improve; a fresh output path is
@@ -40,6 +58,20 @@ reasonable.
 
 Use a smaller `--eval-max` and `--iter-max` when checking infrastructure. Use
 larger values when the fit is intended as a real timing result.
+
+For scalar profile timing evidence, use this development matrix:
+
+| Step | Rows | Species | Target | Purpose |
+| --- | ---: | ---: | --- | --- |
+| Smoke | 10,000 | 1,000 | `sd:mu:phylo(1 | species)` | Check endpoint versus `tmbprofile` on a realistic phylogenetic SD interval. |
+| Main | 100,000 | 1,000 | `sd:mu:phylo(1 | species)` | Measure row pressure for the primary interval target. |
+| Species pressure | 100,000 | 5,000 | `sd:mu:phylo(1 | species)` | Required before claiming large-phylogeny profile speedup. |
+| Stretch | 100,000 | 10,000 | `sd:mu:phylo(1 | species)` | Best-effort result only; do not block a merge on this laptop-scale run. |
+
+Treat scalar-profile speed claims as valid only when the fit converged and both
+engines returned finite intervals. If `tmbprofile` fails and the endpoint engine
+succeeds, record the result as useful diagnostics but do not convert it into a
+speedup ratio.
 
 ## Output Columns
 

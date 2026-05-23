@@ -2,6 +2,135 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Fast Scalar Profile Endpoints
+
+Goal: add an endpoint-only scalar profile engine for direct profile-ready scale,
+SD, and correlation targets, preserve the current `TMB::tmbprofile()` route for
+comparison and unsupported targets, and record timing evidence for the expensive
+phylogenetic SD case.
+
+Roles: Ada integrated the public API and benchmark evidence. Fisher checked the
+likelihood-ratio endpoint equation and endpoint-versus-`tmbprofile` interval
+differences. Gauss reviewed the constrained `nlminb()` path and the
+curvature-seeded endpoint brackets. Emmy checked the `confint()` output contract
+and internal helper boundary. Grace ran package validation and kept benchmarks
+outside CRAN tests. Rose checked that no general "faster profiles" claim was
+made beyond benchmarked direct scalar targets. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Added `profile_engine = c("auto", "endpoint", "tmbprofile")` to
+  `confint.drmTMB()`.
+- Routed `profile_engine = "auto"` to the endpoint engine for direct scalar
+  distributional scale, random-effect SD, random-effect correlation, and
+  constant residual `rho12` targets when no `TMB::tmbprofile()` controls are
+  supplied.
+- Preserved `profile_engine = "tmbprofile"` as the previous full-profile route
+  for fixed effects, `newdata` rows, linear-combination profiles, and debugging.
+- Added `profile.engine` to profile, Wald, and bootstrap `confint()` output.
+- Added endpoint correctness tests for `sigma`, constant `rho12`, ordinary
+  random-effect SD and correlation, phylogenetic SD, unsupported target
+  fallbacks, Unix multicore target splitting, one-target lower/upper endpoint
+  splitting, curvature-seeded first steps, and `workers = NULL` auto workers.
+- Added `bench/profile-scalar-endpoint.R` and documented the benchmark matrix
+  in `bench/README.md`.
+- Recorded benchmark evidence in
+  `docs/dev-log/benchmarks/profile-scalar-endpoint.csv` and the endpoint-v2
+  follow-up evidence in
+  `docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv`.
+- Updated `NEWS.md`, `docs/design/12-profile-likelihood-cis.md`, and
+  `man/confint.drmTMB.Rd`.
+
+Benchmark summary from the first endpoint implementation:
+
+| Rows | Species | Target | `tmbprofile` sec | Endpoint sec | Speedup | Endpoint - `tmbprofile` lower | Endpoint - `tmbprofile` upper | Endpoint root errors |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 10,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 21.750 | 16.241 | 1.339x | 6.87e-06 | -4.34e-06 | 0.00103, 0.000862 |
+| 100,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 234.136 | 123.110 | 1.902x | -1.06e-05 | 3.53e-07 | 0.00180, 0.000054 |
+| 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 251.120 | 152.011 | 1.652x | -3.68e-06 | 1.24e-05 | 0.00119, 0.00378 |
+| 10,000 | 1,000 | `sigma` | 33.008 | 31.387 | 1.052x | 1.54e-06 | -9.37e-07 | 0.00106, 0.000681 |
+
+Endpoint-v2 follow-up:
+
+- Added curvature-seeded endpoint brackets from `TMB::sdreport()` covariance,
+  falling back to the fixed internal-scale step when covariance is unavailable.
+- Added lower/upper endpoint splitting for the single-target
+  `parallel = "multicore"` case, while preserving target-level multicore for
+  multi-target profiles.
+- Changed the `workers` default to `NULL`; when users request Unix
+  `parallel = "multicore"`, `workers = NULL` resolves to about half the
+  detected CPU cores, capped at 10 and at the number of jobs.
+
+| Rows | Species | Target | `tmbprofile` sec | Endpoint sec | Endpoint multicore sec | Endpoint speedup | Multicore speedup | Endpoint evals |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 10,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 21.774 | 7.610 | 4.734 | 2.861x | 4.599x | 12 |
+| 100,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 235.344 | 51.193 | 27.652 | 4.597x | 8.511x | 12 |
+| 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 249.426 | 43.857 | 24.527 | 5.687x | 10.169x | 11 |
+| 10,000 | 1,000 | `sigma` | 32.690 | 6.993 | 3.777 | 4.675x | 8.655x | 10 |
+
+The endpoint root check uses a stated likelihood-ratio equation tolerance of
+0.005 on `profile_nll(theta) - nll_hat - qchisq(level, 1) / 2`. All benchmarked
+endpoint rows satisfy that tolerance. The 100,000 row / 10,000 species stretch
+case was not run; the current large-phylogeny speed claim is therefore limited
+to the completed 5,000-species pressure row.
+
+Commands run:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R bench/profile-scalar-endpoint.R bench/README.md docs/design/12-profile-likelihood-cis.md NEWS.md
+Rscript -e "devtools::load_all(quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --target "sd:mu:phylo(1 | species)" --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 1000 --target "sd:mu:phylo(1 | species)" --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+perl -e 'alarm 900; exec @ARGV' Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 5000 --target 'sd:mu:phylo(1 | species)' --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --target sigma --eval-max 300 --iter-max 300 --output docs/dev-log/benchmarks/profile-scalar-endpoint.csv
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'profile-targets|corpairs|summary', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never', args = '--no-manual')"
+Rscript -e "pkgdown::build_site()"
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --targets all --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 1000 --targets "sd:mu:phylo(1 | species)" --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 5000 --targets "sd:mu:phylo(1 | species)" --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript -e "devtools::load_all(quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'profile-targets|corpairs|summary', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never', args = '--no-manual')"
+Rscript -e "pkgdown::build_site()"
+rg -n "profile_engine|profile\.engine|endpoint-only|endpoint engine|tmbprofile" R/profile.R man/confint.drmTMB.Rd docs/design/12-profile-likelihood-cis.md bench/README.md NEWS.md pkgdown-site/reference/confint.drmTMB.html pkgdown-site/news/index.html pkgdown-site/search.json
+rg -n "all profiles are faster|faster profiles generally|10,000 species|10000 species|derived.*endpoint|newdata.*endpoint" README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat pkgdown-site -g '!*.png' -g '!*.jpg'
+git diff --check
+gh issue list --search "profile endpoint confint phylogenetic SD" --limit 20
+```
+
+Validation:
+
+- `devtools::load_all(quiet = TRUE)` passed.
+- `devtools::test(filter = 'profile-targets')` passed after the endpoint,
+  curvature, and multicore tests were added.
+- `devtools::test(filter = 'profile-targets|corpairs|summary')` passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check(error_on = 'never', args = '--no-manual')` passed with
+  0 errors, 0 warnings, and 0 notes.
+- `pkgdown::build_site()` completed and rebuilt the reference, NEWS, and article
+  pages.
+- The profile-engine scan found the new argument, output column, benchmark
+  wording, and rendered reference/NEWS pages.
+- The stale-claim scan found no unsupported "all profiles are faster" claim. It
+  found only intended derived/newdata endpoint-boundary wording and older large
+  data planning mentions of 10,000 species.
+- `git diff --check` was clean.
+- `gh issue list --search "profile endpoint confint phylogenetic SD" --limit
+  20` returned no open issue rows needing update.
+- Benchmark rows recorded both engine identity and convergence/failure status;
+  all final rows in the CSV converged.
+
 ## 2026-05-23 - Rendered Figure QA Slices 51-60
 
 Goal: merge the previous rendered-figure PR, then improve the `convergence`
@@ -9,15 +138,15 @@ article with diagnostic figures that separate clean optimization, skipped
 uncertainty, and deliberately unfinished optimization.
 
 Roles: Ada merged PR #308 and kept the new work on a fresh branch. Florence
-inspected the two rendered convergence figures and rejected the first
-log-scale bar version. Fisher checked that the figures show diagnostic status
-and optimizer quantities rather than uncertainty intervals. Pat and Darwin
-checked whether the displays help applied readers read `check_drm()` before
-Wald output. Noether checked axes and labels against diagnostic quantities.
-Curie checked that the tiny fitted examples exercise real `check_drm()` states.
-Grace checked rendering, alt text, tests, diff hygiene, and pkgdown. Rose
-updated the audit trail and watched for one-rule-fits-all Confidence Eye drift.
-These were role perspectives, not spawned agents.
+inspected the two rendered convergence figures and rejected the first log-scale
+bar version. Fisher checked that the figures show diagnostic status and
+optimizer quantities rather than uncertainty intervals. Pat and Darwin checked
+whether the displays help applied readers read `check_drm()` before Wald
+output. Noether checked axes and labels against diagnostic quantities. Curie
+checked that the tiny fitted examples exercise real `check_drm()` states. Grace
+checked rendering, alt text, tests, diff hygiene, and pkgdown. Rose updated the
+audit trail and watched for one-rule-fits-all Confidence Eye drift. These were
+role perspectives, not spawned agents.
 
 Files changed:
 
@@ -78,9 +207,8 @@ Result:
   evidence: <https://github.com/itchyshin/drmTMB/issues/58#issuecomment-4525406911>.
 - PR #309's first CI run failed before merge. Ubuntu and macOS reached package
   checks but treated OS-sensitive `TMB::sdreport()` `NaNs produced` warnings in
-  `test-prediction-grid.R` as failures; Windows failed earlier in checkout
-  with `could not read Username for 'https://github.com': terminal prompts
-  disabled`.
+  `test-prediction-grid.R` as failures; Windows failed earlier in checkout with
+  `could not read Username for 'https://github.com': terminal prompts disabled`.
 - The prediction-grid tests check grid construction and point prediction, not
   Wald SE extraction, so their tiny fixture fits now use
   `control = drm_control(se = FALSE)`. The focused prediction-grid shard and
