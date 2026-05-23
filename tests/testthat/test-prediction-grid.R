@@ -10,7 +10,8 @@ test_that("prediction_grid() builds mean-reference grids for focal terms", {
   fit <- drmTMB(
     bf(y ~ temperature + habitat + season + tagged, sigma ~ temperature),
     family = gaussian(),
-    data = dat
+    data = dat,
+    control = drm_control(se = FALSE)
   )
 
   grid <- prediction_grid(
@@ -49,7 +50,10 @@ test_that("prediction_grid() supports random-effect scale predictors", {
     bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ w),
     family = gaussian(),
     data = sim$data,
-    control = drm_control(optimizer = list(eval.max = 120L, iter.max = 120L))
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 120L, iter.max = 120L)
+    )
   )
 
   grid <- prediction_grid(fit, focal = "w", at = list(w = c(-0.2, 0.4)))
@@ -76,7 +80,11 @@ test_that("prediction_grid() uses automatic focal values", {
     x = rep(c(0, 1, 2), each = 4),
     group = factor(rep(c("a", "b"), length.out = 12))
   )
-  fit <- drmTMB(bf(y ~ x + group, sigma ~ 1), data = dat)
+  fit <- drmTMB(
+    bf(y ~ x + group, sigma ~ 1),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
 
   grid <- prediction_grid(fit, focal = c("x", "group"), n = 2)
 
@@ -96,7 +104,8 @@ test_that("prediction_grid() can cross focal values with empirical rows", {
   fit <- drmTMB(
     bf(y ~ x + habitat + site, sigma ~ x),
     family = gaussian(),
-    data = dat
+    data = dat,
+    control = drm_control(se = FALSE)
   )
 
   grid <- prediction_grid(
@@ -126,7 +135,11 @@ test_that("prediction_grid() validates grid arguments", {
     x = stats::rnorm(12),
     habitat = factor(rep(c("reef", "kelp"), 6))
   )
-  fit <- drmTMB(bf(y ~ x + habitat, sigma ~ x), data = dat)
+  fit <- drmTMB(
+    bf(y ~ x + habitat, sigma ~ x),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
 
   expect_error(prediction_grid(fit, focal = "missing"), "unknown predictor")
   expect_error(
@@ -155,7 +168,7 @@ test_that("prediction_grid() validates grid arguments", {
       drmTMB(
         bf(y ~ x + habitat, sigma ~ x),
         data = dat,
-        control = drm_control(keep_data = FALSE)
+        control = drm_control(se = FALSE, keep_data = FALSE)
       ),
       focal = "x"
     ),
