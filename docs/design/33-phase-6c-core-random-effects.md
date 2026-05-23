@@ -94,8 +94,8 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Gaussian `sigma` | Multiple independent numeric slopes on `log(sigma)` | Correlated residual-scale slope blocks and labelled residual-scale slope covariance |
 | Univariate `mu`/`sigma` covariance | One or more matched labelled random-intercept blocks | Slope-level mean-scale covariance |
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks, q=4 all-four intercept blocks, and matching slope-only `mu1`/`mu2` blocks | q=4 location-slope, residual-scale slope covariance, and q=8 all-four slope endpoints |
-| Phylogenetic structured effects | Intercept-level univariate, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, bivariate phylogenetic slopes, and richer structured-slope covariance |
-| Coordinate spatial structured effects | Univariate Gaussian `mu` intercept, one numeric slope with independent coordinate fields, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance | Mesh/SPDE, multiple slopes, slope correlations, standalone spatial `sigma`, spatial direct-SD surfaces, spatial `corpair()`, and non-Gaussian spatial effects |
+| Phylogenetic structured effects | Intercept-level univariate `mu` and `sigma`, matching univariate `mu`/`sigma` correlation, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, residual-scale structured slopes, bivariate phylogenetic slopes, direct-SD formulas combined with structured `sigma`, and richer structured-slope covariance |
+| Coordinate spatial structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD surfaces, spatial `corpair()`, and non-Gaussian spatial effects |
 | Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
 
 Slice 236 re-audits the same promise before broader Phase 18 work starts. The
@@ -368,7 +368,7 @@ of the post-0.1.3 parity lane then completed the phylogenetic, animal-model,
 and `relmat()` sibling rows for one numeric univariate Gaussian `mu` slope.
 Slice 187 re-audited the fitted spatial path itself and added direct
 profile-interval coverage for the `spatial(0 + x | site)` slope-field SD plus
-boundary tests for multiple slopes, spatial scale terms, and bivariate spatial
+boundary tests for multiple slopes, residual-scale structured slopes, and bivariate spatial
 syntax.
 
 | Surface | Minimum next implementation contract | Destination |

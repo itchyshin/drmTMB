@@ -26,11 +26,13 @@ Gaussian location path also supports one numeric slope,
 \code{spatial(1 + x | site, coords = coords)}, as independent intercept and slope
 fields with separate SDs and no intercept-slope correlation. Matching
 labelled bivariate Gaussian \code{mu1}/\code{mu2} terms fit the first q=2
-coordinate-spatial location covariance, and matching labelled all-four
-\code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the first constant q=4
-location-scale block. Mesh inputs, standalone spatial scale formulas,
-multiple structured slopes, slope correlations, predictor-dependent spatial
-\code{corpair()} regression, and non-Gaussian spatial effects remain planned.
+coordinate-spatial location covariance, matching univariate Gaussian \code{mu} and
+\code{sigma} intercept terms fit one spatial mean-scale correlation, and matching
+labelled all-four \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} terms fit the first constant
+q=4 location-scale block. Mesh inputs, multiple structured slopes,
+residual-scale structured slopes, slope correlations, predictor-dependent
+spatial \code{corpair()} regression, and non-Gaussian spatial effects remain
+planned.
 }
 \examples{
 # Fitted for univariate Gaussian mu with coords:

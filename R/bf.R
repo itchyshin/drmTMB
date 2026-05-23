@@ -29,6 +29,7 @@
 #' )
 #' drm_formula(mvbind(y1, y2) ~ x1 + x2, sigma1 = ~ x1, sigma2 = ~ x2)
 drm_formula <- function(...) {
+  env <- parent.frame()
   calls <- as.list(substitute(list(...)))[-1L]
   if (length(calls) == 0L) {
     cli::cli_abort("{.fn drm_formula} requires at least one formula.")
@@ -42,7 +43,8 @@ drm_formula <- function(...) {
   out <- list(
     calls = calls,
     names = names,
-    entries = parse_drm_formula_entries(calls, names)
+    entries = parse_drm_formula_entries(calls, names),
+    env = env
   )
   class(out) <- "drm_formula"
   out
@@ -61,4 +63,12 @@ print.drm_formula <- function(x, ...) {
     cli::cli_text("  {label}{deparse1(x$calls[[i]])}")
   }
   invisible(x)
+}
+
+drm_formula_env <- function(formula, fallback) {
+  env <- formula$env
+  if (is.environment(env)) {
+    return(env)
+  }
+  fallback
 }

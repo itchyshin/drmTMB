@@ -23,6 +23,43 @@ new_known_relatedness_gaussian_data <- function(seed = 2026052001) {
   )
 }
 
+new_known_location_scale_gaussian_data <- function(
+  seed = 20260616,
+  n_id = 7L,
+  n_each = 7L,
+  sd_known = c(mu = 0.35, sigma = 0.16),
+  rho_known = -0.20
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(K) <- diag(K) + 0.15
+  dimnames(K) <- list(id_levels, id_levels)
+  Q <- solve(K)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- rho_known * z_mu + sqrt(1 - rho_known^2) * stats::rnorm(n_id)
+  known_mu <- as.vector(t(chol(K)) %*% z_mu) * sd_known[["mu"]]
+  known_sigma <- as.vector(t(chol(K)) %*% z_sigma) * sd_known[["sigma"]]
+  names(known_mu) <- id_levels
+  names(known_sigma) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- stats::rnorm(length(id))
+  log_sigma <- -1.10 + known_sigma[id]
+  y <- 0.20 +
+    0.25 * x +
+    known_mu[id] +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    K = K,
+    Q = Q,
+    sd_known = sd_known,
+    rho_known = rho_known
+  )
+}
+
 new_known_relatedness_gaussian_slope_data <- function(seed = 2026052104) {
   set.seed(seed)
   n_id <- 8L
@@ -387,6 +424,67 @@ test_that("Gaussian mu fits relmat and animal known-precision intercepts", {
     as.numeric(stats::logLik(fit_animal)),
     tolerance = 1e-5
   )
+})
+
+test_that("Gaussian supports animal and relmat residual-scale structured effects", {
+  sim <- new_known_location_scale_gaussian_data()
+  dat <- sim$data
+  Q <- sim$Q
+
+  fit_relmat <- drmTMB(
+    bf(
+      y ~ x + relmat(1 | id, Q = Q),
+      sigma ~ relmat(1 | id, Q = Q)
+    ),
+    data = dat,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 400, iter.max = 400)
+    )
+  )
+  fit_animal <- drmTMB(
+    bf(
+      y ~ x + animal(1 | id, Ainv = Q),
+      sigma ~ animal(1 | id, Ainv = Q)
+    ),
+    data = dat,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 400, iter.max = 400)
+    )
+  )
+
+  expect_equal(fit_relmat$opt$convergence, 0)
+  expect_equal(fit_animal$opt$convergence, 0)
+  expect_named(fit_relmat$sdpars$mu, "mu:relmat(1 | id)")
+  expect_named(fit_relmat$sdpars$sigma, "sigma:relmat(1 | id)")
+  expect_named(fit_animal$sdpars$mu, "mu:animal(1 | id)")
+  expect_named(fit_animal$sdpars$sigma, "sigma:animal(1 | id)")
+  expect_named(
+    fit_relmat$corpars$relmat,
+    "cor(mu:(Intercept),sigma:(Intercept) | relmat | id)"
+  )
+  expect_named(
+    fit_animal$corpars$animal,
+    "cor(mu:(Intercept),sigma:(Intercept) | animal | id)"
+  )
+
+  fixed_sigma <- as.vector(
+    fit_relmat$model$X$sigma %*% coef(fit_relmat, "sigma")
+  )
+  expect_equal(
+    unname(predict(fit_relmat, dpar = "sigma", type = "link")),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit_relmat, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+  expect_true(
+    "sd:sigma:sigma:relmat(1 | id)" %in% profile_targets(fit_relmat)$parm
+  )
+  expect_true(
+    "sd:sigma:sigma:animal(1 | id)" %in% profile_targets(fit_animal)$parm
+  )
+  expect_equal(corpairs(fit_relmat, level = "relmat")$class, "mean-scale")
+  expect_equal(corpairs(fit_animal, level = "animal")$class, "mean-scale")
 })
 
 test_that("Gaussian mu fits animal pedigree intercepts", {

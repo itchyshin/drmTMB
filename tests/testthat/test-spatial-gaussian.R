@@ -42,6 +42,53 @@ new_spatial_gaussian_data <- function(
   )
 }
 
+new_spatial_location_scale_gaussian_data <- function(
+  seed = 20260615,
+  n_site = 7L,
+  n_each = 7L,
+  sd_spatial = c(mu = 0.35, sigma = 0.15),
+  rho_spatial = 0.10
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  z_mu <- stats::rnorm(n_site)
+  z_sigma <- rho_spatial * z_mu + sqrt(1 - rho_spatial^2) * stats::rnorm(n_site)
+  spatial_mu <- as.vector(t(chol(covariance)) %*% z_mu) *
+    sd_spatial[["mu"]]
+  spatial_sigma <- as.vector(t(chol(covariance)) %*% z_sigma) *
+    sd_spatial[["sigma"]]
+  names(spatial_mu) <- site_levels
+  names(spatial_sigma) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  log_sigma <- -1.10 + spatial_sigma[site]
+  y <- 0.20 +
+    0.20 * x +
+    spatial_mu[site] +
+    exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords,
+    sd_spatial = sd_spatial,
+    rho_spatial = rho_spatial
+  )
+}
+
 new_spatial_gaussian_slope_data <- function(
   seed = 20260572,
   n_site = 12L,
@@ -243,6 +290,47 @@ test_that("Gaussian mu supports coordinate-based spatial intercepts", {
     fixed_mu + drmTMB:::phylo_mu_contribution(fit),
     tolerance = 1e-8
   )
+})
+
+test_that("Gaussian supports coordinate-spatial residual-scale structured effects", {
+  sim <- new_spatial_location_scale_gaussian_data()
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + spatial(1 | site, coords = coords),
+      sigma ~ spatial(1 | site, coords = coords)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 400, iter.max = 400)
+    )
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$structured$phylo_mu$type, "spatial")
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    c("mu", "sigma")
+  )
+  expect_named(fit$sdpars$mu, "mu:spatial(1 | site)")
+  expect_named(fit$sdpars$sigma, "sigma:spatial(1 | site)")
+  expect_named(
+    fit$corpars$spatial,
+    "cor(mu:(Intercept),sigma:(Intercept) | spatial | site)"
+  )
+
+  conditional_sigma <- predict(fit, dpar = "sigma", type = "link")
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  expect_equal(
+    unname(conditional_sigma),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+  expect_true("sd:sigma:sigma:spatial(1 | site)" %in% profile_targets(fit)$parm)
+  expect_equal(corpairs(fit, level = "spatial")$class, "mean-scale")
 })
 
 test_that("bivariate Gaussian mu supports coordinate-based spatial correlation", {
@@ -593,7 +681,7 @@ test_that("spatial one-slope support stays limited to univariate mu", {
       family = gaussian(),
       data = dat
     ),
-    "Structured-effect syntax is planned"
+    "residual-scale structured effects are intercept-only"
   )
   expect_error(
     drmTMB(

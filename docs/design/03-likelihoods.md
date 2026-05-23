@@ -70,7 +70,7 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, the implemented intercept-only `phylo()` location effect, the first coordinate-based `spatial()` location effect, and the first opt-in fixed-effect Gaussian aggregation path. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
@@ -251,74 +251,96 @@ implementation, the middle label `p` is retained for naming and future
 cross-formula covariance matching; the likelihood is otherwise the same as the
 unlabelled `(1 + x1 | id)` block.
 
-For coordinate-based spatial location models:
+For univariate Gaussian structured location and residual-scale intercept models,
+the structured field may enter `mu`, `sigma`, or both. For a matching `mu` and
+`sigma` pair:
 
 ```text
-mu_i = X_mu[i, ] beta_mu + s_site[i]
-s ~ Normal(0, sd_spatial^2 K_coords)
+mu_i = X_mu[i, ] beta_mu + s_mu, group[i]
+log(sigma_i) = X_sigma[i, ] beta_sigma + s_sigma, group[i]
+
+[s_mu, s_sigma]_g ~ Normal(0, Sigma_structured x K)
+Sigma_structured =
+  [sd_mu^2, rho_mu_sigma sd_mu sd_sigma;
+   rho_mu_sigma sd_mu sd_sigma, sd_sigma^2]
+```
+
+For a sigma-only structured intercept, the first equation omits `s_mu`, the
+second keeps `s_sigma`, and no correlation parameter is estimated. For
+coordinate spatial models, `K` is built from observed coordinates:
+
+```text
 K_coords[l, m] = exp(-d_lm / r)
 r = median positive pairwise site distance
 Q_coords = K_coords^{-1}
 ```
 
-The TMB likelihood uses the same sparse-precision prior shape as the
-phylogenetic random intercept path, with `Q_coords` replacing the tree-derived
-precision and `log_sd_phylo` internally holding the spatial SD for the
-single-field intercept implementation. The public output labels the term as
-`spatial(1 | site)` and returns conditional effects in the `spatial_mu`
-`ranef()` block. This is a small-data coordinate covariance foundation, not the
-planned scalable SPDE/GMRF mesh implementation.
+Phylogenetic models use the tree-derived covariance, `animal()` uses a
+pedigree-derived or supplied additive relatedness matrix, and `relmat()` uses a
+supplied known covariance or precision. These routes reuse the same
+sparse-precision TMB prior shape. The internal TMB names remain generic
+(`log_sd_phylo` and `eta_cor_phylo`) for this shared structured-effect layer,
+but public output labels the terms as `phylo`, `spatial`, `animal`, or
+`relmat`. Conditional effects appear in marker-specific `ranef()` blocks such
+as `phylo_mu`, `phylo_sigma`, `spatial_mu`, and `spatial_sigma`.
 
 Matching R syntax:
 
 ```r
 drmTMB(
-  bf(y ~ x1 + spatial(1 | site, coords = coords), sigma ~ x2),
+  bf(
+    y ~ x1 + phylo(1 | species, tree = tree),
+    sigma ~ x2 + phylo(1 | species, tree = tree)
+  ),
+  family = gaussian(),
+  data = dat
+)
+
+drmTMB(
+  bf(
+    y ~ x1 + spatial(1 | site, coords = coords),
+    sigma ~ x2 + spatial(1 | site, coords = coords)
+  ),
   family = gaussian(),
   data = dat
 )
 ```
 
-For first-slice animal and lower-level relatedness location models:
+For animal and lower-level relatedness models, the matching syntax is:
 
-```text
-mu_i = X_mu[i, ] beta_mu + a_group[i]
-a ~ Normal(0, sd_related^2 K)
-Q = K^{-1}
+```r
+drmTMB(
+  bf(
+    y ~ x1 + animal(1 | id, Ainv = Ainv),
+    sigma ~ x2 + animal(1 | id, Ainv = Ainv)
+  ),
+  family = gaussian(),
+  data = dat
+)
+
+drmTMB(
+  bf(
+    y ~ x1 + relmat(1 | line, Q = Q),
+    sigma ~ x2 + relmat(1 | line, Q = Q)
+  ),
+  family = gaussian(),
+  data = dat
+)
 ```
 
 `animal(1 | id, A = A)` and `relmat(1 | id, K = K)` accept covariance or
 relatedness matrices. `animal(1 | id, Ainv = Ainv)` and
 `relmat(1 | id, Q = Q)` accept inverse relatedness or precision matrices. The
 matrix row and column names define the latent structured-effect levels, and
-the observed grouping column must match those names. These routes reuse the
-same sparse-precision TMB prior shape as the phylogenetic and spatial
-intercept paths; the public output labels the conditional effects as
-`animal_mu` or `relmat_mu`, even though the internal TMB parameter names remain
-the generic structured-field names for this first slice.
-
-Matching R syntax:
-
-```r
-drmTMB(
-  bf(y ~ x1 + animal(1 | id, Ainv = Ainv), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-
-drmTMB(
-  bf(y ~ x1 + relmat(1 | line, Q = Q), sigma ~ x2),
-  family = gaussian(),
-  data = dat
-)
-```
+the observed grouping column must match those names.
 
 Matching labelled bivariate `mu1`/`mu2` terms now use the same known precision
 route to fit the first q=2 location covariance. Matching all-four labelled
 `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
-location-scale covariance block. Pedigree-to-Ainv construction, structured
-slopes, standalone `sigma` relatedness models, predictor-dependent relatedness
-`corpair()` regression, and generic direct-SD grammar remain planned until their
+location-scale covariance block. Pedigree-to-Ainv construction is fitted for
+the dense first animal route; large-pedigree sparse precision construction,
+residual-scale structured slopes, predictor-dependent relatedness `corpair()`
+regression, and generic direct-SD grammar remain planned until their
 likelihood, diagnostics, profile or bootstrap interval story, simulation
 recovery tests, and examples exist.
 

@@ -192,6 +192,120 @@ new_profile_phylo_data <- function(
   )
 }
 
+new_profile_phylo_location_scale_data <- function(
+  seed = 20260665,
+  n_tip = 4L,
+  n_each = 8L,
+  sd_phylo = c(mu = 0.35, sigma = 0.16),
+  rho_phylo = 0.20
+) {
+  set.seed(seed)
+  tree <- new_profile_balanced_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z_mu <- stats::rnorm(n_tip)
+  z_sigma <- rho_phylo * z_mu + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo_mu <- as.vector(t(chol(A)) %*% z_mu) * sd_phylo[["mu"]]
+  phylo_sigma <- as.vector(t(chol(A)) %*% z_sigma) *
+    sd_phylo[["sigma"]]
+  names(phylo_mu) <- tree$tip.label
+  names(phylo_sigma) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  log_sigma <- -1.1 + phylo_sigma[species]
+  y <- 0.25 +
+    0.35 * x +
+    phylo_mu[species] +
+    exp(log_sigma) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree
+  )
+}
+
+new_profile_spatial_location_scale_data <- function(
+  seed = 20260665,
+  n_site = 5L,
+  n_each = 7L,
+  sd_spatial = c(mu = 0.32, sigma = 0.14),
+  rho_spatial = 0.15
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  z_mu <- stats::rnorm(n_site)
+  z_sigma <- rho_spatial *
+    z_mu +
+    sqrt(1 - rho_spatial^2) *
+      stats::rnorm(n_site)
+  spatial_mu <- as.vector(t(chol(covariance)) %*% z_mu) *
+    sd_spatial[["mu"]]
+  spatial_sigma <- as.vector(t(chol(covariance)) %*% z_sigma) *
+    sd_spatial[["sigma"]]
+  names(spatial_mu) <- site_levels
+  names(spatial_sigma) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  log_sigma <- -1.1 + spatial_sigma[site]
+  y <- 0.20 +
+    0.30 * x +
+    spatial_mu[site] +
+    exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords
+  )
+}
+
+new_profile_known_location_scale_data <- function(
+  seed = 20260666,
+  n_id = 5L,
+  n_each = 7L,
+  sd_known = c(mu = 0.32, sigma = 0.14),
+  rho_known = -0.15
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(K) <- diag(K) + 0.15
+  dimnames(K) <- list(id_levels, id_levels)
+  Q <- solve(K)
+  z_mu <- stats::rnorm(n_id)
+  z_sigma <- rho_known * z_mu + sqrt(1 - rho_known^2) * stats::rnorm(n_id)
+  known_mu <- as.vector(t(chol(K)) %*% z_mu) * sd_known[["mu"]]
+  known_sigma <- as.vector(t(chol(K)) %*% z_sigma) * sd_known[["sigma"]]
+  names(known_mu) <- id_levels
+  names(known_sigma) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- stats::rnorm(length(id))
+  log_sigma <- -1.1 + known_sigma[id]
+  y <- 0.20 +
+    0.30 * x +
+    known_mu[id] +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    Q = Q
+  )
+}
+
 new_profile_biv_phylo_data <- function(
   seed = 20260621,
   n_tip = 4L,
@@ -582,6 +696,41 @@ test_that("confint returns bootstrap intervals for direct targets", {
   }
 })
 
+test_that("confint bootstrap refits ordinary location-scale random effects", {
+  dat <- new_profile_mu_sigma_group_data(n_id = 8, n_each = 5, seed = 20260668)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 500, iter.max = 500))
+  )
+  parms <- c(
+    "sd:mu:(1 | p | id)",
+    "sd:sigma:(1 | p | id)",
+    "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = parms,
+    method = "bootstrap",
+    R = 2,
+    seed = 20260669,
+    refit_control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  expect_equal(ci$parm, parms)
+  expect_equal(ci$method, rep("bootstrap", length(parms)))
+  expect_equal(ci$conf.status, rep("bootstrap", length(parms)))
+  expect_equal(ci$bootstrap.n, rep(2L, length(parms)))
+  expect_equal(ci$bootstrap.failed, rep(0L, length(parms)))
+  expect_equal(unique(ci$bootstrap.parallel), "none")
+  expect_equal(unique(ci$bootstrap.workers), 1L)
+})
+
 test_that("confint bootstrap refits scalar phylogenetic SD targets", {
   sim <- new_profile_phylo_data(seed = 20260656, n_tip = 4L, n_each = 4L)
   tree <- sim$tree
@@ -601,7 +750,174 @@ test_that("confint bootstrap refits scalar phylogenetic SD targets", {
 
   expect_equal(ci$parm, c("sigma", "sd:mu:phylo(1 | species)"))
   expect_equal(ci$method, rep("bootstrap", 2L))
-  expect_true(all(ci$conf.status %in% c("bootstrap", "bootstrap_unavailable")))
+  expect_equal(ci$conf.status, rep("bootstrap", 2L))
+  expect_equal(ci$bootstrap.n, rep(2L, 2L))
+  expect_equal(ci$bootstrap.failed, rep(0L, 2L))
+  expect_equal(unique(ci$bootstrap.parallel), "none")
+  expect_equal(unique(ci$bootstrap.workers), 1L)
+})
+
+test_that("confint bootstrap refits structured location-scale dependencies", {
+  phylo_sim <- new_profile_phylo_location_scale_data()
+  tree <- phylo_sim$tree
+  phylo_fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ phylo(1 | species, tree = tree)
+    ),
+    family = gaussian(),
+    data = phylo_sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  spatial_sim <- new_profile_spatial_location_scale_data()
+  coords <- spatial_sim$coords
+  spatial_fit <- drmTMB(
+    bf(
+      y ~ x + spatial(1 | site, coords = coords),
+      sigma ~ spatial(1 | site, coords = coords)
+    ),
+    family = gaussian(),
+    data = spatial_sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  relmat_sim <- new_profile_known_location_scale_data(seed = 20260666)
+  Q <- relmat_sim$Q
+  relmat_fit <- drmTMB(
+    bf(
+      y ~ x + relmat(1 | id, Q = Q),
+      sigma ~ relmat(1 | id, Q = Q)
+    ),
+    family = gaussian(),
+    data = relmat_sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  animal_sim <- new_profile_known_location_scale_data(seed = 20260667)
+  Ainv <- animal_sim$Q
+  animal_fit <- drmTMB(
+    bf(
+      y ~ x + animal(1 | id, Ainv = Ainv),
+      sigma ~ animal(1 | id, Ainv = Ainv)
+    ),
+    family = gaussian(),
+    data = animal_sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  cases <- list(
+    phylo = list(
+      fit = phylo_fit,
+      parms = c(
+        "sd:mu:mu:phylo(1 | species)",
+        "sd:sigma:sigma:phylo(1 | species)"
+      )
+    ),
+    spatial = list(
+      fit = spatial_fit,
+      parms = c(
+        "sd:mu:mu:spatial(1 | site)",
+        "sd:sigma:sigma:spatial(1 | site)"
+      )
+    ),
+    relmat = list(
+      fit = relmat_fit,
+      parms = c(
+        "sd:mu:mu:relmat(1 | id)",
+        "sd:sigma:sigma:relmat(1 | id)"
+      )
+    ),
+    animal = list(
+      fit = animal_fit,
+      parms = c(
+        "sd:mu:mu:animal(1 | id)",
+        "sd:sigma:sigma:animal(1 | id)"
+      )
+    )
+  )
+
+  for (case_name in names(cases)) {
+    case <- cases[[case_name]]
+    ci <- stats::confint(
+      case$fit,
+      parm = case$parms,
+      method = "bootstrap",
+      R = 2,
+      seed = 20260670,
+      refit_control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 500, iter.max = 500)
+      )
+    )
+
+    expect_equal(ci$parm, case$parms, info = case_name)
+    expect_equal(
+      ci$method,
+      rep("bootstrap", length(case$parms)),
+      info = case_name
+    )
+    expect_equal(
+      ci$conf.status,
+      rep("bootstrap", length(case$parms)),
+      info = case_name
+    )
+    expect_equal(ci$bootstrap.n, rep(2L, length(case$parms)), info = case_name)
+    expect_equal(
+      ci$bootstrap.failed,
+      rep(0L, length(case$parms)),
+      info = case_name
+    )
+    expect_equal(unique(ci$bootstrap.parallel), "none", info = case_name)
+    expect_equal(unique(ci$bootstrap.workers), 1L, info = case_name)
+  }
+})
+
+test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
+  sim <- new_profile_biv_phylo_data(seed = 20260662, n_tip = 4L, n_each = 5L)
+  tree <- sim$tree
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree)
+    ),
+    family = biv_gaussian(),
+    data = sim$data
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "variance_components",
+    method = "bootstrap",
+    R = 2,
+    seed = 20260663
+  )
+
+  expect_equal(
+    ci$parm,
+    c(
+      "sigma1",
+      "sigma2",
+      "sd:mu:mu1:phylo(1 | p | species)",
+      "sd:mu:mu2:phylo(1 | p | species)"
+    )
+  )
+  expect_equal(ci$method, rep("bootstrap", 4L))
+  expect_equal(ci$conf.status, rep("bootstrap", 4L))
+  expect_equal(ci$bootstrap.n, rep(2L, 4L))
+  expect_equal(ci$bootstrap.failed, rep(0L, 4L))
   expect_equal(unique(ci$bootstrap.parallel), "none")
   expect_equal(unique(ci$bootstrap.workers), 1L)
 })
@@ -706,6 +1022,43 @@ test_that("confint profile intervals wrap direct fixed-effect profiles", {
   expect_gt(ci$upper, unname(coef(fit, "mu")[["x"]]))
 })
 
+test_that("confint profile intervals can split target work across workers", {
+  testthat::skip_on_os("windows")
+  set.seed(20260661)
+  n <- 50
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  parm <- c("mu:(Intercept)", "mu:x")
+
+  serial <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30
+  )
+  multicore <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30,
+    parallel = "multicore",
+    workers = 2
+  )
+
+  expect_equal(multicore$parm, serial$parm)
+  expect_equal(multicore$lower, serial$lower, tolerance = 1e-10)
+  expect_equal(multicore$upper, serial$upper, tolerance = 1e-10)
+  expect_equal(multicore$method, rep("profile", 2L))
+})
+
 test_that("confint profile intervals transform constant sigma targets", {
   set.seed(20260605)
   n <- 80
@@ -784,6 +1137,35 @@ test_that("confint profile intervals transform constant sigma targets", {
   expect_equal(
     fast_ci$upper,
     exp(unname(manual_fast_ci[1L, "upper"])),
+    tolerance = 1e-12
+  )
+
+  budgeted_ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    trace = FALSE,
+    ystep = 0.30,
+    profile_maxit = 30
+  )
+  manual_budgeted_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "sigma",
+    lincomb = manual_lincomb,
+    trace = FALSE,
+    ystep = 0.30,
+    maxit = 30
+  )
+  manual_budgeted_ci <- stats::confint(manual_budgeted_profile, level = 0.80)
+  expect_equal(
+    budgeted_ci$lower,
+    exp(unname(manual_budgeted_ci[1L, "lower"])),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    budgeted_ci$upper,
+    exp(unname(manual_budgeted_ci[1L, "upper"])),
     tolerance = 1e-12
   )
 })
@@ -1610,6 +1992,27 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       name = "wrong-target"
     ),
     "Profile target selection is controlled"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE,
+      profile_maxit = 0
+    ),
+    "profile_maxit"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "fixef:mu:x",
+      method = "profile",
+      trace = FALSE,
+      profile_maxit = 2,
+      maxit = 2
+    ),
+    "supplied twice"
   )
   expect_error(
     stats::confint(

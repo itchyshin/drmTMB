@@ -93,6 +93,7 @@ drmTMB <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  formula_env <- drm_formula_env(formula, parent.frame())
   control <- drm_parse_control(control)
 
   weights_expr <- if (missing(weights)) NULL else substitute(weights)
@@ -126,68 +127,68 @@ drmTMB <- function(
     gaussian = drm_build_gaussian_ls_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full,
       control = control
     ),
     student = drm_build_student_ls_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     lognormal = drm_build_lognormal_ls_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     gamma = drm_build_gamma_ls_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     beta = drm_build_beta_ls_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     beta_binomial = drm_build_beta_binomial_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     cumulative_logit = drm_build_cumulative_logit_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     poisson = drm_build_poisson_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     nbinom2 = drm_build_nbinom2_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     truncated_nbinom2 = drm_build_truncated_nbinom2_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     ),
     biv_gaussian = drm_build_biv_gaussian_spec(
       formula,
       data,
-      env = parent.frame(),
+      env = formula_env,
       weights = weights_full
     )
   )
@@ -584,22 +585,67 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_animal$rhs
   mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
   mu_entry$rhs <- mu_relmat$rhs
-  structured_mu_terms <- list(
-    phylo = mu_phylo$term,
-    spatial = mu_spatial$term,
-    animal = mu_animal$term,
-    relmat = mu_relmat$term
+  sigma_phylo <- extract_gaussian_mu_phylo_term(sigma_entry, dpar = "sigma")
+  sigma_entry$rhs <- sigma_phylo$rhs
+  sigma_spatial <- extract_gaussian_mu_spatial_term(
+    sigma_entry,
+    dpar = "sigma"
   )
-  active_structured_mu <- names(structured_mu_terms)[
-    !vapply(structured_mu_terms, is.null, logical(1))
+  sigma_entry$rhs <- sigma_spatial$rhs
+  sigma_animal <- extract_gaussian_mu_known_term(
+    sigma_entry,
+    "animal",
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_animal$rhs
+  sigma_relmat <- extract_gaussian_mu_known_term(
+    sigma_entry,
+    "relmat",
+    dpar = "sigma"
+  )
+  sigma_entry$rhs <- sigma_relmat$rhs
+  raw_structured_terms <- list(
+    phylo = list(mu = mu_phylo$term, sigma = sigma_phylo$term),
+    spatial = list(mu = mu_spatial$term, sigma = sigma_spatial$term),
+    animal = list(mu = mu_animal$term, sigma = sigma_animal$term),
+    relmat = list(mu = mu_relmat$term, sigma = sigma_relmat$term)
+  )
+  active_structured <- names(raw_structured_terms)[
+    vapply(
+      raw_structured_terms,
+      function(terms) {
+        !is.null(terms$mu) || !is.null(terms$sigma)
+      },
+      logical(1)
+    )
   ]
-  if (length(active_structured_mu) > 1L) {
+  if (length(active_structured) > 1L) {
     cli::cli_abort(c(
-      "Only one structured {.code mu} effect is implemented per model.",
-      "x" = "{.code mu} contains structured effects: {.val {active_structured_mu}}.",
+      "Only one structured effect type is implemented per univariate Gaussian model.",
+      "x" = "The model contains structured effect types: {.val {active_structured}}.",
       "i" = "Fit the phylogenetic and spatial structured effects separately until multiple structured layers have their own identifiability checks."
     ))
   }
+  structured_terms <- lapply(
+    names(raw_structured_terms),
+    function(marker) {
+      combine_univariate_structured_terms(
+        raw_structured_terms[[marker]]$mu,
+        raw_structured_terms[[marker]]$sigma,
+        marker = marker
+      )
+    }
+  )
+  names(structured_terms) <- names(raw_structured_terms)
+  structured_term <- if (length(active_structured) == 1L) {
+    structured_terms[[active_structured]]
+  } else {
+    NULL
+  }
+  mu_phylo$term <- structured_terms$phylo
+  mu_spatial$term <- structured_terms$spatial
+  mu_animal$term <- structured_terms$animal
+  mu_relmat$term <- structured_terms$relmat
   mu_re <- extract_random_mu_terms(mu_entry$rhs, "mu")
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
@@ -660,10 +706,7 @@ drm_build_gaussian_ls_spec <- function(
     all.vars(f_sigma),
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
-    phylo_mu_vars(mu_phylo$term),
-    spatial_mu_vars(mu_spatial$term),
-    known_mu_vars(mu_animal$term),
-    known_mu_vars(mu_relmat$term),
+    structured_mu_vars(structured_term),
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     vapply(sd_phylo_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
@@ -736,15 +779,7 @@ drm_build_gaussian_ls_spec <- function(
     re_mu,
     data_model
   )
-  phylo_mu <- if (!is.null(mu_spatial$term)) {
-    build_spatial_mu_structure(mu_spatial$term, data_model, env)
-  } else if (!is.null(mu_animal$term)) {
-    build_known_precision_mu_structure(mu_animal$term, data_model, env)
-  } else if (!is.null(mu_relmat$term)) {
-    build_known_precision_mu_structure(mu_relmat$term, data_model, env)
-  } else {
-    build_phylo_mu_structure(mu_phylo$term, data_model, env)
-  }
+  phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -3256,15 +3291,9 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths are Gaussian-only: intercept-level {.code phylo()} terms in univariate and selected bivariate Gaussian formulas, and coordinate-spatial {.code spatial(1 | site, coords = coords)} or one-slope {.code spatial(1 + x | site, coords = coords)} terms in univariate Gaussian {.code mu}.",
-      "i" = "Structured non-Gaussian paths, including count, bounded, ordinal, shape, inflation, hurdle, and future {.fn animal} or {.fn relmat} relatedness routes, remain deferred until ordinary family-specific random-effect recovery is stable."
+      "i" = "Implemented structured paths are Gaussian-only for the fitted {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, plus the first ordinary Poisson {.code mu} phylogenetic intercept.",
+      "i" = "Structured non-Gaussian paths beyond that first count gate, including bounded, ordinal, shape, inflation, hurdle, NB2, and most structured count routes, remain deferred until ordinary family-specific random-effect recovery is stable."
     )
-    if (identical(dpar, "sigma") && "phylo" %in% structured) {
-      message <- c(
-        message,
-        "i" = "{.code sigma ~ phylo(...)} is not a fitted univariate residual-scale model yet; use fixed-effect {.code sigma} predictors or a documented bivariate labelled q4 phylogenetic block when that is the intended four-endpoint model."
-      )
-    }
     cli::cli_abort(message)
   }
 
@@ -3806,7 +3835,7 @@ remove_qgt2_random_mu_terms <- function(terms) {
   terms[keep]
 }
 
-extract_gaussian_mu_phylo_term <- function(entry) {
+extract_gaussian_mu_phylo_term <- function(entry, dpar = entry$dpar) {
   terms <- flatten_plus_terms(entry$rhs)
   is_phylo <- vapply(
     terms,
@@ -3819,7 +3848,7 @@ extract_gaussian_mu_phylo_term <- function(entry) {
   }
   if (sum(is_phylo) > 1L) {
     cli::cli_abort(c(
-      "Only one phylogenetic structured effect is implemented in {.code mu}.",
+      "Only one phylogenetic structured effect is implemented in {.code {dpar}}.",
       "x" = "Use one term such as {.code phylo(1 | species, tree = tree)}."
     ))
   }
@@ -3841,7 +3870,7 @@ extract_gaussian_mu_phylo_term <- function(entry) {
       identical(phylo_coef_names[[2L]], phylo_term$variables[[1L]]))
   if (!valid_phylo_coef) {
     cli::cli_abort(c(
-      "Only intercept-only or one-slope phylogenetic {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope phylogenetic {.code {dpar}} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {phylo_term$coef_names}}.",
       "i" = "Use {.code phylo(1 | species, tree = tree)} or {.code phylo(1 + x | species, tree = tree)}."
     ))
@@ -3850,7 +3879,7 @@ extract_gaussian_mu_phylo_term <- function(entry) {
   list(rhs = rebuild_plus_terms(terms[!is_phylo]), term = phylo_term)
 }
 
-extract_gaussian_mu_spatial_term <- function(entry) {
+extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
   terms <- flatten_plus_terms(entry$rhs)
   is_spatial <- vapply(
     terms,
@@ -3863,7 +3892,7 @@ extract_gaussian_mu_spatial_term <- function(entry) {
   }
   if (sum(is_spatial) > 1L) {
     cli::cli_abort(c(
-      "Only one spatial structured effect is implemented in {.code mu}.",
+      "Only one spatial structured effect is implemented in {.code {dpar}}.",
       "x" = "Use one term such as {.code spatial(1 | site, coords = coords)}."
     ))
   }
@@ -3885,7 +3914,7 @@ extract_gaussian_mu_spatial_term <- function(entry) {
       identical(spatial_coef_names[[2L]], spatial_term$variables[[1L]]))
   if (!valid_spatial_coef) {
     cli::cli_abort(c(
-      "Only intercept-only or one-slope spatial {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope spatial {.code {dpar}} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {spatial_term$coef_names}}.",
       "i" = "Use {.code spatial(1 | site, coords = coords)} or {.code spatial(1 + x | site, coords = coords)}."
     ))
@@ -3901,7 +3930,7 @@ extract_gaussian_mu_spatial_term <- function(entry) {
   list(rhs = rebuild_plus_terms(terms[!is_spatial]), term = spatial_term)
 }
 
-extract_gaussian_mu_known_term <- function(entry, marker) {
+extract_gaussian_mu_known_term <- function(entry, marker, dpar = entry$dpar) {
   terms <- flatten_plus_terms(entry$rhs)
   is_known <- vapply(
     terms,
@@ -3914,7 +3943,7 @@ extract_gaussian_mu_known_term <- function(entry, marker) {
   }
   if (sum(is_known) > 1L) {
     cli::cli_abort(c(
-      "Only one {.fn {marker}} structured effect is implemented in {.code mu}.",
+      "Only one {.fn {marker}} structured effect is implemented in {.code {dpar}}.",
       "x" = "Use one term such as {.code {marker}(1 | id, Q = Q)}."
     ))
   }
@@ -3936,13 +3965,139 @@ extract_gaussian_mu_known_term <- function(entry, marker) {
       identical(known_coef_names[[2L]], known_term$variables[[1L]]))
   if (!valid_known_coef) {
     cli::cli_abort(c(
-      "Only intercept-only or one-slope {.fn {marker}} {.code mu} effects are implemented.",
+      "Only intercept-only or one-slope {.fn {marker}} {.code {dpar}} effects are implemented.",
       "x" = "Requested structured coefficient{?s}: {.val {known_term$coef_names}}.",
       "i" = "Use {.code {marker}(1 | {known_term$group}, {known_term$structure} = {known_term$object})} or {.code {marker}(1 + x | {known_term$group}, {known_term$structure} = {known_term$object})}."
     ))
   }
 
   list(rhs = rebuild_plus_terms(terms[!is_known]), term = known_term)
+}
+
+combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
+  if (is.null(mu_term) && is.null(sigma_term)) {
+    return(NULL)
+  }
+  if (!is.null(sigma_term)) {
+    validate_univariate_sigma_structured_term(sigma_term, marker)
+  }
+  if (is.null(mu_term)) {
+    sigma_term$dpars <- "sigma"
+    sigma_term$q <- 1L
+    sigma_term$covariance_mode <- "scalar"
+    sigma_term$block_ids <- 1L
+    sigma_term$block_labels <- structured_term_default_block(sigma_term, marker)
+    sigma_term$endpoint_blocks <- sigma_term$block_labels
+    sigma_term$endpoint_covariance_labels <- structured_term_endpoint_label(
+      sigma_term
+    )
+    sigma_term$label <- format_structured_label(
+      marker,
+      "1",
+      sigma_term$group,
+      sigma_term$covariance_label
+    )
+    return(sigma_term)
+  }
+  if (is.null(sigma_term)) {
+    return(mu_term)
+  }
+
+  validate_univariate_sigma_structured_match(mu_term, sigma_term, marker)
+  mu_term$dpars <- c("mu", "sigma")
+  mu_term$q <- 2L
+  mu_term$covariance_mode <- "scalar"
+  mu_term$block_ids <- c(1L, 1L)
+  mu_term$block_labels <- structured_term_default_block(mu_term, marker)
+  mu_term$endpoint_blocks <- rep(mu_term$block_labels[[1L]], 2L)
+  endpoint_label <- structured_term_endpoint_label(mu_term)
+  mu_term$endpoint_covariance_labels <- rep(endpoint_label, 2L)
+  mu_term$label <- format_structured_label(
+    marker,
+    "1",
+    mu_term$group,
+    mu_term$covariance_label
+  )
+  mu_term
+}
+
+validate_univariate_sigma_structured_term <- function(term, marker) {
+  marker_title <- structured_marker_title(marker)
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{marker_title} residual-scale structured effects are intercept-only in this slice.",
+      "x" = "{.code sigma} requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code sigma ~ {marker}(1 | {term$group}, ...)}; structured scale slopes need separate recovery tests."
+    ))
+  }
+}
+
+validate_univariate_sigma_structured_match <- function(
+  mu_term,
+  sigma_term,
+  marker
+) {
+  marker_title <- structured_marker_title(marker)
+  if (!structured_term_is_intercept_only(mu_term)) {
+    cli::cli_abort(c(
+      "{marker_title} univariate location-scale blocks are intercept-only in this slice.",
+      "x" = "{.code mu} requested structured coefficient{?s}: {.val {mu_term$coef_names}}.",
+      "i" = "Use matching intercept terms such as {.code {marker}(1 | {mu_term$group}, ...)} in {.code mu} and {.code sigma} first."
+    ))
+  }
+  if (!structured_terms_same_source(mu_term, sigma_term, marker)) {
+    cli::cli_abort(c(
+      "Matched univariate {tolower(marker_title)} location-scale terms must use the same structured source.",
+      "x" = "{.code mu} uses {.code {structured_term_source_label(mu_term, marker)}}.",
+      "x" = "{.code sigma} uses {.code {structured_term_source_label(sigma_term, marker)}}.",
+      "i" = "Use the same grouping variable and tree, coordinate object, pedigree, covariance, or precision matrix in both formulas."
+    ))
+  }
+  if (!identical(mu_term$covariance_label, sigma_term$covariance_label)) {
+    block_mu <- phylo_term_block(mu_term)
+    block_sigma <- phylo_term_block(sigma_term)
+    cli::cli_abort(c(
+      "Matched univariate {tolower(marker_title)} location-scale terms must use the same covariance-block label.",
+      "x" = "{.code mu} uses block {.code {block_mu}}.",
+      "x" = "{.code sigma} uses block {.code {block_sigma}}.",
+      "i" = "Use matching labels such as {.code {marker}(1 | p | {mu_term$group}, ...)} in both formulas, or leave both terms unlabelled."
+    ))
+  }
+}
+
+structured_term_is_intercept_only <- function(term) {
+  identical(term$coef_names, "(Intercept)") &&
+    identical(term$variables, NA_character_)
+}
+
+structured_terms_same_source <- function(term1, term2, marker) {
+  same_group <- identical(term1$group, term2$group)
+  if (identical(marker, "phylo")) {
+    return(same_group && identical(term1$tree, term2$tree))
+  }
+  same_group &&
+    identical(term1$structure, term2$structure) &&
+    identical(term1$object, term2$object)
+}
+
+structured_term_source_label <- function(term, marker) {
+  object <- if (identical(marker, "phylo")) term$tree else term$object
+  structure <- if (identical(marker, "phylo")) "tree" else term$structure
+  paste0(marker, "(1 | ", term$group, ", ", structure, " = ", object, ")")
+}
+
+structured_term_default_block <- function(term, marker) {
+  if (is.null(term$covariance_label)) {
+    return(marker)
+  }
+  term$covariance_label
+}
+
+structured_term_endpoint_label <- function(term) {
+  if (is.null(term$covariance_label)) {
+    return(NA_character_)
+  }
+  term$covariance_label
 }
 
 entry_phylo_structured_terms <- function(entry) {
@@ -4159,6 +4314,39 @@ phylo_mu_dpars <- function(phylo_mu) {
   "mu"
 }
 
+phylo_mu_endpoint_dpars <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  dpars <- phylo_mu_dpars(phylo_mu)
+  if (length(dpars) == q) {
+    return(dpars)
+  }
+  if (length(dpars) == 1L) {
+    return(rep(dpars, q))
+  }
+  dpars[seq_len(q)]
+}
+
+phylo_mu_dpar_codes <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has)) {
+    return(0L)
+  }
+  family <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+  codes <- match(family, c("mu", "sigma")) - 1L
+  if (anyNA(codes)) {
+    cli::cli_abort(
+      "Internal error: structured-effect endpoint has unknown distributional parameter {.val {family[is.na(codes)][[1L]]}}."
+    )
+  }
+  as.integer(codes)
+}
+
+phylo_mu_has_cross_dpar <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
+    return(FALSE)
+  }
+  length(unique(phylo_mu_dpar_codes(phylo_mu))) > 1L
+}
+
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(
@@ -4167,6 +4355,15 @@ phylo_mu_sd_labels <- function(phylo_mu, model_type) {
       phylo_mu_endpoint_labels(
         phylo_mu
       )
+    ))
+  }
+  dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  q <- structured_mu_q(phylo_mu)
+  if (length(dpars) == q && length(unique(dpars)) > 1L) {
+    return(paste0(
+      dpars,
+      ":",
+      phylo_mu_endpoint_labels(phylo_mu)
     ))
   }
   q <- structured_mu_q(phylo_mu)
@@ -4724,6 +4921,7 @@ build_phylo_mu_structure <- function(term, data, env) {
   } else {
     ncol(value)
   }
+  value <- expand_structured_endpoint_value(value, q, dpars, marker = "phylo")
   endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
     unname(as.character(term$endpoint_covariance_labels))
   } else if (is.null(term$covariance_label)) {
@@ -4856,6 +5054,7 @@ build_spatial_mu_structure <- function(term, data, env) {
   } else {
     ncol(value)
   }
+  value <- expand_structured_endpoint_value(value, q, dpars, marker = "spatial")
   endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
     unname(as.character(term$endpoint_covariance_labels))
   } else if (is.null(term$covariance_label)) {
@@ -4979,6 +5178,7 @@ build_known_precision_mu_structure <- function(term, data, env) {
   } else {
     ncol(value)
   }
+  value <- expand_structured_endpoint_value(value, q, dpars, marker = marker)
   endpoint_covariance_labels <- if (!is.null(term$endpoint_covariance_labels)) {
     unname(as.character(term$endpoint_covariance_labels))
   } else if (is.null(term$covariance_label)) {
@@ -5037,6 +5237,25 @@ build_known_precision_mu_structure <- function(term, data, env) {
     species_levels = precision$species_levels,
     group_levels = precision$node_labels
   )
+}
+
+expand_structured_endpoint_value <- function(value, q, dpars, marker) {
+  if (ncol(value) == q) {
+    return(value)
+  }
+  if (ncol(value) == 1L && length(dpars) == q) {
+    out <- matrix(
+      value[, 1L],
+      nrow = nrow(value),
+      ncol = q,
+      dimnames = list(row.names(value), rep(colnames(value)[[1L]], q))
+    )
+    return(out)
+  }
+  cli::cli_abort(c(
+    "Internal error: {.fn {marker}} structured design has incompatible endpoint dimensions.",
+    "x" = "Design columns: {ncol(value)}; endpoints: {q}."
+  ))
 }
 
 structured_mu_design_matrix <- function(term, data, marker) {
@@ -5335,6 +5554,13 @@ parse_sd_phylo_entry <- function(entry, phylo_term) {
       "No phylogenetic location random-effect term matches {.code {entry$dpar}}.",
       "x" = "Add {.code phylo(1 | {target$group}, tree = tree)} to the {.code mu} formula or remove {.code {entry$dpar}}.",
       "i" = "{.fn sd_phylo} targets the SD of a univariate phylogenetic location random effect."
+    ))
+  }
+  if (!all(phylo_mu_endpoint_dpars(phylo_term) == "mu")) {
+    cli::cli_abort(c(
+      "{.fn sd_phylo} direct-SD formulas are not implemented with phylogenetic residual-scale effects.",
+      "x" = "{.code {entry$dpar}} was combined with a {.code sigma ~ phylo(...)} endpoint.",
+      "i" = "Fit the constant phylogenetic location-scale block first, or remove the {.fn sd_phylo} formula."
     ))
   }
   if (!identical(phylo_term$coef_names, "(Intercept)")) {
@@ -8741,9 +8967,14 @@ gaussian_phylo_start <- function(y, phylo_mu) {
     y_scale <- 1
   }
   q <- structured_mu_q(phylo_mu)
+  endpoint_scale <- ifelse(
+    sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu)) == "sigma",
+    0.2,
+    0.25 * y_scale
+  )
   list(
     u_phylo = rep(0, q * phylo_mu$n_re),
-    log_sd_phylo = rep(log(max(0.25 * y_scale, 1e-4)), q)
+    log_sd_phylo = log(pmax(endpoint_scale, 1e-4))
   )
 }
 
@@ -9047,7 +9278,9 @@ gaussian_ls_map <- function(
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
   }
-  out$eta_cor_phylo <- factor(NA)
+  if (!phylo_mu_has_cross_dpar(phylo_mu)) {
+    out$eta_cor_phylo <- factor(NA)
+  }
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
@@ -9237,6 +9470,11 @@ structured_mu_tmb_data <- function(spec) {
   } else {
     0L
   }
+  phylo_mu_dpar <- if (q > 0L) {
+    phylo_mu_dpar_codes(phylo_mu)
+  } else {
+    0L
+  }
   n_phylo_mu_blocks <- if (q > 0L) {
     phylo_mu_n_blocks(phylo_mu)
   } else {
@@ -9251,12 +9489,14 @@ structured_mu_tmb_data <- function(spec) {
     return(list(
       phylo_mu_value = phylo_mu$value,
       phylo_mu_block_id = phylo_mu_block_id,
+      phylo_mu_dpar = phylo_mu_dpar,
       phylo_mu_n_blocks = n_phylo_mu_blocks
     ))
   }
   list(
     phylo_mu_value = matrix(0, nrow = 1L, ncol = 1L),
     phylo_mu_block_id = 0L,
+    phylo_mu_dpar = 0L,
     phylo_mu_n_blocks = 0L
   )
 }
@@ -10462,6 +10702,7 @@ split_tmb_sdpars <- function(par, spec) {
       spec$structured$phylo_mu,
       spec$model_type
     )
+    phylo_dpars <- phylo_mu_endpoint_dpars(spec$structured$phylo_mu)
     if (
       is.list(spec$random_scale$phylo) &&
         spec$random_scale$phylo$n_models > 0L
@@ -10485,6 +10726,15 @@ split_tmb_sdpars <- function(par, spec) {
           phylo_names[unmodelled]
         )
         out$mu <- c(out$mu, sd_phylo)
+      }
+    } else if (identical(spec$model_type, "gaussian")) {
+      sd_phylo <- exp(unname(par$log_sd_phylo[seq_along(phylo_names)]))
+      for (dpar in unique(phylo_dpars)) {
+        endpoint <- which(phylo_dpars == dpar)
+        out[[dpar]] <- c(
+          out[[dpar]],
+          stats::setNames(sd_phylo[endpoint], phylo_names[endpoint])
+        )
       }
     } else {
       sd_phylo <- stats::setNames(
@@ -10562,6 +10812,16 @@ split_tmb_corpars <- function(par, spec) {
     } else {
       rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
     }
+    names(rho_phylo) <- phylo_pairs$parameter
+    out[[cor_key]] <- rho_phylo
+  } else if (
+    identical(spec$model_type, "gaussian") &&
+      isTRUE(spec$structured$phylo_mu$has) &&
+      phylo_mu_has_cross_dpar(spec$structured$phylo_mu)
+  ) {
+    phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
+    cor_key <- structured_mu_correlation_key(spec$structured$phylo_mu)
+    rho_phylo <- 0.999999 * tanh(unname(par$eta_cor_phylo))
     names(rho_phylo) <- phylo_pairs$parameter
     out[[cor_key]] <- rho_phylo
   }

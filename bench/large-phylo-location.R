@@ -35,6 +35,8 @@ parse_args <- function(args = commandArgs(trailingOnly = TRUE)) {
     sparse_fixed = FALSE,
     aggregate_gaussian = FALSE,
     aggregation_cells = 80L,
+    cell_random_effect = FALSE,
+    cell_random_effect_cells = 80L,
     memory_light = TRUE,
     eval_max = 200L,
     iter_max = 200L,
@@ -105,6 +107,8 @@ print_usage <- function() {
     "  --sparse-fixed bool   Use sparse Gaussian mu fixed effects; default false\n",
     "  --aggregate-gaussian bool  Use Gaussian sufficient-statistic row aggregation; default false\n",
     "  --aggregation-cells N Number of repeated fixed-effect cells when aggregating; default 80\n",
+    "  --cell-random-effect bool  Add a location random intercept (1 | cell_id); default false\n",
+    "  --cell-random-effect-cells N Number of cell random-effect levels; default 80\n",
     "  --memory-light bool   Use all fitted-object storage controls; default true\n",
     "  --eval-max N          nlminb eval.max; default 200\n",
     "  --iter-max N          nlminb iter.max; default 200\n",
@@ -235,7 +239,18 @@ simulate_benchmark_data <- function(args) {
     x1 <- stats::rnorm(args$rows)
     x2 <- stats::runif(args$rows, -1, 1)
   }
+  cell_id <- NULL
   eta_mu <- 0.2 + 0.35 * x1 - 0.15 * x2
+  if (isTRUE(args$cell_random_effect)) {
+    n_cell_re <- min(args$cell_random_effect_cells, args$rows)
+    cell_id <- factor(
+      sample(paste0("cell_", seq_len(n_cell_re)), args$rows, replace = TRUE),
+      levels = paste0("cell_", seq_len(n_cell_re))
+    )
+    cell_effect <- stats::rnorm(nlevels(cell_id), sd = 0.25)
+    names(cell_effect) <- levels(cell_id)
+    eta_mu <- eta_mu + cell_effect[cell_id]
+  }
   if (!is.null(tree)) {
     phylo_effect <- simulate_phylo_effect(tree, sd_phylo = 0.5)
     eta_mu <- eta_mu + phylo_effect[species]
@@ -268,6 +283,9 @@ simulate_benchmark_data <- function(args) {
   if (!is.null(habitat)) {
     dat$habitat <- habitat
   }
+  if (!is.null(cell_id)) {
+    dat$cell_id <- cell_id
+  }
   list(data = dat, tree = tree)
 }
 
@@ -296,33 +314,42 @@ fit_formula <- function(args) {
       call. = FALSE
     )
   }
-  if (identical(args$structured, "none")) {
-    if (isTRUE(args$factor_heavy)) {
-      return(bf(y ~ x1 + x2 + habitat, sigma ~ 1))
-    }
-    return(bf(y ~ x1 + x2, sigma ~ 1))
+  if (isTRUE(args$aggregate_gaussian) && isTRUE(args$cell_random_effect)) {
+    stop(
+      "--aggregate-gaussian true cannot be combined with --cell-random-effect true.",
+      call. = FALSE
+    )
   }
-  if (isTRUE(args$factor_heavy) && isTRUE(args$sigma_x)) {
-    return(bf(
-      y ~ x1 + x2 + habitat + phylo(1 | species, tree = tree),
-      sigma ~ x1
-    ))
+  if (isTRUE(args$sparse_fixed) && isTRUE(args$cell_random_effect)) {
+    stop(
+      "--sparse-fixed true cannot be combined with --cell-random-effect true.",
+      call. = FALSE
+    )
   }
+
+  mu_terms <- c("x1", "x2")
   if (isTRUE(args$factor_heavy)) {
-    return(bf(
-      y ~ x1 + x2 + habitat + phylo(1 | species, tree = tree),
-      sigma ~ 1
-    ))
+    mu_terms <- c(mu_terms, "habitat")
   }
-  if (isTRUE(args$sigma_x)) {
-    return(bf(
-      y ~ x1 + x2 + phylo(1 | species, tree = tree),
-      sigma ~ x1
-    ))
+  if (identical(args$structured, "phylo")) {
+    mu_terms <- c(mu_terms, "phylo(1 | species, tree = tree)")
   }
-  bf(
-    y ~ x1 + x2 + phylo(1 | species, tree = tree),
-    sigma ~ 1
+  if (isTRUE(args$cell_random_effect)) {
+    mu_terms <- c(mu_terms, "(1 | cell_id)")
+  }
+  mu_formula <- stats::as.formula(paste(
+    "y ~",
+    paste(mu_terms, collapse = " + ")
+  ))
+  sigma_formula <- stats::as.formula(
+    if (isTRUE(args$sigma_x)) "~ x1" else "~ 1"
+  )
+  eval(
+    substitute(
+      bf(mu_formula, sigma = sigma_formula),
+      list(mu_formula = mu_formula, sigma_formula = sigma_formula)
+    ),
+    envir = parent.frame()
   )
 }
 
@@ -422,6 +449,8 @@ benchmark_command <- function(args) {
     "sparse_fixed",
     "aggregate_gaussian",
     "aggregation_cells",
+    "cell_random_effect",
+    "cell_random_effect_cells",
     "memory_light",
     "eval_max",
     "iter_max",
@@ -567,6 +596,8 @@ run_benchmark <- function(args) {
       aggregation_cells_fitted = aggregation$cells,
       aggregation_compression_ratio = aggregation$ratio,
       aggregation_largest_cell_n = aggregation$largest,
+      cell_random_effect = args$cell_random_effect,
+      cell_random_effect_cells = args$cell_random_effect_cells,
       memory_light = args$memory_light,
       convergence = fit$opt$convergence,
       convergence_message = opt_message[[1L]],

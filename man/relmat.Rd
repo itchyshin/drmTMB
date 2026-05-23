@@ -35,14 +35,16 @@ natural \code{K} input because the fitted relatedness SD supplies the latent
 variance scale. The fitted known-matrix routes are a univariate Gaussian
 \code{mu} random intercept, for example
 \code{relmat(1 | line, Q = Q)}, the first bivariate Gaussian q=2 location
-covariance from matching labelled terms in \code{mu1} and \code{mu2}, and the constant
-all-four q=4 location-scale block from matching labelled terms in \code{mu1},
-\code{mu2}, \code{sigma1}, and \code{sigma2}, for example
-\code{relmat(1 | p | line, Q = Q)}. The univariate Gaussian \code{mu} path also
+covariance from matching labelled terms in \code{mu1} and \code{mu2}, matching
+univariate Gaussian \code{mu} and \code{sigma} intercept terms estimate one
+relatedness mean-scale correlation, and the constant all-four q=4
+location-scale block comes from matching labelled terms in \code{mu1}, \code{mu2},
+\code{sigma1}, and \code{sigma2}, for example \code{relmat(1 | p | line, Q = Q)}. The
+univariate Gaussian \code{mu} path also
 supports one numeric slope, for example \code{relmat(1 + x | line, Q = Q)}, as
 independent intercept and slope fields with separate SDs and no
 intercept-slope correlation. Multiple structured slopes, slope correlations,
-standalone \code{sigma} relatedness models, predictor-dependent \code{corpair()}
+residual-scale structured slopes, predictor-dependent \code{corpair()}
 regression, and relatedness \verb{sd*()} direct-SD grammar remain planned.
 \code{relmat()} is
 intentionally separate from \code{\link[=meta_V]{meta_V()}}, which adds known sampling covariance

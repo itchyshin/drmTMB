@@ -12,6 +12,7 @@
   newdata = NULL,
   trace = FALSE,
   profile_precision = c("default", "fast"),
+  profile_maxit = NULL,
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -49,15 +50,21 @@ response scale.}
 \code{...}, giving a quicker first-pass profile for long variance-component or
 correlation targets.}
 
+\item{profile_maxit}{Optional positive whole number passed to
+\code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} as \code{maxit} when \code{method = "profile"}. Use this as a
+per-target adaptive-step budget for long or exploratory profile runs.}
+
 \item{R}{Number of parametric-bootstrap refits when
 \code{method = "bootstrap"}.}
 
 \item{seed}{Optional seed for bootstrap simulation.}
 
-\item{parallel}{Bootstrap backend: \code{"none"} or Unix \code{"multicore"}.}
+\item{parallel}{Profile or bootstrap backend: \code{"none"} or Unix
+\code{"multicore"}. For profile intervals, targets or \code{newdata} rows are split
+across workers. For bootstrap intervals, refits are split across workers.}
 
-\item{workers}{Requested bootstrap workers. Multicore execution is capped at
-the number of bootstrap refits and at 10 workers.}
+\item{workers}{Requested profile or bootstrap workers. Multicore execution is
+capped at the number of jobs and at 10 workers.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
