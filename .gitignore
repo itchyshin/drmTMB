@@ -72,3 +72,5 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 /dis_reg_models
+/doc/
+/Meta/

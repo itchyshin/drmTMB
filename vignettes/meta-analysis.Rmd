@@ -270,6 +270,65 @@ extra heterogeneity scale in the Gaussian likelihood. If a meta-analysis report
 needs the usual variance-facing language, square `sigma` and say that the
 reported column is `sigma^2`.
 
+```{r meta-variance-components-figure, eval=requireNamespace("ggplot2", quietly = TRUE), fig.width=7.2, fig.height=4.4, fig.cap="Variance-scale summary for the restoration meta-analysis example. Stacked bars separate mean known sampling variance from fitted extra heterogeneity variance by habitat; points mark the mean total observation variance. These are variance components, not confidence intervals.", fig.alt="Stacked bar plot by habitat showing known sampling variance and fitted extra heterogeneity variance as separate components, with a point marking total observation variance for grassland and forest studies."}
+library(ggplot2)
+
+meta_components <- rbind(
+  data.frame(
+    habitat = meta_by_habitat$habitat,
+    component = "Known sampling variance",
+    variance = aggregate(
+      known_sampling_variance ~ habitat,
+      data = meta_report,
+      mean
+    )$known_sampling_variance
+  ),
+  data.frame(
+    habitat = meta_by_habitat$habitat,
+    component = "Fitted extra heterogeneity",
+    variance = meta_by_habitat$fitted_extra_heterogeneity_variance
+  )
+)
+meta_components$component <- factor(
+  meta_components$component,
+  levels = c("Fitted extra heterogeneity", "Known sampling variance")
+)
+
+ggplot(meta_components, aes(habitat, variance, fill = component)) +
+  geom_col(width = 0.58, colour = "white", linewidth = 0.3) +
+  geom_point(
+    data = meta_by_habitat,
+    aes(
+      x = habitat,
+      y = total_observation_variance
+    ),
+    inherit.aes = FALSE,
+    size = 2.8,
+    shape = 21,
+    fill = "white",
+    colour = "grey20",
+    stroke = 0.9
+  ) +
+  scale_fill_manual(values = c(
+    "Known sampling variance" = "#56B4E9",
+    "Fitted extra heterogeneity" = "#CC79A7"
+  )) +
+  labs(
+    title = "Known sampling variance is not residual heterogeneity",
+    subtitle = "Bars are variance components; white points mark their mean total",
+    x = "Habitat",
+    y = "Variance",
+    fill = "Component"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey30")
+  )
+```
+
 A quick diagnostic check flags optimizer, Hessian, row-filtering, scale, and
 known sampling covariance problems before interpretation:
 
