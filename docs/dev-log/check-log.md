@@ -2,6 +2,106 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Profile Budgets and Structured Sigma Parity
+
+Goal: close the live Bergmann-report follow-up lane by wiring
+`confint(method = "profile")` parallel controls and a real profile budget,
+fixing phylogenetic bootstrap refits, and fitting univariate Gaussian
+residual-scale structured intercepts for `phylo()`, `spatial()`, `animal()`,
+and `relmat()` without touching the other active worktree.
+
+Roles: Ada kept the work isolated on
+`/Users/z3437171/Dropbox/Github Local/drmTMB-profile-phylo-inference` and
+integrated code, docs, tests, and logs. Boole checked the formula grammar and
+public API names. Gauss and Noether checked the TMB structured-field routing
+and endpoint mapping. Fisher and Curie checked profile/bootstrap and smoke-test
+evidence. Pat, Darwin, and Rose checked reader-facing capability wording and
+stale planned-feature text. Grace checked full-package tests and diff hygiene.
+No spawned subagents were running.
+
+Files changed:
+
+- `.Rbuildignore`, `R/bf.R`, `R/drmTMB.R`, `R/profile.R`, `R/methods.R`,
+  `R/formula-markers.R`, `R/plot-corpairs.R`, and `src/drmTMB.cpp`
+- structured-effect, profile, Gaussian, and bivariate tests under
+  `tests/testthat/`
+- `bench/large-phylo-location.R`
+- `README.md`, `ROADMAP.md`, `NEWS.md`, selected design docs, and selected
+  vignettes
+- generated `NAMESPACE` and man pages for changed roxygen topics
+- `docs/dev-log/after-task/2026-05-22-profile-parallel-structured-sigma.md`
+
+Commands run:
+
+```sh
+air format R/drmTMB.R R/formula-markers.R R/methods.R R/profile.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-phylo-utils.R tests/testthat/test-profile-targets.R tests/testthat/test-spatial-gaussian.R bench/large-phylo-location.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+Rscript -e "devtools::test(filter = '^(biv-gaussian|phylo-utils|phylo-gaussian|spatial-gaussian|animal-relmat-gaussian)$')"
+Rscript bench/large-phylo-location.R --rows 40 --species 4 --structured none --cell-random-effect true --cell-random-effect-cells 5 --eval-max 100 --iter-max 100 --memory-light true
+Rscript -e "devtools::test(filter = '^gaussian-location-scale$')"
+air format tests/testthat/test-profile-targets.R
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+Rscript -e "devtools::test()"
+rg -n 'standalone spatial `sigma`|phylogenetic or spatial effects in `sigma`|spatial scale terms|standalone spatial scale|standalone structured `sigma`|standalone `sigma` relatedness|standalone `sigma`,|spatial-sigma-only routes|standalone phylogenetic `sigma`|spatial `sigma`, spatial q=4|sigma relatedness models|standalone scale models' README.md ROADMAP.md NEWS.md docs/design vignettes R tests --glob '!docs/dev-log/**' -S
+git diff --check
+git fetch origin
+git rebase origin/main
+Rscript -e "devtools::test(filter = '^profile-targets$')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(filter = '^plot-corpairs$')"
+Rscript -e "devtools::check(args = '--no-manual', error_on = 'never')"
+```
+
+Result:
+
+- `devtools::document()` regenerated `NAMESPACE`, `animal.Rd`, `phylo.Rd`,
+  `spatial.Rd`, `relmat.Rd`, `sigma.drmTMB.Rd`, and `confint.drmTMB.Rd`.
+- The final `devtools::test(filter = '^profile-targets$')` passed: 563
+  assertions, 0 failures, 0 warnings, 0 skips. This includes serial profile
+  budget checks, profile worker splitting, ordinary `mu`/`sigma` random-effect
+  bootstrap refits, phylogenetic bootstrap refits, bivariate phylogenetic q=2
+  bootstrap refits, and direct bootstrap refits for structured
+  `phylo()`/`spatial()`/`animal()`/`relmat()` location-scale SD targets with
+  2/2 successful refits in the small smoke tests.
+- `devtools::test(filter = '^(biv-gaussian|phylo-utils|phylo-gaussian|spatial-gaussian|animal-relmat-gaussian)$')`
+  passed: 1,271 assertions, 0 failures, 0 warnings, 0 skips.
+- `devtools::test(filter = '^gaussian-location-scale$')` passed after updating
+  the old unsupported `sigma ~ spatial(1 | ...)` expectation to the new
+  unsupported residual-scale structured-slope boundary: 80 assertions, 0
+  failures, 0 warnings, 0 skips.
+- The cell-random-effect benchmark smoke completed with convergence 0,
+  `relative convergence (4)`, 40 rows, 5 cell random-effect levels,
+  `fit_sec = 0.132`, and `sigma_hat = 0.3843793`.
+- Full `devtools::test()` passed after the stale test update and expanded
+  bootstrap matrix: 6,166 assertions, 0 failures, 0 warnings, 0 skips, duration
+  363.2 seconds.
+- The stale-wording scan found one historical NEWS entry under the released
+  0.1.3 section saying spatial `sigma` was planned at that time; current-facing
+  docs and vignettes were updated to the new fitted intercept boundary.
+- `git diff --check` was clean.
+- After rebasing onto `origin/main` at `1c241759`, the profile-target shard
+  passed again with 563 assertions, `pkgdown::check_pkgdown()` found no
+  problems, the `plot-corpairs` shard passed with 45 assertions, and
+  `devtools::check(args = "--no-manual")` completed with 0 errors, 0 warnings,
+  and 0 notes.
+
+Notes:
+
+- `bf()` / `drm_formula()` now retain the caller environment. This fixed
+  bootstrap refits for structured terms whose matrix object lives in a local
+  variable such as `tree`, `coords`, `Ainv`, or `Q`.
+- Residual-scale structured slopes, direct-SD formulas combined with
+  structured `sigma`, mesh/SPDE, predictor-dependent structured `corpair()`
+  routes, and broad non-Gaussian structured effects remain planned.
+- The original Ayumi field example files were not present in this clean
+  worktree, so 6.11 is verified by small local structured-dependency bootstrap
+  smokes here, not by rerunning the old field artifacts.
+- The rebased local check initially found unqualified `qnorm` and `qchisq` in
+  `plot_corpairs_eye_row()` plus a local `.git` build NOTE; qualifying the
+  calls with `stats::` and ignoring `.git` in `.Rbuildignore` made
+  `R CMD check` note-free.
+
 ## 2026-05-22 - Rendered Figure QA Slices 36-40
 
 Goal: continue the rendered-figure QA sequence after PR #304 by adding or

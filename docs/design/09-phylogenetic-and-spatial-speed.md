@@ -181,9 +181,10 @@ The first mesh implementation should still fit only a univariate Gaussian `mu`
 random intercept. That keeps the comparator close to the current
 `coords = coords` path: both estimate one structured spatial SD, but the mesh
 route should use a sparse SPDE/GMRF precision and a projection matrix rather
-than a dense coordinate covariance. Standalone spatial `sigma`, direct-SD
-models, spatial `corpair()` regressions, and non-Gaussian spatial effects should
-wait until the mesh intercept has recovery evidence and diagnostics.
+than a dense coordinate covariance. Residual-scale structured slopes,
+direct-SD models, spatial `corpair()` regressions, and non-Gaussian spatial
+effects should wait until the mesh intercept has recovery evidence and
+diagnostics.
 
 Dependency and citation decisions are part of the gate. If `drmTMB` accepts
 `fmesher` objects or uses `fmesher` to build meshes, the package website,

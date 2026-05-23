@@ -385,6 +385,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   K <- diag(2)
   rownames(K) <- colnames(K) <- c("1", "2")
+  coords <- data.frame(
+    x = c(0, 1),
+    y = c(0, 0),
+    row.names = c("1", "2")
+  )
   pedigree <- data.frame(
     id = c("1", "2"),
     dam = NA_character_,
@@ -437,11 +442,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma ~ spatial(1 | id, coords = coords)),
+      bf(y ~ x, sigma ~ spatial(1 + x | id, coords = coords)),
       family = gaussian(),
       data = dat
     ),
-    "planned, not implemented"
+    "residual-scale structured effects are intercept-only"
   )
   expect_error(
     drmTMB(

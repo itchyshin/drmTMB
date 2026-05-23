@@ -63,6 +63,44 @@ new_phylo_gaussian_data <- function(
   )
 }
 
+new_phylo_location_scale_gaussian_data <- function(
+  seed = 20260614,
+  n_tip = 8L,
+  n_each = 8L,
+  sd_phylo = c(mu = 0.40, sigma = 0.18),
+  rho_phylo = 0.25
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z_mu <- stats::rnorm(n_tip)
+  z_sigma <- rho_phylo * z_mu + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  phylo_mu <- as.vector(t(chol(A)) %*% z_mu) * sd_phylo[["mu"]]
+  phylo_sigma <- as.vector(t(chol(A)) %*% z_sigma) *
+    sd_phylo[["sigma"]]
+  names(phylo_mu) <- tree$tip.label
+  names(phylo_sigma) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu <- c(`(Intercept)` = 0.4, x = 0.30)
+  beta_sigma <- c(`(Intercept)` = -1.20)
+  log_sigma <- beta_sigma[[1L]] + phylo_sigma[species]
+  y <- beta_mu[[1L]] +
+    beta_mu[["x"]] * x +
+    phylo_mu[species] +
+    exp(log_sigma) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_phylo = sd_phylo,
+    rho_phylo = rho_phylo
+  )
+}
+
 new_phylo_gaussian_slope_data <- function(
   seed = 20260573,
   n_tip = 16L,
@@ -1447,17 +1485,6 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
     ),
     "Could not find phylogeny object"
   )
-  sigma_phylo_err <- tryCatch(
-    drmTMB(
-      bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)),
-      family = gaussian(),
-      data = sim$data
-    ),
-    error = identity
-  )
-  expect_s3_class(sigma_phylo_err, "rlang_error")
-  expect_match(conditionMessage(sigma_phylo_err), "planned, not implemented")
-  expect_match(conditionMessage(sigma_phylo_err), "sigma ~ phylo")
   expect_error(
     drmTMB(
       bf(
@@ -1469,6 +1496,57 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
     ),
     "scale formulas with structured slopes"
   )
+})
+
+test_that("Gaussian supports phylogenetic residual-scale structured effects", {
+  sim <- new_phylo_location_scale_gaussian_data()
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree),
+      sigma ~ phylo(1 | species, tree = tree)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    c("mu", "sigma")
+  )
+  expect_named(fit$sdpars$mu, "mu:phylo(1 | species)")
+  expect_named(fit$sdpars$sigma, "sigma:phylo(1 | species)")
+  expect_true(all(unname(fit$sdpars$mu) > 0))
+  expect_true(all(unname(fit$sdpars$sigma) > 0))
+  expect_named(
+    fit$corpars$phylo,
+    "cor(mu:(Intercept),sigma:(Intercept) | phylo | species)"
+  )
+  expect_lt(abs(unname(fit$corpars$phylo)), 1)
+
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  conditional_sigma <- predict(fit, dpar = "sigma", type = "link")
+  expect_equal(
+    unname(conditional_sigma),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+
+  targets <- profile_targets(fit)
+  expect_true("sd:sigma:sigma:phylo(1 | species)" %in% targets$parm)
+  expect_true(
+    "cor:phylo:cor(mu:(Intercept),sigma:(Intercept) | phylo | species)" %in%
+      targets$parm
+  )
+  pair <- corpairs(fit, level = "phylogenetic")
+  expect_equal(pair$class, "mean-scale")
+  expect_equal(pair$estimate, unname(fit$corpars$phylo))
 })
 
 test_that("Gaussian mu supports one-slope phylogenetic fields", {

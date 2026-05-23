@@ -199,9 +199,11 @@ profile, and bootstrap intervals remain a later long-run simulation task.
 Slice 174 records diagnostics boundaries. Profile rows can report
 `profile.boundary` and `profile.message`; failed profile construction names
 boundary, one-sided, non-monotone, and failed-inner-optimization profiles as
-possible causes. Bootstrap rows report `bootstrap.n`, `bootstrap.failed`,
-`bootstrap.parallel`, and `bootstrap.workers` so failed refits remain visible
-beside returned intervals.
+possible causes. `confint(method = "profile")` now forwards `parallel` and
+`workers` to the independent target or `newdata` row loop, and `profile_maxit`
+is the public per-target `TMB::tmbprofile()` step-budget guard. Bootstrap rows
+report `bootstrap.n`, `bootstrap.failed`, `bootstrap.parallel`, and
+`bootstrap.workers` so failed refits remain visible beside returned intervals.
 
 Slice 175 centralizes the current interval vocabulary with internal helpers:
 

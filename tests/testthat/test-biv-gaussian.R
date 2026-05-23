@@ -2002,6 +2002,8 @@ test_that("bivariate Gaussian methods return expected structures", {
   )
   expect_named(sig, c("sigma1", "sigma2"))
   expect_equal(length(sig$sigma1), nrow(sim$data))
+  expect_equal(round(sig, 5)$sigma1, round(sig$sigma1, 5))
+  expect_equal(round(sig, 5)$sigma2, round(sig$sigma2, 5))
   expect_equal(dim(sims), c(nrow(sim$data), 4))
   expect_equal(dim(res), c(nrow(sim$data), 2))
   expect_equal(dim(pearson), c(nrow(sim$data), 2))

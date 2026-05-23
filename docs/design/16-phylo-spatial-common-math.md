@@ -395,15 +395,15 @@ covariance through `meta_known_V(V = V)`; the preferred roadmap spelling is
 `meta_V(V = V)` once the alias/rename slice is implemented. Current code also
 supports univariate Gaussian `mu` random intercepts, independent numeric `mu`
 random slopes, one-slope correlated `mu` blocks, univariate Gaussian
-residual-scale random intercepts and independent random slopes in `sigma`, and
-intercept-only `phylo(1 | species, tree = tree)` and one numeric
-`phylo(1 + x | species, tree = tree)` slope in `mu`. The
+residual-scale random intercepts and independent random slopes in `sigma`,
+intercept-only `phylo(1 | species, tree = tree)` in `mu` and/or `sigma`, and one
+numeric `phylo(1 + x | species, tree = tree)` slope in `mu`. The
 coordinate-spatial foundation also fits
-`spatial(1 | site, coords = coords)` and one numeric
+`spatial(1 | site, coords = coords)` in `mu` and/or `sigma` and one numeric
 `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu`.
-Mesh/SPDE spatial fields, multiple spatial slopes, spatial slope correlations,
-multiple phylogenetic slopes, phylogenetic slope correlations, and
-phylogenetic or spatial effects in `sigma` are still planned.
+Mesh/SPDE spatial fields, multiple spatial slopes, residual-scale structured
+slopes, spatial slope correlations, multiple phylogenetic slopes, and
+phylogenetic slope correlations are still planned.
 
 ## Identifiability Rule
 
@@ -491,11 +491,11 @@ structured slopes, bivariate structured slopes, and slope correlations remain
 later gates. Slice 39 closes the earlier validation gap for the first
 univariate Gaussian phylogenetic one-slope path.
 Slice 187 rechecked the fitted spatial side: the slope-field SD has direct
-profile-interval coverage. Later bivariate spatial slices added matching
-`mu1`/`mu2` coordinate fields and a constant all-four q=4 location-scale block,
-while standalone spatial `sigma`, predictor-dependent spatial `corpair()` rows,
-non-Gaussian spatial effects, and multiple spatial slopes remain outside the
-fitted surface.
+profile-interval coverage. Later slices added univariate residual-scale spatial
+intercepts, matching `mu1`/`mu2` coordinate fields, and a constant all-four q=4
+location-scale block, while residual-scale structured slopes,
+predictor-dependent spatial `corpair()` rows, non-Gaussian spatial effects, and
+multiple spatial slopes remain outside the fitted surface.
 For two-response models, the most interesting later slope correlation is a
 response-1 slope versus response-2 slope for the same covariate, matching the
 plasticity-syndrome idea in O'Dea, Noble, and Nakagawa (2021). That target needs
@@ -590,8 +590,9 @@ machinery, and they now share the first constant q=2 bivariate location layer.
 
 The immediate q=2 implementation lane has now landed for coordinate-spatial
 location covariance, and the constant q=4 location-scale block is fitted as a
-first slice. These routes are still not standalone spatial `sigma` or spatial
-`corpair()` regression. Fisher admits the constant q=2 lane for a focused Phase
+first slice. The univariate residual-scale spatial intercept has also landed,
+but residual-scale structured slopes and spatial `corpair()` regression remain
+planned. Fisher admits the constant q=2 lane for a focused Phase
 18 grid through `docs/design/56-phase-18-spatial-q2-ademp.md`. The first DGP
 smoke runner, CSV grid writer, fixed-effect Wald tables, and profile-status
 tables now exist under `inst/sim/`. Formal broad reports still need a larger

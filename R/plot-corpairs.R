@@ -340,9 +340,9 @@ plot_corpairs_eye_row <- function(row, level, n, height) {
   z_estimate <- atanh(guard_rho(row$estimate))
   z_low <- atanh(guard_rho(row$conf.low))
   z_high <- atanh(guard_rho(row$conf.high))
-  z_cutoff <- qnorm(1 - (1 - level) / 2)
+  z_cutoff <- stats::qnorm(1 - (1 - level) / 2)
   z_se <- max((z_high - z_low) / (2 * z_cutoff), .Machine$double.eps)
-  cutoff <- 0.5 * qchisq(level, df = 1)
+  cutoff <- 0.5 * stats::qchisq(level, df = 1)
   z <- seq(
     z_estimate - sqrt(2 * cutoff) * z_se,
     z_estimate + sqrt(2 * cutoff) * z_se,

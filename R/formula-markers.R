@@ -58,13 +58,15 @@ gr <- function(group, cov) {
 #' the biological front door for questions such as whether among-individual
 #' additive genetic variance appears in the location `mu`, residual scale
 #' `sigma`, shape or skewness, inflation, or a bivariate covariance. The fitted
-#' routes are a univariate Gaussian `mu` random intercept from a small pedigree
-#' data frame, precomputed additive relationship matrix `A`, or inverse
-#' relationship matrix `Ainv`, for example
+#' routes are univariate Gaussian `mu` and `sigma` random intercepts from a
+#' small pedigree data frame, precomputed additive relationship matrix `A`, or
+#' inverse relationship matrix `Ainv`, for example
 #' `animal(1 | id, pedigree = pedigree)` or
-#' `animal(1 | id, Ainv = Ainv)`, the first bivariate Gaussian q=2 location
-#' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
-#' all-four q=4 location-scale block from matching labelled terms in `mu1`,
+#' `animal(1 | id, Ainv = Ainv)`. Matching univariate `mu` and `sigma`
+#' intercept terms estimate one animal-model mean-scale correlation. The first
+#' bivariate Gaussian q=2 location covariance comes from matching labelled
+#' terms in `mu1` and `mu2`, and the constant all-four q=4 location-scale block
+#' comes from matching labelled terms in `mu1`,
 #' `mu2`, `sigma1`, and `sigma2`, for example
 #' `animal(1 | p | id, pedigree = pedigree)`. The pedigree route builds a dense
 #' additive relationship matrix from `id`, `dam`, and `sire` columns. The
@@ -72,9 +74,9 @@ gr <- function(group, cov) {
 #' `animal(1 + x | id, pedigree = pedigree)`, as independent intercept and
 #' slope fields with separate SDs and no intercept-slope correlation.
 #' Large-pedigree sparse precision construction, multiple structured slopes,
-#' slope correlations, standalone `sigma` animal models, predictor-dependent
-#' `corpair()` regression, and animal-model `sd*()` direct-SD grammar remain
-#' planned.
+#' slope correlations, predictor-dependent `corpair()` regression,
+#' residual-scale structured slopes, and animal-model `sd*()` direct-SD grammar
+#' remain planned.
 #'
 #' @param term Structured random-effect term, such as `1 | id` or
 #'   `1 + x | id`.
@@ -106,18 +108,21 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' Phylogenetic structured-effect marker
 #'
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
-#' fitted paths support Gaussian location effects, response-specific direct-SD
-#' formulas, labelled bivariate Gaussian location-scale blocks, and the first
-#' ordinary Poisson q=1 location effect. Use `phylo(1 | species, tree = tree)` in
-#' univariate Gaussian `mu` or ordinary Poisson `mu`, one numeric univariate
-#' Gaussian `mu` slope with independent intercept/slope SDs, matching terms in
-#' bivariate Gaussian `mu1` and `mu2`, or matching labelled all-four terms across
-#' Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared label estimates
-#' the full q4 block; a `mu1`/`mu2` label plus a separate `sigma1`/`sigma2` label
-#' estimates the block-diagonal fallback. Standalone univariate
-#' `sigma ~ phylo(...)`, Poisson phylogenetic slopes, NB2 phylogenetic effects,
-#' zero-inflated phylogenetic effects, multiple phylogenetic slopes, and
-#' phylogenetic slope correlations remain planned. The public `phylo()` API
+#' fitted paths support Gaussian location and residual-scale effects,
+#' response-specific direct-SD formulas for location effects, labelled
+#' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
+#' location effect. Use `phylo(1 | species, tree = tree)` in univariate Gaussian
+#' `mu`, univariate Gaussian `sigma`, or ordinary Poisson `mu`, one numeric
+#' univariate Gaussian `mu` slope with independent intercept/slope SDs, matching
+#' univariate Gaussian `mu` and `sigma` intercept terms for a mean-scale
+#' phylogenetic correlation, matching terms in bivariate Gaussian `mu1` and
+#' `mu2`, or matching labelled all-four terms across Gaussian `mu1`, `mu2`,
+#' `sigma1`, and `sigma2`. A single shared label estimates the full q4 block; a
+#' `mu1`/`mu2` label plus a separate `sigma1`/`sigma2` label estimates the
+#' block-diagonal fallback. Poisson phylogenetic slopes, NB2 phylogenetic
+#' effects, zero-inflated phylogenetic effects, multiple phylogenetic slopes,
+#' residual-scale structured slopes, and phylogenetic slope correlations remain
+#' planned. The public `phylo()` API
 #' requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.
@@ -146,11 +151,13 @@ phylo <- function(term, tree) {
 #' `spatial(1 + x | site, coords = coords)`, as independent intercept and slope
 #' fields with separate SDs and no intercept-slope correlation. Matching
 #' labelled bivariate Gaussian `mu1`/`mu2` terms fit the first q=2
-#' coordinate-spatial location covariance, and matching labelled all-four
-#' `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
-#' location-scale block. Mesh inputs, standalone spatial scale formulas,
-#' multiple structured slopes, slope correlations, predictor-dependent spatial
-#' `corpair()` regression, and non-Gaussian spatial effects remain planned.
+#' coordinate-spatial location covariance, matching univariate Gaussian `mu` and
+#' `sigma` intercept terms fit one spatial mean-scale correlation, and matching
+#' labelled all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant
+#' q=4 location-scale block. Mesh inputs, multiple structured slopes,
+#' residual-scale structured slopes, slope correlations, predictor-dependent
+#' spatial `corpair()` regression, and non-Gaussian spatial effects remain
+#' planned.
 #'
 #' @param term Structured random-effect term, such as `1 | site`.
 #' @param coords Coordinate object, such as a data frame or matrix of spatial
@@ -193,14 +200,16 @@ spatial <- function(term, coords = NULL, mesh = NULL) {
 #' variance scale. The fitted known-matrix routes are a univariate Gaussian
 #' `mu` random intercept, for example
 #' `relmat(1 | line, Q = Q)`, the first bivariate Gaussian q=2 location
-#' covariance from matching labelled terms in `mu1` and `mu2`, and the constant
-#' all-four q=4 location-scale block from matching labelled terms in `mu1`,
-#' `mu2`, `sigma1`, and `sigma2`, for example
-#' `relmat(1 | p | line, Q = Q)`. The univariate Gaussian `mu` path also
+#' covariance from matching labelled terms in `mu1` and `mu2`, matching
+#' univariate Gaussian `mu` and `sigma` intercept terms estimate one
+#' relatedness mean-scale correlation, and the constant all-four q=4
+#' location-scale block comes from matching labelled terms in `mu1`, `mu2`,
+#' `sigma1`, and `sigma2`, for example `relmat(1 | p | line, Q = Q)`. The
+#' univariate Gaussian `mu` path also
 #' supports one numeric slope, for example `relmat(1 + x | line, Q = Q)`, as
 #' independent intercept and slope fields with separate SDs and no
 #' intercept-slope correlation. Multiple structured slopes, slope correlations,
-#' standalone `sigma` relatedness models, predictor-dependent `corpair()`
+#' residual-scale structured slopes, predictor-dependent `corpair()`
 #' regression, and relatedness `sd*()` direct-SD grammar remain planned.
 #' `relmat()` is
 #' intentionally separate from [meta_V()], which adds known sampling covariance

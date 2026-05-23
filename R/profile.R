@@ -58,12 +58,17 @@
 #'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
 #'   `...`, giving a quicker first-pass profile for long variance-component or
 #'   correlation targets.
+#' @param profile_maxit Optional positive whole number passed to
+#'   [TMB::tmbprofile()] as `maxit` when `method = "profile"`. Use this as a
+#'   per-target adaptive-step budget for long or exploratory profile runs.
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
-#' @param parallel Bootstrap backend: `"none"` or Unix `"multicore"`.
-#' @param workers Requested bootstrap workers. Multicore execution is capped at
-#'   the number of bootstrap refits and at 10 workers.
+#' @param parallel Profile or bootstrap backend: `"none"` or Unix
+#'   `"multicore"`. For profile intervals, targets or `newdata` rows are split
+#'   across workers. For bootstrap intervals, refits are split across workers.
+#' @param workers Requested profile or bootstrap workers. Multicore execution is
+#'   capped at the number of jobs and at 10 workers.
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
@@ -96,6 +101,7 @@ confint.drmTMB <- function(
   newdata = NULL,
   trace = FALSE,
   profile_precision = c("default", "fast"),
+  profile_maxit = NULL,
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -119,6 +125,7 @@ confint.drmTMB <- function(
     profile_precision,
     missing_arg = profile_precision_missing
   )
+  profile_maxit <- validate_profile_maxit(profile_maxit)
   parallel <- resolve_bootstrap_parallel(
     parallel,
     missing_arg = parallel_missing
@@ -174,7 +181,11 @@ confint.drmTMB <- function(
   }
 
   if (!is.null(newdata)) {
-    profile_args <- profile_precision_args(profile_precision, list(...))
+    profile_args <- profile_precision_args(
+      profile_precision,
+      list(...),
+      profile_maxit = profile_maxit
+    )
     return(do.call(
       drm_profile_response_newdata_confint,
       c(
@@ -183,7 +194,9 @@ confint.drmTMB <- function(
           parm = parm,
           newdata = newdata,
           level = level,
-          trace = trace
+          trace = trace,
+          parallel = parallel,
+          workers = workers
         ),
         profile_args
       )
@@ -202,7 +215,11 @@ confint.drmTMB <- function(
     parm,
     fixed_only = FALSE
   )
-  profile_args <- profile_precision_args(profile_precision, list(...))
+  profile_args <- profile_precision_args(
+    profile_precision,
+    list(...),
+    profile_maxit = profile_maxit
+  )
   do.call(
     drm_profile_confint,
     c(
@@ -210,7 +227,9 @@ confint.drmTMB <- function(
         object = object,
         parm = targets$parm,
         level = level,
-        trace = trace
+        trace = trace,
+        parallel = parallel,
+        workers = workers
       ),
       profile_args
     )
@@ -327,9 +346,41 @@ resolve_bootstrap_parallel <- function(parallel, missing_arg = FALSE) {
   match.arg(parallel, c("none", "multicore"))
 }
 
-profile_precision_args <- function(profile_precision = "default", dots) {
+validate_profile_maxit <- function(profile_maxit) {
+  if (is.null(profile_maxit)) {
+    return(NULL)
+  }
+  if (
+    !is.numeric(profile_maxit) ||
+      length(profile_maxit) != 1L ||
+      is.na(profile_maxit) ||
+      !is.finite(profile_maxit) ||
+      profile_maxit < 1L ||
+      profile_maxit != as.integer(profile_maxit)
+  ) {
+    cli::cli_abort(
+      "{.arg profile_maxit} must be {.code NULL} or a positive whole number."
+    )
+  }
+  as.integer(profile_maxit)
+}
+
+profile_precision_args <- function(
+  profile_precision = "default",
+  dots,
+  profile_maxit = NULL
+) {
   profile_precision <- match.arg(profile_precision, c("default", "fast"))
   profile_check_tmbprofile_dots_list(dots)
+  if (!is.null(profile_maxit)) {
+    if ("maxit" %in% names(dots)) {
+      cli::cli_abort(c(
+        "Profile step budget was supplied twice.",
+        x = "Use either {.arg profile_maxit} or {.arg maxit} in {.arg ...}, not both."
+      ))
+    }
+    dots$maxit <- profile_maxit
+  }
   if (identical(profile_precision, "default")) {
     return(dots)
   }
@@ -628,6 +679,8 @@ drm_profile_confint <- function(
   parm,
   level = 0.95,
   trace = FALSE,
+  parallel = "none",
+  workers = 1L,
   ...
 ) {
   validate_profile_level(level)
@@ -639,8 +692,13 @@ drm_profile_confint <- function(
     ))
   }
   targets <- profile_match_targets(drm_profile_targets(object), parm)
+  plan <- profile_parallel_plan(
+    nrow(targets),
+    parallel = parallel,
+    workers = workers
+  )
 
-  rows <- lapply(seq_len(nrow(targets)), function(i) {
+  worker <- function(i) {
     drm_profile_target_confint(
       object = object,
       target = targets[i, , drop = FALSE],
@@ -648,7 +706,8 @@ drm_profile_confint <- function(
       trace = trace,
       ...
     )
-  })
+  }
+  rows <- profile_lapply(seq_len(nrow(targets)), worker, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
@@ -685,6 +744,8 @@ drm_profile_response_newdata_confint <- function(
   newdata,
   level = 0.95,
   trace = FALSE,
+  parallel = "none",
+  workers = 1L,
   ...
 ) {
   validate_profile_level(level)
@@ -729,7 +790,8 @@ drm_profile_response_newdata_confint <- function(
   }
 
   labels <- profile_newdata_parm_labels(dpar, newdata)
-  rows <- lapply(seq_len(nrow(X)), function(i) {
+  plan <- profile_parallel_plan(nrow(X), parallel = parallel, workers = workers)
+  worker <- function(i) {
     lincomb <- rep(0, length(object$opt$par))
     lincomb[positions[seq_len(ncol(X))]] <- as.numeric(X[i, ])
     prof <- drm_tmbprofile(
@@ -767,7 +829,8 @@ drm_profile_response_newdata_confint <- function(
       profile.message = diagnostics$message,
       stringsAsFactors = FALSE
     )
-  })
+  }
+  rows <- profile_lapply(seq_len(nrow(X)), worker, plan)
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
@@ -971,6 +1034,10 @@ bootstrap_parallel_plan <- function(R, parallel, workers) {
   list(backend = parallel, workers = actual_workers)
 }
 
+profile_parallel_plan <- function(n_task, parallel, workers) {
+  bootstrap_parallel_plan(n_task, parallel = parallel, workers = workers)
+}
+
 bootstrap_refit_control <- function(refit_control) {
   if (is.null(refit_control)) {
     return(drm_control(
@@ -980,6 +1047,13 @@ bootstrap_refit_control <- function(refit_control) {
     ))
   }
   drm_parse_control(refit_control)
+}
+
+profile_lapply <- function(indices, worker, plan) {
+  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
+    return(lapply(indices, worker))
+  }
+  parallel::mclapply(indices, worker, mc.cores = plan$workers)
 }
 
 bootstrap_lapply <- function(indices, worker, plan) {
@@ -1537,7 +1611,8 @@ profile_sd_internal <- function(object, dpar, term) {
     return("log_sd_re_cov")
   }
   if (
-    identical(dpar, "mu") &&
+    dpar %in%
+      c("mu", "sigma") &&
       grepl("phylo\\(|spatial\\(|animal\\(|relmat\\(", term)
   ) {
     return("log_sd_phylo")

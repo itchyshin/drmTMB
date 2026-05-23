@@ -76,7 +76,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `sd1(id) ~ x_group` or `sd2(id) ~ x_group` with the same all-four q=4 block | Rejected | This would mix the Family A joint location-scale covariance block with Family B direct location-SD regression for the same group. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
-| `phylo(1 | species, tree = tree)` in `mu` | Implemented | Intercept-only univariate Gaussian phylogenetic location effect; requires an ultrametric tree with branch lengths. |
+| `phylo(1 | species, tree = tree)` in univariate `mu` and/or `sigma` | Implemented | Intercept-only univariate Gaussian phylogenetic location and residual-scale structured effects; matching `mu`/`sigma` terms estimate one mean-scale phylogenetic correlation on the latent field. Requires an ultrametric tree with branch lengths. |
 | matching `phylo(1 | species, tree = tree)` in bivariate `mu1` and `mu2` | Implemented first slice | Correlated phylogenetic random intercepts enter the two response means; `sigma1`, `sigma2`, and residual `rho12` remain ordinary fixed-effect distributional parameters. |
 | labelled `phylo(1 | p | species, tree = tree)` in matching bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD, correlation, `corpairs()`, and profile-target names for the phylogenetic mean-mean path. |
 | labelled `phylo(1 | p | species, tree = tree)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic location-scale block estimates four endpoint SDs and six latent phylogenetic correlations. Partial, unlabelled, unsupported mismatched, and bivariate or q=4 slope forms remain rejected. |
@@ -86,11 +86,11 @@ In this table, "coscale" means a model for residual correlation, currently
 | bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
 | `animal(1 | id, pedigree = ped)` | Implemented first slice | Univariate Gaussian `mu` animal-model random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` pedigree columns. This is a sibling of `phylo()` and `spatial()`, not a new family; large-pedigree sparse precision construction remains planned. |
-| `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` | Implemented first slice | Univariate Gaussian `mu` animal-model random intercept using a precomputed additive relatedness or inverse-relatedness matrix. Matching labelled bivariate q=2 `mu1`/`mu2` terms and constant all-four q=4 location-scale terms are implemented in the detailed rules below; large-pedigree sparse precision construction, multiple slopes, slope correlations, standalone `sigma`, predictor-dependent `corpair()`, and direct-SD grammar remain planned. Use `pedigree`, `A`, or `Ainv` for latent relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
+| `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` in univariate `mu` and/or `sigma` | Implemented first slice | Univariate Gaussian animal-model random intercepts for location and residual scale using a precomputed additive relatedness or inverse-relatedness matrix; matching `mu`/`sigma` terms estimate one animal mean-scale correlation. Matching labelled bivariate q=2 `mu1`/`mu2` terms and constant all-four q=4 location-scale terms are implemented in the detailed rules below; large-pedigree sparse precision construction, multiple slopes, slope correlations, predictor-dependent `corpair()`, residual-scale structured slopes, and direct-SD grammar remain planned. Use `pedigree`, `A`, or `Ainv` for latent relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
 | labelled `animal(1 | p | id, pedigree = ped)`, `animal(1 | p | id, A = A)`, or `animal(1 | p | id, Ainv = Ainv)` in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled animal-model terms estimate two location SDs and one animal mean-mean correlation from the same pedigree-derived or known matrix. |
 | labelled `animal(1 | p | id, pedigree = ped)`, `animal(1 | p | id, A = A)`, or `animal(1 | p | id, Ainv = Ainv)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant all-four animal-model location-scale block estimates four endpoint SDs and six latent animal correlations from the same matrix. Partial, unlabelled, mismatched, slope, direct-SD, and predictor-dependent `corpair()` forms remain rejected or planned. |
 | `animal(1 + x | id, pedigree = ped)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent animal-model intercept and slope fields; multiple animal slopes and slope correlations remain planned. |
-| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | Lower-level user-supplied relatedness route for a univariate Gaussian `mu` random intercept. Matching labelled bivariate q=2 `mu1`/`mu2` terms are implemented in the detailed rules below. This replaces the deprecated `gr()` wording for known latent relatedness matrices. |
+| `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in univariate `mu` and/or `sigma` | Implemented first slice | Lower-level user-supplied relatedness route for univariate Gaussian location and residual-scale structured intercepts; matching `mu`/`sigma` terms estimate one relatedness mean-scale correlation. Matching labelled bivariate q=2 `mu1`/`mu2` terms are implemented in the detailed rules below. This replaces the deprecated `gr()` wording for known latent relatedness matrices. |
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled lower-level relatedness terms estimate two location SDs and one mean-mean correlation from the same known latent matrix. |
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant all-four lower-level known-matrix location-scale block estimates four endpoint SDs and six latent relatedness correlations from the same matrix. Partial, unlabelled, mismatched, slope, direct-SD, and predictor-dependent `corpair()` forms remain rejected or planned. |
 | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent relatedness intercept and slope fields; multiple `relmat()` slopes and slope correlations remain planned. |
@@ -701,8 +701,20 @@ relmat(1 + x1 | id, K = K)
 Each one-slope path estimates independent intercept and slope fields with
 separate SDs and no intercept-slope correlation.
 
-Multiple structured slopes, interaction slopes, standalone structured `sigma`
-effects, structured `rho12` effects, and bivariate structured effects beyond
+Residual-scale structured intercepts now share the same user syntax in the
+univariate Gaussian `sigma` formula:
+
+```r
+sigma ~ phylo(1 | species, tree = tree)
+sigma ~ spatial(1 | site, coords = coords)
+sigma ~ animal(1 | id, Ainv = Ainv)
+sigma ~ relmat(1 | id, Q = Q)
+```
+
+Matching intercept-only structured terms in `mu` and `sigma` fit two latent
+fields on the same structured precision and estimate one latent structured
+`mu`-`sigma` correlation. Residual-scale structured slopes, interaction
+slopes, structured `rho12` effects, and bivariate structured effects beyond
 the fitted q=2 location paths and the fitted phylo/spatial/animal/`relmat()`
 constant q=4 blocks remain planned until the fitted paths have simulation and
 comparator coverage. The near-term ceiling remains two `mu` slopes.
@@ -847,21 +859,21 @@ Not every parameter should accept random effects at the same development stage.
 | `nu`; future `tau` | Fixed effects first. Random-effect bar terms in Student-t `nu` fail with a shape-specific boundary; future `nu`/`tau` random effects and ID-level skewness such as `skew(id) ~ x` need fixed-effect likelihood recovery and simulations before fitting. `tau` is reserved for a possible second shape parameter and is not current syntax. |
 | `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. Poisson `mu` random intercepts and independent slopes can be fitted only without a `zi` formula in the first non-Gaussian slice. For percentage or proportion data, `zoi` and `coi` are planned for zero-one-inflated bounded-response families before random effects or covariance among these parameters are opened. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
-| `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu` and ordinary Poisson `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
+| `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`, univariate Gaussian `sigma`, matching Gaussian `mu`/`sigma` location-scale blocks, and ordinary Poisson `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and bivariate or q=4 slope forms remain rejected. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned matrix-input sibling to the tree route; `tree = tree` remains the only implemented public phylogenetic input. |
-| `animal(1 | id, pedigree = ped)` | Implemented first slice for a univariate Gaussian `mu` animal-model random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` columns. |
-| `animal(1 | id, A = A)` / `animal(1 | id, Ainv = Ainv)` | Implemented first slice for a univariate Gaussian `mu` animal-model random intercept using a precomputed additive relatedness or inverse-relatedness matrix. |
-| `animal(1 | p | id, pedigree = ped)` / `animal(1 | p | id, A = A)` / `animal(1 | p | id, Ainv = Ainv)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Sparse large-pedigree construction, multiple slopes, slope correlations, standalone scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
+| `animal(1 | id, pedigree = ped)` | Implemented first slice for univariate Gaussian `mu`, univariate Gaussian `sigma`, and matching `mu`/`sigma` animal-model intercepts using a dense additive relationship matrix built from `id`, `dam`, and `sire` columns. |
+| `animal(1 | id, A = A)` / `animal(1 | id, Ainv = Ainv)` | Implemented first slice for univariate Gaussian `mu`, univariate Gaussian `sigma`, and matching `mu`/`sigma` animal-model intercepts using a precomputed additive relatedness or inverse-relatedness matrix. |
+| `animal(1 | p | id, pedigree = ped)` / `animal(1 | p | id, A = A)` / `animal(1 | p | id, Ainv = Ainv)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Sparse large-pedigree construction, multiple slopes, slope correlations, residual-scale structured slopes, `corpair()` regressions, and direct-SD grammar remain planned. |
 | `animal(1 + x | id, pedigree = ped)` | Implemented one numeric animal-model random slope for univariate Gaussian `mu`; it estimates independent `animal(1 | id)` and `animal(0 + x | id)` fields with no slope correlation. |
-| `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Implemented first slice for a lower-level univariate Gaussian `mu` random intercept with user-supplied latent relatedness covariance or precision. `relmat()` is the public low-level name; `gr()` is deprecated legacy syntax. |
-| `relmat(1 | p | id, K = K)` / `relmat(1 | p | id, Q = Q)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Multiple slopes, slope correlations, standalone scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
+| `relmat(1 | id, K = K)` / `relmat(1 | id, Q = Q)` | Implemented first slice for lower-level univariate Gaussian `mu`, univariate Gaussian `sigma`, and matching `mu`/`sigma` structured intercepts with user-supplied latent relatedness covariance or precision. `relmat()` is the public low-level name; `gr()` is deprecated legacy syntax. |
+| `relmat(1 | p | id, K = K)` / `relmat(1 | p | id, Q = Q)` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`; matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms also fit the first constant q=4 location-scale block. Multiple slopes, slope correlations, residual-scale structured slopes, `corpair()` regressions, and direct-SD grammar remain planned. |
 | `relmat(1 + x | id, K = K)` / `relmat(1 + x | id, Q = Q)` | Implemented one numeric relatedness random slope for univariate Gaussian `mu`; it estimates independent `relmat(1 | id)` and `relmat(0 + x | id)` fields with no slope correlation. |
 | `phylo(1 + x | species, tree = tree)` | Implemented one numeric phylogenetic random slope for univariate Gaussian `mu`; it estimates independent `phylo(1 | species)` and `phylo(0 + x | species)` fields with no slope correlation. |
-| `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
+| `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`, univariate Gaussian `sigma`, and matching `mu`/`sigma` location-scale blocks; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
 | `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
 | `spatial(1 | p | site, coords = coords)` in bivariate `mu1`/`mu2` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`. |
-| `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`/`mu2`/`sigma1`/`sigma2` endpoints | Implemented first q=4 Gaussian location-scale slice; it reports four endpoint SDs and six derived latent spatial correlations. Mesh/SPDE, spatial slopes in bivariate blocks, standalone spatial scale terms, `corpair()` regressions, and direct-SD grammar remain planned. |
+| `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`/`mu2`/`sigma1`/`sigma2` endpoints | Implemented first q=4 Gaussian location-scale slice; it reports four endpoint SDs and six derived latent spatial correlations. Mesh/SPDE, spatial slopes in bivariate blocks, residual-scale structured slopes, `corpair()` regressions, and direct-SD grammar remain planned. |
 
 ## Rules
 
@@ -892,15 +904,20 @@ Not every parameter should accept random effects at the same development stage.
   for pedigree or additive relatedness, `phylo()` for macroevolutionary
   dependence, `spatial()` for geographic or environmental structure, then
   combined `phylo()` plus `spatial()` layers, with `relmat()` reserved for other
-  validated known-dependence matrices. The first fitted phylogenetic path is
-  `phylo(1 | species, tree = tree)` in univariate Gaussian `mu`; fitted
-  coordinate spatial paths are `spatial(1 | site, coords = coords)` and one
-  numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian
-  `mu`; fitted animal/`relmat()` slices are
+  validated known-dependence matrices. Fitted univariate Gaussian structured
+  intercept paths are `phylo(1 | species, tree = tree)`,
+  `spatial(1 | site, coords = coords)`,
   `animal(1 | id, pedigree = ped)`, `animal(1 | id, A = A)`,
   `animal(1 | id, Ainv = Ainv)`,
   `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)` in univariate Gaussian
-  `mu`, plus matching labelled q=2 terms in bivariate Gaussian `mu1` and `mu2`.
+  `mu` and/or `sigma`; matching univariate `mu`/`sigma` intercept terms estimate
+  one latent structured correlation. Fitted one-slope paths remain limited to
+  univariate Gaussian `mu`, for example
+  `spatial(1 + x | site, coords = coords)`,
+  `phylo(1 + x | species, tree = tree)`,
+  `animal(1 + x | id, pedigree = ped)`, and
+  `relmat(1 + x | id, K = K)`, plus matching labelled q=2 terms in bivariate
+  Gaussian `mu1` and `mu2`.
   Slice 39 of the post-0.1.3 parity lane fits one-slope `animal()`,
   `relmat()`, and `phylo()` univariate Gaussian `mu` paths using independent
   intercept and slope fields. Later paths should support multiple structured
@@ -910,8 +927,8 @@ Not every parameter should accept random effects at the same development stage.
   `pedigree`/`A`/`Ainv` and relmat `K`/`Q` intercepts have diagnostics,
   extractor labels, profile targets, and recovery tests in the first slices,
   while phylogenetic
-  matrix inputs and all slope, scale, q=4, `corpair()`, or direct-SD matrix
-  routes remain unsupported
+  matrix inputs and all slope, residual-scale structured-slope, `corpair()`, or
+  direct-SD matrix routes remain unsupported
   until they have their own evidence. Keep `pedigree`, `A`, `Ainv`, `K`, or
   `Q` for relatedness and precision inputs; keep `V` for known sampling covariance in
   the preferred `meta_V(..., V = V)` design. `gr()` is deprecated legacy syntax

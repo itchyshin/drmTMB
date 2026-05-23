@@ -624,7 +624,7 @@ residual_rho12_corpair <- function(object) {
 
 phylo_mu_corpairs <- function(object) {
   if (
-    !identical(object$model$model_type, "biv_gaussian") ||
+    !object$model$model_type %in% c("gaussian", "biv_gaussian") ||
       !isTRUE(object$model$structured$phylo_mu$has)
   ) {
     return(list())
@@ -814,7 +814,7 @@ random_effect_covariance_summaries <- function(object, intervals = NULL) {
 
 phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
   if (
-    !identical(object$model$model_type, "biv_gaussian") ||
+    !object$model$model_type %in% c("gaussian", "biv_gaussian") ||
       !isTRUE(object$model$structured$phylo_mu$has)
   ) {
     return(empty_random_effect_covariance_summaries())
@@ -918,8 +918,11 @@ phylo_mu_sd_parameter <- function(dpar, group) {
   paste0(dpar, ":phylo(1 | ", group, ")")
 }
 
-phylo_mu_sd_value <- function(object, parameter) {
-  value <- object$sdpars$mu[[parameter]]
+phylo_mu_sd_value <- function(object, parameter, dpar = "mu") {
+  value <- object$sdpars[[dpar]][[parameter]]
+  if (is.null(value) && !identical(dpar, "mu")) {
+    value <- object$sdpars$mu[[parameter]]
+  }
   if (is.null(value)) {
     return(NA_real_)
   }
@@ -939,10 +942,18 @@ phylo_mu_sd_summary <- function(object, endpoint_index, scalar_parameter) {
     ))
   }
 
+  phylo_mu <- object$model$structured$phylo_mu
+  endpoint_dpar <- phylo_mu_endpoint_dpars(phylo_mu)[[endpoint_index]]
+  sd_dpar <- if (identical(object$model$model_type, "biv_gaussian")) {
+    "mu"
+  } else {
+    endpoint_dpar
+  }
+
   list(
     parameter = scalar_parameter,
-    target = paste0("sd:mu:", scalar_parameter),
-    value = phylo_mu_sd_value(object, scalar_parameter)
+    target = paste0("sd:", sd_dpar, ":", scalar_parameter),
+    value = phylo_mu_sd_value(object, scalar_parameter, dpar = sd_dpar)
   )
 }
 
@@ -1287,7 +1298,7 @@ random_effect_label_corpairs <- function(object, exclude = character()) {
 
 structured_mu_corpars_keys <- function(object) {
   if (
-    !identical(object$model$model_type, "biv_gaussian") ||
+    !object$model$model_type %in% c("gaussian", "biv_gaussian") ||
       !isTRUE(object$model$structured$phylo_mu$has)
   ) {
     return(character())
@@ -2454,8 +2465,7 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' negative-binomial 2, and zero-inflated negative-binomial 2 models this is
 #' the fitted overdispersion scale in the untruncated NB2 component
 #' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian models
-#' it returns a list with fitted `sigma1` and
-#' `sigma2` vectors.
+#' it returns a roundable list with fitted `sigma1` and `sigma2` vectors.
 #'
 #' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the
 #' modelled residual heterogeneity scale, not the square root of the known
@@ -2465,8 +2475,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future scale-extractor options.
 #'
-#' @return A numeric vector for univariate models, or a named list of numeric
-#'   vectors for bivariate Gaussian models.
+#' @return A numeric vector for univariate models, or a named, roundable list
+#'   of numeric vectors for bivariate Gaussian models.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -2495,10 +2505,23 @@ sigma.drmTMB <- function(object, ...) {
   ) {
     return(rep(1, object$nobs))
   }
-  list(
+  new_biv_sigma(
     sigma1 = predict(object, dpar = "sigma1"),
     sigma2 = predict(object, dpar = "sigma2")
   )
+}
+
+new_biv_sigma <- function(sigma1, sigma2) {
+  structure(
+    list(sigma1 = sigma1, sigma2 = sigma2),
+    class = c("drmTMB_biv_sigma", "list")
+  )
+}
+
+#' @export
+round.drmTMB_biv_sigma <- function(x, digits = 0) {
+  out <- lapply(unclass(x), round, digits = digits)
+  structure(out, class = class(x))
 }
 
 #' Summarize a fitted model
@@ -4243,13 +4266,22 @@ phylo_mu_contribution <- function(object, dpar = NULL) {
   q <- structured_mu_q(phylo_mu)
   if (q > 1L && is.matrix(phylo_mu$value)) {
     n_re <- phylo_mu$n_re
+    endpoint <- seq_len(q)
+    if (!is.null(dpar)) {
+      endpoint_dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+      endpoint <- which(endpoint_dpars %in% dpar)
+    }
+    if (length(endpoint) == 0L) {
+      return(rep(0, object$nobs))
+    }
     value_matrix <- matrix(
       unname(values[seq_len(q * n_re)]),
       nrow = n_re,
       ncol = q
     )
     return(unname(rowSums(
-      value_matrix[index, , drop = FALSE] * phylo_mu$value
+      value_matrix[index, endpoint, drop = FALSE] *
+        phylo_mu$value[, endpoint, drop = FALSE]
     )))
   }
   unname(values[index])
