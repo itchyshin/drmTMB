@@ -721,6 +721,36 @@ test_that("confint returns bootstrap intervals for direct targets", {
   }
 })
 
+test_that("confint bootstrap intervals can split refits across workers", {
+  testthat::skip_on_os("windows")
+  set.seed(20260658)
+  n <- 36
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.15 + 0.45 * x + stats::rnorm(n, sd = 0.55),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  ci <- stats::confint(
+    fit,
+    parm = c("fixef:mu:x", "sigma"),
+    method = "bootstrap",
+    R = 2,
+    seed = 20260659,
+    parallel = "multicore",
+    workers = 2
+  )
+
+  expect_equal(ci$parm, c("fixef:mu:x", "sigma"))
+  expect_equal(ci$method, rep("bootstrap", 2L))
+  expect_equal(ci$conf.status, rep("bootstrap", 2L))
+  expect_equal(ci$bootstrap.n, rep(2L, 2L))
+  expect_equal(ci$bootstrap.failed, rep(0L, 2L))
+  expect_equal(unique(ci$bootstrap.parallel), "multicore")
+  expect_equal(unique(ci$bootstrap.workers), 2L)
+})
+
 test_that("confint bootstrap refits ordinary location-scale random effects", {
   dat <- new_profile_mu_sigma_group_data(n_id = 8, n_each = 5, seed = 20260668)
   fit <- drmTMB(

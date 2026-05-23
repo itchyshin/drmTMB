@@ -69,6 +69,15 @@ This control is useful when the fitted model is kept for interpretation,
 prediction, or plotting, but the original data frame and TMB object do not need
 to travel with it.
 
+For final interval estimates, keep the pieces required by the interval method.
+Wald intervals need `se = TRUE`, profile intervals need
+`keep_tmb_object = TRUE`, and bootstrap intervals need `keep_data = TRUE`
+because the simulated responses are refit with the original model data.
+Exploratory memory-light fits can therefore use `se = FALSE` and
+`keep_tmb_object = FALSE`, while a final inference refit should keep the
+standard-error covariance, TMB object, or model data that the chosen interval
+method needs.
+
 For factor-heavy fixed-effect Gaussian location models, the first sparse
 fixed-effect path is also available:
 
@@ -138,6 +147,85 @@ If a model has many repeated Gaussian rows with the same `mu` and `sigma`
 design rows, aggregation is a separate tool from sparse matrices. In the first
 implemented path, the likelihood uses cell summaries such as `n`, `sum(y)`,
 and `sum(y^2)`, but fitted-row summaries remain original-row summaries.
+
+## Choose the interval route deliberately
+
+For large phylogenetic Gaussian fits, start with Wald intervals for routine
+reporting. They are fast and now include direct response-scale targets such as
+residual `sigma` and `sd:mu:phylo(1 | species)` when `TMB::sdreport()`
+succeeds:
+
+```{r, purl=FALSE}
+ci_wald <- confint(
+  fit_final,
+  parm = c("sigma", "sd:mu:phylo(1 | species)"),
+  method = "wald"
+)
+```
+
+Use profile intervals when you want a likelihood-based check for a small number
+of fitted targets. With the default `profile_engine = "auto"`, direct scalar
+scale, SD, and correlation targets use the endpoint solver instead of building a
+full adaptive profile curve:
+
+```{r, purl=FALSE}
+ci_profile <- confint(
+  fit_final,
+  parm = c("sigma", "sd:mu:phylo(1 | species)"),
+  method = "profile"
+)
+```
+
+If you need the previous full-profile route for comparison or debugging, ask
+for it explicitly:
+
+```{r, purl=FALSE}
+ci_profile_full <- confint(
+  fit_final,
+  parm = "sd:mu:phylo(1 | species)",
+  method = "profile",
+  profile_engine = "tmbprofile"
+)
+```
+
+On Unix-like systems, `parallel = "multicore"` can split independent profile
+targets across workers. For a single direct endpoint target, it can split the
+lower and upper endpoint searches. When `workers = NULL`, `drmTMB` uses about
+half the detected physical cores, capped at the number of jobs and at 10
+workers:
+
+```{r, purl=FALSE}
+ci_profile_parallel <- confint(
+  fit_final,
+  parm = c("sigma", "sd:mu:phylo(1 | species)"),
+  method = "profile",
+  parallel = "multicore",
+  workers = NULL
+)
+```
+
+Bootstrap intervals are a heavier simulation-refit audit. They require the
+fitted model data, so do not combine them with
+`drm_control(keep_data = FALSE)` unless you refit the final model with
+`keep_data = TRUE` first. Use a small `R` as a smoke test, then increase `R`
+only for the final check:
+
+```{r, purl=FALSE}
+ci_boot <- confint(
+  fit_final,
+  parm = c("sigma", "sd:mu:phylo(1 | species)"),
+  method = "bootstrap",
+  R = 99,
+  seed = 1,
+  parallel = "multicore",
+  workers = NULL
+)
+```
+
+Treat these routes as different evidence, not as interchangeable defaults. Wald
+intervals are the routine first pass, endpoint profiles are likelihood-based
+checks for direct scalar targets, full `TMB::tmbprofile()` is the debugging and
+comparison route, and bootstrap is a slower refit-based audit.
 
 ## Check the fit with the storage choice in mind
 
@@ -295,6 +383,12 @@ bivariate large-data readiness, or non-Gaussian large-data readiness.
 - Fit with `keep_data = FALSE`, `keep_model_frame = FALSE`, `se = FALSE`, and
   `keep_tmb_object = FALSE` when you do not need to carry the original data,
   model frames, standard-error covariance, or TMB object inside the saved fit.
+- Refit the final model with `se = TRUE` for Wald intervals,
+  `keep_tmb_object = TRUE` for profile intervals, and `keep_data = TRUE` for
+  bootstrap intervals.
+- Use Wald intervals first for direct `sigma`, structured SD, and correlation
+  targets; use endpoint profile intervals as a likelihood-based check on the
+  few targets that matter most.
 - Keep `keep_tmb_object = TRUE` for final diagnostic refits where the fixed
   gradient check matters.
 - Inspect `check_drm(fit)` for fixed-effect design-size notes before assuming

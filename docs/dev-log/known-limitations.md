@@ -155,13 +155,16 @@
   errors when `TMB::sdreport()` succeeds, but descriptive fitted ranges and
   derived variance ratios still do not have standard errors. The current
   boundary diagnostics are endpoint flags, not a full profile-shape classifier:
-  one-sided intervals, automatic recovery from non-monotone profiles, and
-  bootstrap fallback remain planned. Calls such as
-  `confint(fit, method = "bootstrap")`,
-  `summary(fit, conf.int = TRUE, method = "bootstrap")`, and
-  `corpairs(fit, conf.int = TRUE, method = "bootstrap")` error before interval
-  work begins because public bootstrap intervals are not implemented yet. The
-  first marginal helper computes
+  one-sided intervals and automatic recovery from non-monotone profiles remain
+  planned. `confint(fit, method = "bootstrap")` is now implemented for direct
+  fitted-model targets with stored model data, including direct fixed-effect,
+  scale, random-effect SD, random-effect correlation, and residual-correlation
+  rows. It is a slower simulation-refit audit rather than a replacement for
+  Wald or endpoint-profile intervals. `summary(fit, conf.int = TRUE,
+  method = "bootstrap")`, `corpairs(fit, conf.int = TRUE,
+  method = "bootstrap")`, `newdata` bootstrap intervals, and bootstrap
+  intervals for derived targets remain unsupported. The first marginal helper
+  computes
   unweighted plug-in means only; it does not yet compute uncertainty, standard
   errors, contrasts, plots, or full `emmeans`-style marginalisation.
 - Fixed-effect univariate lognormal location-scale models are implemented for

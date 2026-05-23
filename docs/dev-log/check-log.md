@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Large-Phylo Interval Guidance And Bootstrap Multicore Smoke
+
+Goal: align user-facing large-data guidance with the merged endpoint-profile
+and bootstrap routes, and add one focused multicore bootstrap test so the
+parallel refit contract is covered.
+
+Roles: Ada kept the slice scoped to guidance and a small test. Fisher checked
+that the interval routes are separated as Wald, endpoint profile,
+`TMB::tmbprofile()`, and bootstrap evidence. Grace checked roxygen, pkgdown,
+and focused test output. Rose scanned for stale "bootstrap not implemented" and
+old `profile_precision = "fast"`-first guidance. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Updated `R/profile.R` and regenerated `man/confint.drmTMB.Rd` so the
+  `confint()` examples and details recommend default
+  `profile_engine = "auto"` for direct scalar profile checks before the
+  explicit `TMB::tmbprofile()` comparison route.
+- Added a "Choose the interval route deliberately" section to
+  `vignettes/large-data.Rmd`, separating Wald, endpoint profile,
+  full-profile comparison, Unix multicore profile, and bootstrap refit
+  workflows for large phylogenetic Gaussian fits.
+- Clarified that final interval refits need the relevant retained object
+  pieces: `se = TRUE` for Wald intervals, `keep_tmb_object = TRUE` for profile
+  intervals, and `keep_data = TRUE` for bootstrap intervals.
+- Added `tests/testthat/test-profile-targets.R` coverage showing
+  `confint(method = "bootstrap", parallel = "multicore", workers = 2)` splits
+  direct-target bootstrap refits on Unix-like systems.
+- Updated `docs/dev-log/known-limitations.md` so it no longer says public
+  `confint()` bootstrap intervals are unimplemented. The limitation now says
+  `confint(method = "bootstrap")` is direct-target only, while `summary()`,
+  `corpairs()`, `newdata`, and derived-target bootstrap intervals remain
+  unsupported.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R vignettes/large-data.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n "profile_precision = \"fast\" before|start with.*profile_precision|bootstrap intervals are not implemented|method = \"bootstrap\".*not implemented|parallel/workers currently routes to the bootstrap path|manual mclapply" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests/testthat man -g '!*.html'
+gh issue list --search "confint bootstrap profile multicore phylogenetic" --limit 20
+git diff --check
+```
+
+- `devtools::document()` regenerated `man/confint.drmTMB.Rd`.
+- `devtools::test(filter = 'profile-targets')` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-wording scan initially found an outdated bootstrap limitation in
+  `docs/dev-log/known-limitations.md`; that text was updated in this slice.
+  The final scan only found an intentional audit-command pattern in
+  `docs/design/69-comprehensive-function-page-figure-audit.md`.
+- The overlapping issue search returned no rows, so no issue was updated or
+  opened.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Fast Scalar Profile Endpoints
 
 Goal: add an endpoint-only scalar profile engine for direct profile-ready scale,
