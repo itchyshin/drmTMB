@@ -48,6 +48,26 @@ Benchmark summary:
 | 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 251.120 | 152.011 | 1.652x | -3.68e-06 | 1.24e-05 | 0.00119, 0.00378 |
 | 10,000 | 1,000 | `sigma` | 33.008 | 31.387 | 1.052x | 1.54e-06 | -9.37e-07 | 0.00106, 0.000681 |
 
+Endpoint-v2 follow-up:
+
+- Added curvature-seeded endpoint brackets from `TMB::sdreport()` covariance,
+  falling back to the fixed internal-scale step when covariance is unavailable.
+- Added lower/upper endpoint splitting for the single-target
+  `parallel = "multicore"` case, while preserving target-level multicore for
+  multi-target profiles.
+- Changed the `workers` default to `NULL`; when users request Unix
+  `parallel = "multicore"`, `workers = NULL` resolves to about half the
+  detected CPU cores, capped at 10 and at the number of jobs.
+- Recorded v2 benchmark evidence in
+  `docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv`.
+
+| Rows | Species | Target | `tmbprofile` sec | Endpoint sec | Endpoint multicore sec | Endpoint speedup | Multicore speedup | Endpoint evals |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 10,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 21.774 | 7.610 | 4.734 | 2.861x | 4.599x | 12 |
+| 100,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 235.344 | 51.193 | 27.652 | 4.597x | 8.511x | 12 |
+| 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 249.426 | 43.857 | 24.527 | 5.687x | 10.169x | 11 |
+| 10,000 | 1,000 | `sigma` | 32.690 | 6.993 | 3.777 | 4.675x | 8.655x | 10 |
+
 The endpoint root check uses a stated likelihood-ratio equation tolerance of
 0.005 on `profile_nll(theta) - nll_hat - qchisq(level, 1) / 2`. All benchmarked
 endpoint rows satisfy that tolerance. The 100,000 row / 10,000 species stretch
@@ -70,6 +90,12 @@ Rscript -e "devtools::test(reporter = 'summary')"
 Rscript -e "pkgdown::check_pkgdown()"
 Rscript -e "devtools::check(error_on = 'never', args = '--no-manual')"
 Rscript -e "pkgdown::build_site()"
+Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 --targets all --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 1000 --targets "sd:mu:phylo(1 | species)" --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript bench/profile-scalar-endpoint.R --rows 100000 --species 5000 --targets "sd:mu:phylo(1 | species)" --endpoint-workers 2 --output docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv
+Rscript -e "devtools::load_all(quiet = TRUE)"
+Rscript -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+Rscript -e "devtools::document()"
 rg -n "profile_engine|profile\\.engine|endpoint-only|endpoint engine|tmbprofile" R/profile.R man/confint.drmTMB.Rd docs/design/12-profile-likelihood-cis.md bench/README.md NEWS.md pkgdown-site/reference/confint.drmTMB.html pkgdown-site/news/index.html pkgdown-site/search.json
 rg -n "all profiles are faster|faster profiles generally|10,000 species|10000 species|derived.*endpoint|newdata.*endpoint" README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat pkgdown-site -g '!*.png' -g '!*.jpg'
 git diff --check

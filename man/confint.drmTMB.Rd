@@ -17,7 +17,7 @@
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
-  workers = 1L,
+  workers = NULL,
   refit_control = NULL,
   ...
 )
@@ -72,8 +72,9 @@ route for comparison and debugging.}
 \code{"multicore"}. For profile intervals, targets or \code{newdata} rows are split
 across workers. For bootstrap intervals, refits are split across workers.}
 
-\item{workers}{Requested profile or bootstrap workers. Multicore execution is
-capped at the number of jobs and at 10 workers.}
+\item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
+\code{parallel = "multicore"}, \code{drmTMB} uses about half the detected CPU cores.
+Multicore execution is capped at the number of jobs and at 10 workers.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because

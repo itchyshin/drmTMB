@@ -47,6 +47,24 @@ absolute errors in
 0.005. The 100,000 row / 10,000 species stretch case was not run, so the speed
 claim is limited to the measured 1,000- and 5,000-species scenarios.
 
+The follow-up endpoint-v2 artifact is
+`docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv`. It adds
+curvature-seeded endpoint brackets and one-target lower/upper endpoint
+parallelism. These rows were run after commit `ae7b99b4` but before the v2
+implementation was committed, so `git_dirty = TRUE`.
+
+| Rows | Species | Target | `tmbprofile` sec | Endpoint sec | Endpoint multicore sec | Endpoint speedup | Multicore speedup | Endpoint evals |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 10,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 21.774 | 7.610 | 4.734 | 2.861x | 4.599x | 12 |
+| 100,000 | 1,000 | `sd:mu:phylo(1 \| species)` | 235.344 | 51.193 | 27.652 | 4.597x | 8.511x | 12 |
+| 100,000 | 5,000 | `sd:mu:phylo(1 \| species)` | 249.426 | 43.857 | 24.527 | 5.687x | 10.169x | 11 |
+| 10,000 | 1,000 | `sigma` | 32.690 | 6.993 | 3.777 | 4.675x | 8.655x | 10 |
+
+The endpoint-v2 root errors were below 0.00016 in all recorded endpoint rows.
+Endpoint response-scale differences from `tmbprofile()` were less than
+3.0e-06 in the 10,000-row phylogenetic SD smoke case and less than 1.6e-06 in
+the 100,000-row phylogenetic SD cases.
+
 ## Correctness And Scope
 
 The endpoint engine is not a universal replacement for profiles. It is only for

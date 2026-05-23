@@ -421,20 +421,27 @@ expect_profile_target_contract <- function(targets) {
   ))
 }
 
-expect_endpoint_profile_result <- function(fit, parm, level = 0.80) {
+expect_endpoint_profile_result <- function(
+  fit,
+  parm,
+  level = 0.80,
+  endpoint_plan = drmTMB:::profile_serial_plan()
+) {
   targets <- profile_targets(fit)
   target <- targets[targets$parm == parm, , drop = FALSE]
   expect_equal(nrow(target), 1L)
   result <- drmTMB:::drm_profile_endpoint_result(
     object = fit,
     target = target,
-    level = level
+    level = level,
+    endpoint_plan = endpoint_plan
   )
   expect_true(all(is.finite(result$link_interval)))
   expect_true(all(is.finite(result$interval)))
   expect_lte(result$lower_root_error, 5e-3)
   expect_lte(result$upper_root_error, 5e-3)
   expect_gt(result$n_eval, 0L)
+  expect_equal(result$n_eval, result$lower_n_eval + result$upper_n_eval)
   result
 }
 
@@ -1623,6 +1630,81 @@ test_that("endpoint profile engine solves constant sigma endpoints", {
   expect_gt(ci$lower, 0)
   expect_lt(ci$lower, sigma_hat)
   expect_gt(ci$upper, sigma_hat)
+})
+
+test_that("endpoint initial steps use curvature when available", {
+  cutoff <- stats::qchisq(0.80, df = 1) / 2
+  seeded <- drmTMB:::profile_endpoint_initial_step(
+    theta_hat = -0.5,
+    direction = 1,
+    cutoff = cutoff,
+    curvature_se = 0.2
+  )
+  fallback <- drmTMB:::profile_endpoint_initial_step(
+    theta_hat = -0.5,
+    direction = -1,
+    cutoff = cutoff,
+    curvature_se = NA_real_
+  )
+
+  expect_equal(seeded$source, "curvature")
+  expect_equal(seeded$step, sqrt(2 * cutoff) * 0.2 * 1.1)
+  expect_equal(fallback$source, "fixed")
+  expect_equal(fallback$step, 0.25)
+})
+
+test_that("NULL workers use a bounded automatic multicore default", {
+  auto_workers <- drmTMB:::resolve_parallel_workers(NULL, "multicore")
+
+  expect_equal(drmTMB:::resolve_parallel_workers(NULL, "none"), 1L)
+  expect_equal(drmTMB:::resolve_parallel_workers(3, "multicore"), 3L)
+  expect_type(auto_workers, "integer")
+  expect_gte(auto_workers, 1L)
+})
+
+test_that("endpoint profile can split one target across endpoint sides", {
+  testthat::skip_on_os("windows")
+  set.seed(20260677)
+  n <- 90
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  target <- profile_targets(fit)
+  target <- target[target$parm == "sigma", , drop = FALSE]
+  endpoint_plan <- drmTMB:::profile_endpoint_parallel_plan(
+    targets = target,
+    parallel = "multicore",
+    workers = 2,
+    profile_engine = "endpoint"
+  )
+
+  serial <- expect_endpoint_profile_result(fit, "sigma", level = 0.80)
+  multicore <- expect_endpoint_profile_result(
+    fit,
+    "sigma",
+    level = 0.80,
+    endpoint_plan = endpoint_plan
+  )
+  ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint",
+    parallel = "multicore",
+    workers = 2
+  )
+
+  expect_equal(endpoint_plan$backend, "multicore")
+  expect_equal(endpoint_plan$workers, 2L)
+  expect_equal(multicore$endpoint_parallel, "multicore")
+  expect_equal(multicore$endpoint_workers, 2L)
+  expect_equal(multicore$link_interval, serial$link_interval, tolerance = 1e-8)
+  expect_equal(ci$lower, exp(multicore$link_interval[[1L]]), tolerance = 1e-8)
+  expect_equal(ci$upper, exp(multicore$link_interval[[2L]]), tolerance = 1e-8)
 })
 
 test_that("endpoint profile engine solves constant rho12 endpoints", {

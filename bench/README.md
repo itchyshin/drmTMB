@@ -30,6 +30,10 @@ Rscript bench/profile-scalar-endpoint.R --rows 10000 --species 1000 \
 Use `--targets all` to add the constant `sigma` interval to the same run. The
 script records elapsed seconds, returned bounds, engine identity, Git and R/TMB
 versions, endpoint root errors, and endpoint-versus-`tmbprofile` differences.
+Use `--endpoint-workers 2` to add an `endpoint-multicore` row that profiles the
+lower and upper endpoints for one scalar target on separate Unix forked workers.
+This is useful when the expensive user task is one phylogenetic SD interval
+rather than a batch of many independent targets.
 
 If an existing output CSV was created by an older benchmark schema, choose a
 new `--output` path or remove the old ignored CSV before appending new rows.

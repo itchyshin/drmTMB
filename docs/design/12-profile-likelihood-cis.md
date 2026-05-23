@@ -122,14 +122,27 @@ from the previous constrained optimum, and solves each endpoint with
 profile_nll(theta) - nll_hat = qchisq(level, 1) / 2.
 ```
 
+The current endpoint implementation seeds the first bracket step from the
+`TMB::sdreport()` covariance when it is available. Under a locally quadratic
+profile, the internal-scale endpoint distance is approximately
+`sqrt(qchisq(level, 1)) * se`; the implementation steps slightly beyond that
+distance, then expands only if the likelihood-ratio cutoff has not been
+crossed. If the covariance is unavailable or invalid, it falls back to the
+fixed internal-scale step used by the first endpoint implementation. When a
+single endpoint-supported target is profiled with Unix
+`parallel = "multicore"`, the lower and upper endpoints are sent to separate
+workers; when multiple targets are requested, multicore remains at the
+target-loop level to avoid nested parallelism.
+
 This is appropriate for direct log-SD, log-scale, and atanh-style correlation
 parameters. It is not a derived-quantity engine: repeatability, phylogenetic
 signal, q4 derived correlations, row-specific `newdata` linear combinations,
 and arbitrary fixed-effect contrasts stay on the existing profile or status-only
 paths until a separate method is designed. The development benchmark
 `bench/profile-scalar-endpoint.R` compares `profile_engine = "tmbprofile"` and
-`profile_engine = "endpoint"` on the same Gaussian phylogenetic fit, with the
-phylogenetic SD target as the primary timing evidence.
+`profile_engine = "endpoint"` on the same Gaussian phylogenetic fit, optionally
+adding an `endpoint-multicore` row through `--endpoint-workers`. The
+phylogenetic SD target remains the primary timing evidence.
 
 ## Slices 165-168 Profile Example Bridge
 

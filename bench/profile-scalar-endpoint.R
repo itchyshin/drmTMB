@@ -27,6 +27,7 @@ parse_args <- function(args = commandArgs(trailingOnly = TRUE)) {
     level = 0.95,
     eval_max = 300L,
     iter_max = 300L,
+    endpoint_workers = 1L,
     output = "docs/dev-log/benchmarks/profile-scalar-endpoint.csv"
   )
   if (any(args %in% c("-h", "--help"))) {
@@ -98,6 +99,7 @@ print_usage <- function() {
     "  --level P       Confidence level; default 0.95\n",
     "  --eval-max N    Fit and endpoint nlminb eval.max; default 300\n",
     "  --iter-max N    Fit and endpoint nlminb iter.max; default 300\n",
+    "  --endpoint-workers N  Add endpoint-multicore rows with N workers; default 1\n",
     "  --output PATH   CSV output path\n",
     sep = ""
   )
@@ -109,6 +111,35 @@ benchmark_targets <- function(targets) {
   }
   out <- trimws(strsplit(targets, ",", fixed = TRUE)[[1L]])
   out[nzchar(out)]
+}
+
+benchmark_engines <- function(args) {
+  engines <- c("tmbprofile", "endpoint")
+  if (args$endpoint_workers > 1L) {
+    engines <- c(engines, "endpoint-multicore")
+  }
+  engines
+}
+
+profile_engine_arg <- function(engine) {
+  if (identical(engine, "endpoint-multicore")) {
+    return("endpoint")
+  }
+  engine
+}
+
+profile_parallel_arg <- function(engine) {
+  if (identical(engine, "endpoint-multicore")) {
+    return("multicore")
+  }
+  "none"
+}
+
+profile_workers_arg <- function(args, engine) {
+  if (identical(engine, "endpoint-multicore")) {
+    return(args$endpoint_workers)
+  }
+  1L
 }
 
 fit_args <- function(args) {
@@ -242,11 +273,24 @@ empty_profile_row <- function(args, env, target, engine, fit_meta, message) {
     convergence = "failure",
     failure_message = message,
     profile_engine = NA_character_,
+    profile_parallel = profile_parallel_arg(engine),
+    profile_workers = profile_workers_arg(args, engine),
     lower_internal = NA_real_,
     upper_internal = NA_real_,
     lower_root_error = NA_real_,
     upper_root_error = NA_real_,
+    lower_n_eval = NA_integer_,
+    upper_n_eval = NA_integer_,
     endpoint_n_eval = NA_integer_,
+    endpoint_curvature_se = NA_real_,
+    lower_initial_step = NA_real_,
+    upper_initial_step = NA_real_,
+    lower_bracket_step = NA_real_,
+    upper_bracket_step = NA_real_,
+    lower_step_source = NA_character_,
+    upper_step_source = NA_character_,
+    endpoint_parallel = NA_character_,
+    endpoint_workers = NA_integer_,
     endpoint_vs_tmbprofile_lower_diff = NA_real_,
     endpoint_vs_tmbprofile_upper_diff = NA_real_,
     data_build_sec = fit_meta$data_build_sec,
@@ -287,7 +331,9 @@ profile_one <- function(args, env, fit, fit_meta, target_name, engine) {
         parm = target_name,
         level = args$level,
         method = "profile",
-        profile_engine = engine
+        profile_engine = profile_engine_arg(engine),
+        parallel = profile_parallel_arg(engine),
+        workers = profile_workers_arg(args, engine)
       ),
       error = function(e) e
     )
@@ -312,12 +358,19 @@ profile_one <- function(args, env, fit, fit_meta, target_name, engine) {
   )
   endpoint_result <- NULL
   endpoint_error <- NULL
-  if (identical(engine, "endpoint")) {
+  if (engine %in% c("endpoint", "endpoint-multicore")) {
+    endpoint_plan <- drmTMB:::profile_endpoint_parallel_plan(
+      targets = target,
+      parallel = profile_parallel_arg(engine),
+      workers = profile_workers_arg(args, engine),
+      profile_engine = "endpoint"
+    )
     endpoint_result <- tryCatch(
       drmTMB:::drm_profile_endpoint_result(
         object = fit,
         target = target,
-        level = args$level
+        level = args$level,
+        endpoint_plan = endpoint_plan
       ),
       error = function(e) e
     )
@@ -338,7 +391,18 @@ profile_one <- function(args, env, fit, fit_meta, target_name, engine) {
   if (!is.null(endpoint_result)) {
     row$lower_root_error <- endpoint_result$lower_root_error
     row$upper_root_error <- endpoint_result$upper_root_error
+    row$lower_n_eval <- endpoint_result$lower_n_eval
+    row$upper_n_eval <- endpoint_result$upper_n_eval
     row$endpoint_n_eval <- endpoint_result$n_eval
+    row$endpoint_curvature_se <- endpoint_result$curvature_se
+    row$lower_initial_step <- endpoint_result$lower_initial_step
+    row$upper_initial_step <- endpoint_result$upper_initial_step
+    row$lower_bracket_step <- endpoint_result$lower_bracket_step
+    row$upper_bracket_step <- endpoint_result$upper_bracket_step
+    row$lower_step_source <- endpoint_result$lower_step_source
+    row$upper_step_source <- endpoint_result$upper_step_source
+    row$endpoint_parallel <- endpoint_result$endpoint_parallel
+    row$endpoint_workers <- endpoint_result$endpoint_workers
   }
   if (!is.null(endpoint_error)) {
     row$failure_message <- paste("endpoint root check failed:", endpoint_error)
@@ -350,21 +414,20 @@ add_speedup_and_differences <- function(rows) {
   for (target in unique(rows$target)) {
     idx <- rows$target == target
     tmb <- rows[idx & rows$engine == "tmbprofile" & rows$convergence == "ok", ]
-    endpoint <- rows[
-      idx & rows$engine == "endpoint" & rows$convergence == "ok",
-    ]
     if (nrow(tmb) == 1L) {
       rows$speedup_vs_tmbprofile[idx & rows$convergence == "ok"] <-
         tmb$elapsed_sec[[1L]] / rows$elapsed_sec[idx & rows$convergence == "ok"]
     }
-    if (nrow(tmb) == 1L && nrow(endpoint) == 1L) {
+    if (nrow(tmb) == 1L) {
       endpoint_idx <- which(
-        idx & rows$engine == "endpoint" & rows$convergence == "ok"
+        idx &
+          rows$engine %in% c("endpoint", "endpoint-multicore") &
+          rows$convergence == "ok"
       )
       rows$endpoint_vs_tmbprofile_lower_diff[endpoint_idx] <-
-        endpoint$lower[[1L]] - tmb$lower[[1L]]
+        rows$lower[endpoint_idx] - tmb$lower[[1L]]
       rows$endpoint_vs_tmbprofile_upper_diff[endpoint_idx] <-
-        endpoint$upper[[1L]] - tmb$upper[[1L]]
+        rows$upper[endpoint_idx] - tmb$upper[[1L]]
     }
   }
   rows
@@ -390,7 +453,7 @@ run_benchmark <- function(args) {
       lapply(targets, function(target) {
         do.call(
           rbind,
-          lapply(c("tmbprofile", "endpoint"), function(engine) {
+          lapply(benchmark_engines(args), function(engine) {
             empty_profile_row(
               args,
               env,
@@ -422,7 +485,7 @@ run_benchmark <- function(args) {
     lapply(targets, function(target) {
       do.call(
         rbind,
-        lapply(c("tmbprofile", "endpoint"), function(engine) {
+        lapply(benchmark_engines(args), function(engine) {
           profile_one(
             args = args,
             env = env,

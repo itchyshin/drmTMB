@@ -74,8 +74,9 @@
 #' @param parallel Profile or bootstrap backend: `"none"` or Unix
 #'   `"multicore"`. For profile intervals, targets or `newdata` rows are split
 #'   across workers. For bootstrap intervals, refits are split across workers.
-#' @param workers Requested profile or bootstrap workers. Multicore execution is
-#'   capped at the number of jobs and at 10 workers.
+#' @param workers Requested profile or bootstrap workers. If `NULL` and
+#'   `parallel = "multicore"`, `drmTMB` uses about half the detected CPU cores.
+#'   Multicore execution is capped at the number of jobs and at 10 workers.
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
@@ -113,7 +114,7 @@ confint.drmTMB <- function(
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
-  workers = 1L,
+  workers = NULL,
   refit_control = NULL,
   ...
 ) {
@@ -719,7 +720,7 @@ drm_profile_confint <- function(
   level = 0.95,
   trace = FALSE,
   parallel = "none",
-  workers = 1L,
+  workers = NULL,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
   ...
 ) {
@@ -733,11 +734,21 @@ drm_profile_confint <- function(
     ))
   }
   targets <- profile_match_targets(drm_profile_targets(object), parm)
-  plan <- profile_parallel_plan(
-    nrow(targets),
+  endpoint_plan <- profile_endpoint_parallel_plan(
+    targets = targets,
     parallel = parallel,
-    workers = workers
+    workers = workers,
+    profile_engine = profile_engine
   )
+  plan <- if (identical(endpoint_plan$backend, "none")) {
+    profile_parallel_plan(
+      nrow(targets),
+      parallel = parallel,
+      workers = workers
+    )
+  } else {
+    profile_serial_plan()
+  }
 
   worker <- function(i) {
     drm_profile_target_confint(
@@ -746,6 +757,7 @@ drm_profile_confint <- function(
       level = level,
       trace = trace,
       profile_engine = profile_engine,
+      endpoint_plan = endpoint_plan,
       ...
     )
   }
@@ -753,6 +765,30 @@ drm_profile_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
+}
+
+profile_serial_plan <- function() {
+  list(backend = "none", workers = 1L)
+}
+
+profile_endpoint_parallel_plan <- function(
+  targets,
+  parallel,
+  workers,
+  profile_engine
+) {
+  if (
+    nrow(targets) != 1L ||
+      identical(profile_engine, "tmbprofile") ||
+      !profile_endpoint_target_supported(targets)
+  ) {
+    return(profile_serial_plan())
+  }
+  plan <- profile_parallel_plan(2L, parallel = parallel, workers = workers)
+  if (identical(plan$backend, "none") || plan$workers < 2L) {
+    return(profile_serial_plan())
+  }
+  plan
 }
 
 profile_derived_summary_targets <- function(object) {
@@ -787,7 +823,7 @@ drm_profile_response_newdata_confint <- function(
   level = 0.95,
   trace = FALSE,
   parallel = "none",
-  workers = 1L,
+  workers = NULL,
   ...
 ) {
   validate_profile_level(level)
@@ -1055,17 +1091,7 @@ bootstrap_parallel_plan <- function(R, parallel, workers) {
       "{.arg parallel} must be one of {.val none} or {.val multicore}."
     )
   }
-  if (
-    !is.numeric(workers) ||
-      length(workers) != 1L ||
-      is.na(workers) ||
-      !is.finite(workers) ||
-      workers < 1L ||
-      workers != as.integer(workers)
-  ) {
-    cli::cli_abort("{.arg workers} must be a positive whole number.")
-  }
-  workers <- as.integer(workers)
+  workers <- resolve_parallel_workers(workers, parallel)
   if (identical(parallel, "multicore") && .Platform$OS.type == "windows") {
     cli::cli_abort(
       "{.code parallel = \"multicore\"} is not available on Windows."
@@ -1077,6 +1103,33 @@ bootstrap_parallel_plan <- function(R, parallel, workers) {
     min(10L, R, workers)
   }
   list(backend = parallel, workers = actual_workers)
+}
+
+resolve_parallel_workers <- function(workers, parallel) {
+  if (is.null(workers)) {
+    if (identical(parallel, "none")) {
+      return(1L)
+    }
+    cores <- suppressWarnings(parallel::detectCores(logical = FALSE))
+    if (!is.finite(cores) || is.na(cores) || cores < 1L) {
+      cores <- suppressWarnings(parallel::detectCores(logical = TRUE))
+    }
+    if (!is.finite(cores) || is.na(cores) || cores < 1L) {
+      cores <- 2L
+    }
+    return(max(1L, as.integer(floor(cores / 2))))
+  }
+  if (
+    !is.numeric(workers) ||
+      length(workers) != 1L ||
+      is.na(workers) ||
+      !is.finite(workers) ||
+      workers < 1L ||
+      workers != as.integer(workers)
+  ) {
+    cli::cli_abort("{.arg workers} must be a positive whole number or NULL.")
+  }
+  as.integer(workers)
 }
 
 profile_parallel_plan <- function(n_task, parallel, workers) {
@@ -1264,6 +1317,7 @@ drm_profile_target_confint <- function(
   level,
   trace,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
+  endpoint_plan = profile_serial_plan(),
   ...
 ) {
   profile_engine <- match.arg(profile_engine)
@@ -1291,7 +1345,8 @@ drm_profile_target_confint <- function(
     return(drm_profile_target_endpoint_confint(
       object = object,
       target = target,
-      level = level
+      level = level,
+      endpoint_plan = endpoint_plan
     ))
   }
 
@@ -1303,7 +1358,8 @@ drm_profile_target_confint <- function(
       drm_profile_target_endpoint_confint(
         object = object,
         target = target,
-        level = level
+        level = level,
+        endpoint_plan = endpoint_plan
       ),
       error = function(err) err
     )
@@ -1364,11 +1420,17 @@ drm_profile_target_tmbprofile_confint <- function(
   )
 }
 
-drm_profile_target_endpoint_confint <- function(object, target, level) {
+drm_profile_target_endpoint_confint <- function(
+  object,
+  target,
+  level,
+  endpoint_plan = profile_serial_plan()
+) {
   result <- drm_profile_endpoint_result(
     object = object,
     target = target,
-    level = level
+    level = level,
+    endpoint_plan = endpoint_plan
   )
   interval <- result$interval
   diagnostics <- profile_interval_diagnostics(
@@ -1399,7 +1461,8 @@ drm_profile_endpoint_result <- function(
   target,
   level,
   root_tol = 1e-4,
-  max_bracket_steps = 40L
+  max_bracket_steps = 40L,
+  endpoint_plan = profile_serial_plan()
 ) {
   if (!profile_endpoint_target_supported(target)) {
     cli::cli_abort(c(
@@ -1427,37 +1490,34 @@ drm_profile_endpoint_result <- function(
   theta_hat <- unname(object$opt$par[[position]])
   nll_hat <- unname(object$opt$objective)
   cutoff <- stats::qchisq(level, df = 1) / 2
+  curvature_se <- profile_endpoint_curvature_se(object, position)
   control <- if (is.list(object$control) && is.list(object$control$optimizer)) {
     object$control$optimizer
   } else {
     list()
   }
 
-  evaluator <- profile_endpoint_evaluator(
-    object = object,
-    target_position = position,
-    control = control
-  )
-  lower <- profile_endpoint_crossing(
-    evaluator = evaluator,
-    theta_hat = theta_hat,
-    nll_hat = nll_hat,
-    cutoff = cutoff,
-    direction = -1,
-    root_tol = root_tol,
-    max_bracket_steps = max_bracket_steps,
-    target_name = target$parm
-  )
-  upper <- profile_endpoint_crossing(
-    evaluator = evaluator,
-    theta_hat = theta_hat,
-    nll_hat = nll_hat,
-    cutoff = cutoff,
-    direction = 1,
-    root_tol = root_tol,
-    max_bracket_steps = max_bracket_steps,
-    target_name = target$parm
-  )
+  endpoint_worker <- function(direction) {
+    evaluator <- profile_endpoint_evaluator(
+      object = object,
+      target_position = position,
+      control = control
+    )
+    profile_endpoint_crossing(
+      evaluator = evaluator,
+      theta_hat = theta_hat,
+      nll_hat = nll_hat,
+      cutoff = cutoff,
+      direction = direction,
+      root_tol = root_tol,
+      max_bracket_steps = max_bracket_steps,
+      target_name = target$parm,
+      curvature_se = curvature_se
+    )
+  }
+  crossings <- profile_lapply(c(-1L, 1L), endpoint_worker, endpoint_plan)
+  lower <- crossings[[1L]]
+  upper <- crossings[[2L]]
 
   link_interval <- c(lower$theta, upper$theta)
   interval <- profile_transform_interval(link_interval, target)
@@ -1467,7 +1527,18 @@ drm_profile_endpoint_result <- function(
     cutoff = cutoff,
     lower_root_error = lower$root_error,
     upper_root_error = upper$root_error,
+    lower_n_eval = lower$n_eval,
+    upper_n_eval = upper$n_eval,
     n_eval = lower$n_eval + upper$n_eval,
+    curvature_se = curvature_se,
+    lower_initial_step = lower$initial_step,
+    upper_initial_step = upper$initial_step,
+    lower_bracket_step = lower$bracket_step,
+    upper_bracket_step = upper$bracket_step,
+    lower_step_source = lower$step_source,
+    upper_step_source = upper$step_source,
+    endpoint_parallel = endpoint_plan$backend,
+    endpoint_workers = endpoint_plan$workers,
     target_position = position
   )
 }
@@ -1484,6 +1555,21 @@ profile_endpoint_target_supported <- function(target) {
         "residual-correlation"
       ) &&
     target$transformation[[1L]] %in% c("exp", "tanh", "rho12_tanh")
+}
+
+profile_endpoint_curvature_se <- function(object, position) {
+  if (!drm_has_sdreport_covariance(object)) {
+    return(NA_real_)
+  }
+  cov_fixed <- object$sdr$cov.fixed
+  if (position > nrow(cov_fixed)) {
+    return(NA_real_)
+  }
+  variance <- cov_fixed[position, position]
+  if (!is.finite(variance) || variance <= 0) {
+    return(NA_real_)
+  }
+  sqrt(variance)
 }
 
 profile_endpoint_evaluator <- function(object, target_position, control) {
@@ -1545,7 +1631,8 @@ profile_endpoint_crossing <- function(
   direction,
   root_tol,
   max_bracket_steps,
-  target_name
+  target_name,
+  curvature_se = NA_real_
 ) {
   n_eval <- 0L
   last_free <- evaluator$start_free
@@ -1556,7 +1643,7 @@ profile_endpoint_crossing <- function(
     out$nll - nll_hat - cutoff
   }
 
-  at_hat <- eval_root(theta_hat)
+  at_hat <- -cutoff
   if (!is.finite(at_hat) || at_hat >= 0) {
     cli::cli_abort(c(
       "Could not start endpoint profile for target {.val {target_name}}.",
@@ -1564,7 +1651,15 @@ profile_endpoint_crossing <- function(
     ))
   }
 
-  step <- profile_endpoint_initial_step(theta_hat, direction)
+  step_info <- profile_endpoint_initial_step(
+    theta_hat = theta_hat,
+    direction = direction,
+    cutoff = cutoff,
+    curvature_se = curvature_se
+  )
+  step <- step_info$step
+  initial_step <- step
+  n_bracket_step <- 0L
   outer <- theta_hat + direction * step
   outer_value <- eval_root(outer)
   for (i in seq_len(max_bracket_steps)) {
@@ -1572,6 +1667,7 @@ profile_endpoint_crossing <- function(
       break
     }
     step <- step * 1.6
+    n_bracket_step <- i
     outer <- theta_hat + direction * step
     outer_value <- eval_root(outer)
   }
@@ -1583,9 +1679,18 @@ profile_endpoint_crossing <- function(
   }
 
   interval <- sort(c(theta_hat, outer))
+  if (direction < 0) {
+    f_lower <- outer_value
+    f_upper <- at_hat
+  } else {
+    f_lower <- at_hat
+    f_upper <- outer_value
+  }
   root <- stats::uniroot(
     eval_root,
     interval = interval,
+    f.lower = f_lower,
+    f.upper = f_upper,
     tol = root_tol
   )
   root_error <- abs(root$f.root)
@@ -1599,16 +1704,36 @@ profile_endpoint_crossing <- function(
   list(
     theta = root$root,
     root_error = root_error,
-    n_eval = n_eval
+    n_eval = n_eval,
+    initial_step = initial_step,
+    bracket_step = step,
+    n_bracket_step = n_bracket_step,
+    step_source = step_info$source
   )
 }
 
-profile_endpoint_initial_step <- function(theta_hat, direction) {
+profile_endpoint_initial_step <- function(
+  theta_hat,
+  direction,
+  cutoff = NA_real_,
+  curvature_se = NA_real_
+) {
+  if (
+    is.finite(cutoff) &&
+      cutoff > 0 &&
+      is.finite(curvature_se) &&
+      curvature_se > 0
+  ) {
+    step <- sqrt(2 * cutoff) * curvature_se * 1.1
+    if (is.finite(step) && step > sqrt(.Machine$double.eps)) {
+      return(list(step = step, source = "curvature"))
+    }
+  }
   step <- max(0.25, abs(theta_hat) * 0.05)
   if (!is.finite(step) || step <= 0) {
     step <- 0.25
   }
-  step
+  list(step = step, source = "fixed")
 }
 
 profile_check_tmbprofile_dots <- function(...) {
