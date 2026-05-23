@@ -2,6 +2,113 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Rendered Figure QA Slices 51-60
+
+Goal: merge the previous rendered-figure PR, then improve the `convergence`
+article with diagnostic figures that separate clean optimization, skipped
+uncertainty, and deliberately unfinished optimization.
+
+Roles: Ada merged PR #308 and kept the new work on a fresh branch. Florence
+inspected the two rendered convergence figures and rejected the first
+log-scale bar version. Fisher checked that the figures show diagnostic status
+and optimizer quantities rather than uncertainty intervals. Pat and Darwin
+checked whether the displays help applied readers read `check_drm()` before
+Wald output. Noether checked axes and labels against diagnostic quantities.
+Curie checked that the tiny fitted examples exercise real `check_drm()` states.
+Grace checked rendering, alt text, tests, diff hygiene, and pkgdown. Rose
+updated the audit trail and watched for one-rule-fits-all Confidence Eye drift.
+These were role perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/convergence.Rmd`
+- `docs/design/39-visualization-grammar.md`
+- `docs/dev-log/audits/2026-05-22-rendered-article-checklist.md`
+- `docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-51-60.md`
+- `docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-51-60.md`
+- `docs/dev-log/check-log.md`
+- `tests/testthat/test-prediction-grid.R`
+
+Commands run:
+
+```sh
+gh pr view 308 --json number,title,url,state,isDraft,mergeStateStatus,statusCheckRollup,headRefName,baseRefName
+gh api -X PUT repos/itchyshin/drmTMB/pulls/308/merge -f merge_method=squash -f commit_title='Polish animal and relmat figure QA slices (#308)'
+git push origin --delete codex/rendered-figure-qa-46-50
+git fetch origin --prune
+git switch -c codex/rendered-figure-qa-51-60 origin/main
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('convergence', new_process = FALSE, quiet = TRUE)"
+Rscript -e "html <- paste(readLines('pkgdown-site/articles/convergence.html', warn = FALSE), collapse = '\n'); m <- gregexpr('<img[^>]+src=\"convergence_files/figure-html/[^\"]+\"[^>]*>', html, perl = TRUE); imgs <- regmatches(html, m)[[1]]; if (identical(imgs, character(0))) imgs <- character(); missing <- imgs[!grepl('alt=\"[^\"]+', imgs)]; cat(length(imgs), 'article images,', length(missing), 'missing alt text\n')"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+air format vignettes/convergence.Rmd docs/design/39-visualization-grammar.md docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-51-60.md docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-51-60.md
+Rscript -e "devtools::test(filter = 'check-drm|control', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'convergence-check-map|convergence-gradient-budget|diagnostic statuses|skipped uncertainty|failed optimization|fixed-gradient warning threshold' vignettes/convergence.Rmd docs/design/39-visualization-grammar.md docs/dev-log/audits/2026-05-22-rendered-article-checklist.md pkgdown-site/articles/convergence.html
+rg -n 'Confidence Eye|posterior|credible' vignettes/convergence.Rmd docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-51-60.md docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-51-60.md pkgdown-site/articles/convergence.html
+gh run view 26333207178 --json status,conclusion,displayTitle,headSha,url,jobs
+Rscript -e "devtools::test(filter = 'prediction-grid', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'prediction-grid|check-drm|control', reporter = 'summary')"
+gh run watch 26333560880 --exit-status
+gh api repos/itchyshin/drmTMB/actions/jobs/77523481904/logs
+gh api repos/itchyshin/drmTMB/actions/jobs/77523481894/logs
+gh api repos/itchyshin/drmTMB/actions/jobs/77523481889/logs
+Rscript -e "devtools::build_vignettes()"
+```
+
+Result:
+
+- PR #308 was green on Ubuntu, macOS, and Windows before merge. It was
+  squash-merged as `2c1108ec559b0bf17f6cf3c121a4c844f5969e92`, and the remote
+  branch was deleted.
+- The `convergence` article now rebuilds with two active diagnostic figures:
+  a `check_drm()` status map and a gradient/budget panel.
+- Article-image alt-text inspection found 2 referenced article images and 0
+  missing alt attributes.
+- `devtools::test(filter = 'check-drm|control', reporter = 'summary')` passed
+  the focused diagnostic and control shards.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The status scan found the new convergence chunk labels, diagnostic-status
+  wording, skipped-uncertainty wording, and fixed-gradient threshold wording in
+  source and rendered HTML.
+- The negative scan found only intentional statements that diagnostic figures
+  are not Confidence Eyes, posterior probabilities, or credible intervals.
+- Opened PR #309 and updated issue #58 with the slice summary and validation
+  evidence: <https://github.com/itchyshin/drmTMB/issues/58#issuecomment-4525406911>.
+- PR #309's first CI run failed before merge. Ubuntu and macOS reached package
+  checks but treated OS-sensitive `TMB::sdreport()` `NaNs produced` warnings in
+  `test-prediction-grid.R` as failures; Windows failed earlier in checkout
+  with `could not read Username for 'https://github.com': terminal prompts
+  disabled`.
+- The prediction-grid tests check grid construction and point prediction, not
+  Wald SE extraction, so their tiny fixture fits now use
+  `control = drm_control(se = FALSE)`. The focused prediction-grid shard and
+  combined `prediction-grid|check-drm|control` shard passed locally after that
+  change.
+- PR #309's next CI run reached R CMD check on all three platforms and failed
+  during `convergence.Rmd` vignette rebuilding because the new evaluated figure
+  chunk called `drmTMB()` without attaching the package in the vignette itself.
+  The hidden setup chunk now calls `library(drmTMB)`, matching the other
+  fitted-model vignettes.
+- `devtools::build_vignettes()` passed locally after that fix, including the
+  `convergence-check-map` and `convergence-gradient-budget` chunks.
+
+Notes:
+
+- The first gradient/budget render used bars on a log scale. That made the
+  visual comparison too bar-like for a threshold diagnostic. The accepted
+  render uses points and lollipop segments.
+- These convergence figures are status displays. They do not show confidence
+  intervals and should not be generalized into a `plot_diagnostics()` helper
+  until the visual data contract is stable and tested.
+- The prediction-grid CI fix is not part of the visual claim. It is recorded
+  here because Grace caught it while watching PR #309, and keeping the fixture
+  fits out of `sdreport()` makes the existing test intent clearer.
+- The `convergence.Rmd` setup fix is part of the visual claim because R CMD
+  check rebuilds vignettes outside the pkgdown context. Article figures that
+  evaluate must attach the package explicitly, even when pkgdown renders pass.
+
 ## 2026-05-23 - Rendered Figure QA Slices 46-50
 
 Goal: finish the previous rendered-figure PR, then improve the focused
