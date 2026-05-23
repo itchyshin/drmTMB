@@ -79,7 +79,7 @@ Bias and RMSE should be plotted beside the estimand. A single average across
 all parameters hides the distinction between fixed effects, residual scale,
 random-effect SDs, and residual correlation `rho12`.
 
-```{r bias-rmse-display, fig.width=8.4, fig.height=5.2, fig.cap="Simulation accuracy fixture for bias and RMSE; faint marks are sampled replicate errors, points are aggregate summaries, and bars are 95% Monte Carlo standard-error intervals.", fig.alt="Two simulation accuracy plots faceted by simulation surface: a raincloud-style bias display with fixture replicate errors, mean bias points, and MCSE intervals, followed by an aggregate RMSE display with MCSE intervals for four estimands."}
+```{r accuracy-fixture-data, include = FALSE}
 accuracy_targets <- data.frame(
   surface = rep(surface_levels, each = 4),
   estimand = rep(c("beta_x", "sigma", "sd_group", "rho12"), 4),
@@ -191,7 +191,7 @@ accuracy_missing <- accuracy_summary[
   drop = FALSE
 ]
 accuracy_missing$missing_label <- "not\ntargeted"
-accuracy_missing$bias_missing_x <- 0.50
+accuracy_missing$bias_missing_x <- 0.42
 accuracy_missing$rmse_missing_x <- 0.22
 
 display_replicates <- 49
@@ -213,6 +213,9 @@ accuracy_replicate_display$estimand <- factor(
   accuracy_replicate_display$estimand,
   levels = levels(accuracy_summary$estimand)
 )
+```
+
+```{r bias-display, fig.width=8.4, fig.height=5.2, fig.cap="Bias fixture showing sampled replicate-level signed errors, aggregate mean-bias points, and 95% Monte Carlo standard-error intervals by simulation surface.", fig.alt="Faceted bias plot with one surface per panel. Faint points and pale violins show sampled replicate errors, darker points show mean bias, horizontal bars show 95 percent Monte Carlo standard-error intervals, and not-targeted lanes remain labelled."}
 set.seed(20260519)
 ggplot(accuracy_replicate_display, aes(error, estimand)) +
   geom_vline(xintercept = 0, linetype = "dotted", colour = "grey55") +
@@ -280,10 +283,17 @@ ggplot(accuracy_replicate_display, aes(error, estimand)) +
     y = NULL,
     colour = "Surface"
   ) +
+  scale_x_continuous(
+    breaks = c(-0.5, 0, 0.5),
+    labels = c("-0.5", "0.0", "0.5")
+  ) +
+  coord_cartesian(xlim = c(-0.72, 0.72)) +
   scale_y_discrete(labels = estimand_display_labels) +
   guides(colour = "none", fill = "none") +
   theme_sim_grammar()
+```
 
+```{r rmse-display, fig.width=8.4, fig.height=5.2, fig.cap="RMSE fixture showing aggregate root-mean-square error points and 95% Monte Carlo standard-error intervals by simulation surface.", fig.alt="Faceted RMSE plot with one panel per simulation surface. Points show aggregate root-mean-square error, horizontal bars show 95 percent Monte Carlo standard-error intervals, and not-targeted estimand lanes remain visible."}
 ggplot(accuracy_summary, aes(rmse, estimand, colour = surface)) +
   geom_errorbar(
     aes(
@@ -497,9 +507,11 @@ estimate near 0.95 can still be too noisy for a release claim.
 
 Convergence, positive-definite Hessian status, and runtime should sit beside
 accuracy. A surface with low bias but frequent warnings or high runtime is not
-ready for broad claims.
+ready for broad claims. Fit-status proportions and runtime seconds use separate
+figures below because they answer related readiness questions on different
+scales.
 
-```{r convergence-runtime-display, fig.width=8.6, fig.height=4.6, fig.cap="Simulation readiness fixture for fit status and runtime; proportions, medians, and high runtime quantiles are separate checks shown on their own rows.", fig.alt="Faceted readiness plot with one row each for convergence, positive-definite Hessian rate, median runtime, and high runtime quantile by simulation surface."}
+```{r run-summary-fixture-data, include = FALSE}
 run_summary <- data.frame(
   surface = surface_levels,
   convergence_rate = c(0.98, 0.96, 0.90, 0.95),
@@ -548,45 +560,95 @@ run_long$measure_label <- factor(
   run_long$measure,
   levels = rev(levels(run_long$measure))
 )
+fit_status_long <- run_long[run_long$panel == "Fit status proportion", ]
+fit_status_long$measure_label <- factor(
+  fit_status_long$measure,
+  levels = rev(c("Converged", "pdHess"))
+)
+runtime_long <- run_long[run_long$panel == "Runtime (seconds)", ]
+runtime_long$measure_label <- factor(
+  runtime_long$measure,
+  levels = rev(c("Median runtime", "90th percentile runtime"))
+)
+```
 
-ggplot(run_long, aes(value, measure_label, colour = measure)) +
+```{r fit-status-display, fig.width=8.6, fig.height=3.4, fig.cap="Fit-status readiness fixture showing convergence and positive-definite Hessian proportions on a shared 0-1 scale by simulation surface.", fig.alt="Faceted fit-status proportion plot. Each panel shows converged and positive-definite Hessian rates as horizontal segments ending at points, with a dotted reference line at 1.0."}
+ggplot(fit_status_long, aes(value, measure_label, colour = measure)) +
+  geom_vline(xintercept = 1, linetype = "dotted", colour = "grey55") +
   geom_segment(
     aes(x = 0, xend = value, yend = measure_label),
     linewidth = 1.2,
     lineend = "round"
   ) +
   geom_point(size = 2.6) +
-  facet_grid(
-    panel ~ surface,
-    scales = "free",
-    space = "free_y",
+  facet_wrap(
+    ~surface,
+    nrow = 1,
     labeller = labeller(surface = as_labeller(surface_facet_labels))
   ) +
   scale_colour_manual(values = c(
     "Converged" = "#0072B2",
-    "pdHess" = "#56B4E9",
-    "Median runtime" = "#009E73",
-    "90th percentile runtime" = "#E69F00"
+    "pdHess" = "#56B4E9"
   )) +
   scale_y_discrete(labels = c(
     "Converged" = "converged",
-    "pdHess" = "pdHess",
-    "Median runtime" = "median",
-    "90th percentile runtime" = "90th pct."
+    "pdHess" = "pdHess"
   )) +
   scale_x_continuous(
     breaks = c(0, 0.5, 1),
-    expand = expansion(mult = c(0, 0.04))
+    labels = c("0", "0.5", "1"),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, 0.03))
   ) +
   labs(
-    title = "Convergence and runtime belong beside accuracy",
-    subtitle = "Rows keep fit-status proportions separate from runtime summaries",
-    x = "Proportion or seconds",
+    title = "Fit-status proportions need a readiness row",
+    subtitle = "Convergence and pdHess rates stay on a 0-1 scale",
+    x = "Fit-status proportion",
     y = NULL,
     colour = "Measure"
   ) +
   guides(colour = "none") +
-  theme_sim_grammar()
+  theme_sim_grammar() +
+  theme(panel.spacing.x = grid::unit(16, "pt"))
+```
+
+```{r runtime-display, fig.width=8.6, fig.height=3.4, fig.cap="Runtime readiness fixture showing median and 90th percentile elapsed seconds by simulation surface.", fig.alt="Faceted runtime plot. Each panel shows median and 90th percentile elapsed seconds as horizontal segments ending at points, using a seconds axis separate from the fit-status proportion display."}
+ggplot(runtime_long, aes(value, measure_label, colour = measure)) +
+  geom_segment(
+    aes(x = 0, xend = value, yend = measure_label),
+    linewidth = 1.2,
+    lineend = "round"
+  ) +
+  geom_point(size = 2.6) +
+  facet_wrap(
+    ~surface,
+    nrow = 1,
+    labeller = labeller(surface = as_labeller(surface_facet_labels))
+  ) +
+  scale_colour_manual(values = c(
+    "Median runtime" = "#009E73",
+    "90th percentile runtime" = "#E69F00"
+  )) +
+  scale_y_discrete(labels = c(
+    "Median runtime" = "median",
+    "90th percentile runtime" = "90th pct."
+  )) +
+  scale_x_continuous(
+    breaks = c(0, 0.5, 1, 1.5),
+    labels = c("0", "0.5", "1", "1.5"),
+    limits = c(0, 1.5),
+    expand = expansion(mult = c(0, 0.03))
+  ) +
+  labs(
+    title = "Runtime summaries need a seconds scale",
+    subtitle = "Median and 90th percentile rows separate typical from difficult fits",
+    x = "Elapsed seconds per fit",
+    y = NULL,
+    colour = "Measure"
+  ) +
+  guides(colour = "none") +
+  theme_sim_grammar() +
+  theme(panel.spacing.x = grid::unit(16, "pt"))
 ```
 
 Runtime summaries should report medians and high quantiles, not only means,

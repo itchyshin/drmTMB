@@ -784,9 +784,20 @@ decision table for the current public examples:
 | Simulation bias | Check replicate-level signed error beside aggregate mean bias | Faint replicate-error marks plus aggregate point and MCSE bar | 95% MCSE intervals; no Confidence Eye |
 | Simulation RMSE | Check aggregate root mean-square error | Aggregate point and MCSE bar in fixed surface facets | 95% RMSE MCSE interval; no fake replicate cloud |
 | Simulation coverage and power | Check operating characteristics against targets | Replicate-block dots plus aggregate point and binomial MCSE bar | Dotted target line plus 95% binomial MCSE interval |
-| Simulation convergence and runtime | Keep readiness separate from accuracy | Row-wise status and runtime summaries | No interval by default; rows separate proportions from seconds |
+| Simulation convergence and runtime | Keep readiness separate from accuracy | Separate fit-status proportion and runtime-second panels | No interval by default; do not put proportions and seconds on one comparative axis |
 | Failure ledgers | Keep rare warnings, boundaries, errors, and skipped cells visible | Separate status rows by surface | Counts are the data; do not hide rare statuses as stacked slivers |
 | `check_drm()` diagnostic summaries | Separate clean optimization, skipped uncertainty, and unfinished optimization before interpretation | Status maps and threshold-marked diagnostic points | Status labels and named thresholds; no Confidence Eye or interval geometry |
+
+Rendered figure QA slices 71-80 returned to the `simulation-plot-grammar`
+article and tightened the article-specific contract. Bias and RMSE are now
+separate rendered figures with their own captions and alt text because one uses
+sampled replicate-level signed errors plus mean/MCSE intervals, while the other
+uses aggregate RMSE points plus RMSE MCSE intervals. Fit-status proportions and
+runtime seconds are also separate rendered figures because the reader should
+not compare convergence rates and elapsed seconds on one axis. Coverage/power
+and failure-ledger displays stayed on their existing grammar: block-level
+operating-characteristic proportions plus binomial MCSE for the former, and
+status counts as the data for the latter.
 
 Generated pkgdown reference examples are a special accessibility case. `downlit`
 currently emits reference example plots with empty `alt` attributes, so the
