@@ -8,12 +8,41 @@ vignette: >
 ---
 
 ```{r, include = FALSE, purl=FALSE}
+library(drmTMB)
+
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = FALSE,
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144,
+  dev.args = list(bg = "white"),
   purl = FALSE
 )
+
+theme_convergence <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey20"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      strip.text = ggplot2::element_text(face = "bold", colour = "grey15"),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_blank()
+    )
+}
 ```
 
 Complex distributional models sometimes need more care than the default fit.
@@ -54,6 +83,230 @@ The diagnostic table separates several questions that are easy to confuse:
 A warning is not automatically a failed analysis. It is a prompt to decide
 whether the problem is unfinished optimization, weak identifiability, or an
 unnecessary model component.
+
+The same table is often easier to read as a status map. The next figure uses
+three tiny fitted examples: a clean Gaussian fit, the same model run with
+`drm_control(se = FALSE)`, and a deliberately under-budgeted random-effect fit.
+The colours are diagnostic statuses, not uncertainty intervals.
+
+```{r convergence-check-map, eval=has_ggplot2, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a clean fit, a no-standard-error stress fit, and a deliberately low-budget random-effect fit. Clean checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
+set.seed(20260523)
+diagnostic_data <- data.frame(
+  y = 0.5 + 0.7 * stats::rnorm(80) + stats::rnorm(80, sd = 0.35),
+  x = stats::rnorm(80),
+  z = stats::rnorm(80),
+  id = factor(rep(seq_len(20), each = 4))
+)
+
+fit_clean <- drmTMB(
+  bf(y ~ x, sigma ~ 1),
+  data = diagnostic_data,
+  family = gaussian()
+)
+fit_no_se <- drmTMB(
+  bf(y ~ x, sigma ~ 1),
+  data = diagnostic_data,
+  family = gaussian(),
+  control = drm_control(se = FALSE)
+)
+fit_low_budget <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ z),
+  data = diagnostic_data,
+  family = gaussian(),
+  control = drm_control(
+    optimizer = list(iter.max = 1, eval.max = 1)
+  )
+)
+
+diagnostic_fits <- list(
+  "Clean fit" = fit_clean,
+  "Stress fit\nse = FALSE" = fit_no_se,
+  "Budget hit" = fit_low_budget
+)
+diagnostic_checks <- do.call(
+  rbind,
+  lapply(names(diagnostic_fits), function(fit_label) {
+    checks <- as.data.frame(check_drm(diagnostic_fits[[fit_label]]))
+    checks$fit <- fit_label
+    checks
+  })
+)
+diagnostic_rows <- c(
+  "optimizer_convergence",
+  "optimizer_budget",
+  "finite_objective",
+  "fixed_gradient",
+  "sdreport_status",
+  "hessian_positive_definite",
+  "standard_errors_finite",
+  "random_effect_sd_boundary"
+)
+diagnostic_row_labels <- c(
+  "optimizer\nconvergence",
+  "optimizer\nbudget",
+  "finite\nobjective",
+  "fixed\ngradient",
+  "sdreport\nstatus",
+  "positive-definite\nHessian",
+  "finite\nSEs",
+  "random-effect\nSD boundary"
+)
+diagnostic_grid <- expand.grid(
+  check = diagnostic_rows,
+  fit = names(diagnostic_fits),
+  stringsAsFactors = FALSE
+)
+diagnostic_plot_data <- merge(
+  diagnostic_grid,
+  diagnostic_checks[, c("check", "fit", "status")],
+  by = c("check", "fit"),
+  all.x = TRUE,
+  sort = FALSE
+)
+diagnostic_plot_data$status[is.na(diagnostic_plot_data$status)] <- "not applicable"
+diagnostic_plot_data$status <- factor(
+  diagnostic_plot_data$status,
+  levels = c("ok", "note", "warning", "error", "not applicable")
+)
+diagnostic_plot_data$fit <- factor(
+  diagnostic_plot_data$fit,
+  levels = names(diagnostic_fits)
+)
+diagnostic_plot_data$check_label <- factor(
+  diagnostic_row_labels[match(diagnostic_plot_data$check, diagnostic_rows)],
+  levels = rev(diagnostic_row_labels)
+)
+
+ggplot2::ggplot(
+  diagnostic_plot_data,
+  ggplot2::aes(fit, check_label, fill = status)
+) +
+  ggplot2::geom_tile(colour = "white", linewidth = 0.8) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = status),
+    size = 3,
+    colour = "grey12"
+  ) +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "ok" = "#66C2A5",
+      "note" = "#8DA0CB",
+      "warning" = "#FC8D62",
+      "error" = "#D53E4F",
+      "not applicable" = "grey88"
+    ),
+    drop = FALSE
+  ) +
+  ggplot2::labs(
+    title = "Read convergence as a diagnostic table, not a single flag",
+    subtitle = "Notes and warnings tell different stories: skipped uncertainty is not failed optimization",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_convergence() +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(face = "bold"),
+    legend.position = "none"
+  )
+```
+
+```{r convergence-gradient-budget, eval=has_ggplot2, fig.width=7.8, fig.height=3.8, fig.cap="Optimizer-budget fixture from the same tiny fits. Points show recorded optimizer counts and maximum fixed-gradient size; the dotted line marks the `check_drm()` fixed-gradient warning threshold.", fig.alt="Two-panel lollipop plot comparing a clean fit and a deliberately low-budget fit. The low-budget fit has fewer recorded function evaluations and a much larger maximum fixed-gradient value, which crosses the dotted warning threshold."}
+extract_check_value <- function(fit, check_name) {
+  checks <- as.data.frame(check_drm(fit))
+  checks$value[match(check_name, checks$check)]
+}
+extract_named_number <- function(text, name) {
+  pattern <- paste0(".*", name, "=([-+0-9.eE]+).*")
+  as.numeric(sub(pattern, "\\1", text))
+}
+
+gradient_budget <- data.frame(
+  fit = rep(c("Clean fit", "Budget hit"), each = 2),
+  metric = rep(c("function evaluations", "maximum fixed gradient"), 2),
+  value = c(
+    extract_named_number(
+      extract_check_value(fit_clean, "optimizer_budget"),
+      "function"
+    ),
+    extract_named_number(
+      extract_check_value(fit_clean, "fixed_gradient"),
+      "max"
+    ),
+    extract_named_number(
+      extract_check_value(fit_low_budget, "optimizer_budget"),
+      "function"
+    ),
+    extract_named_number(
+      extract_check_value(fit_low_budget, "fixed_gradient"),
+      "max"
+    )
+  )
+)
+gradient_budget$fit <- factor(
+  gradient_budget$fit,
+  levels = c("Clean fit", "Budget hit")
+)
+gradient_budget$metric <- factor(
+  gradient_budget$metric,
+  levels = c("function evaluations", "maximum fixed gradient")
+)
+gradient_budget$value_plot <- pmax(gradient_budget$value, 1e-8)
+gradient_budget$baseline <- ifelse(
+  gradient_budget$metric == "function evaluations",
+  1,
+  1e-8
+)
+
+ggplot2::ggplot(
+  gradient_budget,
+  ggplot2::aes(value_plot, fit, fill = fit)
+) +
+  ggplot2::geom_segment(
+    ggplot2::aes(
+      x = baseline,
+      xend = value_plot,
+      y = fit,
+      yend = fit,
+      colour = fit
+    ),
+    linewidth = 1.1,
+    show.legend = FALSE
+  ) +
+  ggplot2::geom_point(
+    shape = 21,
+    size = 4.5,
+    colour = "white",
+    stroke = 0.8,
+    show.legend = FALSE
+  ) +
+  ggplot2::geom_vline(
+    data = data.frame(
+      metric = factor(
+        "maximum fixed gradient",
+        levels = levels(gradient_budget$metric)
+      )
+    ),
+    ggplot2::aes(xintercept = 0.001),
+    linetype = "dotted",
+    colour = "grey35",
+    linewidth = 0.5
+  ) +
+  ggplot2::facet_wrap(~metric, scales = "free_x") +
+  ggplot2::scale_x_log10() +
+  ggplot2::scale_fill_manual(
+    values = c("Clean fit" = "#0072B2", "Budget hit" = "#D55E00")
+  ) +
+  ggplot2::scale_colour_manual(
+    values = c("Clean fit" = "#0072B2", "Budget hit" = "#D55E00")
+  ) +
+  ggplot2::labs(
+    title = "A low-budget fit looks different from a clean optimum",
+    subtitle = "Use the gradient and optimizer-count rows before interpreting Wald output",
+    x = "Recorded value on a log scale",
+    y = NULL
+  ) +
+  theme_convergence()
+```
 
 ## Use `drm_control()` for optimizer limits
 

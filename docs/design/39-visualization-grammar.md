@@ -764,11 +764,18 @@ decision table for the current public examples:
 | Simulation coverage and power | Check operating characteristics against targets | Replicate-block dots plus aggregate point and binomial MCSE bar | Dotted target line plus 95% binomial MCSE interval |
 | Simulation convergence and runtime | Keep readiness separate from accuracy | Row-wise status and runtime summaries | No interval by default; rows separate proportions from seconds |
 | Failure ledgers | Keep rare warnings, boundaries, errors, and skipped cells visible | Separate status rows by surface | Counts are the data; do not hide rare statuses as stacked slivers |
+| `check_drm()` diagnostic summaries | Separate clean optimization, skipped uncertainty, and unfinished optimization before interpretation | Status maps and threshold-marked diagnostic points | Status labels and named thresholds; no Confidence Eye or interval geometry |
 
 Generated pkgdown reference examples are a special accessibility case. `downlit`
 currently emits reference example plots with empty `alt` attributes, so the
 deployed site post-processes the two current plotting-reference images after
 `pkgdown::build_site()` rather than making roxygen examples noisier for users.
+
+Rendered figure QA slices 51-60 apply this diagnostic rule to the convergence
+article. A `check_drm()` status map can show `ok`, `note`, and `warning` rows
+beside one another because the reader task is triage, not interval inference.
+A gradient/budget panel can mark the fixed-gradient warning threshold, but it
+should not look like a confidence interval or a compatibility distribution.
 
 | Display pattern | Current decision | Export only after |
 | --- | --- | --- |
