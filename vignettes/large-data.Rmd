@@ -12,8 +12,37 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = FALSE,
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144,
+  dev.args = list(bg = "white"),
   purl = FALSE
 )
+
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+
+theme_large_data <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey20"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
+      panel.background = ggplot2::element_rect(fill = "white", colour = NA),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_blank()
+    )
+}
 ```
 
 Large data changes the workflow. A model that is statistically reasonable can
@@ -226,6 +255,84 @@ Treat these routes as different evidence, not as interchangeable defaults. Wald
 intervals are the routine first pass, endpoint profiles are likelihood-based
 checks for direct scalar targets, full `TMB::tmbprofile()` is the debugging and
 comparison route, and bootstrap is a slower refit-based audit.
+
+The current endpoint benchmark artifact gives a scale for those choices. The
+plot below uses the synthetic Gaussian phylogenetic benchmark rows recorded in
+`docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv`. It intentionally uses
+points only: elapsed seconds are local timing measurements from one machine, not
+confidence intervals.
+
+```{r large-data-profile-benchmark-timing, eval=has_ggplot2, echo=FALSE, message=FALSE, warning=FALSE, fig.width=7.4, fig.height=4.4, fig.cap="Development benchmark timings for direct scalar profile intervals. Points are elapsed seconds from one local synthetic Gaussian phylogenetic benchmark table; they are performance measurements, not confidence intervals.", fig.alt="Horizontal dot plot comparing tmbprofile, endpoint, and endpoint multicore elapsed seconds for residual sigma and phylogenetic SD benchmark scenarios. Endpoint and endpoint multicore are faster than tmbprofile in every shown successful benchmark row."}
+profile_bench <- data.frame(
+  scenario = c(
+    rep("sigma\n10k rows / 1k species", 3),
+    rep("phylo SD\n10k rows / 1k species", 3),
+    rep("phylo SD\n100k rows / 1k species", 3),
+    rep("phylo SD\n100k rows / 5k species", 3)
+  ),
+  engine = rep(
+    c("Full tmbprofile", "Endpoint", "Endpoint + 2 workers"),
+    times = 4
+  ),
+  elapsed_sec = c(
+    32.690, 6.993, 3.777,
+    21.774, 7.610, 4.734,
+    235.344, 51.193, 27.652,
+    249.426, 43.857, 24.527
+  )
+)
+
+profile_bench$scenario <- factor(
+  profile_bench$scenario,
+  levels = c(
+    "sigma\n10k rows / 1k species",
+    "phylo SD\n10k rows / 1k species",
+    "phylo SD\n100k rows / 1k species",
+    "phylo SD\n100k rows / 5k species"
+  )
+)
+profile_bench$engine <- factor(
+  profile_bench$engine,
+  levels = c("Full tmbprofile", "Endpoint", "Endpoint + 2 workers")
+)
+
+ggplot2::ggplot(
+  profile_bench,
+  ggplot2::aes(elapsed_sec, scenario, colour = engine, shape = engine)
+) +
+  ggplot2::geom_line(
+    ggplot2::aes(group = scenario),
+    colour = "grey78",
+    linewidth = 0.45
+  ) +
+  ggplot2::geom_point(size = 3.2) +
+  ggplot2::scale_x_log10(
+    breaks = c(3, 5, 10, 30, 100, 300),
+    labels = c("3", "5", "10", "30", "100", "300"),
+    limits = c(3, 320)
+  ) +
+  ggplot2::scale_colour_manual(
+    values = c(
+      "Full tmbprofile" = "#4D4D4D",
+      "Endpoint" = "#0072B2",
+      "Endpoint + 2 workers" = "#009E73"
+    )
+  ) +
+  ggplot2::scale_shape_manual(
+    values = c(
+      "Full tmbprofile" = 16,
+      "Endpoint" = 17,
+      "Endpoint + 2 workers" = 15
+    )
+  ) +
+  ggplot2::labs(
+    title = "Endpoint profiles reduce direct scalar interval time",
+    subtitle = "Synthetic local benchmarks; points are elapsed seconds, not uncertainty",
+    x = "Elapsed seconds (log scale)",
+    y = NULL
+  ) +
+  theme_large_data()
+```
 
 ## Check the fit with the storage choice in mind
 

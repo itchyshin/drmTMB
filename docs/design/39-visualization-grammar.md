@@ -160,6 +160,28 @@ main evidence. At least one rendered output for every changed figure should be
 opened directly and checked for clipping, alignment, empty-space misuse, legend
 fit, and whether the figure genuinely teaches the fitted model result.
 
+### Benchmark And Runtime Figures
+
+Benchmark figures are performance evidence, not model uncertainty. They should
+show the measured quantity directly, such as elapsed seconds, peak memory, fit
+object size, endpoint root evaluations, or speedup against a named baseline.
+They should not use Confidence Eyes, confidence ribbons, MCSE bars, or bootstrap
+language unless repeated benchmark runs produced an explicit uncertainty object.
+
+For a timing figure, record the benchmark artifact, hardware or platform scope,
+target, engine, and success filter in the caption or nearby text. A single-run
+timing point can be useful when it helps a user choose between Wald intervals,
+endpoint profiles, full `TMB::tmbprofile()`, and bootstrap, but it remains local
+planning evidence. Do not turn one machine's elapsed seconds into a general
+package speed promise.
+
+The visual grammar is therefore simple: points or lollipops for elapsed time,
+log scales when runtimes span orders of magnitude, separate rows for model or
+data-size scenarios, and stable colour for engines or storage routes. When
+parallel timing is shown, name the worker count. When a fit or interval failed,
+show the failure as a labelled missing or excluded row instead of silently
+dropping it from a speedup claim.
+
 ### Florence Figure Gate
 
 Florence is the standing scientific figure editor for visualization work. She

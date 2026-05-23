@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Rendered Figure QA Slices 61-70
+
+Goal: continue the rendered figure sweep by adding a case-appropriate
+benchmark timing figure to the `large-data` article after the interval-route
+guidance landed.
+
+Roles: Ada kept the slice focused on rendered figure QA. Florence inspected the
+rendered timing figure. Fisher checked that elapsed seconds are performance
+measurements, not uncertainty intervals. Pat checked that the figure helps an
+applied reader choose an interval route. Grace checked pkgdown rendering and
+alt text. Rose updated the pattern ledger so benchmark figures do not inherit
+Confidence Eye rules. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added the `large-data-profile-benchmark-timing` figure to
+  `vignettes/large-data.Rmd`, using the existing
+  `docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv` artifact.
+- Hid the plotting recipe in the rendered article so the page shows the
+  performance evidence rather than a long hard-coded benchmark table.
+- Updated `docs/design/39-visualization-grammar.md` with benchmark-runtime
+  display rules: use points or lollipops for elapsed time, name hardware and
+  benchmark scope, and avoid Confidence Eyes or interval geometry unless
+  repeated benchmark uncertainty exists.
+- Updated the rendered article checklist and added a per-slice figure audit
+  plus after-task report.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('large-data', new_process = FALSE, quiet = TRUE)"
+Rscript -e "html <- paste(readLines('pkgdown-site/articles/large-data.html', warn = FALSE), collapse = '\n'); m <- gregexpr('<img[^>]+src=\"large-data_files/figure-html/[^\"]+\"[^>]*>', html, perl = TRUE); imgs <- regmatches(html, m)[[1]]; if (identical(imgs, character(0))) imgs <- character(); missing <- imgs[!grepl('alt=\"[^\"]+', imgs)]; cat(length(imgs), 'article images,', length(missing), 'missing alt text\n')"
+air format vignettes/large-data.Rmd docs/design/39-visualization-grammar.md docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-61-70.md docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-61-70.md docs/dev-log/check-log.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+```
+
+- The `large-data` article rebuilt successfully.
+- Article-image alt-text inspection found 1 referenced article image and 0
+  missing alt attributes.
+- The rendered image was inspected directly at
+  `pkgdown-site/articles/large-data_files/figure-html/large-data-profile-benchmark-timing-1.png`.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully and rebuilt the new
+  figure chunk under the ordinary vignette build.
+
 ## 2026-05-23 - Large-Phylo Interval Guidance And Bootstrap Multicore Smoke
 
 Goal: align user-facing large-data guidance with the merged endpoint-profile
