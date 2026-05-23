@@ -82,7 +82,8 @@ drmTMB(
 
 The response is on the left-hand side. `meta_V(V = V)` supplies known sampling
 covariance and should not repeat the response name. `meta_known_V(V = V)`
-remains a compatibility alias for the same additive likelihood path.
+is deprecated but remains a compatibility alias for the same additive
+likelihood path.
 
 ## Known Covariance Input
 
@@ -110,8 +111,9 @@ effect scale formulas such as `sd(study) ~ x1` are also supported for
 univariate Gaussian known-covariance models and are covered by an independent
 dense marginal-likelihood test.
 
-The parser should treat `meta_known_V()` as a covariance marker, not as an
-ordinary predictor column. It should treat `meta_V(V = V)` the same way.
+The parser should treat `meta_V(V = V)` as a covariance marker, not as an
+ordinary predictor column. The deprecated `meta_known_V()` spelling should warn
+and then use the same additive known-`V` path.
 
 The API should be explicit that vector inputs contain variances. If users have
 standard errors, they should supply squared values.
@@ -135,9 +137,9 @@ y ~ MVN(mu, V + Omega_estimated)
 ```
 
 Slice 205 implements `meta_V(V = V)` as the preferred public spelling for
-additive known sampling variance or covariance. The current
-`meta_known_V(V = V)` marker remains as a compatibility alias, not as a
-separate likelihood path.
+additive known sampling variance or covariance. The older
+`meta_known_V(V = V)` marker is deprecated but remains as a compatibility
+alias, not as a separate likelihood path.
 
 The implemented and reserved spelling split is:
 
@@ -191,8 +193,8 @@ The practical rule is:
   explicit unavailable status unless a direct profile interval is requested.
 - `profile_targets(fit)` should include estimated `sigma`, random-effect SD,
   structured-effect SD, and `rho12` targets where those quantities exist.
-- `profile_targets(fit)` should not add a row for `V`, `meta_V()`, or
-  `meta_known_V()` because those are known inputs.
+- `profile_targets(fit)` should not add a row for `V`, `meta_V()`, or the
+  deprecated `meta_known_V()` alias because those are known inputs.
 - Dense univariate and bivariate matrix-`V` fits should keep the same estimated
   target inventory as their diagonal/vector-`V` counterparts while respecting
   their separate weighting boundary.

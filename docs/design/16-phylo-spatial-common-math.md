@@ -181,9 +181,9 @@ relmat(1 | id, Q = Q_user)
 ```
 
 These inputs are relatedness or precision matrices for latent random effects.
-They are not known sampling covariances. Keep `V` reserved for the preferred
-`meta_V(..., V = V)` design, where the matrix describes sampling error in
-observations or effect-size estimates.
+They are not known sampling covariances. Keep `V` reserved for
+`meta_V(V = V)`, where the matrix describes sampling error in observations or
+effect-size estimates.
 
 The first reader-facing animal-model examples should be ecological and
 evolutionary, not matrix demonstrations. Good targets are:
@@ -391,8 +391,9 @@ drmTMB(
 ```
 
 This is partly implemented. Current code supports dense known sampling
-covariance through `meta_known_V(V = V)`; the preferred roadmap spelling is
-`meta_V(V = V)` once the alias/rename slice is implemented. Current code also
+covariance through the preferred `meta_V(V = V)` spelling, with
+deprecated `meta_known_V(V = V)` retained as a compatibility alias. Current code
+also
 supports univariate Gaussian `mu` random intercepts, independent numeric `mu`
 random slopes, one-slope correlated `mu` blocks, univariate Gaussian
 residual-scale random intercepts and independent random slopes in `sigma`,
@@ -539,8 +540,7 @@ blocks, rather than treating every cross-response correlation as residual
 
 1. Keep the current Gaussian location-scale and bivariate `rho12` MVP stable.
 2. Extend the known-sampling-covariance path from dense `V` to sparse storage,
-   using the preferred `meta_V(V = V)` spelling once the alias/rename slice is
-   implemented.
+   using the preferred `meta_V(V = V)` spelling.
 3. Keep the first `phylo(1 | species, tree = tree)` univariate Gaussian `mu`
    path under simulation and comparator tests.
 4. Add matching bivariate `mu1`/`mu2` phylogenetic location effects with one

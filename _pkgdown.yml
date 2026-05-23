@@ -97,7 +97,6 @@ reference:
       - drm_formula
       - bf
       - meta_V
-      - meta_known_V
       - meta_vcov_bivariate
       - beta
       - beta_binomial
@@ -119,6 +118,7 @@ reference:
   - title: Deprecated marker internals
     desc: Older deprecated formula markers kept out of the main reader path.
     contents:
+      - meta_known_V
       - gr
   - title: Model fitting and post-fit tools
     desc: Fit, diagnose, summarize, predict, and simulate distributional models.

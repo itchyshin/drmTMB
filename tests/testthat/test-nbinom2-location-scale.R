@@ -470,11 +470,11 @@ test_that("nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_known_V(V = rep(0.1, 4)), sigma ~ 1),
+      bf(y ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
       family = nbinom2(),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = nbinom2(), data = dat),

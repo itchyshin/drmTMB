@@ -58,7 +58,7 @@ test_that("internal TMB data routing rejects unknown model labels", {
 
 test_that("drm_formula() captures meta-analysis and random-effect scale syntax", {
   form <- drm_formula(
-    yi ~ moderator + meta_known_V(V = vi),
+    yi ~ moderator + meta_V(V = vi),
     sigma ~ moderator,
     sd(study) ~ moderator,
     sd(species) ~ habitat
@@ -71,7 +71,7 @@ test_that("drm_formula() captures meta-analysis and random-effect scale syntax",
     c("mu", "sigma", "sd(study)", "sd(species)")
   )
   expect_equal(form$entries[[1]]$response, "yi")
-  expect_match(deparse1(form$calls[[1]]), "meta_known_V\\(V = vi\\)")
+  expect_match(deparse1(form$calls[[1]]), "meta_V\\(V = vi\\)")
   expect_match(deparse1(form$calls[[3]]), "sd\\(study\\)")
   expect_match(deparse1(form$calls[[4]]), "sd\\(species\\)")
 })
@@ -304,7 +304,11 @@ test_that("drm_formula() captures planned structured-effect syntax", {
 })
 
 test_that("formula markers are no-op placeholders", {
-  expect_null(meta_known_V(V = 1))
+  expect_null(meta_V(V = 1))
+  expect_warning(
+    expect_null(meta_known_V(V = 1)),
+    "deprecated"
+  )
   expect_null(animal(1 | id, pedigree = pedigree))
   expect_null(animal(1 | id, A = A))
   expect_null(animal(1 | id, Ainv = Ainv))

@@ -60,7 +60,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(1 | id)` in `sigma` | Implemented | Residual-scale random intercept in the univariate Gaussian `sigma` formula. |
 | `(1 | p | id)` in both `mu` and `sigma` | Implemented | First univariate location-scale covariance slice; `p` labels one mean-scale random-intercept covariance block. |
 | `sd(id) ~ x_group` | Implemented | Models the SD of an unlabelled Gaussian `mu` random intercept; predictors must be group-level. |
-| `meta_known_V(V = V)` | Implemented | Known diagonal, block-diagonal, or dense sampling covariance in a Gaussian model; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
+| `meta_V(V = V)` | Implemented | Preferred spelling for known diagonal, block-diagonal, or dense sampling covariance in a Gaussian model; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
+| `meta_known_V(V = V)` | Deprecated compatibility alias | Warns and then uses the same additive known-covariance path. New code should use `meta_V(V = V)`. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice; `p` labels a `mu1`/`mu2` random-intercept covariance block. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice; `p` labels a `sigma1`/`sigma2` random-intercept covariance block on the log-`sigma` scale. |

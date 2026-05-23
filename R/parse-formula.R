@@ -16,6 +16,9 @@ parse_drm_formula_entry <- function(expr, name, position) {
 
   lhs <- formula_lhs(expr)
   rhs <- formula_rhs(expr)
+  if (formula_contains_call(rhs, "meta_known_V")) {
+    warn_meta_known_v_deprecated()
+  }
   has_name <- nzchar(name)
   has_lhs <- !is.null(lhs)
   corpair_lhs <- NULL

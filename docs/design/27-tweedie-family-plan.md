@@ -94,7 +94,7 @@ The first implementation should be fixed-effect, univariate, and non-spatial:
 - intercept-only `nu ~ 1` first, with predictor-dependent `nu` deferred until
   the mean, scale, zero-mass, and power trade-offs are better understood;
 - no random effects in `sigma` or `nu`;
-- no bivariate Tweedie, no `rho12`, no `meta_known_V(V = V)`, and no
+- no bivariate Tweedie, no `rho12`, no `meta_V(V = V)`, and no
   phylogenetic or spatial structured effects in the first slice.
 
 Before code lands, add:

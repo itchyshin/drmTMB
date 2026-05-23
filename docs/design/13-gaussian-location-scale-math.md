@@ -302,7 +302,7 @@ Meta-analysis keeps the same naming rule. For diagonal known sampling variance:
 yi_i | mu_i, sigma_i, v_i ~ Normal(mu_i, v_i + sigma_i^2)
 ```
 
-where `v_i` is known sampling variance from `meta_known_V(V = vi)` and
+where `v_i` is known sampling variance from `meta_V(V = vi)` and
 `sigma_i` is the estimated extra heterogeneity SD. This is traditionally called
 `tau` in much of the meta-analysis literature, but the package API keeps
 `sigma` for residual-scale consistency.

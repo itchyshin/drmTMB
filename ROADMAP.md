@@ -55,8 +55,8 @@ distributional regression models using TMB.
 - Supported syntax:
   `bf(y ~ x1 + (1 | id) + (0 + x1 | id), sigma ~ x2 + (1 | id) + (0 + w | id))`.
 - Keep parser support for `sd(group) ~`, known sampling covariance
-  (`meta_V(V = V)` preferred, `meta_known_V(V = V)` as a compatibility alias),
-  `phylo()`, and `spatial()` terms from the start.
+  (`meta_V(V = V)` preferred, deprecated `meta_known_V(V = V)` as a
+  compatibility alias), `phylo()`, and `spatial()` terms from the start.
 - Prediction for `mu` and `sigma` is implemented.
 - Simulation and parameter-recovery tests are implemented for the first
   Gaussian case.
@@ -67,8 +67,8 @@ distributional regression models using TMB.
 - Treat meta-analysis as `family = gaussian()` plus known sampling covariance.
   The preferred implemented spelling is `meta_V(V = V)`, with vectors accepted
   for diagonal sampling variances and matrices accepted for dense sampling
-  covariance. `meta_known_V(V = V)` remains a compatibility alias for the same
-  additive known-covariance likelihood path.
+  covariance. Deprecated `meta_known_V(V = V)` remains a compatibility alias
+  for the same additive known-covariance likelihood path.
 - Support known sampling covariance through vectors, columns, diagonal matrices,
   dense block-diagonal matrices, or dense full matrices.
 - Reserve, but do not fully implement for `0.1.3`, a `meta_V()` umbrella that
@@ -91,8 +91,8 @@ distributional regression models using TMB.
   likelihood weights, matching the broad convention in mixed-model packages.
 - Keep likelihood weights separate from known sampling covariance: weights
   multiply observation log-likelihood contributions, whereas `meta_V(V = V)`
-  supplies known sampling covariance. `meta_known_V(V = V)` remains a
-  compatibility alias for the same additive path.
+  supplies known sampling covariance. Deprecated `meta_known_V(V = V)` remains
+  a compatibility alias for the same additive path.
 - Coexistence rule: diagonal/vector known `V` may be combined with ordinary
   likelihood weights, but those weights do not create proportional sampling
   variance. Full dense matrix-`V` fits reject non-unit top-level weights until
@@ -279,7 +279,7 @@ distributional regression models using TMB.
   `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` escape hatch. Treat
   `relmat()` as the public replacement for deprecated `gr()`-style low-level
   wording rather than teaching both names. Keep `V` for known
-  sampling covariance in the preferred `meta_V(..., V = V)` design; do not
+  sampling covariance in the preferred `meta_V(V = V)` design; do not
   reuse `V` for additive genetic or phylogenetic relatedness.
 - Keep animal-model examples grounded in eco-evo questions rather than
   matrix-only demonstrations: heritable trait means in a wild pedigree,
@@ -1454,8 +1454,8 @@ making the public grammar and examples match the preferred long-term name.
 | Slice | Lane | Target |
 | --- | --- | --- |
 | 203 | Meta-analysis return map | Done locally: record the post-202 return block, keep broad Phase 18 closed, and make `meta_V()`/known-`V` hardening the first Phase 17 target. |
-| 204 | `meta_V()` API decision | Done locally: `meta_V(V = V)` is the preferred additive known-covariance spelling, the marker should not take a positional response/value argument, and `meta_known_V(V = V)` is a compatibility alias rather than a separate likelihood path. |
-| 205 | Additive known `V` implementation | Done locally: `meta_V(V = vi_or_V)` is accepted for the additive known-covariance route by sharing the existing `meta_known_V(V = V)` path; proportional `meta_V(w = w, scale = "proportional")` remains rejected before fitting. |
+| 204 | `meta_V()` API decision | Done locally and superseded by the deprecation slice: `meta_V(V = V)` is the preferred additive known-covariance spelling, the marker should not take a positional response/value argument, and deprecated `meta_known_V(V = V)` remains a compatibility alias rather than a separate likelihood path. |
+| 205 | Additive known `V` implementation | Done locally: `meta_V(V = vi_or_V)` is accepted for the additive known-covariance route; deprecated `meta_known_V(V = V)` still shares that path for compatibility. Proportional `meta_V(w = w, scale = "proportional")` remains rejected before fitting. |
 | 206 | Proportional sampling-variance boundary | Done locally: keep `meta_V(w = w, scale = "proportional")`, `meta_V(w = w)`, and `meta_V(V = V, scale = "exact")` reserved before fitting; clarify that diagonal/vector `meta_V(V = V)` may use ordinary likelihood weights, full matrix-`V` rejects non-unit weights, and neither route mimics proportional sampling variance. |
 | 207 | Meta-analysis interval safety | Done locally: add profile-target and summary interval tests proving `meta_V()` fits expose estimated `sigma`, random-effect SD, and bivariate `rho12` targets while never treating known `V` as an estimated interval target. |
 | 208 | Reader examples | Done locally: refresh the meta-analysis tutorial and design examples around preferred `meta_V(V = V)`, vector `V`, matrix `V`, residual heterogeneity `sigma`, random effects, random-effect scale, bivariate known `V`, and the unsupported proportional branch. |
@@ -1740,7 +1740,7 @@ as the whole comprehensive simulation programme.
 | 277 | Convergence | Hessian and boundary diagnostics | Done locally: `check_drm()` now reports the largest fixed-gradient component in the `fixed_gradient` row, preserving the existing gradient/Hessian boundary status while making non-converged fits easier to triage before Wald or Hessian-based inference. |
 | 278 | CIs and profiles | Interval hardening | Done locally: the interval contract now states which fixed-effect, scale, `rho12`, direct SD/correlation, Fisher-z simulation, derived-variance, and bootstrap routes are supported or deliberately unavailable, with Student-t `nu` fixed-effect interval and Fisher-z helper tests. |
 | 279 | Known issues | Bergmann report fixes | Done locally and now partly superseded: invalid fixed-effect Wald variances produce `NA` intervals with `conf.status = "wald_unavailable"`; the old unsupported `sigma ~ phylo()` boundary has been replaced by fitted intercept-only univariate structured `sigma` routes; labelled q4 block-diagonal fallback is tested as separate `mu` and `sigma` q2 blocks; convergence guidance covers long iteration histories. |
-| 280 | Meta-analysis | `meta_V(V = V)` hardening | Done locally: vector and full-matrix `meta_V(V = V)` routes now have alias and Wald fixed-effect interval coverage, `scale = "exact"` gets a targeted remove-`scale` error because additive exact known-`V` is the default, and `drmTMB()` / `meta_vcov_bivariate()` documentation now leads with `meta_V()` while keeping `meta_known_V()` as a compatibility alias. |
+| 280 | Meta-analysis | `meta_V(V = V)` hardening | Done locally and superseded by the deprecation slice: vector and full-matrix `meta_V(V = V)` routes now have deprecated-alias and Wald fixed-effect interval coverage, `scale = "exact"` gets a targeted remove-`scale` error because additive exact known-`V` is the default, and `drmTMB()` / `meta_vcov_bivariate()` documentation now leads with `meta_V()` while keeping deprecated `meta_known_V()` as a compatibility alias. |
 | 281 | Structural dependence | Animal and `relmat()` user surface | Done locally by documentation hardening, superseded after the 0.1.3 preview line by fitted known-matrix slices: `animal(1 | id, A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)` fit Gaussian `mu` intercepts, matching labelled `mu1`/`mu2` terms fit q=2 bivariate location covariance, and matching all-four `mu1`/`mu2`/`sigma1`/`sigma2` terms fit constant q=4 location-scale covariance. The article still keeps observation-level known sampling covariance in `meta_V(V = V)`, not latent relatedness. |
 | 282 | Structural dependence | Sparse precision path | Done locally by documentation hardening: ASReml efficiency notes and user docs now separate dense covariance inputs (`A`, `K`) from sparse precision or inverse-relatedness inputs (`Ainv`, `Q`), keep `meta_V(V = V)` as observation-level sampling covariance, and block large-pedigree or large-matrix speed claims until sparse-precision recovery and benchmark evidence exists. |
 | 283 | Non-Gaussian audit | Family and parameter map | Done locally by documentation audit: `docs/design/02-family-registry.md` now lists each public family route, distributional-parameter links, shape or coscale slots, fitted random-effect allowance, and test evidence state, while correcting stale beta-binomial, Poisson, NB2, bivariate, and `meta_V()` wording. |

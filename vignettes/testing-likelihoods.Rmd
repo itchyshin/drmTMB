@@ -106,7 +106,7 @@ heterogeneity. The matching `drmTMB` syntax is:
 
 ```{r dense-meta-syntax, eval = FALSE}
 fit <- drmTMB(
-  drm_formula(yi ~ x + meta_known_V(V = V)),
+  drm_formula(yi ~ x + meta_V(V = V)),
   family = gaussian(),
   data = dat
 )
@@ -380,8 +380,8 @@ S_i[1,2] = known within-study sampling covariance
 Omega_i[1,2] = rho12_i sigma1_i sigma2_i
 ```
 
-In the current implementation, bivariate `meta_known_V(V = V)` must evaluate to
-a complete-row `2n` by `2n` row-paired covariance matrix, with
+In the current implementation, bivariate `meta_V(V = V)` must evaluate to a
+complete-row `2n` by `2n` row-paired covariance matrix, with
 `meta_vcov_bivariate()` available as the helper. Conceptually this stacked
 matrix contains the known within-study sampling covariance blocks `S_i`.
 `rho12` models the unknown residual covariance component. A valid test must show
@@ -399,7 +399,7 @@ Examples of rejection tests:
 expect_snapshot(
   {
     drmTMB(
-      drm_formula(y ~ x + meta_known_V(V = V), nu ~ x),
+      drm_formula(y ~ x + meta_V(V = V), nu ~ x),
       family = student(),
       data = dat
     )

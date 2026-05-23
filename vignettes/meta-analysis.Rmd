@@ -15,8 +15,8 @@ library(drmTMB)
 Meta-analysis in `drmTMB` is ordinary Gaussian distributional regression with
 known sampling covariance. The sampling covariance is supplied with
 `meta_V(V = V)` inside the location formula; it is not a separate
-`meta_gaussian()` family. `meta_known_V(V = V)` remains a compatibility alias
-for older examples.
+`meta_gaussian()` family. Deprecated `meta_known_V(V = V)` remains supported
+only as a compatibility alias for older examples.
 
 The distinction matters. A meta-analysis usually has two sources of variation:
 known sampling error from the original studies, and unknown heterogeneity that
@@ -386,11 +386,11 @@ meta_V(V = V)
 meta_V(w = w, scale = "proportional")
 ```
 
-`meta_known_V(V = V)` remains a compatibility alias for the additive known-`V`
-form, not a second likelihood path. The response is already on the left-hand
-side of the model formula, so `meta_V()` should not repeat it as a positional
-argument. Current fitted examples should use `meta_V(V = V)` for known
-sampling covariance and `weights =` only for likelihood weights.
+Deprecated `meta_known_V(V = V)` remains a compatibility alias for the additive
+known-`V` form, not a second likelihood path. The response is already on the
+left-hand side of the model formula, so `meta_V()` should not repeat it as a
+positional argument. Current fitted examples should use `meta_V(V = V)` for
+known sampling covariance and `weights =` only for likelihood weights.
 
 ## Known sampling variance plus group-level heterogeneity
 

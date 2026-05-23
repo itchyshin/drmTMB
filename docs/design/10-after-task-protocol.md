@@ -43,7 +43,7 @@ Before closing a task, check for stale names and syntax across the repository.
 Common checks include:
 
 ```sh
-rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" .
+rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]|meta_known_V\\(V = V\\).*compatibility alias" .
 rg "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md docs vignettes R tests
 rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md ROADMAP.md docs vignettes R tests
 ```
@@ -96,8 +96,8 @@ Check that:
 - model explanations pair symbolic equations, R syntax, and interpretation;
 - claims are concrete and supported by citations, local files, checks, or
   explicit design assumptions;
-- terms such as `sigma`, `rho12`, `sd(group)`, and `meta_known_V(V = V)` stay
-  consistent;
+- terms such as `sigma`, `rho12`, `sd(group)`, `meta_V(V = V)`, and deprecated
+  `meta_known_V(V = V)` stay consistent;
 - `tau` appears only when explaining a second shape parameter or when
   contrasting drmTMB's `sigma` with meta-analysis notation;
 - users can see what to do next when a model or syntax is unsupported;

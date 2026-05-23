@@ -29,10 +29,10 @@
   model and tests.
 - Diagonal and dense full known-covariance Gaussian meta-analysis is
   implemented. Full-matrix `meta_V(V = V)` currently stores the retained
-  covariance as a dense R matrix, with `meta_known_V(V = V)` retained as a
-  compatibility alias; `check_drm()` reports that row as a note with dimension,
-  density, size, rank, and conditioning because dense `V` is a small-to-moderate
-  route until sparse or block-sparse storage exists.
+  covariance as a dense R matrix, with deprecated `meta_known_V(V = V)` retained
+  only as a compatibility alias; `check_drm()` reports that row as a note with
+  dimension, density, size, rank, and conditioning because dense `V` is a
+  small-to-moderate route until sparse or block-sparse storage exists.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no
@@ -59,17 +59,18 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Bivariate random slopes, random effects in `rho12`, predictor-dependent q=4
-  phylogenetic correlations, and spatial q=4 blocks are still planned;
-  residual `rho12` should not be interpreted as a phylogenetic, spatial, or
-  group-level covariance parameter.
-- Phylogenetic random slopes and richer spatial random slopes should stay staged
-  behind recovery evidence. The first coordinate-spatial `mu` slope is fitted as
-  independent intercept and slope fields with no intercept-slope `corpair()`
-  row. Multiple random factors should be separate additive blocks, not one
-  enlarged cross-factor covariance model. A later coefficient-aware `corpair()`
-  design may target the bivariate slope1-slope2 plasticity-syndrome case for
-  the same covariate across responses.
+  Bivariate intercept-plus-slope q=4 blocks, random effects in `rho12`, and
+  predictor-dependent q=4 phylogenetic or spatial correlations are still
+  planned; residual `rho12` should not be interpreted as a phylogenetic,
+  spatial, or group-level covariance parameter.
+- Phylogenetic, coordinate-spatial, animal-model, and `relmat()` random slopes
+  should stay staged behind recovery evidence. The first univariate Gaussian
+  `mu` slope is fitted for each structured route as independent intercept and
+  slope fields with no intercept-slope `corpair()` row. Multiple random factors
+  should be separate additive blocks, not one enlarged cross-factor covariance
+  model. A later coefficient-aware `corpair()` design may target the bivariate
+  slope1-slope2 plasticity-syndrome case for the same covariate across
+  responses.
 - Matching intercept-only `phylo(1 | species, tree = tree)` terms are fitted
   in bivariate Gaussian `mu1` and `mu2` formulas. This first phylogenetic
   bivariate slice estimates two phylogenetic location SDs and one phylogenetic
@@ -96,13 +97,14 @@
   location-only response-specific direct-SD model; it is not a way to model
   residual `sigma1` / `sigma2` random-effect SDs or q=4 phylogenetic
   location-scale endpoint SDs. Matching labelled `animal()` and `relmat()`
-  known-matrix terms are also fitted for the first bivariate Gaussian q=2
-  `mu1`/`mu2` location covariance when `A`/`Ainv` or `K`/`Q` is supplied.
-  Those rows use `corpars$animal` or `corpars$relmat`, `corpairs()`,
-  `summary()$covariance`, direct profile targets, and known-relatedness
-  diagnostics. Pedigree construction, animal/`relmat()` slopes, structured
-  `sigma`, q=4 location-scale blocks, predictor-dependent structured
-  `corpair()` regressions, and generic direct-SD grammar remain planned.
+  known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
+  location covariance and for constant all-four q=4 location-scale blocks when
+  `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or
+  `corpars$relmat`, `corpairs()`, `summary()$covariance`, profile-target
+  status, and known-relatedness diagnostics. Pedigree construction at scale,
+  multiple animal/`relmat()` slopes, residual-scale structured slopes, slope
+  correlations, predictor-dependent structured `corpair()` regressions, and
+  generic direct-SD grammar remain planned.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
@@ -111,13 +113,13 @@
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
   is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
-  correlation, the six phylogenetic q=4 endpoint correlations, and the first
-  animal/`relmat()` known-matrix q=2 location-covariance row when those blocks
-  are fitted. For the first ordinary q=2 predictor-dependent
+  correlation, the six phylogenetic q=4 endpoint correlations,
+  coordinate-spatial q=2 and constant q=4 rows, and animal/`relmat()`
+  known-matrix q=2 and constant q=4 rows when those blocks are fitted. For the
+  first ordinary q=2 predictor-dependent
   `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
   route, `corpairs()` reports the fitted mean, range, and number of group-level
-  latent correlation values. Spatial and study-level correlation pairs remain
-  planned.
+  latent correlation values. Study-level correlation pairs remain planned.
 - Singular endpoint-specific `corpair()` formula syntax is fitted for ordinary
   q=2 and phylogenetic q=2 `mu1`/`mu2` location-location routes. Spatial,
   location-scale, scale-scale, and q=4 predictor-dependent latent correlation
@@ -133,13 +135,14 @@
   response-scale latent correlations at supplied group-level predictor rows,
   but `corpairs(conf.int = TRUE)` still marks the summary row as
   `newdata_required` because it reports a mean and range over groups.
-  - Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
-    bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
-    endpoint order. The ordinary grouped q4 location-scale block,
-    `mu1`/`mu2` phylogenetic location slice, and constant phylogenetic q4
-    location-scale block are fitted. Predictor-dependent structured
-    correlations, spatial q=4 blocks, and direct profile intervals for q4
-    derived correlations remain planned.
+- Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
+  bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
+  endpoint order. The ordinary grouped q4 location-scale block, `mu1`/`mu2`
+  phylogenetic location slice, and constant phylogenetic q4 location-scale block
+  are fitted. Constant coordinate-spatial, animal, and `relmat()` q=4
+  location-scale blocks are also fitted first slices. Predictor-dependent
+  structured correlations and direct profile intervals for q4 derived
+  correlations remain planned.
 - `summary()`, `predict_parameters()`, and `marginal_parameters()` expose
   fitted response-scale parameter summaries for interpretation. `summary()` can
   attach opt-in Wald intervals and direct profile intervals for profile-ready
@@ -192,9 +195,12 @@
   the structural-zero probability, but `zi` random effects and `mu` random
   effects in the zero-inflated route remain planned and now error with
   zero-inflation-specific boundary messages. There is no modelled `sigma`
-  parameter. Overdispersion, correlated Poisson slope blocks, labelled Poisson
-  covariance blocks, known sampling covariance, phylogenetic terms, and
-  bivariate or mixed Poisson models are not yet implemented.
+  parameter. The first structured count route is fitted for unlabelled q=1
+  `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`. Overdispersion,
+  correlated Poisson slope blocks, labelled Poisson covariance blocks, known
+  sampling covariance, Poisson phylogenetic slopes, zero-inflated Poisson
+  phylogeny, spatial/animal/`relmat()` count structure, and bivariate or mixed
+  Poisson models remain planned.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
@@ -234,39 +240,48 @@
   or covariance among bounded-response distributional parameters, and current
   `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
   messages.
-- Intercept-only phylogenetic random effects are implemented in univariate
-  Gaussian `mu` formulas and matching bivariate Gaussian `mu1`/`mu2` formulas
-  as `phylo(1 | species, tree = tree)`. The tree must be an ultrametric
-  `phylo` object with positive branch lengths, and every observed species must
-  match a tip label.
-- Animal-model and generic known-relatedness structured effects have first
-  fitted known-matrix Gaussian slices: a univariate `mu` intercept for
+- Phylogenetic random effects are implemented for univariate Gaussian `mu` and
+  `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
+  one numeric univariate Gaussian `mu` slope, matching bivariate Gaussian
+  `mu1`/`mu2` location covariance, constant q=4 location-scale blocks, direct
+  `sd_phylo*()` surfaces, q=2 phylogenetic `corpair()` regression, and ordinary
+  Poisson q=1 `mu` intercepts. The tree must be an ultrametric `phylo` object
+  with positive branch lengths, and every observed species must match a tip
+  label.
+- Animal-model and generic known-relatedness structured effects have fitted
+  Gaussian slices for `animal(1 | id, pedigree = pedigree)`,
   `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`,
-  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)`, plus matching labelled
-  bivariate q=2 `mu1`/`mu2` location covariance. Pedigree-to-precision
-  construction, structured slopes, `sigma` relatedness models, q=4
-  location-scale blocks, predictor-dependent `corpair()` regression, and
-  generic direct-SD grammar remain planned. These relatedness inputs are
-  distinct from meta-analysis `meta_V(..., V = V)`, which supplies known
-  sampling covariance.
+  `relmat(1 | id, K = K)`, and `relmat(1 | id, Q = Q)` in `mu` and/or
+  `sigma`; one numeric univariate Gaussian `mu` slope; matching labelled
+  bivariate q=2 `mu1`/`mu2` location covariance; and constant all-four q=4
+  location-scale blocks. Sparse large-pedigree construction, multiple
+  structured slopes, residual-scale structured slopes, slope correlations,
+  predictor-dependent `corpair()` regression, non-Gaussian relatedness effects,
+  and generic direct-SD grammar remain planned. These relatedness inputs are
+  distinct from meta-analysis `meta_V(V = V)`, which supplies known sampling
+  covariance.
 - Structured-effect markers outside the fitted paths, such as
-  `phylo(1 + x | species, tree = tree)`, phylogenetic terms in `sigma`, and
-  `spatial(1 | site, mesh = mesh)`, are parsed and rejected clearly, but they
-  are not yet routed into fitted likelihoods. The coordinate-based spatial
-  paths, `spatial(1 | site, coords = coords)` and
+  `spatial(1 | site, mesh = mesh)`, multiple structured slopes, residual-scale
+  structured slopes, predictor-dependent q=4 correlations, and non-Gaussian
+  structured effects, are parsed and rejected clearly, but they are not yet
+  routed into fitted likelihoods. The coordinate-based spatial paths,
+  `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`, are fitted for univariate Gaussian
   `mu`; matching labelled bivariate `mu1`/`mu2`
-  `spatial(1 | p | site, coords = coords)` terms now fit the first q=2 spatial
-  location covariance. They are not the scalable mesh/SPDE route. The mesh/SPDE
-  design gate is recorded in `docs/design/09-phylogenetic-and-spatial-speed.md`,
-  while spatial `sigma`, bivariate spatial q=4 blocks, spatial slope
-  correlations, and spatial `corpair()` regressions remain planned.
-- Structured non-Gaussian random effects are not implemented. `phylo()`,
-  `spatial()`, `animal()`, and `relmat()` markers now error in non-Gaussian
-  routes with a structured non-Gaussian boundary. Count, bounded, ordinal, shape,
-  inflation, hurdle, and one-inflation structured effects need ordinary
-  family-specific random-effect recovery and interval evidence before entering
-  the fitted surface.
+  `spatial(1 | p | site, coords = coords)` terms fit the first q=2 spatial
+  location covariance; and matching labelled all-four terms fit the constant
+  q=4 spatial location-scale block. They are not the scalable mesh/SPDE route.
+  The mesh/SPDE design gate is recorded in
+  `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial slope
+  correlations, spatial direct-SD surfaces, spatial `corpair()` regressions, and
+  non-Gaussian spatial effects remain planned.
+- Except for the ordinary Poisson q=1 phylogenetic `mu` intercept,
+  non-Gaussian structured random effects are not implemented. `phylo()`,
+  `spatial()`, `animal()`, and `relmat()` markers outside that narrow route now
+  error in non-Gaussian models with a structured non-Gaussian boundary. Count,
+  bounded, ordinal, shape, inflation, hurdle, and one-inflation structured
+  effects need ordinary family-specific random-effect recovery and interval
+  evidence before entering the fitted surface.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
@@ -276,9 +291,9 @@
   intercept-slope blocks with optional covariance-block labels, univariate
   Gaussian residual-scale random intercepts and independent random slopes in
   `sigma`, the first labelled univariate `mu`/`sigma` random-intercept
-  covariance block, intercept-only phylogenetic location effects,
-  coordinate-spatial Gaussian `mu` intercept, one-slope, and bivariate q=2
-  location covariance, first-slice known-relatedness Gaussian `mu` intercepts,
+  covariance block, phylogenetic location and residual-scale structured
+  intercepts, one-slope structured `mu` paths, q=2 and q=4 structured
+  covariance slices, first-slice known-relatedness Gaussian intercepts,
   plus one or more unlabelled Gaussian `mu` random-intercept scale formulae
   through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
   `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
@@ -304,12 +319,12 @@
   bivariate Student-t models, lognormal random-effect and structured-effect
   models, Gamma random-effect and structured-effect models, beta-binomial
   random-effect and structured-effect models, ordinal scale or discrimination
-  models, Poisson and negative-binomial random-effect models, hurdle count
-  models beyond the fixed-effect NB2 path, count zero-inflation with random
-  effects or structured effects, and additional non-Gaussian families beyond
-  the first Student-t, lognormal, Gamma, beta, beta-binomial, Poisson,
-  negative-binomial, zero-inflated, zero-truncated, and hurdle paths are
-  planned but not yet implemented.
+  models, count covariance labels and correlated count slopes, count hurdle or
+  zero-inflation with random effects or structured effects, non-Gaussian
+  structured routes beyond the ordinary Poisson q=1 phylogenetic `mu` slice,
+  and additional non-Gaussian families beyond the first Student-t, lognormal,
+  Gamma, beta, beta-binomial, Poisson, negative-binomial, zero-inflated,
+  zero-truncated, and hurdle paths are planned but not yet implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.
@@ -322,8 +337,8 @@
   weight per complete response pair for bivariate models. Known sampling
   covariance remains `meta_V(V = V)`, not `weights`. Full dense
   `meta_V(V = V)` covariance paths currently reject non-unit weights because
-  they are joint MVN likelihood blocks; `meta_known_V(V = V)` remains a
-  compatibility alias.
+  they are joint MVN likelihood blocks; deprecated `meta_known_V(V = V)` remains
+  a compatibility alias.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2

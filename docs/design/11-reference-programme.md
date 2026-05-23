@@ -40,7 +40,7 @@ Global Change Biology - 2025 - Nakagawa - Location-Scale Meta-Analysis and Meta-
 Package implications:
 
 - Meta-analysis is Gaussian regression with known sampling covariance.
-- Use `meta_known_V(V = V)` in the formula and `family = gaussian()`.
+- Use `meta_V(V = V)` in the formula and `family = gaussian()`.
 - Keep public `sigma` terminology; explain that meta-analysis papers often call
   the same extra heterogeneity SD `tau`.
 - Use Williams et al. (2026) as the planned `glmmTMB::equalto()` comparator
@@ -50,7 +50,7 @@ Package implications:
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V),
+  yi ~ x1 + x2 + meta_V(V = V),
   sigma ~ x1
 )
 ```

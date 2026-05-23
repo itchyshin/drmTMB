@@ -763,7 +763,7 @@ Other implemented ordinary bivariate random-intercept rows include
 The first ordinary bivariate slope-slope route is now the matching
 `(0 + x | p | id)` block in both `mu1` and `mu2`. Intercept-plus-slope
 bivariate blocks, all-four p8/q8 location-scale slope endpoints, random
-effects in `rho12`, bivariate `meta_known_V()` plus random effects,
+effects in `rho12`, bivariate `meta_V()` plus random effects,
 mixed-response families, and ordinary spatial group-level covariance remain
 future work unless a later status map says otherwise. For phylogenetic
 covariance, use the structural-dependence tutorial and keep those rows

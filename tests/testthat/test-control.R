@@ -359,7 +359,7 @@ test_that("memory-light storage keeps bivariate known-V methods working", {
 
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + meta_known_V(V = V),
+      mu1 = y1 ~ x + meta_V(V = V),
       mu2 = y2 ~ x,
       sigma1 = ~1,
       sigma2 = ~1,

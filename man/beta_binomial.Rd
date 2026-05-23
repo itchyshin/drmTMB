@@ -24,7 +24,7 @@ follow \code{Binomial(trials_i, p_i)}. Larger \code{sigma} means more extra-bino
 variation around the mean probability.
 
 The first implementation supports fixed effects only. Random effects,
-\code{meta_known_V(V = V)}, phylogenetic or spatial terms, bivariate
+\code{meta_V(V = V)}, phylogenetic or spatial terms, bivariate
 beta-binomial models, and a \code{successes/trials} response alias are planned
 but not implemented.
 }

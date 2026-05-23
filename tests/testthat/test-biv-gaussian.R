@@ -2025,7 +2025,7 @@ test_that("bivariate Gaussian known V likelihood matches a base R MVN calculatio
 
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + meta_known_V(V = V),
+      mu1 = y1 ~ x + meta_V(V = V),
       mu2 = y2 ~ x,
       sigma1 = ~1,
       sigma2 = ~1,
@@ -2073,7 +2073,7 @@ test_that("bivariate Gaussian known V recovers residual rho12 separately from sa
 
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + meta_known_V(V = V),
+      mu1 = y1 ~ x + meta_V(V = V),
       mu2 = y2 ~ x,
       sigma1 = ~1,
       sigma2 = ~1,
@@ -2188,7 +2188,7 @@ test_that("bivariate Gaussian known V removes paired rows and columns consistent
 
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + meta_known_V(V = V),
+      mu1 = y1 ~ x + meta_V(V = V),
       mu2 = y2 ~ x,
       sigma1 = ~1,
       sigma2 = ~1
@@ -2236,7 +2236,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(mu1 = y1 ~ x + meta_known_V(V = vi), mu2 = y2 ~ x),
+      bf(mu1 = y1 ~ x + meta_V(V = vi), mu2 = y2 ~ x),
       family = biv_gaussian(),
       data = dat
     ),
@@ -2245,7 +2245,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   V <- diag(rep(0.01, 40))
   expect_error(
     drmTMB(
-      bf(mu1 = y1 ~ x + meta_known_V(V = V), mu2 = y2 ~ x),
+      bf(mu1 = y1 ~ x + meta_V(V = V), mu2 = y2 ~ x),
       family = biv_gaussian(),
       data = dat,
       weights = rep(1.5, nrow(dat))
@@ -2255,13 +2255,13 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
-        mu1 = y1 ~ x + meta_known_V(V = V),
-        mu2 = y2 ~ x + meta_known_V(V = V)
+        mu1 = y1 ~ x + meta_V(V = V),
+        mu2 = y2 ~ x + meta_V(V = V)
       ),
       family = biv_gaussian(),
       data = dat
     ),
-    "Only one.*meta_known_V"
+    "Only one.*meta_V"
   )
   expect_error(
     drmTMB(
@@ -2467,7 +2467,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(mu1 = y1 ~ x + meta_known_V(V = V), mu2 = y2 ~ x + (1 | p | id)),
+      bf(mu1 = y1 ~ x + meta_V(V = V), mu2 = y2 ~ x + (1 | p | id)),
       family = biv_gaussian(),
       data = dat
     ),
@@ -2476,7 +2476,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
-        mu1 = y1 ~ x + meta_known_V(V = V),
+        mu1 = y1 ~ x + meta_V(V = V),
         mu2 = y2 ~ x,
         sigma1 = ~ 1 + (1 | p | id),
         sigma2 = ~ 1 + (1 | p | id)
@@ -2550,7 +2550,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
-        mu1 = y1 ~ x + meta_known_V(V = V) + phylo(1 | id, tree = tree),
+        mu1 = y1 ~ x + meta_V(V = V) + phylo(1 | id, tree = tree),
         mu2 = y2 ~ x + phylo(1 | id, tree = tree),
         sigma1 = ~1,
         sigma2 = ~1,

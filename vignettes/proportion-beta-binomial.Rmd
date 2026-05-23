@@ -390,7 +390,7 @@ Do not teach the following as fitted proportion examples yet:
 
 - random effects in `mu` or `sigma`;
 - `sd(group) ~ ...` random-effect scale models;
-- `meta_V(V = V)`, or its `meta_known_V(V = V)` compatibility alias, with
+- `meta_V(V = V)`, or deprecated `meta_known_V(V = V)` for compatibility, with
   beta or beta-binomial responses;
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models;
 - bivariate or mixed-response bounded models such as

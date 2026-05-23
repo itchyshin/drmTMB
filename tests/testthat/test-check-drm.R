@@ -520,7 +520,7 @@ test_that("check_drm() records known sampling covariance summaries", {
   dat$yi <- stats::rnorm(n)
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V)),
+    bf(yi ~ x + meta_V(V = V)),
     family = gaussian(),
     data = dat
   )

@@ -788,7 +788,7 @@ check_known_v <- function(object) {
       "]"
     ),
     if (ok) {
-      "Known sampling covariance is recorded through meta_known_V(V = V)."
+      "Known sampling covariance is recorded through meta_V(V = V)."
     } else {
       "Known sampling variances contain non-finite or negative values."
     }

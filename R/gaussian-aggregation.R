@@ -141,7 +141,7 @@ validate_gaussian_aggregation_gaussian <- function(
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
       "Gaussian aggregation is not implemented with known sampling covariance yet.",
-      "i" = "Refit without {.code meta_known_V()} or set {.code aggregate_gaussian = FALSE}."
+      "i" = "Refit without {.code meta_V()} or set {.code aggregate_gaussian = FALSE}."
     ))
   }
   structured_terms <- list(

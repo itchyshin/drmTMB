@@ -287,11 +287,11 @@ test_that("beta rejects boundary and unsupported inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_known_V(V = rep(0.1, 4)), sigma ~ 1),
+      bf(y ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
       family = beta(),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
     drmTMB(bf(mvbind(y, y) ~ x, sigma ~ 1), family = beta(), data = dat),

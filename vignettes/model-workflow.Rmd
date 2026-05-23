@@ -913,10 +913,10 @@ log-standard deviations. Report residual variance as `sigma(fit)^2` or
 `predict(fit, newdata = new_fish, dpar = "sigma")^2`; do not square the
 `sigma` coefficient, because coefficients are fitted on the log-SD scale.
 
-In meta-analytic Gaussian models with `meta_known_V(V = V)`, `sigma(fit)`
-still returns the modelled residual heterogeneity scale. Simulation and
-Pearson residuals combine the known sampling covariance with that residual
-scale internally.
+In meta-analytic Gaussian models with `meta_V(V = V)`, `sigma(fit)` still
+returns the modelled residual heterogeneity scale. Simulation and Pearson
+residuals combine the known sampling covariance with that residual scale
+internally.
 
 ## Inspect residuals
 

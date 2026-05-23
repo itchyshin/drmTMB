@@ -550,7 +550,7 @@ test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   )
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = vi)),
+    bf(yi ~ x + meta_V(V = vi)),
     family = gaussian(),
     data = dat
   )
@@ -597,7 +597,7 @@ test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
   dat$yi <- as.vector(mu + t(chol(Sigma)) %*% stats::rnorm(n))
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V)),
+    bf(yi ~ x + meta_V(V = V)),
     family = gaussian(),
     data = dat
   )

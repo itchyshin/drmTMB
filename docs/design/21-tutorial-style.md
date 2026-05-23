@@ -58,7 +58,7 @@ this and what should I read next?", put it under Model Guides. When it answers
   residual SDs are modelled.
 - Meta-analysis: Gaussian regression with preferred `meta_V(V = V)`, including
   diagonal, block-diagonal, and dense row-paired covariance examples;
-  `meta_known_V(V = V)` remains a compatibility alias.
+  deprecated `meta_known_V(V = V)` remains a compatibility alias.
 - Phylogenetic location effects: ultrametric tree input, sparse A-inverse route,
   and the distinction between residual and structured correlations.
 

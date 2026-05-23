@@ -125,8 +125,8 @@ sigma_forest^2 / sigma_grassland^2 = exp(2 * gamma_1)
 That keeps the tutorial aligned with the biological reading from Nakagawa et
 al. (2025): average effects and heterogeneity can respond to different
 moderators. It also keeps the unifying-model distinction visible: current
-`meta_known_V(V = V)` is additive known covariance, top-level `weights = w`
-is ordinary likelihood weighting, and the broader `meta_V()` umbrella remains
+`meta_V(V = V)` is additive known covariance, top-level `weights = w` is
+ordinary likelihood weighting, and the broader `meta_V()` umbrella remains
 future design only.
 
 ## Slice 96 Status: Count NB2 Source-Map Tutorial
@@ -146,7 +146,7 @@ theta_restored / theta_degraded = exp(-2 * gamma_1)
 
 The fitted example deliberately stays inside the implemented surface:
 fixed-effect univariate `nbinom2()` with optional `zi ~ surface`. It does not
-teach random effects, `sd(group) ~ ...`, `meta_known_V()`, `phylo()`,
+teach random effects, `sd(group) ~ ...`, `meta_V()`, `phylo()`,
 `spatial()`, bivariate counts, mixed-response families, or COM-Poisson as
 runnable syntax.
 
@@ -214,7 +214,7 @@ The individual-difference section now teaches:
 The example stays inside the implemented ordinary bivariate Gaussian
 random-intercept surface. It does not teach the separate matching slope-only
 `mu1`/`mu2` route, broader bivariate random slopes, random effects in `rho12`,
-bivariate `meta_known_V()` plus random effects, mixed-response families, or
+bivariate `meta_V()` plus random effects, mixed-response families, or
 ordinary spatial group-level covariance as fitted syntax.
 
 ## Later Worked Tutorials

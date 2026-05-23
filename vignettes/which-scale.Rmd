@@ -445,12 +445,13 @@ head(weights(fit_weighted), 8)
 Here rows with `reliability = 2` count twice in the likelihood. That may be a
 reasonable model-fitting choice for replicated or reliability-weighted rows,
 but it is not the same as telling the model that an effect size has known
-sampling variance. Known sampling variance belongs in `meta_known_V(V = V)`.
+sampling variance. Known sampling variance belongs in `meta_V(V = V)`;
+deprecated `meta_known_V(V = V)` remains a compatibility alias.
 At present, dense full known-covariance models reject non-unit likelihood
 weights; keep row weighting and known sampling covariance as separate modelling
 decisions unless the fitted model explicitly supports their combination.
 
-### Known sampling variance: `meta_known_V(V = V)`
+### Known sampling variance: `meta_V(V = V)`
 
 For meta-analysis, the known sampling variance is part of the observation
 model. In a diagonal Gaussian meta-analysis:
@@ -476,7 +477,7 @@ sigma_meta <- exp(-1.1 + 0.35 * meta$treatment)
 meta$yi <- rnorm(n_effect, mu_meta, sqrt(meta$vi + sigma_meta^2))
 
 fit_meta <- drmTMB(
-  bf(yi ~ treatment + meta_known_V(V = vi), sigma ~ treatment),
+  bf(yi ~ treatment + meta_V(V = vi), sigma ~ treatment),
   family = gaussian(),
   data = meta
 )
@@ -671,7 +672,7 @@ coupled after their means and residual SDs have been modelled.
 | `y ~ x + (1 | id)` | `mu_i = X_mu[i, ] beta_mu + b_id[i]` | Do groups differ in mean response? |
 | `sd(id) ~ x_group` | `log(sd_mu_id,j) = W_id[j, ] alpha_id` | Does `x_group` change among-group SD in the mean model? |
 | `weights = w` | `logLik = sum_i w_i log f(y_i | theta_i)` | Should row `i` contribute more or less to the likelihood? |
-| `meta_known_V(V = V)` | `y ~ MVN(mu, V + Omega_est)` | What sampling covariance is known before fitting? |
+| `meta_V(V = V)` | `y ~ MVN(mu, V + Omega_est)` | What sampling covariance is known before fitting? |
 | `y ~ x + (1 + x | id)` | `[b_0j, b_1j]' ~ MVN(0, Sigma_id)` | Are group intercepts and slopes correlated? |
 | `rho12 ~ x` | `eta_rho12_i = X_rho12[i, ] beta_rho12`; `rho12_i = tanh(eta_rho12_i)` | Does `x` change residual coupling between two responses? |
 

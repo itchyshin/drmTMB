@@ -31,7 +31,7 @@ coded path allows only univariate Gaussian fixed-effect models. It rejects:
 - ordinary random effects;
 - direct random-effect SD formulas such as `sd(id) ~ z`;
 - phylogenetic or spatial structured effects;
-- known sampling covariance through `meta_known_V(V = V)`;
+- known sampling covariance through `meta_V(V = V)`;
 - bivariate Gaussian models;
 - non-Gaussian families;
 - row-level features that cannot be represented by the aggregation key.

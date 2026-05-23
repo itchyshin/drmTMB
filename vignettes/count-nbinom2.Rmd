@@ -389,7 +389,7 @@ Do not teach the following as fitted count examples yet:
 - random effects in zero-inflated Poisson, zero-inflated NB2, truncated NB2,
   or hurdle NB2 count components;
 - `sd(group) ~ ...` random-effect scale models;
-- `meta_V(V = V)` or `meta_known_V(V = V)` with counts;
+- `meta_V(V = V)` or deprecated `meta_known_V(V = V)` with counts;
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` count models;
 - bivariate or mixed-response count models such as
   `family = c(gaussian(), nbinom2())`;

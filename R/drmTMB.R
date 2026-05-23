@@ -17,7 +17,8 @@
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
 #' known sampling covariance through `meta_V(V = V)` with
-#' `meta_known_V(V = V)` as a compatibility alias, residual-scale
+#' deprecated `meta_known_V(V = V)` retained as a compatibility alias,
+#' residual-scale
 #' random intercepts and independent numeric random slopes in the scale formula,
 #' labelled `mu`/`sigma`
 #' random-intercept covariance blocks, and one or more group-level
@@ -893,7 +894,7 @@ validate_sparse_fixed_gaussian <- function(
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
       "Sparse fixed-effect matrices are not implemented with known sampling covariance yet.",
-      "i" = "Refit without {.code meta_known_V()} or set {.code sparse_fixed = FALSE}."
+      "i" = "Refit without {.code meta_V()} or set {.code sparse_fixed = FALSE}."
     ))
   }
   structured_terms <- list(
@@ -998,7 +999,7 @@ drm_build_student_ls_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn student} models yet.",
+      "{.fn meta_V} is not implemented for {.fn student} models yet.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1150,7 +1151,7 @@ drm_build_lognormal_ls_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn lognormal} models yet.",
+      "{.fn meta_V} is not implemented for {.fn lognormal} models yet.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1301,7 +1302,7 @@ drm_build_gamma_ls_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn Gamma} models yet.",
+      "{.fn meta_V} is not implemented for {.fn Gamma} models yet.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1463,7 +1464,7 @@ drm_build_beta_ls_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn beta} models.",
+      "{.fn meta_V} is not implemented for {.fn beta} models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1633,7 +1634,7 @@ drm_build_beta_binomial_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn beta_binomial} models.",
+      "{.fn meta_V} is not implemented for {.fn beta_binomial} models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1781,7 +1782,7 @@ drm_build_cumulative_logit_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn cumulative_logit} models.",
+      "{.fn meta_V} is not implemented for {.fn cumulative_logit} models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -1927,7 +1928,7 @@ drm_build_poisson_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for Poisson models.",
+      "{.fn meta_V} is not implemented for Poisson models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -2148,7 +2149,7 @@ drm_build_nbinom2_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn nbinom2} models.",
+      "{.fn meta_V} is not implemented for {.fn nbinom2} models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -2395,7 +2396,7 @@ drm_build_truncated_nbinom2_spec <- function(
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
     cli::cli_abort(c(
-      "{.fn meta_known_V} is not implemented for {.fn truncated_nbinom2} models.",
+      "{.fn meta_V} is not implemented for {.fn truncated_nbinom2} models.",
       "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
     ))
   }
@@ -2652,8 +2653,8 @@ drm_build_biv_gaussian_spec <- function(
   meta_mu2 <- extract_meta_known_v(mu2_entry$rhs)
   if (!is.null(meta_mu1$V) && !is.null(meta_mu2$V)) {
     cli::cli_abort(c(
-      "Only one {.fn meta_known_V} term is supported in a bivariate model.",
-      "i" = "{.fn meta_known_V} is a model-level known-covariance marker even if it appears in a location formula."
+      "Only one {.fn meta_V} term is supported in a bivariate model.",
+      "i" = "{.fn meta_V} is a model-level known-covariance marker even if it appears in a location formula."
     ))
   }
   mu1_entry$rhs <- meta_mu1$rhs
@@ -2837,7 +2838,7 @@ drm_build_biv_gaussian_spec <- function(
         !is.null(structured_mu_terms$term))
   ) {
     cli::cli_abort(c(
-      "Bivariate Gaussian random effects cannot yet be combined with {.fn meta_known_V}.",
+      "Bivariate Gaussian random effects cannot yet be combined with {.fn meta_V}.",
       "i" = "Fit bivariate group-level covariance blocks without known sampling covariance first."
     ))
   }
@@ -7969,7 +7970,7 @@ evaluate_biv_known_v <- function(expr, data, env) {
   value <- eval(expr, envir = data, enclos = env)
   if (!is.matrix(value) || nrow(value) != 2L * n || ncol(value) != 2L * n) {
     cli::cli_abort(c(
-      "{.arg V} for bivariate {.fn meta_known_V} must evaluate to a {.code 2n} by {.code 2n} matrix.",
+      "{.arg V} for bivariate {.fn meta_V} must evaluate to a {.code 2n} by {.code 2n} matrix.",
       "i" = "Use row-paired stacking: {.code y1[1], y2[1], y1[2], y2[2], ...}.",
       "i" = "For common bivariate meta-analysis, build this matrix with {.fn meta_vcov_bivariate}."
     ))
