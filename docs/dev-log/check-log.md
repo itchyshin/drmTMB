@@ -2,6 +2,66 @@
 
 Record meaningful development checks here.
 
+## 2026-05-22 - Rendered Figure QA Slices 36-40
+
+Goal: continue the rendered-figure QA sequence after PR #304 by adding or
+polishing article figures in `location-scale`, `which-scale`, and
+`phylogenetic-spatial` without changing estimands, interval methods, or formula
+grammar.
+
+Roles: Ada merged PR #304 and started a clean branch. Florence inspected all
+six rendered article PNGs. Fisher checked that raw responses, fitted `mu`,
+fitted `sigma`, fitted random-effect SDs, and correlation Confidence Eyes used
+the correct visual data grain. Pat and Darwin checked whether a reader could
+decode the figures from visible titles, subtitles, captions, and axes. Grace
+checked article rebuilds, alt text, targeted tests, and pkgdown. Noether
+checked axis labels against model estimands. Rose caught and fixed one
+population-row versus observation-row indexing mistake in the `which-scale`
+random-effect-SD figure. These were role perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/location-scale.Rmd`
+- `vignettes/which-scale.Rmd`
+- `vignettes/phylogenetic-spatial.Rmd`
+- `docs/dev-log/audits/2026-05-22-rendered-figure-qa-slices-36-40.md`
+- `docs/dev-log/after-task/2026-05-22-rendered-figure-qa-slices-36-40.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh pr merge 304 --squash --delete-branch --subject "Polish workflow figure QA slices (#304)"
+git checkout -b codex/rendered-figure-qa-36-40
+air format vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/phylogenetic-spatial.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('location-scale','which-scale','phylogenetic-spatial')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'prediction-grid|predict-parameters|plot-parameter-surface|plot-corpairs', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Result:
+
+- `location-scale` now has a raw response-scale growth figure with fitted `mu`
+  lines and 95% Wald bands, plus a separate fitted `sigma` habitat contrast
+  with 95% Wald intervals. Raw `growth` points do not appear on the `sigma`
+  axis.
+- `which-scale` now has a fitted residual-`sigma` curve with a 95% Wald band
+  and a separate fitted `sd(population)` point-only display. The latter states
+  that no supported interval is drawn because the prediction table marks the
+  random-effect-SD surface as interval-unavailable.
+- `phylogenetic-spatial` now gives the animal and `relmat()` q=2 correlation
+  Confidence Eyes visible titles, interval provenance, colour, and explicit
+  dotted-zero-line wording.
+- The three articles rebuilt successfully. Rendered image inspection covered
+  six article images: two in `location-scale`, two in `which-scale`, and two
+  in `phylogenetic-spatial`. Article-image alt-text inspection found 0 missing
+  alt attributes. Targeted prediction/plot tests passed, `git diff --check`
+  was clean, and `pkgdown::check_pkgdown()` found no problems.
+
+Next action: open the PR and update issue #58.
+
 ## 2026-05-22 - Rendered Figure QA Slices 31-35
 
 Goal: continue the rendered-figure QA sequence after PR #303 by improving the

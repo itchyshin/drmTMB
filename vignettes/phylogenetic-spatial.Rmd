@@ -11,6 +11,26 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 
+structural_eye_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      legend.position = "none"
+    )
+}
+
 balanced_ultrametric_tree <- function(n_tip = 16L) {
   stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
   edges <- matrix(integer(), ncol = 2L)
@@ -438,20 +458,23 @@ animal_q2_checks <- check_drm(fit_animal_q2_known)
 animal_q2_checks[grepl("animal|convergence|hessian", animal_q2_checks$check), ]
 ```
 
-```{r animal-q2-correlation-eye, fig.width = 6, fig.height = 2.3, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+```{r animal-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   animal_q2_display <- animal_q2_pairs
   animal_q2_display$display_label <- "Animal\nmu1-mu2"
   plot_corpairs(
     animal_q2_display,
-    colour = NULL,
+    colour = "level",
     label = "display_label",
     facet = NULL
   ) +
-    ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      legend.position = "none"
+    ggplot2::scale_colour_manual(values = c("animal" = "#0072B2")) +
+    ggplot2::scale_fill_manual(values = c("animal" = "#0072B2")) +
+    structural_eye_theme() +
+    ggplot2::labs(
+      title = "Animal-model latent mean correlation",
+      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      x = "Correlation estimate"
     )
 }
 ```
@@ -493,20 +516,23 @@ relmat_q2_targets[
 ]
 ```
 
-```{r relmat-q2-correlation-eye, fig.width = 6, fig.height = 2.3, fig.cap = "`relmat()` q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent known-matrix correlation scale.", fig.alt = "Single-row Confidence Eye for the known-matrix relmat mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
+```{r relmat-q2-correlation-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "`relmat()` q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent known-matrix correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the known-matrix relmat mean-mean correlation. The horizontal eye spans the 95 percent profile interval, with a hollow point estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   relmat_q2_display <- relmat_q2_pairs
   relmat_q2_display$display_label <- "relmat\nmu1-mu2"
   plot_corpairs(
     relmat_q2_display,
-    colour = NULL,
+    colour = "level",
     label = "display_label",
     facet = NULL
   ) +
-    ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      legend.position = "none"
+    ggplot2::scale_colour_manual(values = c("relmat" = "#6A6A6A")) +
+    ggplot2::scale_fill_manual(values = c("relmat" = "#6A6A6A")) +
+    structural_eye_theme() +
+    ggplot2::labs(
+      title = "Known-matrix latent mean correlation",
+      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      x = "Correlation estimate"
     )
 }
 ```

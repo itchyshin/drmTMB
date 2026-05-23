@@ -8,8 +8,42 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
 library(drmTMB)
+
+which_scale_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(
+        colour = "grey90",
+        linewidth = 0.3
+      ),
+      panel.grid.major.y = ggplot2::element_line(
+        colour = "grey87",
+        linewidth = 0.35
+      ),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_text(colour = "grey20")
+    )
+}
 ```
 
 `drmTMB` deliberately separates residual scale from group-level scale. This
@@ -337,6 +371,54 @@ means residual variation in growth is larger at warmer temperatures, after the
 mean temperature effect has been modelled. The displayed range of `sigma(fit)`
 is on the response scale, so it is the fitted residual SD, not a variance.
 
+Plot the residual scale on its own fitted axis. The raw response points belong
+on a `growth` axis, not on a `sigma` axis:
+
+```{r which-scale-residual-sigma-figure, fig.cap = "Fitted residual standard deviation over temperature for the `sigma ~ temperature` example; the ribbon is a 95% Wald confidence band from `predict_parameters()`.", fig.alt = "Line plot of fitted residual standard deviation over temperature with a 95 percent Wald confidence band. No raw growth points are shown on the sigma axis."}
+sigma_temperature_grid <- prediction_grid(
+  fit_sigma,
+  focal = "temperature",
+  at = list(
+    temperature = seq(
+      min(fish$temperature),
+      max(fish$temperature),
+      length.out = 80
+    )
+  )
+)
+
+sigma_temperature_surface <- predict_parameters(
+  fit_sigma,
+  newdata = sigma_temperature_grid,
+  dpar = "sigma",
+  conf.int = TRUE
+)
+
+unique(sigma_temperature_surface[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot_parameter_surface(
+    sigma_temperature_surface,
+    x = "temperature",
+    dpar = "sigma",
+    facet = NULL,
+    point = FALSE
+  ) +
+    ggplot2::labs(
+      title = "Residual scale is observation-level",
+      subtitle = "Ribbon is a 95% Wald band for fitted sigma",
+      x = "Temperature",
+      y = "Fitted residual SD (sigma)"
+    ) +
+    which_scale_theme()
+}
+```
+
 ### Likelihood weights: `weights = reliability`
 
 Likelihood weights do not define a new biological scale. They multiply the row
@@ -472,6 +554,47 @@ The `habitatgrassland` coefficient is on the log-SD scale for the population
 random intercept. In this example, grassland populations have a larger fitted
 among-population SD in expected growth. That is not residual variation among
 individual observations; it is variation among population-level means.
+
+That group-level SD can be plotted as a fitted model quantity. The current
+prediction table does not attach a supported interval to this modelled
+random-effect SD surface, so the figure shows point estimates only:
+
+```{r which-scale-population-sd-figure, fig.width = 5.8, fig.height = 2.6, fig.cap = "Fitted among-population standard deviations by habitat for the `sd(population) ~ habitat` example; points are fitted random-effect SDs, with no interval drawn because the prediction table marks this random-effect-SD surface as interval-unavailable.", fig.alt = "Point plot comparing fitted among-population standard deviation for forest and grassland habitats, with no interval bars because this random-effect standard-deviation surface has no supported interval in the current prediction table."}
+sd_population_rows <- predict_parameters(
+  fit_sd,
+  dpar = "sd(population)",
+  conf.int = TRUE
+)
+sd_population_rows$habitat <- population_info$habitat[sd_population_rows$row]
+
+unique(sd_population_rows[, c(
+  "dpar",
+  "component",
+  "conf.status",
+  "interval_source"
+)])
+
+sd_population_display <- aggregate(
+  estimate ~ habitat,
+  data = sd_population_rows,
+  FUN = mean
+)
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(
+    sd_population_display,
+    ggplot2::aes(x = estimate, y = habitat)
+  ) +
+    ggplot2::geom_point(size = 3, colour = "#D55E00") +
+    ggplot2::labs(
+      title = "Group-level scale is not residual sigma",
+      subtitle = "Points are fitted sd(population); no supported interval is drawn",
+      x = "Fitted among-population SD",
+      y = NULL
+    ) +
+    which_scale_theme()
+}
+```
 
 ### Residual coscale: `rho12 ~ treatment`
 

@@ -8,9 +8,54 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
 if (!"package:drmTMB" %in% search()) {
   library(drmTMB)
+}
+
+location_scale_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(
+        colour = "grey90",
+        linewidth = 0.3
+      ),
+      panel.grid.major.y = ggplot2::element_line(
+        colour = "grey87",
+        linewidth = 0.35
+      ),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      legend.position = "bottom",
+      legend.title = ggplot2::element_text(colour = "grey20")
+    )
+}
+
+location_scale_habitat_scales <- function() {
+  list(
+    ggplot2::scale_colour_manual(
+      values = c("forest" = "#0072B2", "grassland" = "#009E73")
+    ),
+    ggplot2::scale_fill_manual(
+      values = c("forest" = "#0072B2", "grassland" = "#009E73")
+    )
+  )
 }
 ```
 
@@ -635,6 +680,121 @@ This table maps the model back to the scientific question. The mean column
 summarises the location model. The residual SD column summarises the scale
 model in the units of growth. The residual variance column is the
 variance-facing version of the same fitted Gaussian scale model.
+
+The fitted mean can be checked against the raw response pattern. Here the
+points are observed growth values; the fitted lines and ribbons come from
+`predict_parameters()` on an explicit temperature-by-habitat grid:
+
+```{r location-scale-growth-figure, fig.cap = "Raw growth observations and fitted response-scale `mu` surfaces for the Gaussian location-scale example; ribbons are 95% Wald confidence bands from `predict_parameters()`.", fig.alt = "Scatterplot of simulated growth over temperature for forest and grassland habitats, with fitted mean growth lines and 95 percent Wald confidence bands for each habitat."}
+growth_mu_grid <- prediction_grid(
+  fit_growth,
+  focal = c("temperature", "habitat"),
+  at = list(
+    temperature = seq(
+      min(dat$temperature),
+      max(dat$temperature),
+      length.out = 80
+    )
+  )
+)
+
+growth_mu_surface <- predict_parameters(
+  fit_growth,
+  newdata = growth_mu_grid,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+unique(growth_mu_surface[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(
+    dat,
+    ggplot2::aes(x = temperature, y = growth, colour = habitat)
+  ) +
+    ggplot2::geom_point(alpha = 0.38, size = 1.25) +
+    ggplot2::geom_ribbon(
+      data = growth_mu_surface,
+      ggplot2::aes(
+        x = temperature,
+        ymin = conf.low,
+        ymax = conf.high,
+        fill = habitat
+      ),
+      inherit.aes = FALSE,
+      alpha = 0.18,
+      colour = NA
+    ) +
+    ggplot2::geom_line(
+      data = growth_mu_surface,
+      ggplot2::aes(y = estimate),
+      linewidth = 0.85
+    ) +
+    location_scale_habitat_scales() +
+    ggplot2::labs(
+      title = "Mean growth and observed scatter",
+      subtitle = "Points are raw growth; ribbons are 95% Wald bands for mu",
+      x = "Temperature",
+      y = "Growth",
+      colour = "Habitat",
+      fill = "Habitat"
+    ) +
+    location_scale_theme() +
+    ggplot2::guides(fill = "none")
+}
+```
+
+The scale model is a different display. Do not put raw `growth` points on the
+`sigma` axis; plot the fitted residual SD and name the interval source:
+
+```{r location-scale-sigma-contrast-figure, fig.width = 5.8, fig.height = 2.6, fig.cap = "Fitted residual standard deviations by habitat at average temperature; horizontal intervals are 95% Wald confidence intervals requested from `predict_parameters()`.", fig.alt = "Horizontal point interval plot comparing fitted residual standard deviation for forest and grassland habitats at temperature zero, with 95 percent Wald confidence intervals."}
+growth_sigma_grid <- prediction_grid(
+  fit_growth,
+  focal = "habitat",
+  condition = list(temperature = 0)
+)
+
+growth_sigma_surface <- predict_parameters(
+  fit_growth,
+  newdata = growth_sigma_grid,
+  dpar = "sigma",
+  conf.int = TRUE
+)
+
+unique(growth_sigma_surface[, c(
+  "dpar",
+  "conf.status",
+  "interval_source",
+  "conf.level"
+)])
+
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(
+    growth_sigma_surface,
+    ggplot2::aes(x = estimate, y = habitat, colour = habitat)
+  ) +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = conf.low, xend = conf.high, yend = habitat),
+      linewidth = 0.8
+    ) +
+    ggplot2::geom_point(size = 2.8) +
+    location_scale_habitat_scales() +
+    ggplot2::labs(
+      title = "Residual SD differs by habitat",
+      subtitle = "Points are fitted sigma values; bars are 95% Wald intervals",
+      x = "Fitted residual SD (sigma)",
+      y = NULL,
+      colour = "Habitat"
+    ) +
+    location_scale_theme() +
+    ggplot2::guides(colour = "none")
+}
+```
 
 The compact translation table below is the reporting layer Pat should be able
 to read without returning to the equations:
