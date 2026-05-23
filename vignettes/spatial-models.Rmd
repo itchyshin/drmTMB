@@ -8,7 +8,116 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
+library(drmTMB)
+
+spatial_guide_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      legend.position = "bottom"
+    )
+}
+
+spatial_eye_theme <- function() {
+  spatial_guide_theme() +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      legend.position = "none"
+    )
+}
+
+simulate_spatial_guide_data <- function(seed = 20260534) {
+  set.seed(seed)
+  sites <- paste0("site_", seq_len(12))
+  theta <- seq(0, 1.8 * pi, length.out = length(sites))
+  coords <- data.frame(
+    x = cos(theta) + seq_along(sites) / 30,
+    y = sin(theta)
+  )
+  rownames(coords) <- sites
+
+  distance <- as.matrix(dist(coords))
+  range <- stats::median(distance[distance > 0])
+  spatial_cov <- exp(-distance / range)
+  diag(spatial_cov) <- diag(spatial_cov) + 1e-6
+  spatial_intercept <- as.vector(
+    t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.45)
+  )
+  spatial_slope <- as.vector(
+    t(chol(spatial_cov)) %*% rnorm(length(sites), sd = 0.20)
+  )
+  names(spatial_intercept) <- sites
+  names(spatial_slope) <- sites
+
+  site <- rep(sites, each = 6)
+  temp <- rnorm(length(site))
+  depth <- rnorm(length(site))
+  sigma <- exp(-1.25 + 0.15 * depth)
+  y <- 0.4 + 0.35 * temp + 0.20 * depth +
+    spatial_intercept[site] + spatial_slope[site] * depth +
+    rnorm(length(site), sd = sigma)
+
+  list(
+    data = data.frame(y = y, temp = temp, depth = depth, site = site),
+    coords = coords
+  )
+}
+
+simulate_spatial_q2_guide_data <- function(seed = 20260501) {
+  set.seed(seed)
+  sites <- paste0("site_", seq_len(16))
+  theta <- seq(0, 1.9 * pi, length.out = length(sites))
+  coords <- data.frame(
+    x = cos(theta) + seq_along(sites) / 40,
+    y = sin(theta)
+  )
+  rownames(coords) <- sites
+
+  distance <- as.matrix(dist(coords))
+  range <- stats::median(distance[distance > 0])
+  spatial_cov <- exp(-distance / range)
+  diag(spatial_cov) <- diag(spatial_cov) + 1e-6
+
+  z1 <- rnorm(length(sites))
+  z2 <- 0.55 * z1 + sqrt(1 - 0.55^2) * rnorm(length(sites))
+  u1 <- as.vector(t(chol(spatial_cov)) %*% z1) * 0.55
+  u2 <- as.vector(t(chol(spatial_cov)) %*% z2) * 0.45
+  names(u1) <- sites
+  names(u2) <- sites
+
+  site <- rep(sites, each = 8)
+  x <- rnorm(length(site))
+  e1 <- rnorm(length(site))
+  e2 <- 0.10 * e1 + sqrt(1 - 0.10^2) * rnorm(length(site))
+
+  list(
+    data = data.frame(
+      site = site,
+      x = x,
+      y1 = 0.30 + 0.35 * x + u1[site] + 0.25 * e1,
+      y2 = -0.10 - 0.25 * x + u2[site] + 0.24 * e2
+    ),
+    coords = coords
+  )
+}
 ```
 
 Use `spatial()` when named sites have coordinates and nearby sites may have
@@ -112,6 +221,198 @@ The one-slope route is deliberately narrow. The formula term
 numeric slope field with the same coordinate precision and separate SDs. It
 does not estimate an intercept-slope correlation, and it does not imply support
 for spatial `sigma`.
+
+## Rendered checks
+
+The small example below is only a guide to the output grain. The coordinate
+surface is fitted in the location predictor `mu`; raw response values remain on
+the response scale and should not be plotted as if they were spatial SDs or
+correlations.
+
+```{r spatial-guide-fit}
+spatial_example <- simulate_spatial_guide_data()
+spatial_dat <- spatial_example$data
+coords <- spatial_example$coords
+
+fit_spatial <- drmTMB(
+  drm_formula(
+    y ~ depth + temp + spatial(1 | site, coords = coords),
+    sigma ~ depth
+  ),
+  family = gaussian(),
+  data = spatial_dat
+)
+
+fit_spatial_slope <- drmTMB(
+  drm_formula(
+    y ~ depth + temp + spatial(1 + depth | site, coords = coords),
+    sigma ~ depth
+  ),
+  family = gaussian(),
+  data = spatial_dat
+)
+```
+
+```{r spatial-site-field-figure, fig.width = 6.6, fig.height = 4.4, fig.cap = "Coordinate-spatial fitted site deviations from `ranef(fit_spatial, \"spatial_mu\")`; points are conditional location-effect estimates, and no interval is drawn because this display is a site-level fitted field rather than a confidence-interval summary.", fig.alt = "Map of twelve sampled sites. Each point is positioned at the site coordinates and coloured by the fitted conditional spatial location deviation; positive deviations are teal and negative deviations are orange."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  spatial_effect <- ranef(fit_spatial, "spatial_mu")$terms[[1]]
+  spatial_field <- data.frame(
+    site = names(spatial_effect),
+    fitted_spatial_deviation = unname(spatial_effect),
+    coords[names(spatial_effect), , drop = FALSE],
+    row.names = NULL
+  )
+
+  ggplot2::ggplot(
+    spatial_field,
+    ggplot2::aes(
+      x = x,
+      y = y,
+      fill = fitted_spatial_deviation
+    )
+  ) +
+    ggplot2::geom_hline(yintercept = 0, colour = "grey90", linewidth = 0.4) +
+    ggplot2::geom_vline(xintercept = 0, colour = "grey90", linewidth = 0.4) +
+    ggplot2::geom_point(
+      shape = 21,
+      size = 7,
+      colour = "grey20",
+      linewidth = 0.35
+    ) +
+    ggplot2::scale_fill_gradient2(
+      low = "#D55E00",
+      mid = "white",
+      high = "#009E73",
+      midpoint = 0,
+      name = "Fitted\nspatial deviation"
+    ) +
+    ggplot2::coord_equal() +
+    spatial_guide_theme() +
+    ggplot2::labs(
+      title = "Fitted spatial location field",
+      subtitle = "Conditional deviations in mu",
+      x = "Coordinate x",
+      y = "Coordinate y"
+    )
+}
+```
+
+```{r spatial-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted coordinate-spatial location SDs from the one-slope model. The intercept field has a finite 95% Wald interval; the depth-slope SD is near the zero boundary, so the figure keeps it point-only and labels the unsupported upper interval rather than drawing a misleading infinite bar.", fig.alt = "Horizontal point display for two spatial standard deviations. The intercept spatial SD has a finite 95 percent Wald interval away from zero; the depth-slope spatial SD sits near zero and is labelled as boundary point-only."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  spatial_sd <- confint(fit_spatial_slope, parm = "variance_components")
+  spatial_sd <- spatial_sd[grepl("^sd:mu:spatial", spatial_sd$parm), ]
+  spatial_sd_estimate <- fit_spatial_slope$sdpars$mu[
+    c("spatial(1 | site)", "spatial(0 + depth | site)")
+  ]
+  spatial_sd$estimate <- unname(spatial_sd_estimate)
+  spatial_sd$label <- c(
+    "Spatial\nintercept SD",
+    "Spatial\ndepth-slope SD"
+  )
+  spatial_sd$finite_interval <- is.finite(spatial_sd$lower) &
+    is.finite(spatial_sd$upper)
+  finite_upper <- max(spatial_sd$upper[spatial_sd$finite_interval])
+
+  ggplot2::ggplot(spatial_sd, ggplot2::aes(y = label)) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linewidth = 0.45,
+      linetype = "dashed",
+      colour = "grey55"
+    ) +
+    ggplot2::geom_errorbar(
+      data = spatial_sd[spatial_sd$finite_interval, ],
+      ggplot2::aes(xmin = lower, xmax = upper),
+      width = 0,
+      linewidth = 1.1,
+      colour = "#0072B2"
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(x = estimate),
+      shape = 21,
+      size = 3.5,
+      stroke = 1,
+      fill = "white",
+      colour = "#0072B2"
+    ) +
+    ggplot2::geom_text(
+      data = spatial_sd[!spatial_sd$finite_interval, ],
+      ggplot2::aes(
+        x = finite_upper * 0.55,
+        label = "boundary interval"
+      ),
+      hjust = 0,
+      size = 3,
+      colour = "grey45"
+    ) +
+    ggplot2::scale_x_continuous(
+      limits = c(0, finite_upper * 1.15),
+      expand = ggplot2::expansion(mult = c(0.01, 0.04))
+    ) +
+    spatial_eye_theme() +
+    ggplot2::labs(
+      title = "Spatial SDs are model summaries, not raw response spread",
+      subtitle = "Bars are finite 95% Wald intervals; boundary row stays point-only",
+      x = "Fitted spatial standard deviation on the response scale",
+      y = NULL
+    )
+}
+```
+
+For bivariate spatial location models, use a Confidence Eye only when
+`corpairs()` supplies an interval for the latent spatial correlation. The raw
+paired responses do not belong on this axis.
+
+```{r spatial-q2-correlation-fit}
+spatial_q2_example <- simulate_spatial_q2_guide_data()
+spatial_q2_dat <- spatial_q2_example$data
+spatial_q2_coords <- spatial_q2_example$coords
+
+fit_spatial_q2_example <- drmTMB(
+  drm_formula(
+    mu1 = y1 ~ x + spatial(1 | p | site, coords = spatial_q2_coords),
+    mu2 = y2 ~ x + spatial(1 | p | site, coords = spatial_q2_coords),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = spatial_q2_dat
+)
+
+spatial_q2_pairs <- suppressWarnings(
+  corpairs(
+    fit_spatial_q2_example,
+    level = "spatial",
+    conf.int = TRUE,
+    ystep = 0.25,
+    ytol = 3
+  )
+)
+spatial_q2_pairs
+```
+
+```{r spatial-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Coordinate-spatial q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent spatial-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the coordinate-spatial mean-mean correlation. The eye spans a broad 95 percent profile interval and the hollow point estimate lies slightly to the right of the dotted zero reference line."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  spatial_q2_display <- spatial_q2_pairs
+  spatial_q2_display$display_label <- "Spatial\nmu1-mu2"
+
+  plot_corpairs(
+    spatial_q2_display,
+    colour = "level",
+    label = "display_label",
+    facet = NULL
+  ) +
+    ggplot2::scale_colour_manual(values = c("spatial" = "#009E73")) +
+    ggplot2::scale_fill_manual(values = c("spatial" = "#009E73")) +
+    spatial_eye_theme() +
+    ggplot2::labs(
+      title = "Spatial latent mean correlation",
+      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      x = "Correlation estimate"
+    )
+}
+```
 
 ## Boundaries
 

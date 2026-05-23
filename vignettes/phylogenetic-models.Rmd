@@ -8,7 +8,123 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
+library(drmTMB)
+
+phylo_guide_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      legend.position = "bottom"
+    )
+}
+
+phylo_eye_theme <- function() {
+  phylo_guide_theme() +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      legend.position = "none"
+    )
+}
+
+balanced_ultrametric_tree <- function(n_tip = 16L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+simulate_phylo_guide_data <- function(seed = 31) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(16)
+  species_info <- data.frame(
+    species = tree$tip.label,
+    body_size = scale(
+      rnorm(16, mean = rep(c(-0.4, 0.4), each = 8), sd = 0.35)
+    )[, 1]
+  )
+  phylo_shift <- rep(c(-0.5, 0.5), each = 8) +
+    rep(c(-0.18, 0.18), each = 4, length.out = 16)
+
+  n_each <- 5
+  dat <- species_info[rep(seq_len(nrow(species_info)), each = n_each), ]
+  dat$body_size <- dat$body_size + rnorm(nrow(dat), sd = 0.08)
+  dat$thermal_tolerance <- 1.2 + 0.45 * dat$body_size +
+    phylo_shift[match(dat$species, species_info$species)] +
+    rnorm(nrow(dat), sd = 0.25)
+
+  list(tree = tree, data = dat)
+}
+
+simulate_phylo_q2_guide_data <- function(seed = 42) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(16)
+  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- rnorm(length(tree$tip.label))
+  z2 <- 0.55 * z1 + sqrt(1 - 0.55^2) * rnorm(length(tree$tip.label))
+  u1 <- as.vector(t(chol(A_tip)) %*% z1) * 0.45
+  u2 <- as.vector(t(chol(A_tip)) %*% z2) * 0.35
+  names(u1) <- tree$tip.label
+  names(u2) <- tree$tip.label
+
+  n_each <- 4
+  species <- rep(tree$tip.label, each = n_each)
+  climate <- rnorm(length(species))
+  e1 <- rnorm(length(species))
+  e2 <- 0.15 * e1 + sqrt(1 - 0.15^2) * rnorm(length(species))
+
+  list(
+    tree = tree,
+    data = data.frame(
+      species = species,
+      climate = climate,
+      heat_tolerance = 0.30 + 0.35 * climate + u1[species] + 0.35 * e1,
+      desiccation_tolerance = -0.20 - 0.25 * climate + u2[species] + 0.32 * e2
+    )
+  )
+}
 ```
 
 Use `phylo()` when species share evolutionary history and the scientific
@@ -76,6 +192,129 @@ Direct-SD terms such as `sd_phylo(species) ~ z` model species-level predictors
 of a phylogenetic location standard deviation. They do not model residual
 `sigma`, and they do not imply a q=4 location-scale block unless the matching
 q=4 `phylo()` terms are also fitted.
+
+## Rendered checks
+
+The small examples below separate raw response data, fitted phylogenetic SDs,
+and fitted latent correlations. Raw observations can help readers understand
+the trait scale, but they are not uncertainty intervals for `phylo()` SDs or
+`corpairs()` rows.
+
+```{r phylo-guide-fit}
+phylo_example <- simulate_phylo_guide_data()
+tree <- phylo_example$tree
+dat <- phylo_example$data
+
+fit_phylo <- drmTMB(
+  drm_formula(
+    thermal_tolerance ~ body_size + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = dat
+)
+```
+
+```{r phylo-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and phylogenetic location SD from a univariate Gaussian `phylo()` model; points and bars are response-scale estimates with 95% Wald intervals from `confint(fit_phylo, parm = \"variance_components\")`.", fig.alt = "Horizontal interval display comparing residual sigma and the phylogenetic location standard deviation. Both rows have hollow point estimates and finite 95 percent Wald intervals."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  phylo_sd <- confint(fit_phylo, parm = "variance_components")
+  phylo_sd$estimate <- c(
+    unname(exp(coef(fit_phylo, "sigma")["(Intercept)"])),
+    unname(fit_phylo$sdpars$mu["phylo(1 | species)"])
+  )
+  phylo_sd$label <- c(
+    "Residual\nsigma",
+    "Phylogenetic\nlocation SD"
+  )
+
+  ggplot2::ggplot(phylo_sd, ggplot2::aes(y = label)) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linewidth = 0.45,
+      linetype = "dashed",
+      colour = "grey55"
+    ) +
+    ggplot2::geom_errorbar(
+      ggplot2::aes(xmin = lower, xmax = upper),
+      width = 0,
+      linewidth = 1.1,
+      colour = "#0072B2"
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(x = estimate),
+      shape = 21,
+      size = 3.5,
+      stroke = 1,
+      fill = "white",
+      colour = "#0072B2"
+    ) +
+    ggplot2::scale_x_continuous(
+      expand = ggplot2::expansion(mult = c(0.02, 0.05))
+    ) +
+    phylo_eye_theme() +
+    ggplot2::labs(
+      title = "Phylogenetic SD is separate from residual sigma",
+      subtitle = "Bars are 95% Wald intervals on the response scale",
+      x = "Fitted standard deviation",
+      y = NULL
+    )
+}
+```
+
+For two response means, the phylogenetic correlation row is a fitted latent
+correlation among species-level location deviations. It is not the residual
+`rho12` correlation and it is not a raw sample correlation among observations.
+
+```{r phylo-q2-correlation-fit}
+phylo_q2_example <- simulate_phylo_q2_guide_data()
+phylo_q2_tree <- phylo_q2_example$tree
+phylo_q2_dat <- phylo_q2_example$data
+
+fit_phylo_q2_example <- drmTMB(
+  drm_formula(
+    mu1 = heat_tolerance ~ climate +
+      phylo(1 | p | species, tree = phylo_q2_tree),
+    mu2 = desiccation_tolerance ~ climate +
+      phylo(1 | p | species, tree = phylo_q2_tree),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = phylo_q2_dat
+)
+
+phylo_q2_pairs <- corpairs(
+  fit_phylo_q2_example,
+  level = "phylogenetic",
+  conf.int = TRUE,
+  ystep = 0.5,
+  ytol = 2
+)
+phylo_q2_pairs
+```
+
+```{r phylo-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Phylogenetic q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent phylogenetic-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the phylogenetic mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  phylo_q2_display <- phylo_q2_pairs
+  phylo_q2_display$display_label <- "Phylogenetic\nmu1-mu2"
+
+  plot_corpairs(
+    phylo_q2_display,
+    colour = "level",
+    label = "display_label",
+    facet = NULL
+  ) +
+    ggplot2::scale_colour_manual(values = c("phylogenetic" = "#D55E00")) +
+    ggplot2::scale_fill_manual(values = c("phylogenetic" = "#D55E00")) +
+    phylo_eye_theme() +
+    ggplot2::labs(
+      title = "Phylogenetic latent mean correlation",
+      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      x = "Correlation estimate"
+    )
+}
+```
 
 ## Boundaries
 
