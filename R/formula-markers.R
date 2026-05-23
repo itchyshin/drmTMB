@@ -1,10 +1,8 @@
-#' Known sampling covariance terms
+#' Known sampling covariance marker
 #'
-#' `meta_V()` and `meta_known_V()` mark known sampling variance or covariance
-#' in a formula. They are designed for meta-analysis and other regression
-#' problems where part of the observation covariance is known in advance.
-#' `meta_V(V = V)` is the preferred spelling; `meta_known_V(V = V)` is retained
-#' as a compatibility alias.
+#' `meta_V()` marks known sampling variance or covariance in a formula. It is
+#' designed for meta-analysis and other regression problems where part of the
+#' observation covariance is known in advance.
 #'
 #' @param V A column name, vector, diagonal matrix, block-diagonal matrix, or
 #'   full covariance matrix. Diagonal/vector `V` represents independent known
@@ -15,14 +13,36 @@
 #'
 #' @examples
 #' bf(yi ~ moderator + meta_V(V = vi), sigma ~ moderator)
-#' bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator)
 meta_V <- function(V) {
   invisible(NULL)
 }
 
-#' @rdname meta_V
+#' Deprecated known sampling covariance marker
+#'
+#' `meta_known_V()` is deprecated as a formula marker in `drmTMB 0.1.3.9000`.
+#' Use [meta_V()] for known sampling variance or covariance. The deprecated
+#' marker still routes to the same additive known-`V` likelihood path for
+#' compatibility.
+#'
+#' @inheritParams meta_V
+#'
+#' @return A formula marker; never evaluated by users.
+#' @keywords internal
 #' @export
 meta_known_V <- function(V) {
+  warn_meta_known_v_deprecated()
+  invisible(NULL)
+}
+
+warn_meta_known_v_deprecated <- function() {
+  .Deprecated(
+    old = "meta_known_V()",
+    new = "meta_V()",
+    msg = paste(
+      "`meta_known_V()` is deprecated as a drmTMB formula marker.",
+      "Use `meta_V(V = V)` for known sampling variance or covariance."
+    )
+  )
   invisible(NULL)
 }
 

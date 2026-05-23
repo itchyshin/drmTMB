@@ -19,8 +19,8 @@ ecological, evolutionary, and environmental applications.
 The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
 
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
-with `meta_V(V = V)`, while `meta_known_V(V = V)` remains a compatibility
-alias.
+with `meta_V(V = V)`, while deprecated `meta_known_V(V = V)` remains a
+compatibility alias.
 
 ## At a glance
 

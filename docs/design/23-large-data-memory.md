@@ -107,8 +107,8 @@ non-Gaussian families, bivariate models, and sparse scale formulas remain
 planned.
 
 Known sampling covariance is a separate memory concern. Diagonal
-`meta_known_V(V = vi)` inputs stay vector-like, but a full-matrix
-`meta_known_V(V = V)` fit stores the retained `V` as a dense R matrix.
+`meta_V(V = vi)` inputs stay vector-like, but a full-matrix
+`meta_V(V = V)` fit stores the retained `V` as a dense R matrix.
 `check_drm()` reports that dense storage as a note with dimension, density,
 size, rank, and conditioning. Low density in that row is a design signal for a
 future sparse or block-sparse known-covariance path, not a current scalability

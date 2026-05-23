@@ -67,8 +67,14 @@ test_that("lognormal methods return log-scale parameters and positive simulation
     data = sim$data
   )
 
-  expect_equal(predict(fit, dpar = "mu", type = "link"), predict(fit, dpar = "mu"))
-  expect_equal(predict(fit, dpar = "mu", type = "response"), predict(fit, dpar = "mu"))
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    predict(fit, dpar = "mu")
+  )
+  expect_equal(
+    predict(fit, dpar = "mu", type = "response"),
+    predict(fit, dpar = "mu")
+  )
   expect_equal(predict(fit, dpar = "sigma", type = "response"), sigma(fit))
   expect_equal(
     residuals(fit, type = "pearson"),
@@ -83,7 +89,9 @@ test_that("lognormal methods return log-scale parameters and positive simulation
       dpar = "sigma",
       type = "link"
     ),
-    as.vector(stats::model.matrix(~ z, data.frame(z = c(0, 1))) %*% coef(fit, "sigma")),
+    as.vector(
+      stats::model.matrix(~z, data.frame(z = c(0, 1))) %*% coef(fit, "sigma")
+    ),
     tolerance = 1e-12
   )
   sims <- simulate(fit, nsim = 2, seed = 20260521)
@@ -180,14 +188,18 @@ test_that("lognormal models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(abs(y) + 0.1 ~ x + meta_known_V(V = rep(0.1, 4)), sigma ~ 1),
+      bf(abs(y) + 0.1 ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
       family = lognormal(),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
-    drmTMB(bf(abs(y) + 0.1 ~ x, sigma ~ 1, sd(id) ~ 1), family = lognormal(), data = dat),
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x, sigma ~ 1, sd(id) ~ 1),
+      family = lognormal(),
+      data = dat
+    ),
     "Random-effect scale formulae"
   )
   expect_error(
@@ -195,12 +207,12 @@ test_that("lognormal models reject unsupported or invalid inputs", {
     "mvbind"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x, sigma ~ 1), family = lognormal(), data = dat),
+    drmTMB(bf(mu = ~x, sigma ~ 1), family = lognormal(), data = dat),
     "must include a response"
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma = ~ 1, sigma = ~ x),
+      bf(y ~ x, sigma = ~1, sigma = ~x),
       family = lognormal(),
       data = transform(dat, y = abs(y) + 0.1)
     ),

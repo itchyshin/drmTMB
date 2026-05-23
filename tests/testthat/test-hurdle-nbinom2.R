@@ -299,11 +299,11 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_known_V(V = rep(0.1, 4)), sigma ~ 1, hu ~ 1),
+      bf(y ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1, hu ~ 1),
       family = truncated_nbinom2(),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
     drmTMB(

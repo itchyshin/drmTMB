@@ -490,8 +490,8 @@ The following `relmat()` routes remain planned:
 Known sampling covariance is a different model layer. If the matrix describes
 known observation-level uncertainty for effect-size estimates, use
 `meta_V(V = V)` and the [meta-analysis documentation](meta-analysis.html)
-instead of `relmat()`. The older `meta_known_V(V = V)` spelling remains a
-compatibility alias, not a separate relatedness route.
+instead of `relmat()`. The older `meta_known_V(V = V)` spelling is deprecated
+but remains a compatibility alias, not a separate relatedness route.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the

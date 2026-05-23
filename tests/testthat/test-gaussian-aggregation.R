@@ -134,7 +134,7 @@ test_that("Gaussian aggregation rejects unsupported first-slice models", {
   expect_snapshot(
     error = TRUE,
     drmTMB(
-      bf(y ~ habitat + meta_known_V(V = v), sigma ~ 1),
+      bf(y ~ habitat + meta_V(V = v), sigma ~ 1),
       data = dat,
       control = drm_control(aggregate_gaussian = TRUE)
     )

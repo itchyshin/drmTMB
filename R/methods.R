@@ -132,7 +132,7 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #' `weights()` returns the row likelihood multipliers used by a fitted
 #' `drmTMB` model after model-row filtering. These weights multiply
 #' log-likelihood contributions. They are not known sampling variances or known
-#' sampling covariance; use [meta_known_V()] for that meta-analytic role.
+#' sampling covariance; use [meta_V()] for that meta-analytic role.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
@@ -2467,7 +2467,7 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' `Var(y | component) = mu + sigma^2 * mu^2`. For bivariate Gaussian models
 #' it returns a roundable list with fitted `sigma1` and `sigma2` vectors.
 #'
-#' In meta-analytic models fitted with `meta_known_V(V = V)`, this is the
+#' In meta-analytic models fitted with `meta_V(V = V)`, this is the
 #' modelled residual heterogeneity scale, not the square root of the known
 #' sampling variance plus residual variance. Simulation and Pearson residuals
 #' combine known sampling covariance with residual scale internally.

@@ -452,11 +452,11 @@ test_that("cumulative-logit validates ordinal scope and malformed responses", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_known_V(V = rep(0.1, nrow(dat)))),
+      bf(y ~ x + meta_V(V = rep(0.1, nrow(dat)))),
       family = cumulative_logit(),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
     drmTMB(bf(mvbind(y, y) ~ x), family = cumulative_logit(), data = dat),

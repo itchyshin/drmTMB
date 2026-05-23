@@ -2,6 +2,140 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Deprecate meta_known_V Formula Marker
+
+Goal: turn `meta_known_V()` from an accepted compatibility spelling into an
+explicitly deprecated formula marker while keeping old Gaussian known-`V`
+models on the same additive likelihood path.
+
+Roles: Ada coordinated the lifecycle slice. Boole checked the formula API and
+marker spelling. Fisher checked the known-covariance and interval boundaries.
+Pat checked that current examples teach `meta_V(V = V)`. Grace checked
+roxygen, tests, pkgdown, vignettes, and generated Rd files. Rose checked for
+stale naming and typo drift. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added a `.Deprecated()` warning for direct `meta_known_V()` calls without
+  adding a new package dependency.
+- Added parser-level warning for formulas that contain `meta_known_V()` because
+  formula markers are otherwise not evaluated.
+- Split `meta_known_V()` onto its own deprecated roxygen topic and moved it to
+  the deprecated marker section of `_pkgdown.yml`.
+- Updated R diagnostics, Rd text, tests, snapshots, README, roadmap, design
+  docs, and vignettes so current examples and user-facing errors lead with
+  `meta_V(V = V)`.
+- Kept targeted compatibility tests proving deprecated `meta_known_V()` formulas
+  still route to the additive known sampling covariance path.
+
+Validation:
+
+```sh
+air format NEWS.md R/check.R R/drmTMB.R R/family.R R/formula-markers.R R/gaussian-aggregation.R R/methods.R R/parse-formula.R README.md ROADMAP.md _pkgdown.yml docs/design/00-vision.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/06-distribution-roadmap.md docs/design/07-collaboration-and-site.md docs/design/08-meta-analysis.md docs/design/10-after-task-protocol.md docs/design/11-reference-programme.md docs/design/13-gaussian-location-scale-math.md docs/design/16-phylo-spatial-common-math.md docs/design/21-tutorial-style.md docs/design/22-likelihood-weights.md docs/design/23-large-data-memory.md docs/design/25-ordinal-scale-discrimination.md docs/design/27-tweedie-family-plan.md docs/design/31-gaussian-aggregation-sufficient-statistics.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md tests/testthat/_snaps/gaussian-aggregation.md tests/testthat/test-beta-binomial.R tests/testthat/test-beta-location-scale.R tests/testthat/test-biv-gaussian.R tests/testthat/test-check-drm.R tests/testthat/test-comparators.R tests/testthat/test-control.R tests/testthat/test-cumulative-logit.R tests/testthat/test-gamma-location-scale.R tests/testthat/test-gaussian-aggregation.R tests/testthat/test-hurdle-nbinom2.R tests/testthat/test-lognormal-location-scale.R tests/testthat/test-meta-known-v.R tests/testthat/test-nbinom2-location-scale.R tests/testthat/test-package-skeleton.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-poisson-mean.R tests/testthat/test-student-location-scale.R tests/testthat/test-truncated-nbinom2-location-scale.R tests/testthat/test-zi-nbinom2.R tests/testthat/test-zi-poisson.R vignettes/adding-families.Rmd vignettes/bivariate-coscale.Rmd vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/implementation-map.Rmd vignettes/large-data.Rmd vignettes/location-scale.Rmd vignettes/meta-analysis.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd vignettes/proportion-beta-binomial.Rmd vignettes/relmat-known-matrices.Rmd vignettes/source-map.Rmd vignettes/testing-likelihoods.Rmd vignettes/which-scale.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'meta-known-v|package-skeleton|gaussian-aggregation|check-drm')"
+Rscript -e "devtools::test(filter = 'biv-gaussian|control|comparators|student-location-scale|lognormal-location-scale|gamma-location-scale|beta-location-scale|beta-binomial|cumulative-logit|poisson-mean|nbinom2-location-scale|zi-poisson|zi-nbinom2|hurdle-nbinom2|truncated-nbinom2-location-scale|phylo-gaussian')"
+rg -n "meta_kown_V|depriciate|depricat|depreciat" README.md ROADMAP.md NEWS.md R man tests/testthat vignettes docs/design docs/dev-log/known-limitations.md _pkgdown.yml -g '!*.html'
+rg -n "meta_known_V" tests/testthat
+rg -n "\\{\\.fn meta_known_V\\}|meta_known_V\\(\\)" R -g '*.R'
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+air format docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-meta-known-v-deprecation.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "deprecate meta_known_V formula marker" --next "review current diff, then commit or open PR for the deprecation slice"
+```
+
+- `devtools::document()` completed and generated the new deprecated
+  `meta_known_V.Rd` topic.
+- Targeted deprecation and covariance tests passed:
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 390`.
+- The wider focused regression suite passed:
+  `FAIL 0 | WARN 0 | SKIP 0 | PASS 1877`.
+- The typo/deprecation scan found no `meta_kown_V`, `depriciate`,
+  `depricat`, or `depreciat` hits in current code, tests, vignettes, Rd,
+  package config, or current design/status docs.
+- The test scan leaves `meta_known_V` only in the intended deprecation tests.
+- The R scan leaves `meta_known_V()` only in the deprecated marker docs/helper;
+  user-facing `.fn meta_known_V` errors were removed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully.
+- Final `git diff --check` was clean after report formatting.
+- The local recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-05-23-161606-codex-checkpoint.md`.
+
+## 2026-05-23 - Status And Stale-Claim Audit Slices 1-10
+
+Goal: recover from the crashed handoff, merge the already validated rendered
+figure QA PR, and start the next maintenance lane by aligning high-traffic
+status docs around `meta_V(V = V)`, q4 structured first-slice support, and the
+ordinary Poisson q=1 phylogenetic `mu` boundary.
+
+Roles: Ada handled recovery, PR state, and branch integration. Boole checked
+formula/API spelling. Fisher checked interval and fitted-versus-planned claims.
+Pat checked reader-facing guidance for unsupported neighbours. Grace checked
+roxygen, pkgdown, vignettes, and whitespace. Rose audited stale claims and
+handoff evidence. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Merged PR #314 after checks passed and rebased
+  `codex/status-stale-audit-1-10` onto `origin/main` at `35e0d88b`.
+- Updated high-traffic docs, vignettes, roxygen, and diagnostic wording so
+  `meta_V(V = V)` is the preferred known sampling covariance syntax and
+  `meta_known_V(V = V)` is a compatibility alias.
+- Refreshed `docs/dev-log/known-limitations.md` so constant coordinate-spatial,
+  animal-model, and `relmat()` q4 blocks are fitted first slices, while richer
+  structured slopes, direct-SD surfaces, predictor-dependent correlations,
+  mesh/SPDE, and non-Gaussian neighbours remain planned.
+- Refreshed the Poisson structured-status wording so ordinary Poisson q=1
+  phylogenetic `mu` is the only fitted structured non-Gaussian route.
+- Added the audit report and after-task report for this maintenance slice; a
+  local ignored recovery checkpoint was also written for crash handoff.
+
+Validation:
+
+```sh
+gh pr merge 314 --repo itchyshin/drmTMB --squash --delete-branch --subject "Add family tutorial figure QA slice (#314)"
+git fetch origin
+git rebase origin/main
+air format R/check.R R/methods.R ROADMAP.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/16-phylo-spatial-common-math.md docs/design/22-likelihood-weights.md docs/design/34-validation-debt-register.md docs/dev-log/known-limitations.md vignettes/adding-families.Rmd vignettes/bivariate-coscale.Rmd vignettes/drmTMB.Rmd vignettes/formula-grammar.Rmd vignettes/large-data.Rmd vignettes/location-scale.Rmd vignettes/model-map.Rmd vignettes/model-workflow.Rmd vignettes/testing-likelihoods.Rmd vignettes/which-scale.Rmd
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'check-drm|meta-known-v|gaussian-aggregation')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+air format NEWS.md docs/design/03-likelihoods.md docs/dev-log/audits/2026-05-23-status-stale-audit-slices-1-10.md docs/dev-log/after-task/2026-05-23-status-stale-audit-slices-1-10.md docs/dev-log/check-log.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript tools/codex-checkpoint.R --goal "status stale-claim audit slices 1-10" --next "review current diff, then commit or open PR for the status audit"
+rg -n 'meta_V\(\.\.\.|once the alias|alias/rename|preferred roadmap spelling|canonical marker is `meta_known|spatial q=4 blocks are still planned|bivariate spatial q=4 blocks|structured non-Gaussian random effects are not implemented' README.md ROADMAP.md NEWS.md R vignettes docs/design docs/dev-log/known-limitations.md -g '!*.html'
+rg -n 'meta_known_V\(V = V\)|meta_known_V\(V = vi\)|meta_known_V\(\)' README.md ROADMAP.md NEWS.md R vignettes docs/design docs/dev-log/known-limitations.md -g '!*.html'
+rg -n 'spatial q=4|spatial q4|q4 spatial|animal q=4|animal q4|relmat q=4|relmat q4|Poisson.*phylo|phylo.*Poisson|non-Gaussian structured|structured non-Gaussian' README.md ROADMAP.md NEWS.md R vignettes docs/design docs/dev-log/known-limitations.md -g '!*.html'
+gh issue view 5 --repo itchyshin/drmTMB --json number,title,state,url
+gh issue view 147 --repo itchyshin/drmTMB --json number,title,state,url
+gh issue list --repo itchyshin/drmTMB --search "meta_V OR meta_known_V OR known covariance" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "stale claim meta_V known covariance spatial q4 implementation status" --limit 20
+```
+
+- `devtools::document()` completed and regenerated `weights.drmTMB.Rd` and
+  `sigma.drmTMB.Rd`.
+- Targeted tests passed: `FAIL 0 | WARN 0 | SKIP 0 | PASS 293`.
+- `git diff --check` was clean before the report files were added and again
+  after final report formatting.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully.
+- The final `pkgdown::check_pkgdown()` rerun after NEWS and dev-log additions
+  also reported no problems.
+- The local recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-05-23-145636-codex-checkpoint.md`.
+- The main stale-wording scan leaves only the intentional future
+  `meta_V(..., scale = "proportional")` roadmap note.
+- The alias scan leaves explicit compatibility-alias, historical NEWS/roadmap,
+  source-map, and design-note hits.
+- The structured-status scan leaves fitted first-slice or planned-neighbour
+  wording, not a current high-traffic stale claim.
+- Issues #5, #31, and #147 remain open; no issue was closed by this audit.
+
 ## 2026-05-23 - Rendered Figure QA Slices 81-100
 
 Goal: finish the current rendered figure sweep through slice 100 by adding

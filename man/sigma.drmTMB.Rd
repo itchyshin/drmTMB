@@ -34,7 +34,7 @@ the fitted overdispersion scale in the untruncated NB2 component
 it returns a roundable list with fitted \code{sigma1} and \code{sigma2} vectors.
 }
 \details{
-In meta-analytic models fitted with \code{meta_known_V(V = V)}, this is the
+In meta-analytic models fitted with \code{meta_V(V = V)}, this is the
 modelled residual heterogeneity scale, not the square root of the known
 sampling variance plus residual variance. Simulation and Pearson residuals
 combine known sampling covariance with residual scale internally.

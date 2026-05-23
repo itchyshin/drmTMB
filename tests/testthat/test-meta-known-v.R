@@ -19,7 +19,7 @@ test_that("drmTMB fits Gaussian meta-regression with diagonal known V", {
 
   fit <- drmTMB(
     bf(
-      yi ~ x + meta_known_V(V = vi),
+      yi ~ x + meta_V(V = vi),
       sigma ~ x
     ),
     family = gaussian(),
@@ -34,7 +34,7 @@ test_that("drmTMB fits Gaussian meta-regression with diagonal known V", {
   expect_true(all(stats::sigma(fit) > 0))
 })
 
-test_that("meta_known_V accepts diagonal and full covariance matrices", {
+test_that("meta_V accepts diagonal and full covariance matrices", {
   set.seed(20260509)
   n <- 80
   dat <- data.frame(x = stats::rnorm(n))
@@ -45,12 +45,12 @@ test_that("meta_known_V accepts diagonal and full covariance matrices", {
     0.01 * outer(seq_len(n), seq_len(n), function(i, j) 0.7^abs(i - j))
 
   fit_diag <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V_diag)),
+    bf(yi ~ x + meta_V(V = V_diag)),
     family = gaussian(),
     data = dat
   )
   fit_full <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V_full)),
+    bf(yi ~ x + meta_V(V = V_full)),
     family = gaussian(),
     data = dat
   )
@@ -64,7 +64,7 @@ test_that("meta_known_V accepts diagonal and full covariance matrices", {
   expect_equal(fit_full$model$V_known_type, "matrix")
 })
 
-test_that("meta_V is an additive known-V alias", {
+test_that("deprecated meta_known_V still routes to additive known V", {
   dat <- data.frame(x = c(-1, 0, 1, 2))
   dat$yi <- 0.4 + 0.3 * dat$x + c(-0.1, 0.2, -0.05, 0.1)
   dat$vi <- c(0.04, 0.05, 0.03, 0.06)
@@ -76,20 +76,28 @@ test_that("meta_V is an additive known-V alias", {
     family = gaussian(),
     data = dat
   )
-  fit_known_v <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = vi)),
-    family = gaussian(),
-    data = dat
+  fit_known_v <- NULL
+  expect_warning(
+    fit_known_v <- drmTMB(
+      bf(yi ~ x + meta_known_V(V = vi)),
+      family = gaussian(),
+      data = dat
+    ),
+    "deprecated"
   )
   fit_meta_v_full <- drmTMB(
     bf(yi ~ x + meta_V(V = V_full)),
     family = gaussian(),
     data = dat
   )
-  fit_known_v_full <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V_full)),
-    family = gaussian(),
-    data = dat
+  fit_known_v_full <- NULL
+  expect_warning(
+    fit_known_v_full <- drmTMB(
+      bf(yi ~ x + meta_known_V(V = V_full)),
+      family = gaussian(),
+      data = dat
+    ),
+    "deprecated"
   )
 
   expect_equal(fit_meta_v$opt$convergence, 0)
@@ -130,7 +138,7 @@ test_that("meta_V is an additive known-V alias", {
   expect_true(all(is.finite(ci_full$upper)))
 })
 
-test_that("full meta_known_V likelihood matches a base R MVN calculation", {
+test_that("full meta_V likelihood matches a base R MVN calculation", {
   set.seed(20260514)
   n <- 45
   dat <- data.frame(x = stats::rnorm(n))
@@ -142,7 +150,7 @@ test_that("full meta_known_V likelihood matches a base R MVN calculation", {
   dat$yi <- as.vector(mu + t(chol(Sigma)) %*% stats::rnorm(n))
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V)),
+    bf(yi ~ x + meta_V(V = V)),
     family = gaussian(),
     data = dat
   )
@@ -161,7 +169,7 @@ test_that("full meta_known_V likelihood matches a base R MVN calculation", {
   expect_true(all(is.finite(residuals(fit, type = "pearson"))))
 })
 
-test_that("full meta_known_V works with location random intercepts", {
+test_that("full meta_V works with location random intercepts", {
   set.seed(20260516)
   n_group <- 6
   n_per_group <- 6
@@ -176,7 +184,7 @@ test_that("full meta_known_V works with location random intercepts", {
   dat$yi <- as.vector(mu + t(chol(V + diag(0.2^2, n))) %*% stats::rnorm(n))
 
   fit <- drmTMB(
-    bf(yi ~ x + (1 | id) + meta_known_V(V = V)),
+    bf(yi ~ x + (1 | id) + meta_V(V = V)),
     family = gaussian(),
     data = dat
   )
@@ -187,7 +195,7 @@ test_that("full meta_known_V works with location random intercepts", {
   expect_true(all(is.finite(fit$sdpars$mu)))
 })
 
-test_that("meta_known_V works with random-effect scale formulas", {
+test_that("meta_V works with random-effect scale formulas", {
   set.seed(20260601)
   n_id <- 10
   n_each <- 5
@@ -210,7 +218,7 @@ test_that("meta_known_V works with random-effect scale formulas", {
 
   fit <- drmTMB(
     bf(
-      yi ~ x + (1 | id) + meta_known_V(V = vi),
+      yi ~ x + (1 | id) + meta_V(V = vi),
       sigma ~ 1,
       sd(id) ~ w
     ),
@@ -234,7 +242,7 @@ test_that("meta_known_V works with random-effect scale formulas", {
   )
 })
 
-test_that("meta_known_V rejects malformed marker calls", {
+test_that("meta_V rejects malformed marker calls", {
   dat <- data.frame(
     yi = stats::rnorm(20),
     x = stats::rnorm(20),
@@ -243,7 +251,7 @@ test_that("meta_known_V rejects malformed marker calls", {
 
   expect_error(
     drmTMB(
-      bf(yi ~ x + meta_known_V(bad = vi)),
+      bf(yi ~ x + meta_V(bad = vi)),
       family = gaussian(),
       data = dat
     ),
@@ -251,7 +259,7 @@ test_that("meta_known_V rejects malformed marker calls", {
   )
   expect_error(
     drmTMB(
-      bf(yi ~ x + meta_known_V(V = vi, extra = vi)),
+      bf(yi ~ x + meta_V(V = vi, extra = vi)),
       family = gaussian(),
       data = dat
     ),
@@ -291,7 +299,7 @@ test_that("meta_known_V rejects malformed marker calls", {
   )
   expect_error(
     drmTMB(
-      bf(yi ~ x, sigma ~ meta_known_V(V = vi)),
+      bf(yi ~ x, sigma ~ meta_V(V = vi)),
       family = gaussian(),
       data = dat
     ),
@@ -313,7 +321,7 @@ test_that("near-zero heterogeneity starts remain numerically workable", {
   )
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = vi)),
+    bf(yi ~ x + meta_V(V = vi)),
     family = gaussian(),
     data = dat
   )
@@ -323,7 +331,7 @@ test_that("near-zero heterogeneity starts remain numerically workable", {
   expect_true(all(stats::sigma(fit) > 0))
 })
 
-test_that("meta_known_V removes missing known variances consistently", {
+test_that("meta_V removes missing known variances consistently", {
   set.seed(20260510)
   dat <- data.frame(
     x = stats::rnorm(30),
@@ -334,7 +342,7 @@ test_that("meta_known_V removes missing known variances consistently", {
   dat$x[7] <- NA_real_
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = vi)),
+    bf(yi ~ x + meta_V(V = vi)),
     family = gaussian(),
     data = dat
   )
@@ -384,7 +392,7 @@ test_that("meta_V keeps likelihood weights distinct from proportional variance",
   )
 })
 
-test_that("full meta_known_V removes rows and columns consistently", {
+test_that("full meta_V removes rows and columns consistently", {
   set.seed(20260515)
   n <- 28
   dat <- data.frame(
@@ -398,7 +406,7 @@ test_that("full meta_known_V removes rows and columns consistently", {
   V[4, 4] <- 0.02
 
   fit <- drmTMB(
-    bf(yi ~ x + meta_known_V(V = V)),
+    bf(yi ~ x + meta_V(V = V)),
     family = gaussian(),
     data = dat
   )
@@ -409,13 +417,13 @@ test_that("full meta_known_V removes rows and columns consistently", {
   expect_equal(fit$model$V_known_diag, diag(V)[keep])
 })
 
-test_that("full meta_known_V rejects invalid covariance matrices", {
+test_that("full meta_V rejects invalid covariance matrices", {
   dat <- data.frame(yi = stats::rnorm(4), x = stats::rnorm(4))
   V <- diag(0.01, 4)
   V[1, 2] <- 0.005
 
   expect_error(
-    drmTMB(bf(yi ~ x + meta_known_V(V = V)), family = gaussian(), data = dat),
+    drmTMB(bf(yi ~ x + meta_V(V = V)), family = gaussian(), data = dat),
     "symmetric"
   )
 
@@ -423,7 +431,7 @@ test_that("full meta_known_V rejects invalid covariance matrices", {
   V_bad[1, 1] <- -0.01
   expect_error(
     drmTMB(
-      bf(yi ~ x + meta_known_V(V = V_bad)),
+      bf(yi ~ x + meta_V(V = V_bad)),
       family = gaussian(),
       data = dat
     ),
@@ -434,7 +442,7 @@ test_that("full meta_known_V rejects invalid covariance matrices", {
   V_missing[1, 2] <- V_missing[2, 1] <- NA_real_
   expect_error(
     drmTMB(
-      bf(yi ~ x + meta_known_V(V = V_missing)),
+      bf(yi ~ x + meta_V(V = V_missing)),
       family = gaussian(),
       data = dat
     ),

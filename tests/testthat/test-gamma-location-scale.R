@@ -81,12 +81,12 @@ test_that("Gamma methods return mean and coefficient-of-variation scales", {
   newdata <- data.frame(x = c(0, 1), z = c(0, 1))
   expect_equal(
     predict(fit, newdata = newdata, dpar = "mu"),
-    exp(as.vector(stats::model.matrix(~ x, newdata) %*% coef(fit, "mu"))),
+    exp(as.vector(stats::model.matrix(~x, newdata) %*% coef(fit, "mu"))),
     tolerance = 1e-12
   )
   expect_equal(
     predict(fit, newdata = newdata, dpar = "sigma", type = "link"),
-    as.vector(stats::model.matrix(~ z, newdata) %*% coef(fit, "sigma")),
+    as.vector(stats::model.matrix(~z, newdata) %*% coef(fit, "sigma")),
     tolerance = 1e-12
   )
   expect_equal(
@@ -200,7 +200,11 @@ test_that("Gamma models reject unsupported or invalid inputs", {
   )
 
   expect_error(
-    drmTMB(bf(abs(y) + 0.1 ~ x, sigma ~ 1), family = stats::Gamma(), data = dat),
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x, sigma ~ 1),
+      family = stats::Gamma(),
+      data = dat
+    ),
     "Gamma models currently require"
   )
   expect_error(
@@ -208,20 +212,32 @@ test_that("Gamma models reject unsupported or invalid inputs", {
     "Currently supported families"
   )
   expect_error(
-    drmTMB(bf(abs(y) + 0.1 ~ x, sigma ~ 1), family = base::gamma(1), data = dat),
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x, sigma ~ 1),
+      family = base::gamma(1),
+      data = dat
+    ),
     "Currently supported families"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = stats::Gamma(link = "log"), data = dat),
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
     "positive finite response"
   )
   expect_error(
-    drmTMB(bf(mu = ~ x, sigma ~ 1), family = stats::Gamma(link = "log"), data = dat),
+    drmTMB(
+      bf(mu = ~x, sigma ~ 1),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
     "must include a response"
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma = ~ 1, sigma = ~ x),
+      bf(y ~ x, sigma = ~1, sigma = ~x),
       family = stats::Gamma(link = "log"),
       data = transform(dat, y = abs(y) + 0.1)
     ),
@@ -236,7 +252,11 @@ test_that("Gamma models reject unsupported or invalid inputs", {
     "No complete observations"
   )
   expect_error(
-    drmTMB(bf(abs(y) + 0.1 ~ x, nu ~ 1), family = stats::Gamma(link = "log"), data = dat),
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x, nu ~ 1),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
     "only support"
   )
   expect_error(
@@ -249,11 +269,11 @@ test_that("Gamma models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(abs(y) + 0.1 ~ x + meta_known_V(V = rep(0.1, 4)), sigma ~ 1),
+      bf(abs(y) + 0.1 ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
       family = stats::Gamma(link = "log"),
       data = dat
     ),
-    "meta_known_V"
+    "meta_V"
   )
   expect_error(
     drmTMB(

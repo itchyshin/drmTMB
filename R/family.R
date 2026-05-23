@@ -130,7 +130,7 @@ beta <- function() {
 #' variation around the mean probability.
 #'
 #' The first implementation supports fixed effects only. Random effects,
-#' `meta_known_V(V = V)`, phylogenetic or spatial terms, bivariate
+#' `meta_V(V = V)`, phylogenetic or spatial terms, bivariate
 #' beta-binomial models, and a `successes/trials` response alias are planned
 #' but not implemented.
 #'

@@ -62,7 +62,8 @@ Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,
 known sampling covariance through \code{meta_V(V = V)} with
-\code{meta_known_V(V = V)} as a compatibility alias, residual-scale
+deprecated \code{meta_known_V(V = V)} retained as a compatibility alias,
+residual-scale
 random intercepts and independent numeric random slopes in the scale formula,
 labelled \code{mu}/\code{sigma}
 random-intercept covariance blocks, and one or more group-level

@@ -1316,7 +1316,7 @@ test_that("phylogenetic meta-analysis objective matches dense known-V likelihood
 
   fit <- drmTMB(
     bf(
-      yi ~ x + meta_known_V(V = vi) + phylo(1 | species, tree = tree),
+      yi ~ x + meta_V(V = vi) + phylo(1 | species, tree = tree),
       sigma ~ 1
     ),
     family = gaussian(),
@@ -1357,7 +1357,7 @@ test_that("phylogenetic meta-analysis accepts dense known V", {
 
   fit <- drmTMB(
     bf(
-      yi ~ x + meta_known_V(V = V) + phylo(1 | species, tree = tree),
+      yi ~ x + meta_V(V = V) + phylo(1 | species, tree = tree),
       sigma ~ 1
     ),
     family = gaussian(),
@@ -1407,7 +1407,7 @@ test_that("phylogenetic meta-analysis composes dense V and study intercepts", {
     bf(
       yi ~ x +
         (1 | study) +
-        meta_known_V(V = V) +
+        meta_V(V = V) +
         phylo(1 | species, tree = tree),
       sigma ~ 1
     ),

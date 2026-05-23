@@ -70,7 +70,7 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_known_V(V = V)`, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
@@ -153,7 +153,7 @@ nll = sum_i w_i {-log f([y1_i, y2_i]' | theta_i)}
 ```
 
 Known sampling variances or sampling covariance still belong in
-`meta_known_V(V = V)`. When `meta_known_V(V = V)` supplies a full dense
+`meta_V(V = V)`. When `meta_V(V = V)` supplies a full dense
 covariance matrix, `weights =` is rejected for now because the likelihood is a
 joint multivariate block rather than a sum of independent row contributions.
 
@@ -501,7 +501,8 @@ Implementation notes:
 - Comparator tests against `lme4` for overlapping Gaussian ML random-effect
   models live in `tests/testthat/test-comparators.R`.
 - The univariate likelihood supports optional known sampling covariance via
-  `meta_known_V(V = V)`. It has no residual correlation parameter.
+  `meta_V(V = V)`, with deprecated `meta_known_V(V = V)` as a compatibility
+  alias. It has no residual correlation parameter.
 
 ## Implemented Meta-Analytic Gaussian Regression
 
@@ -512,7 +513,7 @@ It is not a separate family.
 y ~ MVN(mu, V_known + Sigma_unknown)
 ```
 
-For diagonal `V`, written as `meta_known_V(V = vi)` in the location formula:
+For diagonal `V`, written as `meta_V(V = vi)` in the location formula:
 
 ```text
 y_i ~ Normal(mu_i, vi_i + sigma_i^2)
@@ -532,8 +533,8 @@ Implementation notes:
 - A matrix supplies dense known sampling covariance and must be symmetric
   positive semidefinite after retained-row subsetting.
 - `sigma_i` is the extra heterogeneity SD after known sampling error is added.
-- `meta_known_V()` must be treated as a covariance marker, not as an ordinary
-  fixed-effect predictor.
+- `meta_V()` and deprecated `meta_known_V()` must be treated as covariance
+  markers, not as ordinary fixed-effect predictors.
 - The marker is removed before model-matrix construction.
 - `predict(fit, dpar = "sigma")` returns the unknown heterogeneity SD;
   likelihood, Pearson residuals, and simulation include the known covariance.
@@ -639,7 +640,8 @@ drmTMB(
 The first implementation should be fixed-effect and univariate. It should
 start with intercept-only or simple fixed-effect `nu` formulas, reject random
 effects in `sigma` or `nu`, and reject bivariate, `rho12`,
-`meta_V(V = V)`/`meta_known_V(V = V)`, `phylo()`, and `spatial()` paths until
+`meta_V(V = V)`, deprecated `meta_known_V(V = V)`, `phylo()`, and `spatial()`
+paths until
 separate recovery, normal-limit, false-positive heteroscedasticity, and
 comparator tests exist. Treat this section as an implementation gate for issue
 #3, not as evidence that `skew_normal()` is available.
@@ -807,9 +809,9 @@ drmTMB(
 The first implementation should be fixed-effect and univariate, with
 intercept-only `nu ~ 1` before predictor-dependent power models. It should
 reject negative responses, random effects in `sigma` or `nu`, bivariate
-Tweedie families, `rho12`, `meta_known_V(V = V)`, and phylogenetic or spatial
-terms until separate recovery and comparator tests exist. The implementation
-gate is in `docs/design/27-tweedie-family-plan.md`.
+Tweedie families, `rho12`, `meta_V(V = V)`, and phylogenetic or spatial terms
+until separate recovery and comparator tests exist. The implementation gate is
+in `docs/design/27-tweedie-family-plan.md`.
 
 ## Implemented Beta Mean-Scale
 
@@ -1278,8 +1280,8 @@ Omega_i =
    rho12_i sigma1_i sigma2_i,   sigma2_i^2]
 ```
 
-`S_i` is known within-study sampling covariance supplied by
-`meta_known_V(V = V)`. `Omega_i` is the unknown residual heterogeneity
+`S_i` is known within-study sampling covariance supplied by `meta_V(V = V)`.
+`Omega_i` is the unknown residual heterogeneity
 covariance after known sampling covariance has been included. The fitted
 `rho12_i` is not the known within-study sampling correlation; it should only be
 called study-level if a separate study-level random effect is fitted.
@@ -1298,7 +1300,8 @@ The current implementation:
 
 - requires complete bivariate rows;
 - accepts a `2n` by `2n` dense or block-diagonal `V` in row-paired order;
-- rejects duplicate `meta_known_V()` markers across `mu1` and `mu2`;
+- rejects duplicate `meta_V()` / deprecated `meta_known_V()` markers across
+  `mu1` and `mu2`;
 - provides `meta_vcov_bivariate()` to build the common block-diagonal `V` from
   `v1`, `v2`, and
   either `cov12` or `cor12`;
@@ -1472,11 +1475,12 @@ Implementation notes:
 - `mvbind(y1, y2) ~ x` is implemented as a formula shorthand that creates
   identical `mu1` and `mu2` design matrices.
 - Dense known sampling covariance is implemented for complete-row bivariate
-  Gaussian models through `meta_known_V(V = V)`, where `V` is a row-paired
+  Gaussian models through `meta_V(V = V)`, with deprecated
+  `meta_known_V(V = V)` as a compatibility alias. Here `V` is a row-paired
   `2n` by `2n` matrix added to the fitted residual covariance.
 - Matching labelled random intercepts in `mu1`/`mu2` and `sigma1`/`sigma2` are
   implemented as same-parameter group-level covariance blocks. They cannot yet
-  be combined with `meta_known_V(V = V)`.
+  be combined with `meta_V(V = V)`.
 - One same-response `mu`/`sigma` random-intercept covariance pair is implemented
   for `mu1` with `sigma1` or `mu2` with `sigma2`.
 - Reusing the same label in all four `mu1`, `mu2`, `sigma1`, and `sigma2`

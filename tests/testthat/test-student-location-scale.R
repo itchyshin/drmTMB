@@ -104,7 +104,7 @@ test_that("Student-t models reject unsupported early-phase terms clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_known_V(V = V), sigma ~ 1),
+      bf(y ~ x + meta_V(V = V), sigma ~ 1),
       family = student(),
       data = dat
     ),

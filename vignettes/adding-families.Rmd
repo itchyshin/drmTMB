@@ -200,7 +200,7 @@ the family to a model builder. In broad terms, that builder must:
 6. record enough metadata for prediction, simulation, summaries, and checks.
 
 For the Student-t family, the builder currently rejects random effects,
-`meta_known_V(V = V)`, random-effect scale formulae, and bivariate terms. That is
+`meta_V(V = V)`, random-effect scale formulae, and bivariate terms. That is
 intentional. A clear unsupported-feature error is better than a plausible fit
 whose likelihood has not been implemented.
 
@@ -312,7 +312,7 @@ optimization with useful messages:
 ```{r rejection-pattern, eval = FALSE}
 expect_error(
   drmTMB(
-    drm_formula(y ~ x + meta_known_V(V = V), sigma ~ 1),
+    drm_formula(y ~ x + meta_V(V = V), sigma ~ 1),
     family = student(),
     data = dat
   ),

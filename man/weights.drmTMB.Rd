@@ -19,7 +19,7 @@ complete response pair for bivariate Gaussian models.
 \code{weights()} returns the row likelihood multipliers used by a fitted
 \code{drmTMB} model after model-row filtering. These weights multiply
 log-likelihood contributions. They are not known sampling variances or known
-sampling covariance; use \code{\link[=meta_known_V]{meta_known_V()}} for that meta-analytic role.
+sampling covariance; use \code{\link[=meta_V]{meta_V()}} for that meta-analytic role.
 }
 \examples{
 dat <- data.frame(

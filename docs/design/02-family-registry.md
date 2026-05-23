@@ -198,11 +198,12 @@ random intercept-slope blocks with optional covariance-block labels,
 univariate Gaussian residual-scale random intercepts and independent random
 slopes in `sigma`, and optional
 known sampling covariance through `meta_V(V = V)`, with
-`meta_known_V(V = V)` retained as a compatibility alias. Random-effect scale
-formulae such as `sd(id) ~ x_group` and `sd(site) ~ site_type` are implemented
-for distinct unlabelled Gaussian `mu` random intercepts. Sparse known
-covariance, correlated residual-scale slope blocks, slope-specific or labelled
-random-effect scale formulae, and additional families are later phases.
+deprecated `meta_known_V(V = V)` retained as a compatibility alias.
+Random-effect scale formulae such as `sd(id) ~ x_group` and
+`sd(site) ~ site_type` are implemented for distinct unlabelled Gaussian `mu`
+random intercepts. Sparse known covariance, correlated residual-scale slope
+blocks, slope-specific or labelled random-effect scale formulae, and additional
+families are later phases.
 
 ## Implemented: Student-t Location-Scale-Shape
 

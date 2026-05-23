@@ -11,12 +11,12 @@
 ---
 
     Code
-      drmTMB(bf(y ~ habitat + meta_known_V(V = v), sigma ~ 1), data = dat, control = drm_control(
+      drmTMB(bf(y ~ habitat + meta_V(V = v), sigma ~ 1), data = dat, control = drm_control(
         aggregate_gaussian = TRUE))
     Condition
       Error in `validate_gaussian_aggregation_gaussian()`:
       ! Gaussian aggregation is not implemented with known sampling covariance yet.
-      i Refit without `meta_known_V()` or set `aggregate_gaussian = FALSE`.
+      i Refit without `meta_V()` or set `aggregate_gaussian = FALSE`.
 
 ---
 

@@ -986,18 +986,19 @@ with matching syntax:
 
 ```r
 drmTMB(
-  bf(yi ~ x1 + meta_known_V(V = vi), sigma ~ x1),
+  bf(yi ~ x1 + meta_V(V = vi), sigma ~ x1),
   family = gaussian(),
   data = dat
 )
 ```
 
-The canonical marker is `meta_known_V(V = V)`; in concrete code, `V` can be a
-vector such as `vi`. Here `vi` is known sampling variance. The estimated
-`sigma_i` is the additional heterogeneity standard deviation after known
-sampling error has been included. In meta-analysis prose this quantity is often
-called `tau`, but the `drmTMB` API keeps the name `sigma` because it is still
-the residual scale parameter of the Gaussian regression.
+The preferred marker is `meta_V(V = V)`; deprecated `meta_known_V(V = V)`
+remains a compatibility alias. In concrete code, `V` can be a vector such as
+`vi`. Here `vi` is known sampling variance. The estimated `sigma_i` is the
+additional heterogeneity standard deviation after known sampling error has been
+included. In meta-analysis prose this quantity is often called `tau`, but the
+`drmTMB` API keeps the name `sigma` because it is still the residual scale
+parameter of the Gaussian regression.
 
 When `V` is a full known covariance matrix, the same model is:
 
@@ -1019,8 +1020,9 @@ y \mid \mu, \sigma, V
   is not a random-effect scale component.
 - Missing rows are dropped when they are incomplete for variables used by
   either the `mu` or `sigma` formula.
-- Diagonal and dense full known sampling covariance via `meta_known_V(V = V)` is
-  supported for Gaussian meta-analysis.
+- Diagonal and dense full known sampling covariance via `meta_V(V = V)` is
+  supported for Gaussian meta-analysis; deprecated `meta_known_V(V = V)`
+  remains a compatibility alias.
 - Fixed-effect bivariate Gaussian `rho12` models are implemented in the
   bivariate coscale article.
 - `sd(group)` random-effect scale formulae are implemented for one or more

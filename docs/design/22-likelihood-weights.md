@@ -8,7 +8,7 @@ ordinary likelihood weights: observation-level multipliers on log-likelihood
 contributions.
 
 This is different from known sampling variances or known sampling covariance.
-Those belong in `meta_known_V(V = V)`.
+Those belong in `meta_V(V = V)`.
 
 ## Public Syntax
 
@@ -75,7 +75,7 @@ The weight belongs to the response pair, not to `y1_i` or `y2_i` separately.
 
 ## Distinction From Known Sampling Covariance
 
-For meta-analysis and other known-uncertainty models, `meta_known_V(V = V)`
+For meta-analysis and other known-uncertainty models, `meta_V(V = V)`
 changes the covariance used inside the likelihood:
 
 ```text
@@ -92,8 +92,8 @@ That is not the same operation as multiplying log-likelihood contributions by
 `w_i`. A known sampling variance `vi_i` should not be silently converted to
 `weights = 1 / vi_i` inside `drmTMB`. Users who want inverse-variance
 meta-analysis should use `meta_V(V = vi)`, because the known uncertainty then
-enters the covariance model directly. `meta_known_V(V = vi)` remains a
-compatibility alias for the same additive known-covariance route.
+enters the covariance model directly. Deprecated `meta_known_V(V = vi)` remains
+a compatibility alias for the same additive known-covariance route.
 
 ## Related-Package Caution
 
@@ -107,7 +107,7 @@ The first public contract should therefore be:
 
 ```text
 weights = row likelihood multipliers
-meta_known_V(V = V) = known sampling covariance
+meta_V(V = V) = known sampling covariance
 sigma ~ x = modelled extra residual or heterogeneity scale
 sd(group) ~ x = modelled group-level random-effect scale
 ```
@@ -129,7 +129,7 @@ sd(group) ~ x = modelled group-level random-effect scale
   malformed weights error clearly.
 - Bivariate Gaussian tests check that constant complete-row weights double the
   log-likelihood and keep parameter estimates stable.
-- Full dense `meta_known_V(V = V)` covariance cannot yet be combined with
+- Full dense `meta_V(V = V)` covariance cannot yet be combined with
   non-unit `weights =`, because that path is one joint MVN likelihood block.
 
 ## Open Questions

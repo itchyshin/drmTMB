@@ -45,7 +45,7 @@ covariance marker:
 
 ```r
 bf(
-  yi ~ x1 + x2 + meta_known_V(V = V),
+  yi ~ x1 + x2 + meta_V(V = V),
   sigma ~ x1
 )
 ```
@@ -60,7 +60,7 @@ Important extensions:
 - location-scale meta-regression for heterogeneous heterogeneity;
 - robust Student-t residuals after Gaussian meta-analysis is stable;
 - bivariate meta-analysis with known within-study covariance, where
-  `meta_known_V(V = V)` supplies sampling covariance and fitted `rho12`
+  `meta_V(V = V)` supplies sampling covariance and fitted `rho12`
   remains the residual covariance component after known sampling covariance has
   been included;
 - `meta_vcov_bivariate()` now constructs bivariate row-paired dense sampling

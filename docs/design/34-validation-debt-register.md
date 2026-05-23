@@ -461,7 +461,7 @@ and operating-characteristic evidence justify a broader claim.
   route are explicit. Recovery tests should keep covering dense
   `A`/`K` versus sparse `Ainv`/`Q`, row-name and level alignment, near-singular
   matrices, weak additive variance, and separation from meta-analysis
-  `meta_V(..., V = V)`.
+  `meta_V(V = V)`.
 
 ### Profile intervals and diagnostics
 

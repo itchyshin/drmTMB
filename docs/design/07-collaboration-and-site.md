@@ -77,7 +77,7 @@ to other ecology/evolution modelling package sites:
 - reference index grouped by user task;
 - getting-started article;
 - location-scale tutorial;
-- meta-analysis tutorial using `meta_known_V(V = V)`;
+- meta-analysis tutorial using `meta_V(V = V)`;
 - bivariate location-coscale tutorial;
 - phylogenetic and spatial dependence article;
 - distribution-family guide;

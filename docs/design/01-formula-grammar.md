@@ -66,7 +66,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `sd(id) ~ x_group` | Implemented | Random-effect scale model for one or more distinct unlabelled Gaussian `mu` random intercepts. |
 | `sd(id, dpar = "mu", coef = "x1") ~ x_group` | Reserved | Planned explicit coefficient-specific random-effect SD syntax for random slopes; `drmTMB()` rejects it until the covariance model and tests exist. |
 | `meta_V(V = V)` | Implemented | Preferred spelling for additive known sampling covariance; `V` may be a vector, column, diagonal matrix, block-diagonal matrix, or dense matrix. |
-| `meta_known_V(V = V)` | Implemented | Compatibility alias for the same known diagonal, block-diagonal, or dense sampling covariance path with `family = gaussian()`; bivariate Gaussian known `V` uses a complete-row `2n` by `2n` row-paired matrix. |
+| `meta_known_V(V = V)` | Deprecated compatibility alias | Warns and then uses the same additive known sampling covariance path as `meta_V(V = V)`. New code should use `meta_V(V = V)`. |
 | `meta_V(w = w, scale = "proportional")` | Planned | Possible future proportional sampling-variance spelling for models such as `pi_i ~ Normal(0, phi_pi / w_i)`. This is not implemented and is not a CRAN-blocking requirement. |
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
@@ -94,7 +94,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Matching labelled lower-level relatedness terms estimate two location SDs and one mean-mean correlation from the same known latent matrix. |
 | labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant all-four lower-level known-matrix location-scale block estimates four endpoint SDs and six latent relatedness correlations from the same matrix. Partial, unlabelled, mismatched, slope, direct-SD, and predictor-dependent `corpair()` forms remain rejected or planned. |
 | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent relatedness intercept and slope fields; multiple `relmat()` slopes and slope correlations remain planned. |
-| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: `meta_V(V = V)` is preferred, and `meta_known_V(V = V)` is a compatibility alias. |
+| `weights = w` | Implemented | Top-level likelihood weights, not formula syntax. Known sampling covariance remains a separate marker: `meta_V(V = V)` is preferred, and deprecated `meta_known_V(V = V)` remains a compatibility alias. |
 | `y ~ x1`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; `mu` is a latent location and ordinal scale formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
 | `phylo(1 + x1 | species, tree = tree)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent phylogenetic intercept and slope fields; multiple phylogenetic slopes and slope correlations remain planned. |
@@ -149,11 +149,11 @@ bf(
 
 The preferred `meta_V(V = V)` spelling supplies known sampling variances, a
 diagonal covariance structure, a block-diagonal covariance matrix, or a full
-known sampling covariance matrix. `meta_known_V(V = V)` remains a compatibility
-alias for the same additive known-covariance likelihood path, not a separate
-likelihood. The response is already on the left-hand side, so the marker does
-not repeat the response name. Meta-analysis is still regression; Gaussian
-meta-analysis should normally use `family = gaussian()`, not a special
+known sampling covariance matrix. Deprecated `meta_known_V(V = V)` remains a
+compatibility alias for the same additive known-covariance likelihood path, not
+a separate likelihood. The response is already on the left-hand side, so the
+marker does not repeat the response name. Meta-analysis is still regression;
+Gaussian meta-analysis should normally use `family = gaussian()`, not a special
 meta-analysis family.
 
 For bivariate Gaussian meta-analysis, `meta_V(V = V)` should mark one location
@@ -883,8 +883,8 @@ Not every parameter should accept random effects at the same development stage.
 - `rho12` is allowed only for bivariate families.
 - `rho` may become a convenience alias, but `rho12` is canonical.
 - `meta_V(V = V)` is the preferred known-sampling-covariance marker, not a
-  predictor. `meta_known_V(V = V)` is a compatibility alias for the same
-  additive known-covariance path.
+  predictor. Deprecated `meta_known_V(V = V)` is a compatibility alias for the
+  same additive known-covariance path.
 - `offset()` terms are implemented only in the `mu` formula for Poisson and
   `nbinom2()` count models, including their zero-inflated paths. Use standard
   exposure syntax such as `offset(log(trap_nights))`. Offsets in `sigma`, `zi`,
@@ -931,7 +931,7 @@ Not every parameter should accept random effects at the same development stage.
   direct-SD matrix routes remain unsupported
   until they have their own evidence. Keep `pedigree`, `A`, `Ainv`, `K`, or
   `Q` for relatedness and precision inputs; keep `V` for known sampling covariance in
-  the preferred `meta_V(..., V = V)` design. `gr()` is deprecated legacy syntax
+  the preferred `meta_V(V = V)` design. `gr()` is deprecated legacy syntax
   and should not be taught as a second public low-level path.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
