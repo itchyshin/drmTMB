@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Rendered Figure QA Slices 71-80
+
+Goal: continue the rendered figure sweep by auditing and repairing the
+`simulation-plot-grammar` article, where simulation reports define how to show
+replicate grain, aggregate MCSE intervals, readiness summaries, and failure
+ledgers.
+
+Roles: Ada kept the slice focused on article figure grammar. Florence
+inspected the rendered PNGs. Fisher checked that uncertainty marks were named
+and only used where the fixture supplied MCSE intervals. Curie checked the
+simulation-report data grain. Pat checked reader decoding. Grace checked
+pkgdown rendering and alt text. Rose watched for one-rule-fits-all drift. These
+were role perspectives, not spawned agents.
+
+Changes:
+
+- Split the former combined bias/RMSE plotting chunk into hidden fixture data,
+  `bias-display`, and `rmse-display`, so each rendered image has its own
+  caption and alt text.
+- Kept bias as sampled replicate-level signed errors with aggregate mean-bias
+  MCSE intervals, and kept RMSE as aggregate root-mean-square error with RMSE
+  MCSE intervals.
+- Split the former mixed readiness figure into `fit-status-display` and
+  `runtime-display` so proportions and seconds are not shown on one
+  comparative axis.
+- Updated the rendered article checklist, visualization grammar, per-slice
+  audit, and after-task report.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); pkgdown::build_article('simulation-plot-grammar', new_process = FALSE, quiet = TRUE)"
+Rscript -e "html <- paste(readLines('pkgdown-site/articles/simulation-plot-grammar.html', warn = FALSE), collapse = '\n'); m <- gregexpr('<img[^>]+src=\"simulation-plot-grammar_files/figure-html/[^\"]+\"[^>]*>', html, perl = TRUE); imgs <- regmatches(html, m)[[1]]; if (identical(imgs, character(0))) imgs <- character(); missing <- imgs[!grepl('alt=\"[^\"]+', imgs)]; cat(length(imgs), 'article images,', length(missing), 'missing alt text\n')"
+air format vignettes/simulation-plot-grammar.Rmd docs/design/39-visualization-grammar.md docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-71-80.md docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-71-80.md docs/dev-log/check-log.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+```
+
+- The `simulation-plot-grammar` article rebuilt successfully.
+- Article-image alt-text inspection found 6 referenced article images and 0
+  missing alt attributes.
+- The six referenced PNGs were inspected directly:
+  `bias-display-1.png`, `rmse-display-1.png`,
+  `coverage-power-display-1.png`, `fit-status-display-1.png`,
+  `runtime-display-1.png`, and `failure-ledger-display-1.png`.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully and rebuilt the edited
+  article under the ordinary vignette build.
+
 ## 2026-05-23 - Rendered Figure QA Slices 61-70
 
 Goal: continue the rendered figure sweep by adding a case-appropriate

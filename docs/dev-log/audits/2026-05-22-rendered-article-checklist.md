@@ -51,7 +51,7 @@ directory from an earlier build.
 | Inference, Diagnostics, and Figures | `figure-gallery` | Figure gallery | 21 | Main figure-quality surface; rendered figures need one-by-one Florence/Fisher audit. | Run direct figure inspection and record per-figure data grain, interval source, and fix. |
 | Simulation and Validation | `implementation-map` | Implementation map | 0 | Evidence/status authority; overlaps model map by design. | Keep fitted status synchronized with validation-debt register. |
 | Simulation and Validation | `testing-likelihoods` | Testing likelihoods | 0 | Contributor/reviewer page in public validation group. | Decide whether opening should explicitly say reviewer evidence rather than beginner tutorial. |
-| Simulation and Validation | `simulation-plot-grammar` | Simulation plot grammar | 5 | Figure-heavy validation page; one source alt-text hit appears missing. | Florence/Fisher audit of replicate grain, MCSE, missing cells, and alt text. |
+| Simulation and Validation | `simulation-plot-grammar` | Simulation plot grammar | 6 | Figure-heavy validation page; direct audit split shared accuracy alt text and separated mixed-unit readiness panels. | Keep as the current simulation display contract; rerun after Phase 18 result schemas stabilize. |
 | Developer Notes | `formula-grammar` | Formula grammar | 0 | Parser contract page. | Check grammar against current parser and deprecated `gr()` direction. |
 | Developer Notes | `adding-families` | Adding distribution families | 0 | Contributor path. | Check family-add instructions against source map and simulation-test rule. |
 | Developer Notes | `source-map` | Implemented source map | 0 | Developer ownership map. | Keep synchronized with C++ modularization and structured-count boundary. |
