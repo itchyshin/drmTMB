@@ -2,6 +2,82 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Rendered Figure QA Slices 46-50
+
+Goal: finish the previous rendered-figure PR, then improve the focused
+`animal-models` and `relmat-known-matrices` articles with case-specific
+figures that distinguish known matrix inputs, fitted structured SDs, and q=2
+latent correlation rows.
+
+Roles: Ada merged PR #307 through the GitHub API after the local `gh pr merge`
+command hit a sibling-worktree `main` checkout. Florence inspected the six
+regenerated PNGs and caught the first `relmat()` q=2 point-only plot. Fisher
+checked that Confidence Eyes were used only when finite interval support was
+present. Pat and Darwin checked whether the two focused pages now help applied
+readers separate known relatedness inputs from fitted uncertainty. Noether
+checked axes against estimands. Grace checked rendered articles, alt text,
+targeted tests, diff hygiene, and pkgdown. Rose watched for stale planned-route
+wording after the residual-scale structured-intercept work. These were role
+perspectives, not spawned agents.
+
+Files changed:
+
+- `vignettes/animal-models.Rmd`
+- `vignettes/relmat-known-matrices.Rmd`
+- `docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-46-50.md`
+- `docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-46-50.md`
+- `docs/dev-log/check-log.md`
+
+Commands run:
+
+```sh
+gh run watch 26331495916 --exit-status
+gh pr view 307 --json url,mergeStateStatus,headRefOid,isDraft,state,reviewDecision,statusCheckRollup
+gh api -X PUT repos/itchyshin/drmTMB/pulls/307/merge -f merge_method=squash -f commit_title='Polish structural guide figure QA slices (#307)'
+git push origin --delete codex/rendered-figure-qa-41-45
+git fetch origin --prune
+git switch -c codex/rendered-figure-qa-46-50 origin/main
+air format vignettes/animal-models.Rmd vignettes/relmat-known-matrices.Rmd
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('animal-models','relmat-known-matrices')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
+Rscript -e "devtools::test(filter = 'animal-relmat-gaussian|plot-corpairs', reporter = 'summary')"
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'standalone animal-model `sigma`|standalone relatedness `sigma`|Does the animal effect change a slope|Does the known-matrix layer change a slope|only `animal\(\)`|only `relmat\(\)`|Planned\. These routes' vignettes/animal-models.Rmd vignettes/relmat-known-matrices.Rmd docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-46-50.md docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-46-50.md
+```
+
+Result:
+
+- PR #307 was green on Ubuntu, macOS, and Windows before merge. It was
+  squash-merged as `7db4903adfb779ab82399123dde5c5dd365ccd52`, and the remote
+  branch was deleted.
+- The animal and `relmat()` focused articles now rebuild with six article
+  figures: two known-matrix heatmaps, two SD point-interval displays, and two
+  q=2 latent-correlation Confidence Eyes.
+- Article-image alt-text inspection found four referenced article images in
+  `animal-models`, four referenced article images in `relmat-known-matrices`,
+  and 0 missing alt attributes.
+- `devtools::test(filter = 'animal-relmat-gaussian|plot-corpairs',
+  reporter = 'summary')` passed all tests in those two shards.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-status scan returned only the intended current planned-boundary
+  rows for multiple slopes and predictor-dependent `corpair()` routes.
+
+Notes:
+
+- The first `relmat()` q=2 simulation produced a point-only plot despite a
+  Confidence Eye caption because the profile interval bounds were `NA`. The
+  example data were adjusted to a deterministic small case with finite
+  `corpairs(..., conf.int = TRUE)` profile bounds before calling the visual
+  pass complete.
+- Known additive and known-matrix heatmaps are intentionally raw structural
+  input displays. They do not show uncertainty.
+- SD figures use response-scale estimates with existing
+  `confint(..., parm = "variance_components")` intervals.
+- q=2 animal and `relmat()` mean-mean rows use Confidence Eyes because the
+  profile intervals are finite and the zero-correlation reference is meaningful.
+
 ## 2026-05-22 - Profile Budgets and Structured Sigma Parity
 
 Goal: close the live Bergmann-report follow-up lane by wiring
