@@ -2,6 +2,68 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Rendered Figure QA Slices 81-100
+
+Goal: finish the current rendered figure sweep through slice 100 by adding
+case-appropriate figures to the remaining figure-free family or model-family
+tutorials: `robust-student`, `count-nbinom2`,
+`proportion-beta-binomial`, and `meta-analysis`.
+
+Roles: Ada kept the slice focused on article figure grammar. Florence
+inspected the rendered PNGs. Fisher checked that fitted scatter, response-scale
+components, and variance components were not presented as confidence
+intervals. Pat checked reader decoding. Darwin checked that the biological
+example remained visible. Grace checked pkgdown rendering and alt text. Rose
+watched for one-rule-fits-all drift. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added `robust-student-tail-figure`, showing raw seedling-growth tails plus
+  Gaussian and Student-t fitted expected-growth points.
+- Added `count-model-parts-figure`, separating zero-inflated NB2 conditional
+  mean, unconditional mean, NB2 `sigma`, and structural-zero probability.
+- Added `beta-binomial-tray-figure`, showing raw tray proportions, fitted
+  expected germination probabilities, and fitted tray-level scatter.
+- Added `meta-variance-components-figure`, separating known sampling variance
+  from fitted extra heterogeneity variance.
+- Refreshed the rendered article checklist for earlier and new figure-bearing
+  pages, and updated the visualization grammar with family tutorial and
+  meta-analysis variance-component display rules.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all(quiet = TRUE); for (article in c('robust-student','count-nbinom2','proportion-beta-binomial','meta-analysis')) pkgdown::build_article(article, new_process = FALSE, quiet = TRUE)"
+Rscript - <<'RS'
+articles <- c('robust-student','count-nbinom2','proportion-beta-binomial','meta-analysis')
+for (stem in articles) {
+  html <- paste(readLines(sprintf('pkgdown-site/articles/%s.html', stem), warn = FALSE), collapse = '\n')
+  pattern <- sprintf('<img[^>]+src=\"%s_files/figure-html/[^\"]+\"[^>]*>', stem)
+  m <- gregexpr(pattern, html, perl = TRUE)
+  imgs <- regmatches(html, m)[[1]]
+  if (identical(imgs, character(0))) imgs <- character()
+  missing <- imgs[!grepl('alt=\"[^\"]+', imgs)]
+  cat(stem, ': ', length(imgs), ' images, ', length(missing), ' missing alt\n', sep = '')
+}
+RS
+air format vignettes/robust-student.Rmd vignettes/count-nbinom2.Rmd vignettes/proportion-beta-binomial.Rmd vignettes/meta-analysis.Rmd docs/design/39-visualization-grammar.md docs/dev-log/audits/2026-05-22-rendered-article-checklist.md docs/dev-log/audits/2026-05-23-rendered-figure-qa-slices-81-100.md docs/dev-log/after-task/2026-05-23-rendered-figure-qa-slices-81-100.md docs/dev-log/check-log.md
+git diff --check
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+```
+
+- The four edited articles rebuilt successfully.
+- Each edited article has one referenced image, 0 missing alt attributes, and
+  one caption.
+- The four referenced PNGs were inspected directly:
+  `robust-student-tail-figure-1.png`, `count-model-parts-figure-1.png`,
+  `beta-binomial-tray-figure-1.png`, and
+  `meta-variance-components-figure-1.png`.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully.
+
 ## 2026-05-23 - Rendered Figure QA Slices 71-80
 
 Goal: continue the rendered figure sweep by auditing and repairing the

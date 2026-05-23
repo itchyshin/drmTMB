@@ -21,3 +21,5 @@
 ^REFERENCES\.bib$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^doc$
+^Meta$

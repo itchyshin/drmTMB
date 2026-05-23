@@ -274,6 +274,88 @@ data.frame(
 )
 ```
 
+```{r count-model-parts-figure, eval=requireNamespace("ggplot2", quietly = TRUE), fig.width=7.4, fig.height=4.8, fig.cap="Response-scale model parts for the zero-inflated NB2 example. Points show fitted conditional counts, unconditional counts, NB2 extra-Poisson scale, and structural-zero probabilities on separate facets with their own x scales. No interval bars are drawn because this figure compares fitted components, not confidence intervals.", fig.alt="Faceted point plot for the zero-inflated NB2 soil-count example. Separate facets show conditional expected counts, unconditional expected counts, NB2 extra-Poisson sigma, and structural-zero probabilities for habitat and surface combinations."}
+library(ggplot2)
+
+count_plot_grid <- expand.grid(
+  habitat = factor(levels(soil_counts$habitat), levels = levels(soil_counts$habitat)),
+  surface = factor(levels(soil_counts$surface), levels = levels(soil_counts$surface))
+)
+count_plot_grid$moisture <- 0
+count_plot_grid$trap_nights <- 3
+count_plot_grid$conditional_mean <- predict(
+  fit_zinb2,
+  newdata = count_plot_grid,
+  dpar = "mu"
+)
+count_plot_grid$sigma <- predict(fit_zinb2, newdata = count_plot_grid, dpar = "sigma")
+count_plot_grid$structural_zero_probability <- predict(
+  fit_zinb2,
+  newdata = count_plot_grid,
+  dpar = "zi"
+)
+count_plot_grid$unconditional_mean <-
+  (1 - count_plot_grid$structural_zero_probability) *
+  count_plot_grid$conditional_mean
+count_plot_grid$row_label <- paste(count_plot_grid$habitat, count_plot_grid$surface)
+count_plot_long <- rbind(
+  data.frame(
+    count_plot_grid[c("habitat", "row_label")],
+    component = "Conditional mean",
+    value = count_plot_grid$conditional_mean
+  ),
+  data.frame(
+    count_plot_grid[c("habitat", "row_label")],
+    component = "Unconditional mean",
+    value = count_plot_grid$unconditional_mean
+  ),
+  data.frame(
+    count_plot_grid[c("habitat", "row_label")],
+    component = "NB2 sigma",
+    value = count_plot_grid$sigma
+  ),
+  data.frame(
+    count_plot_grid[c("habitat", "row_label")],
+    component = "Structural-zero probability",
+    value = count_plot_grid$structural_zero_probability
+  )
+)
+count_plot_long$component <- factor(
+  count_plot_long$component,
+  levels = c(
+    "Conditional mean",
+    "Unconditional mean",
+    "NB2 sigma",
+    "Structural-zero probability"
+  )
+)
+count_plot_long$row_label <- factor(
+  count_plot_long$row_label,
+  levels = rev(unique(count_plot_grid$row_label))
+)
+
+ggplot(count_plot_long, aes(value, row_label, colour = habitat)) +
+  geom_point(size = 2.7) +
+  facet_wrap(~component, scales = "free_x", ncol = 2) +
+  scale_colour_manual(values = c("degraded" = "#D55E00", "restored" = "#009E73")) +
+  labs(
+    title = "Zero-inflated counts have several fitted pieces",
+    subtitle = "Facets keep count means, NB2 sigma, and structural-zero probabilities separate",
+    x = "Response-scale fitted value",
+    y = NULL,
+    colour = "Habitat"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey30"),
+    strip.text = element_text(face = "bold")
+  )
+```
+
 Use AIC only as one check, not as a substitute for the design story. A
 zero-inflated model needs a plausible structural-zero process such as bare
 soil, unsuitable host tissue, unsurveyable habitat, or true absence.

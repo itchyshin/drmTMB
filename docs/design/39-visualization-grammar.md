@@ -777,8 +777,10 @@ decision table for the current public examples:
 | Visual object | Reader purpose | Default display | Uncertainty or support cue |
 | --- | --- | --- | --- |
 | Raw response patterns | See the observed data grain before model summaries | Raw points, optionally with fitted `mu` lines | Raw data are not converted to compatibility eyes |
+| Family tutorial raw-plus-fitted checks | Show how the response distribution motivates the family choice | Raw response points plus fitted response-scale summaries when raw data are the reader evidence | Bars only when they are named fitted scatter or intervals; do not imply confidence intervals from fitted SDs |
 | Fitted continuous `mu`, `sigma`, shape, zero-inflation, or `rho12` surfaces | Follow response-scale fitted estimates over a covariate | Lines plus ribbons from `plot_parameter_surface()` or article recipes | Wald confidence bands only when prediction tables carry finite interval columns and provenance |
 | Fitted discrete contrasts or `emmeans` summaries | Compare a few fitted cells or marginal means | Compact horizontal point intervals | Wald or reference-grid intervals named in captions |
+| Meta-analysis variance components | Separate known sampling variance from fitted residual heterogeneity | Variance-component bars or points on a variance scale | These are model components, not confidence intervals |
 | Direct coefficient, SD, and correlation rows | Compare finite model-estimate intervals row by row | Confidence Eyes with hollow point estimates and dotted zero lines when zero is meaningful | Fixed-effect Wald, log-SD Wald, Fisher-z Wald, or profile intervals, named by source |
 | Derived or unsupported q=4 correlation rows | Keep boundaries visible without overclaiming intervals | Point or status rows rather than eyes | `conf.status`/`interval_source` or support labels explain why an eye is absent |
 | Simulation bias | Check replicate-level signed error beside aggregate mean bias | Faint replicate-error marks plus aggregate point and MCSE bar | 95% MCSE intervals; no Confidence Eye |
@@ -798,6 +800,18 @@ not compare convergence rates and elapsed seconds on one axis. Coverage/power
 and failure-ledger displays stayed on their existing grammar: block-level
 operating-characteristic proportions plus binomial MCSE for the former, and
 status counts as the data for the latter.
+
+Rendered figure QA slices 81-100 filled the remaining family-tutorial figure
+gap. The count, proportion, robust Student-t, and meta-analysis tutorials now
+show one figure each, but each follows its own data-grain rule. Student-t uses
+raw response tails plus fitted expected-growth points because outliers are the
+reason for the family. Beta-binomial uses raw tray proportions plus fitted
+expected probability and fitted tray-level scatter, explicitly not confidence
+intervals. Zero-inflated NB2 separates conditional mean, unconditional mean,
+NB2 `sigma`, and structural-zero probability into facets with their own scales.
+Meta-analysis uses variance-component bars because the figure's job is to keep
+known sampling variance distinct from fitted extra heterogeneity, not to show
+parameter uncertainty.
 
 Generated pkgdown reference examples are a special accessibility case. `downlit`
 currently emits reference example plots with empty `alt` attributes, so the

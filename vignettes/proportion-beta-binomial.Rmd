@@ -215,6 +215,56 @@ data.frame(
 This table keeps the two parts of the question separate: expected germination
 probability and extra-binomial scatter around that probability.
 
+```{r beta-binomial-tray-figure, eval=requireNamespace("ggplot2", quietly = TRUE), fig.width=7.2, fig.height=4.4, fig.cap="Beta-binomial tray summary for the seed-germination example. Faint points are observed tray proportions; overlaid points are fitted expected germination probabilities; vertical bars show plus or minus one fitted proportion-level standard deviation, not confidence intervals.", fig.alt="Jittered point plot of observed germination proportions for open and sheltered trays. Overlaid larger points show fitted expected probabilities, and vertical bars show one fitted proportion-level standard deviation for each treatment."}
+library(ggplot2)
+
+seed_trials$observed_proportion <- seed_trials$germinated / seed_trials$trials
+seed_plot_summary <- data.frame(
+  treatment = new_seed_trays$treatment,
+  expected_probability = mu_hat,
+  proportion_sd = sqrt(prop_var)
+)
+seed_plot_summary$lower <- pmax(
+  0,
+  seed_plot_summary$expected_probability - seed_plot_summary$proportion_sd
+)
+seed_plot_summary$upper <- pmin(
+  1,
+  seed_plot_summary$expected_probability + seed_plot_summary$proportion_sd
+)
+
+ggplot(seed_trials, aes(treatment, observed_proportion, colour = treatment)) +
+  geom_jitter(width = 0.12, height = 0, alpha = 0.18, size = 0.9) +
+  geom_errorbar(
+    data = seed_plot_summary,
+    aes(
+      y = expected_probability,
+      ymin = lower,
+      ymax = upper
+    ),
+    width = 0.12,
+    linewidth = 0.8
+  ) +
+  geom_point(data = seed_plot_summary, aes(y = expected_probability), size = 3) +
+  scale_colour_manual(values = c("open" = "#0072B2", "sheltered" = "#009E73")) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(
+    title = "Denominator-aware proportions can still show raw trays",
+    subtitle = "Bars show fitted tray-level scatter, not confidence intervals",
+    x = "Microsite treatment",
+    y = "Germinated proportion",
+    colour = "Treatment"
+  ) +
+  guides(colour = "none") +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey30")
+  )
+```
+
 ## Strict Continuous Proportions
 
 Use `beta()` when the response is a continuous proportion strictly inside the
