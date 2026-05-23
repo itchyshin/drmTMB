@@ -8,7 +8,123 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144,
+  dev.args = list(bg = "white")
+)
+library(drmTMB)
+
+animal_guide_theme <- function() {
+  ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(colour = "grey15"),
+      axis.text = ggplot2::element_text(colour = "grey25"),
+      plot.title = ggplot2::element_text(
+        face = "bold",
+        colour = "grey10",
+        margin = ggplot2::margin(b = 4)
+      ),
+      plot.subtitle = ggplot2::element_text(
+        colour = "grey30",
+        margin = ggplot2::margin(b = 8)
+      ),
+      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
+      panel.background = ggplot2::element_rect(fill = "white", colour = NA),
+      legend.position = "bottom"
+    )
+}
+
+animal_eye_theme <- function() {
+  animal_guide_theme() +
+    ggplot2::theme(
+      panel.grid.major.y = ggplot2::element_blank(),
+      legend.position = "none"
+    )
+}
+
+relatedness_heatmap_data <- function(x) {
+  out <- as.data.frame(as.table(x), stringsAsFactors = FALSE)
+  names(out) <- c("row", "column", "relatedness")
+  out$row <- factor(out$row, levels = rev(rownames(x)))
+  out$column <- factor(out$column, levels = colnames(x))
+  out
+}
+
+simulate_animal_guide_data <- function(seed = 20260523) {
+  set.seed(seed)
+  n_individual <- 32
+  n_each <- 4
+  individual_levels <- paste0("id_", seq_len(n_individual))
+  individual <- factor(rep(individual_levels, each = n_each))
+  age <- runif(length(individual), -1, 1)
+  sex <- factor(rep(rep(c("female", "male"), each = n_each), n_individual / 2))
+
+  A <- outer(seq_len(n_individual), seq_len(n_individual), function(i, j) {
+    0.42^abs(i - j)
+  })
+  diag(A) <- diag(A) + 0.12
+  dimnames(A) <- list(individual_levels, individual_levels)
+  Ainv <- solve(A)
+
+  animal_effect <- as.vector(t(chol(A)) %*% rnorm(n_individual)) * 0.38
+  names(animal_effect) <- individual_levels
+  sigma <- exp(-1.10 + 0.12 * (sex == "male"))
+  body_size <- 1.6 + 0.45 * age + 0.22 * (sex == "male") +
+    animal_effect[individual] + rnorm(length(individual), sd = sigma)
+
+  list(
+    data = data.frame(
+      body_size = body_size,
+      age = age,
+      sex = sex,
+      individual = individual
+    ),
+    A = A,
+    Ainv = Ainv
+  )
+}
+
+simulate_animal_q2_guide_data <- function(seed = 20260525) {
+  set.seed(seed)
+  n_individual <- 32
+  n_each <- 4
+  individual_levels <- paste0("id_", seq_len(n_individual))
+  individual <- factor(rep(individual_levels, each = n_each))
+  climate <- rnorm(length(individual))
+
+  A <- outer(seq_len(n_individual), seq_len(n_individual), function(i, j) {
+    0.40^abs(i - j)
+  })
+  diag(A) <- diag(A) + 0.10
+  dimnames(A) <- list(individual_levels, individual_levels)
+  Ainv <- solve(A)
+
+  z_body <- rnorm(n_individual)
+  z_activity <- 0.55 * z_body + sqrt(1 - 0.55^2) * rnorm(n_individual)
+  u_body <- as.vector(t(chol(A)) %*% z_body) * 0.40
+  u_activity <- as.vector(t(chol(A)) %*% z_activity) * 0.34
+  names(u_body) <- individual_levels
+  names(u_activity) <- individual_levels
+
+  e_body <- rnorm(length(individual))
+  e_activity <- 0.15 * e_body + sqrt(1 - 0.15^2) * rnorm(length(individual))
+
+  list(
+    data = data.frame(
+      individual = individual,
+      climate = climate,
+      body_size = 1.2 + 0.30 * climate + u_body[individual] + 0.38 * e_body,
+      activity = -0.3 - 0.24 * climate +
+        u_activity[individual] + 0.34 * e_activity
+    ),
+    Ainv = Ainv
+  )
+}
 ```
 
 Use `animal()` when individuals have known additive relatedness and the
@@ -22,9 +138,11 @@ workflows, but they are not yet full parity with every `phylo()` route.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have additive individual deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` in `mu` | Fitted first slice. Dense pedigree construction, covariance input, and precision input are supported. |
+| Does one numeric fixed-effect slope also have additive individual deviations? | `animal(1 + x | individual, pedigree = pedigree)` in `mu` | Fitted first one-slope slice with independent intercept and slope fields. Multiple structured slopes and intercept-slope correlations remain planned. |
+| Does a one-response Gaussian model have additive residual-scale deviations? | `animal(1 | individual, Ainv = Ainv)` in `sigma`, alone or matching the `mu` term | Fitted first residual-scale intercept slice. Matching univariate `mu` and `sigma` animal terms estimate one animal mean-scale correlation; residual-scale structured slopes remain planned. |
 | Do two Gaussian response means share an animal-model correlation? | matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "animal")` reports the latent animal correlation separately from residual `rho12`. |
 | Do animal-model deviations link means and residual scales across two responses? | the same labelled `animal(1 | p | individual, Ainv = Ainv)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "animal")` reports six constant latent animal correlations; profile intervals for those derived correlations remain unavailable. |
-| Does the animal effect change a slope, standalone residual scale, or predictor-dependent correlation? | examples such as `animal(1 + x | individual, pedigree = pedigree)`, only `animal()` in `sigma1`, or animal `corpair()` formulas | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
+| Does the animal effect change multiple slopes or a predictor-dependent correlation? | examples such as `animal(1 + x + z | individual, pedigree = pedigree)` or animal `corpair()` formulas | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
 
 The `pedigree` route expects a data frame whose identifiers match the grouping
 variable used in the formula. The `A` route uses a precomputed additive
@@ -48,10 +166,12 @@ For two responses, use the same animal block label in `mu1` and `mu2`:
 
 ```r
 fit_animal_q2 <- drmTMB(
-  mu1 = trait1 ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
-  mu2 = trait2 ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
+  bf(
+    mu1 = trait1 ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv),
+    mu2 = trait2 ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv)
+  ),
   data = dat,
   family = biv_gaussian()
 )
@@ -84,14 +204,16 @@ bivariate endpoint formulas:
 
 ```r
 fit_animal_q4 <- drmTMB(
-  mu1 = trait1 ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
-  mu2 = trait2 ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
-  sigma1 = ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
-  sigma2 = ~ treatment +
-    animal(1 | p | individual, Ainv = Ainv),
+  bf(
+    mu1 = trait1 ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv),
+    mu2 = trait2 ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv),
+    sigma1 = ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv),
+    sigma2 = ~ treatment +
+      animal(1 | p | individual, Ainv = Ainv)
+  ),
   data = dat,
   family = biv_gaussian()
 )
@@ -120,13 +242,166 @@ If the ordinary repeatability model answers a useful sensitivity question, fit
 `(1 | individual)` as a comparison. Report it as an ordinary individual
 random-effect model, not as an additive animal model.
 
+## Rendered checks
+
+The small examples below keep three evidence grains separate. The relationship
+matrix is raw structure supplied to the model. The SD plot is model-estimated
+uncertainty from `confint()`. The q=2 animal-correlation plot is a fitted
+latent correlation row from `corpairs()`, so it uses a Confidence Eye and a
+dotted zero line.
+
+```{r animal-guide-fit}
+animal_example <- simulate_animal_guide_data()
+animal_dat <- animal_example$data
+A <- animal_example$A
+Ainv <- animal_example$Ainv
+
+fit_animal <- drmTMB(
+  bf(
+    body_size ~ age + sex + animal(1 | individual, Ainv = Ainv),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = animal_dat
+)
+```
+
+```{r animal-relatedness-matrix, fig.width = 5.3, fig.height = 4.8, fig.cap = "Additive relatedness matrix used by the animal-model example; this heatmap is the known input structure, not an uncertainty display.", fig.alt = "Heatmap of the additive relatedness matrix for the animal-model example. Values are highest on the diagonal and fade as individuals are farther apart in the simulated pedigree-like ordering."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  animal_matrix <- relatedness_heatmap_data(A)
+
+  ggplot2::ggplot(
+    animal_matrix,
+    ggplot2::aes(column, row, fill = relatedness)
+  ) +
+    ggplot2::geom_tile() +
+    ggplot2::coord_equal() +
+    ggplot2::scale_fill_gradientn(
+      colours = c("#F7FBFF", "#C6DBEF", "#6BAED6", "#08519C"),
+      name = "Additive\nrelatedness"
+    ) +
+    animal_guide_theme() +
+    ggplot2::theme(
+      axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank()
+    ) +
+    ggplot2::labs(
+      title = "Animal-model input structure",
+      subtitle = "Known additive relatedness among individuals",
+      x = "Individual",
+      y = "Individual"
+    )
+}
+```
+
+```{r animal-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and animal-model location SD from a univariate Gaussian model; points and bars are response-scale estimates with 95% Wald intervals from `confint(fit_animal, parm = \"variance_components\")`.", fig.alt = "Horizontal interval display comparing residual sigma and the animal-model location standard deviation. Both rows have hollow point estimates and finite 95 percent Wald intervals."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  animal_sd <- confint(fit_animal, parm = "variance_components")
+  animal_sd$estimate <- c(
+    unname(exp(coef(fit_animal, "sigma")["(Intercept)"])),
+    unname(fit_animal$sdpars$mu["animal(1 | individual)"])
+  )
+  animal_sd$label <- c("Residual\nsigma", "Animal\nlocation SD")
+
+  ggplot2::ggplot(animal_sd, ggplot2::aes(y = label)) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linewidth = 0.45,
+      linetype = "dashed",
+      colour = "grey55"
+    ) +
+    ggplot2::geom_errorbar(
+      ggplot2::aes(xmin = lower, xmax = upper),
+      width = 0,
+      linewidth = 1.1,
+      colour = "#0072B2"
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(x = estimate),
+      shape = 21,
+      size = 3.5,
+      stroke = 1,
+      fill = "white",
+      colour = "#0072B2"
+    ) +
+    ggplot2::scale_x_continuous(
+      expand = ggplot2::expansion(mult = c(0.02, 0.05))
+    ) +
+    animal_eye_theme() +
+    ggplot2::labs(
+      title = "Animal-model SD is separate from residual sigma",
+      subtitle = "Bars are 95% Wald intervals on the response scale",
+      x = "Fitted standard deviation",
+      y = NULL
+    )
+}
+```
+
+For two response means, the animal-model correlation row is a fitted latent
+correlation among individual additive deviations. It is not the residual
+`rho12` correlation and it is not a raw sample correlation among observations.
+
+```{r animal-q2-correlation-fit}
+animal_q2_example <- simulate_animal_q2_guide_data()
+animal_q2_dat <- animal_q2_example$data
+Ainv <- animal_q2_example$Ainv
+
+fit_animal_q2_example <- drmTMB(
+  bf(
+    mu1 = body_size ~ climate +
+      animal(1 | p | individual, Ainv = Ainv),
+    mu2 = activity ~ climate +
+      animal(1 | p | individual, Ainv = Ainv),
+    sigma1 = ~ 1,
+    sigma2 = ~ 1,
+    rho12 = ~ 1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = animal_q2_dat
+)
+
+animal_q2_pairs <- corpairs(
+  fit_animal_q2_example,
+  level = "animal",
+  conf.int = TRUE,
+  ystep = 0.5,
+  ytol = 2
+)
+animal_q2_pairs
+```
+
+```{r animal-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Animal-model q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent animal-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the animal-model mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  animal_q2_display <- animal_q2_pairs
+  animal_q2_display$display_label <- "Animal\nmu1-mu2"
+
+  plot_corpairs(
+    animal_q2_display,
+    colour = "level",
+    label = "display_label",
+    facet = NULL
+  ) +
+    ggplot2::scale_colour_manual(values = c("animal" = "#0072B2")) +
+    ggplot2::scale_fill_manual(values = c("animal" = "#0072B2")) +
+    animal_eye_theme() +
+    ggplot2::labs(
+      title = "Animal-model latent mean correlation",
+      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
+      x = "Correlation estimate"
+    )
+}
+```
+
 ## Boundaries
 
 The following animal-model routes remain planned:
 
 - sparse large-pedigree precision construction;
-- animal-model slopes such as `animal(1 + x | individual, pedigree = pedigree)`;
-- standalone animal-model `sigma` terms outside the fitted all-four q=4 block;
+- multiple animal-model slopes such as
+  `animal(1 + x + z | individual, pedigree = pedigree)`;
+- animal-model intercept-slope correlations;
+- residual-scale structured slopes;
 - predictor-dependent animal `corpair()` regressions;
 - generic direct-SD grammar for animal-model standard deviations;
 - non-Gaussian animal structured effects.
