@@ -129,15 +129,22 @@ response-scale intervals.
 The fastest routine route is \code{confint(fit)}, which uses Wald intervals for
 fixed effects and direct response-scale targets. For long phylogenetic,
 spatial, animal-model, or relatedness fits, profile only the needed
-variance-component or correlation rows and start with
-\code{profile_precision = "fast"} before spending time on a denser profile.
+variance-component or correlation rows with the default
+\code{profile_engine = "auto"} first; direct scalar scale, SD, and correlation
+targets use the endpoint engine when no full-profile controls are supplied.
+Use \code{profile_engine = "tmbprofile"} or \code{profile_precision = "fast"} when you
+want the previous full-curve \code{TMB::tmbprofile()} route for comparison,
+diagnostics, or control tuning.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 confint(fit)
 confint(fit, parm = "variance_components")
-confint(fit, parm = "sigma", method = "profile", profile_precision = "fast")
+confint(fit, parm = "sigma", method = "profile")
+# Use the full-profile engine when you need the older tmbprofile route:
+# confint(fit, parm = "sigma", method = "profile",
+#   profile_engine = "tmbprofile", profile_precision = "fast")
 # Direct-target parametric bootstrap is available when refit cost is worth it:
 # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
 }
