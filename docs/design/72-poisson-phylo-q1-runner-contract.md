@@ -30,12 +30,14 @@ inst/sim/dgp/sim_dgp_poisson_phylo_q1.R
 inst/sim/fit/sim_summarise_poisson_phylo_q1.R
 inst/sim/run/sim_run_poisson_phylo_q1_smoke.R
 inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R
+inst/sim/run/sim_write_poisson_phylo_q1_grid.R
 tests/testthat/test-phase18-poisson-phylo-q1.R
 ```
 
 The implemented helper returns aggregate, replicate, manifest, failure-ledger,
 fixed-effect Wald interval, Wald coverage, and direct profile-target status
-tables. Formal recovery grids, CSV grid writers, and coverage claims remain
+tables. The grid writer saves those tables as repeatable CSV artifacts beside
+the per-replicate RDS results. Formal recovery grids and coverage claims remain
 future work.
 
 ## Slices 421-422: Target And Extractor Rows

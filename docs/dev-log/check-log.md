@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - Poisson Phylogenetic q1 Grid Writer Slices 466-480
+
+Goal: add repeatable CSV artifacts for the fitted ordinary Poisson q=1
+phylogenetic `mu` smoke surface without claiming formal recovery or broader
+structured non-Gaussian support.
+
+Roles: Ada recovered the interrupted slice and kept the change scoped to the
+existing Poisson q1 smoke route. Curie checked the writer contract and focused
+tests. Fisher checked that Wald and profile-target outputs remain smoke
+artifacts rather than operating-characteristic evidence. Boole checked the
+`phylo(1 | species, tree = tree)` route and `log_sd_phylo` target names. Grace
+checked formatting and validation commands. Rose checked consistency across
+ROADMAP, NEWS, source-map, readiness, design docs, and after-task reporting.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_poisson_phylo_q1_grid.R`.
+- Extended `tests/testthat/test-phase18-poisson-phylo-q1.R` with grid-writer
+  artifact, row-count, parallel-request, overwrite, and input-validation tests.
+- Updated `inst/sim/README.md`, source-map, validation-debt, Phase 18
+  programme, readiness matrix, ADEMP sheet, runner contract, ROADMAP, NEWS,
+  and after-task report.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md inst/sim/README.md inst/sim/run/sim_write_poisson_phylo_q1_grid.R tests/testthat/test-phase18-poisson-phylo-q1.R vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-24-poisson-phylo-q1-grid-writer-slices-466-480.md
+Rscript -e "devtools::test(filter = 'phase18-poisson-phylo-q1')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n "466-480|Poisson phylogenetic q1 grid writer|sim_write_poisson_phylo_q1_grid|poisson-phylo-q1" pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' pkgdown-site -g '*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' pkgdown-site -g '*.html'
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::test(filter = 'phase18-poisson-phylo-q1')` passed with 59
+  expectations.
+- `devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')`
+  passed with 189 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated ROADMAP, source-map,
+  and NEWS pages.
+- The narrowed false-support scan returned no hits.
+- The Poisson phylogeny broad-claim scan returned no hits.
+- The rendered-page scan found the 466-480 roadmap row and
+  `sim_write_poisson_phylo_q1_grid.R` source-map text.
+- The generated-site stale-support and broad-claim scans returned no hits.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Poisson Phylogenetic q1 Smoke Runner Slices 451-465
 
 Goal: implement the first opt-in Phase 18 smoke surface for the fitted ordinary

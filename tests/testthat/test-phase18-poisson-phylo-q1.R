@@ -225,3 +225,156 @@ test_that("Phase 18 Poisson phylogenetic q1 helpers reject malformed inputs", {
     "must contain"
   )
 })
+
+test_that("Phase 18 Poisson phylogenetic q1 grid writer creates artifacts", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_aggregate.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/fit/sim_summarise_poisson_phylo_q1.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_run_poisson_phylo_q1_smoke.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_write_poisson_phylo_q1_grid.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+
+  output_dir <- tempfile("phase18-poisson-phylo-q1-grid-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  conditions <- phase18_poisson_phylo_q1_conditions(
+    n_species = 8L,
+    n_per_species = 6L,
+    sd_phylo = 0.35,
+    mean_count = 3.0,
+    tree_shape = "balanced"
+  )
+
+  out <- phase18_write_poisson_phylo_q1_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 243L,
+    cores = 10L
+  )
+
+  expect_equal(out$surface, "poisson_phylo_q1_grid")
+  expect_equal(out$summary$run$parallel$requested_cores, 10L)
+  expect_equal(out$summary$run$parallel$cores, 1L)
+  expect_true(all(out$artifact_manifest$exists))
+  expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
+  expect_equal(nrow(out$summary$replicates), 3L)
+  expect_equal(nrow(out$summary$aggregate), 3L)
+  expect_equal(nrow(out$summary$manifest), 1L)
+  expect_equal(nrow(out$summary$failures), 0L)
+  expect_equal(nrow(out$summary$wald_intervals), 3L)
+  expect_equal(nrow(out$summary$wald_coverage), 2L)
+  expect_equal(nrow(out$summary$profile_targets), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 3L)
+  expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 3L)
+  expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$failures_csv)), 0L)
+  expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 3L)
+  expect_equal(nrow(utils::read.csv(out$paths$wald_coverage_csv)), 2L)
+  expect_equal(nrow(utils::read.csv(out$paths$profile_targets_csv)), 1L)
+  expect_error(
+    phase18_write_poisson_phylo_q1_grid_outputs(
+      output_dir = output_dir,
+      conditions = conditions,
+      n_rep = 1L,
+      master_seed = 243L
+    ),
+    "already exists"
+  )
+})
+
+test_that("Phase 18 Poisson phylogenetic q1 grid writer validates inputs", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_write_poisson_phylo_q1_grid.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+
+  expect_error(
+    phase18_write_poisson_phylo_q1_grid_outputs(output_dir = ""),
+    "output_dir"
+  )
+  expect_error(
+    phase18_write_poisson_phylo_q1_grid_outputs(
+      output_dir = tempfile(),
+      overwrite = NA
+    ),
+    "overwrite"
+  )
+})

@@ -140,6 +140,7 @@ inst/sim/dgp/sim_dgp_poisson_phylo_q1.R
 inst/sim/fit/sim_summarise_poisson_phylo_q1.R
 inst/sim/run/sim_run_poisson_phylo_q1_smoke.R
 inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R
+inst/sim/run/sim_write_poisson_phylo_q1_grid.R
 tests/testthat/test-phase18-poisson-phylo-q1.R
 ```
 
@@ -178,7 +179,7 @@ test contracts are recorded in
 | 4. Methods | Intended `drmTMB` model and ordinary comparator are stated. |
 | 5. Performance measures | Bias, RMSE, coverage, convergence, boundary, warning, and runtime measures are defined. |
 | 6. Software/settings | Runner metadata remains required. |
-| 7. Code availability | Proposed files and smoke-runner layout are named before implementation. |
+| 7. Code availability | The DGP, fitter, smoke runner, summary helper, grid writer, and focused tests live under `inst/sim/` and `tests/testthat/`. |
 | 8. Replicability | Seeded replicate outputs and artifact manifests are required. |
 | 9. Real-data motivation | The biological interpretation is phylogenetic species differences in expected counts. |
 | 10. Complete results | Failure ledgers and unavailable interval rows are required outputs. |

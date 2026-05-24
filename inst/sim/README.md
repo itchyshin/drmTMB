@@ -254,6 +254,10 @@ Current pilot files:
 - `run/sim_write_count_mu_random_effect_grid.R` writes the paired Poisson/NB2
   `mu` random-effect artifact set with Wald and direct-SD profile interval
   tables.
+- `run/sim_write_poisson_phylo_q1_grid.R` writes the ordinary Poisson
+  phylogenetic q=1 `mu` smoke artifact set with aggregate, replicate-level,
+  manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, and
+  direct `log_sd_phylo` profile-target CSVs beside per-replicate RDS results.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
   `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,

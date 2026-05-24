@@ -1709,6 +1709,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 463 | Poisson q1 design-doc sync | Done locally: ADEMP and runner-contract docs distinguish implemented smoke files from still-future grid writers and formal coverage. |
 | 464 | Poisson q1 check-log and after-task | Done locally: validation commands and role-perspective closeout are recorded. |
 | 465 | Poisson q1 smoke-runner closeout | Done locally: the branch has runnable smoke infrastructure but no broad non-Gaussian structured parity claim. |
+| 466 | Poisson q1 grid writer | Done locally: `inst/sim/run/sim_write_poisson_phylo_q1_grid.R` writes repeatable CSV artifacts beside resumable replicate RDS files. |
+| 467 | Poisson q1 grid paths | Done locally: aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, and profile-target CSV paths are named with a stable prefix. |
+| 468 | Poisson q1 grid overwrite guard | Done locally: existing artifact paths are rejected unless `overwrite = TRUE`. |
+| 469 | Poisson q1 grid manifest | Done locally: `phase18_grid_artifact_manifest()` records existence and row counts for all Poisson q1 grid CSVs. |
+| 470 | Poisson q1 grid writer tests | Done locally: focused tests assert CSV row counts, manifest existence, requested-versus-actual worker counts, and overwrite errors. |
+| 471 | Poisson q1 grid validation tests | Done locally: focused tests reject empty output paths and invalid `overwrite`. |
+| 472 | Poisson q1 README grid sync | Done locally: `inst/sim/README.md` lists the grid writer and artifact set. |
+| 473 | Poisson q1 source-map grid sync | Done locally: the source map includes the grid writer in the Poisson mean implementation row. |
+| 474 | Poisson q1 readiness grid sync | Done locally: readiness and Phase 18 programme rows now name repeatable CSV artifacts while keeping formal grids future. |
+| 475 | Poisson q1 design grid sync | Done locally: ADEMP and runner-contract docs separate implemented CSV smoke artifacts from formal recovery grids. |
+| 476 | Poisson q1 NEWS and roadmap grid sync | Done locally: release and roadmap ledgers record the grid writer without changing fitted support. |
+| 477 | Poisson q1 grid check-log | Done locally: validation commands and results are recorded for the grid writer. |
+| 478 | Poisson q1 grid after-task | Done locally: after-task report records artifact shape, limits, and role-perspective review. |
+| 479 | Poisson q1 grid stale-scan gate | Done locally: false-support scans still return no broad NB2, spatial, animal, `relmat()`, `zi`, `hu`, or structured-slope claims. |
+| 480 | Poisson q1 grid closeout | Done locally: repeatable smoke artifacts exist; formal recovery and coverage grids remain future work. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1793,6 +1808,7 @@ as the whole comprehensive simulation programme.
 | 421-435 | Planning | Poisson phylogenetic q1 runner contract | Done locally as planning: direct-target, extractor, manifest, warning/error, smoke-grid, formal-grid, comparator, documentation-sync, unsupported-syntax, and test-plan contracts are recorded before broader simulation claims. |
 | 436-450 | Evidence sync | Poisson phylogenetic q1 source-ledger synchronization | Done locally: source map, validation debt, Phase 18 programme, readiness matrix, family registry, NEWS, check-log, and after-task notes point to the runner contract while keeping broad simulation closed. |
 | 451-465 | Simulation smoke | Poisson phylogenetic q1 smoke runner | Done locally: DGP, fit summariser, runner, summary helper, focused tests, README, source-map, readiness, design docs, check-log, and after-task notes create opt-in smoke infrastructure without formal recovery claims. |
+| 466-480 | Simulation artifacts | Poisson phylogenetic q1 grid writer | Done locally: repeatable CSV artifact writer, row-count manifest, focused grid-writer tests, README, source-map, readiness, design docs, check-log, and after-task notes create smoke artifacts without formal recovery claims. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
