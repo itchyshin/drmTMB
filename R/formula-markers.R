@@ -131,18 +131,18 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' fitted paths support Gaussian location and residual-scale effects,
 #' response-specific direct-SD formulas for location effects, labelled
 #' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
-#' location effect. Use `phylo(1 | species, tree = tree)` in univariate Gaussian
-#' `mu`, univariate Gaussian `sigma`, or ordinary Poisson `mu`, one numeric
-#' univariate Gaussian `mu` slope with independent intercept/slope SDs, matching
-#' univariate Gaussian `mu` and `sigma` intercept terms for a mean-scale
-#' phylogenetic correlation, matching terms in bivariate Gaussian `mu1` and
-#' `mu2`, or matching labelled all-four terms across Gaussian `mu1`, `mu2`,
-#' `sigma1`, and `sigma2`. A single shared label estimates the full q4 block; a
-#' `mu1`/`mu2` label plus a separate `sigma1`/`sigma2` label estimates the
-#' block-diagonal fallback. Poisson phylogenetic slopes, NB2 phylogenetic
-#' effects, zero-inflated phylogenetic effects, multiple phylogenetic slopes,
-#' residual-scale structured slopes, and phylogenetic slope correlations remain
-#' planned. The public `phylo()` API
+#' and NB2 q=1 location effects. Use `phylo(1 | species, tree = tree)` in
+#' univariate Gaussian `mu`, univariate Gaussian `sigma`, ordinary Poisson `mu`,
+#' or ordinary NB2 `mu`, one numeric univariate Gaussian `mu` slope with
+#' independent intercept/slope SDs, matching univariate Gaussian `mu` and
+#' `sigma` intercept terms for a mean-scale phylogenetic correlation, matching
+#' terms in bivariate Gaussian `mu1` and `mu2`, or matching labelled all-four
+#' terms across Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared
+#' label estimates the full q4 block; a `mu1`/`mu2` label plus a separate
+#' `sigma1`/`sigma2` label estimates the block-diagonal fallback. Poisson and
+#' NB2 phylogenetic slopes, zero-inflated phylogenetic effects, multiple
+#' phylogenetic slopes, residual-scale structured slopes, and phylogenetic slope
+#' correlations remain planned. The public `phylo()` API
 #' requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.

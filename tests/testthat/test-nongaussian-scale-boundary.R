@@ -63,14 +63,6 @@ test_that("non-Gaussian sigma random effects have a specific boundary", {
   )
   expect_error(
     drmTMB(
-      bf(y_count ~ x, sigma ~ x + (1 | id)),
-      family = nbinom2(),
-      data = dat
-    ),
-    boundary
-  )
-  expect_error(
-    drmTMB(
       bf(y_pos_count ~ x, sigma ~ x + (0 + x | id)),
       family = truncated_nbinom2(),
       data = dat

@@ -1123,6 +1123,63 @@ Type objective_function<Type>::operator()()
         ADREPORT(rho_mu_re);
       }
     }
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          phylo_effect += phylo_mu_value(i, k) * u_phylo(effect_index);
+        }
+        eta_mu(i) += phylo_effect;
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
+    if (n_sigma_re_terms > 0) {
+      vector<Type> sd_sigma_re = exp(log_sd_sigma);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_sigma_re_terms; ++j) {
+          int idx = sigma_re_index(i, j);
+          log_sigma(i) +=
+            sigma_re_value(i, j) * sd_sigma_re(sigma_re_term(idx)) *
+            u_sigma(idx);
+        }
+      }
+      for (int j = 0; j < u_sigma.size(); ++j) {
+        nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_sigma);
+      REPORT(log_sd_sigma);
+      REPORT(sd_sigma_re);
+      ADREPORT(log_sd_sigma);
+      ADREPORT(sd_sigma_re);
+    }
     vector<Type> mu = exp(eta_mu);
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {

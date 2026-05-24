@@ -61,9 +61,9 @@ and recovery evidence.
 | `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed-effect only for `mu` and `sigma`; non-log Gamma links remain unsupported. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed-effect only for strict `(0, 1)` responses. Exact 0/1 boundary mass and `zoi`/`coi` are planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed-effect only for two-column `cbind(successes, failures)` responses. `mu`, `sigma`, `zoi`, and `coi` random effects are blocked. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks. |
-| `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, phylogenetic slopes, NB2/spatial/animal/`relmat()` structured count effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, and opt-in smoke-runner checks. |
+| `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, phylogenetic slopes, spatial/animal/`relmat()` structured count effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, and opt-in smoke-runner checks. |
 | `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
-| `nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Non-zero-inflated NB2 fits fixed `sigma` formulas plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated slopes, labelled covariance, and `sigma` random effects remain planned. | `tests/testthat/test-nbinom2-location-scale.R`; `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`; scale-boundary and profile-target checks. |
+| `nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Non-zero-inflated NB2 fits fixed `sigma` formulas plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, the first ordinary log-`sigma` random intercept, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, joint `mu`/`sigma` random effects, NB2 phylogenetic slopes, zero-inflated NB2 phylogeny, and structured `sigma` effects remain planned. | `tests/testthat/test-nbinom2-location-scale.R`; `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`; scale-boundary, profile-target, NB2 `sigma` random-intercept, and phylogenetic q=1 smoke checks. |
 | `nbinom2()` with `zi ~ ...` | `mu` log; `sigma` log; `zi` logit | `zi` is structural-zero probability | Fixed-effect `mu`, `sigma`, and `zi` only. Count-side, `sigma`, and `zi` random effects are blocked for zero-inflated NB2. | `tests/testthat/test-zi-nbinom2.R`; inflation and scale-boundary tests. |
 | `truncated_nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Fixed-effect only for positive-count data. Zero-truncated `mu` random effects are a later count gate. | `tests/testthat/test-truncated-nbinom2-location-scale.R`; count-kernel and scale-boundary tests. |
 | `truncated_nbinom2()` with `hu ~ ...` | `mu` log; `sigma` log; `hu` logit | `hu` is hurdle-zero probability | Fixed-effect `mu`, `sigma`, and `hu` only. Hurdle-side and positive-count random effects are blocked. | `tests/testthat/test-hurdle-nbinom2.R`; inflation/hurdle boundary tests. |
@@ -141,14 +141,14 @@ ordinary random-effect variation.
 
 The first non-Gaussian random-effect expansion was ordinary Poisson `mu` random
 intercepts plus independent numeric slopes, not scale, shape, zero-inflation,
-hurdle, ordinal, or broad structured random effects. The next structured gate
-opens one ordinary Poisson q=1 phylogenetic `mu` intercept only. The decision
-remains intentionally narrow:
+hurdle, ordinal, or broad structured random effects. The current structured
+front gate opens ordinary Poisson/NB2 q=1 phylogenetic `mu` intercepts only.
+The decision remains intentionally narrow:
 
 | Priority | Family surface | Slice 192 status |
 |---|---|---|
 | 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor of non-zero-inflated Poisson models. The first structured count route is also implemented for `phylo(1 | species, tree = tree)` only. Correlated slope blocks, covariance labels, phylogenetic count slopes, zero-inflated Poisson random effects, spatial/animal/`relmat()` count structure, and cross-parameter covariance remain planned. |
-| 2 | NB2 and zero-truncated NB2 `mu` | Next candidate after Poisson, retaining public `sigma` as dispersion and leaving dispersion-side random effects for a later scale gate. |
+| 2 | NB2 and zero-truncated NB2 `mu` | NB2 ordinary `mu` random intercepts, independent numeric slopes, the first ordinary log-`sigma` random intercept, and the first q=1 phylogenetic `mu` intercept are fitted; zero-truncated NB2 and richer dispersion-side random effects remain later gates. |
 | 3 | Lognormal, Gamma, and Student-t `mu` | Later continuous-response candidates after count recovery tests, because scale and tail parameters complicate weak-SD and boundary diagnostics. |
 | 4 | Beta and beta-binomial `mu` | Later bounded-response candidates; strict-boundary handling, denominators, and overdispersion need their own recovery grids. |
 | 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until Slices 195-197 decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. For percentage/proportion data, zero-one-inflated beta-style likelihoods should expose fixed-effect `zoi` and `coi` first; random effects and cross-parameter covariance come later. |
@@ -168,16 +168,20 @@ planned and should not silently fall through as generic formula failures.
 
 ## Slice 193 Non-Gaussian Scale Boundary
 
-Student-t, lognormal, Gamma, beta, beta-binomial, NB2, truncated NB2, and
-hurdle NB2 `sigma` formulas remain fixed-effect scale models in this release.
-Random-effect bar terms in those `sigma` formulas now receive a scale-specific
-unsupported message rather than the earlier generic non-Gaussian `mu` wording.
+Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle
+NB2 `sigma` formulas remain fixed-effect scale models in this release. Ordinary
+non-zero-inflated NB2 now has one exception: independent grouped
+`sigma ~ z + (1 | id)` random intercepts on the log-overdispersion scale.
+Other random-effect bar terms in non-Gaussian `sigma` formulas receive a
+scale-specific unsupported message rather than the earlier generic
+non-Gaussian `mu` wording.
 
 This is a design boundary, not a claim that scale random effects are
 unimportant. Each family needs its own likelihood contribution, random-effect
 extraction, `sdpars`/`random_effects`/`profile_targets()` surface, weak-SD and
 boundary recovery tests, and reader-facing scale interpretation before
-`sigma ~ z + (1 | id)` is advertised outside Gaussian models.
+`sigma ~ z + (1 | id)` is advertised outside Gaussian models or the narrow
+ordinary NB2 intercept gate.
 
 ## Implemented: Gaussian Location-Scale
 
@@ -503,13 +507,15 @@ family = nbinom2()
 ```
 
 The implemented model is univariate and can include ordinary `mu` random
-intercepts or independent numeric slopes:
+intercepts, independent numeric `mu` slopes, or an ordinary `sigma` random
+intercept:
 
 ```text
 y_i | mu_i, sigma_i ~ NB2(mu_i, size_i)
 log(mu_i) = o_i + X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
-log(sigma_i) = X_sigma[i, ] beta_sigma
-b_mu ~ Normal(0, diag(sd_mu^2)) for independent random-effect terms
+log(sigma_i) = X_sigma[i, ] beta_sigma + Z_sigma[i, ] b_sigma
+b_mu ~ Normal(0, diag(sd_mu^2)) for independent mu random-effect terms
+b_sigma ~ Normal(0, diag(sd_sigma^2)) for independent sigma random-intercept terms
 size_i = 1 / sigma_i^2
 E[y_i] = mu_i
 Var[y_i] = mu_i + sigma_i^2 * mu_i^2
@@ -529,10 +535,12 @@ logit(zi_i) = X_zi[i, ] beta_zi
 E[y_i] = (1 - zi_i) mu_i
 ```
 
-Correlated NB2 slope blocks, labelled covariance blocks, NB2 `sigma` random
+The `sigma` random-effect gate is intercept-only and cannot be combined with
+NB2 `mu` random effects in this first slice. Correlated NB2 slope blocks,
+labelled covariance blocks, NB2 `sigma` slopes, joint `mu`/`sigma` random
 effects, zero-inflated NB2 random effects, known sampling covariance,
-phylogenetic terms, and bivariate or mixed negative-binomial models are later
-phases.
+structured `sigma` terms, and bivariate or mixed negative-binomial models are
+later phases.
 
 ## Implemented: Zero-Truncated Negative Binomial 2 Mean-Dispersion
 

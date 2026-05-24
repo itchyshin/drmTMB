@@ -76,7 +76,7 @@ is the current routing contract:
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts and independent numeric slopes plus the first q=1 phylogenetic `mu` intercept. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, and optional ordinary `mu` random intercepts or independent numeric slopes on the log-mean predictor. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, and the first q=1 phylogenetic `mu` intercept on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
@@ -996,11 +996,11 @@ a ~ Normal(0, sd_phylo^2 A)
 
 where `A` is the tree-implied phylogenetic covariance; the TMB template uses the
 sparse precision `Q_phylo`, the latent vector `u_phylo`, and the direct SD target
-`log_sd_phylo`. This route is implemented only for ordinary non-zero-inflated
+`log_sd_phylo`. This route is implemented for ordinary non-zero-inflated
 Poisson with `phylo(1 | species, tree = tree)`. It is not a labelled q=2/q=4
-count block, not a phylogenetic count slope, and not an NB2, spatial, animal, or
-`relmat()` structured count route. The simulation-runner and artifact contract
-for promoting this route beyond smoke-level evidence is recorded in
+count block, not a phylogenetic count slope, and not a zero-inflated, spatial,
+animal, or `relmat()` structured count route. The simulation-runner and artifact
+contract for promoting this route beyond smoke-level evidence is recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`.
 
 For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
@@ -1126,10 +1126,36 @@ For `nbinom2()` fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. `sigma(fit)` returns the overdispersion scale in the variance
 equation, not a residual standard deviation. Larger `sigma` means greater
 extra-Poisson variation. Ordinary `mu` random intercepts and independent
-numeric slopes are fitted for non-zero-inflated NB2 models. Correlated NB2
-slope blocks, labelled covariance blocks, NB2 `sigma` random effects,
-zero-inflated NB2 random effects, known sampling covariance, phylogenetic terms,
-and bivariate or mixed negative-binomial models are later phases.
+numeric slopes are fitted for non-zero-inflated NB2 models. Ordinary
+non-zero-inflated NB2 also fits one independent grouped random intercept in the
+`sigma` formula:
+
+```text
+eta_mu_i = o_i + X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma + b_id[i]
+b ~ Normal(0, sd_sigma^2)
+```
+
+This grouped effect is overdispersion heterogeneity on the log-`sigma` scale.
+It is not a residual SD in the Gaussian sense and it is not a Poisson scale
+parameter. The first structured NB2 route is the q=1 phylogenetic `mu`
+intercept:
+
+```text
+eta_mu_i = o_i + X_mu[i, ] beta_mu + a_species[i]
+a ~ Normal(0, sd_phylo^2 A)
+eta_sigma_i = X_sigma[i, ] beta_sigma
+```
+
+This adds the same sparse `Q_phylo`, latent `u_phylo`, and direct
+`log_sd_phylo` target as the ordinary Poisson q=1 route, but the count
+likelihood remains NB2 and `sigma` remains fixed-effect overdispersion. It is
+implemented only for ordinary non-zero-inflated NB2 with
+`phylo(1 | species, tree = tree)` in `mu`. Correlated NB2 slope blocks, labelled
+covariance blocks, NB2 phylogenetic slopes, NB2 `sigma` slopes, labelled or
+joint `mu`/`sigma` covariance, NB2 `sigma` structured effects, zero-inflated
+NB2 random or structured effects, known sampling covariance, and bivariate or
+mixed negative-binomial models are later phases.
 
 ## Implemented Zero-Truncated Negative Binomial 2
 

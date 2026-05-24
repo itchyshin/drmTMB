@@ -28,6 +28,24 @@
   white-space: normal;
 }
 
+@media (min-width: 992px) {
+  body > .container .row > main,
+  body > .container .row > aside {
+    margin-top: 6rem;
+  }
+}
+
+.page-header img.logo {
+  margin-left: 2rem;
+  width: clamp(130px, 12vw, 160px);
+}
+
+@media (min-width: 576px) {
+  .page-header {
+    min-height: 10.5rem;
+  }
+}
+
 @media (max-width: 767.98px) {
   .template-home .page-header .logo {
     height: auto;

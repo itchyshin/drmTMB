@@ -58,7 +58,7 @@ Issue body:
 
 ## Not in scope
 
-- NB2 structured effects.
+- NB2 structured effects beyond the ordinary q=1 `mu` phylogenetic intercept.
 - Zero-inflated or hurdle structured effects.
 - Structured count slopes.
 - q2/q4 count covariance.
@@ -122,7 +122,7 @@ Required unsupported requests:
 - labelled Poisson q2 or q4 phylogenetic blocks;
 - Poisson `phylo()` in `zi`;
 - Poisson `spatial()`, `animal()`, or `relmat()`;
-- NB2 `phylo()`;
+- NB2 `phylo()` beyond the ordinary q=1 `mu` intercept;
 - structured effects in `sigma`, shape, ordinal, bounded-response, or
   mixed-response components;
 - cross-parameter count covariance.
@@ -151,20 +151,22 @@ Required pages:
 - `docs/dev-log/check-log.md`;
 - after-task report.
 
-The docs must say that Poisson q1 phylogenetic `mu` is not NB2, not `zi`, not
-`hu`, not spatial, not animal, not `relmat()`, not q2/q4, and not a structured
-count slope route.
+The docs must say that Poisson q1 phylogenetic `mu` is separate from NB2 q1
+phylogenetic `mu`; neither route is `zi`, `hu`, spatial, animal, `relmat()`,
+q2/q4, or a structured count slope route.
 ```
 
 ## Slice 411-414: NB2 q1 ADEMP Skeleton
 
-This is a skeleton only. It should not become a runner until the Poisson q1
-smoke/recovery route is informative.
+This section began as a skeleton. The ordinary non-zero-inflated NB2 q=1
+phylogenetic `mu` intercept is now fitted as a first code slice, but this
+section still defines the larger overdispersion-aware recovery grid needed
+before the route should be promoted beyond smoke evidence.
 
 ### A - Aims
 
-Primary aim: evaluate whether a q=1 phylogenetic NB2 `mu` structured intercept
-can recover fixed log-mean coefficients and the structured SD when
+Primary aim: evaluate whether the q=1 phylogenetic NB2 `mu` structured
+intercept can recover fixed log-mean coefficients and the structured SD when
 overdispersion is also estimated through fixed-effect `sigma`.
 
 Secondary aims:

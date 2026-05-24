@@ -47,6 +47,109 @@ new_nbinom2_random_effect_data <- function(
   )
 }
 
+new_nbinom2_sigma_random_intercept_data <- function(
+  n_id = 42,
+  n_each = 20,
+  seed = 20260642,
+  sd_sigma_id = 0.42
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.50, x = -0.18)
+  beta_sigma <- c(`(Intercept)` = -0.85, z = 0.16)
+  a_sigma <- stats::rnorm(n_id, sd = sd_sigma_id)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x
+  eta_sigma <- beta_sigma[[1L]] +
+    beta_sigma[[2L]] * dat$z +
+    a_sigma[dat$id]
+  sigma <- exp(eta_sigma)
+  dat$count <- stats::rnbinom(n, size = 1 / sigma^2, mu = exp(eta_mu))
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_sigma_id = sd_sigma_id,
+    a_sigma = a_sigma
+  )
+}
+
+nbinom2_balanced_ultrametric_tree <- function(n_tip = 8L) {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0("sp_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+new_nbinom2_phylo_intercept_data <- function(
+  n_tip = 8L,
+  n_each = 24L,
+  seed = 20260641,
+  sd_phylo = 0.45
+) {
+  set.seed(seed)
+  tree <- nbinom2_balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_effect <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_phylo)
+  )
+  names(phylo_effect) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  z <- stats::rnorm(length(species))
+  beta_mu <- c(`(Intercept)` = 0.55, x = -0.25)
+  beta_sigma <- c(`(Intercept)` = -0.85, z = 0.15)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * x + phylo_effect[species]
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * z)
+  data <- data.frame(
+    count = stats::rnbinom(
+      length(species),
+      size = 1 / sigma^2,
+      mu = exp(eta_mu)
+    ),
+    x = x,
+    z = z,
+    species = species
+  )
+  list(
+    data = data,
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_phylo = sd_phylo,
+    phylo_effect = phylo_effect
+  )
+}
+
 test_that("drmTMB fits fixed-effect nbinom2 mean-dispersion models", {
   sim <- new_nbinom2_data()
 
@@ -123,6 +226,15 @@ test_that("nbinom2 mu supports ordinary random intercepts and slopes", {
   expect_equal(length(slope_effects), length(sim$u_x))
   expect_gt(stats::cor(id_effects, sim$u_id), 0.35)
   expect_gt(stats::cor(slope_effects, sim$u_x), 0.25)
+  expect_equal(
+    predict(fit, dpar = "mu"),
+    fit$obj$report()$mu,
+    tolerance = 1e-3
+  )
+  fixed_mu <- exp(as.vector(fit$model$X$mu %*% coef(fit, "mu")))
+  expect_gt(max(abs(predict(fit, dpar = "mu") - fixed_mu)), 0.05)
+  expect_true(drmTMB:::has_ordinary_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 2L)
 
   targets <- profile_targets(fit)
   sd_targets <- targets[
@@ -146,6 +258,193 @@ test_that("nbinom2 mu supports ordinary random intercepts and slopes", {
 
   expect_true(all(predict(fit, dpar = "mu") > 0))
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("nbinom2 sigma supports ordinary random intercepts", {
+  sim <- new_nbinom2_sigma_random_intercept_data()
+  dat <- sim$data
+
+  fit <- drmTMB(
+    bf(count ~ x, sigma ~ z + (1 | id)),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "nbinom2")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$sigma$n_terms, 1L)
+  expect_named(fit$sdpars$sigma, "(1 | id)")
+  expect_gt(unname(fit$sdpars$sigma), 0.05)
+  expect_lt(abs(unname(fit$sdpars$sigma) - sim$sd_sigma_id), 0.35)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.25)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.35)
+
+  sigma_effects <- fit$random_effects$sigma$terms[["(1 | id)"]]
+  expect_equal(length(sigma_effects), length(sim$a_sigma))
+  expect_gt(stats::cor(sigma_effects, sim$a_sigma), 0.30)
+
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  sigma_link <- predict(fit, dpar = "sigma", type = "link")
+  contribution <- drmTMB:::sigma_random_effect_contribution(fit)
+  expect_equal(sigma_link, fixed_sigma + contribution, tolerance = 1e-10)
+  expect_equal(sigma(fit), exp(sigma_link), tolerance = 1e-10)
+  expect_equal(predict(fit, dpar = "sigma"), fit$obj$report()$sigma,
+    tolerance = 1e-3
+  )
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:sigma:(1 | id)", ]
+  expect_equal(sd_target$tmb_parameter, "log_sd_sigma")
+  expect_equal(sd_target$target_type, "direct")
+  expect_true(sd_target$profile_ready)
+
+  chk <- check_drm(fit)
+  sigma_sd <- chk[chk$check == "sigma_random_effect_replication", ]
+  expect_equal(sigma_sd$status, "ok")
+  expect_true(attr(chk, "ok"))
+})
+
+test_that("nbinom2 sigma random intercepts keep planned neighbours closed", {
+  sim <- new_nbinom2_sigma_random_intercept_data(n_id = 8, n_each = 4)
+  dat <- sim$data
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x, sigma ~ z + (0 + z | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Only independent NB2.*sigma.*random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | id), sigma ~ z + (1 | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x, sigma ~ z + (1 | id), zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "ordinary NB2"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x, sigma ~ z + (1 | p | id)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Only independent NB2.*sigma.*random intercepts"
+  )
+})
+
+test_that("nbinom2 mu supports q1 phylogenetic random intercepts", {
+  sim <- new_nbinom2_phylo_intercept_data()
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "nbinom2")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$tmb_data$has_phylo_mu, 1L)
+  expect_equal(fit$model$structured$phylo_mu$q, 1L)
+  expect_named(fit$sdpars$mu, "phylo(1 | species)")
+  expect_gt(unname(fit$sdpars$mu), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu) - sim$sd_phylo), 0.40)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.30)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.35)
+
+  phylo_effects <- ranef(fit, "phylo_mu")$terms[["phylo(1 | species)"]]
+  expect_equal(length(phylo_effects), 2 * length(tree$tip.label) - 2L)
+  expect_gt(
+    stats::cor(
+      phylo_effects[names(sim$phylo_effect)],
+      sim$phylo_effect
+    ),
+    0.35
+  )
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:mu:phylo(1 | species)", ]
+  expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
+  expect_equal(sd_target$target_type, "direct")
+  expect_true(sd_target$profile_ready)
+
+  chk <- check_drm(fit)
+  phylo <- chk[chk$check == "phylo_mu_diagnostics", ]
+  expect_equal(phylo$status, "ok")
+  expect_match(phylo$value, "min_species_n=24")
+  expect_true(attr(chk, "ok"))
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+  expect_equal(
+    predict(fit, dpar = "mu"),
+    fit$obj$report()$mu,
+    tolerance = 1e-3
+  )
+  fixed_mu <- exp(as.vector(fit$model$X$mu %*% coef(fit, "mu")))
+  expect_gt(max(abs(predict(fit, dpar = "mu") - fixed_mu)), 0.05)
+  expect_true(drmTMB:::has_structured_mu_effect(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 1L)
+  expect_true(all(sigma(fit) > 0))
+})
+
+test_that("nbinom2 phylogenetic mu keeps planned neighboring routes closed", {
+  dat <- data.frame(
+    count = c(0, 1, 2, 3, 4, 5, 6, 7),
+    x = seq(-1, 1, length.out = 8L),
+    z = seq(1, -1, length.out = 8L),
+    species = rep(paste0("sp_", seq_len(4L)), each = 2L),
+    id = rep(seq_len(4L), each = 2L)
+  )
+  tree <- nbinom2_balanced_ultrametric_tree(n_tip = 4L)
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + phylo(1 + x | species, tree = tree), sigma ~ z),
+      family = nbinom2(),
+      data = dat
+    ),
+    "q=1 random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + phylo(1 | species, tree = tree) + (1 | id), sigma ~ z),
+      family = nbinom2(),
+      data = dat
+    ),
+    "cannot be combined"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z, zi ~ 1),
+      family = nbinom2(),
+      data = dat
+    ),
+    "ordinary NB2 models"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x, sigma ~ phylo(1 | species, tree = tree)),
+      family = nbinom2(),
+      data = dat
+    ),
+    "Structured non-Gaussian paths"
+  )
 })
 
 test_that("nbinom2 mu random intercepts tolerate weak-SD boundary cases", {
