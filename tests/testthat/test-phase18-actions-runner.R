@@ -49,7 +49,54 @@ test_that("Phase 18 Actions runner dry-run parses options and caps cores", {
   expect_match(out, "n_rep=2", fixed = TRUE)
   expect_match(out, "backend=multicore", fixed = TRUE)
   expect_match(out, "cores=10", fixed = TRUE)
+  expect_match(out, "condition_shard=1", fixed = TRUE)
+  expect_match(out, "condition_shards=1", fixed = TRUE)
   expect_match(out, "`cores` was capped at 10", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner validates formal condition shards", {
+  script <- phase18_actions_runner_script()
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=nbinom2_phylo_q1_formal",
+      "--dry-run=true",
+      "--profile-parameters=log_sd_phylo",
+      "--condition-shard=2",
+      "--condition-shards=16"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=nbinom2_phylo_q1_formal", fixed = TRUE)
+  expect_match(out, "condition_shard=2", fixed = TRUE)
+  expect_match(out, "condition_shards=16", fixed = TRUE)
+
+  rejected <- suppressWarnings(
+    system2(
+      file.path(R.home("bin"), "Rscript"),
+      c(
+        "--vanilla",
+        shQuote(script),
+        "--task=first_wave_summary",
+        "--dry-run=true",
+        "--condition-shard=2",
+        "--condition-shards=16"
+      ),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+  )
+
+  expect_true(!is.null(attr(rejected, "status")))
+  expect_match(
+    paste(rejected, collapse = "\n"),
+    "Condition sharding is only available"
+  )
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {

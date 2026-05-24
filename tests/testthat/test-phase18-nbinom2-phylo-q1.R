@@ -322,12 +322,44 @@ test_that("Phase 18 NB2 phylogenetic q1 formal wrapper and QA read artifacts", {
   expect_equal(nrow(out$formal_spec), 1L)
   expect_false(out$formal_spec$formal_recovery_gate)
   expect_true(out$formal_spec$overdispersion_confounding_explicit)
+  expect_equal(out$formal_spec$condition_shard, 1L)
+  expect_equal(out$formal_spec$condition_shards, 1L)
+  expect_equal(out$formal_spec$full_condition_count, 1L)
   expect_true(file.exists(out$paths$formal_spec_csv))
   expect_equal(read_back$surface, "nbinom2_phylo_q1_grid_read")
   expect_true(all(qa$status %in% c("ok", "not_checked")))
   expect_equal(qa$status[qa$check == "expected_replicates"], "ok")
   expect_equal(qa$status[qa$check == "comparator_rows"], "ok")
   expect_equal(decision$decision, "hold_smoke_only")
+})
+
+test_that("Phase 18 NB2 phylogenetic q1 formal shards cannot promote alone", {
+  source_phase18_nbinom2_phylo_q1()
+  conditions <- phase18_nbinom2_phylo_q1_conditions(
+    n_species = 16L,
+    n_per_species = 8L,
+    sd_phylo = 0.35,
+    mean_count = 4.0,
+    sigma_baseline = 0.45,
+    tree_shape = "balanced"
+  )
+
+  spec <- phase18_nbinom2_phylo_q1_formal_grid_spec(
+    conditions = conditions,
+    n_rep = 500L,
+    master_seed = 530L,
+    condition_shard = 2L,
+    condition_shards = 16L,
+    full_condition_count = 288L
+  )
+
+  expect_true(all(spec$formal_recovery_gate))
+  expect_true(all(spec$shard_recovery_gate))
+  expect_false(any(spec$coverage_claim_allowed))
+  expect_equal(spec$condition_shard, 2L)
+  expect_equal(spec$condition_shards, 16L)
+  expect_equal(spec$full_condition_count, 288L)
+  expect_equal(spec$shard_condition_count, 1L)
 })
 
 test_that("Phase 18 NB2 phylogenetic q1 formal Actions task plans", {
@@ -344,8 +376,10 @@ test_that("Phase 18 NB2 phylogenetic q1 formal Actions task plans", {
     phase18_actions_main(c(
       "--task=nbinom2_phylo_q1_formal",
       "--dry-run=true",
-      "--profile-parameters=log_sd_phylo"
+      "--profile-parameters=log_sd_phylo",
+      "--condition-shard=2",
+      "--condition-shards=16"
     )),
-    "nbinom2_phylo_q1_formal"
+    "condition_shards=16"
   )
 })

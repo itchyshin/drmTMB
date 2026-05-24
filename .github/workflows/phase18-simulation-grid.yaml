@@ -53,6 +53,16 @@ on:
         required: false
         default: ""
         type: string
+      condition_shard:
+        description: "One-based formal-grid condition shard index"
+        required: true
+        default: "1"
+        type: number
+      condition_shards:
+        description: "Number of formal-grid condition shards"
+        required: true
+        default: "1"
+        type: number
       render_report:
         description: "Render the Phase 18 HTML summary report"
         required: true
@@ -138,6 +148,8 @@ jobs:
             --render="${{ inputs.render_report }}" \
             --require-complete=false \
             --profile-parameters="${{ inputs.profile_parameters }}" \
+            --condition-shard="${{ inputs.condition_shard }}" \
+            --condition-shards="${{ inputs.condition_shards }}" \
             --bootstrap-nsim="${{ inputs.bootstrap_nsim }}" \
             --bootstrap-cores="${{ inputs.bootstrap_cores }}" \
             --bootstrap-backend="${{ inputs.bootstrap_backend }}" \
@@ -161,7 +173,7 @@ jobs:
         if: ${{ inputs.task == matrix.task || (inputs.task == 'all' && matrix.include_in_all) }}
         uses: actions/upload-artifact@v7
         with:
-          name: phase18-${{ matrix.task }}-${{ github.run_id }}
+          name: phase18-${{ matrix.task }}-shard-${{ inputs.condition_shard }}-of-${{ inputs.condition_shards }}-${{ github.run_id }}
           path: ${{ env.OUT_DIR }}
           if-no-files-found: error
           retention-days: ${{ inputs.retention_days }}

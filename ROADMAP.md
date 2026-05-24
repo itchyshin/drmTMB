@@ -1799,6 +1799,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 553 | NB2 q1 promotion decision | Done locally: `phase18_nbinom2_phylo_q1_promotion_decision()` returns `hold_smoke_only`; local QA passed, but formal recovery and coverage wording remain blocked because neither local audit met `n_rep >= 500`. |
 | 554 | NB2 q1 audit documentation sync | Done locally: `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md`, simulation README, source map, readiness matrix, validation-debt register, NEWS, and check-log record the sentinel/audit evidence and the remaining gate. |
 | 555 | NB2 q1 formal-audit closeout | Done locally: Slices 541-555 close as an evidence-and-hold lane, not as broad NB2 structured-count promotion; the next compute step is the full 500-replicate formal grid from a clean pushed branch or manual Actions dispatch. |
+| 561 | NB2 q1 PR merge hygiene | Done locally: PR #320 merged after green Ubuntu, macOS, and Windows R-CMD-check evidence, giving `main` the NB2 q1 smoke/formal-admission lane before new formal-grid work started. |
+| 562 | NB2 q1 singleton dispatch | Done locally: Actions run `26371083871` dispatched `nbinom2_phylo_q1_formal` from `main` with `n_reps = 500`, `cores = 10`, `backend = "multicore"`, and `profile_parameters = "log_sd_phylo"`. |
+| 563 | NB2 q1 runtime feasibility audit | Done locally: prior sentinel and representative-audit manifests imply about 27-31 optimistic 10-worker hours for the full 288-cell x 500-replicate grid, exceeding the 360-minute single-job Actions cap. |
+| 564 | NB2 q1 singleton cancellation | Done locally: run `26371083871` was cancelled before timeout and produced no formal artifact, preserving the `hold_smoke_only` decision. |
+| 565 | Formal condition shard inputs | Done locally: `.github/workflows/phase18-simulation-grid.yaml` exposes one-based `condition_shard` and `condition_shards` inputs and passes them to the Phase 18 Actions runner. |
+| 566 | Actions shard validation | Done locally: `sim_run_actions_cell.R` accepts condition sharding only for Poisson/NB2 phylogenetic q1 formal tasks and rejects sharding for ordinary summary tasks. |
+| 567 | Stable formal condition partition | Done locally: the Actions runner applies a stable one-based modulo partition over the formal condition table, preserving the original cell ids inside each shard. |
+| 568 | Shard artifact naming | Done locally: uploaded Phase 18 formal artifacts include the shard index and shard count in the artifact name so multiple manual runs can be downloaded without losing provenance. |
+| 569 | NB2 shard formal spec | Done locally: `phase18_nbinom2_phylo_q1_formal_grid_spec()` records `condition_shard`, `condition_shards`, `full_condition_count`, `shard_condition_count`, and `shard_recovery_gate`. |
+| 570 | Poisson shard formal spec parity | Done locally: the Poisson q1 formal spec records the same shard metadata so the shared Actions inputs do not become NB2-only infrastructure. |
+| 571 | Shard promotion guard | Done locally: Poisson and NB2 formal specs set `coverage_claim_allowed = FALSE` whenever `condition_shards > 1`, even when a shard uses `n_rep = 500`. |
+| 572 | Focused shard tests | Done locally: focused Phase 18 tests cover Actions dry-run shard parsing, non-formal shard rejection, NB2 shard metadata, and the shard promotion guard. |
+| 573 | Sharded-grid design note | Done locally: `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md` records the singleton cancellation, runtime estimate, dispatch command pattern, and combined-audit rule. |
+| 574 | NB2 q1 sharding docs sync | Done locally: simulation README, Phase 18 programme, readiness matrix, validation-debt register, NEWS, ROADMAP, check-log, and after-task records now describe sharded formal dispatch without promotion claims. |
+| 575 | NB2 q1 sharding closeout | Done locally: the route remains `hold_smoke_only`; the next compute action is to run all formal shards, download them, merge the artifacts, and audit the full 500-replicate grid together. |
 
 ### Pre-Simulation Readiness Slice Map
 
