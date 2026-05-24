@@ -1624,31 +1624,106 @@ Use this order unless Slice 191 evidence overturns it:
 | 378 | pkgdown sync | Done locally: pkgdown build/check and rendered scans cover the implementation-map page. |
 | 379 | PR/status sync | Done locally: the branch records spatial q4 as fitted only after tests and docs move together. |
 | 380 | Stop-implementation boundary | Done locally: no non-Gaussian structured likelihood code is fitted in this set. |
-| 381 | Non-Gaussian family inventory | Planned: list ordinary count, zero-inflated, hurdle, bounded, ordinal, robust, and mixed-response structured-dependence candidates. |
-| 382 | Non-Gaussian component inventory | Planned: keep `mu`, `sigma`, `zi`, `hu`, shape, cutpoints, and residual coscale separate. |
-| 383 | Non-Gaussian layer inventory | Planned: score `phylo()`, `spatial()`, `animal()`, and `relmat()` separately before picking a first route. |
-| 384 | Poisson q1 algebra gate | Planned: first smoke candidate is one non-zero-inflated Poisson `mu` structured intercept. |
-| 385 | NB2 q1 practical gate | Planned: first practical count candidate is one NB2 `mu` structured intercept with fixed-effect `sigma`. |
-| 386 | Zero-inflation gate | Planned: keep `zi` fixed-effect-only until use cases, diagnostics, and prediction semantics justify random effects. |
-| 387 | Hurdle gate | Planned: keep `hu` fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
-| 388 | Count slope gate | Planned: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
-| 389 | Non-Gaussian scale gate | Planned: count `sigma`, beta/BB scale, and continuous scale structured effects need separate scale-specific contracts. |
-| 390 | Shape and ordinal gate | Planned: Student-t `nu`, skewness, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
-| 391 | Known covariance boundary | Planned: keep `meta_V(V = V)` sampling covariance separate from latent `relmat()`-style relatedness. |
-| 392 | Extractor contract | Planned: non-Gaussian structured first slices must define `sdpars`, `ranef()`, profile-target, and diagnostic names before fitting. |
-| 393 | Diagnostic contract | Planned: require convergence, Hessian, boundary, replication, SD-ratio, and family-specific checks. |
-| 394 | Simulation contract | Planned: require ADEMP conditions, ordinary comparator, recovery estimands, and failure-ledger rows. |
-| 395 | Interval contract | Planned: direct SD intervals may be first; derived correlations and non-direct summaries must show unavailable status. |
-| 396 | User-route fallback | Planned: every non-Gaussian structured request should point to fixed-effect or ordinary random-effect alternatives. |
-| 397 | Error-message gate | Planned: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter non-Gaussian structural syntax should fail early and helpfully. |
-| 398 | Formula grammar gate | Planned: do not open non-Gaussian structured grammar until fitted scope and rejected neighbours are documented. |
-| 399 | Documentation gate | Planned: implementation-map, model-map, family docs, NEWS, and check-log must move with the first fitted route. |
-| 400 | Issue-template gate | Planned: create one issue per family-layer-component combination instead of broad non-Gaussian parity. |
-| 401 | Poisson first-issue outline | Planned: issue should name one layer, one q1 `mu` intercept, simulations, diagnostics, docs, and malformed inputs. |
-| 402 | NB2 first-issue outline | Planned: issue should add overdispersion conditions and ordinary NB2 comparator evidence. |
-| 403 | `zi`/`hu` future issue outline | Planned: issue should justify why a probability-component random effect is useful before fitting. |
-| 404 | Phase 18 admission note | Planned: non-Gaussian structured routes remain outside broad simulation until one narrow route passes evidence gates. |
-| 405 | Non-Gaussian planning closeout | Planned: stop with a map and issue-ready gates, not with untested likelihood code. |
+| 381 | Non-Gaussian family inventory | Done locally as planning: ordinary count, zero-inflated count, hurdle count, bounded response, ordinal, robust continuous, and mixed-response candidates are separated in `docs/design/66-implementation-map-slices-356-405.md`. |
+| 382 | Non-Gaussian component inventory | Done locally as planning: `mu`, `sigma`, `zi`, `hu`, shape/`nu`, future `tau`, cutpoints, and residual coscale `rho12` remain separate gates before structured dependence expands. |
+| 383 | Non-Gaussian layer inventory | Done locally as planning: `phylo()`, `spatial()`, `animal()`, and `relmat()` are scored separately, with Poisson phylogenetic q1 kept apart from Gaussian spatial, animal, and `relmat()` evidence. |
+| 384 | Poisson q1 algebra gate | Done locally as planning: the first structured non-Gaussian simulation gate is one non-zero-inflated Poisson `mu` phylogenetic intercept, with ADEMP details in `docs/design/70-phase-18-poisson-structured-q1-ademp.md`. |
+| 385 | NB2 q1 practical gate | Done locally as planning: NB2 q1 remains the first practical count target after Poisson, because overdispersion can compete with the structured SD. |
+| 386 | Zero-inflation gate | Done locally as planning: `zi` stays fixed-effect-only until a separate probability-component use case, diagnostic, and prediction contract exists. |
+| 387 | Hurdle gate | Done locally as planning: `hu` stays fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
+| 388 | Count slope gate | Done locally as planning: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
+| 389 | Non-Gaussian scale gate | Done locally as planning: count overdispersion, beta/BB precision, Gamma coefficient of variation, lognormal log-SD, and Student-t scale each need family-specific structured-scale contracts before structured random effects move outside `mu`. |
+| 390 | Shape and ordinal gate | Done locally as planning: Student-t `nu`, future skewness/second-shape slots, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
+| 391 | Known covariance boundary | Done locally as planning: `meta_V(V = V)` remains known sampling covariance and `relmat()` remains latent relatedness; future issues must not collapse those meanings. |
+| 392 | Extractor contract | Done locally as planning: first slices must pre-name `sdpars`, `ranef()`, `profile_targets()`, `summary()`, and diagnostic labels before fitting. |
+| 393 | Diagnostic contract | Done locally as planning: convergence, Hessian, replication, boundary, SD-ratio, family-specific, and malformed-neighbour checks are required beyond optimizer return code. |
+| 394 | Simulation contract | Done locally as planning: ADEMP, ordinary comparator, recovery estimands, MCSE, failure ledger, and artifact manifest are required before Phase 18 admission. |
+| 395 | Interval contract | Done locally as planning: direct structured SD intervals may move first, while derived correlations and non-direct nonlinear summaries must show unavailable status until validated. |
+| 396 | User-route fallback | Done locally as planning: unsupported requests should point to fixed-effect, ordinary random-effect, or Gaussian structured alternatives where those answer a safer nearby question. |
+| 397 | Error-message gate | Done locally as planning: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter structured requests must fail early with family, component, layer, and nearest route named. |
+| 398 | Formula grammar gate | Done locally as planning: non-Gaussian structured grammar remains closed unless fitted scope and rejected neighbours are documented together. |
+| 399 | Documentation gate | Done locally as planning: implementation-map, model-map, family docs, NEWS, ROADMAP, check-log, and after-task reports must move with any fitted-status change. |
+| 400 | Issue-template gate | Done locally as planning: future implementation issues must name one family, component, layer, q, and comparator rather than asking for broad non-Gaussian parity. |
+| 401 | Poisson first-issue outline | Done locally as planning: the next code issue should be one non-zero-inflated Poisson `mu` q1 phylogenetic intercept with simulations, diagnostics, docs, and malformed neighbours. |
+| 402 | NB2 first-issue outline | Done locally as planning: NB2 q1 needs fixed-effect `sigma`, overdispersion conditions, and ordinary NB2 comparator evidence before structured count claims expand. |
+| 403 | `zi`/`hu` future issue outline | Done locally as planning: probability-component random effects need a biological use case, prediction semantics, diagnostics, and recovery evidence before fitting. |
+| 404 | Phase 18 admission note | Done locally as planning: non-Gaussian structured routes remain outside broad simulation until one narrow route passes recovery, diagnostics, intervals, and docs. |
+| 405 | Non-Gaussian planning closeout | Done locally as planning: the closeout stops with a map, issue-ready gates, and validation evidence rather than untested likelihood code. |
+| 406 | Route-specific issue ledger | Done locally as planning: `docs/design/71-nongaussian-structured-issue-ledger.md` records the route key and review fields for future implementation issues. |
+| 407 | Poisson q1 implementation issue draft | Done locally as planning: the issue draft names one Poisson `mu` q1 phylogenetic route, extractor evidence, diagnostics, docs, and excluded neighbours. |
+| 408 | Poisson q1 smoke-runner issue draft | Done locally as planning: the issue draft names the DGP, runner files, artifact schema, and initial smoke grid. |
+| 409 | Poisson q1 malformed-neighbour issue draft | Done locally as planning: the issue draft lists unsupported slopes, q2/q4, `zi`, `hu`, NB2, spatial, animal, `relmat()`, scale, shape, ordinal, bounded-response, and cross-parameter requests. |
+| 410 | Poisson q1 documentation issue draft | Done locally as planning: the issue draft names the pages that must move only after implementation and validation evidence exists. |
+| 411 | NB2 q1 aims skeleton | Done locally as planning: NB2 q1 starts from overdispersion-versus-structured-SD recovery, not syntax parity. |
+| 412 | NB2 q1 DGP skeleton | Done locally as planning: the future DGP includes fixed-effect `sigma`, phylogenetic `mu` SD, mean-count levels, overdispersion levels, and tree conditioning. |
+| 413 | NB2 q1 estimands and comparator | Done locally as planning: fixed `mu`, fixed `sigma`, structured SD, direct interval target, and ordinary NB2 grouped comparator are named. |
+| 414 | NB2 q1 performance measures | Done locally as planning: bias, RMSE, coverage, direct SD profile status, convergence, Hessian, boundary, warning/error, runtime, and MCSE reporting are required. |
+| 415 | `zi`/`hu` probability-component contract | Done locally as planning: structured probability-component effects need use cases, prediction semantics, diagnostics, and recovery before syntax. |
+| 416 | Non-Gaussian scale public-name contract | Done locally as planning: structured scale effects need family-specific interpretation and separation from latent structured SD. |
+| 417 | Shape and ordinal public-name contract | Done locally as planning: shape and ordinal random effects need comparator and boundary evidence before mixed-model syntax. |
+| 418 | Known covariance versus latent relatedness issue contract | Done locally as planning: issue titles, formulas, diagnostics, and examples must keep known sampling covariance separate from latent relatedness. |
+| 419 | Structured count q1 extractor-name registry | Done locally as planning: `sdpars$mu`, route-specific `ranef()`, direct `log_sd_*`, and absent q1 `corpairs()` rows are reserved before code. |
+| 420 | Structured count q1 diagnostic-name registry | Done locally as planning: replication, SD-ratio/boundary, Hessian, fixed-gradient, family warning, and unsupported-neighbour rows are reserved before code. |
+| 421 | Poisson q1 direct profile-target contract | Done locally as planning: the runner contract requires a direct `log_sd_phylo` profile-target row for ordinary Poisson q1 phylogenetic `mu`. |
+| 422 | Poisson q1 extractor contract | Done locally as planning: `sdpars$mu`, `ranef("phylo_mu")`, fixed `mu` coefficients, and absent q1 `corpairs()` rows are required checks. |
+| 423 | Poisson q1 artifact manifest schema | Done locally as planning: surface, cell, replicate, seed, artifact, path, existence, row count, worker, and session fields are required. |
+| 424 | Poisson q1 warning/error ledger schema | Done locally as planning: simulate, fit, extract, diagnose, profile, and write stages must report status, messages, convergence, Hessian, and elapsed time. |
+| 425 | Poisson q1 smoke-grid gate | Done locally as planning: the first local grid varies species count, observations per species, true phylogenetic SD, mean count, tree conditioning, and 20 smoke replicates per cell. |
+| 426 | Poisson q1 formal-grid admission gate | Done locally as planning: formal recovery or coverage claims require MCSEs, diagnostics, failure ledgers, interval-status rows, and at least 500 replicates per cell. |
+| 427 | Poisson q1 ordinary-comparator contract | Done locally as planning: ordinary grouped Poisson remains a diagnostic contrast, not a phylogenetic-signal estimator. |
+| 428 | Count tutorial stale-boundary correction | Done locally as documentation: count docs should say ordinary Poisson q1 phylogenetic `mu` is fitted while NB2, `zi`, `hu`, slope, q2/q4, spatial, animal, and `relmat()` routes remain planned. |
+| 429 | Public-map status guard | Done locally as planning: implementation-map and model-map wording must keep fitted Poisson q1 phylogeny separate from broad count structured parity. |
+| 430 | Likelihood-doc status guard | Done locally as planning: likelihood docs should tie the Poisson q1 route to the log-mean likelihood, direct target, and excluded neighbours. |
+| 431 | Poisson q1 unsupported-syntax error table | Done locally as planning: unsupported slope, q2/q4, `zi`, NB2, spatial, animal, `relmat()`, scale, shape, ordinal, bounded, and mixed-response requests have expected guidance. |
+| 432 | Poisson q1 malformed syntax test plan | Done locally as planning: malformed neighbours should fail before TMB fitting with family, component, layer, and nearest route named. |
+| 433 | Poisson q1 extractor-name test plan | Done locally as planning: tests should assert exact `sdpars`, `ranef()`, profile-target, and absent-correlation rows. |
+| 434 | Poisson q1 diagnostic-row test plan | Done locally as planning: tests should assert replication, SD-ratio or boundary, Hessian, fixed-gradient, and family-warning diagnostics. |
+| 435 | Poisson q1 simulation-artifact test plan | Done locally as planning: tests should validate aggregate, replicate, manifest, failure-ledger, diagnostic, and profile-target artifacts with row counts. |
+| 436 | Poisson q1 source-map sync | Done locally: the implemented source map now points the Poisson mean row to the ADEMP and runner-contract documents. |
+| 437 | Poisson q1 validation-debt row sync | Done locally: the `poisson_phylo_q1_mu` debt row now names the runner contract as the next gate. |
+| 438 | Structured non-Gaussian validation-debt sync | Done locally: the broader structured non-Gaussian row points to the ADEMP sheet and runner contract before recovery work. |
+| 439 | Phase 18 count-lane sync | Done locally: the count scenario lane now separates ordinary Poisson/NB2 random-effect ADEMP work from the Poisson phylogenetic q1 ADEMP and runner contract. |
+| 440 | Phase 18 phylogenetic-lane sync | Done locally: the phylogenetic scenario lane keeps the Poisson q1 lane separate from Gaussian phylogenetic grids until the runner contract is implemented. |
+| 441 | Pre-simulation Poisson q1 row sync | Done locally: the readiness matrix Poisson q1 row now includes the manifest, warning/error, smoke-grid, and artifact-test contract. |
+| 442 | Pre-simulation structured non-Gaussian sync | Done locally: the readiness matrix structured row now points to both Poisson q1 design documents. |
+| 443 | Family-registry evidence sync | Done locally: the Poisson family evidence state now includes the runner contract beside tests and profile-target checks. |
+| 444 | NEWS and ROADMAP evidence sync | Done locally: release and roadmap ledgers record the evidence-ledger synchronization without claiming new fitted support. |
+| 445 | Check-log validation sync | Done locally: validation commands include pkgdown, stale-support scans, and source-ledger scans for the evidence sync. |
+| 446 | After-task evidence sync | Done locally: the after-task report records the source-map, readiness, validation-debt, Phase 18, and family-registry updates. |
+| 447 | Fitted-versus-planned guard | Done locally: updated ledgers still keep NB2, zero-inflated, hurdle, spatial, animal, and `relmat()` count structure planned. |
+| 448 | Simulation-readiness guard | Done locally: Poisson q1 phylogeny remains smoke/runner-contract level, not formal operating-characteristic evidence. |
+| 449 | Source-ledger stale-scan gate | Done locally: scans check for false broad structured count support and stale all-phylogeny-count wording. |
+| 450 | Evidence-sync closeout | Done locally: source ledgers now agree that implementation, runner evidence, and broad simulation admission are separate gates. |
+| 451 | Poisson phylogenetic q1 DGP | Done locally: `inst/sim/dgp/sim_dgp_poisson_phylo_q1.R` generates seeded ordinary Poisson q1 phylogenetic `mu` data with balanced or mildly uneven ultrametric trees. |
+| 452 | Poisson q1 condition helper | Done locally: the condition helper crosses species count, observations per species, true `sd_phylo`, mean count, slope, and tree shape. |
+| 453 | Poisson q1 fitted summariser | Done locally: `inst/sim/fit/sim_summarise_poisson_phylo_q1.R` records fixed `mu`, phylogenetic SD, standard errors, convergence, Hessian, profile-target, and diagnostic status. |
+| 454 | Poisson q1 smoke runner | Done locally: `inst/sim/run/sim_run_poisson_phylo_q1_smoke.R` wires the DGP, `drmTMB()` fit, summariser, registry, and replicate runner. |
+| 455 | Poisson q1 summary helper | Done locally: `inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R` returns aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, and direct profile-target tables. |
+| 456 | Poisson q1 focused DGP test | Done locally: tests assert seeded reproducibility, tree metadata, truth rows, and non-negative count output. |
+| 457 | Poisson q1 focused runner test | Done locally: tests assert output schemas, profile-target status, manifest rows, finite estimates, and saved RDS paths. |
+| 458 | Poisson q1 malformed helper tests | Done locally: tests reject one-species trees, negative SDs, bad tree-shape labels, and malformed condition rows. |
+| 459 | Poisson q1 neighboring regression tests | Done locally: new tests pass alongside Poisson mean, ordinary Poisson `mu` random-effect, and non-Gaussian structured-boundary tests. |
+| 460 | Poisson q1 simulation README sync | Done locally: `inst/sim/README.md` lists the new DGP, summariser, runner, and summary helper. |
+| 461 | Poisson q1 source-map implementation sync | Done locally: source-map and family-registry rows point to the new runner and focused test. |
+| 462 | Poisson q1 readiness sync | Done locally: readiness and Phase 18 programme rows mark the smoke runner as available while keeping formal recovery grids future. |
+| 463 | Poisson q1 design-doc sync | Done locally: ADEMP and runner-contract docs distinguish implemented smoke files from still-future grid writers and formal coverage. |
+| 464 | Poisson q1 check-log and after-task | Done locally: validation commands and role-perspective closeout are recorded. |
+| 465 | Poisson q1 smoke-runner closeout | Done locally: the branch has runnable smoke infrastructure but no broad non-Gaussian structured parity claim. |
+| 466 | Poisson q1 grid writer | Done locally: `inst/sim/run/sim_write_poisson_phylo_q1_grid.R` writes repeatable CSV artifacts beside resumable replicate RDS files. |
+| 467 | Poisson q1 grid paths | Done locally: aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, and profile-target CSV paths are named with a stable prefix. |
+| 468 | Poisson q1 grid overwrite guard | Done locally: existing artifact paths are rejected unless `overwrite = TRUE`. |
+| 469 | Poisson q1 grid manifest | Done locally: `phase18_grid_artifact_manifest()` records existence and row counts for all Poisson q1 grid CSVs. |
+| 470 | Poisson q1 grid writer tests | Done locally: focused tests assert CSV row counts, manifest existence, requested-versus-actual worker counts, and overwrite errors. |
+| 471 | Poisson q1 grid validation tests | Done locally: focused tests reject empty output paths and invalid `overwrite`. |
+| 472 | Poisson q1 README grid sync | Done locally: `inst/sim/README.md` lists the grid writer and artifact set. |
+| 473 | Poisson q1 source-map grid sync | Done locally: the source map includes the grid writer in the Poisson mean implementation row. |
+| 474 | Poisson q1 readiness grid sync | Done locally: readiness and Phase 18 programme rows now name repeatable CSV artifacts while keeping formal grids future. |
+| 475 | Poisson q1 design grid sync | Done locally: ADEMP and runner-contract docs separate implemented CSV smoke artifacts from formal recovery grids. |
+| 476 | Poisson q1 NEWS and roadmap grid sync | Done locally: release and roadmap ledgers record the grid writer without changing fitted support. |
+| 477 | Poisson q1 grid check-log | Done locally: validation commands and results are recorded for the grid writer. |
+| 478 | Poisson q1 grid after-task | Done locally: after-task report records artifact shape, limits, and role-perspective review. |
+| 479 | Poisson q1 grid stale-scan gate | Done locally: false-support scans still return no broad NB2, spatial, animal, `relmat()`, `zi`, `hu`, or structured-slope claims. |
+| 480 | Poisson q1 grid closeout | Done locally: repeatable smoke artifacts exist; formal recovery and coverage grids remain future work. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1727,7 +1802,13 @@ as the whole comprehensive simulation programme.
 | 355 | Documentation | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue are required before handoff. |
 | 356-370 | Structural dependence | Spatial q4 fitted parity | Done locally: constant coordinate-spatial q4 location-scale covariance fits for all-four labelled Gaussian endpoints, with extractors, `corpairs()`, diagnostics, profile-target status, and boundary tests. |
 | 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |
-| 381-405 | Planning | Non-Gaussian structured-dependence gates | Planned only: Poisson/NB2 q1 `mu` structured intercepts are scoped as candidate first slices, while `zi`, `hu`, scale, shape, ordinal, bounded, and mixed-response structural layers stay design-first. |
+| 381-388 | Planning | Non-Gaussian structured-dependence front gate | Done locally as planning: family, component, and layer inventories now narrow the first route to Poisson phylogenetic q1 `mu`, with NB2, `zi`, `hu`, and structured slopes held behind explicit gates. |
+| 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Done locally as planning: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, error-message gates, and issue-template fields now close as design-first gates. |
+| 406-420 | Planning | Route-specific implementation issue ledger | Done locally as planning: Poisson implementation, Poisson smoke-runner, malformed-neighbour, documentation, NB2 skeleton, component-boundary, extractor-name, and diagnostic-name issue drafts are recorded without opening code. |
+| 421-435 | Planning | Poisson phylogenetic q1 runner contract | Done locally as planning: direct-target, extractor, manifest, warning/error, smoke-grid, formal-grid, comparator, documentation-sync, unsupported-syntax, and test-plan contracts are recorded before broader simulation claims. |
+| 436-450 | Evidence sync | Poisson phylogenetic q1 source-ledger synchronization | Done locally: source map, validation debt, Phase 18 programme, readiness matrix, family registry, NEWS, check-log, and after-task notes point to the runner contract while keeping broad simulation closed. |
+| 451-465 | Simulation smoke | Poisson phylogenetic q1 smoke runner | Done locally: DGP, fit summariser, runner, summary helper, focused tests, README, source-map, readiness, design docs, check-log, and after-task notes create opt-in smoke infrastructure without formal recovery claims. |
+| 466-480 | Simulation artifacts | Poisson phylogenetic q1 grid writer | Done locally: repeatable CSV artifact writer, row-count manifest, focused grid-writer tests, README, source-map, readiness, design docs, check-log, and after-task notes create smoke artifacts without formal recovery claims. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |

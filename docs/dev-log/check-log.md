@@ -2,6 +2,318 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - Poisson Phylogenetic q1 Grid Writer Slices 466-480
+
+Goal: add repeatable CSV artifacts for the fitted ordinary Poisson q=1
+phylogenetic `mu` smoke surface without claiming formal recovery or broader
+structured non-Gaussian support.
+
+Roles: Ada recovered the interrupted slice and kept the change scoped to the
+existing Poisson q1 smoke route. Curie checked the writer contract and focused
+tests. Fisher checked that Wald and profile-target outputs remain smoke
+artifacts rather than operating-characteristic evidence. Boole checked the
+`phylo(1 | species, tree = tree)` route and `log_sd_phylo` target names. Grace
+checked formatting and validation commands. Rose checked consistency across
+ROADMAP, NEWS, source-map, readiness, design docs, and after-task reporting.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_poisson_phylo_q1_grid.R`.
+- Extended `tests/testthat/test-phase18-poisson-phylo-q1.R` with grid-writer
+  artifact, row-count, parallel-request, overwrite, and input-validation tests.
+- Updated `inst/sim/README.md`, source-map, validation-debt, Phase 18
+  programme, readiness matrix, ADEMP sheet, runner contract, ROADMAP, NEWS,
+  and after-task report.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md inst/sim/README.md inst/sim/run/sim_write_poisson_phylo_q1_grid.R tests/testthat/test-phase18-poisson-phylo-q1.R vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-24-poisson-phylo-q1-grid-writer-slices-466-480.md
+Rscript -e "devtools::test(filter = 'phase18-poisson-phylo-q1')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n "466-480|Poisson phylogenetic q1 grid writer|sim_write_poisson_phylo_q1_grid|poisson-phylo-q1" pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' pkgdown-site -g '*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' pkgdown-site -g '*.html'
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::test(filter = 'phase18-poisson-phylo-q1')` passed with 59
+  expectations.
+- `devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')`
+  passed with 189 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated ROADMAP, source-map,
+  and NEWS pages.
+- The narrowed false-support scan returned no hits.
+- The Poisson phylogeny broad-claim scan returned no hits.
+- The rendered-page scan found the 466-480 roadmap row and
+  `sim_write_poisson_phylo_q1_grid.R` source-map text.
+- The generated-site stale-support and broad-claim scans returned no hits.
+- `git diff --check` was clean.
+
+## 2026-05-23 - Poisson Phylogenetic q1 Smoke Runner Slices 451-465
+
+Goal: implement the first opt-in Phase 18 smoke surface for the fitted ordinary
+Poisson q=1 phylogenetic `mu` route, without broadening non-Gaussian structured
+support.
+
+Roles: Ada kept the implementation to the already fitted Poisson q1 route.
+Curie checked the DGP, condition helper, runner, and focused tests. Fisher
+checked that aggregate and interval outputs remain smoke evidence, not formal
+operating characteristics. Boole checked the formula route and extractor names.
+Grace checked validation commands. Rose checked that the documentation did not
+imply NB2, spatial, animal, `relmat()`, zero-inflated, hurdle, slope, q2/q4,
+scale, shape, ordinal, bounded-response, or mixed-response support. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added the Poisson phylogenetic q1 DGP, fit summariser, smoke runner, and
+  summary helper under `inst/sim/`.
+- Added `tests/testthat/test-phase18-poisson-phylo-q1.R`.
+- Updated `inst/sim/README.md`, source-map, family registry, validation-debt,
+  Phase 18 programme, readiness matrix, ADEMP sheet, runner contract, ROADMAP,
+  NEWS, and after-task report.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md inst/sim/README.md inst/sim/dgp/sim_dgp_poisson_phylo_q1.R inst/sim/fit/sim_summarise_poisson_phylo_q1.R inst/sim/run/sim_run_poisson_phylo_q1_smoke.R inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R tests/testthat/test-phase18-poisson-phylo-q1.R vignettes/source-map.Rmd docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-poisson-phylo-q1-smoke-runner-slices-451-465.md
+Rscript -e "devtools::test(filter = 'phase18-poisson-phylo-q1')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `devtools::test(filter = 'phase18-poisson-phylo-q1')` passed with 37
+  expectations.
+- `devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')`
+  passed with 189 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- `git diff --check` was clean.
+
+## 2026-05-23 - Poisson Phylogenetic q1 Evidence Sync Slices 436-450
+
+Goal: synchronize source and evidence ledgers after the Poisson phylogenetic q1
+runner contract, without opening new likelihood or simulation-runner code.
+
+Roles: Ada checked ledger consistency. Jason checked the source-map route.
+Fisher and Curie checked simulation-readiness wording. Boole checked that the
+Poisson q1 syntax stayed narrow. Pat checked user-facing status boundaries.
+Grace checked validation commands. Rose checked that evidence-ledger sync did
+not become a new fitted-support claim. These were role perspectives, not
+spawned agents.
+
+Changes:
+
+- Updated `vignettes/source-map.Rmd`.
+- Updated `docs/design/34-validation-debt-register.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md`.
+- Updated `docs/design/46-pre-simulation-readiness-matrix.md`.
+- Updated `docs/design/02-family-registry.md`.
+- Updated ROADMAP, NEWS, and the after-task report for slices 436-450.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/source-map.Rmd docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-poisson-phylo-q1-evidence-sync-slices-436-450.md
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|broad Phase 18 operating-characteristic evidence|admitted for broad|ready for broad|formal recovery claim|formal coverage claim)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- The tighter Poisson phylogeny broad-claim scan returned no hits. A broader
+  exploratory scan found only intended boundary sentences such as "not broad"
+  and "before any broad grid."
+- `git diff --check` was clean.
+
+## 2026-05-23 - Poisson Phylogenetic q1 Runner Contract Slices 421-435
+
+Goal: turn the fitted ordinary Poisson q=1 phylogenetic `mu` route into a
+runner and test contract before broader simulation or documentation claims.
+
+Roles: Ada kept the chunk as planning and documentation. Boole checked that the
+route remains one family, one component, one layer, and q=1. Fisher and Curie
+checked simulation, MCSE, artifact, and failure-ledger contracts. Pat checked
+the count tutorial boundary. Grace checked validation commands. Rose checked
+that the contract does not imply fitted NB2, `zi`, `hu`, spatial, animal, or
+`relmat()` count support. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/72-poisson-phylo-q1-runner-contract.md`.
+- Recorded required `log_sd_phylo`, `sdpars$mu`, `ranef("phylo_mu")`, and q1
+  absent-`corpairs()` checks.
+- Defined artifact manifest and warning/error ledger schemas.
+- Defined smoke-grid and formal-grid admission gates.
+- Added unsupported-syntax guidance and a focused malformed-input, extractor,
+  diagnostic, and artifact test plan.
+- Updated the count tutorial, likelihood notes, ADEMP sheet, implementation
+  map, ROADMAP, NEWS, and after-task report.
+- Cleaned stale validation-status wording in the two previous check-log
+  entries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/03-likelihoods.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-poisson-phylo-q1-runner-contract-slices-421-435.md vignettes/count-nbinom2.Rmd vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+rg -n 'phylo\(\), spatial\(\), animal\(\), or relmat\(\) count models|all .*phylo.*count.*planned|all `phylo\(\)` count' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- The stale count-phylogeny boundary scan returned no hits after the runner
+  contract wording was tightened.
+- `git diff --check` was clean.
+
+## 2026-05-23 - Non-Gaussian Structured Issue Ledger Slices 406-420
+
+Goal: turn the stretch queue after the remaining planning gates into
+route-specific implementation issue drafts and an NB2 q1 ADEMP skeleton, without
+opening code.
+
+Roles: Ada kept the chunk separate from implementation. Boole checked that issue
+drafts name one route at a time. Fisher and Curie checked ADEMP, MCSE, artifact,
+and recovery language. Pat checked the documentation-sync issue. Grace checked
+validation commands. Rose checked that the issue drafts did not imply fitted
+NB2, `zi`, `hu`, spatial, animal, or `relmat()` count support. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/71-nongaussian-structured-issue-ledger.md`.
+- Recorded the route key and evidence fields for future implementation issues.
+- Drafted issue bodies for Poisson q1 implementation, Poisson q1 smoke runner,
+  malformed-neighbour tests, and user documentation sync.
+- Added an NB2 q1 ADEMP skeleton covering aims, DGP, estimands, comparator, and
+  performance measures.
+- Added contracts for `zi`/`hu`, non-Gaussian scale, shape/ordinal, known
+  covariance versus latent relatedness, structured count q1 extractor names, and
+  structured count q1 diagnostic names.
+- Updated ROADMAP, NEWS, and the implementation-map current-lane table.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/71-nongaussian-structured-issue-ledger.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-issue-ledger-slices-406-420.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- `git diff --check` was clean.
+
+## 2026-05-23 - Non-Gaussian Structured Remaining Gates Slices 389-405
+
+Goal: close the remaining non-Gaussian structured-dependence planning rows after
+the Poisson q1 ADEMP front gate, without adding likelihood, TMB, or
+formula-grammar implementation.
+
+Roles: Ada coordinated the overnight slice and PR scope. Boole checked grammar
+and issue-template boundaries. Fisher and Curie checked simulation, interval,
+and ADEMP language. Pat checked user-route fallbacks. Grace checked validation
+commands. Rose checked that scale, shape, ordinal, known-covariance, and
+probability-component rows stayed planning-only. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Marked roadmap rows 389-405 as completed planning for remaining
+  non-Gaussian structured scale, shape, ordinal, known-covariance, extractor,
+  diagnostic, simulation, interval, user-fallback, error-message, grammar,
+  documentation, issue-template, Poisson, NB2, `zi`/`hu`, and Phase 18
+  admission gates.
+- Expanded `docs/design/66-implementation-map-slices-356-405.md` with a
+  row-by-row 389-405 planning table and reusable implementation issue fields.
+- Added implementation-map fallback rows for non-Gaussian structured scale or
+  shape effects, known covariance versus latent relatedness, and unsupported
+  structured count syntax.
+- Updated NEWS and added the after-task report for the 389-405 closeout.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/66-implementation-map-slices-356-405.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-remaining-gates-slices-389-405.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- `git diff --check` was clean.
+
+## 2026-05-23 - Non-Gaussian Structured q1 Planning Slices 1-10
+
+Goal: merge and sync the green `meta_known_V()` deprecation PR, then close the
+first ten items of the next planning block by turning the non-Gaussian
+structured-dependence front gate into concrete roadmap, ADEMP, readiness, and
+user-route evidence.
+
+Roles: Ada coordinated branch state, issue state, and the slice boundary.
+Boole checked formula and component vocabulary. Fisher and Curie shaped the
+ADEMP and smoke-runner scaffold. Pat checked user fallbacks in the
+implementation map. Grace checked documentation validation. Rose checked that
+Poisson q1 did not become a broad structured non-Gaussian claim. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Merged PR #315 and branched from the updated `origin/main` at `1877b825`.
+- Marked roadmap rows 381-388 as completed planning for the family, component,
+  layer, Poisson q1, NB2 q1, `zi`, `hu`, and count-slope front gates.
+- Expanded `docs/design/66-implementation-map-slices-356-405.md` so slices
+  381-388 have explicit results and closed neighbouring boundaries.
+- Added `docs/design/70-phase-18-poisson-structured-q1-ademp.md` as the
+  Poisson phylogenetic q1 ADEMP sheet and smoke-runner scaffold.
+- Updated the Phase 18 programme, readiness matrix, validation-debt register,
+  NEWS, and implementation-map user-route table to point to the Poisson q1
+  ADEMP gate while keeping NB2, `zi`, `hu`, structured slopes, spatial, animal,
+  and `relmat()` count routes planned.
+
+Validation:
+
+```sh
+gh pr merge 315 --repo itchyshin/drmTMB --squash --delete-branch --subject "Deprecate meta_known_V and refresh status docs (#315)"
+git fetch origin
+git checkout -b codex/non-gaussian-q1-planning-1-10 origin/main
+air format NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/66-implementation-map-slices-356-405.md docs/design/67-sdstar-p8-poisson-q1.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-q1-planning-slices-1-10.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Poisson q1.*broad|NB2 .*structured.*fitted|spatial\\(.*poisson|animal\\(.*poisson|relmat\\(.*poisson|structured count slopes.*fitted|structured `zi` random effects|structured `hu` random effects" README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully.
+- `pkgdown::build_site()` completed successfully.
+- The stale-claim scan returned no false broad-support hits.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Deprecate meta_known_V Formula Marker
 
 Goal: turn `meta_known_V()` from an accepted compatibility spelling into an

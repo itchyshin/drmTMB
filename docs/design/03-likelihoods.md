@@ -999,7 +999,9 @@ sparse precision `Q_phylo`, the latent vector `u_phylo`, and the direct SD targe
 `log_sd_phylo`. This route is implemented only for ordinary non-zero-inflated
 Poisson with `phylo(1 | species, tree = tree)`. It is not a labelled q=2/q=4
 count block, not a phylogenetic count slope, and not an NB2, spatial, animal, or
-`relmat()` structured count route.
+`relmat()` structured count route. The simulation-runner and artifact contract
+for promoting this route beyond smoke-level evidence is recorded in
+`docs/design/72-poisson-phylo-q1-runner-contract.md`.
 
 For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
