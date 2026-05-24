@@ -85,6 +85,10 @@ Current pilot files:
 - `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md` records
   the cancelled single-job formal dispatch, runtime estimate, and shard
   contract for the 500-replicate NB2 q1 formal grid.
+- `docs/design/79-supported-nongaussian-evidence-goal.md` records the
+  supported non-Gaussian evidence closeout goal, separating fixed-effect family
+  evidence, count mixed-model first slices, q=1 phylogenetic formal gates, and
+  blocked neighbouring routes.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with

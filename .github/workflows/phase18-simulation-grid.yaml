@@ -80,7 +80,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: phase18-simulation-grid-${{ github.ref }}-${{ inputs.task }}
+  group: phase18-simulation-grid-${{ github.ref }}-${{ inputs.task }}-${{ inputs.condition_shard }}-of-${{ inputs.condition_shards }}
   cancel-in-progress: false
 
 jobs:

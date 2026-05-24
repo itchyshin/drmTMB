@@ -99,6 +99,29 @@ test_that("Phase 18 Actions runner validates formal condition shards", {
   )
 })
 
+test_that("Phase 18 workflow concurrency is shard-aware", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(
+    text,
+    "inputs.condition_shard",
+    fixed = TRUE
+  )
+  expect_match(
+    text,
+    "inputs.condition_shards",
+    fixed = TRUE
+  )
+})
+
 test_that("Phase 18 Actions runner rejects nested parallel requests", {
   script <- phase18_actions_runner_script()
   out <- suppressWarnings(

@@ -43,6 +43,13 @@ performance measures, replicate count, MCSE target, and failure-ledger row.
 The first implementation wave should reuse existing smoke infrastructure before
 adding new result schemas.
 
+Slices 591-650 add the supported non-Gaussian evidence closeout in
+`docs/design/79-supported-nongaussian-evidence-goal.md`. That goal audits the
+current fixed-effect family suite and first count mixed-model lanes; it does
+not open the failure-ledger rows for mixed-response families, non-Gaussian
+scale or shape random effects, inflation/hurdle random effects, or broad
+structured non-Gaussian dependence.
+
 ## A - Aims
 
 Primary aim: quantify when fitted `drmTMB` surfaces recover scientifically

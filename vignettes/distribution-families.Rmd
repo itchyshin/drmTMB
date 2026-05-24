@@ -47,6 +47,11 @@ The source-level family map in `docs/design/02-family-registry.md` records the
 links, shape or coscale slots, random-effect allowance, and test evidence
 behind each row.
 
+The supported non-Gaussian evidence goal is intentionally narrower than
+"everything non-Gaussian." It closes the fixed-effect family evidence and the
+first count mixed-model slices listed here, while leaving blocked neighbours as
+future likelihood and simulation work.
+
 For non-Gaussian random effects, the current fitted path is deliberately
 narrow. Ordinary Poisson and NB2 `mu` models can fit unlabelled random
 intercepts and independent numeric random slopes, such as `(1 | site)` and

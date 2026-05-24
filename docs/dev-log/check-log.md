@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - Supported Non-Gaussian Evidence Goal Slices 576-650
+
+Goal: implement the supported non-Gaussian evidence goal as a bounded evidence
+closeout, not as broad non-Gaussian random-effect or structured-effect parity.
+
+Roles: Ada owned sequencing and branch hygiene. Grace checked the Actions
+concurrency contract and package checks. Curie checked the simulation-test
+surface and shard runner tests. Fisher checked the formal-promotion boundary.
+Rose checked the missing-cell audit and stale wording. Pat checked that
+reader-facing wording keeps fitted alternatives separate from blocked
+neighbours. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added shard-aware workflow concurrency for Phase 18 formal q1 tasks, using
+  `condition_shard` and `condition_shards` in the concurrency group.
+- Added a focused regression test that checks the workflow file still mentions
+  the shard inputs.
+- Added `docs/design/79-supported-nongaussian-evidence-goal.md` as the
+  goal-level non-Gaussian evidence ledger.
+- Added
+  `docs/dev-log/after-task/2026-05-24-supported-nongaussian-evidence-goal.md`.
+- Synced the Phase 18 simulation programme, readiness matrix, validation-debt
+  register, simulation README, source map, ROADMAP, and NEWS.
+- Kept mixed-response, inflation/hurdle random-effect, zero-one-inflation,
+  shape/skew random-effect, cross-parameter covariance, and broad structured
+  non-Gaussian routes planned or blocked.
+
+Validation planned for closeout:
+
+```sh
+Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-nbinom2-phylo-q1|phase18-poisson-phylo-q1', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'non-Gaussian.*(parity|all routes|all random effects|now supports broad|fully supports)|NB2.*q1.*formal recovery.*(passed|complete)|NB2.*q1.*coverage.*(passed|complete)|zi.*random effects.*(fitted|implemented)|hu.*random effects.*(fitted|implemented)|mixed-response.*(fitted|implemented)|structured non-Gaussian.*(broad|parity|all)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim tests -g '!*.html'
+git diff --check
+```
+
+Results:
+
+- Focused tests passed for `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, and `phase18-poisson-phylo-q1`.
+- The shard dry-run printed `n_rep=500`, `backend=multicore`, `cores=10`,
+  `profile_parameters=log_sd_phylo`, `condition_shard=16`, and
+  `condition_shards=16`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned boundary and historical guardrail wording, not
+  a current false claim that broad non-Gaussian parity, mixed-response
+  families, or inflation/hurdle random effects are fitted.
+- `git diff --check` was clean.
+- GitHub issue searches found no direct open "NB2 formal" issue to mutate; the
+  broader "non-Gaussian evidence" search returned unrelated large-data,
+  tutorial, comparator, random-slope, relatedness, and visualization issues.
+
 ## 2026-05-24 - NB2 q1 Sharded Formal Grid Slices 561-575
 
 Goal: merge the NB2 smoke/formal-admission PR, attempt the clean formal-grid

@@ -70,6 +70,12 @@ for shard in $(seq 1 16); do
 done
 ```
 
+The workflow concurrency group includes `condition_shard` and
+`condition_shards`. That is intentional: GitHub Actions keeps at most one
+pending run per concurrency group, so shard-level concurrency prevents a rapid
+16-run dispatch from replacing earlier pending shards. This does not change the
+statistical grid; it only makes the operational queue match the shard contract.
+
 ## Audit Rule
 
 Fisher should not interpret shard artifacts one at a time. Promotion can only
