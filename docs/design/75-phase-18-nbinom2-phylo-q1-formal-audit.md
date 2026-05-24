@@ -34,6 +34,31 @@ remains closed:
 The correct promotion-decision status after this audit is `hold_smoke_only`.
 The artifacts pass local QA, but the formal recovery replicate gate is not met.
 
+## Slices 561-575 Runtime Gate
+
+After PR #320 merged, the full single-job Actions run was dispatched from
+`main` as run `26371083871` with `task = "nbinom2_phylo_q1_formal"`,
+`n_reps = 500`, `backend = "multicore"`, `cores = 10`, and
+`profile_parameters = "log_sd_phylo"`. Grace cancelled that singleton before
+it spent the full six-hour job budget because the existing Slices 541-555
+manifests already showed that the run shape is too large for one Actions job.
+
+The sentinel manifest averaged 6.80 seconds per replicate fit, and the
+representative 5-replicate audit averaged 7.83 seconds. Even under an optimistic
+ten-effective-worker calculation, the 288 x 500 formal grid would take roughly
+27-31 hours before GitHub setup overhead. The next formal-compute route is
+therefore sharded manual dispatch, not another singleton run.
+
+The sharded runner contract is:
+
+- dispatch `condition_shard = 1, ..., condition_shards`;
+- keep `n_reps = 500`, `profile_parameters = "log_sd_phylo"`, and the grouped
+  comparator row in every shard;
+- treat each shard as partial evidence: shard formal specs record
+  `coverage_claim_allowed = FALSE` whenever `condition_shards > 1`;
+- promote only after all 288 formal condition cells have 500 replicates, read
+  back cleanly, and are audited together.
+
 ## Local Artifacts
 
 The artifact directories are ignored package results under `inst/sim/results/`:

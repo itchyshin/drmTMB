@@ -82,6 +82,9 @@ Current pilot files:
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.
+- `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md` records
+  the cancelled single-job formal dispatch, runtime estimate, and shard
+  contract for the 500-replicate NB2 q1 formal grid.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -297,7 +300,9 @@ Current pilot files:
   before formal recovery claims. Slices 541-555 wrote ignored local artifacts
   for a 288-cell one-replicate sentinel and a 24-cell x 5-replicate audit; both
   passed artifact QA but kept the promotion state at `hold_smoke_only` because
-  the 500-replicate formal gate remains unmet.
+  the 500-replicate formal gate remains unmet. Slices 561-575 add condition
+  sharding for the formal task; shard artifacts cannot allow coverage claims
+  by themselves.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
@@ -348,7 +353,9 @@ Current pilot files:
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
   the same time. The phylogenetic formal tasks are manual-only and are excluded
-  from `task = "all"` by the workflow matrix.
+  from `task = "all"` by the workflow matrix. Formal tasks also accept
+  one-based `condition_shard` and `condition_shards` inputs so the 288-cell
+  formal tables can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

@@ -2,6 +2,72 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - NB2 q1 Sharded Formal Grid Slices 561-575
+
+Goal: merge the NB2 smoke/formal-admission PR, attempt the clean formal-grid
+dispatch, and replace the infeasible singleton job with shard-safe Phase 18
+formal dispatch metadata.
+
+Roles: Ada owned sequencing and branch hygiene. Grace merged #320, dispatched
+and cancelled the singleton Actions run, and checked focused tests. Curie
+checked the Actions runner and shard tests. Fisher checked that shard artifacts
+cannot promote the NB2 q1 route alone. Rose checked docs and stale promotion
+wording. Pat checked that the reader-facing wording still says what evidence is
+missing. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Merged PR #320 after its R-CMD-check run passed on Ubuntu, macOS, and
+  Windows.
+- Dispatched Actions run `26371083871` from `main` for
+  `task = "nbinom2_phylo_q1_formal"`, `n_reps = 500`, `cores = 10`,
+  `backend = "multicore"`, and `profile_parameters = "log_sd_phylo"`.
+- Cancelled the singleton run after the existing local sentinel and replicate
+  audit manifests implied roughly 27-31 optimistic ten-worker hours, which is
+  beyond the workflow's 360-minute job cap.
+- Added `condition_shard` and `condition_shards` workflow inputs and runner
+  arguments for Poisson/NB2 phylogenetic q1 formal tasks.
+- Added stable formal-condition sharding and rejected shard inputs for
+  non-formal tasks.
+- Added shard metadata to Poisson and NB2 formal spec files.
+- Kept `coverage_claim_allowed = FALSE` for shard artifacts whenever
+  `condition_shards > 1`.
+- Added
+  `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md`.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_write_poisson_phylo_q1_grid.R','tests/testthat/test-phase18-nbinom2-phylo-q1.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --dry-run=true --n-reps=500 --cores=10 --backend=multicore --profile-parameters=log_sd_phylo --condition-shard=2 --condition-shards=16
+Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-nbinom2-phylo-q1|phase18-poisson-phylo-q1', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+gh run cancel 26371083871 --repo itchyshin/drmTMB
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2 formal" --limit 20 --json number,title,state,url,labels
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete)|NB2.*q1.*coverage.*(now|passed|complete)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|formal grid.*passed|500-replicate.*(passed|complete)' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+git diff --check
+```
+
+Results:
+
+- Parse smoke printed `parse ok`.
+- The Actions dry run printed `n_rep=500`, `backend=multicore`, `cores=10`,
+  `profile_parameters=log_sd_phylo`, `condition_shard=2`, and
+  `condition_shards=16`.
+- Focused tests passed for `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, and `phase18-poisson-phylo-q1`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- GitHub run `26371083871` shows the NB2 formal job as cancelled and the
+  unrelated matrix jobs as skipped.
+- Issue searches found no direct open issue that should be mutated for this
+  infrastructure slice.
+- The stale-promotion scan returned no current claim that NB2 q1 formal
+  recovery or coverage has passed.
+- `git diff --check` was clean.
+- The NB2 q1 route remains `hold_smoke_only`; no formal recovery or coverage
+  claim was added.
+
 ## 2026-05-24 - NB2 PR Split And Stabilization Slices 556-560
 
 Goal: split the post-Poisson work into clean PR lanes, keep the remaining

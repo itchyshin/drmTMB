@@ -152,6 +152,9 @@ phase18_write_nbinom2_phylo_q1_formal_grid_outputs <- function(
   profile_parameters = character(),
   profile_level = 0.70,
   profile_args = list(ystep = 0.50),
+  condition_shard = 1L,
+  condition_shards = 1L,
+  full_condition_count = nrow(conditions),
   cores = 1L,
   backend = "none"
 ) {
@@ -189,7 +192,10 @@ phase18_write_nbinom2_phylo_q1_formal_grid_outputs <- function(
     n_rep = n_rep,
     master_seed = master_seed,
     profile_parameters = profile_parameters,
-    profile_level = profile_level
+    profile_level = profile_level,
+    condition_shard = condition_shard,
+    condition_shards = condition_shards,
+    full_condition_count = full_condition_count
   )
   utils::write.csv(formal_spec, paths$formal_spec_csv, row.names = FALSE)
 
@@ -230,7 +236,10 @@ phase18_nbinom2_phylo_q1_formal_grid_spec <- function(
   n_rep,
   master_seed,
   profile_parameters = character(),
-  profile_level = 0.70
+  profile_level = 0.70,
+  condition_shard = 1L,
+  condition_shards = 1L,
+  full_condition_count = nrow(conditions)
 ) {
   if (!is.data.frame(conditions) || nrow(conditions) == 0L) {
     stop("`conditions` must be a non-empty data frame.", call. = FALSE)
@@ -249,6 +258,21 @@ phase18_nbinom2_phylo_q1_formal_grid_spec <- function(
   ) {
     stop("`profile_level` must be one number between 0 and 1.", call. = FALSE)
   }
+  assert_positive_whole_number(condition_shard, "condition_shard")
+  assert_positive_whole_number(condition_shards, "condition_shards")
+  assert_positive_whole_number(full_condition_count, "full_condition_count")
+  if (condition_shard > condition_shards) {
+    stop(
+      "`condition_shard` must be less than or equal to `condition_shards`.",
+      call. = FALSE
+    )
+  }
+  if (full_condition_count < nrow(conditions)) {
+    stop(
+      "`full_condition_count` must be at least `nrow(conditions)`.",
+      call. = FALSE
+    )
+  }
 
   out <- conditions
   out$n_rep <- n_rep
@@ -257,9 +281,14 @@ phase18_nbinom2_phylo_q1_formal_grid_spec <- function(
   out$formal_recovery_gate <- n_rep >= 500L
   out$profile_parameters <- paste(profile_parameters, collapse = ",")
   out$profile_level <- profile_level
+  out$condition_shard <- condition_shard
+  out$condition_shards <- condition_shards
+  out$full_condition_count <- full_condition_count
+  out$shard_condition_count <- nrow(conditions)
+  out$shard_recovery_gate <- n_rep >= 500L
   out$mcse_required <- TRUE
   out$overdispersion_confounding_explicit <- TRUE
-  out$coverage_claim_allowed <- n_rep >= 500L
+  out$coverage_claim_allowed <- n_rep >= 500L && condition_shards == 1L
   out
 }
 
