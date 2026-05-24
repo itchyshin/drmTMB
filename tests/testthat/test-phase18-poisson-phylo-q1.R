@@ -303,6 +303,7 @@ test_that("Phase 18 Poisson phylogenetic q1 grid writer creates artifacts", {
     conditions = conditions,
     n_rep = 1L,
     master_seed = 243L,
+    profile_parameters = "log_sd_phylo",
     cores = 10L
   )
 
@@ -318,6 +319,17 @@ test_that("Phase 18 Poisson phylogenetic q1 grid writer creates artifacts", {
   expect_equal(nrow(out$summary$wald_intervals), 3L)
   expect_equal(nrow(out$summary$wald_coverage), 2L)
   expect_equal(nrow(out$summary$profile_targets), 1L)
+  expect_equal(nrow(out$summary$profile_intervals), 1L)
+  expect_equal(nrow(out$summary$profile_coverage), 1L)
+  expect_equal(nrow(out$summary$interval_evidence), 4L)
+  expect_equal(nrow(out$summary$interval_diagnostics), 4L)
+  expect_true(all(
+    out$summary$profile_intervals$interval_status %in%
+      c(
+        "ok",
+        "failed"
+      )
+  ))
   expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 3L)
   expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 3L)
   expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 1L)
@@ -325,6 +337,10 @@ test_that("Phase 18 Poisson phylogenetic q1 grid writer creates artifacts", {
   expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 3L)
   expect_equal(nrow(utils::read.csv(out$paths$wald_coverage_csv)), 2L)
   expect_equal(nrow(utils::read.csv(out$paths$profile_targets_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$profile_intervals_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$profile_coverage_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$interval_evidence_csv)), 4L)
+  expect_equal(nrow(utils::read.csv(out$paths$interval_diagnostics_csv)), 4L)
   expect_error(
     phase18_write_poisson_phylo_q1_grid_outputs(
       output_dir = output_dir,
@@ -376,5 +392,126 @@ test_that("Phase 18 Poisson phylogenetic q1 grid writer validates inputs", {
       overwrite = NA
     ),
     "overwrite"
+  )
+})
+
+test_that("Phase 18 Poisson phylogenetic q1 formal wrapper and QA read artifacts", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_aggregate.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/fit/sim_summarise_poisson_phylo_q1.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_run_poisson_phylo_q1_smoke.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+  source(
+    system.file(
+      "sim/run/sim_write_poisson_phylo_q1_grid.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+
+  output_dir <- tempfile("phase18-poisson-phylo-q1-formal-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  conditions <- phase18_poisson_phylo_q1_conditions(
+    n_species = 8L,
+    n_per_species = 6L,
+    sd_phylo = 0.35,
+    mean_count = 3.0,
+    tree_shape = "balanced"
+  )
+
+  out <- phase18_write_poisson_phylo_q1_formal_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 244L
+  )
+  read_back <- phase18_read_poisson_phylo_q1_grid_outputs(
+    output_dir,
+    require_complete = TRUE
+  )
+  qa <- phase18_qa_poisson_phylo_q1_grid_outputs(
+    read_back$tables,
+    expected_n_rep = 1L
+  )
+  decision <- phase18_poisson_phylo_q1_promotion_decision(
+    qa,
+    formal_spec = out$formal_spec
+  )
+
+  expect_equal(out$surface, "poisson_phylo_q1_formal_grid")
+  expect_equal(nrow(out$formal_spec), 1L)
+  expect_false(out$formal_spec$formal_recovery_gate)
+  expect_true(file.exists(out$paths$formal_spec_csv))
+  expect_equal(read_back$surface, "poisson_phylo_q1_grid_read")
+  expect_true(all(qa$status %in% c("ok", "not_checked")))
+  expect_equal(qa$status[qa$check == "expected_replicates"], "ok")
+  expect_equal(decision$decision, "hold_smoke_only")
+})
+
+test_that("Phase 18 Poisson phylogenetic q1 formal Actions task plans", {
+  source(
+    system.file(
+      "sim/run/sim_run_actions_cell.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
+
+  expect_output(
+    phase18_actions_main(c(
+      "--task=poisson_phylo_q1_formal",
+      "--dry-run=true",
+      "--profile-parameters=log_sd_phylo"
+    )),
+    "poisson_phylo_q1_formal"
   )
 })

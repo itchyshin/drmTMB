@@ -258,6 +258,11 @@ Current pilot files:
   phylogenetic q=1 `mu` smoke artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, and
   direct `log_sd_phylo` profile-target CSVs beside per-replicate RDS results.
+  Optional profile requests add profile-interval, profile-coverage,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs. The same
+  file also provides the formal-grid wrapper, read-back QA, and promotion
+  decision helpers; formal recovery or coverage claims still require the
+  500-replicate gate and artifact review.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
   `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
@@ -297,10 +302,12 @@ Current pilot files:
   first-wave runner.
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
   long-run Phase 18 dispatch. It can run either the first-wave summary task or
-  the interval-heavy task, writes an RDS result beside the task artifact
-  tables, and caps requested replicate or bootstrap workers at 10 before
-  dispatch. The workflow never uses both replicate-layer multicore and
-  bootstrap-layer multicore at the same time.
+  the interval-heavy task, or the opt-in Poisson phylogenetic q=1 formal-grid
+  task. It writes an RDS result beside the task artifact tables and caps
+  requested replicate or bootstrap workers at 10 before dispatch. The workflow
+  never uses both replicate-layer multicore and bootstrap-layer multicore at
+  the same time. The Poisson formal task is manual-only and is excluded from
+  `task = "all"` by the workflow matrix.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -316,7 +323,8 @@ Current pilot files:
 - `run/sim_summary_poisson_phylo_q1_smoke.R` runs a tiny non-zero-inflated
   Poisson phylogenetic q=1 `mu` summary smoke grid and returns aggregate,
   replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
-  coverage, and direct profile-target status outputs.
+  coverage, direct profile-target status, optional direct profile interval,
+  interval-evidence, interval-diagnostics, and interval-failure outputs.
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient

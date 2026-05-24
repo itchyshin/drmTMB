@@ -3,7 +3,11 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   dry_run <- phase18_actions_bool(opts$dry_run, "dry-run")
   task <- phase18_actions_choice(
     opts$task,
-    c("first_wave_summary", "interval_heavy_summary"),
+    c(
+      "first_wave_summary",
+      "interval_heavy_summary",
+      "poisson_phylo_q1_formal"
+    ),
     "task"
   )
   output_dir <- opts$output_dir
@@ -68,6 +72,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend,
       render = render,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
       bootstrap_nsim = bootstrap_nsim,
       bootstrap_cores = bootstrap_cores,
       bootstrap_backend = bootstrap_backend
@@ -89,7 +95,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       require_complete = require_complete,
       notes = notes
     )
-  } else {
+  } else if (identical(task, "interval_heavy_summary")) {
     out <- phase18_run_interval_heavy_summary_smoke(
       output_dir = output_dir,
       n_rep = n_rep,
@@ -106,6 +112,17 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       bootstrap_backend = bootstrap_backend,
       notes = notes
     )
+  } else {
+    out <- phase18_write_poisson_phylo_q1_formal_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
+      cores = cores,
+      backend = backend
+    )
   }
   saveRDS(out, file.path(output_dir, "phase18-actions-result.rds"))
   phase18_actions_print_plan(
@@ -116,6 +133,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     cores = cores,
     backend = backend,
     render = render,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
     bootstrap_nsim = bootstrap_nsim,
     bootstrap_cores = bootstrap_cores,
     bootstrap_backend = bootstrap_backend
@@ -236,21 +255,30 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_first_wave_summary_smoke.R"
     ))
   }
+  if (identical(task, "interval_heavy_summary")) {
+    return(c(
+      "sim/dgp/sim_dgp_student_shape.R",
+      "sim/dgp/sim_dgp_biv_rho12.R",
+      "sim/fit/sim_summarise_student_shape.R",
+      "sim/fit/sim_summarise_biv_rho12.R",
+      "sim/run/sim_run_student_shape_smoke.R",
+      "sim/run/sim_run_biv_rho12_smoke.R",
+      "sim/run/sim_summary_student_shape_smoke.R",
+      "sim/run/sim_summary_biv_rho12_smoke.R",
+      "sim/run/sim_write_student_shape_grid.R",
+      "sim/run/sim_write_biv_rho12_grid.R",
+      "sim/run/sim_write_first_wave_artifact_status.R",
+      "sim/run/sim_write_first_wave_table_bundle.R",
+      "sim/run/sim_render_first_wave_summary_report.R",
+      "sim/run/sim_run_interval_heavy_summary_smoke.R"
+    ))
+  }
   c(
-    "sim/dgp/sim_dgp_student_shape.R",
-    "sim/dgp/sim_dgp_biv_rho12.R",
-    "sim/fit/sim_summarise_student_shape.R",
-    "sim/fit/sim_summarise_biv_rho12.R",
-    "sim/run/sim_run_student_shape_smoke.R",
-    "sim/run/sim_run_biv_rho12_smoke.R",
-    "sim/run/sim_summary_student_shape_smoke.R",
-    "sim/run/sim_summary_biv_rho12_smoke.R",
-    "sim/run/sim_write_student_shape_grid.R",
-    "sim/run/sim_write_biv_rho12_grid.R",
-    "sim/run/sim_write_first_wave_artifact_status.R",
-    "sim/run/sim_write_first_wave_table_bundle.R",
-    "sim/run/sim_render_first_wave_summary_report.R",
-    "sim/run/sim_run_interval_heavy_summary_smoke.R"
+    "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+    "sim/fit/sim_summarise_poisson_phylo_q1.R",
+    "sim/run/sim_run_poisson_phylo_q1_smoke.R",
+    "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+    "sim/run/sim_write_poisson_phylo_q1_grid.R"
   )
 }
 
@@ -367,6 +395,8 @@ phase18_actions_print_plan <- function(
   cores,
   backend,
   render,
+  profile_parameters,
+  profile_level,
   bootstrap_nsim,
   bootstrap_cores,
   bootstrap_backend
@@ -393,6 +423,12 @@ phase18_actions_print_plan <- function(
       "\n",
       "render=",
       render,
+      "\n",
+      "profile_parameters=",
+      paste(profile_parameters, collapse = ","),
+      "\n",
+      "profile_level=",
+      profile_level,
       "\n",
       "bootstrap_nsim=",
       bootstrap_nsim,

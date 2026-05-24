@@ -2,6 +2,73 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - Poisson Phylogenetic q1 Profile And Formal Admission Slices 481-495
+
+Goal: add opt-in direct profile-interval artifacts and a formal-grid admission
+wrapper for the fitted ordinary Poisson q=1 phylogenetic `mu` smoke surface,
+without claiming formal recovery or broader structured non-Gaussian support.
+
+Roles: Ada recovered the dirty follow-up after the crash and kept the slice to
+profile/formal-admission infrastructure. Curie checked the new artifact and QA
+contracts. Fisher checked that `hold_smoke_only` remains the default when the
+500-replicate formal gate is not met. Boole checked the `log_sd_phylo` alias
+and public `sd:mu:phylo(1 | species)` row mapping. Grace checked formatting,
+GitHub Actions dispatch, pkgdown, and validation commands. Rose checked
+ROADMAP, NEWS, source-map, readiness, validation-debt, ADEMP, runner contract,
+and stale broad-support wording. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added optional direct `log_sd_phylo` profile intervals to the Poisson q1 fit
+  summariser, smoke summary, and grid-writer artifact set.
+- Added formal-grid condition/spec helpers, read-back QA, promotion-decision
+  logic, and a manual `poisson_phylo_q1_formal` GitHub Actions task that is
+  excluded from `task = "all"`.
+- Extended focused Poisson q1 tests for profile artifacts, formal-grid QA, and
+  Actions dry-run planning.
+- Updated `inst/sim/README.md`, source-map, validation-debt, Phase 18
+  programme, readiness matrix, ADEMP sheet, runner contract, ROADMAP, NEWS,
+  and after-task report.
+
+Validation:
+
+```sh
+air format .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md inst/sim/README.md inst/sim/fit/sim_summarise_poisson_phylo_q1.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_run_poisson_phylo_q1_smoke.R inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R inst/sim/run/sim_write_poisson_phylo_q1_grid.R tests/testthat/test-phase18-poisson-phylo-q1.R vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-24-poisson-phylo-q1-profile-formal-slices-481-495.md
+Rscript -e "devtools::test(filter = 'phase18-poisson-phylo-q1')"
+Rscript -e "devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim -g '!*.html'
+rg -n '481|495|poisson_phylo_q1_formal|formal-grid|profile-interval|poisson-phylo-q1-formal' pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' pkgdown-site -g '*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|formal recovery claim|formal coverage claim|ready for broad|admitted for broad)' pkgdown-site -g '*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "poisson phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 Poisson" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::test(filter = 'phase18-poisson-phylo-q1')` passed with 77
+  expectations.
+- `devtools::test(filter = 'phase18-poisson-mu-random-effect|poisson-mean|nongaussian-structured-boundary')`
+  passed with 189 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed and wrote the updated ROADMAP, source-map,
+  and NEWS pages.
+- The source stale-support and broad-claim scans returned no hits.
+- The rendered-page scan found the 481 and 495 ROADMAP rows, the
+  `poisson_phylo_q1_formal` task, the formal-spec CSV, and NEWS/source-map
+  profile/formal wording.
+- The generated-site stale-support and broad-claim scans returned no hits.
+- The direct Poisson q1 issue search returned no open issues. The broader
+  Phase 18 Poisson search returned #128, which is about random-effect slope
+  capacity and did not need action for this profile/formal-admission slice.
+- `git diff --check` was clean.
+
 ## 2026-05-24 - Poisson Phylogenetic q1 Grid Writer Slices 466-480
 
 Goal: add repeatable CSV artifacts for the fitted ordinary Poisson q=1

@@ -11,6 +11,9 @@ phase18_summarise_poisson_phylo_q1_smoke <- function(
   result_dir = NULL,
   overwrite = FALSE,
   by = NULL,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
   cores = 1L,
   backend = "none"
 ) {
@@ -20,6 +23,9 @@ phase18_summarise_poisson_phylo_q1_smoke <- function(
     master_seed = master_seed,
     result_dir = result_dir,
     overwrite = overwrite,
+    profile_parameters = profile_parameters,
+    profile_level = profile_level,
+    profile_args = profile_args,
     cores = cores,
     backend = backend
   )
@@ -62,6 +68,33 @@ phase18_summarise_poisson_phylo_q1_smoke <- function(
     by = by
   )
   profile_targets <- phase18_poisson_phylo_q1_profile_targets(run$summary)
+  profile_status_rows <- run$summary[
+    run$summary$parameter_class == "phylo_sd",
+    ,
+    drop = FALSE
+  ]
+  profile_intervals <- phase18_optional_intervals_from_columns(
+    profile_status_rows,
+    prefix = "profile"
+  )
+  profile_requested <- profile_intervals[
+    profile_intervals$interval_status != "not_requested",
+    ,
+    drop = FALSE
+  ]
+  profile_coverage <- phase18_optional_interval_coverage(
+    profile_requested,
+    by = by
+  )
+  interval_evidence <- phase18_interval_evidence_table(
+    wald_intervals,
+    profile_intervals
+  )
+  interval_failures <- phase18_interval_failures(interval_evidence)
+  interval_diagnostics <- phase18_optional_interval_diagnostics(
+    interval_evidence,
+    by = unique(c(by, "interval_method"))
+  )
 
   list(
     surface = "poisson_phylo_q1",
@@ -72,7 +105,12 @@ phase18_summarise_poisson_phylo_q1_smoke <- function(
     failures = failures,
     wald_intervals = wald_intervals,
     wald_coverage = wald_coverage,
-    profile_targets = profile_targets
+    profile_targets = profile_targets,
+    profile_intervals = profile_intervals,
+    profile_coverage = profile_coverage,
+    interval_evidence = interval_evidence,
+    interval_diagnostics = interval_diagnostics,
+    interval_failures = interval_failures
   )
 }
 

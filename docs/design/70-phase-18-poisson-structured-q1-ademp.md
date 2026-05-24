@@ -151,6 +151,8 @@ The current summary helper returns:
 - warning and error ledgers;
 - `check_drm()` diagnostic status columns;
 - profile-target status rows for `log_sd_phylo`;
+- optional direct profile intervals for `log_sd_phylo`, with profile coverage,
+  interval-evidence, interval-diagnostics, and interval-failure tables;
 - an artifact manifest for saved per-replicate RDS results.
 
 The smoke runner reuses the existing Phase 18 replicate-runner helpers. It
@@ -158,6 +160,13 @@ stays opt-in and small enough for local validation, not CRAN-scale tests.
 The detailed runner, manifest, warning/error, documentation-sync, and focused
 test contracts are recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`.
+
+The formal-grid wrapper writes the same artifact family plus
+`poisson-phylo-q1-formal-spec.csv`, records whether the 500-replicate formal
+recovery gate is met, and can be called by the manual
+`poisson_phylo_q1_formal` GitHub Actions task. That task is excluded from
+`task = "all"` so routine Phase 18 dispatch does not accidentally launch a
+large count-phylogeny grid.
 
 ## User-Facing Boundary Examples
 
@@ -179,7 +188,7 @@ test contracts are recorded in
 | 4. Methods | Intended `drmTMB` model and ordinary comparator are stated. |
 | 5. Performance measures | Bias, RMSE, coverage, convergence, boundary, warning, and runtime measures are defined. |
 | 6. Software/settings | Runner metadata remains required. |
-| 7. Code availability | The DGP, fitter, smoke runner, summary helper, grid writer, and focused tests live under `inst/sim/` and `tests/testthat/`. |
+| 7. Code availability | The DGP, fitter, smoke runner, summary helper, grid writer, formal-grid wrapper, Actions task, and focused tests live under `inst/sim/`, `.github/workflows/`, and `tests/testthat/`. |
 | 8. Replicability | Seeded replicate outputs and artifact manifests are required. |
 | 9. Real-data motivation | The biological interpretation is phylogenetic species differences in expected counts. |
 | 10. Complete results | Failure ledgers and unavailable interval rows are required outputs. |
