@@ -28,13 +28,54 @@
   white-space: normal;
 }
 
+@media (min-width: 992px) {
+  body > .container .row > main,
+  body > .container .row > aside {
+    margin-top: 8rem;
+  }
+}
+
+.page-header img.logo {
+  margin-left: 2rem;
+  width: clamp(130px, 12vw, 160px);
+}
+
+.template-home .page-header img.logo {
+  height: auto;
+  margin-left: 3rem;
+  max-width: min(42%, 260px);
+  width: clamp(220px, 18vw, 260px);
+}
+
+@media (min-width: 576px) {
+  .page-header {
+    min-height: 10.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .template-home .page-header {
+    min-height: clamp(13rem, 18vw, 15rem);
+  }
+}
+
 @media (max-width: 767.98px) {
   .template-home .page-header .logo {
     height: auto;
-    max-width: 72px;
+    max-width: 132px;
   }
 
   .drmtmb-version-note {
     display: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .template-home .page-header img.logo {
+    display: block;
+    float: none;
+    margin: 0 auto 1rem;
+    max-width: 50vw;
+    width: 132px;
   }
 }
