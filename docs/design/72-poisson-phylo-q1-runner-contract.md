@@ -150,7 +150,7 @@ requests:
 | `phylo(0 + x | species, tree = tree)` in Poisson `mu` | Structured count slopes are planned; use ordinary independent count slopes or q1 phylogenetic intercept. |
 | labelled Poisson q2/q4 `phylo()` blocks | Count covariance blocks are planned; q1 has no latent correlation row. |
 | Poisson `phylo()` in `zi` | `zi` remains fixed-effect probability modelling. |
-| NB2 `phylo()` | NB2 structured q1 waits for overdispersion-versus-structured-SD recovery. |
+| NB2 `phylo()` beyond ordinary q=1 `mu` | NB2 structured slopes, `sigma`, `zi`, q2/q4, spatial, animal, and `relmat()` routes wait for separate recovery. |
 | Poisson `spatial()`, `animal()`, or `relmat()` | Only the Poisson phylogenetic q1 route is fitted. |
 | structured count `sigma`, shape, ordinal, bounded, or mixed-response routes | These are separate family/component gates, not Poisson q1 extensions. |
 

@@ -13,8 +13,8 @@ covariance route, coordinate spatial Gaussian `mu`, phylogenetic Gaussian
 `mu`, animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, and ordinary
 Poisson/NB2 `mu`. Broader bivariate random slopes and most structured
 non-Gaussian dependence remain planned. The only fitted structured
-non-Gaussian route is the first ordinary Poisson q=1 phylogenetic `mu`
-intercept; it is smoke-level, not broad count parity.
+non-Gaussian routes are the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
+intercepts; they are smoke-level, not broad count parity.
 
 ## Random-Slope Parity
 
@@ -28,7 +28,7 @@ intercept; it is smoke-level, not broad count parity.
 | `animal()` Gaussian effects | Yes | `animal(1 | id, pedigree/A/Ainv = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `animal(1 + x | id, pedigree/A/Ainv = ...)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, residual-scale structured slopes, animal slope correlations, predictor-dependent `corpair()`, direct-SD grammar |
 | `relmat()` Gaussian effects | Yes | `relmat(1 | id, K/Q = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `relmat(1 + x | id, K/Q = ...)` fits independent relatedness intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Multiple `relmat()` slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()`, direct-SD grammar |
 | Ordinary Poisson `mu` group effects | Yes, first slice | Non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes on the log-mean predictor; `phylo(1 | species, tree = tree)` fits the first q=1 structured log-mean intercept | Correlated Poisson slopes, labelled covariance blocks, zero-inflated Poisson random effects, Poisson structured slopes, and spatial/animal/`relmat()` count structure |
-| Ordinary NB2 `mu` group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor | Correlated NB2 slopes, NB2 `sigma` random effects, zero-inflated NB2 random effects, structured NB2 effects |
+| Ordinary NB2 group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor; `sigma ~ z + (1 | id)` fits the first grouped overdispersion random intercept on log-`sigma`; `phylo(1 | species, tree = tree)` fits the first q=1 structured log-mean intercept with fixed-effect `sigma` | Correlated NB2 slopes, NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated NB2 random effects, NB2 structured slopes or structured `sigma`, labelled covariance, and spatial/animal/`relmat()` count structure |
 | `sd(group)` random-effect SD models | No slope-specific SD route | Fitted for unlabelled Gaussian `mu` random-intercept SD surfaces such as `sd(id) ~ x_group` | Coefficient-specific random-slope SD formulas such as `sd(id, coef = "x") ~ ...` |
 | Meta-analysis known `V` | Not a random-slope layer | `meta_V(V = V)` treats sampling covariance as known input data | Variance-component meta-analysis and phylogenetic-plus-study extensions |
 
@@ -45,10 +45,10 @@ correlations, and non-Gaussian structured effects.
 | --- | --- | --- | --- |
 | Fixed-effect non-Gaussian families | Yes | Poisson, NB2, zero-inflated counts, truncated/hurdle NB2, beta, beta-binomial, Gamma, lognormal, Student-t, and fixed-effect ordinal routes where listed in the family registry | This does not imply random effects or structural dependence |
 | Ordinary Poisson mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and q=1 `phylo(1 | species, tree = tree)` log-mean intercepts | `zi` random effects, correlated slopes, labelled covariance, phylogenetic slopes, and spatial/animal/relmat count structure |
-| Ordinary NB2 mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts and independent numeric `mu` slopes, with fixed-effect `sigma` | NB2 `sigma` random effects, zero-inflation random effects, correlated slopes, structured dependence |
-| Non-Gaussian `sigma`, shape, inflation, hurdle, zero-one, or one-inflation random effects | No | Fixed-effect formulas exist for selected families and parameters | Random effects in these distributional parameters are blocked or planned |
+| Ordinary NB2 mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, ordinary log-`sigma` random intercepts, and q=1 `phylo(1 | species, tree = tree)` log-mean intercepts | NB2 `sigma` slopes or structured effects, zero-inflation random effects, correlated slopes, phylogenetic slopes, and spatial/animal/relmat count structure |
+| Non-Gaussian `sigma`, shape, inflation, hurdle, zero-one, or one-inflation random effects | Mostly no | Fixed-effect formulas exist for selected families and parameters; ordinary NB2 has a first log-`sigma` random-intercept gate | Random effects in these distributional parameters are otherwise blocked or planned |
 | Ordinal mixed models | No | Fixed-effect cumulative-logit ordinal location | Ordinal random effects, ordinal scale/discrimination, structured ordinal effects |
-| Structured non-Gaussian dependence | First Poisson slice only | Ordinary Poisson fits `phylo(1 | species, tree = tree)` in `mu`, with `sdpars`, `ranef("phylo_mu")`, `profile_targets()`, and `check_drm()` evidence | NB2 phylogeny, zero-inflated phylogeny, phylogenetic count slopes, and all spatial/animal/`relmat()` non-Gaussian routes remain planned until matrix diagnostics, extractors, profile targets, and recovery tests exist |
+| Structured non-Gaussian dependence | First Poisson/NB2 slices only | Ordinary Poisson and ordinary NB2 fit `phylo(1 | species, tree = tree)` in `mu`, with `sdpars`, `ranef("phylo_mu")`, `profile_targets()`, and `check_drm()` evidence | Zero-inflated phylogeny, phylogenetic count slopes, labelled q=2/q=4 count blocks, NB2 `sigma` phylogeny, and all spatial/animal/`relmat()` non-Gaussian routes remain planned until matrix diagnostics, extractors, profile targets, and recovery tests exist |
 | Mixed-response bivariate non-Gaussian models | No | All-Gaussian bivariate models are fitted | Gaussian-count, count-count, ordinal-mixed, and other mixed-response bivariate likelihoods remain planned |
 
 For applied users, the current route is therefore:
@@ -57,15 +57,18 @@ For applied users, the current route is therefore:
   the fitted structured layer matches the question;
 - use ordinary Poisson or NB2 `mu` random effects for count mixed models when
   a plain grouping factor is enough;
-- use ordinary Poisson `phylo(1 | species, tree = tree)` only when the count
-  question is a q=1 phylogenetic log-mean intercept;
-- do not fit NB2, zero-inflated, spatial, animal, or `relmat()` structured
-  non-Gaussian models yet.
+- use ordinary NB2 `sigma ~ z + (1 | id)` only when the question is grouped
+  overdispersion heterogeneity with no simultaneous `mu` random effects;
+- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)` only when the
+  count question is a q=1 phylogenetic log-mean intercept and, for NB2, fixed
+  `sigma` overdispersion is enough;
+- do not fit zero-inflated, spatial, animal, or `relmat()` structured
+  non-Gaussian models yet, and do not put structured effects in NB2 `sigma`.
 
 That boundary is conservative, but useful. Non-Gaussian links, latent
 structured matrices, zero inflation, and distributional scale or shape
 parameters can all change identifiability. The package should not advertise
-non-Gaussian structural dependence beyond the Poisson q=1 phylogenetic smoke
-route until it has the same evidence standard as the Gaussian routes:
+non-Gaussian structural dependence beyond the Poisson/NB2 q=1 phylogenetic
+smoke routes until it has the same evidence standard as the Gaussian routes:
 likelihood code, focused recovery tests, extractors, diagnostics,
 interval-status rows, examples, check-log evidence, and an after-task report.

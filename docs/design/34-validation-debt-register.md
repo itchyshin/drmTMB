@@ -41,8 +41,9 @@ and operating-characteristic evidence justify a broader claim.
 | `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
 | `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only `mu1`/`mu2` covariance is fitted; keep intercept-plus-slope, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
-| `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Gaussian `mu`/`sigma` intercepts, one numeric `mu` slope, matching univariate `mu`/`sigma` correlation, and bivariate/q4 slices are fitted; ordinary Poisson q=1 is tracked separately; keep multiple slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and broader non-Gaussian phylogenetic effects in the debt ledger. |
-| `poisson_phylo_q1_mu` | Ordinary Poisson q=1 phylogenetic `mu` intercept | partial | moderate to high until recovery grids exist | The first non-Gaussian structured route is fitted only for `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`; the opt-in smoke runner, repeatable CSV artifact writer, optional direct `log_sd_phylo` profile-interval artifacts, formal-grid spec, read-back QA, promotion decision, and manual Actions task now exist, but formal recovery grids remain the next evidence gate. Keep count phylogenetic slopes, NB2, zero-inflated, spatial, animal, and `relmat()` structured count routes blocked until separate evidence lands. |
+| `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Gaussian `mu`/`sigma` intercepts, one numeric `mu` slope, matching univariate `mu`/`sigma` correlation, and bivariate/q4 slices are fitted; ordinary Poisson/NB2 q=1 rows are tracked separately; keep multiple slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and broader non-Gaussian phylogenetic effects in the debt ledger. |
+| `poisson_phylo_q1_mu` | Ordinary Poisson q=1 phylogenetic `mu` intercept | partial | moderate to high until recovery grids exist | The first non-Gaussian structured route is fitted only for `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`; the opt-in smoke runner, repeatable CSV artifact writer, optional direct `log_sd_phylo` profile-interval artifacts, formal-grid spec, read-back QA, promotion decision, and manual Actions task now exist, but formal recovery grids remain the next evidence gate. Keep count phylogenetic slopes, zero-inflated, spatial, animal, and `relmat()` structured count routes blocked until separate evidence lands. |
+| `nbinom2_phylo_q1_mu` | Ordinary NB2 q=1 phylogenetic `mu` intercept | partial | high until overdispersion-aware recovery grids exist | The ordinary non-zero-inflated NB2 route now fits `phylo(1 | species, tree = tree)` in `mu` with fixed-effect `sigma`, direct `log_sd_phylo` profile-target exposure, `ranef("phylo_mu")`, and focused smoke tests. Keep NB2 phylogenetic slopes, NB2 `sigma` phylogeny, zero-inflated NB2 phylogeny, spatial, animal, and `relmat()` structured count routes blocked until separate recovery and diagnostic evidence lands. |
 | `spatial_mu_coord` | Coordinate spatial univariate Gaussian `mu`/`sigma` | partial | moderate | Location and residual-scale intercepts plus one numeric `mu` slope are fitted with direct SD targets and smoke evidence; keep mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, direct-SD surfaces, and non-Gaussian spatial effects in debt. |
 | `spatial_biv_q2` | Coordinate spatial bivariate q=2 `mu1`/`mu2` covariance | partial | moderate | q=2 location covariance is fitted and admitted for focused artifacts; keep spatial `corpair()` regression and broader bivariate spatial slopes blocked. |
 | `spatial_q4` | Coordinate spatial all-four q=4 location-scale covariance | partial | high if treated as formal coverage evidence | Constant all-four q=4 is fitted with extractor/diagnostic smoke and derived-unavailable correlation intervals; add q=4 recovery, convergence/Hessian evidence, and DGP artifacts before operating-characteristic claims. |
@@ -111,7 +112,7 @@ and operating-characteristic evidence justify a broader claim.
   `phylo(1 | species, tree = tree)` to the `mu` formula. The term enters the
   log-mean predictor as a q=1 phylogenetic species effect. It cannot yet be
   combined with ordinary Poisson random effects, `zi`, labels, structured
-  slopes, NB2, spatial, animal, or `relmat()` routes.
+  slopes, spatial, animal, or `relmat()` routes.
 - Evidence: `tests/testthat/test-poisson-mean.R`,
   `tests/testthat/test-nongaussian-structured-boundary.R`,
   `R/drmTMB.R`, `R/methods.R`, `src/drmTMB.cpp`, and
@@ -126,29 +127,36 @@ and operating-characteristic evidence justify a broader claim.
   `vignettes/model-map.Rmd`, `vignettes/implementation-map.Rmd`,
   `vignettes/source-map.Rmd`, `vignettes/formula-grammar.Rmd`, and
   `docs/design/67-sdstar-p8-poisson-q1.md`.
-- Debt: recovery grids, ADEMP sheet, NB2 q=1 phylogenetic fit, zero-inflated
-  structured boundaries, spatial/animal/`relmat()` count routes, and any
-  structured count slopes need separate implementation and evidence before the
-  map can claim broad non-Gaussian structural parity.
+- Debt: recovery grids, ADEMP sheets, zero-inflated structured boundaries,
+  spatial/animal/`relmat()` count routes, and any structured count slopes need
+  separate implementation and evidence before the map can claim broad
+  non-Gaussian structural parity.
 
 ### NB2 ordinary random effects
 
-- Matrix status: first non-Gaussian overdispersed-count path implemented for
-  non-zero-inflated NB2 `mu`.
+- Matrix status: first non-Gaussian overdispersed-count paths implemented for
+  non-zero-inflated NB2 `mu` and the first ordinary NB2 log-`sigma` random
+  intercept.
 - Register status: ordinary unlabelled `(1 | group)` random intercepts and
-  independent numeric `(0 + x | group)` slopes enter the log-mean predictor;
-  `sigma` remains a fixed-effect overdispersion formula.
-  Correlated slope blocks, labelled covariance blocks, zero-inflated NB2
-  random effects, and NB2 `sigma` random effects remain planned.
+  independent numeric `(0 + x | group)` slopes enter the log-mean predictor.
+  Ordinary `sigma ~ z + (1 | group)` random intercepts enter the
+  log-overdispersion predictor when there are no `mu` random effects in the
+  same fit. Correlated slope blocks, labelled covariance blocks, joint
+  `mu`/`sigma` random effects, zero-inflated NB2 random effects, and NB2
+  structured `sigma` effects remain planned.
 - Evidence: `tests/testthat/test-nbinom2-location-scale.R` and
   `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`.
 - Diagnostics and intervals: `sdpars$mu`, `random_effects$mu`, and
-  `profile_targets()` expose the fitted random-effect SDs through direct
-  `log_sd_mu` profile targets. The Phase 18 smoke surface records fixed-effect
-  Wald rows for `mu` and `sigma` coefficients and direct profile rows for the
-  `mu` random-effect SDs.
-- Debt: zero-inflated NB2 random effects, `sigma` random effects, correlated
-  or labelled NB2 slope blocks, and cross-parameter non-Gaussian covariance
+  `profile_targets()` expose the fitted `mu` random-effect SDs through direct
+  `log_sd_mu` profile targets. `sdpars$sigma`, `random_effects$sigma`,
+  `sigma()`, `predict(dpar = "sigma")`, `profile_targets()`, and
+  `check_drm()` expose the fitted ordinary `sigma` random-intercept gate
+  through a direct `log_sd_sigma` target and replication diagnostics. The Phase
+  18 smoke surface records fixed-effect Wald rows for `mu` and `sigma`
+  coefficients and direct profile rows for the `mu` random-effect SDs.
+- Debt: zero-inflated NB2 random effects, NB2 `sigma` slopes, joint
+  `mu`/`sigma` random effects, correlated or labelled NB2 slope blocks,
+  structured NB2 scale effects, and cross-parameter non-Gaussian covariance
   need separate likelihood, extractor, interval, diagnostic, and recovery
   evidence before comprehensive simulation.
 
@@ -180,18 +188,23 @@ and operating-characteristic evidence justify a broader claim.
 
 ### Non-Gaussian scale random effects
 
-- Matrix status: blocked with explicit messages.
-- Register status: Student-t, lognormal, Gamma, beta, beta-binomial, NB2,
-  truncated NB2, and hurdle NB2 `sigma` formulas are fixed-effect only.
-  Random-effect bar terms in those scale formulas error before optimization.
+- Matrix status: blocked with explicit messages except for the first ordinary
+  NB2 log-`sigma` random-intercept gate.
+- Register status: Student-t, lognormal, Gamma, beta, beta-binomial, truncated
+  NB2, and hurdle NB2 `sigma` formulas are fixed-effect only. Ordinary
+  non-zero-inflated NB2 admits `sigma ~ z + (1 | id)` as an independent
+  grouped overdispersion random intercept. Other scale random-effect bar terms
+  error before optimization.
 - Evidence: `tests/testthat/test-nongaussian-scale-boundary.R` plus the
   neighbouring family malformed-input tests.
-- Diagnostics and intervals: none, because no non-Gaussian scale random-effect
-  likelihood is fitted yet.
+- Diagnostics and intervals: the NB2 intercept gate exposes `sdpars$sigma`,
+  `random_effects$sigma`, a direct `log_sd_sigma` profile target, and
+  `check_drm()` replication diagnostics. No diagnostics or intervals exist for
+  other non-Gaussian scale random-effect likelihoods.
 - Debt: family-specific likelihood code, `sdpars` and `random_effects`
   extractors, `profile_targets()` rows, weak-SD recovery tests, scale-specific
-  interpretation docs, and CI evidence are required before any non-Gaussian
-  `sigma` random effect is advertised.
+  interpretation docs, and CI evidence are required before any additional
+  non-Gaussian `sigma` random effect is advertised.
 
 ### Ordinal mixed models
 
@@ -547,25 +560,25 @@ and focused recovery tests already exist.
 | Surface | Current fitted state | Main failure modes to track | Phase 18 decision |
 | --- | --- | --- | --- |
 | Ordinary Poisson `mu` random effects | Fitted for non-zero-inflated Poisson random intercepts and independent numeric random slopes. | Boundary fitted SDs near zero, weak group replication, weak within-group slope variation, biased fixed effects when group SD is small, and profile failure for `log_sd_mu` targets. | Include in the first non-Gaussian pilot grid with true SD, number of groups, repeats per group, fixed-effect contrast size, factor predictors, slope variation, convergence, Hessian, `check_drm()` status, profile success, bias, RMSE, and interval coverage where available. |
-| NB2 and zero-truncated NB2 `mu` random effects | NB2 is fitted for non-zero-inflated ordinary random intercepts and independent numeric slopes; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals, and a weak-SD boundary test; zero-truncated NB2 remains planned. | Confounding among overdispersion, group-level heterogeneity, zero truncation, and count-side mean effects. | Admit NB2 only as a focused first slice until larger grids vary overdispersion, group count, repeats, true SD, and mean count; exclude zero-truncated NB2 until fitted. |
-| Non-Gaussian `sigma` random effects | Blocked; fixed-effect `sigma` formulas remain available where the family supports them. | Residual-scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Exclude until family-specific scale-random-effect likelihoods, `sdpars`, extractors, direct profile targets, weak-SD tests, and scale interpretation docs exist. |
+| NB2 and zero-truncated NB2 ordinary random effects | NB2 is fitted for non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and ordinary log-`sigma` random intercepts; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals for `mu`, a weak-SD boundary test, and focused `sigma` intercept recovery/extractor tests; zero-truncated NB2 remains planned. | Confounding among overdispersion, group-level heterogeneity, zero truncation, count-side mean effects, and grouped overdispersion heterogeneity. | Admit NB2 only as a focused first slice until larger grids vary overdispersion, group count, repeats, true `mu` SD, true `sigma` SD, and mean count; exclude zero-truncated NB2 until fitted. |
+| Non-Gaussian `sigma` random effects | Fitted only for ordinary non-zero-inflated NB2 log-`sigma` random intercepts; fixed-effect `sigma` formulas remain available where other families support them. | Scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Include only the NB2 intercept gate after a dedicated small grid exists; exclude NB2 `sigma` slopes, zero-inflated/truncated/hurdle scale random effects, and other family-specific scale-random-effect likelihoods until `sdpars`, extractors, direct profile targets, weak-SD tests, and scale interpretation docs exist. |
 | Shape, skewness, and tail random effects | Blocked for Student-t `nu`; skew-normal and skew-t are future fixed-effect-first families. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Exclude random effects in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`; fixed-effect skew families need their own likelihood recovery before random effects are discussed as fitted. |
 | Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; random effects and bounded-response `zoi`/`coi` paths are blocked or planned. | Count-side random effects can mimic structural zeros; hurdle and inflation components can be weakly separated from mean, dispersion, and sampling zeros. | Exclude random effects in `zi`, `hu`, future `zoi`, and future `coi`; add fixed-effect zero-one-inflated bounded likelihoods before any random-effect simulation grid. |
 | Ordinal mixed models | Cumulative-logit fixed-effect models fit; ordinal random effects are blocked. | Cutpoint separation, sparse categories, latent-scale identification, and random-effect SD boundaries can dominate ordinary coefficient recovery. | Exclude ordinal random effects until a random-intercept cumulative-logit likelihood has `sdpars`, `ranef()`, profile targets, cutpoint stability checks, weak-SD tests, and an `ordinal::clmm` comparator. |
-| Structured non-Gaussian dependence | Ordinary Poisson now fits q=1 `phylo(1 | species, tree = tree)` in `mu`; all other `phylo()`, `spatial()`, `animal()`, and `relmat()` non-Gaussian structured paths remain blocked. | Known dependence matrices, Laplace random effects, sparse group support, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Treat the Poisson phylogenetic q=1 row as smoke/artifact only. The opt-in runner and CSV writer can exercise the first route; formal recovery, NB2 q=1, spatial, animal, `relmat()`, zero-inflated, slope, or cross-parameter routes remain later gates. |
+| Structured non-Gaussian dependence | Ordinary Poisson and ordinary NB2 now fit q=1 `phylo(1 | species, tree = tree)` in `mu`; all other `phylo()`, `spatial()`, `animal()`, and `relmat()` non-Gaussian structured paths remain blocked. | Known dependence matrices, Laplace random effects, sparse group support, overdispersion, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Treat the Poisson and NB2 phylogenetic q=1 rows as smoke/artifact only. The Poisson opt-in runner and CSV writer exercise the first route; NB2 still needs overdispersion-aware formal grids before promotion. Spatial, animal, `relmat()`, zero-inflated, slope, scale, or cross-parameter routes remain later gates. |
 | Cross-parameter non-Gaussian covariance | Blocked. | Correlations among `mu`, `sigma`, shape, inflation, hurdle, and structured random effects can be weakly identified and can change sign under alternative parameterizations. | Exclude from Phase 18 until each marginal random-effect path is stable and a constant-block-correlation design has extractor, `corpairs()`, direct-target, and recovery evidence. |
-| Non-Gaussian intervals | Wald intervals exist for fixed effects and selected direct fitted targets where covariance is available; Poisson random-effect SDs expose direct profile targets, and `confint(..., method = "bootstrap")` now has a narrow direct-target simulate/refit route. | Wald intervals can understate uncertainty for boundary SDs; profiles can be one-sided, non-monotone, or fail inner optimization; bootstrap refits can fail or be too slow for broad grids. | Measure interval coverage only for currently supported fixed-effect Wald, direct Wald, direct profile, and direct `confint()` bootstrap targets. Record `profile.boundary`, `profile.message`, `bootstrap.n`, and `bootstrap.failed`; do not report derived or non-`confint()` bootstrap coverage yet. |
+| Non-Gaussian intervals | Wald intervals exist for fixed effects and selected direct fitted targets where covariance is available; Poisson/NB2 random-effect SDs expose direct profile targets, and `confint(..., method = "bootstrap")` now has a narrow direct-target simulate/refit route. | Wald intervals can understate uncertainty for boundary SDs; profiles can be one-sided, non-monotone, or fail inner optimization; bootstrap refits can fail or be too slow for broad grids. | Measure interval coverage only for currently supported fixed-effect Wald, direct Wald, direct profile, and direct `confint()` bootstrap targets. Record `profile.boundary`, `profile.message`, `bootstrap.n`, and `bootstrap.failed`; do not report derived or non-`confint()` bootstrap coverage yet. |
 | Runtime and scale | Routine tests are small deterministic gates, not benchmarks. | Large group counts, large dense known matrices, structured dependence, and repeated refits can change runtime and convergence rates. | Keep Phase 18 grids explicit about sample size, groups, repetitions, elapsed time, convergence rate, and failure rate. Large-data claims need optional benchmarks, not CRAN tests. |
 
 The immediate simulation-entry decision is therefore narrow. The first
 non-Gaussian operating-characteristics grid should include ordinary
 non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes.
-The ordinary Poisson q=1 phylogenetic `mu` intercept can enter a separate smoke
-or ADEMP-planning lane, but it should not be blended into the ordinary count
-grid or used to imply NB2/spatial/animal/`relmat()` parity. All other
-non-Gaussian random-effect, structured-dependence, scale, shape, inflation,
-hurdle, ordinal, and cross-parameter covariance surfaces remain failure-ledger
-rows until their own implementation and recovery evidence exists.
+NB2 `mu`, NB2 ordinary log-`sigma`, and ordinary Poisson/NB2 q=1 phylogenetic
+`mu` routes should enter separate smoke or ADEMP-planning lanes, not be blended
+into one ordinary count grid or used to imply spatial/animal/`relmat()` parity.
+All other non-Gaussian random-effect, structured-dependence, scale, shape,
+inflation, hurdle, ordinal, and cross-parameter covariance surfaces remain
+failure-ledger rows until their own implementation and recovery evidence exists.
 
 ## Open debt queue
 
