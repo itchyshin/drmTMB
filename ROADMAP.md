@@ -1724,6 +1724,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 478 | Poisson q1 grid after-task | Done locally: after-task report records artifact shape, limits, and role-perspective review. |
 | 479 | Poisson q1 grid stale-scan gate | Done locally: false-support scans still return no broad NB2, spatial, animal, `relmat()`, `zi`, `hu`, or structured-slope claims. |
 | 480 | Poisson q1 grid closeout | Done locally: repeatable smoke artifacts exist; formal recovery and coverage grids remain future work. |
+| 481 | Poisson q1 profile interval opt-in | Done locally: the fit summariser maps `log_sd_phylo` to the public `sd:mu:phylo(1 | species)` row and writes optional direct profile interval columns. |
+| 482 | Poisson q1 profile artifact tables | Done locally: the summary and grid writer now save profile interval, profile coverage, interval-evidence, interval-diagnostics, and interval-failure CSVs beside the existing smoke artifacts. |
+| 483 | Poisson q1 profile tests | Done locally: focused tests request `log_sd_phylo`, assert profile rows are `ok` or `failed`, and keep failed profiles in the artifact evidence. |
+| 484 | Poisson q1 formal condition helper | Done locally: `phase18_poisson_phylo_q1_formal_conditions()` names the larger species-count, repeat, signal, mean-count, slope, and tree-shape grid for formal admission runs. |
+| 485 | Poisson q1 formal spec writer | Done locally: `phase18_poisson_phylo_q1_formal_grid_spec()` records `n_rep`, target replicates, profile requests, MCSE requirement, and whether the 500-replicate recovery gate is met. |
+| 486 | Poisson q1 formal wrapper | Done locally: `phase18_write_poisson_phylo_q1_formal_grid_outputs()` writes the smoke artifact family plus `poisson-phylo-q1-formal-spec.csv`. |
+| 487 | Poisson q1 read-back helper | Done locally: `phase18_read_poisson_phylo_q1_grid_outputs()` reads existing artifact CSVs and can require the complete artifact family. |
+| 488 | Poisson q1 artifact QA | Done locally: `phase18_qa_poisson_phylo_q1_grid_outputs()` checks required artifact names, row presence, seed uniqueness, cell alignment, and expected replicate counts. |
+| 489 | Poisson q1 promotion decision | Done locally: `phase18_poisson_phylo_q1_promotion_decision()` holds smoke-only artifacts and promotes narrowly only when QA passes and the formal replicate gate is met. |
+| 490 | Poisson q1 Actions task | Done locally: `.github/workflows/phase18-simulation-grid.yaml` and `sim_run_actions_cell.R` expose the manual `poisson_phylo_q1_formal` task. |
+| 491 | Poisson q1 Actions all guard | Done locally: `task = "all"` still runs only baseline first-wave and interval-heavy tasks; the Poisson formal grid must be selected explicitly. |
+| 492 | Poisson q1 formal dry-run test | Done locally: focused tests verify that the Actions entrypoint can plan `--task=poisson_phylo_q1_formal` with `--profile-parameters=log_sd_phylo`. |
+| 493 | Poisson q1 formal documentation sync | Done locally: NEWS, source-map, simulation README, readiness, simulation programme, ADEMP, runner contract, and validation-debt text describe the formal-admission wrapper without broad count claims. |
+| 494 | Poisson q1 formal check-log and after-task | Done locally: validation commands, role-perspective review, and known limits are recorded for the profile/formal admission slice. |
+| 495 | Poisson q1 formal closeout | Done locally: profile and formal-grid infrastructure exists, but formal recovery and coverage claims remain unavailable until the large grid is run and audited. |
 
 ### Pre-Simulation Readiness Slice Map
 

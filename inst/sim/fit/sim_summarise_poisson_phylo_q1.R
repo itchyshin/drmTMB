@@ -4,7 +4,10 @@ phase18_summarise_poisson_phylo_q1_fit <- function(
   cell_id = NA_character_,
   replicate = NA_integer_,
   elapsed = NA_real_,
-  warnings = character()
+  warnings = character(),
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50)
 ) {
   if (is.data.frame(truth)) {
     truth <- attr(truth, "truth", exact = TRUE)
@@ -55,7 +58,38 @@ phase18_summarise_poisson_phylo_q1_fit <- function(
     warnings = paste(warnings, collapse = " | "),
     stringsAsFactors = FALSE
   )
+  profile_map <- phase18_poisson_phylo_q1_profile_parameter_map(
+    parameters = profile_parameters
+  )
+  out <- phase18_profile_interval_columns(
+    out,
+    fit = fit,
+    parameters = profile_map,
+    conf.level = profile_level,
+    interval_scale = "public_sd",
+    profile_args = profile_args
+  )
   phase18_poisson_phylo_q1_attach_status(out, fit)
+}
+
+phase18_poisson_phylo_q1_profile_parameter_map <- function(
+  parameters = character()
+) {
+  if (!is.character(parameters) || any(!nzchar(parameters))) {
+    stop("`parameters` must be a character vector.", call. = FALSE)
+  }
+  if (length(parameters) == 0L) {
+    return(character())
+  }
+
+  public_target <- "sd:mu:phylo(1 | species)"
+  aliases <- stats::setNames(
+    c(public_target, public_target),
+    c(public_target, "log_sd_phylo")
+  )
+  requested <- aliases[intersect(parameters, names(aliases))]
+  targets <- unique(unname(requested))
+  stats::setNames(targets, targets)
 }
 
 phase18_poisson_phylo_q1_attach_status <- function(summary, fit) {

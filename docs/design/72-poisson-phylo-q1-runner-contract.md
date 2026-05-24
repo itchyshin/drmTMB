@@ -37,8 +37,12 @@ tests/testthat/test-phase18-poisson-phylo-q1.R
 The implemented helper returns aggregate, replicate, manifest, failure-ledger,
 fixed-effect Wald interval, Wald coverage, and direct profile-target status
 tables. The grid writer saves those tables as repeatable CSV artifacts beside
-the per-replicate RDS results. Formal recovery grids and coverage claims remain
-future work.
+the per-replicate RDS results. It can also write optional direct
+`log_sd_phylo` profile intervals and the combined interval-evidence,
+interval-diagnostics, and interval-failure tables. The formal-grid wrapper,
+read-back QA, promotion decision, and manual GitHub Actions task now exist, but
+formal recovery and coverage claims still require running the 500-replicate
+gate and reviewing the generated artifacts.
 
 ## Slices 421-422: Target And Extractor Rows
 
@@ -117,6 +121,12 @@ Formal coverage or recovery claims need a separate admission decision:
 The ordinary grouped Poisson comparator should be reported as a diagnostic
 contrast, not as a phylogenetic-signal estimator.
 
+`phase18_poisson_phylo_q1_promotion_decision()` should return
+`hold_smoke_only` when artifacts pass QA but `n_rep < 500`; it should return
+`promote_narrowly` only when required artifacts pass QA and the formal spec
+allows coverage claims. The helper is an admission check, not a substitute for
+reading the interval diagnostics and failure ledger.
+
 ## Slices 427-430: Documentation Sync
 
 After runner evidence exists, user-facing docs should keep three statements
@@ -155,6 +165,8 @@ fitted alternative.
 | 433 | Extractor names match `sdpars$mu`, `ranef("phylo_mu")`, direct `log_sd_phylo`, and absent q1 `corpairs()` rows. |
 | 434 | Diagnostic rows include replication, SD-ratio or boundary, Hessian, fixed-gradient, and family-warning status. |
 | 435 | Simulation artifacts include aggregate, replicate, manifest, failure-ledger, diagnostic, and profile-target files with row-count checks. |
+| 481 | Direct `log_sd_phylo` profile interval artifacts stay opt-in and record failed profiles beside successful intervals. |
+| 482 | Formal-grid artifacts include the formal spec, read-back QA, and promotion decision, while `task = "all"` excludes the manual formal Actions task. |
 
 These tests should be focused and skip-aware. CRAN-scale simulations should stay
 outside routine package checks; routine tests should exercise tiny fixtures,
