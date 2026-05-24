@@ -54,6 +54,22 @@ test_that("Phase 18 Actions runner dry-run parses options and caps cores", {
   expect_match(out, "`cores` was capped at 10", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner loads drmTMB for real tasks", {
+  script <- phase18_actions_runner_script()
+  text <- paste(readLines(script, warn = FALSE), collapse = "\n")
+
+  load_call <- regexpr("phase18_actions_load_package\\(\\)", text)[[1]]
+  source_call <- regexpr(
+    "phase18_actions_source_dependencies\\(task\\)",
+    text
+  )[[1]]
+
+  expect_gt(load_call, 0L)
+  expect_gt(source_call, 0L)
+  expect_lt(load_call, source_call)
+  expect_match(text, 'require\\("drmTMB"', perl = TRUE)
+})
+
 test_that("Phase 18 Actions runner validates formal condition shards", {
   script <- phase18_actions_runner_script()
   out <- system2(

@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - Phase 18 Actions Package Load Follow-Up
+
+Goal: recover the NB2 q1 formal shard dispatch after the 16 `main` workflow
+runs from merged PR #322 all failed before writing artifacts.
+
+Roles: Ada owned the recovery path and branch hygiene. Grace inspected the
+GitHub Actions run state and workflow boundary. Curie reproduced the runner
+failure and added the regression test. Fisher kept the failed shards out of the
+formal evidence ledger. Rose checked that this is an operational runner fix,
+not a model-promotion result. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Updated `inst/sim/run/sim_run_actions_cell.R` so non-dry-run Phase 18
+  Actions tasks attach the installed `drmTMB` package before sourcing
+  simulation helpers.
+- Kept dry-run parsing lightweight, so local dry-run tests still exercise
+  argument parsing without requiring a package install in the subprocess.
+- Added a focused `test-phase18-actions-runner` guard that fails if the package
+  load call is missing or moved after helper sourcing.
+
+Validation:
+
+```sh
+gh run list --repo itchyshin/drmTMB --branch main --limit 40 --json databaseId,workflowName,displayTitle,event,status,conclusion,createdAt,updatedAt,headSha,url
+gh run view 26372989242 --repo itchyshin/drmTMB --log-failed
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --output-dir=/tmp/drmTMB-nb2-repro-shard1 --n-reps=1 --cores=1 --backend=none --master-seed=20260602 --overwrite=true --render=false --require-complete=false --profile-parameters=log_sd_phylo --condition-shard=1 --condition-shards=16 --bootstrap-nsim=0 --bootstrap-cores=1 --bootstrap-backend=none
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(c("--task=nbinom2_phylo_q1_formal", "--output-dir=/tmp/drmTMB-nb2-repro-patched-onecell", "--n-reps=1", "--cores=1", "--backend=none", "--master-seed=20260602", "--overwrite=true", "--render=false", "--require-complete=false", "--profile-parameters=log_sd_phylo", "--condition-shard=1", "--condition-shards=288", "--bootstrap-nsim=0", "--bootstrap-cores=1", "--bootstrap-backend=none"))'
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R', 'tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+air format inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --dry-run=true --n-reps=500 --cores=10 --backend=multicore --profile-parameters=log_sd_phylo --condition-shard=16 --condition-shards=16
+git diff --check
+```
+
+Results:
+
+- PR #322 merged at `3e68109d`; the 16 manual
+  `nbinom2_phylo_q1_formal` shard dispatches from that commit all completed as
+  failed runs before artifact upload.
+- Run `26372989242` showed the selected `nbinom2_phylo_q1_formal` job failing
+  in `Run Phase 18 task` with `The NB2 phylogenetic q1 smoke run produced no
+  summaries.`
+- A clean detached worktree at `3e68109d` reproduced the no-summary failure
+  with `n_reps = 1`; all 18 saved replicate RDS files for shard 1 contained
+  `there is no package called 'drmTMB'`.
+- The same formal shard run under `devtools::load_all()` completed, which
+  confirmed that the model surface was not the immediate failure source.
+- The patched one-cell formal run under `devtools::load_all()` wrote
+  `surface = nbinom2_phylo_q1_formal_grid`, one formal condition, six
+  replicate rows, and `manifest_status = ok`.
+- `devtools::test(filter = 'phase18-actions-runner')` passed with 24
+  assertions.
+- The formal shard dry-run still printed `n_rep = 500`, `backend = multicore`,
+  `cores = 10`, `profile_parameters = log_sd_phylo`,
+  `condition_shard = 16`, and `condition_shards = 16`.
+- `parse`, `air format`, and `git diff --check` were clean.
+
 ## 2026-05-24 - Supported Non-Gaussian Evidence Goal Slices 576-650
 
 Goal: implement the supported non-Gaussian evidence goal as a bounded evidence
