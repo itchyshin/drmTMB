@@ -18,7 +18,11 @@ The implemented contract is
 \code{log(mu) = eta_mu}, \code{log(sigma) = eta_sigma}, and
 \code{Var(y) = mu + sigma^2 * mu^2}. Thus larger \code{sigma} means greater
 extra-Poisson variation. Internally this is equivalent to the usual NB2
-size parameter \code{size = 1 / sigma^2}.
+size parameter \code{size = 1 / sigma^2}. Ordinary non-zero-inflated NB2 models
+also support first-slice random intercepts on the log-\code{sigma} predictor,
+such as \code{bf(count ~ x, sigma ~ z + (1 | id))}; NB2 \code{sigma} slopes,
+structured \code{sigma} effects, and zero-inflated NB2 \code{sigma} random effects
+remain planned.
 }
 \examples{
 nbinom2()

@@ -66,7 +66,7 @@ computation rather than by a conceptual one- or two-slope cap.
 | Location-scale covariance | One or more independent matching labelled `mu`/`sigma` random-intercept blocks are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
 | Bivariate Gaussian | Random-intercept covariance blocks and the matching slope-only `mu1`/`mu2` route are implemented. Slice 83 fits `(0 + x | p | id)` in both location formulas; q=4 location-slope, residual-scale slope, same-response location-scale slope, and q=8-style all-four slope requests remain blocked | Intercept-plus-slope q=4 location covariance, then same-covariate slope-correlation regression for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
 | Structured phylogenetic/spatial | Slice 186 audit: coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
-| Non-Gaussian families | Fixed-effect non-Gaussian families are implemented; ordinary Poisson `mu` random intercepts and independent numeric slopes are implemented for non-zero-inflated Poisson models; non-Gaussian `sigma` random effects are explicitly blocked in Slice 193 | Add NB2-style `mu` random intercepts after Poisson, then revisit correlated Poisson slopes and family-specific scale random effects; shape, zero-inflation, one-inflation, hurdle, ordinal, structured, and cross-parameter covariance blocks come later | family-specific simulations show convergence, boundary behaviour, recovery, and useful failure messages on both model and response scales |
+| Non-Gaussian families | Fixed-effect non-Gaussian families are implemented; ordinary Poisson/NB2 `mu` random intercepts and independent numeric slopes are implemented for non-zero-inflated count models; ordinary NB2 has the first log-`sigma` random-intercept gate; other non-Gaussian `sigma` random effects remain blocked | Revisit correlated count slopes and family-specific scale random effects after the first NB2 `sigma` intercept gate has recovery evidence; shape, zero-inflation, one-inflation, hurdle, ordinal, structured, and cross-parameter covariance blocks come later | family-specific simulations show convergence, boundary behaviour, recovery, and useful failure messages on both model and response scales |
 
 The ordinary location-model benchmark is glmmTMB/lme4-style syntax such as
 `(1 + x1 + x2 + ... | id)`: one grouped random-effect vector with an
@@ -96,7 +96,7 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks, q=4 all-four intercept blocks, and matching slope-only `mu1`/`mu2` blocks | q=4 location-slope, residual-scale slope covariance, and q=8 all-four slope endpoints |
 | Phylogenetic structured effects | Intercept-level univariate `mu` and `sigma`, matching univariate `mu`/`sigma` correlation, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, residual-scale structured slopes, bivariate phylogenetic slopes, direct-SD formulas combined with structured `sigma`, and richer structured-slope covariance |
 | Coordinate spatial structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD surfaces, spatial `corpair()`, and non-Gaussian spatial effects |
-| Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson `mu` random intercepts and independent numeric slopes in the pre-simulation random-effect gate; non-Gaussian `sigma` random effects have a fixed-effect-only boundary | NB2 `mu` random intercepts, correlated non-Gaussian `mu` slopes, scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths |
+| Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson/NB2 `mu` random intercepts, independent numeric slopes, ordinary NB2 log-`sigma` random intercepts, and q=1 phylogenetic `mu` intercepts in bounded pre-simulation gates | Correlated non-Gaussian `mu` slopes, NB2 `sigma` slopes or structured scale effects, other scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, and structured non-Gaussian paths beyond ordinary Poisson/NB2 q=1 phylogeny |
 
 Slice 236 re-audits the same promise before broader Phase 18 work starts. The
 current boundary is:
@@ -112,7 +112,8 @@ current boundary is:
   q=6/q=8 bivariate location-scale slope endpoints remain outside the fitted
   surface after the matching slope-only `mu1`/`mu2` slice;
 - non-Gaussian random-slope support is currently ordinary Poisson and NB2 `mu`
-  intercepts and independent numeric slopes only; scale, shape,
+  intercepts and independent numeric slopes only; ordinary NB2 has a separate
+  first log-`sigma` random-intercept gate. NB2 `sigma` slopes, shape,
   zero-inflation, one-inflation, hurdle, ordinal, and structured non-Gaussian
   random effects need their own recovery gates before entering comprehensive
   simulation.
@@ -147,11 +148,11 @@ fit independent random intercepts in `mu`, `sigma`, `zi`, `hu`, `zoi`, `coi`,
 correlations among those latent effects. Those correlations require labelled
 covariance blocks, stable output names, `corpairs()` rows, profile-target
 status, and simulation evidence that the data can distinguish the parameters.
-The Slice 191-192 Poisson path therefore fits only independent `mu` random
-intercepts and independent numeric slopes. For percentage or proportion data,
-zero-one inflation is a bounded response likelihood problem first; `zoi` and
-`coi` random effects should wait until the fixed-effect zero-one-inflated
-beta-style likelihood is tested.
+The count path therefore fits only ordinary Poisson/NB2 `mu` random intercepts,
+independent numeric slopes, and q=1 phylogenetic `mu` intercepts. For
+percentage or proportion data, zero-one inflation is a bounded response
+likelihood problem first; `zoi` and `coi` random effects should wait until the
+fixed-effect zero-one-inflated beta-style likelihood is tested.
 
 The practical cap for the first public slope phase outside ordinary grouped
 `mu` is therefore: at most one numeric random slope per distributional-parameter

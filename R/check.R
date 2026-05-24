@@ -918,7 +918,7 @@ fixed_effect_design_nonzero <- function(x) {
 }
 
 check_random_effect_replication <- function(object, block) {
-  if (!identical(object$model$model_type, "gaussian")) {
+  if (!object$model$model_type %in% c("gaussian", "nbinom2")) {
     return(NULL)
   }
   re <- object$model$random[[block]]
@@ -947,7 +947,7 @@ check_random_effect_replication <- function(object, block) {
 }
 
 check_random_effect_design <- function(object, block) {
-  if (!identical(object$model$model_type, "gaussian")) {
+  if (!object$model$model_type %in% c("gaussian", "nbinom2")) {
     return(NULL)
   }
   re <- object$model$random[[block]]
@@ -2040,20 +2040,24 @@ check_phylo_mu_diagnostics <- function(object) {
     NA_real_
   }
   finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  has_scale_ratio <- length(finite_sd_ratios) > 0L
   min_sd <- if (finite_positive_sd) min(sd_values) else NA_real_
-  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+  min_sd_ratio <- if (has_scale_ratio) {
     min(finite_sd_ratios)
   } else {
     NA_real_
   }
   weak_sd <- !finite_positive_sd ||
-    any(finite_sd_ratios < 0.05)
+    (has_scale_ratio && any(finite_sd_ratios < 0.05))
   sd_text <- if (length(sd_label) == 1L) {
     paste0(
       "; phylo_sd=",
       format_check_number(sd_values),
-      "; sd_ratio=",
-      format_check_number(sd_ratios)
+      if (has_scale_ratio) {
+        paste0("; sd_ratio=", format_check_number(sd_ratios))
+      } else {
+        ""
+      }
     )
   } else {
     paste0(
@@ -2061,8 +2065,11 @@ check_phylo_mu_diagnostics <- function(object) {
       length(sd_label),
       "; min_phylo_sd=",
       format_check_number(min_sd),
-      "; min_sd_ratio=",
-      format_check_number(min_sd_ratio)
+      if (has_scale_ratio) {
+        paste0("; min_sd_ratio=", format_check_number(min_sd_ratio))
+      } else {
+        ""
+      }
     )
   }
 
@@ -2087,7 +2094,8 @@ check_phylo_mu_diagnostics <- function(object) {
     phylo_mu_diagnostic_message(
       finite_positive_sd,
       weak_replication,
-      weak_sd
+      weak_sd,
+      has_scale_ratio
     )
   )
 }
@@ -2095,7 +2103,8 @@ check_phylo_mu_diagnostics <- function(object) {
 phylo_mu_diagnostic_message <- function(
   finite_positive_sd,
   weak_replication,
-  weak_sd
+  weak_sd,
+  has_scale_ratio = TRUE
 ) {
   if (!finite_positive_sd) {
     return(paste(
@@ -2120,6 +2129,12 @@ phylo_mu_diagnostic_message <- function(
     return(paste(
       "The phylogenetic SD is tiny relative to residual scale; the structured",
       "phylogenetic field may be weakly identified."
+    ))
+  }
+  if (!isTRUE(has_scale_ratio)) {
+    return(paste(
+      "The phylogenetic random effect has replicated species and a finite",
+      "positive fitted SD."
     ))
   }
   paste(
@@ -2212,6 +2227,9 @@ check_spatial_mu_diagnostics <- function(object) {
 }
 
 spatial_mu_residual_scale <- function(object) {
+  if (!object$model$model_type %in% c("gaussian", "biv_gaussian")) {
+    return(NA_real_)
+  }
   sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
   if (inherits(sigma_values, "error")) {
     return(NA_real_)

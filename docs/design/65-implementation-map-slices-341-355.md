@@ -179,8 +179,8 @@ Template fields:
 - one dependence layer only;
 - NB2 `mu` structured intercept with fixed-effect `sigma`;
 - overdispersion grid and SD-ratio diagnostics;
-- separation from NB2 `sigma` random effects and zero-inflated NB2 random
-  effects;
+- separation from ordinary NB2 `sigma` random intercepts, structured NB2
+  `sigma` effects, and zero-inflated NB2 random effects;
 - extractor, profile-target, and `check_drm()` expectations;
 - comparison to ordinary NB2 `mu` random effects as the nearest fitted route.
 

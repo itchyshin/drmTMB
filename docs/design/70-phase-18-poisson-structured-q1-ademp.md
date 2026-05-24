@@ -6,10 +6,11 @@ reporting checks of Williams et al. (2024). The fitted route is intentionally
 small: one ordinary Poisson response, one `mu` structured intercept, and one
 phylogenetic layer.
 
-The sheet does not admit NB2, zero-inflated, hurdle, spatial, animal,
-`relmat()`, slope, q2, q4, `sigma`, shape, ordinal, bounded-response, or
-mixed-response structured routes. Those remain failure-ledger rows until their
-own likelihood, extractor, diagnostic, interval, and recovery evidence exists.
+The sheet does not admit zero-inflated, hurdle, spatial, animal, `relmat()`,
+slope, q2, q4, `sigma`, shape, ordinal, bounded-response, or mixed-response
+structured routes. NB2 q=1 phylogenetic `mu` now has its own narrow first slice,
+but its overdispersion-aware recovery grid remains separate from this Poisson
+ADEMP sheet.
 
 ## A - Aims
 
@@ -106,7 +107,7 @@ The first grid should reject or exclude:
 
 - `phylo(0 + x | species, tree = tree)` and other Poisson structured slopes;
 - labelled q2/q4 Poisson phylogenetic covariance;
-- NB2 `phylo()` routes;
+- NB2 `phylo()` routes outside the ordinary q=1 `mu` first slice;
 - zero-inflated or hurdle `phylo()` routes;
 - `spatial()`, `animal()`, or `relmat()` inside a Poisson likelihood;
 - any structured count effect in `sigma`, `zi`, `hu`, shape, ordinal, or
@@ -173,7 +174,7 @@ large count-phylogeny grid.
 | User request | Fit now | Explain as planned |
 | --- | --- | --- |
 | "Counts vary by phylogeny" | Poisson `phylo(1 | species, tree = tree)` in `mu` | Recovery grids still decide when to advertise this beyond smoke-level evidence. |
-| "Overdispersed counts vary by phylogeny" | Ordinary NB2 `mu` random effects if a plain group is enough | NB2 `phylo()` q1 waits for overdispersion-vs-structured-SD recovery. |
+| "Overdispersed counts vary by phylogeny" | Ordinary NB2 q=1 `phylo(1 | species, tree = tree)` in `mu` if fixed-effect `sigma` is enough | Formal overdispersion-vs-structured-SD recovery still decides promotion beyond smoke evidence. |
 | "Counts vary spatially" | Ordinary Poisson/NB2 `mu` random effects when a site group is enough | Poisson/NB2 `spatial()` waits until the phylogenetic q1 recovery gate closes. |
 | "Zero inflation varies by phylogeny" | Fixed-effect `zi` where supported, or ordinary count random effects | Structured `zi` random effects are a separate probability-component design. |
 | "Count slopes vary by phylogeny" | Ordinary Poisson/NB2 independent numeric `mu` slopes | Structured count slopes wait until q1 intercept recovery is reliable. |
