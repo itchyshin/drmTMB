@@ -97,6 +97,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     return(invisible(NULL))
   }
 
+  phase18_actions_load_package()
   phase18_actions_source_dependencies(task)
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   if (identical(task, "first_wave_summary")) {
@@ -258,6 +259,18 @@ phase18_actions_source_dependencies <- function(task) {
   for (path in paths) {
     source(phase18_actions_path(root, path), local = globalenv())
   }
+}
+
+phase18_actions_load_package <- function() {
+  ok <- require("drmTMB", quietly = TRUE, character.only = TRUE)
+  if (!ok) {
+    stop(
+      "The Phase 18 Actions runner requires the drmTMB package to be ",
+      "installed before running non-dry-run tasks.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
 }
 
 phase18_actions_task_paths <- function(task) {
