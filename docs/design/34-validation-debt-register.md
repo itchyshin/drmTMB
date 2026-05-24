@@ -36,6 +36,7 @@ and operating-characteristic evidence justify a broader claim.
 | Surface ID | Matrix row | Register status | Validation risk | Next gate |
 | --- | --- | --- | --- | --- |
 | `fixed_one_response` | Fixed-effect one-response families | covered | low for listed fixed-effect paths; moderate for family expansion | Add one family at a time with likelihood tests, methods tests, docs, and family-specific diagnostics. |
+| `supported_nongaussian_evidence_goal` | Supported non-Gaussian distribution evidence | partial/covered by row | moderate if readers infer broad parity | `docs/design/79-supported-nongaussian-evidence-goal.md` closes the goal-level audit for supported fixed-effect families and first count mixed-model lanes while keeping blocked neighbours out. |
 | `gaussian_ordinary_re` | Gaussian ordinary random effects | covered | low for listed Gaussian ordinary paths; moderate for residual-scale correlated slopes | Keep residual-scale correlation and coefficient-specific SD slopes blocked until direct tests and diagnostics exist. |
 | `re_scale_sd_group` | Random-effect scale models | partial | moderate | Add coefficient-specific random-slope scale likelihood, recovery tests, and diagnostics before widening `sd()` syntax. |
 | `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
