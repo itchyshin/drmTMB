@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Non-Gaussian Structured q1 Planning Slices 1-10
+
+Goal: merge and sync the green `meta_known_V()` deprecation PR, then close the
+first ten items of the next planning block by turning the non-Gaussian
+structured-dependence front gate into concrete roadmap, ADEMP, readiness, and
+user-route evidence.
+
+Roles: Ada coordinated branch state, issue state, and the slice boundary.
+Boole checked formula and component vocabulary. Fisher and Curie shaped the
+ADEMP and smoke-runner scaffold. Pat checked user fallbacks in the
+implementation map. Grace checked documentation validation. Rose checked that
+Poisson q1 did not become a broad structured non-Gaussian claim. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Merged PR #315 and branched from the updated `origin/main` at `1877b825`.
+- Marked roadmap rows 381-388 as completed planning for the family, component,
+  layer, Poisson q1, NB2 q1, `zi`, `hu`, and count-slope front gates.
+- Expanded `docs/design/66-implementation-map-slices-356-405.md` so slices
+  381-388 have explicit results and closed neighbouring boundaries.
+- Added `docs/design/70-phase-18-poisson-structured-q1-ademp.md` as the
+  Poisson phylogenetic q1 ADEMP sheet and smoke-runner scaffold.
+- Updated the Phase 18 programme, readiness matrix, validation-debt register,
+  NEWS, and implementation-map user-route table to point to the Poisson q1
+  ADEMP gate while keeping NB2, `zi`, `hu`, structured slopes, spatial, animal,
+  and `relmat()` count routes planned.
+
+Validation:
+
+```sh
+gh pr merge 315 --repo itchyshin/drmTMB --squash --delete-branch --subject "Deprecate meta_known_V and refresh status docs (#315)"
+git fetch origin
+git checkout -b codex/non-gaussian-q1-planning-1-10 origin/main
+air format NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/66-implementation-map-slices-356-405.md docs/design/67-sdstar-p8-poisson-q1.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-q1-planning-slices-1-10.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::build_vignettes()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Poisson q1.*broad|NB2 .*structured.*fitted|spatial\\(.*poisson|animal\\(.*poisson|relmat\\(.*poisson|structured count slopes.*fitted|structured `zi` random effects|structured `hu` random effects" README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::build_vignettes()` completed successfully.
+- `pkgdown::build_site()` completed successfully.
+- The stale-claim scan returned no false broad-support hits.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Deprecate meta_known_V Formula Marker
 
 Goal: turn `meta_known_V()` from an accepted compatibility spelling into an

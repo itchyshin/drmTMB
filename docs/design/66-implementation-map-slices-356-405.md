@@ -73,10 +73,24 @@ Usefulness check: a user should leave the map knowing both the exact spatial q4
 syntax they can run and the nearest fitted alternative when their desired route
 is still planned.
 
-## Slice 381-405: Non-Gaussian Structured Planning
+## Slice 381-388: Non-Gaussian Structured q1 Planning
 
-The next non-Gaussian structured work should start with planning, not code. The
-candidate order is:
+The first post-#315 planning block closes the front half of the
+non-Gaussian structured gate. It starts with issue state and user-route clarity,
+then narrows the first real candidate to Poisson q1 phylogenetic `mu`.
+
+| Slice | Result | Boundary kept closed |
+| --- | --- | --- |
+| 381 | Family inventory separates ordinary counts, zero-inflated counts, hurdle counts, bounded responses, ordinal responses, robust continuous responses, and mixed-response bivariate candidates. | Do not infer structured support for all non-Gaussian families from the Poisson q1 row. |
+| 382 | Component inventory separates `mu`, `sigma`, `zi`, `hu`, shape or `nu`, future second shape `tau`, cutpoints, and residual coscale `rho12`. | Do not place structured random effects in `sigma`, `zi`, `hu`, shape, cutpoints, or `rho12` without a family-specific contract. |
+| 383 | Layer inventory scores `phylo()`, `spatial()`, `animal()`, and `relmat()` separately before selecting a first fitted route. | Do not promote Gaussian spatial, animal, or `relmat()` evidence to count models. |
+| 384 | Poisson q1 is the algebra gate: one non-zero-inflated Poisson response, `mu` only, one phylogenetic structured intercept. | No Poisson slopes, q2/q4 covariance, zero inflation, hurdle probability, or cross-parameter covariance. |
+| 385 | NB2 q1 remains the first practical count target after Poisson, because overdispersion can compete with structured SD. | NB2 `phylo()`, `spatial()`, `animal()`, and `relmat()` remain planned until the Poisson grid is informative. |
+| 386 | Zero-inflation stays fixed-effect-only until a separate probability-component use case, diagnostic, and prediction contract exists. | No structured `zi` random effects. |
+| 387 | Hurdle probability stays fixed-effect-only until hurdle-specific recovery and interpretation are specified. | No structured `hu` random effects. |
+| 388 | Correlated or structured count slopes wait until q1 intercept recovery is reliable. | No count slope covariance, no structured count slopes, and no q2/q4 count blocks. |
+
+The candidate order is:
 
 1. Non-zero-inflated Poisson q1 `mu` structured intercept as the algebra smoke.
 2. NB2 q1 `mu` structured intercept as the first practical count target.
@@ -109,6 +123,24 @@ Acceptance gates for the first fitted non-Gaussian structured route:
 - user-facing fallback text for nearby unsupported `zi`, `hu`, slope, q2, q4,
   scale, and shape requests.
 
-Usefulness check: the first non-Gaussian structured route should help count users
-answer one ecological dependence question, not imply that all structured
-non-Gaussian distributional regression is ready.
+The first ADEMP sheet is now
+`docs/design/70-phase-18-poisson-structured-q1-ademp.md`. It names estimands,
+data-generating parameters, sample-size and repeat grids, warning ledgers,
+convergence criteria, interval-status expectations, and failure conditions for
+the Poisson q1 phylogenetic `mu` route. That sheet is a simulation-admission
+gate, not permission to add broad structured count likelihoods.
+
+## Slice 389-405: Remaining Non-Gaussian Structured Gates
+
+The remaining planned rows should stay design-first:
+
+- non-Gaussian scale and shape gates;
+- ordinal mixed-model gates;
+- known-covariance versus latent-relatedness boundaries;
+- extractor, diagnostic, simulation, and interval contracts;
+- user-route fallback and error-message gates;
+- one issue template per family-layer-component combination.
+
+Usefulness check: the next implementation issue should be small enough that a
+reviewer can say exactly which family, parameter, layer, q, extractor row,
+diagnostic row, and user-facing fallback changed.

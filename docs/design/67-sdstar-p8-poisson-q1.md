@@ -148,3 +148,8 @@ dependence hypothesis. It is not useful as a shortcut for overdispersed counts,
 zero-inflated structural zeros, spatial autocorrelation, individual animal
 relatedness, or all non-Gaussian structural parity. Those routes need their own
 likelihood, recovery, extractor, interval, and documentation evidence.
+
+The simulation-admission sheet for this route is
+`docs/design/70-phase-18-poisson-structured-q1-ademp.md`. That sheet must move
+before any recovery runner or Phase 18 artifact claims broader than smoke-level
+Poisson phylogenetic q1 support.

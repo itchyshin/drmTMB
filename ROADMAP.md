@@ -1624,14 +1624,14 @@ Use this order unless Slice 191 evidence overturns it:
 | 378 | pkgdown sync | Done locally: pkgdown build/check and rendered scans cover the implementation-map page. |
 | 379 | PR/status sync | Done locally: the branch records spatial q4 as fitted only after tests and docs move together. |
 | 380 | Stop-implementation boundary | Done locally: no non-Gaussian structured likelihood code is fitted in this set. |
-| 381 | Non-Gaussian family inventory | Planned: list ordinary count, zero-inflated, hurdle, bounded, ordinal, robust, and mixed-response structured-dependence candidates. |
-| 382 | Non-Gaussian component inventory | Planned: keep `mu`, `sigma`, `zi`, `hu`, shape, cutpoints, and residual coscale separate. |
-| 383 | Non-Gaussian layer inventory | Planned: score `phylo()`, `spatial()`, `animal()`, and `relmat()` separately before picking a first route. |
-| 384 | Poisson q1 algebra gate | Planned: first smoke candidate is one non-zero-inflated Poisson `mu` structured intercept. |
-| 385 | NB2 q1 practical gate | Planned: first practical count candidate is one NB2 `mu` structured intercept with fixed-effect `sigma`. |
-| 386 | Zero-inflation gate | Planned: keep `zi` fixed-effect-only until use cases, diagnostics, and prediction semantics justify random effects. |
-| 387 | Hurdle gate | Planned: keep `hu` fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
-| 388 | Count slope gate | Planned: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
+| 381 | Non-Gaussian family inventory | Done locally as planning: ordinary count, zero-inflated count, hurdle count, bounded response, ordinal, robust continuous, and mixed-response candidates are separated in `docs/design/66-implementation-map-slices-356-405.md`. |
+| 382 | Non-Gaussian component inventory | Done locally as planning: `mu`, `sigma`, `zi`, `hu`, shape/`nu`, future `tau`, cutpoints, and residual coscale `rho12` remain separate gates before structured dependence expands. |
+| 383 | Non-Gaussian layer inventory | Done locally as planning: `phylo()`, `spatial()`, `animal()`, and `relmat()` are scored separately, with Poisson phylogenetic q1 kept apart from Gaussian spatial, animal, and `relmat()` evidence. |
+| 384 | Poisson q1 algebra gate | Done locally as planning: the first structured non-Gaussian simulation gate is one non-zero-inflated Poisson `mu` phylogenetic intercept, with ADEMP details in `docs/design/70-phase-18-poisson-structured-q1-ademp.md`. |
+| 385 | NB2 q1 practical gate | Done locally as planning: NB2 q1 remains the first practical count target after Poisson, because overdispersion can compete with the structured SD. |
+| 386 | Zero-inflation gate | Done locally as planning: `zi` stays fixed-effect-only until a separate probability-component use case, diagnostic, and prediction contract exists. |
+| 387 | Hurdle gate | Done locally as planning: `hu` stays fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
+| 388 | Count slope gate | Done locally as planning: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
 | 389 | Non-Gaussian scale gate | Planned: count `sigma`, beta/BB scale, and continuous scale structured effects need separate scale-specific contracts. |
 | 390 | Shape and ordinal gate | Planned: Student-t `nu`, skewness, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
 | 391 | Known covariance boundary | Planned: keep `meta_V(V = V)` sampling covariance separate from latent `relmat()`-style relatedness. |
@@ -1727,7 +1727,8 @@ as the whole comprehensive simulation programme.
 | 355 | Documentation | Validation and handoff gate | Done locally as planning: pkgdown, rendered scans, stale-support scans, after-task reporting, and the next code issue are required before handoff. |
 | 356-370 | Structural dependence | Spatial q4 fitted parity | Done locally: constant coordinate-spatial q4 location-scale covariance fits for all-four labelled Gaussian endpoints, with extractors, `corpairs()`, diagnostics, profile-target status, and boundary tests. |
 | 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |
-| 381-405 | Planning | Non-Gaussian structured-dependence gates | Planned only: Poisson/NB2 q1 `mu` structured intercepts are scoped as candidate first slices, while `zi`, `hu`, scale, shape, ordinal, bounded, and mixed-response structural layers stay design-first. |
+| 381-388 | Planning | Non-Gaussian structured-dependence front gate | Done locally as planning: family, component, and layer inventories now narrow the first route to Poisson phylogenetic q1 `mu`, with NB2, `zi`, `hu`, and structured slopes held behind explicit gates. |
+| 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Planned only: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, and issue templates remain design-first. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
