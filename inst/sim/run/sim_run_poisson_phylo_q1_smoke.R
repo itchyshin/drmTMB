@@ -61,6 +61,9 @@ phase18_run_poisson_phylo_q1_smoke <- function(
   master_seed = 20260523L,
   result_dir = NULL,
   overwrite = FALSE,
+  profile_parameters = character(),
+  profile_level = 0.70,
+  profile_args = list(ystep = 0.50),
   cores = 1L,
   backend = "none"
 ) {
@@ -71,13 +74,37 @@ phase18_run_poisson_phylo_q1_smoke <- function(
     n_rep = n_rep,
     master_seed = master_seed
   )
+  summarise_fun_factory <- function(cell, seed_row) {
+    force(cell)
+    force(seed_row)
+    function(
+      fit,
+      truth,
+      cell_id,
+      replicate,
+      elapsed,
+      warnings
+    ) {
+      phase18_summarise_poisson_phylo_q1_fit(
+        fit = fit,
+        truth = truth,
+        cell_id = cell_id,
+        replicate = replicate,
+        elapsed = elapsed,
+        warnings = warnings,
+        profile_parameters = profile_parameters,
+        profile_level = profile_level,
+        profile_args = profile_args
+      )
+    }
+  }
 
   results <- phase18_run_replicates(
     cells = registry$cells,
     seeds = registry$seeds,
     dgp_fun = phase18_dgp_poisson_phylo_q1_cell,
     fit_fun = phase18_fit_poisson_phylo_q1,
-    summarise_fun = phase18_summarise_poisson_phylo_q1_fit,
+    summarise_fun_factory = summarise_fun_factory,
     result_dir = result_dir,
     overwrite = overwrite,
     cores = cores,
