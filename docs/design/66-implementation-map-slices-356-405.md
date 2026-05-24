@@ -132,15 +132,72 @@ gate, not permission to add broad structured count likelihoods.
 
 ## Slice 389-405: Remaining Non-Gaussian Structured Gates
 
-The remaining planned rows should stay design-first:
+The second post-#315 planning block closes the remaining non-Gaussian
+structured gate without opening new code. It turns the rows after the Poisson q1
+ADEMP sheet into route-specific contracts that future implementation issues can
+copy without re-deciding the whole roadmap.
 
-- non-Gaussian scale and shape gates;
-- ordinal mixed-model gates;
-- known-covariance versus latent-relatedness boundaries;
-- extractor, diagnostic, simulation, and interval contracts;
-- user-route fallback and error-message gates;
-- one issue template per family-layer-component combination.
+| Slice | Result | Boundary kept closed |
+| --- | --- | --- |
+| 389 | Non-Gaussian scale gate: count overdispersion, beta/BB precision, Gamma coefficient of variation, lognormal log-SD, and Student-t scale each need a family-specific structured-scale contract. | Do not treat a structured `mu` intercept as evidence for structured `sigma` or scale random effects. |
+| 390 | Shape and ordinal gate: Student-t `nu`, future skewness/second-shape slots, ordinal cutpoints, and ordinal scale/discrimination remain separate from count `mu` structure. | Do not place random effects in shape, cutpoint, or ordinal-scale components until a family-specific likelihood and comparator exist. |
+| 391 | Known-covariance boundary: `meta_V(V = V)` is known sampling covariance; `relmat()` is latent relatedness. | Do not reuse a known sampling-error matrix as a latent structured-effect route, or call latent relatedness a meta-analysis sampling covariance. |
+| 392 | Extractor contract: every first slice must pre-name `sdpars`, `ranef()`, `profile_targets()`, `summary()`, and diagnostic labels before fitting. | Do not add a likelihood whose fitted quantities have no stable public names. |
+| 393 | Diagnostic contract: require convergence, Hessian, replication, boundary, SD-ratio, family-specific, and malformed-neighbour checks. | Do not rely on optimizer return code alone. |
+| 394 | Simulation contract: require ADEMP aims, DGP, estimands, methods, performance measures, ordinary comparator, failure ledger, MCSE reporting, and artifact manifest. | Do not admit broad Phase 18 grids from one smoke fit. |
+| 395 | Interval contract: direct structured SD intervals may be first; derived correlations, response-scale summaries, and non-direct nonlinear functions must report unavailable status until validated. | Do not infer interval support from point-estimate extractors. |
+| 396 | User-route fallback: each unsupported request should point to the nearest fitted fixed-effect, ordinary random-effect, or Gaussian structured alternative. | Do not leave applied users with only "planned" when a safer fit exists. |
+| 397 | Error-message gate: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter structured requests must fail early with the family, component, layer, and nearest route named. | Do not let unsupported syntax reach TMB or fail as a generic parse error. |
+| 398 | Formula grammar gate: non-Gaussian structured grammar remains closed unless the fitted scope and rejected neighbours are documented together. | Do not broaden `phylo()`, `spatial()`, `animal()`, or `relmat()` grammar implicitly from Gaussian support. |
+| 399 | Documentation gate: implementation-map, model-map, family docs, NEWS, ROADMAP, check-log, and after-task report must move with any fitted-status change. | Do not let an implementation PR close with only tests or only prose. |
+| 400 | Issue-template gate: create one issue per family, component, layer, q, and comparator combination. | Do not open a broad "non-Gaussian structured parity" issue as an implementation target. |
+| 401 | Poisson first-issue outline: one non-zero-inflated Poisson `mu` q1 structured intercept, starting with phylogeny, with simulations, diagnostics, docs, and malformed neighbours. | No slopes, q2/q4, `zi`, `hu`, or cross-parameter covariance. |
+| 402 | NB2 first-issue outline: one NB2 `mu` q1 structured intercept with fixed-effect `sigma`, overdispersion conditions, and ordinary NB2 comparator evidence. | No NB2 `sigma` structured effects, zero-inflated NB2 structure, or spatial/animal/`relmat()` parity until the first route recovers. |
+| 403 | `zi`/`hu` future issue outline: probability-component random effects need a user problem, prediction semantics, diagnostics, and recovery evidence before fitting. | Fixed-effect `zi` and `hu` remain the recommended route for extra-zero questions. |
+| 404 | Phase 18 admission note: non-Gaussian structured routes remain outside broad simulation until one narrow route passes recovery, diagnostics, intervals, and docs. | Do not roll the comprehensive simulation programme forward on planned status. |
+| 405 | Closeout: stop with a map, issue-ready gates, and validation evidence. | Do not add untested likelihood code in the planning closeout. |
+
+## Issue Template Fields For Future Implementation
+
+Use this issue body shape for any route opened after these gates:
+
+```text
+Route:
+- family:
+- distributional parameter:
+- structured layer:
+- q:
+- fitted formula:
+- nearest fitted fallback:
+
+Required implementation evidence:
+- likelihood and parameter-scale contract:
+- extractor names:
+- profile/interval status:
+- check_drm() rows:
+- malformed-neighbour errors:
+- ADEMP or recovery runner:
+- user docs:
+- stale-claim scan:
+```
+
+For the next code issue, the route should be:
+
+```text
+family: poisson(link = "log")
+distributional parameter: mu
+structured layer: phylo(tree = tree)
+q: 1
+formula: bf(count ~ x + phylo(1 | species, tree = tree))
+fallback: ordinary Poisson/NB2 mu random effects when the grouping is exchangeable
+```
+
+The NB2 issue can use the same shape only after the Poisson q1 smoke/recovery
+runner shows whether a structured count SD can be separated from count mean and
+replication stress. The `zi` and `hu` issues should not start from syntax; they
+should start from a biological probability-component question, such as whether a
+structured absence process is identifiable apart from low expected abundance.
 
 Usefulness check: the next implementation issue should be small enough that a
 reviewer can say exactly which family, parameter, layer, q, extractor row,
-diagnostic row, and user-facing fallback changed.
+diagnostic row, interval row, simulation artifact, and user fallback changed.

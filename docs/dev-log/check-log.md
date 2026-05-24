@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Non-Gaussian Structured Remaining Gates Slices 389-405
+
+Goal: close the remaining non-Gaussian structured-dependence planning rows after
+the Poisson q1 ADEMP front gate, without adding likelihood, TMB, or
+formula-grammar implementation.
+
+Roles: Ada coordinated the overnight slice and PR scope. Boole checked grammar
+and issue-template boundaries. Fisher and Curie checked simulation, interval,
+and ADEMP language. Pat checked user-route fallbacks. Grace checked validation
+commands. Rose checked that scale, shape, ordinal, known-covariance, and
+probability-component rows stayed planning-only. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Marked roadmap rows 389-405 as completed planning for remaining
+  non-Gaussian structured scale, shape, ordinal, known-covariance, extractor,
+  diagnostic, simulation, interval, user-fallback, error-message, grammar,
+  documentation, issue-template, Poisson, NB2, `zi`/`hu`, and Phase 18
+  admission gates.
+- Expanded `docs/design/66-implementation-map-slices-356-405.md` with a
+  row-by-row 389-405 planning table and reusable implementation issue fields.
+- Added implementation-map fallback rows for non-Gaussian structured scale or
+  shape effects, known covariance versus latent relatedness, and unsupported
+  structured count syntax.
+- Updated NEWS and added the after-task report for the 389-405 closeout.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/66-implementation-map-slices-356-405.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-remaining-gates-slices-389-405.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- To be completed before commit.
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Non-Gaussian Structured q1 Planning Slices 1-10
 
 Goal: merge and sync the green `meta_known_V()` deprecation PR, then close the

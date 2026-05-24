@@ -1632,23 +1632,23 @@ Use this order unless Slice 191 evidence overturns it:
 | 386 | Zero-inflation gate | Done locally as planning: `zi` stays fixed-effect-only until a separate probability-component use case, diagnostic, and prediction contract exists. |
 | 387 | Hurdle gate | Done locally as planning: `hu` stays fixed-effect-only until hurdle-specific recovery and interpretation are specified. |
 | 388 | Count slope gate | Done locally as planning: correlated or structured count slopes wait until q1 intercept recovery is reliable. |
-| 389 | Non-Gaussian scale gate | Planned: count `sigma`, beta/BB scale, and continuous scale structured effects need separate scale-specific contracts. |
-| 390 | Shape and ordinal gate | Planned: Student-t `nu`, skewness, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
-| 391 | Known covariance boundary | Planned: keep `meta_V(V = V)` sampling covariance separate from latent `relmat()`-style relatedness. |
-| 392 | Extractor contract | Planned: non-Gaussian structured first slices must define `sdpars`, `ranef()`, profile-target, and diagnostic names before fitting. |
-| 393 | Diagnostic contract | Planned: require convergence, Hessian, boundary, replication, SD-ratio, and family-specific checks. |
-| 394 | Simulation contract | Planned: require ADEMP conditions, ordinary comparator, recovery estimands, and failure-ledger rows. |
-| 395 | Interval contract | Planned: direct SD intervals may be first; derived correlations and non-direct summaries must show unavailable status. |
-| 396 | User-route fallback | Planned: every non-Gaussian structured request should point to fixed-effect or ordinary random-effect alternatives. |
-| 397 | Error-message gate | Planned: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter non-Gaussian structural syntax should fail early and helpfully. |
-| 398 | Formula grammar gate | Planned: do not open non-Gaussian structured grammar until fitted scope and rejected neighbours are documented. |
-| 399 | Documentation gate | Planned: implementation-map, model-map, family docs, NEWS, and check-log must move with the first fitted route. |
-| 400 | Issue-template gate | Planned: create one issue per family-layer-component combination instead of broad non-Gaussian parity. |
-| 401 | Poisson first-issue outline | Planned: issue should name one layer, one q1 `mu` intercept, simulations, diagnostics, docs, and malformed inputs. |
-| 402 | NB2 first-issue outline | Planned: issue should add overdispersion conditions and ordinary NB2 comparator evidence. |
-| 403 | `zi`/`hu` future issue outline | Planned: issue should justify why a probability-component random effect is useful before fitting. |
-| 404 | Phase 18 admission note | Planned: non-Gaussian structured routes remain outside broad simulation until one narrow route passes evidence gates. |
-| 405 | Non-Gaussian planning closeout | Planned: stop with a map and issue-ready gates, not with untested likelihood code. |
+| 389 | Non-Gaussian scale gate | Done locally as planning: count overdispersion, beta/BB precision, Gamma coefficient of variation, lognormal log-SD, and Student-t scale each need family-specific structured-scale contracts before structured random effects move outside `mu`. |
+| 390 | Shape and ordinal gate | Done locally as planning: Student-t `nu`, future skewness/second-shape slots, ordinal cutpoints, and ordinal scale/discrimination stay separate from count `mu` structure. |
+| 391 | Known covariance boundary | Done locally as planning: `meta_V(V = V)` remains known sampling covariance and `relmat()` remains latent relatedness; future issues must not collapse those meanings. |
+| 392 | Extractor contract | Done locally as planning: first slices must pre-name `sdpars`, `ranef()`, `profile_targets()`, `summary()`, and diagnostic labels before fitting. |
+| 393 | Diagnostic contract | Done locally as planning: convergence, Hessian, replication, boundary, SD-ratio, family-specific, and malformed-neighbour checks are required beyond optimizer return code. |
+| 394 | Simulation contract | Done locally as planning: ADEMP, ordinary comparator, recovery estimands, MCSE, failure ledger, and artifact manifest are required before Phase 18 admission. |
+| 395 | Interval contract | Done locally as planning: direct structured SD intervals may move first, while derived correlations and non-direct nonlinear summaries must show unavailable status until validated. |
+| 396 | User-route fallback | Done locally as planning: unsupported requests should point to fixed-effect, ordinary random-effect, or Gaussian structured alternatives where those answer a safer nearby question. |
+| 397 | Error-message gate | Done locally as planning: unsupported `zi`, `hu`, slope, q2, q4, and cross-parameter structured requests must fail early with family, component, layer, and nearest route named. |
+| 398 | Formula grammar gate | Done locally as planning: non-Gaussian structured grammar remains closed unless fitted scope and rejected neighbours are documented together. |
+| 399 | Documentation gate | Done locally as planning: implementation-map, model-map, family docs, NEWS, ROADMAP, check-log, and after-task reports must move with any fitted-status change. |
+| 400 | Issue-template gate | Done locally as planning: future implementation issues must name one family, component, layer, q, and comparator rather than asking for broad non-Gaussian parity. |
+| 401 | Poisson first-issue outline | Done locally as planning: the next code issue should be one non-zero-inflated Poisson `mu` q1 phylogenetic intercept with simulations, diagnostics, docs, and malformed neighbours. |
+| 402 | NB2 first-issue outline | Done locally as planning: NB2 q1 needs fixed-effect `sigma`, overdispersion conditions, and ordinary NB2 comparator evidence before structured count claims expand. |
+| 403 | `zi`/`hu` future issue outline | Done locally as planning: probability-component random effects need a biological use case, prediction semantics, diagnostics, and recovery evidence before fitting. |
+| 404 | Phase 18 admission note | Done locally as planning: non-Gaussian structured routes remain outside broad simulation until one narrow route passes recovery, diagnostics, intervals, and docs. |
+| 405 | Non-Gaussian planning closeout | Done locally as planning: the closeout stops with a map, issue-ready gates, and validation evidence rather than untested likelihood code. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1728,7 +1728,7 @@ as the whole comprehensive simulation programme.
 | 356-370 | Structural dependence | Spatial q4 fitted parity | Done locally: constant coordinate-spatial q4 location-scale covariance fits for all-four labelled Gaussian endpoints, with extractors, `corpairs()`, diagnostics, profile-target status, and boundary tests. |
 | 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |
 | 381-388 | Planning | Non-Gaussian structured-dependence front gate | Done locally as planning: family, component, and layer inventories now narrow the first route to Poisson phylogenetic q1 `mu`, with NB2, `zi`, `hu`, and structured slopes held behind explicit gates. |
-| 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Planned only: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, and issue templates remain design-first. |
+| 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Done locally as planning: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, error-message gates, and issue-template fields now close as design-first gates. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
