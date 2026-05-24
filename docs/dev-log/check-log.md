@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Poisson Phylogenetic q1 Evidence Sync Slices 436-450
+
+Goal: synchronize source and evidence ledgers after the Poisson phylogenetic q1
+runner contract, without opening new likelihood or simulation-runner code.
+
+Roles: Ada checked ledger consistency. Jason checked the source-map route.
+Fisher and Curie checked simulation-readiness wording. Boole checked that the
+Poisson q1 syntax stayed narrow. Pat checked user-facing status boundaries.
+Grace checked validation commands. Rose checked that evidence-ledger sync did
+not become a new fitted-support claim. These were role perspectives, not
+spawned agents.
+
+Changes:
+
+- Updated `vignettes/source-map.Rmd`.
+- Updated `docs/design/34-validation-debt-register.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md`.
+- Updated `docs/design/46-pre-simulation-readiness-matrix.md`.
+- Updated `docs/design/02-family-registry.md`.
+- Updated ROADMAP, NEWS, and the after-task report for slices 436-450.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md vignettes/source-map.Rmd docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-poisson-phylo-q1-evidence-sync-slices-436-450.md
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+rg -n 'poisson.*phylo.*(formal operating-characteristic evidence|broad Phase 18 operating-characteristic evidence|admitted for broad|ready for broad|formal recovery claim|formal coverage claim)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- The tighter Poisson phylogeny broad-claim scan returned no hits. A broader
+  exploratory scan found only intended boundary sentences such as "not broad"
+  and "before any broad grid."
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Poisson Phylogenetic q1 Runner Contract Slices 421-435
 
 Goal: turn the fitted ordinary Poisson q=1 phylogenetic `mu` route into a

@@ -1679,6 +1679,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 433 | Poisson q1 extractor-name test plan | Done locally as planning: tests should assert exact `sdpars`, `ranef()`, profile-target, and absent-correlation rows. |
 | 434 | Poisson q1 diagnostic-row test plan | Done locally as planning: tests should assert replication, SD-ratio or boundary, Hessian, fixed-gradient, and family-warning diagnostics. |
 | 435 | Poisson q1 simulation-artifact test plan | Done locally as planning: tests should validate aggregate, replicate, manifest, failure-ledger, diagnostic, and profile-target artifacts with row counts. |
+| 436 | Poisson q1 source-map sync | Done locally: the implemented source map now points the Poisson mean row to the ADEMP and runner-contract documents. |
+| 437 | Poisson q1 validation-debt row sync | Done locally: the `poisson_phylo_q1_mu` debt row now names the runner contract as the next gate. |
+| 438 | Structured non-Gaussian validation-debt sync | Done locally: the broader structured non-Gaussian row points to the ADEMP sheet and runner contract before recovery work. |
+| 439 | Phase 18 count-lane sync | Done locally: the count scenario lane now separates ordinary Poisson/NB2 random-effect ADEMP work from the Poisson phylogenetic q1 ADEMP and runner contract. |
+| 440 | Phase 18 phylogenetic-lane sync | Done locally: the phylogenetic scenario lane keeps the Poisson q1 lane separate from Gaussian phylogenetic grids until the runner contract is implemented. |
+| 441 | Pre-simulation Poisson q1 row sync | Done locally: the readiness matrix Poisson q1 row now includes the manifest, warning/error, smoke-grid, and artifact-test contract. |
+| 442 | Pre-simulation structured non-Gaussian sync | Done locally: the readiness matrix structured row now points to both Poisson q1 design documents. |
+| 443 | Family-registry evidence sync | Done locally: the Poisson family evidence state now includes the runner contract beside tests and profile-target checks. |
+| 444 | NEWS and ROADMAP evidence sync | Done locally: release and roadmap ledgers record the evidence-ledger synchronization without claiming new fitted support. |
+| 445 | Check-log validation sync | Done locally: validation commands include pkgdown, stale-support scans, and source-ledger scans for the evidence sync. |
+| 446 | After-task evidence sync | Done locally: the after-task report records the source-map, readiness, validation-debt, Phase 18, and family-registry updates. |
+| 447 | Fitted-versus-planned guard | Done locally: updated ledgers still keep NB2, zero-inflated, hurdle, spatial, animal, and `relmat()` count structure planned. |
+| 448 | Simulation-readiness guard | Done locally: Poisson q1 phylogeny remains smoke/runner-contract level, not formal operating-characteristic evidence. |
+| 449 | Source-ledger stale-scan gate | Done locally: scans check for false broad structured count support and stale all-phylogeny-count wording. |
+| 450 | Evidence-sync closeout | Done locally: source ledgers now agree that implementation, runner evidence, and broad simulation admission are separate gates. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1761,6 +1776,7 @@ as the whole comprehensive simulation programme.
 | 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Done locally as planning: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, error-message gates, and issue-template fields now close as design-first gates. |
 | 406-420 | Planning | Route-specific implementation issue ledger | Done locally as planning: Poisson implementation, Poisson smoke-runner, malformed-neighbour, documentation, NB2 skeleton, component-boundary, extractor-name, and diagnostic-name issue drafts are recorded without opening code. |
 | 421-435 | Planning | Poisson phylogenetic q1 runner contract | Done locally as planning: direct-target, extractor, manifest, warning/error, smoke-grid, formal-grid, comparator, documentation-sync, unsupported-syntax, and test-plan contracts are recorded before broader simulation claims. |
+| 436-450 | Evidence sync | Poisson phylogenetic q1 source-ledger synchronization | Done locally: source map, validation debt, Phase 18 programme, readiness matrix, family registry, NEWS, check-log, and after-task notes point to the runner contract while keeping broad simulation closed. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
