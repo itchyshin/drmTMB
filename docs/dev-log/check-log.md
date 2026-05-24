@@ -2,6 +2,73 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - NB2 PR Split And Stabilization Slices 556-560
+
+Goal: split the post-Poisson work into clean PR lanes, keep the remaining
+Poisson formal-admission tail out of the NB2 PR, and open a narrow NB2 branch
+containing Slices 496-555 plus the 556-560 split evidence.
+
+Roles: Ada owned branch orchestration and PR sequencing. Grace checked #316,
+#318, #319, local tests, pkgdown, and diff hygiene. Curie checked the NB2
+simulation helpers and focused Phase 18 tests. Fisher checked the promotion
+boundary, especially `hold_smoke_only` for NB2 q1 formal artifacts. Rose
+scanned for cross-thread contamination and broad NB2 claims. Pat checked that
+reader-facing wording remains evidence-bounded. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Merged PR #316 after updating its title/body and confirming all three
+  R-CMD-check jobs were green.
+- Confirmed PR #318 had merged with green Ubuntu, macOS, and Windows checks.
+- Split the remaining Poisson q1 formal-admission commit into PR #319:
+  `codex/poisson-phylo-q1-formal-481-495`.
+- Created clean branch `codex/nb2-smoke-grid-511-560` from the PR #319 head so
+  the NB2 formal Actions task can stack on the Poisson formal Actions
+  machinery without mixing into PR #319.
+- Replayed the earlier fitted NB2 gates, excluding the obsolete pkgdown-logo
+  CSS slice.
+- Ported only the NB2 Slices 511-555 simulation, documentation, and audit
+  files from the mixed local checkout.
+- Wrote ignored local recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-24-130342-codex-checkpoint.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-nb2-pr-split-slices-556-560.md`.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R','inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R','inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R','inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R','inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R','inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R','inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R','inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-nbinom2-sigma-random-effect.R','tests/testthat/test-phase18-nbinom2-phylo-q1.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-sigma-random-effect|phase18-nbinom2-phylo-q1|phase18-actions-runner|nbinom2-location-scale|nongaussian-structured-boundary', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'sd_phylo\(\)|sd_phylo1\(|sd_phylo2\(|level = "phylogenetic"|bivariate q=2 phylogenetic direct-SD|direct-SD route can now' NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md inst/sim/README.md vignettes/source-map.Rmd .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R man/nbinom2.Rd -S
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete|closed)|NB2.*q1.*coverage.*(now|passed|complete|closed)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|NB2 phylogenetic slopes.*now' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 sigma" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2" --limit 20 --json number,title,state,url,labels
+gh pr view 319 --repo itchyshin/drmTMB --json number,title,state,mergeable,isDraft,headRefOid,statusCheckRollup,url
+Rscript tools/codex-checkpoint.R --goal "split and open NB2 511-560 PR" --next "add 556-560 check-log/after-task, commit, push, and create NB2 PR stacked on PR 319"
+```
+
+Results:
+
+- The parse smoke printed `parse ok`.
+- Focused tests passed for `nbinom2-location-scale`,
+  `nongaussian-structured-boundary`, `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, `phase18-nbinom2-sigma-random-effect`, and the
+  filter-adjacent `truncated-nbinom2-location-scale` tests.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The direct-SD contamination scan found only pre-existing historical baseline
+  wording in NEWS/ROADMAP, not newly copied Slices 511-560 hunks.
+- The broad NB2 promotion scan returned no hits.
+- `git diff --check` was clean.
+- Direct `NB2 phylo q1` and `nbinom2 sigma` issue searches returned no open
+  direct issue. The broader `Phase 18 NB2` search returned #59, #60, and #128;
+  no issue mutation was needed for this PR split.
+- PR #319 was open, mergeable, and still running R-CMD-check when this entry was
+  written.
+
 ## 2026-05-24 - pkgdown Home Logo Scale
 
 Goal: make the pkgdown homepage hex logo closer to the gllvmTMB homepage scale
