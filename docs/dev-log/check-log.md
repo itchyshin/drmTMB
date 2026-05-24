@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-24 - pkgdown Home Logo Scale
+
+Goal: make the pkgdown homepage hex logo closer to the gllvmTMB homepage scale
+and stop the top of the hex from reading as clipped by the fixed navbar.
+
+Roles: Ada kept the change to one CSS presentation slice. Florence checked
+scale, composition, and clipping against the supplied screenshots. Pat checked
+the narrow layout. Grace rebuilt pkgdown, checked metadata, and saved rendered
+evidence. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Increased the wide-page fixed-navbar clearance in `pkgdown/extra.css` to
+  `8rem`.
+- Added a homepage-specific logo rule:
+  `width: clamp(220px, 18vw, 260px)` with a `max-width: min(42%, 260px)` cap.
+- Increased the homepage mobile logo cap to `132px` and centered it on narrow
+  screens.
+- Added
+  `docs/dev-log/after-task/2026-05-24-pkgdown-home-logo-scale.md`.
+- Saved rendered evidence under
+  `docs/dev-log/figure-audits/2026-05-24-home-logo/`.
+
+Validation:
+
+```sh
+Rscript -e "pkgdown::build_site(preview = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'margin-top: 8rem|width: clamp\(220px, 18vw, 260px\)|max-width: min\(42%, 260px\)|max-width: 132px|width: 132px' pkgdown/extra.css pkgdown-site/extra.css
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-desktop --window-size=2048,900 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/desktop.png file:///tmp/drmtmb-pkgdown-home-logo-scale/pkgdown-site/index.html
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-mobile --window-size=390,844 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/mobile.png file:///tmp/drmtmb-pkgdown-home-logo-scale/pkgdown-site/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site(preview = FALSE)` completed and copied the updated CSS
+  into the generated site.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The CSS propagation scan found the new desktop clearance, homepage logo size,
+  and mobile caps in source and generated CSS.
+- The desktop screenshot shows the larger homepage hex fully below the navbar
+  with top clearance.
+- The mobile screenshot keeps the logo centered above the title without
+  logo-title collision.
+- `git diff --check` was clean.
+
 ## 2026-05-24 - Poisson Phylogenetic q1 Grid Writer Slices 466-480
 
 Goal: add repeatable CSV artifacts for the fitted ordinary Poisson q=1
