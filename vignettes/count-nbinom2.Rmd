@@ -20,10 +20,11 @@ abundance, the extra-Poisson variation around that abundance, or the chance of
 a separate structural zero?
 
 This article stays inside the currently implemented `drmTMB` count surface:
-univariate NB2 models, fixed-effect zero-inflated NB2 models, and the first
-ordinary NB2 `mu` random-effect path. The worked example below remains
-fixed-effect so the mean, overdispersion, and structural-zero pieces are easy
-to read before adding group effects.
+univariate NB2 models, fixed-effect zero-inflated NB2 models, ordinary Poisson
+and NB2 `mu` random-effect paths, and the first ordinary Poisson q=1
+phylogenetic `mu` route. The worked example below remains fixed-effect so the
+mean, overdispersion, and structural-zero pieces are easy to read before adding
+group or phylogenetic effects.
 
 The source motivation comes from Nakagawa et al. (2026), who use
 location-scale models to discuss heteroscedasticity in continuous, count, and
@@ -371,8 +372,9 @@ Poisson, NB2, zero-inflated Poisson, zero-inflated NB2, zero-truncated NB2,
 and hurdle NB2 models are fitted. Ordinary non-zero-inflated Poisson and NB2
 `mu` models can also fit unlabelled random intercepts and independent numeric
 random slopes such as `(1 | site)` and `(0 + effort | site)`. The
-zero-inflated, hurdle, truncated, and scale-side count routes remain
-fixed-effect only.
+first structured count route is ordinary Poisson q=1 phylogenetic `mu`,
+`phylo(1 | species, tree = tree)`, on the log-mean scale. The zero-inflated,
+hurdle, truncated, and scale-side count routes remain fixed-effect only.
 
 ```r
 drmTMB(
@@ -390,7 +392,9 @@ Do not teach the following as fitted count examples yet:
   or hurdle NB2 count components;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_V(V = V)` or deprecated `meta_known_V(V = V)` with counts;
-- `phylo()`, `spatial()`, `animal()`, or `relmat()` count models;
+- NB2, zero-inflated, hurdle, spatial, animal, or `relmat()` structured count
+  models;
+- phylogenetic count slopes or labelled q2/q4 phylogenetic count covariance;
 - bivariate or mixed-response count models such as
   `family = c(gaussian(), nbinom2())`;
 - COM-Poisson underdispersion models.

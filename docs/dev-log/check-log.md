@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Poisson Phylogenetic q1 Runner Contract Slices 421-435
+
+Goal: turn the fitted ordinary Poisson q=1 phylogenetic `mu` route into a
+runner and test contract before broader simulation or documentation claims.
+
+Roles: Ada kept the chunk as planning and documentation. Boole checked that the
+route remains one family, one component, one layer, and q=1. Fisher and Curie
+checked simulation, MCSE, artifact, and failure-ledger contracts. Pat checked
+the count tutorial boundary. Grace checked validation commands. Rose checked
+that the contract does not imply fitted NB2, `zi`, `hu`, spatial, animal, or
+`relmat()` count support. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/72-poisson-phylo-q1-runner-contract.md`.
+- Recorded required `log_sd_phylo`, `sdpars$mu`, `ranef("phylo_mu")`, and q1
+  absent-`corpairs()` checks.
+- Defined artifact manifest and warning/error ledger schemas.
+- Defined smoke-grid and formal-grid admission gates.
+- Added unsupported-syntax guidance and a focused malformed-input, extractor,
+  diagnostic, and artifact test plan.
+- Updated the count tutorial, likelihood notes, ADEMP sheet, implementation
+  map, ROADMAP, NEWS, and after-task report.
+- Cleaned stale validation-status wording in the two previous check-log
+  entries.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/03-likelihoods.md docs/design/70-phase-18-poisson-structured-q1-ademp.md docs/design/72-poisson-phylo-q1-runner-contract.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-poisson-phylo-q1-runner-contract-slices-421-435.md vignettes/count-nbinom2.Rmd vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+rg -n 'phylo\(\), spatial\(\), animal\(\), or relmat\(\) count models|all .*phylo.*count.*planned|all `phylo\(\)` count' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- The stale count-phylogeny boundary scan returned no hits after the runner
+  contract wording was tightened.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Non-Gaussian Structured Issue Ledger Slices 406-420
 
 Goal: turn the stretch queue after the remaining planning gates into
@@ -37,7 +80,6 @@ rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poi
 git diff --check
 ```
 
-- To be completed before commit.
 - `air format` completed without output.
 - `pkgdown::check_pkgdown()` reported no problems.
 - The narrowed false-support scan returned no hits.
@@ -79,7 +121,6 @@ rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poi
 git diff --check
 ```
 
-- To be completed before commit.
 - `air format` completed without output.
 - `pkgdown::check_pkgdown()` reported no problems.
 - The narrowed false-support scan returned no hits.

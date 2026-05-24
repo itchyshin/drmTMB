@@ -181,6 +181,7 @@ only the current user-facing lanes:
 | q=4 interval policy | Users need to know which q=4 rows are point estimates and which have real intervals. | q=4 rows keep `derived_interval_unavailable` until a validated derived-profile or bootstrap route exists. |
 | Non-Gaussian structured q1 gate | Count users need one realistic structural-dependence path before broad non-Gaussian parity. | Poisson q1 phylogenetic `mu` intercept is fitted and smoke-tested; NB2 q1 follows only if recovery, diagnostics, extractor rows, and interval status pass. |
 | Route-specific non-Gaussian issues | Developers need a narrow implementation issue before touching code. | The issue names one family, component, layer, q, comparator, extractor contract, diagnostic contract, interval status, simulation artifact, and user fallback. |
+| Poisson q1 runner contract | The fitted Poisson phylogenetic q1 route needs schema checks before broader simulation claims. | Direct target, extractor, manifest, warning/error, smoke-grid, formal-grid, malformed-neighbour, diagnostic, and artifact tests are specified before the route is promoted beyond smoke evidence. |
 | Map and evidence maintenance | The site should help users fit a supported model rather than read a project diary. | `model-map`, this article, `source-map`, the validation-debt register, and stale scans agree after each substantial feature slice. |
 
 ## Common planned requests

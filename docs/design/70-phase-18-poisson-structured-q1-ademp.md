@@ -153,6 +153,9 @@ The runner should write:
 
 The smoke runner can reuse the existing Phase 18 replicate-runner helpers. It
 should stay opt-in and small enough for local validation, not CRAN-scale tests.
+The detailed runner, manifest, warning/error, documentation-sync, and focused
+test contracts are recorded in
+`docs/design/72-poisson-phylo-q1-runner-contract.md`.
 
 ## User-Facing Boundary Examples
 
