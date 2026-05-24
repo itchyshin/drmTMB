@@ -91,6 +91,11 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
   group count, observations per group, fixed effects, and true random-effect
   SDs.
+- `dgp/sim_dgp_poisson_phylo_q1.R` generates non-zero-inflated Poisson count
+  data with one q=1 phylogenetic log-mean intercept,
+  `phylo(1 | species, tree = tree)`, and its condition helper can cross
+  species count, observations per species, true phylogenetic SD, mean count,
+  slope, and tree shape.
 - `dgp/sim_dgp_nbinom2_mu_random_effect.R` generates non-zero-inflated NB2
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
@@ -131,6 +136,9 @@ Current pilot files:
   and residual `rho12` for bivariate spatial smoke fits.
 - `fit/sim_summarise_poisson_mu_random_effect.R` summarises fixed Poisson
   `mu` coefficients and direct ordinary log-mean random-effect SDs.
+- `fit/sim_summarise_poisson_phylo_q1.R` summarises fixed Poisson `mu`
+  coefficients, the direct phylogenetic `mu` SD, profile-target status, and
+  phylogenetic diagnostic status for the q=1 route.
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
@@ -189,6 +197,8 @@ Current pilot files:
   q=2 bivariate location-covariance surface.
 - `run/sim_run_poisson_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated Poisson `mu` random-effect surface.
+- `run/sim_run_poisson_phylo_q1_smoke.R` does the same for the
+  non-zero-inflated Poisson phylogenetic q=1 `mu` surface.
 - `run/sim_run_nbinom2_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 `mu` random-effect surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
@@ -299,6 +309,10 @@ Current pilot files:
 - `run/sim_summary_poisson_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated Poisson `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_poisson_phylo_q1_smoke.R` runs a tiny non-zero-inflated
+  Poisson phylogenetic q=1 `mu` summary smoke grid and returns aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, and direct profile-target status outputs.
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient

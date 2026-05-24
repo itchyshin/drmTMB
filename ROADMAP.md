@@ -1694,6 +1694,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 448 | Simulation-readiness guard | Done locally: Poisson q1 phylogeny remains smoke/runner-contract level, not formal operating-characteristic evidence. |
 | 449 | Source-ledger stale-scan gate | Done locally: scans check for false broad structured count support and stale all-phylogeny-count wording. |
 | 450 | Evidence-sync closeout | Done locally: source ledgers now agree that implementation, runner evidence, and broad simulation admission are separate gates. |
+| 451 | Poisson phylogenetic q1 DGP | Done locally: `inst/sim/dgp/sim_dgp_poisson_phylo_q1.R` generates seeded ordinary Poisson q1 phylogenetic `mu` data with balanced or mildly uneven ultrametric trees. |
+| 452 | Poisson q1 condition helper | Done locally: the condition helper crosses species count, observations per species, true `sd_phylo`, mean count, slope, and tree shape. |
+| 453 | Poisson q1 fitted summariser | Done locally: `inst/sim/fit/sim_summarise_poisson_phylo_q1.R` records fixed `mu`, phylogenetic SD, standard errors, convergence, Hessian, profile-target, and diagnostic status. |
+| 454 | Poisson q1 smoke runner | Done locally: `inst/sim/run/sim_run_poisson_phylo_q1_smoke.R` wires the DGP, `drmTMB()` fit, summariser, registry, and replicate runner. |
+| 455 | Poisson q1 summary helper | Done locally: `inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R` returns aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, and direct profile-target tables. |
+| 456 | Poisson q1 focused DGP test | Done locally: tests assert seeded reproducibility, tree metadata, truth rows, and non-negative count output. |
+| 457 | Poisson q1 focused runner test | Done locally: tests assert output schemas, profile-target status, manifest rows, finite estimates, and saved RDS paths. |
+| 458 | Poisson q1 malformed helper tests | Done locally: tests reject one-species trees, negative SDs, bad tree-shape labels, and malformed condition rows. |
+| 459 | Poisson q1 neighboring regression tests | Done locally: new tests pass alongside Poisson mean, ordinary Poisson `mu` random-effect, and non-Gaussian structured-boundary tests. |
+| 460 | Poisson q1 simulation README sync | Done locally: `inst/sim/README.md` lists the new DGP, summariser, runner, and summary helper. |
+| 461 | Poisson q1 source-map implementation sync | Done locally: source-map and family-registry rows point to the new runner and focused test. |
+| 462 | Poisson q1 readiness sync | Done locally: readiness and Phase 18 programme rows mark the smoke runner as available while keeping formal recovery grids future. |
+| 463 | Poisson q1 design-doc sync | Done locally: ADEMP and runner-contract docs distinguish implemented smoke files from still-future grid writers and formal coverage. |
+| 464 | Poisson q1 check-log and after-task | Done locally: validation commands and role-perspective closeout are recorded. |
+| 465 | Poisson q1 smoke-runner closeout | Done locally: the branch has runnable smoke infrastructure but no broad non-Gaussian structured parity claim. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1777,6 +1792,7 @@ as the whole comprehensive simulation programme.
 | 406-420 | Planning | Route-specific implementation issue ledger | Done locally as planning: Poisson implementation, Poisson smoke-runner, malformed-neighbour, documentation, NB2 skeleton, component-boundary, extractor-name, and diagnostic-name issue drafts are recorded without opening code. |
 | 421-435 | Planning | Poisson phylogenetic q1 runner contract | Done locally as planning: direct-target, extractor, manifest, warning/error, smoke-grid, formal-grid, comparator, documentation-sync, unsupported-syntax, and test-plan contracts are recorded before broader simulation claims. |
 | 436-450 | Evidence sync | Poisson phylogenetic q1 source-ledger synchronization | Done locally: source map, validation debt, Phase 18 programme, readiness matrix, family registry, NEWS, check-log, and after-task notes point to the runner contract while keeping broad simulation closed. |
+| 451-465 | Simulation smoke | Poisson phylogenetic q1 smoke runner | Done locally: DGP, fit summariser, runner, summary helper, focused tests, README, source-map, readiness, design docs, check-log, and after-task notes create opt-in smoke infrastructure without formal recovery claims. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |

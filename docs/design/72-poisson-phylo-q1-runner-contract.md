@@ -21,6 +21,23 @@ NB2, zero-inflated, hurdle, spatial, animal, `relmat()`, slope, q2, q4,
 structured `sigma`, shape, ordinal, bounded-response, and mixed-response
 neighbours stay planned or unsupported here.
 
+## Implementation Status
+
+Slices 451-465 implemented the first opt-in smoke surface:
+
+```text
+inst/sim/dgp/sim_dgp_poisson_phylo_q1.R
+inst/sim/fit/sim_summarise_poisson_phylo_q1.R
+inst/sim/run/sim_run_poisson_phylo_q1_smoke.R
+inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R
+tests/testthat/test-phase18-poisson-phylo-q1.R
+```
+
+The implemented helper returns aggregate, replicate, manifest, failure-ledger,
+fixed-effect Wald interval, Wald coverage, and direct profile-target status
+tables. Formal recovery grids, CSV grid writers, and coverage claims remain
+future work.
+
 ## Slices 421-422: Target And Extractor Rows
 
 The runner and focused tests should assert the exact public rows before any

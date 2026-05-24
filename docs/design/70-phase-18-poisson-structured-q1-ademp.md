@@ -133,26 +133,27 @@ successful estimates. Do not filter them away before summarising.
 
 ## Smoke-Runner Scaffold
 
-The first implementation issue should create a small runner with this shape:
+The first smoke-runner implementation created this small runner shape:
 
 ```text
 inst/sim/dgp/sim_dgp_poisson_phylo_q1.R
+inst/sim/fit/sim_summarise_poisson_phylo_q1.R
 inst/sim/run/sim_run_poisson_phylo_q1_smoke.R
 inst/sim/run/sim_summary_poisson_phylo_q1_smoke.R
 tests/testthat/test-phase18-poisson-phylo-q1.R
 ```
 
-The runner should write:
+The current summary helper returns:
 
 - replicate-level fit summaries;
 - aggregate bias/RMSE/convergence summaries;
 - warning and error ledgers;
-- `check_drm()` diagnostic rows;
+- `check_drm()` diagnostic status columns;
 - profile-target status rows for `log_sd_phylo`;
-- an artifact manifest with file paths, row counts, and session metadata.
+- an artifact manifest for saved per-replicate RDS results.
 
-The smoke runner can reuse the existing Phase 18 replicate-runner helpers. It
-should stay opt-in and small enough for local validation, not CRAN-scale tests.
+The smoke runner reuses the existing Phase 18 replicate-runner helpers. It
+stays opt-in and small enough for local validation, not CRAN-scale tests.
 The detailed runner, manifest, warning/error, documentation-sync, and focused
 test contracts are recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`.
