@@ -180,6 +180,7 @@ only the current user-facing lanes:
 | p8/q8 location-scale slope planning | Full individual-difference location-scale slope models are scientifically attractive but weakly identified. | q2, q4, q6, and q8 endpoint classes, parameterization, diagnostics, sample-size gates, and interval policy are written before syntax opens. |
 | q=4 interval policy | Users need to know which q=4 rows are point estimates and which have real intervals. | q=4 rows keep `derived_interval_unavailable` until a validated derived-profile or bootstrap route exists. |
 | Non-Gaussian structured q1 gate | Count users need one realistic structural-dependence path before broad non-Gaussian parity. | Poisson q1 phylogenetic `mu` intercept is fitted and smoke-tested; NB2 q1 follows only if recovery, diagnostics, extractor rows, and interval status pass. |
+| Route-specific non-Gaussian issues | Developers need a narrow implementation issue before touching code. | The issue names one family, component, layer, q, comparator, extractor contract, diagnostic contract, interval status, simulation artifact, and user fallback. |
 | Map and evidence maintenance | The site should help users fit a supported model rather than read a project diary. | `model-map`, this article, `source-map`, the validation-debt register, and stale scans agree after each substantial feature slice. |
 
 ## Common planned requests

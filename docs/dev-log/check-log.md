@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-05-23 - Non-Gaussian Structured Issue Ledger Slices 406-420
+
+Goal: turn the stretch queue after the remaining planning gates into
+route-specific implementation issue drafts and an NB2 q1 ADEMP skeleton, without
+opening code.
+
+Roles: Ada kept the chunk separate from implementation. Boole checked that issue
+drafts name one route at a time. Fisher and Curie checked ADEMP, MCSE, artifact,
+and recovery language. Pat checked the documentation-sync issue. Grace checked
+validation commands. Rose checked that the issue drafts did not imply fitted
+NB2, `zi`, `hu`, spatial, animal, or `relmat()` count support. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/71-nongaussian-structured-issue-ledger.md`.
+- Recorded the route key and evidence fields for future implementation issues.
+- Drafted issue bodies for Poisson q1 implementation, Poisson q1 smoke runner,
+  malformed-neighbour tests, and user documentation sync.
+- Added an NB2 q1 ADEMP skeleton covering aims, DGP, estimands, comparator, and
+  performance measures.
+- Added contracts for `zi`/`hu`, non-Gaussian scale, shape/ordinal, known
+  covariance versus latent relatedness, structured count q1 extractor names, and
+  structured count q1 diagnostic names.
+- Updated ROADMAP, NEWS, and the implementation-map current-lane table.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/71-nongaussian-structured-issue-ledger.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-23-nongaussian-issue-ledger-slices-406-420.md vignettes/implementation-map.Rmd
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'NB2 .*structured.*(now fits|now fit|is fitted|implemented)|spatial\(.*poisson.*(now fits|now fit|is fitted|implemented)|animal\(.*poisson.*(now fits|now fit|is fitted|implemented)|relmat\(.*poisson.*(now fits|now fit|is fitted|implemented)|structured count slopes.*(now fit|now fits|fitted|implemented)|structured `zi` random effects.*(now fit|now fits|fitted|implemented)|structured `hu` random effects.*(now fit|now fits|fitted|implemented)' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
+git diff --check
+```
+
+- To be completed before commit.
+- `air format` completed without output.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The narrowed false-support scan returned no hits.
+- `git diff --check` was clean.
+
 ## 2026-05-23 - Non-Gaussian Structured Remaining Gates Slices 389-405
 
 Goal: close the remaining non-Gaussian structured-dependence planning rows after

@@ -1649,6 +1649,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 403 | `zi`/`hu` future issue outline | Done locally as planning: probability-component random effects need a biological use case, prediction semantics, diagnostics, and recovery evidence before fitting. |
 | 404 | Phase 18 admission note | Done locally as planning: non-Gaussian structured routes remain outside broad simulation until one narrow route passes recovery, diagnostics, intervals, and docs. |
 | 405 | Non-Gaussian planning closeout | Done locally as planning: the closeout stops with a map, issue-ready gates, and validation evidence rather than untested likelihood code. |
+| 406 | Route-specific issue ledger | Done locally as planning: `docs/design/71-nongaussian-structured-issue-ledger.md` records the route key and review fields for future implementation issues. |
+| 407 | Poisson q1 implementation issue draft | Done locally as planning: the issue draft names one Poisson `mu` q1 phylogenetic route, extractor evidence, diagnostics, docs, and excluded neighbours. |
+| 408 | Poisson q1 smoke-runner issue draft | Done locally as planning: the issue draft names the DGP, runner files, artifact schema, and initial smoke grid. |
+| 409 | Poisson q1 malformed-neighbour issue draft | Done locally as planning: the issue draft lists unsupported slopes, q2/q4, `zi`, `hu`, NB2, spatial, animal, `relmat()`, scale, shape, ordinal, bounded-response, and cross-parameter requests. |
+| 410 | Poisson q1 documentation issue draft | Done locally as planning: the issue draft names the pages that must move only after implementation and validation evidence exists. |
+| 411 | NB2 q1 aims skeleton | Done locally as planning: NB2 q1 starts from overdispersion-versus-structured-SD recovery, not syntax parity. |
+| 412 | NB2 q1 DGP skeleton | Done locally as planning: the future DGP includes fixed-effect `sigma`, phylogenetic `mu` SD, mean-count levels, overdispersion levels, and tree conditioning. |
+| 413 | NB2 q1 estimands and comparator | Done locally as planning: fixed `mu`, fixed `sigma`, structured SD, direct interval target, and ordinary NB2 grouped comparator are named. |
+| 414 | NB2 q1 performance measures | Done locally as planning: bias, RMSE, coverage, direct SD profile status, convergence, Hessian, boundary, warning/error, runtime, and MCSE reporting are required. |
+| 415 | `zi`/`hu` probability-component contract | Done locally as planning: structured probability-component effects need use cases, prediction semantics, diagnostics, and recovery before syntax. |
+| 416 | Non-Gaussian scale public-name contract | Done locally as planning: structured scale effects need family-specific interpretation and separation from latent structured SD. |
+| 417 | Shape and ordinal public-name contract | Done locally as planning: shape and ordinal random effects need comparator and boundary evidence before mixed-model syntax. |
+| 418 | Known covariance versus latent relatedness issue contract | Done locally as planning: issue titles, formulas, diagnostics, and examples must keep known sampling covariance separate from latent relatedness. |
+| 419 | Structured count q1 extractor-name registry | Done locally as planning: `sdpars$mu`, route-specific `ranef()`, direct `log_sd_*`, and absent q1 `corpairs()` rows are reserved before code. |
+| 420 | Structured count q1 diagnostic-name registry | Done locally as planning: replication, SD-ratio/boundary, Hessian, fixed-gradient, family warning, and unsupported-neighbour rows are reserved before code. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -1729,6 +1744,7 @@ as the whole comprehensive simulation programme.
 | 371-380 | Documentation | Spatial q4 evidence and map closeout | Done locally: public status surfaces, formula grammar, NEWS, check-log, after-task report, pkgdown, and stale scans separate fitted spatial q4 from remaining spatial plans. |
 | 381-388 | Planning | Non-Gaussian structured-dependence front gate | Done locally as planning: family, component, and layer inventories now narrow the first route to Poisson phylogenetic q1 `mu`, with NB2, `zi`, `hu`, and structured slopes held behind explicit gates. |
 | 389-405 | Planning | Remaining non-Gaussian structured-dependence gates | Done locally as planning: scale, shape, ordinal, known-covariance boundaries, extractor/diagnostic/simulation/interval contracts, user-route fallbacks, error-message gates, and issue-template fields now close as design-first gates. |
+| 406-420 | Planning | Route-specific implementation issue ledger | Done locally as planning: Poisson implementation, Poisson smoke-runner, malformed-neighbour, documentation, NB2 skeleton, component-boundary, extractor-name, and diagnostic-name issue drafts are recorded without opening code. |
 | 268 | Support audit | Pre-simulation capability matrix | Done locally: `docs/design/46-pre-simulation-readiness-matrix.md` now has one capability audit table that says which Gaussian, non-Gaussian, shape, inflation, bivariate, random-slope, meta-analysis, phylogenetic, spatial, animal, and `relmat()` surfaces are implemented, tested, planned, or unsupported before Phase 18 grids admit them. |
 | 269 | Random slopes | Ordinary location random slopes | Done locally: a q=4 ordinary Gaussian `mu` block test now confirms multi-slope SD/correlation names, `corpairs()` classes, and profile-target status, while README/model-map/which-scale wording names q > 2 as fitted but sample-size hungry. |
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
