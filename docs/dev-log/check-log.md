@@ -38646,3 +38646,64 @@ git diff --check
   p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
   structured dependence.
 - `git diff --check` was clean.
+## 2026-05-25 - Common-Family Artifact Review Lane
+
+Goal:
+
+- Split the proportion, positive-continuous, and ordinal Phase 18 artifact work
+  into a stacked review lane on top of PR #324 without carrying the unrelated
+  NB2 formal-audit, Ayumi/Santi, or phylogenetic direct-SD dirty-tree lanes.
+
+Changes:
+
+- Created branch `codex/phase18-common-family-artifacts` in
+  `/private/tmp/drmTMB-common-family-artifacts`.
+- Added the fixed-effect proportion, positive-continuous, and ordinal DGP,
+  summariser, smoke, summary, grid-writer, first-wave, manual Actions, tests,
+  design notes, release note, roadmap note, simulation README entries, and
+  after-task reports.
+- Kept the lane fixed-effect only: no bounded-response random effects, ordinal
+  random effects, positive-response random effects, structured non-Gaussian
+  effects, mixed-response models, skew-normal, Tweedie, or generalized Gamma
+  likelihoods were added.
+
+Member-group review:
+
+- Ada split the branch lane and kept it stacked on PR #324.
+- Boole checked that the new Actions task names and formula surfaces remain
+  parseable and narrow.
+- Noether checked the ordinal no-intercept/cutpoint convention.
+- Fisher checked that the lane claims artifact evidence rather than formal
+  recovery.
+- Grace checked runner, workflow, YAML, parse, and focused tests.
+- Rose checked stale wording and kept unrelated dirty-tree lanes out of this
+  branch.
+- Pat checked that each lane tells users what is supported and what to try
+  later.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+air format .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md docs/dev-log/after-task/2026-05-25-phase18-core-family-completion-map-slices-1279-1288.md docs/dev-log/after-task/2026-05-25-phase18-proportion-fixed-effect-artifacts-slices-1289-1298.md docs/dev-log/after-task/2026-05-25-phase18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/dev-log/after-task/2026-05-25-phase18-ordinal-fixed-effect-artifacts-slices-1309-1318.md inst/sim/README.md inst/sim/dgp/sim_dgp_proportion_fixed_effect.R inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R inst/sim/fit/sim_summarise_proportion_fixed_effect.R inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R inst/sim/fit/sim_summarise_ordinal_fixed_effect.R inst/sim/run/sim_run_proportion_fixed_effect_smoke.R inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R inst/sim/run/sim_write_proportion_fixed_effect_grid.R inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R inst/sim/run/sim_write_ordinal_fixed_effect_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-proportion-fixed-effect.R tests/testthat/test-phase18-positive-continuous-fixed-effect.R tests/testthat/test-phase18-ordinal-fixed-effect.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R
+Rscript -e "devtools::test(filter = '^phase18-(proportion-fixed-effect|positive-continuous-fixed-effect|ordinal-fixed-effect|first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_proportion_fixed_effect.R','inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R','inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R','inst/sim/fit/sim_summarise_proportion_fixed_effect.R','inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R','inst/sim/fit/sim_summarise_ordinal_fixed_effect.R','inst/sim/run/sim_run_proportion_fixed_effect_smoke.R','inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R','inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R','inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R','inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R','inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R','inst/sim/run/sim_write_proportion_fixed_effect_grid.R','inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R','inst/sim/run/sim_write_ordinal_fixed_effect_grid.R','inst/sim/run/sim_run_first_wave_summary_smoke.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-proportion-fixed-effect.R','tests/testthat/test-phase18-positive-continuous-fixed-effect.R','tests/testthat/test-phase18-ordinal-fixed-effect.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+rg -n 'proportion.*(still need|needs).*DGP|beta.*still need.*DGP|beta_binomial.*still need.*DGP|positive-continuous.*(still need|needs).*DGP|lognormal.*still need.*DGP|Gamma.*still need.*DGP|ordinal.*(still need|needs).*DGP|cumulative_logit.*still need.*DGP|fixed-effect ordinal.*(still need|needs).*grid|Promote fixed-effect ordinal artifacts|next.*ordinal artifacts|Make proportions the next implementation lane|add positive-continuous lognormal/Gamma artifacts' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+git diff --check
+```
+
+- Formatting completed without output.
+- Focused tests passed: `phase18-actions-runner`,
+  `phase18-first-wave-summary-smoke-runner`,
+  `phase18-ordinal-fixed-effect`,
+  `phase18-positive-continuous-fixed-effect`, and
+  `phase18-proportion-fixed-effect` completed with no failures.
+- The workflow YAML parsed successfully.
+- The touched R/test scripts parsed successfully.
+- The stale-wording scan returned no current missing-artifact claims.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-common-family-review-lane.md`
