@@ -38,6 +38,9 @@ biv_gaussian <- function() {
 #' The `nu` parameter uses a log link with a lower bound of 2:
 #' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
 #' finite-variance region while still allowing heavy tails.
+#' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
+#' first Student-t mixed-model slice; `sigma` and `nu` random effects remain
+#' separate planned gates.
 #'
 #' @return A `drm_family` object.
 #' @export

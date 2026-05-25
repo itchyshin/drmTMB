@@ -1,7 +1,7 @@
 #' Fit a distributional regression model with TMB
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
-#' supports univariate Gaussian location-scale models, fixed-effect
+#' supports univariate Gaussian location-scale models,
 #' univariate Student-t location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' fixed-effect beta mean-scale models for strict proportions,
@@ -10,7 +10,7 @@
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
 #' negative-binomial mean-dispersion, and hurdle negative-binomial
-#' mean-dispersion models for counts. Lognormal, Gamma, ordinary
+#' mean-dispersion models for counts. Student-t, lognormal, Gamma, ordinary
 #' Poisson, ordinary negative-binomial, and zero-truncated negative-binomial
 #' `mu` formulas support ordinary unlabelled random intercepts where
 #' documented. Poisson, ordinary negative-binomial, and zero-truncated
@@ -1008,6 +1008,13 @@ drm_build_student_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_student_mu_random_terms(mu_re$terms)
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_student_sigma_random_terms(sigma_re$terms)
+
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -1016,7 +1023,12 @@ drm_build_student_ls_spec <- function(
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    all.vars(f_nu),
+    random_effect_vars(mu_re$terms)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -1062,6 +1074,7 @@ drm_build_student_ls_spec <- function(
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in Student-t model.")
   }
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
 
   spec <- list(
     model_type = "student",
@@ -1079,18 +1092,18 @@ drm_build_student_ls_spec <- function(
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", "nu"),
-    start = student_ls_start(y, X_mu, X_sigma, X_nu),
-    map = student_ls_map(),
-    random_names = NULL
+    start = student_ls_start(y, X_mu, X_sigma, X_nu, re_mu = re_mu),
+    map = student_ls_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3719,6 +3732,42 @@ validate_truncated_nbinom2_sigma_random_terms <- function(terms) {
     "Non-Gaussian {.code sigma} random effects are not implemented for {.fn truncated_nbinom2}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary positive-count {.code mu} random intercepts; overdispersion random effects need their own recovery tests."
+  ))
+}
+
+validate_student_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") ||
+        !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only independent {.fn student} {.code mu} random intercepts are implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use syntax like {.code bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)}.",
+      "i" = "Student-t random slopes, labelled covariance blocks, structured effects, scale random effects, and shape random effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_student_sigma_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "Non-Gaussian {.code sigma} random effects are not implemented for {.fn student}.",
+    "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "This slice adds only ordinary Student-t {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
   ))
 }
 
@@ -8625,8 +8674,14 @@ gaussian_ls_dummy_start <- function(
   )
 }
 
-student_ls_start <- function(y, X_mu, X_sigma, X_nu) {
-  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma)
+student_ls_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  X_nu,
+  re_mu = empty_random_mu_structure(length(y))
+) {
+  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma, re_mu = re_mu)
   c(
     list(
       beta_mu = gaussian_start$beta_mu,
@@ -8637,9 +8692,9 @@ student_ls_start <- function(y, X_mu, X_sigma, X_nu) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = gaussian_start$u_mu,
+      log_sd_mu = gaussian_start$log_sd_mu,
+      eta_cor_mu = gaussian_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -9607,28 +9662,12 @@ gaussian_ls_map <- function(
   out
 }
 
-student_ls_map <- function() {
-  list(
-    beta_sd_mu = factor(NA),
-    beta_mu1 = factor(NA),
-    beta_mu2 = factor(NA),
-    beta_sigma1 = factor(NA),
-    beta_sigma2 = factor(NA),
-    beta_rho12 = factor(NA),
-    beta_cor_mu = factor(NA),
-    beta_zi = factor(NA),
-    theta_ord = factor(NA),
-    u_mu = factor(NA),
-    log_sd_mu = factor(NA),
-    eta_cor_mu = factor(NA),
-    eta_cor_mu_sigma = factor(NA),
-    eta_cor_sigma = factor(NA),
-    u_sigma = factor(NA),
-    log_sd_sigma = factor(NA),
-    u_phylo = factor(NA),
-    log_sd_phylo = factor(NA),
-    eta_cor_phylo = factor(NA)
-  )
+student_ls_map <- function(
+  re_mu = empty_random_mu_structure(1L)
+) {
+  out <- gaussian_ls_map(re_mu = re_mu)
+  out$beta_nu <- NULL
+  out
 }
 
 covariance_block_re_start <- function(registry, y_scale = c(1, 1)) {
@@ -9986,6 +10025,8 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "student")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 3L,
       y = spec$y,
@@ -10001,7 +10042,7 @@ make_tmb_data <- function(spec) {
       X_sigma = spec$X$sigma,
       X_nu = spec$X$nu,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -10013,16 +10054,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -10967,6 +11008,7 @@ split_tmb_sdpars <- function(par, spec) {
       c(
         "gaussian",
         "biv_gaussian",
+        "student",
         "lognormal",
         "gamma",
         "poisson",
@@ -11244,6 +11286,7 @@ split_tmb_random_effects <- function(par, spec) {
       c(
         "gaussian",
         "biv_gaussian",
+        "student",
         "lognormal",
         "gamma",
         "poisson",
