@@ -38825,3 +38825,70 @@ git diff --check
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-positive-continuous-mu-random-intercepts.md`
+
+## 2026-05-25 - Student-t `mu` Random Intercepts
+
+Goal:
+
+- Add the first Student-t mixed-model slice: ordinary unlabelled `mu` random
+  intercepts with `bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)`.
+
+Changes:
+
+- Wired Student-t `mu` random intercepts through formula parsing, TMB data,
+  likelihood, starts/maps, `sdpars`, `random_effects`, profile targets,
+  prediction contributions, and `check_drm()` replication diagnostics.
+- Kept Student-t random slopes, labelled covariance blocks, `sigma` random
+  effects, `nu` random effects, known covariance, structured effects, and
+  bivariate Student-t models out of scope with targeted guardrail tests.
+- Updated `README.md`, `ROADMAP.md`, `NEWS.md`, `R/drmTMB.R`, `R/check.R`,
+  `R/family.R`, the formula grammar, the family registry, the readiness
+  matrix, known limitations, generated Rd files, and the formula-grammar
+  vignette.
+
+Member-group review:
+
+- Ada kept this as a stacked source-test lane on top of the positive-continuous
+  random-intercept PR.
+- Boole checked that only ordinary `(1 | id)` location random intercept syntax
+  is admitted for Student-t.
+- Gauss and Noether checked the predictor scale: the random intercept enters
+  the identity-location `mu` predictor while `sigma` and `nu` remain
+  fixed-effect formulas.
+- Curie and Fisher checked that the recovery test covers convergence,
+  positive-definite Hessian status, fixed effects, random-effect SDs,
+  conditional effects, direct `log_sd_mu` profile targets, and Student-t `nu`
+  diagnostics without becoming a formal grid claim.
+- Grace checked parse, focused tests, documentation generation, formatting,
+  stale wording, and diff hygiene.
+- Rose checked stale wording and kept Student-t slope, scale, shape,
+  structured, known-covariance, and bivariate neighbours out of scope.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','R/family.R','tests/testthat/test-student-location-scale.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript -e "devtools::test(filter = 'student-location-scale', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(student-location-scale|check-drm|profile-targets)$', reporter = 'summary')"
+Rscript -e "devtools::document()"
+air format R/drmTMB.R R/check.R R/family.R src/drmTMB.cpp tests/testthat/test-student-location-scale.R README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md docs/dev-log/check-log.md vignettes/formula-grammar.Rmd
+rg --pcre2 -n 'Student-t.*fixed-effect only|student\\(\\).*fixed-effect only|Student-t random effects|Student-t.*random effects.*later|Student-t.*mu.*planned|ordinary Student-t.*source-test|Student-t/zero-truncated|Student-t random slopes|nu random effects|student\\(\\).*random intercept' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+git diff --check
+```
+
+- The parse check passed before and after formatting.
+- Focused Student-t tests passed.
+- Broader focused tests for Student-t, `check_drm()`, and `profile_targets()`
+  passed.
+- `devtools::document()` regenerated `man/drmTMB.Rd` and `man/student.Rd`.
+- Formatting completed without output.
+- The stale-wording scan returned only intentional boundary statements about
+  Student-t random slopes, `sigma` random effects, `nu` random effects,
+  structured effects, known covariance, and bivariate Student-t models that
+  remain planned.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-student-t-mu-random-intercepts.md`

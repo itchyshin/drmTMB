@@ -802,6 +802,24 @@ Type objective_function<Type>::operator()()
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> nu = Type(2.0) + exp(eta_nu);
     for (int i = 0; i < y.size(); ++i) {

@@ -125,10 +125,12 @@ Current implemented Student-t form:
 ```r
 drm_formula(y ~ x, sigma ~ z, nu ~ 1)
 drm_formula(y ~ x, sigma ~ z, nu ~ x)
+drm_formula(y ~ x + (1 | id), sigma ~ z, nu ~ 1)
 ```
 
-Student-t random effects, known sampling covariance, phylogenetic terms, and
-bivariate Student-t models are later phases.
+Student-t ordinary `mu` random intercepts are a first slice. Student-t random
+slopes, `sigma` random effects, `nu` random effects, known sampling covariance,
+phylogenetic terms, and bivariate Student-t models are later phases.
 
 Future skew-normal and skew-t formulas should also start with fixed-effect
 residual-shape terms such as `nu ~ x`. A later latent-effect spelling such as
