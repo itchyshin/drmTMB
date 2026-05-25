@@ -2,178 +2,295 @@
 
 Record meaningful development checks here.
 
-## 2026-05-24 - Crash Recovery Consolidation
+## 2026-05-24 - Phase 18 Actions Package Load Follow-Up
 
-Goal: recover the mixed dirty tree after another Codex crash, verify the NB2
-implementation surfaces and pkgdown wording from repository evidence, and leave
-a durable checkpoint before committing or continuing.
+Goal: recover the NB2 q1 formal shard dispatch after the 16 `main` workflow
+runs from merged PR #322 all failed before writing artifacts.
 
-Roles: Ada rehydrated the branch from `git status`, recent commits, dev-log
-entries, and the newest recovery checkpoint. Boole checked that public formula
-claims stayed bounded to ordinary NB2 `mu` phylogeny and ordinary NB2
-log-`sigma` random intercepts. Gauss and Noether checked that the stated NB2
-likelihood contracts stayed separate for log-mean phylogeny and
-log-overdispersion grouping. Fisher kept both routes at focused smoke evidence.
-Pat and Rose tightened stale reader-facing wording where broad "NB2 `sigma`"
-language could be misread after the separate `sigma` gate landed. Grace reran
-focused tests, pkgdown checks, site build, formatting, and diff hygiene. These
-were role perspectives, not spawned agents.
+Roles: Ada owned the recovery path and branch hygiene. Grace inspected the
+GitHub Actions run state and workflow boundary. Curie reproduced the runner
+failure and added the regression test. Fisher kept the failed shards out of the
+formal evidence ledger. Rose checked that this is an operational runner fix,
+not a model-promotion result. These were role perspectives, not spawned agents.
 
 Changes:
 
-- Added a fresh recovery checkpoint:
-  `docs/dev-log/recovery-checkpoints/2026-05-24-090255-codex-checkpoint.md`.
-- Reconciled same-day wording so the NB2 phylogenetic q1 task now says it kept
-  `sigma` fixed only within that slice, while the later ordinary NB2
-  log-`sigma` random-intercept slice is acknowledged.
-- Tightened NEWS, ROADMAP, worked-example inventory, and readiness matrix
-  wording from broad "NB2 `sigma` remains planned" language to precise
-  boundaries: NB2 `sigma` slopes, structured `sigma`, zero-inflated/truncated
-  scale routes, and NB2 `sigma` phylogeny remain planned.
+- Updated `inst/sim/run/sim_run_actions_cell.R` so non-dry-run Phase 18
+  Actions tasks attach the installed `drmTMB` package before sourcing
+  simulation helpers.
+- Kept dry-run parsing lightweight, so local dry-run tests still exercise
+  argument parsing without requiring a package install in the subprocess.
+- Added a focused `test-phase18-actions-runner` guard that fails if the package
+  load call is missing or moved after helper sourcing.
 
 Validation:
 
 ```sh
-Rscript tools/codex-checkpoint.R --goal "resume after crash; consolidate NB2 sigma random-intercept, NB2 phylo q1, and pkgdown dirty tree" --next "if continuing now, first review/split the mixed dirty tree into focused commits; rerun focused NB2 and pkgdown checks only if evidence freshness is needed"
-Rscript -e "devtools::test(filter = 'nbinom2-location-scale|nongaussian-scale-boundary', reporter = 'summary')"
-Rscript -e "devtools::test(filter = 'poisson-mean|phase18-poisson-mu-random-effect|nongaussian-structured-boundary|emmeans-methods', reporter = 'summary')"
-air format NEWS.md ROADMAP.md docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-slices-496-510.md
-Rscript -e "pkgdown::check_pkgdown()"
-Rscript -e "pkgdown::build_site()"
-rg -n 'NB2 `sigma`,|NB2 `sigma` random effects remain planned|NB2 `sigma` remains fixed-effect only|Non-Gaussian `sigma` random effects, structured slopes|keep NB2 `sigma`,|NB2 `sigma`, structured slopes' NEWS.md ROADMAP.md docs/design vignettes docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-slices-496-510.md -g '!*.html'
-rg -n 'NB2 <code>sigma</code>,|NB2 <code>sigma</code> random effects remain planned|NB2 <code>sigma</code> remains fixed-effect only|Non-Gaussian <code>sigma</code> random effects, structured slopes|keep NB2 <code>sigma</code>,|NB2 <code>sigma</code>, structured slopes' pkgdown-site -g '*.html'
-rg -n 'NB2 `sigma` phylogeny|ordinary NB2 log-`sigma` random intercepts|NB2 log-`sigma` focused recovery|bf\(count ~ x, sigma ~ z \+ \(1 \| id\)\)' NEWS.md ROADMAP.md README.md docs/design vignettes pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/distribution-families.html pkgdown-site/articles/count-nbinom2.html -g '!*.json'
+gh run list --repo itchyshin/drmTMB --branch main --limit 40 --json databaseId,workflowName,displayTitle,event,status,conclusion,createdAt,updatedAt,headSha,url
+gh run view 26372989242 --repo itchyshin/drmTMB --log-failed
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --output-dir=/tmp/drmTMB-nb2-repro-shard1 --n-reps=1 --cores=1 --backend=none --master-seed=20260602 --overwrite=true --render=false --require-complete=false --profile-parameters=log_sd_phylo --condition-shard=1 --condition-shards=16 --bootstrap-nsim=0 --bootstrap-cores=1 --bootstrap-backend=none
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(c("--task=nbinom2_phylo_q1_formal", "--output-dir=/tmp/drmTMB-nb2-repro-patched-onecell", "--n-reps=1", "--cores=1", "--backend=none", "--master-seed=20260602", "--overwrite=true", "--render=false", "--require-complete=false", "--profile-parameters=log_sd_phylo", "--condition-shard=1", "--condition-shards=288", "--bootstrap-nsim=0", "--bootstrap-cores=1", "--bootstrap-backend=none"))'
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R', 'tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+air format inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --dry-run=true --n-reps=500 --cores=10 --backend=multicore --profile-parameters=log_sd_phylo --condition-shard=16 --condition-shards=16
 git diff --check
 ```
 
 Results:
 
-- The recovery checkpoint was written successfully.
-- The focused NB2/scale-boundary test run passed for
-  `nbinom2-location-scale`, `nongaussian-scale-boundary`, and the
-  filter-adjacent `truncated-nbinom2-location-scale` tests.
-- The adjacent Poisson, non-Gaussian structured boundary, and `emmeans` tests
-  passed.
-- `air format` completed without output.
-- `pkgdown::check_pkgdown()` reported no problems.
-- `pkgdown::build_site()` completed after the final wording patch and rebuilt
-  README, ROADMAP, NEWS, reference pages, and articles.
-- The source and rendered stale-claim scans found no current false claim that
-  all NB2 `sigma` random effects remain planned or fixed-effect only. Remaining
-  hits were historical command text, expected boundary wording such as NB2
-  `sigma` phylogeny, or unrelated figure-label text.
-- The positive scan found the ordinary NB2 log-`sigma` random-intercept and NB2
-  `sigma` phylogeny boundary wording in source and rendered pages.
-- `git diff --check` was clean.
+- PR #322 merged at `3e68109d`; the 16 manual
+  `nbinom2_phylo_q1_formal` shard dispatches from that commit all completed as
+  failed runs before artifact upload.
+- Run `26372989242` showed the selected `nbinom2_phylo_q1_formal` job failing
+  in `Run Phase 18 task` with `The NB2 phylogenetic q1 smoke run produced no
+  summaries.`
+- A clean detached worktree at `3e68109d` reproduced the no-summary failure
+  with `n_reps = 1`; all 18 saved replicate RDS files for shard 1 contained
+  `there is no package called 'drmTMB'`.
+- The same formal shard run under `devtools::load_all()` completed, which
+  confirmed that the model surface was not the immediate failure source.
+- The patched one-cell formal run under `devtools::load_all()` wrote
+  `surface = nbinom2_phylo_q1_formal_grid`, one formal condition, six
+  replicate rows, and `manifest_status = ok`.
+- `devtools::test(filter = 'phase18-actions-runner')` passed with 24
+  assertions.
+- The formal shard dry-run still printed `n_rep = 500`, `backend = multicore`,
+  `cores = 10`, `profile_parameters = log_sd_phylo`,
+  `condition_shard = 16`, and `condition_shards = 16`.
+- `parse`, `air format`, and `git diff --check` were clean.
 
-## 2026-05-24 - NB2 Sigma Random-Intercept Gate
+## 2026-05-24 - Supported Non-Gaussian Evidence Goal Slices 576-650
 
-Goal: close the local ordinary NB2 log-`sigma` random-intercept slice without
-opening Poisson scale, NB2 `sigma` slopes, structured `sigma`, zero-inflated,
-truncated, hurdle, or joint `mu`/`sigma` random-effect routes.
+Goal: implement the supported non-Gaussian evidence goal as a bounded evidence
+closeout, not as broad non-Gaussian random-effect or structured-effect parity.
 
-Roles: Ada rehydrated the crashed run from repository evidence and kept the
-scope to the ordinary non-zero-inflated NB2 gate. Boole checked the public
-formula boundary. Gauss checked the TMB likelihood surface at the code-path
-level. Curie checked the focused recovery and malformed-neighbour tests. Fisher
-kept the claim at focused-test evidence rather than broad simulation. Pat
-checked reader-facing status wording. Rose checked stale claims, the roadmap
-surfaces, and the after-task trail. Grace checked formatting, pkgdown, and
-diff hygiene. These were role perspectives, not spawned agents.
+Roles: Ada owned sequencing and branch hygiene. Grace checked the Actions
+concurrency contract and package checks. Curie checked the simulation-test
+surface and shard runner tests. Fisher checked the formal-promotion boundary.
+Rose checked the missing-cell audit and stale wording. Pat checked that
+reader-facing wording keeps fitted alternatives separate from blocked
+neighbours. These were role perspectives, not spawned agents.
 
 Changes:
 
-- Completed the ordinary NB2 grouped overdispersion path:
-  `bf(count ~ x, sigma ~ z + (1 | id))`.
-- The fitted effect enters the NB2 `log(sigma)` predictor through `u_sigma`
-  and `log_sd_sigma`, while `mu` random effects, phylogenetic `mu`, and the
-  NB2 `sigma` intercept gate stay mutually bounded in this first slice.
-- Focused tests now cover recovery, `sdpars$sigma`, `random_effects$sigma`,
-  `sigma()`, `predict(dpar = "sigma")`, direct `log_sd_sigma`
-  `profile_targets()`, `check_drm()` replication diagnostics, and malformed
-  neighbour errors for `sigma` slopes, labelled blocks, zero-inflated NB2
-  `sigma`, and joint `mu`/`sigma` random effects.
-- README, NEWS, ROADMAP, formula grammar, family registry, likelihood notes,
-  validation-debt, readiness, simulation-programme, implementation-map, model
-  map, source map, and count/family tutorials now say that ordinary NB2
-  log-`sigma` random intercepts fit while Poisson has no `sigma` parameter and
-  richer NB2 scale routes remain planned.
+- Added shard-aware workflow concurrency for Phase 18 formal q1 tasks, using
+  `condition_shard` and `condition_shards` in the concurrency group.
+- Added a focused regression test that checks the workflow file still mentions
+  the shard inputs.
+- Added `docs/design/79-supported-nongaussian-evidence-goal.md` as the
+  goal-level non-Gaussian evidence ledger.
 - Added
-  `docs/dev-log/after-task/2026-05-24-nb2-sigma-random-intercept.md`.
+  `docs/dev-log/after-task/2026-05-24-supported-nongaussian-evidence-goal.md`.
+- Synced the Phase 18 simulation programme, readiness matrix, validation-debt
+  register, simulation README, source map, ROADMAP, and NEWS.
+- Kept mixed-response, inflation/hurdle random-effect, zero-one-inflation,
+  shape/skew random-effect, cross-parameter covariance, and broad structured
+  non-Gaussian routes planned or blocked.
 
-Validation:
+Validation planned for closeout:
 
 ```sh
-air format NEWS.md README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/65-implementation-map-slices-341-355.md vignettes/count-nbinom2.Rmd vignettes/distribution-families.Rmd vignettes/formula-grammar.Rmd vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd
-Rscript -e "devtools::test(filter = 'nbinom2-location-scale|nongaussian-scale-boundary', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-nbinom2-phylo-q1|phase18-poisson-phylo-q1', reporter = 'summary')"
 Rscript -e "pkgdown::check_pkgdown()"
-rg -n 'NB2 `sigma` random effects remain planned|NB2 `sigma` random effects outside Wave A|NB2, truncated NB2, and hurdle NB2 `sigma` formulas remain fixed-effect only|Poisson `sigma` random intercepts|Poisson scale random effects now fit|joint `mu`/`sigma` random effects are fitted' README.md ROADMAP.md NEWS.md docs/design vignettes -g '!*.html'
-rg -n 'bf\(count ~ x, sigma ~ z \+ \(1 \| id\)\)|log-`sigma` random-intercept|direct `log_sd_sigma`|NB2 `sigma` random intercepts' README.md ROADMAP.md NEWS.md docs/design vignettes tests/testthat/test-nbinom2-location-scale.R -g '!*.html'
-gh issue list --repo itchyshin/drmTMB --state open --search "NB2 sigma random" --limit 20 --json number,title,state,url,labels
-gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 sigma" --limit 20 --json number,title,state,url,labels
+rg -n 'non-Gaussian.*(parity|all routes|all random effects|now supports broad|fully supports)|NB2.*q1.*formal recovery.*(passed|complete)|NB2.*q1.*coverage.*(passed|complete)|zi.*random effects.*(fitted|implemented)|hu.*random effects.*(fitted|implemented)|mixed-response.*(fitted|implemented)|structured non-Gaussian.*(broad|parity|all)' README.md ROADMAP.md NEWS.md docs/design vignettes inst/sim tests -g '!*.html'
 git diff --check
 ```
 
 Results:
 
-- `air format` completed without output.
-- The focused test run passed for `nbinom2-location-scale`,
-  `nongaussian-scale-boundary`, and the filter-adjacent
-  `truncated-nbinom2-location-scale` tests.
+- Focused tests passed for `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, and `phase18-poisson-phylo-q1`.
+- The shard dry-run printed `n_rep=500`, `backend=multicore`, `cores=10`,
+  `profile_parameters=log_sd_phylo`, `condition_shard=16`, and
+  `condition_shards=16`.
 - `pkgdown::check_pkgdown()` reported no problems.
-- The direct stale-claim scan returned no hits for false current claims that
-  NB2 `sigma` random effects remain broadly planned, Poisson scale random
-  effects fit, or joint `mu`/`sigma` random effects are fitted.
-- The positive scan found the new NB2 log-`sigma` random-intercept syntax,
-  direct `log_sd_sigma` wording, and test evidence across README, NEWS,
-  ROADMAP, design docs, vignettes, and `test-nbinom2-location-scale.R`.
-- GitHub issue search for `"nbinom2 sigma"` returned no open issues. The broader
-  `"NB2 sigma random"` search returned issue #128 and issue #57, but neither is
-  a direct ordinary NB2 `sigma` random-intercept implementation issue, so no
-  issue was updated or opened.
+- The stale-claim scan returned boundary and historical guardrail wording, not
+  a current false claim that broad non-Gaussian parity, mixed-response
+  families, or inflation/hurdle random effects are fitted.
 - `git diff --check` was clean.
+- GitHub issue searches found no direct open "NB2 formal" issue to mutate; the
+  broader "non-Gaussian evidence" search returned unrelated large-data,
+  tutorial, comparator, random-slope, relatedness, and visualization issues.
 
-## 2026-05-24 - pkgdown Logo Header Spacing
+## 2026-05-24 - NB2 q1 Sharded Formal Grid Slices 561-575
 
-Goal: stop the pkgdown page-header logo from being clipped by the fixed navbar
-and make the logo large enough to read on article and reference pages.
+Goal: merge the NB2 smoke/formal-admission PR, attempt the clean formal-grid
+dispatch, and replace the infeasible singleton job with shard-safe Phase 18
+formal dispatch metadata.
 
-Roles: Ada kept the change scoped to pkgdown CSS and the generated-site
-artifact. Grace checked pkgdown build and generated CSS propagation. Pat checked
-the reader-visible header geometry. Rose checked that the task left a compact
-audit trail. These were role perspectives, not spawned agents.
+Roles: Ada owned sequencing and branch hygiene. Grace merged #320, dispatched
+and cancelled the singleton Actions run, and checked focused tests. Curie
+checked the Actions runner and shard tests. Fisher checked that shard artifacts
+cannot promote the NB2 q1 route alone. Rose checked docs and stale promotion
+wording. Pat checked that the reader-facing wording still says what evidence is
+missing. These were role perspectives, not spawned agents.
 
 Changes:
 
-- Updated `pkgdown/extra.css` so wide pkgdown pages reserve `6rem` top spacing
-  under the fixed navbar.
-- Increased page-header logo width to `clamp(130px, 12vw, 160px)` and reserved
-  `10.5rem` minimum header height on non-mobile pages.
+- Merged PR #320 after its R-CMD-check run passed on Ubuntu, macOS, and
+  Windows.
+- Dispatched Actions run `26371083871` from `main` for
+  `task = "nbinom2_phylo_q1_formal"`, `n_reps = 500`, `cores = 10`,
+  `backend = "multicore"`, and `profile_parameters = "log_sd_phylo"`.
+- Cancelled the singleton run after the existing local sentinel and replicate
+  audit manifests implied roughly 27-31 optimistic ten-worker hours, which is
+  beyond the workflow's 360-minute job cap.
+- Added `condition_shard` and `condition_shards` workflow inputs and runner
+  arguments for Poisson/NB2 phylogenetic q1 formal tasks.
+- Added stable formal-condition sharding and rejected shard inputs for
+  non-formal tasks.
+- Added shard metadata to Poisson and NB2 formal spec files.
+- Kept `coverage_claim_allowed = FALSE` for shard artifacts whenever
+  `condition_shards > 1`.
+- Added
+  `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md`.
 
 Validation:
 
 ```sh
-Rscript -e "pkgdown::build_site()"
+Rscript -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_write_poisson_phylo_q1_grid.R','tests/testthat/test-phase18-nbinom2-phylo-q1.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --dry-run=true --n-reps=500 --cores=10 --backend=multicore --profile-parameters=log_sd_phylo --condition-shard=2 --condition-shards=16
+Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-nbinom2-phylo-q1|phase18-poisson-phylo-q1', reporter = 'summary')"
 Rscript -e "pkgdown::check_pkgdown()"
-rg -n 'logo.*(clip|trunc|navbar|overlap)|navbar.*logo|pkgdown.*logo' README.md ROADMAP.md NEWS.md docs/design vignettes pkgdown -g '!*.html'
-rg -n 'margin-top: 6rem|width: clamp\(130px, 12vw, 160px\)|min-height: 10\.5rem' pkgdown/extra.css pkgdown-site/extra.css
-gh issue list --repo itchyshin/drmTMB --state open --search "logo navbar pkgdown" --limit 10 --json number,title,state,url,labels
+gh run cancel 26371083871 --repo itchyshin/drmTMB
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2 formal" --limit 20 --json number,title,state,url,labels
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete)|NB2.*q1.*coverage.*(now|passed|complete)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|formal grid.*passed|500-replicate.*(passed|complete)' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
 git diff --check
 ```
 
 Results:
 
-- `pkgdown::build_site()` completed and copied `pkgdown/extra.css` to
-  `pkgdown-site/extra.css`.
-- Browser geometry on `articles/drmTMB.html` changed from a clipped
-  `100px` logo with `-7.5px` navbar clearance to an unclipped `153.594px`
-  logo with `32.5px` clearance at the 1280 by 720 in-app browser viewport.
+- Parse smoke printed `parse ok`.
+- The Actions dry run printed `n_rep=500`, `backend=multicore`, `cores=10`,
+  `profile_parameters=log_sd_phylo`, `condition_shard=2`, and
+  `condition_shards=16`.
+- Focused tests passed for `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, and `phase18-poisson-phylo-q1`.
 - `pkgdown::check_pkgdown()` reported no problems.
-- The source stale-wording scan returned no hits outside historical dev-log
-  material.
-- The CSS propagation scan found the new spacing, width, and min-height rules in
-  both source and generated `extra.css`.
-- The GitHub issue search returned no open matching issues.
+- GitHub run `26371083871` shows the NB2 formal job as cancelled and the
+  unrelated matrix jobs as skipped.
+- Issue searches found no direct open issue that should be mutated for this
+  infrastructure slice.
+- The stale-promotion scan returned no current claim that NB2 q1 formal
+  recovery or coverage has passed.
+- `git diff --check` was clean.
+- The NB2 q1 route remains `hold_smoke_only`; no formal recovery or coverage
+  claim was added.
+
+## 2026-05-24 - NB2 PR Split And Stabilization Slices 556-560
+
+Goal: split the post-Poisson work into clean PR lanes, keep the remaining
+Poisson formal-admission tail out of the NB2 PR, and open a narrow NB2 branch
+containing Slices 496-555 plus the 556-560 split evidence.
+
+Roles: Ada owned branch orchestration and PR sequencing. Grace checked #316,
+#318, #319, local tests, pkgdown, and diff hygiene. Curie checked the NB2
+simulation helpers and focused Phase 18 tests. Fisher checked the promotion
+boundary, especially `hold_smoke_only` for NB2 q1 formal artifacts. Rose
+scanned for cross-thread contamination and broad NB2 claims. Pat checked that
+reader-facing wording remains evidence-bounded. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Merged PR #316 after updating its title/body and confirming all three
+  R-CMD-check jobs were green.
+- Confirmed PR #318 had merged with green Ubuntu, macOS, and Windows checks.
+- Split the remaining Poisson q1 formal-admission commit into PR #319:
+  `codex/poisson-phylo-q1-formal-481-495`.
+- Created clean branch `codex/nb2-smoke-grid-511-560` from the PR #319 head so
+  the NB2 formal Actions task can stack on the Poisson formal Actions
+  machinery without mixing into PR #319.
+- Replayed the earlier fitted NB2 gates, excluding the obsolete pkgdown-logo
+  CSS slice.
+- Ported only the NB2 Slices 511-555 simulation, documentation, and audit
+  files from the mixed local checkout.
+- Wrote ignored local recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-24-130342-codex-checkpoint.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-nb2-pr-split-slices-556-560.md`.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R','inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R','inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R','inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R','inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R','inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R','inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R','inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-nbinom2-sigma-random-effect.R','tests/testthat/test-phase18-nbinom2-phylo-q1.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-sigma-random-effect|phase18-nbinom2-phylo-q1|phase18-actions-runner|nbinom2-location-scale|nongaussian-structured-boundary', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'sd_phylo\(\)|sd_phylo1\(|sd_phylo2\(|level = "phylogenetic"|bivariate q=2 phylogenetic direct-SD|direct-SD route can now' NEWS.md ROADMAP.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md inst/sim/README.md vignettes/source-map.Rmd .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R man/nbinom2.Rd -S
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete|closed)|NB2.*q1.*coverage.*(now|passed|complete|closed)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|NB2 phylogenetic slopes.*now' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 sigma" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2" --limit 20 --json number,title,state,url,labels
+gh pr view 319 --repo itchyshin/drmTMB --json number,title,state,mergeable,isDraft,headRefOid,statusCheckRollup,url
+Rscript tools/codex-checkpoint.R --goal "split and open NB2 511-560 PR" --next "add 556-560 check-log/after-task, commit, push, and create NB2 PR stacked on PR 319"
+```
+
+Results:
+
+- The parse smoke printed `parse ok`.
+- Focused tests passed for `nbinom2-location-scale`,
+  `nongaussian-structured-boundary`, `phase18-actions-runner`,
+  `phase18-nbinom2-phylo-q1`, `phase18-nbinom2-sigma-random-effect`, and the
+  filter-adjacent `truncated-nbinom2-location-scale` tests.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The direct-SD contamination scan found only pre-existing historical baseline
+  wording in NEWS/ROADMAP, not newly copied Slices 511-560 hunks.
+- The broad NB2 promotion scan returned no hits.
+- `git diff --check` was clean.
+- Direct `NB2 phylo q1` and `nbinom2 sigma` issue searches returned no open
+  direct issue. The broader `Phase 18 NB2` search returned #59, #60, and #128;
+  no issue mutation was needed for this PR split.
+- PR #319 was open, mergeable, and still running R-CMD-check when this entry was
+  written.
+
+## 2026-05-24 - pkgdown Home Logo Scale
+
+Goal: make the pkgdown homepage hex logo closer to the gllvmTMB homepage scale
+and stop the top of the hex from reading as clipped by the fixed navbar.
+
+Roles: Ada kept the change to one CSS presentation slice. Florence checked
+scale, composition, and clipping against the supplied screenshots. Pat checked
+the narrow layout. Grace rebuilt pkgdown, checked metadata, and saved rendered
+evidence. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Increased the wide-page fixed-navbar clearance in `pkgdown/extra.css` to
+  `8rem`.
+- Added a homepage-specific logo rule:
+  `width: clamp(220px, 18vw, 260px)` with a `max-width: min(42%, 260px)` cap.
+- Increased the homepage mobile logo cap to `132px` and centered it on narrow
+  screens.
+- Added
+  `docs/dev-log/after-task/2026-05-24-pkgdown-home-logo-scale.md`.
+- Saved rendered evidence under
+  `docs/dev-log/figure-audits/2026-05-24-home-logo/`.
+
+Validation:
+
+```sh
+Rscript -e "pkgdown::build_site(preview = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'margin-top: 8rem|width: clamp\(220px, 18vw, 260px\)|max-width: min\(42%, 260px\)|max-width: 132px|width: 132px' pkgdown/extra.css pkgdown-site/extra.css
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-desktop --window-size=2048,900 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/desktop.png file:///tmp/drmtmb-pkgdown-home-logo-scale/pkgdown-site/index.html
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-mobile --window-size=390,844 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/mobile.png file:///tmp/drmtmb-pkgdown-home-logo-scale/pkgdown-site/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site(preview = FALSE)` completed and copied the updated CSS
+  into the generated site.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The CSS propagation scan found the new desktop clearance, homepage logo size,
+  and mobile caps in source and generated CSS.
+- The desktop screenshot shows the larger homepage hex fully below the navbar
+  with top clearance.
+- The mobile screenshot keeps the logo centered above the title without
+  logo-title collision.
 - `git diff --check` was clean.
 
 ## 2026-05-24 - Poisson Phylogenetic q1 Profile And Formal Admission Slices 481-495
@@ -38430,67 +38547,6 @@ git diff --check
 - The stale-support scan found no false fitted claims for generic `sd*()`,
   p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
   structured dependence.
-- `git diff --check` was clean.
-
-## 2026-05-24 - NB2 Phylogenetic q1 Implementation, Slices 496-510
-
-Goal:
-
-- Fit the ordinary, non-zero-inflated NB2 q=1 phylogenetic `mu` intercept while
-  keeping NB2 `sigma`, `zi`, `hu`, `coi`, structured slopes, q2/q4, spatial,
-  animal, and `relmat()` count routes closed.
-
-Changes:
-
-- Extended the ordinary `nbinom2()` builder, TMB data path, starts, maps, and
-  `src/drmTMB.cpp` likelihood branch so
-  `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)` fits a
-  phylogenetic log-mean random intercept with fixed-effect NB2 `sigma`.
-- Added NB2 q1 extractor, diagnostic, prediction, and malformed-neighbour tests
-  to `tests/testthat/test-nbinom2-location-scale.R`.
-- Fixed shared post-fit helpers so ordinary Poisson/NB2 `mu` random effects and
-  NB2 structured `mu` effects are recognized by prediction and random-effect
-  term counting.
-- Synchronized README, roadmap, NEWS, formula grammar, family registry,
-  likelihood notes, validation-debt notes, readiness matrix, source map,
-  implementation map, count tutorial, model map, and rendered pkgdown pages.
-- Added
-  `docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-slices-496-510.md`.
-
-Validation:
-
-```sh
-air format NEWS.md README.md R/methods.R tests/testthat/test-nbinom2-location-scale.R vignettes/count-nbinom2.Rmd vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/02-family-registry.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/36-cpp-modularization-source-map.md docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md
-Rscript -e "devtools::test(filter = 'nbinom2-location-scale', reporter = 'summary')"
-Rscript -e "devtools::test(filter = 'poisson-mean|phase18-poisson-mu-random-effect|nongaussian-structured-boundary|emmeans-methods', reporter = 'summary')"
-Rscript -e "pkgdown::check_pkgdown()"
-Rscript -e "pkgdown::build_site()"
-rg -n 'Ordinary Poisson also has|ordinary Poisson q=1 phylogenetic.*only|ordinary Poisson q=1 phylogenetic `mu` route|random effects and structured dependence outside ordinary Poisson q=1|NB2.*sigma.*phylo.*(now fit|now fits|fitted|implemented)|zero-inflated NB2.*phylo.*(now fit|now fits|fitted|implemented)|NB2.*spatial.*(now fit|now fits|fitted|implemented)' README.md vignettes docs/design pkgdown-site -g '!*.json'
-rg -n 'Ordinary Poisson and NB2 also have q=1|ordinary Poisson/NB2 q=1|NB2 q=1|nbinom2\(\).*phylo' pkgdown-site/index.html pkgdown-site/articles/count-nbinom2.html pkgdown-site/articles/model-map.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
-gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
-gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 phylogenetic" --limit 20 --json number,title,state,url,labels
-gh issue list --repo itchyshin/drmTMB --state open --search "non-Gaussian structured" --limit 20 --json number,title,state,url,labels
-git diff --check
-```
-
-- `air format` completed without output.
-- `devtools::test(filter = 'nbinom2-location-scale')` passed.
-- `devtools::test(filter = 'poisson-mean|phase18-poisson-mu-random-effect|nongaussian-structured-boundary|emmeans-methods')`
-  passed.
-- `pkgdown::check_pkgdown()` reported no problems.
-- `pkgdown::build_site()` completed and rebuilt README, ROADMAP, NEWS,
-  reference pages, and articles including count-nbinom2, implementation-map,
-  model-map, source-map, formula-grammar, and distribution-families.
-- The stale-support scan found no remaining current-facing or rendered
-  "ordinary Poisson only" wording and no false rendered claims that NB2
-  `sigma`, zero-inflated NB2 phylogeny, or NB2 spatial structure now fit. It
-  returned only boundary/prohibition rows such as "NB2 `sigma` remains planned".
-- The rendered positive scan found NB2 q=1, ordinary Poisson/NB2 q=1,
-  `nbinom2()` phylogenetic, and planned-neighbour wording in the rebuilt site.
-- Direct open-issue searches for "NB2 phylo q1" and "nbinom2 phylogenetic"
-  returned no issues. The broader "non-Gaussian structured" search returned
-  umbrella issues #33, #128, #31, #147, and #58; no comment was added because
-  none was a direct NB2 q1 implementation issue.
 - `git diff --check` was clean.
 
 ## 2026-05-21 - Implementation Map Slices 356-405

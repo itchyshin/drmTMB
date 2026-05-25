@@ -1,14 +1,15 @@
-phase18_write_poisson_phylo_q1_grid_outputs <- function(
+phase18_write_nbinom2_phylo_q1_grid_outputs <- function(
   output_dir,
-  conditions = phase18_poisson_phylo_q1_conditions(
+  conditions = phase18_nbinom2_phylo_q1_conditions(
     n_species = c(20L, 40L),
-    n_per_species = 4L,
+    n_per_species = 6L,
     sd_phylo = c(0, 0.25, 0.60),
-    mean_count = 2.5,
+    mean_count = c(2.0, 5.0),
+    sigma_baseline = c(0.45, 0.80),
     tree_shape = "balanced"
   ),
   n_rep = 5L,
-  master_seed = 20260524L,
+  master_seed = 20260526L,
   overwrite = FALSE,
   profile_parameters = character(),
   profile_level = 0.70,
@@ -22,14 +23,14 @@ phase18_write_poisson_phylo_q1_grid_outputs <- function(
   }
 
   dirs <- phase18_prepare_simple_grid_dirs(output_dir)
-  paths <- phase18_poisson_phylo_q1_grid_paths(dirs$table_dir)
+  paths <- phase18_nbinom2_phylo_q1_grid_paths(dirs$table_dir)
   phase18_assert_simple_grid_overwrite(
     paths,
     overwrite,
-    "Poisson phylogenetic q1 grid"
+    "NB2 phylogenetic q1 grid"
   )
 
-  summary <- phase18_summarise_poisson_phylo_q1_smoke(
+  summary <- phase18_summarise_nbinom2_phylo_q1_smoke(
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed,
@@ -41,63 +42,63 @@ phase18_write_poisson_phylo_q1_grid_outputs <- function(
     cores = cores,
     backend = backend
   )
-  phase18_write_poisson_phylo_q1_grid_tables(summary, paths)
+  phase18_write_nbinom2_phylo_q1_grid_tables(summary, paths)
 
   list(
-    surface = "poisson_phylo_q1_grid",
+    surface = "nbinom2_phylo_q1_grid",
     output_dir = dirs$output_dir,
     result_dir = dirs$result_dir,
     table_dir = dirs$table_dir,
     paths = paths,
     artifact_manifest = phase18_grid_artifact_manifest(
-      "poisson_phylo_q1_grid",
+      "nbinom2_phylo_q1_grid",
       paths
     ),
     summary = summary
   )
 }
 
-phase18_poisson_phylo_q1_grid_paths <- function(table_dir) {
+phase18_nbinom2_phylo_q1_grid_paths <- function(table_dir) {
   c(
-    phase18_simple_grid_paths(table_dir, prefix = "poisson-phylo-q1"),
+    phase18_simple_grid_paths(table_dir, prefix = "nbinom2-phylo-q1"),
     list(
       wald_intervals_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-wald-intervals.csv"
+        "nbinom2-phylo-q1-wald-intervals.csv"
       ),
       wald_coverage_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-wald-coverage.csv"
+        "nbinom2-phylo-q1-wald-coverage.csv"
       ),
       profile_targets_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-profile-targets.csv"
+        "nbinom2-phylo-q1-profile-targets.csv"
       ),
       profile_intervals_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-profile-intervals.csv"
+        "nbinom2-phylo-q1-profile-intervals.csv"
       ),
       profile_coverage_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-profile-coverage.csv"
+        "nbinom2-phylo-q1-profile-coverage.csv"
       ),
       interval_evidence_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-interval-evidence.csv"
+        "nbinom2-phylo-q1-interval-evidence.csv"
       ),
       interval_diagnostics_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-interval-diagnostics.csv"
+        "nbinom2-phylo-q1-interval-diagnostics.csv"
       ),
       interval_failures_csv = file.path(
         table_dir,
-        "poisson-phylo-q1-interval-failures.csv"
+        "nbinom2-phylo-q1-interval-failures.csv"
       )
     )
   )
 }
 
-phase18_write_poisson_phylo_q1_grid_tables <- function(summary, paths) {
+phase18_write_nbinom2_phylo_q1_grid_tables <- function(summary, paths) {
   phase18_write_simple_grid_tables(summary, paths)
   utils::write.csv(
     summary$wald_intervals,
@@ -142,11 +143,11 @@ phase18_write_poisson_phylo_q1_grid_tables <- function(summary, paths) {
   invisible(paths)
 }
 
-phase18_write_poisson_phylo_q1_formal_grid_outputs <- function(
+phase18_write_nbinom2_phylo_q1_formal_grid_outputs <- function(
   output_dir,
-  conditions = phase18_poisson_phylo_q1_formal_conditions(),
+  conditions = phase18_nbinom2_phylo_q1_formal_conditions(),
   n_rep = 500L,
-  master_seed = 20260601L,
+  master_seed = 20260602L,
   overwrite = FALSE,
   profile_parameters = character(),
   profile_level = 0.70,
@@ -163,18 +164,18 @@ phase18_write_poisson_phylo_q1_formal_grid_outputs <- function(
   }
 
   dirs <- phase18_prepare_simple_grid_dirs(output_dir)
-  paths <- phase18_poisson_phylo_q1_grid_paths(dirs$table_dir)
+  paths <- phase18_nbinom2_phylo_q1_grid_paths(dirs$table_dir)
   paths$formal_spec_csv <- file.path(
     dirs$table_dir,
-    "poisson-phylo-q1-formal-spec.csv"
+    "nbinom2-phylo-q1-formal-spec.csv"
   )
   phase18_assert_simple_grid_overwrite(
     paths,
     overwrite,
-    "Poisson phylogenetic q1 formal grid"
+    "NB2 phylogenetic q1 formal grid"
   )
 
-  out <- phase18_write_poisson_phylo_q1_grid_outputs(
+  out <- phase18_write_nbinom2_phylo_q1_grid_outputs(
     output_dir = dirs$output_dir,
     conditions = conditions,
     n_rep = n_rep,
@@ -186,7 +187,7 @@ phase18_write_poisson_phylo_q1_formal_grid_outputs <- function(
     cores = cores,
     backend = backend
   )
-  formal_spec <- phase18_poisson_phylo_q1_formal_grid_spec(
+  formal_spec <- phase18_nbinom2_phylo_q1_formal_grid_spec(
     conditions = conditions,
     n_rep = n_rep,
     master_seed = master_seed,
@@ -198,35 +199,39 @@ phase18_write_poisson_phylo_q1_formal_grid_outputs <- function(
   )
   utils::write.csv(formal_spec, paths$formal_spec_csv, row.names = FALSE)
 
-  out$surface <- "poisson_phylo_q1_formal_grid"
+  out$surface <- "nbinom2_phylo_q1_formal_grid"
   out$paths$formal_spec_csv <- paths$formal_spec_csv
   out$artifact_manifest <- phase18_grid_artifact_manifest(
-    "poisson_phylo_q1_formal_grid",
+    "nbinom2_phylo_q1_formal_grid",
     out$paths
   )
   out$formal_spec <- formal_spec
   out
 }
 
-phase18_poisson_phylo_q1_formal_conditions <- function(
+phase18_nbinom2_phylo_q1_formal_conditions <- function(
   n_species = c(20L, 40L, 80L),
   n_per_species = c(4L, 8L),
   sd_phylo = c(0, 0.25, 0.60),
-  mean_count = c(1.5, 3.0, 8.0),
+  mean_count = c(2.0, 6.0),
+  sigma_baseline = c(0.35, 0.80),
   beta_mu_x = c(0, 0.35),
+  beta_sigma_z = 0.15,
   tree_shape = c("balanced", "mildly_uneven")
 ) {
-  phase18_poisson_phylo_q1_conditions(
+  phase18_nbinom2_phylo_q1_conditions(
     n_species = n_species,
     n_per_species = n_per_species,
     sd_phylo = sd_phylo,
     mean_count = mean_count,
+    sigma_baseline = sigma_baseline,
     beta_mu_x = beta_mu_x,
+    beta_sigma_z = beta_sigma_z,
     tree_shape = tree_shape
   )
 }
 
-phase18_poisson_phylo_q1_formal_grid_spec <- function(
+phase18_nbinom2_phylo_q1_formal_grid_spec <- function(
   conditions,
   n_rep,
   master_seed,
@@ -282,11 +287,12 @@ phase18_poisson_phylo_q1_formal_grid_spec <- function(
   out$shard_condition_count <- nrow(conditions)
   out$shard_recovery_gate <- n_rep >= 500L
   out$mcse_required <- TRUE
+  out$overdispersion_confounding_explicit <- TRUE
   out$coverage_claim_allowed <- n_rep >= 500L && condition_shards == 1L
   out
 }
 
-phase18_read_poisson_phylo_q1_grid_outputs <- function(
+phase18_read_nbinom2_phylo_q1_grid_outputs <- function(
   output_dir,
   require_complete = FALSE
 ) {
@@ -296,25 +302,25 @@ phase18_read_poisson_phylo_q1_grid_outputs <- function(
   }
   output_dir <- normalizePath(output_dir, mustWork = TRUE)
   table_dir <- file.path(output_dir, "tables")
-  paths <- phase18_poisson_phylo_q1_grid_paths(table_dir)
-  optional_spec <- file.path(table_dir, "poisson-phylo-q1-formal-spec.csv")
+  paths <- phase18_nbinom2_phylo_q1_grid_paths(table_dir)
+  optional_spec <- file.path(table_dir, "nbinom2-phylo-q1-formal-spec.csv")
   if (file.exists(optional_spec)) {
     paths$formal_spec_csv <- optional_spec
   }
   missing <- names(paths)[!file.exists(unlist(paths, use.names = FALSE))]
   if (require_complete && length(missing) > 0L) {
     stop(
-      "Missing Poisson phylogenetic q1 artifacts: ",
+      "Missing NB2 phylogenetic q1 artifacts: ",
       paste(missing, collapse = ", "),
       call. = FALSE
     )
   }
 
-  tables <- lapply(paths, phase18_read_poisson_phylo_q1_csv)
+  tables <- lapply(paths, phase18_read_nbinom2_phylo_q1_csv)
   names(tables) <- names(paths)
-  qa <- phase18_qa_poisson_phylo_q1_grid_outputs(tables)
+  qa <- phase18_qa_nbinom2_phylo_q1_grid_outputs(tables)
   list(
-    surface = "poisson_phylo_q1_grid_read",
+    surface = "nbinom2_phylo_q1_grid_read",
     output_dir = output_dir,
     table_dir = table_dir,
     paths = paths,
@@ -323,7 +329,7 @@ phase18_read_poisson_phylo_q1_grid_outputs <- function(
   )
 }
 
-phase18_read_poisson_phylo_q1_csv <- function(path) {
+phase18_read_nbinom2_phylo_q1_csv <- function(path) {
   if (!file.exists(path)) {
     return(data.frame())
   }
@@ -336,7 +342,7 @@ phase18_read_poisson_phylo_q1_csv <- function(path) {
   )
 }
 
-phase18_qa_poisson_phylo_q1_grid_outputs <- function(
+phase18_qa_nbinom2_phylo_q1_grid_outputs <- function(
   tables,
   expected_n_rep = NULL
 ) {
@@ -383,6 +389,9 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
   seed_unique <- is.data.frame(manifest) &&
     "seed" %in% names(manifest) &&
     !anyDuplicated(manifest$seed)
+  comparator_present <- is.data.frame(replicates) &&
+    "parameter_class" %in% names(replicates) &&
+    "grouped_comparator_sd" %in% replicates$parameter_class
   expected_status <- "not_checked"
   expected_message <- "expected_n_rep not supplied"
   if (!is.null(expected_n_rep) && length(manifest_cells) > 0L) {
@@ -404,6 +413,7 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
       "replicate_rows",
       "seed_unique",
       "cell_alignment",
+      "comparator_rows",
       "expected_replicates"
     ),
     status = c(
@@ -416,6 +426,7 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
       ),
       ifelse(seed_unique, "ok", "failed"),
       ifelse(setequal(aggregate_cells, manifest_cells), "ok", "failed"),
+      ifelse(comparator_present, "ok", "failed"),
       expected_status
     ),
     n = c(
@@ -424,6 +435,7 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
       if (is.data.frame(replicates)) nrow(replicates) else 0L,
       if (is.data.frame(manifest)) length(unique(manifest$seed)) else 0L,
       length(intersect(aggregate_cells, manifest_cells)),
+      if (comparator_present) 1L else 0L,
       if (is.null(expected_n_rep)) NA_integer_ else expected_n_rep
     ),
     message = c(
@@ -438,6 +450,7 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
         paste(setdiff(manifest_cells, aggregate_cells), collapse = ","),
         sep = ""
       ),
+      "",
       expected_message
     ),
     stringsAsFactors = FALSE
@@ -446,7 +459,7 @@ phase18_qa_poisson_phylo_q1_grid_outputs <- function(
   out
 }
 
-phase18_poisson_phylo_q1_promotion_decision <- function(
+phase18_nbinom2_phylo_q1_promotion_decision <- function(
   qa,
   formal_spec = NULL
 ) {
@@ -475,7 +488,7 @@ phase18_poisson_phylo_q1_promotion_decision <- function(
     reason <- "artifacts pass QA but formal recovery replicate gate is not met"
   }
   data.frame(
-    surface = "poisson_phylo_q1",
+    surface = "nbinom2_phylo_q1",
     decision = decision,
     reason = reason,
     stringsAsFactors = FALSE

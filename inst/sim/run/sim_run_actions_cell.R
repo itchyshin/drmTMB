@@ -6,7 +6,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     c(
       "first_wave_summary",
       "interval_heavy_summary",
-      "poisson_phylo_q1_formal"
+      "poisson_phylo_q1_formal",
+      "nbinom2_phylo_q1_formal"
     ),
     "task"
   )
@@ -36,6 +37,19 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   profile_level <- phase18_actions_probability(
     opts$profile_level,
     "profile-level"
+  )
+  condition_shard <- phase18_actions_positive_integer(
+    opts$condition_shard,
+    "condition-shard"
+  )
+  condition_shards <- phase18_actions_positive_integer(
+    opts$condition_shards,
+    "condition-shards"
+  )
+  phase18_actions_validate_condition_shard(
+    task = task,
+    condition_shard = condition_shard,
+    condition_shards = condition_shards
   )
   bootstrap_nsim <- phase18_actions_nonnegative_integer(
     opts$bootstrap_nsim,
@@ -74,6 +88,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       render = render,
       profile_parameters = profile_parameters,
       profile_level = profile_level,
+      condition_shard = condition_shard,
+      condition_shards = condition_shards,
       bootstrap_nsim = bootstrap_nsim,
       bootstrap_cores = bootstrap_cores,
       bootstrap_backend = bootstrap_backend
@@ -81,6 +97,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     return(invisible(NULL))
   }
 
+  phase18_actions_load_package()
   phase18_actions_source_dependencies(task)
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   if (identical(task, "first_wave_summary")) {
@@ -112,14 +129,43 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       bootstrap_backend = bootstrap_backend,
       notes = notes
     )
-  } else {
+  } else if (identical(task, "poisson_phylo_q1_formal")) {
+    shard <- phase18_actions_formal_condition_shard(
+      task = task,
+      condition_shard = condition_shard,
+      condition_shards = condition_shards
+    )
     out <- phase18_write_poisson_phylo_q1_formal_grid_outputs(
       output_dir = output_dir,
+      conditions = shard$conditions,
       n_rep = n_rep,
       master_seed = master_seed,
       overwrite = overwrite,
       profile_parameters = profile_parameters,
       profile_level = profile_level,
+      condition_shard = condition_shard,
+      condition_shards = condition_shards,
+      full_condition_count = shard$full_condition_count,
+      cores = cores,
+      backend = backend
+    )
+  } else {
+    shard <- phase18_actions_formal_condition_shard(
+      task = task,
+      condition_shard = condition_shard,
+      condition_shards = condition_shards
+    )
+    out <- phase18_write_nbinom2_phylo_q1_formal_grid_outputs(
+      output_dir = output_dir,
+      conditions = shard$conditions,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
+      condition_shard = condition_shard,
+      condition_shards = condition_shards,
+      full_condition_count = shard$full_condition_count,
       cores = cores,
       backend = backend
     )
@@ -135,6 +181,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     render = render,
     profile_parameters = profile_parameters,
     profile_level = profile_level,
+    condition_shard = condition_shard,
+    condition_shards = condition_shards,
     bootstrap_nsim = bootstrap_nsim,
     bootstrap_cores = bootstrap_cores,
     bootstrap_backend = bootstrap_backend
@@ -155,6 +203,8 @@ phase18_actions_parse_args <- function(args) {
     require_complete = "false",
     profile_parameters = "",
     profile_level = "0.70",
+    condition_shard = "1",
+    condition_shards = "1",
     bootstrap_nsim = "0",
     bootstrap_cores = "1",
     bootstrap_backend = "none",
@@ -209,6 +259,18 @@ phase18_actions_source_dependencies <- function(task) {
   for (path in paths) {
     source(phase18_actions_path(root, path), local = globalenv())
   }
+}
+
+phase18_actions_load_package <- function() {
+  ok <- require("drmTMB", quietly = TRUE, character.only = TRUE)
+  if (!ok) {
+    stop(
+      "The Phase 18 Actions runner requires the drmTMB package to be ",
+      "installed before running non-dry-run tasks.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
 }
 
 phase18_actions_task_paths <- function(task) {
@@ -273,12 +335,21 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_interval_heavy_summary_smoke.R"
     ))
   }
+  if (identical(task, "poisson_phylo_q1_formal")) {
+    return(c(
+      "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      "sim/fit/sim_summarise_poisson_phylo_q1.R",
+      "sim/run/sim_run_poisson_phylo_q1_smoke.R",
+      "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+      "sim/run/sim_write_poisson_phylo_q1_grid.R"
+    ))
+  }
   c(
-    "sim/dgp/sim_dgp_poisson_phylo_q1.R",
-    "sim/fit/sim_summarise_poisson_phylo_q1.R",
-    "sim/run/sim_run_poisson_phylo_q1_smoke.R",
-    "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
-    "sim/run/sim_write_poisson_phylo_q1_grid.R"
+    "sim/dgp/sim_dgp_nbinom2_phylo_q1.R",
+    "sim/fit/sim_summarise_nbinom2_phylo_q1.R",
+    "sim/run/sim_run_nbinom2_phylo_q1_smoke.R",
+    "sim/run/sim_summary_nbinom2_phylo_q1_smoke.R",
+    "sim/run/sim_write_nbinom2_phylo_q1_grid.R"
   )
 }
 
@@ -387,6 +458,61 @@ phase18_actions_character_vector <- function(x) {
   trimws(strsplit(x, ",", fixed = TRUE)[[1L]])
 }
 
+phase18_actions_validate_condition_shard <- function(
+  task,
+  condition_shard,
+  condition_shards
+) {
+  if (condition_shard > condition_shards) {
+    stop(
+      "`condition-shard` must be less than or equal to `condition-shards`.",
+      call. = FALSE
+    )
+  }
+  if (
+    !phase18_actions_formal_task(task) &&
+      (!identical(condition_shard, 1L) || !identical(condition_shards, 1L))
+  ) {
+    stop(
+      "Condition sharding is only available for phylo q1 formal tasks.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+phase18_actions_formal_task <- function(task) {
+  task %in% c("poisson_phylo_q1_formal", "nbinom2_phylo_q1_formal")
+}
+
+phase18_actions_formal_condition_shard <- function(
+  task,
+  condition_shard = 1L,
+  condition_shards = 1L
+) {
+  phase18_actions_validate_condition_shard(
+    task = task,
+    condition_shard = condition_shard,
+    condition_shards = condition_shards
+  )
+  conditions <- if (identical(task, "poisson_phylo_q1_formal")) {
+    phase18_poisson_phylo_q1_formal_conditions()
+  } else {
+    phase18_nbinom2_phylo_q1_formal_conditions()
+  }
+  full_condition_count <- nrow(conditions)
+  shard_index <- ((seq_len(full_condition_count) - 1L) %% condition_shards) + 1L
+  conditions <- conditions[shard_index == condition_shard, , drop = FALSE]
+  row.names(conditions) <- NULL
+  if (nrow(conditions) == 0L) {
+    stop("Condition shard is empty.", call. = FALSE)
+  }
+  list(
+    conditions = conditions,
+    full_condition_count = full_condition_count
+  )
+}
+
 phase18_actions_print_plan <- function(
   task,
   output_dir,
@@ -397,6 +523,8 @@ phase18_actions_print_plan <- function(
   render,
   profile_parameters,
   profile_level,
+  condition_shard,
+  condition_shards,
   bootstrap_nsim,
   bootstrap_cores,
   bootstrap_backend
@@ -429,6 +557,12 @@ phase18_actions_print_plan <- function(
       "\n",
       "profile_level=",
       profile_level,
+      "\n",
+      "condition_shard=",
+      condition_shard,
+      "\n",
+      "condition_shards=",
+      condition_shards,
       "\n",
       "bootstrap_nsim=",
       bootstrap_nsim,

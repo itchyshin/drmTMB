@@ -73,6 +73,22 @@ Current pilot files:
   and its derived-correlation interval boundary.
 - `docs/design/56-phase-18-spatial-q2-ademp.md` is the one-page ADEMP sheet for
   the constant coordinate-spatial q=2 bivariate location-covariance lane.
+- `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md` is the
+  one-page ADEMP sheet for the ordinary NB2 log-`sigma` random-intercept smoke
+  lane.
+- `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md` is the one-page ADEMP
+  sheet for the overdispersion-aware NB2 phylogenetic q=1 `mu` formal-admission
+  lane.
+- `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
+  NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
+  `hold_smoke_only` promotion decision before the 500-replicate gate.
+- `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md` records
+  the cancelled single-job formal dispatch, runtime estimate, and shard
+  contract for the 500-replicate NB2 q1 formal grid.
+- `docs/design/79-supported-nongaussian-evidence-goal.md` records the
+  supported non-Gaussian evidence closeout goal, separating fixed-effect family
+  evidence, count mixed-model first slices, q=1 phylogenetic formal gates, and
+  blocked neighbouring routes.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -101,6 +117,15 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
   `sigma ~ z`; its condition helper can also cross true overdispersion
   settings.
+- `dgp/sim_dgp_nbinom2_sigma_random_effect.R` generates non-zero-inflated NB2
+  count data with fixed-effect log-mean `mu` and an ordinary grouped
+  log-`sigma` random intercept, `sigma ~ z + (1 | id)`. Its condition helper
+  crosses group count, repeats, mean count, baseline overdispersion, and the
+  true grouped overdispersion SD.
+- `dgp/sim_dgp_nbinom2_phylo_q1.R` generates non-zero-inflated NB2 count data
+  with one q=1 phylogenetic log-mean intercept,
+  `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
+  overdispersion, and tree-shape conditions for the formal-admission lane.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
@@ -141,6 +166,10 @@ Current pilot files:
   phylogenetic diagnostic status for the q=1 route.
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
+- `fit/sim_summarise_nbinom2_sigma_random_effect.R` summarises fixed NB2
+  `mu`, fixed NB2 `sigma`, the direct ordinary log-`sigma` random-intercept
+  SD, direct `log_sd_sigma` profile-target status, and `check_drm()`
+  replication status.
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
   formula scales, adds optional profile and parametric-bootstrap interval
@@ -201,6 +230,8 @@ Current pilot files:
   non-zero-inflated Poisson phylogenetic q=1 `mu` surface.
 - `run/sim_run_nbinom2_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 `mu` random-effect surface.
+- `run/sim_run_nbinom2_sigma_random_effect_smoke.R` does the same for the
+  non-zero-inflated NB2 log-`sigma` random-intercept surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_run_biv_rho12_smoke.R` does the same for the bivariate Gaussian
@@ -263,6 +294,25 @@ Current pilot files:
   file also provides the formal-grid wrapper, read-back QA, and promotion
   decision helpers; formal recovery or coverage claims still require the
   500-replicate gate and artifact review.
+- `run/sim_write_nbinom2_phylo_q1_grid.R` writes the ordinary NB2 phylogenetic
+  q=1 `mu` smoke artifact set with fixed-effect `sigma`, aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct `log_sd_phylo` profile-target, optional profile-interval,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs. Each
+  replicate also records an ordinary grouped NB2 species-intercept comparator
+  row, so overdispersion and unstructured species heterogeneity stay visible
+  before formal recovery claims. Slices 541-555 wrote ignored local artifacts
+  for a 288-cell one-replicate sentinel and a 24-cell x 5-replicate audit; both
+  passed artifact QA but kept the promotion state at `hold_smoke_only` because
+  the 500-replicate formal gate remains unmet. Slices 561-575 add condition
+  sharding for the formal task; shard artifacts cannot allow coverage claims
+  by themselves.
+- `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
+  log-`sigma` random-intercept smoke artifact set with aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct `log_sd_sigma` profile-target, optional profile-interval,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs beside
+  resumable per-replicate RDS files.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
   `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
@@ -301,13 +351,15 @@ Current pilot files:
   lane, keeping their Wald/profile/bootstrap artifacts out of the baseline
   first-wave runner.
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
-  long-run Phase 18 dispatch. It can run either the first-wave summary task or
-  the interval-heavy task, or the opt-in Poisson phylogenetic q=1 formal-grid
-  task. It writes an RDS result beside the task artifact tables and caps
+  long-run Phase 18 dispatch. It can run the first-wave summary task, the
+  interval-heavy task, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
+  tasks. It writes an RDS result beside the task artifact tables and caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The Poisson formal task is manual-only and is excluded from
-  `task = "all"` by the workflow matrix.
+  the same time. The phylogenetic formal tasks are manual-only and are excluded
+  from `task = "all"` by the workflow matrix. Formal tasks also accept
+  one-based `condition_shard` and `condition_shards` inputs so the 288-cell
+  formal tables can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -325,11 +377,23 @@ Current pilot files:
   replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
   coverage, direct profile-target status, optional direct profile interval,
   interval-evidence, interval-diagnostics, and interval-failure outputs.
+- `run/sim_summary_nbinom2_phylo_q1_smoke.R` runs a tiny non-zero-inflated NB2
+  phylogenetic q=1 `mu` summary smoke grid with fixed-effect `sigma` and an
+  ordinary grouped species-intercept comparator. It returns aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct profile-target status, optional direct profile interval,
+  interval-evidence, interval-diagnostics, and interval-failure outputs.
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient
   Wald interval, Wald coverage, direct random-effect SD profile interval, and
   profile coverage outputs.
+- `run/sim_summary_nbinom2_sigma_random_effect_smoke.R` runs a tiny
+  non-zero-inflated NB2 log-`sigma` random-intercept summary smoke grid and
+  returns grouped bias, RMSE, MCSE, manifest, failure-ledger,
+  formula-coefficient Wald interval, Wald coverage, direct `log_sd_sigma`
+  profile-target rows, optional profile interval rows, interval diagnostics,
+  and interval-failure outputs.
 - `run/sim_summary_count_mu_random_effect_pilot.R` runs the first paired
   Poisson/NB2 `mu` random-effect pilot, returning combined aggregate, manifest,
   failure-ledger, Wald interval, Wald coverage, profile interval, and profile
