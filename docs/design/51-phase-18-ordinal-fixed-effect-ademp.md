@@ -39,10 +39,11 @@ free location intercept are not jointly identifiable. Category labels should be
 stored as an ordered factor so simulation output can preserve the original
 level names.
 
-The existing fixed-effect tests use this likelihood contract in
-`tests/testthat/test-cumulative-logit.R`. A first formal grid should add an
-explicit ordinal DGP helper before broad runs rather than borrowing the test
-fixture as simulation code.
+The fixed-effect tests in `tests/testthat/test-cumulative-logit.R` use this
+likelihood contract. The Phase 18 artifact helper
+`inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R` now provides the explicit
+simulation DGP, so formal grids should use that helper rather than borrowing a
+test fixture as simulation code.
 
 | Factor | Initial levels | Reason |
 | --- | --- | --- |

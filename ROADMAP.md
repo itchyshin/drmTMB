@@ -1824,6 +1824,10 @@ Use this order unless Slice 191 evidence overturns it:
 | 606-620 | Fixed-effect family evidence closeout | Done locally as an audit closeout: the supported fixed-effect family rows are mapped to their likelihood, fitted/prediction, deterministic simulation or recovery, boundary, interval/status, and documentation evidence without adding new model syntax. |
 | 621-635 | Unsupported neighbour closeout | Done locally as a no-fit boundary: mixed-response, inflation/hurdle random-effect, zero-one-inflation, shape/skew random-effect, cross-parameter covariance, and broad structured non-Gaussian routes stay planned or blocked with fitted alternatives. |
 | 636-650 | Count mixed-model evidence closeout | Done locally as ledger sync: ordinary Poisson/NB2 `mu` random effects, the narrow NB2 log-`sigma` random-intercept gate, and Poisson/NB2 q=1 phylogenetic `mu` gates are recorded as separate first slices; NB2 q1 formal promotion still depends on the 581-590 shard audit. |
+| 1279-1288 | Core family completion map | Done locally: `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md` routes the next Phase 18 evidence work breadth-first across counts, proportions, positive-continuous responses, ordinal responses, and shape families before another covariance expansion. |
+| 1289-1298 | Proportion fixed-effect artifacts | Done locally: `beta()` and `beta_binomial()` now have fixed-effect DGP, summariser, smoke runner, grid writer, first-wave summary inclusion, manual `proportion_fixed_effect` Actions dispatch, focused tests, and design/after-task evidence. Exact boundary mass, `zoi`/`coi`, bounded-response random effects, structured bounded responses, and mixed-response bounded models remain planned or unsupported. |
+| 1299-1308 | Positive-continuous fixed-effect artifacts | Done locally: `lognormal()` and `Gamma(link = "log")` now have fixed-effect DGP, summariser, smoke runner, grid writer, first-wave summary inclusion, manual `positive_continuous_fixed_effect` Actions dispatch, focused tests, and design/after-task evidence. Tweedie, generalized Gamma, positive-response random effects, known-covariance positive responses, structured positive responses, and mixed-response positive-continuous models remain planned or unsupported. |
+| 1309-1318 | Ordinal fixed-effect artifacts | Done locally: `cumulative_logit()` now has fixed-effect DGP, summariser, smoke runner, grid writer, first-wave summary inclusion, manual `ordinal_fixed_effect` Actions dispatch, focused tests, and design/after-task evidence. Ordinal random effects, scale/discrimination formulas, cutpoint-specific predictors, known-covariance ordinal models, structured ordinal effects, bivariate ordinal models, and mixed-response ordinal models remain planned or unsupported. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -2013,6 +2017,12 @@ as the whole comprehensive simulation programme.
   warnings, errors, skipped rows, and elapsed time. This simulation
   infrastructure is separate from the later public direct-target
   `confint(method = "bootstrap")` route.
+- Slices 1279-1318 add the core-family completion map and fixed-effect
+  proportion, positive-continuous, and ordinal artifact lanes. These lanes add
+  DGP, summariser, smoke, repeatable grid-output, first-wave summary, manual
+  Actions-dispatch, and focused-test evidence for already fitted one-response
+  families; they do not open random-effect, structured, mixed-response,
+  zero-one-inflated, skew-normal, or generalized Gamma likelihoods.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the

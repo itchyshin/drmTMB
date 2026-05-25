@@ -89,6 +89,17 @@ Current pilot files:
   supported non-Gaussian evidence closeout goal, separating fixed-effect family
   evidence, count mixed-model first slices, q=1 phylogenetic formal gates, and
   blocked neighbouring routes.
+- `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`
+  records the breadth-first Phase 18 order across counts, proportions,
+  positive-continuous responses, ordinal responses, and shape families.
+- `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
+  records the DGP, smoke, grid, first-wave, and Actions artifact lane for
+  fixed-effect `beta()` and `beta_binomial()` models.
+- `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`
+  records the same artifact path for fixed-effect `lognormal()` and
+  `Gamma(link = "log")` models.
+- `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md`
+  records the same artifact path for fixed-effect `cumulative_logit()` models.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -126,6 +137,15 @@ Current pilot files:
   with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
   overdispersion, and tree-shape conditions for the formal-admission lane.
+- `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
+  `beta()` proportions and denominator-aware `beta_binomial()` successes with
+  fixed-effect `mu ~ x` and `sigma ~ z`.
+- `dgp/sim_dgp_positive_continuous_fixed_effect.R` generates positive
+  `lognormal()` and `Gamma(link = "log")` responses with fixed-effect `mu ~ x`
+  and `sigma ~ z`.
+- `dgp/sim_dgp_ordinal_fixed_effect.R` generates ordered-category
+  `cumulative_logit()` responses with latent `mu ~ x`, ordered cutpoints, and
+  no free location intercept.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
@@ -153,6 +173,13 @@ Current pilot files:
 - `fit/sim_summarise_gaussian_sigma_random_slope.R` summarises fixed `mu` and
   fixed `sigma` coefficients plus the direct residual-scale random-slope SD on
   the modelled `log(sigma)` scale.
+- `fit/sim_summarise_proportion_fixed_effect.R` summarises fixed `beta()` and
+  `beta_binomial()` `mu` and `sigma` coefficients on their link scales.
+- `fit/sim_summarise_positive_continuous_fixed_effect.R` summarises fixed
+  `lognormal()` and `Gamma(link = "log")` `mu` and `sigma` coefficients on
+  their documented link scales.
+- `fit/sim_summarise_ordinal_fixed_effect.R` summarises the identifiable
+  cumulative-logit `mu` slope and ordered cutpoints.
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
@@ -232,6 +259,13 @@ Current pilot files:
   non-zero-inflated NB2 `mu` random-effect surface.
 - `run/sim_run_nbinom2_sigma_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 log-`sigma` random-intercept surface.
+- `run/sim_run_proportion_fixed_effect_smoke.R` does the same for the
+  fixed-effect `beta()` and `beta_binomial()` proportion surface.
+- `run/sim_run_positive_continuous_fixed_effect_smoke.R` does the same for the
+  fixed-effect `lognormal()` and `Gamma(link = "log")` positive-continuous
+  surface.
+- `run/sim_run_ordinal_fixed_effect_smoke.R` does the same for the fixed-effect
+  `cumulative_logit()` ordinal surface.
 - `run/sim_run_meta_v_smoke.R` does the same for vector and dense
   `meta_V(V = V)` smoke cells.
 - `run/sim_run_biv_rho12_smoke.R` does the same for the bivariate Gaussian
@@ -285,6 +319,17 @@ Current pilot files:
 - `run/sim_write_count_mu_random_effect_grid.R` writes the paired Poisson/NB2
   `mu` random-effect artifact set with Wald and direct-SD profile interval
   tables.
+- `run/sim_write_proportion_fixed_effect_grid.R` writes the fixed-effect
+  `beta()` and `beta_binomial()` artifact set with aggregate, replicate-level,
+  manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage CSVs.
+- `run/sim_write_positive_continuous_fixed_effect_grid.R` writes the
+  fixed-effect `lognormal()` and `Gamma(link = "log")` artifact set with
+  aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald
+  interval, and Wald coverage CSVs.
+- `run/sim_write_ordinal_fixed_effect_grid.R` writes the fixed-effect
+  `cumulative_logit()` ordinal artifact set with aggregate, replicate-level,
+  manifest, failure-ledger, fixed-effect Wald interval, Wald coverage,
+  cutpoint, and cutpoint-ordering CSVs.
 - `run/sim_write_poisson_phylo_q1_grid.R` writes the ordinary Poisson
   phylogenetic q=1 `mu` smoke artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, and
@@ -342,24 +387,28 @@ Current pilot files:
   table-bundle artifacts, then optionally renders the first-wave summary report
   HTML from those staged CSVs.
 - `run/sim_run_first_wave_summary_smoke.R` executes the current Gaussian
-  location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect, and
-  ordinary Gaussian `mu` and `sigma` random-slope, and coordinate-spatial
-  Gaussian `mu` slope first-wave smoke surfaces, stages the combined first-wave
-  summary report, and records requested versus actual worker counts.
+  location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect,
+  fixed-effect proportion, fixed-effect positive-continuous, fixed-effect
+  ordinal, ordinary Gaussian `mu` and `sigma` random-slope, and
+  coordinate-spatial Gaussian `mu` slope first-wave smoke surfaces, stages the
+  combined first-wave summary report, and records requested versus actual
+  worker counts.
 - `run/sim_run_interval_heavy_summary_smoke.R` executes the Student-t shape and
   bivariate residual `rho12` smoke surfaces as a separate interval-heavy report
   lane, keeping their Wald/profile/bootstrap artifacts out of the baseline
   first-wave runner.
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
-  interval-heavy task, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
-  tasks. It writes an RDS result beside the task artifact tables and caps
-  requested replicate or bootstrap workers at 10 before dispatch. The workflow
-  never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The phylogenetic formal tasks are manual-only and are excluded
-  from `task = "all"` by the workflow matrix. Formal tasks also accept
-  one-based `condition_shard` and `condition_shards` inputs so the 288-cell
-  formal tables can be split across multiple Actions runs.
+  interval-heavy task, the standalone fixed-effect proportion,
+  positive-continuous, and ordinal tasks, or the opt-in Poisson and NB2
+  phylogenetic q=1 formal-grid tasks. It writes an RDS result beside the task
+  artifact tables and caps requested replicate or bootstrap workers at 10
+  before dispatch. The workflow never uses both replicate-layer multicore and
+  bootstrap-layer multicore at the same time. The phylogenetic formal tasks and
+  standalone fixed-effect tasks are manual-only and are excluded from
+  `task = "all"` by the workflow matrix. Formal tasks also accept one-based
+  `condition_shard` and `condition_shards` inputs so the 288-cell formal tables
+  can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -394,6 +443,18 @@ Current pilot files:
   formula-coefficient Wald interval, Wald coverage, direct `log_sd_sigma`
   profile-target rows, optional profile interval rows, interval diagnostics,
   and interval-failure outputs.
+- `run/sim_summary_proportion_fixed_effect_smoke.R` runs a tiny fixed-effect
+  `beta()` and `beta_binomial()` summary smoke grid and returns aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald
+  coverage outputs.
+- `run/sim_summary_positive_continuous_fixed_effect_smoke.R` runs a tiny
+  fixed-effect `lognormal()` and `Gamma(link = "log")` summary smoke grid and
+  returns aggregate, replicate, manifest, failure-ledger, fixed-effect Wald
+  interval, and Wald coverage outputs.
+- `run/sim_summary_ordinal_fixed_effect_smoke.R` runs a tiny fixed-effect
+  `cumulative_logit()` ordinal summary smoke grid and returns aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, cutpoint, and cutpoint-ordering outputs.
 - `run/sim_summary_count_mu_random_effect_pilot.R` runs the first paired
   Poisson/NB2 `mu` random-effect pilot, returning combined aggregate, manifest,
   failure-ledger, Wald interval, Wald coverage, profile interval, and profile
