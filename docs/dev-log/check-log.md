@@ -38739,6 +38739,7 @@ Member-group review:
 - Rose checked stale wording and over-promoted count-family claims.
 - Pat checked that D choices tell applied readers what is next without
   implying that all are starting now.
+
 - No spawned subagents were running.
 
 Validation:
@@ -38763,3 +38764,68 @@ git diff --check
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-phase18-count-first-wave-closure-slice-c.md`
+
+## 2026-05-25 - Truncated NB2 `mu` Random Intercept
+
+Goal:
+
+- Add the next count-adjacent ordinary location random-intercept slice:
+  non-hurdle `truncated_nbinom2()` with `bf(count ~ x + (1 | id), sigma ~ z)`.
+
+Changes:
+
+- Wired ordinary zero-truncated NB2 `mu` random intercepts through formula
+  parsing, TMB data, the zero-truncated NB2 likelihood branch, starts/maps,
+  `sdpars`, `random_effects`, and `check_drm()`.
+- Added focused source tests for convergence, fixed-effect recovery,
+  random-effect SD extraction, conditional random effects, replication
+  diagnostics, and unsupported neighbors.
+- Updated `truncated_nbinom2()` docs, the family registry, the Phase 18 core
+  family map, the readiness matrix, NEWS, and the after-task report.
+- Kept hurdle NB2 random effects, zero-truncated random slopes, labelled
+  covariance blocks, structured effects, and `sigma` random effects closed.
+
+Member-group review:
+
+- Ada kept the work stacked on `codex/phase18-common-family-artifacts`.
+- Boole checked that the admitted syntax is only ordinary location
+  random-intercept syntax.
+- Curie and Fisher checked that the focused fixture is deterministic source
+  evidence rather than a formal grid.
+- Grace checked parse, focused tests, documentation generation, and diff
+  hygiene.
+- Rose checked that planned hurdle, slope, sigma, and structured neighbors are
+  still named as planned.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','tests/testthat/test-truncated-nbinom2-location-scale.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = '^truncated-nbinom2-location-scale$', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(truncated-nbinom2-location-scale|check-drm|profile-targets)$', reporter = 'summary')"
+Rscript -e "devtools::document()"
+air format R/drmTMB.R R/check.R R/family.R src/drmTMB.cpp tests/testthat/test-truncated-nbinom2-location-scale.R NEWS.md docs/design/02-family-registry.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-25-truncated-nb2-mu-random-intercept.md
+git diff --check
+```
+
+Restack follow-up on 2026-05-26:
+
+- PR #327 was rebased onto `main` after #326 merged.
+- Manual GitHub Actions R-CMD-check run `26456194990` on the rebased branch
+  failed on Ubuntu, macOS, and Windows because the new
+  `truncated_nbinom2()` `sigma` random-effect error headline no longer matched
+  the standing non-Gaussian `sigma` random-effect boundary regression.
+- Restored the shared "Non-Gaussian `sigma` random effects" boundary wording
+  while keeping the `truncated_nbinom2()`-specific recovery guidance.
+- `air format R/drmTMB.R` completed without output.
+- `devtools::test(filter = '^nongaussian-scale-boundary$', reporter =
+  'summary')` passed.
+- `devtools::test(filter =
+  '^(truncated-nbinom2-location-scale|check-drm|profile-targets|nongaussian-scale-boundary)$',
+  reporter = 'summary')` passed.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-truncated-nb2-mu-random-intercept.md`
