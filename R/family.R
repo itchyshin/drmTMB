@@ -65,6 +65,8 @@ student <- function() {
 #' The model is defined on the log response scale:
 #' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
 #' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
+#' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
+#' first positive-continuous mixed-model slice.
 #'
 #' @return A `drm_family` object.
 #' @export

@@ -47,7 +47,7 @@ A \code{drmTMB} fit object.
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
 supports univariate Gaussian location-scale models, fixed-effect
-univariate Student-t location-scale-shape models, fixed-effect lognormal
+univariate Student-t location-scale-shape models, lognormal
 location-scale models, Gamma mean-CV models for positive responses,
 fixed-effect beta mean-scale models for strict proportions,
 fixed-effect beta-binomial mean-overdispersion models for success counts,
@@ -55,9 +55,12 @@ fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 zero-inflated negative-binomial mean-dispersion, zero-truncated
 negative-binomial mean-dispersion, and hurdle negative-binomial
-mean-dispersion models for counts. Poisson, ordinary negative-binomial, and
-zero-truncated negative-binomial \code{mu} formulas may include standard R
-\code{offset(log(exposure))} terms for exposure or effort,
+mean-dispersion models for counts. Lognormal, Gamma, ordinary
+Poisson, ordinary negative-binomial, and zero-truncated negative-binomial
+\code{mu} formulas support ordinary unlabelled random intercepts where
+documented. Poisson, ordinary negative-binomial, and zero-truncated
+negative-binomial \code{mu} formulas may include standard R \code{offset(log(exposure))}
+terms for exposure or effort,
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,

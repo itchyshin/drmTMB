@@ -57,8 +57,8 @@ and recovery evidence.
 | --- | --- | --- | --- | --- |
 | `gaussian()` | `mu` identity; `sigma` log | none | Fixed effects; ordinary `mu` random intercepts, independent slopes, q > 2 numeric slope blocks, selected labelled intercept covariance; Gaussian `sigma` random intercepts and independent slopes; selected `sd(group)` SD-surface formulas; Gaussian-only `meta_V()`, `phylo()`, and `spatial()` routes are separate rows in the readiness matrix. | Covered by Gaussian location-scale, random-effect, profile, `check_drm()`, meta-analysis, phylogenetic, and spatial tests. |
 | `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed-effect only for all dpars. `nu` and `sigma` bar terms are blocked. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-scale-boundary.R`. |
-| `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed-effect only for `mu` and `sigma`. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
-| `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed-effect only for `mu` and `sigma`; non-log Gamma links remain unsupported. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary tests. |
+| `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts. Lognormal random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
+| `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts; non-log Gamma links remain unsupported. Gamma random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed-effect only for strict `(0, 1)` responses. Exact 0/1 boundary mass and `zoi`/`coi` are planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed-effect only for two-column `cbind(successes, failures)` responses. `mu`, `sigma`, `zoi`, and `coi` random effects are blocked. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks. |
 | `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, phylogenetic slopes, spatial/animal/`relmat()` structured count effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, and opt-in smoke-runner checks. |
@@ -279,7 +279,8 @@ for current analysis syntax.
 
 ## Implemented: Lognormal Location-Scale
 
-The first positive continuous family is univariate and fixed-effect only:
+The first positive continuous family is univariate. It supports fixed effects
+and ordinary unlabelled `mu` random intercepts:
 
 ```r
 lognormal <- function() {
@@ -300,8 +301,10 @@ log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
 
 Here `mu` is the mean of `log(y)`, not the arithmetic mean of `y`. The
 response-scale mean is `exp(mu_i + sigma_i^2 / 2)`, which is what `fitted()`
-returns for lognormal fits. Random effects, known sampling covariance,
-phylogenetic terms, and bivariate or mixed lognormal models are later phases.
+returns for lognormal fits. Ordinary repeated-measure grouping can be written
+as `bf(y ~ x + (1 | id), sigma ~ z)`. Random slopes, labelled covariance,
+`sigma` random effects, known sampling covariance, phylogenetic terms, and
+bivariate or mixed lognormal models are later phases.
 
 ## Implemented: Gamma Mean-CV
 
@@ -312,7 +315,8 @@ exporting `gamma()`, which would mask `base::gamma()`:
 family = Gamma(link = "log")
 ```
 
-The implemented model is fixed-effect, univariate, and positive-response only:
+The implemented model is univariate and positive-response only, with fixed
+effects plus ordinary unlabelled `mu` random intercepts:
 
 ```text
 y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
@@ -324,9 +328,10 @@ scale_i = mu_i * sigma_i^2
 
 Here `mu` is the expected response. `sigma` is the coefficient of variation,
 not the residual standard deviation; the residual standard deviation is
-`mu_i * sigma_i`. Non-log `Gamma()` links, random effects, known sampling
-covariance, phylogenetic terms, and bivariate or mixed Gamma models are later
-phases.
+`mu_i * sigma_i`. Ordinary repeated-measure grouping can be written as
+`bf(y ~ x + (1 | id), sigma ~ z)`. Non-log `Gamma()` links, random slopes,
+labelled covariance, `sigma` random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed Gamma models are later phases.
 
 ## Implemented: Beta Mean-Scale
 

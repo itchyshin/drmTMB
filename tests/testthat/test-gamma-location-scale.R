@@ -12,6 +12,37 @@ new_gamma_data <- function(n = 900, seed = 20260522) {
   list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma)
 }
 
+new_gamma_random_intercept_data <- function(
+  n_id = 42,
+  n_each = 10,
+  seed = 20260628
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(
+    id = id,
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(0.15, 0.36)
+  beta_sigma <- c(-0.85, 0.16)
+  sd_id <- 0.48
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  u_id <- u_id - mean(u_id)
+  names(u_id) <- levels(id)
+  mu <- exp(beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_id[id])
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  dat$biomass <- stats::rgamma(n, shape = 1 / sigma^2, scale = mu * sigma^2)
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_id = sd_id,
+    u_id = u_id
+  )
+}
+
 test_that("drmTMB fits fixed-effect Gamma mean-CV models", {
   sim <- new_gamma_data()
 
@@ -36,6 +67,55 @@ test_that("drmTMB fits fixed-effect Gamma mean-CV models", {
     tolerance = 1e-12
   )
   expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+})
+
+test_that("Gamma mu supports ordinary random intercepts", {
+  sim <- new_gamma_random_intercept_data()
+
+  fit <- drmTMB(
+    bf(biomass ~ x + (1 | id), sigma ~ z),
+    family = stats::Gamma(link = "log"),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "gamma")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$sd_id), 0.25)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.20)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.25)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.45)
+  expect_true(drmTMB:::has_ordinary_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 1L)
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    as.vector(fit$model$X$mu %*% coef(fit, "mu")) +
+      drmTMB:::mu_random_effect_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    fitted(fit),
+    exp(predict(fit, dpar = "mu", type = "link")),
+    tolerance = 1e-12
+  )
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:mu:(1 | id)", , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_mu")
+  expect_true(sd_target$profile_ready)
+
+  chk <- check_drm(fit)
+  replication <- chk[chk$check == "mu_random_effect_replication", ]
+  expect_equal(replication$status, "ok")
 })
 
 test_that("Gamma likelihood matches independent dgamma calculation", {
@@ -261,11 +341,27 @@ test_that("Gamma models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(abs(y) + 0.1 ~ x + (1 | id), sigma ~ 1),
+      bf(abs(y) + 0.1 ~ x + (0 + x | id), sigma ~ 1),
       family = stats::Gamma(link = "log"),
       data = dat
     ),
-    "unsupported model terms"
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x + (1 | p | id), sigma ~ 1),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(abs(y) + 0.1 ~ x, sigma ~ 1 + (1 | id)),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
+    "sigma.*random effects"
   )
   expect_error(
     drmTMB(
