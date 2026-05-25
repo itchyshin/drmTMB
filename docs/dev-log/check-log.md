@@ -38755,3 +38755,73 @@ git diff --check
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-truncated-nb2-mu-random-intercept.md`
+
+## 2026-05-25 - Positive-Continuous `mu` Random Intercepts
+
+Goal:
+
+- Add ordinary unlabelled `mu` random intercepts for the first
+  positive-continuous mixed-model slice: `lognormal()` and
+  `Gamma(link = "log")` with `bf(y ~ x + (1 | id), sigma ~ z)`.
+
+Changes:
+
+- Wired lognormal and Gamma `mu` random intercepts through formula parsing,
+  TMB data, likelihood branches, starts/maps, `sdpars`, `random_effects`,
+  profile targets, prediction contributions, and `check_drm()`.
+- Added deterministic recovery tests for convergence, positive-definite
+  Hessian status, fixed effects, random-effect SDs, conditional random
+  effects, direct `log_sd_mu` profile-target rows, and replication diagnostics.
+- Added guardrail tests for random slopes, labelled covariance blocks,
+  `sigma` random effects, random-effect scale formulae, structured effects,
+  known covariance, and mixed/bivariate positive-continuous models.
+- Updated `README.md`, `ROADMAP.md`, `NEWS.md`, `R/drmTMB.R`, `R/family.R`,
+  the formula grammar, the family registry, the Phase 18 simulation programme,
+  the readiness matrix, the Phase 18 core map, the positive-continuous
+  fixed-effect artifact note, known limitations, generated Rd files, and the
+  after-task report.
+
+Member-group review:
+
+- Ada kept this as a stacked source-test lane on top of the zero-truncated NB2
+  random-intercept PR.
+- Boole checked that only ordinary `(1 | id)` location random intercept syntax
+  is admitted.
+- Gauss and Noether checked the predictor scale: lognormal adds the effect to
+  log-response `mu`; Gamma adds it to the log-mean predictor.
+- Curie and Fisher checked that the recovery tests are focused source evidence,
+  not formal-grid evidence.
+- Grace checked parse, focused tests, documentation generation, formatting, and
+  diff hygiene.
+- Rose checked stale wording and kept positive-continuous slopes, `sigma`
+  random effects, structured routes, known covariance, and bivariate positive
+  responses out of scope.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','R/family.R','tests/testthat/test-lognormal-location-scale.R','tests/testthat/test-gamma-location-scale.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript -e "devtools::test(filter = '^(lognormal-location-scale|gamma-location-scale)$', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(lognormal-location-scale|gamma-location-scale|check-drm|profile-targets)$', reporter = 'summary')"
+Rscript -e "devtools::document()"
+air format R/drmTMB.R R/check.R R/family.R src/drmTMB.cpp tests/testthat/test-lognormal-location-scale.R tests/testthat/test-gamma-location-scale.R README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/dev-log/check-log.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-25-positive-continuous-mu-random-intercepts.md
+rg --pcre2 -n 'positive-continuous.*fixed-effect only|lognormal.*fixed-effect only|Gamma.*fixed-effect only|positive-continuous random effects.*remain excluded|lognormal.*random effects.*later|Gamma.*random effects.*later|lognormal/Gamma/Student-t follow only|positive-response random effects(?! beyond)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+git diff --check
+```
+
+- The parse check passed before and after formatting.
+- Focused lognormal/Gamma tests passed.
+- Broader focused tests for lognormal/Gamma, `check_drm()`, and
+  `profile_targets()` passed.
+- `devtools::document()` regenerated `man/drmTMB.Rd` and
+  `man/lognormal.Rd`.
+- Formatting completed without output.
+- The stale-wording scan returned only intentional boundary statements about
+  `sigma` random effects, random slopes, and positive-continuous neighbours
+  that remain planned.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-positive-continuous-mu-random-intercepts.md`

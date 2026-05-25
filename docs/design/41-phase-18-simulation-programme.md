@@ -781,9 +781,9 @@ errors, and elapsed time by surface before the raw manifest.
      The lane adds DGP, summariser, smoke runner, grid writer, first-wave
      runner inclusion, and a manual `positive_continuous_fixed_effect` Actions
      task for `lognormal()` and `Gamma(link = "log")`, while keeping Tweedie,
-     generalized Gamma, positive-response random effects, structured effects,
-     known covariance, and mixed-response positive-continuous models outside
-     the fitted claim.
+     generalized Gamma, positive-response random effects beyond the ordinary
+     `mu` intercept slice, structured effects, known covariance, and
+     mixed-response positive-continuous models outside the fitted claim.
 161. Slices 1309-1318 add the fixed-effect ordinal artifact lane in
      `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md`.
      The lane adds DGP, summariser, smoke runner, grid writer, first-wave
