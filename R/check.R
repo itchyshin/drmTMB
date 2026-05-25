@@ -918,7 +918,14 @@ fixed_effect_design_nonzero <- function(x) {
 }
 
 check_random_effect_replication <- function(object, block) {
-  if (!object$model$model_type %in% c("gaussian", "nbinom2")) {
+  if (
+    !object$model$model_type %in%
+      c(
+        "gaussian",
+        "nbinom2",
+        "truncated_nbinom2"
+      )
+  ) {
     return(NULL)
   }
   re <- object$model$random[[block]]
@@ -947,7 +954,14 @@ check_random_effect_replication <- function(object, block) {
 }
 
 check_random_effect_design <- function(object, block) {
-  if (!object$model$model_type %in% c("gaussian", "nbinom2")) {
+  if (
+    !object$model$model_type %in%
+      c(
+        "gaussian",
+        "nbinom2",
+        "truncated_nbinom2"
+      )
+  ) {
     return(NULL)
   }
   re <- object$model$random[[block]]

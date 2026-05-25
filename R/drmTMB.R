@@ -10,8 +10,8 @@
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
 #' negative-binomial mean-dispersion, and hurdle negative-binomial
-#' mean-dispersion models for counts. Poisson and
-#' negative-binomial `mu` formulas may include standard R
+#' mean-dispersion models for counts. Poisson, ordinary negative-binomial, and
+#' zero-truncated negative-binomial `mu` formulas may include standard R
 #' `offset(log(exposure))` terms for exposure or effort,
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
@@ -2335,7 +2335,9 @@ drm_build_nbinom2_spec <- function(
         phylo_mu = phylo_mu
       )
     },
-    map = if (has_zi) zi_nbinom2_map() else {
+    map = if (has_zi) {
+      zi_nbinom2_map()
+    } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
     random_names = c(
@@ -2443,6 +2445,15 @@ drm_build_truncated_nbinom2_spec <- function(
       "i" = "Hurdle-side and positive-count random effects need likelihood, extractor, interval, and recovery-test support before they can be fitted together."
     ))
   }
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_truncated_nbinom2_mu_random_terms(
+    mu_re$terms,
+    has_hu = !is.null(hu_entry)
+  )
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_truncated_nbinom2_sigma_random_terms(sigma_re$terms)
 
   for (entry in c(
     list(mu_entry, sigma_entry),
@@ -2461,7 +2472,8 @@ drm_build_truncated_nbinom2_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     all.vars(f_sigma),
-    if (!is.null(f_hu)) all.vars(f_hu)
+    if (!is.null(f_hu)) all.vars(f_hu),
+    random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -2547,6 +2559,7 @@ drm_build_truncated_nbinom2_spec <- function(
       "i" = "Use a formula with an intercept or predictors, such as {.code hu ~ 1} or {.code hu ~ survey_method}."
     ))
   }
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
 
   spec <- list(
     model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2",
@@ -2579,10 +2592,10 @@ drm_build_truncated_nbinom2_spec <- function(
       list(mu = mf_mu, sigma = mf_sigma)
     },
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
@@ -2591,10 +2604,14 @@ drm_build_truncated_nbinom2_spec <- function(
     start = if (has_hu) {
       hurdle_nbinom2_start(y, X_mu, X_sigma, X_hu)
     } else {
-      truncated_nbinom2_start(y, X_mu, X_sigma)
+      truncated_nbinom2_start(y, X_mu, X_sigma, re_mu = re_mu)
     },
-    map = if (has_hu) hurdle_nbinom2_map() else truncated_nbinom2_map(),
-    random_names = NULL
+    map = if (has_hu) {
+      hurdle_nbinom2_map()
+    } else {
+      truncated_nbinom2_map(re_mu)
+    },
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3624,6 +3641,52 @@ validate_nbinom2_sigma_random_terms <- function(
     ))
   }
   invisible(terms)
+}
+
+validate_truncated_nbinom2_mu_random_terms <- function(
+  terms,
+  has_hu = FALSE
+) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  if (isTRUE(has_hu)) {
+    cli::cli_abort(c(
+      "{.fn truncated_nbinom2} {.code mu} random intercepts are implemented only for ordinary zero-truncated NB2 models.",
+      "x" = "Hurdle NB2 random effects are planned but not implemented.",
+      "i" = "Fit {.code bf(count ~ x + (1 | id), sigma ~ z)} without a {.code hu} formula, or keep the hurdle model fixed-effect."
+    ))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") ||
+        !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only independent {.fn truncated_nbinom2} {.code mu} random intercepts are implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use syntax like {.code bf(count ~ x + (1 | id), sigma ~ z)}.",
+      "i" = "Zero-truncated NB2 random slopes, labelled covariance blocks, structured effects, and hurdle random effects remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_truncated_nbinom2_sigma_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "{.fn truncated_nbinom2} {.code sigma} random effects are not implemented.",
+    "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "This slice adds only ordinary positive-count {.code mu} random intercepts; overdispersion random effects need their own recovery tests."
+  ))
 }
 
 is_random_bar_call <- function(expr) {
@@ -8895,8 +8958,13 @@ nbinom2_map <- function(
   out
 }
 
-truncated_nbinom2_start <- function(y, X_mu, X_sigma) {
-  nb <- nbinom2_start(y, X_mu, X_sigma)
+truncated_nbinom2_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  re_mu = empty_random_mu_structure(length(y))
+) {
+  nb <- nbinom2_start(y, X_mu, X_sigma, re_mu = re_mu)
   mu <- exp(as.vector(X_mu %*% nb$beta_mu))
   sigma <- exp(as.vector(X_sigma %*% nb$beta_sigma))
   p0 <- stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
@@ -8905,8 +8973,10 @@ truncated_nbinom2_start <- function(y, X_mu, X_sigma) {
   nb
 }
 
-truncated_nbinom2_map <- function() {
-  nbinom2_map()
+truncated_nbinom2_map <- function(
+  re_mu = empty_random_mu_structure(1L)
+) {
+  nbinom2_map(re_mu = re_mu)
 }
 
 hurdle_nbinom2_start <- function(y, X_mu, X_sigma, X_hu) {
@@ -10358,6 +10428,8 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "truncated_nbinom2")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 11L,
       y = spec$y,
@@ -10373,7 +10445,7 @@ make_tmb_data <- function(spec) {
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -10385,16 +10457,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -10796,7 +10868,8 @@ ordinal_cutpoint_names <- function(levels) {
 
 split_tmb_sdpars <- function(par, spec) {
   if (
-    !spec$model_type %in% c("gaussian", "biv_gaussian", "poisson", "nbinom2")
+    !spec$model_type %in%
+      c("gaussian", "biv_gaussian", "poisson", "nbinom2", "truncated_nbinom2")
   ) {
     return(list())
   }
@@ -11064,7 +11137,8 @@ tmb_vecscale_sqrt_cov_scale <- function(theta, sd, z) {
 
 split_tmb_random_effects <- function(par, spec) {
   if (
-    !spec$model_type %in% c("gaussian", "biv_gaussian", "poisson", "nbinom2")
+    !spec$model_type %in%
+      c("gaussian", "biv_gaussian", "poisson", "nbinom2", "truncated_nbinom2")
   ) {
     return(list())
   }
