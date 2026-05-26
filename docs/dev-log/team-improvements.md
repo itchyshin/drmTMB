@@ -217,6 +217,16 @@ issues, or pull requests.
   family should keep consistent colours, labels, uncertainty provenance, and
   axis language.
 
+## 2026-05-26 - Bounded-Response Status Sync
+
+- Improvement implemented: when a first-slice non-Gaussian random-effect route
+  lands, update both the design-ledger tables and the public implementation-map
+  table before starting the next neighbouring-family gate.
+- Trigger: the zero-one bounded-response design gate found that
+  `vignettes/implementation-map.Rmd` still listed beta-binomial random effects
+  as `none`, even though beta-binomial ordinary `mu` random intercepts were
+  already fitted and documented elsewhere.
+
 ## 2026-05-20 - Installed-Layout Runner Tests
 
 - Improvement implemented: tests for `inst/` runner scripts must exercise the
