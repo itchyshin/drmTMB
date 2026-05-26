@@ -586,7 +586,7 @@ below is a roadmap boundary, not a fitted-claim table.
 | Bivariate location-location correlation | Matching labelled `phylo()` terms in `mu1` and `mu2`, reported by `corpairs()` | Matching labelled `spatial()`, `animal()`, and `relmat()` terms now fit the first q=2 slices when their coordinate or known-matrix inputs are available |
 | Location-scale q=4 block | Matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Matching labelled all-four spatial, animal, and `relmat()` blocks now fit constant q=4 location-scale covariance |
 | Predictor-dependent structured correlation | q=2 phylogenetic `corpair(..., level = "phylogenetic") ~ ecology` | q=2 animal, spatial, and relmat `corpair()` regressions only after constant q=2 fits are stable |
-| Direct SD surfaces | `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` | Source-specific direct-SD siblings after naming, matrix scale, and interpretation are clear |
+| Direct SD surfaces | `sd(..., level = "phylogenetic")`, `sd1(..., level = "phylogenetic")`, and `sd2(..., level = "phylogenetic")` | Spatial, animal, and `relmat()` direct-SD levels after naming, matrix scale, and interpretation are clear |
 
 Spatial is partway up this ladder: `spatial(1 | site, coords = coords)` can
 enter Gaussian `mu`, Gaussian `sigma`, or matching univariate `mu`/`sigma`
@@ -645,8 +645,8 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
 | Matching labelled `phylo()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One constant q=4 phylogenetic block estimates four endpoint SDs and six latent correlations: one location-location, four location-scale, and one scale-scale. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| `sd_phylo(species) ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
-| `sd_phylo1(species) ~ z1` / `sd_phylo2(species) ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
+| `sd(species, level = "phylogenetic") ~ z` | Implemented for univariate Gaussian `mu` | This is the separate Box 1 direct-SD family: species-level predictors model the SD of a phylogenetic location random effect at observed tips. |
+| `sd1(species, level = "phylogenetic") ~ z1` / `sd2(species, level = "phylogenetic") ~ z2` | Implemented for bivariate `mu1`/`mu2` | Response-specific species-level predictors model the SD surfaces of the two phylogenetic location random effects. This remains a Family B direct-SD model, not a residual `sigma1`/`sigma2` model and not a q=4 location-scale block. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented for q=2 `mu1`/`mu2` | Species-level predictors model the same-species latent phylogenetic location-location correlation through a positive-definite two-field loading contract. `corpairs(level = "phylogenetic")` reports the modelled response-scale mean, range, and number of species values. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | One trait has a coordinate-based spatial random intercept in the location predictor. This is a fixed coordinate covariance foundation, not the future mesh/SPDE path. |
 | `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | One trait has independent coordinate-spatial intercept and numeric slope fields in the location predictor. The two fields share the same coordinate precision, have separate SDs, and do not estimate an intercept-slope correlation. |
@@ -808,21 +808,23 @@ fit_phylo_sd <- drmTMB(
     sigma1 = ~ habitat_variability,
     sigma2 = ~ habitat_variability,
     rho12 = ~ assay_context,
-    sd_phylo1(species) ~ habitat_variability_species,
-    sd_phylo2(species) ~ habitat_variability_species
+    sd1(species, level = "phylogenetic") ~ habitat_variability_species,
+    sd2(species, level = "phylogenetic") ~ habitat_variability_species
   ),
   family = c(gaussian(), gaussian()),
   data = tolerance
 )
 
-coef(fit_phylo_sd, "sd_phylo1(species)")
-coef(fit_phylo_sd, "sd_phylo2(species)")
+coef(fit_phylo_sd, 'sd1(species, level = "phylogenetic")')
+coef(fit_phylo_sd, 'sd2(species, level = "phylogenetic")')
 corpairs(fit_phylo_sd, level = "phylogenetic", conf.int = TRUE)
 ```
 
-This is not a residual scale model. `sd_phylo1()` and `sd_phylo2()` model the
-phylogenetic location SD surfaces for the two responses. The cross-response
-phylogenetic mean-mean correlation remains constant.
+This is not a residual scale model. `sd1(..., level = "phylogenetic")` and
+`sd2(..., level = "phylogenetic")` model the phylogenetic location SD surfaces
+for the two responses. The cross-response phylogenetic mean-mean correlation
+remains constant unless the model also includes a q=2 phylogenetic `corpair()`
+formula.
 
 ### 4. Move to a q=4 phylogenetic location-scale block
 
@@ -1670,19 +1672,21 @@ fit_biv_sd_phylo <- drmTMB(
     sigma1 = ~ habitat_variability,
     sigma2 = ~ habitat_variability,
     rho12 = ~ assay_context,
-    sd_phylo1(species) ~ habitat_variability_species,
-    sd_phylo2(species) ~ habitat_variability_species
+    sd1(species, level = "phylogenetic") ~ habitat_variability_species,
+    sd2(species, level = "phylogenetic") ~ habitat_variability_species
   ),
   family = c(gaussian(), gaussian()),
   data = tolerance
 )
 ```
 
-Here `sd_phylo1(species)` targets the `mu1` phylogenetic location SD surface and
-`sd_phylo2(species)` targets the `mu2` surface. The right-hand-side predictors
-must be constant within species after model-row filtering. The latent
-phylogenetic mean-mean correlation remains a constant fitted correlation, and
-`rho12` remains the within-observation residual correlation:
+Here `sd1(species, level = "phylogenetic")` targets the `mu1` phylogenetic
+location SD surface and `sd2(species, level = "phylogenetic")` targets the
+`mu2` surface. The right-hand-side predictors must be constant within species
+after model-row filtering. The latent phylogenetic mean-mean correlation
+remains a constant fitted correlation unless the model also includes a q=2
+phylogenetic `corpair()` formula, and `rho12` remains the within-observation
+residual correlation:
 
 ```r
 corpairs(fit_biv_sd_phylo, level = "phylogenetic", conf.int = TRUE)
@@ -1708,8 +1712,7 @@ with species-level SD surfaces. For response \(k \in \{1,2\}\):
   \mathbf{z}_s^{\top}\boldsymbol{\alpha}_k.
 \]
 
-The current bivariate direct-SD path keeps the cross-response phylogenetic
-location correlation constant:
+With a constant bivariate phylogenetic location correlation:
 
 \[
 \operatorname{Cov}(\mathbf{a}_1, \mathbf{a}_2)
@@ -1717,11 +1720,14 @@ location correlation constant:
     \mathbf{D}_1(\mathbf{z})\,\mathbf{A}\,\mathbf{D}_2(\mathbf{z}).
 \]
 
-This is why `sd_phylo1(species) ~ habitat_variability_species` and
-`sd_phylo2(species) ~ habitat_variability_species` answer a different question
-from the q=4 location-scale block. They ask whether species-level predictors
-change the magnitude of phylogenetic mean variation for each response. They do
-not put random effects into `sigma1` or `sigma2`.
+With a q=2 predictor-dependent phylogenetic `corpair()` formula, the direct-SD
+surfaces multiply the two loaded unit tree fields after the species-specific
+correlation transform. This is why
+`sd1(species, level = "phylogenetic") ~ habitat_variability_species` and
+`sd2(species, level = "phylogenetic") ~ habitat_variability_species` answer a
+different question from the q=4 location-scale block. They ask whether
+species-level predictors change the magnitude of phylogenetic mean variation
+for each response. They do not put random effects into `sigma1` or `sigma2`.
 
 The full constant q=4 location-scale form uses an explicit covariance-block
 label:

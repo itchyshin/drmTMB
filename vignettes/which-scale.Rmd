@@ -783,24 +783,23 @@ covariance blocks. Read those correlations with `corpairs()`.
 
 Family B models the SD of a location random effect directly. For example,
 `sd(id) ~ habitat` changes the among-`id` SD in the `mu` random intercept. The
-phylogenetic direct-SD analogue is currently spelled
-`sd_phylo(species) ~ z_species`; a future generic spelling might be
-`sd(species, level = "phylogenetic") ~ z_species`, but the explicit
-`sd_phylo()` name is the implemented public syntax today.
+phylogenetic direct-SD analogue is
+`sd(species, level = "phylogenetic") ~ z_species`.
 
 Do not mix the two families for the same latent layer. For example, a q=4
 Family A block with matching labelled `phylo()` terms in `mu1`, `mu2`,
 `sigma1`, and `sigma2` already estimates one constant latent covariance block.
-Adding `sd_phylo1(species) ~ z` or `sd_phylo2(species) ~ z` to that same q=4
-block would ask for a predictor-dependent direct-SD model at the same time, so
-`drmTMB()` rejects that combination before fitting.
+Adding `sd1(species, level = "phylogenetic") ~ z` or
+`sd2(species, level = "phylogenetic") ~ z` to that same q=4 block would ask for
+a predictor-dependent direct-SD model at the same time, so `drmTMB()` rejects
+that combination before fitting.
 
 | Question | Use | Do not read it as |
 |---|---|---|
 | Do groups differ in residual SD? | `sigma ~ ... + (1 | group)` | a model for among-group mean differences |
 | Does a group-level predictor change among-group mean SD? | `sd(group) ~ x_group` | residual `sigma` regression |
 | Do two latent group effects move together? | matching labelled random effects plus `corpairs()` | residual `rho12` |
-| Does a species-level predictor change phylogenetic location SD? | `sd_phylo(species) ~ z_species` | a q=4 location-scale covariance block |
+| Does a species-level predictor change phylogenetic location SD? | `sd(species, level = "phylogenetic") ~ z_species` | a q=4 location-scale covariance block |
 
 ## Current boundary
 

@@ -43,7 +43,7 @@ such as phylogenetic plasticity and additive genetic variation.
 | 58 | Structured non-Gaussian boundary | Completed as guardrail | `phylo()`, `spatial()`, `animal()`, and `relmat()` still do not fit non-Gaussian likelihoods. |
 | 59 | Multiple structured slope boundary | Completed as guardrail | Parser and docs keep multiple structured slopes outside the fitted surface. |
 | 60 | Structured slope-correlation boundary | Completed as guardrail | No `corpairs()` row is reported for univariate structured intercept-slope paths. |
-| 61 | Direct-SD boundary | Completed as guardrail | `sd_phylo()` support remains separate from structured slopes; spatial, animal, and `relmat()` `sd*()` siblings remain a future direct-SD unification lane, not part of this implementation slice. |
+| 61 | Direct-SD boundary | Completed as guardrail | `sd(..., level = "phylogenetic")` support remains separate from structured slopes; spatial, animal, and `relmat()` `sd*()` siblings remain a future direct-SD unification lane, not part of this implementation slice. |
 | 62 | Meta-analysis boundary | Completed as guardrail | Known sampling covariance `meta_V(V = V)` remains separate from latent relatedness. |
 | 63 | Ordinary Gaussian slope inventory | Completed | Existing ordinary Gaussian `mu` and `sigma` slope support is kept in the fitted column. |
 | 64 | Count slope inventory | Completed | Existing Poisson and NB2 ordinary `mu` random intercept/slope support remains fitted and tested. |

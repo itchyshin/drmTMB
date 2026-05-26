@@ -1527,22 +1527,28 @@ Implementation notes:
   `sd2(id) ~ x_group` are rejected for the same group when this q=4 block is
   present. Combining them would require a predictor-dependent q=4 covariance
   model, not the current constant q=4 block.
-- The univariate Family B `sd_phylo(species) ~ x_species` model uses a
+- The univariate Family B `sd(species, level = "phylogenetic") ~ x_species`
+  model uses a
   non-centred tip-scaling contract. A unit phylogenetic base effect `v_aug`
   follows the sparse augmented tree precision, while the observed tip
   contribution is multiplied by `tau_l = exp(W_l alpha)`. The implied tip
   covariance is `D_tip A_tip D_tip`; internal nodes do not receive
   user-facing SD predictors. This direct-SD formula replaces the scalar
   `log_sd_phylo` target for the univariate location `phylo()` effect rather
-  than adding a second SD layer.
+  than adding a second SD layer. Deprecated `sd_phylo(species) ~ x_species`
+  remains a compatibility spelling for the same likelihood path.
 - The implemented bivariate Family B direct-SD extension uses
-  `sd_phylo1(species) ~ z1` for the `mu1` phylogenetic location-effect SD and
-  `sd_phylo2(species) ~ z2` for the `mu2` phylogenetic location-effect SD. With
-  a constant latent phylogenetic location-location correlation `rho_phylo`, the
-  cross-response tip covariance is
-  `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
-  endpoint location SD parameters only; they do not target residual `sigma1`,
-  residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
+  `sd1(species, level = "phylogenetic") ~ z1` for the `mu1` phylogenetic
+  location-effect SD and `sd2(species, level = "phylogenetic") ~ z2` for the
+  `mu2` phylogenetic location-effect SD. With a constant latent phylogenetic
+  location-location correlation `rho_phylo`, the cross-response tip covariance
+  is `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. With a q=2
+  predictor-dependent phylogenetic `corpair()` model, the same endpoint SD
+  surfaces multiply the two independent unit tree fields after the
+  species-specific loading transform. These formulas replace endpoint location
+  SD parameters only; they do not target residual `sigma1`, residual `sigma2`,
+  q=4 location-scale endpoint SDs, or residual `rho12`. Deprecated
+  `sd_phylo1()` and `sd_phylo2()` remain compatibility spellings.
 - Broader bivariate random slopes, `rho12` random effects, phylogenetic random
   slopes, and predictor-dependent q=4 phylogenetic or spatial correlations
   remain planned. The first ordinary matching slope-only `mu1`/`mu2` block and

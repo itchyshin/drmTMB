@@ -42,13 +42,13 @@ The current direct-SD surface is intentionally uneven:
 
 - `sd(group) ~ x` models an ordinary group-level SD surface for unlabelled
   Gaussian `mu` random intercepts;
-- `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` are implemented phylogenetic
-  direct-SD routes;
+- `sd(..., level = "phylogenetic")`, `sd1(..., level = "phylogenetic")`, and
+  `sd2(..., level = "phylogenetic")` are implemented phylogenetic direct-SD
+  routes, with `sd_phylo*()` kept as deprecated compatibility spellings;
 - spatial, animal, and `relmat()` direct-SD siblings remain planned.
 
-The future generic route should not silently overload `sd(group) ~ x`. A safer
-design is an explicit level-targeted grammar, for example a future spelling in
-the spirit of:
+The generic route should not silently overload `sd(group) ~ x`. It uses an
+explicit level-targeted grammar:
 
 ```r
 sd(species, level = "phylogenetic") ~ z

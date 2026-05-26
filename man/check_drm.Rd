@@ -85,10 +85,12 @@ Gaussian fit includes \code{spatial(1 | site, coords = coords)} or
 \code{spatial(1 + x | site, coords = coords)} in \code{mu}, it reports site
 replication, fitted coordinate range, the spatial SDs, and whether the
 smallest spatial SD is tiny relative to the residual scale. If a Gaussian
-fit includes \code{sd_phylo(species) ~ x_species},
-\code{sd_phylo1(species) ~ x_species}, or
-\code{sd_phylo2(species) ~ x_species}, it reports species replication and the
-fitted direct-SD surface range. If a univariate Gaussian fit used
+fit includes \code{sd(species, level = "phylogenetic") ~ x_species},
+\code{sd1(species, level = "phylogenetic") ~ x_species}, or
+\code{sd2(species, level = "phylogenetic") ~ x_species}, it reports species
+replication and the fitted direct-SD surface range. Deprecated
+\verb{sd_phylo*()} spellings use the same diagnostic path. If a univariate
+Gaussian fit used
 \code{drm_control(aggregate_gaussian = TRUE)}, it reports original rows,
 aggregation cells, compression ratio, and largest cell size. If a fit was
 stored with

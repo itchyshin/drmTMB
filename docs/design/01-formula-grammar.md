@@ -84,8 +84,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | labelled `phylo(1 | pl | species, tree = tree)` in `mu1` and `mu2` plus labelled `phylo(1 | ps | species, tree = tree)` in `sigma1` and `sigma2` | Implemented | Block-diagonal q=4 fallback: one q=2 phylogenetic mean-mean block and one independent q=2 phylogenetic scale-scale block for the same tree. It reports two `corpairs()` rows and no mean-scale phylogenetic correlations. |
 | `count ~ x + phylo(1 | species, tree = tree)`, `family = poisson(link = "log")` | Implemented first slice | Ordinary non-zero-inflated Poisson q=1 phylogenetic `mu` intercept on the log-mean scale. Phylogenetic count slopes, labelled q=2/q=4 count blocks, zero-inflated Poisson phylogeny, and spatial/animal/`relmat()` count structure remain planned. |
 | `count ~ x + phylo(1 | species, tree = tree)`, `sigma ~ z`, `family = nbinom2()` | Implemented first slice | Ordinary non-zero-inflated NB2 q=1 phylogenetic `mu` intercept on the log-mean scale while `sigma` remains fixed-effect overdispersion. NB2 phylogenetic slopes, labelled q=2/q=4 count blocks, zero-inflated NB2 phylogeny, NB2 `sigma` phylogeny, and spatial/animal/`relmat()` count structure remain planned. |
-| `sd_phylo(species) ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. |
-| bivariate `sd_phylo1(species) ~ x_species` / `sd_phylo2(species) ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, keep the latent phylogenetic location-location correlation separate, and are rejected with q=4 phylogenetic location-scale blocks. |
+| `sd(species, level = "phylogenetic") ~ x_species` | Implemented | Family B direct-SD model for a univariate Gaussian phylogenetic location random effect; predictors must be constant within species and scale observed tips through the `D_tip A_tip D_tip` contract. Deprecated `sd_phylo(species) ~ x_species` remains a compatibility spelling. |
+| bivariate `sd1(species, level = "phylogenetic") ~ x_species` / `sd2(species, level = "phylogenetic") ~ x_species` | Implemented | Response-specific bivariate phylogenetic location direct-SD models. They target only `mu1` and `mu2` phylogenetic location SDs, can be combined with q=2 predictor-dependent phylogenetic `corpair()` regression, and are rejected with q=4 phylogenetic location-scale blocks. Deprecated `sd_phylo1()` / `sd_phylo2()` remain compatibility spellings. |
 | `phylo(1 | species, A = A)` or `phylo(1 | species, Ainv = Ainv)` | Planned | Future phylogenetic known-relatedness input for users who already have a validated phylogenetic covariance or precision matrix. The implemented public phylo path still requires `tree = tree`. |
 | `animal(1 | id, pedigree = ped)` | Implemented first slice | Univariate Gaussian `mu` animal-model random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` pedigree columns. This is a sibling of `phylo()` and `spatial()`, not a new family; large-pedigree sparse precision construction remains planned. |
 | `animal(1 | id, A = A)` or `animal(1 | id, Ainv = Ainv)` in univariate `mu` and/or `sigma` | Implemented first slice | Univariate Gaussian animal-model random intercepts for location and residual scale using a precomputed additive relatedness or inverse-relatedness matrix; matching `mu`/`sigma` terms estimate one animal mean-scale correlation. Matching labelled bivariate q=2 `mu1`/`mu2` terms and constant all-four q=4 location-scale terms are implemented in the detailed rules below; large-pedigree sparse precision construction, multiple slopes, slope correlations, predictor-dependent `corpair()`, residual-scale structured slopes, and direct-SD grammar remain planned. Use `pedigree`, `A`, or `Ainv` for latent relatedness; keep `V` reserved for known sampling covariance in meta-analysis. |
@@ -547,31 +547,30 @@ bf(
   sigma1 = ~ w1,
   sigma2 = ~ w2,
   rho12 = ~ context,
-  sd_phylo1(species) ~ z1,
-  sd_phylo2(species) ~ z2
+  sd1(species, level = "phylogenetic") ~ z1,
+  sd2(species, level = "phylogenetic") ~ z2
 )
 ```
 
-`sd_phylo1(species)` targets the `mu1` phylogenetic location-effect SD surface
-and `sd_phylo2(species)` targets the `mu2` surface. The bivariate design keeps a
-constant latent phylogenetic location-location correlation, reported by
-`corpairs()`, and keeps residual `rho12` as the within-observation coscale
-parameter. It is not syntax for phylogenetic residual-scale SDs or q=4
+`sd1(species, level = "phylogenetic")` targets the `mu1` phylogenetic
+location-effect SD surface and `sd2(species, level = "phylogenetic")` targets
+the `mu2` surface. The bivariate q=2 design can keep a constant latent
+phylogenetic location-location correlation or model that correlation with
+`corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ z`.
+Residual `rho12` remains the within-observation coscale parameter. These
+direct-SD formulas are not syntax for phylogenetic residual-scale SDs or q=4
 location-scale endpoint SDs.
 
 The project direction is generic `sd*()` direct-SD grammar, not a permanent
-explosion of structure-specific helper names. The currently implemented
-`sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` names remain compatibility paths
-until a lifecycle decision says otherwise, because they make the tree-scaled
-`D_tip A_tip D_tip` contract explicit and avoid silently changing existing
-examples. The planned generic spelling is a single direct-SD family with an
-explicit dependence level, for example
-`sd(species, level = "phylogenetic") ~ z`,
-`sd(site, level = "spatial") ~ z`,
-`sd(id, level = "animal") ~ z`, and
-`sd(line, level = "relmat") ~ z`. That generic route should land only with
-parser tests, examples, reference-index discoverability, compatibility aliases,
-and a clear migration note.
+explosion of structure-specific helper names. The deprecated `sd_phylo()`,
+`sd_phylo1()`, and `sd_phylo2()` names remain compatibility paths, but new
+examples should use the explicit dependence level. The fitted level today is
+`level = "phylogenetic"`. The same grammar reserves future structured direct-SD
+routes such as `sd(site, level = "spatial") ~ z`,
+`sd(id, level = "animal") ~ z`, and `sd(line, level = "relmat") ~ z`; those
+levels should land only with likelihood code, parser tests, examples,
+reference-index discoverability, compatibility aliases where needed, and clear
+migration notes.
 
 Reserved explicit random-effect scale targets use `dpar`, `coef`, and optional
 `block` arguments:

@@ -655,14 +655,15 @@ test_that("check_drm() records spatial mu diagnostics separately from phylo", {
   expect_identical(attr(bad_chk, "ok"), FALSE)
 })
 
-test_that("check_drm() records sd_phylo direct-SD diagnostics", {
+test_that("check_drm() records phylogenetic direct-SD diagnostics", {
   sim <- check_drm_sd_phylo_data()
   tree <- sim$tree
+  sd_dpar <- "sd(species, level = \"phylogenetic\")"
   fit <- drmTMB(
     bf(
       y ~ x + phylo(1 | species, tree = tree),
       sigma ~ 1,
-      sd_phylo(species) ~ z_species
+      sd(species, level = "phylogenetic") ~ z_species
     ),
     family = gaussian(),
     data = sim$data,
@@ -674,7 +675,10 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
   expect_equal(fit$opt$convergence, 0)
   expect_equal(nrow(direct_sd), 1L)
   expect_equal(direct_sd$status, "ok")
-  expect_match(direct_sd$value, "dpar=sd_phylo\\(species\\)")
+  expect_match(
+    direct_sd$value,
+    "dpar=sd\\(species, level = \"phylogenetic\"\\)"
+  )
   expect_match(direct_sd$value, "group=species")
   expect_match(direct_sd$value, "min_species_n=4")
   expect_match(direct_sd$value, "sd_range=\\[")
@@ -689,7 +693,7 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
     rep.int(3L, length(sim$data$species) - 9L)
   )
   singleton$model$random_scale$phylo$observation_sd_row0_list[
-    "sd_phylo(species)"
+    sd_dpar
   ] <- list(singleton$model$random_scale$phylo$observation_sd_row0)
   singleton_chk <- check_drm(singleton)
   singleton_sd <- singleton_chk[
@@ -701,7 +705,7 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
   expect_match(singleton_sd$message, "recovery can be weak")
 
   bad_sd <- fit
-  bad_sd$sdpars[["sd_phylo(species)"]][[1L]] <- NA_real_
+  bad_sd$sdpars[[sd_dpar]][[1L]] <- NA_real_
   bad_chk <- check_drm(bad_sd)
   bad_direct_sd <- bad_chk[bad_chk$check == "phylo_direct_sd_model", ]
 
@@ -710,7 +714,7 @@ test_that("check_drm() records sd_phylo direct-SD diagnostics", {
   expect_false(attr(bad_chk, "ok"))
 })
 
-test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
+test_that("check_drm() records bivariate phylogenetic direct-SD diagnostics", {
   sim <- check_drm_biv_sd_phylo_data()
   dat <- sim$data
   tree <- sim$tree
@@ -721,8 +725,8 @@ test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
       sigma1 = ~1,
       sigma2 = ~1,
       rho12 = ~1,
-      sd_phylo1(species) ~ z_species,
-      sd_phylo2(species) ~ z_species
+      sd1(species, level = "phylogenetic") ~ z_species,
+      sd2(species, level = "phylogenetic") ~ z_species
     ),
     family = biv_gaussian(),
     data = dat,
@@ -734,9 +738,15 @@ test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
   expect_equal(fit$opt$convergence, 0)
   expect_equal(nrow(direct_sd), 2L)
   expect_equal(direct_sd$status, c("ok", "ok"))
-  expect_match(direct_sd$value[[1L]], "dpar=sd_phylo1\\(species\\)")
+  expect_match(
+    direct_sd$value[[1L]],
+    "dpar=sd1\\(species, level = \"phylogenetic\"\\)"
+  )
   expect_match(direct_sd$value[[1L]], "target=mu1")
-  expect_match(direct_sd$value[[2L]], "dpar=sd_phylo2\\(species\\)")
+  expect_match(
+    direct_sd$value[[2L]],
+    "dpar=sd2\\(species, level = \"phylogenetic\"\\)"
+  )
   expect_match(direct_sd$value[[2L]], "target=mu2")
   expect_true(all(grepl("min_species_n=5", direct_sd$value, fixed = TRUE)))
   expect_true(all(grepl("sd_range=[", direct_sd$value, fixed = TRUE)))
@@ -751,7 +761,7 @@ test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
       sigma1 = ~1,
       sigma2 = ~1,
       rho12 = ~1,
-      sd_phylo1(species) ~ z_species
+      sd1(species, level = "phylogenetic") ~ z_species
     ),
     family = biv_gaussian(),
     data = dat,
@@ -764,7 +774,10 @@ test_that("check_drm() records bivariate sd_phylo direct-SD diagnostics", {
 
   expect_equal(one_sided$opt$convergence, 0)
   expect_equal(nrow(one_sided_direct), 1L)
-  expect_match(one_sided_direct$value, "dpar=sd_phylo1\\(species\\)")
+  expect_match(
+    one_sided_direct$value,
+    "dpar=sd1\\(species, level = \"phylogenetic\"\\)"
+  )
   expect_match(one_sided_direct$value, "target=mu1")
 })
 

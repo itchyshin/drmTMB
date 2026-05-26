@@ -1519,8 +1519,20 @@ Type objective_function<Type>::operator()()
           Type d_node = sqrt((Type(1.0) - rho_node) / Type(2.0));
           Type z1 = u_phylo(node);
           Type z2 = u_phylo(n_phylo + node);
-          phylo_effect1 = sd_phylo(0) * (c_node * z1 + d_node * z2);
-          phylo_effect2 = sd_phylo(1) * (c_node * z1 - d_node * z2);
+          Type sd1_node = sd_phylo(0);
+          Type sd2_node = sd_phylo(1);
+          if (has_sd_phylo_model == 1) {
+            int row1 = phylo_mu_sd_row(node);
+            int row2 = phylo_mu_sd_row(n_phylo + node);
+            if (row1 >= 0) {
+              sd1_node = sd_phylo_group(row1);
+            }
+            if (row2 >= 0) {
+              sd2_node = sd_phylo_group(row2);
+            }
+          }
+          phylo_effect1 = sd1_node * (c_node * z1 + d_node * z2);
+          phylo_effect2 = sd2_node * (c_node * z1 - d_node * z2);
         } else if (has_sd_phylo_model == 1 && q_phylo == 2) {
           int row1 = phylo_mu_sd_row(node);
           int row2 = phylo_mu_sd_row(n_phylo + node);

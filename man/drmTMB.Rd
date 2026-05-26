@@ -69,8 +69,9 @@ labelled \code{mu}/\code{sigma}
 random-intercept covariance blocks, and one or more group-level
 random-effect scale formulae such as \code{sd(id) ~ x_group}, plus
 phylogenetic random intercepts, one numeric phylogenetic random slope, and
-\code{sd_phylo(species) ~ x_species} direct-SD models in univariate Gaussian
-location formulas, Gaussian \code{mu} animal-model and user-supplied relatedness
+\code{sd(species, level = "phylogenetic") ~ x_species} direct-SD models in
+univariate Gaussian location formulas, Gaussian \code{mu} animal-model and
+user-supplied relatedness
 random intercepts and one numeric random slope, matching
 bivariate Gaussian \code{mu1}/\code{mu2} location formulas, and matching labelled
 bivariate Gaussian \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} phylogenetic

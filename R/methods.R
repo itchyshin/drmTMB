@@ -46,7 +46,7 @@ print.drmTMB <- function(x, ...) {
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional distributional parameter name, such as `"mu"`,
 #'   `"sigma"`, `"hu"`, `"rho12"`, `"sd(id)"`, or
-#'   `"sd_phylo(species)"`.
+#'   `"sd(species, level = \"phylogenetic\")"`.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named

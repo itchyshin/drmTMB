@@ -1065,7 +1065,7 @@ test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observ
         mu2 = y2 ~ x + (1 | p | id),
         sigma1 = ~1,
         sigma2 = ~1,
-        sd_phylo(id) ~ w1
+        sd(id, level = "phylogenetic") ~ w1
       ),
       family = biv_gaussian(),
       data = dat
@@ -1079,7 +1079,7 @@ test_that("bivariate Gaussian sd1(id) and sd2(id) reject non-location and observ
         mu2 = y2 ~ x + (1 | p | id),
         sigma1 = ~1,
         sigma2 = ~1,
-        sd_phylo1(id) ~ w1
+        sd1(id, level = "phylogenetic") ~ w1
       ),
       family = biv_gaussian(),
       data = dat

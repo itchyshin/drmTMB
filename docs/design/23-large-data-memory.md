@@ -144,13 +144,13 @@ after model frames are removed.
 The Phase 5b storage hardening extends that deletion to the nested model-frame
 caches created by direct random-effect SD models and latent-correlation
 regression models. In practice, `keep_model_frame = FALSE` now removes
-`sd(group)`, the current implemented phylogenetic direct-SD spellings
-`sd_phylo(group)`, `sd_phylo1(group)`, `sd_phylo2(group)`, and fitted q=2
-`corpair()` model-frame caches after their model matrices and group metadata
-have been stored. These phylogenetic names are transitional public syntax, not
-a naming pattern to copy as `sd_spatial*()`, `sd_animal*()`, or
-`sd_relmat*()` when those direct-SD routes are designed. Tests cover an
-`sd_phylo(species) ~ z_species` fit and an ordinary q=2
+`sd(group)`, phylogenetic direct-SD spellings such as
+`sd(group, level = "phylogenetic")`, and fitted q=2 `corpair()` model-frame
+caches after their model matrices and group metadata have been stored.
+Deprecated `sd_phylo*()` names remain compatibility spellings, not a naming
+pattern to copy as `sd_spatial*()`, `sd_animal*()`, or `sd_relmat*()` when
+those direct-SD routes are designed. Tests cover an
+`sd(species, level = "phylogenetic") ~ z_species` fit and an ordinary q=2
 `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ ecology`
 fit with all memory-light flags enabled.
 

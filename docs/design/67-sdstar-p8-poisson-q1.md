@@ -39,8 +39,8 @@ sd(id, level = "animal") ~ z_id
 sd(line, level = "relmat") ~ z_line
 ```
 
-The current fitted `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` helpers remain
-compatibility paths. They should not be silently removed or renamed, because
+The old fitted `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` helpers remain
+deprecated compatibility paths. They should not be silently removed, because
 existing examples and tests use them and because the tree-scaled
 `D_tip A_tip D_tip` contract is easy to confuse with ordinary independent
 `sd(group)`.

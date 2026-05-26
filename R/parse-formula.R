@@ -272,9 +272,15 @@ parse_corpair_string_arg <- function(args, arg_names, name) {
   value
 }
 
-parse_sd_lhs <- function(lhs) {
+parse_sd_lhs <- function(lhs, warn_deprecated = TRUE) {
   lhs <- strip_parens(lhs)
   fun <- random_scale_lhs_function(lhs)
+  if (
+    isTRUE(warn_deprecated) &&
+      fun %in% c("sd_phylo", "sd_phylo1", "sd_phylo2")
+  ) {
+    warn_sd_phylo_lhs_deprecated(fun)
+  }
   if (
     fun %in%
       c(
@@ -285,7 +291,7 @@ parse_sd_lhs <- function(lhs) {
   ) {
     cli::cli_abort(c(
       "{.fn {fun}} random-effect SD models are planned but not implemented yet.",
-      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, {.code sd_phylo(species)} for univariate phylogenetic location random effects, and {.code sd_phylo1(species)} / {.code sd_phylo2(species)} for bivariate phylogenetic location random effects."
+      "i" = "This implementation currently supports {.code sd(group)} for univariate Gaussian location random effects, {.code sd1(group)} / {.code sd2(group)} for bivariate Gaussian location random effects, and {.code sd(group, level = \"phylogenetic\")} or {.code sd1(group, level = \"phylogenetic\")} / {.code sd2(group, level = \"phylogenetic\")} for phylogenetic location random-effect SDs."
     ))
   }
   if (fun %in% c("sd_sigma1", "sd_sigma2")) {
@@ -320,11 +326,11 @@ parse_sd_lhs <- function(lhs) {
 
   optional_names <- arg_names[-target_pos]
   optional_args <- args[-target_pos]
-  bad <- setdiff(optional_names, c("dpar", "coef", "block"))
+  bad <- setdiff(optional_names, c("level", "dpar", "coef", "block"))
   if (length(bad) > 0L || any(!nzchar(optional_names))) {
     cli::cli_abort(c(
-      "{.fn {fun}} currently accepts only {.arg dpar}, {.arg coef}, and {.arg block} options.",
-      "x" = "Use syntax like {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
+      "{.fn {fun}} currently accepts only {.arg level}, {.arg dpar}, {.arg coef}, and {.arg block} options.",
+      "x" = "Use syntax like {.code sd1(species, level = \"phylogenetic\") ~ x_species} or {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}."
     ))
   }
   if (any(duplicated(optional_names))) {
@@ -333,15 +339,42 @@ parse_sd_lhs <- function(lhs) {
     )
   }
 
+  target_level <- parse_sd_string_arg(optional_args, optional_names, "level")
   target_dpar <- parse_sd_string_arg(optional_args, optional_names, "dpar")
   target_coef <- parse_sd_string_arg(optional_args, optional_names, "coef")
   target_block <- parse_sd_string_arg(optional_args, optional_names, "block")
+  if (
+    !is.na(target_level) &&
+      fun %in% c("sd_phylo", "sd_phylo1", "sd_phylo2")
+  ) {
+    cli::cli_abort(c(
+      "{.fn {fun}} is a deprecated phylogenetic direct-SD spelling and does not accept {.arg level}.",
+      "i" = "Use the generic form {.code sd(group, level = \"phylogenetic\")} or {.code sd1(group, level = \"phylogenetic\")} / {.code sd2(group, level = \"phylogenetic\")}."
+    ))
+  }
+  if (
+    !is.na(target_level) &&
+      !target_level %in% c("phylogenetic", "spatial", "animal", "relmat")
+  ) {
+    cli::cli_abort(c(
+      "{.arg level} in {.fn sd} must name a supported structured-effect level.",
+      "x" = "Received {.val {target_level}}.",
+      "i" = "Use one of {.val phylogenetic}, {.val spatial}, {.val animal}, or {.val relmat}."
+    ))
+  }
   explicit <- any(!is.na(c(target_dpar, target_coef, target_block)))
+  if (!is.na(target_level) && explicit) {
+    cli::cli_abort(c(
+      "{.fn {fun}} does not combine {.arg level} with explicit target options yet.",
+      "x" = "{.code {format_sd_lhs_dpar(fun, group = as.character(args[[target_pos]]), level = target_level, dpar = target_dpar, coef = target_coef, block = target_block)}} mixes structured-effect level selection with {.arg dpar}, {.arg coef}, or {.arg block}.",
+      "i" = "Use {.code sd1(species, level = \"phylogenetic\") ~ x_species} or {.code sd(id, dpar = \"mu\", coef = \"(Intercept)\") ~ x_group}, not both forms together."
+    ))
+  }
   if (explicit && !identical(fun, "sd")) {
     hint <- if (fun %in% c("sd1", "sd2")) {
       "Use {.code sd1(id) ~ x_group} or {.code sd2(id) ~ x_group} for implemented bivariate location random-effect SD models."
     } else if (identical(fun, "sd_phylo")) {
-      "Use {.code sd_phylo(species) ~ x_species} for the univariate phylogenetic direct-SD model."
+      "Use {.code sd(species, level = \"phylogenetic\") ~ x_species} for the univariate phylogenetic direct-SD model."
     } else {
       "Use the shorthand form without explicit target options."
     }
@@ -365,15 +398,39 @@ parse_sd_lhs <- function(lhs) {
     dpar = format_sd_lhs_dpar(
       fun,
       group,
+      target_level,
       target_dpar,
       target_coef,
       target_block
     ),
+    target_level = target_level,
     target_dpar = target_dpar,
     target_coef = target_coef,
     target_block = target_block,
     explicit = explicit
   )
+}
+
+warn_sd_phylo_lhs_deprecated <- function(fun) {
+  new <- switch(
+    fun,
+    sd_phylo = "sd(group, level = \"phylogenetic\")",
+    sd_phylo1 = "sd1(group, level = \"phylogenetic\")",
+    sd_phylo2 = "sd2(group, level = \"phylogenetic\")"
+  )
+  .Deprecated(
+    old = paste0(fun, "()"),
+    new = new,
+    msg = paste0(
+      "`",
+      fun,
+      "()` is deprecated as a drmTMB direct-SD formula spelling. ",
+      "Use `",
+      new,
+      "` for phylogenetic random-effect SD models."
+    )
+  )
+  invisible(NULL)
 }
 
 parse_sd_string_arg <- function(args, arg_names, name) {
@@ -391,11 +448,12 @@ parse_sd_string_arg <- function(args, arg_names, name) {
   value
 }
 
-format_sd_lhs_dpar <- function(fun, group, dpar, coef, block) {
+format_sd_lhs_dpar <- function(fun, group, level, dpar, coef, block) {
   paste0(
     fun,
     "(",
     group,
+    if (!is.na(level)) paste0(", level = \"", level, "\"") else "",
     if (!is.na(dpar)) paste0(", dpar = \"", dpar, "\"") else "",
     if (!is.na(coef)) paste0(", coef = \"", coef, "\"") else "",
     if (!is.na(block)) paste0(", block = \"", block, "\"") else "",

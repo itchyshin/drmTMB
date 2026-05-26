@@ -119,7 +119,7 @@ syntax, fitted output, and interpretation.
 | Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
 | Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
 | Do effect sizes have known sampling variances or covariance? | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` |
-| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd_phylo*()` |
+| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd(..., level = "phylogenetic")` |
 | Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
 | After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
 

@@ -243,7 +243,7 @@ test_that("memory-light storage drops direct-SD phylogenetic model frames", {
     bf(
       y ~ x + phylo(1 | species, tree = tree),
       sigma ~ 1,
-      sd_phylo(species) ~ z_species
+      sd(species, level = "phylogenetic") ~ z_species
     ),
     family = gaussian(),
     data = dat,
@@ -260,7 +260,10 @@ test_that("memory-light storage drops direct-SD phylogenetic model frames", {
   expect_null(fit$model$random_scale$phylo$model_frame)
   expect_null(fit$model$random_scale$phylo$model_frame_list)
   expect_null(fit$obj)
-  expect_length(predict(fit, dpar = "sd_phylo(species)"), n_tip)
+  expect_length(
+    predict(fit, dpar = "sd(species, level = \"phylogenetic\")"),
+    n_tip
+  )
   expect_length(stats::sigma(fit), nrow(dat))
   expect_s3_class(check_drm(fit), "drm_check")
 })

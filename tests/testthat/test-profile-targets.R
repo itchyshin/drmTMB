@@ -2083,10 +2083,12 @@ test_that("profile target inventory covers bivariate phylogenetic covariance lab
   expect_false(any(rho12_targets$parm %in% phylo_parms))
 })
 
-test_that("profile target inventory covers bivariate sd_phylo coefficients", {
+test_that("profile target inventory covers bivariate phylogenetic direct-SD coefficients", {
   sim <- new_profile_biv_phylo_data(n_tip = 8L, n_each = 5L)
   dat <- sim$data
   tree <- sim$tree
+  sd1_dpar <- "sd1(species, level = \"phylogenetic\")"
+  sd2_dpar <- "sd2(species, level = \"phylogenetic\")"
   z_species <- seq(-1, 1, length.out = length(tree$tip.label))
   names(z_species) <- tree$tip.label
   dat$z_species <- z_species[dat$species]
@@ -2097,8 +2099,8 @@ test_that("profile target inventory covers bivariate sd_phylo coefficients", {
       sigma1 = ~1,
       sigma2 = ~1,
       rho12 = ~1,
-      sd_phylo1(species) ~ z_species,
-      sd_phylo2(species) ~ z_species
+      sd1(species, level = "phylogenetic") ~ z_species,
+      sd2(species, level = "phylogenetic") ~ z_species
     ),
     family = biv_gaussian(),
     data = dat,
@@ -2107,15 +2109,15 @@ test_that("profile target inventory covers bivariate sd_phylo coefficients", {
 
   targets <- profile_targets(fit)
   direct_parms <- c(
-    "fixef:sd_phylo1(species):(Intercept)",
-    "fixef:sd_phylo1(species):z_species",
-    "fixef:sd_phylo2(species):(Intercept)",
-    "fixef:sd_phylo2(species):z_species"
+    paste0("fixef:", sd1_dpar, ":(Intercept)"),
+    paste0("fixef:", sd1_dpar, ":z_species"),
+    paste0("fixef:", sd2_dpar, ":(Intercept)"),
+    paste0("fixef:", sd2_dpar, ":z_species")
   )
   direct_targets <- targets[match(direct_parms, targets$parm), ]
   surface_targets <- targets[
     targets$dpar %in%
-      c("sd_phylo1(species)", "sd_phylo2(species)") &
+      c(sd1_dpar, sd2_dpar) &
       targets$target_class == "random-effect-sd",
   ]
 

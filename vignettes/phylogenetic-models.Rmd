@@ -140,7 +140,7 @@ as `tree = tree`.
 | Does one Gaussian response have phylogenetic location deviations? | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
 | Do two Gaussian response means share a phylogenetic correlation? | matching `phylo(1 | species, tree = tree)` or labelled `phylo(1 | p | species, tree = tree)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "phylogenetic")` reports the latent phylogenetic row separately from residual `rho12`. |
 | Do phylogenetic location and scale deviations form one q=4 block? | matching labelled `phylo(1 | p | species, tree = tree)` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first constant q=4 location-scale slice. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| Do species-level predictors change the phylogenetic location SD? | `sd_phylo(species) ~ z`, `sd_phylo1(species) ~ z1`, or `sd_phylo2(species) ~ z2` | Fitted direct-SD route for phylogenetic location SD surfaces. This is not residual `sigma`. |
+| Do species-level predictors change the phylogenetic location SD? | `sd(species, level = "phylogenetic") ~ z`, `sd1(species, level = "phylogenetic") ~ z1`, or `sd2(species, level = "phylogenetic") ~ z2` | Fitted direct-SD route for phylogenetic location SD surfaces. This is not residual `sigma`. |
 | Do species-level predictors change the q=2 phylogenetic mean-mean correlation? | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Fitted q=2 predictor-dependent correlation route. q=4 endpoint-specific `corpair()` regressions remain planned. |
 
 ## Start with the smallest useful model
@@ -188,10 +188,10 @@ After fitting, inspect the phylogenetic layer before interpreting it:
 | `profile_targets(fit)` | See which phylogenetic SD or constant q=2 correlation targets can be profiled directly. |
 | `corpairs(fit, level = "phylogenetic")` | Read fitted constant or modelled phylogenetic correlation rows. |
 
-Direct-SD terms such as `sd_phylo(species) ~ z` model species-level predictors
-of a phylogenetic location standard deviation. They do not model residual
-`sigma`, and they do not imply a q=4 location-scale block unless the matching
-q=4 `phylo()` terms are also fitted.
+Direct-SD terms such as `sd(species, level = "phylogenetic") ~ z` model
+species-level predictors of a phylogenetic location standard deviation. They do
+not model residual `sigma`, and they do not imply a q=4 location-scale block
+unless the matching q=4 `phylo()` terms are also fitted.
 
 ## Rendered checks
 

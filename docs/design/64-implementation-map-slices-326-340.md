@@ -21,9 +21,9 @@ No spawned subagents were running for this planning slice.
 
 | Slice | Lane | Status | User-facing result |
 | --- | --- | --- | --- |
-| 326 | Generic direct-SD issue spec | Completed as pre-code | Future `sd*()` work has an issue-ready grammar, compatibility, and reference-index checklist. |
-| 327 | Direct-SD parser boundary matrix | Completed as pre-code | Ordinary `sd(group)`, current `sd_phylo*()`, and future level-targeted structured SD routes have separate parser outcomes. |
-| 328 | Direct-SD tests and docs checklist | Completed as pre-code | The next direct-SD implementation must include malformed-input tests, examples, reference docs, and stale-name scans. |
+| 326 | Generic direct-SD issue spec | Completed as pre-code | `sd*()` work has an issue-ready grammar, compatibility, and reference-index checklist. |
+| 327 | Direct-SD parser boundary matrix | Completed as pre-code | Ordinary `sd(group)`, deprecated `sd_phylo*()` compatibility spellings, and level-targeted structured SD routes have separate parser outcomes. |
+| 328 | Direct-SD tests and docs checklist | Completed as pre-code | Each direct-SD implementation must include malformed-input tests, examples, reference docs, and stale-name scans. |
 | 329 | p8/q8 endpoint registry sketch | Completed as pre-code | Endpoint labels and block sizes are named before any q6/q8 syntax is opened. |
 | 330 | p8/q8 staged implementation options | Completed as pre-code | q4 location-slope and constrained/block-diagonal routes are preferred before a full q8 unstructured block. |
 | 331 | p8/q8 simulation gate | Completed as pre-code | p8/q8 cannot leave design until simulations vary group count, repeats, SD ratios, correlations, and boundary cases. |
@@ -39,14 +39,14 @@ No spawned subagents were running for this planning slice.
 
 ## Slice 326-328: Generic Direct-SD Pre-Code Spec
 
-Future generic direct-SD syntax should be issue-ready before parser work. The
-minimum issue should answer:
+Generic direct-SD syntax now has the first fitted phylogenetic level. The
+minimum issue for each additional structured level should answer:
 
 | Question | Required decision before code |
 | --- | --- |
 | What does the formula target? | A random-effect SD surface, not residual `sigma` and not a latent correlation. |
-| How is the dependence layer named? | Use an explicit level target, for example a future `level = "phylogenetic"` style, rather than guessing from the group name. |
-| How do old names survive? | Existing `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` remain valid until a deliberate lifecycle decision. |
+| How is the dependence layer named? | Use an explicit level target, such as `level = "spatial"`, rather than guessing from the group name. |
+| How do old names survive? | Existing `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` warn as deprecated compatibility spellings for the fitted phylogenetic level. |
 | How are bivariate endpoints named? | Endpoint naming must distinguish `mu1`, `mu2`, `sigma1`, and `sigma2` before examples are taught. |
 | How does the reference index show it? | Ordinary `sd(group)` and structured direct-SD routes need separate discoverability text. |
 | Which tests are mandatory? | Parser acceptance, unsupported sibling errors, prediction rows, profile-target status, and stale-name scans. |

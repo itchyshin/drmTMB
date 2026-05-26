@@ -586,7 +586,7 @@ machinery, and they now share the first constant q=2 bivariate location layer.
 | Bivariate `mu1`/`mu2` q=2 location covariance, the spatial sibling of fitted `corpairs(level = "phylogenetic")` | Fitted for coordinates as matching `spatial(1 | p | site, coords = coords)` terms | Keep `corpairs(level = "spatial")`, direct profile targets, recovery tests, and dense covariance comparator evidence current |
 | Predictor-dependent q=2 `corpair()` regression, already fitted for phylogenetic location-location rows | Planned | Design the positive-definite loading contract for spatial rows before exposing syntax |
 | Constant q=4 location-scale block across `mu1`, `mu2`, `sigma1`, and `sigma2`, already fitted for phylogenetic rows | Implemented first slice for coordinate spatial | Matching labelled all-four `spatial()` terms now use the shared structured q4 backend and report six derived latent correlations |
-| Direct structured SD surfaces, currently implemented for `sd_phylo*()` | Planned, but should not clone the name family | Use the generic direct-SD naming decision from `random_effect_scale_formulas`, such as `sd(group, level = ...)` or another reviewed spelling |
+| Direct structured SD surfaces, currently implemented for `sd(..., level = "phylogenetic")` | Planned for spatial siblings, but should not clone the old name family | Use the generic direct-SD naming decision from `random_effect_scale_formulas`, such as `sd(group, level = ...)`, while keeping `sd_phylo*()` only as deprecated compatibility spelling |
 
 The immediate q=2 implementation lane has now landed for coordinate-spatial
 location covariance, and the constant q=4 location-scale block is fitted as a
@@ -781,7 +781,8 @@ Implementation is staged:
    the same endpoint order.
 
 The first implementation should not combine this Family A q=4 block with
-Family B `sd_phylo()` direct-SD regression for the same species level.
+Family B `sd(..., level = "phylogenetic")` direct-SD regression for the same
+species level.
 
 Slice 15 added a hidden TMB parameterization probe for this contract. That
 probe uses endpoint-major q=4 `u_phylo` storage, four `log_sd_phylo` values,
@@ -877,11 +878,12 @@ scale-scale pair are q=4 models because their latent state includes `mu1`,
 `mu2`, `sigma1`, and `sigma2`; they need a separate positive-definite q=4
 correlation-regression contract.
 
-Family B structured direct-SD syntax such as `sd_phylo(species) ~ z_species`
-uses a separate non-centred tip-scaling contract. Let `v_aug` follow the unit
-augmented tree covariance implied by the sparse precision, and let the
-species-level scale predictor define `tau_l = exp(W_l alpha)` for observed
-tips. The location contribution is:
+Family B structured direct-SD syntax such as
+`sd(species, level = "phylogenetic") ~ z_species` uses a separate non-centred
+tip-scaling contract. Let `v_aug` follow the unit augmented tree covariance
+implied by the sparse precision, and let the species-level scale predictor
+define `tau_l = exp(W_l alpha)` for observed tips. The location contribution
+is:
 
 ```text
 a_l = tau_l v_tip,l
@@ -890,13 +892,12 @@ Cov(a_tip) = D_tip A_tip D_tip
 
 Internal nodes remain part of the computational base tree effect `v_aug`, but
 they do not receive user-facing SD predictors. The predictor lives at observed
-tips and must be constant within species. This keeps `sd_phylo()` in the Box 1
-Family B lane: it replaces the scalar `log_sd_phylo` target for a univariate
-location `phylo()` effect rather than adding another layer to the q=4 Family A
-location-scale covariance block. The univariate fitting and first recovery
-tests are implemented; bivariate `sd_phylo1()` / `sd_phylo2()` is implemented
-as the next location-only direct-SD slice, while spatial direct-SD siblings
-remain planned.
+tips and must be constant within species. This keeps the generic
+`sd(..., level = "phylogenetic")` route in the Box 1 Family B lane: it replaces
+the scalar `log_sd_phylo` target for a univariate location `phylo()` effect
+rather than adding another layer to the q=4 Family A location-scale covariance
+block. The deprecated `sd_phylo()` spelling remains a compatibility alias for
+the same likelihood path.
 
 The bivariate direct-SD extension keeps the same Family B lane. It
 targets only the phylogenetic location effects in matching `mu1` and `mu2`
@@ -911,19 +912,27 @@ a1_l = tau1_l v1_tip,l
 a2_l = tau2_l v2_tip,l
 ```
 
-The base effects `v1_aug` and `v2_aug` use the shared augmented tree precision
-and one constant phylogenetic location-location correlation. Therefore
+With a constant q=2 phylogenetic location-location correlation, the base
+effects `v1_aug` and `v2_aug` use the shared augmented tree precision and
+one latent correlation. Therefore
 
 ```text
 Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
 ```
 
-`sd_phylo1(species) ~ z1` and `sd_phylo2(species) ~ z2` replace endpoint
-phylogenetic location SDs; they do not model `sigma1`, `sigma2`, location-scale
-correlations, scale-scale correlations, or residual `rho12`. They must be
-rejected with the all-four q=4 phylogenetic block for the same species level,
-because that block is the Family A constant covariance model across location
-and scale effects.
+With a predictor-dependent q=2 phylogenetic `corpair()` model, `v1_aug` and
+`v2_aug` are independent unit tree fields and each observed species uses the
+same loading contract as the correlation model before multiplying by `tau1_l`
+or `tau2_l`.
+
+`sd1(species, level = "phylogenetic") ~ z1` and
+`sd2(species, level = "phylogenetic") ~ z2` replace endpoint phylogenetic
+location SDs; deprecated `sd_phylo1()` and `sd_phylo2()` spellings remain
+compatibility aliases. These direct-SD formulas do not model `sigma1`,
+`sigma2`, location-scale correlations, scale-scale correlations, or residual
+`rho12`. They must be rejected with the all-four q=4 phylogenetic block for the
+same species level, because that block is the Family A constant covariance
+model across location and scale effects.
 
 When a direct-SD surface is fitted, `summary(fit)$covariance` cannot report one
 literal endpoint SD because the covariance is species-pair specific. The compact

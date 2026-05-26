@@ -53,11 +53,10 @@ become implemented.
 
 The singular formula marker
 `corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
-is reserved for future predictor-dependent latent random-effect correlations.
-`drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
-diagnostics, and recovery tests exist. For `level = "phylogenetic"`, this is a
-positive-definite covariance-design gate: a species-varying correlation must
-still define one valid covariance matrix for all species coupled by the tree.
+is implemented for the q=2 bivariate phylogenetic location-location route. For
+`level = "phylogenetic"`, this is a positive-definite covariance-design gate:
+a species-varying correlation must still define one valid covariance matrix for
+all species coupled by the tree.
 Use `rho12 = ~ x` for residual within-observation correlation, and use
 `corpairs(fit)` to extract fitted constant latent correlations.
 
@@ -453,13 +452,18 @@ display preference, because each layer answers a different biological question.
     directly to tree-coupled latent effects.
 17. Select the first q=2 phylogenetic `corpair()` covariance contract. Done for
     design: use the two-field loading construction above, add algebra tests for
-    positive definiteness and constant-correlation equivalence, and keep q=4,
-    direct-SD mixtures, and spatial siblings planned.
+    positive definiteness and constant-correlation equivalence, and keep q=4
+    and spatial siblings planned.
 18. Fit the first q=2 phylogenetic `corpair()` route. Done for
     `from = "mu1", to = "mu2"`: apply species-specific loadings to two
     independent unit tree fields, report the modelled row through `corpairs()`,
     expose `beta_cor_mu` fixed effects, and keep q=4 location-scale,
-    scale-scale, direct-SD mixtures, and spatial siblings planned.
+    scale-scale, and spatial siblings planned.
+19. Combine the q=2 phylogenetic `corpair()` route with direct endpoint SD
+    surfaces. Done for `sd1(species, level = "phylogenetic")` and
+    `sd2(species, level = "phylogenetic")` on matching `mu1`/`mu2`
+    phylogenetic location terms; q=4 predictor-dependent phylogenetic
+    location-scale covariance remains planned.
 
 For covariance blocks with more than two random-effect coefficients, use a
 positive-definite Cholesky or partial-correlation parameterization. Do not fit

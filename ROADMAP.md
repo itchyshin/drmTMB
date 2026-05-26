@@ -363,18 +363,22 @@ distributional regression models using TMB.
   Direct means "can be attempted," not "interval-proven" for every dataset: a
   full-species Ayumi bounded profile for the fallback mean-mean phylogenetic
   correlation took about 512 seconds and still failed to extract a 95% interval.
-- The univariate Family B `sd_phylo(species) ~ x_species` path is implemented:
+- The univariate Family B `sd(species, level = "phylogenetic") ~ x_species`
+  path is implemented:
   it uses a non-centred unit tree effect, multiplies only observed tip
   contributions by species-level `tau_l = exp(W_l alpha)`, and interprets the
   marginal tip covariance as `D_tip A_tip D_tip`. `check_drm()` now reports
   direct-SD diagnostic rows covering species replication and the fitted
   species-level SD surface range. The bivariate design target is
   now implemented as response-specific location-only direct-SD regression:
-  `sd_phylo1()` for the `mu1` phylogenetic location effect, `sd_phylo2()` for
-  the `mu2` effect, a constant latent phylogenetic location-location
-  correlation, and no mixing with all-four q=4 phylogenetic location-scale
-  blocks. `check_drm()` now reports the fitted direct-SD surface range and
-  species replication for each univariate or bivariate `sd_phylo*()` endpoint.
+  `sd1(species, level = "phylogenetic")` for the `mu1` phylogenetic location
+  effect and `sd2(species, level = "phylogenetic")` for the `mu2` effect. The
+  bivariate direct-SD route can now combine with q=2 predictor-dependent
+  phylogenetic `corpair()` regression, but still does not mix with all-four
+  q=4 phylogenetic location-scale blocks. `check_drm()` now reports the fitted
+  direct-SD surface range and species replication for each univariate or
+  bivariate phylogenetic direct-SD endpoint. Deprecated `sd_phylo*()` spellings
+  remain compatibility aliases.
 - Use the correlation-pair design in
   `docs/design/20-coscale-correlation-pairs.md` before implementing bivariate
   double-hierarchical covariance blocks; pair outputs should identify the
@@ -415,8 +419,8 @@ Phase 5 closure boundary:
 
 | Layer | Implemented before spatial expansion | Still planned |
 | --- | --- | --- |
-| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu` and/or `sigma`, matching `mu`/`sigma` structured correlation, one numeric `mu` slope, `sd_phylo(species) ~ z`, profile targets and diagnostics | multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, and richer tree-shape recovery grids |
-| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; broader predictor-dependent structured scale-scale covariance is not a near-term priority |
+| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu` and/or `sigma`, matching `mu`/`sigma` structured correlation, one numeric `mu` slope, `sd(species, level = "phylogenetic") ~ z`, profile targets and diagnostics | multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, and richer tree-shape recovery grids |
+| bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd1(..., level = "phylogenetic")` / `sd2(..., level = "phylogenetic")` including the q=2 `corpair()` combination, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; broader predictor-dependent structured scale-scale covariance is not a near-term priority |
 | coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` and/or `sigma`, matching univariate `mu`/`sigma` structured correlation, one numeric `mu` slope, matching bivariate `mu1`/`mu2` q=2 covariance, and constant all-four q=4 location-scale covariance with `corpairs(level = "spatial")`; `sdpars`, marker-specific `ranef()` blocks, profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, residual-scale structured slopes, spatial slope correlations, spatial direct-SD, spatial `corpair()`, and non-Gaussian spatial effects |
 | animal and user-supplied relatedness | Gaussian `mu` and `sigma` intercepts for `animal(1 | id, pedigree/A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, matching univariate `mu`/`sigma` structured correlations, one numeric `mu` slope, matching labelled `mu1`/`mu2` q=2 location covariance, and constant all-four q=4 location-scale covariance with `corpairs()`, `summary()$covariance`, profile-target status, diagnostics, and dense-likelihood tests | sparse large-pedigree construction, multiple structured slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, non-Gaussian relatedness effects, and generic direct-SD naming design |
 | inference/output | fixed-effect SEs, direct profile-ready targets where implemented, `corpairs(conf.int = TRUE)` with explicit interval status | derived-profile intervals for q=4 correlations and richer marginal-effect/visualization helpers |
@@ -592,7 +596,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 64 | Bivariate coscale polish | Make residual `rho12`, `sigma1`/`sigma2`, response-scale interpretation, and intervals easier to read. | Done: the bivariate tutorial now reads `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` slopes as separate biological claims and keeps residual `rho12` distinct from group-level `corpairs()` rows. |
 | 65 | Meta-analysis polish | Clarify `meta_known_V(V = V)`, ordinary weights, residual `sigma`, and unsupported combinations. | Done: the meta-analysis tutorial now names known sampling variance, fitted extra heterogeneity SD, heterogeneity variance, and total observation variance as different report scales. |
 | 66 | Structural-dependence polish | Refine phylogenetic and spatial examples, mesh/coords guidance, citation notes, and fitted-versus-planned status. | Done: the structural-dependence tutorial now gives a six-row q=4 phylogenetic interpretation table and keeps mesh/SPDE, multiple spatial slopes, q=4 extensions, and derived intervals visibly planned. |
-| 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Done: the scale guide now explains Family A versus Family B, current `sd_phylo()` naming, the future `sd(..., level = ...)` idea, and invalid mixed formulations. |
+| 67 | Random-effect scale and covariance tutorial | Explain `sd(group)`, `sd(..., level = ...)`, Family A versus Family B, `corpairs()`, and invalid mixed formulations. | Done: the scale guide now explains Family A versus Family B, preferred `sd(..., level = "phylogenetic")` naming, deprecated `sd_phylo*()` compatibility spellings, and invalid mixed formulations. |
 | 68 | Phase 6b gate | Run Pat/Rose tutorial audit, pkgdown build/check, stale-wording scan, NEWS/roadmap updates, PR, and GitHub Actions. | Done locally: pkgdown build/check and stale-claim scans passed; GitHub Actions remains the PR-side gate after push. |
 
 ## Phase 6c: Random Slopes and Structured-Slope Examples
@@ -914,8 +918,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `docs/dev-log/after-phase/2026-05-15-phase-12-phylogenetic-correlation-foundation-closure.md`.
 - The fitted foundation covers bivariate `mu1`/`mu2` phylogenetic
   location-location covariance, q=2 predictor-dependent phylogenetic
-  `corpair()` regression, bivariate `sd_phylo1()` / `sd_phylo2()` direct-SD
-  surfaces, and the first constant all-four q=4 phylogenetic
+  `corpair()` regression, bivariate `sd1(..., level = "phylogenetic")` /
+  `sd2(..., level = "phylogenetic")` direct-SD surfaces, and the first constant all-four q=4 phylogenetic
   location-scale block. These are intercept-level phylogenetic correlation
   paths, not phylogenetic random slopes.
 - Extend the implemented `phylo(1 | species, tree = tree)` Gaussian `mu` path to
@@ -1500,7 +1504,7 @@ Use this order unless Slice 191 evidence overturns it:
   extractor, failure ledger, and runtime policy exist.
 - Add additional ggplot-oriented helpers only after the data contract is stable:
   location curves, scale/variance curves, residual `rho12` curves,
-  `sd(group)` or `sd_phylo()` surfaces, `corpairs()` summaries, and eventually
+  `sd(group)` or `sd(..., level = "phylogenetic")` surfaces, `corpairs()` summaries, and eventually
   spatial fields or maps.
 - Treat predictions, adjusted predictions, estimated marginal means, contrasts,
   slopes, and diagnostics as separate estimands. Do not hide reference grids,

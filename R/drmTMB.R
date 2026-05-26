@@ -24,8 +24,9 @@
 #' random-intercept covariance blocks, and one or more group-level
 #' random-effect scale formulae such as `sd(id) ~ x_group`, plus
 #' phylogenetic random intercepts, one numeric phylogenetic random slope, and
-#' `sd_phylo(species) ~ x_species` direct-SD models in univariate Gaussian
-#' location formulas, Gaussian `mu` animal-model and user-supplied relatedness
+#' `sd(species, level = "phylogenetic") ~ x_species` direct-SD models in
+#' univariate Gaussian location formulas, Gaussian `mu` animal-model and
+#' user-supplied relatedness
 #' random intercepts and one numeric random slope, matching
 #' bivariate Gaussian `mu1`/`mu2` location formulas, and matching labelled
 #' bivariate Gaussian `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic
@@ -516,6 +517,49 @@ is_r_family_object <- function(x) {
   inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
 }
 
+entry_sd_lhs_target <- function(entry) {
+  lhs <- entry$lhs
+  if (is.null(lhs) || !is_random_scale_lhs(lhs)) {
+    return(NULL)
+  }
+  parse_sd_lhs(lhs, warn_deprecated = FALSE)
+}
+
+sd_lhs_target_level <- function(target) {
+  level <- target$target_level
+  if (is.null(level)) {
+    return(NA_character_)
+  }
+  level
+}
+
+reject_planned_structured_sd_levels <- function(
+  targets,
+  entries,
+  allowed_funs,
+  context
+) {
+  for (i in seq_along(targets)) {
+    target <- targets[[i]]
+    if (!is.list(target)) {
+      next
+    }
+    level <- sd_lhs_target_level(target)
+    if (is.na(level) || identical(level, "phylogenetic")) {
+      next
+    }
+    if (!target$fun %in% allowed_funs) {
+      next
+    }
+    cli::cli_abort(c(
+      "Structured direct-SD formulas at level {.val {level}} are planned but not implemented for {.field {context}} models yet.",
+      "x" = "{.code {entries[[i]]$dpar}} names a {.field {level}} random-effect SD surface.",
+      "i" = "This lane implements only {.code level = \"phylogenetic\"}; use constant structured-effect SDs for {.field {level}} until its likelihood and simulation tests land."
+    ))
+  }
+  invisible(NULL)
+}
+
 drm_build_gaussian_ls_spec <- function(
   formula,
   data,
@@ -525,8 +569,32 @@ drm_build_gaussian_ls_spec <- function(
 ) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
-  is_sd_mu_dpar <- startsWith(dpars, "sd(")
-  is_sd_phylo_dpar <- startsWith(dpars, "sd_phylo(")
+  sd_lhs_targets <- lapply(entries, entry_sd_lhs_target)
+  is_sd_mu_dpar <- vapply(
+    sd_lhs_targets,
+    function(target) {
+      is.list(target) &&
+        identical(target$fun, "sd") &&
+        is.na(sd_lhs_target_level(target))
+    },
+    logical(1L)
+  )
+  is_sd_phylo_dpar <- vapply(
+    sd_lhs_targets,
+    function(target) {
+      is.list(target) &&
+        (identical(target$fun, "sd_phylo") ||
+          (identical(target$fun, "sd") &&
+            identical(sd_lhs_target_level(target), "phylogenetic")))
+    },
+    logical(1L)
+  )
+  reject_planned_structured_sd_levels(
+    sd_lhs_targets,
+    entries,
+    allowed_funs = "sd",
+    context = "univariate Gaussian"
+  )
   is_sd_dpar <- is_sd_mu_dpar | is_sd_phylo_dpar
 
   unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma"))
@@ -918,7 +986,7 @@ validate_sparse_fixed_gaussian <- function(
   if (length(sd_mu_entries) > 0L || length(sd_phylo_entries) > 0L) {
     cli::cli_abort(c(
       "Sparse fixed-effect matrices are not implemented with direct random-effect SD models yet.",
-      "i" = "Use the dense path for {.code sd()} and {.code sd_phylo()} models in this phase."
+      "i" = "Use the dense path for {.code sd()} and {.code sd(..., level = \"phylogenetic\")} models in this phase."
     ))
   }
   if (!is_intercept_one(sigma_entry$rhs)) {
@@ -2621,15 +2689,40 @@ drm_build_biv_gaussian_spec <- function(
   corpair_entries <- entries[is_corpair_dpar]
   entries <- entries[!is_corpair_dpar]
   dpars <- dpars[!is_corpair_dpar]
-  is_sd_mu_dpar <- startsWith(dpars, "sd1(") | startsWith(dpars, "sd2(")
-  is_sd_phylo_dpar <- startsWith(dpars, "sd_phylo1(") |
-    startsWith(dpars, "sd_phylo2(")
+  sd_lhs_targets <- lapply(entries, entry_sd_lhs_target)
+  is_sd_mu_dpar <- vapply(
+    sd_lhs_targets,
+    function(target) {
+      is.list(target) &&
+        target$fun %in% c("sd1", "sd2") &&
+        is.na(sd_lhs_target_level(target))
+    },
+    logical(1L)
+  )
+  is_sd_phylo_dpar <- vapply(
+    sd_lhs_targets,
+    function(target) {
+      is.list(target) &&
+        (target$fun %in%
+          c("sd_phylo1", "sd_phylo2") ||
+          (target$fun %in%
+            c("sd1", "sd2") &&
+            identical(sd_lhs_target_level(target), "phylogenetic")))
+    },
+    logical(1L)
+  )
+  reject_planned_structured_sd_levels(
+    sd_lhs_targets,
+    entries,
+    allowed_funs = c("sd1", "sd2"),
+    context = "bivariate Gaussian"
+  )
   is_sd_dpar <- is_sd_mu_dpar | is_sd_phylo_dpar
   allowed <- c("mu1", "mu2", "sigma1", "sigma2", "rho12")
   unsupported <- setdiff(dpars[!is_sd_dpar], allowed)
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}, and the first ordinary or phylogenetic location-location {.fn corpair} formulas.",
+      "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd1(group, level = \"phylogenetic\")} / {.code sd2(group, level = \"phylogenetic\")}, and the first ordinary or phylogenetic location-location {.fn corpair} formulas.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
     ))
   }
@@ -2742,9 +2835,9 @@ drm_build_biv_gaussian_spec <- function(
     q4_terms <- structured_q4_terms[[q4_marker]]
     if (identical(q4_marker, "phylo") && length(sd_phylo_entries) > 0L) {
       cli::cli_abort(c(
-        "Do not combine bivariate {.fn sd_phylo1} / {.fn sd_phylo2} formulas with a phylogenetic q=4 location-scale block.",
+        "Do not combine bivariate phylogenetic direct-SD formulas with a phylogenetic q=4 location-scale block.",
         "x" = "The matching labelled {.fn phylo} terms across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} already define a Family A q=4 covariance block.",
-        "i" = "Use bivariate {.fn sd_phylo1} / {.fn sd_phylo2} only with matching phylogenetic location terms in {.code mu1} and {.code mu2}."
+        "i" = "Use {.code sd1(species, level = \"phylogenetic\")} / {.code sd2(species, level = \"phylogenetic\")} only with matching phylogenetic location terms in {.code mu1} and {.code mu2}."
       ))
     }
     mu1_entry$rhs <- remove_structured_marker_terms(mu1_entry$rhs, q4_marker)
@@ -2920,12 +3013,12 @@ drm_build_biv_gaussian_spec <- function(
   f_corpair <- lapply(corpair_entries, drm_entry_formula, response = FALSE)
   sd_mu_groups <- vapply(
     sd_mu_entries,
-    function(entry) parse_sd_lhs(entry$lhs)$group,
+    function(entry) parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)$group,
     character(1L)
   )
   sd_phylo_groups <- vapply(
     sd_phylo_entries,
-    function(entry) parse_sd_lhs(entry$lhs)$group,
+    function(entry) parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)$group,
     character(1L)
   )
   corpair_groups <- vapply(
@@ -3045,16 +3138,6 @@ drm_build_biv_gaussian_spec <- function(
     sd_phylo_entries,
     phylo_mu
   )
-  if (
-    isTRUE(corpair_model_is_phylogenetic(re_mu$cor_model)) &&
-      length(sd_phylo_entries) > 0L
-  ) {
-    cli::cli_abort(c(
-      "Do not combine phylogenetic {.fn corpair} regression with bivariate {.fn sd_phylo1} / {.fn sd_phylo2} formulas in this phase.",
-      "x" = "{.fn corpair} changes the phylogenetic location-location correlation surface, while {.fn sd_phylo1} / {.fn sd_phylo2} model direct location random-effect SD surfaces.",
-      "i" = "Fit the predictor-dependent phylogenetic correlation route first with constant phylogenetic SDs."
-    ))
-  }
   sd_phylo <- build_sd_phylo_structure(
     sd_phylo_entries,
     sd_phylo_targets,
@@ -5559,7 +5642,7 @@ parse_sd_mu_entry <- function(entry, mu_terms) {
   if (is.null(entry)) {
     return(NULL)
   }
-  target <- parse_sd_lhs(entry$lhs)
+  target <- parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)
   if (isTRUE(target$explicit)) {
     cli::cli_abort(c(
       "Explicit random-effect scale targets are reserved but not implemented yet.",
@@ -5652,45 +5735,48 @@ parse_sd_mu_entries <- function(entries, mu_terms) {
 }
 
 parse_sd_phylo_entry <- function(entry, phylo_term) {
-  target <- parse_sd_lhs(entry$lhs)
-  if (!identical(target$fun, "sd_phylo")) {
+  target <- parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)
+  is_phylo_target <- identical(target$fun, "sd_phylo") ||
+    (identical(target$fun, "sd") &&
+      identical(sd_lhs_target_level(target), "phylogenetic"))
+  if (!is_phylo_target) {
     cli::cli_abort(
-      "Internal error: phylogenetic random-effect scale target {.code {entry$dpar}} is not an {.fn sd_phylo} target."
+      "Internal error: phylogenetic random-effect scale target {.code {entry$dpar}} is not a phylogenetic {.fn sd} target."
     )
   }
   if (isTRUE(target$explicit)) {
     cli::cli_abort(c(
       "Explicit phylogenetic random-effect SD targets are not implemented yet.",
       "x" = "{.code {entry$dpar}} names a target distributional parameter, coefficient, or block.",
-      "i" = "Use {.code sd_phylo(species) ~ x_species} for the univariate phylogenetic location random-effect SD."
+      "i" = "Use {.code sd(species, level = \"phylogenetic\") ~ x_species} for the univariate phylogenetic location random-effect SD."
     ))
   }
   if (is.null(phylo_term)) {
     cli::cli_abort(c(
       "No phylogenetic location random-effect term matches {.code {entry$dpar}}.",
       "x" = "Add {.code phylo(1 | {target$group}, tree = tree)} to the {.code mu} formula or remove {.code {entry$dpar}}.",
-      "i" = "{.fn sd_phylo} targets the SD of a univariate phylogenetic location random effect."
+      "i" = "{.code sd(species, level = \"phylogenetic\")} targets the SD of a univariate phylogenetic location random effect."
     ))
   }
   if (!all(phylo_mu_endpoint_dpars(phylo_term) == "mu")) {
     cli::cli_abort(c(
-      "{.fn sd_phylo} direct-SD formulas are not implemented with phylogenetic residual-scale effects.",
+      "Phylogenetic direct-SD formulas are not implemented with phylogenetic residual-scale effects.",
       "x" = "{.code {entry$dpar}} was combined with a {.code sigma ~ phylo(...)} endpoint.",
-      "i" = "Fit the constant phylogenetic location-scale block first, or remove the {.fn sd_phylo} formula."
+      "i" = "Fit the constant phylogenetic location-scale block first, or remove the direct-SD formula."
     ))
   }
   if (!identical(phylo_term$coef_names, "(Intercept)")) {
     cli::cli_abort(c(
       "Phylogenetic random-effect scale formulas with structured slopes are not implemented yet.",
       "x" = "{.code {entry$dpar}} targets {.code {phylo_term$label}}, which has multiple structured coefficients.",
-      "i" = "Use {.code sd_phylo({target$group}) ~ ...} with {.code phylo(1 | {target$group}, tree = tree)}, or fit {.code phylo(1 + x | {target$group}, tree = tree)} without a direct-SD formula."
+      "i" = "Use {.code sd({target$group}, level = \"phylogenetic\") ~ ...} with {.code phylo(1 | {target$group}, tree = tree)}, or fit {.code phylo(1 + x | {target$group}, tree = tree)} without a direct-SD formula."
     ))
   }
   if (!identical(target$group, phylo_term$group)) {
     cli::cli_abort(c(
       "Phylogenetic random-effect scale target {.code {entry$dpar}} does not match the {.fn phylo} grouping variable.",
-      "x" = "{.fn sd_phylo} targets group {.field {target$group}}, but {.fn phylo} uses group {.field {phylo_term$group}}.",
-      "i" = "Use the same species column in {.code phylo(1 | species, tree = tree)} and {.code sd_phylo(species) ~ x_species}."
+      "x" = "{.code {entry$dpar}} targets group {.field {target$group}}, but {.fn phylo} uses group {.field {phylo_term$group}}.",
+      "i" = "Use the same species column in {.code phylo(1 | species, tree = tree)} and {.code sd(species, level = \"phylogenetic\") ~ x_species}."
     ))
   }
 
@@ -5713,44 +5799,49 @@ parse_sd_phylo_entries <- function(entries, phylo_term) {
     duplicate <- dpars[duplicated(dpars)][[1L]]
     cli::cli_abort(c(
       "Duplicate phylogenetic random-effect scale formula {.code {duplicate}}.",
-      "x" = "Each {.fn sd_phylo} target can have only one scale formula."
+      "x" = "Each phylogenetic {.fn sd} target can have only one scale formula."
     ))
   }
   if (length(targets) > 1L) {
     cli::cli_abort(
-      "Only one univariate {.fn sd_phylo} scale formula is implemented."
+      "Only one univariate phylogenetic direct-SD scale formula is implemented."
     )
   }
   targets
 }
 
 parse_biv_sd_phylo_entry <- function(entry, phylo_mu) {
-  target <- parse_sd_lhs(entry$lhs)
-  if (!target$fun %in% c("sd_phylo1", "sd_phylo2")) {
+  target <- parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)
+  is_phylo_target <- target$fun %in%
+    c("sd_phylo1", "sd_phylo2") ||
+    (target$fun %in%
+      c("sd1", "sd2") &&
+      identical(sd_lhs_target_level(target), "phylogenetic"))
+  if (!is_phylo_target) {
     cli::cli_abort(
-      "Internal error: bivariate phylogenetic random-effect scale target {.code {entry$dpar}} is not an {.fn sd_phylo1} or {.fn sd_phylo2} target."
+      "Internal error: bivariate phylogenetic random-effect scale target {.code {entry$dpar}} is not a phylogenetic {.fn sd1} or {.fn sd2} target."
     )
   }
   if (isTRUE(target$explicit)) {
     cli::cli_abort(c(
       "Explicit bivariate phylogenetic random-effect SD targets are not implemented yet.",
       "x" = "{.code {entry$dpar}} names a target distributional parameter, coefficient, or block.",
-      "i" = "Use {.code sd_phylo1(species) ~ x_species} for {.code mu1} or {.code sd_phylo2(species) ~ x_species} for {.code mu2}."
+      "i" = "Use {.code sd1(species, level = \"phylogenetic\") ~ x_species} for {.code mu1} or {.code sd2(species, level = \"phylogenetic\") ~ x_species} for {.code mu2}."
     ))
   }
-  target_dpar <- if (identical(target$fun, "sd_phylo1")) "mu1" else "mu2"
+  target_dpar <- if (target$fun %in% c("sd_phylo1", "sd1")) "mu1" else "mu2"
   if (!isTRUE(phylo_mu$has) || !identical(as.integer(phylo_mu$q), 2L)) {
     cli::cli_abort(c(
       "No bivariate phylogenetic location random-effect term matches {.code {entry$dpar}}.",
       "x" = "Add matching {.code phylo(1 | {target$group}, tree = tree)} terms to {.code mu1} and {.code mu2}, or remove {.code {entry$dpar}}.",
-      "i" = "{.fn sd_phylo1} targets {.code mu1} phylogenetic location SDs; {.fn sd_phylo2} targets {.code mu2} phylogenetic location SDs."
+      "i" = "{.code sd1(species, level = \"phylogenetic\")} targets {.code mu1} phylogenetic location SDs; {.code sd2(species, level = \"phylogenetic\")} targets {.code mu2} phylogenetic location SDs."
     ))
   }
   if (!identical(target$group, phylo_mu$group)) {
     cli::cli_abort(c(
       "Bivariate phylogenetic random-effect scale target {.code {entry$dpar}} does not match the {.fn phylo} grouping variable.",
       "x" = "{.fn {target$fun}} targets group {.field {target$group}}, but {.fn phylo} uses group {.field {phylo_mu$group}}.",
-      "i" = "Use the same species column in matching {.fn phylo} terms and {.code {target$fun}(species) ~ x_species}."
+      "i" = "Use the same species column in matching {.fn phylo} terms and {.code sd1(species, level = \"phylogenetic\") ~ x_species} / {.code sd2(species, level = \"phylogenetic\") ~ x_species}."
     ))
   }
 
@@ -5775,7 +5866,7 @@ parse_biv_sd_phylo_entries <- function(entries, phylo_mu) {
     duplicate <- dpars[duplicated(dpars)][[1L]]
     cli::cli_abort(c(
       "Duplicate bivariate phylogenetic random-effect scale formula {.code {duplicate}}.",
-      "x" = "Each {.fn sd_phylo1} or {.fn sd_phylo2} target can have only one scale formula."
+      "x" = "Each bivariate phylogenetic {.fn sd1} or {.fn sd2} target can have only one scale formula."
     ))
   }
   target_endpoint <- vapply(targets, `[[`, integer(1), "target_endpoint")
@@ -5790,7 +5881,7 @@ parse_biv_sd_phylo_entries <- function(entries, phylo_mu) {
 }
 
 parse_biv_sd_mu_entry <- function(entry, re_mu) {
-  target <- parse_sd_lhs(entry$lhs)
+  target <- parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)
   if (!target$fun %in% c("sd1", "sd2")) {
     cli::cli_abort(
       "Internal error: bivariate random-effect scale target {.code {entry$dpar}} is not an {.fn sd1} or {.fn sd2} target."
@@ -6278,7 +6369,7 @@ reject_biv_sd_mu_q4_mixture <- function(entries, q4_blocks) {
   q4_labels <- vapply(q4_blocks, `[[`, character(1L), "block_label")
   target_groups <- vapply(
     entries,
-    function(entry) parse_sd_lhs(entry$lhs)$group,
+    function(entry) parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)$group,
     character(1L)
   )
   mixed <- which(target_groups %in% q4_groups)
@@ -6287,7 +6378,7 @@ reject_biv_sd_mu_q4_mixture <- function(entries, q4_blocks) {
   }
 
   entry <- entries[[mixed[[1L]]]]
-  target <- parse_sd_lhs(entry$lhs)
+  target <- parse_sd_lhs(entry$lhs, warn_deprecated = FALSE)
   block_pos <- match(target$group, q4_groups)
   cli::cli_abort(c(
     "Do not combine Family A location-scale covariance blocks with Family B direct SD formulas for the same group.",
@@ -9528,6 +9619,11 @@ biv_gaussian_map <- function(
   } else if (corpair_model_is_phylogenetic(re_mu$cor_model)) {
     out$eta_cor_phylo <- factor(NA)
     out$theta_phylo <- factor(NA)
+    if (sd_phylo$n_models > 0L) {
+      log_sd_map <- seq_len(length(phylo_mu_dpars(phylo_mu)))
+      log_sd_map[unname(sd_phylo$target_endpoint)] <- NA_integer_
+      out$log_sd_phylo <- factor(log_sd_map)
+    }
   } else if (phylo_mu$q > 2L) {
     out$eta_cor_phylo <- factor(NA)
   } else if (sd_phylo$n_models > 0L) {
@@ -11127,13 +11223,7 @@ split_tmb_random_effects <- function(par, spec) {
         },
         character(n_phylo)
       ))
-      values <- latent
-      if (
-        is.list(spec$random_scale$phylo) &&
-          spec$random_scale$phylo$n_models > 0L
-      ) {
-        values <- latent * biv_phylo_node_sd_values(par, spec)
-      }
+      values <- transform_biv_phylo_random_effects(latent, par, spec)
       terms <- lapply(seq_along(dpars), function(i) {
         idx <- (i - 1L) * n_phylo + seq_len(n_phylo)
         values[idx]
@@ -11343,12 +11433,47 @@ biv_phylo_node_sd_values <- function(par, spec) {
   n_phylo <- phylo_mu$n_re
   scalar_sd <- exp(unname(par$log_sd_phylo[seq_along(dpars)]))
   out <- rep(scalar_sd, each = n_phylo)
+  if (!is.list(sd_phylo) || sd_phylo$n_models == 0L) {
+    return(out)
+  }
   sd_group <- sd_phylo_group_values(par, spec)
   node_row <- sd_phylo$node_sd_row0
   direct <- node_row >= 0L
   out[direct] <- sd_group[node_row[direct] + 1L]
   endpoint <- rep(seq_along(dpars), each = n_phylo)
   out[!direct & endpoint %in% unname(sd_phylo$target_endpoint)] <- NA_real_
+  out
+}
+
+transform_biv_phylo_random_effects <- function(latent, par, spec) {
+  phylo_mu <- spec$structured$phylo_mu
+  n_phylo <- phylo_mu$n_re
+  dpars <- phylo_mu_dpars(phylo_mu)
+  has_sd_model <- is.list(spec$random_scale$phylo) &&
+    spec$random_scale$phylo$n_models > 0L
+  has_cor_model <- has_modelled_phylo_correlation(spec)
+  if (!has_cor_model || length(dpars) != 2L) {
+    if (has_sd_model) {
+      return(latent * biv_phylo_node_sd_values(par, spec))
+    }
+    return(latent)
+  }
+
+  sd_values <- biv_phylo_node_sd_values(par, spec)
+  model <- spec$random$mu$cor_model
+  beta <- unname(par$beta_cor_mu[seq_len(ncol(model$X_tmb))])
+  rho <- 0.999999 * tanh(as.vector(model$X_tmb %*% beta))
+  c_load <- sqrt((1 + rho) / 2)
+  d_load <- sqrt((1 - rho) / 2)
+  out <- latent
+  for (i in seq_len(n_phylo)) {
+    z1 <- latent[[i]]
+    z2 <- latent[[n_phylo + i]]
+    out[[i]] <- sd_values[[i]] * (c_load[[i]] * z1 + d_load[[i]] * z2)
+    out[[n_phylo + i]] <- sd_values[[n_phylo + i]] *
+      (c_load[[i]] * z1 - d_load[[i]] * z2)
+  }
+  names(out) <- names(latent)
   out
 }
 

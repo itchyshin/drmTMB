@@ -49,10 +49,12 @@
 #' `spatial(1 + x | site, coords = coords)` in `mu`, it reports site
 #' replication, fitted coordinate range, the spatial SDs, and whether the
 #' smallest spatial SD is tiny relative to the residual scale. If a Gaussian
-#' fit includes `sd_phylo(species) ~ x_species`,
-#' `sd_phylo1(species) ~ x_species`, or
-#' `sd_phylo2(species) ~ x_species`, it reports species replication and the
-#' fitted direct-SD surface range. If a univariate Gaussian fit used
+#' fit includes `sd(species, level = "phylogenetic") ~ x_species`,
+#' `sd1(species, level = "phylogenetic") ~ x_species`, or
+#' `sd2(species, level = "phylogenetic") ~ x_species`, it reports species
+#' replication and the fitted direct-SD surface range. Deprecated
+#' `sd_phylo*()` spellings use the same diagnostic path. If a univariate
+#' Gaussian fit used
 #' `drm_control(aggregate_gaussian = TRUE)`, it reports original rows,
 #' aggregation cells, compression ratio, and largest cell size. If a fit was
 #' stored with

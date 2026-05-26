@@ -231,19 +231,16 @@ the builder rejects it before fitting.
 
 ## Structured Direct-SD Targets
 
-The univariate `sd_phylo(species)` target is implemented as the first
-structured Family B direct-SD model. Bivariate `sd_phylo1(species)` and
-`sd_phylo2(species)` are implemented for matching phylogenetic location effects
-in `mu1` and `mu2`. Names such as `sd_spatial(site)` remain planned. These
-direct-SD models are not scalar replacements for every fitted `log_sd_phylo`
-parameter.
-
-A future generic alias could spell the same target as
-`sd(species, level = "phylogenetic") ~ z_species`. The current implemented
-`sd_phylo()` name is deliberately explicit: it tells users that the SD surface
-scales a tree-induced covariance, not an ordinary independent grouping factor.
-This mirrors the future `corpair(..., level = "phylogenetic", ...)` grammar
-without requiring a breaking rename now.
+The univariate `sd(species, level = "phylogenetic")` target is implemented as
+the first structured Family B direct-SD model. Bivariate
+`sd1(species, level = "phylogenetic")` and
+`sd2(species, level = "phylogenetic")` are implemented for matching
+phylogenetic location effects in `mu1` and `mu2`. The older `sd_phylo()`,
+`sd_phylo1()`, and `sd_phylo2()` spellings remain deprecated compatibility
+aliases. Names such as `sd_spatial(site)` remain planned and should not be
+copied; future structured routes should use the same level-based `sd*()`
+grammar. These direct-SD models are not scalar replacements for every fitted
+`log_sd_phylo` parameter.
 
 In the scalar phylogenetic likelihood, the latent species effects are coupled
 by a Brownian-motion tree precision:
@@ -252,8 +249,8 @@ by a Brownian-motion tree precision:
 a ~ MVN(0, sigma_phylo^2 A)
 ```
 
-The fitted `sd_phylo()` quantity is the tip-level SD of the phylogenetic
-location effect:
+The fitted `sd(..., level = "phylogenetic")` quantity is the tip-level SD of
+the phylogenetic location effect:
 
 ```text
 tau_l = exp(W_l alpha_phylo)
@@ -263,40 +260,43 @@ Cov(a_tip) = D_tip A_tip D_tip
 ```
 
 Here `W_l` is the species-level design matrix from
-`sd_phylo(species) ~ z_species`, `D_tip = diag(tau_l)`, and `A_tip` is the
-phylogenetic relationship matrix among observed tree tips. The implementation
-should use a non-centred base tree effect: the sparse augmented precision still
-defines `v_aug`, while only the observed tip contribution is multiplied by the
-species-specific `tau_l`. Internal nodes do not receive user-facing SD
-predictors. This avoids inventing ancestral covariates and still gives the
-intended marginal tip covariance `D_tip A_tip D_tip`.
+`sd(species, level = "phylogenetic") ~ z_species`, `D_tip = diag(tau_l)`, and
+`A_tip` is the phylogenetic relationship matrix among observed tree tips. The
+implementation should use a non-centred base tree effect: the sparse augmented
+precision still defines `v_aug`, while only the observed tip contribution is
+multiplied by the species-specific `tau_l`. Internal nodes do not receive
+user-facing SD predictors. This avoids inventing ancestral covariates and
+still gives the intended marginal tip covariance `D_tip A_tip D_tip`.
 
-The right-hand side of `sd_phylo(species) ~ z_species` must be constant within
-species after the model's complete-case filtering, just like ordinary
-`sd(id) ~ z_group`. When the formula is present, it replaces the scalar
-`log_sd_phylo` parameter for that target; it does not add a second phylogenetic
-SD layer. The intercept-only case `sd_phylo(species) ~ 1` is tested against the
-current constant-SD phylogenetic location model and gives the same marginal
-likelihood with a non-centred TMB parameterization.
+The right-hand side of `sd(species, level = "phylogenetic") ~ z_species` must
+be constant within species after the model's complete-case filtering, just like
+ordinary `sd(id) ~ z_group`. When the formula is present, it replaces the
+scalar `log_sd_phylo` parameter for that target; it does not add a second
+phylogenetic SD layer. The intercept-only case
+`sd(species, level = "phylogenetic") ~ 1` is tested against the current
+constant-SD phylogenetic location model and gives the same marginal likelihood
+with a non-centred TMB parameterization.
 
 This Family B direct-SD model stays separate from Family A q=4 models. Do not
-combine `sd_phylo(species) ~ z_species` with a matching labelled q=4
+combine `sd(species, level = "phylogenetic") ~ z_species` with a matching
+labelled q=4
 `phylo(1 | p | species, tree = tree)` block across `mu1`, `mu2`, `sigma1`, and
 `sigma2`. That q=4 block estimates a constant joint covariance among latent
-location and scale effects; `sd_phylo()` models predictor-dependent location
-random-effect SDs.
+location and scale effects; the direct-SD route models predictor-dependent
+location random-effect SDs.
 
-The implementation accepts univariate `sd_phylo(species) ~ z_species` only
-when the `mu` formula contains one intercept-only
+The implementation accepts univariate
+`sd(species, level = "phylogenetic") ~ z_species` only when the `mu` formula
+contains one intercept-only
 `phylo(1 | species, tree = tree)` term. It builds a species-level model matrix
 with one row per observed tree tip, rejects predictors that vary within
 species, maps the scalar `log_sd_phylo` parameter out for that target, and
 reports fitted values through `coef()`, `predict()`, `sdpars`, `summary()`, and
 `profile_targets()`. `check_drm()` reports a `phylo_direct_sd_model` diagnostic
-row for each univariate or bivariate `sd_phylo*()` endpoint, including species
-replication, fitted SD range, and the maximum fitted species-SD ratio, because
-weak replication or a numerically invalid SD surface can make direct-SD
-interpretation misleading even when fixed effects are available.
+row for each univariate or bivariate phylogenetic direct-SD endpoint, including
+species replication, fitted SD range, and the maximum fitted species-SD ratio,
+because weak replication or a numerically invalid SD surface can make
+direct-SD interpretation misleading even when fixed effects are available.
 
 Bivariate phylogenetic direct-SD syntax is implemented with response-specific
 names:
@@ -308,20 +308,21 @@ bf(
   sigma1 = ~ w1,
   sigma2 = ~ w2,
   rho12 = ~ context,
-  sd_phylo1(species) ~ z1,
-  sd_phylo2(species) ~ z2
+  sd1(species, level = "phylogenetic") ~ z1,
+  sd2(species, level = "phylogenetic") ~ z2
 )
 ```
 
-The design target is still Family B and still location-only. `sd_phylo1()`
-models the SD surface of the `mu1` phylogenetic location effect and
-`sd_phylo2()` models the SD surface of the `mu2` phylogenetic location effect.
-They do not target residual `sigma1`, residual `sigma2`, phylogenetic
-random effects inside scale formulas, or q=4 location-scale endpoint SDs.
+The design target is still Family B and still location-only.
+`sd1(..., level = "phylogenetic")` models the SD surface of the `mu1`
+phylogenetic location effect and `sd2(..., level = "phylogenetic")` models the
+SD surface of the `mu2` phylogenetic location effect. They do not target
+residual `sigma1`, residual `sigma2`, phylogenetic random effects inside scale
+formulas, or q=4 location-scale endpoint SDs.
 
-The bivariate base effect should use one shared tree and one constant
-phylogenetic location-location correlation. With species-level design matrices
-`W1` and `W2`,
+With a constant bivariate phylogenetic location-location correlation, the base
+effect uses one shared tree and one latent correlation. With species-level
+design matrices `W1` and `W2`,
 
 ```text
 tau1_l = exp(W1_l alpha_1)
@@ -334,7 +335,13 @@ Cov(a2_l, a2_m) = tau2_l A_lm tau2_m
 Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m
 ```
 
-This means `sd_phylo1()` and `sd_phylo2()` replace the scalar phylogenetic SD
+With a predictor-dependent q=2 phylogenetic `corpair()` model, `v1_aug` and
+`v2_aug` are independent unit tree fields and each species uses the
+`corpair(..., level = "phylogenetic")` loading transform before multiplication
+by `tau1_l` or `tau2_l`.
+
+This means `sd1(..., level = "phylogenetic")` and
+`sd2(..., level = "phylogenetic")` replace the scalar phylogenetic SD
 parameters for their matching location endpoints, while `rho_phylo` remains a
 latent phylogenetic location-location correlation reported by `corpairs()`.
 Residual `rho12` remains the within-observation coscale parameter. The
@@ -346,7 +353,8 @@ species pairs as `rho_phylo tau1_l A_lm tau2_m`.
 
 Unsupported combinations should fail before optimization:
 
-- `sd_phylo1()` or `sd_phylo2()` without matching bivariate `mu1`/`mu2`
+- `sd1(..., level = "phylogenetic")` or
+  `sd2(..., level = "phylogenetic")` without matching bivariate `mu1`/`mu2`
   phylogenetic location terms;
 - group or tree mismatches between `mu1`, `mu2`, and the direct-SD target;
 - use beside an all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic block

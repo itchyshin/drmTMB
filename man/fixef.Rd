@@ -16,7 +16,7 @@ fixef(object, ...)
 
 \item{dpar}{Optional distributional parameter name, such as \code{"mu"},
 \code{"sigma"}, \code{"hu"}, \code{"rho12"}, \code{"sd(id)"}, or
-\code{"sd_phylo(species)"}.}
+\verb{"sd(species, level = \\"phylogenetic\\")"}.}
 }
 \value{
 A named numeric vector when \code{dpar} is supplied, otherwise a named

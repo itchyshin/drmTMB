@@ -50,8 +50,8 @@ fitted likelihood support, and documented user support.
 
 Record the migration path before implementation:
 
-- keep current `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` examples working
-  unless a separate deprecation decision is made;
+- keep `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` examples working as
+  deprecated compatibility spellings while teaching the generic `sd*()` syntax;
 - introduce generic direct-SD examples only for fitted layers;
 - keep ordinary `sd(group)` examples separate from structured direct-SD examples;
 - scan README, `model-map`, `implementation-map`, reference topics, NEWS, and
