@@ -38707,3 +38707,59 @@ git diff --check
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-phase18-common-family-review-lane.md`
+
+## 2026-05-25 - Phase 18 Count First-Wave Closure, Slice C
+
+Goal:
+
+- Close the Phase 18 Slice C count review lane after the common-family
+  artifacts by inventorying the existing Poisson/NB2 count evidence,
+  revalidating focused count tests, and recording the next Slice D choices
+  without adding new count syntax.
+
+Changes:
+
+- Added
+  `docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md`.
+- Updated the Phase 18 core-family map, simulation programme, roadmap, and
+  NEWS to mark Slice C as count first-wave closure.
+- Kept COM-Poisson/Conway-Maxwell-Poisson, generalized Poisson, Tweedie,
+  zero-one beta, skew-normal, and new count random-effect syntax outside the
+  Slice C claim.
+
+Member-group review:
+
+- Ada kept the lane to evidence closure rather than a new implementation lane.
+- Boole checked that no formula grammar changed.
+- Noether checked the NB2 log-`sigma` and q1 phylo model statements against
+  the existing simulation contracts.
+- Fisher kept NB2 q1 at `hold_smoke_only` until the full 500-replicate shard
+  audit exists.
+- Grace checked focused count, first-wave, Actions, and diff hygiene results.
+- Rose checked stale wording and over-promoted count-family claims.
+- Pat checked that D choices tell applied readers what is next without
+  implying that all are starting now.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md
+Rscript -e "devtools::test(filter = '^phase18-(count-mu-random-effect-(grid-writer|pilot)|poisson-mu-random-effect|nbinom2-mu-random-effect|nbinom2-sigma-random-effect|poisson-phylo-q1|nbinom2-phylo-q1|first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 count NB2 Poisson phylo sigma COM-Poisson" --limit 20
+Rscript -e "files <- c('docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md'); invisible(lapply(files, readLines)); cat('doc read ok\n')"
+rg -n 'COM-Poisson.*(now fits|implemented|fitted|artifact lane)|Conway-Maxwell.*(now fits|implemented|fitted|artifact lane)|Slice C.*(adds|implements).*syntax|NB2 q1.*promote|promote_narrowly|500-replicate.*(passed|complete|completed|audited)|Tweedie.*now fits|skew_normal.*now fits|zero-one.*now fits|zoi.*now fits|coi.*now fits' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+git diff --check
+```
+
+- Formatting completed without output.
+- Focused tests completed with the final `DONE` banner and no failures.
+- The issue search returned no matching open issue rows.
+- The doc read check printed `doc read ok`.
+- The stale scan returned only intentional `hold_smoke_only`,
+  500-replicate-audit, and promotion-helper lines.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-count-first-wave-closure-slice-c.md`
