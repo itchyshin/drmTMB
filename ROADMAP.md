@@ -1961,6 +1961,10 @@ as the whole comprehensive simulation programme.
   for `lognormal()` and `Gamma(link = "log")` on the clean branch: DGP,
   summariser, smoke, grid-output, and focused tests. First-wave summary and
   manual Actions integration remain separate follow-up slices.
+- The clean-branch follow-up wires the fixed-effect positive-continuous grid
+  into the first-wave summary runner and adds an opt-in manual
+  `positive_continuous_fixed_effect` Actions task, while keeping ordinal and
+  positive-response random-effect work separate.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

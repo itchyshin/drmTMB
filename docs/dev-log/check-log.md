@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Phase 18 Positive-Continuous First-Wave And Actions Integration
+
+Goal:
+
+- Wire the already-restored fixed-effect positive-continuous artifact lane into
+  the first-wave summary runner and expose it as a manual Actions task, without
+  adding ordinal or positive-response random-effect work.
+
+Roles: Ada kept this to the integration follow-up. Curie checked that the
+first-wave smoke runner loads the positive-continuous DGP, summariser, smoke,
+summary, and grid writer. Grace checked workflow dispatch, YAML parsing,
+push/PR cadence, and diff hygiene. Rose checked that `task = "all"` does not
+run the standalone lognormal/Gamma grid twice and that docs do not promote
+ordinal, Tweedie, generalized Gamma, or positive-response random-effect
+neighbours. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `positive_continuous` to `phase18_run_first_wave_summary_smoke()` and
+  `phase18_first_wave_parallel_summary()`.
+- Added `task = "positive_continuous_fixed_effect"` to
+  `inst/sim/run/sim_run_actions_cell.R` and
+  `.github/workflows/phase18-simulation-grid.yaml`.
+- Updated the first-wave smoke-runner and Actions-runner tests.
+- Updated the Phase 18 map, simulation programme, readiness/debt notes,
+  simulation README, roadmap, and positive-continuous design note.
+- Added
+  `docs/dev-log/after-task/2026-05-26-phase18-positive-continuous-first-wave-actions.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R .github/workflows/phase18-simulation-grid.yaml ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-phase18-positive-continuous-first-wave-actions.md
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+rg -n 'ordinal_fixed_effect|positive-response random effects.*now (fit|implemented)|Tweedie.*now (fit|implemented)|generalized Gamma.*now (fit|implemented)|positive-continuous.*still need.*first-wave|positive-continuous.*still need.*Actions|task = "all".*positive_continuous_fixed_effect' .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat docs/design ROADMAP.md inst/sim/README.md -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "positive continuous lognormal Gamma Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- Formatting completed without output.
+- The focused first-wave and Actions test bundle passed.
+- The workflow YAML parsed successfully.
+- The stale-scope scan returned no hits.
+- The overlapping issue search returned no direct open issue.
+- `git diff --check` was clean.
+
+No likelihood, formula grammar, exported API, ordinal artifact,
+positive-response random-effect artifact, generated site, or formal simulation
+artifact changed.
+
 ## 2026-05-26 - Phase 18 Positive-Continuous Fixed-Effect Artifact Core
 
 Goal:

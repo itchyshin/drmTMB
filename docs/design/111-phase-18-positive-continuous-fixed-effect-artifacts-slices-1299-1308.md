@@ -107,10 +107,15 @@ Slices 1299-1308 add:
 - a focused test file; and
 - developer ledgers for the clean-branch artifact core.
 
-This slice deliberately stops before first-wave summary runner inclusion and
-manual `positive_continuous_fixed_effect` Actions dispatch. Those are separate
-integration slices so the lognormal/Gamma artifact evidence can be reviewed
-without also admitting neighbouring ordinal or workflow changes.
+The first clean-branch slice deliberately stopped before first-wave summary
+runner inclusion and manual `positive_continuous_fixed_effect` Actions
+dispatch. The next narrow follow-up wires the lognormal/Gamma grid into the
+first-wave summary runner and exposes the standalone manual Actions task,
+without also admitting neighbouring ordinal artifacts.
+
+The standalone Actions task is opt-in. `task = "all"` still reaches
+positive-continuous evidence through the first-wave summary rather than running
+the standalone lognormal/Gamma grid twice.
 
 ## Boundaries
 

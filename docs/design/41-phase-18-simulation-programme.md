@@ -781,3 +781,8 @@ errors, and elapsed time by surface before the raw manifest.
      helpers plus focused tests for `lognormal()` and `Gamma(link = "log")`,
      while leaving first-wave summary and manual Actions integration for a
      separate slice.
+162. The clean-branch follow-up wires the fixed-effect positive-continuous grid
+     into the first-wave summary runner and the manual
+     `positive_continuous_fixed_effect` Actions task. The workflow keeps that
+     standalone task out of `task = "all"` because `first_wave_summary` already
+     reaches the lognormal/Gamma lane.
