@@ -135,8 +135,10 @@ head(sigma(fit)^2) # fitted residual variances
   Gaussian, Student-t, lognormal, Gamma, or beta location-scale regression with
   `drm_formula(y ~ x, sigma ~ x)`. Read
   [Which scale are you modelling?](https://itchyshin.github.io/drmTMB/articles/which-scale.html).
-  Lognormal and Gamma location formulas also support ordinary repeated-measure
-  random intercepts such as `bf(y ~ x + (1 | id), sigma ~ z)`.
+  Student-t, lognormal, Gamma, and beta location formulas also support
+  ordinary repeated-measure random intercepts such as
+  `bf(y ~ x + (1 | id), sigma ~ z)`; beta uses this syntax only for strict
+  `(0, 1)` proportions.
 - **Successes out of known trials.** Use `beta_binomial()` with
   `cbind(successes, failures)`. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
@@ -202,7 +204,7 @@ Read status words consistently:
 
 | Surface | Current status | Interval and diagnostic status | Main boundary |
 | --- | --- | --- | --- |
-| Fixed-effect one-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson and NB2 `mu` random intercepts and independent numeric slopes are the first count random-effect slices; ordinary Student-t, zero-truncated NB2, lognormal, and Gamma now have ordinary `mu` random-intercept source-test slices; ordinary NB2 now has the first log-`sigma` random-intercept slice; and ordinary Poisson/NB2 now have q=1 phylogenetic `mu` intercept first slices | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; ordinary Poisson, NB2, Student-t, zero-truncated NB2, lognormal, and Gamma `mu` random-effect SDs are direct `log_sd_mu` profile targets; NB2 ordinary `sigma` random-intercept SDs are direct `log_sd_sigma` targets; Poisson/NB2 phylogenetic SDs are direct `log_sd_phylo` profile targets | Random effects are otherwise mostly Gaussian-only; non-Gaussian `sigma` random effects outside the ordinary NB2 intercept gate, Student-t and positive-continuous random slopes, shape random effects, correlated count slopes, zero-inflated count random effects, phylogenetic count slopes, spatial/animal/`relmat()` count effects, ordinal scale, and richer bounded-response families including zero-one inflation remain planned |
+| One-response families | Stable for Gaussian, Student-t, lognormal, Gamma, beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson and NB2 `mu` random intercepts and independent numeric slopes are the first count random-effect slices; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial now have ordinary `mu` random-intercept source-test slices; ordinary NB2 now has the first log-`sigma` random-intercept slice; and ordinary Poisson/NB2 now have q=1 phylogenetic `mu` intercept first slices | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; ordinary Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs are direct `log_sd_mu` profile targets; NB2 ordinary `sigma` random-intercept SDs are direct `log_sd_sigma` targets; Poisson/NB2 phylogenetic SDs are direct `log_sd_phylo` profile targets | Random effects are otherwise mostly Gaussian-only; non-Gaussian `sigma` random effects outside the ordinary NB2 intercept gate, bounded-response random slopes, shape random effects, correlated count slopes, zero-inflated count random effects, phylogenetic count slopes, spatial/animal/`relmat()` count effects, ordinal scale, exact 0/1 boundary mass, and richer bounded-response families including zero-one inflation remain planned |
 | Gaussian ordinary random effects | Stable for `mu` intercepts, independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric multi-slope blocks; stable for `sigma` intercepts and multiple independent `sigma` slopes | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; q > 2 `mu` block SDs and independent `sigma` slope SDs are direct profile targets, while q > 2 `mu` correlations are derived-unavailable for direct profiling | Larger q blocks can be sample-size hungry; correlated residual-scale slope blocks and coefficient-specific `sd()` slope models remain planned |
 | Random-effect scale models | First slice fitted for `sd(group) ~ x_group` on unlabelled Gaussian `mu` random intercepts | Fixed SD-surface coefficients are direct targets; row-specific group SD summaries are derived | Slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` is reserved and rejected |
 | Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; deprecated `meta_known_V(V = V)` remains supported only as a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
@@ -222,8 +224,9 @@ dimensional multivariate models belong in a different tool.
 
 Random effects are strongest in the Gaussian routes. The non-Gaussian mixed
 surface is still deliberately small: ordinary Poisson/NB2 `mu` random effects,
-ordinary zero-truncated NB2/lognormal/Gamma `mu` random intercepts, and the
-first ordinary Poisson/NB2 q=1 phylogenetic `mu` intercepts are fitted.
+ordinary Student-t/zero-truncated NB2/lognormal/Gamma/beta `mu` random
+intercepts, and the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
+intercepts are fitted.
 Ordinary NB2 also has a first grouped overdispersion path in `sigma`, limited
 to independent random intercepts on the log-`sigma` scale. Most other
 non-Gaussian random-effect and structured-dependence combinations remain

@@ -38995,3 +38995,265 @@ Restack follow-up on 2026-05-26:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-student-t-mu-random-intercepts.md`
+
+## 2026-05-25 - Beta `mu` Random Intercepts
+
+Goal:
+
+- Add the first `beta()` mixed-model slice: ordinary unlabelled `mu` random
+  intercepts with `bf(prop ~ x + (1 | id), sigma ~ z)` for strict `(0, 1)`
+  responses.
+
+Changes:
+
+- Wired beta `mu` random intercepts through formula parsing, TMB data,
+  likelihood, starts/maps, `sdpars`, `random_effects`, profile targets,
+  prediction contributions, and `check_drm()` replication diagnostics.
+- Kept beta `sigma` random effects, random slopes, labelled covariance blocks,
+  random-effect scale formulae, `zoi`/`coi`, exact 0/1 boundary mass,
+  structured effects, known covariance, beta-binomial denominator-aware random
+  effects, and bivariate or mixed bounded-response models out of scope with
+  targeted guardrail tests.
+- Updated `README.md`, `ROADMAP.md`, `NEWS.md`, `R/drmTMB.R`, `R/check.R`,
+  `R/family.R`, the formula grammar, likelihood notes, family registry,
+  distribution roadmap, validation-debt register, Phase 18 programme and
+  readiness maps, known limitations, generated Rd files, and public-facing
+  vignettes/source maps that report the fitted surface.
+
+Member-group review:
+
+- Ada kept this as a stacked source-test lane on top of the Student-t
+  random-intercept PR.
+- Boole checked that only ordinary `(1 | id)` location random intercept syntax
+  is admitted for beta.
+- Gauss and Noether checked the predictor scale: the random intercept enters
+  the logit-`mu` predictor while `sigma` remains a fixed-effect log-scale
+  formula.
+- Curie and Fisher checked that the deterministic recovery test covers
+  convergence, positive-definite Hessian status, fixed effects, random-effect
+  SDs, conditional effects, direct `log_sd_mu` profile targets, and strict
+  boundary/unsupported-neighbour failures without becoming a formal grid claim.
+- Grace checked parse, focused tests, full tests, documentation generation,
+  pkgdown, formatting, and diff hygiene.
+- Rose checked stale wording and kept beta slopes, scale random effects,
+  structured bounded-response routes, exact 0/1 mass, beta-binomial random
+  effects, known covariance, and mixed bounded responses out of scope.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','R/family.R','tests/testthat/test-beta-location-scale.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript -e "devtools::test(filter = 'beta-location-scale', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(check-drm|profile-targets|predict-parameters|prediction-grid)$', reporter = 'summary')"
+Rscript -e "devtools::document()"
+air format .
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(beta-location-scale|nongaussian-scale-boundary|check-drm|profile-targets)$', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','R/family.R','tests/testthat/test-beta-location-scale.R','tests/testthat/test-nongaussian-scale-boundary.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+air format R/drmTMB.R R/check.R R/family.R tests/testthat/test-beta-location-scale.R tests/testthat/test-nongaussian-scale-boundary.R
+rg --pcre2 -n 'beta\(\).*fixed-effect only|fixed-effect beta|beta.*random effects.*planned|beta.*mu.*planned|Student-t, beta, beta-binomial|Lognormal, Gamma, beta, beta-binomial|zero-truncated NB2 remains planned|Start with fixed-effect beta|bounded-response random effects' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+rg -n 'beta\(\).*random intercept|bf\(prop ~ .*\(1 \| id\)|logit.*mu|strict.*\(0, 1\)|beta ordinary `mu`|Beta ordinary `mu`' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+git diff --check
+```
+
+- The parse checks passed before and after formatting.
+- Focused beta tests passed.
+- Broader focused tests for `check_drm()`, `profile_targets()`,
+  prediction-parameter helpers, and prediction grids passed.
+- `devtools::document()` regenerated `man/drmTMB.Rd` and `man/beta.Rd`.
+- The first full `devtools::test()` run exposed one stale shared
+  non-Gaussian scale-boundary expectation; after updating the beta-family
+  error path, the full `devtools::test()` run passed.
+- The post-cleanup focused beta/diagnostic test set passed.
+- `pkgdown::check_pkgdown()` reported `No problems found.`
+- `air format .` completed but touched unrelated formatting-only files; those
+  changes were trimmed back out. The final targeted `air format` completed
+  without output.
+- The stale-wording scans returned only intentional historical artifact notes,
+  family-boundary statements, or current lines that explicitly distinguish the
+  fitted beta `mu` random-intercept slice from still-planned neighbours.
+- `git diff --check` was clean.
+
+GitHub issue maintenance:
+
+- Searched open issues with
+  `gh issue list --search "beta random intercept OR beta random effects OR bounded-response random effects" --limit 20`.
+- Found #57 and #128. Commented on #57 with the local beta `mu`
+  random-intercept status and the remaining tutorial/random-effect boundaries:
+  https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4538004084.
+- Left #128 unchanged because it is the broader random-slope capacity ledger,
+  and this slice keeps beta slopes closed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-beta-mu-random-intercepts.md`
+
+## 2026-05-25 - Beta-Binomial `mu` Random Intercepts
+
+Goal:
+
+- Add the paired denominator-aware `beta_binomial()` mixed-model slice:
+  ordinary unlabelled `mu` random intercepts with
+  `bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z)` for counted
+  successes out of known trials.
+
+Changes:
+
+- Wired beta-binomial `mu` random intercepts through formula parsing, TMB data,
+  likelihood, starts/maps, `sdpars`, `random_effects`, profile targets,
+  prediction contributions, and `check_drm()` replication diagnostics.
+- Kept beta-binomial random slopes, labelled covariance blocks, `sigma` random
+  effects, exact 0/1 boundary mass, `zoi`/`coi`, structured bounded responses,
+  known covariance, and bivariate or mixed bounded-response models out of scope
+  with targeted guardrail tests.
+- Updated `README.md`, `ROADMAP.md`, `NEWS.md`, `R/drmTMB.R`, `R/check.R`,
+  `R/family.R`, the formula grammar, likelihood notes, family registry,
+  distribution roadmap, validation-debt register, Phase 18 programme and
+  readiness maps, known limitations, generated Rd files, and public-facing
+  vignettes/source maps that report the fitted surface.
+
+Member-group review:
+
+- Ada kept this as the paired beta-binomial continuation of the beta `mu`
+  random-intercept lane.
+- Boole checked that only ordinary `(1 | id)` location random-intercept syntax
+  is admitted for beta-binomial.
+- Gauss and Noether checked the predictor scale: the random intercept enters
+  the logit success-probability predictor while `sigma` remains a fixed-effect
+  extra-binomial variation formula.
+- Curie and Fisher checked that the deterministic recovery test covers
+  convergence, positive-definite Hessian status, fixed effects, random-effect
+  SDs, conditional effects, direct `log_sd_mu` profile targets, denominator-
+  aware prediction, and unsupported-neighbour failures without becoming a
+  formal grid claim.
+- Grace checked parse, focused tests, full tests, documentation generation,
+  pkgdown, stale scans, issue maintenance, and diff hygiene.
+- Rose checked stale wording and kept beta-binomial slopes, scale random
+  effects, structured bounded-response routes, exact 0/1 mass, known
+  covariance, and mixed bounded responses out of scope.
+- No spawned subagents were running.
+
+Validation:
+
+```sh
+Rscript -e "files <- c('R/drmTMB.R','R/check.R','R/family.R','tests/testthat/test-beta-binomial.R','tests/testthat/test-nongaussian-scale-boundary.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript -e "devtools::test(filter = 'beta-binomial', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^(beta-binomial|beta-location-scale|nongaussian-scale-boundary|check-drm|profile-targets)$', reporter = 'summary')"
+Rscript -e "devtools::document()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test(reporter = 'summary')"
+rg -n 'beta-binomial denominator-aware random effects|beta-binomial random effects|beta_binomial.*fixed-effect only|Fixed-effect only for two-column|bounded-response random effects beyond the beta ordinary|beta ordinary `mu` intercept slice|beta-binomial fixed effects' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R/family.R R/drmTMB.R -g '!*.html'
+rg -n 'beta_binomial\(\).*random intercept|cbind\(success.*failure\).*\(1 \| id\)|logit success-probability|beta and beta-binomial ordinary `mu`|Bounded-response ordinary `mu`' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+git diff --check
+```
+
+- The parse check passed.
+- Focused beta-binomial tests passed.
+- Broader focused tests for beta-binomial, beta, scale-boundary diagnostics,
+  `check_drm()`, and `profile_targets()` passed.
+- `devtools::document()` regenerated `man/drmTMB.Rd` and
+  `man/beta_binomial.Rd`.
+- `pkgdown::check_pkgdown()` reported `No problems found.`
+- The full `devtools::test(reporter = 'summary')` run completed with `DONE`.
+- The first stale-wording scan found two current NEWS lines that still spoke
+  from the beta-only slice; those were updated, and the final scan returned
+  only current-status lines or historical planning notes that distinguish the
+  fitted beta-binomial `mu` intercept slice from planned neighbours.
+- `git diff --check` was clean.
+
+GitHub issue maintenance:
+
+- Searched open issues with the two `gh issue list` commands recorded in the
+  after-task report.
+- The narrow beta-binomial search returned no issues. The broader
+  bounded-response search found #57, #59, #128, and #4.
+- Commented on #57 with the local beta-binomial `mu` random-intercept status:
+  https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4538301435.
+- Left #59, #128, and #4 unchanged because this slice does not add a formal
+  simulation grid, random slopes, or large-data readiness.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-beta-binomial-mu-random-intercepts.md`
+
+## 2026-05-25 - Bounded-Response `mu` Random-Intercept Slice Set Closeout
+
+Goal:
+
+- Close the paired `beta()` and `beta_binomial()` ordinary `mu` random-
+  intercept slice set after focused tests, full tests, documentation, pkgdown,
+  stale scans, issue maintenance, and a full package check all agreed.
+
+Status:
+
+- `beta()` supports `bf(prop ~ x + (1 | id), sigma ~ z)` for strict `(0, 1)`
+  responses.
+- `beta_binomial()` supports
+  `bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z)` for counted
+  successes out of known trials.
+- Both routes expose `sdpars$mu`, `random_effects$mu`, direct
+  `profile_targets()` rows, and `check_drm()` replication diagnostics.
+- Random slopes, labelled covariance blocks, bounded-response `sigma` random
+  effects, exact 0/1 boundary mass, `zoi`/`coi`, structured bounded responses,
+  known covariance, formal recovery grids, and bivariate or mixed bounded-
+  response models remain planned or unsupported.
+
+Set-level validation:
+
+```sh
+Rscript -e "devtools::check()"
+```
+
+- `R CMD check` completed in 5m 6.1s with 0 errors, 0 warnings, and 0 notes.
+- Final stale scans were rerun with safe quoting after one earlier shell
+  backtick mistake produced harmless `zsh: command not found: mu` noise.
+- `docs/dev-log/after-task/2026-05-25-beta-mu-random-intercepts.md`,
+  `docs/dev-log/after-task/2026-05-25-beta-binomial-mu-random-intercepts.md`,
+  and
+  `docs/dev-log/after-task/2026-05-25-bounded-response-mu-random-intercept-slice-set.md`
+  now provide the task and set-level evidence trail.
+
+Restack follow-up on 2026-05-26:
+
+- PR #330 was rebased onto `main` after the Student-t random-intercept lane
+  merged.
+- The branch tried to loosen the shared
+  `Non-Gaussian.*sigma.*random effects` boundary test; the restack restored
+  the stronger non-Gaussian boundary contract.
+- Updated the beta and beta-binomial `sigma` random-effect error headlines to
+  use the shared "Non-Gaussian `sigma` random effects" wording while keeping
+  their family-specific recovery guidance.
+- `air format R/drmTMB.R tests/testthat/test-nongaussian-scale-boundary.R
+  docs/dev-log/check-log.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md
+  docs/design/41-phase-18-simulation-programme.md` completed without output.
+- `devtools::test(filter =
+  '^(beta-location-scale|beta-binomial|check-drm|profile-targets|nongaussian-scale-boundary)$',
+  reporter = 'summary')` passed.
+- `git diff --check` was clean.
+
+Issue maintenance:
+
+- Issue #57 has local status comments for both beta and beta-binomial ordinary
+  `mu` random-intercept slices:
+  https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4538004084 and
+  https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4538301435.
+- The issue remains open because the broader reader-facing mixed-model
+  tutorial gate and any ADEMP/artifact lane for the random-intercept slices are
+  future work.
+
+Member-group closeout:
+
+- Ada kept the set bounded to the paired proportion-family first slices.
+- Boole, Gauss, and Noether checked syntax and predictor-scale consistency.
+- Curie and Fisher kept deterministic recovery separate from formal simulation
+  claims.
+- Grace closed with `devtools::check()`.
+- Rose checked that historical fixed-effect artifact rows did not become stale
+  random-effect support claims.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-bounded-response-mu-random-intercept-slice-set.md`

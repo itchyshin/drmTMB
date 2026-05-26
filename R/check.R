@@ -925,6 +925,8 @@ check_random_effect_replication <- function(object, block) {
         "student",
         "lognormal",
         "gamma",
+        "beta",
+        "beta_binomial",
         "nbinom2",
         "truncated_nbinom2"
       )
@@ -964,6 +966,8 @@ check_random_effect_design <- function(object, block) {
         "student",
         "lognormal",
         "gamma",
+        "beta",
+        "beta_binomial",
         "nbinom2",
         "truncated_nbinom2"
       )

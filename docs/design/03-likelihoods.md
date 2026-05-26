@@ -79,11 +79,11 @@ is the current routing contract:
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, and the first q=1 phylogenetic `mu` intercept on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
-| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate fixed-effect beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion and public `sigma` mapped internally to `phi = 1 / sigma^2`. |
+| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts on the logit-mean predictor. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
-| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate fixed-effect beta-binomial models for counted successes out of known trials, with `mu` as success probability and `sigma` as extra-binomial variation. |
+| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts on the logit success-probability predictor. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
@@ -831,6 +831,15 @@ E[y_i] = mu_i
 Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 ```
 
+The first beta mixed-model slice adds an ordinary grouped location random
+intercept before the inverse-logit transform:
+
+```text
+eta_mu_i = X_mu[i, ] beta_mu + b_id[i]
+b_j = sd_mu u_j
+u_j ~ Normal(0, 1)
+```
+
 The TMB likelihood is:
 
 ```text
@@ -847,14 +856,23 @@ drmTMB(
   family = beta(),
   data = dat
 )
+
+drmTMB(
+  bf(prop ~ habitat + (1 | plot), sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
 ```
 
 For beta fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
 proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi_i = 1 / sigma_i^2`. The response must be finite and
-strictly between 0 and 1 after missing-row filtering. Boundary responses,
-random effects, known sampling covariance, phylogenetic terms, and bivariate
-or mixed beta models are later phases.
+strictly between 0 and 1 after missing-row filtering. Ordinary unlabelled
+`mu` random intercepts such as `(1 | plot)` enter the logit-`mu` predictor.
+Random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1
+boundary mass through future `zoi`/`coi`, known sampling covariance,
+phylogenetic terms, and bivariate or mixed beta models are later phases. Use
+`beta_binomial()` for counted successes out of known trials.
 
 ## Implemented Beta-Binomial Mean-Overdispersion
 
@@ -863,7 +881,9 @@ Beta-binomial models keep the denominator in the likelihood:
 ```text
 y_i | n_i, p_i ~ Binomial(n_i, p_i)
 p_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
-eta_mu_i = X_mu[i, ] beta_mu
+eta_mu_i = X_mu[i, ] beta_mu + Z_mu[i, j] b_j
+b_j = sd_mu u_j
+u_j ~ Normal(0, 1)
 eta_sigma_i = X_sigma[i, ] beta_sigma
 mu_i = logit^{-1}(eta_mu_i)
 sigma_i = exp(eta_sigma_i)
@@ -891,7 +911,8 @@ Matching R syntax:
 
 ```r
 drmTMB(
-  bf(cbind(successes, failures) ~ habitat, sigma ~ treatment),
+  bf(cbind(successes, failures) ~ habitat + (1 | tray),
+     sigma ~ treatment),
   family = beta_binomial(),
   data = dat
 )
@@ -901,9 +922,11 @@ For beta-binomial fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return
 the success probability. `sigma(fit)` returns the public extra-binomial
 variation scale; internally `phi_i = 1 / sigma_i^2`. The response counts must
 be finite non-negative integers with positive row totals after missing-row
-filtering. Random effects, known sampling covariance, phylogenetic terms,
-bivariate or mixed beta-binomial models, and a possible successes/trials
-response alias are later phases.
+filtering. Ordinary unlabelled `mu` random intercepts such as `(1 | tray)`
+enter the logit success-probability predictor. Random slopes, labelled
+covariance blocks, `sigma` random effects, known sampling covariance,
+phylogenetic terms, bivariate or mixed beta-binomial models, and a possible
+successes/trials response alias are later phases.
 
 ## Implemented Cumulative-Logit Ordinal Location
 

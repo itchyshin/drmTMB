@@ -90,6 +90,22 @@ drmTMB(
 )
 ```
 
+If trays, plots, or subjects are repeatedly observed, the first fitted
+mixed-model slice is an ordinary `mu` random intercept:
+
+```r
+drmTMB(
+  bf(cbind(germinated, failed) ~ treatment + moisture + (1 | tray),
+     sigma ~ treatment),
+  family = beta_binomial(),
+  data = seed_trials
+)
+```
+
+The random intercept changes the logit success-probability predictor. It does
+not make `sigma` a random effect, and it does not open random slopes or
+structured bounded-response effects.
+
 Read each parameter before interpreting the fitted model:
 
 | Symbol or syntax | Meaning | In the seed-germination example |
@@ -366,13 +382,14 @@ measurement-process decision outside this tutorial.
 
 ## Current Boundary
 
-The implemented bounded-response path is fixed-effect and univariate. Use
-`beta_binomial()` for counted successes and failures, and use `beta()` for a
-single continuous proportion that is strictly between 0 and 1:
+The implemented bounded-response path is univariate. Use `beta_binomial()` for
+counted successes and failures, and use `beta()` for a single continuous
+proportion that is strictly between 0 and 1. Both families support ordinary
+unlabelled `mu` random intercepts as first mixed-model slices:
 
 ```r
 drmTMB(
-  bf(cbind(successes, failures) ~ treatment, sigma ~ treatment),
+  bf(cbind(successes, failures) ~ treatment + (1 | id), sigma ~ treatment),
   family = beta_binomial(),
   data = dat
 )
@@ -380,7 +397,7 @@ drmTMB(
 
 ```r
 drmTMB(
-  bf(proportion ~ treatment, sigma ~ treatment),
+  bf(proportion ~ treatment + (1 | id), sigma ~ treatment),
   family = beta(),
   data = dat
 )

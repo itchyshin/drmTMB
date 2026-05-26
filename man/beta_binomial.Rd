@@ -17,16 +17,19 @@ successes out of known trials. Use it with two-column count responses such as
 }
 \details{
 The implemented contract is \code{logit(mu) = eta_mu},
+with optional ordinary unlabelled \code{mu} random intercepts,
 \code{log(sigma) = eta_sigma}, and internal beta precision
 \code{phi = 1 / sigma^2}. Conditional on a latent success probability
 \code{p_i ~ Beta(mu_i * phi_i, (1 - mu_i) * phi_i)}, the observed successes
 follow \code{Binomial(trials_i, p_i)}. Larger \code{sigma} means more extra-binomial
 variation around the mean probability.
 
-The first implementation supports fixed effects only. Random effects,
-\code{meta_V(V = V)}, phylogenetic or spatial terms, bivariate
-beta-binomial models, and a \code{successes/trials} response alias are planned
-but not implemented.
+The first mixed-model slice supports ordinary \code{mu} random intercepts such as
+\code{bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)}. Random slopes,
+labelled covariance blocks, \code{sigma} random effects, \code{zoi}/\code{coi},
+\code{meta_V(V = V)}, phylogenetic or spatial terms, bivariate beta-binomial
+models, and a \code{successes/trials} response alias are planned but not
+implemented.
 }
 \examples{
 beta_binomial()

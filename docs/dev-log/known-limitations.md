@@ -301,13 +301,14 @@
   plus one or more unlabelled Gaussian `mu` random-intercept scale formulae
   through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
   `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
-  covariance blocks, and fixed-effect univariate
-  Student-t models with `mu`, `sigma`, and `nu`.
+  covariance blocks, and univariate Student-t models with fixed-effect `mu`,
+  `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts.
   It also supports univariate lognormal models with `mu` and `sigma` on the
   log-response scale, univariate Gamma mean-CV models with positive response
   mean `mu` and coefficient of variation `sigma`, ordinary unlabelled
-  lognormal/Gamma `mu` random intercepts, fixed-effect univariate Poisson mean
-  models, fixed-effect
+  zero-truncated NB2/lognormal/Gamma/beta `mu` random intercepts, univariate
+  beta mean-scale models for strict `(0, 1)` proportions, fixed-effect univariate
+  Poisson mean models, fixed-effect
   univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
   for Poisson and NB2 through `zi ~ predictors`, a zero-truncated NB2 path for
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
@@ -322,10 +323,11 @@
   scale targets, bivariate random-effect scale targets, Student-t random
   slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
   models, Student-t phylogenetic models, bivariate Student-t models,
-  lognormal/Gamma random slopes, lognormal/Gamma `sigma` random effects,
-  lognormal/Gamma structured-effect models,
-  beta-binomial random-effect and structured-effect models, ordinal scale or discrimination
-  models, count covariance labels and correlated count slopes, count hurdle or
+  lognormal/Gamma/beta/beta-binomial random slopes,
+  lognormal/Gamma/beta/beta-binomial `sigma` random effects,
+  lognormal/Gamma/beta/beta-binomial structured-effect models,
+  beta exact-boundary mass, ordinal scale or discrimination models,
+  count covariance labels and correlated count slopes, count hurdle or
   zero-inflation with random effects or structured effects, non-Gaussian
   structured routes beyond the ordinary Poisson q=1 phylogenetic `mu` slice,
   and additional non-Gaussian families beyond the first Student-t, lognormal,
