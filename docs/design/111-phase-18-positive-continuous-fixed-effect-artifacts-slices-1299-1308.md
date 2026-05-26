@@ -111,7 +111,7 @@ Slices 1299-1308 add:
 ## Boundaries
 
 This is not a broader positive-response expansion. Tweedie, generalized Gamma,
-positive-response random effects, positive-response known covariance,
-structured positive-response effects, and mixed-response positive-continuous
-models remain unsupported or planned until their own likelihood, diagnostic,
-interval, and simulation gates land.
+positive-response random effects beyond the ordinary `mu` intercept slice,
+positive-response known covariance, structured positive-response effects, and
+mixed-response positive-continuous models remain unsupported or planned until
+their own likelihood, diagnostic, interval, and simulation gates land.

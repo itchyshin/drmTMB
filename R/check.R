@@ -922,6 +922,8 @@ check_random_effect_replication <- function(object, block) {
     !object$model$model_type %in%
       c(
         "gaussian",
+        "lognormal",
+        "gamma",
         "nbinom2",
         "truncated_nbinom2"
       )
@@ -958,6 +960,8 @@ check_random_effect_design <- function(object, block) {
     !object$model$model_type %in%
       c(
         "gaussian",
+        "lognormal",
+        "gamma",
         "nbinom2",
         "truncated_nbinom2"
       )

@@ -170,20 +170,24 @@
   computes
   unweighted plug-in means only; it does not yet compute uncertainty, standard
   errors, contrasts, plots, or full `emmeans`-style marginalisation.
-- Fixed-effect univariate lognormal location-scale models are implemented for
-  positive finite responses. `mu` and `sigma` are on the log-response scale;
-  `sigma` random effects, known sampling covariance, phylogenetic terms, and
-  bivariate lognormal models are not yet implemented.
+- Univariate lognormal location-scale models are implemented for positive
+  finite responses. `mu` and `sigma` are on the log-response scale, and
+  ordinary unlabelled `mu` random intercepts such as `(1 | id)` are fitted.
+  Random slopes, labelled covariance blocks, `sigma` random effects, known
+  sampling covariance, phylogenetic terms, and bivariate lognormal models are
+  not yet implemented.
 - Fixed-effect univariate Student-t location-scale-shape models are implemented
   for robust continuous responses. Student-t `nu` is a fixed-effect tail-shape
   parameter; random effects in `nu`, future skew-normal or skew-t shape
   random effects, and latent ID-level skewness syntax such as
   `skew(id) ~ x` are not yet implemented.
-- Fixed-effect univariate Gamma mean-CV models are implemented for positive
-  finite responses with `family = Gamma(link = "log")`. `mu` is the response
-  mean and `sigma` is the coefficient of variation; non-log Gamma links,
-  `sigma` random effects, known sampling covariance, phylogenetic terms, and
-  bivariate or mixed Gamma models are not yet implemented.
+- Univariate Gamma mean-CV models are implemented for positive finite responses
+  with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
+  the coefficient of variation, and ordinary unlabelled `mu` random intercepts
+  such as `(1 | id)` are fitted. Non-log Gamma links, random slopes, labelled
+  covariance blocks, `sigma` random effects, known sampling covariance,
+  phylogenetic terms, and bivariate or mixed Gamma models are not yet
+  implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
@@ -299,10 +303,11 @@
   `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
   covariance blocks, and fixed-effect univariate
   Student-t models with `mu`, `sigma`, and `nu`.
-  It also supports fixed-effect univariate lognormal models with `mu` and
-  `sigma` on the log-response scale, fixed-effect univariate Gamma mean-CV
-  models with positive response mean `mu` and coefficient of variation
-  `sigma`, fixed-effect univariate Poisson mean models, fixed-effect
+  It also supports univariate lognormal models with `mu` and `sigma` on the
+  log-response scale, univariate Gamma mean-CV models with positive response
+  mean `mu` and coefficient of variation `sigma`, ordinary unlabelled
+  lognormal/Gamma `mu` random intercepts, fixed-effect univariate Poisson mean
+  models, fixed-effect
   univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
   for Poisson and NB2 through `zi ~ predictors`, a zero-truncated NB2 path for
   positive counts, a hurdle NB2 path through `hu ~ predictors`, a
@@ -316,9 +321,9 @@
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
   effects, Student-t known-covariance models, Student-t phylogenetic models,
-  bivariate Student-t models, lognormal random-effect and structured-effect
-  models, Gamma random-effect and structured-effect models, beta-binomial
-  random-effect and structured-effect models, ordinal scale or discrimination
+  bivariate Student-t models, lognormal/Gamma random slopes, lognormal/Gamma
+  `sigma` random effects, lognormal/Gamma structured-effect models,
+  beta-binomial random-effect and structured-effect models, ordinal scale or discrimination
   models, count covariance labels and correlated count slopes, count hurdle or
   zero-inflation with random effects or structured effects, non-Gaussian
   structured routes beyond the ordinary Poisson q=1 phylogenetic `mu` slice,
