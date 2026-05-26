@@ -1,6 +1,1167 @@
 # Check Log
 
 Record meaningful development checks here.
+## 2026-05-25 - Phase 18 First-Wave Summary Runner Revalidation Slices 899-908
+
+Goal: revalidate the reusable private first-wave summary smoke runner and its
+requested-versus-actual worker summary.
+
+Roles: Ada kept this as current-state revalidation because an older May 20
+after-task note already records the original runner. Curie checked focused
+report and runner tests. Fisher kept runner plumbing separate from simulation
+claims. Grace checked requested-versus-actual worker metadata. Rose recorded
+that the current runner has expanded beyond the original three-surface slice.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/108-phase-18-first-wave-summary-runner-revalidation-slices-899-908.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-25-phase18-first-wave-summary-runner-revalidation-slices-899-908.md`.
+
+Validation:
+
+```sh
+sed -n '1,130p' docs/dev-log/after-task/2026-05-20-slices-899-908-phase18-first-wave-smoke-runner.md
+sed -n '685,698p' docs/design/41-phase-18-simulation-programme.md
+nl -ba inst/sim/run/sim_run_first_wave_summary_smoke.R | sed -n '1,220p'
+nl -ba inst/sim/run/sim_run_first_wave_summary_smoke.R | sed -n '197,270p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-smoke-runner.R | sed -n '55,125p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed the original May 20 after-task note introduced the
+  runner for the then-current three-surface bundle.
+- Source reads confirmed current `phase18_run_first_wave_summary_smoke()` now
+  stages Gaussian location-scale, `meta_V(V = V)`, count random-effect,
+  Gaussian random-slope, and spatial slope outputs.
+- Source reads confirmed current `phase18_first_wave_parallel_summary()` and
+  `phase18_parallel_summary_row()` record `backend`, `requested_cores`, and
+  actual `cores`.
+- The focused first-wave summary-report, render-helper, and summary-smoke-runner
+  tests completed with exit code 0.
+- The current runner test expects seven parallel-summary rows, requested cores
+  of 10, actual cores of 1 under `backend = "none"`, report-status/table
+  artifacts, 43 aggregate rows, 19 Wald coverage rows, nonzero profile coverage
+  rows, and malformed-input errors.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal simulation claim changed.
+- No files were staged or committed.
+
+## 2026-05-25 - Phase 18 First-Wave Summary n_rep = 2 Revalidation Slices 889-898
+
+Goal: revalidate the saved two-replicate first-wave summary smoke without
+converting staging evidence into final simulation claims.
+
+Roles: Ada kept this as current-state revalidation because an older May 20
+after-task note already records the original smoke. Curie checked focused
+report and runner tests. Fisher kept two-replicate rows out of formal operating
+characteristic claims. Grace checked saved artifact counts and bounded
+multicore evidence. Rose recorded the raw-line-count caveat for CSVs with
+embedded newlines. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/107-phase-18-first-wave-summary-nrep2-revalidation-slices-889-898.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-25-phase18-first-wave-summary-nrep2-revalidation-slices-889-898.md`.
+
+Validation:
+
+```sh
+sed -n '1,140p' docs/dev-log/after-task/2026-05-20-slices-889-898-phase18-first-wave-nrep2-smoke.md
+sed -n '670,700p' docs/design/41-phase-18-simulation-programme.md
+nl -ba tests/testthat/test-phase18-first-wave-summary-smoke-runner.R | sed -n '1,130p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner)', reporter = 'summary')"
+Rscript -e 'root <- "inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary"; agg <- read.csv(file.path(root, "tables/phase18-first-wave-aggregate.csv"), check.names = FALSE); rep <- read.csv(file.path(root, "tables/phase18-first-wave-replicate.csv"), check.names = FALSE); man <- read.csv(file.path(root, "tables/phase18-first-wave-manifest.csv"), check.names = FALSE); cat("aggregate_rows=", nrow(agg), "\n", sep = ""); cat("replicate_rows=", nrow(rep), "\n", sep = ""); cat("manifest_rows=", nrow(man), "\n", sep = ""); cat("surfaces=", paste(sort(unique(agg[["source_surface"]])), collapse = ","), "\n", sep = ""); cat("replicates=", paste(sort(unique(rep[["replicate"]])), collapse = ","), "\n", sep = ""); cat("manifest_status=", paste(sort(unique(man[["status"]])), collapse = ","), "\n", sep = "")'
+Rscript -e 'root <- "inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables"; for (f in c("phase18-first-wave-aggregate.csv", "phase18-first-wave-replicate.csv", "phase18-first-wave-manifest.csv", "phase18-first-wave-failures.csv", "phase18-first-wave-wald-coverage.csv", "phase18-first-wave-profile-coverage.csv")) { x <- read.csv(file.path(root, f), check.names = FALSE); cat(f, nrow(x), "rows", ncol(x), "cols\n") }'
+rg -n "Slice 889|n_rep = 2|Run Manifest Summary|Interval Coverage Summary|Aggregate Bias Overview|Warning And Error Summary|count_mu_random_effect_grid|gaussian_ls_grid|meta_v_grid|Interpretation Boundary" inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+cat inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/parallel-summary.csv
+wc -l inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-replicate.csv inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-manifest.csv inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-failures.csv inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-wald-coverage.csv inst/sim/results/slice-889-first-wave-summary-nrep2-smoke/first-wave-summary/tables/phase18-first-wave-profile-coverage.csv
+```
+
+Results:
+
+- Source reads confirmed the existing May 20 after-task note and current
+  simulation-programme ledger both describe Slices 889-898 as a two-replicate
+  staging smoke, not a final simulation result.
+- The focused first-wave summary-report, render-helper, and summary-smoke-runner
+  tests completed with exit code 0.
+- The saved artifact has 23 aggregate rows, 46 replicate rows, 12 manifest
+  rows, 1 failure row, 19 Wald coverage rows, and 4 profile coverage rows by
+  `read.csv()` row counts.
+- The saved artifact covers `count_mu_random_effect_grid`, `gaussian_ls_grid`,
+  and `meta_v_grid`; replicate IDs are 1 and 2.
+- All manifest rows have status `ok`; the report still surfaces one count
+  warning in the warning/error summary.
+- `parallel-summary.csv` records `multicore` runs with requested cores of 3 and
+  actual cores of 2, 3, 2, and 2.
+- Rendered HTML scans found the `n_rep = 2` note, aggregate-bias,
+  interval-coverage, run-manifest, warning/error, surface-name, and
+  interpretation-boundary evidence.
+- Raw `wc -l` counts are not row counts for all saved CSVs because a replicate
+  field contains embedded newlines; parser row counts are authoritative.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal simulation operating-characteristic claim changed.
+- No files were staged or committed.
+
+## 2026-05-25 - Phase 18 First-Wave Summary Manifest Smoke Slices 879-888
+
+Goal: validate compact run-manifest evidence in the first-wave summary report
+while keeping one-replicate smoke boundaries explicit.
+
+Roles: Ada kept the block to report-summary plumbing. Curie checked the focused
+summary-report and render-helper tests. Fisher kept manifest status separate
+from formal simulation success-rate claims. Grace checked saved CSV row counts
+and rendered report evidence. Rose recorded the issue-search result and the
+mixed-dirty-branch boundary. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/106-phase-18-first-wave-summary-manifest-smoke-slices-879-888.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-25-phase18-first-wave-summary-manifest-smoke-slices-879-888.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '250,350p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '530,570p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-report.R | sed -n '1,180p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper)', reporter = 'summary')"
+Rscript -e 'root <- "inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary"; m <- read.csv(file.path(root, "tables/phase18-first-wave-manifest.csv"), check.names = FALSE); s <- read.csv(file.path(root, "status/phase18-first-wave-artifact-status.csv"), check.names = FALSE); a <- read.csv(file.path(root, "status/phase18-first-wave-artifact-manifest.csv"), check.names = FALSE); cat("manifest_rows=", nrow(m), "\n", sep = ""); cat("manifest_surfaces=", paste(sort(unique(m[["source_surface"]])), collapse = ","), "\n", sep = ""); cat("manifest_status=", paste(sort(unique(m[["status"]])), collapse = ","), "\n", sep = ""); cat("status_rows=", nrow(s), "\n", sep = ""); cat("artifact_manifest_rows=", nrow(a), "\n", sep = "")'
+Rscript -e 'root <- "inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/tables"; m <- read.csv(file.path(root, "phase18-first-wave-manifest.csv"), check.names = FALSE); cat("rows=", nrow(m), "\n", sep = ""); print(stats::aggregate(list(n_run = m[["status"]]), list(source_surface = m[["source_surface"]], status = m[["status"]]), length), row.names = FALSE); cat("warning_total=", sum(as.numeric(m[["warning_count"]]), na.rm = TRUE), "\n", sep = ""); cat("error_nonempty=", sum(nzchar(as.character(m[["error"]])) & !is.na(m[["error"]])), "\n", sep = "")'
+rg -n "Slice 879|Run Manifest Summary|Run Manifest|count_mu_random_effect_grid +ok|gaussian_ls_grid +ok|meta_v_grid +ok|n_warning_run|warning_total|mean_elapsed|Interpretation Boundary" inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/tables/phase18-first-wave-manifest.csv inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-879-first-wave-summary-manifest-smoke/first-wave-summary/status/phase18-first-wave-artifact-manifest.csv
+```
+
+Results:
+
+- Source reads confirmed `phase18_manifest_summary()` groups manifest rows by
+  `source_surface` and `status`.
+- Source reads confirmed the summary counts runs, skipped runs, warning-bearing
+  runs, total warnings, non-empty errors, and mean elapsed time.
+- The focused first-wave summary-report and render-helper tests completed with
+  exit code 0.
+- The saved smoke has 6 manifest rows: 2 for
+  `count_mu_random_effect_grid`, 1 for `gaussian_ls_grid`, and 3 for
+  `meta_v_grid`.
+- All saved manifest rows have status `ok`; the manifest records one warning
+  from the count surface and no non-empty errors.
+- The saved first-wave artifact-status table has 3 data rows, and the artifact
+  manifest has 20 data rows.
+- Rendered HTML scans found `Run Manifest Summary`, raw `Run Manifest`,
+  warning columns, mean elapsed time, the three `ok` surface rows, and the
+  interpretation boundary.
+- Open-issue search found umbrella issue #59 for Phase 18 reporting; no issue
+  mutation was done from this mixed dirty branch.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal simulation success-rate claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Interval Coverage Slices 869-878
+
+Goal: validate compact interval-coverage evidence in the first-wave summary
+report while keeping one-replicate smoke boundaries explicit.
+
+Roles: Ada kept the block to report-summary plumbing. Curie checked the focused
+summary-report and render-helper tests. Fisher kept Wald, profile, and bootstrap
+method labels separate and rejected formal coverage interpretation. Grace
+checked saved CSV row counts and report params. Rose narrowed self-contained
+HTML scans to specific row patterns. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added
+  `docs/design/105-phase-18-first-wave-summary-interval-coverage-slices-869-878.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-interval-coverage-slices-869-878.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '180,280p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '486,540p'
+nl -ba inst/sim/run/sim_render_first_wave_summary_report.R | sed -n '1,120p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-render-helper.R | sed -n '1,170p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper)', reporter = 'summary')"
+Rscript -e 'root <- "inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/tables"; w <- read.csv(file.path(root, "phase18-first-wave-wald-coverage.csv"), check.names = FALSE); p <- read.csv(file.path(root, "phase18-first-wave-profile-coverage.csv"), check.names = FALSE); cat("wald_rows=", nrow(w), "\n", sep = ""); cat("profile_rows=", nrow(p), "\n", sep = ""); cat("wald_surfaces=", paste(sort(unique(w[["source_surface"]])), collapse = ","), "\n", sep = ""); cat("profile_surfaces=", paste(sort(unique(p[["source_surface"]])), collapse = ","), "\n", sep = "")'
+rg -n "Slice 869|Interval Coverage Summary|count_mu_random_effect_grid +profile|count_mu_random_effect_grid +wald|gaussian_ls_grid +wald|meta_v_grid +wald|Interpretation Boundary" inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/tables/phase18-first-wave-wald-coverage.csv inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/tables/phase18-first-wave-profile-coverage.csv inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/first-wave-summary/tables/phase18-first-wave-bootstrap-coverage.csv
+```
+
+Results:
+
+- Source reads confirmed Wald, profile, and bootstrap coverage tables are bound
+  with explicit `interval_method` labels.
+- Source reads confirmed the summary groups by `source_surface` and
+  `interval_method`, then reports parameter counts, interval totals, covered
+  totals, and coverage.
+- The focused first-wave summary-report and render-helper tests completed with
+  exit code 0.
+- The saved smoke has 19 Wald coverage rows across
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`, and `meta_v_grid`.
+- The saved smoke has 4 profile coverage rows for
+  `count_mu_random_effect_grid`.
+- The bootstrap coverage CSV contains only a header.
+- Rendered HTML scans found `Interval Coverage Summary`, grouped Wald/profile
+  rows, and the interpretation boundary.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel,
+  bootstrap evidence, or formal coverage claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Bias Overview Slices 859-868
+
+Goal: validate the compact aggregate-bias overview in the first-wave summary
+report and audit the rendered plot directly.
+
+Roles: Ada kept the block to report-visual validation. Curie checked focused
+summary-report and render-helper tests. Fisher kept the visual data grain at
+aggregate rows only. Florence inspected the extracted PNGs and separated the
+historical clipped saved artifact from the current-template rerender. Grace
+checked render artifacts and PNG dimensions. Rose recorded the visual caveat so
+the saved smoke is not overstated. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added
+  `docs/design/104-phase-18-first-wave-summary-bias-overview-slices-859-868.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-bias-overview-slices-859-868.md`.
+- Added
+  `docs/dev-log/figure-audits/2026-05-24-phase18-first-wave-bias-overview-slices-859-868/audit.md`.
+- Added extracted/rendered PNG evidence under
+  `docs/dev-log/figure-audits/2026-05-24-phase18-first-wave-bias-overview-slices-859-868/`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '114,169p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '414,480p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-report.R | sed -n '1,170p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper)', reporter = 'summary')"
+Rscript -e 'p <- "inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv"; x <- read.csv(p, check.names = FALSE); cat("rows=", nrow(x), "\n", sep = ""); cat("finite_bias=", sum(is.finite(x[["bias"]])), "\n", sep = ""); cat("surfaces=", paste(sort(unique(x[["source_surface"]])), collapse = ","), "\n", sep = "")'
+rg -n "Slice 859|Aggregate Bias Overview|Mean estimate minus truth|Full parameter names are listed below|Warning And Error Summary|collapsing to unique|Interpretation Boundary" inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+file docs/dev-log/figure-audits/2026-05-24-phase18-first-wave-bias-overview-slices-859-868/embedded-plot-01.png docs/dev-log/figure-audits/2026-05-24-phase18-first-wave-bias-overview-slices-859-868/aggregate-bias-overview-current-template.png
+```
+
+Results:
+
+- Source reads confirmed the aggregate-bias helper filters finite bias rows,
+  ranks by absolute bias, applies `max_rows`, and labels the plot as aggregate
+  rows only.
+- The focused first-wave summary-report and render-helper tests completed with
+  exit code 0.
+- The saved aggregate CSV has 23 finite bias rows across
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`, and `meta_v_grid`.
+- Rendered HTML scans found `Aggregate Bias Overview`,
+  `Mean estimate minus truth`, the aggregate-only caption, warning/error
+  summary evidence, and the interpretation boundary.
+- Figure audit found the historical saved embedded plot has clipped long labels,
+  while the current-template rerender uses compact row ranks and is acceptable
+  as a screening plot.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Warning Smoke Slices 849-858
+
+Goal: validate the compact warning/error summary in the first-wave summary
+report while preserving the raw warning/error ledger.
+
+Roles: Ada kept the block to warning visibility. Curie checked the focused
+summary-report and render-helper tests. Fisher kept the summary separate from
+warning diagnosis or simulation claims. Grace checked saved HTML and CSV row
+counts. Rose narrowed the self-contained HTML search pattern to avoid bundled
+asset noise. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/103-phase-18-first-wave-summary-warning-smoke-slices-849-858.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-warning-smoke-slices-849-858.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '87,115p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '560,605p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-report.R | sed -n '1,170p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper)', reporter = 'summary')"
+Rscript -e 'p <- "inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/tables/phase18-first-wave-failures.csv"; x <- read.csv(p, check.names = FALSE); cat("events=", nrow(x), "\n", sep = ""); cat("surfaces=", paste(sort(unique(x[["source_surface"]])), collapse = ","), "\n", sep = ""); cat("severity=", paste(sort(unique(x[["severity"]])), collapse = ","), "\n", sep = "")'
+rg -n "Slice 849|Warning And Error Summary|Warning And Error Ledger|n_event|example_message|Interpretation Boundary" inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+rg -n "collapsing to unique" inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-849-first-wave-summary-warning-smoke/first-wave-summary/tables/phase18-first-wave-failures.csv
+```
+
+Results:
+
+- Source reads confirmed `phase18_failure_summary()` groups by source surface
+  and severity and keeps an example message.
+- Source reads confirmed the compact warning/error summary appears before the
+  raw warning/error ledger.
+- The focused first-wave summary-report and render-helper tests completed with
+  exit code 0.
+- The saved `slice-849` failures CSV has one event from
+  `count_mu_random_effect_grid` with severity `warning`.
+- Rendered HTML scans found `Warning And Error Summary`, `Warning And Error
+  Ledger`, `n_event`, `example_message`, the interpretation boundary, and the
+  count warning `collapsing to unique 'x' values`.
+- The saved artifact-status CSV has 4 lines, the aggregate CSV has 24 lines,
+  and the failures CSV has 2 lines including headers.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, warning
+  diagnosis, or formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Table Polish Slices 839-848
+
+Goal: validate first-wave summary table-display polish, including priority
+columns and row caps in rendered HTML.
+
+Roles: Ada kept the block to report readability. Curie checked the focused
+summary-report and render-helper tests. Fisher kept display polish separate
+from operating-characteristic interpretation. Grace checked saved HTML and CSV
+artifact row counts. Rose kept full CSV artifacts distinct from capped HTML
+previews. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/102-phase-18-first-wave-summary-table-polish-slices-839-848.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-table-polish-slices-839-848.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '1,90p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '140,175p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '380,470p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-report.R | sed -n '1,190p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-summary-report|first-wave-summary-render-helper)', reporter = 'summary')"
+Rscript -e 'p <- "inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv"; x <- read.csv(p, check.names = FALSE); cat("rows=", nrow(x), "\n", sep = ""); cat("first_cols=", paste(names(x)[seq_len(min(5L, ncol(x)))], collapse = ","), "\n", sep = "")'
+rg -n "Slice 839|Showing first 20 of 23 rows|source_surface|source_artifact|collapsing to unique 'x' values|Aggregate Operating Characteristics|Interpretation Boundary" inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-839-first-wave-summary-table-polish-smoke/first-wave-summary/tables/phase18-first-wave-failures.csv
+```
+
+Results:
+
+- Source reads confirmed `params$max_rows`, `phase18_select_columns()`, and
+  `phase18_show_table()` are present in the first-wave summary report template.
+- The focused first-wave summary-report and render-helper tests completed with
+  exit code 0.
+- The saved `slice-839` aggregate CSV has 23 rows and begins with
+  `source_surface`, `source_artifact`, `surface`, `cell_id`, and `parameter`.
+- The rendered HTML shows `Showing first 20 of 23 rows.`
+- The saved artifact-status CSV has 4 lines, the aggregate CSV has 24 lines,
+  and the failures CSV has 2 lines including headers.
+- Rendered HTML scans found `Slice 839`, provenance columns, aggregate
+  operating characteristics, the row-cap message, and the interpretation
+  boundary.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Count Smoke Slices 829-838
+
+Goal: validate the rendered first-wave summary smoke that adds paired
+Poisson/NB2 `mu` random-effect grid outputs beside Gaussian location-scale and
+`meta_V(V = V)` surfaces.
+
+Roles: Ada kept the block to saved report-smoke validation. Curie checked the
+count grid-writer and first-wave report tests. Fisher kept one-replicate smoke
+evidence separate from formal operating-characteristic claims. Grace checked
+saved file existence and CSV row counts. Rose preserved unsupported submodel
+and likelihood boundaries. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/101-phase-18-first-wave-summary-count-smoke-slices-829-838.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-count-smoke-slices-829-838.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_count_mu_random_effect_grid.R | sed -n '1,140p'
+nl -ba tests/testthat/test-phase18-count-mu-random-effect-grid-writer.R | sed -n '1,120p'
+Rscript -e "devtools::test(filter = 'phase18-(count-mu-random-effect-grid-writer|first-wave-summary-smoke-runner|first-wave-table-bundle|first-wave-summary-render-helper|first-wave-summary-report)', reporter = 'summary')"
+Rscript -e 'p <- "inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv"; x <- read.csv(p, check.names = FALSE); cat("rows=", nrow(x), "\n", sep = ""); cat("surfaces=", paste(sort(unique(x[["source_surface"]])), collapse = ","), "\n", sep = ""); cat("first_cols=", paste(names(x)[seq_len(min(5L, ncol(x)))], collapse = ","), "\n", sep = "")'
+rg -n "Slice 829|count_mu_random_effect_grid|gaussian_ls_grid|meta_v_grid|profile|Aggregate Operating Characteristics|Interpretation Boundary" inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-829-first-wave-summary-count-smoke/first-wave-summary/tables/phase18-first-wave-profile-coverage.csv
+```
+
+Results:
+
+- Source reads confirmed the count grid writer creates aggregate, replicate,
+  manifest, failure, Wald, and profile artifacts for paired Poisson/NB2 `mu`
+  random-effect surfaces.
+- The focused count grid-writer, first-wave smoke-runner, table-bundle,
+  render-helper, and summary-report tests completed with exit code 0.
+- The saved `slice-829` aggregate table has 23 rows and three source surfaces:
+  `count_mu_random_effect_grid`, `gaussian_ls_grid`, and `meta_v_grid`.
+- The aggregate table begins with `source_surface`, `source_artifact`,
+  `surface`, `cell_id`, and `parameter`.
+- The saved artifact-status CSV has 4 lines, the aggregate CSV has 24 lines,
+  and the profile-coverage CSV has 5 lines including headers.
+- Rendered HTML scans found `Slice 829`, `count_mu_random_effect_grid`,
+  `gaussian_ls_grid`, `meta_v_grid`, profile evidence, aggregate operating
+  characteristics, and the interpretation boundary.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, unsupported random-effect submodel, or
+  formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Polished Smoke Slices 819-828
+
+Goal: validate first-wave table-bundle provenance polish and the saved
+`slice-819` rendered summary smoke.
+
+Roles: Ada kept the block to report-table provenance. Curie checked the
+focused table-bundle, render-helper, and summary-report tests. Fisher kept the
+saved smoke separate from formal coverage, power, or operating-characteristic
+claims. Grace checked saved file existence and CSV row counts. Rose recorded
+the historical saved-artifact versus current-runner distinction. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/100-phase-18-first-wave-summary-polished-smoke-slices-819-828.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-polished-smoke-slices-819-828.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_first_wave_table_bundle.R | sed -n '1,230p'
+nl -ba tests/testthat/test-phase18-first-wave-table-bundle.R | sed -n '1,180p'
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-table-bundle|first-wave-summary-render-helper|first-wave-summary-report)', reporter = 'summary')"
+Rscript -e "p <- 'inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv'; x <- read.csv(p, check.names = FALSE); cat('rows=', nrow(x), '\n', sep = ''); cat('first_cols=', paste(names(x)[seq_len(min(4L, ncol(x)))], collapse = ','), '\n', sep = '')"
+rg -n "Slice 819|source_surface|source_artifact|gaussian_ls_grid|meta_v_grid|Aggregate Operating Characteristics|Interpretation Boundary" inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-819-first-wave-summary-polished-smoke/first-wave-summary/tables/phase18-first-wave-wald-coverage.csv
+```
+
+Results:
+
+- Source reads confirmed that combined first-wave tables carry
+  `source_surface` and `source_artifact` before source-specific columns.
+- The focused first-wave table-bundle, render-helper, and summary-report tests
+  completed with exit code 0.
+- The saved `slice-819` aggregate table has 13 rows; its first columns are
+  `source_surface`, `source_artifact`, `surface`, and `cell_id`.
+- The saved artifact-status CSV has 3 lines; aggregate and Wald-coverage bundle
+  CSVs each have 14 lines including the header.
+- Rendered HTML scans found `Slice 819`, `source_surface`, `source_artifact`,
+  `gaussian_ls_grid`, `meta_v_grid`, aggregate operating characteristics, and
+  the interpretation boundary.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, or formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Smoke Slices 809-818
+
+Goal: validate the tiny first-wave summary smoke, including the saved
+`slice-809` rendered artifact and the current smoke runner.
+
+Roles: Ada kept the block to smoke-scale staging. Curie checked the saved
+artifact, source runner, and focused runner test. Fisher kept smoke evidence
+separate from formal coverage, power, or operating-characteristic claims. Grace
+checked saved file existence, table row counts, and serial fallback metadata.
+Rose recorded the historical saved-artifact versus current-runner distinction.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/99-phase-18-first-wave-summary-smoke-slices-809-818.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-smoke-slices-809-818.md`.
+
+Validation:
+
+```sh
+find inst/sim/results -maxdepth 4 -path '*slice-809-first-wave-summary-smoke*' -type f | sort | head -n 80
+test -f inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+rg -n "Slice 809|gaussian_ls_grid|meta_v_grid|Aggregate Operating Characteristics|Interval Diagnostics|Interpretation Boundary" inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/report/phase18-first-wave-summary.html
+wc -l inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/status/phase18-first-wave-artifact-status.csv inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/tables/phase18-first-wave-aggregate.csv inst/sim/results/slice-809-first-wave-summary-smoke/first-wave-summary/tables/phase18-first-wave-wald-coverage.csv
+nl -ba inst/sim/run/sim_run_first_wave_summary_smoke.R | sed -n '1,230p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-smoke-runner.R | sed -n '1,130p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-summary-smoke-runner', reporter = 'summary')"
+```
+
+Results:
+
+- The saved `slice-809` rendered HTML exists.
+- Rendered HTML scans found `gaussian_ls_grid`, `meta_v_grid`, aggregate
+  operating characteristics, interval diagnostics, and the interpretation
+  boundary.
+- The saved artifact-status CSV has 3 lines; aggregate and Wald-coverage bundle
+  CSVs each have 14 lines.
+- Source reads confirmed the current runner stages six grid-output groups and
+  seven parallel-summary rows.
+- The focused first-wave summary smoke-runner test completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, or formal statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Render Helper Slices 789-798
+
+Goal: validate the first-wave summary-report render helper that writes artifact
+status, table-bundle outputs, and optional HTML from grid-writer outputs.
+
+Roles: Ada kept the block to orchestration helper behavior. Curie checked the
+focused helper tests. Fisher kept helper output separate from formal
+operating-characteristic claims. Grace checked optional render and overwrite
+paths. Rose recorded that real multi-surface smoke execution belongs to the
+next slice. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/98-phase-18-first-wave-summary-render-helper-slices-789-798.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-render-helper-slices-789-798.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_render_first_wave_summary_report.R | sed -n '1,130p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-render-helper.R | sed -n '1,210p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-summary-render-helper', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed input validation, status/table/report output
+  directories, artifact-status writer calls, table-bundle writer calls,
+  optional render mode, parameter construction, optional path lookup, and
+  report-overwrite protection.
+- The focused first-wave summary-render helper test completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, real multi-surface smoke run, or final
+  statistical claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Summary Report Slices 779-788
+
+Goal: validate the first-wave summary-report skeleton over artifact status,
+aggregate operating-characteristic rows, interval diagnostics, interval
+failures, manifests, and warning/error ledgers.
+
+Roles: Ada kept the block to report skeleton validation. Pat checked that the
+reader sees purpose, reader checks, and an interpretation boundary. Curie
+checked the render test. Fisher kept aggregate/coverage rows separate from
+final formal claims. Grace checked optional/required CSV handling. Rose recorded
+that live multi-surface rendering belongs to the next helper. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/97-phase-18-first-wave-summary-report-slices-779-788.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-summary-report-slices-779-788.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '1,120p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '333,632p'
+nl -ba inst/sim/reports/phase18-first-wave-summary-report.Rmd | sed -n '627,636p'
+nl -ba tests/testthat/test-phase18-first-wave-summary-report.R | sed -n '1,170p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-summary-report', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed optional and required CSV handling, artifact-status
+  failure gating, aggregate display, aggregate-bias overview, interval coverage
+  summary, interval diagnostics, interval failures, manifest summary, raw
+  manifest display, warning/error summary, raw warning/error ledger, reader
+  checks, and interpretation boundary.
+- The focused first-wave summary-report test completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, live render helper, or final statistical
+  claim changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Table Bundle Slices 769-778
+
+Goal: validate the first-wave table-bundle writer that combines selected CSV
+artifacts across grid-writer outputs while retaining source-surface and
+source-artifact provenance.
+
+Roles: Ada kept the block to raw table staging. Curie checked the bundle writer
+and focused tests. Fisher kept bundled tables separate from interpretation or
+operating-characteristic claims. Grace checked overwrite and malformed-input
+paths. Rose recorded that provenance columns must lead every bundled table.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/96-phase-18-first-wave-table-bundle-slices-769-778.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-table-bundle-slices-769-778.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_first_wave_table_bundle.R | sed -n '1,190p'
+nl -ba tests/testthat/test-phase18-first-wave-table-bundle.R | sed -n '1,145p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-table-bundle', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed artifact selection, input validation, output paths,
+  CSV writing, artifact-manifest output, provenance columns, empty-table
+  handling, and row-bind-with-fill behavior.
+- The focused first-wave table-bundle writer test completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, rendered site output, summary-report rendering, or interpretation
+  changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Status Report Slices 759-768
+
+Goal: validate the first-wave artifact-status report template for complete
+artifact renders and missing-artifact failures.
+
+Roles: Ada kept the block to preflight report behavior. Curie checked the Rmd
+template and render tests. Fisher kept status rendering separate from
+statistical operating-characteristic claims. Grace watched the expected
+missing-artifact failure path. Rose recorded that this is not table-bundle or
+summary-report consumption. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/95-phase-18-first-wave-status-report-slices-759-768.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-status-report-slices-759-768.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/reports/phase18-first-wave-status-report.Rmd | sed -n '1,130p'
+nl -ba tests/testthat/test-phase18-first-wave-status-report.R | sed -n '1,145p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-status-report', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed required params, CSV existence checks, required-column
+  checks, missing-artifact failure, status tables, reader checks, and
+  interpretation boundary.
+- The focused first-wave status-report test completed with exit code 0.
+- Test output included the expected `Quitting from ... [setup]` line from the
+  deliberate missing-artifact render.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, package site output, table-bundle consumption, or statistical
+  summary-report rendering changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 First-Wave Artifact-Status Writer Slices 749-758
+
+Goal: validate the first-wave artifact-status writer that saves bound
+artifact-manifest and surface-status CSVs from multiple grid-writer outputs.
+
+Roles: Ada kept the block to persisted preflight artifacts. Curie checked the
+writer and its test fixture. Fisher kept preflight status separate from
+operating-characteristic claims. Grace checked overwrite and malformed-input
+paths. Rose stopped the slice before status-report rendering or table-bundle
+consumption. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/94-phase-18-first-wave-artifact-status-writer-slices-749-758.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-first-wave-artifact-status-writer-slices-749-758.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_first_wave_artifact_status.R | sed -n '1,80p'
+nl -ba tests/testthat/test-phase18-first-wave-artifact-status.R | sed -n '1,110p'
+Rscript -e "devtools::test(filter = 'phase18-first-wave-artifact-status', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed writer validation, output paths, binding/status helper
+  calls, persisted CSVs, overwrite protection, and returned artifact manifest.
+- The focused first-wave artifact-status writer test completed with exit code
+  0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, rendered site output, status-report rendering, or table-bundle
+  consumption changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Artifact-Status Summary Slices 739-748
+
+Goal: validate manifest binding and surface-level artifact status summaries for
+first-wave report staging.
+
+Roles: Ada kept the block to staging summaries. Curie checked manifest binding,
+manifest extraction, status summarization, and the first-wave status-writer
+smoke that exercises those helpers. Fisher kept staging status separate from
+operating-characteristic claims. Grace checked missing, empty, present, and
+overwrite paths. Rose stopped the slice before report rendering or table-bundle
+consumption. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/93-phase-18-artifact-status-summary-slices-739-748.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-artifact-status-summary-slices-739-748.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/R/sim_runner.R | sed -n '565,635p'
+nl -ba inst/sim/run/sim_write_first_wave_artifact_status.R | sed -n '1,80p'
+nl -ba tests/testthat/test-phase18-first-wave-artifact-status.R | sed -n '1,110p'
+nl -ba tests/testthat/test-phase18-sim-runner.R | sed -n '286,337p'
+Rscript -e "devtools::test(filter = 'phase18-(sim-runner|first-wave-artifact-status)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed manifest binding, manifest extraction, status-summary
+  columns, and first-wave status-writer use of the same helpers.
+- The focused manifest-binding/status bundle completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, rendered site output, report rendering, or table-bundle
+  consumption changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Grid-Artifact Manifest Slices 729-738
+
+Goal: validate that first-wave grid writers expose artifact manifests with file
+existence and CSV row counts, including zero-row optional artifacts.
+
+Roles: Ada kept the block to report-staging readiness. Curie checked the shared
+manifest helper and representative first-wave grid-writer tests. Fisher kept
+artifact readiness separate from formal operating-characteristic claims. Grace
+checked missing/empty/present artifact accounting. Rose stopped the slice before
+first-wave report or table-bundle work. These were role perspectives, not
+spawned agents.
+
+Changes:
+
+- Added `docs/design/92-phase-18-grid-artifact-manifest-slices-729-738.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-grid-artifact-manifest-slices-729-738.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/R/sim_runner.R | sed -n '529,635p'
+nl -ba tests/testthat/test-phase18-sim-runner.R | sed -n '260,340p'
+nl -ba tests/testthat/test-phase18-gaussian-ls-grid-writer.R | sed -n '60,90p'
+nl -ba tests/testthat/test-phase18-animal-relmat-q2-grid-writer.R | sed -n '35,70p'
+nl -ba tests/testthat/test-phase18-animal-relmat-q4-grid-writer.R | sed -n '35,72p'
+Rscript -e "devtools::test(filter = 'phase18-(sim-runner|gaussian-ls-grid-writer|meta-v-grid-writer|count-mu-random-effect-grid-writer|random-slope-grid-writers|student-shape-grid-writer|biv-rho12-grid-writer|animal-relmat-q2-grid-writer|animal-relmat-q4-grid-writer|spatial-q2-grid-writer)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed manifest row construction, CSV row-count reads,
+  binding/status helpers, and grid-writer tests for first-wave artifacts.
+- The focused manifest/grid-writer bundle completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, rendered site output, report template, or table bundle changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Simple Random-Slope Grid Output Slices 719-728
+
+Goal: validate simple grid-output writers for ordinary Gaussian `mu` random
+slopes, independent Gaussian `sigma` random slopes, and coordinate-spatial
+Gaussian `mu` slopes.
+
+Roles: Ada kept the block to existing Gaussian random-slope smoke surfaces.
+Curie checked the three grid writers, surface smokes, shared simple-grid helper,
+runner, and aggregate helper. Fisher kept smoke/grid-output evidence separate
+from formal coverage claims. Grace checked artifact manifests and bounded
+runner metadata. Rose recorded the unsupported bivariate, non-Gaussian
+correlated, multiple structured, mesh/SPDE, spatial direct-SD, and spatial
+`corpair()` boundaries. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/91-phase-18-simple-random-slope-grid-output-slices-719-728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-simple-random-slope-grid-output-slices-719-728.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_gaussian_mu_random_slope_grid.R | sed -n '1,75p'
+nl -ba inst/sim/run/sim_write_gaussian_sigma_random_slope_grid.R | sed -n '1,75p'
+nl -ba inst/sim/run/sim_write_spatial_mu_slope_grid.R | sed -n '1,75p'
+nl -ba inst/sim/R/sim_runner.R | sed -n '479,545p'
+nl -ba tests/testthat/test-phase18-random-slope-grid-writers.R | sed -n '1,135p'
+Rscript -e "devtools::test(filter = 'phase18-(random-slope-grid-writers|gaussian-mu-random-slope|gaussian-sigma-random-slope|spatial-mu-slope|sim-runner|sim-aggregate)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed the three writer surfaces, shared simple-grid helper
+  use, resumable `result_dir` forwarding, bounded runner metadata, and
+  aggregate/replicate/manifest/failure artifact paths.
+- The focused simple random-slope bundle completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Count Mu Random-Effect Grid Output Slices 709-718
+
+Goal: validate that the repeatable paired Poisson/NB2 `mu` random-effect
+grid-output writer saves aggregate, replicate, manifest, failure-ledger, Wald
+interval, Wald coverage, direct-SD profile interval, and profile coverage CSV
+artifacts beside resumable per-replicate RDS files.
+
+Roles: Ada kept the block to ordinary non-zero-inflated count location random
+effects. Curie checked the paired grid writer, pilot summary, Poisson runner,
+NB2 runner, aggregate helper, and uncertainty helper. Fisher kept
+smoke/grid-output evidence separate from formal coverage claims. Grace checked
+bounded runner metadata and overwrite behaviour. Rose recorded the unsupported
+zero-inflated, hurdle, NB2 `sigma` phylogeny, and q4 count covariance
+boundaries. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/90-phase-18-count-mu-re-grid-output-slices-709-718.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-count-mu-re-grid-output-slices-709-718.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_count_mu_random_effect_grid.R | sed -n '1,125p'
+nl -ba inst/sim/run/sim_summary_count_mu_random_effect_pilot.R | sed -n '1,115p'
+nl -ba inst/sim/run/sim_run_poisson_mu_random_effect_smoke.R | sed -n '35,95p'
+nl -ba inst/sim/run/sim_run_nbinom2_mu_random_effect_smoke.R | sed -n '35,100p'
+nl -ba tests/testthat/test-phase18-count-mu-random-effect-grid-writer.R | sed -n '1,115p'
+Rscript -e "devtools::test(filter = 'phase18-(count-mu-random-effect-grid-writer|count-mu-random-effect-pilot|poisson-mu-random-effect|nbinom2-mu-random-effect|sim-aggregate|sim-uncertainty)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed the eight table outputs, paired Poisson/NB2 result
+  subdirectories, resumable runner forwarding, bounded runner metadata, and
+  ordinary location random-effect formulas.
+- The focused count `mu` random-effect bundle completed with exit code 0.
+- Two exploratory reads used stale guessed filenames for a combined count
+  summary and runner; the follow-up reads used the actual paired pilot summary
+  and separate Poisson/NB2 runner files.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Meta-V Grid Output Slices 699-708
+
+Goal: validate that the repeatable `meta_V(V = V)` grid-output writer saves
+aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald coverage
+CSV artifacts beside resumable per-replicate RDS files.
+
+Roles: Ada kept the block to the existing Gaussian known-`V` meta-analysis
+surface. Curie checked the DGP, runner, summary, grid writer, aggregate helper,
+and uncertainty helper. Fisher kept smoke/grid-output evidence separate from
+formal coverage claims. Grace checked bounded runner metadata and writer
+overwrite behaviour. Rose recorded unsupported non-Gaussian known covariance and
+phylogenetic-plus-study extensions. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added `docs/design/89-phase-18-meta-v-grid-output-slices-699-708.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-meta-v-grid-output-slices-699-708.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_meta_v_grid.R | sed -n '1,100p'
+nl -ba inst/sim/run/sim_summary_meta_v_smoke.R | sed -n '1,90p'
+nl -ba inst/sim/run/sim_run_meta_v_smoke.R | sed -n '1,100p'
+nl -ba tests/testthat/test-phase18-meta-v-grid-writer.R | sed -n '1,150p'
+Rscript -e "devtools::test(filter = 'phase18-(meta-v-grid-writer|meta-v-runner|meta-v-summary-smoke|meta-v-dgp|sim-aggregate|sim-uncertainty)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed the six table outputs, resumable `result_dir`
+  forwarding, bounded runner metadata, summary-object tables, and known-`V`
+  formula path.
+- The focused meta-V bundle completed with exit code 0.
+- One exploratory `rg` command had an unclosed regex group; no files changed,
+  and the follow-up narrower scans/read commands completed.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Nested-Parallel Guard Slices 689-698
+
+Goal: validate that Student-t shape and bivariate residual `rho12` bootstrap
+smokes cannot run multicore replicate and multicore bootstrap layers at the
+same time.
+
+Roles: Ada kept the block to execution safety. Curie checked the generic guard,
+surface runners, grid writers, bootstrap planner, and Actions dry-run
+rejection. Fisher kept bootstrap artifact evidence separate from public
+interval expansion. Grace checked backend and worker-count boundaries. Rose
+recorded that this is not PSOCK support or nested parallelism support. These
+were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/88-phase-18-nested-parallel-guard-slices-689-698.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-nested-parallel-guard-slices-689-698.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/R/sim_runner.R | sed -n '415,490p'
+nl -ba inst/sim/R/sim_bootstrap.R | sed -n '280,315p'
+nl -ba inst/sim/run/sim_run_student_shape_smoke.R | sed -n '70,110p'
+nl -ba inst/sim/run/sim_run_biv_rho12_smoke.R | sed -n '90,128p'
+nl -ba inst/sim/run/sim_run_actions_cell.R | sed -n '45,66p'
+nl -ba tests/testthat/test-phase18-sim-runner.R | sed -n '235,255p'
+nl -ba tests/testthat/test-phase18-student-shape-runner.R | sed -n '150,178p'
+nl -ba tests/testthat/test-phase18-biv-rho12-runner.R | sed -n '160,188p'
+nl -ba tests/testthat/test-phase18-actions-runner.R | sed -n '55,78p'
+Rscript -e "devtools::test(filter = 'phase18-(sim-runner|student-shape-runner|biv-rho12-runner|actions-runner|student-shape-grid-writer|biv-rho12-grid-writer|sim-bootstrap)', reporter = 'summary')"
+```
+
+Results:
+
+- Source reads confirmed the shared no-nested-parallel guard, bootstrap planner,
+  Student-t shape guard call, bivariate residual `rho12` guard call, and Actions
+  preflight guard.
+- The focused nested-parallel bundle completed with exit code 0.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Wrapper Forwarding Slices 679-688
+
+Goal: validate that first grid and count-gallery wrappers forward bounded
+replicate-runner settings and keep bootstrap-layer settings separate where
+interval-heavy surfaces need them.
+
+Roles: Ada kept the block to current-state validation because the
+implementation already exists in the dirty tree. Curie ran the focused
+grid-writer, gallery, runner, and bootstrap tests. Fisher separated replicate
+execution evidence from bootstrap interval claims. Grace checked backend
+metadata and unsupported PSOCK behaviour. Rose recorded that this is wrapper
+plumbing, not new model support. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added `docs/design/87-phase-18-wrapper-forwarding-slices-679-688.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-wrapper-forwarding-slices-679-688.md`.
+
+Validation:
+
+```sh
+nl -ba inst/sim/run/sim_write_gaussian_ls_grid.R | sed -n '1,120p'
+nl -ba inst/sim/run/sim_write_student_shape_grid.R | sed -n '1,120p'
+nl -ba inst/sim/run/sim_write_biv_rho12_grid.R | sed -n '1,120p'
+nl -ba inst/sim/run/sim_write_count_mu_random_effect_grid.R | sed -n '1,140p'
+nl -ba inst/sim/run/sim_render_count_mu_gallery_smoke.R | sed -n '1,120p'
+nl -ba tests/testthat/test-phase18-gaussian-ls-grid-writer.R | sed -n '1,140p'
+nl -ba tests/testthat/test-phase18-student-shape-grid-writer.R | sed -n '1,170p'
+nl -ba tests/testthat/test-phase18-biv-rho12-grid-writer.R | sed -n '1,170p'
+nl -ba tests/testthat/test-phase18-count-mu-random-effect-grid-writer.R | sed -n '1,130p'
+nl -ba tests/testthat/test-phase18-count-gallery-smoke-runner.R | sed -n '1,140p'
+Rscript -e "devtools::test(filter = 'phase18-(gaussian-ls-grid-writer|student-shape-grid-writer|biv-rho12-grid-writer|count-mu-random-effect-grid-writer|count-gallery-smoke-runner|count-gallery-render-helper|sim-bootstrap|sim-runner)', reporter = 'summary')"
+```
+
+Results:
+
+- The source audit found existing wrapper forwarding for Gaussian
+  location-scale, paired Poisson/NB2 `mu`, Student-t shape, bivariate residual
+  `rho12`, and the count-gallery smoke wrapper.
+- The focused wrapper-forwarding bundle completed with exit code 0.
+- Student-t shape and bivariate residual `rho12` tests still exercise bad
+  `bootstrap_backend = "psock"` requests, confirming that backend choices reach
+  the shared planner boundary.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Bounded-Runner Roadmap Sync Slices 669-678
+
+Goal: synchronize roadmap and simulation-programme wording with the implemented
+bounded-runner status while keeping Phase 18 private bootstrap artifacts
+separate from public direct-target bootstrap intervals.
+
+Roles: Ada kept this as a documentation sync rather than a new API or backend
+change. Curie checked source and test evidence for backend choices, worker
+metadata, and nested-parallel guards. Fisher separated simulation artifact
+evidence from public interval claims. Grace checked PSOCK and pkgdown-facing
+wording risk. Rose caught the stale ROADMAP phrase and the shell-backtick
+stumble in the first scan. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Updated `ROADMAP.md` to distinguish broad Phase 18 grids from the limited
+  public direct-target `confint(..., method = "bootstrap")` route.
+- Updated `docs/design/41-phase-18-simulation-programme.md` to make the same
+  private-artifact versus public-interval distinction and keep PSOCK out of the
+  package simulation helpers.
+- Added
+  `docs/design/86-phase-18-bounded-runner-roadmap-sync-slices-669-678.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-bounded-runner-roadmap-sync-slices-669-678.md`.
+
+Validation:
+
+```sh
+rg -n "bounded|parallel|multicore|PSOCK|psock|bootstrap interval|public bootstrap|bootstrap_backend|requested_cores|actual|cores|Slices 669-678|669|678|Phase 18" ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md
+rg -n "phase18_runner_parallel_plan|psock|multicore|requested_cores|bootstrap_backend|bootstrap.backend|phase18_assert_no_nested_parallel" inst/sim/R inst/sim/run tests/testthat/test-phase18-* .github/workflows/phase18-simulation-grid.yaml
+air format ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/86-phase-18-bounded-runner-roadmap-sync-slices-669-678.md docs/dev-log/after-task/2026-05-24-phase18-bounded-runner-roadmap-sync-slices-669-678.md docs/dev-log/check-log.md
+git diff --check
+rg -n 'broad operating-characteristic grids and public bootstrap intervals remain planned|keeping public bootstrap intervals and PSOCK support out|support.*psock|backend.*psock|PSOCK remains excluded|private Phase 18 bootstrap artifact path|limited public direct-target' ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/design/86-phase-18-bounded-runner-roadmap-sync-slices-669-678.md docs/dev-log/after-task/2026-05-24-phase18-bounded-runner-roadmap-sync-slices-669-678.md
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- The audit found and fixed one stale ROADMAP phrase about public bootstrap
+  intervals remaining planned.
+- The current wording says that selected direct public
+  `confint(..., method = "bootstrap")` targets exist, while Phase 18 bootstrap
+  rows are private simulation artifacts rather than a broad public interval API.
+- Source/test scans found the private helper backend boundary: `none` and Unix
+  `multicore` are supported; `psock` is rejected for these package helpers.
+- The remaining ROADMAP `psock` hit is the developer-only Ayumi bootstrap
+  prototype for a specific diagnostic target, not Phase 18 package-helper
+  support.
+- `air format` completed without output.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- No likelihood, formula grammar, public API, roxygen topic, pkgdown
+  navigation, or rendered site output changed.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Post-Closure Validation Slices 656-668
+
+Goal: continue the overnight autonomous run by closing the remaining
+post-closure validation slices after the previous stop at Slice 655.
+
+Roles: Ada kept the slice block to validation and documentation. Curie reran
+the closure-aware focused bundle. Fisher kept the Student-t shape lane at
+fixed-effect `nu` evidence rather than shape random effects. Grace checked the
+prior package-level evidence and current focused test result. Rose recorded the
+local-clock correction for the 4:30 AM MDT heartbeat and kept unsupported
+NB2/q4 and non-Gaussian sub-model random-effect boundaries explicit. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/85-phase-18-post-closure-validation-slices-656-668.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-post-closure-validation-slices-656-668.md`.
+
+Validation:
+
+```sh
+date '+%Y-%m-%d %H:%M:%S %Z %z'
+git status --short --branch
+nl -ba docs/design/41-phase-18-simulation-programme.md | sed -n '599,622p'
+sed -n '1,120p' docs/design/84-phase-18-post-closure-validation-slices-639-655.md
+sed -n '1,120p' docs/dev-log/after-task/2026-05-24-phase18-post-closure-validation-slices-639-655.md
+Rscript -e "devtools::test(filter = 'phase18-(sim-runner|student-shape-runner|biv-rho12-runner|student-shape-summary-smoke|biv-rho12-summary-smoke|interval-heavy-summary-smoke-runner|actions-runner)', reporter = 'summary')"
+```
+
+Results:
+
+- Local clock check returned `2026-05-24 20:47:35 MDT -0600`; the heartbeat
+  automation was corrected to stop at `2026-05-25 04:30 MDT`.
+- The focused closure bundle completed with exit code 0.
+- The preceding Slices 639-655 package validation remains the package-level
+  evidence: full Phase 18 focused tests, full package tests, pkgdown topic
+  checks, and package check all passed.
+- This closes the broader Slices 639-668 post-closure validation lane.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Slices 606-655 Validation
+
+Goal: continue the autonomous slice request through Slice 655 without opening
+new likelihood, formula grammar, public API, or staging work.
+
+Roles: Ada kept the work in the validation/documentation lane. Curie ran the
+focused and full test suites. Fisher kept smoke, runner, and package-check
+evidence separate from empirical recovery claims. Grace checked pkgdown and
+package-check status. Rose recorded the overlapping slice-number caveat and
+the unsupported NB2/q4 boundaries. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added `docs/design/82-phase-18-validation-slices-606-628.md`.
+- Added
+  `docs/design/83-phase-18-closure-aware-summary-factory-slices-629-638.md`.
+- Added `docs/design/84-phase-18-post-closure-validation-slices-639-655.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-validation-slices-606-628.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-closure-aware-summary-factory-slices-629-638.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-post-closure-validation-slices-639-655.md`.
+
+Validation:
+
+```sh
+git status --short --branch
+git diff --stat
+rg -n "Slices 549-578|Slices 579-628|Slices 629-638|Slices 639-668|summarise_fun_factory|rho12" docs/design/41-phase-18-simulation-programme.md docs/design/80-phase-18-shared-runner-migration-audit.md docs/design/81-phase-18-validation-slices-579-605.md inst/sim tests -g '*.R' -g '*.md'
+Rscript -e "devtools::test(filter = 'phase18-(actions-runner|first-wave-artifact-status|first-wave-table-bundle|first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner|interval-heavy-summary-smoke-runner|sim-runner|sim-aggregate|sim-interval-evidence|sim-uncertainty|interval-coverage-smoke|correlation-targets)', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-(sim-runner|student-shape-runner|student-shape-summary-smoke|biv-rho12-runner|biv-rho12-summary-smoke|sim-bootstrap)', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^phase18-', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never')"
+date '+%Y-%m-%d %H:%M:%S %Z %z'
+```
+
+Results:
+
+- The runner/artifact/report helper bundle for Slices 606-628 completed with
+  exit code 0.
+- The closure-aware Student-t shape and bivariate residual `rho12` bundle for
+  Slices 629-638 completed with exit code 0.
+- The full `^phase18-` focused suite passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check(error_on = "never")` completed in about 4m52s with 0
+  errors, 0 warnings, and 0 notes.
+- Local clock check during closeout returned
+  `2026-05-24 20:28:33 MDT -0600`.
+- Slices 656-668 remain outside this pass.
+- No files were staged or committed.
 
 ## 2026-05-24 - Crash Recovery Consolidation
 
