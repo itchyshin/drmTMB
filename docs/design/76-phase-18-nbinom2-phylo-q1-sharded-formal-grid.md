@@ -92,3 +92,29 @@ be reconsidered after the downloaded shard set proves all of these conditions:
 
 Until that combined audit exists, the NB2 q1 phylogenetic `mu` route remains
 `hold_smoke_only`.
+
+## Full Shard Audit Result
+
+The 16-shard manual dispatch from `main` at commit `2754e536` completed
+successfully on GitHub Actions on 2026-05-25. The downloaded artifact set
+contains all 16 `phase18-nbinom2_phylo_q1_formal-shard-*` archives, each with
+the 13 expected CSV tables. The combined formal specification has 288 unique
+condition combinations, 16 shards, 18 conditions per shard, and `n_rep = 500`.
+Each shard-level formal spec still records `coverage_claim_allowed = FALSE`,
+which is correct because no single shard may promote the whole route.
+
+The merged manifest has 144,000 rows, 288 global shard-cell combinations, and
+exactly 500 manifest rows per global shard-cell. All manifest rows have
+`status = "ok"` and `skipped = FALSE`. The audit used a global key made from
+`condition_shard` and local `cell_id`, because each shard preserves local
+`cell_id` labels from `nbinom2_phylo_q1_001` through
+`nbinom2_phylo_q1_018`.
+
+The compute gate is now complete, but the promotion gate remains closed.
+Fixed-effect Wald coverage includes weak cells, with 122 of 1,152 coverage rows
+below 0.90 and 27 below 0.85. Direct `log_sd_phylo` profile intervals remain
+boundary-sensitive: median profile success is 0.058 when the true phylogenetic
+SD is 0, 0.626 when it is 0.25, and 0.992 when it is 0.60. Low-count,
+low-overdispersion cells still show large fixed-`sigma` errors. Treat the full
+shard set as a completed formal audit with caution flags, not as a narrow
+promotion.

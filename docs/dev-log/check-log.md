@@ -2,6 +2,91 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - NB2 q1 Formal Shard Audit, Slice D1
+
+Goal:
+
+- Pick up Slice D1 by auditing the completed 16-shard
+  `nbinom2_phylo_q1_formal` GitHub Actions artifact set, not by dispatching a
+  duplicate run.
+
+Roles: Ada rehydrated the branch and avoided duplicate dispatch. Grace checked
+the Actions run and artifact inventory. Curie checked shard artifact structure,
+global shard-cell counts, and the existing per-shard read-back QA. Fisher
+checked recovery, Wald coverage, profile interval status, grouped-comparator
+evidence, and the promotion boundary. Rose caught that local `cell_id` labels
+repeat inside shards and required the merged audit to use a
+`condition_shard + cell_id` global key. These were role perspectives, not
+spawned agents.
+
+Changes:
+
+- Updated the NB2 q1 formal-audit, sharded-grid, non-Gaussian evidence,
+  validation-debt, readiness, Phase 18 programme, common-family map, ROADMAP,
+  and NEWS ledgers to record that the full shard artifact set was audited.
+- Added
+  `docs/dev-log/after-task/2026-05-26-nb2-q1-formal-shard-audit-slice-d1.md`.
+- Kept the route at `hold_smoke_only`; no likelihood, formula grammar,
+  simulation runner, workflow, or generated artifact files changed.
+
+Validation:
+
+```sh
+gh run list --repo itchyshin/drmTMB --workflow "Phase 18 simulation grid" --limit 30 --json databaseId,displayTitle,event,status,conclusion,createdAt,updatedAt,headBranch,headSha,url
+gh api repos/itchyshin/drmTMB/actions/artifacts --paginate -q '.artifacts[] | select(.name | startswith("phase18-nbinom2_phylo_q1_formal-shard-")) | [.id,.name,.size_in_bytes,.expired,.created_at,.expires_at,.workflow_run.id,.workflow_run.head_sha] | @tsv'
+for shard in $(seq 1 16); do gh run download "<run_id>" --repo itchyshin/drmTMB -n "phase18-nbinom2_phylo_q1_formal-shard-${shard}-of-16-<run_id>" -D "/tmp/drmTMB-nb2-q1-formal-shards-20260525/shard-${shard}"; done
+Rscript --vanilla - <<'RS'
+# Combined artifact audit over formal spec, manifest, aggregate, replicate,
+# Wald coverage, profile coverage/interval, interval diagnostic, and failure
+# CSVs, using shard + local cell_id as the global condition key.
+RS
+Rscript --vanilla - <<'RS'
+# Existing per-shard read-back QA and promotion-decision helper over the 16
+# downloaded shard directories with expected_n_rep = 500.
+RS
+rg -n 'next compute (action|step).*full 500|until (all|that) audit lands|formal recovery artifacts still need all 500|formal grid.*not yet run|promotion.*(allowed|promote_narrowly|promoted)|broad.*NB2 q1|NB2 q1.*now (promotes|promoted|supported|formal recovery)' NEWS.md ROADMAP.md docs/design docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-nb2-q1-formal-shard-audit-slice-d1.md -g '!*.html'
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Sixteen successful `Phase 18 simulation grid` runs from `main` at
+  `2754e536` had unexpired artifacts named
+  `phase18-nbinom2_phylo_q1_formal-shard-1-of-16-*` through
+  `phase18-nbinom2_phylo_q1_formal-shard-16-of-16-*`.
+- The downloaded set contained all 13 expected CSV artifact families for every
+  shard.
+- The combined formal spec had 288 unique condition combinations, 16 shards,
+  18 conditions per shard, `n_rep = 500`, and
+  `coverage_claim_allowed = FALSE` for each shard-level spec row.
+- The merged manifest had 144,000 rows, 288 global shard-cell combinations,
+  exactly 500 rows per global shard-cell, all `status = "ok"`, and no skipped
+  rows.
+- Existing per-shard read-back QA passed for all 16 shard directories with
+  `expected_n_rep = 500`; the per-shard promotion helper returned
+  `hold_smoke_only` because each shard still has
+  `coverage_claim_allowed = FALSE`.
+- Fixed-effect Wald coverage had 1,152 rows; 122 rows were below 0.90 and 27
+  were below 0.85.
+- Direct `log_sd_phylo` profile interval success was boundary-sensitive:
+  median success was 0.058 for true `sd_phylo = 0`, 0.626 for
+  `sd_phylo = 0.25`, and 0.992 for `sd_phylo = 0.60`.
+- The full shard set confirms the earlier fixed-`sigma` warning: low-count,
+  low-overdispersion cells showed the largest `sigma:(Intercept)` errors, with
+  the worst aggregate bias about -3.40 and RMSE about 6.31 on the modelled
+  log-`sigma` coefficient scale.
+- The stale wording scan returned only the intentional
+  `coverage_claim_allowed = FALSE` shard-promotion guard.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Decision:
+
+- The compute gate is complete, but Fisher and Rose keep NB2 q1 at
+  `hold_smoke_only`. The formal artifacts are now available for analysis, but
+  the merged diagnostics do not support a narrow promotion claim.
+
 ## 2026-05-24 - Phase 18 Actions Package Load Follow-Up
 
 Goal: recover the NB2 q1 formal shard dispatch after the 16 `main` workflow
