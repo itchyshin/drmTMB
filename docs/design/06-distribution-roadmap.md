@@ -9,14 +9,17 @@ These establish the formula parser, family registry, TMB pipeline, prediction,
 simulation, and recovery tests.
 
 - `gaussian()`: `mu`, `sigma`.
-- `student()`: `mu`, `sigma`, `nu`; fixed-effect univariate path
-  implemented.
+- `student()`: `mu`, `sigma`, `nu`; fixed-effect univariate path and ordinary
+  unlabelled `mu` random intercepts implemented.
 - `lognormal()`: `mu`, `sigma` on the log response scale; fixed-effect
-  univariate path implemented for positive responses.
+  univariate path and ordinary unlabelled `mu` random intercepts implemented
+  for positive responses.
 - `Gamma(link = "log")`: `mu`, `sigma` as coefficient of variation;
-  fixed-effect univariate path implemented for positive responses.
+  fixed-effect univariate path and ordinary unlabelled `mu` random intercepts
+  implemented for positive responses.
 - `beta()`: `mu`, `sigma` for strict continuous proportions; fixed-effect
-  univariate path implemented with `phi = 1 / sigma^2` internally.
+  univariate path and ordinary unlabelled `mu` random intercepts implemented
+  with `phi = 1 / sigma^2` internally.
 
 ## Tier 2: Bivariate Coscale
 
@@ -127,8 +130,9 @@ Continuous proportions require a logit-linked `mu`; public scale naming should
 remain consistent with the rest of `drmTMB`.
 
 - `beta()`: implemented for continuous proportions in `(0, 1)` with `mu` and
-  public `sigma`. Internally `sigma` maps to beta precision through
-  `phi = 1 / sigma^2`, so larger `sigma` means more variance, not more
+  public `sigma`; ordinary unlabelled random intercepts such as `(1 | id)` may
+  enter the logit-`mu` predictor. Internally `sigma` maps to beta precision
+  through `phi = 1 / sigma^2`, so larger `sigma` means more variance, not more
   precision.
 - zero-inflated beta: extra zeros, using `zi ~ predictors` with `beta()`
   rather than a separate public constructor unless a later design decision says
@@ -156,11 +160,13 @@ routes while keeping every new family within a clear parameter-link contract.
 
 Useful for body size, biomass, time, concentration, and rates.
 
-- `lognormal()`: implemented fixed-effect path for positive multiplicative
-  responses; random effects, known covariance, phylogenetic terms, and
-  bivariate extensions are later phases.
+- `lognormal()`: implemented for positive multiplicative responses, including
+  ordinary unlabelled `mu` random intercepts; `sigma` random effects, known
+  covariance, phylogenetic terms, and bivariate extensions are later phases.
 - `Gamma(link = "log")`: implemented first contract is mean-CV, with
   `log(mu)`, `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
+  Ordinary unlabelled `mu` random intercepts are implemented; `sigma` random
+  effects, structured effects, and bivariate extensions are later phases.
 - `tweedie()`: future non-negative semicontinuous response for biomass, cover,
   CPUE-like indices, and other eco-evo measurements with exact zeros plus
   positive continuous values. The likely variance contract is

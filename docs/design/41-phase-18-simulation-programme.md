@@ -25,7 +25,7 @@ DGP file, an opt-in stress cell, or a failure-ledger row.
 | Scenario lane | Phase 18 role after Slice 291 gate | First design action | Failure-ledger boundary |
 | --- | --- | --- | --- |
 | Continuous location-scale | Admitted for Gaussian location-scale first; fixed-effect lognormal, Gamma, and Student-t have family-specific estimands and artifact lanes | `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first ADEMP sheet; `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md` records the lognormal/Gamma artifact lane | Do not claim shape/skewness random effects, phylogenetic shape, generalized Gamma, Tweedie, or latent ID-level skewness |
-| Proportion and bounded responses | Admitted for fixed-effect beta and beta-binomial design; no bounded-response known-`V` or zero-one-inflated route yet | `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` records the fixed-effect beta/beta-binomial ADEMP sheet; `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md` records the DGP/smoke/grid artifact lane | Keep `zoi`, `coi`, zero-one inflation, one inflation, random effects, and bounded-response `meta_V(V = V)` in the failure ledger |
+| Proportion and bounded responses | Admitted for fixed-effect beta and beta-binomial design; beta and beta-binomial ordinary `mu` random intercepts have source-level first-slice evidence; no bounded-response known-`V` or zero-one-inflated route yet | `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` records the fixed-effect beta/beta-binomial ADEMP sheet; `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md` records the DGP/smoke/grid artifact lane; bounded-response `mu` random intercepts should get a separate ADEMP sheet before broad grids | Keep `zoi`, `coi`, zero-one inflation, one inflation, bounded-response random slopes, bounded-response `sigma` random effects, and bounded-response `meta_V(V = V)` in the failure ledger |
 | Counts | Admitted for fixed-effect count families, ordinary non-zero-inflated Poisson/NB2 `mu` random effects, and the first ordinary NB2 log-`sigma` random intercept; ordinary Poisson/NB2 q=1 phylogenetic `mu` routes are fitted but still smoke/formal-admission lanes | `docs/design/49-phase-18-count-mu-random-effect-ademp.md` records the paired Poisson/NB2 `mu` random-effect ADEMP sheet; `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md`, `phase18_run_nbinom2_sigma_re_smoke()`, and `phase18_write_nbinom2_sigma_re_grid_outputs()` exercise the NB2 log-`sigma` random-intercept grid; `phase18_run_poisson_phylo_q1_smoke()`, `phase18_write_poisson_phylo_q1_grid_outputs()`, optional direct `log_sd_phylo` profile artifacts, formal-grid QA helpers, and the manual `poisson_phylo_q1_formal` Actions task exercise the Poisson phylogenetic q1 gate; `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md`, `phase18_run_nbinom2_phylo_q1_smoke()`, `phase18_write_nbinom2_phylo_q1_grid_outputs()`, the grouped-comparator row, formal-grid QA helpers, and the manual `nbinom2_phylo_q1_formal` Actions task exercise the overdispersion-aware NB2 q1 gate; `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local 288-cell sentinel, the 24-cell x 5-replicate audit, the `hold_smoke_only` promotion decision, and the still-unmet 500-replicate recovery gate; `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md` records why the singleton full grid was cancelled and how sharded formal dispatch prevents partial artifacts from becoming coverage claims | Keep zero-inflated/hurdle random effects, zero-truncated NB2 random effects, correlated count slopes, NB2 `sigma` slopes, NB2 `sigma` phylogeny, spatial/animal/`relmat()` count effects, and count-side structured slopes out |
 | Ordinal | Admitted only for fixed-effect `cumulative_logit()` location models | `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` records the fixed-effect ordinal ADEMP sheet; `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md` records the DGP/smoke/grid artifact lane | Keep ordinal random effects, scale/discrimination formulas, bivariate ordinal, and mixed-response ordinal models out |
 | Meta-analysis with known `V` | Admitted for Gaussian `meta_V(V = V)` vector and dense known sampling covariance | `docs/design/48-phase-18-meta-v-ademp.md` records the vector/dense known-`V` ADEMP sheet before larger grids | Keep proportional sampling variance, non-Gaussian known covariance, and phylogenetic-plus-study extensions out |
@@ -86,6 +86,7 @@ minimum first wave is:
 | Coordinate spatial one-slope smoke | Fitted smoke surface | `eta_mu = X beta + z0_site + x z1_site` with two independent coordinate-spatial fields | sites, observations per site, intercept-field SD, slope-field SD |
 | Gaussian meta-analysis | Fitted | `y ~ MVN(mu, V + Omega_estimated)` with vector or matrix `V` | effect sizes, dense `V`, heterogeneity |
 | Proportion fixed effects | Fitted for beta and beta-binomial | `logit(mu_i) = beta0 + beta1 x_i`, `log(sigma_i) = gamma0 + gamma1 z_i`; beta-binomial draws successes from a beta-mixed binomial with known trials | sample size, trial count, mean contrast, precision, predictor correlation |
+| Beta ordinary `mu` random intercepts | Source-tested first slice | `logit(mu_ij) = beta0 + beta1 x_ij + b_j`, `b_j ~ Normal(0, sd_mu^2)`, with fixed-effect `log(sigma_i)` and strict `(0, 1)` responses | groups, observations per group, `sd_mu`, mean contrast, precision, strict-boundary stress |
 | Positive-continuous fixed effects | Fitted for lognormal and Gamma | lognormal uses `mu` as log-response location; Gamma uses `mu` as response mean, with `sigma` as coefficient of variation | sample size, mean contrast, scale contrast, predictor correlation |
 | Ordinal fixed effects | Fitted for cumulative logit | `Pr(y_i <= k) = logit^{-1}(theta_k - beta1 x_i)` with ordered cutpoints and no free location intercept | sample size, number of categories, cutpoint pattern, location contrast |
 | Poisson `mu` random effects | Fitted smoke surface | log-mean count model with ordinary random intercepts and independent numeric slopes | groups, observations per group, mean count, SD size |
@@ -95,10 +96,10 @@ minimum first wave is:
 
 Later waves can add zero-inflation or hurdle random effects, ordinal mixed
 models, shape/skew extensions, and non-Gaussian scale/random-effect surfaces
-only after their focused gates are closed. The NB2 `mu` and NB2 `sigma`
-ordinary random-effect rows are admitted as focused first slices; larger grids
-still need a separate runtime and artifact-review decision before they are
-treated as routine evidence. The failure ledger in
+only after their focused gates are closed. The NB2 `mu`, NB2 `sigma`, and beta
+ordinary `mu` random-effect rows are admitted as focused first slices; larger
+grids still need a separate runtime and artifact-review decision before they
+are treated as routine evidence. The failure ledger in
 `docs/design/34-validation-debt-register.md` names the remaining blocked
 surfaces.
 
@@ -774,7 +775,8 @@ errors, and elapsed time by surface before the raw manifest.
      The lane adds DGP, summariser, smoke runner, grid writer, first-wave
      runner inclusion, and a manual `proportion_fixed_effect` Actions task for
      `beta()` and `beta_binomial()`, while keeping exact 0/1 boundary mass,
-     `zoi`/`coi`, bounded-response random effects, structured bounded
+     `zoi`/`coi`, bounded-response random effects beyond the beta and
+     beta-binomial ordinary `mu` intercept slices, structured bounded
      responses, and mixed-response bounded models outside the fitted claim.
 160. Slices 1299-1308 add the fixed-effect positive-continuous artifact lane in
      `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`.

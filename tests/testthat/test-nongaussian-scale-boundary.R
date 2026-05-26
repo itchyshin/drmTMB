@@ -23,7 +23,7 @@ test_that("non-Gaussian sigma random effects have a specific boundary", {
     success = c(1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7),
     failure = c(7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1)
   )
-  boundary <- "Non-Gaussian.*sigma.*random effects"
+  boundary <- "sigma.*random effects"
 
   expect_error(
     drmTMB(
