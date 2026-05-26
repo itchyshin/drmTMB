@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Zero-One Bounded-Response Design Gate, Slice D3
+
+Goal:
+
+- Pick the next low-compute Slice D lane after the NB2 q1 hold decision by
+  writing the zero-one bounded-response design gate without opening likelihood,
+  formula-grammar, or random-effect code.
+
+Roles: Ada chose the narrow D3 lane and kept D2/D4/D5 out of scope. Boole
+checked that `zoi` and `coi` remain reserved or planned rather than runnable.
+Gauss and Noether checked the future zero-one beta probability decomposition.
+Darwin and Pat checked the strict beta versus beta-binomial versus exact-boundary
+reader distinction. Fisher kept the first future implementation fixed-effect
+only. Grace ran formatting and pkgdown checks. Rose scanned stale claims and
+caught the stale beta-binomial implementation-map row. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md`.
+- Updated NEWS, ROADMAP, the Phase 18 programme, readiness matrix, validation
+  debt register, non-Gaussian evidence goal, family registry, core-family map,
+  and count-closure note so Slice D3 is design-only and the NB2 q1 D1 audit is
+  recorded as a completed hold decision.
+- Corrected `vignettes/implementation-map.Rmd` so beta-binomial ordinary `mu`
+  random intercepts are listed as fitted source-level first slices.
+- Added a team-improvement note for bounded-response status synchronization.
+
+Validation:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --state open --search "zero-one beta zoi coi bounded response" --limit 20
+air format NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/79-supported-nongaussian-evidence-goal.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md docs/dev-log/check-log.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-26-zero-one-bounded-response-design-gate-slice-d3.md vignettes/implementation-map.Rmd
+Rscript --vanilla -e "files <- c('NEWS.md','ROADMAP.md','docs/design/02-family-registry.md','docs/design/34-validation-debt-register.md','docs/design/41-phase-18-simulation-programme.md','docs/design/46-pre-simulation-readiness-matrix.md','docs/design/79-supported-nongaussian-evidence-goal.md','docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md','docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md','docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md','docs/dev-log/check-log.md','docs/dev-log/team-improvements.md','docs/dev-log/after-task/2026-05-26-zero-one-bounded-response-design-gate-slice-d3.md','vignettes/implementation-map.Rmd'); invisible(lapply(files, readLines)); cat('doc read ok\n')"
+rg -n 'zero-one beta.*(now fits|now supports|now implemented)|zero-one.*(likelihood now|syntax now|TMB now)|zoi.*(now fits|now supports|now implemented|is fitted)|coi.*(now fits|now supports|now implemented|is fitted)|Slice D3.*(adds|implements).*(likelihood|syntax|TMB)|Tweedie.*now fits|skew_normal.*now fits|COM-Poisson.*now fits|Conway-Maxwell.*now fits|generalized Poisson.*now fits|NB2 q1.*until.*500|500-replicate.*shards.*not.*audited|until all 500-replicate shards' NEWS.md ROADMAP.md README.md docs/design vignettes -g '!*.html'
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- The issue search returned no matching open rows.
+- `air format` completed without output.
+- The doc read check printed `doc read ok`.
+- The stale-claim scan returned no matches.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Decision:
+
+- Slice D3 is complete as a design gate. The next code slice, if chosen, should
+  be fixed-effect zero-one beta only, with formula grammar, likelihood docs,
+  simulation tests, prediction semantics, and pkgdown updates in the same PR.
+
 ## 2026-05-26 - NB2 q1 Formal Shard Audit, Slice D1
 
 Goal:

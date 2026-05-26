@@ -19,7 +19,7 @@ The first-wave count story now has four separate evidence surfaces:
 | Paired Poisson/NB2 `mu` random effects | Ordinary non-zero-inflated Poisson and NB2 `mu` random intercepts plus independent numeric `mu` slopes | DGPs, summarisers, smoke runners, repeatable grid writer, first-wave summary inclusion, profile-target rows, failure ledgers, and focused tests | No zero-inflated or hurdle random effects, zero-truncated NB2 random effects, correlated count slopes, structured count effects, or labelled count covariance blocks |
 | NB2 log-`sigma` random intercept | `bf(count ~ x, sigma ~ z + (1 | id))` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, summariser, smoke runner, summary helper, grid writer, direct `log_sd_sigma` profile-target row, and focused tests | No NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated/truncated/hurdle NB2 scale random effects, structured NB2 `sigma`, or Poisson scale effects |
 | Poisson q=1 phylogenetic `mu` intercept | `bf(count ~ x + phylo(1 | species, tree = tree))` for ordinary non-zero-inflated Poisson | Runner contract, DGP, summariser, smoke runner, grid writer, optional direct `log_sd_phylo` profile artifacts, formal-grid wrapper, manual Actions task, and focused tests | No phylogenetic count slopes, q=2/q=4 count covariance, zero-inflated count phylogeny, spatial/animal/`relmat()` count structure, or count cross-parameter covariance |
-| NB2 q=1 phylogenetic `mu` intercept | `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, target-plus-grouped-comparator fitter, summariser, smoke runner, grid writer, formal-grid QA, local sentinel/audit note, sharded manual Actions dispatch, and focused tests | Keep status at `hold_smoke_only` until all 500-replicate formal shards are run, merged, and audited together |
+| NB2 q=1 phylogenetic `mu` intercept | `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)` for ordinary non-zero-inflated NB2 | ADEMP sheet, DGP, target-plus-grouped-comparator fitter, summariser, smoke runner, grid writer, formal-grid QA, local sentinel/audit note, sharded manual Actions dispatch, completed 16-shard audit, and focused tests | Keep status at `hold_smoke_only` after the merged 500-replicate shard audit because profile intervals and low-count fixed-`sigma` recovery remain weak |
 
 These surfaces are intentionally not one broad count-parity claim. They are a
 small count evidence bundle: ordinary count mixed models plus q=1
@@ -76,11 +76,12 @@ drmTMB(
 ```
 
 Poisson q1 has formal-grid machinery, but formal recovery claims still depend
-on running and reviewing the 500-replicate gate. NB2 q1 has the stronger
+on running and reviewing its 500-replicate gate. NB2 q1 has the stronger
 overdispersion-aware formal-admission lane, including a grouped-species
-comparator, but the local sentinel and representative audit keep the route at
-`hold_smoke_only`. The next NB2 q1 compute action is a sharded formal run, not
-another singleton Actions dispatch.
+comparator. Slice D1 ran and audited the 16-shard 500-replicate NB2 q1 artifact
+set, then kept the route at `hold_smoke_only` because direct `log_sd_phylo`
+profile intervals are boundary-sensitive and low-count fixed-`sigma` recovery
+remains unstable.
 
 ## C4 - First-Wave Revalidation Boundary
 
@@ -105,13 +106,14 @@ should choose one of these paths and keep the others out of the PR:
 
 | Candidate D lane | Why it could be next | Gate before implementation |
 | --- | --- | --- |
-| D1: NB2 q1 formal shard execution and audit | It is the only remaining count-first-wave promotion gate with runnable infrastructure | Dispatch all shards, download artifacts, merge all 288 formal condition cells, prove 500 replicates per cell, and audit warning/profile/comparator rows together |
+| D1: NB2 q1 formal shard execution and audit | Completed after Slice C | The merged 16-shard artifact set had all 288 formal condition cells and 500 manifest rows per global shard-cell, but the promotion decision remains `hold_smoke_only` |
 | D2: Student-t formal-grid closeout versus skew-normal implementation gate | The core-family map says shape/skewness is the next family decision after common families | Decide whether Student-t has enough formal evidence for the first public shape story before adding skew-normal density code |
-| D3: Zero-one bounded-response design gate | `beta()` and `beta_binomial()` now have fixed-effect artifacts, so exact 0/1 mass is the nearest bounded-response neighbour | Write the likelihood/design boundary first; do not combine `zoi`/`coi` with bounded random effects |
+| D3: Zero-one bounded-response design gate | Chosen as the next low-compute bounded-response lane | Write the fixed-effect likelihood/design boundary first; do not combine `zoi`/`coi` with bounded random effects |
 | D4: Tweedie fixed-effect design gate | Lognormal and Gamma now cover positive-continuous first-wave artifacts, leaving semicontinuous positive data as a clear next measurement process | Start fixed-effect only, with intercept-only power before predictor-dependent power models |
 | D5: Additional count-family design gate | Conway-Maxwell-Poisson, generalized Poisson, and related count families may answer underdispersion or alternative overdispersion questions | Treat each as a normal new-family task: likelihood design, parameterization note, simulation tests, docs, and no random effects before fixed-effect recovery |
 
+Slice D3 now records the zero-one bounded-response design gate in
+`docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md`.
 For now, Conway-Maxwell-Poisson is a later count-family candidate, not part of
-Slice C. It should wait until the current Poisson/NB2 count first-wave claim is
-reviewed and the project owner chooses count-family expansion as the next
-family direction.
+Slice C or D3. It should wait until the project owner chooses count-family
+expansion as the next family direction.
