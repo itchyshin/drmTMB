@@ -1,0 +1,6 @@
+           quantity truth   estimate  abs_error
+1 phylo_mu1_mu2_cor -0.55 -0.7138019 0.16380192
+2    residual_rho12  0.15  0.3930824 0.24308243
+3      sd_phylo_mu1  1.20  1.1385026 0.06149735
+4      sd_phylo_mu2  1.00  0.7799880 0.22001197
+Wrote q2 positive-control artifacts to docs/dev-log/ayumi-santi/sim-slices/q2-mini-grid/small_strong

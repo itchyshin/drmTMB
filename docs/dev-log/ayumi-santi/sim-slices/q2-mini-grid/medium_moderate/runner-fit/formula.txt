@@ -1,0 +1,6 @@
+<drm_formula>
+  mu1 = log_body_mass ~ 1 + phylo(1 | p | species, tree = tree)
+  mu2 = log_reproductive_output ~ 1 + phylo(1 | p | species, tree = tree)
+  sigma1 = ~1
+  sigma2 = ~1
+  rho12 = ~1

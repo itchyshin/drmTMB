@@ -1,0 +1,2 @@
+"slice","n_species","n_rows","truth_mu_sigma_cor","estimate_mu_sigma_cor","abs_error","convergence","pdHess","gradient_max"
+"univariate_plsm",120,1440,0.7,0.893490767535867,0.193490767535867,0,TRUE,0.000344210708895787

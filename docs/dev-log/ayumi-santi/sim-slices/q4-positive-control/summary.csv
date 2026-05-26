@@ -1,0 +1,2 @@
+"slice","n_species","n_rows","convergence","pdHess","gradient_max","n_phylo_pairs","truth_mu1_mu2_cor","estimate_mu1_mu2_cor","truth_sigma1_sigma2_cor","estimate_sigma1_sigma2_cor","rho12_truth","rho12_estimate"
+"q4_positive_control",32,512,0,TRUE,0.00261599509652211,6,0.5,0.430131636190058,0.55,0.563832965138479,0.15,0.144953445344131

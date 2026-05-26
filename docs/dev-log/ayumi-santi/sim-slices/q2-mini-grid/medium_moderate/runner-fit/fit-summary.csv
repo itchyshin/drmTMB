@@ -1,0 +1,2 @@
+"status","elapsed_sec","convergence","optimizer_message","pdHess","logLik","AIC","gradient_max","gradient_component"
+"fit",0.536789894104004,0,"relative convergence (4)",TRUE,-124.432607712719,264.865215425438,0.000554387935354601,"par[3]"

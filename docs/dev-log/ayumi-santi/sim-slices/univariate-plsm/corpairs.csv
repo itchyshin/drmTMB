@@ -1,0 +1,2 @@
+"level","group","block","from_dpar","to_dpar","from_coef","to_coef","from_response","to_response","class","parameter","estimate","min","max","n_values","link_estimate","link_min","link_max","modelled","conf.status","interval_source"
+"phylogenetic","species","p","mu","sigma","(Intercept)","(Intercept)","trait","trait","mean-scale","cor(mu:(Intercept),sigma:(Intercept) | p | species)",0.893490767535867,0.893490767535867,0.893490767535867,1,1.43897728051889,1.43897728051889,1.43897728051889,FALSE,"not_requested","not_available"
