@@ -38590,3 +38590,251 @@ git diff --check
   p8/q8, spatial q4, Poisson/NB2 structured-count routes, or non-Gaussian
   structured dependence.
 - `git diff --check` was clean.
+
+## 2026-05-25 - Slices 1289-1298 Phase 18 Proportion Fixed-Effect Artifacts
+
+Goal:
+
+- Add the fixed-effect proportion artifact lane for `beta()` and
+  `beta_binomial()` after the core family completion map, without adding
+  `zoi`/`coi`, exact-boundary mass, random effects, structured effects, or
+  mixed-response bounded models.
+
+Changes:
+
+- Added `inst/sim/dgp/sim_dgp_proportion_fixed_effect.R`.
+- Added `inst/sim/fit/sim_summarise_proportion_fixed_effect.R`.
+- Added `inst/sim/run/sim_run_proportion_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_write_proportion_fixed_effect_grid.R`.
+- Added `tests/testthat/test-phase18-proportion-fixed-effect.R`.
+- Wired the proportion grid writer into
+  `inst/sim/run/sim_run_first_wave_summary_smoke.R`.
+- Added `task = "proportion_fixed_effect"` to
+  `inst/sim/run/sim_run_actions_cell.R` and to the manual Phase 18 Actions
+  workflow. The task is selectable directly; `task = "all"` still reaches the
+  proportion lane through the first-wave summary task rather than running it
+  twice.
+- Added
+  `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md`, `inst/sim/README.md`,
+  `ROADMAP.md`, `NEWS.md`, and the prior completion-map note so current text no
+  longer says the proportion DGP/summariser/smoke/grid lane is missing.
+
+Status answer:
+
+- Fixed-effect strict continuous `beta()` and denominator-aware
+  `beta_binomial()` models now have Phase 18 DGP, summariser, smoke, repeatable
+  grid-output, first-wave report-staging, and manual Actions-dispatch
+  artifacts.
+- The artifact lane estimates `mu` and public `sigma` fixed coefficients on
+  their modelled link scales, with `phi = 1 / sigma^2` kept as an internal
+  precision transform.
+- This is not a broader bounded-response expansion. Exact 0/1 mass,
+  `zoi`/`coi`, bounded-response random effects, structured bounded responses,
+  known-covariance bounded responses, and mixed-response bounded models remain
+  planned or unsupported.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_proportion_fixed_effect.R inst/sim/fit/sim_summarise_proportion_fixed_effect.R inst/sim/run/sim_run_proportion_fixed_effect_smoke.R inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R inst/sim/run/sim_write_proportion_fixed_effect_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-proportion-fixed-effect.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md inst/sim/README.md .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "devtools::test(filter = '^phase18-(proportion-fixed-effect|first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+rg -n 'proportion.*(still need|needs).*DGP|beta.*still need.*DGP|beta_binomial.*still need.*DGP|have not been promoted|Make proportions the next implementation lane' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "proportion beta beta_binomial Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+- `air format` completed without output.
+- The focused test bundle passed: `phase18-actions-runner`,
+  `phase18-first-wave-summary-smoke-runner`, and
+  `phase18-proportion-fixed-effect` all completed with no failures.
+- The workflow YAML parsed successfully.
+- The stale-claim scan returned no current text saying the proportion
+  DGP/summariser/smoke/grid lane is still missing.
+- The overlapping-issue search returned `[]`; no GitHub issue was opened or
+  mutated from this dirty tree.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
+
+## 2026-05-25 - Slices 1299-1308 Phase 18 Positive-Continuous Fixed-Effect Artifacts
+
+Goal:
+
+- Add the fixed-effect positive-continuous artifact lane for `lognormal()` and
+  `Gamma(link = "log")` after the fixed-effect proportion lane, without adding
+  Tweedie, generalized Gamma, positive-response random effects, known
+  covariance, structured effects, or mixed-response positive-continuous models.
+
+Changes:
+
+- Added `inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R`.
+- Added `inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R`.
+- Added `inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R`.
+- Added `tests/testthat/test-phase18-positive-continuous-fixed-effect.R`.
+- Wired the positive-continuous grid writer into
+  `inst/sim/run/sim_run_first_wave_summary_smoke.R`.
+- Added `task = "positive_continuous_fixed_effect"` to
+  `inst/sim/run/sim_run_actions_cell.R` and to the manual Phase 18 Actions
+  workflow.
+- Added
+  `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md`, `inst/sim/README.md`,
+  `ROADMAP.md`, `NEWS.md`, and the prior completion-map note so the
+  lognormal/Gamma artifact lane is current.
+
+Status answer:
+
+- Fixed-effect positive-continuous `lognormal()` and `Gamma(link = "log")`
+  models now have Phase 18 DGP, summariser, smoke, repeatable grid-output,
+  first-wave report-staging, and manual Actions-dispatch artifacts.
+- The artifact lane estimates `mu` and public `sigma` fixed coefficients on
+  their documented modelled link scales: log-response location for lognormal
+  `mu`, response-mean log link for Gamma `mu`, and log public `sigma` for both.
+- This is not a broader positive-response expansion. Tweedie, generalized
+  Gamma, positive-response random effects, structured positive responses,
+  known-covariance positive responses, and mixed-response positive models remain
+  planned or unsupported.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-positive-continuous-fixed-effect.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/dev-log/after-task/2026-05-25-phase18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md inst/sim/README.md .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "devtools::test(filter = '^phase18-(positive-continuous-fixed-effect|first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+rg -n 'positive-continuous.*(still need|needs).*DGP|lognormal.*still need.*DGP|Gamma.*still need.*DGP|add positive-continuous lognormal/Gamma artifacts' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "positive continuous lognormal Gamma Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+- `air format` first caught a missing final `})` in the new focused test file;
+  after fixing that parse error, formatting completed without output.
+- The focused test bundle passed:
+  `phase18-actions-runner`, `phase18-first-wave-summary-smoke-runner`, and
+  `phase18-positive-continuous-fixed-effect` all completed with no failures.
+- The workflow YAML parsed successfully.
+- The stale-claim scan returned no current text saying the positive-continuous
+  DGP/summariser/smoke/grid lane is still missing.
+- The overlapping-issue search returned `[]`; no GitHub issue was opened or
+  mutated from this dirty tree.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`
+
+## 2026-05-25 - Slices 1309-1318 Phase 18 Ordinal Fixed-Effect Artifacts
+
+Goal:
+
+- Add the fixed-effect ordinal artifact lane for `cumulative_logit()` after the
+  fixed-effect proportion and positive-continuous lanes, without adding ordinal
+  random effects, ordinal scale/discrimination formulas, cutpoint-specific
+  predictors, known-covariance ordinal models, bivariate ordinal models, or
+  mixed-response ordinal models.
+
+Changes:
+
+- Added `inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R`.
+- Added `inst/sim/fit/sim_summarise_ordinal_fixed_effect.R`.
+- Added `inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R`.
+- Added `inst/sim/run/sim_write_ordinal_fixed_effect_grid.R`.
+- Added `tests/testthat/test-phase18-ordinal-fixed-effect.R`.
+- Wired the ordinal grid writer into
+  `inst/sim/run/sim_run_first_wave_summary_smoke.R`.
+- Added `task = "ordinal_fixed_effect"` to
+  `inst/sim/run/sim_run_actions_cell.R` and to the manual Phase 18 Actions
+  workflow.
+- Added
+  `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`,
+  `inst/sim/README.md`, `ROADMAP.md`, and `NEWS.md` so the
+  `cumulative_logit()` artifact lane is current.
+
+Status answer:
+
+- Fixed-effect ordinal `cumulative_logit()` models now have Phase 18 DGP,
+  summariser, smoke, repeatable grid-output, first-wave report-staging, and
+  manual Actions-dispatch artifacts.
+- The artifact lane estimates the identifiable latent `mu` slope and ordered
+  cutpoints. Wald intervals are limited to fixed `mu` coefficients; cutpoints
+  are summarized for bias, RMSE, and ordering diagnostics.
+- This is not a broader ordinal expansion. Ordinal random effects,
+  scale/discrimination formulas, cutpoint-specific predictors, known-covariance
+  ordinal models, structured ordinal effects, bivariate ordinal models, and
+  mixed-response ordinal models remain planned or unsupported.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R inst/sim/fit/sim_summarise_ordinal_fixed_effect.R inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R inst/sim/run/sim_write_ordinal_fixed_effect_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-ordinal-fixed-effect.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md inst/sim/README.md .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "devtools::test(filter = '^phase18-ordinal-fixed-effect$', reporter = 'summary')"
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+rg -n 'ordinal.*(still need|needs).*DGP|cumulative_logit.*still need.*DGP|fixed-effect ordinal.*(still need|needs).*grid|Promote fixed-effect ordinal artifacts|next.*ordinal artifacts|ordinal.*not.*artifact' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "ordinal cumulative_logit Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+- `air format` first caught a missing final `})` in the partially created
+  focused test file; after fixing that parse error and adding an
+  ordinal-specific one-slope validator, formatting completed without output.
+- The focused ordinal test passed: `phase18-ordinal-fixed-effect` completed
+  with no failures.
+- The integration test bundle passed: `phase18-actions-runner` and
+  `phase18-first-wave-summary-smoke-runner` completed with no failures.
+- The workflow YAML parsed successfully.
+- The stale-claim scan returned no current text saying the ordinal
+  DGP/summariser/smoke/grid lane is still missing.
+- The overlapping-issue search returned `[]`; no GitHub issue was opened or
+  mutated from this dirty tree.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-ordinal-fixed-effect-artifacts-slices-1309-1318.md`
+
+Recovery checkpoint:
+
+- `docs/dev-log/recovery-checkpoints/2026-05-25-082709-codex-checkpoint.md`
+
+Static follow-up:
+
+- Updated `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` so it no
+  longer says the explicit ordinal DGP helper is future work.
+- Updated `docs/design/46-pre-simulation-readiness-matrix.md` so the ordinal
+  readiness row names the Phase 18 DGP/smoke/grid artifacts, first-wave runner
+  inclusion, and manual `ordinal_fixed_effect` Actions dispatch.
+- Updated `docs/design/34-validation-debt-register.md` so the ordinal
+  random-effect debt row points to
+  `tests/testthat/test-phase18-ordinal-fixed-effect.R` as fixed-effect artifact
+  evidence, not random-effect evidence.
+- Tightened `ROADMAP.md` wording so unsupported ordinal work refers to ordinal
+  random effects and scale/discrimination, not the already fitted fixed-effect
+  ordinal family.
+
+Static validation:
+
+```sh
+air format ROADMAP.md docs/design/51-phase-18-ordinal-fixed-effect-ademp.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/34-validation-debt-register.md
+rg -n "fixed-effect ordinal ADEMP and readiness ledger exist|Promote fixed-effect ordinal artifacts|first formal grid should add an explicit ordinal DGP|cumulative_logit.*still need.*DGP|fixed-effect ordinal.*still need.*grid" README.md ROADMAP.md NEWS.md docs/design inst/sim vignettes tests -g '!*.html'
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_ordinal_fixed_effect.R','inst/sim/fit/sim_summarise_ordinal_fixed_effect.R','inst/sim/run/sim_run_ordinal_fixed_effect_smoke.R','inst/sim/run/sim_summary_ordinal_fixed_effect_smoke.R','inst/sim/run/sim_write_ordinal_fixed_effect_grid.R','inst/sim/run/sim_run_first_wave_summary_smoke.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-ordinal-fixed-effect.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "source('inst/sim/run/sim_run_actions_cell.R'); phase18_actions_main(c('--task=ordinal_fixed_effect','--dry-run=true','--n-reps=1','--master-seed=123'))"
+git diff --check
+```
+
+- Formatting completed without output.
+- The targeted stale-wording scan returned no hits.
+- The touched R/test scripts parsed successfully.
+- The workflow YAML parsed successfully.
+- The `ordinal_fixed_effect` Actions dry-run printed the expected plan.
+- `git diff --check` was clean.

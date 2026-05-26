@@ -215,6 +215,9 @@ and operating-characteristic evidence justify a broader claim.
   recovery and cutpoint stability.
 - Evidence: `tests/testthat/test-cumulative-logit.R` checks fixed-effect
   ordinal likelihood behavior and the ordinal random-effect boundary.
+  `tests/testthat/test-phase18-ordinal-fixed-effect.R` checks the Phase 18
+  fixed-effect ordinal DGP, smoke/grid artifacts, Wald rows, malformed helper
+  inputs, and cutpoint-ordering diagnostics.
 - Diagnostics and intervals: no ordinal random-effect diagnostics or
   intervals exist because no ordinal mixed-model likelihood is fitted yet.
   Existing ordinal cutpoint profile targets are internal cutpoint targets, not
