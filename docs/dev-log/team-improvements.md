@@ -280,3 +280,49 @@ issues, or pull requests.
   `MakeADFun()` probe and comparator tests caught the mismatch. Future family
   slices should confirm the intended block receives the new fields before
   broad validation.
+
+## 2026-05-24 - Compatibility Alias Fit Tests
+
+- Improvement implemented: when a formula spelling becomes a deprecated
+  compatibility alias, keep at least one fitted-model test for the old spelling,
+  not only a parser warning test. The warning proves users are guided to the new
+  spelling; the fitted-model test proves the compatibility promise still holds.
+- Improvement implemented: when using `expect_warning()` for object creation,
+  assign inside the expectation or create the object with an explicit
+  `suppressWarnings()` block after a separate warning assertion. Do not assume
+  the expectation object itself is the value needed by the next fit.
+- Trigger: the `sd_phylo*()` to `sd*(_, level = "phylogenetic")` migration first
+  had parser-warning coverage but no old-spelling fit coverage. Adding the
+  compatibility fit exposed the assignment pattern before it could become a
+  misleading test.
+
+## 2026-05-24 - Overnight Revalidation And Dirty-Tree Split
+
+- Improvement implemented: when a user asks to resume or continue a numbered
+  slice range that overlaps older project ledgers, write "revalidation" or
+  "current-state audit" explicitly in the new design and after-task notes. Do
+  not silently reinterpret older slice numbers.
+- Improvement implemented: before staging a broad autonomous-run dirty tree,
+  write a split audit that separates visual/pkgdown work, statistical
+  implementation work, simulation evidence, protocol-specific developer
+  artifacts, and validation-only notes.
+- Trigger: the May 24 overnight run completed the requested Slices 556-605 as a
+  green validation block, but the repository already contained older May 19
+  entries for nearby slice numbers and the dirty tree mixed several unrelated
+  lanes.
+
+## 2026-05-25 - Actions Cadence Before More Local Work
+
+- Improvement implemented: after a finished Phase 18 lane has local tests,
+  workflow-YAML parsing, and stale-wording scans, the next default move is to
+  split, stage, commit, push, and open or update a PR before starting more
+  local-only implementation.
+- Improvement implemented: use `gllvmTMB` as the process example for PR-gated
+  multi-platform `R-CMD-check` and post-merge `pkgdown`, while treating
+  `symbolizer`'s push-to-Pages rhythm as a lighter documentation-release habit,
+  not the default for `drmTMB` implementation slices.
+- Trigger: the Phase 18 fixed-effect proportion artifact lane was locally
+  validated and wired into manual Actions, but `drmTMB` had no open PR and the
+  current branch still had a broad dirty tree. GitHub Actions cannot check
+  uncommitted files; Grace should get the finished lane back into the remote
+  loop before Ada starts another implementation lane.
