@@ -236,6 +236,11 @@ nbinom2 <- function() {
 #' NB2 variance is `Var(y) = mu + sigma^2 * mu^2`, with internal
 #' `size = 1 / sigma^2`.
 #'
+#' Ordinary zero-truncated NB2 models support first-slice random intercepts in
+#' the log-mean predictor, such as `bf(count ~ x + (1 | id), sigma ~ z)`.
+#' Hurdle NB2 random effects, zero-truncated random slopes, structured effects,
+#' and overdispersion-side random effects remain planned.
+#'
 #' @return A `drm_family` object.
 #' @export
 #'

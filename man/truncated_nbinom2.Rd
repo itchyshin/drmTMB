@@ -24,6 +24,11 @@ The implemented contract is
 distributed as NB2 conditional on being greater than zero. The untruncated
 NB2 variance is \code{Var(y) = mu + sigma^2 * mu^2}, with internal
 \code{size = 1 / sigma^2}.
+
+Ordinary zero-truncated NB2 models support first-slice random intercepts in
+the log-mean predictor, such as \code{bf(count ~ x + (1 | id), sigma ~ z)}.
+Hurdle NB2 random effects, zero-truncated random slopes, structured effects,
+and overdispersion-side random effects remain planned.
 }
 \examples{
 truncated_nbinom2()

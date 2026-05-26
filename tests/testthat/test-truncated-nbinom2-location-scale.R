@@ -17,6 +17,42 @@ new_truncated_nbinom2_data <- function(n = 1600, seed = 20260618) {
   list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma)
 }
 
+new_truncated_nbinom2_random_intercept_data <- function(
+  n_id = 34,
+  n_each = 8,
+  sd_id = 0.35,
+  seed = 20260624
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  dat <- data.frame(
+    id = id,
+    x = rep(seq(-1, 1, length.out = n_each), n_id) +
+      stats::rnorm(n, sd = 0.05),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.35, x = -0.28)
+  beta_sigma <- c(`(Intercept)` = -0.65, z = 0.15)
+  b_id <- stats::rnorm(n_id, sd = sd_id)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + b_id[dat$id]
+  mu <- exp(eta_mu)
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  p0 <- stats::dnbinom(0, size = 1 / sigma^2, mu = mu)
+  dat$count <- stats::qnbinom(
+    p0 + stats::runif(n) * (1 - p0),
+    size = 1 / sigma^2,
+    mu = mu
+  )
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    u_id = stats::setNames(b_id, levels(id)),
+    sd_id = sd_id
+  )
+}
+
 test_that("drmTMB fits fixed-effect truncated nbinom2 models", {
   sim <- new_truncated_nbinom2_data()
 
@@ -63,6 +99,38 @@ test_that("drmTMB fits fixed-effect truncated nbinom2 models", {
     c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
   )
   expect_true(all(ci$conf.status == "wald"))
+})
+
+test_that("truncated nbinom2 mu supports ordinary random intercepts", {
+  sim <- new_truncated_nbinom2_random_intercept_data()
+
+  fit <- drmTMB(
+    bf(count ~ x + (1 | id), sigma ~ z),
+    family = truncated_nbinom2(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "truncated_nbinom2")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$sd_id), 0.25)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.25)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.35)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.35)
+  expect_true(drmTMB:::has_ordinary_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 1L)
+
+  chk <- check_drm(fit)
+  replication <- chk[chk$check == "mu_random_effect_replication", ]
+  expect_equal(replication$status, "ok")
 })
 
 test_that("truncated nbinom2 likelihood matches independent dnbinom calculation", {
@@ -278,11 +346,35 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ 1),
+      bf(y ~ x + (0 + x | id), sigma ~ 1),
       family = truncated_nbinom2(),
       data = dat
     ),
-    "unsupported model terms"
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | p | id), sigma ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "Hurdle"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1 + (1 | id)),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "sigma.*random effects"
   )
   expect_error(
     drmTMB(
