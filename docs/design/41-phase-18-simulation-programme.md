@@ -761,3 +761,8 @@ errors, and elapsed time by surface before the raw manifest.
      The runner caps requested replicate and bootstrap workers at 10 and
      rejects nested multicore requests, so a bootstrap-heavy interval task
      cannot accidentally use two parallel layers at once.
+158. Slices 1279-1288 restore the core family completion map in
+     `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`
+     onto the clean reconciliation branch. The map keeps count formal recovery,
+     proportion artifacts, positive-continuous artifacts, ordinal artifacts, and
+     skew-family implementation as separate review lanes.

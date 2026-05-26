@@ -1946,6 +1946,10 @@ as the whole comprehensive simulation programme.
 - Status: staged. The reusable simulation infrastructure is partly
   implemented locally, while broad operating-characteristic grids and public
   bootstrap intervals remain planned.
+- Slices 1279-1288 restore the core family completion map on the clean
+  reconciliation branch. The map keeps NB2 q1 formal recovery, fixed-effect
+  proportion artifacts, positive-continuous artifacts, ordinal artifacts, and
+  skew-family implementation as separate lanes.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Phase 18 Current-State Map Clean-Branch Salvage
+
+Goal:
+
+- Restore the Phase 18 core family completion map onto the clean upstream-based
+  reconciliation branch without replaying the conflicted local stack.
+
+Roles: Ada kept this to a docs-only routing slice. Rose checked that the map
+does not promote unsupported non-Gaussian structured support. Grace checked git
+hygiene and focused stale wording. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added
+  `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md` and `ROADMAP.md`
+  with a clean-branch Slices 1279-1288 pointer.
+- Added
+  `docs/dev-log/after-task/2026-05-26-phase18-current-state-map-clean-branch-salvage.md`.
+
+Validation:
+
+```sh
+git cherry-pick --no-commit 0de73de0
+git restore --source=HEAD --staged --worktree -- ROADMAP.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/after-task/2026-05-25-phase18-core-family-completion-map-slices-1279-1288.md docs/dev-log/after-task/2026-05-25-phase18-current-state-revalidation-slices-909-1008.md docs/dev-log/check-log.md
+air format ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-phase18-current-state-map-clean-branch-salvage.md
+rg -n 'formal recovery.*(now complete|is complete|passed|closed)|coverage.*(now complete|is complete|passed|closed)|broad.*non-Gaussian.*(ready|complete)|skew_normal\\(\\).*supported|skew-t.*supported|proportion.*artifact.*done|positive-continuous.*artifact.*done|ordinal.*artifact.*done' ROADMAP.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- The direct cherry-pick conflicted in `ROADMAP.md` and
+  `docs/dev-log/check-log.md`, so the attempted replay was abandoned and the
+  map was restored manually as a smaller clean-branch patch.
+- Formatting completed without output.
+- The stale-promotion scan returned no hits.
+- `git diff --check` was clean.
+
+No R code, likelihood, formula grammar, workflow, generated site, or simulation
+artifact changed.
+
 ## 2026-05-24 - Phase 18 Actions Package Load Follow-Up
 
 Goal: recover the NB2 q1 formal shard dispatch after the 16 `main` workflow
