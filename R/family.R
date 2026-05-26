@@ -98,6 +98,8 @@ lognormal <- function() {
 #' `logit(mu) = eta_mu`, `log(sigma) = eta_sigma`, and internal precision
 #' `phi = 1 / sigma^2`. Larger `sigma` therefore means more variation around
 #' the mean, not more precision.
+#' Ordinary unlabelled random intercepts such as `(1 | id)` may enter the
+#' logit-`mu` predictor; `sigma` remains fixed-effect in this first slice.
 #'
 #' This helper masks [base::beta()] when `drmTMB` is attached. Use
 #' `base::beta()` for the mathematical beta function.
@@ -128,16 +130,19 @@ beta <- function() {
 #' `trials_i = successes_i + failures_i`.
 #'
 #' The implemented contract is `logit(mu) = eta_mu`,
+#' with optional ordinary unlabelled `mu` random intercepts,
 #' `log(sigma) = eta_sigma`, and internal beta precision
 #' `phi = 1 / sigma^2`. Conditional on a latent success probability
 #' `p_i ~ Beta(mu_i * phi_i, (1 - mu_i) * phi_i)`, the observed successes
 #' follow `Binomial(trials_i, p_i)`. Larger `sigma` means more extra-binomial
 #' variation around the mean probability.
 #'
-#' The first implementation supports fixed effects only. Random effects,
-#' `meta_V(V = V)`, phylogenetic or spatial terms, bivariate
-#' beta-binomial models, and a `successes/trials` response alias are planned
-#' but not implemented.
+#' The first mixed-model slice supports ordinary `mu` random intercepts such as
+#' `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`. Random slopes,
+#' labelled covariance blocks, `sigma` random effects, `zoi`/`coi`,
+#' `meta_V(V = V)`, phylogenetic or spatial terms, bivariate beta-binomial
+#' models, and a `successes/trials` response alias are planned but not
+#' implemented.
 #'
 #' @return A `drm_family` object.
 #' @export

@@ -915,17 +915,54 @@ Type objective_function<Type>::operator()()
   } else if (model_type == 10) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
-    vector<Type> mu = Type(1.0) / (Type(1.0) + exp(-eta_mu));
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
+    vector<Type> mu(y.size());
+    Type beta_mu_eps = Type(1e-12);
+    for (int i = 0; i < mu.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> alpha(y.size());
     vector<Type> beta_shape(y.size());
+    Type beta_shape_floor = Type(1e-8);
     for (int i = 0; i < y.size(); ++i) {
       phi(i) = exp(Type(-2.0) * log_sigma(i));
-      alpha(i) = mu(i) * phi(i);
-      beta_shape(i) = (Type(1.0) - mu(i)) * phi(i);
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
       Type log_density =
-        lgamma(phi(i)) -
+        lgamma(alpha(i) + beta_shape(i)) -
         lgamma(alpha(i)) -
         lgamma(beta_shape(i)) +
         (alpha(i) - Type(1.0)) * log(y(i)) +
@@ -944,6 +981,24 @@ Type objective_function<Type>::operator()()
   } else if (model_type == 14) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
+    if (n_mu_re_terms > 0) {
+      vector<Type> sd_mu_re = exp(log_sd_mu);
+      for (int i = 0; i < y.size(); ++i) {
+        for (int j = 0; j < n_mu_re_terms; ++j) {
+          int idx = mu_re_index(i, j);
+          eta_mu(i) +=
+            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+        }
+      }
+      for (int j = 0; j < u_mu.size(); ++j) {
+        nll -= dnorm(u_mu(j), Type(0.0), Type(1.0), true);
+      }
+      REPORT(u_mu);
+      REPORT(log_sd_mu);
+      REPORT(sd_mu_re);
+      ADREPORT(log_sd_mu);
+      ADREPORT(sd_mu_re);
+    }
     vector<Type> mu = Type(1.0) / (Type(1.0) + exp(-eta_mu));
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());

@@ -16,6 +16,42 @@ new_beta_binomial_data <- function(n = 1200, seed = 20260510) {
   list(data = dat, beta_mu = beta_mu, beta_sigma = beta_sigma)
 }
 
+new_beta_binomial_random_intercept_data <- function(
+  n_id = 52,
+  n_each = 10,
+  seed = 20260631
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(
+    id = id,
+    x = stats::rnorm(n),
+    z = stats::rnorm(n),
+    trials = sample(18:34, n, replace = TRUE)
+  )
+  beta_mu <- c(`(Intercept)` = -0.25, x = 0.65)
+  beta_sigma <- c(`(Intercept)` = -1.35, z = 0.15)
+  sd_id <- 0.60
+  u_id <- stats::rnorm(n_id, sd = sd_id)
+  u_id <- u_id - mean(u_id)
+  names(u_id) <- levels(id)
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + u_id[id]
+  mu <- stats::plogis(eta_mu)
+  sigma <- exp(beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z)
+  phi <- 1 / sigma^2
+  p <- stats::rbeta(n, shape1 = mu * phi, shape2 = (1 - mu) * phi)
+  dat$success <- stats::rbinom(n, size = dat$trials, prob = p)
+  dat$failure <- dat$trials - dat$success
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_id = sd_id,
+    u_id = u_id
+  )
+}
+
 dbetabinom_drm <- function(success, trials, mu, sigma, log = FALSE) {
   phi <- 1 / sigma^2
   alpha <- mu * phi
@@ -69,6 +105,55 @@ test_that("drmTMB fits fixed-effect beta-binomial models", {
     c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
   )
   expect_true(all(ci$conf.status == "wald"))
+})
+
+test_that("beta-binomial mu supports ordinary random intercepts", {
+  sim <- new_beta_binomial_random_intercept_data()
+
+  fit <- drmTMB(
+    bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z),
+    family = beta_binomial(),
+    data = sim$data
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$model$model_type, "beta_binomial")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_gt(unname(fit$sdpars$mu[["(1 | id)"]]), 0.05)
+  expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$sd_id), 0.35)
+  expect_lt(max(abs(coef(fit, "mu") - sim$beta_mu)), 0.30)
+  expect_lt(max(abs(coef(fit, "sigma") - sim$beta_sigma)), 0.35)
+
+  id_effects <- fit$random_effects$mu$terms[["(1 | id)"]]
+  expect_equal(length(id_effects), length(sim$u_id))
+  expect_gt(stats::cor(id_effects, sim$u_id), 0.40)
+  expect_true(drmTMB:::has_ordinary_mu_random_effects(fit))
+  expect_equal(drmTMB:::n_mu_random_effect_terms(fit), 1L)
+  expect_equal(
+    predict(fit, dpar = "mu", type = "link"),
+    as.vector(fit$model$X$mu %*% coef(fit, "mu")) +
+      drmTMB:::mu_random_effect_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    fitted(fit),
+    stats::plogis(predict(fit, dpar = "mu", type = "link")),
+    tolerance = 1e-12
+  )
+
+  targets <- profile_targets(fit)
+  sd_target <- targets[targets$parm == "sd:mu:(1 | id)", , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "log_sd_mu")
+  expect_true(sd_target$profile_ready)
+
+  chk <- check_drm(fit)
+  replication <- chk[chk$check == "mu_random_effect_replication", ]
+  expect_equal(replication$status, "ok")
 })
 
 test_that("beta-binomial likelihood matches independent calculation", {
@@ -268,11 +353,27 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
   )
   expect_error(
     drmTMB(
-      bf(cbind(success, failure) ~ x + (1 | id), sigma ~ 1),
+      bf(cbind(success, failure) ~ x + (0 + x | id), sigma ~ 1),
       family = beta_binomial(),
       data = dat
     ),
-    "unsupported model terms"
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x + (1 | p | id), sigma ~ 1),
+      family = beta_binomial(),
+      data = dat
+    ),
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x, sigma ~ 1 + (1 | id)),
+      family = beta_binomial(),
+      data = dat
+    ),
+    "sigma.*random effects"
   )
   expect_error(
     drmTMB(

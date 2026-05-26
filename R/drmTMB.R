@@ -4,15 +4,16 @@
 #' supports univariate Gaussian location-scale models,
 #' univariate Student-t location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
-#' fixed-effect beta mean-scale models for strict proportions,
+#' beta mean-scale models for strict proportions,
 #' fixed-effect beta-binomial mean-overdispersion models for success counts,
 #' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
 #' negative-binomial mean-dispersion, and hurdle negative-binomial
-#' mean-dispersion models for counts. Student-t, lognormal, Gamma, ordinary
-#' Poisson, ordinary negative-binomial, and zero-truncated negative-binomial
-#' `mu` formulas support ordinary unlabelled random intercepts where
+#' mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
+#' ordinary Poisson, ordinary negative-binomial, and
+#' zero-truncated negative-binomial `mu` formulas support ordinary unlabelled
+#' random intercepts where
 #' documented. Poisson, ordinary negative-binomial, and zero-truncated
 #' negative-binomial `mu` formulas may include standard R `offset(log(exposure))`
 #' terms for exposure or effort,
@@ -1470,7 +1471,7 @@ drm_build_beta_ls_spec <- function(
   if (any(is_sd_dpar)) {
     cli::cli_abort(c(
       "Random-effect scale formulae are not implemented for {.fn beta} models yet.",
-      "i" = "Start with fixed-effect beta formulas such as {.code bf(prop ~ x, sigma ~ z)}."
+      "i" = "Use beta formulas such as {.code bf(prop ~ x + (1 | id), sigma ~ z)}; group-level scale models need separate recovery tests."
     ))
   }
   if (sum(dpars == "mu") != 1L) {
@@ -1516,6 +1517,13 @@ drm_build_beta_ls_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_beta_mu_random_terms(mu_re$terms)
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_beta_sigma_random_terms(sigma_re$terms)
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -1523,7 +1531,11 @@ drm_build_beta_ls_spec <- function(
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    random_effect_vars(mu_re$terms)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -1576,6 +1588,7 @@ drm_build_beta_ls_spec <- function(
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in beta model.")
   }
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
 
   spec <- list(
     model_type = "beta",
@@ -1592,18 +1605,18 @@ drm_build_beta_ls_spec <- function(
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma"),
-    start = beta_ls_start(y, X_mu, X_sigma),
-    map = beta_ls_map(),
-    random_names = NULL
+    start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
+    map = beta_ls_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -1638,7 +1651,7 @@ drm_build_beta_binomial_spec <- function(
   if (any(is_sd_dpar)) {
     cli::cli_abort(c(
       "Random-effect scale formulae are not implemented for {.fn beta_binomial} models yet.",
-      "i" = "Start with fixed-effect denominator-aware formulas such as {.code bf(cbind(success, failure) ~ x, sigma ~ z)}."
+      "i" = "Use denominator-aware formulas such as {.code bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z)}; group-level scale models need separate recovery tests."
     ))
   }
   if (sum(dpars == "mu") != 1L) {
@@ -1686,6 +1699,13 @@ drm_build_beta_binomial_spec <- function(
   }
   mu_entry$rhs <- meta$rhs
 
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_beta_binomial_mu_random_terms(mu_re$terms)
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_beta_binomial_sigma_random_terms(sigma_re$terms)
+
   for (entry in list(mu_entry, sigma_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar)
   }
@@ -1693,7 +1713,11 @@ drm_build_beta_binomial_spec <- function(
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
 
-  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma)))
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    random_effect_vars(mu_re$terms)
+  ))
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
@@ -1731,6 +1755,7 @@ drm_build_beta_binomial_spec <- function(
   if (nrow(X_sigma) != length(response$successes)) {
     cli::cli_abort("Internal model-frame mismatch in beta-binomial model.")
   }
+  re_mu <- build_random_mu_structure(mu_re$terms, data_model)
 
   spec <- list(
     model_type = "beta_binomial",
@@ -1749,10 +1774,10 @@ drm_build_beta_binomial_spec <- function(
     ),
     model_frame = list(mu = mf_mu, sigma = mf_sigma),
     random = list(
-      mu = empty_random_mu_structure(nrow(data_model)),
+      mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(1L)),
+    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = empty_phylo_mu_structure()),
     denominator = response[c("success_name", "failure_name", "trials")],
     data = data_model,
@@ -1763,10 +1788,11 @@ drm_build_beta_binomial_spec <- function(
       response$successes,
       response$failures,
       X_mu,
-      X_sigma
+      X_sigma,
+      re_mu = re_mu
     ),
-    map = beta_binomial_map(),
-    random_names = NULL
+    map = beta_binomial_map(re_mu),
+    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -3807,6 +3833,78 @@ validate_positive_continuous_sigma_random_terms <- function(
     "Non-Gaussian {.code sigma} random effects are not implemented for {family_label}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary positive-continuous {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
+  ))
+}
+
+validate_beta_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") ||
+        !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only independent {.fn beta} {.code mu} random intercepts are implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use syntax like {.code bf(prop ~ x + (1 | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
+      "i" = "Beta random slopes, labelled covariance blocks, structured effects, scale random effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_beta_sigma_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "Non-Gaussian {.code sigma} random effects are not implemented for {.fn beta}.",
+    "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "This slice adds only ordinary {.fn beta} {.code mu} random intercepts on the logit-mean predictor; scale random effects need their own likelihood and recovery tests."
+  ))
+}
+
+validate_beta_binomial_mu_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  unsupported <- vapply(
+    terms,
+    function(term) {
+      !identical(term$type, "intercept") ||
+        !is.null(term$covariance_label)
+    },
+    logical(1L)
+  )
+  if (any(unsupported)) {
+    labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Only independent {.fn beta_binomial} {.code mu} random intercepts are implemented in this slice.",
+      "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+      "i" = "Use syntax like {.code bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z)} for counted successes out of known trials.",
+      "i" = "Beta-binomial random slopes, labelled covariance blocks, structured effects, scale random effects, zero-one inflation, and mixed bounded-response models remain planned until separate recovery tests exist."
+    ))
+  }
+  invisible(terms)
+}
+
+validate_beta_binomial_sigma_random_terms <- function(terms) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "Non-Gaussian {.code sigma} random effects are not implemented for {.fn beta_binomial}.",
+    "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
 }
 
@@ -8775,7 +8873,12 @@ gamma_ls_map <- function(
   lognormal_ls_map(re_mu = re_mu)
 }
 
-beta_ls_start <- function(y, X_mu, X_sigma) {
+beta_ls_start <- function(
+  y,
+  X_mu,
+  X_sigma,
+  re_mu = empty_random_mu_structure(length(y))
+) {
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
@@ -8790,7 +8893,8 @@ beta_ls_start <- function(y, X_mu, X_sigma) {
     beta_mu <- rep(0, ncol(X_mu))
     beta_mu[[1L]] <- stats::qlogis(min(max(mean(y), 1e-4), 1 - 1e-4))
   }
-  mu <- stats::plogis(as.vector(X_mu %*% beta_mu))
+  eta_mu <- as.vector(X_mu %*% beta_mu)
+  mu <- stats::plogis(eta_mu)
   ratio <- mean((y - mu)^2 / pmax(mu * (1 - mu), .Machine$double.eps))
   if (!is.finite(ratio) || ratio <= 0) {
     ratio <- 0.2
@@ -8799,6 +8903,12 @@ beta_ls_start <- function(y, X_mu, X_sigma) {
   sigma0 <- sqrt(ratio / (1 - ratio))
   beta_sigma <- rep(0, ncol(X_sigma))
   beta_sigma[[1L]] <- log(max(sigma0, 1e-4))
+  link_y <- stats::qlogis(pmin(pmax(y, 1e-4), 1 - 1e-4))
+  y_scale <- stats::sd(link_y)
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  mu_re_start <- beta_mu_re_start(link_y - eta_mu, re_mu, y_scale)
   c(
     list(
       beta_mu = beta_mu,
@@ -8809,9 +8919,9 @@ beta_ls_start <- function(y, X_mu, X_sigma) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -8828,11 +8938,52 @@ beta_ls_start <- function(y, X_mu, X_sigma) {
   )
 }
 
-beta_ls_map <- function() {
-  lognormal_ls_map()
+beta_mu_re_start <- function(resid, re_mu, y_scale) {
+  start <- gaussian_mu_re_start(resid, re_mu, y_scale)
+  if (re_mu$n_re == 0L) {
+    return(start)
+  }
+
+  u_mu <- numeric(re_mu$n_re)
+  for (k in seq_len(re_mu$n_terms)) {
+    design_value <- re_mu$value[, k]
+    group_index <- re_mu$index[, k]
+    moment <- stats::aggregate(
+      cbind(num = design_value * resid, den = design_value^2),
+      by = list(group = group_index),
+      FUN = sum
+    )
+    group_est <- ifelse(
+      moment$den > sqrt(.Machine$double.eps),
+      moment$num / moment$den,
+      0
+    )
+    sd_current <- exp(start$log_sd_mu[[k]])
+    if (!is.finite(sd_current) || sd_current <= 0) {
+      sd_current <- 1
+    }
+    u_start <- group_est / sd_current
+    u_start[!is.finite(u_start)] <- 0
+    u_start <- pmax(pmin(u_start, 2), -2)
+    u_mu[as.integer(moment$group)] <- u_start
+  }
+  start$u_mu <- u_mu
+  start
 }
 
-beta_binomial_start <- function(successes, failures, X_mu, X_sigma) {
+beta_ls_map <- function(
+  re_mu = empty_random_mu_structure(1L)
+) {
+  lognormal_ls_map(re_mu = re_mu)
+}
+
+beta_binomial_start <- function(
+  successes,
+  failures,
+  X_mu,
+  X_sigma,
+  re_mu = empty_random_mu_structure(length(successes))
+) {
   trials <- successes + failures
   beta_mu <- tryCatch(
     suppressWarnings(
@@ -8854,6 +9005,13 @@ beta_binomial_start <- function(successes, failures, X_mu, X_sigma) {
   names(beta_mu) <- colnames(X_mu)
   names(beta_sigma) <- colnames(X_sigma)
   beta_sigma[[1L]] <- log(0.35)
+  eta_mu <- as.vector(X_mu %*% beta_mu)
+  link_y <- stats::qlogis((successes + 0.5) / (trials + 1))
+  y_scale <- stats::sd(link_y)
+  if (!is.finite(y_scale) || y_scale <= 0) {
+    y_scale <- 1
+  }
+  mu_re_start <- beta_mu_re_start(link_y - eta_mu, re_mu, y_scale)
 
   c(
     list(
@@ -8865,9 +9023,9 @@ beta_binomial_start <- function(successes, failures, X_mu, X_sigma) {
       beta_zi = 0,
       theta_ord = 0,
       beta_sd_mu = 0,
-      u_mu = 0,
-      log_sd_mu = 0,
-      eta_cor_mu = 0,
+      u_mu = mu_re_start$u_mu,
+      log_sd_mu = mu_re_start$log_sd_mu,
+      eta_cor_mu = mu_re_start$eta_cor_mu,
       eta_cor_mu_sigma = 0,
       eta_cor_sigma = 0,
       u_sigma = 0,
@@ -8884,8 +9042,10 @@ beta_binomial_start <- function(successes, failures, X_mu, X_sigma) {
   )
 }
 
-beta_binomial_map <- function() {
-  beta_ls_map()
+beta_binomial_map <- function(
+  re_mu = empty_random_mu_structure(1L)
+) {
+  beta_ls_map(re_mu = re_mu)
 }
 
 poisson_start <- function(
@@ -10199,6 +10359,8 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "beta")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 10L,
       y = spec$y,
@@ -10214,7 +10376,7 @@ make_tmb_data <- function(spec) {
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -10226,16 +10388,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -10255,6 +10417,8 @@ make_tmb_data <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "beta_binomial")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 14L,
       y = spec$y,
@@ -10270,7 +10434,7 @@ make_tmb_data <- function(spec) {
       X_sigma = spec$X$sigma,
       X_nu = dummy_matrix,
       X_zi = dummy_matrix,
-      X_sd_mu = dummy_matrix,
+      X_sd_mu = sd_mu$X,
       has_sd_mu_model = 0L,
       X_sd_phylo = dummy_matrix,
       has_sd_phylo_model = 0L,
@@ -10282,16 +10446,16 @@ make_tmb_data <- function(spec) {
       X_rho12 = dummy_matrix,
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
-      n_mu_re_terms = 0L,
+      n_mu_re_terms = re_mu$n_terms,
       n_mu_re_cors = 0L,
-      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
-      mu_re_value = dummy_matrix,
-      mu_re_term = 0L,
-      mu_re_dpar = 0L,
-      mu_re_pos = 0L,
-      mu_re_cor_id = -1L,
-      mu_re_pair_index = -1L,
-      mu_re_sd_row = -1L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -11011,6 +11175,8 @@ split_tmb_sdpars <- function(par, spec) {
         "student",
         "lognormal",
         "gamma",
+        "beta",
+        "beta_binomial",
         "poisson",
         "nbinom2",
         "truncated_nbinom2"
@@ -11289,6 +11455,8 @@ split_tmb_random_effects <- function(par, spec) {
         "student",
         "lognormal",
         "gamma",
+        "beta",
+        "beta_binomial",
         "poisson",
         "nbinom2",
         "truncated_nbinom2"
