@@ -1947,7 +1947,8 @@ as the whole comprehensive simulation programme.
   warnings, errors, skipped rows, and elapsed time. This simulation
   infrastructure is separate from the later public direct-target
   `confint(method = "bootstrap")` route.
-- Slices 1289-1298 add the fixed-effect proportion artifacts for `beta()` and
+- Slices 1279-1288 add a core family completion map before more likelihood code.
+  Slices 1289-1298 add the fixed-effect proportion artifacts for `beta()` and
   `beta_binomial()` plus first-wave and manual Actions runner integration.
   Slices 1299-1308 add the fixed-effect positive-continuous artifacts for
   `lognormal()` and `Gamma(link = "log")` plus the matching first-wave and
@@ -1955,8 +1956,9 @@ as the whole comprehensive simulation programme.
   ordinal artifacts for `cumulative_logit()` plus the matching first-wave and
   manual Actions runner integration. The next implementation order is to decide
   between skew-normal implementation and deeper formal grids for already fitted
-  non-Gaussian lanes. Student-t `nu` is the only fitted shape lane; skew-normal,
-  skew-t, Tweedie, and generalized Gamma remain planned gates.
+  non-Gaussian lanes.
+  Student-t `nu` is the only fitted shape lane; skew-normal, skew-t, Tweedie,
+  and generalized Gamma remain planned gates.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the

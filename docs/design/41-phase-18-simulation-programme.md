@@ -758,3 +758,11 @@ errors, and elapsed time by surface before the raw manifest.
      The runner caps requested replicate and bootstrap workers at 10 and
      rejects nested multicore requests, so a bootstrap-heavy interval task
      cannot accidentally use two parallel layers at once.
+158. Slices 1279-1288 add the core family completion map in
+     `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`.
+     The map keeps the next work ordered by measurement process: close the
+     first-wave count story, add fixed-effect proportion artifacts, add
+     positive-continuous lognormal/Gamma artifacts, then decide whether ordinal
+     artifacts or skew-normal implementation should come next. It records that
+     fixed-effect Student-t `nu` is fitted and simulation-staged, while
+     skew-normal, skew-t, and Tweedie remain planned gates.

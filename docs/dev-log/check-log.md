@@ -39752,6 +39752,104 @@ git diff --check
   structured dependence.
 - `git diff --check` was clean.
 
+## 2026-05-25 - Phase 18 Current-State Revalidation Through Slices 909-1008
+
+Goal:
+
+- Rehydrate the crashed Phase 18 handoff, treat the older May 20 Slices 909-1008
+  notes as historical implementation evidence, and check whether the current
+  source still supports stopping at the broader focused validation gate.
+
+Current-state artifact check:
+
+- Confirmed the saved rendered HTML reports exist for:
+  `slice-909-first-wave-runner-nrep2-smoke`,
+  `slice-919-first-wave-runner-four-surface-smoke`,
+  `slice-929-first-wave-runner-five-surface-smoke`,
+  `slice-939-first-wave-runner-six-surface-smoke`,
+  `slice-949-first-wave-runner-six-surface-nrep2-smoke`,
+  `slice-959-interval-heavy-runner-smoke`,
+  `slice-969-interval-heavy-profile-smoke`, and
+  `slice-979-interval-heavy-bootstrap-smoke`.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = '^phase18-', reporter = 'summary')"
+```
+
+- Passed with exit code 0.
+- The current focused Phase 18 suite covered first-wave report staging,
+  interval-heavy staging, Student-t shape, bivariate residual `rho12`,
+  Poisson/NB2 random-effect surfaces, Poisson/NB2 q1 phylogenetic surfaces,
+  Gaussian random slopes, spatial `mu` slopes, meta-analysis, and simulation
+  infrastructure tests.
+
+Status answer recorded:
+
+- Ordinary non-zero-inflated Poisson/NB2 `mu` random intercepts and independent
+  numeric slopes are fitted and tested.
+- Ordinary NB2 log-`sigma` random intercepts are fitted and tested.
+- Ordinary Poisson/NB2 q=1 phylogenetic `mu` intercepts have smoke/formal
+  evidence, but remain narrower than broad non-Gaussian structural parity.
+- Structured non-Gaussian slopes, broader non-Gaussian structured effects,
+  zero-inflated or hurdle random-effect routes, mixed-response bivariate
+  non-Gaussian models, and most non-Gaussian random-effect covariance remain
+  planned or unsupported.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-current-state-revalidation-slices-909-1008.md`
+
+## 2026-05-25 - Slices 1279-1288 Phase 18 Core Family Completion Map
+
+Goal:
+
+- Record the next Phase 18 routing decision for counts, proportions, ordinary
+  continuous responses, positive continuous responses, ordinal responses, and
+  shape/skew families before adding more likelihood code.
+
+Changes:
+
+- Added
+  `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md` with the Slices
+  1279-1288 ledger row.
+- Updated `ROADMAP.md` with the next implementation order.
+- Added
+  `docs/dev-log/after-task/2026-05-25-phase18-core-family-completion-map-slices-1279-1288.md`.
+
+Status answer:
+
+- Counts are close for the first ordinary mixed-model story, but not complete
+  across all count data. Ordinary Poisson/NB2 `mu` random intercepts and
+  independent numeric slopes are fitted and staged; NB2 log-`sigma` random
+  intercepts are fitted and staged; Poisson/NB2 q=1 phylogenetic `mu` intercepts
+  have smoke/formal infrastructure. Zero-inflation random effects, hurdle random
+  effects, correlated count slopes, count spatial/animal/`relmat()` routes, and
+  structured count slopes remain planned or unsupported.
+- Fixed-effect `beta()` and `beta_binomial()` are fitted and have a Phase 18
+  ADEMP sheet, but they still need DGP/summariser/smoke/grid artifacts.
+- Fixed-effect lognormal and Gamma are fitted for positive continuous responses,
+  but they also need Phase 18 artifact lanes.
+- Fixed-effect Student-t `nu` is fitted and simulation-staged. Skew-normal and
+  skew-t are not fitted; they remain planned gates. `tau` is reserved only for a
+  future second shape parameter, not current syntax.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-25-phase18-core-family-completion-map-slices-1279-1288.md
+git diff --check
+```
+
+- `air format` completed without output.
+- `git diff --check` was clean.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phase18-core-family-completion-map-slices-1279-1288.md`
+
 ## 2026-05-25 - Slices 1289-1298 Phase 18 Proportion Fixed-Effect Artifacts
 
 Goal:
