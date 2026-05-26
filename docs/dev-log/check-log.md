@@ -1,6 +1,7 @@
 # Check Log
 
 Record meaningful development checks here.
+
 ## 2026-05-25 - Phase 18 First-Wave Summary Runner Revalidation Slices 899-908
 
 Goal: revalidate the reusable private first-wave summary smoke runner and its
@@ -1162,6 +1163,671 @@ Results:
   `2026-05-24 20:28:33 MDT -0600`.
 - Slices 656-668 remain outside this pass.
 - No files were staged or committed.
+
+## 2026-05-24 - Review-Lane Staging Manifest
+
+Goal: continue low-risk overnight follow-through by making the dirty-tree split
+audit actionable for later staging without staging or committing files.
+
+Roles: Ada turned the split audit into lane-level staging guidance. Grace
+checked that each lane has focused validation to rerun before staging. Fisher
+and Curie kept NB2 evidence lanes separate from the Ayumi/Santi developer
+handoff and validation-only notes. Rose marked shared files that need patch
+staging. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/dev-log/audits/2026-05-24-review-lane-staging-manifest.md`.
+- Added `docs/dev-log/after-task/2026-05-24-review-lane-staging-manifest.md`.
+
+Validation:
+
+```sh
+date '+%Y-%m-%d %H:%M:%S %Z %z'
+git status --short --branch
+git diff --name-only
+git ls-files --others --exclude-standard
+sed -n '1,120p' /Users/z3437171/.agents/skills/r-package-development/SKILL.md
+sed -n '1,120p' /Users/z3437171/Dropbox/Github\ Local/drmTMB/.agents/skills/after-task-audit/SKILL.md
+```
+
+Results:
+
+- Local clock check returned `2026-05-24 19:45:04 MDT -0600`.
+- The manifest now names candidate files for pkgdown/logo work, phylogenetic
+  direct-SD and `corpairs()` work, NB2 log-`sigma` evidence, NB2 phylogenetic q1
+  evidence, Ayumi/Santi developer handoff artifacts, and overnight
+  validation/process notes.
+- Shared files that need patch staging are explicitly listed.
+- No files were staged or committed.
+
+## 2026-05-24 - Overnight Process Guardrails
+
+Goal: record the process lesson from the heartbeat-driven overnight run after
+the requested Slices 556-605 were already validated.
+
+Roles: Ada updated the heartbeat instructions from completed slice work to
+low-risk follow-through. Rose recorded the process lesson. Grace checked that
+the update followed the current repo state and did not stage or commit files.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Updated `docs/dev-log/team-improvements.md` with an overnight revalidation
+  and dirty-tree split rule.
+- Added `docs/dev-log/after-task/2026-05-24-overnight-process-guardrails.md`.
+
+Validation:
+
+```sh
+date '+%Y-%m-%d %H:%M:%S %Z %z'
+git status --short --branch
+git diff --stat
+ls -lt docs/dev-log/recovery-checkpoints | head -8
+tail -160 docs/dev-log/team-improvements.md
+git diff -- docs/dev-log/team-improvements.md
+```
+
+Results:
+
+- Local clock check returned `2026-05-24 19:15:14 MDT -0600`.
+- The requested Slices 556-605 were already complete, so the heartbeat
+  automation was updated to continue only low-risk follow-through.
+- The process note now says to label overlapping slice ranges as
+  revalidation/current-state audits and to write a split audit before staging a
+  broad autonomous-run dirty tree.
+- No files were staged or committed.
+
+## 2026-05-24 - pkgdown Rendered Site Revalidation
+
+Goal: validate the rebuilt pkgdown site after the overnight validation notes and
+the existing pkgdown/CSS dirty-tree lane.
+
+Roles: Grace rebuilt the site and checked generated output. Rose scanned for
+stale NB2 promotion wording. Florence remained a watcher for the logo lane, but
+no callable browser tool was available for live visual inspection. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/dev-log/after-task/2026-05-24-pkgdown-rendered-site-revalidation.md`.
+
+Validation:
+
+```sh
+Rscript -e "pkgdown::build_site()"
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete|closed)|NB2.*q1.*coverage.*(now|passed|complete|closed)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|count covariance.*now' pkgdown-site -g '*.html'
+rg -n '556|578|579|605|hold_smoke_only|NB2 q1 formal|nbinom2_phylo_q1_formal_541_555|ordinary NB2 log-.*sigma.*random intercept|ordinary Poisson/NB2 q=1' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/source-map.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/count-nbinom2.html -g '*.html'
+find docs/dev-log/figure-audits/2026-05-24-home-logo -type f -maxdepth 1 -print -exec file {} \;
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site()` completed.
+- The rendered stale-promotion scan returned no hits.
+- The rendered positive scan found bounded NB2 q1, `hold_smoke_only`, ordinary
+  NB2 log-`sigma` random-intercept, and ordinary Poisson/NB2 q=1 wording.
+- Saved homepage logo screenshots exist at `2048 x 900` and `390 x 844`.
+- `git diff --check` was clean.
+
+## 2026-05-24 - Dirty-Tree Split Audit
+
+Goal: continue the overnight autonomous run after the requested Slices 556-605
+by mapping the broad dirty tree into reviewable lanes before any staging,
+committing, or additional implementation.
+
+Roles: Ada grouped the dirty tree into candidate review lanes. Grace checked
+that the split builds on the immediately preceding green validation. Fisher and
+Curie kept the NB2 simulation-evidence lanes separate from visual and protocol
+handoff work. Rose checked that the tree should not be committed as one
+undifferentiated change. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/dev-log/audits/2026-05-24-overnight-dirty-tree-split-audit.md`.
+- Added `docs/dev-log/after-task/2026-05-24-dirty-tree-split-audit.md`.
+
+Validation:
+
+```sh
+git status --short --branch
+git diff --name-status
+git ls-files --others --exclude-standard
+find inst/sim/results -maxdepth 3 -type f | sort | sed -n '1,160p'
+```
+
+The audit reused the immediately preceding green validation:
+
+```text
+devtools::test(): passed
+pkgdown::check_pkgdown(): no problems
+devtools::check(error_on = "never"): 0 errors, 0 warnings, 0 notes
+git diff --check: clean
+```
+
+Results:
+
+- The dirty tree is not one coherent commit.
+- Suggested lanes are pkgdown/logo polish, phylogenetic direct-SD and
+  `corpairs()` work, NB2 log-`sigma` random-intercept evidence, NB2
+  phylogenetic q1 evidence, Ayumi/Santi developer handoff artifacts, and
+  overnight validation/recovery notes.
+- No files were staged or committed.
+
+## 2026-05-24 - Phase 18 Validation Slices 579-605
+
+Goal: continue the requested overnight slice list by validating artifact
+schemas, report helpers, the full Phase 18 focused suite, full package tests,
+pkgdown topic coverage, and package check status.
+
+Roles: Ada kept the validation ladder ordered from focused helpers to package
+checks. Curie checked the simulation test suite. Fisher watched that simulation
+evidence stayed at execution and artifact validity rather than recovery
+claims. Grace owned `pkgdown` and `R CMD check`. Rose checked stale promotion
+wording and noted that these are revalidation entries for the requested slice
+list, not a renumbering of older May 19 slice reports. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/81-phase-18-validation-slices-579-605.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-validation-slices-579-605.md`.
+- Updated `docs/design/80-phase-18-shared-runner-migration-audit.md` to clarify
+  that the overnight 556-578 entry revalidates the requested slice list rather
+  than renumbering older Phase 18 ledgers.
+
+Validation:
+
+```sh
+Rscript -e "devtools::test(filter = 'phase18-(gaussian-ls-grid-writer|meta-v-grid-writer|count-mu-random-effect-grid-writer|nbinom2-sigma-random-effect|nbinom2-phylo-q1|sim-aggregate|sim-uncertainty|sim-interval-evidence)', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-(first-wave-artifact-status|first-wave-table-bundle|first-wave-summary-report|first-wave-summary-render-helper|first-wave-summary-smoke-runner|interval-heavy-summary-smoke-runner|actions-runner)', reporter = 'summary')"
+air format docs/design/80-phase-18-shared-runner-migration-audit.md docs/dev-log/after-task/2026-05-24-phase18-shared-runner-migration-slices-556-578.md docs/dev-log/check-log.md
+git diff --check
+Rscript -e "devtools::test(filter = '^phase18-', reporter = 'summary')"
+Rscript -e "devtools::test(reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check(error_on = 'never')"
+git status --short --branch
+git diff --check
+rg -n '556|578|579|605|shared runner|shared bounded replicate|formal recovery.*complete|coverage.*complete|promote_narrowly|broad NB2 structured.*now|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|count covariance.*now' docs/design/80-phase-18-shared-runner-migration-audit.md docs/dev-log/after-task/2026-05-24-phase18-shared-runner-migration-slices-556-578.md docs/dev-log/check-log.md docs/design/41-phase-18-simulation-programme.md NEWS.md ROADMAP.md inst/sim/README.md
+```
+
+Results:
+
+- Focused artifact/schema helper tests passed.
+- Higher-level report, first-wave, interval-heavy, and Actions runner tests
+  passed.
+- Full `^phase18-` focused validation passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check(error_on = "never")` completed in about 5m12s with 0
+  errors, 0 warnings, and 0 notes.
+- `git diff --check` was clean.
+- The stale-promotion scan found the new 556-578 notes and older historical
+  May 19 slice entries but no false current claim that NB2 q1 formal recovery
+  or coverage is complete, no `promote_narrowly` wording, and no broad NB2
+  structured-count promotion.
+
+## 2026-05-24 - Phase 18 Shared Runner Migration Slices 556-578
+
+Goal: resume the next Phase 18 slice lane after the NB2 phylogenetic q1 formal
+audit and determine whether Slices 556-578 need implementation or validation.
+
+Roles: Ada kept the work bounded to the current dirty branch and slice list.
+Boole checked the shared runner API rather than formula grammar. Curie checked
+test coverage for the runner and migrated surfaces. Fisher kept the simulation
+claim at execution-infrastructure evidence, not recovery or coverage evidence.
+Grace watched focused validation and recoverability. Rose checked that already
+implemented runner work was not duplicated. These were role perspectives, not
+spawned agents.
+
+Changes:
+
+- Added `docs/design/80-phase-18-shared-runner-migration-audit.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phase18-shared-runner-migration-slices-556-578.md`.
+
+Validation:
+
+```sh
+date '+%Y-%m-%d %H:%M:%S %Z %z'
+git status --short --branch
+git diff --stat
+Rscript -e "devtools::test(filter = 'phase18-sim-runner', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-(gaussian-ls-runner|meta-v-runner|poisson-mu-random-effect|nbinom2-mu-random-effect|nbinom2-sigma-random-effect|nbinom2-phylo-q1)', reporter = 'summary')"
+```
+
+Results:
+
+- Local clock check returned `2026-05-24 18:39:34 MDT -0600`; the overnight
+  stop target is therefore 4:00 AM MDT on May 25, 2026.
+- `phase18-sim-runner` passed.
+- The focused migrated-runner bundle passed for Gaussian location-scale,
+  `meta_V(V = V)`, Poisson `mu`, ordinary NB2 `mu`, NB2 `sigma`, and NB2
+  phylogenetic q1 simulation surfaces.
+- No likelihood, formula grammar, user-facing API, roxygen topic, or pkgdown
+  navigation changed in this block.
+
+## 2026-05-24 - Ayumi/Santi No-Real-Data Simulation Slices 1-5
+
+Goal: finish the first five Ayumi/Santi phylogenetic modeling slices using
+simulated data only, because the real prepared datasets are not in this
+repository.
+
+Roles: Ada kept the work tied to the protocol ladder. Boole checked that the
+new script uses existing `bf()` grammar and does not add formula syntax. Gauss
+and Noether kept q2 phylogenetic location correlation, q4 phylogenetic
+location-scale correlation, and residual `rho12` separate. Fisher treated the
+outputs as positive controls and diagnostics rather than a Monte Carlo
+performance study. Darwin and Pat checked that the artifacts answer the next
+applied workflow question. Grace checked parser/help/tests and local artifact
+generation. Rose checked unsupported-feature boundaries. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `tools/ayumi-santi-finish-sim-slices.R`.
+- Added `docs/design/79-ayumi-santi-no-real-data-sim-slices.md`.
+- Linked the slice-finish note from
+  `docs/design/76-ayumi-santi-phylo-model-improvement-path.md` and
+  `docs/design/77-ayumi-santi-protocol-formula-gallery.md`.
+- Wrote the simulated artifact bundle under
+  `docs/dev-log/ayumi-santi/sim-slices/`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-ayumi-santi-no-real-data-sim-slices.md`.
+
+Validation:
+
+```sh
+air format tools/ayumi-santi-finish-sim-slices.R docs/design/76-ayumi-santi-phylo-model-improvement-path.md docs/design/77-ayumi-santi-protocol-formula-gallery.md docs/design/79-ayumi-santi-no-real-data-sim-slices.md docs/dev-log/after-task/2026-05-24-ayumi-santi-no-real-data-sim-slices.md docs/dev-log/check-log.md
+Rscript --vanilla -e 'invisible(parse(file = "tools/ayumi-santi-finish-sim-slices.R")); cat("parse ok\n")'
+Rscript --vanilla tools/ayumi-santi-finish-sim-slices.R --help
+Rscript --vanilla tools/ayumi-santi-finish-sim-slices.R
+sed -n '1,120p' docs/dev-log/ayumi-santi/sim-slices/README.md
+sed -n '1,80p' docs/dev-log/ayumi-santi/sim-slices/q2-mini-grid-summary.csv
+sed -n '1,80p' docs/dev-log/ayumi-santi/sim-slices/univariate-plsm/summary.csv
+sed -n '1,80p' docs/dev-log/ayumi-santi/sim-slices/q4-positive-control/summary.csv
+sed -n '1,100p' docs/dev-log/ayumi-santi/sim-slices/split-fit-class-contrast/summary.csv
+rg -n 'class-specific.*implemented|implemented.*class-specific|posterior pooling.*implemented|Bayesian posterior pooling.*drmTMB|rho12.*phylogenetic correlation|phylogenetic correlation.*rho12|q4.*routine applied|routine applied.*q4|q4 derived intervals.*available|single-model lifestyle.*implemented|nest-habitat.*implemented|real Ayumi|real Santi|biological claim' docs/design/76-ayumi-santi-phylo-model-improvement-path.md docs/design/77-ayumi-santi-protocol-formula-gallery.md docs/design/79-ayumi-santi-no-real-data-sim-slices.md docs/dev-log/after-task/2026-05-24-ayumi-santi-no-real-data-sim-slices.md tools/ayumi-santi-finish-sim-slices.R docs/dev-log/ayumi-santi/sim-slices/README.md
+gh issue list --repo itchyshin/drmTMB --state open --search "Ayumi Santi simulation slices" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Ayumi Santi q4 split fit PLSM" --limit 20 --json number,title,state,url,labels
+Rscript -e "devtools::test(filter = 'phylo-gaussian', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The final script run wrote five simulated-only slice artifacts under
+  `docs/dev-log/ayumi-santi/sim-slices/`.
+- The q2 mini-grid ran three converged cells with `pdHess = TRUE`; largest
+  gradient was `0.000554`.
+- The univariate PLSM converged with `pdHess = TRUE`; truth `mu`-`sigma`
+  phylogenetic correlation was `0.70`, estimate was `0.893`, and gradient was
+  `0.000344`.
+- The q4 bivariate PLSM diagnostic positive control converged with
+  `pdHess = TRUE`, exported all six phylogenetic correlation rows, and had
+  gradient `0.00262`; location-location truth/estimate was `0.50`/`0.430`,
+  scale-scale was `0.55`/`0.564`, and residual `rho12` was `0.15`/`0.145`.
+- The split-fit class contrast converged for terrestrial, aquatic, and aerial
+  analogues with `pdHess = TRUE`; phylogenetic correlation truths/estimates
+  were `-0.75`/`-0.839`, `-0.20`/`-0.271`, and `0.65`/`0.648`.
+- The stale-claim scan returned only intentional boundary statements about no
+  biological claims, `rho12` not being a phylogenetic correlation, and q4
+  intervals remaining unavailable.
+- `pkgdown::build_site()` was not rerun because this slice changed developer
+  scripts, design notes, and dev-log artifacts, not pkgdown navigation or
+  user-facing reference pages.
+- GitHub issue searches returned no exact open issue for these local
+  simulation slices; no issue was opened or mutated from the mixed dirty
+  branch.
+- The focused `phylo-gaussian` test file passed, and `git diff --check` was
+  clean.
+- Recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-24-150036-codex-checkpoint.md`
+  records the local handoff. The checkpoint directory is gitignored.
+
+## 2026-05-24 - Ayumi/Santi q2 Objective 1 Positive Control
+
+Goal: simulate protocol-shaped species data and run the Objective 1 q2
+phylogenetic runner on a known-truth positive-control cell.
+
+Roles: Ada kept this as a small implementation-and-test slice. Boole checked
+that the simulated fit uses the same `mu1`/`mu2` q2 `phylo()` syntax as the
+runner. Gauss and Noether checked the data-generating covariance contract
+against the fitted extraction targets. Fisher kept this as one positive control
+rather than a Monte Carlo claim. Pat checked that the output names map to
+body-mass/reproductive-output protocol language. Grace checked script parsing,
+the runner call, and written artifacts. Rose checked that q4 and biological
+interpretation claims stay out. These were role perspectives, not spawned
+agents.
+
+Changes:
+
+- Added `tools/ayumi-santi-q2-positive-control.R`.
+- Added
+  `docs/design/78-ayumi-santi-q2-objective1-positive-control.md`.
+- Linked the positive-control note from
+  `docs/design/76-ayumi-santi-phylo-model-improvement-path.md`.
+- Linked the positive-control script from
+  `docs/design/77-ayumi-santi-protocol-formula-gallery.md`.
+- Wrote positive-control artifacts under
+  `docs/dev-log/ayumi-santi/q2-objective1/sim-positive-control/`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-ayumi-santi-q2-positive-control.md`.
+
+Validation:
+
+```sh
+air format tools/ayumi-santi-q2-positive-control.R tools/ayumi-santi-q2-objective1-runner.R
+Rscript --vanilla -e 'invisible(parse(file = "tools/ayumi-santi-q2-positive-control.R")); invisible(parse(file = "tools/ayumi-santi-q2-objective1-runner.R")); cat("parse ok\n")'
+Rscript --vanilla tools/ayumi-santi-q2-positive-control.R --help
+Rscript --vanilla tools/ayumi-santi-q2-positive-control.R
+Rscript -e "devtools::test(filter = 'phylo-gaussian', reporter = 'summary')"
+sed -n '1,80p' docs/dev-log/ayumi-santi/q2-objective1/sim-positive-control/runner-fit/fit-summary.csv
+sed -n '1,80p' docs/dev-log/ayumi-santi/q2-objective1/sim-positive-control/truth-vs-estimate.csv
+sed -n '1,120p' docs/dev-log/ayumi-santi/q2-objective1/sim-positive-control/runner-fit/check-rows.csv
+rg -n 'routine applied inference|full protocol.*routine|rho12.*phylogenetic|phylogenetic.*rho12|class-specific.*implemented|posterior pooling.*implemented|Monte Carlo|positive control|q2 Objective 1|q4' docs/design/76-ayumi-santi-phylo-model-improvement-path.md docs/design/77-ayumi-santi-protocol-formula-gallery.md docs/design/78-ayumi-santi-q2-objective1-positive-control.md docs/dev-log/after-task/2026-05-24-ayumi-santi-q2-positive-control.md tools/ayumi-santi-q2-positive-control.R tools/ayumi-santi-q2-objective1-runner.R
+gh issue list --repo itchyshin/drmTMB --state open --search "Ayumi Santi q2 positive control" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Objective 1 phylogenetic positive control" --limit 20 --json number,title,state,url,labels
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Ayumi/Santi q2 positive-control simulation" --next "Run Objective 1 runner with --dry-run true on prepared Santi mammal and avian data when data are available"
+```
+
+Results:
+
+- The positive-control script generated 220 species, a simulated ultrametric
+  tree, known phylogenetic and residual covariance, and prepared columns
+  `species`, `log_body_mass`, and `log_reproductive_output`.
+- The script called `tools/ayumi-santi-q2-objective1-runner.R`, which fit the
+  q2 Objective 1 model and wrote diagnostics.
+- The fit returned convergence code 0, `pdHess = TRUE`, finite fixed-effect
+  standard errors, maximum absolute gradient `5.91e-05`, and no boundary
+  warnings.
+- The focused `phylo-gaussian` test file passed.
+- Truth versus estimate:
+  phylogenetic `mu1`-`mu2` correlation `-0.55` vs `-0.673`;
+  residual `rho12` `0.15` vs `0.177`;
+  phylogenetic SDs `1.20` vs `1.277` and `1.00` vs `0.926`.
+- `check_drm()` reports expected notes about one observation per species; these
+  notes should remain visible for real protocol datasets.
+- GitHub issue searches returned no exact open issue for this positive control;
+  no issue was opened or mutated from the mixed dirty branch.
+- Recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-24-143015-codex-checkpoint.md`
+  records the current handoff target. The directory is gitignored.
+
+## 2026-05-24 - Ayumi/Santi q2 Objective 1 Runner
+
+Goal: make the next Ayumi/Santi phylogenetic slice runnable by adding a
+developer-only q2 Objective 1 validation harness for prepared data and a
+`phylo` tree.
+
+Roles: Ada kept the slice operational and separate from public package API.
+Boole checked that the runner constructs the same `mu1`/`mu2` q2 `phylo()`
+grammar used in the formula gallery. Gauss and Noether checked that the model
+keeps phylogenetic location correlation separate from residual `rho12` and does
+not open q4 syntax. Fisher kept the script focused on diagnostics before
+biological interpretation. Pat checked the command surface and dry-run output.
+Grace checked parse/help/temp-fit mechanics. Rose checked stale wording and
+issue overlap. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `tools/ayumi-santi-q2-objective1-runner.R`.
+- Linked the runner from
+  `docs/design/76-ayumi-santi-phylo-model-improvement-path.md`.
+- Linked the runner from
+  `docs/design/77-ayumi-santi-protocol-formula-gallery.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-ayumi-santi-q2-objective1-runner.md`.
+- Added recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-24-142024-codex-checkpoint.md`.
+
+Validation:
+
+```sh
+air format tools/ayumi-santi-q2-objective1-runner.R
+Rscript --vanilla tools/ayumi-santi-q2-objective1-runner.R --help
+Rscript --vanilla -e 'invisible(parse(file = "tools/ayumi-santi-q2-objective1-runner.R")); cat("parse ok\n")'
+Rscript --vanilla -e 'tmp <- tempfile("q2-runner-fit-"); dir.create(tmp); requireNamespace("ape", quietly = TRUE) || stop("ape missing"); set.seed(24); tree <- ape::stree(16, type = "balanced"); tree$tip.label <- paste0("sp", seq_along(tree$tip.label)); tree$edge.length <- rep(1, nrow(tree$edge)); dat <- data.frame(species = tree$tip.label, y1 = rnorm(16), y2 = rnorm(16)); data_path <- file.path(tmp, "dat.rds"); tree_path <- file.path(tmp, "tree.rds"); out <- file.path(tmp, "out"); saveRDS(dat, data_path); saveRDS(tree, tree_path); status <- system2("Rscript", c("--vanilla", "tools/ayumi-santi-q2-objective1-runner.R", "--data", data_path, "--tree", tree_path, "--species", "species", "--response1", "y1", "--response2", "y2", "--se", "false", "--output-dir", out), stdout = TRUE, stderr = TRUE); cat(paste(status, collapse = "\n"), "\n", sep = ""); if (file.exists(file.path(out, "fit-summary.csv"))) cat(readLines(file.path(out, "fit-summary.csv")), sep = "\n")'
+rg -n 'q4.*routine|routine.*q4|rho12.*phylogenetic|phylogenetic.*rho12|class-specific.*implemented|posterior pooling.*implemented|meta_gaussian\(|tau ~|rho ~|Santi|Ayumi|Objective 1|q2 Objective 1' docs/design/76-ayumi-santi-phylo-model-improvement-path.md docs/design/77-ayumi-santi-protocol-formula-gallery.md tools/ayumi-santi-q2-objective1-runner.R README.md ROADMAP.md NEWS.md vignettes docs/design --glob '!docs/design/76-ayumi-santi-phylo-model-improvement-path.md' --glob '!docs/design/77-ayumi-santi-protocol-formula-gallery.md'
+gh issue list --repo itchyshin/drmTMB --state open --search "Ayumi Santi q2 Objective 1 phylogenetic runner" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "PV2 locphylo Objective 1 phylogenetic" --limit 20 --json number,title,state,url,labels
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Ayumi/Santi q2 Objective 1 runner" --next "Run tools/ayumi-santi-q2-objective1-runner.R --dry-run true on prepared Santi mammal and avian Objective 1 data"
+```
+
+Results:
+
+- `--help` printed the required data, tree, species, response, RHS, dry-run,
+  and tree-handling options.
+- The script parsed successfully after formatting.
+- A temporary 16-species RDS fixture completed a no-SE q2 phylogenetic fit with
+  convergence code 0 and maximum absolute gradient `1.48e-06`; `pdHess` was
+  blank because `--se false` was used for the smoke.
+- The stale-wording scan found expected existing roadmap, NEWS, design, and
+  vignette mentions of Ayumi, `rho12`, q4, `tau`, and `meta_gaussian()`; it did
+  not expose a new contradiction in the runner docs.
+- GitHub issue searches returned no exact open issue for this runner; no issue
+  was opened or mutated from the mixed dirty branch.
+- No real Ayumi or Santi dataset was fitted in this slice.
+- The recovery checkpoint records the mixed dirty branch state and the next
+  dry-run command target.
+
+## 2026-05-24 - Ayumi and Santi Protocol Formula Gallery
+
+Goal: start the Ayumi/Santi improvement path by creating the no-fit formula
+gallery that marks protocol routes as runnable validation, diagnostic only,
+workflow only, or planned.
+
+Roles: Ada kept this as Phase 1 planning rather than a model-run claim. Boole
+checked formula grammar and placeholder status. Gauss and Noether kept q2,
+q4, `sigma`, and `rho12` separated. Fisher marked q4 and class-specific
+covariance as validation-gated. Pat checked that Ayumi and Santi can see what
+to fit first. Rose checked planned features and stale overclaims. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/77-ayumi-santi-protocol-formula-gallery.md`.
+- Linked the gallery from
+  `docs/design/76-ayumi-santi-phylo-model-improvement-path.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-ayumi-santi-protocol-formula-gallery.md`.
+
+Validation:
+
+```sh
+rg -n "complete cases|bivariate Gaussian uses complete cases|rho12|phylo\\(1 \\| p \\| species|sd1\\(species, level|derived_interval_unavailable|tree-loop|posterior pooling|meta_known_V" docs/design README.md ROADMAP.md vignettes tests/testthat/test-biv-gaussian.R tests/testthat/test-phylo-gaussian.R
+rg -n 'prune_tree_to_species|match_data_to_tree|exported `drmTMB` functions|Status:|Planned feature|Diagnostic only|Runnable validation|Workflow only' docs/design/77-ayumi-santi-protocol-formula-gallery.md
+rg -n 'routine applied inference|full protocol.*routine|rho12.*phylogenetic|phylogenetic.*rho12|class-specific.*implemented|posterior pooling.*implemented|meta_gaussian\(|tau ~|rho ~' docs/design/76-ayumi-santi-phylo-model-improvement-path.md docs/design/77-ayumi-santi-protocol-formula-gallery.md README.md ROADMAP.md NEWS.md vignettes docs/design --glob '!docs/design/76-ayumi-santi-phylo-model-improvement-path.md' --glob '!docs/design/77-ayumi-santi-protocol-formula-gallery.md'
+gh issue list --repo itchyshin/drmTMB --state open --search "Ayumi Santi phylogenetic protocol formula" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "phylogenetic location scale q4 Ayumi Santi" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- The gallery records mammal and avian Objective 1 q2 formulas as runnable
+  validation targets, q4 Objective 2 formulas as diagnostic-only targets,
+  lifestyle and nest-habitat split fits as workflow-only targets, and
+  class-specific covariance, partial-response marginalization, predictor-
+  dependent q4 correlations, q4 derived intervals, and Bayesian tree pooling as
+  planned or deferred.
+- Helper names such as `prune_tree_to_species()` and `match_data_to_tree()` are
+  labelled as analysis-script placeholders, not exported `drmTMB` functions.
+- GitHub issue searches returned no exact open issue for this gallery or q4
+  validation path; no issue was opened or mutated from the mixed dirty branch.
+- No R models were fitted in this slice.
+
+## 2026-05-24 - Ayumi and Santi Phylogenetic Improvement Path
+
+Goal: read the three supplied protocol PDFs and create a clear staged path for
+the Ayumi and Santi phylogenetic model improvements.
+
+Roles: Ada mapped the protocols onto the package surface. Boole checked formula
+grammar boundaries. Gauss and Noether checked that q2, q4, `sigma`, and
+`rho12` were not collapsed into one covariance story. Fisher marked the
+validation ladder before applied claims. Pat kept the first deliverable as a
+formula gallery and applied report, not a public tutorial. Rose checked the
+plan against the existing roadmap and validation-debt language. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/76-ayumi-santi-phylo-model-improvement-path.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-ayumi-santi-phylo-improvement-path.md`.
+- Separated the immediate q2 Objective 1 and univariate PLSM validation routes
+  from the higher-risk q4, class-specific covariance, missing-response, and
+  tree-pooling feature lanes.
+
+Validation:
+
+```sh
+pdfinfo /Users/z3437171/Desktop/dis_reg_models/Avian_co_scale__protocol_.pdf
+pdfinfo /Users/z3437171/Desktop/dis_reg_models/Mammalian_location_co_scale_trade_offs_protocol.pdf
+pdfinfo /Users/z3437171/Desktop/dis_reg_models/Pre_registration_for_ecogeographic_rules.pdf
+pdftotext -layout /Users/z3437171/Desktop/dis_reg_models/Avian_co_scale__protocol_.pdf tmp/pdf-extract/avian-co-scale.txt
+pdftotext -layout /Users/z3437171/Desktop/dis_reg_models/Mammalian_location_co_scale_trade_offs_protocol.pdf tmp/pdf-extract/mammalian-location-co-scale.txt
+pdftotext -layout /Users/z3437171/Desktop/dis_reg_models/Pre_registration_for_ecogeographic_rules.pdf tmp/pdf-extract/ecogeographic-prereg.txt
+rg -n "Objective 1|Objective 2|Objective 3|Modelling framework|Bivariate PLSM|Model fitting strategy|phylogenetic|location|scale|correlation" tmp/pdf-extract
+rg -n "sd\\(|sd1\\(|sd2\\(|corpair|rho12|phylo\\(|q=4|Ayumi|Santi|location-scale" ROADMAP.md docs/design vignettes README.md NEWS.md
+```
+
+Results:
+
+- The avian and mammalian protocols share a q2 location, q4 location-scale, and
+  class-specific covariance ladder.
+- The ecogeographic preregistration makes univariate phylogenetic
+  location-scale models the primary species-level route and treats bivariate
+  PLSMs and family-level slope synthesis as complementary analyses.
+- No R models were fitted in this planning slice; the next validation step is
+  the q2 Objective 1 applied fit on a representative tree.
+
+## 2026-05-24 - Phylogenetic Direct-SD and Corpair Combination
+
+Goal: finish the Lane 1 checkpoint task by allowing bivariate Gaussian q=2
+phylogenetic direct-SD formulas to combine with predictor-dependent
+phylogenetic `corpair()` regression, while moving preferred examples from
+`sd_phylo*()` to `sd*(_, level = "phylogenetic")`.
+
+Roles: Ada kept the task on the checkpoint lane and avoided reverting the
+pre-existing NB2/Phase 18 dirty work. Boole checked the formula grammar and
+reserved future levels. Gauss and Noether checked the TMB loading transform and
+R-side random-effect extraction transform. Fisher checked the recovery test and
+boundary claims. Pat checked deprecated-spelling guidance and compatibility.
+Grace ran focused tests, pkgdown, and full package check. Rose ran stale-wording
+and issue-overlap scans. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `level = "phylogenetic"` support to `sd()`, `sd1()`, and `sd2()`
+  direct-SD formula left-hand sides.
+- Deprecated `sd_phylo()`, `sd_phylo1()`, and `sd_phylo2()` as formula
+  spellings while keeping them as fitted compatibility aliases.
+- Removed the bivariate Gaussian guard that blocked phylogenetic `corpair()`
+  regression beside bivariate phylogenetic direct-SD formulas.
+- Updated the bivariate q=2 phylogenetic TMB branch and R extractor transform so
+  direct-SD species surfaces multiply the same predictor-dependent `corpair()`
+  two-field loading transform.
+- Kept `level = "spatial"`, `level = "animal"`, and `level = "relmat"`
+  direct-SD formulas as planned-but-not-implemented routes.
+- Updated formula grammar, likelihood, direct-SD, correlation-pair, readiness,
+  source-map, roadmap, NEWS, reference, and phylogenetic tutorial prose.
+- Added
+  `docs/dev-log/after-task/2026-05-24-phylo-direct-sd-corpair-combination.md`
+  and updated `docs/dev-log/team-improvements.md`.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/parse-formula.R R/random-effect-scale-formulas.R R/methods.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-biv-gaussian.R tests/testthat/test-check-drm.R tests/testthat/test-control.R tests/testthat/test-profile-targets.R README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/18-random-effect-scale-models.md docs/design/20-coscale-correlation-pairs.md vignettes/which-scale.Rmd vignettes/phylogenetic-spatial.Rmd
+air format R/check.R docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(filter = 'phylo-gaussian', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'profile-targets|biv-gaussian|check-drm|control', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'gaussian-random-effect-scale|gaussian-location-scale', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phylo-gaussian|profile-targets|biv-gaussian|check-drm|control|gaussian-random-effect-scale|gaussian-location-scale', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site(preview = FALSE)"
+rg -n 'Do not combine phylogenetic .*corpair.*sd_phylo|current implemented.*sd_phylo|sd_phylo\(species\) ~|sd_phylo1\(species\) ~|sd_phylo2\(species\) ~|direct `sd_phylo|`sd_phylo\(species\)` \| Implemented|direct `sd_phylo\*\(\)`' README.md ROADMAP.md NEWS.md docs/design vignettes R man pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles pkgdown-site/reference -g '!*.json'
+rg -n 'sd\(species, level = "phylogenetic"\)|sd1\(species, level = "phylogenetic"\)|sd2\(species, level = "phylogenetic"\)|deprecated `sd_phylo|deprecated compatibility|compatibility alias' R/check.R man/check_drm.Rd docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md pkgdown-site/reference/check_drm.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-models.html
+gh issue list --repo itchyshin/drmTMB --state open --search "sd_phylo corpair" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "direct-SD corpair" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "level phylogenetic sd" --limit 20 --json number,title,state,url,labels
+git diff --check
+Rscript -e "devtools::check(error_on = 'never')"
+```
+
+Results:
+
+- Focused tests for phylogenetic Gaussian models, bivariate Gaussian models,
+  profile targets, diagnostics, controls, Gaussian direct-SD models, and
+  Gaussian location-scale models passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` completed and rebuilt the changed
+  reference and article pages.
+- Stale-wording scans found old `sd_phylo*()` spellings only where they are
+  explicitly labelled deprecated compatibility.
+- Issue searches found broad issues #31, #5, #147, and #58, but no exact open
+  issue for this syntax/likelihood combination; no issue was mutated from the
+  dirty local branch.
+- `git diff --check` was clean.
+- `devtools::check(error_on = "never")` completed in 5m35.3s with 0 errors,
+  0 warnings, and 0 notes.
+
+## 2026-05-24 - pkgdown Home Logo Scale
+
+Goal: make the pkgdown homepage hex logo closer to the gllvmTMB homepage scale
+and stop the top of the hex from reading as clipped by the fixed navbar.
+
+Roles: Ada kept the change to one CSS presentation slice. Florence checked
+scale, composition, and clipping against the supplied screenshots. Pat checked
+the narrow layout. Grace rebuilt pkgdown, checked metadata, and saved rendered
+evidence. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Increased the wide-page fixed-navbar clearance in `pkgdown/extra.css` from
+  `6rem` to `8rem`.
+- Added a homepage-specific logo rule:
+  `width: clamp(220px, 18vw, 260px)` with a `max-width: min(42%, 260px)` cap.
+- Increased the homepage mobile logo cap to `132px` and centered it on narrow
+  screens.
+- Added
+  `docs/dev-log/after-task/2026-05-24-pkgdown-home-logo-scale.md`.
+- Saved rendered evidence under
+  `docs/dev-log/figure-audits/2026-05-24-home-logo/`.
+
+Validation:
+
+```sh
+Rscript -e "pkgdown::build_site(preview = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+rg -n 'margin-top: 8rem|width: clamp\(220px, 18vw, 260px\)|max-width: min\(42%, 260px\)|max-width: 132px|width: 132px' pkgdown/extra.css pkgdown-site/extra.css pkgdown-site/dev/extra.css
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-desktop --window-size=2048,900 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/desktop.png file:///Users/z3437171/Dropbox/Github%20Local/drmTMB/pkgdown-site/index.html
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --headless --disable-gpu --no-first-run --user-data-dir=/tmp/drmtmb-chrome-home-logo-mobile --window-size=390,844 --screenshot=docs/dev-log/figure-audits/2026-05-24-home-logo/mobile.png file:///Users/z3437171/Dropbox/Github%20Local/drmTMB/pkgdown-site/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site(preview = FALSE)` completed and copied the updated CSS
+  into the generated site.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The CSS propagation scan found the new desktop clearance, homepage logo size,
+  and mobile caps in source and generated CSS.
+- The desktop screenshot shows the larger homepage hex fully below the navbar
+  with top clearance.
+- The mobile screenshot keeps the logo centered above the title without
+  logo-title collision.
+- `git diff --check` was clean.
 
 ## 2026-05-24 - NB2 Phylogenetic q1 Formal Audit Slices 541-555
 
@@ -40202,6 +40868,144 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-phase18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
 
+## 2026-05-25 - Cross-Repo Actions Cadence Checkpoint
+
+Goal:
+
+- Resume after a stream failure, compare current `drmTMB` Actions usage with
+  local `gllvmTMB` and `symbolizer` habits, and record the next process rule
+  before more Phase 18 implementation work.
+
+Changes:
+
+- Wrote recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-25-070721-codex-checkpoint.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-25-cross-repo-actions-cadence-checkpoint.md`.
+- Updated `docs/dev-log/team-improvements.md` with the Actions cadence rule.
+- Created branch `codex/nb2-poisson-structured-gates-actions`, pushed it to
+  origin, and opened draft PR #324 for the two already committed NB2/Poisson
+  structured-gate commits.
+- Manually dispatched `R-CMD-check` on the pushed ref.
+
+Evidence:
+
+- `drmTMB` branch `codex/non-gaussian-q1-planning-1-10` is ahead of its remote
+  by two commits and has a broad dirty tree; no open `drmTMB` PR exists.
+- The latest visible `drmTMB` `R-CMD-check`, `pkgdown`, and manual Phase 18
+  runs on `main` were successful on 2026-05-24, before the current local
+  uncommitted proportion lane.
+- `gllvmTMB` PR #257 is open and has successful Ubuntu, macOS, and Windows
+  `R-CMD-check` jobs from 2026-05-25.
+- `symbolizer` has no open PR, but recent `pkgdown` and Pages deployments on
+  2026-05-25 were successful from push-triggered publication work.
+
+Decision:
+
+- Use `gllvmTMB`'s PR-gated Actions cadence as the default for `drmTMB` package
+  work.
+- Use `symbolizer`'s push-to-Pages cadence only as a narrow publication lesson,
+  not as a substitute for PR checks.
+- For the current Phase 18 lane, split the dirty tree, stage one reviewable
+  lane, push it, open or update a PR, wait for `R-CMD-check`, and manually
+  dispatch `phase18-simulation-grid.yaml` on the pushed ref only when the lane
+  changes Phase 18 runner behavior or needs remote artifact evidence.
+- PR #324 is draft and merge-conflicted against `main`, so its green manual
+  Actions run is necessary but not sufficient for merge.
+
+Validation:
+
+```sh
+git status --short --branch
+git diff --stat
+gh pr list --repo itchyshin/drmTMB --state open --json number,title,headRefName,baseRefName,url,statusCheckRollup
+gh run list --repo itchyshin/drmTMB --workflow R-CMD-check.yaml --limit 8 --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,workflowName,createdAt,url
+gh run list --repo itchyshin/drmTMB --workflow pkgdown.yaml --limit 8 --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,workflowName,createdAt,url
+gh pr list --repo itchyshin/gllvmTMB --state open --json number,title,headRefName,baseRefName,url,statusCheckRollup
+gh run list --repo itchyshin/gllvmTMB --limit 10 --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,workflowName,createdAt,url
+gh pr list --repo itchyshin/symbolizer --state open --json number,title,headRefName,baseRefName,url,statusCheckRollup
+gh run list --repo itchyshin/symbolizer --limit 10 --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,workflowName,createdAt,url
+Rscript tools/codex-checkpoint.R --goal "resume Phase 18 proportion artifact lane and cross-repo Actions cadence" --next "record the cross-repo Actions cadence lesson, then split/stage the Phase 18 dirty tree into reviewable PRs"
+git switch -c codex/nb2-poisson-structured-gates-actions
+git push -u origin codex/nb2-poisson-structured-gates-actions
+gh pr create --draft --repo itchyshin/drmTMB --base main --head codex/nb2-poisson-structured-gates-actions --title "Consolidate NB2 and Poisson structured gates"
+gh workflow run R-CMD-check.yaml --repo itchyshin/drmTMB --ref codex/nb2-poisson-structured-gates-actions
+gh run watch 26402265076 --repo itchyshin/drmTMB --exit-status --interval 20
+git worktree add --detach /tmp/drmTMB-pr324-mergecheck origin/codex/nb2-poisson-structured-gates-actions
+git merge --no-commit --no-ff origin/main
+```
+
+Results:
+
+- Recovery checkpoint was written successfully.
+- `drmTMB` open-PR query returned `[]`.
+- Sister-repo queries found `gllvmTMB` PR #257 with green three-platform
+  `R-CMD-check` and `symbolizer`'s recent green pkgdown/Pages publication runs.
+- Draft PR #324 was opened:
+  <https://github.com/itchyshin/drmTMB/pull/324>.
+- Manual `R-CMD-check` run 26402265076 passed on Ubuntu, macOS, and Windows:
+  <https://github.com/itchyshin/drmTMB/actions/runs/26402265076>.
+- The temporary merge check found conflicts in the Phase 18 workflow, NEWS,
+  ROADMAP, validation/readiness ledgers, check log, simulation README/actions
+  runner files, `pkgdown/extra.css`, and `vignettes/source-map.Rmd`.
+- No likelihood, formula grammar, public API, roxygen topic, simulation DGP,
+  runner code, or pkgdown site output changed.
+- The newer local proportion/process files remain uncommitted and are not part
+  of PR #324.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-cross-repo-actions-cadence-checkpoint.md`
+
+## 2026-05-25 - Phylogenetic direct-SD public syntax cleanup
+
+Goal:
+
+- Remove stale user-facing `sd_phylo*()` examples from the phylogenetic
+  tutorials and status tables so new readers see the preferred
+  `sd(..., level = "phylogenetic")`, `sd1(..., level = "phylogenetic")`, and
+  `sd2(..., level = "phylogenetic")` formulas.
+
+Changes:
+
+- Updated `README.md`, `vignettes/phylogenetic-models.Rmd`,
+  `vignettes/phylogenetic-spatial.Rmd`, `vignettes/which-scale.Rmd`,
+  `vignettes/implementation-map.Rmd`, `vignettes/drmTMB.Rmd`,
+  `vignettes/structural-dependence.Rmd`, and `vignettes/model-map.Rmd` to teach
+  the generic level-targeted direct-SD syntax on public learning surfaces.
+- Left historical after-task notes, compatibility NEWS entries, and design-doc
+  compatibility notes intact where they explicitly describe old spellings as
+  deprecated aliases rather than preferred syntax.
+
+Evidence:
+
+```sh
+rg -n 'sd_phylo\(|sd_phylo1\(|sd_phylo2\(|sd_phylo\*' README.md vignettes docs/design docs/dev-log/check-log.md NEWS.md
+air format README.md vignettes/phylogenetic-models.Rmd vignettes/phylogenetic-spatial.Rmd vignettes/which-scale.Rmd vignettes/implementation-map.Rmd vignettes/drmTMB.Rmd vignettes/structural-dependence.Rmd vignettes/model-map.Rmd
+Rscript -e "pkgdown::build_article('phylogenetic-models', new_process = FALSE)"
+rg -n 'sd_phylo\(|sd_phylo1\(|sd_phylo2\(|sd_phylo\*' pkgdown-site/articles/phylogenetic-models.html
+rg -n 'sd\(species, level = "phylogenetic"\)|sd1\(species, level = "phylogenetic"\)|sd2\(species, level = "phylogenetic"\)' pkgdown-site/articles/phylogenetic-models.html
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "sd_phylo" --limit 10 --json number,title,state,url
+```
+
+Results:
+
+- The rendered local `pkgdown-site/articles/phylogenetic-models.html` row now
+  shows `sd(species, level = "phylogenetic") ~ z`,
+  `sd1(species, level = "phylogenetic") ~ z1`, and
+  `sd2(species, level = "phylogenetic") ~ z2`.
+- Remaining `sd_phylo*()` hits are confined to NEWS/design/check-log
+  compatibility or historical notes, not the current public tutorial examples
+  patched in this cleanup.
+- Open-issue search for `sd_phylo` found broad issues #31 and #147; neither
+  needed a comment for this narrow stale-wording fix.
+- No code, likelihood, parser, roxygen, or formula-grammar behavior changed.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-phylogenetic-direct-sd-public-syntax-cleanup.md`
+
 ## 2026-05-25 - Slices 1299-1308 Phase 18 Positive-Continuous Fixed-Effect Artifacts
 
 Goal:
@@ -40379,3 +41183,60 @@ git diff --check
 - The workflow YAML parsed successfully.
 - The `ordinal_fixed_effect` Actions dry-run printed the expected plan.
 - `git diff --check` was clean.
+
+## 2026-05-25 - Resume Staging Manifest Addendum
+
+Goal:
+
+- Resume from the latest Phase 18 handoff by checking the current dirty tree
+  and bringing the review-lane staging manifest up to date before any staging,
+  commit, branch sync, or new feature work.
+
+Changes:
+
+- Updated `docs/dev-log/audits/2026-05-24-review-lane-staging-manifest.md`
+  with a May 25 resume addendum.
+- Added Lane G for first-wave summary and runner infrastructure.
+- Added Lane H for current-state revalidation and the core-family completion
+  map.
+- Added Lane I for fixed-effect proportion, positive-continuous, and ordinal
+  artifact lanes.
+- Added Lane J for phylogenetic direct-SD public syntax cleanup.
+- Added `docs/dev-log/after-task/2026-05-25-resume-staging-manifest-addendum.md`.
+- Wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-25-201134-codex-checkpoint.md`.
+
+Branch state:
+
+- The checkout is still on `codex/nb2-poisson-structured-gates-actions`.
+- The local branch is behind its upstream by 13 commits.
+- The dirty tree should not be pulled, merged, rebased, or pushed until the
+  dirty work is committed into review lanes or intentionally stashed by the
+  project owner.
+
+Validation:
+
+```sh
+git status --short --branch
+git log --oneline --left-right --cherry-pick HEAD...@{upstream}
+git diff --check
+rg -n "May 25 Resume Addendum|Lane G:|Lane H:|Lane I:|Lane J:" docs/dev-log/audits/2026-05-24-review-lane-staging-manifest.md
+sed -n '180,430p' docs/dev-log/audits/2026-05-24-review-lane-staging-manifest.md
+Rscript tools/codex-checkpoint.R --goal "resume Phase 18 dirty-tree staging manifest" --next "stage one review lane from docs/dev-log/audits/2026-05-24-review-lane-staging-manifest.md and rerun that lane's focused checks"
+```
+
+Results:
+
+- `git status --short --branch` confirmed the branch and large dirty tree.
+- `git log --oneline --left-right --cherry-pick HEAD...@{upstream}` showed 13
+  upstream-only commits and no local committed-only lines.
+- `git diff --check` completed without output after the manifest addendum.
+- The manifest scan found the May 25 addendum and Lanes G-J.
+- The recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-05-25-201134-codex-checkpoint.md`.
+- No package tests were run because this was a staging-guide and dev-log update
+  only; each lane now names the focused checks to rerun before staging.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-25-resume-staging-manifest-addendum.md`

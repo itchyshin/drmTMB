@@ -1923,8 +1923,10 @@ as the whole comprehensive simulation programme.
 ## Phase 18: Comprehensive Simulation, Power, Accuracy, and Coverage Evidence
 
 - Status: staged. The reusable simulation infrastructure is partly
-  implemented locally, while broad operating-characteristic grids and public
-  bootstrap intervals remain planned.
+  implemented locally, while broad operating-characteristic grids remain
+  planned. The private Phase 18 bootstrap artifact path is separate from the
+  limited public direct-target `confint(..., method = "bootstrap")` route; it
+  is not a broad public bootstrap interval surface.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

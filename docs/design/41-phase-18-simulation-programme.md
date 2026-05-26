@@ -611,8 +611,10 @@ errors, and elapsed time by surface before the raw manifest.
 116. Slices 639-668 rerun focused Phase 18 tests, full package tests, pkgdown,
      and package checks after the closure-aware migration.
 117. Slices 669-678 synchronize the roadmap and simulation programme text with
-     the implemented bounded-runner status, while keeping public bootstrap
-     intervals and PSOCK support out of the implemented surface.
+     the implemented bounded-runner status. The private Phase 18 bootstrap
+     artifact path stays separate from the limited public direct-target
+     `confint(..., method = "bootstrap")` route, and PSOCK support stays out of
+     the package simulation helpers.
 118. Slices 679-688 forward bounded runner settings through the first grid and
      count-gallery wrappers, add separate bootstrap backend settings for
      Student-t shape and bivariate residual `rho12`, and record bootstrap
@@ -766,3 +768,25 @@ errors, and elapsed time by surface before the raw manifest.
      artifacts or skew-normal implementation should come next. It records that
      fixed-effect Student-t `nu` is fitted and simulation-staged, while
      skew-normal, skew-t, and Tweedie remain planned gates.
+159. Slices 1289-1298 add the fixed-effect proportion artifact lane in
+     `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`.
+     The lane adds DGP, summariser, smoke runner, grid writer, first-wave
+     runner inclusion, and a manual `proportion_fixed_effect` Actions task for
+     `beta()` and `beta_binomial()`, while keeping exact 0/1 boundary mass,
+     `zoi`/`coi`, bounded-response random effects, structured effects, and
+     mixed-response bounded models in the failure ledger.
+160. Slices 1299-1308 add the fixed-effect positive-continuous artifact lane in
+     `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`.
+     The lane adds DGP, summariser, smoke runner, grid writer, first-wave
+     runner inclusion, and a manual `positive_continuous_fixed_effect` Actions
+     task for `lognormal()` and `Gamma(link = "log")`, while keeping Tweedie,
+     generalized Gamma, positive-response random effects, structured effects,
+     known covariance, and mixed-response positive-continuous models outside
+     the fitted artifact claim.
+161. Slices 1309-1318 add the fixed-effect ordinal artifact lane in
+     `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md`.
+     The lane adds DGP, summariser, smoke runner, grid writer, first-wave
+     runner inclusion, and a manual `ordinal_fixed_effect` Actions task for
+     `cumulative_logit()`, while keeping ordinal random effects, scale or
+     discrimination formulas, bivariate ordinal, known-covariance ordinal, and
+     mixed-response ordinal models outside the fitted artifact claim.
