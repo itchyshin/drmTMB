@@ -801,3 +801,9 @@ errors, and elapsed time by surface before the raw manifest.
      NB2 q1 at `hold_smoke_only` until the 500-replicate shards are audited;
      and names Slice D choices without adding COM-Poisson, Tweedie, zero-one
      beta, skew-normal, or new random-effect syntax.
+163. Slice D1 audits the completed 16-shard NB2 q1 formal grid from GitHub
+     Actions. The artifacts contain 288 unique formal condition combinations,
+     144,000 manifest rows, 500 rows per global shard-cell, and all expected
+     CSV artifact families. The result remains `hold_smoke_only` because direct
+     `log_sd_phylo` profile intervals are boundary-sensitive and low-count,
+     low-overdispersion cells still show fixed-`sigma` recovery problems.

@@ -73,10 +73,12 @@ confounded.
    and `Gamma(link = "log")` as completed by Slices 1299-1308.
 4. Treat the fixed-effect ordinal artifact lane for `cumulative_logit()` as
    completed by Slices 1309-1318.
-5. Only then choose one Slice D lane: the NB2 q1 formal shard audit, a
-   Student-t/skew-normal shape decision, a zero-one bounded-response design
-   gate, a Tweedie fixed-effect design gate, or a later count-family design
-   gate such as Conway-Maxwell-Poisson.
+5. Treat the NB2 q1 formal shard audit as completed but held: the 16-shard
+   500-replicate artifact set exists, but profile and fixed-`sigma` diagnostics
+   block promotion.
+6. Choose the next Slice D lane from a Student-t/skew-normal shape decision, a
+   zero-one bounded-response design gate, a Tweedie fixed-effect design gate,
+   or a later count-family design gate such as Conway-Maxwell-Poisson.
 
 This order gives users broad measurement-process coverage before the package
 adds higher-risk covariance, inflation-random-effect, or skew-family syntax.

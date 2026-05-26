@@ -141,7 +141,25 @@ formal condition grid. They also show that two-sided profile intervals at
 `sd_phylo = 0` are usually boundary failures and that fixed `sigma` can be
 weakly identified in low-count, low-overdispersion cells.
 
-The next compute step is the full 500-replicate formal grid, preferably from a
-clean pushed branch or manual Actions dispatch. Its audit should preserve the
-profile failures, warning rows, Hessian rows, and grouped comparator summaries
-instead of filtering them out before computing coverage.
+The later full-shard follow-up completed that 500-replicate formal grid through
+manual Actions dispatch. Its audit preserved the profile failures, warning
+rows, Hessian rows, and grouped comparator summaries instead of filtering them
+out before computing coverage.
+
+## Full Shard Follow-Up
+
+The later 16-shard `nbinom2_phylo_q1_formal` dispatch from `main` at commit
+`2754e536` did run to completion. The artifact audit downloaded the 16
+successful shard archives, confirmed all expected CSV artifact families, and
+merged them using a global shard-cell key rather than the local per-shard
+`cell_id` labels.
+
+The full artifact set has 288 unique condition combinations and 144,000
+manifest rows, with 500 rows per global shard-cell. All manifest rows are
+`ok`, no rows are skipped, and each shard passes the existing read-back QA with
+`expected_n_rep = 500`. The route still should not be promoted. The merged
+diagnostics show that direct `log_sd_phylo` profile intervals are unreliable
+at the true-zero boundary and incomplete at the smaller positive SD, while
+low-count, low-overdispersion cells retain large fixed-`sigma` errors. The
+full-shard result therefore changes the status from missing formal-grid compute
+to formal-grid compute completed and held after audit.

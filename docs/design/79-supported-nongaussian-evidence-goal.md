@@ -57,12 +57,13 @@ family suite:
   count slopes, NB2 `sigma` slopes, beta `sigma` or slope random effects, and
   non-Gaussian spatial/animal/`relmat()` effects remain planned or blocked.
 
-## NB2 q1 Formal Shard Execution Rule
+## NB2 q1 Formal Shard Audit Rule
 
-The next compute action is operational rather than statistical. Dispatch all 16
-`nbinom2_phylo_q1_formal` shards from a workflow whose concurrency group
-includes the shard index and shard count, then audit only the merged artifact
-set. No single shard may set a promotion claim.
+The next compute action was operational rather than statistical. All 16
+`nbinom2_phylo_q1_formal` shards were dispatched from a workflow whose
+concurrency group includes the shard index and shard count. No single shard may
+set a promotion claim, and the merged artifact set is the only interpretable
+audit unit.
 
 The combined audit must check:
 
@@ -76,8 +77,10 @@ The combined audit must check:
   Wald coverage, and direct `log_sd_phylo` profile interval status are
   summarized together.
 
-Until that audit lands, the NB2 q1 phylogenetic route remains
-`hold_smoke_only`.
+That audit has now landed as a hold decision. The full shard set has all 288
+formal condition cells and 500 manifest rows per global shard-cell, but
+profile-interval failures and fixed-`sigma` recovery problems remain too
+strong for promotion. The NB2 q1 phylogenetic route remains `hold_smoke_only`.
 
 ## Claim Boundary
 
