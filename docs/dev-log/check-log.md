@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Phase 18 Proportion Fixed-Effect Artifact Core
+
+Goal:
+
+- Restore the fixed-effect proportion artifact core on the clean reconciliation
+  branch without wiring first-wave summary or manual Actions integration yet.
+
+Roles: Ada kept this to the proportion artifact core. Curie checked the DGP,
+smoke, grid writer, and malformed-input tests. Fisher kept Wald artifact
+evidence separate from formal operating-characteristic claims. Grace checked
+formatting, focused tests, issue overlap, and diff hygiene. Rose kept
+bounded-response random effects, `zoi`, `coi`, known-covariance bounded
+responses, and mixed-response bounded models out. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`.
+- Added private Phase 18 proportion helpers under `inst/sim/dgp/`,
+  `inst/sim/fit/`, and `inst/sim/run/`.
+- Added `tests/testthat/test-phase18-proportion-fixed-effect.R`.
+- Updated `ROADMAP.md`, `inst/sim/README.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, and
+  `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-26-phase18-proportion-fixed-effect-artifact-core.md`.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_proportion_fixed_effect.R inst/sim/fit/sim_summarise_proportion_fixed_effect.R inst/sim/run/sim_run_proportion_fixed_effect_smoke.R inst/sim/run/sim_summary_proportion_fixed_effect_smoke.R inst/sim/run/sim_write_proportion_fixed_effect_grid.R tests/testthat/test-phase18-proportion-fixed-effect.R ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-phase18-proportion-fixed-effect-artifact-core.md
+Rscript -e "devtools::test(filter = '^phase18-proportion-fixed-effect$', reporter = 'summary')"
+rg -n 'proportion.*(still need|needs).*DGP|beta.*still need.*DGP|beta_binomial.*still need.*DGP|proportion_fixed_effect.*Actions|task = \"proportion_fixed_effect\"|first-wave.*proportion.*now|bounded-response random effects.*now (fit|implemented)|zoi.*now (fit|implemented)|coi.*now (fit|implemented)' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "proportion beta beta_binomial Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- Formatting completed without output.
+- The focused proportion artifact test passed.
+- The stale-promotion scan returned no false claim that Actions or first-wave
+  integration exists yet, and no current text says the proportion DGP/artifact
+  core is still missing.
+- The overlapping issue search returned no direct open issue.
+- `git diff --check` was clean.
+
+No likelihood, formula grammar, exported API, workflow, first-wave summary
+runner, generated site, or formal simulation artifact changed.
+
 ## 2026-05-26 - Phase 18 Current-State Map Clean-Branch Salvage
 
 Goal:

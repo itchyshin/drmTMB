@@ -1950,6 +1950,10 @@ as the whole comprehensive simulation programme.
   reconciliation branch. The map keeps NB2 q1 formal recovery, fixed-effect
   proportion artifacts, positive-continuous artifacts, ordinal artifacts, and
   skew-family implementation as separate lanes.
+- Slices 1289-1298 restore the fixed-effect proportion artifact core for
+  `beta()` and `beta_binomial()` on the clean branch: DGP, summariser, smoke,
+  grid-output, and focused tests. First-wave summary and manual Actions
+  integration remain separate follow-up slices.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

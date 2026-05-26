@@ -81,7 +81,9 @@ and operating-characteristic evidence justify a broader claim.
   `vignettes/formula-grammar.Rmd`, and `docs/design/03-likelihoods.md`.
 - Check-log evidence: family-specific check-log entries are summarized in
   `vignettes/source-map.Rmd`; Slice 78 keeps them grouped because this row is
-  a family collection rather than one likelihood.
+  a family collection rather than one likelihood. Slices 1289-1298 add a
+  private fixed-effect proportion artifact lane for `beta()` and
+  `beta_binomial()` with DGP, smoke, grid-output, and focused test evidence.
 - Debt: richer bounded-response families, zero-one-inflated proportion models,
   ordinal scale/discrimination, and random effects for most non-Gaussian
   families still need separate likelihood work and simulation recovery.

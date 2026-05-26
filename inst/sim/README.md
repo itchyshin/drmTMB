@@ -59,6 +59,9 @@ Current pilot files:
   ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane.
 - `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `beta()` and `beta_binomial()` lane.
+- `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
+  records the private fixed-effect proportion DGP, smoke, summary, and grid
+  artifact lane.
 - `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
 - `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
@@ -126,6 +129,9 @@ Current pilot files:
   with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
   overdispersion, and tree-shape conditions for the formal-admission lane.
+- `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
+  `beta()` proportions and denominator-aware `beta_binomial()` success/failure
+  responses with fixed `mu ~ x` and `sigma ~ z` predictors.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
