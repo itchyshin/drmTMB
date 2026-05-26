@@ -5,6 +5,8 @@
 #' univariate Student-t location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' beta mean-scale models for strict proportions,
+#' zero-one beta mean-scale-boundary models for continuous proportions with
+#' structural exact zeroes or ones,
 #' fixed-effect beta-binomial mean-overdispersion models for success counts,
 #' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
@@ -48,8 +50,9 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [lognormal()], [stats::Gamma()] with `link = "log"`, [beta()],
-#'   [beta_binomial()], [cumulative_logit()], [stats::poisson()] with `link = "log"`,
-#'   [nbinom2()], [truncated_nbinom2()], or [biv_gaussian()]. Adding
+#'   [zero_one_beta()], [beta_binomial()], [cumulative_logit()],
+#'   [stats::poisson()] with `link = "log"`, [nbinom2()],
+#'   [truncated_nbinom2()], or [biv_gaussian()]. Adding
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
 #'   zero-inflated count model. Adding `hu ~ predictors` to a
 #'   `truncated_nbinom2()` model fits a hurdle count model whose nonzero counts
@@ -155,6 +158,12 @@ drmTMB <- function(
       weights = weights_full
     ),
     beta = drm_build_beta_ls_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full
+    ),
+    zero_one_beta = drm_build_zero_one_beta_spec(
       formula,
       data,
       env = formula_env,
@@ -435,6 +444,11 @@ drm_family_type <- function(family) {
     return("beta")
   }
   if (
+    inherits(family, "drm_family") && identical(family$name, "zero_one_beta")
+  ) {
+    return("zero_one_beta")
+  }
+  if (
     inherits(family, "drm_family") && identical(family$name, "beta_binomial")
   ) {
     return("beta_binomial")
@@ -475,7 +489,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -1617,6 +1631,185 @@ drm_build_beta_ls_spec <- function(
     start = beta_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
     map = beta_ls_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_zero_one_beta_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "zoi", "coi"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Zero-one beta models only support {.code mu}, {.code sigma}, {.code zoi}, and {.code coi}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn zero_one_beta} models.",
+      "i" = "The first zero-one beta slice is fixed-effect only for {.code mu}, {.code sigma}, {.code zoi}, and {.code coi}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A zero-one beta model requires exactly one location formula."
+    )
+  }
+  for (optional in c("sigma", "zoi", "coi")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "A zero-one beta model can have at most one {.code {optional}} formula."
+      )
+    }
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+  zoi_entry <- if (any(dpars == "zoi")) {
+    entries[[which(dpars == "zoi")]]
+  } else {
+    default_dpar_entry("zoi", quote(1))
+  }
+  coi_entry <- if (any(dpars == "coi")) {
+    entries[[which(dpars == "coi")]]
+  } else {
+    default_dpar_entry("coi", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Zero-one beta models currently support one bounded proportion response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "Zero-one beta models require a single continuous bounded response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} belongs to {.fn beta_binomial}, not {.fn zero_one_beta}."
+    ))
+  }
+
+  for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  f_zoi <- drm_entry_formula(zoi_entry, response = FALSE)
+  f_coi <- drm_entry_formula(coi_entry, response = FALSE)
+
+  vars <- unique(c(
+    all.vars(f_mu),
+    all.vars(f_sigma),
+    all.vars(f_zoi),
+    all.vars(f_coi)
+  ))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_zoi <- stats::model.frame(
+    f_zoi,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_coi <- stats::model.frame(
+    f_coi,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  y <- prepare_zero_one_beta_response(
+    stats::model.response(mf_mu),
+    response = mu_entry$response
+  )
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_zoi <- stats::model.matrix(stats::terms(mf_zoi), mf_zoi)
+  X_coi <- stats::model.matrix(stats::terms(mf_coi), mf_coi)
+
+  if (any(c(nrow(X_sigma), nrow(X_zoi), nrow(X_coi)) != length(y))) {
+    cli::cli_abort("Internal model-frame mismatch in zero-one beta model.")
+  }
+
+  spec <- list(
+    model_type = "zero_one_beta",
+    y = as.numeric(y),
+    weights = weights_model,
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma, zoi = X_zoi, coi = X_coi),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma),
+      zoi = stats::terms(mf_zoi),
+      coi = stats::terms(mf_coi)
+    ),
+    model_frame = list(
+      mu = mf_mu,
+      sigma = mf_sigma,
+      zoi = mf_zoi,
+      coi = mf_coi
+    ),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(mu = empty_sd_mu_structure(0L)),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma", "zoi", "coi"),
+    start = zero_one_beta_start(y, X_mu, X_sigma, X_zoi, X_coi),
+    map = zero_one_beta_map(),
+    random_names = NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -8557,6 +8750,40 @@ is_diagonal_known_v <- function(value) {
   !any(abs(off_diag) > sqrt(.Machine$double.eps))
 }
 
+prepare_zero_one_beta_response <- function(y, response) {
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying zero-one beta model missingness rules."
+    )
+  }
+  if (!is.null(dim(y))) {
+    cli::cli_abort(c(
+      "{.fn zero_one_beta} requires a single continuous bounded response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} belongs to {.fn beta_binomial}."
+    ))
+  }
+  if (!is.numeric(y) && !is.integer(y)) {
+    cli::cli_abort(c(
+      "Zero-one beta response values must be numeric.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}."
+    ))
+  }
+  if (!all(is.finite(y)) || any(y < 0) || any(y > 1)) {
+    cli::cli_abort(c(
+      "Zero-one beta models require response values in the closed interval [0, 1].",
+      "x" = "The response {.val {response}} contains out-of-range or non-finite values after missing-row filtering."
+    ))
+  }
+  if (!any(y > 0 & y < 1)) {
+    cli::cli_abort(c(
+      "Zero-one beta models require at least one interior response value.",
+      "x" = "The response {.val {response}} contains only exact boundary values after missing-row filtering.",
+      "i" = "Interior beta parameters {.code mu} and {.code sigma} need data with {.code 0 < y < 1}."
+    ))
+  }
+  as.numeric(y)
+}
+
 prepare_betabinomial_response <- function(y, response) {
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -9046,6 +9273,76 @@ beta_binomial_map <- function(
   re_mu = empty_random_mu_structure(1L)
 ) {
   beta_ls_map(re_mu = re_mu)
+}
+
+zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
+  interior <- y > 0 & y < 1
+  if (sum(interior) >= max(2L, ncol(X_mu), ncol(X_sigma))) {
+    beta_start <- beta_ls_start(
+      y[interior],
+      X_mu[interior, , drop = FALSE],
+      X_sigma[interior, , drop = FALSE]
+    )
+    beta_mu <- beta_start$beta_mu
+    beta_sigma <- beta_start$beta_sigma
+  } else {
+    beta_mu <- numeric(ncol(X_mu))
+    beta_sigma <- numeric(ncol(X_sigma))
+    beta_mu[[1L]] <- stats::qlogis(
+      min(max(mean(y[interior]), 1e-4), 1 - 1e-4)
+    )
+    beta_sigma[[1L]] <- log(0.5)
+  }
+  names(beta_mu) <- colnames(X_mu)
+  names(beta_sigma) <- colnames(X_sigma)
+
+  boundary <- y == 0 | y == 1
+  zoi0 <- min(max(mean(boundary), 1e-3), 0.95)
+  coi0 <- if (any(boundary)) {
+    min(max(mean(y[boundary] == 1), 1e-3), 1 - 1e-3)
+  } else {
+    0.5
+  }
+  beta_zoi <- numeric(ncol(X_zoi))
+  beta_coi <- numeric(ncol(X_coi))
+  names(beta_zoi) <- colnames(X_zoi)
+  names(beta_coi) <- colnames(X_coi)
+  beta_zoi[[1L]] <- stats::qlogis(zoi0)
+  beta_coi[[1L]] <- stats::qlogis(coi0)
+
+  c(
+    list(
+      beta_mu = beta_mu,
+      beta_sigma = beta_sigma,
+      beta_zoi = beta_zoi,
+      beta_coi = beta_coi
+    ),
+    list(
+      beta_nu = 0,
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      eta_cor_mu_sigma = 0,
+      eta_cor_sigma = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0,
+      eta_cor_phylo = 0
+    )
+  )
+}
+
+zero_one_beta_map <- function() {
+  beta_ls_map(re_mu = empty_random_mu_structure(1L))
 }
 
 poisson_start <- function(
@@ -10022,11 +10319,29 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$start$beta_cor_mu)) {
     spec$start$beta_cor_mu <- 0
   }
+  if (is.null(spec$start$beta_zoi)) {
+    spec$start$beta_zoi <- 0
+  }
+  if (is.null(spec$start$beta_coi)) {
+    spec$start$beta_coi <- 0
+  }
   if (is.null(spec$map)) {
     spec$map <- list()
   }
   if (is.null(spec$map$beta_cor_mu) && !has_cor_mu_model) {
     spec$map$beta_cor_mu <- factor(NA)
+  }
+  if (
+    is.null(spec$map$beta_zoi) &&
+      !identical(spec$model_type, "zero_one_beta")
+  ) {
+    spec$map$beta_zoi <- factor(NA)
+  }
+  if (
+    is.null(spec$map$beta_coi) &&
+      !identical(spec$model_type, "zero_one_beta")
+  ) {
+    spec$map$beta_coi <- factor(NA)
   }
   if (is.null(spec$map$u_re_cov) && !has_qgt2_re_cov) {
     spec$map$u_re_cov <- factor(NA)
@@ -10398,6 +10713,62 @@ make_tmb_data <- function(spec) {
       mu_re_cor_id = re_mu$re_cor_id0,
       mu_re_pair_index = re_mu$re_pair_index0,
       mu_re_sd_row = sd_mu$re_sd_row0,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+  if (identical(spec$model_type, "zero_one_beta")) {
+    return(list(
+      model_type = 15L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = spec$X$coi,
+      X_zi = spec$X$zoi,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_dpar = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
       n_sigma_re_terms = 0L,
       n_sigma_re_cors = 0L,
       n_mu_sigma_re_cors = 0L,
@@ -11028,6 +11399,22 @@ split_tmb_parameters <- function(par, spec) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
     return(list(mu = beta_mu))
+  }
+  if (identical(spec$model_type, "zero_one_beta")) {
+    beta_mu <- unname(par$beta_mu)
+    beta_sigma <- unname(par$beta_sigma)
+    beta_zoi <- unname(par$beta_zoi)
+    beta_coi <- unname(par$beta_coi)
+    names(beta_mu) <- colnames(spec$X$mu)
+    names(beta_sigma) <- colnames(spec$X$sigma)
+    names(beta_zoi) <- colnames(spec$X$zoi)
+    names(beta_coi) <- colnames(spec$X$coi)
+    return(list(
+      mu = beta_mu,
+      sigma = beta_sigma,
+      zoi = beta_zoi,
+      coi = beta_coi
+    ))
   }
 
   if (

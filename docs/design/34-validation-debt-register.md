@@ -169,8 +169,8 @@ and operating-characteristic evidence justify a broader claim.
 - Register status: fixed-effect `zi` formulas are implemented for Poisson and
   NB2, and fixed-effect `hu` formulas are implemented for hurdle NB2.
   Random-effect bar terms in `zi` or `hu`, count-side random-effect bar terms
-  in zero-inflated or hurdle routes, and planned bounded-response `zoi`/`coi`
-  random effects are rejected before optimization.
+  in zero-inflated or hurdle routes, and bounded-response `zoi`/`coi` random
+  effects are rejected before optimization.
 - Evidence: `tests/testthat/test-zi-poisson.R`,
   `tests/testthat/test-zi-nbinom2.R`,
   `tests/testthat/test-hurdle-nbinom2.R`,
@@ -179,15 +179,16 @@ and operating-characteristic evidence justify a broader claim.
   random-intercept and random-slope bar requests stay blocked for the relevant
   count, hurdle, and planned bounded-response parameters. Slice 285 adds
   fixed-effect Wald interval row checks for fitted beta and beta-binomial
-  `mu` and `sigma` coefficients, without opening `zoi` or `coi` likelihoods.
-  Slice D3 records fixed-effect zero-one beta as the next bounded-response
-  design gate before any runnable `zoi`/`coi` formula path.
+  `mu` and `sigma` coefficients, before the zero-one beta likelihood opened.
+  Slice D3 records fixed-effect zero-one beta as the bounded-response design
+  gate, and `tests/testthat/test-zero-one-beta.R` records the first runnable
+  source-level `zoi`/`coi` evidence.
 - Diagnostics and intervals: no inflation, hurdle, or one-inflation
   random-effect diagnostics or intervals exist because no corresponding
   likelihood is fitted yet.
-- Debt: fixed-effect zero-one-inflated bounded likelihoods should precede
-  runnable `zoi`/`coi` formulas and `zoi`/`coi` random effects. Any future
-  covariance among `mu`, `sigma`,
+- Debt: fixed-effect zero-one beta now exists, but it still needs a separate
+  artifact lane before broad grid claims. Any future covariance among `mu`,
+  `sigma`,
   shape, `zi`, `hu`, `zoi`, or `coi` random effects should use constant block
   correlations first and needs extractor, `corpairs()`, profile-target, weak-SD,
   boundary, and simulation-recovery evidence before Phase 18.
@@ -572,7 +573,7 @@ and focused recovery tests already exist.
 | NB2 and zero-truncated NB2 ordinary random effects | NB2 is fitted for non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and ordinary log-`sigma` random intercepts; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals for `mu`, a weak-SD boundary test, focused `sigma` intercept recovery/extractor tests, and a separate NB2 log-`sigma` smoke-grid artifact writer with direct `log_sd_sigma` profile-target rows. Zero-truncated NB2 is fitted for ordinary `mu` random intercepts with focused source tests, direct `log_sd_mu` profile targets, and planned-neighbour boundary tests. | Confounding among overdispersion, group-level heterogeneity, zero truncation, count-side mean effects, and grouped overdispersion heterogeneity. | Admit NB2 as a focused first slice until larger grids vary overdispersion, group count, repeats, true `mu` SD, true `sigma` SD, and mean count; admit zero-truncated NB2 `mu` intercepts only as a source-tested first slice until a separate positive-count grid is designed. |
 | Non-Gaussian `sigma` random effects | Fitted only for ordinary non-zero-inflated NB2 log-`sigma` random intercepts; fixed-effect `sigma` formulas remain available where other families support them. | Scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Include only the NB2 intercept gate through the dedicated small smoke grid; exclude NB2 `sigma` slopes, zero-inflated/truncated/hurdle scale random effects, and other family-specific scale-random-effect likelihoods until `sdpars`, extractors, direct profile targets, weak-SD tests, scale interpretation docs, and grid evidence exist. |
 | Shape, skewness, and tail random effects | Blocked for Student-t `nu`; skew-normal and skew-t are future fixed-effect-first families. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Exclude random effects in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`; fixed-effect skew families need their own likelihood recovery before random effects are discussed as fitted. |
-| Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; bounded-response `zoi`/`coi` paths are design-only after Slice D3 and still not runnable. | Count-side random effects can mimic structural zeros; hurdle, inflation, and exact-boundary components can be weakly separated from mean, dispersion, sampling zeros, and sampling ones. | Exclude random effects in `zi`, `hu`, future `zoi`, and future `coi`; add fixed-effect zero-one-inflated bounded likelihoods before any random-effect simulation grid. |
+| Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; fixed-effect bounded-response `zoi`/`coi` paths exist only in `zero_one_beta()`. | Count-side random effects can mimic structural zeros; hurdle, inflation, and exact-boundary components can be weakly separated from mean, dispersion, sampling zeros, and sampling ones. | Exclude random effects in `zi`, `hu`, `zoi`, and `coi`; add a zero-one beta artifact lane before any random-effect simulation grid. |
 | Ordinal mixed models | Cumulative-logit fixed-effect models fit; ordinal random effects are blocked. | Cutpoint separation, sparse categories, latent-scale identification, and random-effect SD boundaries can dominate ordinary coefficient recovery. | Exclude ordinal random effects until a random-intercept cumulative-logit likelihood has `sdpars`, `ranef()`, profile targets, cutpoint stability checks, weak-SD tests, and an `ordinal::clmm` comparator. |
 | Structured non-Gaussian dependence | Ordinary Poisson and ordinary NB2 now fit q=1 `phylo(1 | species, tree = tree)` in `mu`; all other `phylo()`, `spatial()`, `animal()`, and `relmat()` non-Gaussian structured paths remain blocked. | Known dependence matrices, Laplace random effects, sparse group support, overdispersion, and non-Gaussian links can create boundary and runtime failures before biology is interpretable. | Treat the Poisson and NB2 phylogenetic q=1 rows as smoke/artifact only. The Poisson opt-in runner and CSV writer exercise the first route; NB2 still needs overdispersion-aware formal grids before promotion. Spatial, animal, `relmat()`, zero-inflated, slope, scale, or cross-parameter routes remain later gates. |
 | Cross-parameter non-Gaussian covariance | Blocked. | Correlations among `mu`, `sigma`, shape, inflation, hurdle, and structured random effects can be weakly identified and can change sign under alternative parameterizations. | Exclude from Phase 18 until each marginal random-effect path is stable and a constant-block-correlation design has extractor, `corpairs()`, direct-target, and recovery evidence. |

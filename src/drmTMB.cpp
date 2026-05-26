@@ -110,6 +110,8 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_sigma);
   PARAMETER_VECTOR(beta_nu);
   PARAMETER_VECTOR(beta_zi);
+  PARAMETER_VECTOR(beta_zoi);
+  PARAMETER_VECTOR(beta_coi);
   PARAMETER_VECTOR(theta_ord);
   PARAMETER_VECTOR(beta_sd_mu);
   PARAMETER_VECTOR(beta_mu1);
@@ -978,6 +980,77 @@ Type objective_function<Type>::operator()()
     REPORT(beta_shape);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 15) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_zoi = X_zi * beta_zoi;
+    vector<Type> eta_coi = X_nu * beta_coi;
+    vector<Type> mu(y.size());
+    Type beta_mu_eps = Type(1e-12);
+    for (int i = 0; i < mu.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> zoi = Type(1.0) / (Type(1.0) + exp(-eta_zoi));
+    vector<Type> coi = Type(1.0) / (Type(1.0) + exp(-eta_coi));
+    vector<Type> phi(y.size());
+    vector<Type> alpha(y.size());
+    vector<Type> beta_shape(y.size());
+    Type beta_shape_floor = Type(1e-8);
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_zoi = -logspace_add(Type(0.0), -eta_zoi(i));
+      Type log_one_minus_zoi = -logspace_add(Type(0.0), eta_zoi(i));
+      Type log_coi = -logspace_add(Type(0.0), -eta_coi(i));
+      Type log_one_minus_coi = -logspace_add(Type(0.0), eta_coi(i));
+      phi(i) = exp(Type(-2.0) * log_sigma(i));
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
+      if (asDouble(y(i)) <= 0.0) {
+        nll -= weights(i) * (log_zoi + log_one_minus_coi);
+        continue;
+      }
+      if (asDouble(y(i)) >= 1.0) {
+        nll -= weights(i) * (log_zoi + log_coi);
+        continue;
+      }
+      Type log_density =
+        log_one_minus_zoi +
+        lgamma(alpha(i) + beta_shape(i)) -
+        lgamma(alpha(i)) -
+        lgamma(beta_shape(i)) +
+        (alpha(i) - Type(1.0)) * log(y(i)) +
+        (beta_shape(i) - Type(1.0)) * log(Type(1.0) - y(i));
+      nll -= weights(i) * log_density;
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_zoi);
+    REPORT(zoi);
+    REPORT(eta_coi);
+    REPORT(coi);
+    REPORT(phi);
+    REPORT(alpha);
+    REPORT(beta_shape);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_zoi);
+    ADREPORT(beta_coi);
   } else if (model_type == 14) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;

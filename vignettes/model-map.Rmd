@@ -47,7 +47,7 @@ This keeps planned features from looking like fitted routes.
 | Do groups vary in average response or slopes? | `(1 | id)`, `(0 + x | id)`, or supported `(1 + x | id)` routes | ordinary group-level random effects in `mu` | correlated non-Gaussian slopes and p8/q8 endpoint blocks |
 | Do related species, sites, animals, or known matrices structure `mu`? | `phylo()`, coordinate `spatial()`, `animal()`, or `relmat()` in fitted Gaussian routes; ordinary Poisson and NB2 also support `phylo(1 | species, tree = tree)` in `mu` | latent structured deviations, separate from residual `rho12` | richer structured slopes and non-Gaussian structured routes beyond ordinary Poisson/NB2 q=1 phylogeny |
 | Do two responses remain correlated after their means and scales are modelled? | `rho12 ~ x` | residual coscale, not group or structured covariance | random effects in `rho12` |
-| Do extra zeros or hurdle probability vary with predictors? | fixed-effect `zi ~ x` or `hu ~ x` where supported | probability-component fixed effects | random effects or structured dependence in `zi`, `hu`, future `zoi`, or future `coi` |
+| Do extra zeros, exact boundaries, or hurdle probability vary with predictors? | fixed-effect `zi ~ x` or `hu ~ x` where supported; `zero_one_beta()` uses fixed-effect `zoi ~ x` and `coi ~ x` for structural exact 0/1 outcomes | probability-component fixed effects | random effects or structured dependence in `zi`, `hu`, `zoi`, or `coi` |
 
 The map hierarchy is: this page helps users choose a fitted route, the
 implementation map checks fitted-versus-planned boundaries, the source map

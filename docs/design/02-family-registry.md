@@ -60,6 +60,7 @@ and recovery evidence.
 | `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts. Lognormal random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
 | `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts; non-log Gamma links remain unsupported. Gamma random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts for strict `(0, 1)` responses. Beta random slopes, labelled covariance, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
+| `zero_one_beta()` | `mu` logit; `sigma` log; `zoi` logit; `coi` logit | no public `nu`; interior precision is `phi = 1 / sigma^2`; `zoi`/`coi` describe exact-boundary mass | Fixed effects only for continuous `[0, 1]` responses with exact structural zeroes or ones. Zero-one random effects, labelled covariance, `sigma` random effects, structured effects, known covariance, denominator syntax, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-zero-one-beta.R`; `tests/testthat/test-family-link-contract.R`; independent mixture-likelihood, recovery, fitted-response, simulation, one-sided-boundary, and malformed-neighbour tests. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed effects plus ordinary unlabelled `mu` random intercepts for two-column `cbind(successes, failures)` responses. Beta-binomial random slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
 | `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and the first q=1 phylogenetic `mu` intercept `phylo(1 | species, tree = tree)`. Correlated slopes, labelled covariance, phylogenetic slopes, spatial/animal/`relmat()` structured count effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, and opt-in smoke-runner checks. |
 | `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
@@ -151,7 +152,7 @@ The decision remains intentionally narrow:
 | 2 | NB2 and zero-truncated NB2 `mu` | NB2 ordinary `mu` random intercepts, independent numeric slopes, the first ordinary log-`sigma` random intercept, and the first q=1 phylogenetic `mu` intercept are fitted; ordinary zero-truncated NB2 `mu` random intercepts are fitted as a narrow positive-count slice. Zero-truncated random slopes and richer dispersion-side random effects remain later gates. |
 | 3 | Lognormal, Gamma, Student-t, and beta `mu` | Ordinary random intercepts are fitted as narrow source-test slices. Random slopes, labelled covariance blocks, richer scale or shape combinations, and structured effects need their own recovery grids. |
 | 4 | Beta-binomial `mu` | Implemented as an ordinary unlabelled `mu` random-intercept first slice for counted successes out of known trials; random slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, and structured routes need separate recovery checks. |
-| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until focused gates decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. Slice D3 records zero-one-inflated beta-style likelihoods as fixed-effect-first design targets; runnable `zoi`/`coi`, random effects, and cross-parameter covariance come later. |
+| 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until focused gates decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. Slice D3 records zero-one beta as a fixed-effect-first design target, and the first source slice now fits fixed-effect `zoi`/`coi`; random effects and cross-parameter covariance come later. |
 
 Slice 195 keeps `zi`, `hu`, `zoi`, and `coi` random effects out of the fitted
 surface, but gives them explicit unsupported messages. Fixed-effect
@@ -160,8 +161,9 @@ random effects in those formulas, count-side random effects in zero-inflated
 or hurdle routes, and covariance among `mu`, `sigma`, shape, and
 inflation/hurdle random effects need separate likelihood, extractor,
 interval, and simulation-recovery evidence. For bounded responses with exact
-0 or 1 values, fixed-effect `zoi`/`coi` likelihoods must land before any
-zero-one-inflation random-effect or cross-parameter covariance block.
+0 or 1 values, fixed-effect `zoi`/`coi` likelihoods now exist only in
+`zero_one_beta()`; zero-one-inflation random-effect or cross-parameter
+covariance blocks still need a separate task.
 
 Unsupported formula messages should say that non-Gaussian random effects are
 planned and should not silently fall through as generic formula failures.
@@ -357,9 +359,41 @@ Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 
 Here `mu` is the mean proportion. `sigma` is the public scale parameter, not
 beta precision. Internally, `phi = 1 / sigma^2`, so larger `sigma` means more
-variation around the mean. Boundary responses equal to 0 or 1, random effects,
-known sampling covariance, phylogenetic terms, and bivariate or mixed beta
-models are later phases.
+variation around the mean. Boundary responses equal to 0 or 1 should use
+`zero_one_beta()` when they are structural outcomes. Beta random slopes,
+labelled covariance, `sigma` random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed beta models are later phases.
+
+## Implemented: Zero-One Beta Mean-Scale-Boundary
+
+`zero_one_beta()` is the fixed-effect route for continuous proportions on
+`[0, 1]` when exact zeroes or ones are structural outcomes:
+
+```r
+family = zero_one_beta()
+```
+
+The implemented model is univariate and fixed-effect only:
+
+```text
+Pr(y_i = 0) = zoi_i (1 - coi_i)
+Pr(y_i = 1) = zoi_i coi_i
+Pr(0 < y_i < 1) = 1 - zoi_i
+logit(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+logit(zoi_i) = X_zoi[i, ] beta_zoi
+logit(coi_i) = X_coi[i, ] beta_coi
+phi_i = 1 / sigma_i^2
+E[y_i] = (1 - zoi_i) mu_i + zoi_i coi_i
+```
+
+Here `mu` and `sigma` describe the interior beta component, `zoi` is the
+probability of an exact-boundary outcome, and `coi` is the probability that a
+boundary outcome is exactly one. The response must contain at least one
+interior value after missing-row filtering so the beta component is identified.
+Random effects, labelled covariance, `sigma` random effects, structured
+effects, known sampling covariance, denominator syntax, and bivariate or mixed
+bounded-response models are later phases.
 
 ## Implemented: Beta-Binomial Mean-Overdispersion
 

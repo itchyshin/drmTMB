@@ -31,8 +31,10 @@ For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
 For Gamma models, response residuals are \code{y - mu} and Pearson residuals
 divide by the fitted Gamma standard deviation \code{mu * sigma}, where \code{sigma} is
-the coefficient of variation. For beta-binomial models, response residuals
-are observed success proportions minus fitted \code{mu}, and Pearson residuals
+the coefficient of variation. For zero-one beta models, response residuals
+are observed proportions minus the unconditional fitted mean, including exact
+zero-one boundary mass. For beta-binomial models, response residuals are
+observed success proportions minus fitted \code{mu}, and Pearson residuals
 divide by the fitted beta-binomial proportion standard deviation. For
 cumulative-logit ordinal models, response residuals are the observed
 ordered-category score minus the fitted expected score, and Pearson

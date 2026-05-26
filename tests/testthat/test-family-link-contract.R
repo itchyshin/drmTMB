@@ -4,6 +4,7 @@ test_that("internal link table maps implemented distributional parameters", {
   fake_lognormal <- list(model = list(model_type = "lognormal"))
   fake_gamma <- list(model = list(model_type = "gamma"))
   fake_beta <- list(model = list(model_type = "beta"))
+  fake_zero_one_beta <- list(model = list(model_type = "zero_one_beta"))
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
@@ -20,6 +21,10 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_gamma, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_beta, "mu"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_beta, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zero_one_beta, "mu"), "logit")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zero_one_beta, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zero_one_beta, "zoi"), "logit")
+  expect_equal(drmTMB:::drm_dpar_link(fake_zero_one_beta, "coi"), "logit")
   expect_equal(drmTMB:::drm_dpar_link(fake_poisson, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zip, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_zip, "zi"), "logit")
@@ -41,6 +46,10 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(unname(truncated_nbinom2()$links[["sigma"]]), "log")
   expect_equal(unname(beta()$links[["mu"]]), "logit")
   expect_equal(unname(beta()$links[["sigma"]]), "log")
+  expect_equal(unname(zero_one_beta()$links[["mu"]]), "logit")
+  expect_equal(unname(zero_one_beta()$links[["sigma"]]), "log")
+  expect_equal(unname(zero_one_beta()$links[["zoi"]]), "logit")
+  expect_equal(unname(zero_one_beta()$links[["coi"]]), "logit")
 })
 
 test_that("internal inverse links match the documented parameter scales", {
@@ -48,6 +57,7 @@ test_that("internal inverse links match the documented parameter scales", {
   fake_student <- list(model = list(model_type = "student"))
   fake_gamma <- list(model = list(model_type = "gamma"))
   fake_beta <- list(model = list(model_type = "beta"))
+  fake_zero_one_beta <- list(model = list(model_type = "zero_one_beta"))
   fake_poisson <- list(model = list(model_type = "poisson"))
   fake_zip <- list(model = list(model_type = "zi_poisson"))
   fake_nbinom2 <- list(model = list(model_type = "nbinom2"))
@@ -62,21 +72,52 @@ test_that("internal inverse links match the documented parameter scales", {
   expect_equal(drmTMB:::drm_inverse_link(fake_student, "nu", eta), 2 + exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "sigma", eta), exp(eta))
-  expect_equal(drmTMB:::drm_inverse_link(fake_beta, "mu", eta), stats::plogis(eta))
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_beta, "mu", eta),
+    stats::plogis(eta)
+  )
   expect_equal(drmTMB:::drm_inverse_link(fake_beta, "sigma", eta), exp(eta))
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zero_one_beta, "mu", eta),
+    stats::plogis(eta)
+  )
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zero_one_beta, "sigma", eta),
+    exp(eta)
+  )
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zero_one_beta, "zoi", eta),
+    stats::plogis(eta)
+  )
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zero_one_beta, "coi", eta),
+    stats::plogis(eta)
+  )
   expect_equal(drmTMB:::drm_inverse_link(fake_poisson, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zip, "mu", eta), exp(eta))
-  expect_equal(drmTMB:::drm_inverse_link(fake_zip, "zi", eta), stats::plogis(eta))
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zip, "zi", eta),
+    stats::plogis(eta)
+  )
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_nbinom2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_truncnb2, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "mu", eta), exp(eta))
-  expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "sigma", eta), exp(eta))
-  expect_equal(drmTMB:::drm_inverse_link(fake_hurdlenb2, "hu", eta), stats::plogis(eta))
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_hurdlenb2, "sigma", eta),
+    exp(eta)
+  )
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_hurdlenb2, "hu", eta),
+    stats::plogis(eta)
+  )
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "sigma", eta), exp(eta))
-  expect_equal(drmTMB:::drm_inverse_link(fake_zinb2, "zi", eta), stats::plogis(eta))
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_zinb2, "zi", eta),
+    stats::plogis(eta)
+  )
   expect_equal(
     drmTMB:::drm_inverse_link(fake_biv, "rho12", eta),
     0.99999999 * tanh(eta)
@@ -206,7 +247,11 @@ test_that("fitted response helper uses family-specific response summaries", {
   )
   mu_truncnb2 <- predict(fit_truncnb2, dpar = "mu")
   sigma_truncnb2 <- sigma(fit_truncnb2)
-  p0_truncnb2 <- stats::dnbinom(0, size = 1 / sigma_truncnb2^2, mu = mu_truncnb2)
+  p0_truncnb2 <- stats::dnbinom(
+    0,
+    size = 1 / sigma_truncnb2^2,
+    mu = mu_truncnb2
+  )
   expect_equal(
     fitted(fit_truncnb2),
     mu_truncnb2 / (1 - p0_truncnb2),
@@ -215,7 +260,11 @@ test_that("fitted response helper uses family-specific response summaries", {
   mu_hurdlenb2 <- predict(fit_hurdlenb2, dpar = "mu")
   sigma_hurdlenb2 <- sigma(fit_hurdlenb2)
   hu_hurdlenb2 <- predict(fit_hurdlenb2, dpar = "hu")
-  p0_hurdlenb2 <- stats::dnbinom(0, size = 1 / sigma_hurdlenb2^2, mu = mu_hurdlenb2)
+  p0_hurdlenb2 <- stats::dnbinom(
+    0,
+    size = 1 / sigma_hurdlenb2^2,
+    mu = mu_hurdlenb2
+  )
   expect_equal(
     fitted(fit_hurdlenb2),
     (1 - hu_hurdlenb2) * mu_hurdlenb2 / (1 - p0_hurdlenb2),

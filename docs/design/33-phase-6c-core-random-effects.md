@@ -151,8 +151,8 @@ status, and simulation evidence that the data can distinguish the parameters.
 The count path therefore fits only ordinary Poisson/NB2 `mu` random intercepts,
 independent numeric slopes, and q=1 phylogenetic `mu` intercepts. For
 percentage or proportion data, zero-one inflation is a bounded response
-likelihood problem first; `zoi` and `coi` random effects should wait until the
-fixed-effect zero-one-inflated beta-style likelihood is tested.
+likelihood problem first; `zoi` and `coi` random effects should wait for
+evidence beyond the fixed-effect `zero_one_beta()` likelihood.
 
 The practical cap for the first public slope phase outside ordinary grouped
 `mu` is therefore: at most one numeric random slope per distributional-parameter

@@ -118,6 +118,8 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     beta_sigma = 0,
     beta_nu = 0,
     beta_zi = 0,
+    beta_zoi = 0,
+    beta_coi = 0,
     theta_ord = 0,
     beta_sd_mu = 0,
     beta_mu1 = 0,

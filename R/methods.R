@@ -7,6 +7,7 @@ print.drmTMB <- function(x, ...) {
     lognormal = "Lognormal location-scale",
     gamma = "Gamma mean-CV",
     beta = "Beta mean-scale",
+    zero_one_beta = "zero-one beta mean-scale-boundary",
     beta_binomial = "Beta-binomial mean-overdispersion",
     cumulative_logit = "cumulative-logit ordinal",
     poisson = "Poisson mean",
@@ -1957,9 +1958,11 @@ predict.drmTMB <- function(
 #' log-scale `mu` and `sigma`. For Gamma models, simulation uses fitted mean
 #' `mu` and coefficient of variation `sigma`. For beta models, simulation uses
 #' fitted mean `mu` and public scale `sigma` with internal
-#' `phi = 1 / sigma^2`. For beta-binomial models, simulation draws latent
-#' success probabilities from the fitted beta distribution and then success
-#' counts from the stored trial denominators. For cumulative-logit ordinal
+#' `phi = 1 / sigma^2`. For zero-one beta models, simulation draws exact
+#' boundary values from the fitted `zoi`/`coi` probabilities and interior
+#' values from the fitted beta component. For beta-binomial models, simulation
+#' draws latent success probabilities from the fitted beta distribution and then
+#' success counts from the stored trial denominators. For cumulative-logit ordinal
 #' models, simulation draws ordered categories from the fitted cumulative-logit
 #' probabilities. For Poisson models, simulation uses the fitted mean `mu`. For
 #' zero-inflated Poisson models, simulation uses
@@ -2061,6 +2064,27 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
         shape2 = (1 - mu) * phi
       )
     )
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "zero_one_beta")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    zoi <- predict(object, dpar = "zoi")
+    coi <- predict(object, dpar = "coi")
+    phi <- 1 / sigma^2
+    sims <- replicate(nsim, {
+      boundary <- stats::runif(length(mu)) < zoi
+      one <- stats::runif(length(mu)) < coi
+      interior <- stats::rbeta(
+        length(mu),
+        shape1 = mu * phi,
+        shape2 = (1 - mu) * phi
+      )
+      ifelse(boundary, as.numeric(one), interior)
+    })
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -2255,8 +2279,10 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' residuals are computed on the log-response scale as `(log(y) - mu) / sigma`.
 #' For Gamma models, response residuals are `y - mu` and Pearson residuals
 #' divide by the fitted Gamma standard deviation `mu * sigma`, where `sigma` is
-#' the coefficient of variation. For beta-binomial models, response residuals
-#' are observed success proportions minus fitted `mu`, and Pearson residuals
+#' the coefficient of variation. For zero-one beta models, response residuals
+#' are observed proportions minus the unconditional fitted mean, including exact
+#' zero-one boundary mass. For beta-binomial models, response residuals are
+#' observed success proportions minus fitted `mu`, and Pearson residuals
 #' divide by the fitted beta-binomial proportion standard deviation. For
 #' cumulative-logit ordinal models, response residuals are the observed
 #' ordered-category score minus the fitted expected score, and Pearson
@@ -2322,6 +2348,18 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
       return(response)
     }
     return(response / sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2)))
+  }
+  if (identical(object$model$model_type, "zero_one_beta")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    zoi <- predict(object, dpar = "zoi")
+    coi <- predict(object, dpar = "coi")
+    fitted_mean <- zero_one_beta_mean(mu, zoi, coi)
+    response <- object$model$y - fitted_mean
+    if (type == "response") {
+      return(response)
+    }
+    return(response / sqrt(zero_one_beta_variance(mu, sigma, zoi, coi)))
   }
   if (identical(object$model$model_type, "beta_binomial")) {
     mu <- predict(object, dpar = "mu")
@@ -2456,8 +2494,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
-#' coefficient of variation. For beta and beta-binomial models this is the
-#' public scale parameter where internal precision is `phi = 1 / sigma^2`.
+#' coefficient of variation. For beta, zero-one beta, and beta-binomial models
+#' this is the public scale parameter where internal precision is
+#' `phi = 1 / sigma^2`.
 #' Cumulative-logit ordinal, Poisson, and zero-inflated Poisson models have no
 #' fitted residual scale parameter and return a fixed unit dispersion vector
 #' for consistency with base-R `sigma()` conventions. For
@@ -2490,6 +2529,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "lognormal") ||
       identical(object$model$model_type, "gamma") ||
       identical(object$model$model_type, "beta") ||
+      identical(object$model$model_type, "zero_one_beta") ||
       identical(object$model$model_type, "beta_binomial") ||
       identical(object$model$model_type, "nbinom2") ||
       identical(object$model$model_type, "truncated_nbinom2") ||
@@ -3898,6 +3938,16 @@ beta_binomial_proportion_variance <- function(mu, sigma, trials) {
   )
 }
 
+zero_one_beta_mean <- function(mu, zoi, coi) {
+  (1 - zoi) * mu + zoi * coi
+}
+
+zero_one_beta_variance <- function(mu, sigma, zoi, coi) {
+  beta_var <- mu * (1 - mu) * sigma^2 / (1 + sigma^2)
+  second_moment <- (1 - zoi) * (beta_var + mu^2) + zoi * coi
+  pmax(second_moment - zero_one_beta_mean(mu, zoi, coi)^2, .Machine$double.eps)
+}
+
 ordinal_category_probabilities <- function(object, newdata = NULL) {
   eta <- predict(object, newdata = newdata, dpar = "mu", type = "link")
   cutpoints <- unname(object$ordinal$cutpoints)
@@ -3979,6 +4029,12 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "beta")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "zero_one_beta")) {
+    mu <- predict.drmTMB(object, dpar = "mu")
+    zoi <- predict.drmTMB(object, dpar = "zoi")
+    coi <- predict.drmTMB(object, dpar = "coi")
+    return(zero_one_beta_mean(mu, zoi, coi))
+  }
   if (identical(object$model$model_type, "beta_binomial")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
@@ -4048,6 +4104,12 @@ drm_dpar_link <- function(object, dpar) {
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
     beta = c(mu = "logit", sigma = "log"),
+    zero_one_beta = c(
+      mu = "logit",
+      sigma = "log",
+      zoi = "logit",
+      coi = "logit"
+    ),
     beta_binomial = c(mu = "logit", sigma = "log"),
     cumulative_logit = c(mu = "identity"),
     poisson = c(mu = "log"),

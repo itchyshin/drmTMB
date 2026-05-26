@@ -60,7 +60,7 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"beta_binomial"`,
+`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
 `"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
 `"hurdle_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling
 the TMB template, `make_tmb_data()` turns
@@ -80,6 +80,7 @@ is the current routing contract:
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts on the logit-mean predictor. |
+| `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate fixed-effect zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, and `coi` as the conditional probability of an exact one among boundary observations. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
@@ -870,9 +871,64 @@ precision; internally `phi_i = 1 / sigma_i^2`. The response must be finite and
 strictly between 0 and 1 after missing-row filtering. Ordinary unlabelled
 `mu` random intercepts such as `(1 | plot)` enter the logit-`mu` predictor.
 Random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1
-boundary mass through future `zoi`/`coi`, known sampling covariance,
+boundary mass through `zero_one_beta()`, known sampling covariance,
 phylogenetic terms, and bivariate or mixed beta models are later phases. Use
 `beta_binomial()` for counted successes out of known trials.
+
+## Implemented Zero-One Beta Mean-Scale-Boundary
+
+Zero-one beta models are for continuous proportions where exact 0 and exact 1
+are structural boundary outcomes. The interior beta component keeps the same
+mean-scale contract as `beta()`:
+
+```text
+Pr(y_i = 0) = zoi_i (1 - coi_i)
+Pr(y_i = 1) = zoi_i coi_i
+Pr(0 < y_i < 1) = 1 - zoi_i
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_zoi_i = X_zoi[i, ] beta_zoi
+eta_coi_i = X_coi[i, ] beta_coi
+mu_i = logit^{-1}(eta_mu_i)
+sigma_i = exp(eta_sigma_i)
+zoi_i = logit^{-1}(eta_zoi_i)
+coi_i = logit^{-1}(eta_coi_i)
+phi_i = 1 / sigma_i^2
+alpha_i = mu_i phi_i
+beta_i = (1 - mu_i) phi_i
+E[y_i] = (1 - zoi_i) mu_i + zoi_i coi_i
+```
+
+The TMB likelihood is:
+
+```text
+log Pr(y_i = 0) = log(zoi_i) + log(1 - coi_i)
+log Pr(y_i = 1) = log(zoi_i) + log(coi_i)
+log f(0 < y_i < 1) =
+  log(1 - zoi_i) +
+  log Gamma(phi_i) - log Gamma(alpha_i) - log Gamma(beta_i) +
+  (alpha_i - 1) log(y_i) + (beta_i - 1) log(1 - y_i)
+```
+
+Matching R syntax:
+
+```r
+drmTMB(
+  bf(prop ~ habitat, sigma ~ treatment, zoi ~ drought, coi ~ canopy),
+  family = zero_one_beta(),
+  data = dat
+)
+```
+
+For zero-one beta fits, `predict(fit, dpar = "mu")` returns the interior beta
+mean, `predict(fit, dpar = "zoi")` returns the exact-boundary probability, and
+`predict(fit, dpar = "coi")` returns the one-inflation probability conditional
+on being at the boundary. `fitted(fit)` returns the unconditional response mean
+including boundary mass, `(1 - zoi) * mu + zoi * coi`. `sigma(fit)` returns the
+public beta scale parameter for the interior component. This first slice is
+fixed-effect only: random effects, structured effects, covariance blocks,
+known sampling covariance, denominator syntax, bivariate bounded responses, and
+mixed-response bounded models remain planned or unsupported.
 
 ## Implemented Beta-Binomial Mean-Overdispersion
 

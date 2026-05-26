@@ -24,7 +24,7 @@ No spawned subagents were running for this planning slice.
 | 304 | p8/q8 location-scale planning | Completed as plan | Full location-scale slope covariance stays planned until endpoint labels, block size, parameterization, diagnostics, and interval policy are explicit. |
 | 305 | Structured q=4 parity plan | Completed as plan | Spatial, animal, and `relmat()` q=4 parity should move one structured level at a time with `corpairs()`, diagnostics, and simulation evidence. |
 | 306 | q=4 interval policy | Completed as plan | q=4 correlations remain derived-unavailable unless a direct or derived-profile method is designed, tested, and documented. |
-| 307 | Inflation and hurdle random-effect gate | Completed as no-fit decision | `zi`, `hu`, future `zoi`, and future `coi` stay fixed-effect-only or planned for now; random effects are not a near-term implementation target. |
+| 307 | Inflation and hurdle random-effect gate | Completed as no-fit decision, later updated by fixed-effect zero-one beta | `zi`, `hu`, `zoi`, and `coi` stay fixed-effect-only where implemented; random effects are not a near-term implementation target. |
 | 308 | Non-Gaussian structured-dependence candidate map | Completed as plan | The next non-Gaussian structured-dependence step should pick one family and one dependence layer after ordinary likelihood, diagnostics, extractor, and simulation gates are clear. |
 | 309 | Implementation-map maintenance gate | Completed as process | After each substantial feature slice, update the implementation map, model-map, README, ROADMAP, NEWS, and stale-claim scans together. |
 | 310 | User-route examples for the map | Completed as plan | The map now points readers toward fitted alternatives rather than planned syntax when a richer requested model is not ready. |
@@ -40,10 +40,12 @@ route is fixed-effect modelling of these probability components:
 ```r
 zi ~ predictors
 hu ~ predictors
+zoi ~ predictors
+coi ~ predictors
 ```
 
-The revisit gate for random effects in `zi`, `hu`, future `zoi`, or future
-`coi` should require:
+The revisit gate for random effects in `zi`, `hu`, `zoi`, or `coi` should
+require:
 
 - a clear applied use case that fixed effects cannot answer;
 - family-specific likelihood and simulation recovery evidence;
