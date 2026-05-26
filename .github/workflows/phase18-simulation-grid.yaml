@@ -14,6 +14,7 @@ on:
           - proportion_fixed_effect
           - ordinal_fixed_effect
           - poisson_phylo_q1_formal
+          - nbinom2_phylo_q1_formal
       n_reps:
         description: "Replicates per cell"
         required: true
@@ -51,7 +52,7 @@ on:
           - none
           - multicore
       profile_parameters:
-        description: "Comma-separated direct profile targets for interval-heavy or Poisson formal tasks"
+        description: "Comma-separated direct profile targets for interval-heavy or phylo q1 formal tasks"
         required: false
         default: ""
         type: string
@@ -103,6 +104,9 @@ jobs:
             include_in_all: false
           - task: poisson_phylo_q1_formal
             seed: 20260601
+            include_in_all: false
+          - task: nbinom2_phylo_q1_formal
+            seed: 20260602
             include_in_all: false
 
     env:

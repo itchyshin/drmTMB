@@ -1163,6 +1163,206 @@ Results:
 - Slices 656-668 remain outside this pass.
 - No files were staged or committed.
 
+## 2026-05-24 - NB2 Phylogenetic q1 Formal Audit Slices 541-555
+
+Goal: run and audit the next NB2 q1 phylogenetic evidence lane without
+promoting the route beyond what the artifacts support.
+
+Roles: Ada kept the task to formal evidence and documentation, not likelihood
+or grammar changes. Curie ran the all-cell sentinel and representative
+replicate audit. Fisher inspected convergence, `pdHess`, direct
+`log_sd_phylo` profiles, fixed `sigma` instability, and grouped-comparator
+behaviour. Grace checked artifact paths, ignored-result hygiene, GitHub issue
+overlap, and package validation. Rose kept the 500-replicate gate and stale
+claims visible. Pat checked that user-facing wording says `hold_smoke_only`
+rather than formal recovery. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md`.
+- Ran ignored local artifacts under `inst/sim/results/actions/`:
+  `nbinom2_phylo_q1_formal_541_555_sentinel` and
+  `nbinom2_phylo_q1_formal_541_555_replicate_audit`.
+- Updated `ROADMAP.md`, `NEWS.md`, `inst/sim/README.md`,
+  `vignettes/source-map.Rmd`, `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, and
+  `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-formal-audit-slices-541-555.md`.
+
+Commands:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "run NB2 phylogenetic q1 formal-grid audit slices 541-555" --next "preflight formal grid cardinality and runtime before launching local artifacts"
+Rscript -e 'devtools::load_all(quiet = TRUE); ... phase18_nbinom2_phylo_q1_formal_grid_spec(... n_rep = 500L, profile_parameters = "log_sd_phylo") ...'
+Rscript inst/sim/run/sim_run_actions_cell.R --task=nbinom2_phylo_q1_formal --dry-run=true --n-reps=500 --cores=10 --backend=multicore --profile-parameters=log_sd_phylo --output-dir=inst/sim/results/actions/nbinom2_phylo_q1_formal_541_555
+Rscript -e 'devtools::load_all(quiet = TRUE); ... phase18_summarise_nbinom2_phylo_q1_smoke(... one formal-shaped cell ..., profile_parameters = "log_sd_phylo")'
+Rscript -e 'devtools::load_all(quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(c("--task=nbinom2_phylo_q1_formal", "--output-dir=inst/sim/results/actions/nbinom2_phylo_q1_formal_541_555_sentinel", "--n-reps=1", "--master-seed=20260603", "--cores=10", "--backend=multicore", "--profile-parameters=log_sd_phylo", "--overwrite=true"))'
+Rscript -e 'devtools::load_all(quiet = TRUE); ... phase18_write_nbinom2_phylo_q1_formal_grid_outputs(output_dir = "inst/sim/results/actions/nbinom2_phylo_q1_formal_541_555_replicate_audit", conditions = representative_conditions, n_rep = 5L, master_seed = 20260604L, profile_parameters = "log_sd_phylo", cores = 10L, backend = "multicore", overwrite = TRUE)'
+Rscript -e 'devtools::load_all(quiet = TRUE); ... phase18_read_nbinom2_phylo_q1_grid_outputs(...); phase18_qa_nbinom2_phylo_q1_grid_outputs(...); phase18_nbinom2_phylo_q1_promotion_decision(...) ...'
+git check-ignore -v inst/sim/results/actions/nbinom2_phylo_q1_formal_541_555_sentinel/tables/nbinom2-phylo-q1-aggregate.csv
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1 formal" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 phylogenetic formal" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2 phylogenetic" --limit 20 --json number,title,state,url,labels
+air format NEWS.md ROADMAP.md inst/sim/README.md vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-formal-audit-slices-541-555.md
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-phylo-q1', reporter = 'summary')"
+rg -n '541|555|hold_smoke_only|nbinom2_phylo_q1_formal_541_555|75-phase-18-nbinom2-phylo-q1-formal-audit|500-replicate formal' NEWS.md ROADMAP.md inst/sim/README.md vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-formal-audit-slices-541-555.md
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete|closed)|NB2.*q1.*coverage.*(now|passed|complete|closed)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|NB2 phylogenetic slopes.*now' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n '541|555|hold_smoke_only|NB2 q1 formal|formal-audit|500-replicate formal|nbinom2_phylo_q1_formal_541_555' pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/source-map.html
+rg -n 'NB2.*q1.*formal recovery.*(now|passed|complete|closed)|NB2.*q1.*coverage.*(now|passed|complete|closed)|nbinom2_phylo_q1.*promote_narrowly|broad NB2 structured.*(ready|now)|NB2 sigma phylogeny.*now|zero-inflated NB2 phylogeny.*now|NB2 phylogenetic slopes.*now' pkgdown-site -g '*.html'
+Rscript -e "devtools::check(error_on = 'never')"
+rmdir tmp
+Rscript -e "devtools::check(error_on = 'never')"
+```
+
+Evidence:
+
+- The default formal spec has 288 condition cells. At `n_rep = 500`, it
+  implies 144,000 target/comparator replicate fits plus direct profile work, so
+  the full gate was not launched from the dirty local branch.
+- The all-cell sentinel wrote all expected CSV artifacts, with 288 manifest
+  rows, 1,728 replicate rows, all target/comparator rows converged, all
+  target/comparator `pdHess = TRUE`, and 55 warning-ledger rows. Every warning
+  was `collapsing to unique 'x' values`.
+- The sentinel profile intervals were 159 `ok` and 129 `failed`. Failures were
+  concentrated at the true-zero phylogenetic SD boundary: 91 failed at
+  `sd_phylo = 0`, 31 failed at `sd_phylo = 0.25`, and 7 failed at
+  `sd_phylo = 0.60`.
+- The representative 24-cell x 5-replicate audit wrote all expected artifacts,
+  with 120 `ok` manifest rows, 720 replicate rows, all parameter rows
+  converged, 119 of 120 target fits with `pdHess = TRUE`, and all 120 grouped
+  comparator fits with `pdHess = TRUE`.
+- The representative audit profiles were 74 `ok` and 46 `failed`: all 40
+  true-zero SD profiles failed, while positive-SD cells produced 74 usable
+  intervals out of 80.
+- The representative audit mean errors were about 0.0118 for `mu:(Intercept)`,
+  0.0042 for `mu:x`, -0.0354 for phylogenetic SD, and -0.0313 for the grouped
+  comparator SD. Fixed `sigma` rows had extreme low-count failures, so they
+  remain a formal-grid risk.
+- `phase18_nbinom2_phylo_q1_promotion_decision()` returned `hold_smoke_only`;
+  artifact QA passed, but the formal recovery replicate gate was not met.
+- `git check-ignore` confirmed that the generated `inst/sim/results/` artifacts
+  are ignored by `inst/sim/results/.gitignore`.
+- GitHub issue searches found no direct open issue for `NB2 phylo q1 formal`
+  or `nbinom2 phylogenetic formal`; the broader search found #59 and #128, but
+  no mutation was needed from this local audit.
+- `air format` completed without output.
+- Focused `devtools::test(filter = 'phase18-nbinom2-phylo-q1')` passed.
+- Source and rendered positive scans found the Slices 541-555 rows, the audit
+  doc, artifact paths, and `hold_smoke_only` wording.
+- Source and rendered stale-support scans found no false claims that formal
+  recovery or coverage is complete, no `promote_narrowly` wording, and no broad
+  NB2 structured-count promotion.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully.
+- The first full `devtools::check(error_on = "never")` returned 0 errors and
+  0 warnings but 1 note because an empty top-level `tmp` directory existed. I
+  removed only that empty directory.
+- The final `devtools::check(error_on = "never")` completed in about 5m37s with
+  0 errors, 0 warnings, and 0 notes.
+
+Known limitations:
+
+- Slices 541-555 are an evidence-and-hold lane. They do not claim formal
+  recovery, do not claim coverage, and do not open NB2 phylogenetic slopes,
+  NB2 `sigma` phylogeny, zero-inflated NB2 phylogeny, spatial/animal/`relmat()`
+  count structure, or count-side covariance.
+- The next compute action is still the full `nbinom2_phylo_q1_formal` grid with
+  `n_rep = 500` and `profile_parameters = "log_sd_phylo"` from a clean branch
+  or manual Actions dispatch.
+
+## 2026-05-24 - NB2 Phylogenetic q1 Formal-Admission Slices 526-540
+
+Goal: add the overdispersion-aware Phase 18 evidence lane for ordinary
+non-zero-inflated NB2 `phylo(1 | species, tree = tree)` in `mu`, with
+fixed-effect `sigma`, a direct `log_sd_phylo` profile-target ledger, and an
+ordinary grouped species-intercept comparator row, without claiming broad NB2
+structured parity or formal coverage.
+
+Roles: Ada kept the work to Slices 526-540 after sealing the existing 511-525
+tree. Curie checked the seeded DGP, target/comparator runner, artifact writer,
+formal QA, Actions dry-run, and malformed-input tests. Fisher checked that
+overdispersion, phylogenetic SD, and the ordinary grouped comparator remain
+separate estimands. Grace ran focused tests, adjacent tests, pkgdown checks,
+site build, formatting, rendered scans, issue searches, and diff hygiene. Rose
+caught the shell-backtick stale-scan stumble and verified the rendered stale
+scan. Pat checked that the docs say formal-admission rather than formal recovery.
+These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md`.
+- Added the private Phase 18 DGP, summariser, smoke runner, summary helper, and
+  grid/formal writer:
+  `inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R`,
+  `inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R`,
+  `inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R`,
+  `inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R`, and
+  `inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R`.
+- Added `tests/testthat/test-phase18-nbinom2-phylo-q1.R`.
+- Added the manual `nbinom2_phylo_q1_formal` task to
+  `.github/workflows/phase18-simulation-grid.yaml` and
+  `inst/sim/run/sim_run_actions_cell.R`, excluded from `task = "all"`.
+- Synced `inst/sim/README.md`, `vignettes/source-map.Rmd`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, `ROADMAP.md`, and
+  `NEWS.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-24-nb2-phylo-q1-formal-slices-526-540.md`.
+
+Validation:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "finish NB2 slices 511-540" --next "add NB2 phylogenetic q1 ADEMP/runner lane"
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R','inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R','inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_run_actions_cell.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-phylo-q1', reporter = 'summary')"
+air format NEWS.md ROADMAP.md inst/sim/README.md vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-nbinom2-phylo-q1.R .github/workflows/phase18-simulation-grid.yaml
+Rscript -e "files <- c('inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R','inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R','inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_summary_nbinom2_phylo_q1_smoke.R','inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-nbinom2-phylo-q1.R'); invisible(lapply(files, parse)); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-phylo-q1', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'nbinom2-location-scale|nongaussian-structured-boundary|phase18-nbinom2-sigma-random-effect|phase18-poisson-phylo-q1', reporter = 'summary')"
+git diff --check
+rg -n '526|540|nbinom2_phylo_q1|nbinom2-phylo-q1|NB2 phylogenetic q1|nbinom2_phylo_q1_formal|grouped-comparator|grouped comparator|Phase 18 NB2 Phylogenetic' NEWS.md ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md vignettes/source-map.Rmd .github/workflows/phase18-simulation-grid.yaml inst/sim tests/testthat/test-phase18-nbinom2-phylo-q1.R
+rg -n 'NB2 q1 phylogeny still needs|NB2 phylogeny planned|NB2 phylogenetic q1.*still needs|nbinom2_phylo_q1.*planned|nbinom2_phylo_q1_formal.*task = "all"|formal recovery.*now|coverage claims.*now|broad.*NB2.*phylo.*ready|NB2 sigma phylogeny.*now fit|zero-inflated NB2 phylogeny.*now fit' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 phylo q1" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 phylo" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2" --limit 20 --json number,title,state,url,labels
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n '526|540|nbinom2_phylo_q1|nbinom2-phylo-q1|NB2 phylogenetic q1|nbinom2_phylo_q1_formal|grouped-comparator|grouped comparator|overdispersion-aware NB2 q1|Phase 18 NB2 Phylogenetic' pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+rg -n 'NB2 q1 phylogeny still needs|NB2 phylogeny planned|NB2 phylogenetic q1.*still needs|nbinom2_phylo_q1.*planned|formal recovery.*now|coverage claims.*now|broad.*NB2.*phylo.*ready|NB2 sigma phylogeny.*now fit|zero-inflated NB2 phylogeny.*now fit' pkgdown-site -g '*.html'
+git diff --check
+Rscript -e "devtools::check(error_on = 'never')"
+```
+
+Results:
+
+- The recovery checkpoint was written successfully.
+- Both parse smokes printed `parse ok`.
+- `devtools::test(filter = 'phase18-nbinom2-phylo-q1')` passed before and after
+  formatting.
+- `devtools::test(filter = 'phase18-actions-runner')` passed.
+- The adjacent NB2, non-Gaussian structured-boundary, NB2 log-`sigma`, Poisson
+  q1, and filter-adjacent truncated NB2 tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed.
+- Source and rendered positive scans found the Slices 526-540 rows, NB2 q1
+  helper files, profile-target artifacts, Actions task, comparator wording, and
+  NEWS/source-map updates.
+- The stale scans returned only expected historical ROADMAP lines: Slice 508
+  describes a previous stale-claim scan, and Slice 537 says the manual Actions
+  task is excluded from `task = "all"`.
+- GitHub issue search found no direct `NB2 phylo q1` or `nbinom2 phylo` issue.
+  The broader `Phase 18 NB2` search returned #59, #60, and #128; no issue was
+  mutated because this local slice is a narrow artifact lane.
+- `git diff --check` was clean.
+- `devtools::check(error_on = 'never')` completed in about 5m19s with 0 errors,
+  0 warnings, and 0 notes.
+
 ## 2026-05-24 - NB2 Log-Sigma Random-Intercept Smoke Grid Slices 511-525
 
 Goal: add the dedicated Phase 18 smoke-grid evidence lane for ordinary

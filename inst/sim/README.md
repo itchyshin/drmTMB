@@ -76,6 +76,12 @@ Current pilot files:
 - `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md` is the
   one-page ADEMP sheet for the ordinary NB2 log-`sigma` random-intercept smoke
   lane.
+- `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md` is the one-page ADEMP
+  sheet for the overdispersion-aware NB2 phylogenetic q=1 `mu` formal-admission
+  lane.
+- `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
+  NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
+  `hold_smoke_only` promotion decision before the 500-replicate gate.
 - `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
   records the ADEMP and artifact path for the fixed-effect `beta()` and
   `beta_binomial()` lane.
@@ -118,6 +124,10 @@ Current pilot files:
   log-`sigma` random intercept, `sigma ~ z + (1 | id)`. Its condition helper
   crosses group count, repeats, mean count, baseline overdispersion, and the
   true grouped overdispersion SD.
+- `dgp/sim_dgp_nbinom2_phylo_q1.R` generates non-zero-inflated NB2 count data
+  with one q=1 phylogenetic log-mean intercept,
+  `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
+  overdispersion, and tree-shape conditions for the formal-admission lane.
 - `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
   `beta()` proportions and denominator-aware `beta_binomial()` successes with
   `logit(mu) ~ x`, `log(sigma) ~ z`, and internal
@@ -309,6 +319,17 @@ Current pilot files:
   file also provides the formal-grid wrapper, read-back QA, and promotion
   decision helpers; formal recovery or coverage claims still require the
   500-replicate gate and artifact review.
+- `run/sim_write_nbinom2_phylo_q1_grid.R` writes the ordinary NB2 phylogenetic
+  q=1 `mu` smoke artifact set with fixed-effect `sigma`, aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct `log_sd_phylo` profile-target, optional profile-interval,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs. Each
+  replicate also records an ordinary grouped NB2 species-intercept comparator
+  row, so overdispersion and unstructured species heterogeneity stay visible
+  before formal recovery claims. Slices 541-555 wrote ignored local artifacts
+  for a 288-cell one-replicate sentinel and a 24-cell x 5-replicate audit; both
+  passed artifact QA but kept the promotion state at `hold_smoke_only` because
+  the 500-replicate formal gate remains unmet.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
@@ -369,12 +390,13 @@ Current pilot files:
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
   standalone fixed-effect proportion, positive-continuous, and ordinal tasks,
-  the interval-heavy task, or the opt-in Poisson phylogenetic q=1 formal-grid
-  task. It writes an RDS result beside the task artifact tables and caps
+  the interval-heavy task, or the opt-in Poisson and NB2 phylogenetic q=1
+  formal-grid tasks. It writes an RDS result beside the task artifact tables and
+  caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The Poisson formal task is manual-only and is excluded from
-  `task = "all"` by the workflow matrix.
+  the same time. The phylogenetic formal tasks are manual-only and are excluded
+  from `task = "all"` by the workflow matrix.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -401,6 +423,12 @@ Current pilot files:
   coverage, cutpoint, and cutpoint-ordering outputs.
 - `run/sim_summary_poisson_phylo_q1_smoke.R` runs a tiny non-zero-inflated
   Poisson phylogenetic q=1 `mu` summary smoke grid and returns aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct profile-target status, optional direct profile interval,
+  interval-evidence, interval-diagnostics, and interval-failure outputs.
+- `run/sim_summary_nbinom2_phylo_q1_smoke.R` runs a tiny non-zero-inflated NB2
+  phylogenetic q=1 `mu` summary smoke grid with fixed-effect `sigma` and an
+  ordinary grouped species-intercept comparator. It returns aggregate,
   replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
   coverage, direct profile-target status, optional direct profile interval,
   interval-evidence, interval-diagnostics, and interval-failure outputs.

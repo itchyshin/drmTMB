@@ -9,7 +9,8 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       "positive_continuous_fixed_effect",
       "proportion_fixed_effect",
       "ordinal_fixed_effect",
-      "poisson_phylo_q1_formal"
+      "poisson_phylo_q1_formal",
+      "nbinom2_phylo_q1_formal"
     ),
     "task"
   )
@@ -142,8 +143,19 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend
     )
-  } else {
+  } else if (identical(task, "poisson_phylo_q1_formal")) {
     out <- phase18_write_poisson_phylo_q1_formal_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
+      cores = cores,
+      backend = backend
+    )
+  } else {
+    out <- phase18_write_nbinom2_phylo_q1_formal_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -345,12 +357,21 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_ordinal_fixed_effect_grid.R"
     ))
   }
+  if (identical(task, "poisson_phylo_q1_formal")) {
+    return(c(
+      "sim/dgp/sim_dgp_poisson_phylo_q1.R",
+      "sim/fit/sim_summarise_poisson_phylo_q1.R",
+      "sim/run/sim_run_poisson_phylo_q1_smoke.R",
+      "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
+      "sim/run/sim_write_poisson_phylo_q1_grid.R"
+    ))
+  }
   c(
-    "sim/dgp/sim_dgp_poisson_phylo_q1.R",
-    "sim/fit/sim_summarise_poisson_phylo_q1.R",
-    "sim/run/sim_run_poisson_phylo_q1_smoke.R",
-    "sim/run/sim_summary_poisson_phylo_q1_smoke.R",
-    "sim/run/sim_write_poisson_phylo_q1_grid.R"
+    "sim/dgp/sim_dgp_nbinom2_phylo_q1.R",
+    "sim/fit/sim_summarise_nbinom2_phylo_q1.R",
+    "sim/run/sim_run_nbinom2_phylo_q1_smoke.R",
+    "sim/run/sim_summary_nbinom2_phylo_q1_smoke.R",
+    "sim/run/sim_write_nbinom2_phylo_q1_grid.R"
   )
 }
 
