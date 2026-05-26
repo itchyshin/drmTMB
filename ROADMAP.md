@@ -1957,6 +1957,10 @@ as the whole comprehensive simulation programme.
   first-wave summary runner and adds an opt-in manual
   `proportion_fixed_effect` Actions task, while keeping positive-continuous,
   ordinal, and bounded-response random-effect work separate.
+- Slices 1299-1308 restore the fixed-effect positive-continuous artifact core
+  for `lognormal()` and `Gamma(link = "log")` on the clean branch: DGP,
+  summariser, smoke, grid-output, and focused tests. First-wave summary and
+  manual Actions integration remain separate follow-up slices.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

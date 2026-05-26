@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Phase 18 Positive-Continuous Fixed-Effect Artifact Core
+
+Goal:
+
+- Restore the fixed-effect positive-continuous artifact core on the clean
+  reconciliation branch without wiring first-wave summary or manual Actions
+  integration yet.
+
+Roles: Ada kept this to the lognormal/Gamma artifact core. Curie checked the
+DGP, smoke, grid writer, Wald artifacts, and malformed-input tests. Fisher kept
+smoke artifact evidence separate from formal operating-characteristic claims.
+Grace checked formatting, focused tests, issue overlap, and diff hygiene. Rose
+kept Tweedie, generalized Gamma, positive-response random effects,
+known-covariance positive responses, structured positive-response effects, and
+mixed-response positive-continuous models out. These were role perspectives,
+not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`.
+- Added private Phase 18 positive-continuous helpers under `inst/sim/dgp/`,
+  `inst/sim/fit/`, and `inst/sim/run/`.
+- Added `tests/testthat/test-phase18-positive-continuous-fixed-effect.R`.
+- Updated `ROADMAP.md`, `inst/sim/README.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, and
+  `docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-26-phase18-positive-continuous-fixed-effect-artifact-core.md`.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_positive_continuous_fixed_effect.R inst/sim/fit/sim_summarise_positive_continuous_fixed_effect.R inst/sim/run/sim_run_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R inst/sim/run/sim_write_positive_continuous_fixed_effect_grid.R tests/testthat/test-phase18-positive-continuous-fixed-effect.R ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-phase18-positive-continuous-fixed-effect-artifact-core.md
+Rscript -e "devtools::test(filter = '^phase18-positive-continuous-fixed-effect$', reporter = 'summary')"
+rg -n 'positive-continuous.*(still need|needs).*DGP|lognormal.*still need.*DGP|Gamma.*still need.*DGP|task = "positive_continuous_fixed_effect"|first-wave.*positive-continuous.*now|positive-response random effects.*now (fit|implemented)|Tweedie.*now (fit|implemented)|generalized Gamma.*now (fit|implemented)' README.md ROADMAP.md NEWS.md docs/design inst/sim tests/testthat -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "positive continuous lognormal Gamma Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- Formatting completed without output.
+- The focused positive-continuous artifact test passed.
+- The stale-promotion scan returned no false claim that Actions or first-wave
+  integration exists yet, and no current text says the positive-continuous
+  DGP/artifact core is still missing.
+- The overlapping issue search returned no direct open issue.
+- `git diff --check` was clean.
+
+No likelihood, formula grammar, exported API, workflow, first-wave summary
+runner, generated site, or formal simulation artifact changed.
+
 ## 2026-05-26 - Phase 18 Proportion First-Wave And Actions Integration
 
 Goal:

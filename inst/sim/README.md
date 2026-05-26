@@ -62,6 +62,9 @@ Current pilot files:
 - `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
   records the private fixed-effect proportion DGP, smoke, summary, and grid
   artifact lane.
+- `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`
+  records the private fixed-effect lognormal/Gamma DGP, smoke, summary, and
+  grid artifact lane.
 - `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
 - `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
@@ -132,6 +135,9 @@ Current pilot files:
 - `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
   `beta()` proportions and denominator-aware `beta_binomial()` success/failure
   responses with fixed `mu ~ x` and `sigma ~ z` predictors.
+- `dgp/sim_dgp_positive_continuous_fixed_effect.R` generates positive
+  continuous `lognormal()` and `Gamma(link = "log")` responses with fixed
+  `mu ~ x` and `sigma ~ z` predictors.
 - `dgp/sim_dgp_meta_v.R` generates Gaussian meta-analysis data with vector or
   dense known sampling covariance via `meta_V(V = V)`.
 - `dgp/sim_dgp_biv_rho12.R` generates bivariate Gaussian data with
@@ -319,6 +325,10 @@ Current pilot files:
   coverage, direct `log_sd_sigma` profile-target, optional profile-interval,
   interval-evidence, interval-diagnostics, and interval-failure CSVs beside
   resumable per-replicate RDS files.
+- `run/sim_write_positive_continuous_fixed_effect_grid.R` writes the
+  fixed-effect lognormal/Gamma smoke artifact set with aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, and
+  Wald coverage CSVs beside resumable per-replicate RDS files.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
   `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
