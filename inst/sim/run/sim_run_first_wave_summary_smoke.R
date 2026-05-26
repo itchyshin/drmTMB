@@ -70,6 +70,23 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  proportion <- phase18_write_proportion_fe_grid_outputs(
+    output_dir = file.path(output_dir, "proportion-fe"),
+    conditions = phase18_proportion_fe_conditions(
+      family = c("beta", "beta_binomial"),
+      n = 260L,
+      trial_min = 10L,
+      trial_max = 18L,
+      beta_sigma_intercept = -0.90,
+      beta_sigma_z = 0.20,
+      rho_xz = 0.20
+    ),
+    n_rep = as.integer(n_rep),
+    master_seed = as.integer(master_seed) + 7L,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
+  )
   gaussian_mu_random_slope <- phase18_write_gaussian_mu_rs_grid_outputs(
     output_dir = file.path(output_dir, "gaussian-mu-random-slope"),
     conditions = phase18_gaussian_mu_rs_conditions(
@@ -113,6 +130,7 @@ phase18_run_first_wave_summary_smoke <- function(
       gaussian,
       meta,
       count,
+      proportion,
       gaussian_mu_random_slope,
       gaussian_sigma_random_slope,
       spatial_mu_slope
@@ -126,6 +144,7 @@ phase18_run_first_wave_summary_smoke <- function(
     gaussian = gaussian,
     meta = meta,
     count = count,
+    proportion = proportion,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
     gaussian_sigma_random_slope = gaussian_sigma_random_slope,
     spatial_mu_slope = spatial_mu_slope
@@ -149,6 +168,7 @@ phase18_run_first_wave_summary_smoke <- function(
     gaussian = gaussian,
     meta = meta,
     count = count,
+    proportion = proportion,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
     gaussian_sigma_random_slope = gaussian_sigma_random_slope,
     spatial_mu_slope = spatial_mu_slope,
@@ -198,6 +218,7 @@ phase18_first_wave_parallel_summary <- function(
   gaussian,
   meta,
   count,
+  proportion,
   gaussian_mu_random_slope,
   gaussian_sigma_random_slope,
   spatial_mu_slope
@@ -217,6 +238,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "nbinom2_mu_random_effect",
         count$summary$nbinom2$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "proportion_fixed_effect_grid",
+        proportion$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "gaussian_mu_random_slope_grid",

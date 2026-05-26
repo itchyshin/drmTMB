@@ -115,6 +115,28 @@ test_that("Phase 18 Actions runner validates formal condition shards", {
   )
 })
 
+test_that("Phase 18 Actions runner plans proportion fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=proportion_fixed_effect",
+      "--dry-run=true",
+      "--n-reps=1",
+      "--master-seed=123"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=proportion_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=1", fixed = TRUE)
+  expect_match(out, "master_seed=123", fixed = TRUE)
+})
+
 test_that("Phase 18 workflow concurrency is shard-aware", {
   workflow <- testthat::test_path(
     "..",
@@ -136,6 +158,7 @@ test_that("Phase 18 workflow concurrency is shard-aware", {
     "inputs.condition_shards",
     fixed = TRUE
   )
+  expect_match(text, "proportion_fixed_effect", fixed = TRUE)
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {

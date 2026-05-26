@@ -11,6 +11,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/dgp/sim_dgp_meta_v.R",
     "sim/dgp/sim_dgp_poisson_mu_random_effect.R",
     "sim/dgp/sim_dgp_nbinom2_mu_random_effect.R",
+    "sim/dgp/sim_dgp_proportion_fixed_effect.R",
     "sim/dgp/sim_dgp_gaussian_mu_random_slope.R",
     "sim/dgp/sim_dgp_gaussian_sigma_random_slope.R",
     "sim/dgp/sim_dgp_spatial_mu_slope.R",
@@ -18,6 +19,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/fit/sim_summarise_meta_v.R",
     "sim/fit/sim_summarise_poisson_mu_random_effect.R",
     "sim/fit/sim_summarise_nbinom2_mu_random_effect.R",
+    "sim/fit/sim_summarise_proportion_fixed_effect.R",
     "sim/fit/sim_summarise_gaussian_mu_random_slope.R",
     "sim/fit/sim_summarise_gaussian_sigma_random_slope.R",
     "sim/fit/sim_summarise_spatial_mu_slope.R",
@@ -25,6 +27,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_run_meta_v_smoke.R",
     "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
     "sim/run/sim_run_nbinom2_mu_random_effect_smoke.R",
+    "sim/run/sim_run_proportion_fixed_effect_smoke.R",
     "sim/run/sim_run_gaussian_mu_random_slope_smoke.R",
     "sim/run/sim_run_gaussian_sigma_random_slope_smoke.R",
     "sim/run/sim_run_spatial_mu_slope_smoke.R",
@@ -33,12 +36,14 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_summary_poisson_mu_random_effect_smoke.R",
     "sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R",
     "sim/run/sim_summary_count_mu_random_effect_pilot.R",
+    "sim/run/sim_summary_proportion_fixed_effect_smoke.R",
     "sim/run/sim_summary_gaussian_mu_random_slope_smoke.R",
     "sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R",
     "sim/run/sim_summary_spatial_mu_slope_smoke.R",
     "sim/run/sim_write_gaussian_ls_grid.R",
     "sim/run/sim_write_meta_v_grid.R",
     "sim/run/sim_write_count_mu_random_effect_grid.R",
+    "sim/run/sim_write_proportion_fixed_effect_grid.R",
     "sim/run/sim_write_gaussian_mu_random_slope_grid.R",
     "sim/run/sim_write_gaussian_sigma_random_slope_grid.R",
     "sim/run/sim_write_spatial_mu_slope_grid.R",
@@ -70,7 +75,7 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
   expect_equal(out$surface, "phase18_first_wave_summary_smoke")
   expect_null(out$report$report_path)
   expect_true(file.exists(out$paths$parallel_summary_csv))
-  expect_equal(nrow(out$parallel_summary), 7L)
+  expect_equal(nrow(out$parallel_summary), 8L)
   expect_setequal(
     out$parallel_summary$surface,
     c(
@@ -78,17 +83,18 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
       "meta_v_grid",
       "poisson_mu_random_effect",
       "nbinom2_mu_random_effect",
+      "proportion_fixed_effect_grid",
       "gaussian_mu_random_slope_grid",
       "gaussian_sigma_random_slope_grid",
       "spatial_mu_slope_grid"
     )
   )
-  expect_equal(out$parallel_summary$requested_cores, rep(10L, 7L))
-  expect_equal(out$parallel_summary$cores, rep(1L, 7L))
+  expect_equal(out$parallel_summary$requested_cores, rep(10L, 8L))
+  expect_equal(out$parallel_summary$cores, rep(1L, 8L))
   expect_true(file.exists(out$report$status$paths$artifact_status_csv))
   expect_true(file.exists(out$report$tables$paths$aggregate_csv))
-  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 43L)
-  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 19L)
+  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 51L)
+  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 27L)
   expect_gt(nrow(out$report$tables$tables$profile_coverage_csv), 0L)
 })
 

@@ -769,5 +769,8 @@ errors, and elapsed time by surface before the raw manifest.
 159. Slices 1289-1298 restore the core fixed-effect proportion artifact lane in
      `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`.
      The lane adds private DGP, summariser, smoke, summary, and grid-writer
-     helpers plus focused tests for `beta()` and `beta_binomial()`, while leaving
-     first-wave summary and manual Actions integration for a separate slice.
+     helpers plus focused tests for `beta()` and `beta_binomial()`.
+160. The clean-branch follow-up wires the fixed-effect proportion grid into the
+     first-wave summary runner and the manual `proportion_fixed_effect` Actions
+     task. The workflow keeps that standalone task out of `task = "all"` because
+     `first_wave_summary` already reaches the proportion lane.

@@ -348,24 +348,26 @@ Current pilot files:
   table-bundle artifacts, then optionally renders the first-wave summary report
   HTML from those staged CSVs.
 - `run/sim_run_first_wave_summary_smoke.R` executes the current Gaussian
-  location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect, and
-  ordinary Gaussian `mu` and `sigma` random-slope, and coordinate-spatial
-  Gaussian `mu` slope first-wave smoke surfaces, stages the combined first-wave
-  summary report, and records requested versus actual worker counts.
+  location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect,
+  fixed-effect proportion, ordinary Gaussian `mu` and `sigma` random-slope, and
+  coordinate-spatial Gaussian `mu` slope first-wave smoke surfaces, stages the
+  combined first-wave summary report, and records requested versus actual
+  worker counts.
 - `run/sim_run_interval_heavy_summary_smoke.R` executes the Student-t shape and
   bivariate residual `rho12` smoke surfaces as a separate interval-heavy report
   lane, keeping their Wald/profile/bootstrap artifacts out of the baseline
   first-wave runner.
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
-  interval-heavy task, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
-  tasks. It writes an RDS result beside the task artifact tables and caps
-  requested replicate or bootstrap workers at 10 before dispatch. The workflow
-  never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The phylogenetic formal tasks are manual-only and are excluded
-  from `task = "all"` by the workflow matrix. Formal tasks also accept
-  one-based `condition_shard` and `condition_shards` inputs so the 288-cell
-  formal tables can be split across multiple Actions runs.
+  interval-heavy task, the opt-in fixed-effect proportion task, or the opt-in
+  Poisson and NB2 phylogenetic q=1 formal-grid tasks. It writes an RDS result
+  beside the task artifact tables and caps requested replicate or bootstrap
+  workers at 10 before dispatch. The workflow never uses both replicate-layer
+  multicore and bootstrap-layer multicore at the same time. The standalone
+  proportion and phylogenetic formal tasks are manual-only and are excluded from
+  `task = "all"` by the workflow matrix. Formal tasks also accept one-based
+  `condition_shard` and `condition_shards` inputs so the 288-cell formal tables
+  can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

@@ -10,6 +10,7 @@ on:
           - all
           - first_wave_summary
           - interval_heavy_summary
+          - proportion_fixed_effect
           - poisson_phylo_q1_formal
           - nbinom2_phylo_q1_formal
       n_reps:
@@ -100,6 +101,9 @@ jobs:
           - task: interval_heavy_summary
             seed: 20260531
             include_in_all: true
+          - task: proportion_fixed_effect
+            seed: 20260533
+            include_in_all: false
           - task: poisson_phylo_q1_formal
             seed: 20260601
             include_in_all: false

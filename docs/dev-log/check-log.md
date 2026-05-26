@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Phase 18 Proportion First-Wave And Actions Integration
+
+Goal:
+
+- Wire the already-restored fixed-effect proportion artifact lane into the
+  first-wave summary runner and expose it as a manual Actions task, without
+  adding positive-continuous, ordinal, or bounded-response random-effect work.
+
+Roles: Ada kept this to the integration follow-up. Curie checked that the
+first-wave smoke runner loads the proportion DGP, summariser, smoke, summary,
+and grid writer. Grace checked workflow dispatch and YAML parsing. Rose checked
+that `task = "all"` does not run the standalone proportion grid twice and that
+docs do not promote neighbouring bounded-response features. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added `proportion` to `phase18_run_first_wave_summary_smoke()` and
+  `phase18_first_wave_parallel_summary()`.
+- Added `task = "proportion_fixed_effect"` to
+  `inst/sim/run/sim_run_actions_cell.R` and
+  `.github/workflows/phase18-simulation-grid.yaml`.
+- Updated the first-wave smoke-runner and Actions-runner tests.
+- Updated the Phase 18 map, simulation programme, readiness/debt notes,
+  simulation README, roadmap, and proportion design note.
+- Added
+  `docs/dev-log/after-task/2026-05-26-phase18-proportion-first-wave-actions.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R .github/workflows/phase18-simulation-grid.yaml ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-26-phase18-proportion-first-wave-actions.md
+Rscript -e "devtools::test(filter = '^phase18-(first-wave-summary-smoke-runner|actions-runner)$', reporter = 'summary')"
+ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f); puts "ok #{f}" }' .github/workflows/phase18-simulation-grid.yaml
+rg -n 'positive_continuous_fixed_effect|ordinal_fixed_effect|bounded-response random effects.*now (fit|implemented)|zoi.*now (fit|implemented)|coi.*now (fit|implemented)|proportion.*still need.*first-wave|proportion.*still need.*Actions|task = "all".*proportion_fixed_effect' .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat docs/design ROADMAP.md inst/sim/README.md -g '!*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "proportion beta beta_binomial Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- Formatting completed without output.
+- The focused first-wave and Actions test bundle passed.
+- Its first run caught over-large expected first-wave table counts; the observed
+  proportion-only shape is 51 aggregate rows and 27 Wald-coverage rows.
+- The workflow YAML parsed successfully.
+- The stale-scope scan returned no hits.
+- The overlapping issue search returned no direct open issue.
+- `git diff --check` was clean.
+
+No likelihood, formula grammar, exported API, positive-continuous artifact,
+ordinal artifact, generated site, or formal simulation artifact changed.
+
 ## 2026-05-26 - Phase 18 Proportion Fixed-Effect Artifact Core
 
 Goal:

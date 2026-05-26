@@ -1952,8 +1952,11 @@ as the whole comprehensive simulation programme.
   skew-family implementation as separate lanes.
 - Slices 1289-1298 restore the fixed-effect proportion artifact core for
   `beta()` and `beta_binomial()` on the clean branch: DGP, summariser, smoke,
-  grid-output, and focused tests. First-wave summary and manual Actions
-  integration remain separate follow-up slices.
+  grid-output, and focused tests.
+- The clean-branch follow-up wires the fixed-effect proportion grid into the
+  first-wave summary runner and adds an opt-in manual
+  `proportion_fixed_effect` Actions task, while keeping positive-continuous,
+  ordinal, and bounded-response random-effect work separate.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

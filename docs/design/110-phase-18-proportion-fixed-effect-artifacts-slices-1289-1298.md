@@ -56,15 +56,17 @@ artifacts beside resumable per-replicate RDS results.
 
 ## Integration Boundary
 
-This clean-branch salvage slice restores the core private artifact lane only:
+The clean-branch salvage slice first restored the core private artifact lane:
 DGP, summariser, smoke runner, summary helper, grid writer, focused tests, and
-developer ledgers. It does not yet wire the surface into the first-wave summary
-runner or the manual GitHub Actions task list.
+developer ledgers. The next narrow follow-up wires that lane into the
+first-wave summary runner and exposes a manual `proportion_fixed_effect`
+GitHub Actions task.
 
 This does not change the fitted likelihood surface. It gives the already-fitted
 fixed-effect beta and beta-binomial routes the same local artifact discipline
-that the count route already has, while keeping report-bundle and Actions
-integration as separate review slices.
+that the count route already has. The standalone Actions task is opt-in, and
+`task = "all"` still reaches proportion evidence through the first-wave summary
+rather than running the standalone proportion grid twice.
 
 ## Boundaries
 

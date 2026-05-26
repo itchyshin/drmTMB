@@ -84,6 +84,8 @@ and operating-characteristic evidence justify a broader claim.
   a family collection rather than one likelihood. Slices 1289-1298 add a
   private fixed-effect proportion artifact lane for `beta()` and
   `beta_binomial()` with DGP, smoke, grid-output, and focused test evidence.
+  The clean-branch follow-up also adds first-wave summary inclusion and the
+  opt-in manual `proportion_fixed_effect` Actions task.
 - Debt: richer bounded-response families, zero-one-inflated proportion models,
   ordinal scale/discrimination, and random effects for most non-Gaussian
   families still need separate likelihood work and simulation recovery.
