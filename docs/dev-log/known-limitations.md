@@ -320,9 +320,10 @@
   blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, Student-t random
-  effects, Student-t known-covariance models, Student-t phylogenetic models,
-  bivariate Student-t models, lognormal/Gamma random slopes, lognormal/Gamma
-  `sigma` random effects, lognormal/Gamma structured-effect models,
+  slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
+  models, Student-t phylogenetic models, bivariate Student-t models,
+  lognormal/Gamma random slopes, lognormal/Gamma `sigma` random effects,
+  lognormal/Gamma structured-effect models,
   beta-binomial random-effect and structured-effect models, ordinal scale or discrimination
   models, count covariance labels and correlated count slopes, count hurdle or
   zero-inflation with random effects or structured effects, non-Gaussian
