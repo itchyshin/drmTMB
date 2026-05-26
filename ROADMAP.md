@@ -1758,6 +1758,21 @@ Use this order unless Slice 191 evidence overturns it:
 | 508 | NB2 q1 stale-claim scan | Done locally: stale wording is scanned so old “NB2 phylogeny planned” text does not contradict the fitted q=1 route. |
 | 509 | NB2 q1 check-log and after-task | Done locally: validation commands, role-perspective review, and remaining boundaries are recorded. |
 | 510 | NB2 q1 closeout | Done locally: the ordinary non-zero-inflated NB2 phylogenetic `mu` intercept is fitted and smoke-tested; formal recovery grids, NB2 `zi`, NB2 `sigma` phylogeny, structured slopes, spatial, animal, and `relmat()` count routes remain future gates. |
+| 511 | NB2 log-`sigma` ADEMP aim | Done locally: `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md` states the overdispersion-random-intercept aim and keeps the lane separate from NB2 `mu` and NB2 q1 phylogeny. |
+| 512 | NB2 log-`sigma` condition spec | Done locally: `phase18_nbinom2_sigma_re_conditions()` crosses group count, repeats, mean count, baseline overdispersion, true `sigma` SD, and fixed slopes. |
+| 513 | NB2 log-`sigma` estimands | Done locally: the ADEMP sheet names fixed `mu`, fixed `sigma`, `sd:sigma:(1 | id)`, direct `log_sd_sigma`, replication diagnostics, and formal replicate gates. |
+| 514 | NB2 log-`sigma` DGP | Done locally: `inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R` generates seeded ordinary NB2 data with fixed `mu` and grouped log-`sigma` heterogeneity. |
+| 515 | NB2 log-`sigma` fit route | Done locally: `phase18_fit_nbinom2_sigma_re()` fits `bf(count ~ x, sigma ~ z + (1 | id))` with the existing ordinary non-zero-inflated NB2 likelihood. |
+| 516 | NB2 log-`sigma` summariser | Done locally: `inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R` records fixed effects, `sdpars$sigma`, convergence, Hessian, warnings, direct `log_sd_sigma` profile-target status, and `check_drm()` replication status. |
+| 517 | NB2 log-`sigma` smoke runner | Done locally: `inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R` wires DGP, fit, summariser, registry, and the bounded replicate runner. |
+| 518 | NB2 log-`sigma` summary helper | Done locally: `inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R` returns aggregate, replicate, manifest, failure-ledger, Wald, profile-target, interval-evidence, interval-diagnostic, and interval-failure tables. |
+| 519 | NB2 log-`sigma` grid writer | Done locally: `inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R` writes repeatable CSV artifacts beside resumable replicate RDS files. |
+| 520 | Direct `log_sd_sigma` profile target | Done locally: summary rows map `sd:sigma:(1 | id)` to direct TMB target `log_sd_sigma`. |
+| 521 | NB2 log-`sigma` profile-status artifact | Done locally: grid outputs include `nbinom2-sigma-re-profile-targets.csv` and optional profile interval/status artifacts without requiring profiles in routine smoke tests. |
+| 522 | NB2 log-`sigma` focused tests | Done locally: `tests/testthat/test-phase18-nbinom2-sigma-random-effect.R` checks DGP reproducibility, smoke summaries, artifact row counts, direct profile-target status, overwrite protection, and malformed inputs. |
+| 523 | NB2 log-`sigma` Phase 18 docs sync | Done locally: simulation README, source map, Phase 18 programme, readiness matrix, and validation-debt register now name the dedicated smoke lane. |
+| 524 | NB2 log-`sigma` release and roadmap sync | Done locally: NEWS and ROADMAP record the grid while keeping NB2 scale slopes, joint `mu`/`sigma`, zero-inflated/truncated/hurdle scale routes, and structured `sigma` planned. |
+| 525 | NB2 log-`sigma` closeout | Done locally: the ordinary NB2 log-`sigma` random-intercept smoke grid has code, tests, artifacts, docs, check-log, and after-task evidence; larger formal grids still need separate runtime and artifact review. |
 
 ### Pre-Simulation Readiness Slice Map
 
@@ -2011,9 +2026,11 @@ as the whole comprehensive simulation programme.
   coverage for that smoke output; Slice 244 adds direct profile-likelihood SD
   interval coverage for the Poisson random-effect SD targets. Slice 245 fits
   ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
-  slopes with extractor and direct profile-target coverage, while keeping NB2
+  slopes with extractor and direct profile-target coverage. At that point NB2
   `sigma`, zero-inflated NB2 random effects, and correlated or labelled NB2
-  slope blocks outside Wave A. Slice 246 adds the matching NB2 `mu`
+  slope blocks stayed outside Wave A; Slices 511-525 now supersede only the
+  ordinary NB2 log-`sigma` random-intercept part of that boundary. Slice 246
+  adds the matching NB2 `mu`
   random-effect smoke surface with seeded DGP, live fit, parameter summaries,
   aggregate output, manifest, failure ledger, and tests. Slice 247 attaches
   fixed-effect Wald interval rows and coverage summaries to that NB2 smoke

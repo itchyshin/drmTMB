@@ -1163,6 +1163,88 @@ Results:
 - Slices 656-668 remain outside this pass.
 - No files were staged or committed.
 
+## 2026-05-24 - NB2 Log-Sigma Random-Intercept Smoke Grid Slices 511-525
+
+Goal: add the dedicated Phase 18 smoke-grid evidence lane for ordinary
+non-zero-inflated NB2 grouped overdispersion, `bf(count ~ x, sigma ~ z + (1 |
+id))`, without opening NB2 `sigma` slopes, joint `mu`/`sigma` random effects,
+zero-inflated/truncated/hurdle scale random effects, structured NB2 `sigma`, or
+formal coverage claims.
+
+Roles: Ada resumed from repository evidence and kept the task to Slices
+511-525. Curie checked the seeded DGP, runner, artifact writer, malformed-input
+tests, and row counts. Fisher checked that the lane records smoke evidence,
+direct `log_sd_sigma` profile-target status, and interval availability without
+claiming formal recovery. Grace ran focused tests, pkgdown checks, rendered
+site builds, stale scans, formatting, and diff hygiene. Rose caught and fixed a
+rendered ROADMAP stale sentence from the earlier Slice 245 boundary. Pat checked
+that reader-facing wording says what users can fit now and what remains
+planned. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md`.
+- Added the private Phase 18 DGP, summariser, smoke runner, summary helper, and
+  grid writer:
+  `inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R`,
+  `inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R`,
+  `inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R`,
+  `inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R`, and
+  `inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R`.
+- Added `tests/testthat/test-phase18-nbinom2-sigma-random-effect.R`.
+- Synced `inst/sim/README.md`, `vignettes/source-map.Rmd`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, `ROADMAP.md`, and
+  `NEWS.md`.
+- Rebuilt the pkgdown site so rendered ROADMAP, source-map, and NEWS pages carry
+  the Slices 511-525 wording.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md inst/sim/README.md vignettes/source-map.Rmd docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R tests/testthat/test-phase18-nbinom2-sigma-random-effect.R
+Rscript -e "invisible(parse(file = 'inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R')); invisible(parse(file = 'inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R')); invisible(parse(file = 'inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_summary_nbinom2_sigma_random_effect_smoke.R')); invisible(parse(file = 'inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R')); invisible(parse(file = 'tests/testthat/test-phase18-nbinom2-sigma-random-effect.R')); cat('parse ok\n')"
+Rscript -e "devtools::test(filter = 'phase18-nbinom2-sigma-random-effect', reporter = 'summary')"
+Rscript -e "devtools::test(filter = 'nbinom2-location-scale|nongaussian-scale-boundary', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n '511|525|nbinom2_sigma_random_effect|phase18_nbinom2_sigma_re|log_sd_sigma|nbinom2-sigma-re-profile-targets|Phase 18 NB2 Sigma' NEWS.md ROADMAP.md inst/sim/README.md docs/design/34-validation-debt-register.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md vignettes/source-map.Rmd tests/testthat/test-phase18-nbinom2-sigma-random-effect.R
+rg -n 'NB2 `sigma`.*(formal coverage|formal recovery|broad.*parity|ready for broad|structured.*now fit|sigma slopes.*fit|joint `mu`/`sigma`.*fit|zero-inflated.*sigma.*random.*fit)|NB2 log-`sigma`.*(formal coverage|formal recovery|ready for broad)|keeping NB2 `sigma`' NEWS.md ROADMAP.md README.md inst/sim/README.md docs/design vignettes tests -g '!*.html'
+rg -n '511|525|nbinom2_sigma_random_effect|log_sd_sigma|nbinom2-sigma-re-profile-targets|Phase 18 NB2|phase18_nbinom2_sigma_re|supersede only the ordinary NB2 log' pkgdown-site/ROADMAP.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+rg -n 'keeping NB2 <code>sigma</code>|NB2 <code>sigma</code> random effects remain planned|NB2 log-<code>sigma</code>.*ready for broad|NB2 <code>sigma</code> slopes.*now fit|joint <code>mu</code>/<code>sigma</code> random effects.*now fit|zero-inflated/truncated/hurdle.*scale random effects.*now fit' pkgdown-site -g '*.html'
+gh issue list --repo itchyshin/drmTMB --state open --search "NB2 sigma random" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "nbinom2 sigma" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "Phase 18 NB2" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- The parse smoke printed `parse ok`.
+- `devtools::test(filter = 'phase18-nbinom2-sigma-random-effect')` passed.
+- `devtools::test(filter = 'nbinom2-location-scale|nongaussian-scale-boundary')`
+  passed for the adjacent NB2/scale-boundary set and the filter-adjacent
+  truncated NB2 tests.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed after the final ROADMAP stale-line fix.
+- The source positive scan found the new DGP, runner, grid writer,
+  `log_sd_sigma` profile-target status, Slices 511-525, and ADEMP wording.
+- The first stale scan found one rendered-risk ROADMAP sentence from Slice 245;
+  the ROADMAP now says Slices 511-525 supersede only the ordinary NB2
+  log-`sigma` random-intercept part of that older boundary. The remaining source
+  stale hit was the expected phylogenetic-row phrase that broad phylogenetic
+  non-Gaussian effects remain planned.
+- The rendered positive scan found the Slices 511-525 ROADMAP rows, the source
+  map helper files, and the NEWS entry.
+- The narrowed rendered stale scan returned no hits.
+- GitHub issue search found no direct `nbinom2 sigma` issue. The broader
+  searches returned #59, #60, #128, and #57; no issue was mutated because these
+  local Slices 511-525 changes are a narrow smoke-grid ledger, not a pushed
+  closure of a broad Phase 18 or random-slope issue.
+- `git diff --check` was clean.
+
 ## 2026-05-24 - Crash Recovery Consolidation
 
 Goal: recover the mixed dirty tree after another Codex crash, verify the NB2

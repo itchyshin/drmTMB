@@ -73,6 +73,9 @@ Current pilot files:
   and its derived-correlation interval boundary.
 - `docs/design/56-phase-18-spatial-q2-ademp.md` is the one-page ADEMP sheet for
   the constant coordinate-spatial q=2 bivariate location-covariance lane.
+- `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md` is the
+  one-page ADEMP sheet for the ordinary NB2 log-`sigma` random-intercept smoke
+  lane.
 - `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
   records the ADEMP and artifact path for the fixed-effect `beta()` and
   `beta_binomial()` lane.
@@ -110,6 +113,11 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
   `sigma ~ z`; its condition helper can also cross true overdispersion
   settings.
+- `dgp/sim_dgp_nbinom2_sigma_random_effect.R` generates non-zero-inflated NB2
+  count data with fixed-effect log-mean `mu` and an ordinary grouped
+  log-`sigma` random intercept, `sigma ~ z + (1 | id)`. Its condition helper
+  crosses group count, repeats, mean count, baseline overdispersion, and the
+  true grouped overdispersion SD.
 - `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
   `beta()` proportions and denominator-aware `beta_binomial()` successes with
   `logit(mu) ~ x`, `log(sigma) ~ z`, and internal
@@ -160,6 +168,10 @@ Current pilot files:
   phylogenetic diagnostic status for the q=1 route.
 - `fit/sim_summarise_nbinom2_mu_random_effect.R` summarises fixed NB2 `mu`
   and `sigma` coefficients plus direct ordinary log-mean random-effect SDs.
+- `fit/sim_summarise_nbinom2_sigma_random_effect.R` summarises fixed NB2
+  `mu`, fixed NB2 `sigma`, the direct ordinary log-`sigma` random-intercept
+  SD, direct `log_sd_sigma` profile-target status, and `check_drm()`
+  replication status.
 - `fit/sim_summarise_proportion_fixed_effect.R` summarises fixed `beta()` and
   `beta_binomial()` `mu` and `sigma` coefficients on their documented link
   scales.
@@ -226,6 +238,8 @@ Current pilot files:
   non-zero-inflated Poisson phylogenetic q=1 `mu` surface.
 - `run/sim_run_nbinom2_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 `mu` random-effect surface.
+- `run/sim_run_nbinom2_sigma_random_effect_smoke.R` does the same for the
+  non-zero-inflated NB2 log-`sigma` random-intercept surface.
 - `run/sim_run_proportion_fixed_effect_smoke.R` does the same for the
   fixed-effect `beta()` and `beta_binomial()` proportion surface.
 - `run/sim_run_positive_continuous_fixed_effect_smoke.R` does the same for the
@@ -295,6 +309,12 @@ Current pilot files:
   file also provides the formal-grid wrapper, read-back QA, and promotion
   decision helpers; formal recovery or coverage claims still require the
   500-replicate gate and artifact review.
+- `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
+  log-`sigma` random-intercept smoke artifact set with aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct `log_sd_sigma` profile-target, optional profile-interval,
+  interval-evidence, interval-diagnostics, and interval-failure CSVs beside
+  resumable per-replicate RDS files.
 - `run/sim_write_proportion_fixed_effect_grid.R` writes the fixed-effect
   `beta()` and `beta_binomial()` artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage CSVs
@@ -389,6 +409,12 @@ Current pilot files:
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient
   Wald interval, Wald coverage, direct random-effect SD profile interval, and
   profile coverage outputs.
+- `run/sim_summary_nbinom2_sigma_random_effect_smoke.R` runs a tiny
+  non-zero-inflated NB2 log-`sigma` random-intercept summary smoke grid and
+  returns grouped bias, RMSE, MCSE, manifest, failure-ledger,
+  formula-coefficient Wald interval, Wald coverage, direct `log_sd_sigma`
+  profile-target rows, optional profile interval rows, interval diagnostics,
+  and interval-failure outputs.
 - `run/sim_summary_count_mu_random_effect_pilot.R` runs the first paired
   Poisson/NB2 `mu` random-effect pilot, returning combined aggregate, manifest,
   failure-ledger, Wald interval, Wald coverage, profile interval, and profile

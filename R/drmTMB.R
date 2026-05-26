@@ -2403,7 +2403,9 @@ drm_build_nbinom2_spec <- function(
         phylo_mu = phylo_mu
       )
     },
-    map = if (has_zi) zi_nbinom2_map() else {
+    map = if (has_zi) {
+      zi_nbinom2_map()
+    } else {
       nbinom2_map(re_mu, phylo_mu, re_sigma)
     },
     random_names = c(
