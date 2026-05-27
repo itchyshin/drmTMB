@@ -21,7 +21,7 @@ errors, check-log evidence, and after-task notes.
 | Ordinary continuous location-scale | Gaussian location-scale is fitted and already has first-wave simulation artifacts. | Gaussian location-scale DGP, smoke, grid-output, and report staging are part of the first-wave runner. | Treat this lane as the reference continuous surface. Use it as the comparator story when explaining Student-t shape, lognormal, and Gamma rather than adding new Gaussian syntax. |
 | Positive continuous responses | Fixed-effect lognormal location-scale and Gamma mean-CV likelihoods are fitted. Ordinary `mu` random intercepts are fitted for `lognormal()` and `Gamma(link = "log")` as a narrow first mixed-model slice. | Slices 1299-1308 add the fixed-effect positive-continuous artifact lane. Slices 1369-1378 add the ordinary `mu` random-intercept artifact lane with DGP, summariser, smoke runner, repeatable grid writer, first-wave runner inclusion, manual `positive_continuous_mu_random_intercept` Actions dispatch, fixed-effect Wald rows, and direct-SD profile rows. | Keep positive-continuous random slopes, labelled covariance, `sigma` random effects, known sampling covariance, phylogenetic terms, structured effects, generalized Gamma, Tweedie, and bivariate positive-continuous models out. |
 | Ordinal responses | Fixed-effect univariate `cumulative_logit()` models are fitted with ordered cutpoints and fixed latent logistic scale. | Slices 1309-1318 add the ordinal ADEMP/artifact lane with DGP, summariser, smoke runner, repeatable grid writer, first-wave runner inclusion, manual Actions dispatch, cutpoint rows, and cutpoint-ordering diagnostics. | Keep ordinal location-only. Do not add ordinal random effects, scale/discrimination formulas, bivariate ordinal, or mixed-response ordinal models yet. |
-| Shape and skewness | Fixed-effect Student-t `nu` is fitted. Skew-normal and skew-t are not fitted. | Student-t shape has a Phase 18 ADEMP sheet and DGP, summariser, smoke runner, grid writer, summary smoke, profile-smoke, and bootstrap-smoke evidence. Skew-normal and skew-t are design gates only. | Keep Student-t as the only runnable shape family for now. For skew-normal, the next action is an implementation gate with density comparator, Gaussian-limit check, prediction contract, profile-target policy, diagnostics, and recovery tests. Skew-t waits until skew-normal is stable because it adds a second shape dimension, tentatively `tau`. |
+| Shape and skewness | Fixed-effect Student-t `nu` is fitted, and ordinary Student-t `mu` random intercepts are fitted with fixed-effect `sigma` and `nu`. Skew-normal and skew-t are not fitted. | Student-t shape has a Phase 18 ADEMP sheet and DGP, summariser, smoke runner, grid writer, summary smoke, profile-smoke, and bootstrap-smoke evidence. Slices 1379-1388 add the Student-t ordinary `mu` random-intercept artifact lane with DGP, summariser, smoke runner, repeatable grid writer, first-wave runner inclusion, manual `student_mu_random_intercept` Actions dispatch, fixed-effect Wald rows for `mu`, `sigma`, and `nu`, and direct-SD profile rows. Skew-normal and skew-t are design gates only. | Keep Student-t as the only runnable shape family for now. Do not infer support for Student-t random slopes, `sigma` random effects, or `nu` random effects from the ordinary `mu` intercept lane. For skew-normal, the next action is an implementation gate with density comparator, Gaussian-limit check, prediction contract, profile-target policy, diagnostics, and recovery tests. Skew-t waits until skew-normal is stable because it adds a second shape dimension, tentatively `tau`. |
 | Semicontinuous positive responses | Tweedie is planned, not fitted. | The likelihood design names the intended fixed-effect first gate and comparator scale, but there is no fitted family route. | Do not start Tweedie until fixed-effect proportions and positive-continuous artifacts are complete. The first Tweedie route should be univariate, fixed-effect, and use intercept-only `nu ~ 1` before predictor-dependent power models. |
 
 ## Shape Family Answer
@@ -77,17 +77,21 @@ confounded.
    completed by Slices 1369-1378.
 4. Treat the fixed-effect ordinal artifact lane for `cumulative_logit()` as
    completed by Slices 1309-1318.
-5. Treat the NB2 q1 formal shard audit as completed but held: the 16-shard
+5. Treat the Student-t ordinary `mu` random-intercept artifact lane as
+   completed by Slices 1379-1388, while keeping Student-t random slopes,
+   `sigma` random effects, `nu` random effects, structured effects, known
+   covariance, and bivariate Student-t models planned.
+6. Treat the NB2 q1 formal shard audit as completed but held: the 16-shard
    500-replicate artifact set exists, but profile and fixed-`sigma` diagnostics
    block promotion.
-6. Treat the zero-one bounded-response design gate as the chosen D3
+7. Treat the zero-one bounded-response design gate as the chosen D3
    documentation lane and the later fixed-effect `zero_one_beta()` source slice
    as the narrow runnable route for structural exact 0/1 mass. Zero-one random
    effects, bounded-response random slopes, structured bounded responses, and
    mixed bounded-response models stay planned.
-7. Choose any later Slice D lane from the remaining Student-t/skew-normal shape
-   decision, the Tweedie fixed-effect design gate, or a later count-family design
-   gate such as Conway-Maxwell-Poisson.
+8. Choose any later Slice D lane from the remaining skew-normal shape decision,
+   the Tweedie fixed-effect design gate, or a later count-family design gate
+   such as Conway-Maxwell-Poisson.
 
 This order gives users broad measurement-process coverage before the package
 adds higher-risk covariance, inflation-random-effect, or skew-family syntax.

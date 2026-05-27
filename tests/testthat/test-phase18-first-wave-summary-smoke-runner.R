@@ -15,6 +15,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/dgp/sim_dgp_bounded_response_mu_random_intercept.R",
     "sim/dgp/sim_dgp_positive_continuous_fixed_effect.R",
     "sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R",
+    "sim/dgp/sim_dgp_student_mu_random_intercept.R",
     "sim/dgp/sim_dgp_ordinal_fixed_effect.R",
     "sim/dgp/sim_dgp_zero_one_beta_fixed_effect.R",
     "sim/dgp/sim_dgp_gaussian_mu_random_slope.R",
@@ -28,6 +29,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/fit/sim_summarise_bounded_response_mu_random_intercept.R",
     "sim/fit/sim_summarise_positive_continuous_fixed_effect.R",
     "sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R",
+    "sim/fit/sim_summarise_student_mu_random_intercept.R",
     "sim/fit/sim_summarise_ordinal_fixed_effect.R",
     "sim/fit/sim_summarise_zero_one_beta_fixed_effect.R",
     "sim/fit/sim_summarise_gaussian_mu_random_slope.R",
@@ -41,6 +43,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_run_bounded_response_mu_random_intercept_smoke.R",
     "sim/run/sim_run_positive_continuous_fixed_effect_smoke.R",
     "sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R",
+    "sim/run/sim_run_student_mu_random_intercept_smoke.R",
     "sim/run/sim_run_ordinal_fixed_effect_smoke.R",
     "sim/run/sim_run_zero_one_beta_fixed_effect_smoke.R",
     "sim/run/sim_run_gaussian_mu_random_slope_smoke.R",
@@ -55,6 +58,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_summary_bounded_response_mu_random_intercept_smoke.R",
     "sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R",
     "sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R",
+    "sim/run/sim_summary_student_mu_random_intercept_smoke.R",
     "sim/run/sim_summary_ordinal_fixed_effect_smoke.R",
     "sim/run/sim_summary_zero_one_beta_fixed_effect_smoke.R",
     "sim/run/sim_summary_gaussian_mu_random_slope_smoke.R",
@@ -67,6 +71,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_write_bounded_response_mu_random_intercept_grid.R",
     "sim/run/sim_write_positive_continuous_fixed_effect_grid.R",
     "sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R",
+    "sim/run/sim_write_student_mu_random_intercept_grid.R",
     "sim/run/sim_write_ordinal_fixed_effect_grid.R",
     "sim/run/sim_write_zero_one_beta_fixed_effect_grid.R",
     "sim/run/sim_write_gaussian_mu_random_slope_grid.R",
@@ -100,7 +105,7 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
   expect_equal(out$surface, "phase18_first_wave_summary_smoke")
   expect_null(out$report$report_path)
   expect_true(file.exists(out$paths$parallel_summary_csv))
-  expect_equal(nrow(out$parallel_summary), 13L)
+  expect_equal(nrow(out$parallel_summary), 14L)
   expect_setequal(
     out$parallel_summary$surface,
     c(
@@ -112,6 +117,7 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
       "bounded_response_mu_random_intercept_grid",
       "positive_continuous_fixed_effect_grid",
       "positive_continuous_mu_random_intercept_grid",
+      "student_mu_random_intercept_grid",
       "ordinal_fixed_effect_grid",
       "zero_one_beta_fixed_effect_grid",
       "gaussian_mu_random_slope_grid",
@@ -119,12 +125,12 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
       "spatial_mu_slope_grid"
     )
   )
-  expect_equal(out$parallel_summary$requested_cores, rep(10L, 13L))
-  expect_equal(out$parallel_summary$cores, rep(1L, 13L))
+  expect_equal(out$parallel_summary$requested_cores, rep(10L, 14L))
+  expect_equal(out$parallel_summary$cores, rep(1L, 14L))
   expect_true(file.exists(out$report$status$paths$artifact_status_csv))
   expect_true(file.exists(out$report$tables$paths$aggregate_csv))
-  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 95L)
-  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 61L)
+  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 101L)
+  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 66L)
   expect_gt(nrow(out$report$tables$tables$profile_coverage_csv), 0L)
 })
 

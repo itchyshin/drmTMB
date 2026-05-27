@@ -108,6 +108,9 @@ Current pilot files:
 - `docs/design/118-phase-18-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md`
   records the artifact path for ordinary `mu` random intercepts in
   `lognormal()` and `Gamma(link = "log")` models.
+- `docs/design/119-phase-18-student-mu-random-intercept-artifacts-slices-1379-1388.md`
+  records the artifact path for ordinary `mu` random intercepts in
+  `student()` models with fixed-effect `sigma` and `nu` formulas.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -158,6 +161,10 @@ Current pilot files:
 - `dgp/sim_dgp_positive_continuous_mu_random_intercept.R` generates positive
   `lognormal()` and `Gamma(link = "log")` responses with one ordinary grouped
   `mu` random intercept, `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
+- `dgp/sim_dgp_student_mu_random_intercept.R` generates Student-t responses
+  with one ordinary grouped `mu` random intercept, `mu ~ x + (1 | id)`,
+  fixed-effect `sigma ~ z`, and fixed-effect `nu ~ 1` using
+  `nu = 2 + exp(eta_nu)`.
 - `dgp/sim_dgp_ordinal_fixed_effect.R` generates ordered-category
   `cumulative_logit()` responses with latent `mu ~ x`, ordered cutpoints, and
   no free location intercept.
@@ -204,6 +211,9 @@ Current pilot files:
   fixed `lognormal()` and `Gamma(link = "log")` `mu` and `sigma` coefficients
   plus the direct ordinary positive-continuous `mu` random-intercept SD on the
   public SD scale.
+- `fit/sim_summarise_student_mu_random_intercept.R` summarises fixed
+  Student-t `mu`, `sigma`, and `nu` coefficients plus the direct ordinary
+  Student-t `mu` random-intercept SD on the public SD scale.
 - `fit/sim_summarise_ordinal_fixed_effect.R` summarises the identifiable
   cumulative-logit `mu` slope and ordered cutpoints.
 - `fit/sim_summarise_zero_one_beta_fixed_effect.R` summarises fixed
@@ -299,6 +309,8 @@ Current pilot files:
 - `run/sim_run_positive_continuous_mu_random_intercept_smoke.R` does the same
   for the ordinary positive-continuous `mu` random-intercept surface for
   `lognormal()` and `Gamma(link = "log")`.
+- `run/sim_run_student_mu_random_intercept_smoke.R` does the same for the
+  ordinary Student-t `mu` random-intercept surface.
 - `run/sim_run_ordinal_fixed_effect_smoke.R` does the same for the fixed-effect
   `cumulative_logit()` ordinal surface.
 - `run/sim_run_zero_one_beta_fixed_effect_smoke.R` does the same for the
@@ -371,6 +383,10 @@ Current pilot files:
   positive-continuous `mu` random-intercept artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
   coverage, direct-SD profile interval, and profile coverage CSVs.
+- `run/sim_write_student_mu_random_intercept_grid.R` writes the Student-t
+  `mu` random-intercept artifact set with aggregate, replicate-level,
+  manifest, failure-ledger, fixed-effect Wald interval, Wald coverage,
+  direct-SD profile interval, and profile coverage CSVs.
 - `run/sim_write_ordinal_fixed_effect_grid.R` writes the fixed-effect
   `cumulative_logit()` ordinal artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, Wald coverage,

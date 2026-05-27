@@ -150,6 +150,29 @@ test_that("Phase 18 Actions runner accepts positive-continuous mu random-interce
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts Student-t mu random-intercept task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-student-mu-ri-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=student_mu_random_intercept",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=student_mu_random_intercept", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner accepts ordinal fixed-effect task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-ordinal-dry-run-")
