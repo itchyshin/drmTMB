@@ -8,6 +8,23 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-27 - Parallel Phase 18 Lane Protocol
+
+- Improvement implemented: parallel distribution work should split lane-local
+  construction from serial claim integration. Two teams may build independent
+  DGP, summariser, smoke-runner, grid-writer, test, design-note, and after-task
+  payloads on separate branches, but Ada, Grace, and Rose should merge global
+  status files one lane at a time.
+- Improvement implemented: shared helper, formula-grammar, likelihood,
+  exported-API, and broad README/ROADMAP/pkgdown status changes stay serial
+  unless a separate design decision splits them first.
+- Improvement implemented: each parallel lane must state its fitted route,
+  unsupported neighbours, lane-local files, integration files, focused tests,
+  malformed-neighbour tests, and first-wave or Actions artifacts before review.
+- Trigger: the profile-plot and zero-truncated NB2 artifact PR queue showed
+  that code can move quickly in parallel, but the accuracy gain comes from a
+  strict integration gate after each branch refresh.
+
 ## 2026-05-26 - First-Wave Surface Wiring Checklist
 
 - Improvement implemented: when a new Phase 18 first-wave surface is added,
