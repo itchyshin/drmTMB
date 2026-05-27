@@ -8,6 +8,18 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-26 - First-Wave Surface Wiring Checklist
+
+- Improvement implemented: when a new Phase 18 first-wave surface is added,
+  Curie and Grace should check all four wiring points together: the per-surface
+  source list, `phase18_run_first_wave_summary_smoke()`, the
+  `phase18_first_wave_parallel_summary()` signature/row list, and the
+  first-wave smoke-runner expected surface and row counts.
+- Improvement implemented: a failed first-wave summary test showed that adding
+  a grid output without updating the parallel summary connector is easy to
+  miss. Future first-wave lanes should run the first-wave smoke-runner test
+  before ledger closeout, not only the new per-surface tests.
+
 ## 2026-05-16 - Portable Agent Operating Kit
 
 - Improvement implemented: added this team-improvement log so process lessons

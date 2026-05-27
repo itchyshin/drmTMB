@@ -2,6 +2,86 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Zero-One Beta Fixed-Effect Phase 18 Artifacts, Slices 1339-1348
+
+Goal:
+
+- Add the Phase 18 artifact lane for the implemented fixed-effect
+  `zero_one_beta()` route without opening random effects, covariance blocks,
+  denominator syntax, structured bounded responses, or bivariate bounded
+  models.
+
+Roles: Ada kept the lane scoped to the fixed-effect artifact surface. Boole
+checked that the runnable syntax remains
+`bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v)`. Gauss and Noether checked that the
+DGP matches the zero-one beta probability contract. Fisher kept the output at
+smoke/artifact evidence rather than broad operating-characteristic claims.
+Curie owned the DGP, summariser, runner, grid writer, and test coverage. Grace
+ran targeted tests, full tests, Actions dry-run, pkgdown, and diff checks. Pat
+checked that strict beta, denominator-aware beta-binomial, and exact-boundary
+zero-one beta remain separate user routes. Rose found and fixed the first-wave
+parallel-summary wiring gap, added a team-improvement note, and scanned for
+stale artifact-lane wording. These were role perspectives, not spawned agents.
+
+Changes:
+
+- Added the zero-one beta Phase 18 DGP, fit summariser, smoke runner, summary
+  helper, and grid-output writer under `inst/sim/`.
+- Added `tests/testthat/test-phase18-zero-one-beta-fixed-effect.R`.
+- Added `zero_one_beta_fixed_effect` to the manual Phase 18 Actions workflow
+  and runner.
+- Added the zero-one beta grid to the first-wave summary smoke runner and its
+  parallel-summary rows.
+- Added
+  `docs/design/115-phase-18-zero-one-beta-fixed-effect-artifacts-slices-1339-1348.md`.
+- Synced NEWS, ROADMAP, the Phase 18 programme, readiness matrix, validation
+  debt register, supported non-Gaussian evidence goal, family registry,
+  implementation map, simulation README, and team-improvements log.
+- Commented on GitHub issue #57 to record that the artifact lane landed while
+  the broader tutorial/pkgdown issue remains open.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'phase18-zero-one-beta-fixed-effect', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-first-wave-summary-smoke-runner', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-zero-one-beta-fixed-effect|phase18-actions-runner|phase18-first-wave-summary-smoke-runner', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=zero_one_beta_fixed_effect --dry-run=true --n-reps=2 --cores=10 --backend=multicore --master-seed=20260536
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'zero-one beta.*(still needs its own artifact lane|no broad artifact lane|no artifact lane)|zero_one_beta\(\).*source-tested but still needs|add a zero-one beta artifact lane before|fixed-effect zero-one beta is source-tested|zero-one beta source-test' NEWS.md ROADMAP.md docs/design inst/sim/README.md vignettes -g '!*.html'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "zero-one beta artifact OR zero_one_beta artifact OR zoi coi" --limit 20 --json number,title,state,url,labels
+gh issue comment 57 --repo itchyshin/drmTMB --body "<status comment>"
+```
+
+Results:
+
+- The focused zero-one beta artifact test passed.
+- The Phase 18 Actions runner test passed.
+- The first-wave summary smoke-runner test initially caught the missing
+  `phase18_first_wave_parallel_summary()` connector for the new surface; after
+  patching it, the test passed.
+- The combined targeted test command passed.
+- The `zero_one_beta_fixed_effect` Actions dry-run printed the expected task
+  plan with `n_rep = 2`, `backend = multicore`, and `cores = 10`.
+- Full `devtools::test()` completed successfully.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale artifact-lane scan returned no matches.
+- `git diff --check` was clean.
+- The issue search found #57, a broader proportion tutorial/pkgdown issue. The
+  artifact-lane status comment was posted at
+  <https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4550273846>;
+  the issue remains open because the tutorial gate is not complete.
+
+Decision:
+
+- Slices 1339-1348 are complete as a fixed-effect zero-one beta artifact lane.
+  The next bounded-response artifact step should be a separate ordinary
+  `mu` random-intercept lane for beta and beta-binomial, or the
+  reader/tutorial/pkgdown follow-through if this PR lands green.
+
 ## 2026-05-26 - Zero-One Bounded-Response Design Gate, Slice D3
 
 Goal:

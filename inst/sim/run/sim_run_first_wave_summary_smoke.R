@@ -116,6 +116,24 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  zero_one_beta <- phase18_write_zero_one_beta_fe_grid_outputs(
+    output_dir = file.path(output_dir, "zero-one-beta-fe"),
+    conditions = phase18_zero_one_beta_fe_conditions(
+      n = 360L,
+      beta_sigma_intercept = -0.80,
+      beta_sigma_z = 0.15,
+      beta_zoi_intercept = -1.20,
+      beta_zoi_w = 0.30,
+      beta_coi_intercept = 0.10,
+      beta_coi_v = -0.30,
+      rho_xz = 0.20
+    ),
+    n_rep = as.integer(n_rep),
+    master_seed = as.integer(master_seed) + 10L,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
+  )
   gaussian_mu_random_slope <- phase18_write_gaussian_mu_rs_grid_outputs(
     output_dir = file.path(output_dir, "gaussian-mu-random-slope"),
     conditions = phase18_gaussian_mu_rs_conditions(
@@ -162,6 +180,7 @@ phase18_run_first_wave_summary_smoke <- function(
       proportion,
       positive_continuous,
       ordinal,
+      zero_one_beta,
       gaussian_mu_random_slope,
       gaussian_sigma_random_slope,
       spatial_mu_slope
@@ -178,6 +197,7 @@ phase18_run_first_wave_summary_smoke <- function(
     proportion = proportion,
     positive_continuous = positive_continuous,
     ordinal = ordinal,
+    zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
     gaussian_sigma_random_slope = gaussian_sigma_random_slope,
     spatial_mu_slope = spatial_mu_slope
@@ -204,6 +224,7 @@ phase18_run_first_wave_summary_smoke <- function(
     proportion = proportion,
     positive_continuous = positive_continuous,
     ordinal = ordinal,
+    zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
     gaussian_sigma_random_slope = gaussian_sigma_random_slope,
     spatial_mu_slope = spatial_mu_slope,
@@ -256,6 +277,7 @@ phase18_first_wave_parallel_summary <- function(
   proportion,
   positive_continuous,
   ordinal,
+  zero_one_beta,
   gaussian_mu_random_slope,
   gaussian_sigma_random_slope,
   spatial_mu_slope
@@ -287,6 +309,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "ordinal_fixed_effect_grid",
         ordinal$summary$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "zero_one_beta_fixed_effect_grid",
+        zero_one_beta$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "gaussian_mu_random_slope_grid",
