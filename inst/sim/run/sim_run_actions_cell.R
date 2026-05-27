@@ -6,6 +6,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     c(
       "first_wave_summary",
       "interval_heavy_summary",
+      "truncated_nbinom2_mu_random_intercept",
       "proportion_fixed_effect",
       "bounded_response_mu_random_intercept",
       "positive_continuous_fixed_effect",
@@ -135,6 +136,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       bootstrap_cores = bootstrap_cores,
       bootstrap_backend = bootstrap_backend,
       notes = notes
+    )
+  } else if (identical(task, "truncated_nbinom2_mu_random_intercept")) {
+    out <- phase18_write_truncated_nbinom2_mu_ri_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
     )
   } else if (identical(task, "proportion_fixed_effect")) {
     out <- phase18_write_proportion_fe_grid_outputs(
@@ -350,6 +360,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/dgp/sim_dgp_meta_v.R",
       "sim/dgp/sim_dgp_poisson_mu_random_effect.R",
       "sim/dgp/sim_dgp_nbinom2_mu_random_effect.R",
+      "sim/dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R",
       "sim/dgp/sim_dgp_gaussian_mu_random_slope.R",
       "sim/dgp/sim_dgp_gaussian_sigma_random_slope.R",
       "sim/dgp/sim_dgp_spatial_mu_slope.R",
@@ -364,6 +375,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/fit/sim_summarise_meta_v.R",
       "sim/fit/sim_summarise_poisson_mu_random_effect.R",
       "sim/fit/sim_summarise_nbinom2_mu_random_effect.R",
+      "sim/fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R",
       "sim/fit/sim_summarise_gaussian_mu_random_slope.R",
       "sim/fit/sim_summarise_gaussian_sigma_random_slope.R",
       "sim/fit/sim_summarise_spatial_mu_slope.R",
@@ -378,6 +390,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_meta_v_smoke.R",
       "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
       "sim/run/sim_run_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R",
       "sim/run/sim_run_gaussian_mu_random_slope_smoke.R",
       "sim/run/sim_run_gaussian_sigma_random_slope_smoke.R",
       "sim/run/sim_run_spatial_mu_slope_smoke.R",
@@ -392,6 +405,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_summary_meta_v_smoke.R",
       "sim/run/sim_summary_poisson_mu_random_effect_smoke.R",
       "sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R",
       "sim/run/sim_summary_count_mu_random_effect_pilot.R",
       "sim/run/sim_summary_gaussian_mu_random_slope_smoke.R",
       "sim/run/sim_summary_gaussian_sigma_random_slope_smoke.R",
@@ -406,6 +420,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_gaussian_ls_grid.R",
       "sim/run/sim_write_meta_v_grid.R",
       "sim/run/sim_write_count_mu_random_effect_grid.R",
+      "sim/run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R",
       "sim/run/sim_write_gaussian_mu_random_slope_grid.R",
       "sim/run/sim_write_gaussian_sigma_random_slope_grid.R",
       "sim/run/sim_write_spatial_mu_slope_grid.R",
@@ -438,6 +453,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_first_wave_table_bundle.R",
       "sim/run/sim_render_first_wave_summary_report.R",
       "sim/run/sim_run_interval_heavy_summary_smoke.R"
+    ))
+  }
+  if (identical(task, "truncated_nbinom2_mu_random_intercept")) {
+    return(c(
+      "sim/dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R",
+      "sim/fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R",
+      "sim/run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R",
+      "sim/run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R",
+      "sim/run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R"
     ))
   }
   if (identical(task, "proportion_fixed_effect")) {

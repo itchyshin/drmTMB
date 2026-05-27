@@ -70,6 +70,22 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  truncated_nbinom2_mu_random_intercept <-
+    phase18_write_truncated_nbinom2_mu_ri_grid_outputs(
+      output_dir = file.path(output_dir, "truncated-nb2-mu-ri"),
+      conditions = phase18_truncated_nbinom2_mu_ri_conditions(
+        n_group = 28L,
+        n_per_group = 8L,
+        beta_sigma_intercept = -0.65,
+        beta_sigma_z = 0.15,
+        sd_intercept = 0.35
+      ),
+      n_rep = as.integer(n_rep),
+      master_seed = as.integer(master_seed) + 14L,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
   proportion <- phase18_write_proportion_fe_grid_outputs(
     output_dir = file.path(output_dir, "proportion-fe"),
     conditions = phase18_proportion_fe_conditions(
@@ -232,6 +248,7 @@ phase18_run_first_wave_summary_smoke <- function(
       gaussian,
       meta,
       count,
+      truncated_nbinom2_mu_random_intercept,
       proportion,
       bounded_response_mu_random_intercept,
       positive_continuous,
@@ -252,6 +269,7 @@ phase18_run_first_wave_summary_smoke <- function(
     gaussian = gaussian,
     meta = meta,
     count = count,
+    truncated_nbinom2_mu_random_intercept = truncated_nbinom2_mu_random_intercept,
     proportion = proportion,
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
@@ -282,6 +300,7 @@ phase18_run_first_wave_summary_smoke <- function(
     gaussian = gaussian,
     meta = meta,
     count = count,
+    truncated_nbinom2_mu_random_intercept = truncated_nbinom2_mu_random_intercept,
     proportion = proportion,
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
@@ -338,6 +357,7 @@ phase18_first_wave_parallel_summary <- function(
   gaussian,
   meta,
   count,
+  truncated_nbinom2_mu_random_intercept,
   proportion,
   bounded_response_mu_random_intercept,
   positive_continuous,
@@ -364,6 +384,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "nbinom2_mu_random_effect",
         count$summary$nbinom2$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "truncated_nbinom2_mu_random_intercept_grid",
+        truncated_nbinom2_mu_random_intercept$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "proportion_fixed_effect_grid",

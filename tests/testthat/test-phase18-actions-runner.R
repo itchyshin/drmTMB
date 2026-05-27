@@ -77,6 +77,33 @@ test_that("Phase 18 Actions runner accepts proportion fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts truncated NB2 mu random-intercept task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-truncated-nb2-mu-ri-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=truncated_nbinom2_mu_random_intercept",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(
+    out,
+    "task=truncated_nbinom2_mu_random_intercept",
+    fixed = TRUE
+  )
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner accepts bounded-response mu random-intercept task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-bounded-response-mu-ri-dry-run-")

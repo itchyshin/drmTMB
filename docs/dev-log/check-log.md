@@ -2,6 +2,157 @@
 
 Record meaningful development checks here.
 
+## 2026-05-27 - Truncated NB2 Mu Random-Intercept Phase 18 Artifacts, Slices 1389-1398
+
+Goal:
+
+- Add the Phase 18 artifact lane for the implemented zero-truncated NB2
+  ordinary `mu` random-intercept route without opening zero-truncated NB2
+  random slopes, labelled covariance, `sigma` random effects, hurdle random
+  effects, zero-inflated zero-truncated models, structured effects, or
+  bivariate count models.
+
+Roles: Ada kept the slice scoped to one fitted positive-count mixed-model
+surface. Boole checked that the runnable syntax remains
+`bf(count ~ x + (1 | id), sigma ~ z)`. Gauss and Noether checked that the DGP
+uses the fitted zero-truncated NB2 contract: `mu` and `sigma` describe the
+untruncated NB2 component while `fitted()` targets the conditional positive
+mean. Fisher kept the result at smoke/artifact evidence rather than a formal
+operating-characteristic claim. Curie owned the DGP, summariser, smoke runner,
+grid writer, and tests. Grace owned focused tests, orchestration tests, pkgdown
+checks, stale/evidence scans, diff checks, and GitHub issue inspection. Pat
+checked that an applied user sees the repeated positive-count route without
+mistaking it for zero-truncated slopes, scale random effects, or structured
+count effects. Rose scanned for stale source-test-only wording. These were role
+perspectives, not spawned agents.
+
+Changes:
+
+- Added the zero-truncated NB2 ordinary `mu` random-intercept DGP, fit
+  summariser, smoke runner, summary helper, and grid-output writer under
+  `inst/sim/`.
+- Added
+  `tests/testthat/test-phase18-truncated-nbinom2-mu-random-intercept.R`.
+- Added `truncated_nbinom2_mu_random_intercept` to the manual Phase 18 Actions
+  workflow and runner.
+- Added the zero-truncated NB2 grid to the first-wave summary smoke runner and
+  its parallel-summary rows.
+- Added
+  `docs/design/120-phase-18-truncated-nbinom2-mu-random-intercept-artifacts-slices-1389-1398.md`.
+- Synced NEWS, README, ROADMAP, the Phase 18 programme, readiness matrix, core
+  family completion map, and simulation README.
+
+Validation:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "resume truncated NB2 mu random-intercept artifact lane and plan profile-likelihood plotting capability" --next "inspect dirty tree, finish docs/check-log/after-task evidence, then scope profile-likelihood plotting helper against existing profile_targets/confint paths"
+air format .github/workflows/phase18-simulation-grid.yaml inst/sim/dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R inst/sim/fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R inst/sim/run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R inst/sim/run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R inst/sim/run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-truncated-nbinom2-mu-random-intercept.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R NEWS.md README.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/120-phase-18-truncated-nbinom2-mu-random-intercept-artifacts-slices-1389-1398.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-27-truncated-nbinom2-mu-random-intercept-artifacts-slices-1389-1398.md
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R','inst/sim/fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R','inst/sim/run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R','inst/sim/run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R','inst/sim/run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R','inst/sim/run/sim_run_first_wave_summary_smoke.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-truncated-nbinom2-mu-random-intercept.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-truncated-nbinom2-mu-random-intercept|phase18-first-wave-summary-smoke-runner|phase18-actions-runner|truncated-nbinom2)$', reporter = 'summary')"
+rg -n 'zero-truncated NB2.*source-test(ed)? only|zero-truncated NB2.*remain source-tested|zero-truncated NB2.*source-test lane|zero-truncated NB2.*random effects are blocked|ordinary zero-truncated NB2 `mu` random intercepts remain source-tested|Zero-truncated NB2 `mu` random effects \| Planned' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md -g '!*.html'
+rg -n 'truncated_nbinom2_mu_random_intercept|zero-truncated NB2 `mu` random-intercept artifact lane|truncated-nb2-mu-ri|phase18_dgp_truncated_nbinom2_mu_ri\(\)|direct-SD profile interval' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md inst/sim/run tests/testthat .github/workflows/phase18-simulation-grid.yaml docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-27-truncated-nbinom2-mu-random-intercept-artifacts-slices-1389-1398.md -g '!*.html'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "truncated NB2 random intercept Phase 18 OR truncated_nbinom2_mu_random_intercept OR zero-truncated NB2 artifact" --limit 20 --json number,title,state,url,labels
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'zero-truncated NB2.*source-test(ed)? only|zero-truncated NB2.*remain source-tested|zero-truncated NB2.*source-test lane|zero-truncated NB2.*random effects are blocked|ordinary zero-truncated NB2.*remain source-tested|Zero-truncated NB2.*Planned' pkgdown-site -g '*.html'
+rg -n 'truncated_nbinom2_mu_random_intercept|zero-truncated NB2.*artifact lane|truncated-nb2-mu-ri|direct-SD profile interval|Zero-truncated NB2.*random-intercept artifacts' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '*.html'
+```
+
+Results:
+
+- Recovery checkpoint was written before continuing from the interrupted run.
+- Formatting completed without changes reported by `air`.
+- Parse checks passed.
+- The focused truncated NB2 artifact, first-wave summary, Actions runner, and
+  neighbouring `truncated-nbinom2` test bundle passed.
+- The source stale source-test-only scan returned no matches.
+- The source positive-evidence scan found the new source, tests, workflow,
+  NEWS, README/ROADMAP, design-doc, simulation README, check-log, and
+  after-task entries.
+- `git diff --check` was clean.
+- The GitHub issue search found #128, a broader random-effect slope-capacity
+  issue. A 2026-05-27 rerun also found release-start issue #342 because that
+  issue mentions the current dirty worktree and the truncated-NB2 caveat. No
+  comment was added because this slice adds only an ordinary zero-truncated NB2
+  random-intercept artifact lane and leaves slopes planned.
+- `pkgdown::build_site(preview = FALSE)` completed successfully.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The rendered-site stale scan returned no matches.
+- The rendered-site positive-evidence scan found the expected README,
+  ROADMAP, and NEWS entries.
+- The dirty worktree also contains a separate `R/profile.R`
+  profile-likelihood plotting change. It was parsed during the 2026-05-27
+  rerun as a dirty-neighbour sanity check, but it is not part of this count
+  artifact slice.
+
+Decision:
+
+- Slices 1389-1398 are complete as a zero-truncated NB2 ordinary `mu`
+  random-intercept artifact lane.
+
+## 2026-05-27 -- Release start for 0.2.0
+
+Goal:
+
+- Start the release track for `drmTMB` with a concrete GitHub issue and record
+  the local evidence behind the target version.
+
+Branch context:
+
+- Branch: `codex/truncated-nb2-mu-ri-artifacts-2026-05-26`.
+- `HEAD` was at `origin/main` (`5f7b4cdc`) when the release issue was created.
+- The worktree was dirty with an uncommitted Phase 18 truncated-NB2
+  random-intercept artifact lane, so release commands such as `git pull` should
+  wait until that work is committed, split, or parked intentionally.
+
+Implemented:
+
+- Confirmed `DESCRIPTION` reports `drmTMB` version `0.1.3.9000`.
+- Confirmed `usethis` is installed and GitHub issues are enabled for
+  `itchyshin/drmTMB`.
+- Searched for existing open release issues by title; none were found.
+- Opened release-start issue #342:
+  <https://github.com/itchyshin/drmTMB/issues/342>.
+- Targeted a minor release, `0.1.3.9000` to `0.2.0`, because the current NEWS
+  section records user-facing features and validation lanes rather than a
+  patch-only bug-fix release.
+- Added the requested profile-likelihood demonstration gate to the issue:
+  source metadata, fitted estimate, likelihood or likelihood-ratio curve,
+  confidence endpoints, coarse-versus-dense sampling, and timing.
+
+Validation:
+
+```sh
+pwd && git status --short --branch
+sed -n '1,80p' DESCRIPTION
+sed -n '1,120p' NEWS.md
+Rscript -e 'utils::packageVersion("usethis")'
+gh repo view --json url,nameWithOwner,viewerPermission,hasIssuesEnabled
+gh issue list --search "Release drmTMB in:title" --state open --limit 20 --json number,title,url,labels,createdAt,updatedAt
+Rscript /Users/z3437171/.agents/skills/create-release-checklist/scripts/generate_checklist.R 0.2.0 https://github.com/itchyshin/drmTMB
+git log --oneline --decorate -5
+gh issue create --title "Release drmTMB 0.2.0" --body-file -
+```
+
+- Release coordination only; no package tests, `pkgdown`, or CRAN checks were
+  run.
+
+Member-group review:
+
+- Ada kept the task to release-start coordination rather than changing package
+  behaviour.
+- Grace checked `usethis`, GitHub issue availability, issue duplication, and
+  the dirty-worktree caveat.
+- Rose recorded the release-start evidence and the worktree blocker.
+- Florence, Fisher, Gauss, Noether, Pat, and Darwin are named in issue #342 for
+  the profile-likelihood demonstration gate.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-release-start-0-2-0.md`
+
 ## 2026-05-26 - Student-t Mu Random-Intercept Phase 18 Artifacts, Slices 1379-1388
 
 Goal:
