@@ -45,7 +45,7 @@ The inventory labels below are deliberately conservative:
 | `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope, q=2 bivariate, constant q=4 spatial status, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
 | `vignettes/count-nbinom2.Rmd` | Count tutorial | needs random-effect follow-up example after Slice 245 | Has NB2 and zero-inflated NB2 equations, soil-invertebrate simulation, fitted `nbinom2()` and `zi ~ surface` models, `check_drm()`, `AIC()`, response-scale prediction tables, `sigma`/`theta` conversion, and updated boundary text that ordinary NB2 `mu` random effects, the first NB2 phylogenetic q=1 `mu` route, and the first ordinary NB2 log-`sigma` random intercept are now fitted. | Add biological NB2 `mu` and log-`sigma` random-intercept examples once smoke-runner and interval-coverage surfaces are in place; keep NB2 `sigma` slopes or structured effects, `zi` random effects, count paths beyond the ordinary Poisson/NB2 phylogenetic q=1 `mu` routes, and mixed-response models planned. |
-| `vignettes/proportion-beta-binomial.Rmd` | Proportion tutorial | ready enough, Slice 97 added | Has beta-binomial and strict beta equations, seed-germination and vegetation-cover simulations, fitted `beta_binomial()` and `beta()` models, `check_drm()`, response-scale prediction tables, `sigma`/`phi` conversion, and boundary text for exact 0/1 values. It now names ordinary `mu` random intercepts as fitted first slices for both beta and beta-binomial. | Add a fuller reader-facing mixed-model worked example before broad bounded-response random-effect grids; zero-one-inflated beta, beta-binomial zero inflation, phylogenetic/spatial bounded responses, and mixed-response models still need implementation and recovery evidence. |
+| `vignettes/proportion-beta-binomial.Rmd` | Proportion tutorial | ready enough, Slice 97 added | Has beta-binomial, strict beta, and zero-one beta equations; seed-germination and vegetation-cover simulations; fitted `beta_binomial()` and `beta()` models; `check_drm()`; response-scale prediction tables; `sigma`/`phi` conversion; and boundary text for exact 0/1 values. It now names ordinary `mu` random intercepts as fitted first slices for both beta and beta-binomial, and names fixed-effect `zero_one_beta()` for structural exact-boundary continuous proportions. | Add a fuller reader-facing mixed-model worked example before broad bounded-response random-effect grids; beta-binomial zero inflation, phylogenetic/spatial bounded responses, and mixed-response models still need implementation and recovery evidence. |
 | `vignettes/distribution-families.Rmd` | Family-choice guide | guide, not tutorial | Maps response types to families and explains family-specific public `sigma` meanings. | Keep as a guide. Future count/proportion tutorials should be separate worked examples, not appended here. |
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
 | `vignettes/testing-likelihoods.Rmd` | Developer testing guide | guide, not tutorial | Explains comparator checks, simulation recovery, independent likelihood checks, and boundary tests. | Keep under Developer Notes; do not mix with applied tutorials. |
@@ -177,11 +177,13 @@ Var(Y_i) = mu_i * (1 - mu_i) * sigma_i^2 / (1 + sigma_i^2)
 
 The fitted examples deliberately stay inside the implemented surface:
 fixed-effect univariate `beta_binomial()` with
-`cbind(successes, failures)` and fixed-effect univariate `beta()` for strict
-continuous proportions. The tutorial does not teach random effects,
-`sd(group) ~ ...`, known covariance, structured effects, mixed responses,
-zero-one-inflated beta, ordered beta, beta-binomial zero inflation, or
-`successes / trials` denominator shorthand as runnable syntax.
+`cbind(successes, failures)`, fixed-effect univariate `beta()` for strict
+continuous proportions, and fixed-effect univariate `zero_one_beta()` for
+structural exact-boundary continuous proportions. The tutorial does not teach
+random slopes, `sigma`/`zoi`/`coi` random effects, `sd(group) ~ ...`, known
+covariance, structured effects, mixed responses, ordered beta, beta-binomial
+zero inflation, or `successes / trials` denominator shorthand as runnable
+syntax.
 
 ## Slice 98 Status: Bivariate Group-Level Covariance Polish
 

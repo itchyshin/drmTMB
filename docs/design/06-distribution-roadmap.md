@@ -134,11 +134,10 @@ remain consistent with the rest of `drmTMB`.
   enter the logit-`mu` predictor. Internally `sigma` maps to beta precision
   through `phi = 1 / sigma^2`, so larger `sigma` means more variance, not more
   precision.
-- zero-inflated beta: extra zeros, using `zi ~ predictors` with `beta()`
-  rather than a separate public constructor unless a later design decision says
-  otherwise.
-- `zoibeta()` or `zero_one_inflated_beta()`: extra zeros and ones with `zoi`
-  and `coi`.
+- `zero_one_beta()`: implemented fixed-effect route for continuous proportions
+  on `[0, 1]` with exact structural zeroes or ones, using `zoi` for boundary
+  probability and `coi` for the probability of an exact one conditional on the
+  boundary.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented fixed-effect path for counts of successes out
   of trials with overdispersion.
@@ -149,12 +148,14 @@ Recommended user guidance:
 - Use `beta_binomial()` for percentages derived from counts with known
   denominators.
 - Use `beta()` for continuous rates strictly between 0 and 1.
-- Use zero/one-inflated beta or ordered beta when exact boundaries occur.
+- Use `zero_one_beta()` when continuous rates include structural exact 0 or 1
+  values.
 
-The implemented `beta()`, `beta_binomial()`, `truncated_nbinom2()`, hurdle
-NB2, and cumulative-logit seeds give users strict-proportion,
-denominator-aware proportion, positive-count, hurdle-count, and ordered-score
-routes while keeping every new family within a clear parameter-link contract.
+The implemented `beta()`, `zero_one_beta()`, `beta_binomial()`,
+`truncated_nbinom2()`, hurdle NB2, and cumulative-logit seeds give users
+strict-proportion, zero-one bounded, denominator-aware proportion,
+positive-count, hurdle-count, and ordered-score routes while keeping every new
+family within a clear parameter-link contract.
 
 ## Tier 6: Positive Continuous Responses
 

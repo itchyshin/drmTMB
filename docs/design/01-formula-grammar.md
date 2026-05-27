@@ -54,6 +54,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1 + (1 | id)`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented first slice | Ordinary Gamma `mu` random intercepts enter the log-mean predictor. Random slopes, labelled covariance blocks, `sigma` random effects, structured effects, known covariance, and bivariate or mixed Gamma models remain planned. |
 | `y ~ x1`, `sigma ~ x2`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
 | `y ~ x1 + (1 | id)`, `sigma ~ x2`, `family = beta()` | Implemented first slice | Ordinary beta `mu` random intercepts enter the logit-mean predictor for strict `(0, 1)` responses. Random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, beta-binomial denominators, and bivariate or mixed bounded-response models remain planned. |
+| `y ~ x1`, `sigma ~ x2`, `zoi ~ x3`, `coi ~ x4`, `family = zero_one_beta()` | Implemented fixed-effect slice | Zero-one beta model for continuous proportions on `[0, 1]` with exact structural boundary mass. `mu` and `sigma` describe the interior beta component, `zoi` is the exact-boundary probability, `coi` is the probability of an exact one conditional on the boundary, and `fitted()` includes boundary mass. Random effects, covariance blocks, structured effects, denominators, and bivariate or mixed bounded-response models remain planned. |
 | `y ~ x1`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `family = poisson(link = "log")` | Implemented first slice | Ordinary Poisson `mu` random intercepts and independent numeric slopes; the group effects enter the log-mean predictor. Correlated Poisson slope blocks, labelled covariance blocks, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
 | `y ~ x1 + offset(log(exposure))`, `family = poisson(link = "log")` | Implemented | Exposure/rate Poisson model using standard R `offset()` syntax in the `mu` formula. |
@@ -800,6 +801,7 @@ family = student()
 family = lognormal()
 family = Gamma(link = "log")
 family = beta()
+family = zero_one_beta()
 family = poisson(link = "log")
 family = nbinom2()
 family = truncated_nbinom2()
@@ -816,6 +818,10 @@ This route fits one ordered response with a `mu` location formula and ordered
 cutpoints. Ordinal `sigma` or discrimination formulas remain planned and
 should produce clear unsupported-feature errors until their likelihood,
 simulation path, extractor behaviour, and comparator checks exist.
+`zero_one_beta()` fits a single continuous proportion response on `[0, 1]`,
+using fixed-effect `zoi` and `coi` formulas for exact-boundary mass. It is not
+a denominator-aware count model; use `beta_binomial()` when the number of trials
+is part of the sampling process.
 `beta_binomial()` fits `cbind(successes, failures)` responses with `mu` as the
 success probability and `sigma` as extra-binomial variation. A two-column
 successes/trials interface remains a possible later alias, not a second
@@ -863,7 +869,7 @@ Not every parameter should accept random effects at the same development stage.
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first. Random-effect bar terms in Student-t `nu` fail with a shape-specific boundary; future `nu`/`tau` random effects and ID-level skewness such as `skew(id) ~ x` need fixed-effect likelihood recovery and simulations before fitting. `tau` is reserved for a possible second shape parameter and is not current syntax. |
-| `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. Poisson `mu` random intercepts and independent slopes can be fitted only without a `zi` formula in the first non-Gaussian slice. For percentage or proportion data, `zoi` and `coi` are planned for zero-one-inflated bounded-response families before random effects or covariance among these parameters are opened. |
+| `zi`, `hu`, `zoi`, `coi` | Fixed effects first; random effects later only for high-value use cases. Poisson `mu` random intercepts and independent slopes can be fitted only without a `zi` formula in the first non-Gaussian slice. For percentage or proportion data, fixed-effect `zoi` and `coi` are implemented only in `zero_one_beta()`; random effects and covariance among these parameters remain planned. |
 | `meta_known_V()` | Never; it is known sampling covariance, not an estimated parameter. |
 | `phylo(1 | species, tree = tree)` | Implemented structured random intercept for univariate Gaussian `mu`, univariate Gaussian `sigma`, matching Gaussian `mu`/`sigma` location-scale blocks, ordinary Poisson `mu`, and ordinary NB2 `mu`; `tree` must be an ultrametric phylogeny with branch lengths. |
 | `phylo(1 | p | species, tree = tree)` | Implemented as a label for matching bivariate `mu1`/`mu2` phylogenetic location terms and for the matching all-four q=4 bivariate phylogenetic location-scale block. Partial, unlabelled, mismatched, and bivariate or q=4 slope forms remain rejected. |

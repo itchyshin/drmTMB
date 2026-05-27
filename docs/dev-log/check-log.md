@@ -39397,3 +39397,61 @@ Member-group closeout:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-25-bounded-response-mu-random-intercept-slice-set.md`
+
+## 2026-05-26 - Fixed-Effect Zero-One Beta Source Slice Closeout
+
+Goal:
+
+- Land the first fitted `zero_one_beta()` source slice for continuous
+  proportions on `[0, 1]` with structural exact zeroes or ones, while keeping
+  random effects, denominator syntax, known covariance, structured dependence,
+  and bivariate bounded-response models outside this slice.
+
+Implemented status:
+
+- `zero_one_beta()` is exported as a univariate fixed-effect family with
+  `mu`, `sigma`, `zoi`, and `coi` formulas.
+- The TMB likelihood uses `mu` and public scale `sigma` for the interior beta
+  component, `zoi` for exact-boundary probability, and `coi` for exact-one
+  probability conditional on a boundary observation.
+- `fitted()` and response residuals use the unconditional response mean
+  `(1 - zoi) * mu + zoi * coi`; `predict(..., dpar = "mu")` remains the
+  interior beta mean.
+- `simulate()` draws boundary outcomes from fitted `zoi`/`coi` probabilities
+  and interior outcomes from the fitted beta component.
+
+Validation in the resumed closeout:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "resume zero-one beta slice after compacted validation" --next "inspect git status, check-log, after-task evidence, then commit/push/PR"
+Rscript -e "devtools::test(filter = '^(zero-one-beta|family-link-contract)$', reporter = 'summary')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::check()"
+rg -n "zero_one_beta\\(\\).*random|zero-one beta.*random|zoi.*random|coi.*random|fixed-effect only for .*zero-one|exact 0/1 boundary mass.*planned|zoi/coi.*planned|zero-one.*planned|zero_one_beta.*planned" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man -g '!*.html'
+gh issue view 57 --repo itchyshin/drmTMB --json number,title,state,url,comments --jq '{number,title,state,url,comments: [.comments[] | {author:.author.login,createdAt,body}]}'
+```
+
+- The recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-05-26-174019-codex-checkpoint.md`
+  and is ignored by the repository as expected.
+- Focused `zero-one-beta` and `family-link-contract` tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check()` completed in 6m 1.9s with 0 errors, 0 warnings, and
+  0 notes.
+- The stale-wording scan returned current fitted-surface claims, current
+  planned-neighbour boundaries, and historical Slice D3 design-gate wording;
+  no post-source-slice contradiction was found.
+- Issue #57 already has the zero-one beta local status comment from this
+  closeout:
+  https://github.com/itchyshin/drmTMB/issues/57#issuecomment-4539687125.
+  The issue remains open because the broader non-Gaussian tutorial gate and
+  fuller mixed-model examples are still future work.
+
+Final diff sanity:
+
+- `git diff --check` was clean after the check-log and after-task report
+  update.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-26-zero-one-beta-fixed-effect-source-slice.md`

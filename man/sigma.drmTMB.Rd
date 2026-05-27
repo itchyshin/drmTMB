@@ -22,8 +22,9 @@ univariate Gaussian location-scale models this is the fitted residual
 Student-t scale parameter; when \code{nu > 2}, the residual standard deviation is
 \code{sigma * sqrt(nu / (nu - 2))}. For lognormal models this is the fitted
 standard deviation of \code{log(y)}. For Gamma models this is the fitted
-coefficient of variation. For beta and beta-binomial models this is the
-public scale parameter where internal precision is \code{phi = 1 / sigma^2}.
+coefficient of variation. For beta, zero-one beta, and beta-binomial models
+this is the public scale parameter where internal precision is
+\code{phi = 1 / sigma^2}.
 Cumulative-logit ordinal, Poisson, and zero-inflated Poisson models have no
 fitted residual scale parameter and return a fixed unit dispersion vector
 for consistency with base-R \code{sigma()} conventions. For

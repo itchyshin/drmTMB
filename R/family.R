@@ -122,6 +122,43 @@ beta <- function() {
   )
 }
 
+#' Zero-one beta response family
+#'
+#' `zero_one_beta()` defines a one-response distribution for continuous
+#' proportions on `[0, 1]` when exact zeroes or ones are structural outcomes
+#' rather than binomial denominator outcomes.
+#'
+#' The implemented fixed-effect contract is `logit(mu) = eta_mu`,
+#' `log(sigma) = eta_sigma`, `logit(zoi) = eta_zoi`, and
+#' `logit(coi) = eta_coi`. Here `zoi` is the probability that an observation
+#' is exactly 0 or 1, and `coi` is the conditional probability of an exact 1
+#' given that the observation is on the boundary. Interior observations follow
+#' the same beta mean-scale contract as [beta()], with internal precision
+#' `phi = 1 / sigma^2`.
+#'
+#' `fitted()` returns the unconditional response mean
+#' `(1 - zoi) * mu + zoi * coi`. Random effects, structured effects, covariance
+#' blocks, and denominator syntax are not implemented for this first fixed-
+#' effect slice.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' zero_one_beta()
+zero_one_beta <- function() {
+  structure(
+    list(
+      name = "zero_one_beta",
+      family = "zero_one_beta",
+      n_response = 1L,
+      dpars = c("mu", "sigma", "zoi", "coi"),
+      links = c(mu = "logit", sigma = "log", zoi = "logit", coi = "logit")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Beta-binomial response family
 #'
 #' `beta_binomial()` defines a one-response denominator-aware distribution for

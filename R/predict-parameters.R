@@ -418,7 +418,7 @@ drm_dpar_component <- function(dpar) {
   if (identical(dpar, "nu")) {
     return("shape")
   }
-  if (dpar %in% c("zi", "hu")) {
+  if (dpar %in% c("zi", "hu", "zoi", "coi")) {
     return("probability")
   }
   if (grepl("^sd\\(", dpar)) {

@@ -30,7 +30,8 @@ Long grids remain optional Phase 18 artifacts. They are not CRAN tests.
 | `student()` | Fitted `mu`, `sigma`, and `nu`; likelihood, interval, malformed-input, and fixed-effect shape simulation evidence exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, `nu`, slopes, and labelled covariance remain blocked. | Blocked for phylogenetic, spatial, animal, `relmat()`, and bivariate Student-t paths. | Supported fixed-effect heavy-tail route plus a first `mu` random-intercept slice. |
 | `lognormal()` | Fitted `mu` on the log-response scale and `sigma`; likelihood, fitted-response, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
 | `Gamma(link = "log")` | Fitted mean-CV route with `log(mu)` and `log(sigma)`; likelihood, recovery, prediction, and non-log-link boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
-| `beta()` | Fitted strict `(0, 1)` response route with `logit(mu)` and public `sigma`; likelihood, prediction, Wald-row, and boundary tests exist. Slice D3 records fixed-effect zero-one beta as a future design gate for exact boundary mass. | Ordinary unlabelled `mu` random intercepts are fitted for strict `(0, 1)` responses; `sigma`, slopes, labels, exact 0/1 mass, runnable `zoi`/`coi`, and structured routes remain blocked. | Blocked. | Supported bounded-response route plus a first `mu` random-intercept slice; zero-one beta remains design-only. |
+| `beta()` | Fitted strict `(0, 1)` response route with `logit(mu)` and public `sigma`; likelihood, prediction, Wald-row, and boundary tests exist. Exact structural boundary mass now belongs to `zero_one_beta()`, not `beta()`. | Ordinary unlabelled `mu` random intercepts are fitted for strict `(0, 1)` responses; `sigma`, slopes, labels, exact 0/1 mass, and structured routes remain blocked. | Blocked. | Supported strict bounded-response route plus a first `mu` random-intercept slice. |
+| `zero_one_beta()` | Fitted fixed-effect `[0, 1]` route with interior `mu`/`sigma`, exact-boundary probability `zoi`, and conditional-one probability `coi`; independent mixture-likelihood, recovery, Wald-row, fitted-response, simulation, and malformed-neighbour tests exist. | Blocked; the first slice is fixed-effect only. | Blocked. | Supported fixed-effect zero-one bounded-response route for structural exact 0/1 mass. |
 | `beta_binomial()` | Fitted denominator-aware route for `cbind(successes, failures)` with `mu` and `sigma`; likelihood, denominator, prediction, Wald-row, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted for counted successes out of known trials; `sigma`, slopes, labels, `zoi`/`coi`, and structured routes remain blocked. | Blocked. | Supported success-rate route plus a first `mu` random-intercept slice. |
 | `poisson(link = "log")` | Fitted fixed-effect count route, including offsets and zero-inflated fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted and have Phase 18 smoke/grid evidence. `zi` random effects are blocked. | Ordinary q=1 phylogenetic `mu` intercept is fitted with smoke/formal infrastructure; broader structured count paths are blocked. | Supported fixed-effect and first ordinary/phylogenetic `mu` random-effect count route. |
 | `nbinom2()` | Fitted fixed-effect mean-overdispersion route, including fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted; ordinary `sigma ~ z + (1 | id)` is fitted as a narrow log-overdispersion random-intercept gate. | Ordinary q=1 phylogenetic `mu` intercept is fitted but remains held at smoke/formal-admission status after the completed 500-replicate shard audit. | Supported fixed-effect and first count mixed-model route; broad NB2 scale/structured parity remains blocked. |
@@ -84,20 +85,20 @@ strong for promotion. The NB2 q1 phylogenetic route remains `hold_smoke_only`.
 
 ## Zero-One Bounded-Response Gate Rule
 
-Slice D3 chooses fixed-effect zero-one beta as the next bounded-response design
-gate without making it runnable. The design separates three cases:
+Slice D3 chose fixed-effect zero-one beta as the next bounded-response design
+gate; the first runnable fixed-effect slice now separates three cases:
 
 - strict continuous proportions stay on `beta()` and require `0 < y < 1`;
 - counted successes out of known trials stay on `beta_binomial()`, where 0 and
   all-success rows can be ordinary sampling outcomes;
-- future continuous responses with exact 0/1 structural mass need a separate
-  fixed-effect zero-one beta likelihood before any `zoi`/`coi` random effects or
-  bounded-response covariance blocks are discussed as fitted.
+- continuous responses with exact 0/1 structural mass can use
+  `zero_one_beta()` when at least one interior response remains after
+  missing-row filtering.
 
-The required first code slice is therefore fixed-effect only: choose the family
-constructor name, implement the likelihood, test recovery for `mu`, `sigma`,
-`zoi`, and `coi` coefficients, and update formula grammar, likelihood docs,
-examples, NEWS, pkgdown, and simulation evidence together.
+The completed first code slice is fixed-effect only. `zoi`/`coi` random
+effects, bounded-response covariance blocks, known sampling covariance,
+structured bounded responses, and bivariate or mixed bounded-response models
+remain future work.
 
 ## Claim Boundary
 

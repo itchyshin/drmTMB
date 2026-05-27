@@ -34,7 +34,8 @@ quantity each `sigma` formula models.
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | fixed effects only |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | fixed effects only |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | fixed effects only |
-| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | no 0/1 boundary mass yet |
+| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
+| Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | fixed effects only |
 | Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts, independent slopes, and q=1 phylogenetic `mu` intercept implemented; `zi` random effects planned |
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts, independent slopes, grouped `sigma` random intercepts, and q=1 phylogenetic `mu` intercept implemented; `sigma` slopes/structured effects and `zi` random effects planned |
@@ -94,6 +95,7 @@ or comparator quantities:
 | `gaussian()` | residual SD `sigma` | residual SD | larger `sigma` means larger residual variance |
 | `Gamma(link = "log")` | coefficient of variation `sigma` | shape `1 / sigma^2` | larger `sigma` means larger response CV |
 | `beta()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
+| `zero_one_beta()` | interior beta scale `sigma` | precision `phi = 1 / sigma^2` for the interior component | larger `sigma` means more variation among non-boundary proportions |
 | `beta_binomial()` | extra-binomial scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means more among-trial probability variation |
 | `nbinom2()` | overdispersion scale `sigma` | size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
 | `student()` | scale `sigma`; shape `nu` | degrees of freedom `nu` | larger `sigma` widens the core scale; larger `nu` lightens tails |
@@ -116,6 +118,7 @@ then transform those fitted quantities for the scale your reader needs.
 | `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
 | `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
 | `beta()` | variance is `mu * (1 - mu) * sigma^2 / (1 + sigma^2)` |
+| `zero_one_beta()` | mean is `(1 - zoi) * mu + zoi * coi`; variance combines the interior beta second moment with exact boundary mass |
 | `beta_binomial()` | proportion variance is `mu * (1 - mu) * (1 + trials * sigma^2) / (trials * (1 + sigma^2))` |
 | `poisson(link = "log")` | variance is `mu`; there is no modelled `sigma` |
 | zero-inflated Poisson | variance is `(1 - zi) * mu * (1 + zi * mu)` |
@@ -290,11 +293,53 @@ drmTMB(
 For this family, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
 proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi = 1 / sigma^2`, so larger `sigma` means more
-variation around the mean. Responses equal to 0 or 1 need a later
-zero/one-inflated beta or ordered-beta route. Percentages derived from counts
-should wait for `beta_binomial()` so the denominator remains part of the data.
-The tutorial [Proportions and success rates](proportion-beta-binomial.html)
-works through the strict beta route and keeps boundary values separate.
+variation around the mean. Responses equal to 0 or 1 use `zero_one_beta()`
+when those endpoints are structural outcomes.
+Percentages derived from counts should wait for `beta_binomial()` so the
+denominator remains part of the data. The tutorial
+[Proportions and success rates](proportion-beta-binomial.html) works through
+the bounded-response routes.
+
+Zero-one beta mean-scale-boundary models are implemented for continuous
+proportions on `[0, 1]` when exact 0 or 1 values are structural outcomes rather
+than binomial count outcomes:
+
+\[
+\begin{aligned}
+\Pr(y_i = 0)
+  &= zoi_i(1 - coi_i),\\
+\Pr(y_i = 1)
+  &= zoi_i coi_i,\\
+\Pr(0 < y_i < 1)
+  &= 1 - zoi_i,\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\operatorname{logit}(zoi_i)
+  &= \delta_0 + \delta_1 \text{drought}_i,\\
+\operatorname{logit}(coi_i)
+  &= \kappa_0 + \kappa_1 \text{canopy}_i,\\
+E[y_i]
+  &= (1 - zoi_i)\mu_i + zoi_i coi_i.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(cover ~ habitat, sigma ~ treatment, zoi ~ drought, coi ~ canopy),
+  family = zero_one_beta(),
+  data = dat
+)
+```
+
+For this family, `predict(fit, dpar = "mu")` returns the interior beta mean.
+`predict(fit, dpar = "zoi")` returns the probability of an exact 0 or exact 1
+response, and `predict(fit, dpar = "coi")` returns the probability that a
+boundary response is exactly 1. `fitted(fit)` returns the unconditional mean
+including boundary mass. This first slice is fixed-effect only; random effects,
+structured effects, known covariance, denominator syntax, and bivariate
+bounded-response models remain planned or blocked.
 
 Poisson mean models are implemented for count responses:
 
@@ -632,11 +677,12 @@ Bivariate ordinal and mixed-response correlation models remain research
 features because the latent correlation and residual `rho12` interpretation
 need dedicated simulation tests.
 
-The practical next extensions are zero-one-inflated beta or ordered beta for
-bounded continuous responses with exact 0 or 1 values, and an ordinal scale or
-discrimination formula after the direction of interpretation is documented.
-COM-Poisson and generalized Poisson remain valuable, but they should wait until
-the mean-dispersion contract and comparator checks are designed.
+The practical next extensions are ordinal scale or discrimination formulas
+after the direction of interpretation is documented, plus richer
+bounded-response random effects only after their fixed-effect likelihoods and
+diagnostics are stable. COM-Poisson and generalized Poisson remain valuable,
+but they should wait until the mean-dispersion contract and comparator checks
+are designed.
 
 ## Bivariate Gaussian families
 

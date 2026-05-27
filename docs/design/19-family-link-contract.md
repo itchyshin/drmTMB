@@ -29,6 +29,10 @@ The implemented families use these parameter meanings:
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
 | Beta | `mu` | logit | arithmetic mean of the strict proportion response |
 | Beta | `sigma` | log | public scale; internal precision is `phi = 1 / sigma^2` |
+| Zero-one beta | `mu` | logit | interior beta mean for continuous `[0, 1]` proportions |
+| Zero-one beta | `sigma` | log | public interior beta scale; internal precision is `phi = 1 / sigma^2` |
+| Zero-one beta | `zoi` | logit | probability of an exact 0 or exact 1 response |
+| Zero-one beta | `coi` | logit | probability of an exact 1 conditional on an exact-boundary response |
 | Beta-binomial | `mu` | logit | success probability for counted successes out of known trials |
 | Beta-binomial | `sigma` | log | extra-binomial variation scale; internal precision is `phi = 1 / sigma^2` |
 | Cumulative logit | `mu` | identity | latent ordinal location; `fitted()` returns expected category score |
@@ -80,6 +84,7 @@ Student-t:  predict(mu) = location; fitted() currently returns mu
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
 Beta:       predict(mu) = E[y] = fitted()
+Zero-one beta: predict(mu) = E[y | 0 < y < 1]; fitted() = (1 - zoi) * mu + zoi * coi
 ZIP:        predict(mu) = conditional count mean; fitted() = (1 - zi) * mu
 NB2:        predict(mu) = E[y] = fitted()
 Trunc NB2:  predict(mu) = untruncated component mean; fitted() = mu / (1 - Pr_NB2(0))
@@ -276,11 +281,35 @@ package corresponds to `beta_sigma = -0.5 * beta_phi`. Slope coefficients have
 the same `-0.5` multiplier when the linear predictors use the same columns.
 
 The implemented beta path rejects `y <= 0`, `y >= 1`, and non-finite
-responses. Boundary responses should be handled later through zero/one-inflated
-beta or ordered beta models.
+responses. Boundary responses should use `zero_one_beta()` when exact zeroes or
+ones are structural outcomes rather than denominator outcomes.
 
 Do not add `phi ~` as a second public grammar without a design decision,
 because `sigma` is the package's stable scale name.
+
+For continuous proportions with exact structural zeroes or ones,
+`zero_one_beta()` adds two fixed-effect boundary parameters:
+
+```r
+drmTMB(
+  bf(prop ~ habitat, sigma ~ treatment, zoi ~ drought, coi ~ canopy),
+  family = zero_one_beta(),
+  data = dat
+)
+```
+
+The interior beta component uses `mu` and `sigma` as above. `zoi` is the
+probability that an observation is exactly 0 or exactly 1; `coi` is the
+conditional probability that a boundary observation is exactly 1. The fitted
+response is therefore:
+
+```text
+fitted_i = (1 - zoi_i) mu_i + zoi_i coi_i
+```
+
+This is a fixed-effect first slice. Boundary random effects, covariance blocks,
+known sampling covariance, bivariate zero-one beta models, and denominator
+syntax remain outside the fitted surface.
 
 For percentages derived from counts, `beta_binomial()` keeps the denominator
 rather than forcing users to convert to a continuous proportion:

@@ -99,6 +99,7 @@ reference:
       - meta_V
       - meta_vcov_bivariate
       - beta
+      - zero_one_beta
       - beta_binomial
       - cumulative_logit
       - student

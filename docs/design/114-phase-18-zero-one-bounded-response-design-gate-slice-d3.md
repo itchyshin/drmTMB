@@ -104,7 +104,7 @@ these checks before the family is advertised as fitted:
 - interval/status rows for fixed-effect coefficients before any direct
   response-scale interval claim;
 - reader-facing examples that tell users when to choose strict `beta()`,
-  `beta_binomial()`, or the future zero-one beta route.
+  `beta_binomial()`, or the zero-one beta route.
 
 No random effects should enter `zoi` or `coi` in the first slice. No covariance
 among `mu`, `sigma`, `zoi`, and `coi` should be opened until each marginal
@@ -117,15 +117,14 @@ The completed Slice D3 claim is:
 
 > `drmTMB` has fitted strict beta and beta-binomial bounded-response routes,
 > first ordinary `mu` random-intercept source-test slices for those routes, and a
-> fixed-effect design contract for the future zero-one beta likelihood.
+> fixed-effect design contract for the zero-one beta likelihood.
 
 It is not:
 
-> `drmTMB` fits zero-one-inflated beta, ordered beta, `zoi`/`coi` formulas,
-> bounded-response zero-one random effects, or bounded-response covariance
-> blocks.
+> `drmTMB` fits ordered beta, bounded-response zero-one random effects, or
+> bounded-response covariance blocks.
 
-The next code PR, if the project chooses this lane, should implement only the
-fixed-effect zero-one beta likelihood with simulation tests. Tweedie,
-skew-normal, COM-Poisson, generalized Poisson, bounded-response random slopes,
-and structured bounded-response effects remain separate Slice D choices.
+The later fixed-effect source slice implements only the zero-one beta
+likelihood with simulation tests. Tweedie, skew-normal, COM-Poisson,
+generalized Poisson, bounded-response random slopes, and structured
+bounded-response effects remain separate Slice D choices.

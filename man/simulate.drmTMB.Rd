@@ -30,9 +30,11 @@ plus the fitted residual scale. For Student-t models, simulation uses fitted
 log-scale \code{mu} and \code{sigma}. For Gamma models, simulation uses fitted mean
 \code{mu} and coefficient of variation \code{sigma}. For beta models, simulation uses
 fitted mean \code{mu} and public scale \code{sigma} with internal
-\code{phi = 1 / sigma^2}. For beta-binomial models, simulation draws latent
-success probabilities from the fitted beta distribution and then success
-counts from the stored trial denominators. For cumulative-logit ordinal
+\code{phi = 1 / sigma^2}. For zero-one beta models, simulation draws exact
+boundary values from the fitted \code{zoi}/\code{coi} probabilities and interior
+values from the fitted beta component. For beta-binomial models, simulation
+draws latent success probabilities from the fitted beta distribution and then
+success counts from the stored trial denominators. For cumulative-logit ordinal
 models, simulation draws ordered categories from the fitted cumulative-logit
 probabilities. For Poisson models, simulation uses the fitted mean \code{mu}. For
 zero-inflated Poisson models, simulation uses

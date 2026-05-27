@@ -18,8 +18,9 @@ drmTMB(
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"}, \code{\link[=beta]{beta()}},
-\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"},
-\code{\link[=nbinom2]{nbinom2()}}, \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
+\code{\link[=zero_one_beta]{zero_one_beta()}}, \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
+\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
 \code{truncated_nbinom2()} model fits a hurdle count model whose nonzero counts
@@ -50,6 +51,8 @@ supports univariate Gaussian location-scale models,
 univariate Student-t location-scale-shape models, lognormal
 location-scale models, Gamma mean-CV models for positive responses,
 beta mean-scale models for strict proportions,
+zero-one beta mean-scale-boundary models for continuous proportions with
+structural exact zeroes or ones,
 fixed-effect beta-binomial mean-overdispersion models for success counts,
 fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
