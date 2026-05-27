@@ -787,19 +787,22 @@ Phase 6d should be closed as small hardening slices:
   route fits the implemented fixed-effect hurdle NB2 model. `beta()` is
   implemented for strict continuous proportions with public `sigma`.
   `beta_binomial()` is implemented for counted successes out of known trial
-  totals with public extra-binomial `sigma`.
+  totals with public extra-binomial `sigma`. `zero_one_beta()` is implemented
+  for fixed-effect continuous proportions on `[0, 1]` with structural exact 0
+  or 1 values through `zoi` and `coi`.
   `cumulative_logit()` is implemented for fixed-effect univariate ordinal
   location models with ordered cutpoints and fixed latent logistic scale.
 - Ordinal random effects remain planned as a separate non-Gaussian mixed-model
   lane. The first ordinal target is `(1 | id)` in `mu`; ordinary grouped
   multi-slope covariance belongs to the Phase 4/6c boundary, not to the ordinal
   MVP itself.
-- Next family sequence: zero-one-inflated beta after the boundary contract is
-  settled, plus ordinal scale or discrimination formulas after their direction
-  is documented.
-- Add zero-one-inflated beta, ordered logit/probit, COM-Poisson, generalized
-  Poisson, and related families according to the distribution roadmap after
-  their parameter-link and comparator contracts are documented.
+- Next family sequence: ordered beta and ordinal scale or discrimination
+  formulas after their direction is documented; zero-one beta random effects
+  and richer bounded-response covariance remain separate gates after the
+  fixed-effect `zoi`/`coi` route.
+- Add ordered logit/probit extensions, COM-Poisson, generalized Poisson, and
+  related families according to the distribution roadmap after their
+  parameter-link and comparator contracts are documented.
 
 The recent location-scale modelling paper and companion tutorial listed in
 `docs/design/11-reference-programme.md` are concrete replication targets for
@@ -820,9 +823,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   totals, and extra-binomial `sigma`.
 - Historical `0.1.0` release decision: Phase 9 closed at this MVP boundary.
   Ordinal scale or discrimination formulae, denominator aliases beyond
-  `cbind(successes, failures)`, zero-one-inflated beta, and ordered beta remain
-  post-preview work unless they are implemented with tests before the version
-  bump.
+  `cbind(successes, failures)`, ordered beta, and zero-one beta random effects
+  remain post-preview work unless they are implemented with tests before the
+  version bump. The fixed-effect `zero_one_beta()` family is now implemented
+  separately for structural exact-boundary continuous proportions.
 - Decide whether the next ordinal scale formula is exposed as `sigma ~ ...` or
   a family-specific discrimination parameter before coding starts; the
   direction of interpretation must be unambiguous. The current design note
@@ -830,8 +834,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   `zeta = 1 / sigma`.
 - Keep `cbind(successes, failures)` as the canonical beta-binomial response
   until the denominator-helper design note is implemented with tests.
-- Add zero-one-inflated beta or ordered beta for continuous bounded responses
-  with exact 0 or 1 values.
+- Add ordered beta or richer zero-one beta mixed-model/covariance routes for
+  continuous bounded responses with exact 0 or 1 values.
 - Keep these models univariate until their parameter recovery, boundary
   behaviour, and tutorial interpretation are reliable.
 
@@ -1409,11 +1413,11 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, and matching slope-only `mu1`/`mu2` blocks. | Constant q=2 correlation targets and the slope-slope `mu1`/`mu2` target are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q=4 correlations are derived-only with explicit unavailable interval status. | Intercept-plus-slope q=4 location blocks, residual-scale slope blocks, and p8/q8 all-four slope endpoints remain closed. |
 | Phylogenetic structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one-slope `mu`, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | Multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects remain planned. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate Gaussian `mu1`/`mu2` q=2 location covariance, and constant q=4 location-scale covariance. | `sdpars$mu`, `sdpars$sigma`, marker-specific `ranef()` blocks, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, `summary()$covariance`, a slope-field profile interval, the q=2 dense covariance comparator, and q=4 extractor/diagnostic tests are covered. | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD, spatial `corpair()`, and non-Gaussian spatial effects remain planned. |
-| Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, and beta have first `mu` random-intercept source-test slices; ordinary NB2 has the first log-`sigma` random-intercept gate. | Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, and beta `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; NB2 `sigma` random-intercept SDs appear in `sdpars$sigma`, `random_effects$sigma`, and direct `log_sd_sigma` profile-target rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, NB2 `sigma` slopes or structured effects, Student-t/positive-continuous/beta random slopes or `sigma` random effects, exact 0/1 boundary mass, other non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
+| Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial have first `mu` random-intercept source-test slices; ordinary NB2 has the first log-`sigma` random-intercept gate. | Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; NB2 `sigma` random-intercept SDs appear in `sdpars$sigma`, `random_effects$sigma`, and direct `log_sd_sigma` profile-target rows; family-specific fixed-effect summaries and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured, cross-parameter covariance, NB2 `sigma` slopes or structured effects, Student-t/positive-continuous/bounded-response random slopes or `sigma` random effects, exact 0/1 boundary mass, other non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
-| 190 | Non-Gaussian `mu` random effects | Done and extended: first candidates were ordinary `mu` random intercepts for Poisson and NB2-style count likelihoods. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, and beta `mu` random intercepts now have focused source-test slices, while beta-binomial, ordinal, zero-inflation, hurdle, shape, slopes, and structured non-Gaussian paths retain explicit unsupported messages. |
+| 190 | Non-Gaussian `mu` random effects | Done and extended: first candidates were ordinary `mu` random intercepts for Poisson and NB2-style count likelihoods. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random intercepts now have focused source-test slices, while ordinal, zero-inflation, hurdle, shape, slopes, and structured non-Gaussian paths retain explicit unsupported messages. |
 | 191 | Non-Gaussian `mu` implementation | Done: ordinary Poisson `mu` random intercepts now fit as `(1 | group)` in the log-mean predictor for non-zero-inflated Poisson models, with recovery, lme4 comparator, random-effect extraction, `sdpars$mu`, and direct SD profile-target coverage. |
 | 192 | Non-Gaussian `mu` slopes | Done: ordinary Poisson `mu` now fits independent numeric random slopes such as `(0 + x | group)` on the log-mean predictor, with recovery, lme4 comparator, random-effect extraction, `sdpars$mu`, and direct SD profile-target coverage; correlated Poisson slope blocks and all labelled/cross-parameter covariance remain planned. |
 | 193 | Non-Gaussian residual scale | Done and partly superseded: Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle NB2 `sigma` formulas retain fixed-effect-only scale paths; ordinary NB2 now has the first log-`sigma` random-intercept gate. Other random-effect bar terms still error with a scale-specific boundary and tests until family-specific scale-random-effect likelihood and recovery evidence exists. |

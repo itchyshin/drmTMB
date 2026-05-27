@@ -229,6 +229,15 @@ issues, or pull requests.
   family should keep consistent colours, labels, uncertainty provenance, and
   axis language.
 
+## 2026-05-26 - Tutorial-Gate Roadmap Scan
+
+- Improvement implemented: tutorial-gate stale scans should include
+  `ROADMAP.md`, generated ROADMAP HTML, getting-started, model-map, source-map,
+  worked-example inventory, NEWS, and the relevant tutorial article.
+- Trigger: the zero-one beta reader follow-through initially synchronized the
+  vignettes and source map, but the roadmap still described zero-one beta as a
+  future family in current Phase 8/9 status text.
+
 ## 2026-05-26 - Bounded-Response Status Sync
 
 - Improvement implemented: when a first-slice non-Gaussian random-effect route

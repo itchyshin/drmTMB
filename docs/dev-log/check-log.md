@@ -39535,3 +39535,92 @@ Final diff sanity:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-26-zero-one-beta-fixed-effect-source-slice.md`
+
+## 2026-05-26 - Non-Gaussian Tutorial Gate Follow-Through
+
+Goal:
+
+- Close Slices 1349-1358 by synchronizing the reader-facing tutorial,
+  pkgdown, source-map, roadmap, and issue-gate route after the fixed-effect
+  `zero_one_beta()` source and artifact lanes merged.
+
+Branch and PR context:
+
+- PR #337, "Add zero-one beta Phase 18 artifacts", passed R-CMD-check on
+  macOS, Ubuntu, and Windows and merged as squash commit
+  `93b7ced38e34cc5fa486659d6141063d5f50b3dc`.
+- Follow-through branch:
+  `codex/overnight-proportion-reader-followthrough-2026-05-26`, created from
+  `origin/main` after #337 merged.
+
+Changes:
+
+- `vignettes/drmTMB.Rmd` now sends trial-count, strict continuous proportion,
+  and structural exact-boundary proportion questions to "Proportions and
+  success rates".
+- `vignettes/model-map.Rmd` lists fixed-effect zero-one beta as a fitted
+  one-response family route and keeps zero-one beta random effects and richer
+  bounded-response neighbours planned.
+- `vignettes/source-map.Rmd` lists `zero_one_beta()`,
+  `drm_build_zero_one_beta_spec()`, `model_type = 15`, tests, and main docs in
+  the implemented source map.
+- `ROADMAP.md` no longer describes zero-one beta itself as a future family in
+  the current Phase 8/9 status text; it now reserves ordered beta, zero-one
+  beta random effects, and richer bounded-response covariance for future
+  gates.
+- `README.md`, `ROADMAP.md`, and the pre-simulation readiness matrix now name
+  the paired beta-binomial ordinary `mu` random-intercept source-test slice
+  beside beta.
+- `docs/design/37-worked-example-inventory.md` and
+  `docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md` record the
+  count/proportion tutorial gate.
+- `docs/dev-log/team-improvements.md` now records the tutorial-gate roadmap
+  scan lesson.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md docs/dev-log/after-task/2026-05-26-nongaussian-tutorial-gate-slices-1349-1358.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); pkgdown::build_article('drmTMB', new_process = FALSE, quiet = TRUE); pkgdown::build_article('model-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('source-map', new_process = FALSE, quiet = TRUE); pkgdown::build_article('proportion-beta-binomial', new_process = FALSE, quiet = TRUE)"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::test(filter = '^(zero-one-beta|family-link-contract)$', reporter = 'summary')"
+rg -n 'beta and beta-binomial proportion examples|successes out of trials or continuous rates inside|strict continuous proportion or successes out|beta and beta-binomial `mu`, `sigma`|zero-one-inflated beta' README.md NEWS.md ROADMAP.md docs/design vignettes _pkgdown.yml pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/articles/proportion-beta-binomial.html pkgdown-site/news/index.html -g '!*.json'
+rg -n 'zero_one_beta\(\)|zero-one beta|bounded-response proportion examples|structural exact boundaries|model_type = 15|zoi|coi|beta-binomial.*random intercept|beta/beta-binomial.*random-intercept' README.md vignettes/drmTMB.Rmd vignettes/model-map.Rmd vignettes/source-map.Rmd docs/design/37-worked-example-inventory.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md ROADMAP.md NEWS.md pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/articles/proportion-beta-binomial.html pkgdown-site/news/index.html -g '!*.json'
+git diff --check
+```
+
+- Touched article builds passed.
+- Full `pkgdown::build_site(preview = FALSE)` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Focused zero-one beta and family-link contract tests passed.
+- The stale scan returned no matches after the roadmap patch.
+- The positive evidence scan found expected source and generated-site mentions
+  of `zero_one_beta()`, `model_type = 15`, `zoi`, `coi`, structural exact
+  boundaries, and the bounded-response proportion route.
+- `git diff --check` was clean.
+
+Issue maintenance:
+
+- Issue #57 is the matching non-Gaussian tutorial gate and should close when
+  this follow-through PR passes CI and merges.
+
+Member-group review:
+
+- Ada kept the slice documentation-only and based it on the merged #337
+  evidence.
+- Boole checked that no new syntax or formula grammar was implied.
+- Gauss and Noether checked that the source-map row uses the same
+  `mu`/`sigma`/`zoi`/`coi` contract as the likelihood docs.
+- Pat checked that the getting-started and model-map questions route an
+  applied reader to the right tutorial.
+- Grace ran article, pkgdown, focused test, stale-scan, and diff-hygiene
+  checks.
+- Rose caught the stale roadmap future-family wording, the missing
+  beta-binomial source-slice wording in deeper status rows, and added the
+  tutorial-gate roadmap-scan process note.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-26-nongaussian-tutorial-gate-slices-1349-1358.md`
