@@ -334,6 +334,544 @@ profile_targets <- function(object, ready_only = FALSE) {
   targets
 }
 
+#' Compute profile-likelihood curves for fitted model targets
+#'
+#' `profile()` computes and returns the full likelihood-profile curve for one
+#' or more direct [profile_targets()]. It is a diagnostic companion to
+#' [confint.drmTMB()]. Use [confint.drmTMB()] for interval tables, especially
+#' with the fast endpoint engine; use `profile()` followed by `plot()` when you
+#' need to see whether a target has a peaked, flat, one-sided, or boundary-like
+#' likelihood shape.
+#'
+#' The returned x-axis values are transformed to the same scale shown by
+#' [profile_targets()]. For example, SD and scale targets are shown on their
+#' public positive scale, and correlation targets are shown on the correlation
+#' scale. The y-axis diagnostic is likelihood-ratio distance,
+#' `2 * (profile_nll - min(profile_nll))`, so a flatter curve indicates weaker
+#' likelihood support around the fitted value.
+#'
+#' @param fitted A `drmTMB` fit.
+#' @param parm Character or integer vector selecting direct profile targets.
+#'   Use [profile_targets()] to inspect available names. Unlike
+#'   [confint.drmTMB()], this helper always uses the full
+#'   [TMB::tmbprofile()] curve because the curve itself is the diagnostic.
+#' @param level Confidence level used for the likelihood-ratio cutoff and
+#'   interval endpoint annotations.
+#' @param trace Logical; passed to [TMB::tmbprofile()].
+#' @param profile_precision Profile-control shortcut. `"default"` leaves
+#'   [TMB::tmbprofile()] controls unchanged. `"fast"` supplies
+#'   `ystep = 0.5` and `ytol = 2` unless the caller supplies those controls in
+#'   `...`.
+#' @param profile_maxit Optional positive whole number passed to
+#'   [TMB::tmbprofile()] as `maxit`.
+#' @param compare Logical; if `TRUE`, run a coarse first-pass profile and then
+#'   the requested profile controls so the returned object can compare curve
+#'   shape and elapsed time.
+#' @param first_pass_ystep,first_pass_ytol Coarse [TMB::tmbprofile()] controls
+#'   used only when `compare = TRUE`. The dense pass uses `profile_precision`,
+#'   `profile_maxit`, and `...`.
+#' @param ... Additional arguments passed to [TMB::tmbprofile()]. `drmTMB`
+#'   supplies the profiled `obj`, `name`, `lincomb`, and `trace` arguments
+#'   internally; set the profile target with `parm`.
+#'
+#' @return A data frame with class `"profile.drmTMB"`. The main columns are
+#'   `parm`, `profile_value`, `profile_value_link`, `objective`,
+#'   `delta_objective`, `delta_deviance`, `estimate`, `profile_pass`,
+#'   `elapsed`, `profile_source`, `conf.low`, `conf.high`, `conf.status`, and
+#'   `profile.message`.
+#'
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' prof <- profile(fit, parm = "sigma", profile_precision = "fast")
+#' head(prof)
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   plot(prof)
+#' }
+#' @export
+profile.drmTMB <- function(
+  fitted,
+  parm,
+  level = 0.95,
+  trace = FALSE,
+  profile_precision = c("default", "fast"),
+  profile_maxit = NULL,
+  compare = FALSE,
+  first_pass_ystep = 0.5,
+  first_pass_ytol = 2,
+  ...
+) {
+  if (!inherits(fitted, "drmTMB")) {
+    cli::cli_abort("{.arg fitted} must be a {.cls drmTMB} fit.")
+  }
+  if (missing(parm) || is.null(parm)) {
+    cli::cli_abort(c(
+      "{.arg parm} is required for profile-likelihood curves.",
+      i = "Use {.fn profile_targets} to inspect available direct target names."
+    ))
+  }
+  if (is.null(fitted$obj)) {
+    cli::cli_abort(c(
+      "Profile-likelihood curves require the TMB object retained in {.code fit$obj}.",
+      i = "Refit with {.code drm_control(keep_tmb_object = TRUE)} before using {.fn profile}."
+    ))
+  }
+  validate_profile_level(level)
+  profile_precision <- resolve_profile_precision(
+    profile_precision,
+    missing_arg = missing(profile_precision)
+  )
+  profile_maxit <- validate_profile_maxit(profile_maxit)
+  profile_args <- profile_precision_args(
+    profile_precision,
+    list(...),
+    profile_maxit = profile_maxit
+  )
+  profile_check_tmbprofile_dots_list(profile_args)
+  compare <- validate_profile_plot_flag(compare, "compare")
+  first_pass_args <- profile_first_pass_args(
+    profile_args,
+    ystep = first_pass_ystep,
+    ytol = first_pass_ytol
+  )
+
+  targets <- profile_match_targets(drm_profile_targets(fitted), parm)
+  rows <- lapply(seq_len(nrow(targets)), function(i) {
+    target <- targets[i, , drop = FALSE]
+    if (isTRUE(compare)) {
+      return(rbind(
+        do.call(
+          drm_profile_curve,
+          c(
+            list(
+              object = fitted,
+              target = target,
+              level = level,
+              trace = trace,
+              profile_pass = "coarse",
+              profile_controls = profile_controls_label(first_pass_args)
+            ),
+            first_pass_args
+          )
+        ),
+        do.call(
+          drm_profile_curve,
+          c(
+            list(
+              object = fitted,
+              target = target,
+              level = level,
+              trace = trace,
+              profile_pass = "dense",
+              profile_controls = profile_controls_label(profile_args)
+            ),
+            profile_args
+          )
+        )
+      ))
+    }
+    do.call(
+      drm_profile_curve,
+      c(
+        list(
+          object = fitted,
+          target = target,
+          level = level,
+          trace = trace,
+          profile_pass = "profile",
+          profile_controls = profile_controls_label(profile_args)
+        ),
+        profile_args
+      )
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  attr(out, "level") <- level
+  class(out) <- c("profile.drmTMB", class(out))
+  out
+}
+
+#' Plot profile-likelihood curves
+#'
+#' `plot()` for `"profile.drmTMB"` objects draws the likelihood-ratio curve
+#' returned by [profile.drmTMB()]. The dotted horizontal line is the
+#' likelihood-ratio cutoff for the stored confidence level, the solid vertical
+#' line marks the fitted estimate, and dashed vertical lines mark profile
+#' interval endpoints when they were extracted successfully. When the profile
+#' object contains coarse and dense passes, colour and line type separate the
+#' passes and the caption reports elapsed time for each.
+#'
+#' @param x A `"profile.drmTMB"` object returned by [profile.drmTMB()].
+#' @param interval Logical; draw profile interval endpoint lines when finite
+#'   `conf.low` and `conf.high` columns are available.
+#' @param ... Reserved for future options.
+#'
+#' @return A `ggplot` object.
+#' @export
+plot.profile.drmTMB <- function(x, interval = TRUE, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
+  plot_profile_require_ggplot2()
+  validate_profile_plot_data(x)
+  interval <- validate_profile_plot_flag(interval, "interval")
+
+  level <- unique(x$level)
+  if (length(level) != 1L || !is.finite(level)) {
+    cli::cli_abort(
+      "{.arg x} must contain one finite confidence level in column {.val level}."
+    )
+  }
+  cutoff <- stats::qchisq(level, df = 1)
+  estimates <- unique(x[c("parm", "estimate")])
+  intervals <- unique(x[c("parm", "conf.low", "conf.high", "conf.status")])
+  intervals <- intervals[
+    is.finite(intervals$conf.low) &
+      is.finite(intervals$conf.high) &
+      intervals$conf.status == "profile",
+    ,
+    drop = FALSE
+  ]
+
+  data <- x
+  data$.drmTMB_profile_parm <- data$parm
+  estimates$.drmTMB_profile_parm <- estimates$parm
+  intervals$.drmTMB_profile_parm <- intervals$parm
+  has_pass_comparison <- length(unique(data$profile_pass)) > 1L
+
+  mapping <- if (has_pass_comparison) {
+    ggplot2::aes(
+      x = .data[["profile_value"]],
+      y = .data[["delta_deviance"]],
+      colour = .data[["profile_pass"]],
+      linetype = .data[["profile_pass"]]
+    )
+  } else {
+    ggplot2::aes(
+      x = .data[["profile_value"]],
+      y = .data[["delta_deviance"]]
+    )
+  }
+
+  out <- ggplot2::ggplot(data, mapping) +
+    ggplot2::geom_hline(
+      yintercept = cutoff,
+      linetype = "dotted",
+      colour = "grey55",
+      linewidth = 0.35
+    ) +
+    ggplot2::geom_vline(
+      data = estimates,
+      mapping = ggplot2::aes(xintercept = .data[["estimate"]]),
+      inherit.aes = FALSE,
+      linewidth = 0.35,
+      colour = "grey30"
+    )
+  if (isTRUE(interval) && nrow(intervals) > 0L) {
+    out <- out +
+      ggplot2::geom_vline(
+        data = intervals,
+        mapping = ggplot2::aes(xintercept = .data[["conf.low"]]),
+        inherit.aes = FALSE,
+        linetype = "dashed",
+        linewidth = 0.3,
+        colour = "grey45"
+      ) +
+      ggplot2::geom_vline(
+        data = intervals,
+        mapping = ggplot2::aes(xintercept = .data[["conf.high"]]),
+        inherit.aes = FALSE,
+        linetype = "dashed",
+        linewidth = 0.3,
+        colour = "grey45"
+      )
+  }
+  line_args <- list(linewidth = 0.8, na.rm = TRUE)
+  point_args <- list(
+    size = 1.8,
+    shape = 21,
+    fill = "white",
+    stroke = 0.6,
+    na.rm = TRUE
+  )
+  if (!has_pass_comparison) {
+    line_args$colour <- "#0072B2"
+    point_args$colour <- "#0072B2"
+  }
+  out <- out +
+    do.call(ggplot2::geom_line, line_args) +
+    do.call(ggplot2::geom_point, point_args)
+  if (has_pass_comparison) {
+    out <- out +
+      ggplot2::scale_colour_manual(
+        values = c(coarse = "grey45", dense = "#0072B2", profile = "#0072B2"),
+        breaks = unique(data$profile_pass)
+      ) +
+      ggplot2::scale_linetype_manual(
+        values = c(coarse = "dashed", dense = "solid", profile = "solid"),
+        breaks = unique(data$profile_pass)
+      )
+  }
+  if (length(unique(data$parm)) > 1L) {
+    out <- out +
+      ggplot2::facet_wrap(~.drmTMB_profile_parm, scales = "free_x")
+  }
+  labels <- list(
+    x = "Profiled target value",
+    y = "Likelihood-ratio distance",
+    caption = profile_plot_caption(data)
+  )
+  if (has_pass_comparison) {
+    labels$colour <- "Profile pass"
+    labels$linetype <- "Profile pass"
+  }
+  out + do.call(ggplot2::labs, labels)
+}
+
+utils::globalVariables(".data")
+
+drm_profile_curve <- function(
+  object,
+  target,
+  level,
+  trace,
+  profile_pass,
+  profile_controls,
+  ...
+) {
+  implemented_classes <- c(
+    "fixed-effect",
+    "distributional-scale",
+    "random-effect-sd",
+    "random-effect-correlation",
+    "residual-correlation"
+  )
+  if (!isTRUE(target$profile_ready)) {
+    cli::cli_abort(c(
+      "Profile target {.val {target$parm}} is not ready for direct profiling.",
+      i = "Inventory note: {.val {target$profile_note}}."
+    ))
+  }
+  if (!target$target_class %in% implemented_classes) {
+    cli::cli_abort(c(
+      "Profile-likelihood curves are implemented for direct fixed-effect, constant distributional-scale, random-effect SD, random-effect correlation, and constant residual-correlation targets.",
+      i = "Requested {.val {target$parm}} has target class {.val {target$target_class}}."
+    ))
+  }
+
+  lincomb <- profile_lincomb(object, target)
+  elapsed <- system.time({
+    prof <- drm_tmbprofile(
+      object = object,
+      target_name = target$parm,
+      lincomb = lincomb,
+      trace = trace,
+      ...
+    )
+  })[["elapsed"]]
+  profile_data <- as.data.frame(prof)
+  value_column <- setdiff(names(profile_data), "value")
+  if (length(value_column) != 1L) {
+    cli::cli_abort(
+      "Internal error: profile curve must contain one profiled-value column."
+    )
+  }
+  profile_value_link <- profile_data[[value_column]]
+  objective <- profile_data$value
+  delta_objective <- objective - min(objective, na.rm = TRUE)
+  ci <- tryCatch(
+    drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
+    error = function(err) err
+  )
+  interval <- c(NA_real_, NA_real_)
+  conf_status <- "profile_interval_unavailable"
+  profile_message <- "interval_unavailable"
+  if (!inherits(ci, "error")) {
+    interval <- profile_transform_interval(
+      c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
+      target
+    )
+    conf_status <- "profile"
+    profile_message <- "ok"
+  } else {
+    profile_message <- conditionMessage(ci)
+  }
+
+  data.frame(
+    parm = target$parm,
+    target_class = target$target_class,
+    dpar = target$dpar,
+    term = target$term,
+    level = level,
+    profile_value = profile_transform_values(profile_value_link, target),
+    profile_value_link = profile_value_link,
+    objective = objective,
+    delta_objective = delta_objective,
+    delta_deviance = 2 * delta_objective,
+    estimate = target$estimate,
+    link_estimate = target$link_estimate,
+    profile_pass = profile_pass,
+    elapsed = unname(elapsed),
+    profile_controls = profile_controls,
+    profile_source = "TMB::tmbprofile via stats::profile.drmTMB",
+    conf.low = interval[[1L]],
+    conf.high = interval[[2L]],
+    conf.status = conf_status,
+    profile.message = profile_message,
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    stringsAsFactors = FALSE
+  )
+}
+
+profile_first_pass_args <- function(profile_args, ystep, ytol) {
+  if (
+    !is.numeric(ystep) ||
+      length(ystep) != 1L ||
+      !is.finite(ystep) ||
+      ystep <= 0
+  ) {
+    cli::cli_abort("{.arg first_pass_ystep} must be one positive number.")
+  }
+  if (
+    !is.numeric(ytol) ||
+      length(ytol) != 1L ||
+      !is.finite(ytol) ||
+      ytol <= 0
+  ) {
+    cli::cli_abort("{.arg first_pass_ytol} must be one positive number.")
+  }
+  out <- profile_args
+  out$ystep <- ystep
+  out$ytol <- ytol
+  out$maxit <- NULL
+  out
+}
+
+profile_controls_label <- function(args) {
+  if (length(args) == 0L) {
+    return("TMB defaults")
+  }
+  paste(
+    vapply(
+      names(args),
+      function(name) {
+        value <- args[[name]]
+        if (length(value) > 4L) {
+          value <- c(value[seq_len(4L)], "...")
+        }
+        paste0(name, "=", paste(value, collapse = "/"))
+      },
+      character(1)
+    ),
+    collapse = ", "
+  )
+}
+
+profile_transform_values <- function(values, target) {
+  switch(
+    target$transformation,
+    linear_predictor = values,
+    ordered_cutpoint = values,
+    exp = exp(values),
+    tanh = 0.999999 * tanh(values),
+    rho12_tanh = rho_response(values),
+    values
+  )
+}
+
+profile_plot_caption <- function(data) {
+  source <- unique(data$profile_source)
+  if (length(source) != 1L) {
+    source <- "TMB::tmbprofile"
+  }
+  elapsed <- unique(data[c("profile_pass", "elapsed", "profile_controls")])
+  elapsed <- elapsed[
+    order(match(
+      elapsed$profile_pass,
+      c("coarse", "dense", "profile")
+    )),
+  ]
+  elapsed_text <- paste(
+    sprintf(
+      "%s %.2fs (%s)",
+      elapsed$profile_pass,
+      elapsed$elapsed,
+      elapsed$profile_controls
+    ),
+    collapse = "; "
+  )
+  paste0("Source: ", source, ". Elapsed: ", elapsed_text, ".")
+}
+
+plot_profile_require_ggplot2 <- function() {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.fn plot.profile.drmTMB} requires the {.pkg ggplot2} package.",
+      i = "Install it with {.code install.packages(\"ggplot2\")}."
+    ))
+  }
+  invisible(TRUE)
+}
+
+validate_profile_plot_data <- function(data) {
+  if (!inherits(data, "profile.drmTMB") || !is.data.frame(data)) {
+    cli::cli_abort(
+      "{.arg x} must be a {.cls profile.drmTMB} object returned by {.fn profile}."
+    )
+  }
+  required <- c(
+    "parm",
+    "level",
+    "profile_value",
+    "delta_deviance",
+    "estimate",
+    "conf.low",
+    "conf.high",
+    "conf.status"
+  )
+  missing <- setdiff(required, names(data))
+  if (length(missing) > 0L) {
+    cli::cli_abort(
+      "{.arg x} is missing profile column{?s}: {.val {missing}}."
+    )
+  }
+  numeric_columns <- c(
+    "level",
+    "profile_value",
+    "delta_deviance",
+    "estimate",
+    "conf.low",
+    "conf.high"
+  )
+  bad_numeric <- numeric_columns[
+    !vapply(
+      data[numeric_columns],
+      is.numeric,
+      logical(1)
+    )
+  ]
+  if (length(bad_numeric) > 0L) {
+    cli::cli_abort(
+      "{.arg x} profile column{?s} must be numeric: {.val {bad_numeric}}."
+    )
+  }
+  invisible(data)
+}
+
+validate_profile_plot_flag <- function(x, argument) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    cli::cli_abort(
+      "{.arg {argument}} must be a single {.code TRUE} or {.code FALSE}."
+    )
+  }
+  x
+}
+
 validate_interval_method <- function(method, choices, caller) {
   if (
     !is.character(method) ||
@@ -2147,9 +2685,21 @@ profile_match_targets <- function(targets, parm) {
       i = "Use {.code drmTMB:::drm_profile_targets(fit)$parm} to inspect available targets."
     ))
   }
+  if (is.numeric(parm)) {
+    if (
+      any(!is.finite(parm)) ||
+        any(parm != as.integer(parm)) ||
+        any(parm < 1L | parm > nrow(targets))
+    ) {
+      cli::cli_abort(
+        "{.arg parm} numeric values must select rows from the available profile targets."
+      )
+    }
+    return(targets[as.integer(parm), , drop = FALSE])
+  }
   if (!is.character(parm)) {
     cli::cli_abort(
-      "{.arg parm} must be a character vector of profile target names."
+      "{.arg parm} must be a character or integer vector of profile targets."
     )
   }
   index <- match(parm, targets$parm)

@@ -129,6 +129,7 @@ reference:
       - check_drm
       - confint.drmTMB
       - profile_targets
+      - profile.drmTMB
       - corpairs
       - fitted.drmTMB
       - fixef
@@ -147,6 +148,7 @@ reference:
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
+      - plot.profile.drmTMB
       - plot_corpairs
       - plot_parameter_surface
 

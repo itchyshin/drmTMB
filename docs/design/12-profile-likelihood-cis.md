@@ -808,6 +808,16 @@ same direct target table when `ci_parm` names one of these rows. Unsupported
 ordinal-transform, modelled group-SD, custom multi-row contrast, and
 derived-summary targets still fail before doing expensive optimization.
 
+When the interval table is not enough, `profile(fit, parm = target)` returns
+the full `TMB::tmbprofile()` curve for selected direct target rows. The returned
+`profile.drmTMB` table reports profile values on the public target scale plus
+likelihood-ratio distance, `2 * (profile_nll - min(profile_nll))`.
+`plot(profile(fit, parm = target))` draws the diagnostic curve with the fitted
+estimate, the confidence-level cutoff, and profile confidence endpoints when
+they are available. The first article example profiles constant residual
+`sigma` at `level = 0.95`; the focused test gate checks that the sampled curve
+extends beyond the 95% cutoff below and above the interval.
+
 `confint(..., method = "bootstrap")` is a separate simulate/refit route for
 direct targets. It skips `TMB::sdreport()` during bootstrap refits by default,
 because percentile intervals use refit point estimates. It should be reserved
