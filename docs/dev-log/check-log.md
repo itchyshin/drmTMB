@@ -39863,3 +39863,421 @@ Member-group review:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-26-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md`
+
+## 2026-05-27 -- Profile-Likelihood Recovery And S3 Registration Slice
+
+Goal:
+
+- Recover from an interrupted profile-likelihood plotting run without widening
+  the task, preserve the current state in a checkpoint, and make the existing
+  `R/profile.R` helper diff dispatchable through documented S3 methods.
+
+Branch context:
+
+- Branch: `codex/truncated-nb2-mu-ri-artifacts-2026-05-26`.
+- `HEAD` is `ef9dc6e0`, `Add truncated NB2 mu random-intercept artifacts`.
+- The profile-likelihood work remains an unstaged inference/output slice on top
+  of the truncated-NB2 artifact branch.
+
+Implemented:
+
+- Wrote recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-27-073103-codex-checkpoint.md`.
+- Registered `profile.drmTMB()` and `plot.profile.drmTMB()` in `NAMESPACE`
+  from the existing roxygen blocks.
+- Added `man/profile.drmTMB.Rd` and `man/plot.profile.drmTMB.Rd`.
+- Added the new topics to `_pkgdown.yml` beside `profile_targets()` and the
+  existing visualization helpers.
+- Removed unrelated generated roxygen-link churn from pre-existing Rd files so
+  this recovery slice stays focused.
+
+Validation:
+
+```sh
+git status --short --branch
+git log --oneline -5 --decorate
+git diff --stat
+git diff -- R/profile.R
+Rscript tools/codex-checkpoint.R --goal "recover interrupted profile-likelihood plotting slice" --next "inspect R/profile.R helper diff, run a narrow parse/source sanity pass, then decide the smallest documented/tested profile-likelihood figure step"
+Rscript --vanilla -e "parse('R/profile.R'); cat('ok parse R/profile.R\n')"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); x <- data.frame(parm = 'sigma', level = 0.95, profile_value = c(0.7, 1, 1.3), delta_deviance = c(3.84, 0, 3.84), estimate = 1, profile_pass = 'profile', elapsed = 0.01, profile_controls = 'synthetic', profile_source = 'synthetic source', conf.low = 0.7, conf.high = 1.3, conf.status = 'profile'); class(x) <- c('profile.drmTMB', class(x)); p <- plot(x); stopifnot(inherits(p, 'ggplot') || inherits(p, 'ggplot2::ggplot')); cat('ok synthetic profile plot dispatch\n')"
+Rscript --vanilla -e "devtools::document()"
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "profile likelihood OR profile-likelihood OR profile.drmTMB OR profile_targets" --limit 20 --json number,title,state,url,labels
+rg -n "profile\\.drmTMB|plot\\.profile\\.drmTMB|profile-likelihood curves|profile likelihood curve|profile_targets" README.md NEWS.md ROADMAP.md docs/design vignettes _pkgdown.yml R/profile.R NAMESPACE tests/testthat -g '!*.html'
+```
+
+Results:
+
+- Recovery checkpoint writing succeeded.
+- `R/profile.R` parsed.
+- The first synthetic `plot()` dispatch check failed before documentation
+  because `plot.profile.drmTMB()` was not yet registered in `NAMESPACE`.
+- `devtools::document()` completed and wrote the S3 registrations plus the two
+  new Rd files.
+- The repeated synthetic `plot()` dispatch check passed after registration.
+- `git diff --check` was clean.
+- The GitHub issue search found release issue #342 as the relevant open
+  profile-likelihood demonstration gate; no issue comment was added because
+  this micro-slice does not yet produce the real figure evidence.
+- Full tests, real model profiling, article rendering, pkgdown build/check, and
+  visual figure inspection were not run in this slice.
+
+Member-group review:
+
+- Ada kept the recovery to registration and dispatch rather than the whole
+  profile figure/article feature.
+- Fisher kept the claim to likelihood-ratio plot plumbing, not interval
+  performance or coverage.
+- Gauss and Noether still need a real fitted-model profile check before this
+  can become inference evidence.
+- Florence still needs the rendered real profile-likelihood figure before the
+  visual gate can pass.
+- Pat and Darwin still need article-context review once the figure is woven
+  into `vignettes/model-workflow.Rmd` or another current article.
+- Grace checked parse, documentation generation, S3 dispatch, pkgdown topic
+  registration, issue overlap, and diff whitespace.
+- Rose recorded the failure pattern: roxygen code can exist without S3 dispatch
+  until `NAMESPACE` is regenerated.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-recovery-registration-slice.md`
+
+## 2026-05-27 -- Profile-Likelihood Real Curve Plot Test Slice
+
+Goal:
+
+- Add the first focused tests and rendered evidence for the new
+  profile-likelihood curve and plot methods without yet changing an article.
+
+Implemented:
+
+- Added `tests/testthat/test-profile-plots.R`.
+- Exercised a real cheap Gaussian `sigma` profile with
+  `stats::profile(fit, parm = "sigma", level = 0.80,
+  profile_precision = "fast")`.
+- Tested returned profile-curve columns, S3 class, positive `sigma` scale,
+  profile controls, source label, and likelihood-ratio distance.
+- Tested character and numeric profile target matching.
+- Tested `plot.profile.drmTMB()` for single-pass curves, coarse/dense pass
+  separation, validation errors, and missing-`ggplot2` messaging.
+- Fixed numeric `parm` row selection in `profile_match_targets()` to match the
+  documented `profile.drmTMB()` contract.
+- Fixed pass-comparison plot colour mapping by not passing `colour = NULL`
+  through the geoms.
+- Suppressed unused colour/linetype labels for single-pass plots.
+- Saved rendered figure evidence and source curve data under
+  `docs/dev-log/figure-audits/2026-05-27-profile-likelihood-sigma/`.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-plots.R
+Rscript --vanilla -e "files <- c('R/profile.R', 'tests/testthat/test-profile-plots.R'); invisible(lapply(files, parse)); cat('ok parse profile plot files\n')"
+Rscript --vanilla -e "devtools::test(filter = '^profile-plots$', reporter = 'summary')"
+Rscript --vanilla - <<'RSCRIPT'
+devtools::load_all(quiet = TRUE)
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  stop("ggplot2 is required for profile plot evidence")
+}
+out_dir <- file.path("docs", "dev-log", "figure-audits", "2026-05-27-profile-likelihood-sigma")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+set.seed(20260527)
+n <- 80
+x <- stats::rnorm(n)
+dat <- data.frame(y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7), x = x)
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+prof <- stats::profile(fit, parm = "sigma", level = 0.80, trace = FALSE, profile_precision = "fast")
+utils::write.csv(prof, file = file.path(out_dir, "sigma-profile-curve.csv"), row.names = FALSE)
+p <- plot(prof) + ggplot2::ggtitle("Gaussian sigma profile-likelihood curve") + ggplot2::theme_minimal(base_size = 11)
+ggplot2::ggsave(file.path(out_dir, "sigma-profile-curve.png"), p, width = 6.4, height = 4.0, dpi = 180)
+RSCRIPT
+sips -g pixelWidth -g pixelHeight docs/dev-log/figure-audits/2026-05-27-profile-likelihood-sigma/sigma-profile-curve.png
+wc -l docs/dev-log/figure-audits/2026-05-27-profile-likelihood-sigma/sigma-profile-curve.csv
+git diff --check
+```
+
+Results:
+
+- Formatting and parse checks passed.
+- The first focused test run failed usefully: pass-comparison plot geoms were
+  overriding mapped colour with `colour = NULL`, and one validation test had
+  dropped the S3 class before dispatch.
+- After fixing those issues, `devtools::test(filter = '^profile-plots$')`
+  passed.
+- The rendered PNG is 1152 by 720 pixels.
+- The profile CSV has 31 curve rows plus one header row.
+- Visual inspection showed a nonblank, symmetric, readable likelihood-ratio
+  curve with visible fitted estimate, profile cutoff, endpoint guides, and
+  source/control caption.
+- Full tests, pkgdown build/check, and article rendering were not run in this
+  slice.
+
+Member-group review:
+
+- Ada kept this to one real profile-plot test lane.
+- Fisher checked that the y-axis is likelihood-ratio distance and that the
+  endpoint guides are profile-derived.
+- Gauss and Noether checked the fitted target scale: public positive `sigma`
+  on the x-axis, with profile rows transformed from the TMB log scale.
+- Florence reviewed the rendered PNG for nonblank output, legibility, and
+  visible uncertainty guides.
+- Pat noted that article use should name `sigma` explicitly rather than
+  relying only on the generic method x-axis label.
+- Grace ran focused tests, parse, formatting, image dimension, CSV row-count,
+  and diff whitespace checks.
+- Rose recorded the pass-comparison colour-mapping failure pattern.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-real-curve-plot-test-slice.md`
+
+## 2026-05-27 -- Profile-Likelihood Model-Workflow Article Slice
+
+Goal:
+
+- Integrate one compact profile-likelihood figure into
+  `vignettes/model-workflow.Rmd`, render the actual pkgdown article, and
+  inspect the rendered figure before broadening scope.
+
+Implemented:
+
+- Added a short prose bridge after `confint(fit_site, parm =
+  "variance_components")`.
+- Added chunk `site-sigma-profile-plot`, which profiles the article's existing
+  site random-intercept model with
+  `stats::profile(fit_site, parm = "sigma", level = 0.95,
+  profile_precision = "fast")`.
+- Plotted the returned `"profile.drmTMB"` object with `plot()`,
+  `workflow_theme()`, and a target-specific x-axis label:
+  `"Residual sigma (response scale)"`.
+- Added figure caption and alt text that name likelihood-ratio distance, the
+  fitted `sigma`, the 95% profile cutoff, and profile confidence endpoints.
+- Rendered `pkgdown-site/articles/model-workflow.html` with
+  `pkgdown::build_article("model-workflow")` after loading the package in the
+  current R process.
+- Copied the rendered article figure and exact article profile curve CSV to
+  `docs/dev-log/figure-audits/2026-05-27-profile-likelihood-sigma/`.
+
+Validation:
+
+```sh
+air format vignettes/model-workflow.Rmd
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); pkgdown::build_article('model-workflow', pkg = '.', lazy = FALSE, new_process = FALSE, quiet = FALSE)"
+rg -n "Profile shape for residual sigma|site-sigma-profile-plot|Profile-likelihood curve for constant residual|Residual sigma \\(response scale\\)|Fast full-profile pass" pkgdown-site/articles/model-workflow.html
+sips -g pixelWidth -g pixelHeight pkgdown-site/articles/model-workflow_files/figure-html/site-sigma-profile-plot-1.png
+wc -l docs/dev-log/figure-audits/2026-05-27-profile-likelihood-sigma/model-workflow-site-sigma-profile-curve.csv
+Rscript --vanilla -e "devtools::test(filter = '^profile-plots$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- The first direct `pkgdown::build_article("model-workflow")` attempt failed
+  because this checkout was not installed and `library(drmTMB)` inside the
+  vignette could not attach the package.
+- The render succeeded after `pkgload::load_all()` in the current R process.
+- The rendered HTML contains the new prose, code chunk, caption, and alt text.
+- The rendered article PNG is 1843 by 1152 pixels.
+- The article profile CSV has 30 curve rows plus one header row.
+- Visual inspection showed a nonblank, readable profile-likelihood curve with
+  visible estimate, 95% cutoff, endpoint guides, and source/control caption.
+
+Member-group review:
+
+- Ada kept the slice to one article figure in `model-workflow`.
+- Fisher checked that the prose and figure describe likelihood-ratio distance
+  and profile confidence endpoints.
+- Gauss and Noether checked that the profiled target is constant residual
+  `sigma` on the public positive response scale.
+- Florence inspected the rendered article PNG for legibility, nonblank output,
+  and visible uncertainty guides.
+- Pat checked that the x-axis and caption name residual `sigma` explicitly.
+- Grace rendered the article, checked HTML evidence, image dimensions, curve
+  row count, focused tests, pkgdown, and diff hygiene.
+- Rose recorded the local-render failure pattern: direct `pkgdown::build_article`
+  may need `pkgload::load_all()` when the package is not installed.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-model-workflow-article-slice.md`
+
+## 2026-05-27 -- Profile-Likelihood Bundle Validation Slice
+
+Goal:
+
+- Run the broader validation gate for the profile-likelihood helper, tests,
+  documentation, and model-workflow article bundle before staging or release
+  issue updates.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+sips -g pixelWidth -g pixelHeight pkgdown-site/articles/model-workflow_files/figure-html/site-sigma-profile-plot-1.png
+rg -n "profile\\.drmTMB|plot\\.profile\\.drmTMB|Profile shape for residual sigma|Residual sigma \\(response scale\\)|Profile-likelihood curve for constant residual" pkgdown-site/reference pkgdown-site/articles/model-workflow.html
+git diff --check
+```
+
+Results:
+
+- Full `devtools::test()` passed.
+- Full `pkgdown::build_site(preview = FALSE)` passed.
+- The full site build generated `reference/profile.drmTMB.html`,
+  `reference/plot.profile.drmTMB.html`, and rebuilt
+  `articles/model-workflow.html`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The rebuilt article profile plot is 1843 by 1152 pixels.
+- Rendered-site scans found the new reference links and the model-workflow
+  profile figure title, caption, and target-specific x-axis label.
+- `git diff --check` was clean.
+- `devtools::check()` was not run in this slice.
+
+Member-group review:
+
+- Ada kept the slice to validation rather than adding more feature surface.
+- Grace ran full tests, full pkgdown build, pkgdown check, rendered-site scans,
+  image dimension checks, and diff hygiene.
+- Florence reviewed the rebuilt article and reference plot images as nonblank
+  and legible.
+- Fisher checked that rendered wording continues to use confidence/profile
+  language, not posterior claims.
+- Rose recorded that the bundle is ready for staging or a final release-issue
+  update, with `devtools::check()` still optional if a CRAN-style gate is
+  desired.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-validation-slice.md`
+
+## 2026-05-27 -- Profile-Likelihood 95 Percent Cutoff Support Test Slice
+
+Goal:
+
+- Strengthen the real `sigma` profile-plot test so it verifies that the
+  sampled full profile curve extends beyond the 95% likelihood-ratio cutoff on
+  both sides of the profile confidence interval.
+
+Implemented:
+
+- Added a small local test helper,
+  `expect_profile_extends_beyond_cutoff()`, to
+  `tests/testthat/test-profile-plots.R`.
+- Changed the real Gaussian `sigma` profile test from `level = 0.80` to
+  `level = 0.95`.
+- The helper computes `stats::qchisq(level, df = 1)` from the stored profile
+  level and checks for at least one sampled profile row below `conf.low` and
+  at least one sampled row above `conf.high` with `delta_deviance` above the
+  cutoff.
+
+Validation:
+
+```sh
+air format tests/testthat/test-profile-plots.R
+Rscript --vanilla -e "devtools::test(filter = '^profile-plots$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+git diff --check
+gh issue view 342 --json number,title,state,url,labels
+gh issue list --search "profile likelihood" --state open --json number,title,url --limit 10
+```
+
+Results:
+
+- Focused `profile-plots` tests passed.
+- Full `devtools::test()` passed.
+- `git diff --check` was clean.
+- GitHub issue #342 remains the relevant open release ledger for the broader
+  profile-likelihood bundle; no duplicate issue or issue comment was added for
+  this test-only strengthening.
+
+Member-group review:
+
+- Ada kept the slice to the already-open profile QA lane.
+- Fisher chose 95% as the user-facing interval gate and treated 99% as an
+  optional stress check, not the default claim.
+- Gauss and Noether checked that this changes only the QA level for one real
+  profile test, not the likelihood parameterization or interval engine.
+- Curie checked that the test now asserts support on both sides of the
+  profile CI rather than just finite rows and a zero minimum.
+- Grace reran focused and full package tests plus whitespace hygiene.
+- Rose recorded the durable decision in this check log and the after-task
+  report.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-95-cutoff-support-test-slice.md`
+
+## 2026-05-27 -- Profile-Likelihood CRAN-Style Preflight Slice
+
+Goal:
+
+- Run a CRAN-style local gate before staging the profile-likelihood curve
+  helper bundle.
+
+Implemented:
+
+- Added a NEWS bullet for the exported `profile()` / `plot()` profile-curve
+  workflow.
+- Added a profile-CI design note explaining that `confint()` remains the
+  interval-table path while `profile(fit, parm = target)` plus `plot()` is the
+  full-curve diagnostic path.
+- Patched `plot.profile.drmTMB()` to use the ggplot data pronoun in `aes()`
+  mappings and registered `.data` with `utils::globalVariables()` so CRAN
+  checks do not report visible-binding NOTES for profile-curve columns.
+
+Validation:
+
+```sh
+air format NEWS.md docs/design/12-profile-likelihood-cis.md R/profile.R tests/testthat/test-profile-plots.R vignettes/model-workflow.Rmd
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "99% profile|0\\.99|qchisq\\(0\\.99|Bayesian credible|posterior|credible interval|profile-likelihood.*99|profile.*posterior|profile.*Bayesian" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat R man _pkgdown.yml -g '!*.html'
+Rscript --vanilla -e "devtools::test(filter = '^profile-plots$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); x <- data.frame(parm = 'sigma', level = 0.95, profile_value = c(0.7, 1, 1.3), delta_deviance = c(3.84, 0, 3.84), estimate = 1, profile_pass = 'profile', elapsed = 0.01, profile_controls = 'synthetic', profile_source = 'synthetic source', conf.low = 0.7, conf.high = 1.3, conf.status = 'profile'); class(x) <- c('profile.drmTMB', class(x)); p <- plot(x); stopifnot(inherits(p, 'ggplot')); cat('ok synthetic plot after .data patch\\n')"
+Rscript --vanilla -e "devtools::check()"
+git diff --check
+```
+
+Results:
+
+- The first `devtools::check()` run completed with one NOTE: visible bindings
+  for `profile_value`, `delta_deviance`, `profile_pass`, `estimate`,
+  `conf.low`, and `conf.high` inside `plot.profile.drmTMB()`.
+- After the `.data` patch, focused `profile-plots` tests passed and synthetic
+  plot dispatch succeeded.
+- The second `devtools::check()` run passed with 0 errors, 0 warnings, and
+  0 notes.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-wording scan found intended "not Bayesian credible" guidance,
+  older posterior-boundary design notes, and numerical correlation guards, but
+  no new 99% profile default or posterior wording in the profile-curve
+  material.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this as the CRAN-style preflight before publishing the profile PR.
+- Fisher confirmed that the curve plot is likelihood-ratio evidence and that
+  95% remains the user-facing cutoff.
+- Gauss and Noether checked that the patch affects plotting references only,
+  not the profile likelihood or interval calculation.
+- Pat checked that the user-facing distinction is clear: `confint()` gives
+  tables; `profile()` plus `plot()` shows the curve.
+- Grace reran documentation, pkgdown, focused tests, synthetic plot dispatch,
+  full `devtools::check()`, and diff hygiene.
+- Rose recorded the first NOTE and the fix so future ggplot S3 methods use the
+  data pronoun from the start.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-27-profile-likelihood-cran-preflight-slice.md`
