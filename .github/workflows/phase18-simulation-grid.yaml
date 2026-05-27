@@ -11,6 +11,7 @@ on:
           - first_wave_summary
           - interval_heavy_summary
           - proportion_fixed_effect
+          - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
@@ -106,6 +107,9 @@ jobs:
             include_in_all: true
           - task: proportion_fixed_effect
             seed: 20260533
+            include_in_all: false
+          - task: bounded_response_mu_random_intercept
+            seed: 20260538
             include_in_all: false
           - task: positive_continuous_fixed_effect
             seed: 20260534

@@ -238,6 +238,15 @@ issues, or pull requests.
   vignettes and source map, but the roadmap still described zero-one beta as a
   future family in current Phase 8/9 status text.
 
+## 2026-05-26 - One-SD Simulation Helpers
+
+- Improvement implemented: Phase 18 DGP helpers with a single random-effect SD
+  should use a one-value validator, not the two-value `phase18_named_pair()`
+  helper used by intercept-plus-slope surfaces.
+- Trigger: the first bounded-response random-intercept smoke test initially
+  produced no summaries because the one-SD `sd` vector was routed through a
+  two-parameter validation helper before any model fit ran.
+
 ## 2026-05-26 - Bounded-Response Status Sync
 
 - Improvement implemented: when a first-slice non-Gaussian random-effect route

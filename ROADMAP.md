@@ -757,6 +757,9 @@ Phase 6d should be closed as small hardening slices:
   the response mean and `sigma` is the coefficient of variation.
 - Use `beta()` for strict continuous proportions where `mu` is the mean
   proportion and public `sigma` maps internally to `phi = 1 / sigma^2`.
+  Ordinary `mu` random intercepts for `beta()` and `beta_binomial()` now have a
+  bounded-response Phase 18 artifact lane; random slopes, labelled covariance,
+  `sigma` random effects, and zero-one beta random effects remain later gates.
 - Add `tweedie()` to the real-data wish list for non-negative semicontinuous
   ecological responses such as biomass, cover, or abundance indices with exact
   zeros and positive continuous values. Stage it after the Gamma/lognormal/count
@@ -799,7 +802,8 @@ Phase 6d should be closed as small hardening slices:
 - Next family sequence: ordered beta and ordinal scale or discrimination
   formulas after their direction is documented; zero-one beta random effects
   and richer bounded-response covariance remain separate gates after the
-  fixed-effect `zoi`/`coi` route.
+  fixed-effect `zoi`/`coi` route and the beta/beta-binomial ordinary `mu`
+  random-intercept artifact lane.
 - Add ordered logit/probit extensions, COM-Poisson, generalized Poisson, and
   related families according to the distribution roadmap after their
   parameter-link and comparator contracts are documented.
