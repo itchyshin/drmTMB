@@ -251,6 +251,32 @@ expensive:
 confint(fit_site, parm = "variance_components")
 ```
 
+When the interval table is not enough, inspect the likelihood shape directly.
+The curve below profiles the constant residual `sigma` target from the same
+site model. The y-axis is likelihood-ratio distance; the solid vertical line is
+the fitted `sigma`, the dotted horizontal line is the 95% profile cutoff, and
+the dashed vertical lines are the profile confidence endpoints:
+
+```{r site-sigma-profile-plot, fig.width = 6.4, fig.height = 4, fig.cap = "Profile-likelihood curve for constant residual `sigma` in the site random-intercept model. The curve is likelihood-ratio distance on the public positive `sigma` scale; dashed lines mark 95% profile confidence endpoints.", fig.alt = "Line plot of likelihood-ratio distance against residual sigma. The curve is lowest near the fitted sigma value, with a solid vertical estimate line, a dotted horizontal cutoff, and dashed endpoint lines."}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  site_sigma_profile <- stats::profile(
+    fit_site,
+    parm = "sigma",
+    level = 0.95,
+    trace = FALSE,
+    profile_precision = "fast"
+  )
+
+  plot(site_sigma_profile) +
+    workflow_theme() +
+    ggplot2::labs(
+      title = "Profile shape for residual sigma",
+      subtitle = "Fast full-profile pass for one direct target",
+      x = "Residual sigma (response scale)"
+    )
+}
+```
+
 The variance-component shortcut returns constant scale targets and direct
 random-effect SD targets. The companion shortcuts `"fixed_effects"`,
 `"random_effects"`, and `"correlations"` keep large interval tables readable.
