@@ -39706,3 +39706,83 @@ Member-group review:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-26-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md`
+
+## 2026-05-26 -- Positive-continuous mu random-intercept artifacts
+
+Goal:
+
+- Add the Phase 18 artifact lane for fitted lognormal/Gamma ordinary `mu`
+  random intercepts after the source-test slice and fixed-effect
+  positive-continuous artifact lane had landed on `main`.
+
+Branch context:
+
+- Branch:
+  `codex/positive-continuous-mu-ri-artifacts-2026-05-26`, created from
+  `origin/main` after PR #339 merged as
+  `0a8830b15343c03f5fd36818f0cb97027db526b6`.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-26-204216-codex-checkpoint.md`
+  was written before implementation and is ignored by the repository.
+
+Implemented:
+
+- Added `phase18_dgp_positive_continuous_mu_ri()` for positive
+  `lognormal()` and `Gamma(link = "log")` responses with ordinary
+  `mu ~ x + (1 | id)` and fixed-effect `sigma ~ z`.
+- Added `phase18_summarise_positive_continuous_mu_ri_fit()` with fixed `mu`,
+  fixed `sigma`, public `sd:mu:(1 | id)`, fixed-effect Wald rows, and direct-SD
+  profile rows.
+- Added smoke, summary, and repeatable grid-output helpers that write
+  aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage,
+  profile interval, and profile coverage CSV artifacts.
+- Added manual Actions task `positive_continuous_mu_random_intercept` and
+  included the new grid in the first-wave summary smoke runner.
+- Updated NEWS, README, ROADMAP, Phase 18 programme/readiness/core-family-map
+  docs, simulation README, team-improvements, and the new Slices 1369-1378
+  design note.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R inst/sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R inst/sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R inst/sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R inst/sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-positive-continuous-mu-random-intercept.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R .github/workflows/phase18-simulation-grid.yaml
+air format NEWS.md README.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/118-phase-18-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md inst/sim/README.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-26-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R','inst/sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R','inst/sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R','inst/sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R','inst/sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R','inst/sim/run/sim_run_first_wave_summary_smoke.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-positive-continuous-mu-random-intercept.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-positive-continuous-mu-random-intercept|phase18-first-wave-summary-smoke-runner|phase18-actions-runner|lognormal-location-scale|gamma-location-scale)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'Ordinary `mu` random intercepts now have a separate source-test slice|ordinary `mu` random intercepts now have a separate source-test slice|Focused source tests cover the ordinary `mu` random-intercept slice|Ready as source-level first-slice evidence; random slopes' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+rg -n 'positive_continuous_mu_random_intercept|positive-continuous `mu` random-intercept artifact lane|phase18_dgp_positive_continuous_mu_ri\(\)|positive-continuous-mu-ri|positive_continuous_mu_random_intercept_grid' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md tests/testthat inst/sim .github/workflows pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+gh issue list --repo itchyshin/drmTMB --state open --search "positive continuous random intercept Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+- Focused test bundle passed, including lognormal/Gamma source tests, the new
+  artifact lane, first-wave summary integration, and Actions dry-run parsing.
+- Full pkgdown build passed, and `pkgdown::check_pkgdown()` reported no
+  problems.
+- The exact stale scan returned no matches after correcting older ROADMAP
+  source-test-only wording.
+- Positive evidence scan found the new source, tests, Actions task, docs, and
+  generated-site mentions.
+- `git diff --check` was clean.
+- The overlapping open-issue search returned no matches.
+
+Member-group review:
+
+- Ada kept the slice small and branchable from the merged #339 state.
+- Boole checked task naming and formula syntax.
+- Gauss and Noether checked the lognormal log-location and Gamma log-mean
+  random-intercept DGP against the fitted formulas.
+- Curie added DGP, smoke, grid-writer, malformed-input, first-wave, and Actions
+  tests.
+- Grace ran focused tests, full pkgdown build, pkgdown check, stale/evidence
+  scans, and diff hygiene.
+- Rose caught stale ROADMAP wording and recorded the stale-status scan lesson.
+- Pat kept the user-facing boundary to repeated positive responses with
+  ordinary `(1 | id)`.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-26-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md`
