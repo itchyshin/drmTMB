@@ -876,3 +876,11 @@ errors, and elapsed time by surface before the raw manifest.
      shared helpers, exported APIs, and global status edits behind a serial
      integration gate. The aim is faster lane construction without weakening
      the fitted-claim, boundary, test, documentation, and CI evidence standard.
+172. Slices 1409-1418 run the first two-team pilot under that protocol. Team A
+     adds the Tweedie scale-mapping preflight note in
+     `docs/design/122-tweedie-scale-preflight.md`, keeping Tweedie
+     fixed-effect-only and future until a family helper, R builder, TMB branch,
+     methods, tests, and documentation land together. Team B hardens the
+     already-fitted zero-truncated NB2 ordinary `mu` random-intercept lane with
+     factor/missing-row and malformed-neighbour tests, without widening the
+     fitted count surface.

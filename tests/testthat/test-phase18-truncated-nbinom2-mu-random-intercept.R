@@ -122,6 +122,95 @@ test_that("Phase 18 truncated NB2 mu random-intercept grid writer creates artifa
   ))
 })
 
+test_that("Phase 18 truncated NB2 mu random-intercept fit handles factors and missing rows", {
+  source_phase18_truncated_nbinom2_mu_ri()
+
+  dat <- phase18_dgp_truncated_nbinom2_mu_ri(
+    n_group = 18L,
+    n_per_group = 5L,
+    seed = 2074L
+  )
+  dat$habitat <- factor(
+    rep(c("edge", "open", "closed"), length.out = nrow(dat)),
+    levels = c("closed", "edge", "open")
+  )
+  dat$count[[1L]] <- 0L
+  dat$x[[1L]] <- NA_real_
+  dat$count[[2L]] <- 1.5
+  dat$z[[2L]] <- NA_real_
+  dat$habitat[[3L]] <- NA
+
+  fit <- drmTMB(
+    bf(count ~ x + habitat + (1 | id), sigma ~ z + habitat),
+    family = truncated_nbinom2(),
+    data = dat
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(nobs(fit), nrow(dat) - 3L)
+  expect_equal(fit$model$keep[1:3], c(FALSE, FALSE, FALSE))
+  expect_true(all(fit$model$y > 0))
+  expect_true(all(fit$model$y %% 1 == 0))
+  expect_equal(fit$model$random$mu$n_terms, 1L)
+  expect_equal(fit$model$random$mu$labels, "(1 | id)")
+  expect_named(fit$sdpars$mu, "(1 | id)")
+  expect_true(all(is.finite(coef(fit, "mu"))))
+  expect_true(all(is.finite(coef(fit, "sigma"))))
+  expect_true(all(sigma(fit) > 0))
+  expect_true(all(fitted(fit) >= predict(fit, dpar = "mu")))
+})
+
+test_that("Phase 18 truncated NB2 mu random-intercept lane rejects neighbouring random-effect requests", {
+  dat <- data.frame(
+    count = c(1L, 2L, 1L, 3L, 2L, 4L),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5),
+    z = c(0, 1, 0, 1, 0, 1),
+    id = factor(c(1, 1, 2, 2, 3, 3))
+  )
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (0 + x | id), sigma ~ z),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | p | id), sigma ~ z),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "random intercepts"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | id), sigma ~ z, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = transform(dat, count = c(0L, 2L, 1L, 3L, 2L, 4L))
+    ),
+    "Hurdle"
+  )
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | id), sigma ~ z + (1 | id)),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "sigma.*random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(mvbind(count, count) ~ x + (1 | id), sigma ~ z),
+      family = truncated_nbinom2(),
+      data = dat
+    ),
+    "mvbind"
+  )
+})
+
 test_that("Phase 18 truncated NB2 mu random-intercept helpers reject malformed inputs", {
   source_phase18_truncated_nbinom2_mu_ri()
 

@@ -2,6 +2,62 @@
 
 Record meaningful development checks here.
 
+## 2026-05-27 - Two-Team Phase 18 Pilot, Slices 1409-1418
+
+Goal:
+
+- Use two parallel teams on independent Phase 18 lanes, then integrate the
+  results through a single Ada/Grace/Rose gate.
+
+Roles: Ada coordinated the split and kept integration serial. Team A
+represented Curie, Fisher, Gauss, and Pat for the positive-continuous lane and
+added a Tweedie scale-mapping preflight without claiming fitted support. Team B
+represented Curie, Fisher, Gauss, and Pat for the count lane and added
+zero-truncated NB2 ordinary `mu` random-intercept hardening tests. Grace owned
+focused test and diff hygiene. Rose checked that the two-team pilot did not
+edit shared global status files until integration. These were bounded subagent
+tasks plus local integration.
+
+Changes:
+
+- Added `docs/design/122-tweedie-scale-preflight.md`.
+- Added zero-truncated NB2 `mu` random-intercept tests for factor/missing-row
+  handling and malformed-neighbour rejection.
+- Updated ROADMAP, the Phase 18 simulation programme, and after-task evidence.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = '^phase18-truncated-nbinom2-mu-random-intercept$', reporter = 'summary')"
+Rscript --vanilla -e "files <- c('docs/design/122-tweedie-scale-preflight.md','docs/design/41-phase-18-simulation-programme.md','ROADMAP.md','docs/dev-log/check-log.md','docs/dev-log/after-task/2026-05-27-two-team-phase-18-pilot-slices-1409-1418.md'); invisible(lapply(files, function(path) { readLines(path, warn = FALSE); TRUE })); cat('ok read two-team docs\n')"
+rg -n "Tweedie Scale-Mapping Preflight|two-team|1409-1418|factor.*missing|malformed-neighbour|malformed-neighbor" docs/design/122-tweedie-scale-preflight.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-27-two-team-phase-18-pilot-slices-1409-1418.md tests/testthat/test-phase18-truncated-nbinom2-mu-random-intercept.R
+rg -n "Tweedie|tweedie\\(" README.md ROADMAP.md NEWS.md docs/dev-log docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/27-tweedie-family-plan.md vignettes _pkgdown.yml
+rg -n "truncated_nbinom2|zero-truncated NB2|random slope|sigma random|mvbind" README.md ROADMAP.md NEWS.md docs/dev-log docs/design/01-formula-grammar.md vignettes _pkgdown.yml
+gh issue list --state open --search "Tweedie" --limit 20
+gh issue list --state open --search "truncated_nbinom2" --limit 20
+git diff --check
+```
+
+Results:
+
+- Team A completed a docs-only Tweedie preflight and changed only
+  `docs/design/122-tweedie-scale-preflight.md`.
+- Team B completed test-only zero-truncated NB2 hardening and reported the
+  focused test file passing with 57 expectations, 0 failures, 0 warnings, and
+  0 skips in its workspace.
+- Local integration reran the focused truncated-NB2 test, read the changed
+  Markdown files, scanned for evidence, and checked whitespace hygiene.
+- Status searches kept Tweedie future-only and found no new count-surface claim.
+  The open Tweedie issue search found existing issue #2; the
+  `truncated_nbinom2` issue search returned no open issue.
+
+Decision:
+
+- The two-team protocol is usable for a safe pair of lanes when ownership is
+  disjoint. The next implementation branch can use Team A for a narrow Tweedie
+  fixed-effect route only after accepting the scale mapping, while Team B can
+  continue count-surface hardening without opening new count likelihoods.
+
 ## 2026-05-27 - Phase 18 Parallel Lane Protocol, Slices 1399-1408
 
 Goal:
