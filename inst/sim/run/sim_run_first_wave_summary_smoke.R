@@ -140,6 +140,23 @@ phase18_run_first_wave_summary_smoke <- function(
       cores = cores,
       backend = backend
     )
+  student_mu_random_intercept <- phase18_write_student_mu_ri_grid_outputs(
+    output_dir = file.path(output_dir, "student-mu-ri"),
+    conditions = phase18_student_mu_ri_conditions(
+      n_group = 28L,
+      n_per_group = 8L,
+      beta_sigma_intercept = -0.42,
+      beta_sigma_z = 0.18,
+      beta_nu_intercept = log(7),
+      sd_intercept = 0.45,
+      rho_xz = 0.20
+    ),
+    n_rep = as.integer(n_rep),
+    master_seed = as.integer(master_seed) + 13L,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
+  )
   ordinal <- phase18_write_ordinal_fe_grid_outputs(
     output_dir = file.path(output_dir, "ordinal-fe"),
     conditions = phase18_ordinal_fe_conditions(
@@ -219,6 +236,7 @@ phase18_run_first_wave_summary_smoke <- function(
       bounded_response_mu_random_intercept,
       positive_continuous,
       positive_continuous_mu_random_intercept,
+      student_mu_random_intercept,
       ordinal,
       zero_one_beta,
       gaussian_mu_random_slope,
@@ -238,6 +256,7 @@ phase18_run_first_wave_summary_smoke <- function(
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
+    student_mu_random_intercept = student_mu_random_intercept,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
@@ -267,6 +286,7 @@ phase18_run_first_wave_summary_smoke <- function(
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
+    student_mu_random_intercept = student_mu_random_intercept,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
@@ -322,6 +342,7 @@ phase18_first_wave_parallel_summary <- function(
   bounded_response_mu_random_intercept,
   positive_continuous,
   positive_continuous_mu_random_intercept,
+  student_mu_random_intercept,
   ordinal,
   zero_one_beta,
   gaussian_mu_random_slope,
@@ -359,6 +380,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "positive_continuous_mu_random_intercept_grid",
         positive_continuous_mu_random_intercept$summary$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "student_mu_random_intercept_grid",
+        student_mu_random_intercept$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "ordinal_fixed_effect_grid",

@@ -2,6 +2,83 @@
 
 Record meaningful development checks here.
 
+## 2026-05-26 - Student-t Mu Random-Intercept Phase 18 Artifacts, Slices 1379-1388
+
+Goal:
+
+- Add the Phase 18 artifact lane for the implemented Student-t ordinary
+  `mu` random-intercept route without opening Student-t random slopes,
+  labelled covariance, `sigma` random effects, `nu` random effects, structured
+  effects, known covariance, or bivariate Student-t models.
+
+Roles: Ada kept the slice scoped to one fitted Student-t mixed-model surface.
+Boole checked that the runnable syntax remains
+`bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)`. Gauss and Noether checked that the
+DGP uses the fitted Student-t contract, including `nu = 2 + exp(eta_nu)`.
+Fisher kept the result at smoke/artifact evidence rather than a formal
+operating-characteristic claim. Curie owned the DGP, summariser, smoke runner,
+grid writer, and tests. Grace ran focused tests, orchestration tests, full
+tests, pkgdown build/check, diff checks, and GitHub issue inspection. Pat
+checked that an applied user sees the ordinary repeated-measure route without
+mistaking it for Student-t slope, scale, or shape random effects. Rose scanned
+for stale source-test-only wording and checked the rendered site. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added the Student-t ordinary `mu` random-intercept DGP, fit summariser, smoke
+  runner, summary helper, and grid-output writer under `inst/sim/`.
+- Added `tests/testthat/test-phase18-student-mu-random-intercept.R`.
+- Added `student_mu_random_intercept` to the manual Phase 18 Actions workflow
+  and runner.
+- Added the Student-t random-intercept grid to the first-wave summary smoke
+  runner and its parallel-summary rows.
+- Added
+  `docs/design/119-phase-18-student-mu-random-intercept-artifacts-slices-1379-1388.md`.
+- Synced NEWS, README, ROADMAP, the Phase 18 programme, readiness matrix, core
+  family completion map, and simulation README.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_student_mu_random_intercept.R inst/sim/fit/sim_summarise_student_mu_random_intercept.R inst/sim/run/sim_run_student_mu_random_intercept_smoke.R inst/sim/run/sim_summary_student_mu_random_intercept_smoke.R inst/sim/run/sim_write_student_mu_random_intercept_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-student-mu-random-intercept.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R tests/testthat/test-phase18-actions-runner.R
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_student_mu_random_intercept.R','inst/sim/fit/sim_summarise_student_mu_random_intercept.R','inst/sim/run/sim_run_student_mu_random_intercept_smoke.R','inst/sim/run/sim_summary_student_mu_random_intercept_smoke.R','inst/sim/run/sim_write_student_mu_random_intercept_grid.R','inst/sim/run/sim_run_first_wave_summary_smoke.R','inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-student-mu-random-intercept.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-student-mu-random-intercept$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-student-mu-random-intercept|phase18-first-wave-summary-smoke-runner|phase18-actions-runner)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-student-mu-random-intercept|student-location-scale)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'Student-t remains source-tested only|Student-t.*source-test(ed)? only|source-level first-slice evidence.*Student-t|Ready as source-level first-slice evidence|Student-t.*needs.*artifact lane|student\(\).*needs.*artifact' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+rg -n 'Student-t `mu` random-intercept artifact|student_mu_random_intercept|student-mu-ri' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md inst/sim/run tests/testthat .github/workflows/phase18-simulation-grid.yaml pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "Student-t random intercept Phase 18 OR student_mu_random_intercept OR Student-t artifact" --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- Parse checks passed.
+- The focused Student-t artifact test passed.
+- The combined Student-t artifact, first-wave summary, and Actions runner
+  test passed.
+- The neighbouring `student-location-scale` source test plus artifact test
+  passed.
+- Full `devtools::test()` completed successfully.
+- `pkgdown::build_site(preview = FALSE)` completed successfully.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale source-test-only scan returned no matches.
+- The positive-evidence scan found the expected source, test, workflow, NEWS,
+  README/ROADMAP, design-doc, simulation README, and rendered-site entries.
+- `git diff --check` was clean.
+- The GitHub issue search found #128, a broader random-effect slope-capacity
+  issue. No comment was added because this slice adds only an ordinary
+  intercept artifact lane and leaves Student-t slopes planned.
+
+Decision:
+
+- Slices 1379-1388 are complete as a Student-t ordinary `mu`
+  random-intercept artifact lane.
+
 ## 2026-05-26 - Zero-One Beta Fixed-Effect Phase 18 Artifacts, Slices 1339-1348
 
 Goal:
