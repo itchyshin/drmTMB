@@ -869,3 +869,10 @@ errors, and elapsed time by surface before the raw manifest.
      covariance, `sigma` random effects, hurdle random effects,
      zero-inflated zero-truncated models, structured count effects, and
      bivariate count models outside the fitted artifact claim.
+171. Slices 1399-1408 add the parallel Phase 18 lane protocol in
+     `docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md`.
+     The protocol allows independent distribution lanes to be built on
+     separate branches while keeping formula grammar, likelihood changes,
+     shared helpers, exported APIs, and global status edits behind a serial
+     integration gate. The aim is faster lane construction without weakening
+     the fitted-claim, boundary, test, documentation, and CI evidence standard.

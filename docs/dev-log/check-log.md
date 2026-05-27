@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-27 - Phase 18 Parallel Lane Protocol, Slices 1399-1408
+
+Goal:
+
+- Record how two independent distribution or random-effect artifact lanes can
+  move in parallel without weakening fitted-claim, boundary, test,
+  documentation, and CI evidence.
+
+Roles: Ada kept the protocol focused on scheduling and integration rather than
+package behaviour. Curie scoped what can be lane-local: DGP, summariser, smoke
+runner, grid writer, tests, design note, and after-task report. Grace kept
+shared helpers and CI gates serial. Rose recorded the process improvement after
+the profile-plot and zero-truncated NB2 PR queue exposed append-only log and
+global-status conflicts. Fisher kept the accuracy standard intact. Pat checked
+that parallel work should not make neighbouring random slopes, scale random
+effects, structured effects, or mixed-response models look fitted. These were
+role perspectives, not spawned agents.
+
+Changes:
+
+- Added
+  `docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md`.
+- Added a team-improvement note on parallel Phase 18 lane work.
+- Updated the Phase 18 simulation programme and ROADMAP slice table.
+- Added an after-task report for the process slice.
+
+Validation:
+
+```sh
+git switch -c codex/phase18-parallel-lane-protocol-2026-05-27 origin/main
+rg -n "parallel.*lane|parallel.*team|distribution lane|integration gate|two teams" docs README.md ROADMAP.md inst/sim/README.md
+Rscript --vanilla -e "files <- c('docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md','docs/design/41-phase-18-simulation-programme.md','docs/dev-log/team-improvements.md','docs/dev-log/check-log.md','ROADMAP.md','docs/dev-log/after-task/2026-05-27-phase-18-parallel-lane-protocol-slices-1399-1408.md'); invisible(lapply(files, function(path) { readLines(path, warn = FALSE); TRUE })); cat('ok read protocol docs\n')"
+rg -n "Phase 18 Parallel Lane Protocol|parallel Phase 18 lane protocol|Parallel Phase 18 lane protocol|1399-1408" docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/team-improvements.md docs/dev-log/check-log.md ROADMAP.md docs/dev-log/after-task/2026-05-27-phase-18-parallel-lane-protocol-slices-1399-1408.md
+git diff --check
+```
+
+Results:
+
+- The pre-edit scan found no existing parallel-lane protocol.
+- The changed Markdown files were readable.
+- The positive-evidence scan found the new protocol, Phase 18 programme row,
+  team-improvement note, check-log entry, ROADMAP row, and after-task report.
+- `git diff --check` was clean.
+- No R package tests were run because this slice changes only process
+  documentation.
+
+Decision:
+
+- Slices 1399-1408 are complete as a process protocol. Parallel distribution
+  lane construction is allowed for independent lanes, but formula grammar,
+  likelihood changes, shared helpers, exported APIs, global status files, and
+  merge decisions remain serial integration gates.
+
 ## 2026-05-27 - Truncated NB2 Mu Random-Intercept Phase 18 Artifacts, Slices 1389-1398
 
 Goal:
