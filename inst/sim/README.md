@@ -148,6 +148,9 @@ Current pilot files:
   with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
   overdispersion, and tree-shape conditions for the formal-admission lane.
+- `dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R` generates positive
+  zero-truncated NB2 count data with one ordinary grouped `mu` random
+  intercept, `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
 - `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
   `beta()` proportions and denominator-aware `beta_binomial()` successes with
   fixed-effect `mu ~ x` and `sigma ~ z`.
@@ -199,6 +202,9 @@ Current pilot files:
 - `fit/sim_summarise_gaussian_sigma_random_slope.R` summarises fixed `mu` and
   fixed `sigma` coefficients plus the direct residual-scale random-slope SD on
   the modelled `log(sigma)` scale.
+- `fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R` summarises fixed
+  zero-truncated NB2 `mu` and `sigma` coefficients plus the direct ordinary
+  positive-count `mu` random-intercept SD on the public SD scale.
 - `fit/sim_summarise_proportion_fixed_effect.R` summarises fixed `beta()` and
   `beta_binomial()` `mu` and `sigma` coefficients on their link scales.
 - `fit/sim_summarise_bounded_response_mu_random_intercept.R` summarises
@@ -298,6 +304,8 @@ Current pilot files:
   non-zero-inflated NB2 `mu` random-effect surface.
 - `run/sim_run_nbinom2_sigma_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 log-`sigma` random-intercept surface.
+- `run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R` does the same
+  for the zero-truncated NB2 ordinary `mu` random-intercept surface.
 - `run/sim_run_proportion_fixed_effect_smoke.R` does the same for the
   fixed-effect `beta()` and `beta_binomial()` proportion surface.
 - `run/sim_run_bounded_response_mu_random_intercept_smoke.R` does the same for
@@ -368,6 +376,10 @@ Current pilot files:
 - `run/sim_write_count_mu_random_effect_grid.R` writes the paired Poisson/NB2
   `mu` random-effect artifact set with Wald and direct-SD profile interval
   tables.
+- `run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R` writes the
+  zero-truncated NB2 `mu` random-intercept artifact set with aggregate,
+  replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
+  coverage, direct-SD profile interval, and profile coverage CSVs.
 - `run/sim_write_proportion_fixed_effect_grid.R` writes the fixed-effect
   `beta()` and `beta_binomial()` artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage CSVs.
@@ -509,6 +521,11 @@ Current pilot files:
   formula-coefficient Wald interval, Wald coverage, direct `log_sd_sigma`
   profile-target rows, optional profile interval rows, interval diagnostics,
   and interval-failure outputs.
+- `run/sim_summary_truncated_nbinom2_mu_random_intercept_smoke.R` runs a tiny
+  zero-truncated NB2 ordinary `mu` random-intercept summary smoke grid and
+  returns aggregate, replicate, manifest, failure-ledger, fixed-effect Wald
+  interval, Wald coverage, direct-SD profile interval, and profile coverage
+  outputs.
 - `run/sim_summary_proportion_fixed_effect_smoke.R` runs a tiny fixed-effect
   `beta()` and `beta_binomial()` summary smoke grid and returns aggregate,
   replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald

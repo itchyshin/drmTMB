@@ -10,6 +10,7 @@ on:
           - all
           - first_wave_summary
           - interval_heavy_summary
+          - truncated_nbinom2_mu_random_intercept
           - proportion_fixed_effect
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
@@ -107,6 +108,9 @@ jobs:
           - task: interval_heavy_summary
             seed: 20260531
             include_in_all: true
+          - task: truncated_nbinom2_mu_random_intercept
+            seed: 20260541
+            include_in_all: false
           - task: proportion_fixed_effect
             seed: 20260533
             include_in_all: false
