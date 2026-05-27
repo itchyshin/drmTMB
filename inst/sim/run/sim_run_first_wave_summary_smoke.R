@@ -87,6 +87,26 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  bounded_response_mu_random_intercept <-
+    phase18_write_bounded_response_mu_ri_grid_outputs(
+      output_dir = file.path(output_dir, "bounded-response-mu-ri"),
+      conditions = phase18_bounded_response_mu_ri_conditions(
+        family = c("beta", "beta_binomial"),
+        n_group = 28L,
+        n_per_group = 8L,
+        trial_min = 14L,
+        trial_max = 24L,
+        beta_sigma_intercept = -0.95,
+        beta_sigma_z = 0.15,
+        sd_intercept = 0.45,
+        rho_xz = 0.20
+      ),
+      n_rep = as.integer(n_rep),
+      master_seed = as.integer(master_seed) + 11L,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
   positive_continuous <- phase18_write_positive_continuous_fe_grid_outputs(
     output_dir = file.path(output_dir, "positive-continuous-fe"),
     conditions = phase18_positive_continuous_fe_conditions(
@@ -178,6 +198,7 @@ phase18_run_first_wave_summary_smoke <- function(
       meta,
       count,
       proportion,
+      bounded_response_mu_random_intercept,
       positive_continuous,
       ordinal,
       zero_one_beta,
@@ -195,6 +216,7 @@ phase18_run_first_wave_summary_smoke <- function(
     meta = meta,
     count = count,
     proportion = proportion,
+    bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
@@ -222,6 +244,7 @@ phase18_run_first_wave_summary_smoke <- function(
     meta = meta,
     count = count,
     proportion = proportion,
+    bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
@@ -275,6 +298,7 @@ phase18_first_wave_parallel_summary <- function(
   meta,
   count,
   proportion,
+  bounded_response_mu_random_intercept,
   positive_continuous,
   ordinal,
   zero_one_beta,
@@ -301,6 +325,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "proportion_fixed_effect_grid",
         proportion$summary$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "bounded_response_mu_random_intercept_grid",
+        bounded_response_mu_random_intercept$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "positive_continuous_fixed_effect_grid",

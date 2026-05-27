@@ -824,3 +824,14 @@ errors, and elapsed time by surface before the raw manifest.
      for `zero_one_beta()`, while keeping zero-one random effects, denominator
      syntax, structured bounded responses, known covariance, and bivariate or
      mixed bounded-response models outside the fitted artifact claim.
+167. Slices 1359-1368 add the bounded-response ordinary `mu` random-intercept
+     artifact lane in
+     `docs/design/117-phase-18-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md`.
+     The lane adds DGP, summariser, smoke runner, grid writer, first-wave
+     runner inclusion, and a manual `bounded_response_mu_random_intercept`
+     Actions task for `beta()` and `beta_binomial()` with ordinary `(1 | id)`
+     in `mu`. It records fixed-effect Wald rows plus direct-SD profile rows and
+     keeps bounded-response random slopes, labelled covariance, `sigma` random
+     effects, exact 0/1 boundary mass, zero-one beta random effects, structured
+     bounded responses, known covariance, and mixed-response models outside the
+     fitted artifact claim.

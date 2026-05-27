@@ -39624,3 +39624,85 @@ Member-group review:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-26-nongaussian-tutorial-gate-slices-1349-1358.md`
+
+## 2026-05-26 - Bounded-Response Mu Random-Intercept Artifacts
+
+Goal:
+
+- Add the Phase 18 artifact lane for the fitted beta and beta-binomial ordinary
+  `mu` random-intercept surface after the fixed-effect zero-one beta artifacts
+  and non-Gaussian tutorial gate merged.
+
+Branch context:
+
+- Branch:
+  `codex/overnight-bounded-response-mu-artifacts-2026-05-26`, created from
+  `origin/main` after PR #338 merged as `6ccee086e49f3d58aa27441e76dc0b7429838ec1`
+  and closed #57.
+- Recovery checkpoint:
+  `docs/dev-log/recovery-checkpoints/2026-05-26-194847-codex-checkpoint.md`
+  was written before implementation and is ignored by the repository.
+
+Implemented:
+
+- Added `phase18_dgp_bounded_response_mu_ri()` for strict continuous
+  `beta()` responses and denominator-aware `beta_binomial()` successes with
+  ordinary `mu ~ x + (1 | id)` and fixed-effect `sigma ~ z`.
+- Added `phase18_summarise_bounded_response_mu_ri_fit()` with fixed `mu`,
+  fixed `sigma`, public `sd:mu:(1 | id)`, fixed-effect Wald rows, and direct-SD
+  profile rows.
+- Added smoke, summary, and repeatable grid-output helpers that write
+  aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage,
+  profile interval, and profile coverage CSV artifacts.
+- Added manual Actions task `bounded_response_mu_random_intercept` and included
+  the new grid in the first-wave summary smoke runner.
+- Updated NEWS, README, ROADMAP, Phase 18 programme/readiness/core-family-map
+  docs, simulation README, team-improvements, and the new Slices 1359-1368
+  design note.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_bounded_response_mu_random_intercept.R inst/sim/fit/sim_summarise_bounded_response_mu_random_intercept.R inst/sim/run/sim_run_bounded_response_mu_random_intercept_smoke.R inst/sim/run/sim_summary_bounded_response_mu_random_intercept_smoke.R inst/sim/run/sim_write_bounded_response_mu_random_intercept_grid.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-bounded-response-mu-random-intercept.R tests/testthat/test-phase18-actions-runner.R
+air format tests/testthat/test-phase18-first-wave-summary-smoke-runner.R inst/sim/run/sim_run_first_wave_summary_smoke.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R
+air format NEWS.md README.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/117-phase-18-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md inst/sim/README.md docs/dev-log/team-improvements.md
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-bounded-response-mu-random-intercept|phase18-first-wave-summary-smoke-runner|phase18-actions-runner|beta-location-scale|beta-binomial)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'bounded-response ordinary `mu` random-intercept slices still need|bounded-response `mu` random-intercept source-test lanes|bounded-response random-effect grids, random slopes|bounded-response random effects beyond the beta and beta-binomial ordinary `mu` intercept slices' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+rg -n 'bounded_response_mu_random_intercept|Phase 18 now has a bounded-response `mu` random-intercept artifact lane|bounded-response ordinary `mu` random-intercept artifact lane|phase18_dgp_bounded_response_mu_ri\(\)|direct-SD profile interval|bounded_response_mu_random_intercept_grid' README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md tests/testthat inst/sim .github/workflows pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html -g '!*.json'
+gh issue list --repo itchyshin/drmTMB --state open --search "bounded response random intercept Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+- Focused test bundle passed, including beta/beta-binomial source tests, the
+  new artifact lane, first-wave summary integration, and Actions dry-run
+  parsing.
+- Full pkgdown build passed, and `pkgdown::check_pkgdown()` reported no
+  problems.
+- Stale scan returned no matches after tightening old fixed-effect-lane
+  bounded-response wording.
+- Positive evidence scan found the new source, tests, Actions task, docs, and
+  generated-site mentions.
+- `git diff --check` was clean.
+- The overlapping open-issue search returned no matches.
+
+Member-group review:
+
+- Ada kept the slice small and branchable from the merged #338 state.
+- Boole checked task naming and formula syntax.
+- Gauss and Noether checked the logit-mean random-intercept DGP against the
+  fitted beta/beta-binomial formulas.
+- Curie added DGP, smoke, grid-writer, malformed-input, first-wave, and Actions
+  tests.
+- Grace ran focused tests, full pkgdown build, pkgdown check, stale/evidence
+  scans, and diff hygiene.
+- Rose caught stale fixed-effect wording and recorded the one-SD simulation
+  helper lesson.
+- Pat kept the user-facing boundary to repeated strict proportions or successes
+  out of known trials with ordinary `(1 | id)`.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-26-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md`
