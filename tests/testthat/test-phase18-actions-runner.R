@@ -123,6 +123,33 @@ test_that("Phase 18 Actions runner accepts positive-continuous fixed-effect task
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts positive-continuous mu random-intercept task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-positive-continuous-mu-ri-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=positive_continuous_mu_random_intercept",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(
+    out,
+    "task=positive_continuous_mu_random_intercept",
+    fixed = TRUE
+  )
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner accepts ordinal fixed-effect task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-ordinal-dry-run-")

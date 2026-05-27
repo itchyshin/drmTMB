@@ -271,6 +271,18 @@ issues, or pull requests.
   `../../inst/sim/run/sim_run_actions_cell.R` path that did not exist after
   installation.
 
+## 2026-05-26 - Artifact-Lane Stale Status Scans
+
+- Improvement implemented: when a source-tested non-Gaussian route gains a
+  Phase 18 artifact lane, stale-wording scans should include older ROADMAP
+  decision tables as well as current readiness rows, NEWS, README, design
+  notes, simulation README, and generated pkgdown pages.
+- Trigger: the positive-continuous `mu` random-intercept artifact lane updated
+  the current readiness row, but a ROADMAP priority table and the earlier
+  fixed-effect artifact row still described lognormal/Gamma ordinary `mu`
+  random intercepts as source-test-only until Rose's generated-site scan
+  caught them.
+
 ## 2026-05-20 - Targeted Formatting In Release Slices
 
 - Improvement implemented: release-candidate slices should run `air format` on

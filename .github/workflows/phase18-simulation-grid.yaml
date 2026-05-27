@@ -13,6 +13,7 @@ on:
           - proportion_fixed_effect
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
+          - positive_continuous_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
           - poisson_phylo_q1_formal
@@ -113,6 +114,9 @@ jobs:
             include_in_all: false
           - task: positive_continuous_fixed_effect
             seed: 20260534
+            include_in_all: false
+          - task: positive_continuous_mu_random_intercept
+            seed: 20260539
             include_in_all: false
           - task: ordinal_fixed_effect
             seed: 20260535
