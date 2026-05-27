@@ -140,7 +140,9 @@ head(sigma(fit)^2) # fitted residual variances
   `bf(y ~ x + (1 | id), sigma ~ z)`; beta uses this syntax only for strict
   `(0, 1)` proportions.
 - **Successes out of known trials.** Use `beta_binomial()` with
-  `cbind(successes, failures)`. Read
+  `cbind(successes, failures)`. Ordinary repeated-measure random intercepts in
+  `mu` are fitted as a first slice with syntax such as
+  `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Continuous proportions with structural exact 0 or 1 values.** Use
   `zero_one_beta()` with fixed-effect `mu`, `sigma`, `zoi`, and `coi`
@@ -231,8 +233,8 @@ dimensional multivariate models belong in a different tool.
 
 Random effects are strongest in the Gaussian routes. The non-Gaussian mixed
 surface is still deliberately small: ordinary Poisson/NB2 `mu` random effects,
-ordinary Student-t/zero-truncated NB2/lognormal/Gamma/beta `mu` random
-intercepts, and the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
+ordinary Student-t/zero-truncated NB2/lognormal/Gamma/beta/beta-binomial `mu`
+random intercepts, and the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
 intercepts are fitted.
 Ordinary NB2 also has a first grouped overdispersion path in `sigma`, limited
 to independent random intercepts on the log-`sigma` scale. Most other
