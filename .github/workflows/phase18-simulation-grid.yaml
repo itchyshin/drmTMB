@@ -13,6 +13,7 @@ on:
           - proportion_fixed_effect
           - positive_continuous_fixed_effect
           - ordinal_fixed_effect
+          - zero_one_beta_fixed_effect
           - poisson_phylo_q1_formal
           - nbinom2_phylo_q1_formal
       n_reps:
@@ -111,6 +112,9 @@ jobs:
             include_in_all: false
           - task: ordinal_fixed_effect
             seed: 20260535
+            include_in_all: false
+          - task: zero_one_beta_fixed_effect
+            seed: 20260536
             include_in_all: false
           - task: poisson_phylo_q1_formal
             seed: 20260601

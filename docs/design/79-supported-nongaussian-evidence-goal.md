@@ -31,7 +31,7 @@ Long grids remain optional Phase 18 artifacts. They are not CRAN tests.
 | `lognormal()` | Fitted `mu` on the log-response scale and `sigma`; likelihood, fitted-response, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
 | `Gamma(link = "log")` | Fitted mean-CV route with `log(mu)` and `log(sigma)`; likelihood, recovery, prediction, and non-log-link boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
 | `beta()` | Fitted strict `(0, 1)` response route with `logit(mu)` and public `sigma`; likelihood, prediction, Wald-row, and boundary tests exist. Exact structural boundary mass now belongs to `zero_one_beta()`, not `beta()`. | Ordinary unlabelled `mu` random intercepts are fitted for strict `(0, 1)` responses; `sigma`, slopes, labels, exact 0/1 mass, and structured routes remain blocked. | Blocked. | Supported strict bounded-response route plus a first `mu` random-intercept slice. |
-| `zero_one_beta()` | Fitted fixed-effect `[0, 1]` route with interior `mu`/`sigma`, exact-boundary probability `zoi`, and conditional-one probability `coi`; independent mixture-likelihood, recovery, Wald-row, fitted-response, simulation, and malformed-neighbour tests exist. | Blocked; the first slice is fixed-effect only. | Blocked. | Supported fixed-effect zero-one bounded-response route for structural exact 0/1 mass. |
+| `zero_one_beta()` | Fitted fixed-effect `[0, 1]` route with interior `mu`/`sigma`, exact-boundary probability `zoi`, and conditional-one probability `coi`; independent mixture-likelihood, recovery, Wald-row, fitted-response, simulation, malformed-neighbour tests, and Phase 18 artifact helpers exist. | Blocked; the first slice is fixed-effect only. | Blocked. | Supported fixed-effect zero-one bounded-response route for structural exact 0/1 mass. |
 | `beta_binomial()` | Fitted denominator-aware route for `cbind(successes, failures)` with `mu` and `sigma`; likelihood, denominator, prediction, Wald-row, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted for counted successes out of known trials; `sigma`, slopes, labels, `zoi`/`coi`, and structured routes remain blocked. | Blocked. | Supported success-rate route plus a first `mu` random-intercept slice. |
 | `poisson(link = "log")` | Fitted fixed-effect count route, including offsets and zero-inflated fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted and have Phase 18 smoke/grid evidence. `zi` random effects are blocked. | Ordinary q=1 phylogenetic `mu` intercept is fitted with smoke/formal infrastructure; broader structured count paths are blocked. | Supported fixed-effect and first ordinary/phylogenetic `mu` random-effect count route. |
 | `nbinom2()` | Fitted fixed-effect mean-overdispersion route, including fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted; ordinary `sigma ~ z + (1 | id)` is fitted as a narrow log-overdispersion random-intercept gate. | Ordinary q=1 phylogenetic `mu` intercept is fitted but remains held at smoke/formal-admission status after the completed 500-replicate shard audit. | Supported fixed-effect and first count mixed-model route; broad NB2 scale/structured parity remains blocked. |
@@ -95,10 +95,10 @@ gate; the first runnable fixed-effect slice now separates three cases:
   `zero_one_beta()` when at least one interior response remains after
   missing-row filtering.
 
-The completed first code slice is fixed-effect only. `zoi`/`coi` random
-effects, bounded-response covariance blocks, known sampling covariance,
-structured bounded responses, and bivariate or mixed bounded-response models
-remain future work.
+The completed first code slice and first artifact lane are fixed-effect only.
+`zoi`/`coi` random effects, bounded-response covariance blocks, known sampling
+covariance, structured bounded responses, and bivariate or mixed
+bounded-response models remain future work.
 
 ## Claim Boundary
 

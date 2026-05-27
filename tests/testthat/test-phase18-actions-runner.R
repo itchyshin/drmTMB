@@ -123,6 +123,29 @@ test_that("Phase 18 Actions runner accepts ordinal fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts zero-one beta fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-zero-one-beta-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=zero_one_beta_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=zero_one_beta_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner loads drmTMB for real tasks", {
   script <- phase18_actions_runner_script()
   text <- paste(readLines(script, warn = FALSE), collapse = "\n")
