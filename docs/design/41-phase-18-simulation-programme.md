@@ -955,3 +955,12 @@ errors, and elapsed time by surface before the raw manifest.
      `sigma`, or intercept-only `nu`, and integer row weights match explicit
      row duplication. The weighted external `glmmTMB` comparator remains
      postponed until a dedicated weighting-semantics target is written.
+183. Slices 1639, 1641, and 1642 harden the fitted Tweedie simulation test.
+     `tests/testthat/test-tweedie-location-scale.R` now checks that
+     `simulate()` returns the expected data-frame shape and column names,
+     preserves the fitted-row count after ordinary missing-row filtering,
+     produces finite non-negative draws with exact zeros, and reproduces
+     identical draws for repeated calls with the same seed. This is a
+     simulation-method invariant for the fitted fixed-effect lane, not
+     evidence for predictor-dependent `nu`, random effects, structured
+     effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases.

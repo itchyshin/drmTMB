@@ -96,20 +96,30 @@ test_that("Tweedie recovery covers high-zero and low-zero regimes", {
   expect_lt(abs(predict(low_fit, dpar = "nu")[[1L]] - low_zero$nu), 0.10)
 })
 
-test_that("Tweedie simulation preserves exact zeros and public sigma scale", {
+test_that("Tweedie simulation preserves shape, seed, zeros and fitted rows", {
   sim <- new_tweedie_data(n = 300, seed = 20260704)
+  dat <- sim$data
+  dat$x[[7L]] <- NA_real_
   fit <- drmTMB(
     bf(y ~ x, sigma ~ z, nu ~ 1),
     family = tweedie(),
-    data = sim$data,
+    data = dat,
     control = drm_control(se = FALSE)
   )
 
-  draws <- simulate(fit, nsim = 2, seed = 20260705)
+  draws <- simulate(fit, nsim = 3, seed = 20260705)
   expect_s3_class(draws, "data.frame")
-  expect_named(draws, c("sim_1", "sim_2"))
-  expect_true(all(vapply(draws, function(x) all(is.finite(x) & x >= 0), TRUE)))
-  expect_true(any(vapply(draws, function(x) any(x == 0), TRUE)))
+  expect_equal(dim(draws), c(nrow(fit$data), 3L))
+  expect_equal(nrow(fit$data), nrow(dat) - 1L)
+  expect_named(draws, c("sim_1", "sim_2", "sim_3"))
+  draw_values <- unlist(draws, use.names = FALSE)
+  expect_equal(sum(!is.finite(draw_values)), 0L)
+  expect_gte(min(draw_values), 0)
+  expect_gt(sum(draw_values == 0), 0L)
+  expect_equal(
+    simulate(fit, nsim = 3, seed = 20260705),
+    simulate(fit, nsim = 3, seed = 20260705)
+  )
 
   phi <- sigma(fit)^2
   expect_true(all(phi > 0))

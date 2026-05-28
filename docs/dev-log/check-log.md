@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Simulation Shape Hardening
+
+Goal:
+
+- Harden the fitted Tweedie `simulate()` method test for output shape,
+  missing-row filtering, exact-zero support, and seed reproducibility without
+  widening the fitted Tweedie surface.
+
+Implemented:
+
+- Updated `tests/testthat/test-tweedie-location-scale.R` so the simulation
+  test now inserts one missing predictor row, fits after ordinary model-frame
+  filtering, checks the `simulate()` data-frame dimensions and column names,
+  checks finite non-negative draws with exact zeros, and checks repeated calls
+  with the same seed.
+- Updated `docs/design/41-phase-18-simulation-programme.md` and `ROADMAP.md`
+  to record this as fixed-effect Tweedie simulation-method hardening, not a
+  new Tweedie surface.
+
+Validation:
+
+```sh
+air format tests/testthat/test-tweedie-location-scale.R docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-simulation-shape.md
+Rscript --vanilla -e "devtools::test(filter = '^tweedie-location-scale$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `test-tweedie-location-scale` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Curie checked the test target: output shape, fitted-row count, exact zeros,
+  finite non-negative draws, and repeated-seed equality.
+- Fisher treated this as simulation-method evidence only, not recovery or
+  coverage evidence for a broader operating-characteristic grid.
+- Grace kept `glmmTMB`, row-weight, and simulation-shape checks in separate
+  narrow PRs so CI can attribute failures cleanly.
+- Rose recorded no new Tweedie neighbour: no offsets, `nu ~ x`, random
+  effects, structured effects, bivariate Tweedie, zero-inflation aliases, or
+  hurdle aliases.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-simulation-shape.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Weight Invariant
 
 Goal:
