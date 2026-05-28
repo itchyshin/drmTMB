@@ -996,3 +996,11 @@ errors, and elapsed time by surface before the raw manifest.
      Tweedie DGP, runner, grid writer, coverage table, predictor-dependent
      `nu`, random effects, structured effects, bivariate Tweedie, or
      zero-inflation/hurdle aliases.
+188. Slices 1705-1708 add the first `tweedie_fixed_effect` Phase 18 artifact
+     implementation. The lane now has a low/high-zero DGP, fit summariser,
+     smoke runner, summary reducer, saved-result resume check, and Wald
+     artifact smoke test for `bf(y ~ x, sigma ~ z, nu ~ 1)` with public
+     `sigma = sqrt(phi)`. This is still a small smoke artifact lane: no grid
+     writer, Actions task, predictor-dependent `nu`, random effects,
+     structured effects, bivariate Tweedie, offset/exposure route,
+     zero-inflation alias, or hurdle alias is added.

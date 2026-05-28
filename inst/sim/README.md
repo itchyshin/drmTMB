@@ -161,6 +161,9 @@ Current pilot files:
 - `dgp/sim_dgp_positive_continuous_fixed_effect.R` generates positive
   `lognormal()` and `Gamma(link = "log")` responses with fixed-effect `mu ~ x`
   and `sigma ~ z`.
+- `dgp/sim_dgp_tweedie_fixed_effect.R` generates non-negative
+  semicontinuous `tweedie()` responses with fixed-effect `mu ~ x`,
+  `sigma ~ z`, intercept-only `nu ~ 1`, and low- or high-zero regimes.
 - `dgp/sim_dgp_positive_continuous_mu_random_intercept.R` generates positive
   `lognormal()` and `Gamma(link = "log")` responses with one ordinary grouped
   `mu` random intercept, `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
@@ -213,6 +216,9 @@ Current pilot files:
 - `fit/sim_summarise_positive_continuous_fixed_effect.R` summarises fixed
   `lognormal()` and `Gamma(link = "log")` `mu` and `sigma` coefficients on
   their documented link scales.
+- `fit/sim_summarise_tweedie_fixed_effect.R` summarises fixed `tweedie()`
+  `mu`, public-`sigma`, and intercept-only `nu` coefficients on their formula
+  scales while carrying response-scale power and observed-zero diagnostics.
 - `fit/sim_summarise_positive_continuous_mu_random_intercept.R` summarises
   fixed `lognormal()` and `Gamma(link = "log")` `mu` and `sigma` coefficients
   plus the direct ordinary positive-continuous `mu` random-intercept SD on the
@@ -314,6 +320,8 @@ Current pilot files:
 - `run/sim_run_positive_continuous_fixed_effect_smoke.R` does the same for the
   fixed-effect `lognormal()` and `Gamma(link = "log")` positive-continuous
   surface.
+- `run/sim_run_tweedie_fixed_effect_smoke.R` does the same for the
+  fixed-effect `tweedie()` semicontinuous surface with intercept-only `nu`.
 - `run/sim_run_positive_continuous_mu_random_intercept_smoke.R` does the same
   for the ordinary positive-continuous `mu` random-intercept surface for
   `lognormal()` and `Gamma(link = "log")`.
@@ -539,6 +547,9 @@ Current pilot files:
   fixed-effect `lognormal()` and `Gamma(link = "log")` summary smoke grid and
   returns aggregate, replicate, manifest, failure-ledger, fixed-effect Wald
   interval, and Wald coverage outputs.
+- `run/sim_summary_tweedie_fixed_effect_smoke.R` runs a tiny fixed-effect
+  `tweedie()` summary smoke grid and returns aggregate, replicate, manifest,
+  failure-ledger, formula-coefficient Wald interval, and Wald coverage outputs.
 - `run/sim_summary_positive_continuous_mu_random_intercept_smoke.R` runs a
   tiny `lognormal()` and `Gamma(link = "log")` ordinary `mu`
   random-intercept summary smoke grid and returns aggregate, replicate,
