@@ -8,7 +8,8 @@ source_phase18_tweedie_fe <- function(env = parent.frame()) {
     "sim/dgp/sim_dgp_tweedie_fixed_effect.R",
     "sim/fit/sim_summarise_tweedie_fixed_effect.R",
     "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
-    "sim/run/sim_summary_tweedie_fixed_effect_smoke.R"
+    "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
+    "sim/run/sim_write_tweedie_fixed_effect_grid.R"
   )
   for (path in paths) {
     source(system.file(path, package = "drmTMB", mustWork = TRUE), local = env)
@@ -134,6 +135,55 @@ test_that("Phase 18 Tweedie smoke runner resumes saved replicate results", {
   )))
 })
 
+test_that("Phase 18 Tweedie grid writer creates table artifacts", {
+  source_phase18_tweedie_fe()
+  output_dir <- tempfile("phase18-tweedie-fe-grid-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  conditions <- phase18_tweedie_fe_conditions(
+    n = 320L,
+    zero_regime = "low",
+    rho_xz = 0.10
+  )
+
+  out <- phase18_write_tweedie_fe_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 17056L,
+    cores = 10L
+  )
+
+  expect_equal(out$surface, "tweedie_fixed_effect_grid")
+  expect_equal(out$summary$run$parallel$backend, "none")
+  expect_equal(out$summary$run$parallel$requested_cores, 10L)
+  expect_equal(out$summary$run$parallel$cores, 1L)
+  expect_true(dir.exists(out$result_dir))
+  expect_true(dir.exists(out$table_dir))
+  expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
+  expect_equal(nrow(out$summary$replicates), 5L)
+  expect_equal(nrow(out$summary$aggregate), 5L)
+  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 5L)
+  expect_equal(nrow(utils::read.csv(out$paths$wald_intervals_csv)), 5L)
+  expect_equal(nrow(out$artifact_manifest), length(out$paths))
+  expect_true(all(out$artifact_manifest$exists))
+  expect_error(
+    phase18_write_tweedie_fe_grid_outputs(
+      output_dir = output_dir,
+      conditions = conditions,
+      n_rep = 1L,
+      master_seed = 17056L
+    ),
+    "already exists"
+  )
+  expect_silent(phase18_write_tweedie_fe_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 17056L,
+    overwrite = TRUE
+  ))
+})
+
 test_that("Phase 18 Tweedie helpers reject malformed inputs", {
   source_phase18_tweedie_fe()
 
@@ -161,5 +211,9 @@ test_that("Phase 18 Tweedie helpers reject malformed inputs", {
       replicate = 1L
     ),
     "must contain"
+  )
+  expect_error(
+    phase18_write_tweedie_fe_grid_outputs(output_dir = ""),
+    "output_dir"
   )
 })
