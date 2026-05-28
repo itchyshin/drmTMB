@@ -209,6 +209,81 @@ test_that("Tweedie fixed-effect fits agree with glmmTMB on overlapping scales", 
   }
 })
 
+test_that("Tweedie likelihood weights scale rows and match row duplication", {
+  sim <- new_tweedie_data(n = 180, seed = 20260724)
+  dat <- sim$data
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = tweedie(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+  fit_double <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = tweedie(),
+    data = dat,
+    weights = rep(2, nrow(dat)),
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_double, "mu"), coef(fit, "mu"), tolerance = 1e-5)
+  expect_equal(
+    coef(fit_double, "sigma"),
+    coef(fit, "sigma"),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    unique(predict(fit_double, dpar = "nu")),
+    unique(predict(fit, dpar = "nu")),
+    tolerance = 1e-5
+  )
+  expect_equal(
+    as.numeric(logLik(fit_double)),
+    2 * as.numeric(logLik(fit)),
+    tolerance = 1e-5
+  )
+  expect_equal(stats::weights(fit_double), rep(2, nrow(dat)))
+
+  w <- rep(c(0, 1, 2, 3), length.out = nrow(dat))
+  fit_weighted <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = tweedie(),
+    data = dat,
+    weights = w,
+    control = drm_control(se = FALSE)
+  )
+  dat_expanded <- dat[rep(seq_len(nrow(dat)), w), , drop = FALSE]
+  fit_expanded <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = tweedie(),
+    data = dat_expanded,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(stats::weights(fit_weighted), w)
+  expect_equal(
+    coef(fit_weighted, "mu"),
+    coef(fit_expanded, "mu"),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    coef(fit_weighted, "sigma"),
+    coef(fit_expanded, "sigma"),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unique(predict(fit_weighted, dpar = "nu")),
+    unique(predict(fit_expanded, dpar = "nu")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(logLik(fit_weighted)),
+    as.numeric(logLik(fit_expanded)),
+    tolerance = 1e-4
+  )
+})
+
 test_that("Tweedie supports missing filtering before response validation", {
   dat <- data.frame(
     y = c(0, 1.2, 0.4, -1),

@@ -949,3 +949,9 @@ errors, and elapsed time by surface before the raw manifest.
      continuous responses after model-frame filtering and should use shared
      fixed-effect rank handling unless density tests expose a family-specific
      issue.
+182. Slice 1631 addendum adds an internal Tweedie row-weight invariant in
+     `docs/design/131-phase-18-tweedie-weight-invariant-slice-1631-addendum.md`.
+     Constant row weights double the log-likelihood without moving `mu`,
+     `sigma`, or intercept-only `nu`, and integer row weights match explicit
+     row duplication. The weighted external `glmmTMB` comparator remains
+     postponed until a dedicated weighting-semantics target is written.
