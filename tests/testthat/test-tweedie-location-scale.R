@@ -124,48 +124,81 @@ test_that("Tweedie simulation preserves exact zeros and public sigma scale", {
 test_that("Tweedie fixed-effect fits agree with glmmTMB on overlapping scales", {
   testthat::skip_if_not_installed("glmmTMB")
 
-  sim <- new_tweedie_data(
-    n = 350,
-    seed = 20260721,
-    beta_mu = c("(Intercept)" = 0.15, x = 0.35),
-    beta_sigma = c("(Intercept)" = -0.40, z = 0.18),
-    nu = 1.45
-  )
-  fit <- drmTMB(
-    bf(y ~ x, sigma ~ z, nu ~ 1),
-    family = tweedie(),
-    data = sim$data,
-    control = drm_control(se = FALSE)
-  )
-  fit_glmmTMB <- glmmTMB::glmmTMB(
-    y ~ x,
-    dispformula = ~z,
-    family = glmmTMB::tweedie(link = "log"),
-    data = sim$data
+  scenarios <- list(
+    low_zero = list(
+      seed = 20260722,
+      beta_mu = c("(Intercept)" = 0.25, x = 0.35),
+      beta_sigma = c("(Intercept)" = -0.65, z = 0.15),
+      nu = 1.30,
+      min_zero_count = 1,
+      max_zero_fraction = 0.05
+    ),
+    high_zero = list(
+      seed = 20260723,
+      beta_mu = c("(Intercept)" = -0.65, x = 0.30),
+      beta_sigma = c("(Intercept)" = 0.20, z = 0.12),
+      nu = 1.55,
+      min_zero_fraction = 0.20
+    )
   )
 
-  expect_equal(fit$opt$convergence, 0)
-  expect_equal(fit_glmmTMB$fit$convergence, 0)
-  expect_equal(
-    unname(coef(fit, "mu")),
-    unname(glmmTMB::fixef(fit_glmmTMB)$cond),
-    tolerance = 5e-5
-  )
-  expect_equal(
-    unname(2 * coef(fit, "sigma")),
-    unname(glmmTMB::fixef(fit_glmmTMB)$disp),
-    tolerance = 5e-5
-  )
-  expect_equal(
-    unique(unname(predict(fit, dpar = "nu"))),
-    unname(glmmTMB::family_params(fit_glmmTMB)),
-    tolerance = 5e-5
-  )
-  expect_equal(
-    as.numeric(stats::logLik(fit)),
-    as.numeric(stats::logLik(fit_glmmTMB)),
-    tolerance = 5e-5
-  )
+  for (scenario in names(scenarios)) {
+    spec <- scenarios[[scenario]]
+    sim <- new_tweedie_data(
+      n = 350,
+      seed = spec$seed,
+      beta_mu = spec$beta_mu,
+      beta_sigma = spec$beta_sigma,
+      nu = spec$nu
+    )
+    zero_fraction <- mean(sim$data$y == 0)
+    zero_count <- sum(sim$data$y == 0)
+    if (!is.null(spec$min_zero_count)) {
+      expect_gte(zero_count, spec$min_zero_count)
+    }
+    if (!is.null(spec$max_zero_fraction)) {
+      expect_lt(zero_fraction, spec$max_zero_fraction)
+    }
+    if (!is.null(spec$min_zero_fraction)) {
+      expect_gt(zero_fraction, spec$min_zero_fraction)
+    }
+
+    fit <- drmTMB(
+      bf(y ~ x, sigma ~ z, nu ~ 1),
+      family = tweedie(),
+      data = sim$data,
+      control = drm_control(se = FALSE)
+    )
+    fit_glmmTMB <- glmmTMB::glmmTMB(
+      y ~ x,
+      dispformula = ~z,
+      family = glmmTMB::tweedie(link = "log"),
+      data = sim$data
+    )
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(fit_glmmTMB$fit$convergence, 0)
+    expect_equal(
+      unname(coef(fit, "mu")),
+      unname(glmmTMB::fixef(fit_glmmTMB)$cond),
+      tolerance = 5e-5
+    )
+    expect_equal(
+      unname(2 * coef(fit, "sigma")),
+      unname(glmmTMB::fixef(fit_glmmTMB)$disp),
+      tolerance = 5e-5
+    )
+    expect_equal(
+      unique(unname(predict(fit, dpar = "nu"))),
+      unname(glmmTMB::family_params(fit_glmmTMB)),
+      tolerance = 5e-5
+    )
+    expect_equal(
+      as.numeric(stats::logLik(fit)),
+      as.numeric(stats::logLik(fit_glmmTMB)),
+      tolerance = 5e-5
+    )
+  }
 })
 
 test_that("Tweedie supports missing filtering before response validation", {

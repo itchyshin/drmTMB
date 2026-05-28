@@ -767,9 +767,11 @@ Phase 6d should be closed as small hardening slices:
   values. The first fitted route is fixed-effect and univariate:
   `bf(y ~ x, sigma ~ z, nu ~ 1)`. Public `sigma = sqrt(phi)`, so `sigma`
   remains scale-like while comparator checks can square it to compare against
-  Tweedie dispersion `phi`; `nu` is the power parameter constrained between 1
-  and 2. Predictor-dependent `nu`, Tweedie random effects, structured effects,
-  and bivariate or mixed-response Tweedie models remain planned.
+  Tweedie dispersion `phi`; the optional `glmmTMB` comparator now checks both
+  low-zero and high-zero deterministic cells. `nu` is the power parameter
+  constrained between 1 and 2. Predictor-dependent `nu`, Tweedie random
+  effects, structured effects, and bivariate or mixed-response Tweedie models
+  remain planned.
 - Extend the implemented family-link helper table before adding ordinal scale,
   denominator-aware, or additional positive-continuous likelihoods, so
   `predict()` and `fitted()` handle non-identity `mu` links consistently.
@@ -1853,8 +1855,9 @@ Use this order unless Slice 191 evidence overturns it:
 | 1519-1538 | Skew-normal source map | Done locally as design-only evidence: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests without adding `skew_normal()` or changing formula grammar. |
 | 1619-1668 | Next Team A Tweedie hardening lane | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide the PR boundary, add or design the `glmmTMB::tweedie()` comparator contract, keep public `sigma^2` versus comparator `phi` explicit, harden `fitted()`, `sigma()`, `predict(dpar = "nu")`, simulation, stale-claim, and rendered-site checks, and stop before `nu ~ x`, random effects, structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases. |
 | 1669-1718 | Next Team B skew-normal decision gate | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide native versus moment parameterization, record consequences for `fitted()`, `sigma()`, and `predict(dpar = "nu")`, name the first density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and runtime tests, and keep `skew_normal()` absent until that contract is accepted. |
-| 1619-1628 | Tweedie comparator contract | Done locally: `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md` and the optional `glmmTMB` comparator test compare `mu` coefficients, `2 * sigma` coefficients to log-dispersion `phi`, intercept-only power, and log-likelihood on the overlapping fixed-effect model without widening Tweedie support. |
+| 1619-1628 | Tweedie comparator contract | Done locally: `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md` and the optional `glmmTMB` comparator test compare `mu` coefficients, `2 * sigma` coefficients to log-dispersion `phi`, intercept-only power, and log-likelihood on low-zero and high-zero overlapping fixed-effect models without widening Tweedie support. |
 | 1669-1672 | Skew-normal parameterization decision | Done locally as design-only evidence: `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md` chooses the moment contract for the first fitted lane, with public `mu = E[y]`, public `sigma = SD[y]`, `nu` as slant/shape, and internal transform to native `xi`, `omega`, and `alpha`; no constructor or TMB branch was added. |
+| 1673-1702 | Skew-normal first-test contract | Done locally as design-only evidence: `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md` records the density normalization, Gaussian normal-limit, sign-orientation, false-positive, and no-C++ admission gates that must become tests before `skew_normal()` is exposed. |
 
 ### Pre-Simulation Readiness Slice Map
 

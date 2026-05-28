@@ -30,11 +30,13 @@ This is the comparator contract. It does not change the fitted surface and it
 does not open predictor-dependent `nu`, random effects, structured effects,
 bivariate Tweedie, zero-inflation aliases, or hurdle aliases.
 
-## Test Fixture
+## Test Fixtures
 
 `tests/testthat/test-tweedie-location-scale.R` now includes an optional
-`glmmTMB` comparator test. The fixture uses deterministic data from the local
-compound Poisson-Gamma simulator:
+`glmmTMB` comparator test. The test now uses two deterministic data cells from
+the local compound Poisson-Gamma simulator: one low-zero cell and one high-zero
+cell. Both cells stay away from the power boundary while exercising the same
+public scale mapping.
 
 ```r
 drmTMB(
@@ -56,15 +58,19 @@ The test is guarded with `testthat::skip_if_not_installed("glmmTMB")`, so
 `glmmTMB` remains a `Suggests` comparator rather than a required dependency.
 The test compares location coefficients, doubled public-scale `sigma`
 coefficients against `glmmTMB` dispersion coefficients, the intercept-only
-power parameter, and log-likelihood.
+power parameter, and log-likelihood in both cells. The low-zero cell asserts a
+positive exact-zero count and a zero fraction below 0.05. The high-zero cell
+asserts a zero fraction above 0.20, so the comparator no longer depends on a
+single moderate-zero fixture.
 
 ## What This Proves
 
 The comparator test proves that the first fixed-effect Tweedie implementation
-matches `glmmTMB` on the overlapping location-scale-power model when the scale
-transform is named correctly. It also proves that log-likelihood constants are
+matches `glmmTMB` on overlapping location-scale-power models when the scale
+transform is named correctly. It now proves this in both low-zero and high-zero
+semicontinuous regimes. It also proves that log-likelihood constants are
 aligned for this overlap, because the numeric log-likelihoods match directly in
-the deterministic fixture.
+both deterministic fixtures.
 
 It does not prove coverage, recovery across the full operating-characteristic
 grid, or behaviour for unsupported neighbours. Those claims still require
@@ -79,10 +85,10 @@ error, and failure-ledger fields.
 | 1619 | Done | The branch was rehydrated after PR #347 merged; the follow-on branch starts from `origin/main` at the merged commit. |
 | 1620 | Done | The previous two-lane branch was published as PR #347 before this follow-on work began. |
 | 1621 | Done | This note records the `glmmTMB::tweedie()` comparator contract. |
-| 1622 | Done | The deterministic optional fixture is in `tests/testthat/test-tweedie-location-scale.R`. |
+| 1622 | Done | The deterministic optional fixtures are in `tests/testthat/test-tweedie-location-scale.R`. |
 | 1623 | Done | The test uses `skip_if_not_installed("glmmTMB")`; no hard dependency was added. |
 | 1624 | Done | Coefficient names are mapped as `mu` to `cond`, public `sigma` to half of `disp`, and `nu` to `power`. |
 | 1625 | Done | Log-likelihoods are compared directly in the overlap fixture. |
-| 1626 | Planned | Low-zero and high-zero comparator cells remain a future expansion after this first optional comparator passes. |
-| 1627 | Planned | The high-zero comparator cell should not place `nu` near the boundary. |
-| 1628 | Done for the first fixture | The public-scale assertion compares `2 * coef(fit, "sigma")` to log-`phi` coefficients. |
+| 1626 | Done | The optional comparator now includes explicit low-zero and high-zero cells; the low-zero cell still requires at least one exact zero. |
+| 1627 | Done | The high-zero cell uses `nu = 1.55`, away from the 1 and 2 boundaries. |
+| 1628 | Done | The public-scale assertion compares `2 * coef(fit, "sigma")` to log-`phi` coefficients in both cells. |

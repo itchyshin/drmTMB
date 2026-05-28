@@ -912,11 +912,12 @@ errors, and elapsed time by surface before the raw manifest.
 177. Slices 1619-1628 add the first `glmmTMB::tweedie()` comparator contract
      in
      `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md`.
-     The optional test compares `drmTMB` location coefficients to
-     `glmmTMB` conditional coefficients, `2 * coef(fit, "sigma")` to
-     log-dispersion coefficients, intercept-only `nu` to `glmmTMB` power, and
-     log-likelihoods directly on the overlapping fixed-effect model. It keeps
-     Tweedie `nu ~ x`, random effects, structured effects, bivariate routes,
+     The optional test now covers low-zero and high-zero deterministic cells.
+     In both cells it compares `drmTMB` location coefficients to `glmmTMB`
+     conditional coefficients, `2 * coef(fit, "sigma")` to log-dispersion
+     coefficients, intercept-only `nu` to `glmmTMB` power, and log-likelihoods
+     directly on the overlapping fixed-effect model. It keeps Tweedie
+     `nu ~ x`, random effects, structured effects, bivariate routes,
      zero-inflation aliases, and hurdle aliases closed.
 178. Slices 1669-1672 choose the moment parameterization for the first
      skew-normal lane in
@@ -925,3 +926,9 @@ errors, and elapsed time by surface before the raw manifest.
      deviation, and `nu` is the slant/shape parameter. The future likelihood
      may transform to native `xi`, `omega`, and `alpha` internally, but no
      constructor or TMB branch is added in this design-only slice.
+179. Slices 1673-1702 add the skew-normal first-test contract in
+     `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`.
+     The contract names the density-normalization target, Gaussian
+     normal-limit test, sign-orientation test, false-positive boundaries, and
+     no-C++ admission criteria before any `skew_normal()` constructor, source
+     branch, or user-facing example is added.
