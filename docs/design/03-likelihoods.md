@@ -598,19 +598,23 @@ evidence for residual asymmetry.
 
 The future skew-normal path is for continuous responses where residual
 asymmetry is part of the scientific question. It is not implemented yet. The
-candidate first implementation uses the Azzalini-style skew-normal density,
-with drmTMB's first shape parameter `nu` mapped to the native asymmetry shape:
+candidate first implementation uses public moment parameters and may transform
+internally to an Azzalini-style skew-normal density. Public `mu` is the
+response mean, public `sigma` is the response standard deviation, and `nu` is
+the slant or shape parameter:
 
 ```text
-y_i | mu_i, sigma_i, nu_i ~ SkewNormal(mu_i, sigma_i, nu_i)
 eta_mu_i = X_mu[i, ] beta_mu
 eta_sigma_i = X_sigma[i, ] beta_sigma
 eta_nu_i = X_nu[i, ] beta_nu
 mu_i = eta_mu_i
 sigma_i = exp(eta_sigma_i)
 nu_i = eta_nu_i
-z_i = (y_i - mu_i) / sigma_i
-log f(y_i) = log(2) - log(sigma_i) + log phi(z_i) + log Phi(nu_i z_i)
+delta_i = nu_i / sqrt(1 + nu_i^2)
+omega_i = sigma_i / sqrt(1 - 2 * delta_i^2 / pi)
+xi_i = mu_i - omega_i * delta_i * sqrt(2 / pi)
+z_i = (y_i - xi_i) / omega_i
+log f(y_i) = log(2) - log(omega_i) + log phi(z_i) + log Phi(nu_i z_i)
 ```
 
 Here `phi()` and `Phi()` are the standard normal density and distribution
@@ -619,15 +623,13 @@ function. The sign convention is part of the proposed public contract:
 right-skewed residuals, and `nu_i < 0` gives left-skewed residuals. This sign
 mapping must be checked against the trusted comparator before implementation.
 
-The native `mu_i` above is the skew-normal location parameter, not the
-arithmetic response mean when `nu_i != 0`. If the family returns arithmetic
-means from `fitted()`, the implementation must use:
-
-```text
-delta_i = nu_i / sqrt(1 + nu_i^2)
-E[y_i] = mu_i + sigma_i delta_i sqrt(2 / pi)
-Var[y_i] = sigma_i^2 * (1 - 2 delta_i^2 / pi)
-```
+The transform makes `mu_i = E[y_i]` and `sigma_i = SD[y_i]` by construction.
+That keeps `fitted()` and `sigma()` aligned with the public response-scale
+semantics used by the other fixed-effect families. It also makes
+`brms::skew_normal()`, `glmmTMB::skewnormal()`, and
+`RTMBdist::dskewnorm2()` the natural fitted-model or density comparators for
+the first implementation, while `sn::dsn()` remains useful after transforming
+to native `xi`, `omega`, and `alpha`.
 
 Matching future R syntax:
 

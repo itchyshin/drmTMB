@@ -205,10 +205,12 @@ Shape naming follows the GAMLSS convention: `nu` for the first shape parameter
 and `tau` for the second. Aliases such as `skew` or `df` may be helpful later,
 but package examples should teach the canonical names first.
 
-For skew-normal-like families, document precisely how `nu` maps to the native
-asymmetry parameter. For skew-t-like families, document which of `nu` and `tau`
-controls asymmetry and which controls tail shape; do not assume users can infer
-that from the parameter name alone.
+For skew-normal-like families, use public moment parameters for the first
+fitted lane: `mu = E[y]`, `sigma = SD[y]`, and `nu` as the slant or shape
+parameter. Document the transform to native skew-normal `xi`, `omega`, and
+`alpha` before adding a constructor. For skew-t-like families, document which
+of `nu` and `tau` controls asymmetry and which controls tail shape; do not
+assume users can infer that from the parameter name alone.
 
 ## Tier 8: Ordinal and Categorical Responses
 

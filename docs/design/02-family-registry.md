@@ -122,7 +122,7 @@ Continuous shape work has one fitted path and several planned neighbours:
 | Surface | Fitted state | Boundary before simulation |
 | --- | --- | --- |
 | Student-t `nu ~ ...` | Implemented for fixed-effect univariate `student()` models as `nu = 2 + exp(eta_nu)`; ordinary `mu` random intercepts are a separate first-slice location path. | Keep `nu` random effects, known sampling covariance, phylogenetic, spatial, and bivariate Student-t paths out of simulation grids until each has likelihood, extractor, diagnostic, interval, and recovery evidence. |
-| Skew-normal `nu ~ ...` | Planned fixed-effect residual-asymmetry family. | First add density and comparator checks, positive and negative skew recovery, the `nu = 0` normal-limit check, and false-positive heteroscedasticity checks. |
+| Skew-normal `nu ~ ...` | Planned fixed-effect residual-asymmetry family with public `mu = E[y]`, public `sigma = SD[y]`, and `nu` as the slant/shape parameter. | First add density and comparator checks, positive and negative skew recovery, the `nu = 0` normal-limit check, and false-positive heteroscedasticity checks. |
 | Skew-t `nu ~ ...`, future `tau ~ ...` | Planned after the skew-normal gate. | Choose and document which parameter controls asymmetry and which controls tails before adding syntax, examples, or simulations. |
 | Future `skew(id) ~ ...` | Design-only latent-effect skewness grammar. | Do not treat this as an alias for residual `nu ~ ...`; require simulations separating residual skewness, heteroscedasticity, ordinary random effects, and latent-effect skewness. |
 
@@ -245,13 +245,15 @@ skew_normal <- function() {
 }
 ```
 
-This contract treats `mu` as the native skew-normal location parameter,
-`sigma` as positive residual scale, and `nu` as the unrestricted native
-asymmetry shape used in the density in `docs/design/03-likelihoods.md`.
-Positive `nu` means right-skewed residuals, `nu = 0` reduces to the Gaussian
-location-scale likelihood, and negative `nu` means left-skewed residuals. This
-sign convention is a design assumption until checked against the first trusted
-comparator.
+This contract treats `mu` as the arithmetic response mean, `sigma` as the
+response standard deviation, and `nu` as the unrestricted slant or asymmetry
+shape used in the density in `docs/design/03-likelihoods.md`. The future TMB
+likelihood may transform internally to native Azzalini location `xi`, scale
+`omega`, and slant `alpha`, but `fitted()` and `sigma()` should remain on the
+public moment scale. Positive `nu` means right-skewed residuals, `nu = 0`
+reduces to the Gaussian location-scale likelihood, and negative `nu` means
+left-skewed residuals. This sign convention is a design assumption until
+checked against the first trusted comparator.
 
 Random effects, known sampling covariance, phylogenetic terms, spatial terms,
 bivariate skew-normal models, `rho12`, and aliases such as `skew ~ x` are later
