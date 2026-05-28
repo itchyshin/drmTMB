@@ -2,6 +2,74 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Skew-Normal Implementation Gate
+
+Goal:
+
+- Turn the remaining skew-normal Slices 1689-1702 into a concrete
+  implementation gate while keeping `skew_normal()` absent and design-only.
+
+Implemented:
+
+- Added
+  `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md`
+  to name the density, normal-limit, sign-orientation, malformed-neighbour,
+  method, documentation, provenance, no-fit, recovery, false-positive,
+  confounding, interval-status, diagnostic, runtime, DGP, and summary checks
+  required before the first implementation PR exposes support.
+- Extended `tests/testthat/test-skew-normal-boundary.R` so the no-fit boundary
+  test reads the new implementation-gate note and still requires the
+  constructor to remain absent.
+- Updated `tests/testthat/test-check-drm.R` after Windows CI exposed a
+  platform-specific `NaNs produced` warning from standard-error reporting in a
+  diagnostic-only bivariate phylogenetic covariance test. The fit now uses
+  `drm_control(se = FALSE, optimizer = ...)`, because the test only needs the
+  fitted random-effect and correlation structures.
+- Updated `docs/design/41-phase-18-simulation-programme.md` and `ROADMAP.md`
+  to keep the gate design-only and avoid any fitted-support claim.
+
+Validation:
+
+```sh
+air format docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md tests/testthat/test-skew-normal-boundary.R tests/testthat/test-check-drm.R docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-skew-normal-implementation-gate.md
+Rscript --vanilla -e "devtools::test(filter = '^skew-normal-boundary$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^check-drm$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); stopifnot(!exists('skew_normal', envir = asNamespace('drmTMB'), inherits = FALSE)); cat('skew_normal constructor absent\n')"
+rg -n "skew_normal\\(" R src NAMESPACE man
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `test-skew-normal-boundary` passed.
+- Focused `test-check-drm` passed locally after the `se = FALSE` update.
+- The constructor-absence check printed `skew_normal constructor absent`.
+- The `rg` support scan found no `skew_normal(` matches in `R`, `src`,
+  `NAMESPACE`, or `man`; `rg` exited 1 because there were no matches.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Boole kept canonical planned syntax as `nu ~ ...`, with no `skew ~ ...` or
+  latent `skew(id) ~ ...` alias.
+- Noether and Gauss kept the moment-to-native transform, density constants,
+  normal limit, and sign orientation as source-level test gates before C++.
+- Fisher kept recovery, false-positive, confounding, interval-status,
+  diagnostics, runtime, DGP, and summary evidence as required before examples.
+- Grace traced the first Windows CI failure to unrelated warning noise in
+  `test-check-drm.R`; the warning was removed by disabling standard-error
+  reporting for that diagnostic-only fit.
+- Pat and Rose kept all `skew_normal()` examples planned-only, recorded no
+  fitted constructor, TMB branch, formula-grammar change, or user-facing docs,
+  and kept the Windows warning fix out of skew-normal semantics.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-skew-normal-implementation-gate.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Simulation Shape Hardening
 
 Goal:
