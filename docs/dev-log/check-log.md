@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie First-Wave Summary Wiring
+
+Goal:
+
+- Continue the single-lane `tweedie_fixed_effect` artifact path by wiring the
+  repeatable Tweedie grid into the shared first-wave summary smoke runner.
+
+Implemented:
+
+- Updated `inst/sim/run/sim_run_first_wave_summary_smoke.R` to run a two-cell
+  low/high-zero `tweedie_fixed_effect` grid, include it in the first-wave
+  report bundle, return it in the runner object, and add it to the
+  parallel-summary CSV.
+- Extended
+  `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R` so the
+  first-wave runner sources the Tweedie DGP, fit summariser, smoke summary,
+  grid writer, and checks the new surface plus updated table row counts.
+- Updated `inst/sim/README.md`,
+  `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, `ROADMAP.md`, and the
+  after-task report.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$', reporter = 'summary')"
+air format inst/sim/run/sim_run_first_wave_summary_smoke.R tests/testthat/test-phase18-first-wave-summary-smoke-runner.R inst/sim/README.md docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-first-wave-summary-smoke-runner|phase18-tweedie-fixed-effect|phase18-first-wave-table-bundle|phase18-first-wave-summary-report)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'manual `tweedie_fixed_effect`|Tweedie.*ready for.*coverage|tweedie_fixed_effect.*Actions|predictor-dependent Tweedie `nu`.*(implemented|supported|admitted)|Tweedie random effects.*(implemented|supported|admitted)|bivariate Tweedie.*(implemented|supported|admitted)|zero-inflation alias.*(implemented|supported|admitted)|hurdle alias.*(implemented|supported|admitted)' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+git diff --check
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+```
+
+Results:
+
+- Formatting completed.
+- Focused `phase18-first-wave-summary-smoke-runner` tests passed.
+- Combined first-wave runner, Tweedie artifact, table-bundle, and summary
+  report tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The false-claim scan returned only intended ROADMAP boundary rows; it did
+  not find a manual Actions, coverage-ready, predictor-dependent `nu`,
+  random-effect, structured-effect, bivariate, zero-inflation, or hurdle claim.
+- `git diff --check` was clean.
+- Full `devtools::test()` passed.
+
+Member-group review:
+
+- Ada kept this to first-wave summary wiring after PR #361 merged.
+- Curie checked the two-cell low/high-zero smoke grid in the existing
+  first-wave runner.
+- Fisher kept the first-wave report rows as smoke artifacts, not coverage
+  evidence.
+- Grace ran focused, nearby, pkgdown, whitespace, and full-suite validation.
+- Rose kept the ROADMAP and design note boundary explicit before the next
+  manual Actions slice.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-first-wave-summary.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Grid Writer
 
 Goal:

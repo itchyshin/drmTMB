@@ -1012,3 +1012,10 @@ errors, and elapsed time by surface before the raw manifest.
      open predictor-dependent `nu`, random effects, structured effects,
      bivariate Tweedie, offset/exposure syntax, zero-inflation aliases, or
      hurdle aliases.
+190. Slices 1713-1716 wire `tweedie_fixed_effect` into the shared first-wave
+     summary smoke runner. The runner now stages a two-cell low/high-zero
+     Tweedie fixed-effect grid beside the existing first-wave surfaces, passes
+     the output through the status and table-bundle report path, returns it in
+     the run object, and records it in the parallel summary. This does not add
+     a manual Actions task or expand the Tweedie model boundary beyond
+     univariate fixed effects with intercept-only `nu`.

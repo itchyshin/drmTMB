@@ -15,6 +15,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/dgp/sim_dgp_proportion_fixed_effect.R",
     "sim/dgp/sim_dgp_bounded_response_mu_random_intercept.R",
     "sim/dgp/sim_dgp_positive_continuous_fixed_effect.R",
+    "sim/dgp/sim_dgp_tweedie_fixed_effect.R",
     "sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R",
     "sim/dgp/sim_dgp_student_mu_random_intercept.R",
     "sim/dgp/sim_dgp_ordinal_fixed_effect.R",
@@ -30,6 +31,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/fit/sim_summarise_proportion_fixed_effect.R",
     "sim/fit/sim_summarise_bounded_response_mu_random_intercept.R",
     "sim/fit/sim_summarise_positive_continuous_fixed_effect.R",
+    "sim/fit/sim_summarise_tweedie_fixed_effect.R",
     "sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R",
     "sim/fit/sim_summarise_student_mu_random_intercept.R",
     "sim/fit/sim_summarise_ordinal_fixed_effect.R",
@@ -45,6 +47,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_run_proportion_fixed_effect_smoke.R",
     "sim/run/sim_run_bounded_response_mu_random_intercept_smoke.R",
     "sim/run/sim_run_positive_continuous_fixed_effect_smoke.R",
+    "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
     "sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R",
     "sim/run/sim_run_student_mu_random_intercept_smoke.R",
     "sim/run/sim_run_ordinal_fixed_effect_smoke.R",
@@ -61,6 +64,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_summary_proportion_fixed_effect_smoke.R",
     "sim/run/sim_summary_bounded_response_mu_random_intercept_smoke.R",
     "sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R",
+    "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
     "sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R",
     "sim/run/sim_summary_student_mu_random_intercept_smoke.R",
     "sim/run/sim_summary_ordinal_fixed_effect_smoke.R",
@@ -75,6 +79,7 @@ source_phase18_first_wave_summary_smoke_runner <- function(
     "sim/run/sim_write_proportion_fixed_effect_grid.R",
     "sim/run/sim_write_bounded_response_mu_random_intercept_grid.R",
     "sim/run/sim_write_positive_continuous_fixed_effect_grid.R",
+    "sim/run/sim_write_tweedie_fixed_effect_grid.R",
     "sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R",
     "sim/run/sim_write_student_mu_random_intercept_grid.R",
     "sim/run/sim_write_ordinal_fixed_effect_grid.R",
@@ -110,7 +115,7 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
   expect_equal(out$surface, "phase18_first_wave_summary_smoke")
   expect_null(out$report$report_path)
   expect_true(file.exists(out$paths$parallel_summary_csv))
-  expect_equal(nrow(out$parallel_summary), 15L)
+  expect_equal(nrow(out$parallel_summary), 16L)
   expect_setequal(
     out$parallel_summary$surface,
     c(
@@ -122,6 +127,7 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
       "proportion_fixed_effect_grid",
       "bounded_response_mu_random_intercept_grid",
       "positive_continuous_fixed_effect_grid",
+      "tweedie_fixed_effect_grid",
       "positive_continuous_mu_random_intercept_grid",
       "student_mu_random_intercept_grid",
       "ordinal_fixed_effect_grid",
@@ -131,12 +137,12 @@ test_that("Phase 18 first-wave summary smoke runner stages outputs", {
       "spatial_mu_slope_grid"
     )
   )
-  expect_equal(out$parallel_summary$requested_cores, rep(10L, 15L))
-  expect_equal(out$parallel_summary$cores, rep(1L, 15L))
+  expect_equal(out$parallel_summary$requested_cores, rep(10L, 16L))
+  expect_equal(out$parallel_summary$cores, rep(1L, 16L))
   expect_true(file.exists(out$report$status$paths$artifact_status_csv))
   expect_true(file.exists(out$report$tables$paths$aggregate_csv))
-  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 106L)
-  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 70L)
+  expect_equal(nrow(out$report$tables$tables$aggregate_csv), 116L)
+  expect_equal(nrow(out$report$tables$tables$wald_coverage_csv), 80L)
   expect_gt(nrow(out$report$tables$tables$profile_coverage_csv), 0L)
 })
 
