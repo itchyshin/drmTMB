@@ -30,7 +30,9 @@ plus the fitted residual scale. For Student-t models, simulation uses fitted
 log-scale \code{mu} and \code{sigma}. For Gamma models, simulation uses fitted mean
 \code{mu} and coefficient of variation \code{sigma}. For beta models, simulation uses
 fitted mean \code{mu} and public scale \code{sigma} with internal
-\code{phi = 1 / sigma^2}. For zero-one beta models, simulation draws exact
+\code{phi = 1 / sigma^2}. For Tweedie models, simulation uses fitted \code{mu},
+public \code{sigma}, and power \code{nu}, with internal dispersion \code{phi = sigma^2}.
+For zero-one beta models, simulation draws exact
 boundary values from the fitted \code{zoi}/\code{coi} probabilities and interior
 values from the fitted beta component. For beta-binomial models, simulation
 draws latent success probabilities from the fitted beta distribution and then

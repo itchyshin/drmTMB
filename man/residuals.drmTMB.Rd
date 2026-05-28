@@ -31,7 +31,9 @@ For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
 For Gamma models, response residuals are \code{y - mu} and Pearson residuals
 divide by the fitted Gamma standard deviation \code{mu * sigma}, where \code{sigma} is
-the coefficient of variation. For zero-one beta models, response residuals
+the coefficient of variation. For Tweedie models, response residuals are
+\code{y - mu} and Pearson residuals divide by
+\code{sqrt(sigma^2 * mu^nu)}. For zero-one beta models, response residuals
 are observed proportions minus the unconditional fitted mean, including exact
 zero-one boundary mass. For beta-binomial models, response residuals are
 observed success proportions minus fitted \code{mu}, and Pearson residuals

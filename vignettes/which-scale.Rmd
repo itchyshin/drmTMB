@@ -58,8 +58,9 @@ and standard deviation `sigma_i`.
 
 For non-Gaussian families, `sigma` is still the public variability-facing scale,
 but its family-specific meaning changes. For example, beta and NB2 likelihoods
-use precision-like internal parameters, while `drmTMB` reports `sigma` so that
-larger fitted values mean larger modelled variability. See
+use precision-like internal parameters and Tweedie uses dispersion
+`phi = sigma^2`, while `drmTMB` reports `sigma` so that larger fitted values
+mean larger modelled variability. See
 `vignette("distribution-families")` for the conversion table before comparing
 `sigma` with `phi`, `theta`, or other software-specific dispersion parameters.
 

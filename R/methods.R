@@ -1594,10 +1594,11 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For
-#' univariate Gaussian, Student-t, Gamma, beta, beta-binomial, ordinary Poisson,
-#' ordinary negative-binomial, and cumulative-logit ordinal fits this is the
-#' fitted response summary. For beta-binomial fits, that summary is the fitted
-#' success probability `mu`. For ordinal fits, that summary is the expected
+#' univariate Gaussian, Student-t, Gamma, Tweedie, beta, beta-binomial,
+#' ordinary Poisson, ordinary negative-binomial, and cumulative-logit ordinal
+#' fits this is the fitted response summary. For Tweedie fits, that summary is
+#' the unconditional response mean `mu`. For beta-binomial fits, that summary is
+#' the fitted success probability `mu`. For ordinal fits, that summary is the expected
 #' ordered category score, `sum_k k * Pr(y_i = k)`. For zero-truncated
 #' negative-binomial 2 fits this is the positive-count mean
 #' `mu / (1 - Pr_NB2(0))`, where `mu` is the untruncated NB2 component mean.
@@ -1958,7 +1959,9 @@ predict.drmTMB <- function(
 #' log-scale `mu` and `sigma`. For Gamma models, simulation uses fitted mean
 #' `mu` and coefficient of variation `sigma`. For beta models, simulation uses
 #' fitted mean `mu` and public scale `sigma` with internal
-#' `phi = 1 / sigma^2`. For zero-one beta models, simulation draws exact
+#' `phi = 1 / sigma^2`. For Tweedie models, simulation uses fitted `mu`,
+#' public `sigma`, and power `nu`, with internal dispersion `phi = sigma^2`.
+#' For zero-one beta models, simulation draws exact
 #' boundary values from the fitted `zoi`/`coi` probabilities and interior
 #' values from the fitted beta component. For beta-binomial models, simulation
 #' draws latent success probabilities from the fitted beta distribution and then
@@ -2046,6 +2049,19 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sims <- replicate(
       nsim,
       stats::rgamma(length(mu), shape = shape, scale = scale)
+    )
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "tweedie")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    nu <- predict(object, dpar = "nu")
+    sims <- replicate(
+      nsim,
+      rtweedie_compound(length(mu), mu = mu, phi = sigma^2, power = nu)
     )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
@@ -2265,6 +2281,24 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   as.data.frame(out)
 }
 
+rtweedie_compound <- function(n, mu, phi, power) {
+  mu <- rep(mu, length.out = n)
+  phi <- rep(phi, length.out = n)
+  power <- rep(power, length.out = n)
+  lambda <- mu^(2 - power) / (phi * (2 - power))
+  shape_multiplier <- (2 - power) / (power - 1)
+  scale <- phi * (power - 1) * mu^(power - 1)
+  count <- stats::rpois(n, lambda = lambda)
+  out <- numeric(n)
+  positive <- count > 0L
+  out[positive] <- stats::rgamma(
+    sum(positive),
+    shape = shape_multiplier[positive] * count[positive],
+    scale = scale[positive]
+  )
+  out
+}
+
 #' Extract model residuals
 #'
 #' `residuals()` returns response residuals or Pearson-style residuals from a
@@ -2279,7 +2313,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
 #' residuals are computed on the log-response scale as `(log(y) - mu) / sigma`.
 #' For Gamma models, response residuals are `y - mu` and Pearson residuals
 #' divide by the fitted Gamma standard deviation `mu * sigma`, where `sigma` is
-#' the coefficient of variation. For zero-one beta models, response residuals
+#' the coefficient of variation. For Tweedie models, response residuals are
+#' `y - mu` and Pearson residuals divide by
+#' `sqrt(sigma^2 * mu^nu)`. For zero-one beta models, response residuals
 #' are observed proportions minus the unconditional fitted mean, including exact
 #' zero-one boundary mass. For beta-binomial models, response residuals are
 #' observed success proportions minus fitted `mu`, and Pearson residuals
@@ -2339,6 +2375,16 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
       response /
         (predict(object, dpar = "mu") * predict(object, dpar = "sigma"))
     )
+  }
+  if (identical(object$model$model_type, "tweedie")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    nu <- predict(object, dpar = "nu")
+    response <- object$model$y - mu
+    if (type == "response") {
+      return(response)
+    }
+    return(response / sqrt(sigma^2 * mu^nu))
   }
   if (identical(object$model$model_type, "beta")) {
     mu <- predict(object, dpar = "mu")
@@ -2494,9 +2540,10 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
-#' coefficient of variation. For beta, zero-one beta, and beta-binomial models
-#' this is the public scale parameter where internal precision is
-#' `phi = 1 / sigma^2`.
+#' coefficient of variation. For Tweedie models this is the public scale
+#' parameter where internal dispersion is `phi = sigma^2`. For beta,
+#' zero-one beta, and beta-binomial models this is the public scale parameter
+#' where internal precision is `phi = 1 / sigma^2`.
 #' Cumulative-logit ordinal, Poisson, and zero-inflated Poisson models have no
 #' fitted residual scale parameter and return a fixed unit dispersion vector
 #' for consistency with base-R `sigma()` conventions. For
@@ -2528,6 +2575,7 @@ sigma.drmTMB <- function(object, ...) {
       identical(object$model$model_type, "student") ||
       identical(object$model$model_type, "lognormal") ||
       identical(object$model$model_type, "gamma") ||
+      identical(object$model$model_type, "tweedie") ||
       identical(object$model$model_type, "beta") ||
       identical(object$model$model_type, "zero_one_beta") ||
       identical(object$model$model_type, "beta_binomial") ||
@@ -4026,6 +4074,9 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "gamma")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "tweedie")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
   if (identical(object$model$model_type, "beta")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
@@ -4087,6 +4138,7 @@ drm_inverse_link <- function(object, dpar, eta) {
     log = exp(eta),
     logit = stats::plogis(eta),
     logm2 = 2 + exp(eta),
+    logit12 = 1 + stats::plogis(eta),
     atanh_guarded = rho_response(eta),
     atanh_re_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
@@ -4103,6 +4155,7 @@ drm_dpar_link <- function(object, dpar) {
     student = c(mu = "identity", sigma = "log", nu = "logm2"),
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
+    tweedie = c(mu = "log", sigma = "log", nu = "logit12"),
     beta = c(mu = "logit", sigma = "log"),
     zero_one_beta = c(
       mu = "logit",

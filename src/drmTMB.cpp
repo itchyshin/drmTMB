@@ -914,6 +914,29 @@ Type objective_function<Type>::operator()()
     REPORT(sigma);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 16) {
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> phi(y.size());
+    vector<Type> nu(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      phi(i) = sigma(i) * sigma(i);
+      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu(i)));
+      nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(phi);
+    REPORT(eta_nu);
+    REPORT(nu);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
   } else if (model_type == 10) {
     vector<Type> eta_mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;

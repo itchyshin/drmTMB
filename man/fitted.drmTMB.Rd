@@ -17,10 +17,11 @@ bivariate Gaussian fits.
 }
 \description{
 \code{fitted()} returns fitted response values from a \code{drmTMB} model. For
-univariate Gaussian, Student-t, Gamma, beta, beta-binomial, ordinary Poisson,
-ordinary negative-binomial, and cumulative-logit ordinal fits this is the
-fitted response summary. For beta-binomial fits, that summary is the fitted
-success probability \code{mu}. For ordinal fits, that summary is the expected
+univariate Gaussian, Student-t, Gamma, Tweedie, beta, beta-binomial,
+ordinary Poisson, ordinary negative-binomial, and cumulative-logit ordinal
+fits this is the fitted response summary. For Tweedie fits, that summary is
+the unconditional response mean \code{mu}. For beta-binomial fits, that summary is
+the fitted success probability \code{mu}. For ordinal fits, that summary is the expected
 ordered category score, \verb{sum_k k * Pr(y_i = k)}. For zero-truncated
 negative-binomial 2 fits this is the positive-count mean
 \code{mu / (1 - Pr_NB2(0))}, where \code{mu} is the untruncated NB2 component mean.

@@ -89,6 +89,38 @@ lognormal <- function() {
   )
 }
 
+#' Tweedie response family
+#'
+#' `tweedie()` defines a one-response Tweedie compound Poisson-Gamma
+#' distribution for non-negative continuous responses with exact zeros.
+#'
+#' The first implemented contract is fixed-effect and univariate:
+#' `log(mu) = eta_mu`, `log(sigma) = eta_sigma`,
+#' `nu = 1 + plogis(eta_nu)`, `phi = sigma^2`, `E[y] = mu`, and
+#' `Var(y) = sigma^2 * mu^nu`, with `1 < nu < 2`. The public `sigma`
+#' parameter is therefore the square root of the usual Tweedie dispersion
+#' `phi`. Random effects, predictor-dependent `nu`, bivariate Tweedie models,
+#' structured effects, zero-inflation aliases, and hurdle aliases remain
+#' planned but unsupported in this first slice.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' tweedie()
+tweedie <- function() {
+  structure(
+    list(
+      name = "tweedie",
+      family = "tweedie",
+      n_response = 1L,
+      dpars = c("mu", "sigma", "nu"),
+      links = c(mu = "log", sigma = "log", nu = "logit12")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Beta response family
 #'
 #' `beta()` defines a one-response distribution for continuous proportions

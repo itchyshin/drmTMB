@@ -60,7 +60,7 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
+`"student"`, `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
 `"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
 `"hurdle_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling
 the TMB template, `make_tmb_data()` turns
@@ -75,6 +75,7 @@ is the current routing contract:
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
+| `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts and independent numeric slopes plus the first q=1 phylogenetic `mu` intercept. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, and the first q=1 phylogenetic `mu` intercept on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
@@ -771,11 +772,10 @@ residual standard deviation; the fitted residual standard deviation is
 filtering. Random effects, known sampling covariance, phylogenetic terms, and
 bivariate or mixed Gamma models are later phases.
 
-## Planned Tweedie Mean-Scale-Shape Gate
+## Implemented Tweedie Mean-Scale-Shape
 
-The future Tweedie path is for non-negative semicontinuous responses with exact
-zeros and positive continuous values. It is not implemented yet. The current
-working public-scale contract is:
+The first Tweedie path is for non-negative semicontinuous responses with exact
+zeros and positive continuous values. The implemented public-scale contract is:
 
 ```text
 y_i | mu_i, sigma_i, nu_i ~ Tweedie(mu_i, phi_i, nu_i)
@@ -785,19 +785,19 @@ eta_nu_i = X_nu[i, ] beta_nu
 mu_i = exp(eta_mu_i)
 sigma_i = exp(eta_sigma_i)
 phi_i = sigma_i^2
-nu_i = 1 + exp(eta_nu_i) / (1 + exp(eta_nu_i))
+nu_i = 1 + plogis(eta_nu_i)
 E[y_i] = mu_i
 Var[y_i] = sigma_i^2 * mu_i^nu_i
 1 < nu_i < 2
 ```
 
-The likelihood must include the Tweedie density normalizing terms, not only the
-mean-variance relationship. The first comparator should be
-`glmmTMB::tweedie(link = "log")`, which reports Tweedie dispersion `phi`; tests
-against that scale should compare `sigma_i^2` with `phi_i` and name the
+The TMB branch evaluates `dtweedie(y_i, mu_i, phi_i, nu_i, true)`, which
+includes the Tweedie density normalizing terms. The first comparator remains
+`glmmTMB::tweedie(link = "log")`, which reports Tweedie dispersion `phi`;
+tests against that scale should compare `sigma_i^2` with `phi_i` and name the
 transform explicitly.
 
-Matching future R syntax:
+Implemented first-slice R syntax:
 
 ```r
 drmTMB(
@@ -807,12 +807,12 @@ drmTMB(
 )
 ```
 
-The first implementation should be fixed-effect and univariate, with
-intercept-only `nu ~ 1` before predictor-dependent power models. It should
-reject negative responses, random effects in `sigma` or `nu`, bivariate
-Tweedie families, `rho12`, `meta_V(V = V)`, and phylogenetic or spatial terms
-until separate recovery and comparator tests exist. The implementation gate is
-in `docs/design/27-tweedie-family-plan.md`.
+The first implementation is fixed-effect and univariate, with intercept-only
+`nu ~ 1` before predictor-dependent power models. It rejects negative
+responses, random effects in `mu`, `sigma`, or `nu`, bivariate Tweedie
+families, mixed-response routes, `rho12`, `meta_V(V = V)`, zero-inflation or
+hurdle aliases, and phylogenetic or spatial terms until separate recovery and
+comparator tests exist.
 
 ## Implemented Beta Mean-Scale
 

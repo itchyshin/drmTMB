@@ -27,6 +27,9 @@ The implemented families use these parameter meanings:
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
 | Gamma | `sigma` | log | coefficient of variation; residual SD is `mu * sigma` |
+| Tweedie | `mu` | log | unconditional arithmetic mean of `y` |
+| Tweedie | `sigma` | log | public scale; internal dispersion is `phi = sigma^2` |
+| Tweedie | `nu` | `logit12` | Tweedie power, `nu = 1 + plogis(eta_nu)`, constrained to `1 < nu < 2` |
 | Beta | `mu` | logit | arithmetic mean of the strict proportion response |
 | Beta | `sigma` | log | public scale; internal precision is `phi = 1 / sigma^2` |
 | Zero-one beta | `mu` | logit | interior beta mean for continuous `[0, 1]` proportions |
@@ -154,6 +157,29 @@ The implementation rejects non-log `stats::Gamma()` links so that the symbolic
 equations, `predict()`, and `fitted()` stay aligned. It also deliberately does
 not export `gamma()`, because `base::gamma()` is already the special gamma
 function.
+
+## Implemented Tweedie Semicontinuous Contract
+
+For `tweedie()`, the first implementation is a univariate fixed-effect
+compound Poisson-Gamma model for non-negative responses with exact zeros:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ Tweedie(mu_i, phi_i, nu_i)
+log(mu_i) = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+nu_i = 1 + plogis(eta_nu_i)
+phi_i = sigma_i^2
+E[y_i] = mu_i
+Var[y_i] = sigma_i^2 * mu_i^nu_i
+1 < nu_i < 2
+```
+
+Here `sigma` is the square root of the usual Tweedie dispersion `phi`, not
+`phi` itself. `fitted()` returns the unconditional mean `mu`, including the
+exact-zero mass, and `sigma(fit)` returns public `sigma`. The first slice keeps
+`nu ~ 1` intercept-only; predictor-dependent power models, random effects,
+structured effects, bivariate Tweedie models, zero-inflation aliases, and
+hurdle aliases remain separate gates.
 
 ## Implemented Poisson Count Contract
 

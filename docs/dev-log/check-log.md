@@ -2,6 +2,202 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Publish Gate Before Two-Team Follow-On
+
+Goal:
+
+- Before starting the next Team A and Team B work, rerun the publish gate for
+  the current Phase 18 branch so the fitted Tweedie support and skew-normal
+  planning slice can be committed and pushed from current validation evidence.
+
+Validation:
+
+```sh
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search "Tweedie OR skew-normal OR skew_normal" --limit 20 --json number,title,state,url,labels
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::check()"
+```
+
+Results:
+
+- `git diff --check` was clean.
+- The GitHub issue query found exactly the expected open issues: #2 for
+  Tweedie and #3 for skew-normal.
+- Focused Tweedie, skew-normal-boundary, and family-link tests passed.
+- Full `devtools::test(reporter = "summary")` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `devtools::check()` completed in 7m 43.4s with 0 errors, 0 warnings, and
+  1 NOTE: `unable to verify current time`.
+
+Member-group review:
+
+- Ada used the publish gate to keep the next two-team work from piling onto an
+  unpublished branch.
+- Grace treated the current `devtools::check()` result as green enough for
+  this slice because the only NOTE is the known local time-verification note.
+- Rose recorded this as the current validation evidence before staging.
+- No spawned subagents were running.
+
+## 2026-05-28 -- Phase 18 Next Two-Team Slice Plan
+
+Goal:
+
+- Resume after the Phase 18 Tweedie fixed-effect and skew-normal source-map
+  closeout and answer the planning request for the next 100 slices across two
+  teams.
+
+Implemented:
+
+- Added `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`.
+- Assigned Team A Slices 1619-1668 to Tweedie evidence hardening: PR boundary,
+  `glmmTMB::tweedie()` comparator contract, `sigma^2` versus `phi`,
+  `fitted()` semantics, simulation, stale-claim scans, rendered-site checks,
+  and stop conditions before wider Tweedie surfaces.
+- Assigned Team B Slices 1669-1718 to a skew-normal decision gate:
+  native-versus-moment parameterization, `fitted()`, `sigma()`, `nu`,
+  normal-limit, sign-convention, comparator, recovery, false-positive,
+  interval-status, diagnostic, and runtime-test contracts before any
+  `skew_normal()` implementation.
+- Synced `docs/design/41-phase-18-simulation-programme.md` and `ROADMAP.md`
+  so the new planning note is discoverable from the main Phase 18 ledgers.
+- Created recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-28-061333-codex-checkpoint.md`
+  after resuming from the stream-failure context.
+
+Validation:
+
+```sh
+air format docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-next-two-team-slices-1619-1718.md
+rg -n "1619-1668|1669-1718|docs/design/125-phase-18-next-two-team-slices-1619-1718.md" docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-next-two-team-slices-1619-1718.md
+git diff --check
+Rscript tools/codex-checkpoint.R --goal "Phase 18 next two-team slice plan" --next "Decide PR split for the current Tweedie fitted-support and skew-normal planning branch, then stage only the chosen scope before commit/push."
+```
+
+Results:
+
+- `air format` completed for the planning note, Phase 18 programme, ROADMAP,
+  check-log, and after-task report.
+- The discoverability scan found the new slice ranges and design-note path in
+  the planning note, Phase 18 programme, ROADMAP, check-log, and after-task
+  report.
+- `git diff --check` was clean.
+- The recovery checkpoint command wrote
+  `docs/dev-log/recovery-checkpoints/2026-05-28-061333-codex-checkpoint.md`.
+
+Member-group review:
+
+- Ada kept the next 100 slices split by fitted Tweedie hardening versus
+  design-only skew-normal decision work.
+- Boole watched the public syntax boundary: `nu` stays canonical and no
+  `skew_normal()` constructor appears in this planning slice.
+- Gauss and Noether watched likelihood and parameter-scale wording, especially
+  Tweedie `sigma^2 = phi` and skew-normal native-versus-moment semantics.
+- Fisher kept simulation, interval, and comparator claims as future gates, not
+  completed evidence.
+- Pat and Darwin checked that the next user-visible Tweedie story remains
+  non-negative semicontinuous responses such as biomass, cover, and CPUE-like
+  indices.
+- Grace kept validation scoped to formatting, ledger discoverability, and diff
+  hygiene because this slice is planning-only.
+- Rose checked that the plan does not reopen random effects, bivariate
+  responses, latent skewness, zero-inflation aliases, or hurdle aliases.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-next-two-team-slices-1619-1718.md`
+
+## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Admission And Skew-Normal Source Map
+
+Goal:
+
+- Resume the overnight two-lane Phase 18 branch after the clean 2026-05-27
+  recovery checkpoint and integrate one fitted Tweedie lane plus one
+  design-only shape/skewness lane without widening neighbouring model surfaces.
+
+Implemented:
+
+- Added `tweedie()` as a univariate fixed-effect family for non-negative
+  semicontinuous responses with exact zeros and positive continuous values.
+- Added the first Tweedie TMB branch with `mu = exp(eta_mu)`,
+  `sigma = exp(eta_sigma)`, public `phi = sigma^2`,
+  `nu = 1 + plogis(eta_nu)`, and `dtweedie(..., log = TRUE)`.
+- Added Tweedie `fitted()`, `sigma()`, `simulate()`, `residuals()`,
+  link-scale, and documentation support.
+- Added focused Tweedie tests for high-zero and low-zero recovery,
+  response-scale semantics, simulation, missing-row filtering before negative
+  response validation, and malformed neighbours.
+- Added the skew-normal source map as a design-only shape-family gate and a
+  boundary test that keeps `skew_normal()` unimplemented.
+- Synced NEWS, README, ROADMAP, pkgdown reference index, family registry,
+  likelihood, link-contract, distribution-roadmap, Phase 18, and user-facing
+  vignette ledgers.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md _pkgdown.yml R/drmTMB.R R/family.R R/methods.R R/predict-parameters.R tests/testthat/test-family-link-contract.R tests/testthat/test-tweedie-location-scale.R tests/testthat/test-skew-normal-boundary.R docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/06-distribution-roadmap.md docs/design/109-phase-18-core-family-completion-map-slices-1279-1288.md docs/design/122-tweedie-scale-preflight.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/124-phase-18-overnight-two-lane-slices-1419-1618.md docs/design/19-family-link-contract.md docs/design/27-tweedie-family-plan.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md vignettes/distribution-families.Rmd vignettes/formula-grammar.Rmd vignettes/source-map.Rmd vignettes/implementation-map.Rmd vignettes/model-map.Rmd vignettes/which-scale.Rmd
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary|family-link-contract)$', reporter = 'summary')"
+rg -n "Tweedie[^\n]*(not fitted|not implemented|future-only|does not currently fit|no Tweedie likelihood|planned, not fitted)|not fitted[^\n]*Tweedie|not implemented[^\n]*Tweedie|does not currently fit Tweedie|No Tweedie likelihood" README.md NEWS.md ROADMAP.md docs/design vignettes R man _pkgdown.yml -g '!*.html'
+rg -n 'skew_normal\(\).*now fits|skew-normal.*implemented|skew-normal.*fitted route|skew_normal.*Implemented' README.md NEWS.md ROADMAP.md docs/design vignettes tests/testthat R man -g '!*.html'
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::check()"
+gh issue list --repo itchyshin/drmTMB --state open --search "Tweedie OR skew-normal OR skew_normal" --limit 20 --json number,title,state,url,labels
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+rg -n "tweedie\(\)|Tweedie mean-scale-power|sigma = sqrt\(phi\)|Non-negative semicontinuous|reference/tweedie.html" pkgdown-site/index.html pkgdown-site/reference/index.html pkgdown-site/reference/tweedie.html pkgdown-site/articles/distribution-families.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/articles/which-scale.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html -g '*.html'
+rg -n "Tweedie[^\n]*(not fitted|not implemented|future-only|does not currently fit|no Tweedie likelihood|planned, not fitted)|not fitted[^\n]*Tweedie|not implemented[^\n]*Tweedie|does not currently fit Tweedie|No Tweedie likelihood" pkgdown-site -g '*.html'
+rg -n 'skew_normal\(\).*now fits|skew-normal.*implemented|skew-normal.*fitted route|skew_normal.*Implemented' pkgdown-site -g '*.html'
+git diff --check
+```
+
+Results:
+
+- Focused Tweedie, skew-normal-boundary, and family-link tests passed before
+  and after the packaging fix.
+- Full `devtools::test(reporter = "summary")` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The first `devtools::check()` run failed because
+  `test-skew-normal-boundary.R` expected the source-tree
+  `docs/design/123...` file to exist under installed-package `R CMD check`.
+  The test was patched to skip that source-map text assertion when the design
+  doc is not installed.
+- The second `devtools::check()` run passed with 0 errors, 0 warnings, and
+  1 NOTE: `unable to verify current time`.
+- `pkgdown::build_site(preview = FALSE)` rendered the new `reference/tweedie.html`
+  page and the edited user-facing articles.
+- Source and rendered stale-wording scans found no current claim that Tweedie is
+  still unfitted and no rendered claim that skew-normal is fitted.
+- `gh issue list` found the existing open tracking issues #2 for Tweedie and #3
+  for skew-normal; no duplicate issue was opened.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada integrated the two lanes and kept the fitted claim to one-response
+  fixed-effect Tweedie with intercept-only `nu`.
+- Boole checked the public syntax and formula-neighbour rejection.
+- Gauss and Noether reviewed the TMB parameterization, likelihood scale, and
+  equation/doc alignment.
+- Curie checked ordinary, high-zero, low-zero, simulation, missingness, and
+  malformed-neighbour tests.
+- Fisher kept recovery evidence at focused deterministic tests rather than
+  broad coverage claims.
+- Pat and Darwin checked that biomass, cover, and CPUE-like wording points
+  applied readers to the fitted path without implying random effects.
+- Grace ran documentation, full tests, pkgdown, full local check, rendered site
+  build, stale scans, issue inspection, and whitespace hygiene.
+- Rose recorded the first failed package-check path and the fixed closeout.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-and-skew-source-map.md`
+
 ## 2026-05-27 - Two-Team Phase 18 Pilot, Slices 1409-1418
 
 Goal:

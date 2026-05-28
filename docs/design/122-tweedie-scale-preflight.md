@@ -1,16 +1,14 @@
 # Tweedie Scale-Mapping Preflight
 
-This note is for the package contributor who would implement the first
-`tweedie()` lane after the design decision is accepted. It does not claim fitted
-Tweedie support. The current source map says Tweedie is future-only in
-`docs/design/27-tweedie-family-plan.md`, and the planned likelihood section in
-`docs/design/03-likelihoods.md` is a contract draft rather than an implemented
-TMB branch.
+This note records the scale-mapping preflight that led into the first
+`tweedie()` implementation. The first univariate fixed-effect lane is now
+implemented; use this file as provenance for the `sigma = sqrt(phi)` decision
+and the deferred-boundary list, not as the current fitted-status source.
 
 ## Pre-Implementation Decision To Carry Forward
 
 Use public `sigma` as the square root of Tweedie dispersion in the first
-implementation proposal:
+implementation:
 
 ```text
 y_i | mu_i, sigma_i, nu_i ~ Tweedie(mu_i, phi_i, nu_i)
@@ -22,8 +20,8 @@ Var[y_i] = sigma_i^2 * mu_i^nu_i
 1 < nu_i < 2
 ```
 
-This is a design commitment for the proposed lane, not fitted-package support.
-It matches the package-level scale convention better than exposing `sigma =
+This is the design commitment used by the fitted first lane. It matches the
+package-level scale convention better than exposing `sigma =
 phi` directly. In the implemented positive-continuous families, larger `sigma`
 means larger response variability: Gamma uses `Var[y_i] = mu_i^2 sigma_i^2`,
 and NB2 uses the same square-scale orientation for overdispersion. The Tweedie
@@ -62,10 +60,9 @@ drmTMB(
 )
 ```
 
-That syntax is future syntax until the family helper, R builder, TMB branch,
-methods, tests, and documentation land together. The first slice should accept
+That syntax is now the implemented first-slice syntax. The first slice accepts
 non-negative finite responses with exact zeros and positive continuous values.
-It should reject negative responses.
+It rejects negative responses after model-row missingness filtering.
 
 The first slice should not admit:
 
@@ -83,7 +80,7 @@ These are malformed neighbours for the first lane, not implementation
 shortcuts. Each needs its own likelihood, extractor, diagnostic, interval, and
 simulation-recovery evidence before becoming fitted syntax.
 
-## Minimum Tests Before Code Lands
+## Minimum Tests For The First Lane
 
 CRAN-safe tests should be small, deterministic, and source their own simulated
 data. The minimum set is:
@@ -114,12 +111,12 @@ it should report Monte Carlo error before making coverage or recovery claims.
 
 ## Files Read For This Preflight
 
-- `docs/design/27-tweedie-family-plan.md`: existing design gate and open
-  questions.
-- `docs/design/03-likelihoods.md`: planned Tweedie equations and comparator
-  wording.
-- `docs/design/02-family-registry.md`: current fitted-versus-planned family
-  status and future Tweedie scale note.
+- `docs/design/27-tweedie-family-plan.md`: design gate, implemented first
+  slice, and open follow-up questions.
+- `docs/design/03-likelihoods.md`: implemented Tweedie equations, TMB branch,
+  and comparator wording.
+- `docs/design/02-family-registry.md`: current fitted family status and
+  Tweedie scale note.
 - `docs/design/06-distribution-roadmap.md`: positive-continuous roadmap order.
 - `docs/design/19-family-link-contract.md`: existing `sigma`, `fitted()`, and
   response-scale conventions.

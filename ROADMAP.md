@@ -744,11 +744,12 @@ Phase 6d should be closed as small hardening slices:
 
 ## Phase 7: Robust and Positive Continuous Families
 
-- Status: fixed-effect univariate Student-t location-scale-shape and beta
-  mean-scale models are implemented. Lognormal location-scale and Gamma
-  mean-CV models are implemented with fixed effects plus ordinary unlabelled
-  `mu` random intercepts. Student-t also has an ordinary unlabelled `mu`
-  random-intercept first slice with fixed-effect `sigma` and `nu`.
+- Status: fixed-effect univariate Student-t location-scale-shape, Tweedie
+  mean-scale-power, and beta mean-scale models are implemented. Lognormal
+  location-scale and Gamma mean-CV models are implemented with fixed effects
+  plus ordinary unlabelled `mu` random intercepts. Student-t also has an
+  ordinary unlabelled `mu` random-intercept first slice with fixed-effect
+  `sigma` and `nu`.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
   negative-binomial models before adding skew-normal and skew-t families.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
@@ -761,15 +762,14 @@ Phase 6d should be closed as small hardening slices:
   Ordinary `mu` random intercepts for `beta()` and `beta_binomial()` now have a
   bounded-response Phase 18 artifact lane; random slopes, labelled covariance,
   `sigma` random effects, and zero-one beta random effects remain later gates.
-- Add `tweedie()` to the real-data wish list for non-negative semicontinuous
-  ecological responses such as biomass, cover, or abundance indices with exact
-  zeros and positive continuous values. Stage it after the Gamma/lognormal/count
-  contracts are stable. The current working recommendation is public
-  `sigma = sqrt(phi)`, so `sigma` remains scale-like while comparator checks can
-  square it to compare against Tweedie dispersion `phi`; `nu` is reserved for
-  the power parameter constrained between 1 and 2. The future implementation
-  gate is recorded in
-  `docs/design/27-tweedie-family-plan.md`.
+- Use `tweedie()` for non-negative semicontinuous ecological responses such as
+  biomass, cover, or abundance indices with exact zeros and positive continuous
+  values. The first fitted route is fixed-effect and univariate:
+  `bf(y ~ x, sigma ~ z, nu ~ 1)`. Public `sigma = sqrt(phi)`, so `sigma`
+  remains scale-like while comparator checks can square it to compare against
+  Tweedie dispersion `phi`; `nu` is the power parameter constrained between 1
+  and 2. Predictor-dependent `nu`, Tweedie random effects, structured effects,
+  and bivariate or mixed-response Tweedie models remain planned.
 - Extend the implemented family-link helper table before adding ordinal scale,
   denominator-aware, or additional positive-continuous likelihoods, so
   `predict()` and `fitted()` handle non-identity `mu` links consistently.
@@ -1847,6 +1847,10 @@ Use this order unless Slice 191 evidence overturns it:
 | 1389-1398 | Zero-truncated NB2 `mu` random-intercept artifacts | Done locally: `truncated_nbinom2()` now has an ordinary `mu` random-intercept DGP, summariser, smoke runner, grid writer, first-wave summary inclusion, manual `truncated_nbinom2_mu_random_intercept` Actions dispatch, focused tests, and design/after-task evidence. Zero-truncated NB2 random slopes, labelled covariance, `sigma` random effects, hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models remain planned or unsupported. |
 | 1399-1408 | Parallel Phase 18 lane protocol | Done locally as process design: `docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md` records how two independent distribution lanes can be built on separate branches while shared helpers, formula grammar, likelihood contracts, exported APIs, global status files, and merge decisions remain serial integration gates. |
 | 1409-1418 | First two-team Phase 18 pilot | Done locally: Team A added `docs/design/122-tweedie-scale-preflight.md` to lock the proposed first Tweedie lane to univariate fixed-effect `mu`, `sigma`, and intercept-only `nu` with public `sigma = sqrt(phi)` before implementation; Team B added zero-truncated NB2 `mu` random-intercept tests for factor/missing-row handling and malformed-neighbour rejection, without opening Tweedie support or broadening the fitted count surface. |
+| 1419-1518 | Tweedie fixed-effect admission | Done locally: `tweedie()` now fits the first univariate fixed-effect semicontinuous route with `mu`, public `sigma = sqrt(phi)`, and intercept-only `nu ~ 1`; focused tests cover high-zero and low-zero recovery, fitted response semantics, simulation, support-boundary filtering, and malformed neighbours. Tweedie random effects, predictor-dependent `nu`, structured effects, bivariate or mixed-response routes, zero-inflation aliases, and hurdle aliases remain planned. |
+| 1519-1538 | Skew-normal source map | Done locally as design-only evidence: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests without adding `skew_normal()` or changing formula grammar. |
+| 1619-1668 | Next Team A Tweedie hardening lane | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide the PR boundary, add or design the `glmmTMB::tweedie()` comparator contract, keep public `sigma^2` versus comparator `phi` explicit, harden `fitted()`, `sigma()`, `predict(dpar = "nu")`, simulation, stale-claim, and rendered-site checks, and stop before `nu ~ x`, random effects, structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases. |
+| 1669-1718 | Next Team B skew-normal decision gate | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide native versus moment parameterization, record consequences for `fitted()`, `sigma()`, and `predict(dpar = "nu")`, name the first density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and runtime tests, and keep `skew_normal()` absent until that contract is accepted. |
 
 ### Pre-Simulation Readiness Slice Map
 
