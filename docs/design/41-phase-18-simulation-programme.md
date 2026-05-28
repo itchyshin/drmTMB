@@ -932,3 +932,9 @@ errors, and elapsed time by surface before the raw manifest.
      normal-limit test, sign-orientation test, false-positive boundaries, and
      no-C++ admission criteria before any `skew_normal()` constructor, source
      branch, or user-facing example is added.
+180. Slices 1629-1630 and 1687-1688 add a narrow semantic-boundary test pass in
+     `docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md`.
+     The Tweedie comparator now rechecks `fitted()` as unconditional `mu` and
+     response-scale `nu` in `(1, 2)` inside both zero-regime cells. The
+     skew-normal boundary test now reads the first-test contract while still
+     requiring `skew_normal()` to be absent.
