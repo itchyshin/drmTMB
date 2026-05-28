@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Follow-On: Tweedie Comparator And Skew-Normal Moment Decision
+
+Goal:
+
+- Start the two-team follow-on after PR #347 merged: Team A hardens the fitted
+  Tweedie fixed-effect route with an optional `glmmTMB` comparator, while Team
+  B closes the first skew-normal parameterization decision without adding
+  `skew_normal()`.
+
+Implemented:
+
+- Added
+  `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md`.
+- Added an optional `glmmTMB` comparator test to
+  `tests/testthat/test-tweedie-location-scale.R`.
+- Added
+  `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md`.
+- Synced `docs/design/02-family-registry.md`,
+  `docs/design/03-likelihoods.md`,
+  `docs/design/06-distribution-roadmap.md`,
+  `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and `ROADMAP.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-tweedie-location-scale.R docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/06-distribution-roadmap.md docs/design/41-phase-18-simulation-programme.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md ROADMAP.md
+git diff --check
+Rscript --vanilla -e "devtools::test(filter = '^tweedie-location-scale$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "current local design chooses the native|native location rather than the arithmetic|mu is native|native skew-normal location parameter|response-mean/response-SD parameterization is chosen|If that choice changes" docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md ROADMAP.md
+rg -n "1619-1628|1669-1672|moment contract|glmmTMB::tweedie|2 \\* coef|sigma = SD|mu = E\\[y\\]" docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md
+```
+
+Results:
+
+- Formatting completed and `git diff --check` was clean.
+- `test-tweedie-location-scale` passed, including the optional `glmmTMB`
+  comparator on this machine.
+- The combined focused gate passed for Tweedie location-scale,
+  skew-normal-boundary, and family-link-contract tests.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale native-contract scan found no remaining old wording in the main
+  skew-normal design files.
+- The positive-evidence scan found the new slice IDs, moment-contract wording,
+  and Tweedie comparator mapping in the design ledgers.
+
+Member-group review:
+
+- Ada started from merged PR #347 and kept this follow-on on a clean branch.
+- Boole checked that skew-normal keeps canonical `nu` and no `skew` alias.
+- Gauss and Noether checked the Tweedie `sigma^2 = phi` comparison and the
+  skew-normal moment-to-native transform.
+- Curie kept the new comparator test optional through `skip_if_not_installed()`.
+- Fisher kept comparator agreement separate from broad coverage or simulation
+  claims.
+- Grace ran formatting, focused tests, stale-wording scans, and diff hygiene.
+- Rose checked that no new fitted skew-normal support is claimed.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-followon-tweedie-comparator-skew-moment.md`
+
 ## 2026-05-28 -- Phase 18 Publish Gate Before Two-Team Follow-On
 
 Goal:

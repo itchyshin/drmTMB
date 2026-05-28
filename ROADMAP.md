@@ -1023,10 +1023,12 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   structured-dependence endpoint.
 - Use GAMLSS-style names: `nu` for the first shape parameter and `tau` for the
   second when needed. For `skew_normal()`, `nu` should be the asymmetry or
-  skewness parameter and the documentation must map it to the native skew
-  parameter used by the chosen density. For `skew_t()`, `nu` should remain
-  the asymmetry parameter and `tau` should control tail thickness or degrees of
-  freedom, so the Student-t `nu` convention does not silently change meaning.
+  skewness parameter. The first fitted lane should use public moment
+  parameters, with `mu = E[y]`, `sigma = SD[y]`, and an explicit transform to
+  native skew-normal `xi`, `omega`, and `alpha` before implementation. For
+  `skew_t()`, `nu` should remain the asymmetry parameter and `tau` should
+  control tail thickness or degrees of freedom, so the Student-t `nu`
+  convention does not silently change meaning.
 - Current research anchors: `sn` provides the classic skew-normal density with
   location `xi`, scale `omega`, and slant `alpha`;
   `gamlss.dist::SN2()` uses `mu`, `sigma`, and `nu`; GAMLSS exposes several
@@ -1851,6 +1853,8 @@ Use this order unless Slice 191 evidence overturns it:
 | 1519-1538 | Skew-normal source map | Done locally as design-only evidence: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests without adding `skew_normal()` or changing formula grammar. |
 | 1619-1668 | Next Team A Tweedie hardening lane | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide the PR boundary, add or design the `glmmTMB::tweedie()` comparator contract, keep public `sigma^2` versus comparator `phi` explicit, harden `fitted()`, `sigma()`, `predict(dpar = "nu")`, simulation, stale-claim, and rendered-site checks, and stop before `nu ~ x`, random effects, structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases. |
 | 1669-1718 | Next Team B skew-normal decision gate | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide native versus moment parameterization, record consequences for `fitted()`, `sigma()`, and `predict(dpar = "nu")`, name the first density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and runtime tests, and keep `skew_normal()` absent until that contract is accepted. |
+| 1619-1628 | Tweedie comparator contract | Done locally: `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md` and the optional `glmmTMB` comparator test compare `mu` coefficients, `2 * sigma` coefficients to log-dispersion `phi`, intercept-only power, and log-likelihood on the overlapping fixed-effect model without widening Tweedie support. |
+| 1669-1672 | Skew-normal parameterization decision | Done locally as design-only evidence: `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md` chooses the moment contract for the first fitted lane, with public `mu = E[y]`, public `sigma = SD[y]`, `nu` as slant/shape, and internal transform to native `xi`, `omega`, and `alpha`; no constructor or TMB branch was added. |
 
 ### Pre-Simulation Readiness Slice Map
 

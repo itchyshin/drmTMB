@@ -121,6 +121,53 @@ test_that("Tweedie simulation preserves exact zeros and public sigma scale", {
   )
 })
 
+test_that("Tweedie fixed-effect fits agree with glmmTMB on overlapping scales", {
+  testthat::skip_if_not_installed("glmmTMB")
+
+  sim <- new_tweedie_data(
+    n = 350,
+    seed = 20260721,
+    beta_mu = c("(Intercept)" = 0.15, x = 0.35),
+    beta_sigma = c("(Intercept)" = -0.40, z = 0.18),
+    nu = 1.45
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ 1),
+    family = tweedie(),
+    data = sim$data,
+    control = drm_control(se = FALSE)
+  )
+  fit_glmmTMB <- glmmTMB::glmmTMB(
+    y ~ x,
+    dispformula = ~z,
+    family = glmmTMB::tweedie(link = "log"),
+    data = sim$data
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit_glmmTMB$fit$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$cond),
+    tolerance = 5e-5
+  )
+  expect_equal(
+    unname(2 * coef(fit, "sigma")),
+    unname(glmmTMB::fixef(fit_glmmTMB)$disp),
+    tolerance = 5e-5
+  )
+  expect_equal(
+    unique(unname(predict(fit, dpar = "nu"))),
+    unname(glmmTMB::family_params(fit_glmmTMB)),
+    tolerance = 5e-5
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_glmmTMB)),
+    tolerance = 5e-5
+  )
+})
+
 test_that("Tweedie supports missing filtering before response validation", {
   dat <- data.frame(
     y = c(0, 1.2, 0.4, -1),

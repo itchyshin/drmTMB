@@ -909,3 +909,19 @@ errors, and elapsed time by surface before the raw manifest.
      define `fitted()`, `sigma()`, `predict(dpar = "nu")`, normal-limit,
      sign-convention, comparator, simulation, interval-status, and diagnostic
      tests, and stop before adding `skew_normal()` or any C++ likelihood code.
+177. Slices 1619-1628 add the first `glmmTMB::tweedie()` comparator contract
+     in
+     `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md`.
+     The optional test compares `drmTMB` location coefficients to
+     `glmmTMB` conditional coefficients, `2 * coef(fit, "sigma")` to
+     log-dispersion coefficients, intercept-only `nu` to `glmmTMB` power, and
+     log-likelihoods directly on the overlapping fixed-effect model. It keeps
+     Tweedie `nu ~ x`, random effects, structured effects, bivariate routes,
+     zero-inflation aliases, and hurdle aliases closed.
+178. Slices 1669-1672 choose the moment parameterization for the first
+     skew-normal lane in
+     `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md`.
+     Public `mu` is the response mean, public `sigma` is the response standard
+     deviation, and `nu` is the slant/shape parameter. The future likelihood
+     may transform to native `xi`, `omega`, and `alpha` internally, but no
+     constructor or TMB branch is added in this design-only slice.

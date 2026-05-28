@@ -17,13 +17,12 @@ drmTMB(
 )
 ```
 
-Here location is the native response-location parameter, scale is the positive
-residual scale `sigma`, and shape is `nu`, the first GAMLSS-style shape slot.
-`nu ~ w` changes the conditional residual distribution after `mu` and `sigma`
-are accounted for. It is not latent-effect skewness. Grammar such as
-`skew(id) ~ x` remains future work until simulations show that latent-effect
-skewness can be separated from residual skewness, heteroscedasticity, ordinary
-random effects, and outliers.
+Here `mu` is the arithmetic response mean, `sigma` is the response standard
+deviation, and `nu` is the first GAMLSS-style shape slot. `nu ~ w` changes the
+conditional residual distribution after `mu` and `sigma` are accounted for. It
+is not latent-effect skewness. Grammar such as `skew(id) ~ x` remains future
+work until simulations show that latent-effect skewness can be separated from
+residual skewness, heteroscedasticity, ordinary random effects, and outliers.
 
 ## Local Contract
 
@@ -31,7 +30,7 @@ The local design already fixes the narrow boundary:
 
 | Source | Current local contract |
 | --- | --- |
-| `docs/design/03-likelihoods.md`, "Planned Skew-Normal Location-Scale-Shape Gate" | Candidate Azzalini-style density, `nu_i = eta_nu_i`, normal limit at `nu = 0`, positive `nu` as right-skewed residuals, and a warning that `mu` is native location rather than the arithmetic response mean. |
+| `docs/design/03-likelihoods.md`, "Planned Skew-Normal Location-Scale-Shape Gate" | Candidate moment-parameter contract with public `mu = E[y]`, public `sigma = SD[y]`, `nu_i = eta_nu_i`, normal limit at `nu = 0`, and positive `nu` as right-skewed residuals after transforming internally to native `xi`, `omega`, and `alpha`. |
 | `docs/design/02-family-registry.md`, "Planned: Skew-Normal Location-Scale-Shape" | Planned family object has `dpars = c("mu", "sigma", "nu")` and links `identity`, `log`, and `identity`; no constructor is implemented. |
 | `docs/design/14-gamlss-parameter-names.md` | `nu` is the canonical first shape parameter. `skew` can be considered later as an alias, not as the first public spelling. |
 | `docs/design/19-phylogenetic-location-scale-shape.md` | Residual `nu ~ x` and future latent-effect `skew(id) ~ x` are different scientific questions. |
@@ -47,9 +46,9 @@ The local design already fixes the narrow boundary:
 | `gamlss.dist::SN2()` local help and source `R/SN2.R` | `SN2(mu.link = "identity", sigma.link = "log", nu.link = "log")` uses `mu`, `sigma`, and positive `nu`; `dSN2()` is a two-piece skew normal type 2, not the Azzalini `2 phi Phi` density. | Keep the GAMLSS names but do not silently copy `SN2` as the Azzalini likelihood. If `SN2` is used as a comparator, label it as a different distribution. |
 | `gamlss::gamlss()` documentation, <https://www.rdocumentation.org/packages/gamlss/versions/5.4-12/topics/gamlss> | The package models up to four parameters, conventionally `mu`, `sigma`, `nu`, and `tau`, using separate formula arguments such as `sigma.formula`, `nu.formula`, and `tau.formula`. | `drmTMB` should keep one formula per distributional parameter, but avoid copying the broad "any parameter, any smoother, any random effect" surface before recovery evidence exists. |
 | `gamlss2` manual, <https://gamlss-dev.r-universe.dev/gamlss2/doc/manual.html> | New infrastructure works with `gamlss.dist` or `gamlss2.family` objects and predicts distribution parameters such as `mu`, `sigma`, `tau`, and `nu`. | The reusable lesson is explicit distribution-family infrastructure, not broad family admission. |
-| `brms::skew_normal()` and `brms::SkewNormal` local help; <https://paulbuerkner.com/brms/reference/SkewNormal.html> | `brms` exposes `mu`, `sigma`, and `alpha`, where `mu` and `sigma` are response mean and response SD. Its family page uses `link_alpha = "identity"`. | This is the cleanest comparator for `fitted()` semantics if `drmTMB` chooses arithmetic response means. It is not the same native-location parameterization as the current local gate. |
-| `brms` installed vignette `doc/brms_families.html` | The vignette maps mean/SD `mu`, `sigma` to native `xi`, `omega` using `alpha`, and states that `alpha = 0` gives a Gaussian distribution. | Add explicit tests for `fitted()` and `sigma()` semantics: either report native location/scale and say so, or transform to response mean/SD consistently. |
-| `glmmTMB::skewnormal()` local help under `?nbinom2` | `glmmTMB` has a `skewnormal(link = "identity")` family, parameterized by mean, standard deviation, and shape; extra family parameters are exposed by `family_params()`. | Add a direct comparator test to `glmmTMB` only if the response-mean/response-SD parameterization is chosen, or transform `drmTMB` native parameters first. |
+| `brms::skew_normal()` and `brms::SkewNormal` local help; <https://paulbuerkner.com/brms/reference/SkewNormal.html> | `brms` exposes `mu`, `sigma`, and `alpha`, where `mu` and `sigma` are response mean and response SD. Its family page uses `link_alpha = "identity"`. | Use as the main fitted-value semantics precedent for the moment-parameter contract. |
+| `brms` installed vignette `doc/brms_families.html` | The vignette maps mean/SD `mu`, `sigma` to native `xi`, `omega` using `alpha`, and states that `alpha = 0` gives a Gaussian distribution. | Copy the explicit moment-to-native mapping pattern into `drmTMB` design and tests. |
+| `glmmTMB::skewnormal()` local help under `?nbinom2` | `glmmTMB` has a `skewnormal(link = "identity")` family, parameterized by mean, standard deviation, and shape; extra family parameters are exposed by `family_params()`. | Add a direct comparator test to `glmmTMB` for fitted fixed-effect models after the `drmTMB` density branch exists. |
 | `RTMBdist` reference manual, <https://stat.ethz.ch/CRAN/web/packages/RTMBdist/refman/RTMBdist.html> | `dskewnorm()` is AD-compatible for RTMB and uses `xi`, `omega`, `alpha`; `dskewnorm2()` reparameterizes to mean, SD, and alpha. `dskewt()` warns that skew should not be initialized exactly at zero in numerical optimization. | Use `RTMBdist` as a source-level comparator and numerical-starting warning, not as copy-paste code. If TMB derivatives vanish at `nu = 0`, start `nu` slightly away from zero while still testing the normal limit. |
 | `mgcv::shash()` local help | `shash` models location, scale, skewness, and kurtosis with four linear predictors, and explicitly warns to check whether the data support such flexibility. | This is a documentation pattern to copy: warn about identifiability before offering flexible shape surfaces. Do not copy `shash` as the first skew-normal target. |
 | `mgcv::gaulss()` local help | Gaussian location-scale models use a list of formulae and guard the SD away from zero. | Useful warning for scale-boundary protection; not a reason to add `sigma` random effects to the first skew-normal lane. |
@@ -71,23 +70,22 @@ The local design already fixes the narrow boundary:
 
 ## Parameterization Choice
 
-The next implementation lane should decide between two explicit contracts:
+The next implementation lane should use the moment contract: `mu = E[y]`,
+`sigma = SD[y]`, and `nu = alpha`. This matches `brms::skew_normal()`,
+`brms::SkewNormal`, `glmmTMB::skewnormal()`, and
+`RTMBdist::dskewnorm2()` most closely. It is friendlier for `fitted()` and
+`sigma()`, but the TMB likelihood must transform from mean/SD to native
+`xi`/`omega` internally:
 
-1. Native Azzalini contract: `mu = xi`, `sigma = omega`, and `nu = alpha`.
-   This matches the current local likelihood gate and `sn::dsn()` /
-   `RTMBdist::dskewnorm()` most directly. Under this contract `fitted()` must
-   not casually return `mu` as an arithmetic mean when `nu != 0`; either return
-   the transformed response mean or document that fitted values are native
-   locations.
-2. Moment contract: `mu = E[y]`, `sigma = SD[y]`, and `nu = alpha`. This
-   matches `brms::skew_normal()`, `brms::SkewNormal`, `glmmTMB::skewnormal()`,
-   and `RTMBdist::dskewnorm2()` more closely. It is friendlier for `fitted()`
-   and `sigma()`, but the TMB likelihood must transform from mean/SD to
-   native `xi`/`omega` internally and guard the feasible skewness range.
+```text
+delta = alpha / sqrt(1 + alpha^2)
+omega = sigma / sqrt(1 - 2 * delta^2 / pi)
+xi = mu - omega * delta * sqrt(2 / pi)
+```
 
-The current local design chooses the native contract. If that choice changes,
-update `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`,
-and this note before writing C++.
+The native Azzalini contract remains useful for checking the density with
+`sn::dsn()` or `RTMBdist::dskewnorm()`, but it is no longer the preferred public
+contract for the first fitted `drmTMB` family.
 
 ## Malformed-Neighbour Checklist
 
@@ -131,7 +129,8 @@ Comparator tests should be small before they are broad:
   to check that `nu ~ w` does not absorb heteroscedasticity;
 - confounding grids where `x`, `z`, and `w` have controlled correlations;
 - `fitted()`, `predict(dpar = "mu")`, `sigma()`, and future `predict(dpar =
-  "nu")` tests that distinguish native location/scale from response mean/SD;
+  "nu")` tests that confirm public response-mean, response-SD, and shape
+  semantics;
 - profile-target or interval-status rows for fixed `mu`, `sigma`, and `nu`
   coefficients before any coverage claim;
 - runtime benchmarks against Gaussian and Student-t fixed-effect models at
