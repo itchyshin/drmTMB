@@ -2,6 +2,88 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Low/High-Zero Comparator And Skew-Normal Test Contract
+
+Goal:
+
+- Finish the remaining Team A comparator cells from the 1619-1628 Tweedie
+  contract by checking the optional `glmmTMB` overlap in low-zero and high-zero
+  semicontinuous regimes without widening fitted Tweedie support.
+- Finish the next Team B design gate by recording the skew-normal first-test
+  contract before any constructor, test fixture, or C++ likelihood branch is
+  added.
+
+Implemented:
+
+- Updated the optional `glmmTMB` comparator in
+  `tests/testthat/test-tweedie-location-scale.R` to run deterministic low-zero
+  and high-zero cells. The low-zero cell requires at least one exact zero and
+  a zero fraction below 0.05; the high-zero cell requires a zero fraction above
+  0.20.
+- Updated
+  `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and `ROADMAP.md` so the
+  evidence ledger records both cells.
+- Added
+  `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`
+  for the density normalization, normal-limit, sign-orientation,
+  false-positive, and no-C++ gates.
+
+Validation:
+
+```sh
+air format tests/testthat/test-tweedie-location-scale.R docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-low-high-zero-comparator.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/dev-log/after-task/2026-05-28-phase18-skew-normal-test-contract.md
+Rscript --vanilla -e "devtools::test(filter = '^tweedie-location-scale$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n "1673-1702|density normalization|normal-limit|sign-orientation|false-positive|no-C\\+\\+" docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md
+rg -n "skew_normal\\(\\)|rho12" docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md
+gh issue list --repo itchyshin/drmTMB --state all --search "Tweedie" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "skew-normal OR skew_normal" --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- Formatting completed.
+- `test-tweedie-location-scale` passed, including the optional `glmmTMB`
+  low-zero and high-zero comparator cells on this machine.
+- The combined focused gate passed for Tweedie location-scale,
+  skew-normal-boundary, and family-link-contract tests.
+- Full `devtools::test(reporter = "summary")` passed.
+- `pkgdown::check_pkgdown()` reported no problems, and `git diff --check` was
+  clean.
+- Team A's sidecar audit recorded zero fractions of 0.002857 for the low-zero
+  cell and 0.277143 for the high-zero cell, with all coefficient and
+  log-likelihood differences below the 5e-5 test tolerance.
+- Team B's sidecar draft stayed docs-only: no tests, C++, `NAMESPACE`, shared
+  roadmap, or check-log files were changed by that lane before integration.
+- Issue maintenance found Tweedie issue #2 closed and skew-normal issue #3
+  still open, so this branch does not open a duplicate.
+
+Member-group review:
+
+- Ada kept this as a narrow follow-on branch after PR #348 merged.
+- Curie and Fisher split the comparator into explicit zero-fraction regimes
+  before broader simulation claims.
+- Gauss and Noether kept the scale comparison on `2 * coef(fit, "sigma")`
+  versus log-`phi` coefficients.
+- Grace reran the focused Tweedie test after formatting.
+- Rose recorded that `nu ~ x`, random effects, structured effects, bivariate
+  Tweedie, zero-inflation aliases, and hurdle aliases remain closed.
+- Boole, Noether, Gauss, and Pat checked the skew-normal test contract for
+  formula grammar, moment-to-native equations, density constants, and
+  user-facing unsupported-boundary guidance.
+- Sidecar teams completed: Team A audited the Tweedie comparator without file
+  edits, and Team B drafted the skew-normal test contract in its scoped design
+  file.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-low-high-zero-comparator.md`
+- `docs/dev-log/after-task/2026-05-28-phase18-skew-normal-test-contract.md`
+
 ## 2026-05-28 -- Phase 18 Follow-On: Tweedie Comparator And Skew-Normal Moment Decision
 
 Goal:
