@@ -2,6 +2,62 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Density Fixture
+
+Goal:
+
+- Add a small direct density fixture for the fitted fixed-effect Tweedie lane
+  before opening the larger `tweedie_fixed_effect` artifact implementation.
+
+Implemented:
+
+- Added `tests/testthat/helper-tweedie-density.R` with a test-only compound
+  Poisson-Gamma reference density for `1 < nu < 2`.
+- Extended `tests/testthat/test-tweedie-location-scale.R` so an intercept-only
+  fitted Tweedie log likelihood is compared with the independent reference sum
+  over exact-zero mass and positive-density terms.
+- Updated `docs/design/03-likelihoods.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and `ROADMAP.md` to
+  record this as likelihood-constant evidence only.
+
+Validation:
+
+```sh
+air format tests/testthat/helper-tweedie-density.R tests/testthat/test-tweedie-location-scale.R docs/design/03-likelihoods.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-density-fixture.md
+Rscript --vanilla -e "devtools::test(filter = '^tweedie-location-scale$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'tweedie_fixed_effect.*(implemented|exists|ready|runnable)|Tweedie.*now has.*(DGP|runner|writer|grid)|Tweedie.*ready for.*coverage|manual `tweedie_fixed_effect`|phase18_(dgp|run|write)_tweedie|nu ~ x|Tweedie random|bivariate Tweedie|zero-inflation aliases|hurdle aliases' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `test-tweedie-location-scale` passed.
+- Combined focused `test-tweedie-location-scale` and `test-family-link-contract`
+  passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-support scan returned only expected current-support or
+  planned-boundary references, not a new runner, grid, predictor-dependent
+  `nu`, random-effect, bivariate, zero-inflation, or hurdle claim.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Gauss and Noether treat the direct compound Poisson-Gamma fixture as a
+  likelihood-constant check for `dtweedie()`.
+- Curie keeps the test small and deterministic.
+- Fisher treats this as likelihood evidence, not recovery, coverage, or power
+  evidence.
+- Rose keeps the unsupported neighbours explicit: no Tweedie DGP, runner,
+  grid writer, predictor-dependent `nu`, random effects, structured effects,
+  bivariate route, zero-inflation alias, or hurdle alias was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-density-fixture.md`
+
 ## 2026-05-28 -- Phase 18 Two-Team 1 PM Audit
 
 Goal:
