@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Grid Writer
+
+Goal:
+
+- Continue the single-lane `tweedie_fixed_effect` artifact path by adding a
+  repeatable table writer after PR #360 merged.
+
+Implemented:
+
+- Added `inst/sim/run/sim_write_tweedie_fixed_effect_grid.R` with
+  `phase18_write_tweedie_fe_grid_outputs()` for aggregate, replicate, manifest,
+  failure-ledger, Wald interval, and Wald coverage CSV artifacts.
+- Extended `tests/testthat/test-phase18-tweedie-fixed-effect.R` so the
+  focused artifact test covers writer output paths, row counts, artifact
+  manifest contents, serial fallback for `backend = "none"`, overwrite
+  protection, overwrite success, and malformed `output_dir`.
+- Updated `inst/sim/README.md`,
+  `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, `ROADMAP.md`, and the
+  after-task report.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_tweedie_fixed_effect_grid.R tests/testthat/test-phase18-tweedie-fixed-effect.R inst/sim/README.md docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-grid-writer.md
+air format docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-grid-writer.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-tweedie-fixed-effect$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-tweedie-fixed-effect|tweedie-location-scale|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'manual `tweedie_fixed_effect`|Tweedie.*ready for.*coverage|tweedie_fixed_effect.*Actions|predictor-dependent Tweedie `nu`.*(implemented|supported|admitted)|Tweedie random effects.*(implemented|supported|admitted)|bivariate Tweedie.*(implemented|supported|admitted)|zero-inflation alias.*(implemented|supported|admitted)|hurdle alias.*(implemented|supported|admitted)' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+git diff --check
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+```
+
+Results:
+
+- Formatting completed.
+- Focused `phase18-tweedie-fixed-effect` tests passed.
+- Combined Tweedie artifact, fitted Tweedie, and family-link focused tests
+  passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The false-claim scan returned only intended ROADMAP boundary rows; it did
+  not find a new manual Actions, coverage-grid, predictor-dependent `nu`,
+  random-effect, structured-effect, bivariate, offset/exposure,
+  zero-inflation, or hurdle claim.
+- `git diff --check` was clean.
+- Full `devtools::test()` passed.
+
+Member-group review:
+
+- Ada kept the slice to one active branch after PR #360 merged.
+- Curie checked the deterministic writer, overwrite guard, and malformed-input
+  coverage.
+- Fisher kept Wald interval and Wald coverage rows as smoke-table artifacts,
+  not a coverage-performance claim.
+- Boole and Noether checked that the public surface remains `rho12`-free for
+  univariate Tweedie and that `nu` stays intercept-only.
+- Grace ran focused, nearby, pkgdown, whitespace, and full-suite validation.
+- Rose kept the roadmap boundary explicit before publishing the next PR.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-grid-writer.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Smoke Artifacts
 
 Goal:

@@ -1004,3 +1004,11 @@ errors, and elapsed time by surface before the raw manifest.
      writer, Actions task, predictor-dependent `nu`, random effects,
      structured effects, bivariate Tweedie, offset/exposure route,
      zero-inflation alias, or hurdle alias is added.
+189. Slices 1709-1712 add the repeatable `tweedie_fixed_effect` grid writer.
+     `phase18_write_tweedie_fe_grid_outputs()` writes aggregate, replicate,
+     manifest, failure-ledger, Wald interval, and Wald coverage CSV artifacts
+     from the fixed-effect Tweedie smoke summary, with overwrite protection and
+     artifact-manifest row counts. It does not wire a manual Actions task or
+     open predictor-dependent `nu`, random effects, structured effects,
+     bivariate Tweedie, offset/exposure syntax, zero-inflation aliases, or
+     hurdle aliases.

@@ -399,6 +399,10 @@ Current pilot files:
   fixed-effect `lognormal()` and `Gamma(link = "log")` artifact set with
   aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald
   interval, and Wald coverage CSVs.
+- `run/sim_write_tweedie_fixed_effect_grid.R` writes the fixed-effect
+  `tweedie()` semicontinuous artifact set with aggregate, replicate-level,
+  manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage
+  CSVs.
 - `run/sim_write_positive_continuous_mu_random_intercept_grid.R` writes the
   positive-continuous `mu` random-intercept artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald

@@ -154,12 +154,14 @@ use unweighted fixed-effect rows.
 | 1645 | Done locally as sketch | The DGP sketch names `mu`, public `sigma`, intercept-only `nu`, zero fraction, sample size, and predictor correlation. |
 | 1646 | Done locally as sketch | The summariser sketch names replicate, aggregate, manifest, failure-ledger, Wald interval, and coverage fields. |
 | 1705-1708 | Done locally as first smoke implementation | `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R`, `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R`, `inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R`, `inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R`, and `tests/testthat/test-phase18-tweedie-fixed-effect.R` add the first DGP, summariser, smoke runner, summary reducer, resume check, and Wald artifact smoke test. |
+| 1709-1712 | Done locally as grid-writer implementation | `inst/sim/run/sim_write_tweedie_fixed_effect_grid.R` writes aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald coverage CSV artifacts, with overwrite checks and a focused grid-writer test. |
 
 ## Next Implementation Gate
 
-The first DGP, summariser, and smoke runner now exist. The next implementation
-slice should add a repeatable grid-output writer only after the focused smoke
-runner remains green in the package test suite. The grid writer should keep the
-same boundary: univariate fixed-effect Tweedie, public `sigma = sqrt(phi)`,
-intercept-only `nu`, no offsets, no external weighted comparator, and no
-random, structured, or bivariate Tweedie support.
+The first DGP, summariser, smoke runner, and repeatable grid writer now exist.
+The next implementation slice should either wire `tweedie_fixed_effect` into
+the shared first-wave summary runner or add a manual Actions task, but only
+after the focused grid-writer tests remain green. The boundary is unchanged:
+univariate fixed-effect Tweedie, public `sigma = sqrt(phi)`, intercept-only
+`nu`, no offsets, no external weighted comparator, and no random, structured,
+or bivariate Tweedie support.
