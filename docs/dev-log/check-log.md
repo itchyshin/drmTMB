@@ -2,6 +2,55 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Weight Invariant
+
+Goal:
+
+- Add an internal row-weight invariant for fitted Tweedie fixed-effect models
+  while keeping the weighted external comparator postponed.
+
+Implemented:
+
+- Added a Tweedie weight test to
+  `tests/testthat/test-tweedie-location-scale.R`.
+- Added
+  `docs/design/131-phase-18-tweedie-weight-invariant-slice-1631-addendum.md`.
+- Updated `docs/design/41-phase-18-simulation-programme.md` and
+  `ROADMAP.md` so the slice map and Phase 18 programme name the invariant
+  without reopening the postponed weighted external comparator.
+
+Validation:
+
+```sh
+air format tests/testthat/test-tweedie-location-scale.R docs/design/131-phase-18-tweedie-weight-invariant-slice-1631-addendum.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-weight-invariant.md
+Rscript --vanilla -e "devtools::test(filter = '^tweedie-location-scale$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `test-tweedie-location-scale` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Curie checked this as an internal invariant: doubled row weights double the
+  log-likelihood, and integer row weights match explicit row duplication.
+- Fisher kept the external weighted `glmmTMB` comparator postponed until a
+  weighting-semantics target is written.
+- Gauss and Noether checked that the invariant covers `mu`, `sigma`,
+  intercept-only `nu`, and log-likelihood.
+- Rose recorded no new Tweedie surface: no offsets, `nu ~ x`, random effects,
+  structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle
+  aliases.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-weight-invariant.md`
+
 ## 2026-05-28 -- Phase 18 Comparator And Support-Boundary Decisions
 
 Goal:
