@@ -10,6 +10,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       "proportion_fixed_effect",
       "bounded_response_mu_random_intercept",
       "positive_continuous_fixed_effect",
+      "tweedie_fixed_effect",
       "positive_continuous_mu_random_intercept",
       "student_mu_random_intercept",
       "ordinal_fixed_effect",
@@ -166,6 +167,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "positive_continuous_fixed_effect")) {
     out <- phase18_write_positive_continuous_fe_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "tweedie_fixed_effect")) {
+    out <- phase18_write_tweedie_fe_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -367,6 +377,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/dgp/sim_dgp_proportion_fixed_effect.R",
       "sim/dgp/sim_dgp_bounded_response_mu_random_intercept.R",
       "sim/dgp/sim_dgp_positive_continuous_fixed_effect.R",
+      "sim/dgp/sim_dgp_tweedie_fixed_effect.R",
       "sim/dgp/sim_dgp_positive_continuous_mu_random_intercept.R",
       "sim/dgp/sim_dgp_student_mu_random_intercept.R",
       "sim/dgp/sim_dgp_ordinal_fixed_effect.R",
@@ -382,6 +393,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/fit/sim_summarise_proportion_fixed_effect.R",
       "sim/fit/sim_summarise_bounded_response_mu_random_intercept.R",
       "sim/fit/sim_summarise_positive_continuous_fixed_effect.R",
+      "sim/fit/sim_summarise_tweedie_fixed_effect.R",
       "sim/fit/sim_summarise_positive_continuous_mu_random_intercept.R",
       "sim/fit/sim_summarise_student_mu_random_intercept.R",
       "sim/fit/sim_summarise_ordinal_fixed_effect.R",
@@ -397,6 +409,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_proportion_fixed_effect_smoke.R",
       "sim/run/sim_run_bounded_response_mu_random_intercept_smoke.R",
       "sim/run/sim_run_positive_continuous_fixed_effect_smoke.R",
+      "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_run_positive_continuous_mu_random_intercept_smoke.R",
       "sim/run/sim_run_student_mu_random_intercept_smoke.R",
       "sim/run/sim_run_ordinal_fixed_effect_smoke.R",
@@ -413,6 +426,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_summary_proportion_fixed_effect_smoke.R",
       "sim/run/sim_summary_bounded_response_mu_random_intercept_smoke.R",
       "sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R",
+      "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_summary_positive_continuous_mu_random_intercept_smoke.R",
       "sim/run/sim_summary_student_mu_random_intercept_smoke.R",
       "sim/run/sim_summary_ordinal_fixed_effect_smoke.R",
@@ -427,6 +441,7 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_proportion_fixed_effect_grid.R",
       "sim/run/sim_write_bounded_response_mu_random_intercept_grid.R",
       "sim/run/sim_write_positive_continuous_fixed_effect_grid.R",
+      "sim/run/sim_write_tweedie_fixed_effect_grid.R",
       "sim/run/sim_write_positive_continuous_mu_random_intercept_grid.R",
       "sim/run/sim_write_student_mu_random_intercept_grid.R",
       "sim/run/sim_write_ordinal_fixed_effect_grid.R",
@@ -490,6 +505,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_positive_continuous_fixed_effect_smoke.R",
       "sim/run/sim_summary_positive_continuous_fixed_effect_smoke.R",
       "sim/run/sim_write_positive_continuous_fixed_effect_grid.R"
+    ))
+  }
+  if (identical(task, "tweedie_fixed_effect")) {
+    return(c(
+      "sim/dgp/sim_dgp_tweedie_fixed_effect.R",
+      "sim/fit/sim_summarise_tweedie_fixed_effect.R",
+      "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
+      "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
+      "sim/run/sim_write_tweedie_fixed_effect_grid.R"
     ))
   }
   if (identical(task, "positive_continuous_mu_random_intercept")) {

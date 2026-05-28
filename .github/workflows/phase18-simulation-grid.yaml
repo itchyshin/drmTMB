@@ -14,6 +14,7 @@ on:
           - proportion_fixed_effect
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
+          - tweedie_fixed_effect
           - positive_continuous_mu_random_intercept
           - student_mu_random_intercept
           - ordinal_fixed_effect
@@ -119,6 +120,9 @@ jobs:
             include_in_all: false
           - task: positive_continuous_fixed_effect
             seed: 20260534
+            include_in_all: false
+          - task: tweedie_fixed_effect
+            seed: 20260542
             include_in_all: false
           - task: positive_continuous_mu_random_intercept
             seed: 20260539

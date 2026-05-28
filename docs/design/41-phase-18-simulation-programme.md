@@ -1019,3 +1019,10 @@ errors, and elapsed time by surface before the raw manifest.
      the run object, and records it in the parallel summary. This does not add
      a manual Actions task or expand the Tweedie model boundary beyond
      univariate fixed effects with intercept-only `nu`.
+191. Slices 1717-1718 expose `tweedie_fixed_effect` as a manual-only Phase 18
+     Actions task in `.github/workflows/phase18-simulation-grid.yaml` and
+     `inst/sim/run/sim_run_actions_cell.R`. The task writes the same
+     repeatable fixed-effect Tweedie grid artifacts as the local writer, is
+     excluded from `task = "all"`, and does not introduce condition sharding,
+     random effects, structured effects, bivariate Tweedie, offsets,
+     zero-inflation aliases, or hurdle aliases.

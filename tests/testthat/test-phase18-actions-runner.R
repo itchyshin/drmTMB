@@ -150,6 +150,53 @@ test_that("Phase 18 Actions runner accepts positive-continuous fixed-effect task
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts Tweedie fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-tweedie-fe-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=tweedie_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=tweedie_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  tweedie_paths <- c(
+    "sim/dgp/sim_dgp_tweedie_fixed_effect.R",
+    "sim/fit/sim_summarise_tweedie_fixed_effect.R",
+    "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
+    "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
+    "sim/run/sim_write_tweedie_fixed_effect_grid.R"
+  )
+  expect_true(all(
+    tweedie_paths %in%
+      env$phase18_actions_task_paths(
+        "first_wave_summary"
+      )
+  ))
+  expect_equal(
+    env$phase18_actions_task_paths("tweedie_fixed_effect"),
+    tweedie_paths
+  )
+})
+
 test_that("Phase 18 Actions runner accepts positive-continuous mu random-intercept task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-positive-continuous-mu-ri-dry-run-")
@@ -328,6 +375,21 @@ test_that("Phase 18 workflow concurrency is shard-aware", {
     "inputs.condition_shards",
     fixed = TRUE
   )
+})
+
+test_that("Phase 18 workflow exposes Tweedie fixed-effect task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "tweedie_fixed_effect", fixed = TRUE)
+  expect_match(text, "20260542", fixed = TRUE)
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {
