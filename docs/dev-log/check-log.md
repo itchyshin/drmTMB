@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Skew-Normal Density Contract Fixture
+
+Goal:
+
+- Turn the accepted skew-normal moment-parameterization math into a test-only
+  density fixture while keeping `skew_normal()` absent.
+
+Implemented:
+
+- Added `tests/testthat/helper-skew-normal-density.R` with test-only helpers
+  for the public-moment to native-density transform, reference log density,
+  third central moment, and numerical density integral.
+- Added `tests/testthat/test-skew-normal-density-contract.R` to check that the
+  transform preserves public `mu` and `sigma`, integrates to one, reduces to
+  Gaussian density at `nu = 0`, keeps the third central moment sign aligned
+  with `nu`, and does not expose a `skew_normal()` constructor.
+- Updated `docs/design/41-phase-18-simulation-programme.md` and `ROADMAP.md`
+  to record this as test-only evidence, not fitted support.
+
+Validation:
+
+```sh
+air format tests/testthat/helper-skew-normal-density.R tests/testthat/test-skew-normal-density-contract.R docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-skew-normal-density-contract.md
+Rscript --vanilla -e "devtools::test(filter = '^skew-normal-(boundary|density-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); stopifnot(!exists('skew_normal', envir = asNamespace('drmTMB'), inherits = FALSE)); cat('skew_normal constructor absent\n')"
+rg -n "skew_normal\\(" R src NAMESPACE man
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `test-skew-normal-boundary` and
+  `test-skew-normal-density-contract` passed.
+- The constructor-absence check printed `skew_normal constructor absent`.
+- The package-code support scan found no `skew_normal(` matches in `R`, `src`,
+  `NAMESPACE`, or `man`; `rg` exited 1 because there were no matches.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Boole kept the public syntax as planned `nu ~ ...`; no `skew ~ ...` or
+  `skew(id) ~ ...` alias was added.
+- Noether kept the source-level target on the exact public-moment transform,
+  density constants, Gaussian limit, and sign orientation.
+- Gauss kept this as a density contract, not an optimizer or recovery claim.
+- Rose kept the package support surface closed: no constructor, TMB branch,
+  formula-grammar change, exported docs, or user-facing example.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-skew-normal-density-contract.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Artifact Preflight
 
 Goal:

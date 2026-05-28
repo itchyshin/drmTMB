@@ -980,3 +980,10 @@ errors, and elapsed time by surface before the raw manifest.
      false-positive, confounding, interval-status, diagnostic, runtime, DGP,
      and summary checks for the first implementation PR. It does not add a
      constructor, TMB branch, formula-grammar change, or user-facing example.
+186. Slice 1703 adds a test-only skew-normal density contract fixture in
+     `tests/testthat/helper-skew-normal-density.R` and
+     `tests/testthat/test-skew-normal-density-contract.R`. The fixture checks
+     the accepted public-moment to native-density transform, integration to
+     one, the `nu = 0` Gaussian limit, and the public sign orientation before
+     any `skew_normal()` constructor, TMB branch, formula-grammar change, or
+     user-facing example exists.
