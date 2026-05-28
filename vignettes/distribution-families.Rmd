@@ -34,6 +34,7 @@ quantity each `sigma` formula models.
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | fixed effects only |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | fixed effects only |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | fixed effects only |
+| Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
 | Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | fixed effects only |
@@ -60,9 +61,10 @@ intercepts and independent numeric random slopes, such as `(1 | site)` and
 and ordinary NB2 also have q=1 phylogenetic `mu` intercept routes,
 `phylo(1 | species, tree = tree)`, on the log-mean scale. Ordinary NB2 also
 has a first grouped overdispersion route, `sigma ~ z + (1 | id)`, on the
-log-`sigma` scale. Other non-Gaussian random-effect requests are still boundary
-checks: NB2 `sigma` slopes or structured effects, Student-t `nu` random effects,
-zero-inflation or hurdle random effects,
+log-`sigma` scale. Tweedie is currently fixed-effect only, with intercept-only
+`nu ~ 1`. Other non-Gaussian random-effect requests are still boundary checks:
+Tweedie random effects or predictor-dependent power, NB2 `sigma` slopes or
+structured effects, Student-t `nu` random effects, zero-inflation or hurdle random effects,
 ordinal mixed models, spatial/animal/`relmat()` structured effects, count
 structured slopes, and correlated or labelled count random-slope blocks need
 their own likelihood and recovery evidence before they become runnable syntax.
@@ -94,6 +96,7 @@ or comparator quantities:
 | --- | --- | --- | --- |
 | `gaussian()` | residual SD `sigma` | residual SD | larger `sigma` means larger residual variance |
 | `Gamma(link = "log")` | coefficient of variation `sigma` | shape `1 / sigma^2` | larger `sigma` means larger response CV |
+| `tweedie()` | public scale `sigma` | dispersion `phi = sigma^2` | larger `sigma` means larger semicontinuous-response variance |
 | `beta()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
 | `zero_one_beta()` | interior beta scale `sigma` | precision `phi = 1 / sigma^2` for the interior component | larger `sigma` means more variation among non-boundary proportions |
 | `beta_binomial()` | extra-binomial scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means more among-trial probability variation |
@@ -117,6 +120,7 @@ then transform those fitted quantities for the scale your reader needs.
 | `student()` | model scale is `sigma`; residual variance is `sigma^2 * nu / (nu - 2)` when `nu > 2` |
 | `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
 | `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
+| `tweedie()` | mean is `mu`; variance is `sigma^2 * mu^nu`, with `1 < nu < 2` |
 | `beta()` | variance is `mu * (1 - mu) * sigma^2 / (1 + sigma^2)` |
 | `zero_one_beta()` | mean is `(1 - zoi) * mu + zoi * coi`; variance combines the interior beta second moment with exact boundary mass |
 | `beta_binomial()` | proportion variance is `mu * (1 - mu) * (1 + trials * sigma^2) / (trials * (1 + sigma^2))` |
@@ -256,6 +260,44 @@ rate, or concentration when predictors may change relative variability. The
 first implementation requires `stats::Gamma(link = "log")`; `stats::Gamma()`
 with its default inverse link is rejected, and `drmTMB` does not export
 `gamma()` because `base::gamma()` already exists.
+
+Tweedie mean-scale-power models are implemented for non-negative
+semicontinuous responses with exact zeros and positive continuous values:
+
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim \operatorname{Tweedie}(\mu_i, \phi_i, \nu_i),\\
+\log(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\nu_i
+  &= 1 + \operatorname{logit}^{-1}(\delta_0),\\
+\phi_i
+  &= \sigma_i^2,\\
+E[y_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i)
+  &= \sigma_i^2 \mu_i^{\nu_i}.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(biomass ~ habitat, sigma ~ treatment, nu ~ 1),
+  family = tweedie(),
+  data = dat
+)
+```
+
+For this family, `fitted(fit)` returns the unconditional response mean `mu`,
+including exact-zero mass. `sigma(fit)` returns public `sigma`, the square root
+of Tweedie dispersion `phi`. Use this path for biomass, cover, CPUE-like
+indices, or other non-negative field summaries where zeros and positive
+continuous values are generated by one measurement process. Random effects,
+predictor-dependent `nu`, structured effects, bivariate or mixed-response
+Tweedie models, zero-inflation aliases, and hurdle aliases remain planned.
 
 Beta mean-scale models are implemented for continuous responses strictly
 inside `(0, 1)`, such as continuously measured cover proportions or rates that

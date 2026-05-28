@@ -4,6 +4,7 @@
 #' supports univariate Gaussian location-scale models,
 #' univariate Student-t location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
+#' Tweedie mean-scale-power models for non-negative semicontinuous responses,
 #' beta mean-scale models for strict proportions,
 #' zero-one beta mean-scale-boundary models for continuous proportions with
 #' structural exact zeroes or ones,
@@ -49,8 +50,9 @@
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
-#'   [lognormal()], [stats::Gamma()] with `link = "log"`, [beta()],
-#'   [zero_one_beta()], [beta_binomial()], [cumulative_logit()],
+#'   [lognormal()], [stats::Gamma()] with `link = "log"`,
+#'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
+#'   [beta_binomial()], [cumulative_logit()],
 #'   [stats::poisson()] with `link = "log"`, [nbinom2()],
 #'   [truncated_nbinom2()], or [biv_gaussian()]. Adding
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
@@ -152,6 +154,12 @@ drmTMB <- function(
       weights = weights_full
     ),
     gamma = drm_build_gamma_ls_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full
+    ),
+    tweedie = drm_build_tweedie_ls_spec(
       formula,
       data,
       env = formula_env,
@@ -434,6 +442,9 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "nbinom2")) {
     return("nbinom2")
   }
+  if (inherits(family, "drm_family") && identical(family$name, "tweedie")) {
+    return("tweedie")
+  }
   if (
     inherits(family, "drm_family") &&
       identical(family$name, "truncated_nbinom2")
@@ -489,7 +500,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -1451,6 +1462,212 @@ drm_build_gamma_ls_spec <- function(
     start = gamma_ls_start(y, X_mu, X_sigma, re_mu = re_mu),
     map = gamma_ls_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_tweedie_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "nu"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn tweedie} models only support {.code mu}, {.code sigma}, and intercept-only {.code nu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn tweedie} models.",
+      "i" = "Start with fixed-effect Tweedie formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ 1)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A {.fn tweedie} model requires exactly one location formula."
+    )
+  }
+  for (optional in c("sigma", "nu")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "A {.fn tweedie} model can have at most one {.code {optional}} formula."
+      )
+    }
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+  nu_entry <- if (any(dpars == "nu")) {
+    entries[[which(dpars == "nu")]]
+  } else {
+    default_dpar_entry("nu", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "{.fn tweedie} models currently support one non-negative response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn tweedie} models require a single non-negative response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} belongs to denominator-aware count or proportion families."
+    ))
+  }
+  if (!is.na(nu_entry$response)) {
+    cli::cli_abort(
+      "The {.code nu} formula must be one-sided, for example {.code nu ~ 1}."
+    )
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} is not implemented for {.fn tweedie} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_tweedie_random_terms(mu_re$terms, "mu")
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_tweedie_random_terms(sigma_re$terms, "sigma")
+  nu_re <- extract_random_mu_terms(nu_entry$rhs, "nu")
+  nu_entry$rhs <- nu_re$rhs
+  validate_tweedie_random_terms(nu_re$terms, "nu")
+
+  for (entry in list(mu_entry, sigma_entry, nu_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_nu <- stats::model.frame(
+    f_nu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  if (!is.null(dim(y))) {
+    cli::cli_abort(
+      "{.fn tweedie} models require a single non-negative response."
+    )
+  }
+  if (!all(is.finite(y)) || any(y < 0)) {
+    cli::cli_abort(c(
+      "{.fn tweedie} models require non-negative finite response values.",
+      "x" = "The response {.val {mu_entry$response}} contains negative or non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+
+  if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
+    cli::cli_abort("Internal model-frame mismatch in Tweedie model.")
+  }
+  if (
+    ncol(X_nu) != 1L ||
+      !identical(colnames(X_nu), "(Intercept)")
+  ) {
+    cli::cli_abort(c(
+      "{.fn tweedie} currently supports only intercept-only {.code nu ~ 1}.",
+      "i" = "Predictor-dependent Tweedie power models are deferred until fixed-effect {.code mu}, {.code sigma}, and constant {.code nu} recovery is stable."
+    ))
+  }
+
+  spec <- list(
+    model_type = "tweedie",
+    y = as.numeric(y),
+    weights = weights_model,
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma, nu = X_nu),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma),
+      nu = stats::terms(mf_nu)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(
+      mu = empty_sd_mu_structure(0L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma", "nu"),
+    start = tweedie_ls_start(y, X_mu, X_sigma, X_nu),
+    map = tweedie_ls_map(),
+    random_names = NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -4026,6 +4243,19 @@ validate_positive_continuous_sigma_random_terms <- function(
     "Non-Gaussian {.code sigma} random effects are not implemented for {family_label}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary positive-continuous {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
+  ))
+}
+
+validate_tweedie_random_terms <- function(terms, dpar) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "{.fn tweedie} random effects are not implemented in this first fixed-effect slice.",
+    "x" = "The {.code {dpar}} formula contains unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "Use fixed-effect formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ 1)}.",
+    "i" = "Tweedie random effects need their own likelihood, extractor, diagnostic, and simulation-recovery evidence."
   ))
 }
 
@@ -9676,6 +9906,66 @@ gamma_ls_start <- function(
   )
 }
 
+tweedie_ls_start <- function(y, X_mu, X_sigma, X_nu) {
+  y_positive <- y[y > 0]
+  zero_floor <- if (length(y_positive) > 0L) {
+    max(min(y_positive) * 0.5, .Machine$double.eps)
+  } else {
+    0.1
+  }
+  log_y <- log(pmax(y, zero_floor))
+  beta_mu <- tryCatch(
+    stats::lm.fit(X_mu, log_y)$coefficients,
+    error = function(e) rep(0, ncol(X_mu))
+  )
+  beta_mu[!is.finite(beta_mu)] <- 0
+  eta_mu <- as.vector(X_mu %*% beta_mu)
+  mu <- exp(eta_mu)
+  nu0 <- 1.5
+  phi0 <- stats::var(y) / mean(pmax(mu, .Machine$double.eps)^nu0)
+  if (!is.finite(phi0) || phi0 <= 0) {
+    phi0 <- 0.5
+  }
+  sigma0 <- sqrt(min(max(phi0, 1e-4), 9))
+  beta_sigma <- numeric(ncol(X_sigma))
+  beta_sigma[[1L]] <- log(max(sigma0, 1e-4))
+  beta_nu <- numeric(ncol(X_nu))
+  beta_nu[[1L]] <- stats::qlogis(nu0 - 1)
+  c(
+    list(
+      beta_mu = beta_mu,
+      beta_sigma = beta_sigma,
+      beta_nu = beta_nu
+    ),
+    list(
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      eta_cor_mu_sigma = 0,
+      eta_cor_sigma = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0,
+      eta_cor_phylo = 0
+    )
+  )
+}
+
+tweedie_ls_map <- function() {
+  out <- gaussian_ls_map()
+  out$beta_nu <- NULL
+  out
+}
+
 cumulative_logit_start <- function(y, X_mu, n_categories) {
   beta_mu <- rep(0, ncol(X_mu))
   names(beta_mu) <- colnames(X_mu)
@@ -10673,6 +10963,64 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "tweedie")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
+    return(list(
+      model_type = 16L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = spec$X$nu,
+      X_zi = dummy_matrix,
+      X_sd_mu = sd_mu$X,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = re_mu$n_terms,
+      n_mu_re_cors = 0L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "beta")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
@@ -11422,6 +11770,7 @@ split_tmb_parameters <- function(par, spec) {
       identical(spec$model_type, "student") ||
       identical(spec$model_type, "lognormal") ||
       identical(spec$model_type, "gamma") ||
+      identical(spec$model_type, "tweedie") ||
       identical(spec$model_type, "beta") ||
       identical(spec$model_type, "beta_binomial") ||
       identical(spec$model_type, "nbinom2") ||
@@ -11432,7 +11781,10 @@ split_tmb_parameters <- function(par, spec) {
     names(beta_mu) <- colnames(spec$X$mu)
     names(beta_sigma) <- colnames(spec$X$sigma)
     out <- list(mu = beta_mu, sigma = beta_sigma)
-    if (identical(spec$model_type, "student")) {
+    if (
+      identical(spec$model_type, "student") ||
+        identical(spec$model_type, "tweedie")
+    ) {
       beta_nu <- unname(par$beta_nu)
       names(beta_nu) <- colnames(spec$X$nu)
       out$nu <- beta_nu
@@ -11562,6 +11914,7 @@ split_tmb_sdpars <- function(par, spec) {
         "student",
         "lognormal",
         "gamma",
+        "tweedie",
         "beta",
         "beta_binomial",
         "poisson",
@@ -11842,6 +12195,7 @@ split_tmb_random_effects <- function(par, spec) {
         "student",
         "lognormal",
         "gamma",
+        "tweedie",
         "beta",
         "beta_binomial",
         "poisson",

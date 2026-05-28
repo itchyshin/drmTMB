@@ -16,10 +16,11 @@ drmTMB(
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"}, \code{\link[=beta]{beta()}},
-\code{\link[=zero_one_beta]{zero_one_beta()}}, \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
-\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
+\code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
+\code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -50,6 +51,7 @@ A \code{drmTMB} fit object.
 supports univariate Gaussian location-scale models,
 univariate Student-t location-scale-shape models, lognormal
 location-scale models, Gamma mean-CV models for positive responses,
+Tweedie mean-scale-power models for non-negative semicontinuous responses,
 beta mean-scale models for strict proportions,
 zero-one beta mean-scale-boundary models for continuous proportions with
 structural exact zeroes or ones,

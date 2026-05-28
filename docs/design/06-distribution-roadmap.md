@@ -168,14 +168,13 @@ Useful for body size, biomass, time, concentration, and rates.
   `log(mu)`, `log(sigma)`, `E[y] = mu`, and `Var[y] = mu^2 sigma^2`.
   Ordinary unlabelled `mu` random intercepts are implemented; `sigma` random
   effects, structured effects, and bivariate extensions are later phases.
-- `tweedie()`: future non-negative semicontinuous response for biomass, cover,
-  CPUE-like indices, and other eco-evo measurements with exact zeros plus
-  positive continuous values. The likely variance contract is
-  `Var[y] = phi * mu^nu` with `1 < nu < 2`. The current working
-  recommendation is public `sigma = sqrt(phi)`, so the drmTMB-facing variance
-  expression would be `Var[y] = sigma^2 * mu^nu`, with comparator tests
-  explicitly transforming `sigma^2` back to software that reports Tweedie
-  dispersion `phi`.
+- `tweedie()`: implemented first fixed-effect route for non-negative
+  semicontinuous responses such as biomass, cover, CPUE-like indices, and
+  other eco-evo measurements with exact zeros plus positive continuous values.
+  The first route uses `log(mu)`, `log(sigma)`, intercept-only `nu ~ 1`,
+  `phi = sigma^2`, `1 < nu < 2`, and
+  `Var[y] = sigma^2 * mu^nu`. Comparator tests should explicitly transform
+  `sigma^2` back to software that reports Tweedie dispersion `phi`.
   [glmmTMB's family documentation](https://glmmtmb.github.io/glmmTMB/reference/nbinom2.html)
   is the first comparator source because it already exposes
   `tweedie(link = "log")` and treats the power parameter as a family-specific

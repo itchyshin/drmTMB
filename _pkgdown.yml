@@ -104,6 +104,7 @@ reference:
       - cumulative_logit
       - student
       - lognormal
+      - tweedie
       - nbinom2
       - truncated_nbinom2
       - biv_gaussian

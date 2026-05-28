@@ -6,10 +6,12 @@ Tweedie models belong on the future real-data wish list because eco-evo datasets
 often include exact zeros and positive continuous measurements in the same
 response: biomass, percent cover, catch-per-unit-effort indices, activity
 indices, and similar field summaries. This note records what must be decided
-before `drmTMB` adds a `tweedie()` family.
+before `drmTMB` grows the `tweedie()` family beyond the first fixed-effect
+slice.
 
-This is a design gate, not an implementation note. `drmTMB` does not currently
-fit Tweedie models.
+This was originally a design gate. `drmTMB` now fits the first univariate
+fixed-effect Tweedie slice with `mu`, `sigma`, and intercept-only `nu`; the
+deferred gates below remain design-only.
 
 ## First User Story
 
@@ -31,8 +33,8 @@ The intended interpretation would be:
   public mapping;
 - `nu`: the Tweedie power parameter constrained to `1 < nu < 2`.
 
-The `nu ~ 1` formula in this user story is future syntax. It should not appear
-in examples as runnable code until the family is implemented and tested.
+The `nu ~ 1` formula in this user story is implemented for the first fixed-
+effect slice. Predictor-dependent `nu ~ predictors` remains future syntax.
 
 ## Candidate Statistical Contract
 
@@ -44,15 +46,15 @@ Var[y_i] = phi_i * mu_i^nu_i
 1 < nu_i < 2
 ```
 
-The unresolved public-interface decision is how `sigma` maps to `phi`.
+The public-interface decision for the first implementation is that `sigma`
+maps to `sqrt(phi)`.
 
 | Option | Public meaning | Variance expression | Trade-off |
 | --- | --- | --- | --- |
 | `sigma = phi` | dispersion | `Var[y] = sigma * mu^nu` | closest to software that names the Tweedie dispersion directly, but `sigma` is no longer standard-deviation-like. |
 | `sigma = sqrt(phi)` | scale | `Var[y] = sigma^2 * mu^nu` | closer to existing `drmTMB` scale language, but comparator tests need an explicit square-root transform. |
 
-The current working recommendation is `sigma = sqrt(phi)`, pending owner
-confirmation before likelihood code lands. That gives:
+The implemented first-slice contract is `sigma = sqrt(phi)`. That gives:
 
 ```text
 Var[y_i] = sigma_i^2 * mu_i^nu_i
@@ -63,10 +65,9 @@ residual variation, and exponentiated scale coefficients remain multiplicative
 scale ratios. Comparator tests against software that reports Tweedie dispersion
 `phi` should compare `sigma^2` with `phi` and name that transform explicitly.
 
-Do not write comparator tests or user-facing runnable examples until this
-mapping is confirmed. The design should prefer the mapping that gives applied
-users the clearest interpretation while keeping `sigma` consistent with the
-rest of `drmTMB`.
+Comparator tests and user-facing examples should name this mapping explicitly.
+The design prefers the mapping that gives applied users the clearest
+interpretation while keeping `sigma` consistent with the rest of `drmTMB`.
 
 ## Comparator Sources
 
@@ -87,25 +88,26 @@ Comparator tests should check:
 
 ## Implementation Gates
 
-The first implementation should be fixed-effect, univariate, and non-spatial:
+The first implementation is fixed-effect, univariate, and non-spatial:
 
 - log-linked `mu`;
 - fixed-effect `sigma`;
-- intercept-only `nu ~ 1` first, with predictor-dependent `nu` deferred until
+- intercept-only `nu ~ 1`, with predictor-dependent `nu` deferred until
   the mean, scale, zero-mass, and power trade-offs are better understood;
 - no random effects in `sigma` or `nu`;
 - no bivariate Tweedie, no `rho12`, no `meta_V(V = V)`, and no
   phylogenetic or spatial structured effects in the first slice.
 
-Before code lands, add:
+The first implementation lands with:
 
 - density equations in `docs/design/03-likelihoods.md`;
 - family registry entry with the chosen `sigma` mapping;
 - simulation tests with known parameter recovery;
-- comparator tests against glmmTMB on the documented scale;
 - malformed-input tests for negative responses and unsupported formula terms;
-- provenance notes in `inst/COPYRIGHTS` if any implementation is ported from
-  another package.
+
+Comparator tests against glmmTMB on the documented scale remain a follow-up.
+Provenance notes in `inst/COPYRIGHTS` are required if any future
+implementation code is ported from another package.
 
 ## Open Questions
 

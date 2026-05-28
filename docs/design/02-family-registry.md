@@ -59,6 +59,7 @@ and recovery evidence.
 | `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed effects plus ordinary unlabelled `mu` random intercepts. Student-t random slopes, labelled covariance, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-scale-boundary.R`; random-intercept recovery and shape-boundary tests. |
 | `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts. Lognormal random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
 | `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts; non-log Gamma links remain unsupported. Gamma random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
+| `tweedie()` | `mu` log; `sigma` log; `nu` logit12 | `nu = 1 + plogis(eta_nu)` is the Tweedie power; internal dispersion is `phi = sigma^2` | Fixed-effect univariate models only, with intercept-only `nu ~ 1`. Tweedie random effects, predictor-dependent `nu`, labelled covariance, `sd(group)`, `meta_V(V = V)`, structured effects, bivariate Tweedie, mixed-response models, zero-inflation aliases, and hurdle aliases remain planned. | `tests/testthat/test-tweedie-location-scale.R`; `tests/testthat/test-family-link-contract.R`; high-zero and low-zero recovery, support-boundary, fitted-response, simulation, and malformed-neighbour tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts for strict `(0, 1)` responses. Beta random slopes, labelled covariance, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
 | `zero_one_beta()` | `mu` logit; `sigma` log; `zoi` logit; `coi` logit | no public `nu`; interior precision is `phi = 1 / sigma^2`; `zoi`/`coi` describe exact-boundary mass | Fixed effects only for continuous `[0, 1]` responses with exact structural zeroes or ones. Zero-one random effects, labelled covariance, `sigma` random effects, structured effects, known covariance, denominator syntax, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-zero-one-beta.R`; `tests/testthat/test-family-link-contract.R`; `tests/testthat/test-phase18-zero-one-beta-fixed-effect.R`; independent mixture-likelihood, recovery, fitted-response, simulation, one-sided-boundary, malformed-neighbour, and Phase 18 artifact-helper tests. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed effects plus ordinary unlabelled `mu` random intercepts for two-column `cbind(successes, failures)` responses. Beta-binomial random slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
@@ -78,9 +79,9 @@ likelihood, no recovery tests, no prediction contract, and no random-effect
 allowance yet. User-facing examples may show planned syntax only when they
 also say "not fitted yet" and give a fitted fallback, such as Gaussian
 location-scale regression or the implemented fixed-effect `student()` route.
-A future Tweedie row likewise needs a final public `sigma` versus
-comparator-`phi` decision before tests or documentation can claim a fitted
-family.
+The first Tweedie row now uses public `sigma = sqrt(phi)`; comparator tests
+against software that reports Tweedie dispersion `phi` must name the square
+transform explicitly.
 
 ## Distributional Parameter Naming
 
@@ -104,14 +105,11 @@ family, `nu` can be the skewness/shape parameter. In a Student-t-like family,
 preferred direction is `mu`, `sigma`, `nu`, and `tau`, with documentation
 explaining which shape controls asymmetry and which controls tails.
 
-For a future Tweedie family, `nu` should be considered for the power parameter
-constrained between 1 and 2, while `sigma` should stay the public scale or
-dispersion parameter only after a design note fixes the final mapping. The
-current working recommendation is `sigma = sqrt(phi)`, so Tweedie variance
-would be reported to users as `Var[y] = sigma^2 * mu^nu` while comparator tests
-against software that reports Tweedie `phi` would square public `sigma`
-explicitly. Do not add comparator tests against related software until that
-scale convention is confirmed.
+For the implemented Tweedie family, `nu` is the power parameter constrained
+between 1 and 2. `sigma` is the public scale with internal dispersion
+`phi = sigma^2`, so Tweedie variance is reported to users as
+`Var[y] = sigma^2 * mu^nu`. Comparator tests against software that reports
+Tweedie `phi` should square public `sigma` explicitly.
 
 Human-readable aliases such as `skew` or `df` can be considered later, but the
 canonical internal and documented names should stay consistent unless there is a

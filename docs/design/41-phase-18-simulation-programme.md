@@ -24,7 +24,7 @@ DGP file, an opt-in stress cell, or a failure-ledger row.
 
 | Scenario lane | Phase 18 role after Slice 291 gate | First design action | Failure-ledger boundary |
 | --- | --- | --- | --- |
-| Continuous location-scale | Admitted for Gaussian location-scale first; fixed-effect lognormal, Gamma, and Student-t have family-specific estimands and artifact lanes; lognormal, Gamma, and Student-t ordinary `mu` random intercepts have separate artifact lanes | `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first ADEMP sheet; `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md` records the fixed-effect lognormal/Gamma artifact lane; `docs/design/118-phase-18-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md` records the lognormal/Gamma ordinary `mu` random-intercept lane; `docs/design/119-phase-18-student-mu-random-intercept-artifacts-slices-1379-1388.md` records the Student-t ordinary `mu` random-intercept lane | Do not claim positive-continuous or Student-t random slopes, `sigma` random effects, shape/skewness random effects, phylogenetic shape, generalized Gamma, Tweedie, or latent ID-level skewness |
+| Continuous location-scale | Admitted for Gaussian location-scale first; fixed-effect lognormal, Gamma, Tweedie, and Student-t have family-specific estimands and artifact lanes; lognormal, Gamma, and Student-t ordinary `mu` random intercepts have separate artifact lanes | `docs/design/47-phase-18-gaussian-location-scale-ademp.md` is the first ADEMP sheet; `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md` records the fixed-effect lognormal/Gamma artifact lane; `docs/design/118-phase-18-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md` records the lognormal/Gamma ordinary `mu` random-intercept lane; `docs/design/119-phase-18-student-mu-random-intercept-artifacts-slices-1379-1388.md` records the Student-t ordinary `mu` random-intercept lane; `tests/testthat/test-tweedie-location-scale.R` records the first focused Tweedie fixed-effect recovery checks | Do not claim positive-continuous or Student-t random slopes, `sigma` random effects beyond fitted Gaussian/NB2 gates, shape/skewness random effects, phylogenetic shape, generalized Gamma, Tweedie extensions beyond fixed-effect intercept-only power, or latent ID-level skewness |
 | Proportion and bounded responses | Admitted for fixed-effect beta, beta-binomial, and zero-one beta artifact lanes; beta and beta-binomial ordinary `mu` random intercepts have an artifact lane | `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` records the fixed-effect beta/beta-binomial ADEMP sheet; `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md` records the beta/beta-binomial DGP/smoke/grid artifact lane; `docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md` records the fixed-effect zero-one beta design gate; `docs/design/115-phase-18-zero-one-beta-fixed-effect-artifacts-slices-1339-1348.md` records the zero-one beta DGP/smoke/grid artifact lane; `docs/design/117-phase-18-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md` records the beta/beta-binomial ordinary `mu` random-intercept lane | Keep zero-one beta random effects, one-inflation random effects, bounded-response random slopes, bounded-response `sigma` random effects, and bounded-response `meta_V(V = V)` in the failure ledger |
 | Counts | Admitted for fixed-effect count families, ordinary non-zero-inflated Poisson/NB2 `mu` random effects, ordinary zero-truncated NB2 `mu` random intercepts, and the first ordinary NB2 log-`sigma` random intercept; ordinary Poisson/NB2 q=1 phylogenetic `mu` routes are fitted but still smoke/formal-admission lanes | `docs/design/49-phase-18-count-mu-random-effect-ademp.md` records the paired Poisson/NB2 `mu` random-effect ADEMP sheet; `docs/design/120-phase-18-truncated-nbinom2-mu-random-intercept-artifacts-slices-1389-1398.md` records the zero-truncated NB2 ordinary `mu` random-intercept artifact lane; `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md`, `phase18_run_nbinom2_sigma_re_smoke()`, and `phase18_write_nbinom2_sigma_re_grid_outputs()` exercise the NB2 log-`sigma` random-intercept grid; `phase18_run_poisson_phylo_q1_smoke()`, `phase18_write_poisson_phylo_q1_grid_outputs()`, optional direct `log_sd_phylo` profile artifacts, formal-grid QA helpers, and the manual `poisson_phylo_q1_formal` Actions task exercise the Poisson phylogenetic q1 gate; `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md`, `phase18_run_nbinom2_phylo_q1_smoke()`, `phase18_write_nbinom2_phylo_q1_grid_outputs()`, the grouped-comparator row, formal-grid QA helpers, and the manual `nbinom2_phylo_q1_formal` Actions task exercise the overdispersion-aware NB2 q1 gate; `docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md` closes Slice C as a count inventory and validation lane | Keep zero-inflated/hurdle random effects, zero-truncated NB2 random slopes, correlated count slopes, NB2 `sigma` slopes, NB2 `sigma` phylogeny, spatial/animal/`relmat()` count effects, count-side structured slopes, COM-Poisson, and generalized Poisson out until a separate Slice D decision opens them |
 | Ordinal | Admitted only for fixed-effect `cumulative_logit()` location models | `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` records the fixed-effect ordinal ADEMP sheet; `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md` records the DGP/smoke/grid artifact lane | Keep ordinal random effects, scale/discrimination formulas, bivariate ordinal, and mixed-response ordinal models out |
@@ -879,8 +879,33 @@ errors, and elapsed time by surface before the raw manifest.
 172. Slices 1409-1418 run the first two-team pilot under that protocol. Team A
      adds the Tweedie scale-mapping preflight note in
      `docs/design/122-tweedie-scale-preflight.md`, keeping Tweedie
-     fixed-effect-only and future until a family helper, R builder, TMB branch,
-     methods, tests, and documentation land together. Team B hardens the
+     fixed-effect-only until a family helper, R builder, TMB branch,
+     methods, tests, and documentation land together. That first fixed-effect
+     lane is now fitted; Team B hardens the
      already-fitted zero-truncated NB2 ordinary `mu` random-intercept lane with
      factor/missing-row and malformed-neighbour tests, without widening the
      fitted count surface.
+173. Slices 1419-1518 add the first fitted `tweedie()` route for univariate
+     fixed-effect semicontinuous responses with exact zeros. The fitted syntax
+     is `bf(y ~ x, sigma ~ z, nu ~ 1)`, with public `sigma = sqrt(phi)` and
+     intercept-only `nu`; predictor-dependent power, random effects,
+     structured effects, bivariate or mixed-response Tweedie, zero-inflation
+     aliases, and hurdle aliases stay outside the fitted claim.
+174. Slices 1519-1538 add the skew-normal source map as a design-only gate.
+     The note records comparator packages, native-versus-moment
+     parameterization choices, local papers, unsupported neighbours, and
+     first implementation tests without adding `skew_normal()` or changing
+     shared family constructors.
+175. Slices 1619-1668 are the next Team A Tweedie evidence-hardening lane in
+     `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`. The lane
+     should decide the PR boundary, add or design the `glmmTMB::tweedie()`
+     comparator contract, compare public `sigma^2` to comparator dispersion
+     `phi`, keep `fitted()` as the unconditional mean, and stop before
+     predictor-dependent `nu`, random effects, structured effects, bivariate
+     Tweedie, zero-inflation aliases, or hurdle aliases.
+176. Slices 1669-1718 are the next Team B skew-normal decision gate in
+     `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`. The lane
+     should choose and document the native-versus-moment parameterization,
+     define `fitted()`, `sigma()`, `predict(dpar = "nu")`, normal-limit,
+     sign-convention, comparator, simulation, interval-status, and diagnostic
+     tests, and stop before adding `skew_normal()` or any C++ likelihood code.
