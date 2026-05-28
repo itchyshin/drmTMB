@@ -490,17 +490,19 @@ Current pilot files:
   first-wave runner.
 - `run/sim_run_actions_cell.R` is the GitHub Actions entrypoint for manual
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
-  interval-heavy task, the standalone fixed-effect proportion,
-  bounded-response `mu` random-intercept, positive-continuous fixed-effect,
-  positive-continuous `mu` random-intercept, ordinal, and zero-one beta tasks,
-  or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid tasks. It writes
-  an RDS result beside the task artifact tables and caps requested replicate
-  or bootstrap workers at 10 before dispatch. The workflow never uses both
-  replicate-layer multicore and bootstrap-layer multicore at the same time.
-  The phylogenetic formal tasks and standalone family tasks are manual-only
-  and are excluded from `task = "all"` by the workflow matrix. Formal tasks
-  also accept one-based `condition_shard` and `condition_shards` inputs so the
-  288-cell formal tables can be split across multiple Actions runs.
+  interval-heavy task, standalone zero-truncated NB2 `mu` random-intercept,
+  fixed-effect proportion, bounded-response `mu` random-intercept,
+  positive-continuous fixed-effect, fixed-effect Tweedie,
+  positive-continuous `mu` random-intercept, Student-t `mu` random-intercept,
+  ordinal, and zero-one beta tasks, or the opt-in Poisson and NB2
+  phylogenetic q=1 formal-grid tasks. It writes an RDS result beside the task
+  artifact tables and caps requested replicate or bootstrap workers at 10
+  before dispatch. The workflow never uses both replicate-layer multicore and
+  bootstrap-layer multicore at the same time. The phylogenetic formal tasks
+  and standalone family tasks are manual-only and are excluded from
+  `task = "all"` by the workflow matrix. Formal tasks also accept one-based
+  `condition_shard` and `condition_shards` inputs so the 288-cell formal
+  tables can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
