@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Comparator And Support-Boundary Decisions
+
+Goal:
+
+- Record the next Team A decisions for Tweedie weighting and offset/exposure
+  scope before adding more comparator cells.
+- Record the next Team B decisions for skew-normal support/missingness and
+  rank-deficiency handling before source-level density tests.
+
+Implemented:
+
+- Added
+  `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md`.
+- Updated
+  `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and `ROADMAP.md`.
+
+Validation:
+
+```sh
+air format docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-comparator-boundary-decisions.md
+rg -n "1631|1632|1685|1686|finite continuous|rank-deficiency|Tweedie weights|Tweedie offsets" docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- The positive evidence scan found the new slice IDs and boundary wording.
+- `pkgdown::check_pkgdown()` reported no problems, and `git diff --check` was
+  clean.
+
+Member-group review:
+
+- Ada kept this as a design-only branch after PR #350 merged.
+- Fisher kept weighted Tweedie comparison out of the optional `glmmTMB`
+  comparator until the packages' weighting semantics are named precisely.
+- Boole kept offset syntax aligned with the formula grammar: currently count
+  `mu` exposure syntax, not Tweedie.
+- Noether and Gauss kept the skew-normal support decision tied to the future
+  density and transform tests.
+- Rose recorded no fitted-surface expansion.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-comparator-boundary-decisions.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Semantics And Skew-Normal No-Fit Boundary
 
 Goal:

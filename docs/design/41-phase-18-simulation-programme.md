@@ -938,3 +938,14 @@ errors, and elapsed time by surface before the raw manifest.
      response-scale `nu` in `(1, 2)` inside both zero-regime cells. The
      skew-normal boundary test now reads the first-test contract while still
      requiring `skew_normal()` to be absent.
+181. Slices 1631-1632 and 1685-1686 add comparator and support-boundary
+     decisions in
+     `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md`.
+     Tweedie weights remain top-level row log-likelihood multipliers, but a
+     weighted external comparator waits for a dedicated weighting-semantics
+     check. Tweedie offsets stay outside the first comparator pass because
+     offset syntax is currently implemented only for count-family `mu`
+     exposure models. The future skew-normal lane should validate finite
+     continuous responses after model-frame filtering and should use shared
+     fixed-effect rank handling unless density tests expose a family-specific
+     issue.
