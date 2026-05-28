@@ -2,6 +2,75 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Two-Team 1 PM Audit
+
+Goal:
+
+- Audit whether the Phase 18 two-team run met the 1:00 PM MDT goal: Team A
+  Tweedie comparator hardening, Team B skew-normal parameterization decision
+  gates, and branch recoverability through check-log, after-task, validation,
+  and checkpoint evidence.
+
+Implemented:
+
+- Added
+  `docs/dev-log/after-task/2026-05-28-phase18-two-team-1pm-audit.md`.
+- Confirmed the branch had already reached the intended hardening scope:
+  Tweedie comparator/weight/simulation-shape evidence and skew-normal
+  parameterization/gate/density-fixture evidence are present.
+- Recorded that the audit began after the target window at 13:21 MDT, so the
+  audit checks the achieved branch state rather than extending the original
+  run window.
+- Created the local recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-05-28-132412-codex-checkpoint.md`;
+  the checkpoint directory is ignored by `.gitignore`, so this tracked entry
+  is the durable pointer.
+
+Validation:
+
+```sh
+pwd && date && git status --short --branch
+git log --oneline --decorate --max-count=18
+ls -lt docs/dev-log/after-task | head -30
+find docs/dev-log/recovery-checkpoints -type f -maxdepth 1 -print | sort | tail -20
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary|skew-normal-density-contract|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); stopifnot(!exists('skew_normal', envir = asNamespace('drmTMB'), inherits = FALSE)); cat('skew_normal constructor absent\n')"
+rg -n "skew_normal\\(" R src NAMESPACE man
+rg -n 'tweedie_fixed_effect.*(implemented|exists|ready|runnable)|Tweedie.*now has.*(DGP|runner|writer|grid)|Tweedie.*ready for.*coverage|manual `tweedie_fixed_effect`|phase18_(dgp|run|write)_tweedie|skew_normal.*(now fits|implemented|fitted|ready|exported)|skew-normal.*now fits|skew-normal.*implemented|skew-normal.*constructor|skew_normal\(' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+gh issue list --repo itchyshin/drmTMB --state all --search "Tweedie comparator skew-normal Phase 18" --limit 20 --json number,title,state,url,labels
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Focused Tweedie, skew-normal, and family-link tests passed.
+- The constructor-absence check printed `skew_normal constructor absent`.
+- The package-code support scan found no `skew_normal(` matches in `R`,
+  `src`, `NAMESPACE`, or `man`; `rg` exited 1 because there were no matches.
+- The broader stale-support scan returned only planned, future, or design-only
+  references, not a fitted-support claim.
+- The targeted GitHub issue search returned `[]`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean before the audit note was added.
+- The recovery checkpoint was written locally at
+  `docs/dev-log/recovery-checkpoints/2026-05-28-132412-codex-checkpoint.md`.
+
+Member-group review:
+
+- Ada treats the goal as achieved at the hardening and decision-gate scope,
+  not as a new fitted-surface claim.
+- Curie and Fisher accept the focused tests as comparator and boundary
+  evidence, not comprehensive operating-characteristic coverage.
+- Boole, Noether, and Gauss keep skew-normal as a source-level contract until
+  an implementation PR satisfies the named gates.
+- Grace accepts the validation pass; Rose accepts the checkpointed local
+  handoff plus tracked audit trail as recoverable.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-two-team-1pm-audit.md`
+
 ## 2026-05-28 -- Phase 18 Skew-Normal Density Contract Fixture
 
 Goal:
