@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Manual Actions Smoke Audit
+
+Goal:
+
+- Dispatch and audit the first manual GitHub Actions
+  `tweedie_fixed_effect` smoke artifact run after PR #363 merged.
+
+Actions run:
+
+- URL: `https://github.com/itchyshin/drmTMB/actions/runs/26608885245`
+- Task: `tweedie_fixed_effect`
+- Inputs: `n_reps = 2`, `cores = 2`, `backend = "multicore"`,
+  `bootstrap_nsim = 0`, `render_report = false`, `condition_shard = 1`,
+  `condition_shards = 1`.
+
+Artifact audit:
+
+- Downloaded artifact:
+  `phase18-tweedie_fixed_effect-shard-1-of-1-26608885245`.
+- Files present: `phase18-actions-result.rds`, 16 replicate RDS files, and the
+  six Tweedie table CSVs.
+- Table rows: aggregate 40, replicates 80, manifest 16, failures 0, Wald
+  intervals 80, Wald coverage 40.
+- Manifest status: 16 `ok` rows, 0 skipped rows, 0 warning rows.
+- Replicate status: all 80 coefficient rows had `converged = TRUE` and
+  `pdHess = TRUE`; warning count was 0.
+- The result object reported `surface = "tweedie_fixed_effect_grid"` and
+  `backend = "multicore"`, `requested_cores = 2`, `cores = 2`.
+
+Validation:
+
+```sh
+gh workflow run phase18-simulation-grid.yaml --ref main -f task=tweedie_fixed_effect -f n_reps=2 -f cores=2 -f backend=multicore -f bootstrap_nsim=0 -f bootstrap_cores=2 -f bootstrap_backend=none -f profile_parameters='' -f condition_shard=1 -f condition_shards=1 -f render_report=false -f retention_days=14
+gh run watch 26608885245 --interval 30
+gh run download 26608885245 --name phase18-tweedie_fixed_effect-shard-1-of-1-26608885245 --dir /tmp/drmTMB-phase18-tweedie-actions-26608885245
+find /tmp/drmTMB-phase18-tweedie-actions-26608885245 -maxdepth 4 -type f | sort
+Rscript --vanilla -e 'root <- "/tmp/drmTMB-phase18-tweedie-actions-26608885245"; read <- function(name) utils::read.csv(file.path(root, "tables", name)); aggregate <- read("tweedie-fe-aggregate.csv"); replicates <- read("tweedie-fe-replicates.csv"); coverage <- read("tweedie-fe-wald-coverage.csv"); intervals <- read("tweedie-fe-wald-intervals.csv"); failures <- read("tweedie-fe-failures.csv"); manifest <- read("tweedie-fe-manifest.csv"); print(data.frame(file = basename(list.files(file.path(root, "tables"), pattern = "[.]csv$", full.names = TRUE)), rows = vapply(list.files(file.path(root, "tables"), pattern = "[.]csv$", full.names = TRUE), function(p) nrow(utils::read.csv(p)), integer(1)), row.names = NULL)); print(table(manifest$status, useNA = "ifany")); print(nrow(failures)); print(table(replicates$converged, useNA = "ifany")); result <- readRDS(file.path(root, "phase18-actions-result.rds")); print(result$surface); print(result$summary$run$parallel)'
+Rscript --vanilla -e 'root <- "/tmp/drmTMB-phase18-tweedie-actions-26608885245"; rep <- utils::read.csv(file.path(root, "tables", "tweedie-fe-replicates.csv")); agg <- utils::read.csv(file.path(root, "tables", "tweedie-fe-aggregate.csv")); print(unique(rep[c("cell_id", "n", "zero_regime", "rho_xz", "target_zero_fraction", "sigma_baseline", "power")])); print(unique(agg[c("cell_id", "n_replicate", "convergence_rate", "pdHess_rate", "warning_rate")])); print(aggregate(observed_zero_fraction ~ cell_id + zero_regime + n + rho_xz, rep, mean))'
+air format ROADMAP.md docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-actions-smoke-audit.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'Tweedie.*ready for.*coverage|final coverage claim|coverage claim[^s]|predictor-dependent Tweedie `nu`.*(implemented|supported|admitted)|Tweedie random effects.*(implemented|supported|admitted)|bivariate Tweedie.*(implemented|supported|admitted)|zero-inflation alias.*(implemented|supported|admitted)|hurdle alias.*(implemented|supported|admitted)' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat .github/workflows --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+git diff --check
+```
+
+Results:
+
+- The workflow run completed successfully.
+- All unselected matrix rows skipped cleanly; only `tweedie_fixed_effect` ran
+  the setup, task, summary, and upload steps.
+- The downloaded artifact tables matched the expected 8-cell by 2-replicate
+  smoke layout.
+- The failure ledger was empty, and the manifest, convergence, Hessian, and
+  warning summaries were clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The boundary scan returned the intended new roadmap row plus older standing
+  coverage-boundary references, not an expanded Tweedie support claim.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to an operational audit, not another implementation slice.
+- Curie checked artifact row counts, manifest status, and replicate health.
+- Fisher kept the Wald coverage rows framed as two-replicate smoke output, not
+  operating-characteristics evidence.
+- Grace confirmed the Actions matrix skipped unselected tasks and uploaded the
+  expected artifact.
+- Rose recorded the evidence in the roadmap, design note, check log, and
+  after-task report.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-actions-smoke-audit.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Manual Actions Task
 
 Goal:
