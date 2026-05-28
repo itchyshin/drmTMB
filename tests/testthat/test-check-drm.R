@@ -843,7 +843,10 @@ test_that("check_drm() notes ordinary species covariance beside phylogenetic cov
     ),
     family = biv_gaussian(),
     data = dat,
-    control = list(eval.max = 400, iter.max = 400)
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 400, iter.max = 400)
+    )
   )
 
   stable <- fit

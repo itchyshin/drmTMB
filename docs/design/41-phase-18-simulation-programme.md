@@ -964,3 +964,11 @@ errors, and elapsed time by surface before the raw manifest.
      simulation-method invariant for the fitted fixed-effect lane, not
      evidence for predictor-dependent `nu`, random effects, structured
      effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases.
+184. Slices 1689-1702 add the skew-normal implementation gate in
+     `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md`.
+     The gate keeps `skew_normal()` planned, not fitted, while naming the
+     required density, normal-limit, sign-orientation, malformed-neighbour,
+     method, documentation, provenance, no-fit boundary, recovery,
+     false-positive, confounding, interval-status, diagnostic, runtime, DGP,
+     and summary checks for the first implementation PR. It does not add a
+     constructor, TMB branch, formula-grammar change, or user-facing example.

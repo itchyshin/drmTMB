@@ -35,4 +35,23 @@ test_that("skew-normal remains design-only until the likelihood lane opens", {
   expect_match(contract, "no `skew_normal\\(\\)` constructor is added")
   expect_match(contract, "no-C\\+\\+ admission criteria")
   expect_match(contract, "keeps `rho12` out", fixed = TRUE)
+
+  implementation_gate <- file.path(
+    testthat::test_path("..", ".."),
+    "docs",
+    "design",
+    "132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md"
+  )
+  testthat::skip_if_not(
+    file.exists(implementation_gate),
+    "skew-normal implementation-gate design doc is not installed during R CMD check"
+  )
+
+  gate <- paste(readLines(implementation_gate, warn = FALSE), collapse = "\n")
+  expect_match(gate, "Planned, not fitted yet", fixed = TRUE)
+  expect_match(gate, "does not\\s+implement `skew_normal\\(\\)`")
+  expect_match(gate, "constructor remains absent", fixed = TRUE)
+  expect_match(gate, "density tests", fixed = TRUE)
+  expect_match(gate, "normal-limit tests", fixed = TRUE)
+  expect_match(gate, "malformed-neighbour tests", fixed = TRUE)
 })
