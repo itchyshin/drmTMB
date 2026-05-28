@@ -476,12 +476,14 @@ Current pilot files:
   HTML from those staged CSVs.
 - `run/sim_run_first_wave_summary_smoke.R` executes the current Gaussian
   location-scale, `meta_V(V = V)`, paired Poisson/NB2 `mu` random-effect,
-  fixed-effect proportion, bounded-response `mu` random-intercept,
-  fixed-effect positive-continuous, positive-continuous `mu`
-  random-intercept, fixed-effect ordinal, ordinary Gaussian `mu` and `sigma`
-  random-slope, and coordinate-spatial Gaussian `mu` slope first-wave smoke
-  surfaces, stages the combined first-wave summary report, and records
-  requested versus actual worker counts.
+  zero-truncated NB2 `mu` random-intercept, fixed-effect proportion,
+  bounded-response `mu` random-intercept, fixed-effect positive-continuous,
+  fixed-effect Tweedie, positive-continuous `mu` random-intercept, Student-t
+  `mu` random-intercept, fixed-effect ordinal, fixed-effect zero-one beta,
+  ordinary Gaussian `mu` and `sigma` random-slope, and coordinate-spatial
+  Gaussian `mu` slope first-wave smoke surfaces, stages the combined
+  first-wave summary report, and records requested versus actual worker
+  counts.
 - `run/sim_run_interval_heavy_summary_smoke.R` executes the Student-t shape and
   bivariate residual `rho12` smoke surfaces as a separate interval-heavy report
   lane, keeping their Wald/profile/bootstrap artifacts out of the baseline

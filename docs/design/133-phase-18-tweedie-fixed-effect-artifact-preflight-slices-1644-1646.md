@@ -155,13 +155,13 @@ use unweighted fixed-effect rows.
 | 1646 | Done locally as sketch | The summariser sketch names replicate, aggregate, manifest, failure-ledger, Wald interval, and coverage fields. |
 | 1705-1708 | Done locally as first smoke implementation | `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R`, `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R`, `inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R`, `inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R`, and `tests/testthat/test-phase18-tweedie-fixed-effect.R` add the first DGP, summariser, smoke runner, summary reducer, resume check, and Wald artifact smoke test. |
 | 1709-1712 | Done locally as grid-writer implementation | `inst/sim/run/sim_write_tweedie_fixed_effect_grid.R` writes aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald coverage CSV artifacts, with overwrite checks and a focused grid-writer test. |
+| 1713-1716 | Done locally as first-wave summary wiring | `inst/sim/run/sim_run_first_wave_summary_smoke.R` now includes a two-cell low/high-zero `tweedie_fixed_effect` grid in the shared first-wave summary smoke runner, report bundle, return object, and parallel summary. |
 
 ## Next Implementation Gate
 
-The first DGP, summariser, smoke runner, and repeatable grid writer now exist.
-The next implementation slice should either wire `tweedie_fixed_effect` into
-the shared first-wave summary runner or add a manual Actions task, but only
-after the focused grid-writer tests remain green. The boundary is unchanged:
-univariate fixed-effect Tweedie, public `sigma = sqrt(phi)`, intercept-only
-`nu`, no offsets, no external weighted comparator, and no random, structured,
-or bivariate Tweedie support.
+The first DGP, summariser, smoke runner, repeatable grid writer, and shared
+first-wave summary wiring now exist. The next implementation slice can add a
+manual Actions dispatch task for `tweedie_fixed_effect`, but should keep the
+same boundary: univariate fixed-effect Tweedie, public `sigma = sqrt(phi)`,
+intercept-only `nu`, no offsets, no external weighted comparator, and no
+random, structured, or bivariate Tweedie support.

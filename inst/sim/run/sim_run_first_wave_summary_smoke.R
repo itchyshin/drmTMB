@@ -138,6 +138,19 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  tweedie_fixed_effect <- phase18_write_tweedie_fe_grid_outputs(
+    output_dir = file.path(output_dir, "tweedie-fe"),
+    conditions = phase18_tweedie_fe_conditions(
+      n = 260L,
+      zero_regime = c("low", "high"),
+      rho_xz = 0.20
+    ),
+    n_rep = as.integer(n_rep),
+    master_seed = as.integer(master_seed) + 15L,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
+  )
   positive_continuous_mu_random_intercept <-
     phase18_write_positive_continuous_mu_ri_grid_outputs(
       output_dir = file.path(output_dir, "positive-continuous-mu-ri"),
@@ -252,6 +265,7 @@ phase18_run_first_wave_summary_smoke <- function(
       proportion,
       bounded_response_mu_random_intercept,
       positive_continuous,
+      tweedie_fixed_effect,
       positive_continuous_mu_random_intercept,
       student_mu_random_intercept,
       ordinal,
@@ -273,6 +287,7 @@ phase18_run_first_wave_summary_smoke <- function(
     proportion = proportion,
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
+    tweedie_fixed_effect = tweedie_fixed_effect,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
     student_mu_random_intercept = student_mu_random_intercept,
     ordinal = ordinal,
@@ -304,6 +319,7 @@ phase18_run_first_wave_summary_smoke <- function(
     proportion = proportion,
     bounded_response_mu_random_intercept = bounded_response_mu_random_intercept,
     positive_continuous = positive_continuous,
+    tweedie_fixed_effect = tweedie_fixed_effect,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
     student_mu_random_intercept = student_mu_random_intercept,
     ordinal = ordinal,
@@ -361,6 +377,7 @@ phase18_first_wave_parallel_summary <- function(
   proportion,
   bounded_response_mu_random_intercept,
   positive_continuous,
+  tweedie_fixed_effect,
   positive_continuous_mu_random_intercept,
   student_mu_random_intercept,
   ordinal,
@@ -400,6 +417,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "positive_continuous_fixed_effect_grid",
         positive_continuous$summary$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "tweedie_fixed_effect_grid",
+        tweedie_fixed_effect$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "positive_continuous_mu_random_intercept_grid",
