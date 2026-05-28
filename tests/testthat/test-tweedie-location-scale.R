@@ -178,6 +178,14 @@ test_that("Tweedie fixed-effect fits agree with glmmTMB on overlapping scales", 
 
     expect_equal(fit$opt$convergence, 0)
     expect_equal(fit_glmmTMB$fit$convergence, 0)
+    expect_equal(fitted(fit), predict(fit, dpar = "mu"), tolerance = 1e-12)
+    expect_true(all(predict(fit, dpar = "nu") > 1))
+    expect_true(all(predict(fit, dpar = "nu") < 2))
+    expect_equal(
+      predict(fit, dpar = "nu"),
+      1 + stats::plogis(predict(fit, dpar = "nu", type = "link")),
+      tolerance = 1e-12
+    )
     expect_equal(
       unname(coef(fit, "mu")),
       unname(glmmTMB::fixef(fit_glmmTMB)$cond),

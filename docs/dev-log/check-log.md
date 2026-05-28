@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Semantics And Skew-Normal No-Fit Boundary
+
+Goal:
+
+- Finish the next Team A semantic assertions by checking `fitted()` and
+  response-scale `nu` inside the low-zero and high-zero Tweedie comparator
+  cells.
+- Finish the next Team B no-fit boundary by making the skew-normal boundary
+  test read the first-test contract while keeping `skew_normal()` absent.
+
+Implemented:
+
+- Updated `tests/testthat/test-tweedie-location-scale.R` so the optional
+  `glmmTMB` comparator loop also asserts `fitted(fit) == predict(..., dpar =
+  "mu")`, response-scale `nu` stays in `(1, 2)`, and response-scale `nu`
+  matches the inverse-link transform.
+- Updated `tests/testthat/test-skew-normal-boundary.R` so the design-only
+  boundary reads
+  `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`
+  and checks the planned label, absent constructor rule, no-C++ admission
+  criteria, and `rho12` exclusion.
+- Added
+  `docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md`
+  and synced `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and `ROADMAP.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-tweedie-location-scale.R tests/testthat/test-skew-normal-boundary.R docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-semantic-boundary-tests.md
+Rscript --vanilla -e "devtools::test(filter = '^(tweedie-location-scale|skew-normal-boundary)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused Tweedie location-scale and skew-normal-boundary tests passed.
+- `pkgdown::check_pkgdown()` reported no problems, and `git diff --check` was
+  clean.
+
+Member-group review:
+
+- Ada kept this as a narrow follow-on branch after PR #349 merged.
+- Curie and Fisher kept the new Tweedie assertions inside the already optional
+  comparator cells rather than opening a new surface.
+- Boole and Pat kept the skew-normal syntax planned-only.
+- Noether and Gauss checked that the test still preserves `mu`, `sigma`, and
+  `nu` semantics without adding a density branch.
+- Rose recorded that no `skew_normal()` constructor, C++ likelihood code,
+  bivariate skew-normal, or Tweedie `nu ~ x` support was added.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-semantic-boundary-tests.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Low/High-Zero Comparator And Skew-Normal Test Contract
 
 Goal:

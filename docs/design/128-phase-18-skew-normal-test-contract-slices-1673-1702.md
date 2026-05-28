@@ -146,4 +146,7 @@ Student-t sensitivity models until skew-normal support is actually admitted.
 | 1682 | Done | The no-C++ admission criteria forbid a constructor, `src/` edit, TMB family enum, switch branch, and density helper in this slice. |
 | 1683 | Done | The note keeps `rho12`, bivariate skew-normal, composed families, and mixed responses outside the first lane. |
 | 1684 | Done | The first implementation PR must add tests, documentation, and after-task evidence before user-facing support is claimed. |
-| 1685-1702 | Planned | The next implementation slice should turn this contract into source-level density tests, malformed-neighbour tests, extractor checks, and documentation before exposing `skew_normal()`. |
+| 1685-1686 | Planned | Support/missingness and rank-deficiency decisions still need source-level design before implementation. |
+| 1687 | Done | `tests/testthat/test-skew-normal-boundary.R` now reads this first-test contract as part of the no-fit boundary scan. |
+| 1688 | Done | The boundary test still requires `skew_normal()` to be absent from the namespace. |
+| 1689-1702 | Planned | The next implementation slice should turn this contract into source-level density tests, malformed-neighbour tests, extractor checks, and documentation before exposing `skew_normal()`. |
