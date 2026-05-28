@@ -987,3 +987,12 @@ errors, and elapsed time by surface before the raw manifest.
      one, the `nu = 0` Gaussian limit, and the public sign orientation before
      any `skew_normal()` constructor, TMB branch, formula-grammar change, or
      user-facing example exists.
+187. Slice 1704 adds a direct Tweedie density fixture in
+     `tests/testthat/helper-tweedie-density.R`. The focused
+     `test-tweedie-location-scale.R` suite now compares an intercept-only
+     fitted `tweedie()` log likelihood with the independent compound
+     Poisson-Gamma density, including exact-zero mass and positive-density
+     terms. This is likelihood-constant evidence only; it does not add a
+     Tweedie DGP, runner, grid writer, coverage table, predictor-dependent
+     `nu`, random effects, structured effects, bivariate Tweedie, or
+     zero-inflation/hurdle aliases.

@@ -219,6 +219,46 @@ test_that("Tweedie fixed-effect fits agree with glmmTMB on overlapping scales", 
   }
 })
 
+test_that("Tweedie log likelihood matches compound Poisson-Gamma density", {
+  dat <- data.frame(
+    y = c(0, 0.18, 0.62, 1.15, 2.40, 0, 3.20, 0.75)
+  )
+  fit <- drmTMB(
+    bf(y ~ 1, sigma ~ 1, nu ~ 1),
+    family = tweedie(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  mu <- fitted(fit)
+  phi <- sigma(fit)^2
+  power <- predict(fit, dpar = "nu")
+  log_density <- tweedie_compound_log_density_reference(
+    dat$y,
+    mu = mu,
+    phi = phi,
+    power = power
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(any(dat$y == 0))
+  expect_true(any(dat$y > 0))
+  expect_true(all(is.finite(log_density)))
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    sum(log_density),
+    tolerance = 1e-8
+  )
+
+  zero <- dat$y == 0
+  zero_params <- tweedie_compound_parameters_reference(
+    mu = mu[zero],
+    phi = phi[zero],
+    power = power[zero]
+  )
+  expect_equal(log_density[zero], -zero_params$lambda, tolerance = 1e-12)
+})
+
 test_that("Tweedie likelihood weights scale rows and match row duplication", {
   sim <- new_tweedie_data(n = 180, seed = 20260724)
   dat <- sim$data

@@ -797,7 +797,9 @@ The TMB branch evaluates `dtweedie(y_i, mu_i, phi_i, nu_i, true)`, which
 includes the Tweedie density normalizing terms. The first comparator remains
 `glmmTMB::tweedie(link = "log")`, which reports Tweedie dispersion `phi`;
 tests against that scale should compare `sigma_i^2` with `phi_i` and name the
-transform explicitly.
+transform explicitly. The focused test suite also compares an intercept-only
+fitted log likelihood with a test-only compound Poisson-Gamma density fixture,
+including exact-zero mass and positive-density terms.
 
 Implemented first-slice R syntax:
 
