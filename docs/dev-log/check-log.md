@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Artifact Preflight
+
+Goal:
+
+- Name the future `tweedie_fixed_effect` Phase 18 artifact schema before
+  adding DGP, summariser, runner, or grid-writer code.
+
+Implemented:
+
+- Added
+  `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md`
+  to record the fixed-effect Tweedie DGP sketch, estimands, replicate and
+  aggregate summary columns, manifest fields, failure-ledger fields, and
+  boundaries.
+- Updated `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`, and `ROADMAP.md` so
+  the Tweedie lane is listed as artifact-schema preflight only, not as a
+  runnable DGP, smoke runner, grid writer, or coverage grid.
+
+Validation:
+
+```sh
+air format docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-artifact-preflight.md
+rg -n "tweedie_fixed_effect|Tweedie fixed-effect artifact|Tweedie.*(runner|grid writer|coverage grid)|nu ~ x|Tweedie random|bivariate Tweedie|zero-inflation aliases|hurdle aliases" docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md ROADMAP.md
+rg -n 'tweedie_fixed_effect.*(implemented|exists|ready|runnable)|Tweedie.*now has.*(DGP|runner|writer|grid)|Tweedie.*ready for.*coverage|manual `tweedie_fixed_effect`|phase18_(dgp|run|write)_tweedie' docs/design ROADMAP.md
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- The boundary/status scan found only expected references to
+  `tweedie_fixed_effect`, the design preflight, and still-excluded
+  neighbours.
+- The false-support scan found no claims that a `tweedie_fixed_effect` DGP,
+  runner, writer, manual Actions task, or coverage grid is implemented.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this as a serial post-PR slice after the skew-normal gate merged.
+- Curie and Grace recommended a design-only artifact preflight before runner
+  code so future Tweedie grids have a declared schema.
+- Boole kept `nu ~ 1` as the only admitted Tweedie power route in this lane.
+- Rose kept unsupported neighbours explicit: no predictor-dependent `nu`,
+  random effects, structured effects, bivariate Tweedie, zero-inflation
+  aliases, hurdle aliases, offsets, or weighted external comparator.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-artifact-preflight.md`
+
 ## 2026-05-28 -- Phase 18 Skew-Normal Implementation Gate
 
 Goal:
