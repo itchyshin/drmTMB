@@ -964,7 +964,15 @@ errors, and elapsed time by surface before the raw manifest.
      simulation-method invariant for the fitted fixed-effect lane, not
      evidence for predictor-dependent `nu`, random effects, structured
      effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases.
-184. Slices 1689-1702 add the skew-normal implementation gate in
+184. Slices 1644-1646 add the fixed-effect Tweedie artifact-lane preflight in
+     `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md`.
+     The note names the future `tweedie_fixed_effect` DGP, estimands, summary
+     columns, manifest, and failure-ledger fields before any runner or grid
+     writer is added. It keeps the lane univariate, fixed-effect, unweighted,
+     and intercept-only for `nu`, excluding offsets, random effects,
+     structured effects, bivariate Tweedie, zero-inflation aliases, and hurdle
+     aliases.
+185. Slices 1689-1702 add the skew-normal implementation gate in
      `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md`.
      The gate keeps `skew_normal()` planned, not fitted, while naming the
      required density, normal-limit, sign-orientation, malformed-neighbour,
