@@ -153,15 +153,13 @@ use unweighted fixed-effect rows.
 | 1644 | Done locally as preflight | This note names the `tweedie_fixed_effect` artifact lane without adding runner code. |
 | 1645 | Done locally as sketch | The DGP sketch names `mu`, public `sigma`, intercept-only `nu`, zero fraction, sample size, and predictor correlation. |
 | 1646 | Done locally as sketch | The summariser sketch names replicate, aggregate, manifest, failure-ledger, Wald interval, and coverage fields. |
+| 1705-1708 | Done locally as first smoke implementation | `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R`, `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R`, `inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R`, `inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R`, and `tests/testthat/test-phase18-tweedie-fixed-effect.R` add the first DGP, summariser, smoke runner, summary reducer, resume check, and Wald artifact smoke test. |
 
 ## Next Implementation Gate
 
-The next implementation slice should add the DGP and summariser before adding a
-grid writer:
-
-- `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R`;
-- `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R`;
-- a focused `tests/testthat/test-phase18-tweedie-fixed-effect.R` test file.
-
-Only after those tests pass should `inst/sim/run/` gain a smoke runner or
-repeatable grid-output writer.
+The first DGP, summariser, and smoke runner now exist. The next implementation
+slice should add a repeatable grid-output writer only after the focused smoke
+runner remains green in the package test suite. The grid writer should keep the
+same boundary: univariate fixed-effect Tweedie, public `sigma = sqrt(phi)`,
+intercept-only `nu`, no offsets, no external weighted comparator, and no
+random, structured, or bivariate Tweedie support.

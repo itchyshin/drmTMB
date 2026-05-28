@@ -8,6 +8,20 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-28 - Single-Lane Duplicated Team
+
+- Improvement implemented: when two Phase 18 teams start causing repeated
+  crash or handoff friction, prefer one active lane in one thread and duplicate
+  reviewers inside that lane instead of opening a second branch or thread.
+- Improvement implemented: Ada still integrates serially, while Curie, Fisher,
+  Grace, Rose, Boole, Gauss, and Noether can split bounded checks inside the
+  same lane: DGP/test fixtures, estimands, validation, ledgers, syntax, scale
+  math, and likelihood boundaries.
+- Trigger: after the two-team Tweedie/skew-normal audit, the next safe job was
+  one `tweedie_fixed_effect` artifact implementation. Keeping one branch and
+  parallelizing reads, tests, and reviewer roles inside it reduced
+  recoverability overhead.
+
 ## 2026-05-27 - Parallel Phase 18 Lane Protocol
 
 - Improvement implemented: parallel distribution work should split lane-local

@@ -2,6 +2,76 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Tweedie Fixed-Effect Smoke Artifacts
+
+Goal:
+
+- Resume with one duplicated Team A lane and start the first runnable
+  `tweedie_fixed_effect` Phase 18 artifact implementation.
+
+Implemented:
+
+- Added `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R` for low- and high-zero
+  fixed-effect Tweedie data with public `sigma = sqrt(phi)` and intercept-only
+  `nu`.
+- Added `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R` to summarise
+  link-scale `mu`, public-`sigma`, and `nu` coefficients while carrying
+  response-scale power and observed-zero diagnostics.
+- Added `inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R` and
+  `inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R` for smoke-runner,
+  aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald
+  coverage artifacts.
+- Added `tests/testthat/test-phase18-tweedie-fixed-effect.R` for DGP,
+  smoke-summary, saved-result resume, and malformed-input checks.
+- Updated `inst/sim/README.md`,
+  `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, `ROADMAP.md`,
+  `docs/dev-log/team-improvements.md`, and this after-task report.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R inst/sim/fit/sim_summarise_tweedie_fixed_effect.R inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R tests/testthat/test-phase18-tweedie-fixed-effect.R
+Rscript --vanilla -e "devtools::test(filter = '^phase18-tweedie-fixed-effect$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-tweedie-fixed-effect|tweedie-location-scale|family-link-contract)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'manual `tweedie_fixed_effect`|phase18_write_tweedie|Tweedie.*ready for.*coverage|tweedie_fixed_effect.*coverage grid|tweedie_fixed_effect.*Actions|predictor-dependent Tweedie `nu`.*(implemented|supported|admitted)|Tweedie random effects.*(implemented|supported|admitted)|bivariate Tweedie.*(implemented|supported|admitted)|zero-inflation alias.*(implemented|supported|admitted)|hurdle alias.*(implemented|supported|admitted)' README.md NEWS.md ROADMAP.md docs/design inst/sim R src NAMESPACE man tests/testthat --glob '!docs/dev-log/**' --glob '!docs/reference/**' --glob '!docs/articles/**'
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- Focused `phase18-tweedie-fixed-effect` tests passed.
+- Combined Tweedie artifact, fitted Tweedie, and family-link focused tests
+  passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The false-claim scan returned only the intended new ROADMAP boundary row
+  saying no grid writer, Actions task, coverage grid, predictor-dependent
+  `nu`, random effects, structured effects, bivariate route, offset/exposure
+  route, zero-inflation alias, or hurdle alias was added.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to one active Team A lane and serial integration.
+- Curie checked the deterministic DGP, smoke runner, and resume test.
+- Fisher kept formula-scale coefficient summaries separate from response-scale
+  power diagnostics.
+- Boole, Gauss, and Noether kept syntax, public-scale `sigma`, and the
+  unchanged Tweedie likelihood contract aligned.
+- Grace ran the focused validation.
+- Rose recorded the process lesson: when two teams start causing handoff
+  friction, duplicate reviewer roles inside one lane before opening a second
+  branch or thread.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-tweedie-fixed-effect-smoke-artifacts.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Density Fixture
 
 Goal:
