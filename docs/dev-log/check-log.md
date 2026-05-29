@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Bootstrap Derived-Status Map
+
+Goal:
+
+- Keep direct `confint(method = "bootstrap")` support separate from derived
+  q4, repeatability, phylogenetic-signal, covariance-product, and non-`confint`
+  bootstrap claims.
+
+Actions run:
+
+- Started `codex/bootstrap-derived-status-map` from `origin/main` after PR
+  #384 merged.
+- Replaced the bootstrap dispatch's direct use of the Wald helper with an
+  explicit internal `bootstrap_supported_targets()` helper.
+- Added profile-target tests proving derived modelled `sd(group)` surfaces,
+  q4 unstructured-correlation rows, repeatability, and phylogenetic signal stay
+  out of the bootstrap target set.
+- Updated `docs/design/12-profile-likelihood-cis.md` to state the bootstrap
+  target-selection boundary beside the direct-target bootstrap contract.
+- Added
+  `docs/dev-log/after-task/2026-05-29-bootstrap-derived-status-map.md`.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+rg -n "bootstrap.*derived|derived.*bootstrap|bootstrap.*q4|q4.*bootstrap|bootstrap.*repeatability|repeatability.*bootstrap|bootstrap.*phylogenetic signal|phylogenetic signal.*bootstrap|summary\\(\\).*bootstrap|corpairs\\(\\).*bootstrap|prediction tables.*bootstrap|direct-target gate|bootstrap target selection" README.md NEWS.md ROADMAP.md docs/design R tests/testthat man --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'bootstrap derived q4 repeatability phylogenetic signal summary corpairs' --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- `test-profile-targets.R` passed.
+- `git diff --check` was clean.
+- The stale-wording scan found compatible current wording. The only apparent
+  mismatch is an older NEWS entry documenting the historical pre-bootstrap
+  state; the current top NEWS entry now describes direct `confint()` bootstrap
+  support.
+- The issue search returned `[]`; no issue action was needed.
+
 ## 2026-05-29 -- Bootstrap Correlation Draw-Scale Audit
 
 Goal:

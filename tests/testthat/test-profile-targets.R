@@ -2849,6 +2849,13 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
     rep("derived_unstructured_correlation", 6L)
   )
   expect_false(any(q4_parms %in% ready_targets$parm))
+  expect_false(any(drmTMB:::bootstrap_supported_targets(q4_targets)))
+  expect_false(any(
+    q4_parms %in%
+      targets$parm[
+        drmTMB:::bootstrap_supported_targets(targets)
+      ]
+  ))
   expect_error(
     stats::confint(
       fit_q4,
@@ -2961,6 +2968,7 @@ test_that("profile target inventory marks modelled group scales as derived", {
   expect_false(any(derived_sd$profile_ready))
   expect_equal(derived_sd$transformation, rep("derived_group_scale", n_id))
   expect_equal(derived_sd$profile_note, rep("derived_target", n_id))
+  expect_false(any(drmTMB:::bootstrap_supported_targets(derived_sd)))
 })
 
 test_that("profile target inventory marks derived variance ratios as unavailable", {
@@ -2982,6 +2990,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   expect_equal(derived$target_type, "derived")
   expect_false(derived$profile_ready)
   expect_equal(derived$profile_note, "derived_target")
+  expect_false(drmTMB:::bootstrap_supported_targets(derived))
   expect_equal(
     derived$estimate,
     smry$derived[parm, "estimate"],
@@ -3010,6 +3019,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   expect_equal(phylo_derived$parm, "derived:phylogenetic_signal(species)")
   expect_equal(phylo_derived$transformation, "variance_ratio")
   expect_false(phylo_derived$profile_ready)
+  expect_false(drmTMB:::bootstrap_supported_targets(phylo_derived))
 })
 
 test_that("profile target inventory lists residual rho12 and ordinal internals", {
