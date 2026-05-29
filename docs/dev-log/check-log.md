@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Bootstrap Log-Scale Positive Intervals
+
+Goal:
+
+- Convert the Claude/GLLVM.jl bootstrap-SD suggestion into a narrow
+  `drmTMB` behavior change for direct positive `confint(method = "bootstrap")`
+  targets.
+
+Actions run:
+
+- Started `codex/bootstrap-log-scale-ci` from `origin/main` at merged commit
+  `32aefa8b`.
+- Audited `drm_bootstrap_confint()` and found that bootstrap draws were
+  extracted from `profile_targets()` response-scale `estimate` values.
+- Added `link_estimate` to the bootstrap refit draw ledger.
+- Changed bootstrap percentile extraction so direct `exp`-transformed targets
+  use fitted link-scale refit estimates for quantiles and then apply the
+  standard response-scale transformation.
+- Added a focused regression test proving positive bootstrap percentiles use
+  the link scale while linear targets keep raw target estimates.
+- Updated `R/profile.R` roxygen, `man/confint.drmTMB.Rd`, `README.md`,
+  `NEWS.md`, and `docs/design/12-profile-likelihood-cis.md`.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R README.md NEWS.md docs/design/12-profile-likelihood-cis.md
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+rg -n "bootstrap.*raw|raw.*bootstrap|bootstrap.*log|log-scale.*bootstrap|positive scale|SD bootstrap|percentile" README.md NEWS.md ROADMAP.md docs/design R tests/testthat man --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'bootstrap log scale SD confint percentile' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `test-profile-targets.R` passed.
+- `git diff --check` was clean.
+- The stale-wording scan found the intended new bootstrap log-scale wording
+  and existing compatible bootstrap/percentile references.
+- The issue search returned `[]`; no issue action was needed.
+
 ## 2026-05-29 -- Sigma Profile-Out Audit
 
 Goal:

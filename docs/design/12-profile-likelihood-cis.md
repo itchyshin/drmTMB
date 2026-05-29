@@ -232,6 +232,14 @@ fails before interval work begins. Bootstrap intervals for `summary()`,
 `corpairs()`, prediction tables, derived q4 correlations, repeatability, and
 phylogenetic signal remain separate work.
 
+For direct positive scale and SD targets, the bootstrap route stores both the
+response-scale estimate and the fitted log-scale estimate from each refit. It
+takes percentile endpoints on the log scale and then applies the same `exp`
+transformation used by Wald and profile intervals. This keeps refit-based SD
+intervals strictly positive and avoids raw-scale percentile behavior near zero.
+Fixed-effect coefficient intervals and direct correlation targets keep their
+existing target-specific scales.
+
 Slice 173 keeps the evidence target modest. The focused tests for this gate
 check the status vocabulary, unsupported-parametric-bootstrap errors, q4
 derived status rows, the existing direct profile paths, and a tiny
@@ -948,7 +956,7 @@ than a broad interval-engine rewrite. The implemented fitted-model rules are:
 | Predictor-dependent `sigma`, `sigma1`, `sigma2`, and residual `rho12` | `predict_parameters(..., newdata = grid, dpar = <dpar>, conf.int = TRUE)` returns row-specific Wald intervals on the fitted link scale and transforms them to the response scale. `confint(..., method = "profile", parm = <dpar>, newdata = grid)` profiles one supplied row at a time when likelihood shape is the target. | There is no single fitted-object response-scale target without a named row. |
 | Random-effect SDs and direct q2 correlations | `confint(fit)` returns default Wald intervals when the optimized covariance is available; direct `sd:*` rows use log-SD intervals and direct `cor:*` rows use guarded Fisher-z/atanh intervals. Rows marked `profile_ready` can also be profiled and are transformed back to SD or correlation scale. | q4 unstructured endpoint correlations, covariance products, repeatability, and phylogenetic signal remain derived-status rows. |
 | Fisher-z Wald correlation intervals | Direct fitted-model correlation targets now use the same guarded Fisher-z/atanh principle as the Phase 18 helper, then transform endpoints back to the correlation scale. | This is a fast direct-target route; profile or bootstrap intervals are still preferred when boundary likelihood shape is the scientific concern. |
-| Bootstrap intervals | `confint(..., method = "bootstrap")` simulates, refits, extracts selected direct targets, and returns percentile intervals with refit success/failure counts. `method = "parametric_bootstrap"` still errors before interval work begins. | This is a direct `confint()` route only; `summary()`, `corpairs()`, prediction tables, and derived summaries still need separate bootstrap integration. |
+| Bootstrap intervals | `confint(..., method = "bootstrap")` simulates, refits, extracts selected direct targets, and returns percentile intervals with refit success/failure counts. Positive scale and SD targets use log-scale refit estimates for percentiles before exponentiating endpoints. `method = "parametric_bootstrap"` still errors before interval work begins. | This is a direct `confint()` route only; `summary()`, `corpairs()`, prediction tables, and derived summaries still need separate bootstrap integration. |
 
 The practical rule for reports is to use Wald intervals for routine fixed-effect
 coefficients and for fast direct scale, SD, and correlation screening; use

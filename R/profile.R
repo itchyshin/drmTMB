@@ -9,6 +9,9 @@
 #' Correlation Wald intervals are computed on the fitted TMB correlation-link
 #' scale, equivalent to a guarded Fisher z/atanh transform, and then returned on
 #' the correlation scale.
+#' Bootstrap intervals simulate and refit direct targets. For positive scale and
+#' SD targets, percentile endpoints are taken on the fitted log scale before
+#' back-transforming to the response scale.
 #' Profile-likelihood intervals are slower because nuisance parameters are
 #' re-optimized; this first public profile path supports explicit fixed-effect,
 #' constant distributional-scale, random-effect standard-deviation,
@@ -107,6 +110,8 @@
 #' #   profile_engine = "tmbprofile", profile_precision = "fast")
 #' # Direct-target parametric bootstrap is available when refit cost is worth it:
 #' # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
+#' # Bootstrap intervals for positive scale and SD targets use link-scale
+#' # percentiles before back-transforming to the response scale.
 #' @export
 confint.drmTMB <- function(
   object,
@@ -1565,7 +1570,8 @@ drm_bootstrap_confint <- function(
   intervals <- lapply(seq_len(nrow(targets)), function(i) {
     target <- targets[i, , drop = FALSE]
     target_draws <- draws[draws$parm == target$parm, , drop = FALSE]
-    finite <- is.finite(target_draws$estimate) & target_draws$refit_ok
+    draw_values <- bootstrap_percentile_draws(target_draws, target)
+    finite <- is.finite(draw_values) & target_draws$refit_ok
     n_ok <- sum(finite)
     failed <- nrow(target_draws) - n_ok
     if (n_ok < 2L) {
@@ -1574,11 +1580,10 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap_unavailable"
       message <- "fewer than two successful bootstrap refits"
     } else {
-      qs <- stats::quantile(
-        target_draws$estimate[finite],
-        probs = probs,
-        names = FALSE,
-        type = 8
+      qs <- bootstrap_percentile_interval(
+        target_draws = target_draws[finite, , drop = FALSE],
+        target = target,
+        probs = probs
       )
       lower <- qs[[1L]]
       upper <- qs[[2L]]
@@ -1740,6 +1745,8 @@ bootstrap_refit_one <- function(
   out$refit_ok <- refit_ok & has_target
   out$refit_message <- if (refit_ok) "ok" else refit$opt$message
   out$estimate[has_target] <- refit_targets$estimate[matched[has_target]]
+  out$link_estimate[has_target] <-
+    refit_targets$link_estimate[matched[has_target]]
   out
 }
 
@@ -1748,11 +1755,41 @@ bootstrap_empty_draws <- function(index, target_names) {
     bootstrap = index,
     parm = target_names,
     estimate = NA_real_,
+    link_estimate = NA_real_,
     refit_ok = FALSE,
     refit_convergence = NA_integer_,
     refit_message = "not run",
     stringsAsFactors = FALSE
   )
+}
+
+bootstrap_percentile_interval <- function(target_draws, target, probs) {
+  if (bootstrap_uses_link_percentiles(target)) {
+    link_quantiles <- stats::quantile(
+      target_draws$link_estimate,
+      probs = probs,
+      names = FALSE,
+      type = 8
+    )
+    return(profile_transform_interval(link_quantiles, target))
+  }
+  stats::quantile(
+    target_draws$estimate,
+    probs = probs,
+    names = FALSE,
+    type = 8
+  )
+}
+
+bootstrap_percentile_draws <- function(target_draws, target) {
+  if (bootstrap_uses_link_percentiles(target)) {
+    return(target_draws$link_estimate)
+  }
+  target_draws$estimate
+}
+
+bootstrap_uses_link_percentiles <- function(target) {
+  identical(target$transformation[[1L]], "exp")
 }
 
 bootstrap_response_data <- function(object, simulations, index) {

@@ -311,7 +311,8 @@ only for selected direct targets when likelihood shape matters;
 `profile_precision = "fast"` supplies quicker `TMB::tmbprofile()` controls for
 a first-pass interval. `method = "bootstrap"` runs simulate/refit percentile
 intervals and reports successful and failed refits for cases where refit-based
-uncertainty is needed.
+uncertainty is needed; positive scale and SD bootstrap intervals take
+percentiles on the fitted log scale and exponentiate the endpoints.
 
 ## Project status
 

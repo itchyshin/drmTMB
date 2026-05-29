@@ -103,6 +103,9 @@ parameter and \code{TMB::sdreport()} covariance are available.
 Correlation Wald intervals are computed on the fitted TMB correlation-link
 scale, equivalent to a guarded Fisher z/atanh transform, and then returned on
 the correlation scale.
+Bootstrap intervals simulate and refit direct targets. For positive scale and
+SD targets, percentile endpoints are taken on the fitted log scale before
+back-transforming to the response scale.
 Profile-likelihood intervals are slower because nuisance parameters are
 re-optimized; this first public profile path supports explicit fixed-effect,
 constant distributional-scale, random-effect standard-deviation,
@@ -147,4 +150,6 @@ confint(fit, parm = "sigma", method = "profile")
 #   profile_engine = "tmbprofile", profile_precision = "fast")
 # Direct-target parametric bootstrap is available when refit cost is worth it:
 # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
+# Bootstrap intervals for positive scale and SD targets use link-scale
+# percentiles before back-transforming to the response scale.
 }
