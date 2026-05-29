@@ -73,6 +73,7 @@ phase18_summarise_count_structured_q1_fit <- function(
     nobs = stats::nobs(fit),
     n_level = truth$n_level,
     n_per_level = truth$n_per_level,
+    sd_structured = unname(sd_truth)[[1L]],
     mean_count = truth$mean_count,
     sigma_baseline = truth$sigma_baseline,
     geometry = truth$geometry,

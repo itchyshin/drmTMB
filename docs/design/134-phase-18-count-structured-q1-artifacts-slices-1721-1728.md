@@ -1,12 +1,12 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1738
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1740
 
 This note records the opt-in artifact lane, manual Actions task, first manual
 smoke audit, warning-diagnostic hardening, and post-merge diagnostic smoke
-audit, and boundary-rate gate for ordinary Poisson and NB2 count models with
-one q=1 structured `mu` intercept. The reader is an R package contributor
-deciding whether the fitted source gate for `spatial()`, `animal()`, and
-`relmat()` count routes has enough simulation infrastructure to audit smoke
-runs.
+audit, boundary-rate gate, and boundary-gate audit helper for ordinary Poisson
+and NB2 count models with one q=1 structured `mu` intercept. The reader is an R
+package contributor deciding whether the fitted source gate for `spatial()`,
+`animal()`, and `relmat()` count routes has enough simulation infrastructure to
+audit smoke runs.
 
 ## Implemented Claim
 
@@ -89,6 +89,8 @@ Slices 1721-1728 add:
 - `phase18_run_count_structured_q1_smoke()`;
 - `phase18_summarise_count_structured_q1_smoke()`;
 - `phase18_write_count_structured_q1_grid_outputs()`;
+- `phase18_audit_count_structured_q1_boundary_gate()`;
+- `phase18_count_structured_q1_boundary_gate_summary()`;
 - a manual `count_structured_q1` Actions task that is excluded from
   `task = "all"`;
 - replicate-table fit diagnostics for Hessian status, random-effect-SD
@@ -121,6 +123,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1733-1734 | Done locally as warning diagnostic hardening | The exact seed and cell for `count_structured_q1_020` replicate 2 replayed locally with the same near-zero spatial SD estimate and fixed-effect estimates, but the local Hessian was positive definite while the Ubuntu Actions artifact had `pdHess = FALSE` and warning `NaNs produced`. The replicate table now records `fit_diagnostic_status`, `hessian_status`, and `sd_boundary_status`; the new focused test asserts that this seed is a random-effect-SD boundary case even when the platform-specific Hessian status changes. |
 | 1735-1736 | Done as post-diagnostic Actions smoke audit | GitHub Actions run `26626333581` completed after the warning-diagnostic columns merged to `main`. The selected `count_structured_q1` job succeeded in 3m33s, and the downloaded artifact had the expected 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, and one warning-ledger row for `count_structured_q1_020` replicate 2. The new diagnostic columns were present. `fit_diagnostic_status` and `sd_boundary_status` each had 169 `ok` and 23 `warning` parameter rows, which collapse to five boundary-sensitive replicate fits; `hessian_status` had 187 `ok` and 5 `warning` parameter rows, all from `count_structured_q1_020` replicate 2. |
 | 1737-1738 | Done locally as pre-grid boundary gate | The post-diagnostic smoke is promoted to a decision rule, not to recovery evidence. Larger `count_structured_q1` pilots must collapse replicate-table rows to one row per fitted replicate, report fit-diagnostic, SD-boundary, Hessian, and warning-ledger rates overall and by condition, and stop before formal recovery claims if the thresholds below trigger. |
+| 1739-1740 | Done locally as boundary-gate audit helper | `phase18_audit_count_structured_q1_boundary_gate()` now reads a count structured q=1 artifact directory, collapses replicate-table parameter rows to fitted replicates, reports overall and condition-level diagnostic rates, applies the Slice 1737-1738 thresholds, and returns a `hold_diagnostic` or `propose_next_pilot` decision. The replicate table now carries `sd_structured` directly, while the helper can still derive it from the structured-SD row in older artifacts. |
 
 ## Next Implementation Gate
 
@@ -175,3 +178,22 @@ If none of those triggers occur, the next slice may propose a larger recovery
 pilot, but it still needs a separate design note or addendum naming the
 condition table, replicate count, MCSE target, interval policy, and runtime
 budget before a formal grid is dispatched.
+
+## Boundary-Gate Audit Helper
+
+Slices 1739-1740 make the gate executable. The helper reads
+`count-structured-q1-replicates.csv` and
+`count-structured-q1-failures.csv`, collapses repeated parameter rows by
+`cell_id` and `replicate`, and returns:
+
+- one fitted-replicate diagnostic table;
+- an overall rate table for fit-level, SD-boundary, Hessian, and warning
+  diagnostics;
+- a condition-level table keyed by `cell_id`, `family`, `structured_type`,
+  `n_level`, `sd_structured`, `mean_count`, and `sigma_baseline`;
+- one row per gate check; and
+- a decision row.
+
+The helper deliberately returns `propose_next_pilot`, not
+`promote_formal_recovery`, when all checks pass. Formal recovery still needs a
+separate design note and a larger-grid audit with MCSE and interval policy.

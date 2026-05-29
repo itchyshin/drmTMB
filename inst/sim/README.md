@@ -463,8 +463,10 @@ Current pilot files:
   with aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald
   interval, Wald coverage, direct `log_sd_phylo` profile-target, optional
   profile-interval, interval-evidence, interval-diagnostics, and
-  interval-failure CSVs. This lane is opt-in and does not make formal recovery
-  or coverage claims.
+  interval-failure CSVs. It also reads artifacts back through
+  `phase18_audit_count_structured_q1_boundary_gate()`, which applies the
+  fitted-replicate boundary rule before a larger pilot is proposed. This lane
+  is opt-in and does not make formal recovery or coverage claims.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
@@ -556,7 +558,9 @@ Current pilot files:
   smoke grid. It returns aggregate, replicate, manifest, failure-ledger,
   fixed-effect Wald interval, Wald coverage, direct profile-target status,
   optional direct profile interval, interval-evidence, interval-diagnostics,
-  and interval-failure outputs.
+  and interval-failure outputs. Replicate rows carry `sd_structured` plus
+  fit-level Hessian and SD-boundary diagnostics so the boundary-gate audit can
+  collapse them to fitted-replicate units.
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient

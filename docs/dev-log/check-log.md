@@ -2,6 +2,67 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Boundary Audit Helper
+
+Goal:
+
+- Make the Slice 1737-1738 `count_structured_q1` pre-grid boundary gate
+  executable from artifact tables instead of relying on ad hoc audit code.
+
+Implemented:
+
+- Added `sd_structured` to the count structured q=1 replicate summary rows.
+- Added `phase18_audit_count_structured_q1_boundary_gate()` to read a grid
+  artifact directory and apply the boundary gate.
+- Added `phase18_count_structured_q1_boundary_gate_summary()` and helpers that
+  collapse parameter rows to fitted replicates, report overall and
+  condition-level diagnostic rates, check Hessian/SD-boundary/warning-ledger
+  triggers, and return `hold_diagnostic` or `propose_next_pilot`.
+- Added focused tests for the artifact read-back path, failed gate triggers,
+  clean gate behavior, and older artifacts where `sd_structured` must be
+  derived from the structured-SD row.
+- Updated the roadmap, count structured q=1 design note, Phase 18 simulation
+  programme, simulation README, and after-task report.
+
+Validation:
+
+```sh
+air format inst/sim/fit/sim_summarise_count_structured_q1.R inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-boundary-audit-helper.md
+Rscript --vanilla -e 'devtools::test(filter = "phase18-count-structured-q1")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner|phase18-count-structured-q1")'
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 boundary audit OR count structured q1 audit helper OR count structured q1 gate helper' --limit 20 --json number,title,state,url,labels
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- The focused count structured q=1 test file passed: 83 expectations, 0
+  failures, warnings, or skips.
+- The adjacent Actions-runner plus count structured q=1 test set passed: 148
+  expectations, 0 failures, warnings, or skips.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The open-issue search returned no matching open issues to update.
+- The stale-claim scan returned only the intended NEWS boundary wording and
+  standing formula-grammar planned-neighbour row, not a claim that the lane has
+  formal recovery, coverage, zero-inflated structure, structured slopes, or
+  `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to the existing count structured q=1 artifact lane.
+- Curie checked that the helper counts fitted replicates rather than repeated
+  parameter rows.
+- Fisher kept the decision language at `propose_next_pilot`, not formal
+  recovery or coverage promotion.
+- Grace verified focused tests, pkgdown, stale-claim scans, and diff hygiene
+  before the PR.
+- Rose made the helper visible in the design note and roadmap so the next
+  larger pilot has a repeatable gate.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Boundary Gate
 
 Goal:
