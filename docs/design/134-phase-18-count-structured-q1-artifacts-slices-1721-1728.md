@@ -1,14 +1,14 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1728
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1732
 
-This note records the opt-in artifact lane for ordinary Poisson and NB2 count
-models with one q=1 structured `mu` intercept. The reader is an R package
-contributor deciding whether the fitted source gate for `spatial()`,
-`animal()`, and `relmat()` count routes has enough simulation infrastructure to
-audit smoke runs.
+This note records the opt-in artifact lane, manual Actions task, and first
+manual smoke audit for ordinary Poisson and NB2 count models with one q=1
+structured `mu` intercept. The reader is an R package contributor deciding
+whether the fitted source gate for `spatial()`, `animal()`, and `relmat()`
+count routes has enough simulation infrastructure to audit smoke runs.
 
 ## Implemented Claim
 
-Slices 1721-1728 add a repeatable Phase 18 artifact path for ordinary
+Slices 1721-1732 add a repeatable Phase 18 artifact path for ordinary
 non-zero-inflated count models with one structured log-mean intercept:
 
 ```r
@@ -105,3 +105,20 @@ surface:
 
 Those neighbours remain future slices until they have separate likelihood,
 syntax, diagnostic, interval, and simulation gates.
+
+## Slice Status
+
+| Slice | Status | Evidence |
+| --- | --- | --- |
+| 1721-1728 | Done locally as smoke artifacts | `inst/sim/dgp/sim_dgp_count_structured_q1.R`, `inst/sim/fit/sim_summarise_count_structured_q1.R`, `inst/sim/run/sim_run_count_structured_q1_smoke.R`, `inst/sim/run/sim_summary_count_structured_q1_smoke.R`, and `inst/sim/run/sim_write_count_structured_q1_grid.R` add DGP, summariser, smoke, summary, and grid-writer artifacts for ordinary Poisson/NB2 q=1 `spatial()`, `animal()`, and `relmat()` `mu` intercepts. |
+| 1729-1730 | Done locally as manual Actions task | `.github/workflows/phase18-simulation-grid.yaml` and `inst/sim/run/sim_run_actions_cell.R` expose `task=count_structured_q1`, keep it excluded from `task = "all"`, and add dry-run, dependency, workflow exposure, and workflow-exclusion tests. |
+| 1731-1732 | Done as manual Actions smoke audit | GitHub Actions run `26622840562` completed `task=count_structured_q1` with `n_reps=2`, `cores=2`, and `backend=multicore`; the downloaded artifact had 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, 187 positive-Hessian parameter rows, 48 ready profile-target rows, 144 ok Wald interval rows, and one warning-level ledger row for `count_structured_q1_020` replicate 2. |
+
+## Next Implementation Gate
+
+The manual workflow route is operational, but the first audit is not a clean
+statistical validation run. Before larger recovery or coverage grids, Curie and
+Fisher should inspect the warning and non-positive Hessian in NB2 spatial cell
+`count_structured_q1_020`, replicate 2, and decide whether that is ordinary
+small-replicate smoke noise or a condition that needs a targeted diagnostic
+cell.
