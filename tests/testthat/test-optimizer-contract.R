@@ -177,6 +177,62 @@ test_that("bivariate Gaussian starts use response-specific OLS and Fisher-z rho1
   expect_equal(fit$uncertainty$status, "skipped")
 })
 
+test_that("Gaussian constant sigma remains an optimized parameter", {
+  dat <- data.frame(
+    y = c(-0.22, -0.04, 0.19, 0.43, 0.73, 0.96, 1.20),
+    x = seq(-1.5, 1.5, length.out = 7)
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_null(fit$model$map$beta_sigma)
+  expect_equal(sum(names(fit$opt$par) == "beta_sigma"), 1L)
+  expect_equal(
+    length(fit$opt$par),
+    ncol(fit$model$X$mu) + ncol(fit$model$X$sigma)
+  )
+  expect_equal(fit$df, length(fit$opt$par))
+})
+
+test_that("bivariate Gaussian constant sigmas remain optimized parameters", {
+  dat <- data.frame(x = seq(-1, 1, length.out = 10))
+  e1 <- c(-0.12, 0.03, 0.09, -0.06, 0.15, -0.08, 0.04, 0.11, -0.05, 0.02)
+  e2 <- c(0.05, -0.10, 0.07, 0.02, -0.04, 0.09, -0.03, 0.06, -0.08, 0.01)
+  dat$y1 <- 0.15 + 0.55 * dat$x + e1
+  dat$y2 <- -0.20 + 0.35 * dat$x + e2
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_null(fit$model$map$beta_sigma1)
+  expect_null(fit$model$map$beta_sigma2)
+  expect_equal(sum(names(fit$opt$par) == "beta_sigma1"), 1L)
+  expect_equal(sum(names(fit$opt$par) == "beta_sigma2"), 1L)
+  expect_equal(
+    length(fit$opt$par),
+    ncol(fit$model$X$mu1) +
+      ncol(fit$model$X$mu2) +
+      ncol(fit$model$X$sigma1) +
+      ncol(fit$model$X$sigma2) +
+      ncol(fit$model$X$rho12)
+  )
+  expect_equal(fit$df, length(fit$opt$par))
+})
+
 test_that("reported parameters are split from the selected optimum", {
   dat <- data.frame(
     y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),

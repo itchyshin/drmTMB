@@ -120,6 +120,31 @@ contract is: internal family starts may improve default optimizer behaviour, but
 users cannot yet supply `start`, `start_from`, or `warm_start` through
 `drm_control()`.
 
+## Current Sigma Profile-Out Status
+
+The Gaussian and bivariate Gaussian fit paths do not currently profile out
+intercept-only residual scale parameters analytically. `drmTMB()` calls
+`TMB::MakeADFun()` with `map = spec$map`, but without a `profile =` argument.
+The current maps remove unused parameters from other family routes; they do not
+remove `beta_sigma` for univariate Gaussian fits or `beta_sigma1` and
+`beta_sigma2` for bivariate Gaussian fits. Constant residual scales therefore
+remain ordinary optimized parameters in `stats::nlminb()`.
+
+This is true even when the formulas are `sigma ~ 1`, `sigma1 ~ 1`, or
+`sigma2 ~ 1`. The C++ likelihood evaluates `log_sigma = X_sigma beta_sigma`
+and `log_sigma1` / `log_sigma2` from their fixed-effect design matrices, then
+reports and ADREPORTs the corresponding coefficient vectors. Existing direct
+profile intervals for constant residual scales are likelihood profiles of those
+optimized link-scale coefficients, not a Bates-style analytic elimination of
+the scale parameter before optimization.
+
+An analytic profile-out path remains a future design slice. It should not be
+added as a small map tweak, because it must specify how fitted degrees of
+freedom, `sdreport()` / `vcov()`, direct profile targets, known sampling
+variance through `meta_V(V = V)`, sufficient-statistic aggregation, and random
+or structured contributions to `log(sigma)` behave when the residual scale
+coefficient is removed from the optimized vector.
+
 ## Future Start Contract
 
 User starts should not be a free-form replacement of the entire TMB parameter
