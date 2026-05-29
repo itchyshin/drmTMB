@@ -296,6 +296,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     cores = cores,
     backend = backend,
     render = render,
+    require_complete = require_complete,
     profile_parameters = profile_parameters,
     profile_level = profile_level,
     condition_shard = condition_shard,

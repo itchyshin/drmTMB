@@ -228,6 +228,47 @@ test_that("Phase 18 Actions runner accepts count structured q1 task", {
   expect_match(out, "require_complete=TRUE", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner prints require-complete after real runs", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_count_structured_q1_followup_conditions <- function(
+    condition_set
+  ) {
+    data.frame(cell_id = paste0("mock_", condition_set))
+  }
+  env$phase18_write_count_structured_q1_grid_outputs <- function(...) {
+    list(ok = TRUE)
+  }
+
+  output_dir <- tempfile("phase18-actions-count-structured-q1-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=count_structured_q1",
+        paste0("--output-dir=", output_dir),
+        "--n-reps=1",
+        "--master-seed=123",
+        "--profile-parameters=log_sd_phylo",
+        "--profile-level=0.70",
+        "--condition-set=stable",
+        "--require-complete=true"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "require_complete=TRUE", fixed = TRUE)
+  expect_true(file.exists(file.path(output_dir, "phase18-actions-result.rds")))
+})
+
 test_that("Phase 18 Actions runner sources count structured q1 task dependencies", {
   script <- phase18_actions_runner_script()
   env <- new.env(parent = globalenv())
