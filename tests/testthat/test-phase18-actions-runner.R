@@ -197,6 +197,49 @@ test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   )
 })
 
+test_that("Phase 18 Actions runner accepts count structured q1 task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-count-structured-q1-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=count_structured_q1",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--profile-parameters=log_sd_phylo",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=count_structured_q1", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+  expect_match(out, "profile_parameters=log_sd_phylo", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources count structured q1 task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  count_structured_paths <- c(
+    "sim/dgp/sim_dgp_count_structured_q1.R",
+    "sim/fit/sim_summarise_count_structured_q1.R",
+    "sim/run/sim_run_count_structured_q1_smoke.R",
+    "sim/run/sim_summary_count_structured_q1_smoke.R",
+    "sim/run/sim_write_count_structured_q1_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("count_structured_q1"),
+    count_structured_paths
+  )
+})
+
 test_that("Phase 18 Actions runner accepts positive-continuous mu random-intercept task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-positive-continuous-mu-ri-dry-run-")
@@ -390,6 +433,31 @@ test_that("Phase 18 workflow exposes Tweedie fixed-effect task", {
 
   expect_match(text, "tweedie_fixed_effect", fixed = TRUE)
   expect_match(text, "20260542", fixed = TRUE)
+})
+
+test_that("Phase 18 workflow exposes count structured q1 task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "count_structured_q1", fixed = TRUE)
+  expect_match(text, "20260543", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: count_structured_q1",
+      "seed: 20260543",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {

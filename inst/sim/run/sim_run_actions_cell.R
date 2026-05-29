@@ -11,6 +11,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       "bounded_response_mu_random_intercept",
       "positive_continuous_fixed_effect",
       "tweedie_fixed_effect",
+      "count_structured_q1",
       "positive_continuous_mu_random_intercept",
       "student_mu_random_intercept",
       "ordinal_fixed_effect",
@@ -180,6 +181,17 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       n_rep = n_rep,
       master_seed = master_seed,
       overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "count_structured_q1")) {
+    out <- phase18_write_count_structured_q1_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
       cores = cores,
       backend = backend
     )
@@ -514,6 +526,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_write_tweedie_fixed_effect_grid.R"
+    ))
+  }
+  if (identical(task, "count_structured_q1")) {
+    return(c(
+      "sim/dgp/sim_dgp_count_structured_q1.R",
+      "sim/fit/sim_summarise_count_structured_q1.R",
+      "sim/run/sim_run_count_structured_q1_smoke.R",
+      "sim/run/sim_summary_count_structured_q1_smoke.R",
+      "sim/run/sim_write_count_structured_q1_grid.R"
     ))
   }
   if (identical(task, "positive_continuous_mu_random_intercept")) {

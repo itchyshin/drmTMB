@@ -85,7 +85,9 @@ Slices 1721-1728 add:
 - `phase18_summarise_count_structured_q1_fit()`;
 - `phase18_run_count_structured_q1_smoke()`;
 - `phase18_summarise_count_structured_q1_smoke()`;
-- `phase18_write_count_structured_q1_grid_outputs()`; and
+- `phase18_write_count_structured_q1_grid_outputs()`;
+- a manual `count_structured_q1` Actions task that is excluded from
+  `task = "all"`; and
 - focused DGP, smoke-runner, grid-writer, and malformed-input tests.
 
 ## Boundaries
@@ -99,7 +101,7 @@ surface:
 - simultaneous structured count types;
 - structured NB2 `sigma`;
 - formal recovery or coverage promotion; and
-- manual GitHub Actions dispatch.
+- inclusion in the default `task = "all"` Actions matrix.
 
 Those neighbours remain future slices until they have separate likelihood,
 syntax, diagnostic, interval, and simulation gates.

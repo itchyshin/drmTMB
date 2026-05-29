@@ -2,6 +2,93 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Manual Actions Task
+
+Goal:
+
+- Add a manual-only Phase 18 GitHub Actions dispatch task for the ordinary
+  Poisson/NB2 count structured q=1 smoke artifact lane that merged in PR #367.
+
+Implemented:
+
+- Added `count_structured_q1` to the manual workflow-dispatch task choices in
+  `.github/workflows/phase18-simulation-grid.yaml`.
+- Added a matrix row with seed `20260543` and `include_in_all: false`, so
+  `task = "all"` still excludes the count structured q=1 smoke lane.
+- Updated `inst/sim/run/sim_run_actions_cell.R` so
+  `--task=count_structured_q1` sources the count structured q=1 DGP,
+  summariser, smoke runner, summary helper, and grid writer before dispatching
+  `phase18_write_count_structured_q1_grid_outputs()`.
+- Passed through optional `profile_parameters` and `profile_level` to the grid
+  writer so direct `log_sd_phylo` profile targets can be requested from the
+  workflow.
+- Added dry-run, dependency-path, workflow-exposure, and workflow-exclusion
+  tests in `tests/testthat/test-phase18-actions-runner.R`.
+- Updated `inst/sim/README.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  `ROADMAP.md`, and `NEWS.md`.
+
+Validation:
+
+```sh
+air format .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R inst/sim/README.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md NEWS.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-actions-runner$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-actions-runner|phase18-count-structured-q1)$', reporter = 'summary')"
+air format tests/testthat/test-phase18-actions-runner.R
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-actions-runner|phase18-count-structured-q1)$', reporter = 'summary')"
+rg -n 'count_structured_q1|count structured q1|count structured q=1|20260543|include_in_all|task = "all"' .github/workflows inst/sim/run tests/testthat inst/sim/README.md NEWS.md ROADMAP.md docs/design docs/dev-log --glob '!docs/dev-log/recovery-checkpoints/**'
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'count structured q1 Actions' --limit 20
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' pkgdown-site README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**' --glob '!pkgdown-site/search.json'
+Rscript --vanilla -e "devtools::check()"
+```
+
+Results:
+
+- Formatting completed.
+- The first focused Actions-runner test passed.
+- The adjacent Actions-runner plus count structured q=1 artifact test filter
+  passed before and after tightening the workflow test to assert
+  `include_in_all: false`.
+- The inventory scan returned the intended workflow, runner, tests, README,
+  NEWS, ROADMAP, design-note, and current check-log references.
+- The stale-claim scan returned the intended new NEWS boundary wording and the
+  standing formula-grammar limitation row, not an expanded claim that the count
+  structured q=1 lane has formal recovery, zero-inflated support, structured
+  slopes, or `task = "all"` inclusion.
+- The open-issue search returned no overlapping issue to update.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `git diff --check` was clean.
+- Full `devtools::test()` passed.
+- `pkgdown::build_site(preview = FALSE)` passed.
+- The generated-site stale-claim scan returned the intended NEWS and rendered
+  news boundary wording plus the standing formula-grammar limitation row.
+- `devtools::check()` completed with 0 errors, 0 warnings, and 1 note in
+  7 minutes 6.2 seconds. The note was the local future-file-timestamps clock
+  check: `unable to verify current time`.
+
+Member-group review:
+
+- Ada kept this as an Actions wiring slice for the already-merged artifact
+  lane.
+- Curie checked dry-run parsing, dependency sourcing, and the adjacent artifact
+  tests.
+- Fisher kept the workflow task framed as smoke-artifact infrastructure, not
+  formal recovery or coverage evidence.
+- Grace checked the manual-only workflow guard through `include_in_all: false`.
+- Pat and Rose checked that README, ROADMAP, NEWS, and design wording keep the
+  exclusions visible.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-actions-task.md`
+
 ## 2026-05-28 -- Phase 18 Count Structured q1 Smoke Artifacts
 
 Goal:
