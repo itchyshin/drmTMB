@@ -769,6 +769,54 @@ test_that("bootstrap percentiles use link scale for positive targets", {
   )
 })
 
+test_that("bootstrap percentiles keep response scale for correlation targets", {
+  link_values <- c(-3, -1, 0.25, 1.5)
+  probs <- c(0.20, 0.80)
+
+  for (transformation in c("tanh", "rho12_tanh")) {
+    estimates <- if (identical(transformation, "rho12_tanh")) {
+      drmTMB:::rho_response(link_values)
+    } else {
+      0.999999 * tanh(link_values)
+    }
+    draws <- data.frame(
+      estimate = estimates,
+      link_estimate = link_values,
+      stringsAsFactors = FALSE
+    )
+    target <- data.frame(
+      transformation = transformation,
+      stringsAsFactors = FALSE
+    )
+
+    response_interval <- stats::quantile(
+      draws$estimate,
+      probs = probs,
+      names = FALSE,
+      type = 8
+    )
+    link_interval <- drmTMB:::profile_transform_interval(
+      stats::quantile(link_values, probs = probs, names = FALSE, type = 8),
+      target
+    )
+
+    expect_equal(
+      drmTMB:::bootstrap_percentile_draws(draws, target),
+      draws$estimate,
+      info = transformation
+    )
+    expect_equal(
+      drmTMB:::bootstrap_percentile_interval(draws, target, probs),
+      response_interval,
+      info = transformation
+    )
+    expect_gt(
+      max(abs(response_interval - link_interval)),
+      1e-4
+    )
+  }
+})
+
 test_that("confint bootstrap intervals can split refits across workers", {
   testthat::skip_on_os("windows")
   set.seed(20260658)

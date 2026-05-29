@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Bootstrap Correlation Draw-Scale Audit
+
+Goal:
+
+- Audit direct-correlation `confint(method = "bootstrap")` percentile scale
+  after the positive-target log-scale interval slice.
+
+Actions run:
+
+- Started `codex/bootstrap-correlation-scale` from `origin/main`.
+- Confirmed `bootstrap_uses_link_percentiles()` is limited to
+  `transformation = "exp"` and that direct correlation profile targets still
+  carry both response-scale `estimate` and fitted `link_estimate` values.
+- Added a regression test proving `transformation = "tanh"` and
+  `transformation = "rho12_tanh"` keep bootstrap percentile endpoints on the
+  response-scale refit correlations.
+- Updated `docs/design/12-profile-likelihood-cis.md` to state that direct
+  correlation bootstrap intervals do not switch to Fisher-z or another
+  link-scale percentile rule.
+- Added
+  `docs/dev-log/after-task/2026-05-29-bootstrap-correlation-draw-scale-audit.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+rg -n "bootstrap.*correlation|correlation.*bootstrap|Fisher.?z.*bootstrap|bootstrap.*Fisher.?z|link-scale.*correlation|response-scale refit correlations|target-specific scales|positive scale and SD targets|direct correlation targets" README.md NEWS.md ROADMAP.md docs/design R tests/testthat man --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'bootstrap correlation scale rho12 Fisher z percentile' --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- The first targeted test run failed only because local `expect_gt()` does not
+  accept an `info` argument; after removing that unsupported argument,
+  `test-profile-targets.R` passed.
+- `git diff --check` was clean.
+- The stale-wording scan found compatible current wording, including the
+  intended new design-doc sentence.
+- The issue search returned `[]`; no issue action was needed.
+
 ## 2026-05-29 -- Sparse Phylo Source Map
 
 Goal:
