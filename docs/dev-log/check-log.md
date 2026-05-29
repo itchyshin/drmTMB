@@ -43210,3 +43210,60 @@ Member-group review:
 - Grace ran the focused profile-target suite and diff hygiene.
 - Rose recorded the stale-wording boundary and the old design-note example.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 formal-pilot design
+
+Goal:
+
+- Write the formal-pilot design note allowed by the stable count structured q1
+  diagnostic audit, without making recovery or coverage claims.
+
+Changes:
+
+- Added
+  `docs/design/139-phase-18-count-structured-q1-formal-pilot-design-slices-1763-1770.md`.
+- The note specifies a stable-set-only manual Actions pilot with
+  `n_reps=100`, `profile_parameters='log_sd_phylo'`, `profile_level=0.70`,
+  bootstrap disabled, MCSE expectations, a 60-minute selected-job runtime
+  budget, boundary/profile stop rules, and watch-cell rules for the two NB2
+  high-SD stable cells that still had low-rate SD-boundary warnings in run
+  `26638116979`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`
+  so the slice map points to the formal-pilot design note.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-design.md`.
+
+Validation:
+
+```sh
+air format docs/design/139-phase-18-count-structured-q1-formal-pilot-design-slices-1763-1770.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-design.md
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source(system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/dgp/sim_dgp_count_structured_q1.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/R/sim_aggregate.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/R/sim_uncertainty.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/fit/sim_summarise_count_structured_q1.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/run/sim_run_count_structured_q1_smoke.R", package = "drmTMB", mustWork = TRUE)); source(system.file("sim/run/sim_summary_count_structured_q1_smoke.R", package = "drmTMB", mustWork = TRUE)); cond <- phase18_count_structured_q1_followup_conditions("stable")[1, , drop = FALSE]; result_dir <- tempfile("drmTMB-count-structured-profile-"); dir.create(result_dir); timing <- system.time(out <- phase18_summarise_count_structured_q1_smoke(conditions = cond, n_rep = 1L, master_seed = 20260530L, result_dir = result_dir, profile_parameters = "log_sd_phylo", profile_level = 0.70)); print(timing); print(out$profile_intervals); unlink(result_dir, recursive = TRUE)'
+git diff --check
+rg -n "significant|various|leverages|important to note|in order to|formal recovery|coverage claim|coverage claims|recovery claim|all clean|promote|promoted|bootstrap" docs/design/139-phase-18-count-structured-q1-formal-pilot-design-slices-1763-1770.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-design.md
+gh issue list --repo itchyshin/drmTMB --state open --search 'count structured q1 formal pilot stable profile log_sd_phylo MCSE' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- The local one-replicate stable-cell profile smoke completed in 0.69 seconds
+  and returned an `ok` 70% profile interval for `log_sd_phylo`. This is runtime
+  smoke evidence only, not coverage evidence.
+- The prose/stale-claim scan found expected historical and current
+  no-recovery/no-coverage guardrails. The programme count row was updated to
+  include the new design note instead of saying only that a design note was
+  future work.
+- The issue search returned no exact open issue to update.
+
+Member-group review:
+
+- Ada kept the slice design-only and tied it to the passed stable diagnostic.
+- Fisher set the MCSE and interval target language at 70% profile coverage
+  without making a recovery claim.
+- Curie kept the boundary, profile-status, and watch-cell stop rules explicit.
+- Pat checked that the dispatch command and audit requirements tell the next
+  runner what to do.
+- Grace grounded runtime wording in the stable Actions diagnostic and one local
+  profiled replicate.
+- Rose checked for overclaiming and updated the stale programme sentence.
+- No spawned subagents were running.
