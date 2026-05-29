@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Next Pilot Spec
+
+Goal:
+
+- Record the next `count_structured_q1` diagnostic pilot before dispatching a
+  larger run.
+
+Implemented:
+
+- Added `docs/design/135-phase-18-count-structured-q1-next-pilot-slices-1743-1750.md`.
+- Specified the existing 24 condition cells crossed with 10 replicates per
+  cell, for 240 fitted replicates if all fits complete.
+- Recorded the manual GitHub Actions dispatch contract, no-profile interval
+  policy, runtime expectation, boundary-gate helper audit, stop rules, and
+  after-task reporting requirements.
+- Updated ROADMAP, the Phase 18 simulation programme, `inst/sim/README.md`,
+  the check log, and the after-task report.
+
+Validation:
+
+```sh
+air format docs/design/135-phase-18-count-structured-q1-next-pilot-slices-1743-1750.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-next-pilot-spec.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned only the intended NEWS boundary wording and
+  standing formula-grammar planned-neighbour row, not a claim that the lane has
+  formal recovery, coverage, zero-inflated structure, structured slopes, or
+  `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to design evidence before dispatch.
+- Curie checked that 10 replicates per cell gives the condition-level gate at
+  least five attempts per cell.
+- Fisher kept structured-SD coverage out because profiles are not requested.
+- Grace verified pkgdown, stale-claim scans, and diff hygiene before the PR.
+- Rose made the no-recovery-claim boundary explicit in the roadmap and design
+  note.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Helper Artifact Audit
 
 Goal:

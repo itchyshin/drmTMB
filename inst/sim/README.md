@@ -116,6 +116,10 @@ Current pilot files:
   `spatial()`, `animal()`, and `relmat()` `mu` intercepts, including the
   pre-grid boundary gate that must be checked before larger pilots become
   recovery or coverage evidence.
+- `docs/design/135-phase-18-count-structured-q1-next-pilot-slices-1743-1750.md`
+  specifies the next 24-cell x 10-replicate diagnostic pilot for that count
+  structured q=1 lane, including dispatch inputs, runtime boundaries,
+  no-profile interval policy, helper audit, and reporting requirements.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
