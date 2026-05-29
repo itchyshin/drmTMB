@@ -2856,6 +2856,26 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
         drmTMB:::bootstrap_supported_targets(targets)
       ]
   ))
+  q4_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit_q4,
+      parm = q4_parms[[1L]],
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(q4_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(q4_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(q4_bootstrap_error),
+    "derived_unstructured_correlation",
+    fixed = TRUE
+  )
   expect_error(
     stats::confint(
       fit_q4,
@@ -2969,6 +2989,26 @@ test_that("profile target inventory marks modelled group scales as derived", {
   expect_equal(derived_sd$transformation, rep("derived_group_scale", n_id))
   expect_equal(derived_sd$profile_note, rep("derived_target", n_id))
   expect_false(any(drmTMB:::bootstrap_supported_targets(derived_sd)))
+  derived_sd_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit,
+      parm = derived_sd$parm[[1L]],
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(derived_sd_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(derived_sd_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(derived_sd_bootstrap_error),
+    "derived_target",
+    fixed = TRUE
+  )
 })
 
 test_that("profile target inventory marks derived variance ratios as unavailable", {
@@ -2991,6 +3031,21 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   expect_false(derived$profile_ready)
   expect_equal(derived$profile_note, "derived_target")
   expect_false(drmTMB:::bootstrap_supported_targets(derived))
+  repeatability_bootstrap_error <- tryCatch(
+    stats::confint(fit, parm = parm, method = "bootstrap", R = 1),
+    error = identity
+  )
+  expect_s3_class(repeatability_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(repeatability_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(repeatability_bootstrap_error),
+    "profile_targets",
+    fixed = TRUE
+  )
   expect_equal(
     derived$estimate,
     smry$derived[parm, "estimate"],
@@ -3020,6 +3075,21 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   expect_equal(phylo_derived$transformation, "variance_ratio")
   expect_false(phylo_derived$profile_ready)
   expect_false(drmTMB:::bootstrap_supported_targets(phylo_derived))
+  phylo_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit_phylo,
+      parm = phylo_derived$parm,
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(phylo_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(phylo_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
 })
 
 test_that("profile target inventory lists residual rho12 and ordinal internals", {

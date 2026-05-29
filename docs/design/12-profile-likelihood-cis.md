@@ -238,7 +238,10 @@ direct random-effect correlations, and constant residual `rho12` may be
 selected. Derived modelled SD surfaces, q4 unstructured-correlation rows,
 repeatability, phylogenetic signal, covariance products, and prediction-table
 linear combinations stay out of the bootstrap target set until a validated
-derived-interval method exists.
+derived-interval method exists. If a user requests one of those derived targets
+by exact name, `confint(..., method = "bootstrap")` should say that bootstrap is
+currently direct-target only, rather than hiding the target behind a generic
+unknown-target error.
 
 For direct positive scale and SD targets, the bootstrap route stores both the
 response-scale estimate and the fitted log-scale estimate from each refit. It

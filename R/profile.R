@@ -181,11 +181,7 @@ confint.drmTMB <- function(
       )
     }
     all_targets <- drm_profile_targets(object)
-    targets <- profile_match_confint_targets(
-      all_targets[bootstrap_supported_targets(all_targets), , drop = FALSE],
-      parm,
-      fixed_only = FALSE
-    )
+    targets <- profile_match_bootstrap_targets(all_targets, parm)
     return(drm_bootstrap_confint(
       object,
       targets = targets,
@@ -1845,6 +1841,46 @@ wald_supported_targets <- function(targets) {
 
 bootstrap_supported_targets <- function(targets) {
   wald_supported_targets(targets)
+}
+
+profile_match_bootstrap_targets <- function(targets, parm) {
+  unsupported <- profile_bootstrap_requested_unsupported_targets(targets, parm)
+  if (nrow(unsupported) > 0L) {
+    abort_unsupported_bootstrap_targets(unsupported)
+  }
+  targets <- targets[bootstrap_supported_targets(targets), , drop = FALSE]
+  profile_match_confint_targets(targets, parm, fixed_only = FALSE)
+}
+
+profile_bootstrap_requested_unsupported_targets <- function(targets, parm) {
+  if (is.null(parm) || !is.character(parm)) {
+    return(targets[0L, , drop = FALSE])
+  }
+
+  aliases <- paste0(targets$dpar, ":", targets$term)
+  index <- match(parm, targets$parm)
+  missing_index <- is.na(index)
+  if (any(missing_index)) {
+    index[missing_index] <- match(parm[missing_index], aliases)
+  }
+  index <- unique(index[!is.na(index)])
+  if (length(index) == 0L) {
+    return(targets[0L, , drop = FALSE])
+  }
+  requested <- targets[index, , drop = FALSE]
+  requested[!bootstrap_supported_targets(requested), , drop = FALSE]
+}
+
+abort_unsupported_bootstrap_targets <- function(targets) {
+  labels <- paste(targets$parm, collapse = ", ")
+  target_types <- paste(unique(targets$target_type), collapse = ", ")
+  notes <- paste(unique(targets$profile_note), collapse = ", ")
+  cli::cli_abort(c(
+    "Bootstrap confidence intervals currently support direct fitted-object targets only.",
+    x = "Unsupported bootstrap target(s): {labels}.",
+    i = "Requested target type(s): {target_types}; inventory note(s): {notes}.",
+    i = "Use {.fn profile_targets} to inspect {.code target_type} and {.code profile_note} before choosing bootstrap targets."
+  ))
 }
 
 profile_target_opt_positions <- function(object, targets) {
