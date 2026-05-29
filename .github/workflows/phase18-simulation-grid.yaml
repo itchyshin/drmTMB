@@ -63,6 +63,11 @@ on:
         required: false
         default: ""
         type: string
+      profile_level:
+        description: "Profile interval confidence level"
+        required: true
+        default: "0.70"
+        type: number
       condition_set:
         description: "Count structured q1 condition set"
         required: true
@@ -85,6 +90,11 @@ on:
         type: number
       render_report:
         description: "Render the Phase 18 HTML summary report"
+        required: true
+        default: false
+        type: boolean
+      require_complete:
+        description: "Fail when requested replicates do not complete"
         required: true
         default: false
         type: boolean
@@ -196,8 +206,9 @@ jobs:
             --master-seed="${{ matrix.seed }}" \
             --overwrite=true \
             --render="${{ inputs.render_report }}" \
-            --require-complete=false \
+            --require-complete="${{ inputs.require_complete }}" \
             --profile-parameters="${{ inputs.profile_parameters }}" \
+            --profile-level="${{ inputs.profile_level }}" \
             --condition-set="${{ inputs.condition_set }}" \
             --condition-shard="${{ inputs.condition_shard }}" \
             --condition-shards="${{ inputs.condition_shards }}" \
