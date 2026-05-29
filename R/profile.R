@@ -1848,20 +1848,47 @@ profile_match_bootstrap_targets <- function(targets, parm) {
   if (nrow(unsupported) > 0L) {
     abort_unsupported_bootstrap_targets(unsupported)
   }
+  if (is.numeric(parm)) {
+    if (
+      any(!is.finite(parm)) ||
+        any(parm != as.integer(parm)) ||
+        any(parm < 1L | parm > nrow(targets))
+    ) {
+      cli::cli_abort(
+        "{.arg parm} numeric values must select rows from the available confidence-interval targets."
+      )
+    }
+    return(targets[as.integer(parm), , drop = FALSE])
+  }
   targets <- targets[bootstrap_supported_targets(targets), , drop = FALSE]
   profile_match_confint_targets(targets, parm, fixed_only = FALSE)
 }
 
 profile_bootstrap_requested_unsupported_targets <- function(targets, parm) {
-  if (is.null(parm) || !is.character(parm)) {
+  if (is.null(parm)) {
+    return(targets[0L, , drop = FALSE])
+  }
+  if (is.numeric(parm)) {
+    if (
+      any(!is.finite(parm)) ||
+        any(parm != as.integer(parm)) ||
+        any(parm < 1L | parm > nrow(targets))
+    ) {
+      return(targets[0L, , drop = FALSE])
+    }
+    requested <- targets[as.integer(parm), , drop = FALSE]
+    return(requested[!bootstrap_supported_targets(requested), , drop = FALSE])
+  }
+  if (!is.character(parm)) {
     return(targets[0L, , drop = FALSE])
   }
 
   aliases <- paste0(targets$dpar, ":", targets$term)
-  index <- match(parm, targets$parm)
+  expanded <- profile_expand_confint_target_sets(targets, parm)
+  index <- match(expanded, targets$parm)
   missing_index <- is.na(index)
   if (any(missing_index)) {
-    index[missing_index] <- match(parm[missing_index], aliases)
+    index[missing_index] <- match(expanded[missing_index], aliases)
   }
   index <- unique(index[!is.na(index)])
   if (length(index) == 0L) {

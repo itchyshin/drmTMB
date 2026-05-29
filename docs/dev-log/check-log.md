@@ -43152,3 +43152,61 @@ Member-group review:
 - Grace checked the focused test; broader package checks were not rerun for
   this small audit slice.
 - No spawned subagents were running.
+
+## 2026-05-29 - Bootstrap derived-target alias UX
+
+Goal:
+
+- Prevent broad bootstrap target aliases from silently dropping unsupported
+  derived rows after exact-name derived target errors were clarified.
+
+Changes:
+
+- `profile_match_bootstrap_targets()` now checks exact, numeric, and
+  alias-expanded requests against the full `profile_targets()` inventory before
+  filtering to bootstrap-supported direct targets.
+- `parm = "correlations"` now errors with the direct-target-only bootstrap
+  message when a fitted object has derived q4 unstructured correlation rows.
+- `parm = "variance_components"` now errors with the same message when a
+  fitted object has derived modelled `sd(group)` surfaces mixed with direct
+  variance-component rows.
+- Numeric `parm` rows are now interpreted against the full target inventory for
+  bootstrap, so a numeric derived row gets the direct-target-only error instead
+  of being reindexed after unsupported rows were filtered away.
+- Updated `NEWS.md` and `docs/design/12-profile-likelihood-cis.md` to record
+  the alias boundary.
+- Added
+  `docs/dev-log/after-task/2026-05-29-bootstrap-derived-alias-ux.md`.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md NEWS.md
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+rg -n "direct-target-only|direct fitted-object targets only|broad alias|variance_components|correlations.*bootstrap|bootstrap.*correlations|bootstrap.*variance_components|silently dropping|unknown-target|target set" README.md NEWS.md ROADMAP.md docs/design R tests/testthat man --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'bootstrap alias correlations variance_components derived target confint' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `test-profile-targets.R` passed.
+- `git diff --check` was clean.
+- The stale-wording scan found the intended NEWS/design/code/test hits plus
+  existing direct-target examples. The old
+  `docs/design/68-gllvmtmb-profile-ci-audit.md` bootstrap example remains
+  compatible because that large-phylogeny example selects direct variance
+  components, not modelled `sd(group)` derived surfaces.
+- The issue search returned no exact open issue to update.
+
+Member-group review:
+
+- Ada kept the slice on target selection and did not move into derived
+  bootstrap intervals.
+- Boole checked that aliases still use the existing public vocabulary rather
+  than adding new `parm` syntax.
+- Fisher kept bootstrap coverage claims out of scope.
+- Curie added alias and numeric failure-path tests.
+- Grace ran the focused profile-target suite and diff hygiene.
+- Rose recorded the stale-wording boundary and the old design-note example.
+- No spawned subagents were running.

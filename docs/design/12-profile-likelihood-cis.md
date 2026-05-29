@@ -241,7 +241,11 @@ linear combinations stay out of the bootstrap target set until a validated
 derived-interval method exists. If a user requests one of those derived targets
 by exact name, `confint(..., method = "bootstrap")` should say that bootstrap is
 currently direct-target only, rather than hiding the target behind a generic
-unknown-target error.
+unknown-target error. Broad target-set aliases such as `parm = "correlations"`
+or `parm = "variance_components"` must use the full fitted-object inventory
+before filtering bootstrap-supported rows, so they fail with the same
+direct-target-only message whenever the alias would otherwise mix supported
+direct rows with unsupported derived rows.
 
 For direct positive scale and SD targets, the bootstrap route stores both the
 response-scale estimate and the fitted log-scale estimate from each refit. It

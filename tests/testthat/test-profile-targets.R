@@ -2876,6 +2876,26 @@ test_that("profile targets can format fitted-like q=4 endpoint registry rows", {
     "derived_unstructured_correlation",
     fixed = TRUE
   )
+  q4_alias_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit_q4,
+      parm = "correlations",
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(q4_alias_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(q4_alias_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(q4_alias_bootstrap_error),
+    "derived_unstructured_correlation",
+    fixed = TRUE
+  )
   expect_error(
     stats::confint(
       fit_q4,
@@ -3009,6 +3029,26 @@ test_that("profile target inventory marks modelled group scales as derived", {
     "derived_target",
     fixed = TRUE
   )
+  derived_sd_alias_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit,
+      parm = "variance_components",
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(derived_sd_alias_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(derived_sd_alias_bootstrap_error),
+    "direct fitted-object targets only",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(derived_sd_alias_bootstrap_error),
+    "derived_target",
+    fixed = TRUE
+  )
 })
 
 test_that("profile target inventory marks derived variance ratios as unavailable", {
@@ -3044,6 +3084,22 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   expect_match(
     conditionMessage(repeatability_bootstrap_error),
     "profile_targets",
+    fixed = TRUE
+  )
+  repeatability_index <- match(parm, targets$parm)
+  repeatability_numeric_bootstrap_error <- tryCatch(
+    stats::confint(
+      fit,
+      parm = repeatability_index,
+      method = "bootstrap",
+      R = 1
+    ),
+    error = identity
+  )
+  expect_s3_class(repeatability_numeric_bootstrap_error, "error")
+  expect_match(
+    conditionMessage(repeatability_numeric_bootstrap_error),
+    "direct fitted-object targets only",
     fixed = TRUE
   )
   expect_equal(
