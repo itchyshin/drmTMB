@@ -64,6 +64,60 @@ source_count_structured_q1 <- function(run_files = TRUE) {
   )
 }
 
+count_structured_q1_gate_rows <- function(
+  cell_id,
+  replicate,
+  family = "nbinom2",
+  structured_type = "spatial",
+  hessian_status = "ok",
+  sd_boundary_status = "ok",
+  fit_diagnostic_status = "ok",
+  warning_count = 0L,
+  warnings = "",
+  sd_structured = 0.60
+) {
+  data.frame(
+    surface = "count_structured_q1",
+    family = family,
+    structured_type = structured_type,
+    group = ifelse(structured_type == "spatial", "site", "id"),
+    cell_id = cell_id,
+    replicate = replicate,
+    parameter = c("mu:(Intercept)", "mu:x", "sd:mu:structured"),
+    parameter_class = c("fixed_mu", "fixed_mu", "structured_sd"),
+    truth = c(1.0, 0.2, sd_structured),
+    n_level = 16L,
+    n_per_level = 8L,
+    mean_count = 3.0,
+    sigma_baseline = 0.45,
+    geometry = "ring",
+    matrix_decay = 0.4,
+    converged = TRUE,
+    pdHess = hessian_status == "ok",
+    warning_count = warning_count,
+    warnings = warnings,
+    fit_diagnostic_status = fit_diagnostic_status,
+    fit_diagnostic_message = ifelse(
+      fit_diagnostic_status == "ok",
+      "Selected fit-level diagnostics are ok.",
+      "Selected fit-level diagnostics have warnings."
+    ),
+    hessian_status = hessian_status,
+    hessian_message = ifelse(
+      hessian_status == "ok",
+      "Hessian is positive definite.",
+      "Hessian is not positive definite."
+    ),
+    sd_boundary_status = sd_boundary_status,
+    sd_boundary_message = ifelse(
+      sd_boundary_status == "ok",
+      "Random-effect SDs are away from the lower boundary.",
+      "Random-effect SD is near the lower boundary."
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 test_that("Phase 18 count structured q1 DGP is seeded and self-describing", {
   source_count_structured_q1(run_files = FALSE)
 
@@ -346,6 +400,16 @@ test_that("Phase 18 count structured q1 grid writer creates artifacts", {
   expect_equal(nrow(utils::read.csv(out$paths$profile_targets_csv)), 1L)
   expect_equal(nrow(utils::read.csv(out$paths$profile_intervals_csv)), 1L)
   expect_equal(nrow(utils::read.csv(out$paths$interval_evidence_csv)), 4L)
+
+  audit <- phase18_audit_count_structured_q1_boundary_gate(
+    output_dir,
+    require_complete = TRUE
+  )
+
+  expect_equal(audit$surface, "count_structured_q1_boundary_gate_audit")
+  expect_equal(nrow(audit$boundary_gate$fits), 1L)
+  expect_equal(audit$boundary_gate$decision$decision, "propose_next_pilot")
+  expect_true("sd_structured" %in% names(out$summary$replicates))
   expect_error(
     phase18_write_count_structured_q1_grid_outputs(
       output_dir = output_dir,
@@ -355,4 +419,94 @@ test_that("Phase 18 count structured q1 grid writer creates artifacts", {
     ),
     "already exists"
   )
+})
+
+test_that("Phase 18 count structured q1 boundary gate holds failed pilots", {
+  source_count_structured_q1()
+
+  replicates <- rbind(
+    count_structured_q1_gate_rows("count_structured_q1_001", 1L),
+    count_structured_q1_gate_rows(
+      "count_structured_q1_001",
+      2L,
+      sd_boundary_status = "warning",
+      fit_diagnostic_status = "warning"
+    ),
+    count_structured_q1_gate_rows(
+      "count_structured_q1_002",
+      1L,
+      hessian_status = "warning",
+      fit_diagnostic_status = "warning",
+      warning_count = 1L,
+      warnings = "optimizer stalled"
+    ),
+    count_structured_q1_gate_rows(
+      "count_structured_q1_002",
+      2L,
+      sd_boundary_status = "warning",
+      fit_diagnostic_status = "warning"
+    )
+  )
+  failures <- data.frame(
+    cell_id = "count_structured_q1_002",
+    replicate = 1L,
+    seed = 12L,
+    status = "ok",
+    severity = "warning",
+    message = "optimizer stalled",
+    skipped = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  gate <- phase18_count_structured_q1_boundary_gate_summary(
+    replicates,
+    failures = failures
+  )
+
+  expect_equal(nrow(gate$fits), 4L)
+  expect_equal(gate$overall$n_fit, 4L)
+  expect_equal(gate$overall$hessian_warning, 1L)
+  expect_equal(gate$overall$sd_boundary_warning, 2L)
+  expect_equal(gate$fits$sd_structured, rep(0.60, 4L))
+  expect_equal(gate$decision$decision, "hold_diagnostic")
+  expect_equal(
+    gate$checks$status[gate$checks$check == "hessian_rate"],
+    "failed"
+  )
+  expect_equal(
+    gate$checks$status[gate$checks$check == "sd_boundary_rate"],
+    "failed"
+  )
+  expect_equal(
+    gate$checks$status[gate$checks$check == "unexplained_warning_ledger"],
+    "failed"
+  )
+})
+
+test_that("Phase 18 count structured q1 boundary gate allows clean pilots", {
+  source_count_structured_q1()
+
+  rows <- list()
+  index <- 0L
+  for (cell in seq_len(5L)) {
+    for (replicate in seq_len(2L)) {
+      index <- index + 1L
+      rows[[index]] <- count_structured_q1_gate_rows(
+        sprintf("count_structured_q1_%03d", cell),
+        replicate,
+        structured_type = ifelse(cell %% 2L == 0L, "animal", "spatial"),
+        sd_boundary_status = ifelse(index == 1L, "warning", "ok"),
+        fit_diagnostic_status = ifelse(index == 1L, "warning", "ok")
+      )
+    }
+  }
+  gate <- phase18_count_structured_q1_boundary_gate_summary(do.call(
+    rbind,
+    rows
+  ))
+
+  expect_equal(nrow(gate$fits), 10L)
+  expect_equal(gate$overall$sd_boundary_warning, 1L)
+  expect_true(all(gate$checks$status == "ok"))
+  expect_equal(gate$decision$decision, "propose_next_pilot")
 })
