@@ -93,6 +93,33 @@ Slice 80 adds the fourth anchor: before any profile-likelihood call,
 profiles from stale `obj$env$last.par` or `obj$env$last.par.best` state left by
 earlier profiles, diagnostics, or user experimentation.
 
+## Current Internal Start Builders
+
+The package already has deterministic internal starting-value builders for each
+family route. These are not user starts and they are not a public warm-start
+interface: they are ordinary family-builder defaults passed to
+`TMB::MakeADFun()` before `stats::nlminb()` starts.
+
+The Gaussian location-scale builder starts fixed-effect `mu` coefficients with
+`lm.fit()` when the fixed-effect design is dense. It then starts the `sigma`
+intercept from the residual standard deviation, subtracting the median known
+sampling variance when `meta_V(V = V)` is present and applying a small scale
+floor. Non-intercept `sigma` coefficients still start at zero; a closed-form
+heteroscedastic `sigma ~ x` regression would be a separate measured design
+slice, not current behaviour.
+
+The bivariate Gaussian builder runs separate OLS starts for `mu1` and `mu2`,
+starts `sigma1` and `sigma2` from the two residual standard deviations, and
+starts constant `rho12` from the residual correlation after clipping to
+`[-0.8, 0.8]` and mapping through Fisher-z. This is an internal analogue of the
+GLLVM.jl warm-start lesson for the already fitted bivariate residual-correlation
+surface.
+
+The reserved public names in this document still remain reserved. The current
+contract is: internal family starts may improve default optimizer behaviour, but
+users cannot yet supply `start`, `start_from`, or `warm_start` through
+`drm_control()`.
+
 ## Future Start Contract
 
 User starts should not be a free-form replacement of the entire TMB parameter
