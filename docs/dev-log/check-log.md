@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Helper Artifact Audit
+
+Goal:
+
+- Apply the merged boundary-gate helper to the real post-diagnostic
+  `count_structured_q1` Actions artifact from run `26626333581`.
+
+Actions run:
+
+- Read the downloaded artifact at
+  `/tmp/drmTMB-phase18-count-structured-q1-diagnostic-smoke-26626333581/phase18-count_structured_q1-shard-1-of-1-26626333581`.
+- The first local R command omitted `inst/sim/R/sim_registry.R`, which defines
+  the shared `assert_positive_whole_number()` helper. The command was rerun
+  with the normal simulation source order used by tests and Actions.
+- `phase18_audit_count_structured_q1_boundary_gate(require_complete = TRUE)`
+  collapsed 192 parameter rows to 48 fitted replicates.
+
+Artifact audit:
+
+- Overall: 48 fitted replicates; 5 `fit_diagnostic_status != "ok"`; 5
+  `sd_boundary_status != "ok"`; 1 `hessian_status != "ok"`; 1 warning-ledger
+  replicate.
+- Warning cells: `count_structured_q1_007`, `count_structured_q1_008`,
+  `count_structured_q1_010`, `count_structured_q1_012`, and
+  `count_structured_q1_020`.
+- All warning cells had `n_level = 16`, `mean_count = 3`, and
+  `sigma_baseline = 0.45`.
+- The helper reported all gate checks as `ok`:
+  `hessian_rate`, `hessian_condition_count`, `sd_boundary_rate`,
+  `sd_boundary_condition_rate`, and `unexplained_warning_ledger`.
+- The helper decision was `propose_next_pilot`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source("inst/sim/R/sim_registry.R"); source("inst/sim/R/sim_utils.R"); source("inst/sim/R/sim_runner.R"); source("inst/sim/R/sim_uncertainty.R"); source("inst/sim/fit/sim_summarise_count_structured_q1.R"); source("inst/sim/run/sim_write_count_structured_q1_grid.R"); root <- "/tmp/drmTMB-phase18-count-structured-q1-diagnostic-smoke-26626333581/phase18-count_structured_q1-shard-1-of-1-26626333581"; audit <- phase18_audit_count_structured_q1_boundary_gate(root, require_complete = TRUE); print(audit$boundary_gate$overall); print(audit$boundary_gate$conditions[audit$boundary_gate$conditions$fit_diagnostic_warning > 0 | audit$boundary_gate$conditions$sd_boundary_warning > 0 | audit$boundary_gate$conditions$hessian_warning > 0, c("cell_id", "family", "structured_type", "n_level", "sd_structured", "mean_count", "sigma_baseline", "n_fit", "fit_diagnostic_warning", "sd_boundary_warning", "hessian_warning")]); print(audit$boundary_gate$checks); print(audit$boundary_gate$decision)'
+air format ROADMAP.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-helper-artifact-audit.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- The helper audit completed with decision `propose_next_pilot`.
+- Formatting completed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned only the intended NEWS boundary wording and
+  standing formula-grammar planned-neighbour row, not a claim that the lane has
+  formal recovery, coverage, zero-inflated structure, structured slopes, or
+  `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to a read-back audit of the already downloaded Actions
+  artifact.
+- Curie checked fitted-replicate counts, warning cells, and gate checks.
+- Fisher kept the result framed as permission to design a larger diagnostic
+  pilot, not as recovery or coverage evidence.
+- Grace verified pkgdown, stale-claim scans, and diff hygiene before the PR.
+- Rose recorded the source-order hiccup and the helper decision so future
+  agents can rerun the same audit.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Boundary Audit Helper
 
 Goal:

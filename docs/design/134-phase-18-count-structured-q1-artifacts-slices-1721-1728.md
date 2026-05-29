@@ -1,12 +1,12 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1740
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1742
 
 This note records the opt-in artifact lane, manual Actions task, first manual
 smoke audit, warning-diagnostic hardening, and post-merge diagnostic smoke
-audit, boundary-rate gate, and boundary-gate audit helper for ordinary Poisson
-and NB2 count models with one q=1 structured `mu` intercept. The reader is an R
-package contributor deciding whether the fitted source gate for `spatial()`,
-`animal()`, and `relmat()` count routes has enough simulation infrastructure to
-audit smoke runs.
+audit, boundary-rate gate, boundary-gate audit helper, and first helper audit
+for ordinary Poisson and NB2 count models with one q=1 structured `mu`
+intercept. The reader is an R package contributor deciding whether the fitted
+source gate for `spatial()`, `animal()`, and `relmat()` count routes has enough
+simulation infrastructure to audit smoke runs.
 
 ## Implemented Claim
 
@@ -124,6 +124,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1735-1736 | Done as post-diagnostic Actions smoke audit | GitHub Actions run `26626333581` completed after the warning-diagnostic columns merged to `main`. The selected `count_structured_q1` job succeeded in 3m33s, and the downloaded artifact had the expected 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, and one warning-ledger row for `count_structured_q1_020` replicate 2. The new diagnostic columns were present. `fit_diagnostic_status` and `sd_boundary_status` each had 169 `ok` and 23 `warning` parameter rows, which collapse to five boundary-sensitive replicate fits; `hessian_status` had 187 `ok` and 5 `warning` parameter rows, all from `count_structured_q1_020` replicate 2. |
 | 1737-1738 | Done locally as pre-grid boundary gate | The post-diagnostic smoke is promoted to a decision rule, not to recovery evidence. Larger `count_structured_q1` pilots must collapse replicate-table rows to one row per fitted replicate, report fit-diagnostic, SD-boundary, Hessian, and warning-ledger rates overall and by condition, and stop before formal recovery claims if the thresholds below trigger. |
 | 1739-1740 | Done locally as boundary-gate audit helper | `phase18_audit_count_structured_q1_boundary_gate()` now reads a count structured q=1 artifact directory, collapses replicate-table parameter rows to fitted replicates, reports overall and condition-level diagnostic rates, applies the Slice 1737-1738 thresholds, and returns a `hold_diagnostic` or `propose_next_pilot` decision. The replicate table now carries `sd_structured` directly, while the helper can still derive it from the structured-SD row in older artifacts. |
+| 1741-1742 | Done locally as first helper artifact audit | The merged helper audited the downloaded artifact from GitHub Actions run `26626333581`. It collapsed 192 parameter rows to 48 fitted replicates, found 5 fit-diagnostic and SD-boundary warnings, 1 Hessian warning, no unexplained warning-ledger rows, and returned `propose_next_pilot`. This is a gate decision for planning a next diagnostic pilot, not formal recovery or coverage evidence. |
 
 ## Next Implementation Gate
 
@@ -197,3 +198,28 @@ Slices 1739-1740 make the gate executable. The helper reads
 The helper deliberately returns `propose_next_pilot`, not
 `promote_formal_recovery`, when all checks pass. Formal recovery still needs a
 separate design note and a larger-grid audit with MCSE and interval policy.
+
+## First Helper Audit
+
+Slice 1741-1742 applied the helper to the post-diagnostic smoke artifact from
+GitHub Actions run `26626333581`. The helper returned:
+
+| Quantity | Value |
+| --- | ---: |
+| Fitted replicates | 48 |
+| Fit-diagnostic warning replicates | 5 |
+| SD-boundary warning replicates | 5 |
+| Hessian warning replicates | 1 |
+| Warning-ledger replicates | 1 |
+
+The warning cells were `count_structured_q1_007`,
+`count_structured_q1_008`, `count_structured_q1_010`,
+`count_structured_q1_012`, and `count_structured_q1_020`. Each had two
+attempted replicates and one SD-boundary warning. Only
+`count_structured_q1_020` also had a Hessian warning and the warning-ledger row.
+
+All Slice 1737-1738 gate checks returned `ok`, so the helper decision was
+`propose_next_pilot`. This means the next contributor may design a larger
+diagnostic pilot. It does not permit a formal recovery, coverage, or broad
+promotion claim without the separate design note and grid specification named
+above.
