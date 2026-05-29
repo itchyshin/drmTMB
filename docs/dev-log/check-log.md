@@ -2,6 +2,60 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Follow-Up Condition Sets
+
+Goal:
+
+- Make the next `count_structured_q1` diagnostic follow-up executable by
+  separating run `26631771105` cells into stable, high-SD watchlist, and
+  low-SD boundary-stress condition sets.
+
+Implemented:
+
+- Added `phase18_count_structured_q1_followup_conditions()`.
+- Added `condition_set` to the manual `count_structured_q1` Actions path, with
+  choices `all`, `stable`, `stable_watch`, and `boundary_stress`.
+- Added `docs/design/137-phase-18-count-structured-q1-followup-condition-sets-slices-1753-1760.md`.
+- Updated ROADMAP, the Phase 18 simulation programme, `inst/sim/README.md`,
+  and focused tests.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_count_structured_q1.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-count-structured-q1.R tests/testthat/test-phase18-actions-runner.R docs/design/137-phase-18-count-structured-q1-followup-condition-sets-slices-1753-1760.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md .github/workflows/phase18-simulation-grid.yaml
+Rscript --vanilla -e "devtools::test(filter = 'phase18-(count-structured-q1|actions-runner)', reporter = 'summary')"
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 condition_set OR count structured q1 stable boundary stress OR count structured q1 condition set' --limit 20 --json number,title,state,url,labels
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|condition_set=stable.*coverage|condition_set=stable.*recovery claim|stable.*formal recovery claim|boundary_stress.*promot|task = "all".*count_structured_q1|count_structured_q1.*task = "all"' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Formatting completed.
+- The focused `phase18-actions-runner` and `phase18-count-structured-q1`
+  tests passed.
+- The GitHub issue search returned `[]`; no issue action was taken because the
+  design note, roadmap row, check-log entry, and after-task report are enough
+  for this internal follow-up split.
+- The stale-claim scan returned only existing guardrails that say the lane is
+  excluded from `task = "all"` and does not make formal recovery claims.
+- `git diff --check` was clean.
+- `pkgdown::check_pkgdown()` reported no problems.
+
+Member-group review:
+
+- Ada kept the slice to an executable follow-up design rather than a new model
+  claim.
+- Curie checked the 24-cell split: 10 clean stable cells, 2 high-SD watchlist
+  cells, and 12 low-SD boundary-stress cells.
+- Fisher kept recovery and coverage claims out until direct intervals and MCSE
+  targets are designed.
+- Grace checked workflow input wiring, focused tests, pkgdown, and diff
+  hygiene.
+- Rose checked stale wording and the issue overlap search.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Pilot Audit
 
 Goal:

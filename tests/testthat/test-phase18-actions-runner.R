@@ -210,6 +210,7 @@ test_that("Phase 18 Actions runner accepts count structured q1 task", {
       "--n-reps=2",
       "--master-seed=123",
       "--profile-parameters=log_sd_phylo",
+      "--condition-set=stable",
       "--dry-run=true"
     ),
     stdout = TRUE,
@@ -220,6 +221,7 @@ test_that("Phase 18 Actions runner accepts count structured q1 task", {
   expect_match(out, "task=count_structured_q1", fixed = TRUE)
   expect_match(out, "n_rep=2", fixed = TRUE)
   expect_match(out, "profile_parameters=log_sd_phylo", fixed = TRUE)
+  expect_match(out, "condition_set=stable", fixed = TRUE)
 })
 
 test_that("Phase 18 Actions runner sources count structured q1 task dependencies", {
@@ -397,6 +399,31 @@ test_that("Phase 18 Actions runner validates formal condition shards", {
   )
 })
 
+test_that("Phase 18 Actions runner restricts count condition sets", {
+  script <- phase18_actions_runner_script()
+  rejected <- suppressWarnings(
+    system2(
+      file.path(R.home("bin"), "Rscript"),
+      c(
+        "--vanilla",
+        shQuote(script),
+        "--task=tweedie_fixed_effect",
+        "--dry-run=true",
+        "--condition-set=stable"
+      ),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+  )
+
+  expect_true(!is.null(attr(rejected, "status")))
+  expect_match(
+    paste(rejected, collapse = "\n"),
+    "`condition-set` is only available for count_structured_q1",
+    fixed = TRUE
+  )
+})
+
 test_that("Phase 18 workflow concurrency is shard-aware", {
   workflow <- testthat::test_path(
     "..",
@@ -416,6 +443,11 @@ test_that("Phase 18 workflow concurrency is shard-aware", {
   expect_match(
     text,
     "inputs.condition_shards",
+    fixed = TRUE
+  )
+  expect_match(
+    text,
+    "inputs.condition_set",
     fixed = TRUE
   )
 })
@@ -448,6 +480,8 @@ test_that("Phase 18 workflow exposes count structured q1 task", {
 
   expect_match(text, "count_structured_q1", fixed = TRUE)
   expect_match(text, "20260543", fixed = TRUE)
+  expect_match(text, "condition_set:", fixed = TRUE)
+  expect_match(text, "--condition-set=", fixed = TRUE)
   expect_match(
     text,
     paste(

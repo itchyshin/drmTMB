@@ -44,6 +44,63 @@ phase18_count_structured_q1_conditions <- function(
   conditions
 }
 
+phase18_count_structured_q1_followup_conditions <- function(
+  condition_set = c("all", "stable", "stable_watch", "boundary_stress")
+) {
+  condition_set <- match.arg(condition_set)
+  conditions <- phase18_count_structured_q1_conditions(
+    family = c("poisson", "nbinom2"),
+    structured_type = c("spatial", "animal", "relmat"),
+    n_level = c(10L, 16L),
+    n_per_level = 8L,
+    sd_structured = c(0.25, 0.60),
+    mean_count = 3.0,
+    sigma_baseline = 0.45,
+    geometry = "ring"
+  )
+  pilot_cell_id <- sprintf(
+    "count_structured_q1_%03d",
+    seq_len(nrow(conditions))
+  )
+  trigger_cells <- paste0(
+    "count_structured_q1_",
+    c("002", "005", "006", "008", "010", "012")
+  )
+  lower_warning_cells <- paste0(
+    "count_structured_q1_",
+    c("001", "003", "004", "007", "014", "020")
+  )
+  high_sd_warning_cells <- paste0("count_structured_q1_", c("014", "020"))
+  warning_cells <- c(trigger_cells, lower_warning_cells)
+
+  role <- ifelse(
+    conditions$sd_structured == 0.25,
+    "boundary_stress",
+    ifelse(pilot_cell_id %in% high_sd_warning_cells, "stable_watch", "stable")
+  )
+  pilot_status <- rep("none", nrow(conditions))
+  pilot_status[pilot_cell_id %in% warning_cells] <- "lower_rate_warning"
+  pilot_status[pilot_cell_id %in% trigger_cells] <- "condition_trigger"
+
+  conditions$pilot_source_run <- "26631771105"
+  conditions$pilot_cell_id <- pilot_cell_id
+  conditions$pilot_condition_role <- role
+  conditions$pilot_sd_boundary_status <- pilot_status
+  conditions$pilot_hessian_warning <- pilot_cell_id == "count_structured_q1_004"
+  conditions$pilot_warning_ledger <- pilot_cell_id == "count_structured_q1_004"
+
+  keep <- switch(
+    condition_set,
+    all = rep(TRUE, nrow(conditions)),
+    stable = conditions$pilot_condition_role == "stable",
+    stable_watch = conditions$pilot_condition_role == "stable_watch",
+    boundary_stress = conditions$pilot_condition_role == "boundary_stress"
+  )
+  conditions <- conditions[keep, , drop = FALSE]
+  row.names(conditions) <- NULL
+  conditions
+}
+
 phase18_dgp_count_structured_q1 <- function(
   family = c("poisson", "nbinom2"),
   structured_type = c("spatial", "animal", "relmat"),

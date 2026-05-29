@@ -183,6 +183,34 @@ test_that("Phase 18 count structured q1 DGP is seeded and self-describing", {
   expect_equal(nrow(truth$Q), 8L)
 })
 
+test_that("Phase 18 count structured q1 follow-up conditions split pilot roles", {
+  source_count_structured_q1(run_files = FALSE)
+
+  all_conditions <- phase18_count_structured_q1_followup_conditions("all")
+  stable <- phase18_count_structured_q1_followup_conditions("stable")
+  watch <- phase18_count_structured_q1_followup_conditions("stable_watch")
+  stress <- phase18_count_structured_q1_followup_conditions("boundary_stress")
+
+  expect_equal(nrow(all_conditions), 24L)
+  expect_equal(nrow(stable), 10L)
+  expect_equal(nrow(watch), 2L)
+  expect_equal(nrow(stress), 12L)
+  role_counts <- table(all_conditions$pilot_condition_role)
+  expect_equal(
+    as.integer(role_counts[c("boundary_stress", "stable", "stable_watch")]),
+    c(12L, 10L, 2L)
+  )
+  expect_true(all(stable$sd_structured == 0.60))
+  expect_true(all(stable$pilot_sd_boundary_status == "none"))
+  expect_true(all(watch$pilot_sd_boundary_status == "lower_rate_warning"))
+  expect_true(all(stress$sd_structured == 0.25))
+  expect_equal(
+    sum(stress$pilot_sd_boundary_status == "condition_trigger"),
+    6L
+  )
+  expect_equal(unique(all_conditions$pilot_source_run), "26631771105")
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 

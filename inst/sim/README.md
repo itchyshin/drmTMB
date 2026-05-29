@@ -124,6 +124,9 @@ Current pilot files:
   audits that pilot and records the boundary-gate decision
   `hold_diagnostic`, driven by SD-boundary warnings rather than by a Hessian
   rate or unexplained warning-ledger failure.
+- `docs/design/137-phase-18-count-structured-q1-followup-condition-sets-slices-1753-1760.md`
+  splits the same 24 cells into executable `stable`, `stable_watch`, and
+  `boundary_stress` condition sets for the next diagnostic dispatch.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -475,8 +478,10 @@ Current pilot files:
   `phase18_audit_count_structured_q1_boundary_gate()`, which applies the
   fitted-replicate boundary rule before a larger pilot is proposed. The
   10-replicate diagnostic pilot from Actions run `26631771105` returned
-  `hold_diagnostic`, so this lane is opt-in and does not make formal recovery
-  or coverage claims.
+  `hold_diagnostic`, so `phase18_count_structured_q1_followup_conditions()`
+  now separates `stable`, `stable_watch`, and `boundary_stress` cells before
+  another diagnostic dispatch. This lane is opt-in and does not make formal
+  recovery or coverage claims.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
