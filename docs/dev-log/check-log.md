@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Boundary Gate
+
+Goal:
+
+- Convert the post-diagnostic `count_structured_q1` smoke findings into an
+  explicit pre-grid boundary rule before any larger recovery or coverage
+  pilot.
+
+Implemented:
+
+- Updated the count structured q=1 design note with Slice 1737-1738.
+- Defined the fitted-replicate counting unit so fit-level diagnostic rows are
+  not misread as parameter-row operating characteristics.
+- Added required audit fields for fit-diagnostic, SD-boundary, Hessian, and
+  warning-ledger rates overall and by condition.
+- Added stop triggers for Hessian-warning rates, condition-level Hessian
+  warnings, SD-boundary rates, condition-level SD-boundary warnings, and
+  unexplained optimizer or non-finite warning messages.
+- Updated the roadmap, Phase 18 simulation programme, and simulation README so
+  the larger-count-grid boundary is visible from the main planning surfaces.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-boundary-gate.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 boundary gate OR count structured q1 boundary gate OR count structured q1 recovery' --limit 20 --json number,title,state,url,labels
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- Formatting completed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The open-issue search returned no matching open issues to update.
+- The stale-claim scan returned only the intended NEWS boundary wording and
+  standing formula-grammar planned-neighbour row, not a claim that the lane has
+  formal recovery, coverage, zero-inflated structure, structured slopes, or
+  `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the slice docs-only and sequenced before any larger grid.
+- Curie set the diagnostic counting unit and condition-level warning fields.
+- Fisher kept the thresholds framed as a pre-grid decision rule, not a
+  recovered operating-characteristic claim.
+- Grace verified pkgdown and diff hygiene before the PR.
+- Rose added the rule to the roadmap and simulation programme so the green
+  smoke run is not mistaken for formal recovery evidence.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Post-Diagnostic Smoke Audit
 
 Goal:
