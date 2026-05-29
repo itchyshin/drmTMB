@@ -1026,3 +1026,12 @@ errors, and elapsed time by surface before the raw manifest.
      excluded from `task = "all"`, and does not introduce condition sharding,
      random effects, structured effects, bivariate Tweedie, offsets,
      zero-inflation aliases, or hurdle aliases.
+192. Slices 1719-1720 record the first manual Actions smoke audit for
+     `tweedie_fixed_effect`. GitHub Actions run `26608885245` completed on
+     `main` with `n_reps = 2`, `cores = 2`, `backend = "multicore"`, and
+     `render_report = false`. The downloaded artifact had 8 condition cells,
+     16 replicate RDS files, 40 aggregate rows, 80 replicate coefficient rows,
+     80 Wald interval rows, 40 Wald coverage rows, 16 `ok` manifest rows, and
+     no failure-ledger rows. All 80 coefficient rows had `converged = TRUE`
+     and `pdHess = TRUE`. This is smoke-run evidence only, not a final
+     operating-characteristics or coverage claim.

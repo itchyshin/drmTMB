@@ -157,12 +157,15 @@ use unweighted fixed-effect rows.
 | 1709-1712 | Done locally as grid-writer implementation | `inst/sim/run/sim_write_tweedie_fixed_effect_grid.R` writes aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald coverage CSV artifacts, with overwrite checks and a focused grid-writer test. |
 | 1713-1716 | Done locally as first-wave summary wiring | `inst/sim/run/sim_run_first_wave_summary_smoke.R` now includes a two-cell low/high-zero `tweedie_fixed_effect` grid in the shared first-wave summary smoke runner, report bundle, return object, and parallel summary. |
 | 1717-1718 | Done locally as manual Actions task | `.github/workflows/phase18-simulation-grid.yaml` and `inst/sim/run/sim_run_actions_cell.R` expose a manual-only `tweedie_fixed_effect` task, excluded from `task = "all"`, and keep first-wave Actions dependencies synchronized with the Tweedie runner. |
+| 1719-1720 | Done as manual Actions smoke audit | GitHub Actions run `26608885245` completed `task=tweedie_fixed_effect` with `n_reps=2`, `cores=2`, and `backend=multicore`; downloaded artifacts had 8 cells, 16 ok replicate manifests, no failure rows, and 80 converged coefficient rows with positive-definite Hessians. |
 
 ## Next Implementation Gate
 
 The first DGP, summariser, smoke runner, repeatable grid writer, and shared
-first-wave summary wiring now exist, and the manual Actions task is exposed for
-opt-in artifact runs. The boundary is unchanged: univariate fixed-effect
-Tweedie, public `sigma = sqrt(phi)`, intercept-only `nu`, no offsets, no
-external weighted comparator, and no random, structured, or bivariate Tweedie
-support.
+first-wave summary wiring now exist, the manual Actions task is exposed for
+opt-in artifact runs, and a two-replicate manual Actions smoke audit has
+completed. The boundary is unchanged: univariate fixed-effect Tweedie, public
+`sigma = sqrt(phi)`, intercept-only `nu`, no offsets, no external weighted
+comparator, and no random, structured, or bivariate Tweedie support. The next
+slice should add artifact read-back QA or plan a larger bounded replication
+run, but not both in one PR.
