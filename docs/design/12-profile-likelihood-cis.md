@@ -237,8 +237,12 @@ response-scale estimate and the fitted log-scale estimate from each refit. It
 takes percentile endpoints on the log scale and then applies the same `exp`
 transformation used by Wald and profile intervals. This keeps refit-based SD
 intervals strictly positive and avoids raw-scale percentile behavior near zero.
-Fixed-effect coefficient intervals and direct correlation targets keep their
-existing target-specific scales.
+Fixed-effect coefficient intervals keep their fitted coefficient scale. Direct
+correlation targets keep response-scale refit correlations for percentile
+endpoints, rather than switching to Fisher-z or another link-scale percentile
+rule. That keeps bootstrap intervals as an empirical refit distribution on the
+reported correlation scale; coverage comparisons against link-scale correlation
+percentiles remain a later simulation task.
 
 Slice 173 keeps the evidence target modest. The focused tests for this gate
 check the status vocabulary, unsupported-parametric-bootstrap errors, q4
