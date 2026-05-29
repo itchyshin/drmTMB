@@ -219,6 +219,40 @@ test_that("predict_parameters() reports shape and residual-correlation component
   rho <- predict_parameters(fit_biv, newdata = grid, dpar = "rho12")
   expect_equal(unique(rho$component), "residual-correlation")
   expect_equal(rho$estimate, rho12(fit_biv, newdata = grid))
+
+  rho_ci <- predict_parameters(
+    fit_biv,
+    newdata = grid,
+    dpar = "rho12",
+    conf.int = TRUE
+  )
+  rho_basis <- drmTMB:::drm_fixed_effect_basis(
+    fit_biv,
+    newdata = grid,
+    dpar = "rho12",
+    covariance = TRUE
+  )
+  X_rho <- as.matrix(rho_basis$X)
+  V_rho <- as.matrix(rho_basis$V)
+  se_rho <- sqrt(rowSums((X_rho %*% V_rho) * X_rho))
+  z <- stats::qnorm(0.975)
+
+  expect_equal(rho_ci$conf.status, rep("wald", nrow(grid)))
+  expect_equal(rho_ci$interval_source, rep("wald", nrow(grid)))
+  expect_equal(rho_ci$estimate, rho12(fit_biv, newdata = grid))
+  expect_equal(
+    rho_ci$std.error,
+    unname(0.99999999 * (1 - tanh(rho_basis$eta)^2) * se_rho)
+  )
+  expect_equal(
+    rho_ci$conf.low,
+    unname(drmTMB:::rho_response(rho_basis$eta - z * se_rho))
+  )
+  expect_equal(
+    rho_ci$conf.high,
+    unname(drmTMB:::rho_response(rho_basis$eta + z * se_rho))
+  )
+  expect_true(all(rho_ci$conf.low > -1 & rho_ci$conf.high < 1))
 })
 
 test_that("predict_parameters() reports random-effect scale model components", {

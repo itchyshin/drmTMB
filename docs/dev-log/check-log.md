@@ -42783,3 +42783,76 @@ Member-group review:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-28-count-structured-mu-first-slice.md`
+
+## 2026-05-29 - Claude GLLVM.jl transfer audit and rho12 row-Wald lock
+
+Goal:
+
+- Audit the untracked Claude-authored
+  `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` note before treating its
+  GLLVM.jl transfer suggestions as `drmTMB` implementation work.
+- Lock the smallest verified `rho12` interval behavior that was easy to miss:
+  row-specific transformed-Wald intervals already available through
+  `predict_parameters(..., newdata = grid, dpar = "rho12", conf.int = TRUE)`.
+
+Evidence checked:
+
+- `gllvmTMB.jl/src/confint_derived_wald.jl` implements Fisher-z/logit
+  transformed-Wald intervals for bounded derived quantities in the sister Julia
+  pilot.
+- `gllvmTMB-julia-bench/report/comparison-final.md` reports transformed-Wald
+  coverage results for GLLVM.jl fixtures; these are useful hypotheses for
+  `drmTMB`, not package-specific coverage evidence.
+- `R/profile.R` already computes direct constant `rho12` Wald intervals on the
+  fitted correlation-link scale and back-transforms them to the response
+  correlation scale.
+- `R/predict-parameters.R` already computes row-specific fixed-effect Wald
+  intervals on the link scale for supplied grids, including predictor-dependent
+  residual `rho12`.
+- `R/drmTMB.R` already has Gaussian and bivariate Gaussian closed-form-style
+  starts through `lm.fit()`, residual SD starts, and a Fisher-z `rho12` start.
+- `R/drmTMB.R` calls `TMB::MakeADFun()` without a `profile =` argument, so
+  analytic `sigma` profile-out remains a larger future design task.
+
+Changes:
+
+- Added a focused `predict_parameters()` regression test proving row-specific
+  `rho12` intervals use the atanh-scale linear predictor and
+  `rho_response()` back-transformation.
+- Updated `docs/design/12-profile-likelihood-cis.md` to distinguish the cheap
+  row-specific Wald route in `predict_parameters()` from the row-specific
+  profile route in `confint(..., method = "profile", newdata = ...)`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-claude-gllvmjl-transfer-audit.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-predict-parameters.R
+Rscript --vanilla -e "devtools::test(filter = 'predict-parameters', reporter = 'summary')"
+rg -n "predictor-dependent.*rho12|row-specific.*profile|confint\\(.*rho12.*newdata|rho12.*newdata.*profile|predict_parameters\\(.*rho12|row-specific Wald|Fisher-z Wald" README.md ROADMAP.md NEWS.md docs/design vignettes R tests/testthat --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**'
+git diff --check
+gh issue list --search "rho12 interval predict_parameters transformed Wald" --limit 20
+gh issue list --search "Claude GLLVM.jl transformed Wald rho12" --limit 20
+```
+
+Result:
+
+- `test-predict-parameters.R` passed.
+- The stale-wording scan found profile-focused public wording but no
+  contradiction with the new design-note clarification: `confint(...,
+  method = "profile", newdata = ...)` remains the row-specific likelihood-shape
+  route, while `predict_parameters()` is the cheap row-specific Wald route.
+- `git diff --check` was clean.
+- Issue searches returned no matching open issue to update.
+
+Member-group review:
+
+- Ada scoped the lane to verified source behavior.
+- Fisher treated the GLLVM.jl coverage table as a hypothesis for later
+  simulation, not as direct `drmTMB` evidence.
+- Rose separated Claude's unverified transfer claims from current repository
+  facts.
+- Grace checked the focused test; broader package checks were not rerun for
+  this small audit slice.
+- No spawned subagents were running.
