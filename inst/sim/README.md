@@ -111,6 +111,9 @@ Current pilot files:
 - `docs/design/119-phase-18-student-mu-random-intercept-artifacts-slices-1379-1388.md`
   records the artifact path for ordinary `mu` random intercepts in
   `student()` models with fixed-effect `sigma` and `nu` formulas.
+- `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`
+  records the opt-in artifact path for ordinary Poisson/NB2 q=1
+  `spatial()`, `animal()`, and `relmat()` `mu` intercepts.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -148,6 +151,9 @@ Current pilot files:
   with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, fixed-effect log-`sigma`
   overdispersion, and tree-shape conditions for the formal-admission lane.
+- `dgp/sim_dgp_count_structured_q1.R` generates non-zero-inflated Poisson and
+  NB2 count data with one q=1 coordinate-spatial, animal-model, or `relmat()`
+  log-mean intercept and fixed-effect NB2 log-`sigma` when needed.
 - `dgp/sim_dgp_truncated_nbinom2_mu_random_intercept.R` generates positive
   zero-truncated NB2 count data with one ordinary grouped `mu` random
   intercept, `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
@@ -248,6 +254,11 @@ Current pilot files:
   `mu`, fixed NB2 `sigma`, the direct ordinary log-`sigma` random-intercept
   SD, direct `log_sd_sigma` profile-target status, and `check_drm()`
   replication status.
+- `fit/sim_summarise_count_structured_q1.R` summarises fixed Poisson/NB2 `mu`
+  coefficients, fixed NB2 `sigma` coefficients when present, direct
+  structured `mu` SDs, direct `log_sd_phylo` profile-target status, and
+  marker-specific diagnostic status for q=1 `spatial()`, `animal()`, and
+  `relmat()` count routes.
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
   formula scales, adds optional profile and parametric-bootstrap interval
@@ -308,6 +319,9 @@ Current pilot files:
   non-zero-inflated Poisson phylogenetic q=1 `mu` surface.
 - `run/sim_run_nbinom2_mu_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 `mu` random-effect surface.
+- `run/sim_run_count_structured_q1_smoke.R` does the same for the ordinary
+  non-zero-inflated Poisson/NB2 q=1 `spatial()`, `animal()`, and `relmat()`
+  `mu` intercept surface.
 - `run/sim_run_nbinom2_sigma_random_effect_smoke.R` does the same for the
   non-zero-inflated NB2 log-`sigma` random-intercept surface.
 - `run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R` does the same
@@ -440,6 +454,13 @@ Current pilot files:
   the 500-replicate formal gate remains unmet. Slices 561-575 add condition
   sharding for the formal task; shard artifacts cannot allow coverage claims
   by themselves.
+- `run/sim_write_count_structured_q1_grid.R` writes the ordinary Poisson/NB2
+  q=1 `spatial()`, `animal()`, and `relmat()` count `mu` smoke artifact set
+  with aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald
+  interval, Wald coverage, direct `log_sd_phylo` profile-target, optional
+  profile-interval, interval-evidence, interval-diagnostics, and
+  interval-failure CSVs. This lane is opt-in and does not make formal recovery
+  or coverage claims.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
@@ -526,6 +547,12 @@ Current pilot files:
   replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald
   coverage, direct profile-target status, optional direct profile interval,
   interval-evidence, interval-diagnostics, and interval-failure outputs.
+- `run/sim_summary_count_structured_q1_smoke.R` runs a tiny ordinary
+  Poisson/NB2 q=1 `spatial()`, `animal()`, and `relmat()` count `mu` summary
+  smoke grid. It returns aggregate, replicate, manifest, failure-ledger,
+  fixed-effect Wald interval, Wald coverage, direct profile-target status,
+  optional direct profile interval, interval-evidence, interval-diagnostics,
+  and interval-failure outputs.
 - `run/sim_summary_nbinom2_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated NB2 `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, warning/error ledger, formula-coefficient

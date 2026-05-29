@@ -2,6 +2,81 @@
 
 Record meaningful development checks here.
 
+## 2026-05-28 -- Phase 18 Count Structured q1 Smoke Artifacts
+
+Goal:
+
+- Add opt-in Phase 18 smoke artifacts for ordinary Poisson/NB2 q=1
+  `spatial()`, `animal()`, and `relmat()` `mu` intercepts after the fitted
+  source gate merged in PR #366.
+
+Implemented:
+
+- Added `phase18_dgp_count_structured_q1()` with seeded coordinate-spatial,
+  animal-model, and `relmat()` known-covariance count data generation.
+- Added `phase18_summarise_count_structured_q1_fit()` with fixed `mu`,
+  fixed NB2 `sigma`, structured `mu` SD, direct `log_sd_phylo`
+  profile-target status, and marker-specific `check_drm()` status.
+- Added smoke, summary, and grid-writer helpers that produce aggregate,
+  replicate, manifest, failure-ledger, fixed-effect Wald, profile-target,
+  optional profile-interval, interval-evidence, interval-diagnostic, and
+  interval-failure tables.
+- Added focused DGP, smoke-runner, grid-writer, and malformed-input tests.
+- Updated simulation README, Phase 18 programme, ROADMAP, NEWS, and the
+  design note for this artifact lane.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_count_structured_q1.R inst/sim/fit/sim_summarise_count_structured_q1.R inst/sim/run/sim_run_count_structured_q1_smoke.R inst/sim/run/sim_summary_count_structured_q1_smoke.R inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-count-structured-q1|count-structured-mu|phase18-poisson-phylo-q1|phase18-nbinom2-phylo-q1)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+git diff --check
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|manual Actions.*count structured q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat --glob '!docs/dev-log/**'
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|manual Actions.*count structured q1' pkgdown-site README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat --glob '!docs/dev-log/**'
+Rscript --vanilla -e "devtools::check()"
+```
+
+Results:
+
+- Formatting completed.
+- The first focused test run exposed a Poisson summariser bug where
+  `paste0("sigma:", NULL)` produced a stray parameter name for Poisson cells;
+  the summariser now explicitly uses an empty `sigma_parameter` vector when no
+  fixed `sigma` coefficients exist.
+- The focused count structured q1 test file passed after that fix.
+- The adjacent count structured source-gate and phylogenetic q1 artifact tests
+  passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Full `devtools::test()` passed.
+- `git diff --check` was clean.
+- The stale-claim scans returned the intended new NEWS/ROADMAP/rendered-news
+  boundary wording and an existing formula-grammar boundary row, not an
+  expanded claim that count structured q1 has formal recovery, zero-inflated
+  support, structured slopes, or manual Actions dispatch.
+- `pkgdown::build_site(preview = FALSE)` passed.
+- `devtools::check()` passed with 0 errors, 0 warnings, and 0 notes in
+  6 minutes 31.1 seconds.
+
+Member-group review:
+
+- Ada kept this to artifacts for the already-merged source gate.
+- Curie checked deterministic DGP, smoke, grid-writer, and malformed-input
+  tests.
+- Fisher kept the outputs framed as smoke artifacts, not formal recovery or
+  coverage evidence.
+- Grace ran formatting and the focused test file.
+- Pat and Rose checked that the design and README wording separates opt-in
+  artifacts from broad count structured admission.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-phase18-count-structured-q1-artifacts.md`
+
 ## 2026-05-28 -- Phase 18 Tweedie Manual Actions Smoke Audit
 
 Goal:
