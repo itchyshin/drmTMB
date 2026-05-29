@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Sparse Phylo Source Map
+
+Goal:
+
+- Resume the `codex/sparse-phylo-source-map` branch from repository evidence
+  and source-check the sparse-phylogeny GLLVM.jl lesson before treating it as a
+  `drmTMB` implementation plan.
+
+Actions run:
+
+- Rehydrated branch state with `git status --short --branch`, recent commits,
+  open PR state, newest after-task reports, and the current check log.
+- Confirmed the branch is even with `origin/main`, has no open PR, and has one
+  untracked broad Claude note at
+  `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md`.
+- Read `R/phylo-utils.R`, `R/drmTMB.R`, `src/drmTMB.cpp`,
+  `tests/testthat/test-phylo-utils.R`, `tests/testthat/test-phylo-gaussian.R`,
+  and the existing phylogenetic design docs.
+- Updated `docs/design/09-phylogenetic-and-spatial-speed.md` to record the
+  current sparse augmented-precision path and to reframe the next work as a
+  benchmark/API gate, not adding sparse phylogeny from scratch.
+- Added
+  `docs/dev-log/after-task/2026-05-29-sparse-phylo-source-map.md`.
+
+Validation:
+
+```sh
+gh pr list --limit 10 --state open
+gh issue list --repo itchyshin/drmTMB --state open --search 'sparse phylo precision Hadfield Nakagawa relmat' --limit 20 --json number,title,state,url,labels
+rg -n "Q_phylo|log_det_Q_phylo|phylo_mu_node_index|build_structured_mu_structure|empty_phylo_mu_structure|make_tmb_data|DATA_SPARSE_MATRIX" R src tests/testthat/test-phylo-utils.R tests/testthat/test-phylo-gaussian.R
+rg -n "dense Brownian comparator|fitted phylogenetic mu objective|ordinary and phylogenetic species intercepts|phylogenetic meta-analysis objective" tests/testthat/test-phylo-utils.R tests/testthat/test-phylo-gaussian.R
+Rscript --vanilla -e "devtools::test(filter = 'phylo-utils', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- No open PRs were present.
+- The issue search returned `[]`; no issue action was needed.
+- The source scan confirmed `drm_phylo_augmented_precision()`,
+  `DATA_SPARSE_MATRIX(Q_phylo)`, `log_det_Q_phylo`, and structured-term TMB
+  data.
+- The comparator scan found the dense Brownian and dense marginal-likelihood
+  phylogenetic tests cited by the design note.
+- `test-phylo-utils.R` passed.
+- `git diff --check` was clean.
+
 ## 2026-05-29 -- Bootstrap Log-Scale Positive Intervals
 
 Goal:

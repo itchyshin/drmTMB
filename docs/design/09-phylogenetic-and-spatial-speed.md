@@ -96,10 +96,41 @@ tests. The first public fitted path now accepts matching labelled all-four
 phylogenetic endpoint rows through `corpairs()`, and keeps these latent
 correlations separate from residual `rho12`.
 
-### gllvmTMB Source Map
+### Sparse Phylogenetic Source Map
 
-The first implementation should borrow concepts from `gllvmTMB`, not import
-high-dimensional GLLVM API assumptions. Specific sister-package files to study:
+The sparse phylogenetic route is no longer a blank implementation task.
+`drmTMB` already builds an augmented Brownian-motion precision in
+`R/phylo-utils.R` with `drm_phylo_augmented_precision()`, passes it to TMB as
+`Q_phylo` through `make_tmb_data()`, and declares it in `src/drmTMB.cpp` as
+`DATA_SPARSE_MATRIX(Q_phylo)`. The TMB likelihood branches then evaluate
+quadratic forms such as `u' Q_phylo u` and use `log_det_Q_phylo` for Gaussian,
+ordinary Poisson, ordinary NB2, and bivariate Gaussian structured-effect paths.
+Tiny dense Brownian covariance matrices remain comparators in tests and teaching
+docs; they are not the fitted large-tree path.
+
+This matters for the GLLVM.jl transfer audit because the portable lesson is not
+"add sparse phylogeny from scratch." The useful next work is a benchmark and API
+gate: measure when the current augmented precision path is fast enough, document
+the current tree-only contract, and decide whether a future `phylo(A = ...)` or
+`phylo(Ainv = ...)` route belongs in `phylo()` or should stay under
+`relmat()`. Do not add a `phylo_representation` switch, dense fallback, or new
+matrix input until that gate specifies scale, labels, diagnostics,
+`profile_targets()`, `check_drm()`, and any copied-code provenance in
+`inst/COPYRIGHTS`.
+
+Current local evidence:
+
+| Surface | Current source | What it proves |
+| --- | --- | --- |
+| Tree validation and Brownian comparator | `R/phylo-utils.R` functions `validate_phylo_tree()` and `drm_phylo_tip_covariance()` | `phylo()` requires an ultrametric tree with branch lengths, can match observed species to tips, and can build a dense tip-level comparator for tiny tests. |
+| Sparse augmented precision | `R/phylo-utils.R` function `drm_phylo_augmented_precision()` | The root is excluded, every non-root node enters the latent state, and branch increments contribute a sparse precision scaled to the Brownian correlation matrix. |
+| TMB data contract | `R/drmTMB.R` functions `build_structured_mu_structure()` and `make_tmb_data()` | Structured terms hand TMB a sparse `Q_phylo`, `log_det_Q_phylo`, node indices, design values, endpoint labels, and block metadata. |
+| TMB likelihood use | `src/drmTMB.cpp` `DATA_SPARSE_MATRIX(Q_phylo)` and the `has_phylo_mu` branches | Fitted phylogenetic effects use sparse matrix-vector products and log determinants for the structured Gaussian prior. |
+| Dense parity checks | `tests/testthat/test-phylo-utils.R` and `tests/testthat/test-phylo-gaussian.R` | The augmented precision matches dense Brownian covariance on tiny trees, and fitted objectives match dense marginal likelihood comparators for selected Gaussian cases. |
+
+GLLVM.jl and `gllvmTMB` remain useful for benchmarking and staged validation,
+but they should be read as sister-package evidence, not as proof that `drmTMB`
+needs to rewrite the implemented sparse precision path. Specific files to study:
 
 | Purpose | gllvmTMB source | drmTMB translation |
 | --- | --- | --- |
