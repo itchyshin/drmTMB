@@ -63,6 +63,16 @@ on:
         required: false
         default: ""
         type: string
+      condition_set:
+        description: "Count structured q1 condition set"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - stable
+          - stable_watch
+          - boundary_stress
       condition_shard:
         description: "One-based formal-grid condition shard index"
         required: true
@@ -90,7 +100,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: phase18-simulation-grid-${{ github.ref }}-${{ inputs.task }}-${{ inputs.condition_shard }}-of-${{ inputs.condition_shards }}
+  group: phase18-simulation-grid-${{ github.ref }}-${{ inputs.task }}-${{ inputs.condition_set }}-${{ inputs.condition_shard }}-of-${{ inputs.condition_shards }}
   cancel-in-progress: false
 
 jobs:
@@ -188,6 +198,7 @@ jobs:
             --render="${{ inputs.render_report }}" \
             --require-complete=false \
             --profile-parameters="${{ inputs.profile_parameters }}" \
+            --condition-set="${{ inputs.condition_set }}" \
             --condition-shard="${{ inputs.condition_shard }}" \
             --condition-shards="${{ inputs.condition_shards }}" \
             --bootstrap-nsim="${{ inputs.bootstrap_nsim }}" \

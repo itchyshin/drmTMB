@@ -56,10 +56,19 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     opts$condition_shards,
     "condition-shards"
   )
+  condition_set <- phase18_actions_choice(
+    opts$condition_set,
+    c("all", "stable", "stable_watch", "boundary_stress"),
+    "condition-set"
+  )
   phase18_actions_validate_condition_shard(
     task = task,
     condition_shard = condition_shard,
     condition_shards = condition_shards
+  )
+  phase18_actions_validate_condition_set(
+    task = task,
+    condition_set = condition_set
   )
   bootstrap_nsim <- phase18_actions_nonnegative_integer(
     opts$bootstrap_nsim,
@@ -100,6 +109,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       profile_level = profile_level,
       condition_shard = condition_shard,
       condition_shards = condition_shards,
+      condition_set = condition_set,
       bootstrap_nsim = bootstrap_nsim,
       bootstrap_cores = bootstrap_cores,
       bootstrap_backend = bootstrap_backend
@@ -185,8 +195,12 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       backend = backend
     )
   } else if (identical(task, "count_structured_q1")) {
+    conditions <- phase18_count_structured_q1_followup_conditions(
+      condition_set = condition_set
+    )
     out <- phase18_write_count_structured_q1_grid_outputs(
       output_dir = output_dir,
+      conditions = conditions,
       n_rep = n_rep,
       master_seed = master_seed,
       overwrite = overwrite,
@@ -285,6 +299,7 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     profile_level = profile_level,
     condition_shard = condition_shard,
     condition_shards = condition_shards,
+    condition_set = condition_set,
     bootstrap_nsim = bootstrap_nsim,
     bootstrap_cores = bootstrap_cores,
     bootstrap_backend = bootstrap_backend
@@ -307,6 +322,7 @@ phase18_actions_parse_args <- function(args) {
     profile_level = "0.70",
     condition_shard = "1",
     condition_shards = "1",
+    condition_set = "all",
     bootstrap_nsim = "0",
     bootstrap_cores = "1",
     bootstrap_backend = "none",
@@ -720,6 +736,19 @@ phase18_actions_validate_condition_shard <- function(
   invisible(TRUE)
 }
 
+phase18_actions_validate_condition_set <- function(task, condition_set) {
+  if (
+    !identical(task, "count_structured_q1") &&
+      !identical(condition_set, "all")
+  ) {
+    stop(
+      "`condition-set` is only available for count_structured_q1.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 phase18_actions_formal_task <- function(task) {
   task %in% c("poisson_phylo_q1_formal", "nbinom2_phylo_q1_formal")
 }
@@ -764,6 +793,7 @@ phase18_actions_print_plan <- function(
   profile_level,
   condition_shard,
   condition_shards,
+  condition_set,
   bootstrap_nsim,
   bootstrap_cores,
   bootstrap_backend
@@ -802,6 +832,9 @@ phase18_actions_print_plan <- function(
       "\n",
       "condition_shards=",
       condition_shards,
+      "\n",
+      "condition_set=",
+      condition_set,
       "\n",
       "bootstrap_nsim=",
       bootstrap_nsim,
