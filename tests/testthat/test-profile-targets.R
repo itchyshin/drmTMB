@@ -721,6 +721,54 @@ test_that("confint returns bootstrap intervals for direct targets", {
   }
 })
 
+test_that("bootstrap percentiles use link scale for positive targets", {
+  link_values <- c(-3, -1, 0.25, 1.5)
+  draws <- data.frame(
+    estimate = exp(link_values),
+    link_estimate = link_values,
+    stringsAsFactors = FALSE
+  )
+  probs <- c(0.20, 0.80)
+
+  positive_target <- data.frame(
+    transformation = "exp",
+    stringsAsFactors = FALSE
+  )
+  positive_interval <- drmTMB:::bootstrap_percentile_interval(
+    target_draws = draws,
+    target = positive_target,
+    probs = probs
+  )
+  expected_link_interval <- exp(stats::quantile(
+    link_values,
+    probs = probs,
+    names = FALSE,
+    type = 8
+  ))
+  raw_interval <- stats::quantile(
+    draws$estimate,
+    probs = probs,
+    names = FALSE,
+    type = 8
+  )
+
+  expect_equal(positive_interval, expected_link_interval)
+  expect_gt(max(abs(positive_interval - raw_interval)), 0.01)
+
+  linear_target <- data.frame(
+    transformation = "linear_predictor",
+    stringsAsFactors = FALSE
+  )
+  expect_equal(
+    drmTMB:::bootstrap_percentile_interval(
+      target_draws = draws,
+      target = linear_target,
+      probs = probs
+    ),
+    raw_interval
+  )
+})
+
 test_that("confint bootstrap intervals can split refits across workers", {
   testthat::skip_on_os("windows")
   set.seed(20260658)
