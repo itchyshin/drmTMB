@@ -1,10 +1,11 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1732
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1734
 
-This note records the opt-in artifact lane, manual Actions task, and first
-manual smoke audit for ordinary Poisson and NB2 count models with one q=1
-structured `mu` intercept. The reader is an R package contributor deciding
-whether the fitted source gate for `spatial()`, `animal()`, and `relmat()`
-count routes has enough simulation infrastructure to audit smoke runs.
+This note records the opt-in artifact lane, manual Actions task, first manual
+smoke audit, and warning-diagnostic hardening for ordinary Poisson and NB2
+count models with one q=1 structured `mu` intercept. The reader is an R
+package contributor deciding whether the fitted source gate for `spatial()`,
+`animal()`, and `relmat()` count routes has enough simulation infrastructure to
+audit smoke runs.
 
 ## Implemented Claim
 
@@ -72,10 +73,11 @@ SD:
 
 The smoke summaries record bias, RMSE, mean absolute error, empirical standard
 error, convergence rate, positive-Hessian rate, warning rate, elapsed time,
-Wald interval status and coverage for rows with standard errors, direct
-profile-target status for the structured SD, optional profile interval status
-and coverage, and interval-failure diagnostics. These are smoke artifacts, not
-formal recovery or coverage claims.
+fit-level Hessian and random-effect-SD boundary status, Wald interval status
+and coverage for rows with standard errors, direct profile-target status for
+the structured SD, optional profile interval status and coverage, and
+interval-failure diagnostics. These are smoke artifacts, not formal recovery
+or coverage claims.
 
 ## Implemented Path
 
@@ -87,7 +89,9 @@ Slices 1721-1728 add:
 - `phase18_summarise_count_structured_q1_smoke()`;
 - `phase18_write_count_structured_q1_grid_outputs()`;
 - a manual `count_structured_q1` Actions task that is excluded from
-  `task = "all"`; and
+  `task = "all"`;
+- replicate-table fit diagnostics for Hessian status, random-effect-SD
+  boundary status, and their warning/error rollup; and
 - focused DGP, smoke-runner, grid-writer, and malformed-input tests.
 
 ## Boundaries
@@ -113,12 +117,16 @@ syntax, diagnostic, interval, and simulation gates.
 | 1721-1728 | Done locally as smoke artifacts | `inst/sim/dgp/sim_dgp_count_structured_q1.R`, `inst/sim/fit/sim_summarise_count_structured_q1.R`, `inst/sim/run/sim_run_count_structured_q1_smoke.R`, `inst/sim/run/sim_summary_count_structured_q1_smoke.R`, and `inst/sim/run/sim_write_count_structured_q1_grid.R` add DGP, summariser, smoke, summary, and grid-writer artifacts for ordinary Poisson/NB2 q=1 `spatial()`, `animal()`, and `relmat()` `mu` intercepts. |
 | 1729-1730 | Done locally as manual Actions task | `.github/workflows/phase18-simulation-grid.yaml` and `inst/sim/run/sim_run_actions_cell.R` expose `task=count_structured_q1`, keep it excluded from `task = "all"`, and add dry-run, dependency, workflow exposure, and workflow-exclusion tests. |
 | 1731-1732 | Done as manual Actions smoke audit | GitHub Actions run `26622840562` completed `task=count_structured_q1` with `n_reps=2`, `cores=2`, and `backend=multicore`; the downloaded artifact had 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, 187 positive-Hessian parameter rows, 48 ready profile-target rows, 144 ok Wald interval rows, and one warning-level ledger row for `count_structured_q1_020` replicate 2. |
+| 1733-1734 | Done locally as warning diagnostic hardening | The exact seed and cell for `count_structured_q1_020` replicate 2 replayed locally with the same near-zero spatial SD estimate and fixed-effect estimates, but the local Hessian was positive definite while the Ubuntu Actions artifact had `pdHess = FALSE` and warning `NaNs produced`. The replicate table now records `fit_diagnostic_status`, `hessian_status`, and `sd_boundary_status`; the new focused test asserts that this seed is a random-effect-SD boundary case even when the platform-specific Hessian status changes. |
 
 ## Next Implementation Gate
 
-The manual workflow route is operational, but the first audit is not a clean
-statistical validation run. Before larger recovery or coverage grids, Curie and
-Fisher should inspect the warning and non-positive Hessian in NB2 spatial cell
-`count_structured_q1_020`, replicate 2, and decide whether that is ordinary
-small-replicate smoke noise or a condition that needs a targeted diagnostic
-cell.
+The manual workflow route is operational, and the first warning has been traced
+to a boundary-sensitive NB2 spatial smoke replicate rather than to a parser or
+DGP failure. Before larger recovery or coverage grids, Curie and Fisher should
+use the new fit-level diagnostic columns to check the rate of
+`sd_boundary_status = "warning"` and `hessian_status != "ok"` across a bounded
+pilot. If those rates concentrate in low-count or high-structured-SD cells, the
+next design decision should adjust the pilot condition table or split boundary
+cases into a diagnostic stress lane rather than promoting them to recovery
+evidence.

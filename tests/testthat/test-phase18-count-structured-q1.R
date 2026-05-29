@@ -202,6 +202,63 @@ test_that("Phase 18 count structured q1 smoke runner summarises output", {
   expect_true(all(is.finite(out$run$summary$error)))
 })
 
+test_that("Phase 18 count structured q1 boundary replicate exposes fit diagnostics", {
+  source_count_structured_q1()
+
+  conditions <- phase18_count_structured_q1_conditions(
+    family = c("poisson", "nbinom2"),
+    structured_type = c("spatial", "animal", "relmat"),
+    n_level = c(10L, 16L),
+    n_per_level = 8L,
+    sd_structured = c(0.25, 0.60),
+    mean_count = 3.0,
+    sigma_baseline = 0.45,
+    geometry = "ring"
+  )
+  cell <- conditions[
+    conditions$family == "nbinom2" &
+      conditions$structured_type == "spatial" &
+      conditions$n_level == 16L &
+      conditions$sd_structured == 0.60,
+    ,
+    drop = FALSE
+  ]
+  dat <- phase18_dgp_count_structured_q1_cell(
+    cell = cell,
+    seed = 1409019402L,
+    cell_id = "count_structured_q1_020",
+    replicate = 2L
+  )
+  fit <- phase18_fit_count_structured_q1(dat, cell)
+  out <- suppressWarnings(
+    phase18_summarise_count_structured_q1_fit(
+      fit = fit,
+      truth = dat,
+      cell_id = "count_structured_q1_020",
+      replicate = 2L
+    )
+  )
+  structured <- out[
+    out$parameter_class == "structured_sd",
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(unique(out$fit_diagnostic_status), "warning")
+  expect_equal(unique(out$sd_boundary_status), "warning")
+  expect_match(
+    structured$sd_boundary_message,
+    "near the lower boundary",
+    fixed = TRUE
+  )
+  expect_lt(structured$estimate, 1e-4)
+  expect_equal(structured$diagnostic_status, "ok")
+  expect_equal(
+    unique(out$hessian_status),
+    if (isTRUE(fit$sdr$pdHess)) "ok" else "warning"
+  )
+})
+
 test_that("Phase 18 count structured q1 helpers reject malformed inputs", {
   source_count_structured_q1()
 
