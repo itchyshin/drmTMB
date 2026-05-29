@@ -1,11 +1,11 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1734
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1736
 
 This note records the opt-in artifact lane, manual Actions task, first manual
-smoke audit, and warning-diagnostic hardening for ordinary Poisson and NB2
-count models with one q=1 structured `mu` intercept. The reader is an R
-package contributor deciding whether the fitted source gate for `spatial()`,
-`animal()`, and `relmat()` count routes has enough simulation infrastructure to
-audit smoke runs.
+smoke audit, warning-diagnostic hardening, and post-merge diagnostic smoke
+audit for ordinary Poisson and NB2 count models with one q=1 structured `mu`
+intercept. The reader is an R package contributor deciding whether the fitted
+source gate for `spatial()`, `animal()`, and `relmat()` count routes has enough
+simulation infrastructure to audit smoke runs.
 
 ## Implemented Claim
 
@@ -118,15 +118,18 @@ syntax, diagnostic, interval, and simulation gates.
 | 1729-1730 | Done locally as manual Actions task | `.github/workflows/phase18-simulation-grid.yaml` and `inst/sim/run/sim_run_actions_cell.R` expose `task=count_structured_q1`, keep it excluded from `task = "all"`, and add dry-run, dependency, workflow exposure, and workflow-exclusion tests. |
 | 1731-1732 | Done as manual Actions smoke audit | GitHub Actions run `26622840562` completed `task=count_structured_q1` with `n_reps=2`, `cores=2`, and `backend=multicore`; the downloaded artifact had 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, 187 positive-Hessian parameter rows, 48 ready profile-target rows, 144 ok Wald interval rows, and one warning-level ledger row for `count_structured_q1_020` replicate 2. |
 | 1733-1734 | Done locally as warning diagnostic hardening | The exact seed and cell for `count_structured_q1_020` replicate 2 replayed locally with the same near-zero spatial SD estimate and fixed-effect estimates, but the local Hessian was positive definite while the Ubuntu Actions artifact had `pdHess = FALSE` and warning `NaNs produced`. The replicate table now records `fit_diagnostic_status`, `hessian_status`, and `sd_boundary_status`; the new focused test asserts that this seed is a random-effect-SD boundary case even when the platform-specific Hessian status changes. |
+| 1735-1736 | Done as post-diagnostic Actions smoke audit | GitHub Actions run `26626333581` completed after the warning-diagnostic columns merged to `main`. The selected `count_structured_q1` job succeeded in 3m33s, and the downloaded artifact had the expected 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, and one warning-ledger row for `count_structured_q1_020` replicate 2. The new diagnostic columns were present. `fit_diagnostic_status` and `sd_boundary_status` each had 169 `ok` and 23 `warning` parameter rows, which collapse to five boundary-sensitive replicate fits; `hessian_status` had 187 `ok` and 5 `warning` parameter rows, all from `count_structured_q1_020` replicate 2. |
 
 ## Next Implementation Gate
 
 The manual workflow route is operational, and the first warning has been traced
-to a boundary-sensitive NB2 spatial smoke replicate rather than to a parser or
-DGP failure. Before larger recovery or coverage grids, Curie and Fisher should
-use the new fit-level diagnostic columns to check the rate of
-`sd_boundary_status = "warning"` and `hessian_status != "ok"` across a bounded
-pilot. If those rates concentrate in low-count or high-structured-SD cells, the
-next design decision should adjust the pilot condition table or split boundary
+to boundary-sensitive fits rather than to a parser or DGP failure. The
+post-merge smoke shows that SD-boundary warnings are broader than the single
+`NaNs produced` warning ledger: five replicate fits hit the random-effect-SD
+boundary, while only one also had a non-positive Hessian. Before larger
+recovery or coverage grids, Curie and Fisher should set an explicit review
+threshold for `sd_boundary_status = "warning"` and `hessian_status != "ok"`.
+If those rates concentrate in low-count or high-structured-SD cells, the next
+design decision should adjust the pilot condition table or split boundary
 cases into a diagnostic stress lane rather than promoting them to recovery
 evidence.
