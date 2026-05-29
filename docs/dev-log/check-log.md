@@ -2,6 +2,92 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Pilot Audit
+
+Goal:
+
+- Audit the 24-cell x 10-replicate `count_structured_q1` diagnostic pilot
+  before deciding whether the lane can move toward formal recovery evidence.
+
+Actions run:
+
+- Watched GitHub Actions run `26631771105`, dispatched from `main` at commit
+  `12e0c789e9f74afb0fd8d104561571332d42e3c6`.
+- The selected `count_structured_q1` job succeeded in 3m51s. All unselected
+  matrix jobs skipped successfully.
+- Downloaded the artifact to
+  `/tmp/drmTMB-phase18-count-structured-q1-pilot-26631771105/phase18-count_structured_q1-shard-1-of-1-26631771105`.
+
+Artifact audit:
+
+- The artifact had 24 condition directories and 240 replicate RDS files.
+- CSV row counts: aggregate 96; failures 1; interval diagnostics 120;
+  interval evidence 1200; interval failures 480; manifest 240; profile
+  coverage empty placeholder; profile intervals 240; profile targets 240;
+  replicates 960; Wald coverage 72; Wald intervals 960.
+- The manifest had 240 `ok` rows.
+- The replicate table had 960 parameter rows, 955 rows with
+  `pdHess = TRUE`, 5 rows with `pdHess = FALSE`, and 5 rows with a
+  warning-ledger message.
+- The warning-ledger row was `count_structured_q1_004` replicate 3, with
+  message `NaNs produced`.
+- All 240 profile targets were ready, but profile intervals were
+  `not_requested` because `profile_parameters` was empty.
+
+Boundary-gate audit:
+
+- `phase18_audit_count_structured_q1_boundary_gate(require_complete = TRUE)`
+  collapsed 960 parameter rows to 240 fitted replicates.
+- Overall: 40 fit-diagnostic warnings, 40 SD-boundary warnings, 1 Hessian
+  warning, and 1 warning-ledger replicate.
+- Hessian rate passed: 1/240 = 0.004.
+- SD-boundary rate failed: 40/240 = 0.167, above the pre-declared 15% gate.
+- SD-boundary condition rate failed for `count_structured_q1_002`,
+  `count_structured_q1_005`, `count_structured_q1_006`,
+  `count_structured_q1_008`, `count_structured_q1_010`, and
+  `count_structured_q1_012`.
+- The warning-ledger row was explained by the SD-boundary diagnostic.
+- The helper decision was `hold_diagnostic`, with reason
+  `sd_boundary_rate, sd_boundary_condition_rate`.
+
+Validation:
+
+```sh
+gh run watch 26631771105 --repo itchyshin/drmTMB --interval 30 --exit-status
+gh run download 26631771105 --repo itchyshin/drmTMB --dir /tmp/drmTMB-phase18-count-structured-q1-pilot-26631771105
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source("inst/sim/R/sim_registry.R"); source("inst/sim/R/sim_utils.R"); source("inst/sim/R/sim_runner.R"); source("inst/sim/R/sim_uncertainty.R"); source("inst/sim/fit/sim_summarise_count_structured_q1.R"); source("inst/sim/run/sim_write_count_structured_q1_grid.R"); root <- "/tmp/drmTMB-phase18-count-structured-q1-pilot-26631771105/phase18-count_structured_q1-shard-1-of-1-26631771105"; audit <- phase18_audit_count_structured_q1_boundary_gate(root, require_complete = TRUE); print(audit$boundary_gate$overall); print(audit$boundary_gate$conditions[audit$boundary_gate$conditions$fit_diagnostic_warning > 0 | audit$boundary_gate$conditions$sd_boundary_warning > 0 | audit$boundary_gate$conditions$hessian_warning > 0, c("cell_id", "family", "structured_type", "n_level", "sd_structured", "mean_count", "sigma_baseline", "n_fit", "fit_diagnostic_warning", "sd_boundary_warning", "hessian_warning")]); print(audit$boundary_gate$checks); print(audit$boundary_gate$decision)'
+Rscript --vanilla -e 'root <- "/tmp/drmTMB-phase18-count-structured-q1-pilot-26631771105/phase18-count_structured_q1-shard-1-of-1-26631771105"; tables <- file.path(root, "tables"); safe_read <- function(name) tryCatch(utils::read.csv(file.path(tables, name), stringsAsFactors = FALSE), error = function(e) data.frame()); manifest <- safe_read("count-structured-q1-manifest.csv"); replicates <- safe_read("count-structured-q1-replicates.csv"); failures <- safe_read("count-structured-q1-failures.csv"); profile_targets <- safe_read("count-structured-q1-profile-targets.csv"); profile_intervals <- safe_read("count-structured-q1-profile-intervals.csv"); interval_evidence <- safe_read("count-structured-q1-interval-evidence.csv"); interval_diagnostics <- safe_read("count-structured-q1-interval-diagnostics.csv"); interval_failures <- safe_read("count-structured-q1-interval-failures.csv"); print(table(manifest$status, useNA = "ifany")); print(data.frame(parameter_rows = nrow(replicates), converged_true = sum(replicates$converged), pdHess_true = sum(replicates$pdHess), pdHess_false = sum(!replicates$pdHess), warning_rows = sum(replicates$warning_count > 0))); print(table(replicates$fit_diagnostic_status, useNA = "ifany")); print(table(replicates$hessian_status, useNA = "ifany")); print(table(replicates$sd_boundary_status, useNA = "ifany")); print(failures); print(table(profile_targets$profile_target_status, useNA = "ifany")); print(table(profile_intervals$profile.status, useNA = "ifany")); print(table(interval_evidence$interval_method, interval_evidence$interval_status, useNA = "ifany")); print(stats::aggregate(cbind(n_interval, n_ok, n_failed, n_not_requested, n_interval_unusable) ~ interval_method, interval_diagnostics, sum)); print(table(interval_failures$interval_method, interval_failures$interval_failure_status, useNA = "ifany")); result <- readRDS(file.path(root, "phase18-actions-result.rds")); print(result$surface); print(result$summary$run$parallel)'
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 diagnostic OR count structured q1 diagnostic OR count structured q1 boundary OR count structured q1 pilot' --limit 20 --json number,title,state,url,labels
+air format docs/design/136-phase-18-count-structured-q1-pilot-audit-slices-1751-1752.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/team-improvements.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-pilot-audit.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- The pilot completed, but the pre-declared gate returned `hold_diagnostic`.
+- The GitHub issue search returned `[]`; no issue action was taken because the
+  ROADMAP, design note, check log, and after-task report record the hold
+  decision and next design action.
+- Formatting completed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned only the intended NEWS artifact-boundary line
+  and the standing formula-grammar planned-neighbour row, not a claim that the
+  lane has formal recovery, coverage, zero-inflated structure, structured
+  slopes, or `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the lane from advancing after the hold decision.
+- Curie checked fitted-replicate counts and condition-level SD-boundary
+  triggers.
+- Fisher kept structured-SD coverage and formal recovery claims out.
+- Grace checked Actions status, artifact shape, and issue overlap.
+- Rose recorded the row-counting failure mode and durable hold decision.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Next Pilot Spec
 
 Goal:
