@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Gaussian Start Contract
+
+Goal:
+
+- Convert Claude's GLLVM.jl warm-start suggestion into verified `drmTMB`
+  source facts without adding public start or warm-start controls.
+
+Actions run:
+
+- Merged PR #379 with the GitHub API after `gh pr merge` could not check out
+  `main` because another local worktree already owned that branch.
+- Started `codex/gaussian-start-contract` from `origin/main` at merged commit
+  `4eca4058`.
+- Added optimizer-contract tests for univariate Gaussian OLS/residual-scale
+  starts and bivariate Gaussian OLS/residual-SD/Fisher-z `rho12` starts.
+- Updated `docs/design/35-optimizer-start-map-multistart.md` to distinguish
+  internal family-builder starts from future user starts and simpler-fit warm
+  starts.
+- Added
+  `docs/dev-log/after-task/2026-05-29-gaussian-start-contract.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md
+Rscript --vanilla -e "devtools::test(filter = 'optimizer-contract', reporter = 'summary')"
+gh issue list --repo itchyshin/drmTMB --state open --search 'Gaussian start warm start rho12 lm.fit sigma start' --limit 20 --json number,title,state,url,labels
+rg -n "intercepts-only with zero slopes|default initial values are.*zero|warm starts.*implemented|start_from.*implemented|init_strategy|closed_form|closed-form warm" README.md NEWS.md ROADMAP.md docs/design R tests/testthat --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- `test-optimizer-contract.R` passed.
+- The issue search returned `[]`; no issue action was needed.
+- The stale-wording scan found only intended reserved-name language in
+  `NEWS.md` and `ROADMAP.md`.
+- `git diff --check` was clean.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Stable Diagnostic Audit
 
 Goal:

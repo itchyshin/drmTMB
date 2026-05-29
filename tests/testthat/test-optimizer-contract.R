@@ -79,6 +79,104 @@ test_that("future optimizer contract names are reserved in plain control lists",
   )
 })
 
+test_that("Gaussian fixed-effect starts use OLS mean and residual scale", {
+  dat <- data.frame(
+    x = seq(-1.5, 1.5, length.out = 10),
+    z = rep(c(-0.5, 0.25), length.out = 10)
+  )
+  dat$y <- 0.6 +
+    0.8 * dat$x +
+    c(-0.15, 0.12, -0.05, 0.22, -0.18, 0.08, 0.16, -0.12, 0.04, -0.02)
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  X_mu <- stats::model.matrix(~x, dat)
+  X_sigma <- stats::model.matrix(~z, dat)
+  expected_mu <- stats::lm.fit(x = X_mu, y = dat$y)$coefficients
+  expected_mu[is.na(expected_mu)] <- 0
+  resid <- dat$y - as.vector(X_mu %*% expected_mu)
+  y_scale <- stats::sd(dat$y)
+  sigma_floor <- max(1e-4, 0.05 * y_scale)
+  expected_sigma0 <- sqrt(max(stats::var(resid), sigma_floor^2))
+  expected_sigma <- numeric(ncol(X_sigma))
+  expected_sigma[[1L]] <- log(expected_sigma0)
+
+  expect_equal(unname(fit$model$start$beta_mu), unname(expected_mu))
+  expect_equal(unname(fit$model$start$beta_sigma), unname(expected_sigma))
+  expect_equal(fit$uncertainty$status, "skipped")
+})
+
+test_that("bivariate Gaussian starts use response-specific OLS and Fisher-z rho12", {
+  dat <- data.frame(x = seq(-1.5, 1.5, length.out = 12))
+  e1 <- c(
+    -0.25,
+    -0.05,
+    0.16,
+    0.22,
+    -0.14,
+    0.08,
+    0.18,
+    -0.16,
+    0.06,
+    -0.03,
+    0.12,
+    -0.19
+  )
+  e2 <- 0.35 *
+    e1 +
+    c(
+      0.08,
+      -0.14,
+      0.04,
+      -0.07,
+      0.13,
+      -0.03,
+      0.10,
+      -0.11,
+      0.05,
+      -0.06,
+      0.02,
+      -0.01
+    )
+  dat$y1 <- 0.4 + 0.7 * dat$x + e1
+  dat$y2 <- -0.2 + 0.45 * dat$x + e2
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  X <- stats::model.matrix(~x, dat)
+  expected_mu1 <- stats::lm.fit(x = X, y = dat$y1)$coefficients
+  expected_mu2 <- stats::lm.fit(x = X, y = dat$y2)$coefficients
+  expected_mu1[is.na(expected_mu1)] <- 0
+  expected_mu2[is.na(expected_mu2)] <- 0
+  resid1 <- dat$y1 - as.vector(X %*% expected_mu1)
+  resid2 <- dat$y2 - as.vector(X %*% expected_mu2)
+  expected_sigma1 <- sqrt(max(stats::var(resid1), 1e-4^2))
+  expected_sigma2 <- sqrt(max(stats::var(resid2), 1e-4^2))
+  expected_rho <- max(min(stats::cor(resid1, resid2), 0.8), -0.8)
+
+  expect_equal(unname(fit$model$start$beta_mu1), unname(expected_mu1))
+  expect_equal(unname(fit$model$start$beta_mu2), unname(expected_mu2))
+  expect_equal(unname(fit$model$start$beta_sigma1), log(expected_sigma1))
+  expect_equal(unname(fit$model$start$beta_sigma2), log(expected_sigma2))
+  expect_equal(unname(fit$model$start$beta_rho12), atanh(expected_rho))
+  expect_equal(fit$uncertainty$status, "skipped")
+})
+
 test_that("reported parameters are split from the selected optimum", {
   dat <- data.frame(
     y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
