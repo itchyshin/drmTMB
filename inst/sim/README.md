@@ -113,7 +113,9 @@ Current pilot files:
   `student()` models with fixed-effect `sigma` and `nu` formulas.
 - `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`
   records the opt-in artifact path for ordinary Poisson/NB2 q=1
-  `spatial()`, `animal()`, and `relmat()` `mu` intercepts.
+  `spatial()`, `animal()`, and `relmat()` `mu` intercepts, including the
+  pre-grid boundary gate that must be checked before larger pilots become
+  recovery or coverage evidence.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with

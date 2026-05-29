@@ -1,11 +1,12 @@
-# Phase 18 Count Structured q1 Artifacts, Slices 1721-1736
+# Phase 18 Count Structured q1 Artifacts, Slices 1721-1738
 
 This note records the opt-in artifact lane, manual Actions task, first manual
 smoke audit, warning-diagnostic hardening, and post-merge diagnostic smoke
-audit for ordinary Poisson and NB2 count models with one q=1 structured `mu`
-intercept. The reader is an R package contributor deciding whether the fitted
-source gate for `spatial()`, `animal()`, and `relmat()` count routes has enough
-simulation infrastructure to audit smoke runs.
+audit, and boundary-rate gate for ordinary Poisson and NB2 count models with
+one q=1 structured `mu` intercept. The reader is an R package contributor
+deciding whether the fitted source gate for `spatial()`, `animal()`, and
+`relmat()` count routes has enough simulation infrastructure to audit smoke
+runs.
 
 ## Implemented Claim
 
@@ -119,6 +120,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1731-1732 | Done as manual Actions smoke audit | GitHub Actions run `26622840562` completed `task=count_structured_q1` with `n_reps=2`, `cores=2`, and `backend=multicore`; the downloaded artifact had 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, 187 positive-Hessian parameter rows, 48 ready profile-target rows, 144 ok Wald interval rows, and one warning-level ledger row for `count_structured_q1_020` replicate 2. |
 | 1733-1734 | Done locally as warning diagnostic hardening | The exact seed and cell for `count_structured_q1_020` replicate 2 replayed locally with the same near-zero spatial SD estimate and fixed-effect estimates, but the local Hessian was positive definite while the Ubuntu Actions artifact had `pdHess = FALSE` and warning `NaNs produced`. The replicate table now records `fit_diagnostic_status`, `hessian_status`, and `sd_boundary_status`; the new focused test asserts that this seed is a random-effect-SD boundary case even when the platform-specific Hessian status changes. |
 | 1735-1736 | Done as post-diagnostic Actions smoke audit | GitHub Actions run `26626333581` completed after the warning-diagnostic columns merged to `main`. The selected `count_structured_q1` job succeeded in 3m33s, and the downloaded artifact had the expected 24 cells, 48 `ok` manifest rows, 192 converged parameter rows, and one warning-ledger row for `count_structured_q1_020` replicate 2. The new diagnostic columns were present. `fit_diagnostic_status` and `sd_boundary_status` each had 169 `ok` and 23 `warning` parameter rows, which collapse to five boundary-sensitive replicate fits; `hessian_status` had 187 `ok` and 5 `warning` parameter rows, all from `count_structured_q1_020` replicate 2. |
+| 1737-1738 | Done locally as pre-grid boundary gate | The post-diagnostic smoke is promoted to a decision rule, not to recovery evidence. Larger `count_structured_q1` pilots must collapse replicate-table rows to one row per fitted replicate, report fit-diagnostic, SD-boundary, Hessian, and warning-ledger rates overall and by condition, and stop before formal recovery claims if the thresholds below trigger. |
 
 ## Next Implementation Gate
 
@@ -133,3 +135,43 @@ If those rates concentrate in low-count or high-structured-SD cells, the next
 design decision should adjust the pilot condition table or split boundary
 cases into a diagnostic stress lane rather than promoting them to recovery
 evidence.
+
+## Pre-Grid Boundary Gate
+
+Slices 1737-1738 define the admission rule for the next `count_structured_q1`
+pilot. The counting unit is a fitted replicate, not a parameter row. Any audit
+must collapse the replicate table by `cell_id` and `replicate` before computing
+rates, because fixed-effect and structured-SD rows repeat the same fit-level
+diagnostics.
+
+The next pilot may remain a diagnostic pilot if it widens the condition table
+or increases replicates. It must not be described as formal recovery or
+coverage evidence until the audit reports these quantities:
+
+- the number and rate of fitted replicates with
+  `fit_diagnostic_status != "ok"`;
+- the number and rate with `sd_boundary_status != "ok"`;
+- the number and rate with `hessian_status != "ok"`;
+- the number of warning-ledger rows and their warning messages; and
+- the same counts by `family`, `structured_type`, `n_level`,
+  `sd_structured`, `mean_count`, and `sigma_baseline` where those columns are
+  present.
+
+The pilot must stop at diagnostic evidence, and the next design decision must
+split unstable cells into a stress lane or revise the condition table, if any
+of these triggers occur:
+
+- more than 5% of fitted replicates have `hessian_status != "ok"`;
+- any condition cell has at least two Hessian-warning fits;
+- 15% or more of fitted replicates have `sd_boundary_status != "ok"`;
+- any condition cell with at least five attempted replicates has 40% or more
+  SD-boundary warnings;
+- any condition cell with fewer than five attempted replicates has two or more
+  SD-boundary warnings; or
+- warning-ledger rows contain optimizer, `NaNs produced`, or non-finite
+  messages that are not explained by an SD-boundary diagnostic.
+
+If none of those triggers occur, the next slice may propose a larger recovery
+pilot, but it still needs a separate design note or addendum naming the
+condition table, replicate count, MCSE target, interval policy, and runtime
+budget before a formal grid is dispatched.
