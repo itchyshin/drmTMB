@@ -8,6 +8,20 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-29 - Placeholder CSV Artifact Audits
+
+- Improvement implemented: artifact row-count audits should use safe readers
+  that treat empty or placeholder CSV files as zero-row artifacts instead of
+  letting `read.csv()` abort the whole audit.
+- Improvement implemented: after a workflow dispatch disables a costly
+  interval path, Grace should expect coverage or interval files to exist as
+  placeholders and should report them as intentionally empty or
+  `not_requested`.
+- Trigger: the 10-replicate `count_structured_q1` pilot audit produced a
+  3-byte `count-structured-q1-profile-coverage.csv` placeholder because
+  profile intervals were not requested. The first combined audit printed the
+  boundary-gate result, then failed during naive row counting.
+
 ## 2026-05-29 - Workflow Dispatch Input Check
 
 - Improvement implemented: before manual GitHub Actions dispatches, Grace
