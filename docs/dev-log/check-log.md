@@ -43267,3 +43267,53 @@ Member-group review:
   profiled replicate.
 - Rose checked for overclaiming and updated the stale programme sentence.
 - No spawned subagents were running.
+
+## 2026-05-29 - Phase 18 formal-pilot workflow inputs
+
+Goal:
+
+- Make the manual Phase 18 workflow capable of running the count structured q1
+  formal-pilot dispatch contract exactly, before spending Actions time on the
+  100-replicate stable run.
+
+Changes:
+
+- Updated `.github/workflows/phase18-simulation-grid.yaml` so manual dispatch
+  exposes `profile_level` and `require_complete` inputs.
+- The workflow now passes `--profile-level="${{ inputs.profile_level }}"` and
+  `--require-complete="${{ inputs.require_complete }}"` to
+  `inst/sim/run/sim_run_actions_cell.R`.
+- Updated the Actions dry-run plan to print `require_complete`, and extended
+  `tests/testthat/test-phase18-actions-runner.R` to guard the workflow input
+  and pass-through contract.
+- Updated `ROADMAP.md` and the Phase 18 simulation programme with the
+  Slices 1771-1772 workflow-plumbing status.
+
+Validation:
+
+```sh
+air format .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-formal-pilot-workflow-inputs.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+git diff --check
+rg -n "profile_level|require_complete|--profile-level|--require-complete" .github/workflows/phase18-simulation-grid.yaml inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R docs/design/139-phase-18-count-structured-q1-formal-pilot-design-slices-1763-1770.md
+```
+
+Results:
+
+- The focused `phase18-actions-runner` suite passed.
+- `git diff --check` was clean.
+- The contract grep showed the formal-pilot design command, the workflow
+  inputs, the workflow pass-through flags, and the dry-run/test assertions all
+  use the same `profile_level` and `require_complete` names.
+
+Member-group review:
+
+- Ada kept the slice to dispatch plumbing after the preflight showed the
+  formal-pilot command could not yet match the workflow inputs.
+- Grace added workflow-contract tests before dispatching the expensive formal
+  pilot.
+- Curie kept the dry-run evidence explicit enough to check `require_complete`
+  before a manual run.
+- Fisher kept the change out of recovery or coverage claims.
+- Rose recorded the preflight mismatch and the workflow-plumbing status.
+- No spawned subagents were running.

@@ -210,7 +210,9 @@ test_that("Phase 18 Actions runner accepts count structured q1 task", {
       "--n-reps=2",
       "--master-seed=123",
       "--profile-parameters=log_sd_phylo",
+      "--profile-level=0.70",
       "--condition-set=stable",
+      "--require-complete=true",
       "--dry-run=true"
     ),
     stdout = TRUE,
@@ -221,7 +223,9 @@ test_that("Phase 18 Actions runner accepts count structured q1 task", {
   expect_match(out, "task=count_structured_q1", fixed = TRUE)
   expect_match(out, "n_rep=2", fixed = TRUE)
   expect_match(out, "profile_parameters=log_sd_phylo", fixed = TRUE)
+  expect_match(out, "profile_level=0.7", fixed = TRUE)
   expect_match(out, "condition_set=stable", fixed = TRUE)
+  expect_match(out, "require_complete=TRUE", fixed = TRUE)
 })
 
 test_that("Phase 18 Actions runner sources count structured q1 task dependencies", {
@@ -482,6 +486,12 @@ test_that("Phase 18 workflow exposes count structured q1 task", {
   expect_match(text, "20260543", fixed = TRUE)
   expect_match(text, "condition_set:", fixed = TRUE)
   expect_match(text, "--condition-set=", fixed = TRUE)
+  expect_match(text, "profile_level:", fixed = TRUE)
+  expect_match(text, "--profile-level=", fixed = TRUE)
+  expect_match(text, "inputs.profile_level", fixed = TRUE)
+  expect_match(text, "require_complete:", fixed = TRUE)
+  expect_match(text, "--require-complete=", fixed = TRUE)
+  expect_match(text, "inputs.require_complete", fixed = TRUE)
   expect_match(
     text,
     paste(

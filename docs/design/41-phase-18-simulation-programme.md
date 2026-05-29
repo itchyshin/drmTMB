@@ -1061,3 +1061,10 @@ errors, and elapsed time by surface before the raw manifest.
      profile-status, watch-cell, and 60-minute runtime stop rules. Passing the
      future run would permit a larger recovery-grid design only after a
      separate artifact audit.
+196. Slices 1771-1772 make the manual workflow dispatchable under that
+     contract. The GitHub Actions workflow now exposes `profile_level` and
+     `require_complete` inputs, passes them through to `sim_run_actions_cell.R`,
+     and has a focused workflow-contract test. This changes only the
+     operational dispatch plumbing; it does not dispatch a run or add recovery,
+     coverage, bootstrap, low-SD, zero-inflated, structured-slope, labelled
+     covariance, or structured NB2 `sigma` evidence.
