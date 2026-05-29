@@ -2,6 +2,92 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Stable Diagnostic Audit
+
+Goal:
+
+- Dispatch and audit the `condition_set = "stable"` diagnostic run for
+  `count_structured_q1`.
+
+Actions run:
+
+- Dispatched GitHub Actions run `26638116979` from `main` at commit
+  `c4919dd3ece07e9fe2ff15b616a530e680658f73`.
+- Inputs were `task=count_structured_q1`, `condition_set=stable`,
+  `n_reps=20`, `cores=2`, `backend=multicore`, `profile_parameters=''`,
+  one condition shard, and `render_report=false`.
+- The selected job succeeded in 3m48s. All unselected matrix jobs skipped
+  successfully.
+- Downloaded the artifact to
+  `/tmp/drmTMB-phase18-count-structured-q1-stable-26638116979/phase18-count_structured_q1-shard-1-of-1-26638116979`.
+
+Artifact audit:
+
+- The artifact had 10 condition directories and 200 replicate RDS files.
+- CSV row counts: aggregate 38; failures 0; interval diagnostics 48;
+  interval evidence 960; interval failures 400; manifest 200; profile
+  intervals 200; profile targets 200; replicates 760; Wald coverage 28; Wald
+  intervals 760.
+- The manifest had 200 `ok` rows.
+- The replicate table had 760 parameter rows, all with `converged = TRUE` and
+  `pdHess = TRUE`, and no warning-ledger rows.
+- Profile targets were ready for all 200 fitted replicates, but profile
+  intervals were `not_requested` because `profile_parameters` was empty.
+
+Boundary-gate audit:
+
+- `phase18_audit_count_structured_q1_boundary_gate(require_complete = TRUE)`
+  collapsed 760 parameter rows to 200 fitted replicates.
+- Overall: 3 fit-diagnostic warnings, 3 SD-boundary warnings, 0 Hessian
+  warnings, and 0 warning-ledger rows.
+- Hessian rate passed: 0/200 = 0.
+- SD-boundary rate passed: 3/200 = 0.015.
+- Condition-level SD-boundary rate passed: stable-set cell
+  `count_structured_q1_003` had 2/20 warnings and stable-set cell
+  `count_structured_q1_005` had 1/20 warnings, below the 40% trigger.
+- The saved result registry maps those warning cells to original pilot cells
+  `count_structured_q1_016` and `count_structured_q1_018`.
+- The helper decision was `propose_next_pilot`, with reason
+  `boundary gate checks passed; a separate design note is still required`.
+
+Validation:
+
+```sh
+gh workflow run phase18-simulation-grid.yaml --repo itchyshin/drmTMB --ref main -f task=count_structured_q1 -f condition_set=stable -f n_reps=20 -f cores=2 -f backend=multicore -f bootstrap_nsim=0 -f bootstrap_cores=2 -f bootstrap_backend=none -f profile_parameters='' -f condition_shard=1 -f condition_shards=1 -f render_report=false -f retention_days=14
+gh run watch 26638116979 --repo itchyshin/drmTMB --interval 30 --exit-status
+gh run download 26638116979 --repo itchyshin/drmTMB --dir /tmp/drmTMB-phase18-count-structured-q1-stable-26638116979
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); source("inst/sim/R/sim_registry.R"); source("inst/sim/R/sim_utils.R"); source("inst/sim/R/sim_runner.R"); source("inst/sim/R/sim_uncertainty.R"); source("inst/sim/fit/sim_summarise_count_structured_q1.R"); source("inst/sim/run/sim_write_count_structured_q1_grid.R"); root <- "/tmp/drmTMB-phase18-count-structured-q1-stable-26638116979/phase18-count_structured_q1-shard-1-of-1-26638116979"; audit <- phase18_audit_count_structured_q1_boundary_gate(root, require_complete = TRUE); print(audit$boundary_gate$overall); print(audit$boundary_gate$conditions[audit$boundary_gate$conditions$fit_diagnostic_warning > 0 | audit$boundary_gate$conditions$sd_boundary_warning > 0 | audit$boundary_gate$conditions$hessian_warning > 0, c("cell_id", "family", "structured_type", "n_level", "sd_structured", "mean_count", "sigma_baseline", "n_fit", "fit_diagnostic_warning", "sd_boundary_warning", "hessian_warning")]); print(audit$boundary_gate$checks); print(audit$boundary_gate$decision)'
+Rscript --vanilla -e 'root <- "/tmp/drmTMB-phase18-count-structured-q1-stable-26638116979/phase18-count_structured_q1-shard-1-of-1-26638116979"; result <- readRDS(file.path(root, "phase18-actions-result.rds")); cells <- result$summary$run$registry$cells; print(cells[, c("cell_id", "pilot_cell_id", "family", "structured_type", "n_level", "sd_structured", "pilot_condition_role", "pilot_sd_boundary_status")], row.names = FALSE)'
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 stable diagnostic OR count structured q1 stable OR count structured q1 formal pilot' --limit 20 --json number,title,state,url,labels
+air format docs/design/138-phase-18-count-structured-q1-stable-diagnostic-audit-slices-1761-1762.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-stable-diagnostic-audit.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|condition_set=stable.*coverage|condition_set=stable.*recovery claim|stable.*formal recovery claim|stable.*all clean|stable.*promot.*recovery|stable diagnostic.*coverage' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- The stable diagnostic passed the pre-declared boundary gate and can move to a
+  separate formal-pilot design note.
+- The GitHub issue search returned `[]`; no issue action was taken because the
+  design note, roadmap row, check-log entry, and after-task report are the
+  durable record for this internal diagnostic.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned only intended guardrails against formal
+  recovery and coverage claims.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the result to a diagnostic audit and next design action.
+- Curie checked fitted-replicate counts, row counts, and the stable-set cell
+  mapping.
+- Fisher kept profile, MCSE, recovery, and coverage claims out.
+- Grace watched Actions, downloaded the artifact, ran pkgdown, and checked
+  diff hygiene.
+- Rose checked stale wording and issue overlap.
+- No spawned subagents were running.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Follow-Up Condition Sets
 
 Goal:

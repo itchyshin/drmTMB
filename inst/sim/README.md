@@ -127,6 +127,9 @@ Current pilot files:
 - `docs/design/137-phase-18-count-structured-q1-followup-condition-sets-slices-1753-1760.md`
   splits the same 24 cells into executable `stable`, `stable_watch`, and
   `boundary_stress` condition sets for the next diagnostic dispatch.
+- `docs/design/138-phase-18-count-structured-q1-stable-diagnostic-audit-slices-1761-1762.md`
+  audits the first `condition_set = "stable"` Actions run and records the
+  `propose_next_pilot` decision for a separate stable formal-pilot design.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -480,8 +483,9 @@ Current pilot files:
   10-replicate diagnostic pilot from Actions run `26631771105` returned
   `hold_diagnostic`, so `phase18_count_structured_q1_followup_conditions()`
   now separates `stable`, `stable_watch`, and `boundary_stress` cells before
-  another diagnostic dispatch. This lane is opt-in and does not make formal
-  recovery or coverage claims.
+  another diagnostic dispatch. The stable-set run `26638116979` passed the
+  boundary gate with decision `propose_next_pilot`, which permits a separate
+  formal-pilot design note but not a recovery or coverage claim.
 - `run/sim_write_nbinom2_sigma_random_effect_grid.R` writes the ordinary NB2
   log-`sigma` random-intercept smoke artifact set with aggregate,
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
