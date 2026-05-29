@@ -17,8 +17,9 @@ formulas for log-location \code{mu} and log-scale \code{sigma}.
 The model is defined on the log response scale:
 \code{log(y) ~ Normal(mu, sigma^2)}. The fitted distributional parameter \code{mu} is
 therefore the mean of \code{log(y)}, not the arithmetic mean of \code{y}.
-Ordinary \code{mu} random intercepts such as \code{(1 | id)} are supported in the
-first positive-continuous mixed-model slice.
+Ordinary \code{mu} random intercepts and independent numeric slopes such as
+\code{(1 | id)} and \code{(0 + x | id)} are supported in the first
+positive-continuous mixed-model slice.
 }
 \examples{
 lognormal()

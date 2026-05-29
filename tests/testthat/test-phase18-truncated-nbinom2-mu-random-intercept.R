@@ -171,11 +171,11 @@ test_that("Phase 18 truncated NB2 mu random-intercept lane rejects neighbouring 
 
   expect_error(
     drmTMB(
-      bf(count ~ x + (0 + x | id), sigma ~ z),
+      bf(count ~ x + (1 + x | id), sigma ~ z),
       family = truncated_nbinom2(),
       data = dat
     ),
-    "random intercepts"
+    "Only independent"
   )
   expect_error(
     drmTMB(

@@ -24,12 +24,12 @@ with optional ordinary unlabelled \code{mu} random intercepts,
 follow \code{Binomial(trials_i, p_i)}. Larger \code{sigma} means more extra-binomial
 variation around the mean probability.
 
-The first mixed-model slice supports ordinary \code{mu} random intercepts such as
-\code{bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)}. Random slopes,
-labelled covariance blocks, \code{sigma} random effects, \code{zoi}/\code{coi},
-\code{meta_V(V = V)}, phylogenetic or spatial terms, bivariate beta-binomial
-models, and a \code{successes/trials} response alias are planned but not
-implemented.
+The first mixed-model slice supports ordinary \code{mu} random intercepts and
+independent numeric slopes such as
+\code{bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id), sigma ~ z)}. Correlated slopes, labelled covariance blocks, \code{sigma} random
+effects, \code{zoi}/\code{coi}, \code{meta_V(V = V)}, phylogenetic or spatial terms,
+bivariate beta-binomial models, and a \code{successes/trials} response alias are
+planned but not implemented.
 }
 \examples{
 beta_binomial()

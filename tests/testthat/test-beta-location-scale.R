@@ -368,8 +368,8 @@ test_that("beta rejects boundary and unsupported inputs", {
     "at most one"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (0 + x | id), sigma ~ 1), family = beta(), data = dat),
-    "random intercepts"
+    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ 1), family = beta(), data = dat),
+    "Only independent"
   )
   expect_error(
     drmTMB(bf(y ~ x + (1 | p | id), sigma ~ 1), family = beta(), data = dat),

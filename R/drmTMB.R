@@ -8,15 +8,15 @@
 #' beta mean-scale models for strict proportions,
 #' zero-one beta mean-scale-boundary models for continuous proportions with
 #' structural exact zeroes or ones,
-#' fixed-effect beta-binomial mean-overdispersion models for success counts,
+#' beta-binomial mean-overdispersion models for success counts,
 #' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
 #' negative-binomial mean-dispersion, and hurdle negative-binomial
 #' mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
-#' ordinary Poisson, ordinary negative-binomial, and
+#' ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 #' zero-truncated negative-binomial `mu` formulas support ordinary unlabelled
-#' random intercepts where
+#' random intercepts and independent numeric slopes where
 #' documented. Poisson, ordinary negative-binomial, and zero-truncated
 #' negative-binomial `mu` formulas may include standard R `offset(log(exposure))`
 #' terms for exposure or effort,
@@ -3914,8 +3914,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       cli::cli_abort(c(
         "This formula contains unsupported model terms.",
         "x" = "The {.code {dpar}} formula contains unsupported term{?s}: {.val {hits}}.",
-        "i" = "Non-Gaussian random effects are planned, not implemented in this family path.",
-        "i" = "The implemented non-Gaussian random-effect path is ordinary Poisson {.code mu}: unlabelled random intercepts and independent numeric slopes for non-zero-inflated Poisson models. Other families and parameters retain explicit unsupported messages until their recovery tests exist."
+        "i" = "Only selected one-response non-Gaussian {.code mu} formulas fit ordinary unlabelled random intercepts and independent numeric slopes.",
+        "i" = "Unsupported family paths and parameters retain explicit messages until their likelihood, extractor, diagnostic, and recovery tests exist."
       ))
     }
     cli::cli_abort(c(
@@ -4168,7 +4168,7 @@ validate_truncated_nbinom2_mu_random_terms <- function(
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -4176,10 +4176,10 @@ validate_truncated_nbinom2_mu_random_terms <- function(
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent {.fn truncated_nbinom2} {.code mu} random intercepts are implemented in this slice.",
+      "Only independent {.fn truncated_nbinom2} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code bf(count ~ x + (1 | id), sigma ~ z)}.",
-      "i" = "Zero-truncated NB2 random slopes, labelled covariance blocks, structured effects, and hurdle random effects remain planned until separate recovery tests exist."
+      "i" = "Use syntax like {.code bf(count ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+      "i" = "Correlated slopes, labelled covariance blocks, structured effects, and hurdle random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -4204,7 +4204,7 @@ validate_student_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -4212,10 +4212,10 @@ validate_student_mu_random_terms <- function(terms) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent {.fn student} {.code mu} random intercepts are implemented in this slice.",
+      "Only independent {.fn student} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)}.",
-      "i" = "Student-t random slopes, labelled covariance blocks, structured effects, scale random effects, and shape random effects remain planned until separate recovery tests exist."
+      "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)}.",
+      "i" = "Correlated Student-t slopes, labelled covariance blocks, structured effects, scale random effects, and shape random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -4240,7 +4240,7 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -4248,10 +4248,10 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent {family_label} {.code mu} random intercepts are implemented in this slice.",
+      "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code bf(y ~ x + (1 | id), sigma ~ z)}.",
-      "i" = "Positive-continuous random slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
+      "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+      "i" = "Correlated positive-continuous slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -4292,7 +4292,7 @@ validate_beta_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -4300,10 +4300,10 @@ validate_beta_mu_random_terms <- function(terms) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent {.fn beta} {.code mu} random intercepts are implemented in this slice.",
+      "Only independent {.fn beta} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code bf(prop ~ x + (1 | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
-      "i" = "Beta random slopes, labelled covariance blocks, structured effects, scale random effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "Use syntax like {.code bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for strict {.code (0, 1)} responses.",
+      "i" = "Correlated beta slopes, labelled covariance blocks, structured effects, scale random effects, exact-boundary mass, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -4328,7 +4328,7 @@ validate_beta_binomial_mu_random_terms <- function(terms) {
   unsupported <- vapply(
     terms,
     function(term) {
-      !identical(term$type, "intercept") ||
+      !(term$type %in% c("intercept", "slope")) ||
         !is.null(term$covariance_label)
     },
     logical(1L)
@@ -4336,10 +4336,10 @@ validate_beta_binomial_mu_random_terms <- function(terms) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent {.fn beta_binomial} {.code mu} random intercepts are implemented in this slice.",
+      "Only independent {.fn beta_binomial} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
-      "i" = "Use syntax like {.code bf(cbind(success, failure) ~ x + (1 | id), sigma ~ z)} for counted successes out of known trials.",
-      "i" = "Beta-binomial random slopes, labelled covariance blocks, structured effects, scale random effects, zero-one inflation, and mixed bounded-response models remain planned until separate recovery tests exist."
+      "i" = "Use syntax like {.code bf(cbind(success, failure) ~ x + (1 | id) + (0 + x | id), sigma ~ z)} for counted successes out of known trials.",
+      "i" = "Correlated beta-binomial slopes, labelled covariance blocks, structured effects, scale random effects, zero-one inflation, and mixed bounded-response models remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)

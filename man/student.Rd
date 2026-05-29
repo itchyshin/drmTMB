@@ -17,9 +17,10 @@ location \code{mu}, residual scale \code{sigma}, and degrees of freedom \code{nu
 The \code{nu} parameter uses a log link with a lower bound of 2:
 \code{nu = 2 + exp(eta_nu)}. This keeps the fitted distribution in the
 finite-variance region while still allowing heavy tails.
-Ordinary \code{mu} random intercepts such as \code{(1 | id)} are supported in the
-first Student-t mixed-model slice; \code{sigma} and \code{nu} random effects remain
-separate planned gates.
+Ordinary \code{mu} random intercepts and independent numeric slopes such as
+\code{(1 | id)} and \code{(0 + x | id)} are supported in the first Student-t
+mixed-model slice; correlated slopes, \code{sigma} random effects, and \code{nu}
+random effects remain separate planned gates.
 }
 \examples{
 student()

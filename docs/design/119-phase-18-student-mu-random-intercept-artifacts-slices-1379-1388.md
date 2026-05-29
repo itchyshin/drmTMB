@@ -95,7 +95,7 @@ Slices 1379-1388 add:
 
 This slice deliberately keeps the following outside the admitted surface:
 
-- Student-t random slopes;
+- correlated Student-t random slopes;
 - labelled covariance blocks;
 - `sigma` random effects;
 - `nu` random effects;
