@@ -2,6 +2,101 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Manual Actions Smoke Audit
+
+Goal:
+
+- Dispatch and audit the first manual GitHub Actions
+  `count_structured_q1` smoke artifact run after PR #368 merged the manual
+  task.
+
+Actions run:
+
+- URL: `https://github.com/itchyshin/drmTMB/actions/runs/26622840562`
+- Task: `count_structured_q1`
+- Inputs: `n_reps = 2`, `cores = 2`, `backend = "multicore"`,
+  `bootstrap_nsim = 0`, `profile_parameters = ""`, `render_report = false`,
+  `condition_shard = 1`, `condition_shards = 1`.
+
+Artifact audit:
+
+- Downloaded artifact:
+  `phase18-count_structured_q1-shard-1-of-1-26622840562`.
+- Files present: `phase18-actions-result.rds`, 48 replicate RDS files, and the
+  12 count structured q=1 table CSVs.
+- Table rows: aggregate 96, replicates 192, manifest 48, failures 1, Wald
+  intervals 192, Wald coverage 72, profile targets 48, profile intervals 48,
+  profile coverage 0, interval evidence 240, interval diagnostics 120,
+  interval failures 96.
+- Manifest status: 48 `ok` rows, 0 skipped rows.
+- Replicate status: all 192 parameter rows had `converged = TRUE`; 187 had
+  `pdHess = TRUE`, and 5 had `pdHess = FALSE`.
+- The one warning-level failure-ledger row was `count_structured_q1_020`,
+  replicate 2: an NB2 spatial cell with `n_level = 16`, warning
+  `NaNs produced`, and `pdHess = FALSE` across its five parameter rows.
+- All 48 profile-target rows were `ready`; profile intervals were
+  `not_requested` because the workflow input left `profile_parameters` empty.
+- Wald interval evidence had 144 `ok` fixed-effect rows and 48 failed
+  structured-SD rows with missing or invalid standard errors; those structured
+  SD rows remain profile-target rows rather than Wald-interval rows.
+- The result object reported `surface = "count_structured_q1_grid"` and
+  `backend = "multicore"`, `requested_cores = 2`, `cores = 2`.
+
+Validation:
+
+```sh
+gh workflow run phase18-simulation-grid.yaml --repo itchyshin/drmTMB --ref main -f task=count_structured_q1 -f n_reps=2 -f cores=2 -f backend=multicore -f bootstrap_nsim=0 -f bootstrap_cores=2 -f bootstrap_backend=none -f profile_parameters='' -f profile_level=0.70 -f condition_shard=1 -f condition_shards=1 -f render_report=false -f require_complete=false -f retention_days=14 -f notes='manual count structured q1 smoke audit after PR #368'
+sed -n '1,95p' .github/workflows/phase18-simulation-grid.yaml
+gh workflow run phase18-simulation-grid.yaml --repo itchyshin/drmTMB --ref main -f task=count_structured_q1 -f n_reps=2 -f cores=2 -f backend=multicore -f bootstrap_nsim=0 -f bootstrap_cores=2 -f bootstrap_backend=none -f profile_parameters='' -f condition_shard=1 -f condition_shards=1 -f render_report=false -f retention_days=14
+gh run watch 26622840562 --repo itchyshin/drmTMB --interval 30 --exit-status
+gh run view 26622840562 --repo itchyshin/drmTMB --json conclusion,status,url,createdAt,updatedAt,jobs
+gh run download 26622840562 --repo itchyshin/drmTMB --dir /tmp/drmTMB-phase18-count-structured-q1-actions-26622840562
+find /tmp/drmTMB-phase18-count-structured-q1-actions-26622840562 -maxdepth 4 -type f | sort
+Rscript --vanilla -e 'root <- "/tmp/drmTMB-phase18-count-structured-q1-actions-26622840562/phase18-count_structured_q1-shard-1-of-1-26622840562"; tables <- file.path(root, "tables"); safe_read <- function(name) tryCatch(utils::read.csv(file.path(tables, name), stringsAsFactors = FALSE), error = function(e) data.frame()); csvs <- sort(list.files(tables, pattern = "[.]csv$", full.names = TRUE)); row_count <- function(p) tryCatch(nrow(utils::read.csv(p, stringsAsFactors = FALSE)), error = function(e) 0L); print(data.frame(file = basename(csvs), bytes = as.integer(file.info(csvs)$size), rows = vapply(csvs, row_count, integer(1)), row.names = NULL)); manifest <- safe_read("count-structured-q1-manifest.csv"); replicates <- safe_read("count-structured-q1-replicates.csv"); failures <- safe_read("count-structured-q1-failures.csv"); profile_targets <- safe_read("count-structured-q1-profile-targets.csv"); profile_intervals <- safe_read("count-structured-q1-profile-intervals.csv"); profile_coverage <- safe_read("count-structured-q1-profile-coverage.csv"); interval_evidence <- safe_read("count-structured-q1-interval-evidence.csv"); interval_diagnostics <- safe_read("count-structured-q1-interval-diagnostics.csv"); interval_failures <- safe_read("count-structured-q1-interval-failures.csv"); print(table(manifest$status, useNA = "ifany")); print(data.frame(parameter_rows = nrow(replicates), converged_true = sum(replicates$converged), pdHess_true = sum(replicates$pdHess), pdHess_false = sum(!replicates$pdHess), warning_rows = sum(replicates$warning_count > 0))); print(unique(replicates[replicates$warning_count > 0 | !replicates$pdHess, c("cell_id", "replicate", "family", "structured_type", "n_level", "converged", "pdHess", "warning_count", "warnings")])); print(failures); print(table(profile_targets$profile_target_status, useNA = "ifany")); print(table(profile_intervals$profile.status, useNA = "ifany")); print(nrow(profile_coverage)); print(table(interval_evidence$interval_method, interval_evidence$interval_status, useNA = "ifany")); print(stats::aggregate(cbind(n_interval, n_ok, n_failed, n_not_requested, n_interval_unusable) ~ interval_method, interval_diagnostics, sum)); print(table(interval_failures$interval_method, interval_failures$interval_failure_status, useNA = "ifany")); result <- readRDS(file.path(root, "phase18-actions-result.rds")); print(result$surface); print(result$summary$run$parallel)'
+gh issue list --repo itchyshin/drmTMB --state open --search 'count structured q1 smoke audit' --limit 20
+air format ROADMAP.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-actions-smoke-audit.md docs/dev-log/team-improvements.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+```
+
+Results:
+
+- The first dispatch attempt failed with HTTP 422 because it used runner-only
+  arguments `notes`, `profile_level`, and `require_complete` that are not
+  workflow-dispatch inputs.
+- The corrected dispatch completed successfully on `main`.
+- All unselected matrix rows skipped cleanly; only `count_structured_q1` ran
+  checkout, setup, task, summary, and upload steps.
+- The artifact upload and downloaded tables matched the expected 24-cell by
+  2-replicate smoke layout.
+- The run is operational evidence for the manual workflow route, not formal
+  recovery, coverage, or model-boundary expansion.
+- The open-issue search returned no overlapping issue to update.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The stale-claim scan returned the intended NEWS boundary wording and the
+  standing formula-grammar limitation row, not a claim that the audit was all
+  clean, formal recovery, coverage, zero-inflated support, structured slopes,
+  or `task = "all"` inclusion.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept this to an operational audit after the merged manual-task PR.
+- Curie checked artifact row counts, manifest status, convergence, Hessian
+  status, warning rows, profile-target rows, and interval diagnostics.
+- Fisher kept the Wald and profile rows framed as smoke artifacts, not
+  operating-characteristic evidence.
+- Grace caught the workflow-dispatch input mismatch and verified skip behavior
+  across the full matrix.
+- Rose recorded the warning and non-positive Hessian instead of flattening the
+  run to "all clean."
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-actions-smoke-audit.md`
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Manual Actions Task
 
 Goal:

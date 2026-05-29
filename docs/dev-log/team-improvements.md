@@ -8,6 +8,18 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-29 - Workflow Dispatch Input Check
+
+- Improvement implemented: before manual GitHub Actions dispatches, Grace
+  should read the workflow's `workflow_dispatch.inputs` block and pass only
+  those inputs to `gh workflow run`.
+- Improvement implemented: runner-only arguments such as `notes`,
+  `profile_level`, and `require_complete` should not be assumed to exist as
+  workflow inputs unless the workflow exposes them explicitly.
+- Trigger: the first `count_structured_q1` smoke-audit dispatch failed with
+  HTTP 422 because it mixed `sim_run_actions_cell.R` runner arguments with the
+  workflow-dispatch input surface.
+
 ## 2026-05-28 - Single-Lane Duplicated Team
 
 - Improvement implemented: when two Phase 18 teams start causing repeated
