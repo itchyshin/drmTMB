@@ -180,12 +180,9 @@ confint.drmTMB <- function(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
       )
     }
+    all_targets <- drm_profile_targets(object)
     targets <- profile_match_confint_targets(
-      drm_profile_targets(object)[
-        wald_supported_targets(drm_profile_targets(object)),
-        ,
-        drop = FALSE
-      ],
+      all_targets[bootstrap_supported_targets(all_targets), , drop = FALSE],
       parm,
       fixed_only = FALSE
     )
@@ -1844,6 +1841,10 @@ wald_supported_targets <- function(targets) {
       ) &
     targets$transformation %in%
       c("linear_predictor", "exp", "tanh", "rho12_tanh")
+}
+
+bootstrap_supported_targets <- function(targets) {
+  wald_supported_targets(targets)
 }
 
 profile_target_opt_positions <- function(object, targets) {

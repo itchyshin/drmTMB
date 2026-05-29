@@ -232,6 +232,14 @@ fails before interval work begins. Bootstrap intervals for `summary()`,
 `corpairs()`, prediction tables, derived q4 correlations, repeatability, and
 phylogenetic signal remain separate work.
 
+Bootstrap target selection uses the same direct-target gate as the fast Wald
+route: fixed effects, direct fitted scale targets, direct random-effect SDs,
+direct random-effect correlations, and constant residual `rho12` may be
+selected. Derived modelled SD surfaces, q4 unstructured-correlation rows,
+repeatability, phylogenetic signal, covariance products, and prediction-table
+linear combinations stay out of the bootstrap target set until a validated
+derived-interval method exists.
+
 For direct positive scale and SD targets, the bootstrap route stores both the
 response-scale estimate and the fitted log-scale estimate from each refit. It
 takes percentile endpoints on the log scale and then applies the same `exp`
