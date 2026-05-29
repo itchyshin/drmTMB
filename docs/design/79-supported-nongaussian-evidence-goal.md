@@ -50,13 +50,15 @@ family suite:
   random intercepts are admitted as narrow source-tested first slices;
 - ordinary NB2 `sigma ~ z + (1 | id)` is admitted as a separate
   overdispersion-random-intercept smoke lane;
-- ordinary Poisson and NB2 q=1 phylogenetic `mu` intercepts are fitted, but the
+- ordinary Poisson and NB2 q=1 structured `mu` intercepts are fitted for
+  `phylo()`, `spatial()`, `animal()`, and `relmat()`, but the
   merged sharded 500-replicate NB2 artifact audit kept the q1 NB2 promotion gate
   at `hold_smoke_only`;
 - zero-truncated NB2 random slopes, zero-inflation or hurdle random effects,
   correlated count slopes, labelled non-Gaussian covariance blocks, structured
   count slopes, NB2 `sigma` slopes, beta `sigma` or slope random effects, and
-  non-Gaussian spatial/animal/`relmat()` effects remain planned or blocked.
+  simultaneous structured types, structured `sigma`, and non-count
+  spatial/animal/`relmat()` effects remain planned or blocked.
 
 ## NB2 q1 Formal Shard Audit Rule
 

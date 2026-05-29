@@ -33,7 +33,7 @@ The current template has four kinds of code interleaved in one file:
 | --- | --- | --- | --- |
 | Stable scalar helpers | `drm_log1p_pos()`, `drm_log1mexp()`, inverse-logit log helpers, and NB2 count-kernel helpers | `src/drm_numeric.h` and `src/drm_count_kernels.h` | `test-count-kernels.R`, count-family tests, family-link tests |
 | TMB data and parameter declarations | The R-to-TMB ABI for all model families, random effects, known covariance, aggregation, hidden probes, and reports | Keep in `src/drmTMB.cpp` | `test-package-skeleton.R`, full `devtools::test()` |
-| Structured-effect branch glue | Family-specific `eta` updates, precision-prior attachment, random-effect reports, and direct SD `ADREPORT()` targets for phylogenetic, spatial, animal, `relmat()`, and the first Poisson/NB2 q=1 phylogenetic routes | Keep branch glue in `src/drmTMB.cpp`; later only pure prior helpers may move to `src/drm_structured_effects.h` | `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-animal-relmat-gaussian.R`, `test-poisson-mean.R`, `test-nbinom2-location-scale.R`, `test-profile-targets.R`, `test-check-drm.R` |
+| Structured-effect branch glue | Family-specific `eta` updates, precision-prior attachment, random-effect reports, and direct SD `ADREPORT()` targets for phylogenetic, spatial, animal, `relmat()`, and the first Poisson/NB2 q=1 structured `mu` routes | Keep branch glue in `src/drmTMB.cpp`; later only pure prior helpers may move to `src/drm_structured_effects.h` | `test-phylo-gaussian.R`, `test-spatial-gaussian.R`, `test-animal-relmat-gaussian.R`, `test-poisson-mean.R`, `test-nbinom2-location-scale.R`, `test-count-structured-mu.R`, `test-profile-targets.R`, `test-check-drm.R` |
 | Hidden probe branches | `model_type` 93 to 99 branches for isolated phylogenetic and covariance-block algebra checks | Later `src/drm_test_probes.h` after branch inventory is complete | `test-phylo-utils.R`, `test-covariance-block-registry.R` |
 | Public likelihood branches | `model_type` 1 to 14 branches for fitted families | Later family headers after pure kernels are extracted | family tests, comparator tests, profile and summary tests |
 
@@ -144,9 +144,9 @@ Do not move these pieces in the first modularization pass:
   extraction logic;
 - phylogenetic and spatial output labels, especially the current internal reuse
   of `u_phylo` for the first coordinate-spatial `mu` effect;
-- Poisson q=1 phylogenetic ABI pieces, including `u_phylo`, `log_sd_phylo`,
-  `Q_phylo`, `log_det_Q_phylo`, `phylo_mu_node_index`, `phylo_mu_value`,
-  `sd_phylo`, `quadratic`, and `phylo_mu_contribution`;
+- Poisson/NB2 q=1 structured-count ABI pieces, including `u_phylo`,
+  `log_sd_phylo`, `Q_phylo`, `log_det_Q_phylo`, `phylo_mu_node_index`,
+  `phylo_mu_value`, `sd_phylo`, `quadratic`, and `phylo_mu_contribution`;
 - hidden probe behavior, until the hidden-branch inventory in this note and
   `docs/design/03-likelihoods.md` stays synchronized.
 

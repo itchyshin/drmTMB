@@ -4227,7 +4227,7 @@ has_phylo_mu_effect <- function(object) {
 
 has_spatial_mu_effect <- function(object) {
   object$model$model_type %in%
-    c("gaussian", "biv_gaussian") &&
+    c("gaussian", "biv_gaussian", "poisson", "nbinom2") &&
     isTRUE(object$model$structured$phylo_mu$has) &&
     identical(structured_mu_type(object$model$structured$phylo_mu), "spatial")
 }

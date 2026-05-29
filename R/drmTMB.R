@@ -2417,13 +2417,30 @@ drm_build_poisson_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
+  mu_entry$rhs <- mu_spatial$rhs
+  mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
+  mu_entry$rhs <- mu_animal$rhs
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  mu_structured_term <- select_count_mu_structured_term(
+    list(
+      phylo = mu_phylo$term,
+      spatial = mu_spatial$term,
+      animal = mu_animal$term,
+      relmat = mu_relmat$term
+    ),
+    family_label = "Poisson"
+  )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
-  validate_poisson_phylo_mu_term(
-    mu_phylo$term,
+  validate_count_structured_mu_term(
+    mu_structured_term,
     mu_re$terms,
-    has_zi = !is.null(zi_entry)
+    has_zi = !is.null(zi_entry),
+    family_label = "Poisson",
+    inflated_label = "Zero-inflated Poisson"
   )
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   if (!is.null(zi_entry)) {
@@ -2439,7 +2456,7 @@ drm_build_poisson_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     if (!is.null(f_zi)) all.vars(f_zi),
-    phylo_mu_vars(mu_phylo$term),
+    structured_mu_vars(mu_structured_term),
     random_effect_vars(mu_re$terms)
   ))
   if (length(vars) > 0L) {
@@ -2506,7 +2523,7 @@ drm_build_poisson_spec <- function(
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
-  phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(mu_structured_term, data_model, env)
 
   spec <- list(
     model_type = if (has_zi) "zi_poisson" else "poisson",
@@ -2638,6 +2655,21 @@ drm_build_nbinom2_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
+  mu_entry$rhs <- mu_spatial$rhs
+  mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
+  mu_entry$rhs <- mu_animal$rhs
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  mu_structured_term <- select_count_mu_structured_term(
+    list(
+      phylo = mu_phylo$term,
+      spatial = mu_spatial$term,
+      animal = mu_animal$term,
+      relmat = mu_relmat$term
+    ),
+    family_label = "NB2"
+  )
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(
@@ -2646,17 +2678,19 @@ drm_build_nbinom2_spec <- function(
     family_label = "NB2",
     inflated_label = "Zero-inflated NB2"
   )
-  validate_nbinom2_phylo_mu_term(
-    mu_phylo$term,
+  validate_count_structured_mu_term(
+    mu_structured_term,
     mu_re$terms,
-    has_zi = !is.null(zi_entry)
+    has_zi = !is.null(zi_entry),
+    family_label = "NB2",
+    inflated_label = "Zero-inflated NB2"
   )
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_nbinom2_sigma_random_terms(
     sigma_re$terms,
     mu_terms = mu_re$terms,
-    phylo_term = mu_phylo$term,
+    structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry)
   )
 
@@ -2682,7 +2716,7 @@ drm_build_nbinom2_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     if (!is.null(f_zi)) all.vars(f_zi),
-    phylo_mu_vars(mu_phylo$term),
+    structured_mu_vars(mu_structured_term),
     random_effect_vars(mu_re$terms),
     random_effect_vars(sigma_re$terms)
   ))
@@ -2761,7 +2795,7 @@ drm_build_nbinom2_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
-  phylo_mu <- build_phylo_mu_structure(mu_phylo$term, data_model, env)
+  phylo_mu <- build_structured_mu_structure(mu_structured_term, data_model, env)
 
   spec <- list(
     model_type = if (has_zi) "zi_nbinom2" else "nbinom2",
@@ -4004,79 +4038,71 @@ validate_poisson_mu_random_terms <- function(
   invisible(terms)
 }
 
-validate_poisson_phylo_mu_term <- function(
-  term,
-  ordinary_terms,
-  has_zi = FALSE
-) {
-  if (is.null(term)) {
-    return(invisible(NULL))
-  }
-  if (isTRUE(has_zi)) {
+select_count_mu_structured_term <- function(structured_terms, family_label) {
+  active_structured <- names(structured_terms)[
+    !vapply(structured_terms, is.null, logical(1L))
+  ]
+  if (length(active_structured) > 1L) {
+    family_label <- as.character(family_label)[[1L]]
     cli::cli_abort(c(
-      "Poisson phylogenetic {.code mu} effects are implemented only for ordinary Poisson models.",
-      "x" = "Zero-inflated Poisson phylogenetic random effects are planned but not implemented.",
-      "i" = "Fit {.code y ~ x + phylo(1 | species, tree = tree)} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured recovery tests exist."
+      "Only one structured {.code mu} effect type is implemented per {family_label} count model.",
+      "x" = "The model contains structured effect types: {.val {active_structured}}.",
+      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured-dependence recovery tests exist."
     ))
   }
-  if (length(ordinary_terms) > 0L) {
-    cli::cli_abort(c(
-      "Poisson phylogenetic {.code mu} effects cannot be combined with ordinary {.code mu} random effects in this first gate.",
-      "x" = "The formula contains both {.fn phylo} and ordinary random-effect bar terms.",
-      "i" = "Fit the phylogenetic count model or the ordinary grouped count model separately until combined-dependence recovery tests exist."
-    ))
+  if (length(active_structured) == 0L) {
+    return(NULL)
   }
-  if (!is.null(term$covariance_label)) {
-    cli::cli_abort(c(
-      "Poisson phylogenetic {.code mu} effects currently support only unlabelled q=1 intercepts.",
-      "x" = "Requested labelled structured term: {.code {term$label}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
-    ))
-  }
-  if (!identical(term$coef_names, "(Intercept)")) {
-    cli::cli_abort(c(
-      "Poisson phylogenetic {.code mu} effects currently support only q=1 random intercepts.",
-      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)} for the first count structured-dependence gate; phylogenetic count slopes need separate recovery and diagnostics."
-    ))
-  }
-  invisible(NULL)
+  structured_terms[[active_structured]]
 }
 
-validate_nbinom2_phylo_mu_term <- function(
+validate_count_structured_mu_term <- function(
   term,
   ordinary_terms,
-  has_zi = FALSE
+  has_zi = FALSE,
+  family_label,
+  inflated_label
 ) {
   if (is.null(term)) {
     return(invisible(NULL))
   }
+  family_label <- as.character(family_label)[[1L]]
+  inflated_label <- as.character(inflated_label)[[1L]]
+  marker <- structured_mu_type(term)
+  example <- switch(
+    marker,
+    phylo = "phylo(1 | species, tree = tree)",
+    spatial = "spatial(1 | site, coords = coords)",
+    animal = "animal(1 | id, Ainv = Ainv)",
+    relmat = "relmat(1 | id, Q = Q)",
+    paste0(marker, "(1 | id, ...)")
+  )
   if (isTRUE(has_zi)) {
     cli::cli_abort(c(
-      "NB2 phylogenetic {.code mu} effects are implemented only for ordinary NB2 models.",
-      "x" = "Zero-inflated NB2 phylogenetic random effects are planned but not implemented.",
-      "i" = "Fit {.code y ~ x + phylo(1 | species, tree = tree)} with {.code sigma ~ predictors} and without a {.code zi} formula until zero-inflated structured recovery tests exist."
+      "{family_label} structured {.code mu} effects are implemented only for ordinary {family_label} models.",
+      "x" = "{inflated_label} structured random effects are planned but not implemented.",
+      "i" = "Fit {.code count ~ x + {example}} without a {.code zi} formula, or use fixed-effect {.code zi ~ predictors} until zero-inflated structured recovery tests exist."
     ))
   }
   if (length(ordinary_terms) > 0L) {
     cli::cli_abort(c(
-      "NB2 phylogenetic {.code mu} effects cannot be combined with ordinary {.code mu} random effects in this first gate.",
-      "x" = "The formula contains both {.fn phylo} and ordinary random-effect bar terms.",
-      "i" = "Fit the phylogenetic count model or the ordinary grouped count model separately until combined-dependence recovery tests exist."
+      "{family_label} structured {.code mu} effects cannot be combined with ordinary {.code mu} random effects in this first gate.",
+      "x" = "The formula contains both {.fn {marker}} and ordinary random-effect bar terms.",
+      "i" = "Fit the structured count model or the ordinary grouped count model separately until combined-dependence recovery tests exist."
     ))
   }
   if (!is.null(term$covariance_label)) {
     cli::cli_abort(c(
-      "NB2 phylogenetic {.code mu} effects currently support only unlabelled q=1 intercepts.",
+      "{family_label} structured {.code mu} effects currently support only unlabelled q=1 intercepts.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
+      "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
     ))
   }
   if (!identical(term$coef_names, "(Intercept)")) {
     cli::cli_abort(c(
-      "NB2 phylogenetic {.code mu} effects currently support only q=1 random intercepts.",
+      "{family_label} structured {.code mu} effects currently support only q=1 random intercepts.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code phylo(1 | species, tree = tree)} for the first NB2 structured-dependence gate; phylogenetic count slopes need separate recovery and diagnostics."
+      "i" = "Use {.code {example}} for this count structured-dependence gate; count structured slopes need separate recovery and diagnostics."
     ))
   }
   invisible(NULL)
@@ -4085,7 +4111,7 @@ validate_nbinom2_phylo_mu_term <- function(
 validate_nbinom2_sigma_random_terms <- function(
   terms,
   mu_terms = list(),
-  phylo_term = NULL,
+  structured_term = NULL,
   has_zi = FALSE
 ) {
   if (length(terms) == 0L) {
@@ -4098,10 +4124,10 @@ validate_nbinom2_sigma_random_terms <- function(
       "i" = "Fit {.code bf(count ~ x, sigma ~ z + (1 | id))} without a {.code zi} formula until zero-inflated overdispersion recovery tests exist."
     ))
   }
-  if (length(mu_terms) > 0L || !is.null(phylo_term)) {
+  if (length(mu_terms) > 0L || !is.null(structured_term)) {
     cli::cli_abort(c(
       "NB2 {.code sigma} random intercepts cannot be combined with {.code mu} random effects in this first gate.",
-      "x" = "The formula contains a {.code sigma} random effect plus an ordinary or phylogenetic {.code mu} random effect.",
+      "x" = "The formula contains a {.code sigma} random effect plus an ordinary or structured {.code mu} random effect.",
       "i" = "Fit the NB2 mean random-effect model or the NB2 overdispersion random-intercept model separately until joint recovery tests exist."
     ))
   }

@@ -363,3 +363,19 @@ issues, or pull requests.
   `MakeADFun()` probe and comparator tests caught the mismatch. Future family
   slices should confirm the intended block receives the new fields before
   broad validation.
+
+## 2026-05-28 - Current-Map Versus Historical-Note Scans
+
+- Improvement implemented: stale-wording scans for status changes should
+  separate current user-facing maps, readiness tables, and rendered pkgdown pages
+  from historical slice notes. Update current maps when they contradict the
+  fitted surface, but leave older after-task and design notes intact when they
+  were true at the time.
+- Improvement implemented: when `devtools::document()` produces only
+  local-roxygen churn unrelated to the slice, trim that generated output before
+  staging and record the reason in the check log.
+- Trigger: the count structured `mu` q=1 slice inherited a dirty branch where
+  current source-map/status pages still said spatial/animal/`relmat()` count
+  routes were planned, while older phylo-only design notes correctly described
+  previous slice boundaries. The same pass also exposed unrelated Rd/link churn
+  from the local roxygen version.
