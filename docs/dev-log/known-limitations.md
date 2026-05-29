@@ -199,12 +199,12 @@
   the structural-zero probability, but `zi` random effects and `mu` random
   effects in the zero-inflated route remain planned and now error with
   zero-inflation-specific boundary messages. There is no modelled `sigma`
-  parameter. The first structured count route is fitted for unlabelled q=1
-  `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`. Overdispersion,
-  correlated Poisson slope blocks, labelled Poisson covariance blocks, known
-  sampling covariance, Poisson phylogenetic slopes, zero-inflated Poisson
-  phylogeny, spatial/animal/`relmat()` count structure, and bivariate or mixed
-  Poisson models remain planned.
+  parameter. The first structured count routes are fitted for one unlabelled
+  q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` intercept in ordinary
+  Poisson `mu`. Overdispersion, correlated Poisson slope blocks, labelled
+  Poisson covariance blocks, known sampling covariance, structured count
+  slopes, zero-inflated structured effects, simultaneous structured types, and
+  bivariate or mixed Poisson models remain planned.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in
@@ -221,9 +221,11 @@
   Random effects in `zi`, `hu`, or the count-side `mu` path of zero-inflated
   or hurdle models are not implemented yet, and cross-parameter covariance
   among count, dispersion, inflation, hurdle, or shape random effects remains
-  future work. `sigma` random effects, known sampling covariance, phylogenetic
-  terms, and bivariate or mixed negative-binomial models are not yet
-  implemented.
+  future work. Ordinary NB2 fits one q=1 `phylo()`, `spatial()`, `animal()`, or
+  `relmat()` structured `mu` intercept on the log-mean scale, but structured
+  `sigma`, structured slopes, labelled count covariance, zero-inflated
+  structured effects, known sampling covariance, and bivariate or mixed
+  negative-binomial models are not yet implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
@@ -277,15 +279,17 @@
   q=4 spatial location-scale block. They are not the scalable mesh/SPDE route.
   The mesh/SPDE design gate is recorded in
   `docs/design/09-phylogenetic-and-spatial-speed.md`, while spatial slope
-  correlations, spatial direct-SD surfaces, spatial `corpair()` regressions, and
-  non-Gaussian spatial effects remain planned.
-- Except for the ordinary Poisson q=1 phylogenetic `mu` intercept,
-  non-Gaussian structured random effects are not implemented. `phylo()`,
-  `spatial()`, `animal()`, and `relmat()` markers outside that narrow route now
-  error in non-Gaussian models with a structured non-Gaussian boundary. Count,
-  bounded, ordinal, shape, inflation, hurdle, and one-inflation structured
-  effects need ordinary family-specific random-effect recovery and interval
-  evidence before entering the fitted surface.
+  correlations, spatial direct-SD surfaces, spatial `corpair()` regressions,
+  count spatial slopes or labels, and zero-inflated spatial effects remain
+  planned.
+- Except for the ordinary Poisson/NB2 q=1 `mu` intercept routes, non-Gaussian
+  structured random effects are not implemented. `phylo()`, `spatial()`,
+  `animal()`, and `relmat()` markers outside ordinary count `mu` now error in
+  non-Gaussian models with a structured non-Gaussian boundary. Count structured
+  slopes, labelled q=2/q=4 count blocks, bounded, ordinal, shape, inflation,
+  hurdle, and one-inflation structured effects need ordinary family-specific
+  random-effect recovery and interval evidence before entering the fitted
+  surface.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now

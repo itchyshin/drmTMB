@@ -76,8 +76,8 @@ is the current routing contract:
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
-| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts and independent numeric slopes plus the first q=1 phylogenetic `mu` intercept. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, and the first q=1 phylogenetic `mu` intercept on the log-mean predictor. |
+| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts on the logit-mean predictor. |
@@ -1070,21 +1070,25 @@ drmTMB(
 
 Ordinary unlabelled `mu` random intercepts and independent numeric slopes add
 the usual grouped latent effects to `eta_mu_i`. The first structured
-non-Gaussian path adds a q=1 phylogenetic `mu` intercept:
+non-Gaussian path adds one q=1 structured `mu` intercept:
 
 ```text
-eta_mu_i = o_i + X_mu[i, ] beta_mu + a_species[i]
-a ~ Normal(0, sd_phylo^2 A)
+eta_mu_i = o_i + X_mu[i, ] beta_mu + a_level[i]
+a ~ Normal(0, sd_structured^2 A_structured)
 ```
 
-where `A` is the tree-implied phylogenetic covariance; the TMB template uses the
-sparse precision `Q_phylo`, the latent vector `u_phylo`, and the direct SD target
-`log_sd_phylo`. This route is implemented for ordinary non-zero-inflated
-Poisson with `phylo(1 | species, tree = tree)`. It is not a labelled q=2/q=4
-count block, not a phylogenetic count slope, and not a zero-inflated, spatial,
-animal, or `relmat()` structured count route. The simulation-runner and artifact
-contract for promoting this route beyond smoke-level evidence is recorded in
-`docs/design/72-poisson-phylo-q1-runner-contract.md`.
+where `A_structured` is the tree, coordinate, animal-model, or user-supplied
+relatedness covariance implied by `phylo()`, `spatial()`, `animal()`, or
+`relmat()`. The TMB template still uses the sparse precision `Q_phylo`, the
+latent vector `u_phylo`, and the direct SD target `log_sd_phylo` for this shared
+q=1 count route. This route is implemented for ordinary non-zero-inflated
+Poisson with one unlabelled q=1 structured `mu` intercept. It is not a labelled
+q=2/q=4 count block, not a structured count slope, not a zero-inflated
+structured route, and not simultaneous structured dependence. The
+simulation-runner and artifact contract for promoting the phylogenetic route
+beyond smoke-level evidence is recorded in
+`docs/design/72-poisson-phylo-q1-runner-contract.md`; the spatial, animal, and
+`relmat()` count routes currently have focused source-level recovery tests.
 
 For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
@@ -1233,11 +1237,12 @@ eta_sigma_i = X_sigma[i, ] beta_sigma
 This adds the same sparse `Q_phylo`, latent `u_phylo`, and direct
 `log_sd_phylo` target as the ordinary Poisson q=1 route, but the count
 likelihood remains NB2 and `sigma` remains fixed-effect overdispersion. It is
-implemented only for ordinary non-zero-inflated NB2 with
-`phylo(1 | species, tree = tree)` in `mu`. Correlated NB2 slope blocks, labelled
-covariance blocks, NB2 phylogenetic slopes, NB2 `sigma` slopes, labelled or
-joint `mu`/`sigma` covariance, NB2 `sigma` structured effects, zero-inflated
-NB2 random or structured effects, known sampling covariance, and bivariate or
+implemented only for ordinary non-zero-inflated NB2 with one unlabelled q=1
+structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or
+`relmat()`. Correlated NB2 slope blocks, labelled covariance blocks, structured
+count slopes, NB2 `sigma` slopes, labelled or joint `mu`/`sigma` covariance,
+NB2 `sigma` structured effects, zero-inflated NB2 random or structured effects,
+simultaneous structured types, known sampling covariance, and bivariate or
 mixed negative-binomial models are later phases.
 
 ## Implemented Zero-Truncated Negative Binomial 2

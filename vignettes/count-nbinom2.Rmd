@@ -22,10 +22,11 @@ a separate structural zero?
 This article stays inside the currently implemented `drmTMB` count surface:
 univariate NB2 models, fixed-effect zero-inflated NB2 models, ordinary Poisson
 and NB2 `mu` random-effect paths, and the first ordinary Poisson/NB2 q=1
-phylogenetic `mu` routes. Ordinary NB2 also has a first grouped overdispersion
-path in `sigma`. The worked example below remains fixed-effect so the mean,
-overdispersion, and structural-zero pieces are easy to read before adding
-group, phylogenetic, or grouped-overdispersion effects.
+structured `mu` routes for `phylo()`, `spatial()`, `animal()`, and `relmat()`.
+Ordinary NB2 also has a first grouped overdispersion path in `sigma`. The worked
+example below remains fixed-effect so the mean, overdispersion, and
+structural-zero pieces are easy to read before adding group, structured
+log-mean, or grouped-overdispersion effects.
 
 The source motivation comes from Nakagawa et al. (2026), who use
 location-scale models to discuss heteroscedasticity in continuous, count, and

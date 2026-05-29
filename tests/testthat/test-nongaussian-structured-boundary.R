@@ -25,8 +25,8 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
   expect_error(
     drmTMB(
       bf(y ~ x + spatial(1 | id, coords = coords), sigma ~ 1),
-      family = nbinom2(),
-      data = dat_count
+      family = student(),
+      data = dat_pos
     ),
     "Structured non-Gaussian paths"
   )

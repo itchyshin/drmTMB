@@ -411,7 +411,7 @@ test_that("Poisson q1 phylogenetic structured intercept rejects nearby planned r
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Zero-inflated Poisson phylogenetic random effects"
+    "Zero-inflated Poisson structured random effects"
   )
 })
 

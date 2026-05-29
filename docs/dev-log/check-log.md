@@ -41728,3 +41728,103 @@ Member-group review:
 After-task report:
 
 - `docs/dev-log/after-task/2026-05-27-profile-likelihood-cran-preflight-slice.md`
+
+## 2026-05-28 -- Count Structured Mu Q1 First Slice
+
+Goal:
+
+- Finish the inherited Team A first slice that extends ordinary Poisson and
+  NB2 q=1 structured `mu` count effects beyond the existing `phylo()` route to
+  `spatial()`, `animal()`, and `relmat()`, while keeping structured slopes,
+  labels, zero-inflated structure, simultaneous structured types, and structured
+  `sigma` effects closed.
+
+Implemented:
+
+- `drm_build_poisson_spec()` and `drm_build_nbinom2_spec()` now extract one
+  structured `mu` term from `phylo()`, `spatial()`, `animal()`, or `relmat()`.
+- Added shared count-side validation so only one unlabelled q=1 structured
+  `mu` intercept is accepted, it cannot be combined with ordinary count `mu`
+  random effects, and it is rejected in zero-inflated count models.
+- Reused the existing structured-effect TMB ABI (`u_phylo`, `log_sd_phylo`,
+  `Q_phylo`) through `build_structured_mu_structure()`; no C++ likelihood code
+  or likelihood parameterization changed.
+- Added deterministic focused tests in
+  `tests/testthat/test-count-structured-mu.R` covering Poisson and NB2
+  `spatial()`, `animal()`, and `relmat()` fits, `sdpars()`, `ranef()`,
+  response-scale predictions, direct `profile_targets()`, `check_drm()`, and
+  neighboring unsupported routes.
+- Updated README, NEWS, ROADMAP, formula grammar, likelihood, family registry,
+  validation-debt, pre-simulation readiness, supported-evidence, known
+  limitations, and changed vignettes so the public story says q=1 count
+  structured first slice rather than phylo-only.
+- Recorded the process improvement for separating current-map stale scans from
+  historical design notes in `docs/dev-log/team-improvements.md`.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/methods.R tests/testthat/test-count-structured-mu.R tests/testthat/test-nongaussian-structured-boundary.R tests/testthat/test-poisson-mean.R
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); cat('load_all ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(count-structured-mu|nongaussian-structured-boundary|poisson-mean)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(count-structured-mu|phase18-poisson-phylo-q1|phase18-nbinom2-phylo-q1|nbinom2-location-scale|poisson-mean|nongaussian-structured-boundary)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::check()"
+rg -n -e 'spatial/animal/`relmat\(\)` count structure' -e 'spatial/animal/`relmat\(\)` count routes' -e 'spatial/animal/`relmat\(\)` parity' -e 'non-Gaussian spatial/animal/`relmat\(\)` effects remain planned' -e 'ordinary Poisson/NB2 q=1 phylogenetic `mu` routes' -e 'outside ordinary NB2 `sigma` intercepts and ordinary Poisson/NB2 q=1 phylogenetic' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**'
+rg -n -e 'spatial/animal/`relmat\(\)` count structure' -e 'spatial/animal/`relmat\(\)` count routes' -e 'spatial/animal/`relmat\(\)` parity' -e 'non-Gaussian spatial/animal/`relmat\(\)` effects remain planned' -e 'ordinary Poisson/NB2 q=1 phylogenetic `mu` routes' -e 'outside ordinary NB2 `sigma` intercepts and ordinary Poisson/NB2 q=1 phylogenetic' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/count-nbinom2.html pkgdown-site/articles/distribution-families.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html pkgdown-site/news/index.html
+git diff --check
+```
+
+Results:
+
+- `load_all()` passed.
+- Focused count structured, boundary, and Poisson tests passed.
+- The adjacent count/phylo/NB2 targeted set passed.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` passed; it was rerun after the final
+  user-facing prose edits.
+- Rendered-site scans found no stale current-page claims that
+  spatial/animal/`relmat()` count routes remain wholly planned. Remaining source
+  hits were historical phylo-only design notes for earlier slices, left in
+  place because they were true when written.
+- `devtools::document()` ran, but generated only unrelated roxygen-version Rd
+  churn; those generated changes were reverted and no roxygen output is
+  retained for this slice.
+- `devtools::check()` passed with 0 errors, 0 warnings, and 0 notes in
+  6 minutes 40.6 seconds.
+- `git diff --check` was clean.
+
+Issue maintenance:
+
+- Searched open issues for `count structured`, `non-Gaussian structured`, and
+  `spatial animal relmat count`.
+- Related broad ledgers were #33, #58, #59, #128, and #147. No single open
+  issue exactly owned this q=1 count structured source-test first slice, so no
+  duplicate issue or issue comment was added before opening the focused PR.
+
+Member-group review:
+
+- Ada integrated the inherited dirty branch and kept the slice to one q=1
+  structured count gate.
+- Boole checked the formula boundary: one unlabelled q=1 structured count `mu`
+  term, no labels, no slopes, no ordinary-plus-structured mixture, no
+  zero-inflated structure.
+- Gauss and Noether checked that this reuses the existing structured precision
+  prior and TMB ABI rather than changing the count likelihood.
+- Curie checked that the new tests include recovery and unsupported-neighbor
+  paths.
+- Pat checked current user-facing status surfaces for a reader-visible
+  phylo-only contradiction.
+- Grace ran focused tests, full tests, pkgdown checks/build, rendered scans,
+  full `devtools::check()`, and diff hygiene.
+- Rose recorded the roxygen churn and the historical-note boundary so future
+  agents do not rewrite old slice evidence while fixing current docs.
+- No spawned subagents were running.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-05-28-count-structured-mu-first-slice.md`
