@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Sigma Profile-Out Audit
+
+Goal:
+
+- Audit whether intercept-only Gaussian residual scale parameters are already
+  analytically profiled out before optimization.
+
+Actions run:
+
+- Merged PR #380 with the GitHub API after all R-CMD-check jobs passed.
+- Started `codex/sigma-profile-out-audit` from `origin/main` at merged commit
+  `93fb1bbd`.
+- Read the current `drmTMB()` fit path, Gaussian and bivariate Gaussian spec
+  builders, `gaussian_ls_map()`, `biv_gaussian_map()`, and the C++ Gaussian
+  likelihood branches.
+- Added optimizer-contract tests proving that constant `beta_sigma`,
+  `beta_sigma1`, and `beta_sigma2` remain in `fit$opt$par` and count toward
+  `fit$df`.
+- Updated `docs/design/35-optimizer-start-map-multistart.md` to document that
+  current constant residual scales are optimized parameters, not analytically
+  profiled-out quantities.
+- Added
+  `docs/dev-log/after-task/2026-05-29-sigma-profile-out-audit.md`.
+
+Validation:
+
+```sh
+air format tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md
+Rscript --vanilla -e "devtools::test(filter = 'optimizer-contract', reporter = 'summary')"
+rg -n "profile.?out|profiled out|analytically profile|profile =|Bates|sigma.*eliminat|remove.*beta_sigma|map.*beta_sigma|constant residual scale" README.md NEWS.md ROADMAP.md docs/design R tests/testthat --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'sigma profile out beta_sigma MakeADFun profile' --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- `test-optimizer-contract.R` passed.
+- The stale-wording scan found only the new intended optimizer-contract wording
+  and unrelated profile plotting or historical profile-CI text.
+- The issue search returned `[]`; no issue action was needed.
+- `git diff --check` was clean.
+
 ## 2026-05-29 -- Gaussian Start Contract
 
 Goal:
