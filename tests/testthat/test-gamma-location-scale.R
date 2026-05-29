@@ -341,11 +341,11 @@ test_that("Gamma models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(abs(y) + 0.1 ~ x + (0 + x | id), sigma ~ 1),
+      bf(abs(y) + 0.1 ~ x + (1 + x | id), sigma ~ 1),
       family = stats::Gamma(link = "log"),
       data = dat
     ),
-    "random intercepts"
+    "Only independent"
   )
   expect_error(
     drmTMB(

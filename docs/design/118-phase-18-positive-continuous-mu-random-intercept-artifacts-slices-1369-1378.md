@@ -111,7 +111,7 @@ Slices 1369-1378 add:
 
 This slice deliberately keeps the following outside the admitted surface:
 
-- positive-continuous random slopes;
+- correlated positive-continuous random slopes;
 - labelled covariance blocks;
 - `sigma` random effects;
 - Tweedie or generalized Gamma likelihoods;

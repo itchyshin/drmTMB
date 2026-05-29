@@ -346,11 +346,11 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (0 + x | id), sigma ~ 1),
+      bf(y ~ x + (1 + x | id), sigma ~ 1),
       family = truncated_nbinom2(),
       data = dat
     ),
-    "random intercepts"
+    "Only independent"
   )
   expect_error(
     drmTMB(

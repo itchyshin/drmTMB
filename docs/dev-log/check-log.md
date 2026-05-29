@@ -665,6 +665,83 @@ After-task report:
 
 - `docs/dev-log/after-task/2026-05-29-phase18-count-structured-q1-actions-task.md`
 
+## 2026-05-28 -- No-To-Yes Wave 1 Team B Slice
+
+Goal:
+
+- Flip the first Team B ordinary random-slope cells by adding independent
+  numeric `mu` slopes for selected non-Gaussian one-response families, while
+  keeping correlated slopes, labels, structured effects, scale/shape random
+  effects, and inflation/hurdle random effects out of scope.
+
+Implemented locally:
+
+- `student()`, `lognormal()`, `Gamma(link = "log")`, `beta()`,
+  `beta_binomial()`, and `truncated_nbinom2()` now accept ordinary unlabelled
+  independent numeric `mu` slope terms such as `(0 + x | id)`.
+- Existing malformed-neighbour tests now use correlated terms such as
+  `(1 + x | id)` for the still-unsupported slope-covariance boundary.
+- Added deterministic CRAN-safe recovery coverage in
+  `tests/testthat/test-nongaussian-mu-random-slopes.R` for convergence,
+  Hessian status, random-effect design values, `sdpars()`, `ranef()`,
+  response-scale predictions, direct `profile_targets()`, and `check_drm()`.
+
+Coordination:
+
+- The two scout agents for Team A and Team B disconnected during remote
+  compaction before returning durable handoffs, so Ada folded the first Team B
+  implementation slice back into the local branch.
+- Restack note: Team A structured count q1 source, artifact, Actions, and
+  pilot-audit slices have since merged to `main`; this PR now layers the Team B
+  non-Gaussian independent-slope slice on top of those current status surfaces.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^nongaussian-mu-random-slopes$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(student-location-scale|lognormal-location-scale|gamma-location-scale|beta-location-scale|beta-binomial|truncated-nbinom2-location-scale|nongaussian-mu-random-slopes)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-truncated-nbinom2-mu-random-intercept|truncated-nbinom2-location-scale|nongaussian-mu-random-slopes)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(reporter = 'summary')"
+git diff --check
+rg -n 'intercept-only for selected|ordinary unlabelled `mu` random intercepts \| none|ordinary unlabelled `mu` random intercepts as first|does not open random slopes|Do not teach.*random slopes|random intercepts only|only random intercepts|Random slopes, labelled|random slopes, labelled|lognormal/Gamma/beta/beta-binomial random slopes|bounded-response random slopes|positive-response random slopes|ordinary `mu` intercept slices' README.md ROADMAP.md NEWS.md R tests docs man vignettes --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**'
+rg -n 'student\(\).*no|lognormal\(\).*no|Gamma\(log\).*no|beta\(\).*no|beta_binomial\(\).*no|truncated_nbinom2\(\).*no|selected.*random slopes|correlated.*random slopes|independent.*random slopes' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man
+Rscript --vanilla -e "pkgdown::check_pkgdown(); pkgdown::build_site(preview = FALSE)"
+Rscript --vanilla -e "devtools::check()"
+```
+
+Results:
+
+- `devtools::document()` completed and updated the affected Rd files.
+- The new focused non-Gaussian `mu` slope test passed.
+- The affected family/boundary focused test set passed.
+- The first full `devtools::test()` run caught one stale Phase 18 truncated-NB2
+  artifact expectation that still rejected `(0 + x | id)`. Ada updated that
+  boundary to reject `(1 + x | id)` instead, then reran the targeted affected
+  set successfully.
+- The second full `devtools::test()` run passed.
+- `git diff --check` was clean.
+- Rose's stale-wording scans found deliberate historical or planned-neighbour
+  wording only after Ada synchronized the formula grammar vignette, model map,
+  implementation map, source map, proportion tutorial, worked-example
+  inventory, and known-limitations ledger.
+- `pkgdown::check_pkgdown()` reported no problems and
+  `pkgdown::build_site(preview = FALSE)` completed in `pkgdown-site/`.
+- The final post-vignette `devtools::check()` passed with 0 errors, 0 warnings,
+  and 0 notes.
+
+Issue maintenance:
+
+- `gh issue list --repo itchyshin/drmTMB --state open --search 'non-Gaussian random slope random effects' --limit 20`
+- `gh issue list --repo itchyshin/drmTMB --state open --search 'student lognormal Gamma beta beta_binomial truncated_nbinom2' --limit 20`
+- `gh issue list --repo itchyshin/drmTMB --state open --search 'Phase 18 random intercept slopes' --limit 20`
+- `gh issue view 128 --repo itchyshin/drmTMB --comments`
+- Issue #128 is the matching capacity-table tracker, so Ada added
+  https://github.com/itchyshin/drmTMB/issues/128#issuecomment-4569804038 and
+  kept the issue open for broader correlated, scale, bivariate, and structured
+  capacity work.
+
 ## 2026-05-28 -- Phase 18 Count Structured q1 Smoke Artifacts
 
 Goal:

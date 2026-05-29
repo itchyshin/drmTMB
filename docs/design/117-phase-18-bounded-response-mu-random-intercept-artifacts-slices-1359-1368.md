@@ -110,7 +110,7 @@ Slices 1359-1368 add:
 
 This slice deliberately keeps the following outside the admitted surface:
 
-- bounded-response random slopes;
+- correlated bounded-response random slopes;
 - labelled covariance blocks;
 - `sigma` random effects;
 - exact 0/1 boundary mass in `beta()`;

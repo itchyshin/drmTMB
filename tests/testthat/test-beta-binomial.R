@@ -353,11 +353,11 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
   )
   expect_error(
     drmTMB(
-      bf(cbind(success, failure) ~ x + (0 + x | id), sigma ~ 1),
+      bf(cbind(success, failure) ~ x + (1 + x | id), sigma ~ 1),
       family = beta_binomial(),
       data = dat
     ),
-    "random intercepts"
+    "Only independent"
   )
   expect_error(
     drmTMB(

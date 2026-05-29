@@ -56,18 +56,18 @@ and recovery evidence.
 | Public route | Distributional parameters and links | Shape or coscale slot | Random-effect allowance now | Evidence state |
 | --- | --- | --- | --- | --- |
 | `gaussian()` | `mu` identity; `sigma` log | none | Fixed effects; ordinary `mu` random intercepts, independent slopes, q > 2 numeric slope blocks, selected labelled intercept covariance; Gaussian `sigma` random intercepts and independent slopes; selected `sd(group)` SD-surface formulas; Gaussian-only `meta_V()`, `phylo()`, and `spatial()` routes are separate rows in the readiness matrix. | Covered by Gaussian location-scale, random-effect, profile, `check_drm()`, meta-analysis, phylogenetic, and spatial tests. |
-| `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed effects plus ordinary unlabelled `mu` random intercepts. Student-t random slopes, labelled covariance, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-scale-boundary.R`; random-intercept recovery and shape-boundary tests. |
-| `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts. Lognormal random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
-| `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts; non-log Gamma links remain unsupported. Gamma random slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-intercept recovery tests. |
+| `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated Student-t slopes, labelled covariance, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-nongaussian-scale-boundary.R`; random-effect recovery and shape-boundary tests. |
+| `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated lognormal slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-effect recovery tests. |
+| `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes; non-log Gamma links remain unsupported. Correlated Gamma slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-effect recovery tests. |
 | `tweedie()` | `mu` log; `sigma` log; `nu` logit12 | `nu = 1 + plogis(eta_nu)` is the Tweedie power; internal dispersion is `phi = sigma^2` | Fixed-effect univariate models only, with intercept-only `nu ~ 1`. Tweedie random effects, predictor-dependent `nu`, labelled covariance, `sd(group)`, `meta_V(V = V)`, structured effects, bivariate Tweedie, mixed-response models, zero-inflation aliases, and hurdle aliases remain planned. | `tests/testthat/test-tweedie-location-scale.R`; `tests/testthat/test-family-link-contract.R`; high-zero and low-zero recovery, support-boundary, fitted-response, simulation, and malformed-neighbour tests. |
-| `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts for strict `(0, 1)` responses. Beta random slopes, labelled covariance, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
+| `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes for strict `(0, 1)` responses. Correlated beta slopes, labelled covariance, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks; random-effect recovery tests. |
 | `zero_one_beta()` | `mu` logit; `sigma` log; `zoi` logit; `coi` logit | no public `nu`; interior precision is `phi = 1 / sigma^2`; `zoi`/`coi` describe exact-boundary mass | Fixed effects only for continuous `[0, 1]` responses with exact structural zeroes or ones. Zero-one random effects, labelled covariance, `sigma` random effects, structured effects, known covariance, denominator syntax, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-zero-one-beta.R`; `tests/testthat/test-family-link-contract.R`; `tests/testthat/test-phase18-zero-one-beta-fixed-effect.R`; independent mixture-likelihood, recovery, fitted-response, simulation, one-sided-boundary, malformed-neighbour, and Phase 18 artifact-helper tests. |
-| `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed effects plus ordinary unlabelled `mu` random intercepts for two-column `cbind(successes, failures)` responses. Beta-binomial random slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks; random-intercept recovery tests. |
+| `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes for two-column `cbind(successes, failures)` responses. Correlated beta-binomial slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks; random-effect recovery tests. |
 | `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. Correlated slopes, labelled covariance, structured count slopes, simultaneous structured types, combinations with ordinary count random effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-count-structured-mu.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, extractor, diagnostic, and opt-in smoke-runner checks. |
 | `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
 | `nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Non-zero-inflated NB2 fits fixed `sigma` formulas plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, the first ordinary log-`sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. Correlated slopes, labelled covariance, joint `mu`/`sigma` random effects, structured count slopes, zero-inflated NB2 structure, and structured `sigma` effects remain planned. | `tests/testthat/test-nbinom2-location-scale.R`; `tests/testthat/test-count-structured-mu.R`; `tests/testthat/test-phase18-nbinom2-mu-random-effect.R`; scale-boundary, profile-target, NB2 `sigma` random-intercept, phylogenetic q=1 smoke, extractor, and diagnostic checks. |
 | `nbinom2()` with `zi ~ ...` | `mu` log; `sigma` log; `zi` logit | `zi` is structural-zero probability | Fixed-effect `mu`, `sigma`, and `zi` only. Count-side, `sigma`, and `zi` random effects are blocked for zero-inflated NB2. | `tests/testthat/test-zi-nbinom2.R`; inflation and scale-boundary tests. |
-| `truncated_nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Positive-count data support fixed effects plus ordinary unlabelled `mu` random intercepts. Zero-truncated random slopes, labelled covariance, `sigma` random effects, structured effects, and hurdle random effects remain planned. | `tests/testthat/test-truncated-nbinom2-location-scale.R`; count-kernel, random-intercept, extractor, diagnostic, and scale-boundary tests. |
+| `truncated_nbinom2()` | `mu` log; `sigma` log | no public `nu`; internal size is `1 / sigma^2` | Positive-count data support fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated zero-truncated slopes, labelled covariance, `sigma` random effects, structured effects, and hurdle random effects remain planned. | `tests/testthat/test-truncated-nbinom2-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; count-kernel, random-effect, extractor, diagnostic, and scale-boundary tests. |
 | `truncated_nbinom2()` with `hu ~ ...` | `mu` log; `sigma` log; `hu` logit | `hu` is hurdle-zero probability | Fixed-effect `mu`, `sigma`, and `hu` only. Hurdle-side and positive-count random effects are blocked. | `tests/testthat/test-hurdle-nbinom2.R`; inflation/hurdle boundary tests. |
 | `cumulative_logit()` | `mu` identity plus ordered cutpoints | cutpoints are ordered thresholds; no fitted `sigma` | Fixed-effect location only. Ordinal random effects, scale, and discrimination are blocked. | `tests/testthat/test-cumulative-logit.R`; Wald fixed-effect interval rows; ordinal profile-target and boundary checks. |
 | `c(gaussian(), gaussian())`, `list(gaussian(), gaussian())`, `biv_gaussian()` | `mu1`, `mu2` identity; `sigma1`, `sigma2` log; `rho12` guarded atanh | `rho12` is residual coscale or correlation, not group, phylogenetic, or spatial covariance | Fixed effects; selected matching labelled random-intercept covariance blocks; matching slope-only ordinary `mu1`/`mu2` covariance; selected phylogenetic location and location-scale blocks; constant coordinate-spatial q=2 `mu1`/`mu2` location covariance; constant coordinate-spatial q=4 location-scale covariance as extractor/diagnostic smoke. Broader bivariate random slopes and mixed-response bivariate families remain planned. | `tests/testthat/test-biv-gaussian.R`; `tests/testthat/test-corpairs.R`; `tests/testthat/test-spatial-gaussian.R`; bivariate profile, summary, phylogenetic, and spatial tests. |
@@ -121,7 +121,7 @@ Continuous shape work has one fitted path and several planned neighbours:
 
 | Surface | Fitted state | Boundary before simulation |
 | --- | --- | --- |
-| Student-t `nu ~ ...` | Implemented for fixed-effect univariate `student()` models as `nu = 2 + exp(eta_nu)`; ordinary `mu` random intercepts are a separate first-slice location path. | Keep `nu` random effects, known sampling covariance, phylogenetic, spatial, and bivariate Student-t paths out of simulation grids until each has likelihood, extractor, diagnostic, interval, and recovery evidence. |
+| Student-t `nu ~ ...` | Implemented for fixed-effect univariate `student()` models as `nu = 2 + exp(eta_nu)`; ordinary `mu` random intercepts and independent slopes are separate first-slice location paths. | Keep `nu` random effects, known sampling covariance, phylogenetic, spatial, and bivariate Student-t paths out of simulation grids until each has likelihood, extractor, diagnostic, interval, and recovery evidence. |
 | Skew-normal `nu ~ ...` | Planned fixed-effect residual-asymmetry family with public `mu = E[y]`, public `sigma = SD[y]`, and `nu` as the slant/shape parameter. | First add density and comparator checks, positive and negative skew recovery, the `nu = 0` normal-limit check, and false-positive heteroscedasticity checks. |
 | Skew-t `nu ~ ...`, future `tau ~ ...` | Planned after the skew-normal gate. | Choose and document which parameter controls asymmetry and which controls tails before adding syntax, examples, or simulations. |
 | Future `skew(id) ~ ...` | Design-only latent-effect skewness grammar. | Do not treat this as an alias for residual `nu ~ ...`; require simulations separating residual skewness, heteroscedasticity, ordinary random effects, and latent-effect skewness. |
@@ -148,9 +148,9 @@ The decision remains intentionally narrow:
 | Priority | Family surface | Slice 192 status |
 |---|---|---|
 | 1 | Poisson `mu` | Implemented for ordinary `(1 | group)` and independent numeric `(0 + x | group)` terms in the log-mean predictor of non-zero-inflated Poisson models. One q=1 structured count route is also implemented at a time for `phylo()`, `spatial()`, `animal()`, or `relmat()`. Correlated slope blocks, covariance labels, structured count slopes, zero-inflated Poisson random effects, simultaneous structured types, and cross-parameter covariance remain planned. |
-| 2 | NB2 and zero-truncated NB2 `mu` | NB2 ordinary `mu` random intercepts, independent numeric slopes, the first ordinary log-`sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` are fitted; ordinary zero-truncated NB2 `mu` random intercepts are fitted as a narrow positive-count slice. Zero-truncated random slopes and richer dispersion-side random effects remain later gates. |
-| 3 | Lognormal, Gamma, Student-t, and beta `mu` | Ordinary random intercepts are fitted as narrow source-test slices. Random slopes, labelled covariance blocks, richer scale or shape combinations, and structured effects need their own recovery grids. |
-| 4 | Beta-binomial `mu` | Implemented as an ordinary unlabelled `mu` random-intercept first slice for counted successes out of known trials; random slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, and structured routes need separate recovery checks. |
+| 2 | NB2 and zero-truncated NB2 `mu` | NB2 ordinary `mu` random intercepts, independent numeric slopes, the first ordinary log-`sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` are fitted; ordinary zero-truncated NB2 `mu` random intercepts and independent numeric slopes are fitted as narrow positive-count slices. Correlated zero-truncated slopes and richer dispersion-side random effects remain later gates. |
+| 3 | Lognormal, Gamma, Student-t, and beta `mu` | Ordinary random intercepts and independent numeric slopes are fitted as narrow source-test slices. Correlated slopes, labelled covariance blocks, richer scale or shape combinations, and structured effects need their own recovery grids. |
+| 4 | Beta-binomial `mu` | Implemented as ordinary unlabelled `mu` random intercepts and independent numeric slopes for counted successes out of known trials; correlated slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, and structured routes need separate recovery checks. |
 | 5 | Zero-inflation, one-inflation, hurdle, ordinal, shape, and structured non-Gaussian paths | Explicitly unsupported until focused gates decide the remaining target and diagnostics. Slice 194 keeps shape random effects blocked: fixed-effect residual shape comes first, while `nu`/`tau` random effects and future `skew(id) ~ x` need separate recovery evidence. Slice D3 records zero-one beta as a fixed-effect-first design target, and the first source slice now fits fixed-effect `zoi`/`coi`; random effects and cross-parameter covariance come later. |
 
 Slice 195 keeps `zi`, `hu`, `zoi`, and `coi` random effects out of the fitted
@@ -305,9 +305,9 @@ log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
 Here `mu` is the mean of `log(y)`, not the arithmetic mean of `y`. The
 response-scale mean is `exp(mu_i + sigma_i^2 / 2)`, which is what `fitted()`
 returns for lognormal fits. Ordinary repeated-measure grouping can be written
-as `bf(y ~ x + (1 | id), sigma ~ z)`. Random slopes, labelled covariance,
-`sigma` random effects, known sampling covariance, phylogenetic terms, and
-bivariate or mixed lognormal models are later phases.
+as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Correlated slopes,
+labelled covariance, `sigma` random effects, known sampling covariance,
+phylogenetic terms, and bivariate or mixed lognormal models are later phases.
 
 ## Implemented: Gamma Mean-CV
 
@@ -319,7 +319,8 @@ family = Gamma(link = "log")
 ```
 
 The implemented model is univariate and positive-response only, with fixed
-effects plus ordinary unlabelled `mu` random intercepts:
+effects plus ordinary unlabelled `mu` random intercepts and independent
+numeric slopes:
 
 ```text
 y_i | mu_i, sigma_i ~ Gamma(shape_i, scale_i)
@@ -332,8 +333,8 @@ scale_i = mu_i * sigma_i^2
 Here `mu` is the expected response. `sigma` is the coefficient of variation,
 not the residual standard deviation; the residual standard deviation is
 `mu_i * sigma_i`. Ordinary repeated-measure grouping can be written as
-`bf(y ~ x + (1 | id), sigma ~ z)`. Non-log `Gamma()` links, random slopes,
-labelled covariance, `sigma` random effects, known sampling covariance,
+`bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Non-log `Gamma()` links,
+correlated slopes, labelled covariance, `sigma` random effects, known sampling covariance,
 phylogenetic terms, and bivariate or mixed Gamma models are later phases.
 
 ## Implemented: Beta Mean-Scale
@@ -361,7 +362,8 @@ Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 Here `mu` is the mean proportion. `sigma` is the public scale parameter, not
 beta precision. Internally, `phi = 1 / sigma^2`, so larger `sigma` means more
 variation around the mean. Boundary responses equal to 0 or 1 should use
-`zero_one_beta()` when they are structural outcomes. Beta random slopes,
+`zero_one_beta()` when they are structural outcomes. Ordinary beta `mu` random
+intercepts and independent numeric slopes are fitted; correlated beta slopes,
 labelled covariance, `sigma` random effects, known sampling covariance,
 phylogenetic terms, and bivariate or mixed beta models are later phases.
 
@@ -374,7 +376,8 @@ phylogenetic terms, and bivariate or mixed beta models are later phases.
 family = zero_one_beta()
 ```
 
-The implemented model is univariate and fixed-effect only:
+The implemented model is univariate, with ordinary `mu` random intercepts and
+independent numeric slopes available as first mixed-model slices:
 
 ```text
 Pr(y_i = 0) = zoi_i (1 - coi_i)
@@ -423,10 +426,13 @@ The response syntax is `cbind(successes, failures) ~ predictors`; `n_i` is the
 row total. Counts must be finite non-negative integers and each row must have
 positive trials. `fitted()` returns the success probability `mu`,
 `sigma(fit)` returns the public extra-binomial variation scale, and
-`simulate()` returns success counts for the fitted trial totals. Random
-effects, known sampling covariance, phylogenetic terms, bivariate or mixed
-beta-binomial models, and a possible successes/trials response alias are later
-phases. The alias design guardrails are in
+`simulate()` returns success counts for the fitted trial totals. Ordinary
+repeated-measure grouping can be written as
+`bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id), sigma ~ z)`.
+Correlated slopes, labelled covariance, `sigma` random effects, known sampling
+covariance, phylogenetic terms, bivariate or mixed beta-binomial models, and a
+possible successes/trials response alias are later phases. The alias design
+guardrails are in
 `docs/design/24-denominator-response-syntax.md`.
 
 ## Implemented: Cumulative-Logit Ordinal Location

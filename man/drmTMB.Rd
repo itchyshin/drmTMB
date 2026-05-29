@@ -55,15 +55,15 @@ Tweedie mean-scale-power models for non-negative semicontinuous responses,
 beta mean-scale models for strict proportions,
 zero-one beta mean-scale-boundary models for continuous proportions with
 structural exact zeroes or ones,
-fixed-effect beta-binomial mean-overdispersion models for success counts,
+beta-binomial mean-overdispersion models for success counts,
 fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 zero-inflated negative-binomial mean-dispersion, zero-truncated
 negative-binomial mean-dispersion, and hurdle negative-binomial
 mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
-ordinary Poisson, ordinary negative-binomial, and
+ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 zero-truncated negative-binomial \code{mu} formulas support ordinary unlabelled
-random intercepts where
+random intercepts and independent numeric slopes where
 documented. Poisson, ordinary negative-binomial, and zero-truncated
 negative-binomial \code{mu} formulas may include standard R \code{offset(log(exposure))}
 terms for exposure or effort,

@@ -172,22 +172,24 @@
   errors, contrasts, plots, or full `emmeans`-style marginalisation.
 - Univariate lognormal location-scale models are implemented for positive
   finite responses. `mu` and `sigma` are on the log-response scale, and
-  ordinary unlabelled `mu` random intercepts such as `(1 | id)` are fitted.
-  Random slopes, labelled covariance blocks, `sigma` random effects, known
-  sampling covariance, phylogenetic terms, and bivariate lognormal models are
-  not yet implemented.
-- Fixed-effect univariate Student-t location-scale-shape models are implemented
-  for robust continuous responses. Student-t `nu` is a fixed-effect tail-shape
-  parameter; random effects in `nu`, future skew-normal or skew-t shape
-  random effects, and latent ID-level skewness syntax such as
+  ordinary unlabelled `mu` random intercepts and independent numeric slopes
+  such as `(1 | id) + (0 + x | id)` are fitted. Correlated slopes, labelled
+  covariance blocks, `sigma` random effects, known sampling covariance,
+  phylogenetic terms, and bivariate lognormal models are not yet implemented.
+- Univariate Student-t location-scale-shape models are implemented for robust
+  continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
+  plus ordinary unlabelled `mu` random intercepts and independent numeric
+  slopes. Student-t `nu` is a fixed-effect tail-shape parameter; random effects
+  in `sigma` or `nu`, future skew-normal or skew-t shape random effects,
+  correlated Student-t slopes, and latent ID-level skewness syntax such as
   `skew(id) ~ x` are not yet implemented.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
-  such as `(1 | id)` are fitted. Non-log Gamma links, random slopes, labelled
-  covariance blocks, `sigma` random effects, known sampling covariance,
-  phylogenetic terms, and bivariate or mixed Gamma models are not yet
-  implemented.
+  and independent numeric slopes such as `(1 | id) + (0 + x | id)` are fitted.
+  Non-log Gamma links, correlated slopes, labelled covariance blocks, `sigma`
+  random effects, known sampling covariance, phylogenetic terms, and bivariate
+  or mixed Gamma models are not yet implemented.
 - Fixed-effect univariate Poisson mean models are implemented for
   non-negative integer counts with `family = poisson(link = "log")`.
   The `mu` formula supports standard R exposure offsets such as
@@ -218,14 +220,18 @@
   `fitted()` returns the conditional positive-count mean. Hurdle NB2 models
   are implemented by adding `hu ~ predictors`; `hu` is the hurdle-zero
   probability and nonzero counts come from the zero-truncated NB2 component.
-  Random effects in `zi`, `hu`, or the count-side `mu` path of zero-inflated
-  or hurdle models are not implemented yet, and cross-parameter covariance
-  among count, dispersion, inflation, hurdle, or shape random effects remains
-  future work. Ordinary NB2 fits one q=1 `phylo()`, `spatial()`, `animal()`, or
-  `relmat()` structured `mu` intercept on the log-mean scale, but structured
-  `sigma`, structured slopes, labelled count covariance, zero-inflated
-  structured effects, known sampling covariance, and bivariate or mixed
-  negative-binomial models are not yet implemented.
+  Ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
+  slopes, the first ordinary NB2 log-`sigma` random intercept, and ordinary
+  zero-truncated NB2 `mu` random intercepts and independent numeric slopes are
+  fitted. Random effects in `zi`, `hu`, or the count-side `mu` path of
+  zero-inflated or hurdle models are not implemented yet, and cross-parameter
+  covariance among count, dispersion, inflation, hurdle, or shape random effects
+  remains future work. Ordinary NB2 fits one q=1 `phylo()`, `spatial()`,
+  `animal()`, or `relmat()` structured `mu` intercept on the log-mean scale,
+  but structured `sigma`, structured slopes, labelled count covariance,
+  zero-inflated structured effects, known sampling covariance, correlated
+  zero-truncated slopes, and bivariate or mixed negative-binomial models are
+  not yet implemented.
 - Fixed-effect univariate cumulative-logit ordinal models are implemented for
   ordered responses with `family = cumulative_logit()`. The first path supports
   only a `mu` location formula, ordered cutpoints, and a fixed latent logistic
@@ -237,10 +243,12 @@
   yet implemented.
 - Fixed-effect univariate beta-binomial models are implemented for counted
   successes and failures with `family = beta_binomial()`. The first path
-  supports `cbind(successes, failures)` responses, fixed-effect `mu` and
-  `sigma` formulas, known trial totals from row sums, and no `sigma` random
-  effects, known sampling covariance, phylogenetic terms, bivariate or mixed
-  beta-binomial models, or successes/trials response alias. Zero-one-inflated
+  supports `cbind(successes, failures)` responses, fixed-effect `sigma`
+  formulas, known trial totals from row sums, and ordinary unlabelled `mu`
+  random intercepts and independent numeric slopes. There are no `sigma`
+  random effects, correlated beta-binomial slopes, known sampling covariance,
+  phylogenetic terms, bivariate or mixed beta-binomial models, or
+  successes/trials response alias. Zero-one-inflated
   bounded-response models for percentage or proportion data are planned:
   fixed-effect `zoi` and `coi` likelihoods should come before random effects
   or covariance among bounded-response distributional parameters, and current
@@ -306,11 +314,13 @@
   through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
   `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
   covariance blocks, and univariate Student-t models with fixed-effect `mu`,
-  `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts.
+  `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts and
+  independent numeric slopes.
   It also supports univariate lognormal models with `mu` and `sigma` on the
   log-response scale, univariate Gamma mean-CV models with positive response
   mean `mu` and coefficient of variation `sigma`, ordinary unlabelled
-  zero-truncated NB2/lognormal/Gamma/beta `mu` random intercepts, univariate
+  zero-truncated NB2/lognormal/Gamma/beta/beta-binomial `mu` random intercepts
+  and independent numeric slopes, univariate
   beta mean-scale models for strict `(0, 1)` proportions, fixed-effect univariate
   Poisson mean models, fixed-effect
   univariate negative-binomial 2 mean-dispersion models, zero-inflated variants
@@ -324,10 +334,10 @@
   all-four bivariate q4 intercept block, correlated residual-scale random-slope
   blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific
   random-effect scale targets, labelled-block random-effect
-  scale targets, bivariate random-effect scale targets, Student-t random
-  slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
+  scale targets, bivariate random-effect scale targets, correlated Student-t
+  random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
   models, Student-t phylogenetic models, bivariate Student-t models,
-  lognormal/Gamma/beta/beta-binomial random slopes,
+  correlated lognormal/Gamma/beta/beta-binomial random slopes,
   lognormal/Gamma/beta/beta-binomial `sigma` random effects,
   lognormal/Gamma/beta/beta-binomial structured-effect models,
   beta exact-boundary mass, ordinal scale or discrimination models,

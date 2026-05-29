@@ -91,19 +91,21 @@ drmTMB(
 ```
 
 If trays, plots, or subjects are repeatedly observed, the first fitted
-mixed-model slice is an ordinary `mu` random intercept:
+mixed-model slice is an ordinary `mu` random intercept, optionally paired with
+an independent numeric `mu` slope:
 
 ```r
 drmTMB(
-  bf(cbind(germinated, failed) ~ treatment + moisture + (1 | tray),
+  bf(cbind(germinated, failed) ~ treatment + moisture +
+       (1 | tray) + (0 + moisture | tray),
      sigma ~ treatment),
   family = beta_binomial(),
   data = seed_trials
 )
 ```
 
-The random intercept changes the logit success-probability predictor. It does
-not make `sigma` a random effect, and it does not open random slopes or
+The random effects change the logit success-probability predictor. They do not
+make `sigma` a random effect, and they do not open correlated slopes or
 structured bounded-response effects.
 
 Read each parameter before interpreting the fitted model:
@@ -419,12 +421,14 @@ The implemented bounded-response path is univariate. Use `beta_binomial()` for
 counted successes and failures, `beta()` for a single continuous proportion
 strictly between 0 and 1, and `zero_one_beta()` for a single continuous
 proportion with structural exact 0 or 1 values. `beta()` and
-`beta_binomial()` support ordinary unlabelled `mu` random intercepts as first
-mixed-model slices:
+`beta_binomial()` support ordinary unlabelled `mu` random intercepts and
+independent numeric slopes as first mixed-model slices:
 
 ```r
 drmTMB(
-  bf(cbind(successes, failures) ~ treatment + (1 | id), sigma ~ treatment),
+  bf(cbind(successes, failures) ~ treatment + dose +
+       (1 | id) + (0 + dose | id),
+     sigma ~ treatment),
   family = beta_binomial(),
   data = dat
 )
@@ -432,7 +436,8 @@ drmTMB(
 
 ```r
 drmTMB(
-  bf(proportion ~ treatment + (1 | id), sigma ~ treatment),
+  bf(proportion ~ treatment + dose + (1 | id) + (0 + dose | id),
+     sigma ~ treatment),
   family = beta(),
   data = dat
 )
@@ -440,8 +445,8 @@ drmTMB(
 
 Do not teach the following as fitted proportion examples yet:
 
-- random slopes, labelled covariance blocks, or random effects in `sigma`,
-  `zoi`, or `coi`;
+- correlated random slopes, labelled covariance blocks, or random effects in
+  `sigma`, `zoi`, or `coi`;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_V(V = V)`, or deprecated `meta_known_V(V = V)` for compatibility, with
   beta or beta-binomial responses;

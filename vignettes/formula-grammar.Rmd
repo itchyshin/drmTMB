@@ -40,13 +40,16 @@ In this table, "coscale" means a model for residual correlation, currently
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |
 | `y ~ x1 + x2`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. Correlated slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = lognormal()` | Implemented first slice | Ordinary lognormal `mu` random intercepts and independent numeric slopes enter the log-response location. Correlated slopes, labelled covariance blocks, `sigma` random effects, structured effects, known covariance, and bivariate lognormal models remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = Gamma(link = "log")` | Implemented first slice | Ordinary Gamma `mu` random intercepts and independent numeric slopes enter the log-mean predictor. Correlated slopes, labelled covariance blocks, `sigma` random effects, structured effects, known covariance, and bivariate or mixed Gamma models remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ 1`, `family = tweedie()` | Implemented first slice | Fixed-effect univariate Tweedie model for non-negative semicontinuous responses with exact zeros; `mu` is the response mean, public `sigma` maps to `phi = sigma^2`, and `nu` is the power parameter constrained to `1 < nu < 2`. Predictor-dependent `nu`, random effects, structured effects, zero-inflation aliases, and hurdle aliases remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = beta()` | Implemented | Fixed-effect beta mean-scale model for strict continuous proportions in `(0, 1)`; public `sigma` maps internally to `phi = 1 / sigma^2`. |
-| `y ~ x1 + (1 | id)`, `sigma ~ x2`, `family = beta()` | Implemented first slice | Ordinary beta `mu` random intercepts enter the logit-mean predictor for strict `(0, 1)` responses. Random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, beta-binomial denominators, and bivariate or mixed bounded-response models remain planned. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = beta()` | Implemented first slice | Ordinary beta `mu` random intercepts and independent numeric slopes enter the logit-mean predictor for strict `(0, 1)` responses. Correlated slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, beta-binomial denominators, and bivariate or mixed bounded-response models remain planned. |
 | `y ~ x1`, `sigma ~ x2`, `zoi ~ x3`, `coi ~ x4`, `family = zero_one_beta()` | Implemented fixed-effect slice | Zero-one beta model for continuous proportions on `[0, 1]` with exact structural boundary mass. `mu` and `sigma` describe the interior beta component, `zoi` is exact-boundary probability, `coi` is the probability of an exact one conditional on the boundary, and `fitted()` includes boundary mass. Random effects, covariance blocks, structured effects, denominators, and bivariate or mixed bounded-response models remain planned. |
-| `cbind(success, failure) ~ x1 + (1 | id)`, `sigma ~ x2`, `family = beta_binomial()` | Implemented first slice | Ordinary beta-binomial `mu` random intercepts enter the logit success-probability predictor for counted successes out of known trials. Random slopes, labelled covariance blocks, `sigma` random effects, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned. |
+| `cbind(success, failure) ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = beta_binomial()` | Implemented first slice | Ordinary beta-binomial `mu` random intercepts and independent numeric slopes enter the logit success-probability predictor for counted successes out of known trials. Correlated slopes, labelled covariance blocks, `sigma` random effects, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned. |
 | `y ~ x1 + x2`, `family = poisson(link = "log")` | Implemented | Fixed-effect univariate Poisson mean model for non-negative integer counts. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `family = poisson(link = "log")` | Implemented first slice | Ordinary Poisson `mu` random intercepts and independent numeric slopes on the log-mean scale. Correlated Poisson slope blocks, labelled covariance blocks, zero-inflated Poisson random effects, and cross-parameter covariance remain planned. |
 | `y ~ x1 + offset(log(exposure))`, `family = poisson(link = "log")` | Implemented | Exposure/rate Poisson model using standard R `offset()` syntax in the `mu` formula. |
@@ -57,6 +60,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1 + offset(log(exposure))`, `sigma ~ x2`, `family = nbinom2()` | Implemented | Exposure/rate NB2 model; the offset enters the `mu` linear predictor and `sigma` remains overdispersion. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `zi ~ x2`, `family = nbinom2()` | Implemented | Fixed-effect zero-inflated NB2 model; `mu` and `sigma` describe the conditional count component and `zi` is structural-zero probability. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = truncated_nbinom2()` | Implemented | Fixed-effect zero-truncated NB2 model for positive counts; `mu` and `sigma` describe the untruncated count component and `fitted()` is the positive-count mean. |
+| `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = truncated_nbinom2()` | Implemented first slice | Ordinary zero-truncated NB2 `mu` random intercepts and independent numeric slopes enter the log-mean predictor while `sigma` remains fixed-effect overdispersion. Correlated slopes, labelled covariance blocks, hurdle-side random effects, `sigma` random effects, structured effects, and bivariate count models remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `hu ~ x2`, `family = truncated_nbinom2()` | Implemented | Fixed-effect hurdle NB2 model; `hu` is the hurdle-zero probability and nonzero counts come from the zero-truncated NB2 component. |
 | `(1 | id)` in `mu` | Implemented | Ordinary Gaussian location random intercept. |
 | `(0 + x1 | id)` in `mu` | Implemented | Independent numeric location random slope. |
@@ -129,12 +133,13 @@ Current implemented Student-t form:
 ```r
 drm_formula(y ~ x, sigma ~ z, nu ~ 1)
 drm_formula(y ~ x, sigma ~ z, nu ~ x)
-drm_formula(y ~ x + (1 | id), sigma ~ z, nu ~ 1)
+drm_formula(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)
 ```
 
-Student-t ordinary `mu` random intercepts are a first slice. Student-t random
-slopes, `sigma` random effects, `nu` random effects, known sampling covariance,
-phylogenetic terms, and bivariate Student-t models are later phases.
+Student-t ordinary `mu` random intercepts and independent numeric slopes are a
+first location slice. Correlated Student-t slopes, `sigma` random effects,
+`nu` random effects, known sampling covariance, phylogenetic terms, and
+bivariate Student-t models are later phases.
 
 Future skew-normal and skew-t formulas should also start with fixed-effect
 residual-shape terms such as `nu ~ x`. A later latent-effect spelling such as

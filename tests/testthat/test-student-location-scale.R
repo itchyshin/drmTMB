@@ -183,11 +183,11 @@ test_that("Student-t models reject unsupported early-phase terms clearly", {
 
   expect_error(
     drmTMB(
-      bf(y ~ x + (0 + x | id), sigma ~ 1),
+      bf(y ~ x + (1 + x | id), sigma ~ 1),
       family = student(),
       data = dat
     ),
-    "random intercepts"
+    "Only independent"
   )
   expect_error(
     drmTMB(

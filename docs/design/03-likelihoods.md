@@ -72,20 +72,20 @@ is the current routing contract:
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
 | `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
-| `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, and `nu = 2 + exp(eta_nu)`. |
-| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate fixed-effect lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale. |
-| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate fixed-effect Gamma mean-CV models for positive responses, with `mu` as the response mean and `sigma` as the coefficient of variation. |
+| `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes. |
+| `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
+| `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
 | `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. |
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
-| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts on the logit-mean predictor. |
+| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. |
 | `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate fixed-effect zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, and `coi` as the conditional probability of an exact one among boundary observations. |
-| `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component. |
+| `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
-| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts on the logit success-probability predictor. |
+| `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
@@ -583,9 +583,12 @@ drmTMB(
 )
 ```
 
-This first implementation deliberately rejects random effects, known sampling
-covariance, phylogenetic terms, and bivariate Student-t families until the
-fixed-effect likelihood and recovery tests remain stable.
+Ordinary unlabelled `mu` random intercepts and independent numeric slopes add
+grouped latent effects to `eta_mu_i`, with the same location-scale-shape
+likelihood. Correlated slopes, labelled covariance blocks, `sigma` random
+effects, `nu` random effects, known sampling covariance, structured terms, and
+bivariate Student-t families remain planned until family-specific likelihood
+and recovery evidence exists.
 
 For applied examples, the runnable Student-t question is a sensitivity question:
 do conclusions about the location `mu` and scale `sigma` change when the
@@ -729,9 +732,11 @@ drmTMB(
 For lognormal fits, `predict(fit, dpar = "mu")` returns the log-scale
 location parameter, `sigma(fit)` returns the log-scale standard deviation, and
 `fitted(fit)` returns `E[y_i]` on the original response scale. The response
-must be positive and finite after missing-row filtering. Random effects, known
-sampling covariance, phylogenetic terms, and bivariate lognormal models are
-later phases.
+must be positive and finite after missing-row filtering. Ordinary unlabelled
+`mu` random intercepts and independent numeric slopes enter the log-response
+location predictor. Correlated slopes, labelled covariance blocks, `sigma`
+random effects, known sampling covariance, structured terms, and bivariate
+lognormal models are later phases.
 
 ## Implemented Gamma Mean-CV
 
@@ -771,8 +776,10 @@ For Gamma fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 response mean. `sigma(fit)` returns the coefficient of variation, not the
 residual standard deviation; the fitted residual standard deviation is
 `mu_i * sigma_i`. The response must be positive and finite after missing-row
-filtering. Random effects, known sampling covariance, phylogenetic terms, and
-bivariate or mixed Gamma models are later phases.
+filtering. Ordinary unlabelled `mu` random intercepts and independent numeric
+slopes enter the log-mean predictor. Correlated slopes, labelled covariance
+blocks, `sigma` random effects, known sampling covariance, structured terms,
+and bivariate or mixed Gamma models are later phases.
 
 ## Implemented Tweedie Mean-Scale-Shape
 
@@ -836,13 +843,14 @@ E[y_i] = mu_i
 Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 ```
 
-The first beta mixed-model slice adds an ordinary grouped location random
-intercept before the inverse-logit transform:
+The first beta mixed-model slice adds ordinary grouped location random
+intercepts and independent numeric slopes before the inverse-logit transform:
 
 ```text
-eta_mu_i = X_mu[i, ] beta_mu + b_id[i]
-b_j = sd_mu u_j
-u_j ~ Normal(0, 1)
+eta_mu_i = X_mu[i, ] beta_mu + b0_id[i] + x_i b1_id[i]
+b0_j = sd_mu_intercept u0_j
+b1_j = sd_mu_slope u1_j
+u0_j, u1_j ~ independent Normal(0, 1)
 ```
 
 The TMB likelihood is:
@@ -867,16 +875,23 @@ drmTMB(
   family = beta(),
   data = dat
 )
+
+drmTMB(
+  bf(prop ~ habitat + (0 + habitat_score | plot), sigma ~ treatment),
+  family = beta(),
+  data = dat
+)
 ```
 
 For beta fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the mean
 proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi_i = 1 / sigma_i^2`. The response must be finite and
 strictly between 0 and 1 after missing-row filtering. Ordinary unlabelled
-`mu` random intercepts such as `(1 | plot)` enter the logit-`mu` predictor.
-Random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1
-boundary mass through `zero_one_beta()`, known sampling covariance,
-phylogenetic terms, and bivariate or mixed beta models are later phases. Use
+`mu` random intercepts such as `(1 | plot)` and independent numeric slopes
+such as `(0 + habitat_score | plot)` enter the logit-`mu` predictor.
+Correlated slopes, labelled covariance blocks, `sigma` random effects, exact
+0/1 boundary mass through `zero_one_beta()`, known sampling covariance,
+structured terms, and bivariate or mixed beta models are later phases. Use
 `beta_binomial()` for counted successes out of known trials.
 
 ## Implemented Zero-One Beta Mean-Scale-Boundary
@@ -976,17 +991,25 @@ drmTMB(
   family = beta_binomial(),
   data = dat
 )
+
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat + (0 + habitat_score | tray),
+     sigma ~ treatment),
+  family = beta_binomial(),
+  data = dat
+)
 ```
 
 For beta-binomial fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return
 the success probability. `sigma(fit)` returns the public extra-binomial
 variation scale; internally `phi_i = 1 / sigma_i^2`. The response counts must
 be finite non-negative integers with positive row totals after missing-row
-filtering. Ordinary unlabelled `mu` random intercepts such as `(1 | tray)`
-enter the logit success-probability predictor. Random slopes, labelled
-covariance blocks, `sigma` random effects, known sampling covariance,
-phylogenetic terms, bivariate or mixed beta-binomial models, and a possible
-successes/trials response alias are later phases.
+filtering. Ordinary unlabelled `mu` random intercepts such as `(1 | tray)` and
+independent numeric slopes such as `(0 + habitat_score | tray)` enter the logit
+success-probability predictor. Correlated slopes, labelled covariance blocks,
+`sigma` random effects, known sampling covariance, structured terms, bivariate
+or mixed beta-binomial models, and a possible successes/trials response alias
+are later phases.
 
 ## Implemented Cumulative-Logit Ordinal Location
 
@@ -1278,13 +1301,23 @@ drmTMB(
   family = truncated_nbinom2(),
   data = dat
 )
+
+drmTMB(
+  bf(count ~ habitat + (0 + habitat_score | site), sigma ~ treatment),
+  family = truncated_nbinom2(),
+  data = dat
+)
 ```
 
 For `truncated_nbinom2()` fits, `predict(fit, dpar = "mu")` returns the
 untruncated NB2 component mean, `sigma(fit)` returns the NB2 overdispersion
 scale, and `fitted(fit)` returns the observed positive-count mean
 `mu / (1 - Pr_NB2(0))`. The response must contain positive integer counts
-after missing-row filtering unless a hurdle formula is supplied.
+after missing-row filtering unless a hurdle formula is supplied. Ordinary
+unlabelled `mu` random intercepts and independent numeric slopes enter the
+log-mean predictor for non-hurdle zero-truncated NB2 models. Correlated slopes,
+labelled covariance blocks, hurdle random effects, `sigma` random effects,
+structured terms, and bivariate count models are later phases.
 
 ## Implemented Hurdle Negative Binomial 2
 

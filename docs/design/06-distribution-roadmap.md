@@ -10,16 +10,17 @@ simulation, and recovery tests.
 
 - `gaussian()`: `mu`, `sigma`.
 - `student()`: `mu`, `sigma`, `nu`; fixed-effect univariate path and ordinary
-  unlabelled `mu` random intercepts implemented.
+  unlabelled `mu` random intercepts plus independent numeric slopes
+  implemented.
 - `lognormal()`: `mu`, `sigma` on the log response scale; fixed-effect
-  univariate path and ordinary unlabelled `mu` random intercepts implemented
-  for positive responses.
+  univariate path and ordinary unlabelled `mu` random intercepts plus
+  independent numeric slopes implemented for positive responses.
 - `Gamma(link = "log")`: `mu`, `sigma` as coefficient of variation;
   fixed-effect univariate path and ordinary unlabelled `mu` random intercepts
-  implemented for positive responses.
+  plus independent numeric slopes implemented for positive responses.
 - `beta()`: `mu`, `sigma` for strict continuous proportions; fixed-effect
-  univariate path and ordinary unlabelled `mu` random intercepts implemented
-  with `phi = 1 / sigma^2` internally.
+  univariate path and ordinary unlabelled `mu` random intercepts plus
+  independent numeric slopes implemented with `phi = 1 / sigma^2` internally.
 
 ## Tier 2: Bivariate Coscale
 
@@ -96,7 +97,9 @@ families.
 - `truncated_nbinom2()`: `mu`, `sigma`; implemented fixed-effect
   zero-truncated NB2 path for positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional
-  positive-count mean. Adding `hu ~ predictors` fits the implemented
+  positive-count mean. Ordinary `mu` random intercepts and independent numeric
+  slopes are implemented for the non-hurdle path. Adding `hu ~ predictors`
+  fits the implemented
   fixed-effect hurdle NB2 path, where `hu` is the hurdle-zero probability and
   nonzero counts come from the zero-truncated NB2 component.
 - `truncated_poisson()` for positive counts without overdispersion.

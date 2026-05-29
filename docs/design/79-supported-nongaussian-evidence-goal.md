@@ -27,15 +27,15 @@ Long grids remain optional Phase 18 artifacts. They are not CRAN tests.
 
 | Route | Fixed-effect evidence | Random-effect evidence | Structured evidence | Current status |
 | --- | --- | --- | --- | --- |
-| `student()` | Fitted `mu`, `sigma`, and `nu`; likelihood, interval, malformed-input, and fixed-effect shape simulation evidence exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, `nu`, slopes, and labelled covariance remain blocked. | Blocked for phylogenetic, spatial, animal, `relmat()`, and bivariate Student-t paths. | Supported fixed-effect heavy-tail route plus a first `mu` random-intercept slice. |
-| `lognormal()` | Fitted `mu` on the log-response scale and `sigma`; likelihood, fitted-response, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
-| `Gamma(link = "log")` | Fitted mean-CV route with `log(mu)` and `log(sigma)`; likelihood, recovery, prediction, and non-log-link boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; `sigma`, slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus a first `mu` random-intercept slice. |
-| `beta()` | Fitted strict `(0, 1)` response route with `logit(mu)` and public `sigma`; likelihood, prediction, Wald-row, and boundary tests exist. Exact structural boundary mass now belongs to `zero_one_beta()`, not `beta()`. | Ordinary unlabelled `mu` random intercepts are fitted for strict `(0, 1)` responses; `sigma`, slopes, labels, exact 0/1 mass, and structured routes remain blocked. | Blocked. | Supported strict bounded-response route plus a first `mu` random-intercept slice. |
+| `student()` | Fitted `mu`, `sigma`, and `nu`; likelihood, interval, malformed-input, and fixed-effect shape simulation evidence exist. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted; `sigma`, `nu`, correlated slopes, and labelled covariance remain blocked. | Blocked for phylogenetic, spatial, animal, `relmat()`, and bivariate Student-t paths. | Supported fixed-effect heavy-tail route plus first ordinary `mu` random-effect slices. |
+| `lognormal()` | Fitted `mu` on the log-response scale and `sigma`; likelihood, fitted-response, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted; `sigma`, correlated slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus first ordinary `mu` random-effect slices. |
+| `Gamma(link = "log")` | Fitted mean-CV route with `log(mu)` and `log(sigma)`; likelihood, recovery, prediction, and non-log-link boundary tests exist. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted; `sigma`, correlated slopes, labels, structured effects, and known covariance remain blocked. | Blocked. | Supported positive-response route plus first ordinary `mu` random-effect slices. |
+| `beta()` | Fitted strict `(0, 1)` response route with `logit(mu)` and public `sigma`; likelihood, prediction, Wald-row, and boundary tests exist. Exact structural boundary mass now belongs to `zero_one_beta()`, not `beta()`. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted for strict `(0, 1)` responses; `sigma`, correlated slopes, labels, exact 0/1 mass, and structured routes remain blocked. | Blocked. | Supported strict bounded-response route plus first ordinary `mu` random-effect slices. |
 | `zero_one_beta()` | Fitted fixed-effect `[0, 1]` route with interior `mu`/`sigma`, exact-boundary probability `zoi`, and conditional-one probability `coi`; independent mixture-likelihood, recovery, Wald-row, fitted-response, simulation, malformed-neighbour tests, and Phase 18 artifact helpers exist. | Blocked; the first slice is fixed-effect only. | Blocked. | Supported fixed-effect zero-one bounded-response route for structural exact 0/1 mass. |
-| `beta_binomial()` | Fitted denominator-aware route for `cbind(successes, failures)` with `mu` and `sigma`; likelihood, denominator, prediction, Wald-row, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted for counted successes out of known trials; `sigma`, slopes, labels, `zoi`/`coi`, and structured routes remain blocked. | Blocked. | Supported success-rate route plus a first `mu` random-intercept slice. |
+| `beta_binomial()` | Fitted denominator-aware route for `cbind(successes, failures)` with `mu` and `sigma`; likelihood, denominator, prediction, Wald-row, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted for counted successes out of known trials; `sigma`, correlated slopes, labels, `zoi`/`coi`, and structured routes remain blocked. | Blocked. | Supported success-rate route plus first ordinary `mu` random-effect slices. |
 | `poisson(link = "log")` | Fitted fixed-effect count route, including offsets and zero-inflated fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted and have Phase 18 smoke/grid evidence. `zi` random effects are blocked. | Ordinary q=1 phylogenetic `mu` intercept is fitted with smoke/formal infrastructure; broader structured count paths are blocked. | Supported fixed-effect and first ordinary/phylogenetic `mu` random-effect count route. |
 | `nbinom2()` | Fitted fixed-effect mean-overdispersion route, including fixed-effect `zi` when requested. | Ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes are fitted; ordinary `sigma ~ z + (1 | id)` is fitted as a narrow log-overdispersion random-intercept gate. | Ordinary q=1 phylogenetic `mu` intercept is fitted but remains held at smoke/formal-admission status after the completed 500-replicate shard audit. | Supported fixed-effect and first count mixed-model route; broad NB2 scale/structured parity remains blocked. |
-| `truncated_nbinom2()` | Fitted positive-count fixed-effect route with `mu` and `sigma`; likelihood, prediction, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts are fitted; slopes, `sigma`, hurdle-side, and structured routes remain blocked. | Blocked. | Supported positive-count route plus a first `mu` random-intercept slice. |
+| `truncated_nbinom2()` | Fitted positive-count fixed-effect route with `mu` and `sigma`; likelihood, prediction, and boundary tests exist. | Ordinary unlabelled `mu` random intercepts and independent numeric slopes are fitted; correlated slopes, `sigma`, hurdle-side, and structured routes remain blocked. | Blocked. | Supported positive-count route plus first ordinary `mu` random-effect slices. |
 | `truncated_nbinom2()` with `hu ~ ...` | Fitted hurdle NB2 fixed-effect route with `mu`, `sigma`, and `hu`; likelihood, fitted-response, and boundary tests exist. | Blocked for `hu` and positive-count random effects. | Blocked. | Supported fixed-effect hurdle route. |
 | `cumulative_logit()` | Fitted fixed-effect ordinal location route with ordered cutpoints and expected-score prediction evidence. | Blocked. | Blocked. | Supported fixed-effect ordinal route. |
 
@@ -46,16 +46,18 @@ family suite:
 
 - ordinary Poisson and NB2 `mu` random intercepts and independent numeric
   slopes are admitted as first non-Gaussian count random-effect slices;
-- ordinary Student-t, zero-truncated NB2, lognormal, Gamma, and beta `mu`
-  random intercepts are admitted as narrow source-tested first slices;
+- ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and
+  beta-binomial `mu` random intercepts and independent numeric slopes are
+  admitted as narrow source-tested first slices;
 - ordinary NB2 `sigma ~ z + (1 | id)` is admitted as a separate
   overdispersion-random-intercept smoke lane;
 - ordinary Poisson and NB2 q=1 structured `mu` intercepts are fitted for
   `phylo()`, `spatial()`, `animal()`, and `relmat()`, but the
   merged sharded 500-replicate NB2 artifact audit kept the q1 NB2 promotion gate
   at `hold_smoke_only`;
-- zero-truncated NB2 random slopes, zero-inflation or hurdle random effects,
-  correlated count slopes, labelled non-Gaussian covariance blocks, structured
+- correlated zero-truncated NB2 slopes, zero-inflation or hurdle random
+  effects, correlated count slopes, labelled non-Gaussian covariance blocks,
+  structured
   count slopes, NB2 `sigma` slopes, beta `sigma` or slope random effects, and
   simultaneous structured types, structured `sigma`, and non-count
   spatial/animal/`relmat()` effects remain planned or blocked.
@@ -107,8 +109,8 @@ bounded-response models remain future work.
 The completed claim should be:
 
 > drmTMB has an evidence-backed supported non-Gaussian fixed-effect family
-> suite, plus first-slice ordinary `mu` random intercepts for selected
-> non-Gaussian families, first-slice ordinary Poisson/NB2 count slopes, the
+> suite, plus first-slice ordinary `mu` random intercepts and independent
+> numeric slopes for selected non-Gaussian families, the
 > narrow NB2 log-`sigma` random-intercept gate, and smoke/formal-admission
 > Poisson/NB2 q=1 phylogenetic `mu` gates.
 

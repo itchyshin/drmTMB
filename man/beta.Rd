@@ -18,10 +18,11 @@ The implemented contract is
 \code{logit(mu) = eta_mu}, \code{log(sigma) = eta_sigma}, and internal precision
 \code{phi = 1 / sigma^2}. Larger \code{sigma} therefore means more variation around
 the mean, not more precision.
-Ordinary unlabelled random intercepts such as \code{(1 | id)} may enter the
-logit-\code{mu} predictor; \code{sigma} remains fixed-effect in this first slice.
+Ordinary unlabelled random intercepts and independent numeric slopes such as
+\code{(1 | id)} and \code{(0 + x | id)} may enter the logit-\code{mu} predictor; \code{sigma}
+remains fixed-effect in this first slice.
 
-This helper masks \code{\link[base:beta]{base::beta()}} when \code{drmTMB} is attached. Use
+This helper masks \code{\link[base:Special]{base::beta()}} when \code{drmTMB} is attached. Use
 \code{base::beta()} for the mathematical beta function.
 }
 \examples{

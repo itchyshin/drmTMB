@@ -98,7 +98,7 @@ Slices 1389-1398 add:
 
 This slice deliberately keeps the following outside the admitted surface:
 
-- zero-truncated NB2 random slopes;
+- correlated zero-truncated NB2 random slopes;
 - labelled covariance blocks;
 - `sigma` random effects;
 - hurdle random effects;

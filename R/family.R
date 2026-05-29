@@ -38,9 +38,10 @@ biv_gaussian <- function() {
 #' The `nu` parameter uses a log link with a lower bound of 2:
 #' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
 #' finite-variance region while still allowing heavy tails.
-#' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
-#' first Student-t mixed-model slice; `sigma` and `nu` random effects remain
-#' separate planned gates.
+#' Ordinary `mu` random intercepts and independent numeric slopes such as
+#' `(1 | id)` and `(0 + x | id)` are supported in the first Student-t
+#' mixed-model slice; correlated slopes, `sigma` random effects, and `nu`
+#' random effects remain separate planned gates.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -68,8 +69,9 @@ student <- function() {
 #' The model is defined on the log response scale:
 #' `log(y) ~ Normal(mu, sigma^2)`. The fitted distributional parameter `mu` is
 #' therefore the mean of `log(y)`, not the arithmetic mean of `y`.
-#' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
-#' first positive-continuous mixed-model slice.
+#' Ordinary `mu` random intercepts and independent numeric slopes such as
+#' `(1 | id)` and `(0 + x | id)` are supported in the first
+#' positive-continuous mixed-model slice.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -130,8 +132,9 @@ tweedie <- function() {
 #' `logit(mu) = eta_mu`, `log(sigma) = eta_sigma`, and internal precision
 #' `phi = 1 / sigma^2`. Larger `sigma` therefore means more variation around
 #' the mean, not more precision.
-#' Ordinary unlabelled random intercepts such as `(1 | id)` may enter the
-#' logit-`mu` predictor; `sigma` remains fixed-effect in this first slice.
+#' Ordinary unlabelled random intercepts and independent numeric slopes such as
+#' `(1 | id)` and `(0 + x | id)` may enter the logit-`mu` predictor; `sigma`
+#' remains fixed-effect in this first slice.
 #'
 #' This helper masks [base::beta()] when `drmTMB` is attached. Use
 #' `base::beta()` for the mathematical beta function.
@@ -206,12 +209,13 @@ zero_one_beta <- function() {
 #' follow `Binomial(trials_i, p_i)`. Larger `sigma` means more extra-binomial
 #' variation around the mean probability.
 #'
-#' The first mixed-model slice supports ordinary `mu` random intercepts such as
-#' `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`. Random slopes,
-#' labelled covariance blocks, `sigma` random effects, `zoi`/`coi`,
-#' `meta_V(V = V)`, phylogenetic or spatial terms, bivariate beta-binomial
-#' models, and a `successes/trials` response alias are planned but not
-#' implemented.
+#' The first mixed-model slice supports ordinary `mu` random intercepts and
+#' independent numeric slopes such as
+#' `bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id),
+#' sigma ~ z)`. Correlated slopes, labelled covariance blocks, `sigma` random
+#' effects, `zoi`/`coi`, `meta_V(V = V)`, phylogenetic or spatial terms,
+#' bivariate beta-binomial models, and a `successes/trials` response alias are
+#' planned but not implemented.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -315,10 +319,11 @@ nbinom2 <- function() {
 #' NB2 variance is `Var(y) = mu + sigma^2 * mu^2`, with internal
 #' `size = 1 / sigma^2`.
 #'
-#' Ordinary zero-truncated NB2 models support first-slice random intercepts in
-#' the log-mean predictor, such as `bf(count ~ x + (1 | id), sigma ~ z)`.
-#' Hurdle NB2 random effects, zero-truncated random slopes, structured effects,
-#' and overdispersion-side random effects remain planned.
+#' Ordinary zero-truncated NB2 models support first-slice random intercepts and
+#' independent numeric slopes in the log-mean predictor, such as
+#' `bf(count ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Hurdle NB2 random
+#' effects, correlated zero-truncated slopes, structured effects, and
+#' overdispersion-side random effects remain planned.
 #'
 #' @return A `drm_family` object.
 #' @export

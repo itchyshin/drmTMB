@@ -9,8 +9,9 @@ claim.
 Slice D3 does not add a likelihood, formula grammar, TMB code, or user-facing
 family constructor. It chooses the next bounded-response implementation
 direction: fixed-effect zero-one beta should be designed before any
-zero-one-inflation random effects, bounded-response random slopes, structured
-bounded-response effects, or mixed-response bounded models.
+zero-one-inflation random effects, correlated or broader bounded-response
+random slopes, structured bounded-response effects, or mixed-response bounded
+models.
 
 ## Current Bounded-Response Routes
 
@@ -48,10 +49,11 @@ Here `success_i = 0` or `success_i = trials_i` can be an ordinary sampling
 outcome. It is not evidence for structural zero-one inflation unless a future
 model explicitly adds that process.
 
-Ordinary unlabelled `mu` random intercepts are fitted for both families as
-source-level first slices. They do not open bounded-response random slopes,
-labelled covariance blocks, `sigma` random effects, exact boundary mass,
-structured effects, known covariance, or mixed bounded-response models.
+Ordinary unlabelled `mu` random intercepts and independent numeric slopes are
+fitted for both families as source-level first slices. They do not open
+correlated bounded-response random slopes, labelled covariance blocks, `sigma`
+random effects, exact boundary mass, structured effects, known covariance, or
+mixed bounded-response models.
 
 ## Future Fixed-Effect Zero-One Beta Contract
 
@@ -126,5 +128,5 @@ It is not:
 
 The later fixed-effect source slice implements only the zero-one beta
 likelihood with simulation tests. Tweedie, skew-normal, COM-Poisson,
-generalized Poisson, bounded-response random slopes, and structured
+generalized Poisson, correlated or broader bounded-response random slopes, and structured
 bounded-response effects remain separate Slice D choices.
