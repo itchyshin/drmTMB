@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Bootstrap Derived-Target Error UX
+
+Goal:
+
+- Make exact derived-target requests to `confint(method = "bootstrap")` fail
+  with a direct-target-only explanation instead of a generic unknown-target
+  message.
+
+Actions run:
+
+- Started `codex/bootstrap-derived-target-error` from `origin/main` after PR
+  #385 merged.
+- Added full-inventory preflight matching for exact bootstrap target names.
+- Added a direct-target-only bootstrap error for existing but unsupported
+  derived targets, including target type and inventory note.
+- Added focused tests for q4 unstructured correlations, modelled `sd(group)`
+  surfaces, repeatability, and phylogenetic signal.
+- Updated `NEWS.md` and `docs/design/12-profile-likelihood-cis.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-bootstrap-derived-target-error.md`.
+
+Validation:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R docs/design/12-profile-likelihood-cis.md NEWS.md
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+rg -n "direct-target-only|direct fitted-object targets only|derived.*unknown|unknown.*derived|bootstrap.*derived|derived.*bootstrap|bootstrap.*q4|q4.*bootstrap|bootstrap.*repeatability|repeatability.*bootstrap|bootstrap.*phylogenetic signal|phylogenetic signal.*bootstrap|bootstrap target" README.md NEWS.md ROADMAP.md docs/design R tests/testthat man --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search 'bootstrap derived target error confint unknown repeatability q4' --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- The first targeted test run failed because the initial `cli` message used
+  pluralization shorthand incorrectly and returned "Multiple quantities for
+  pluralization". Plain `target(s)` wording fixed the message, and the final
+  `test-profile-targets.R` run passed.
+- `git diff --check` was clean.
+- The stale-wording scan found compatible current wording and the intended new
+  NEWS/code/test phrases.
+- The issue search returned `[]`; no issue action was needed.
+
 ## 2026-05-29 -- Bootstrap Derived-Status Map
 
 Goal:
