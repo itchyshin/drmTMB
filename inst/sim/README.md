@@ -258,7 +258,9 @@ Current pilot files:
   coefficients, fixed NB2 `sigma` coefficients when present, direct
   structured `mu` SDs, direct `log_sd_phylo` profile-target status, and
   marker-specific diagnostic status for q=1 `spatial()`, `animal()`, and
-  `relmat()` count routes.
+  `relmat()` count routes. It also carries fit-level Hessian and
+  random-effect-SD boundary status so boundary-sensitive smoke replicates are
+  visible in the replicate table.
 - `fit/sim_summarise_biv_rho12.R` summarises bivariate Gaussian fixed
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
   formula scales, adds optional profile and parametric-bootstrap interval

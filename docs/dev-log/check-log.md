@@ -2,6 +2,82 @@
 
 Record meaningful development checks here.
 
+## 2026-05-29 -- Phase 18 Count Structured q1 Warning Diagnostic
+
+Goal:
+
+- Inspect the single warning replicate from GitHub Actions run `26622840562`
+  before any larger `count_structured_q1` grid.
+
+Actions run:
+
+- Re-read the saved artifact for `count_structured_q1_020` replicate 2. The
+  saved row used seed `1409019402`, family `nbinom2`, `structured_type =
+  "spatial"`, `n_level = 16`, `n_per_level = 8`, `sd_structured = 0.60`,
+  `mean_count = 3.0`, `sigma_baseline = 0.45`, `geometry = "ring"`, and
+  `matrix_decay = 0.4`.
+- Replayed the exact seed and cell locally. The local fit matched the near-zero
+  spatial SD estimate and fixed-effect estimates from the Ubuntu artifact, but
+  reported `hessian_status = "ok"` while `sd_boundary_status = "warning"`.
+  The Ubuntu artifact recorded `pdHess = FALSE` and warning `NaNs produced`.
+- Added fit-level diagnostic columns to
+  `phase18_summarise_count_structured_q1_fit()`: `fit_diagnostic_status`,
+  `fit_diagnostic_message`, `hessian_status`, `hessian_message`,
+  `sd_boundary_status`, and `sd_boundary_message`.
+- Added a focused seed-regression test that treats this replicate as a
+  random-effect-SD boundary case and allows the Hessian status to follow the
+  local `fit$sdr$pdHess` value.
+
+Validation:
+
+```sh
+air format inst/sim/fit/sim_summarise_count_structured_q1.R tests/testthat/test-phase18-count-structured-q1.R
+Rscript --vanilla -e 'devtools::test(filter = "phase18-count-structured-q1")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner|phase18-count-structured-q1")'
+Rscript --vanilla -e 'devtools::load_all(quiet=TRUE); source("inst/sim/R/sim_registry.R"); source("inst/sim/R/sim_utils.R"); source("inst/sim/R/sim_runner.R"); source("inst/sim/R/sim_aggregate.R"); source("inst/sim/R/sim_uncertainty.R"); source("inst/sim/dgp/sim_dgp_count_structured_q1.R"); source("inst/sim/fit/sim_summarise_count_structured_q1.R"); source("inst/sim/run/sim_run_count_structured_q1_smoke.R"); conditions <- phase18_count_structured_q1_conditions(family=c("poisson","nbinom2"), structured_type=c("spatial","animal","relmat"), n_level=c(10L,16L), n_per_level=8L, sd_structured=c(0.25,0.60), mean_count=3.0, sigma_baseline=0.45, geometry="ring"); cell <- conditions[20,,drop=FALSE]; dat <- phase18_dgp_count_structured_q1_cell(cell, 1409019402L, "count_structured_q1_020", 2L); fit <- phase18_fit_count_structured_q1(dat, cell); out <- suppressWarnings(phase18_summarise_count_structured_q1_fit(fit, dat, cell_id="count_structured_q1_020", replicate=2L)); print(unique(out[c("fit_diagnostic_status","fit_diagnostic_message","hessian_status","sd_boundary_status","sd_boundary_message")])); print(out[out$parameter_class == "structured_sd", c("parameter","estimate","diagnostic_status","diagnostic_message")])'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+gh issue list --repo itchyshin/drmTMB --state open --search 'count_structured_q1 warning OR count structured q1 diagnostic' --limit 20 --json number,title,state,url,labels
+rg -n 'count structured q1.*formal recovery|formal recovery.*count structured q1|count structured q1.*coverage claims|count structured q1.*coverage claim|count structured q1.*all clean|zero-inflated.*count structured q1.*(implemented|supported|admitted)|structured count slopes.*(implemented|supported|admitted)|count structured q1.*task = "all"|task = "all".*count_structured_q1' README.md NEWS.md ROADMAP.md docs/design inst/sim tests/testthat .github/workflows --glob '!docs/dev-log/**'
+git diff --check
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+```
+
+Results:
+
+- The focused count structured q=1 test file passed: 66 expectations, 0
+  failures, 0 warnings, 0 skips.
+- The adjacent Actions-runner plus count structured q=1 test filter passed:
+  131 expectations, 0 failures, 0 warnings, 0 skips.
+- The exact replay printed `fit_diagnostic_status = "warning"`,
+  `hessian_status = "ok"`, `sd_boundary_status = "warning"`, and the
+  structured-SD estimate `2.508521e-17`.
+- The source-specific structured diagnostic still reported `diagnostic_status =
+  "ok"` for the `spatial()` row, which is why the fit-level boundary columns
+  now travel beside it.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The open-issue search returned no matching open issues.
+- The stale-claim scan returned the intended NEWS boundary wording and the
+  standing formula-grammar planned-neighbour row, not a new claim that count
+  structured q1 has formal recovery, coverage, zero-inflated support,
+  structured slopes, or `task = "all"` inclusion.
+- `git diff --check` was clean.
+- The full package test suite passed: 7,565 expectations, 0 failures, 0
+  warnings, 0 skips.
+- `devtools::check(error_on = "never")` completed with 0 errors, 0 warnings,
+  and 1 local environment NOTE: `unable to verify current time`.
+
+Member-group review:
+
+- Ada kept this slice to diagnostic hardening, with no likelihood or grammar
+  change.
+- Curie tied the test to the exact seed from the Actions artifact.
+- Fisher classified the case as boundary-sensitive smoke evidence, not formal
+  recovery evidence.
+- Grace kept the Hessian expectation platform-aware.
+- Rose updated the roadmap, simulation README, design note, check log, and
+  after-task report so the repository does not imply a clean validation run.
+
 ## 2026-05-29 -- Phase 18 Count Structured q1 Manual Actions Smoke Audit
 
 Goal:

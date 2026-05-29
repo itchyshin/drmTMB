@@ -139,6 +139,12 @@ phase18_count_structured_q1_attach_status <- function(
   summary$profile_target_parameter <- NA_character_
   summary$diagnostic_status <- NA_character_
   summary$diagnostic_message <- NA_character_
+  summary$fit_diagnostic_status <- "unavailable"
+  summary$fit_diagnostic_message <- NA_character_
+  summary$hessian_status <- "unavailable"
+  summary$hessian_message <- NA_character_
+  summary$sd_boundary_status <- "unavailable"
+  summary$sd_boundary_message <- NA_character_
 
   if (
     is.data.frame(targets) &&
@@ -158,6 +164,10 @@ phase18_count_structured_q1_attach_status <- function(
     is.data.frame(diagnostics) &&
       all(c("check", "status", "message") %in% names(diagnostics))
   ) {
+    summary <- phase18_count_structured_q1_attach_fit_diagnostics(
+      summary,
+      diagnostics
+    )
     diagnostic_rows <- diagnostics$check %in%
       c(
         paste0(structured_type, "_mu_replication"),
@@ -176,6 +186,90 @@ phase18_count_structured_q1_attach_status <- function(
   }
 
   summary
+}
+
+phase18_count_structured_q1_attach_fit_diagnostics <- function(
+  summary,
+  diagnostics
+) {
+  hessian <- phase18_count_structured_q1_diagnostic_row(
+    diagnostics,
+    "hessian_positive_definite"
+  )
+  sd_boundary <- phase18_count_structured_q1_diagnostic_row(
+    diagnostics,
+    "random_effect_sd_boundary"
+  )
+  fit_rows <- diagnostics[
+    diagnostics$check %in%
+      c(
+        "hessian_positive_definite",
+        "standard_errors_finite",
+        "positive_scale",
+        "random_effect_sd_boundary"
+      ),
+    ,
+    drop = FALSE
+  ]
+
+  summary$hessian_status <- hessian$status
+  summary$hessian_message <- hessian$message
+  summary$sd_boundary_status <- sd_boundary$status
+  summary$sd_boundary_message <- sd_boundary$message
+  summary$fit_diagnostic_status <-
+    phase18_count_structured_q1_diagnostic_rollup(fit_rows$status)
+  summary$fit_diagnostic_message <-
+    phase18_count_structured_q1_diagnostic_message(fit_rows)
+  summary
+}
+
+phase18_count_structured_q1_diagnostic_row <- function(diagnostics, check) {
+  row <- diagnostics[diagnostics$check == check, , drop = FALSE]
+  if (nrow(row) == 0L) {
+    return(list(status = "missing", message = paste(check, "row missing")))
+  }
+  list(
+    status = row$status[[1L]],
+    message = row$message[[1L]]
+  )
+}
+
+phase18_count_structured_q1_diagnostic_rollup <- function(status) {
+  status <- as.character(status)
+  if (length(status) == 0L) {
+    return("unavailable")
+  }
+  if (any(status == "error", na.rm = TRUE)) {
+    return("error")
+  }
+  if (any(status == "warning", na.rm = TRUE)) {
+    return("warning")
+  }
+  if (any(status == "note", na.rm = TRUE)) {
+    return("note")
+  }
+  if (all(status == "ok", na.rm = TRUE)) {
+    return("ok")
+  }
+  "unavailable"
+}
+
+phase18_count_structured_q1_diagnostic_message <- function(diagnostics) {
+  if (nrow(diagnostics) == 0L) {
+    return("Selected fit-level diagnostic rows are unavailable.")
+  }
+  flagged <- diagnostics[
+    diagnostics$status %in% c("error", "warning", "note"),
+    ,
+    drop = FALSE
+  ]
+  if (nrow(flagged) == 0L) {
+    return("Selected fit-level diagnostics are ok.")
+  }
+  paste(
+    paste(flagged$check, flagged$message, sep = ": "),
+    collapse = " | "
+  )
 }
 
 phase18_count_structured_q1_std_error <- function(fit, parameter) {
