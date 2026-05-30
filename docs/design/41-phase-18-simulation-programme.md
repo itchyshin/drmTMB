@@ -1235,3 +1235,8 @@ errors, and elapsed time by surface before the raw manifest.
      selected plan, trace, and summary CSVs, so each trace-run artifact carries
      the lower-side and upper-side support table needed before any profile
      setting experiment.
+221. Slice 1813 carries the side summary through the selected-example trace-plot
+     writer. `phase18_write_count_structured_q1_profile_trace_plot()` now
+     returns `side_summary` beside the plot object and overall summary, so plot
+     smoke results keep the same side-specific evidence as the trace-run
+     artifact.

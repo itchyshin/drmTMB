@@ -631,6 +631,8 @@ test_that("Phase 18 count structured q1 profile trace plot writes a PNG", {
   expect_gt(file.info(out$path)$size, 0)
   expect_s3_class(out$plot, "ggplot")
   expect_equal(nrow(out$summary), 2L)
+  expect_equal(nrow(out$side_summary), 4L)
+  expect_equal(out$side_summary$profile_side, rep(c("lower", "upper"), 2L))
   expect_error(
     phase18_write_count_structured_q1_profile_trace_plot(
       output_dir,
