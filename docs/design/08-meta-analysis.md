@@ -198,6 +198,13 @@ The practical rule is:
 - Dense univariate and bivariate matrix-`V` fits should keep the same estimated
   target inventory as their diagonal/vector-`V` counterparts while respecting
   their separate weighting boundary.
+- A location-scale fit such as
+  `bf(y ~ moderator + meta_V(V = v), sigma ~ moderator)` may converge and return
+  plausible point estimates while `TMB::sdreport()` reports `pdHess = FALSE`.
+  That is an inference limitation for the estimated `sigma` model, not a change
+  to the additive known-`V` likelihood. Treat Wald SEs and intervals as
+  unreliable until `check_drm()`, a profile, a bootstrap, or a simpler `sigma`
+  model supports the target.
 
 ## Unknown Heterogeneity
 

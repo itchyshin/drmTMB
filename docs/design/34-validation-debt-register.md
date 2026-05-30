@@ -113,7 +113,9 @@ and operating-characteristic evidence justify a broader claim.
   `phylo(1 | species, tree = tree)` to the `mu` formula. The term enters the
   log-mean predictor as a q=1 phylogenetic species effect. It cannot yet be
   combined with ordinary Poisson random effects, `zi`, labels, structured
-  slopes, spatial, animal, or `relmat()` routes.
+  slopes, or simultaneous structured layers. Separate q=1 spatial, animal, and
+  `relmat()` count routes are now tracked as source/diagnostic first slices
+  rather than as phylogenetic evidence.
 - Evidence: `tests/testthat/test-poisson-mean.R`,
   `tests/testthat/test-nongaussian-structured-boundary.R`,
   `R/drmTMB.R`, `R/methods.R`, `src/drmTMB.cpp`, and

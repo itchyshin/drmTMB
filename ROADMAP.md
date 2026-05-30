@@ -2178,10 +2178,12 @@ as the whole comprehensive simulation programme.
   independent one-slope smoke surface is done locally in Slice 238, giving the
   fitted residual-scale `(0 + w | id)` path the same Phase 18 bookkeeping while
   leaving correlated scale-slope covariance outside Wave A. Slice 239 records
-  the structured-slope parity gate: coordinate spatial has one fitted Gaussian
-  `mu` slope, while phylogenetic, animal, and `relmat()` one-slope paths remain
-  planned until their implementation, profile targets, diagnostics, recovery
-  tests, and biological examples exist. Slice 240 records the
+  the structured-slope parity gate as it stood then: coordinate spatial had one
+  fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
+  one-slope paths still required implementation, profile targets, diagnostics,
+  recovery tests, and biological examples. Later slices superseded that
+  boundary; see the Structured Slope Parity Gate below for the current fitted
+  one-slope Gaussian `mu` status. Slice 240 records the
   cross-distributional-parameter correlation gate. Slice 241 adds a coordinate
   spatial Gaussian `mu` one-slope smoke surface. Slice 242 adds a Poisson `mu`
   random-effect smoke surface; Slice 243 adds fixed-effect Wald interval

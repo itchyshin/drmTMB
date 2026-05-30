@@ -212,16 +212,17 @@ This expands internally to `mu1 = y1 ~ x1 + x2` and
 `mu2 = y2 ~ x1 + x2`. Use the explicit `mu1` and `mu2` formulas when the two
 responses need different location predictors.
 
-The first fitted structured-effect marker is an intercept-only phylogenetic
-location effect:
+The first fitted structured-effect marker examples are phylogenetic location
+effects:
 
 ```r
 drm_formula(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+drm_formula(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ z)
 ```
 
-`phylo()` uses an ultrametric branch-length tree and adds a tree-structured
-Gaussian random intercept to the `mu` predictor. Matching intercept-only
-`phylo()` terms in bivariate `mu1` and `mu2` formulas fit the first
+`phylo()` uses an ultrametric branch-length tree and adds tree-structured
+Gaussian random intercept and one-slope fields to the `mu` predictor. Matching
+intercept-only `phylo()` terms in bivariate `mu1` and `mu2` formulas fit the first
 phylogenetic mean-mean correlation slice:
 
 ```r

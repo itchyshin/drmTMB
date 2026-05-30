@@ -1030,12 +1030,14 @@ y \mid \mu, \sigma, V
   predictors that are constant within the named grouping variable.
 - Correlated residual-scale slope blocks, slope-specific `sd()` targets,
   labelled-block `sd()` targets, cross-formula labelled covariance sharing
-  beyond the first random-intercept slice, phylogenetic slopes, standalone or
-  partial phylogenetic scale terms, spatial `sigma`, mesh/SPDE spatial fields,
-  multiple spatial slopes, spatial `corpair()` regression, and non-Gaussian
-  random effects are planned but not implemented in this Gaussian tutorial.
-- Intercept-only phylogenetic random effects are implemented in univariate
-  Gaussian `mu` formulas as `phylo(1 | species, tree = tree)`.
+  beyond the first random-intercept slice, multiple phylogenetic slopes,
+  phylogenetic slope correlations, standalone or partial phylogenetic scale
+  terms, mesh/SPDE spatial fields, multiple spatial slopes, spatial slope
+  correlations, spatial `corpair()` regression, and non-Gaussian random
+  effects are planned but not implemented in this Gaussian tutorial.
+- Phylogenetic random effects are implemented in univariate Gaussian `mu`
+  formulas as `phylo(1 | species, tree = tree)` and one numeric
+  `phylo(1 + x | species, tree = tree)` slope.
 - Coordinate-spatial random effects are implemented in univariate Gaussian `mu`
   formulas as `spatial(1 | site, coords = coords)` and one numeric
   `spatial(1 + x | site, coords = coords)` slope. Matching labelled

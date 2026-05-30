@@ -11,17 +11,19 @@ the current one-response/two-response package scope.
 
 ## Provenance
 
-Source repositories:
+Source checkouts:
 
-- `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/`
+- local checkout of `GLLVM.jl` at
+  `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/`
 - `/Users/z3437171/Dropbox/Github Local/gllvmTMB-julia-bench/`
 
 Current local source state when this note was cleaned:
 
-- `gllvmTMB.jl`: commit `6a0d090`, clean `main...origin/main`
+- `GLLVM.jl` local checkout path `gllvmTMB.jl`: commit `6a0d090`, clean
+  `main...origin/main`
 - `gllvmTMB-julia-bench`: commit `9de254a`, dirty working tree
 
-`gllvmTMB.jl` is MIT licensed by Shinichi Nakagawa. No code is copied into
+`GLLVM.jl` is MIT licensed by Shinichi Nakagawa in the local checkout. No code is copied into
 `drmTMB` by this note. If a later task ports or adapts code, that task must
 record the source file, source commit, license, adaptation, and reviewer in
 `inst/COPYRIGHTS` before the task is complete. The benchmark repo did not have
@@ -40,13 +42,13 @@ do not by themselves support `drmTMB` speed, recovery, or coverage claims.
 
 | Lesson | Local GLLVM.jl evidence | drmTMB status |
 | --- | --- | --- |
-| Sparse augmented phylogenetic precision | `gllvmTMB.jl/src/sparse_phy.jl`, `src/likelihood_sparse_phy.jl`, and `gllvmTMB-julia-bench/report/comparison-final.md` | Already partly absorbed. `drmTMB` has `drm_phylo_augmented_precision()`, passes `Q_phylo`, and declares `DATA_SPARSE_MATRIX(Q_phylo)`. Issue #431 records the first smoke plus row-pressure gate and keeps `phylo()` tree-only for now; future matrix-input work needs a separate design task. |
-| Transformed-Wald bounded intervals | `gllvmTMB.jl/src/confint_derived_wald.jl`; coverage table in `comparison-final.md` | Already source-checked for direct `rho12` and row-specific Wald `rho12` paths. Future derived bounded quantities need their own targets and simulations before claims. |
-| Gaussian and bivariate Gaussian starts | `gllvmTMB.jl/src/ppca_init.jl` as the motivating principle | Already source-checked for `lm.fit()` location starts, residual-SD starts, and Fisher-z `rho12` starts. Do not repeat the stale claim that defaults are intercept-only zero slopes. |
+| Sparse augmented phylogenetic precision | `GLLVM.jl` local path `gllvmTMB.jl/src/sparse_phy.jl`, `src/likelihood_sparse_phy.jl`, and `gllvmTMB-julia-bench/report/comparison-final.md` | Already partly absorbed. `drmTMB` has `drm_phylo_augmented_precision()`, passes `Q_phylo`, and declares `DATA_SPARSE_MATRIX(Q_phylo)`. Issue #431 records the first smoke plus row-pressure gate and keeps `phylo()` tree-only for now; future matrix-input work needs a separate design task. |
+| Transformed-Wald bounded intervals | `GLLVM.jl` local path `gllvmTMB.jl/src/confint_derived_wald.jl`; coverage table in `comparison-final.md` | Already source-checked for direct `rho12` and row-specific Wald `rho12` paths. Future derived bounded quantities need their own targets and simulations before claims. |
+| Gaussian and bivariate Gaussian starts | `GLLVM.jl` local path `gllvmTMB.jl/src/ppca_init.jl` as the motivating principle | Already source-checked for `lm.fit()` location starts, residual-SD starts, and Fisher-z `rho12` starts. Do not repeat the stale claim that defaults are intercept-only zero slopes. |
 | Positive-scale bootstrap percentiles | GLLVM.jl bootstrap coverage and implementation notes in `comparison-final.md` and related bench code | Already implemented for direct positive `exp` targets in `confint(..., method = "bootstrap")`. Coverage remains unclaimed without `drmTMB` simulations. |
-| Sigma profile-out when `sigma ~ 1` | `gllvmTMB.jl/src/profile.jl` | Plausible future design gate. `drmTMB` does not currently profile out `beta_sigma`; changing this affects optimization geometry and `vcov()` expectations. |
-| Edge-incidence and relaxed-clock ideas | `gllvmTMB.jl/src/edge_incidence.jl`, `src/relaxed_clock.jl`, related bench files | Mostly outside current `drmTMB` scope. Any branch-rate or relaxed-clock syntax would change formula grammar and should start as a design/ADEMP discussion, not a code slice. |
-| EM/SQUAREM fallback | `gllvmTMB.jl/src/em_squarem.jl` and related bench files | Hypothesis only. `drmTMB` has no EM path; this would be a separate solver design, not a quick optimizer flag. |
+| Sigma profile-out when `sigma ~ 1` | `GLLVM.jl` local path `gllvmTMB.jl/src/profile.jl` | Plausible future design gate. `drmTMB` does not currently profile out `beta_sigma`; changing this affects optimization geometry and `vcov()` expectations. |
+| Edge-incidence and relaxed-clock ideas | `GLLVM.jl` local paths `gllvmTMB.jl/src/edge_incidence.jl`, `src/relaxed_clock.jl`, and related bench files | Mostly outside current `drmTMB` scope. Any branch-rate or relaxed-clock syntax would change formula grammar and should start as a design/ADEMP discussion, not a code slice. |
+| EM/SQUAREM fallback | `GLLVM.jl` local path `gllvmTMB.jl/src/em_squarem.jl` and related bench files | Hypothesis only. `drmTMB` has no EM path; this would be a separate solver design, not a quick optimizer flag. |
 
 ## Already Absorbed or Source-Checked in drmTMB
 
@@ -104,14 +106,14 @@ route.
 
 Read these files before opening a porting or benchmark slice:
 
-- `gllvmTMB.jl/src/sparse_phy.jl`
-- `gllvmTMB.jl/src/likelihood_sparse_phy.jl`
-- `gllvmTMB.jl/src/confint_derived_wald.jl`
-- `gllvmTMB.jl/src/ppca_init.jl`
-- `gllvmTMB.jl/src/profile.jl`
-- `gllvmTMB.jl/src/edge_incidence.jl`
-- `gllvmTMB.jl/src/relaxed_clock.jl`
-- `gllvmTMB.jl/src/em_squarem.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/sparse_phy.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/likelihood_sparse_phy.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/confint_derived_wald.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/ppca_init.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/profile.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/edge_incidence.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/relaxed_clock.jl`
+- `GLLVM.jl` local path `gllvmTMB.jl/src/em_squarem.jl`
 - `gllvmTMB-julia-bench/report/comparison-final.md`
 
 When using the bench report, first re-check the `gllvmTMB-julia-bench` working

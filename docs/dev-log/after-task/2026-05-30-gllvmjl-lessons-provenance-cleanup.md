@@ -9,7 +9,7 @@ sister-repo benchmark results as direct `drmTMB` claims.
 ## Implemented
 
 `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` now reads as a
-status-checked scouting memo. It records the local source repositories, current
+status-checked scouting memo. It records the local source checkouts, current
 commits, dirty state, visible license, no-code-copied boundary, and future
 `inst/COPYRIGHTS` requirement for any actual code port.
 
@@ -48,10 +48,11 @@ air format docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md docs/dev-log/check-lo
 git diff --check
 ```
 
-The source-state checks found `gllvmTMB.jl` at commit `6a0d090` with a clean
-`main...origin/main`; `gllvmTMB-julia-bench` was at commit `9de254a` with a
-dirty working tree. Only `gllvmTMB.jl` exposed a local `LICENSE` file, and it
-is MIT licensed by Shinichi Nakagawa.
+The source-state checks found the local `GLLVM.jl` checkout path
+`gllvmTMB.jl` at commit `6a0d090` with a clean `main...origin/main`;
+`gllvmTMB-julia-bench` was at commit `9de254a` with a dirty working tree. Only
+the local `GLLVM.jl` checkout exposed a local `LICENSE` file, and it is MIT
+licensed by Shinichi Nakagawa.
 
 The stale-overclaim scan returned one intentional `note-to-russell.md` hit
 documenting that the cited file was absent; the other stale implementation and

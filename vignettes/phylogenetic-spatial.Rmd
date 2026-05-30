@@ -230,12 +230,12 @@ combined phylogenetic-plus-spatial models when both sources matter, and
 `relmat()` for other known relatedness or precision matrices.
 
 The current fitted `drmTMB` paths are a subset of that ladder. The first
-implemented path is an intercept-only phylogenetic effect in the univariate
-Gaussian location formula. A first bivariate path also fits matching
-intercept-only `phylo()` terms in `mu1` and `mu2`, estimating the two
-phylogenetic location SDs and their mean-mean correlation. Matching labelled
-`phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first
-constant bivariate phylogenetic location-scale block. The first
+phylogenetic Gaussian paths include a univariate `mu` intercept and one numeric
+`mu` slope. A first bivariate path also fits matching intercept-only `phylo()`
+terms in `mu1` and `mu2`, estimating the two phylogenetic location SDs and
+their mean-mean correlation. Matching labelled `phylo()` terms across `mu1`,
+`mu2`, `sigma1`, and `sigma2` now fit the first constant bivariate
+phylogenetic location-scale block. The first
 predictor-dependent phylogenetic correlation regression is also fitted for the
 q=2 `mu1`-`mu2` location-location row. The first coordinate-based spatial
 paths, `spatial(1 | site, coords = coords)` and

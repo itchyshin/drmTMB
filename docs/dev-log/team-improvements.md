@@ -8,6 +8,32 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-30 - Deprecated Alias Drift Guard
+
+- Improvement implemented: prose review now treats `meta_V(V = V)` as the
+  stable public term and `meta_known_V(V = V)` only as a deprecated
+  compatibility alias.
+- Improvement implemented: when a status table says a known-`V` route is
+  stable, Rose and Fisher should check whether the claim is about fitting,
+  fixed-effect intervals, residual heterogeneity intervals, or all three.
+- Trigger: a pkgdown consistency pass found the local prose-review skill still
+  naming `meta_known_V(V = V)` as stable, and older status prose described
+  known-`V` interval routes without calling out the current
+  `meta_V(V = V) + sigma ~ moderator` `pdHess = FALSE` caveat.
+
+## 2026-05-30 - Rendered Pkgdown Mirror Guard
+
+- Improvement implemented: when an audit cites stale generated pkgdown pages,
+  Grace should rebuild both the release mirror (`pkgdown-site/`) and any local
+  development mirror (`pkgdown-site/dev/`) before closeout.
+- Improvement implemented: rendered-page scans should treat "usual interval
+  routes only when Hessian diagnostics are clean" as current wording, while
+  flagging the older unqualified "usual interval routes" phrase.
+- Trigger: after the source docs were corrected, the release mirror rebuilt
+  cleanly but the local `pkgdown-site/dev/articles/` mirror still contained
+  stale `model-map` and `phylogenetic-models` text until it was explicitly
+  rebuilt with `override = list(destination = "pkgdown-site/dev")`.
+
 ## 2026-05-29 - Placeholder CSV Artifact Audits
 
 - Improvement implemented: artifact row-count audits should use safe readers

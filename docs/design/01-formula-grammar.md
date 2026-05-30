@@ -643,14 +643,14 @@ heterogeneous covariance-block model is designed and tested.
 ## Structured Phylogenetic and Spatial Markers
 
 `drm_formula()` parses structured-effect markers and stores them as structured
-metadata. The first fitted paths are intercept-only phylogenetic structure in
-the univariate Gaussian `mu` formula, matching bivariate `mu1`/`mu2`
-formulas, matching labelled bivariate q=4
-`mu1`/`mu2`/`sigma1`/`sigma2` phylogenetic blocks, and coordinate-based
-univariate Gaussian spatial `mu` random intercept and one-slope terms.
-Mesh/SPDE spatial fields, multiple structured slopes, structured slope
-correlations, univariate phylogenetic `sigma` terms, spatial bivariate slope
-blocks, and structured `rho12` effects remain planned.
+metadata. The fitted Gaussian paths include univariate `mu` and `sigma`
+intercepts, one numeric `mu` slope, matching bivariate q=2 `mu1`/`mu2` blocks,
+and constant q=4 location-scale blocks for supported `phylo()`, `spatial()`,
+`animal()`, and `relmat()` markers. Ordinary Poisson/NB2 also fit one q=1
+structured `mu` intercept. Mesh/SPDE spatial fields, multiple structured
+slopes, residual-scale structured slopes, structured slope correlations,
+structured count slopes, labelled count covariance, and structured `rho12`
+effects remain planned.
 
 The canonical phylogenetic syntax is:
 

@@ -190,6 +190,8 @@ Actions run:
 - Checked the sister-repo commits, dirty state, and local license files for
   `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/` and
   `/Users/z3437171/Dropbox/Github Local/gllvmTMB-julia-bench/`.
+  The `gllvmTMB.jl` path named in this historical check-log entry is a local
+  checkout path for `GLLVM.jl`, not a separate package.
 - Replaced `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` with a shorter
   status memo that classifies each lesson as already absorbed/source-checked,
   a future design gate, a hypothesis, or outside current `drmTMB` scope.
@@ -217,12 +219,13 @@ git diff --check
 
 Results:
 
-- `gllvmTMB.jl` was at commit `6a0d090` with a clean `main...origin/main`.
+- The local `GLLVM.jl` checkout path `gllvmTMB.jl` was at commit `6a0d090` with
+  a clean `main...origin/main`.
 - `gllvmTMB-julia-bench` was at commit `9de254a` with a dirty working tree, so
   the memo now tells future readers to re-check that checkout before relying on
   the benchmark report.
-- Only `gllvmTMB.jl` exposed a local `LICENSE` file, and it is MIT licensed by
-  Shinichi Nakagawa.
+- Only the local `GLLVM.jl` checkout exposed a local `LICENSE` file, and it is
+  MIT licensed by Shinichi Nakagawa.
 - The stale-overclaim scan returned one intentional `note-to-russell.md` hit
   documenting that the cited file was absent; the other stale implementation
   and overclaim phrases were gone.
@@ -46102,3 +46105,60 @@ Member-group review:
 - Grace required the pkgdown rebuild and `pkgdown::check_pkgdown()` pass.
 - Rose kept the structured-slope NEWS wording aligned with the fitted
   phylogenetic one-slope route.
+
+## 2026-05-30 - Phase 6c support matrix and pkgdown refresh
+
+Goal:
+
+- Advance #438 by separating fitted, simulation-ready, smoke/source-only,
+  diagnostic-only, design-only, and blocked random-slope/dependence cells, then
+  refresh pkgdown-facing pages found stale by the agent team.
+
+Changes:
+
+- Added the #438 support-matrix labels to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Updated README/model-map/source-map/implementation-map and related articles so
+  first univariate Gaussian `mu` one-slope `phylo()`, `spatial()`, `animal()`,
+  and `relmat()` routes are not described as wholly planned.
+- Added the `meta_V(V = V) + sigma ~ moderator` `pdHess = FALSE` caveat to
+  public docs and design/known-limitation notes.
+- Corrected `GLLVM.jl` wording where the old local checkout path
+  `gllvmTMB.jl` could be read as a separate package.
+- Updated the local prose-review skill and team-improvement log to prevent
+  deprecated-alias and rendered-pkgdown drift.
+
+Validation:
+
+```sh
+git diff --check
+rg -n "gllvmTMB\\.jl is|GLLVM\\.jl / gllvmTMB\\.jl|phylogenetic slopes such as|intercept-only phylogenetic|spatial structured effects\\.|spatial, animal, or" README.md vignettes docs/design .agents/skills -g '!docs/pkgdown/**'
+rg -n "usual interval routes$|usual interval routes \\||meta_known_V\\(V = V\\).*stable|Keep terms stable:.*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|phylo\\(1 \\+ x \\| species, tree = tree\\).*planned" README.md vignettes docs/design .agents/skills -g '!docs/pkgdown/**'
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n "usual interval routes|phylogenetic slopes such as|implemented path is an intercept-only phylogenetic|intercept-only phylogenetic effect|gllvmTMB\\.jl is|GLLVM\\.jl / gllvmTMB\\.jl" pkgdown-site/index.html pkgdown-site/articles pkgdown-site/ROADMAP.html pkgdown-site/search.json pkgdown-site/dev/index.html pkgdown-site/dev/articles pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/search.json
+rg -n "meta_V\\(V = V\\).*pdHess = FALSE|sigma ~ moderator|offset\\(0\\.5 \\* log\\(v\\)\\)|Issue #438 Support-Matrix Labels|source/diagnostic first slices" README.md vignettes docs/design docs/dev-log/known-limitations.md pkgdown-site/index.html pkgdown-site/articles pkgdown-site/dev/index.html pkgdown-site/dev/articles pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+```
+
+Results:
+
+- `git diff --check` passed.
+- The source stale-pattern scan found no unresolved current-doc hits. Remaining
+  matches are narrow current contexts, historical slice notes, or planned
+  non-Gaussian/structured neighbours.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The local development mirror was explicitly refreshed with
+  `override = list(destination = 'pkgdown-site/dev')`.
+- The rendered-site scan now finds the known-`V` caveat with `pdHess = FALSE`
+  in both release and development mirrors; remaining "usual interval routes"
+  hits include "only when Hessian diagnostics are clean".
+
+Member-group review:
+
+- Grace kept pkgdown release and development mirrors in the validation path.
+- Fisher/Mendel supplied the #438 label categories.
+- Rose/Carson and Sagan caught stale generated HTML and broad structured-slope
+  wording.
+- Boole kept current syntax aligned to `meta_V(V = V)`.

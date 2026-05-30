@@ -32,6 +32,21 @@ Child issues:
 | Coscale and correlation extraction | Residual `rho12` and fitted group/structured covariance rows are separate output layers. | Use #443 to keep `rho12`, `corpair()`, and `corpairs()` wording precise in random-slope examples. |
 | Tutorial and release ledger | Existing tutorials cover pieces of the ordinary core and bivariate/coscale surfaces. | Use #444 to produce a reader-facing path and reference-index check after status wording is reconciled. |
 
+## Issue #438 Support-Matrix Labels
+
+Use these labels in #438, the roadmap, and pkgdown pages until a later evidence
+slice supersedes them. Fitted support, simulation admission, and interval
+readiness are separate claims.
+
+| Label | Current cells | Evidence handles |
+| --- | --- | --- |
+| Fitted | Ordinary Gaussian `mu` random intercepts/slopes, independent Gaussian `sigma` slopes, selected bivariate Gaussian covariance, residual `rho12`, Gaussian structured `phylo()`/`spatial()`/`animal()`/`relmat()` intercept and one-slope `mu` rows, ordinary Poisson/NB2 `mu` slopes, and selected ordinary non-Gaussian `mu` slopes. | `docs/design/46-pre-simulation-readiness-matrix.md`, `docs/design/59-structural-slope-and-non-gaussian-map.md`, `vignettes/implementation-map.Rmd`, and the current README/model-map status rows. |
+| Simulation-ready | Registry rows marked `ready_grid`, including `gaussian_ordinary_mu_slopes`, `gaussian_sigma_independent_slopes`, `bivariate_gaussian_slope_only`, residual `rho12`, selected ordinary q=2 `corpairs()` rows, ordinary Poisson/NB2 `mu` random effects, and Gaussian structured one-slope rows queued for focused wrappers. | `inst/sim/registry/phase18_structured_workflow_registry.csv` and `docs/design/143-phase-18-structured-workflow-registry.md`. |
+| Smoke or source-only | Selected bounded, positive-continuous, Student-t, and zero-truncated NB2 ordinary `mu` independent slopes; NB2 `sigma` random intercepts; Poisson q=1 phylogenetic formal-admission lane; NB2 q=1 phylogenetic held-smoke lane. | Registry rows with `ready_source_test`, `ready_smoke`, `smoke_formal_admission`, or `hold_smoke_only`. |
+| Diagnostic-only | Ordinary or structured q=4 `corpairs()` rows, q=4 spatial/animal/`relmat()` location-scale point-estimate lanes, count q=1 spatial/animal/`relmat()` structured rows before formal recovery, and Ayumi hard real-data q2/q4 cases. | Registry rows marked `diagnostic_only`, plus hard-fit diagnostics in `docs/design/46-pre-simulation-readiness-matrix.md`. |
+| Design-only | Mixed-response bivariate families and any future joint/coplanar likelihood or latent contract work. | `mixed_response_bivariate` in the Phase 18 registry. |
+| Unsupported or blocked | Count labelled q2/q4 covariance, random effects in `rho12`, correlated non-Gaussian slopes, structured count slopes, zero-inflation/hurdle random effects, Student-t `nu` random effects, ordinal random effects, NB2 `sigma` slopes, and structured `sigma`. | Registry rows marked `blocked`, failure-ledger text in the readiness matrix, and the implementation-map planned-neighbour rows. |
+
 ## Daily Twin/Sister Exchange
 
 The daily exchange lives in #437 and in

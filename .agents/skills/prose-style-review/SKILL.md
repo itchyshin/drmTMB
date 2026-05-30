@@ -34,8 +34,9 @@ would otherwise have to infer it from context.
    "various factors", "significant improvements", and "leverages".
 6. Do not over-bullet. Use bullets for genuine lists; use prose for one or two
    connected ideas.
-7. Keep terms stable: `sigma`, `rho12`, `sd(group)`, `meta_known_V(V = V)`,
-   `phylo()`, `spatial()`, `mu`, and `nu` for the first shape parameter.
+7. Keep terms stable: `sigma`, `rho12`, `sd(group)`, `meta_V(V = V)`,
+   deprecated `meta_known_V(V = V)` only as a compatibility alias, `phylo()`,
+   `spatial()`, `mu`, and `nu` for the first shape parameter.
    Mention `tau` only when explaining a second shape parameter or when
    contrasting drmTMB's `sigma` with meta-analysis notation. Use `skew` only as
    an interpretation or documented alias, not as the default canonical name.

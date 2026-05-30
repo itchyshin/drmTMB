@@ -130,7 +130,7 @@ one structured SD and no latent correlation row.
 | Poisson labelled q=2/q=4 phylogenetic blocks | planned |
 | Zero-inflated Poisson phylogenetic effects | planned |
 | NB2 phylogenetic effects | ordinary q=1 `mu` intercept fitted as a first slice; slopes, `sigma`, `zi`, and q2/q4 blocks planned |
-| Poisson/NB2 spatial, animal, or `relmat()` effects | planned |
+| Poisson/NB2 spatial, animal, or `relmat()` q=1 `mu` intercepts | source/diagnostic first slices; slopes, labels, and simultaneous layers planned |
 | Count `sigma`, `zi`, `hu`, shape, or cross-parameter covariance | planned or blocked by family |
 
 Extractor and diagnostic contract:
