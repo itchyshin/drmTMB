@@ -1179,3 +1179,12 @@ errors, and elapsed time by surface before the raw manifest.
      across both files. The focused tests still inject fake DGP, fit, and
      profile functions, so this creates the artifact writer without spending CI
      time on the selected formal-pilot profiles.
+213. Slice 1805 fixes the selected-example trace targets to use public direct
+     profile labels. The default examples now carry `sd:mu:spatial(1 | site)`
+     or `sd:mu:animal(1 | id)`, which are accepted by `profile()`, while the
+     trace rows still record the mapped TMB parameter `log_sd_phylo`. A real
+     local trace writer smoke at
+     `/private/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530` produced
+     116 current and 125 smaller-`ystep` trace rows with `trace_status = "ok"`;
+     interval extraction still failed or stayed one-sided for the selected
+     examples, as shown by `conf.low`, `conf.high`, and `conf.status`.

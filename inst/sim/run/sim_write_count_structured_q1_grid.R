@@ -1017,6 +1017,11 @@ phase18_count_structured_q1_profile_trace_examples <- function() {
       "minimum_crossing_estimate",
       "larger_crossing_estimate"
     ),
+    profile_parameters = c(
+      "sd:mu:spatial(1 | site)",
+      "sd:mu:animal(1 | id)",
+      "sd:mu:spatial(1 | site)"
+    ),
     stringsAsFactors = FALSE
   )
 }
@@ -1025,18 +1030,32 @@ phase18_count_structured_q1_profile_trace_plan <- function(
   examples = phase18_count_structured_q1_profile_trace_examples(),
   condition_set = "stable",
   master_seed = 20260530L,
-  profile_parameters = "log_sd_phylo",
+  profile_parameters = NULL,
   profile_level = 0.70,
   ystep = c(current = 0.50, smaller_ystep = 0.25)
 ) {
   phase18_assert_summary_columns(examples, c("cell_id", "replicate"))
   assert_positive_whole_number(master_seed, "master_seed")
-  if (
-    !is.character(profile_parameters) ||
-      length(profile_parameters) != 1L ||
-      !nzchar(profile_parameters)
-  ) {
-    stop("`profile_parameters` must be one non-empty string.", call. = FALSE)
+  if (is.null(profile_parameters)) {
+    phase18_assert_summary_columns(examples, "profile_parameters")
+    if (
+      !is.character(examples$profile_parameters) ||
+        any(!nzchar(examples$profile_parameters))
+    ) {
+      stop(
+        "`examples$profile_parameters` must contain non-empty strings.",
+        call. = FALSE
+      )
+    }
+  } else {
+    if (
+      !is.character(profile_parameters) ||
+        length(profile_parameters) != 1L ||
+        !nzchar(profile_parameters)
+    ) {
+      stop("`profile_parameters` must be one non-empty string.", call. = FALSE)
+    }
+    examples$profile_parameters <- profile_parameters
   }
   if (
     !is.numeric(profile_level) ||
@@ -1113,7 +1132,6 @@ phase18_count_structured_q1_profile_trace_plan <- function(
   expanded <- lapply(seq_along(ystep), function(i) {
     out <- plan
     out$profile_pass <- profile_pass[[i]]
-    out$profile_parameters <- profile_parameters
     out$profile_level <- profile_level
     out$ystep <- unname(ystep[[i]])
     out

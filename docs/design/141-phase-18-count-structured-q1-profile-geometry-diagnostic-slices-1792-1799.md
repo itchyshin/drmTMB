@@ -91,14 +91,15 @@ named above with two planned passes: the current `ystep = 0.50` setting and a
 smaller `ystep = 0.25` setting. The scaffold uses exact seeds from artifact
 `26669005577`, not regenerated registry seeds:
 
-| Cell | Replicate | Seed | Role |
-| --- | ---: | ---: | --- |
-| `count_structured_q1_006` | 45 | 932584520 | Minimum nonfinite-interval estimate |
-| `count_structured_q1_003` | 33 | 461195966 | Minimum profile-crossing estimate |
-| `count_structured_q1_001` | 25 | 32713190 | Larger profile-crossing estimate |
+| Cell | Replicate | Seed | Profile target | Role |
+| --- | ---: | ---: | --- | --- |
+| `count_structured_q1_006` | 45 | 932584520 | `sd:mu:spatial(1 | site)` | Minimum nonfinite-interval estimate |
+| `count_structured_q1_003` | 33 | 461195966 | `sd:mu:animal(1 | id)` | Minimum profile-crossing estimate |
+| `count_structured_q1_001` | 25 | 32713190 | `sd:mu:spatial(1 | site)` | Larger profile-crossing estimate |
 
 This addendum still does not rerun profiles or change settings. It only fixes
-the selected examples and control labels for the next executable helper.
+the selected examples, public profile target labels, and control labels for the
+next executable helper.
 
 ## Slice 1801 Addendum: Trace Plan Table
 
@@ -148,3 +149,27 @@ This writer makes the next real selected-example rerun auditable without
 changing the simulation grid artifact layout. The focused tests still inject
 fake DGP, fit, and profile functions, so this slice records the artifact
 contract rather than new likelihood-profile evidence.
+
+## Slice 1805 Addendum: Public Trace Targets
+
+The first real trace-writer smoke exposed a target-label mismatch. The
+formal-pilot interval tables record the mapped TMB parameter as `log_sd_phylo`,
+but `profile()` expects the public direct target labels returned by
+`profile_targets()`. The selected examples now store those public labels:
+`sd:mu:spatial(1 | site)` for the spatial examples and
+`sd:mu:animal(1 | id)` for the animal example.
+
+After this fix, a real local trace writer smoke at
+`/private/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530` wrote both
+trace CSVs and produced profile rows for all six planned passes:
+
+| Profile pass | Trace rows | Trace status |
+| --- | ---: | --- |
+| `current` | 116 | `ok` |
+| `smaller_ystep` | 125 | `ok` |
+
+This result means the profile curves are now available for visual and numerical
+inspection. It does not mean the selected examples have usable two-sided
+intervals. The nonfinite-interval example still has missing lower endpoints,
+and both profile-crossing examples still have missing lower and upper endpoints
+in `conf.low`, `conf.high`, and `conf.status`.
