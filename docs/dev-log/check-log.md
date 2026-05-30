@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- GLLVM.jl Lessons Provenance Cleanup
+
+Goal:
+
+- Convert the untracked GLLVM.jl lessons memo from a stale implementation-style
+  plan into a provenance-tagged status memo that does not overclaim `drmTMB`
+  speed, coverage, syntax, or missing infrastructure.
+
+Actions run:
+
+- Checked the sister-repo commits, dirty state, and local license files for
+  `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/` and
+  `/Users/z3437171/Dropbox/Github Local/gllvmTMB-julia-bench/`.
+- Replaced `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` with a shorter
+  status memo that classifies each lesson as already absorbed/source-checked,
+  a future design gate, a hypothesis, or outside current `drmTMB` scope.
+- Removed the stale `note-to-russell.md` dependency and recorded that the file
+  was not present in either local sister checkout.
+- Added explicit no-code-copied and future `inst/COPYRIGHTS` provenance
+  requirements.
+- Added
+  `docs/dev-log/after-task/2026-05-30-gllvmjl-lessons-provenance-cleanup.md`.
+
+Validation:
+
+```sh
+git -C /Users/z3437171/Dropbox/Github\ Local/gllvmTMB.jl rev-parse --short HEAD
+git -C /Users/z3437171/Dropbox/Github\ Local/gllvmTMB.jl status --short --branch
+git -C /Users/z3437171/Dropbox/Github\ Local/gllvmTMB-julia-bench rev-parse --short HEAD
+git -C /Users/z3437171/Dropbox/Github\ Local/gllvmTMB-julia-bench status --short --branch
+find /Users/z3437171/Dropbox/Github\ Local/gllvmTMB.jl /Users/z3437171/Dropbox/Github\ Local/gllvmTMB-julia-bench -maxdepth 2 \( -iname 'LICENSE*' -o -iname 'COPYING*' \) -print
+rg -n 'note-to-russell|intercepts-only with zero|Add a `DATA_SPARSE_MATRIX|10×|100×|coverage improves|preserves the inference exactly|Expected gain|Suggested drmTMB path' docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md
+rg -n 'phylo_relaxed|tau ~|GLLVM.jl speedups as `drmTMB` speedups|GLLVM.jl coverage as `drmTMB` coverage|inst/COPYRIGHTS' docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md
+gh issue list --repo itchyshin/drmTMB --state open --search 'GLLVM.jl lessons provenance sparse phylo warm start bootstrap' --limit 20 --json number,title,state,url,labels
+air format docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-gllvmjl-lessons-provenance-cleanup.md
+git diff --check
+```
+
+Results:
+
+- `gllvmTMB.jl` was at commit `6a0d090` with a clean `main...origin/main`.
+- `gllvmTMB-julia-bench` was at commit `9de254a` with a dirty working tree, so
+  the memo now tells future readers to re-check that checkout before relying on
+  the benchmark report.
+- Only `gllvmTMB.jl` exposed a local `LICENSE` file, and it is MIT licensed by
+  Shinichi Nakagawa.
+- The stale-overclaim scan returned one intentional `note-to-russell.md` hit
+  documenting that the cited file was absent; the other stale implementation
+  and overclaim phrases were gone.
+- The guardrail scan found only intentional wording that forbids
+  `phylo_relaxed()`, `tau ~`, direct transfer of GLLVM.jl speed or coverage
+  claims, and code copying without `inst/COPYRIGHTS`.
+- The issue search found no exact open issue that needed an update.
+- `air format` and `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept this as provenance cleanup, not a technical implementation task.
+- Jason checked the local sister-repo evidence map and missing
+  `note-to-russell.md` citation.
+- Rose separated superseded source facts from hypotheses and guardrails.
+- Grace checked license/provenance and avoided adding a package dependency.
+- No spawned subagents edited files.
+
 ## 2026-05-30 -- Bivariate Gaussian Slope Actions Pilot Audit
 
 Goal:
