@@ -331,6 +331,85 @@ phase18_structured_dependence_workflow_plan <- function(
   )]
 }
 
+phase18_correlation_block_workflow_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_diagnostic = TRUE
+) {
+  rows <- phase18_filter_structured_workflow_registry(
+    registry = registry,
+    workflow_lane = "correlation_blocks"
+  )
+  rows <- rows[
+    !rows$admission_status %in% c("blocked", "design_only"),
+    ,
+    drop = FALSE
+  ]
+  if (!include_diagnostic) {
+    rows <- rows[
+      rows$admission_status != "diagnostic_only",
+      ,
+      drop = FALSE
+    ]
+  }
+  if (nrow(rows) == 0L) {
+    return(phase18_empty_correlation_block_workflow_plan())
+  }
+
+  needs_target <- startsWith(rows$existing_actions_task, "needed:")
+  has_existing_task <- rows$existing_actions_task != "none" & !needs_target
+  plan <- rows[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  plan$dispatch_status <- phase18_correlation_block_dispatch_status(
+    admission_status = plan$admission_status,
+    needs_target = needs_target
+  )
+  plan$interval_policy <- phase18_correlation_block_interval_policy(
+    block_q = plan$block_q,
+    admission_status = plan$admission_status
+  )
+  plan$actions_task <- ifelse(
+    has_existing_task,
+    plan$existing_actions_task,
+    NA_character_
+  )
+  plan$workflow_helper <- ifelse(
+    needs_target,
+    sub("^needed:", "", plan$existing_actions_task),
+    ifelse(has_existing_task, "phase18_actions_main", NA_character_)
+  )
+  plan$audit_focus <- phase18_correlation_block_audit_focus(
+    interval_policy = plan$interval_policy,
+    admission_status = plan$admission_status
+  )
+  row.names(plan) <- NULL
+  plan[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "dispatch_status",
+    "interval_policy",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
@@ -353,6 +432,26 @@ phase18_structured_workflow_actions_tasks <- function() {
     "zero_one_beta_fixed_effect",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
+  )
+}
+
+phase18_empty_correlation_block_workflow_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    dispatch_status = character(),
+    interval_policy = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    audit_focus = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
   )
 }
 
@@ -392,6 +491,90 @@ phase18_empty_random_slope_workflow_plan <- function() {
     supervision_boundary = character(),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_correlation_block_dispatch_status <- function(
+  admission_status,
+  needs_target
+) {
+  status <- rep(NA_character_, length(admission_status))
+  status[needs_target & admission_status == "diagnostic_only"] <-
+    "diagnostic_wrapper_target"
+  status[needs_target & admission_status != "diagnostic_only"] <-
+    "needs_wrapper_target"
+  status[is.na(status) & admission_status == "ready_grid"] <-
+    "ready_existing_task"
+  status[is.na(status) & admission_status == "ready_or_smoke"] <-
+    "ready_or_smoke_audit"
+  status[is.na(status) & admission_status == "diagnostic_only"] <-
+    "diagnostic_audit"
+
+  unknown <- is.na(status)
+  if (any(unknown)) {
+    stop(
+      "Correlation-block workflow has unsupported status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  status
+}
+
+phase18_correlation_block_interval_policy <- function(
+  block_q,
+  admission_status
+) {
+  policy <- rep("direct_interval_audit", length(block_q))
+  policy[block_q == "residual_coscale"] <- "direct_residual_rho12"
+  policy[grepl("q2", block_q, fixed = TRUE)] <-
+    "direct_or_layer_specific_q2"
+  policy[grepl("q4", block_q, fixed = TRUE)] <-
+    "q4_derived_interval_unavailable"
+  policy[
+    admission_status == "diagnostic_only" &
+      !grepl("q4", block_q, fixed = TRUE)
+  ] <- "diagnostic_interval_audit"
+  policy
+}
+
+phase18_correlation_block_audit_focus <- function(
+  interval_policy,
+  admission_status
+) {
+  focus <- rep(NA_character_, length(interval_policy))
+  focus[interval_policy == "direct_residual_rho12"] <- paste(
+    "Keep residual rho12 separate from group and structured corpairs rows."
+  )
+  focus[interval_policy == "direct_or_layer_specific_q2"] <- paste(
+    "Check direct q=2 or layer-specific interval provenance before",
+    "dispatch."
+  )
+  focus[interval_policy == "q4_derived_interval_unavailable"] <- paste(
+    "Report q=4 point estimates or diagnostics only; do not treat",
+    "derived correlations as interval-ready."
+  )
+  focus[interval_policy == "direct_interval_audit"] <- paste(
+    "Audit direct interval targets before profile or bootstrap work."
+  )
+  focus[interval_policy == "diagnostic_interval_audit"] <- paste(
+    "Keep as diagnostic evidence until interval targets are designed."
+  )
+  focus[admission_status == "ready_or_smoke"] <- paste(
+    focus[admission_status == "ready_or_smoke"],
+    "Confirm whether the row has grid or smoke evidence."
+  )
+
+  unknown <- is.na(focus)
+  if (any(unknown)) {
+    stop(
+      "Correlation-block workflow has unsupported interval policies: ",
+      paste(unique(interval_policy[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  focus
 }
 
 phase18_structured_dependence_dispatch_status <- function(

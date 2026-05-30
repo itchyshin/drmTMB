@@ -132,6 +132,28 @@ Callers can set `include_held = FALSE` to keep only admitted rows. That keeps
 the four Gaussian wrapper targets and Poisson formal-admission task while
 dropping held-smoke and diagnostic-only count rows.
 
+## Slice 1818 Correlation-Block Workflow Plan
+
+Slice 1818 adds `phase18_correlation_block_workflow_plan()`. The helper filters
+the registry to `workflow_lane == "correlation_blocks"`, excludes blocked and
+design-only rows, and adds an explicit `interval_policy` column so residual
+`rho12`, q=2 `corpairs()` rows, and q=4 diagnostic rows cannot be collapsed
+into one interval-ready bucket.
+
+The current correlation-block plan has six rows:
+
+- three `ready_grid` rows routed through `interval_heavy_summary`: Gaussian
+  `mu`/`sigma` q=2 mean-scale covariance, residual `rho12`, and selected
+  bivariate Gaussian q=2 `corpairs()` rows;
+- one structured Gaussian q=2 row marked `needs_wrapper_target` with
+  `workflow_helper = "correlation_block_wrapper"`;
+- two q=4 rows marked `diagnostic_wrapper_target` with
+  `interval_policy = "q4_derived_interval_unavailable"`.
+
+The count labelled q=2/q=4 covariance row is blocked and stays out of the
+plan. Callers can set `include_diagnostic = FALSE` to drop q=4 diagnostic rows
+and keep only direct or layer-specific q=2/residual work.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
