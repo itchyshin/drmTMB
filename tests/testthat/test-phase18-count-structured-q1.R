@@ -510,6 +510,64 @@ test_that("Phase 18 count structured q1 profile trace summary audits traces", {
   expect_true(is.na(animal$min_profile_value))
 })
 
+test_that("Phase 18 count structured q1 profile trace plot builds", {
+  testthat::skip_if_not_installed("ggplot2")
+  source_count_structured_q1()
+
+  trace <- phase18_count_structured_q1_profile_trace_bind_rows(list(
+    data.frame(
+      cell_id = "count_structured_q1_006",
+      replicate = 45L,
+      failure_class = "nonfinite_interval",
+      example_role = "minimum_nonfinite_estimate",
+      profile_pass = "current",
+      profile_parameters = "sd:mu:spatial(1 | site)",
+      profile_level = 0.70,
+      trace_status = "ok",
+      trace_elapsed = 0.2,
+      estimate = 0.10,
+      conf.low = NA_real_,
+      conf.high = 0.4,
+      conf.status = "profile",
+      profile_value = c(0.05, 0.10, 0.20),
+      profile_value_link = log(c(0.05, 0.10, 0.20)),
+      link_estimate = log(0.10),
+      delta_deviance = c(1, 0, 2),
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      cell_id = "count_structured_q1_006",
+      replicate = 45L,
+      failure_class = "nonfinite_interval",
+      example_role = "minimum_nonfinite_estimate",
+      profile_pass = "smaller_ystep",
+      profile_parameters = "sd:mu:spatial(1 | site)",
+      profile_level = 0.70,
+      trace_status = "ok",
+      trace_elapsed = 0.3,
+      estimate = 0.10,
+      conf.low = NA_real_,
+      conf.high = 0.5,
+      conf.status = "profile",
+      profile_value = c(0.04, 0.10, 0.25),
+      profile_value_link = log(c(0.04, 0.10, 0.25)),
+      link_estimate = log(0.10),
+      delta_deviance = c(1.2, 0, 2.4),
+      stringsAsFactors = FALSE
+    )
+  ))
+
+  out <- phase18_plot_count_structured_q1_profile_trace(trace)
+  built <- ggplot2::ggplot_build(out)
+
+  expect_s3_class(out, "ggplot")
+  expect_true(length(built$data) >= 4L)
+  expect_equal(
+    unique(built$plot$labels$x),
+    "Log structured SD profile value"
+  )
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 

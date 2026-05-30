@@ -186,3 +186,17 @@ This summary table is the handoff from raw trace rows to the next visual
 diagnostic. It keeps curve availability separate from interval availability:
 the trace may be `ok` while `conf.low`, `conf.high`, or `conf.status` still
 show why the selected examples stopped the formal-pilot profile gate.
+
+## Slice 1807 Addendum: Trace Plot Helper
+
+`phase18_plot_count_structured_q1_profile_trace()` now turns the selected
+trace rows into a likelihood-ratio diagnostic plot. The x-axis is the log
+structured-SD profile value, which makes the near-boundary traces readable
+without scientific-notation tick labels. The y-axis is `delta_deviance` on a
+sqrt scale, so the 70% cutoff region and the high-tail spikes are visible in
+the same panel. The plot facets by selected example, colours and linetypes the
+current and smaller-`ystep` passes, marks the fitted estimate, and draws the
+70% likelihood-ratio cutoff.
+
+The plot is a curve diagnostic, not an interval-success claim. The summary
+table remains responsible for showing missing lower and upper endpoints.
