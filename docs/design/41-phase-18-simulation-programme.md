@@ -1247,3 +1247,11 @@ errors, and elapsed time by surface before the raw manifest.
      phylogenetic, spatial, animal, `relmat()`, residual `rho12`, q=2
      `corpairs()`, q=4 diagnostic rows, and family-surface admission without
      changing likelihoods or formula grammar.
+223. Slice 1815 adds an executable registry validator in
+     `inst/sim/run/sim_phase18_structured_workflow_registry.R` and exposes
+     `phase18_actions_task_choices()` from the Actions runner. The helper reads
+     the registry CSV, checks required columns, unique lane IDs, admitted status
+     values, workflow lanes, known Actions tasks, and the rule that `blocked`
+     or `design_only` rows must not name an Actions task. It also provides
+     summary and admitted-row filters for the random-slope, structured
+     dependence, correlation-block, and family-surface wrappers that follow.

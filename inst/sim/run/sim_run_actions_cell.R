@@ -1,24 +1,28 @@
+phase18_actions_task_choices <- function() {
+  c(
+    "first_wave_summary",
+    "interval_heavy_summary",
+    "truncated_nbinom2_mu_random_intercept",
+    "proportion_fixed_effect",
+    "bounded_response_mu_random_intercept",
+    "positive_continuous_fixed_effect",
+    "tweedie_fixed_effect",
+    "count_structured_q1",
+    "positive_continuous_mu_random_intercept",
+    "student_mu_random_intercept",
+    "ordinal_fixed_effect",
+    "zero_one_beta_fixed_effect",
+    "poisson_phylo_q1_formal",
+    "nbinom2_phylo_q1_formal"
+  )
+}
+
 phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   opts <- phase18_actions_parse_args(args)
   dry_run <- phase18_actions_bool(opts$dry_run, "dry-run")
   task <- phase18_actions_choice(
     opts$task,
-    c(
-      "first_wave_summary",
-      "interval_heavy_summary",
-      "truncated_nbinom2_mu_random_intercept",
-      "proportion_fixed_effect",
-      "bounded_response_mu_random_intercept",
-      "positive_continuous_fixed_effect",
-      "tweedie_fixed_effect",
-      "count_structured_q1",
-      "positive_continuous_mu_random_intercept",
-      "student_mu_random_intercept",
-      "ordinal_fixed_effect",
-      "zero_one_beta_fixed_effect",
-      "poisson_phylo_q1_formal",
-      "nbinom2_phylo_q1_formal"
-    ),
+    phase18_actions_task_choices(),
     "task"
   )
   output_dir <- opts$output_dir

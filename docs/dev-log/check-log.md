@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Structured Workflow Registry Validator
+
+Goal:
+
+- Make the Phase 18 structured workflow registry executable, so random-slope,
+  structured-dependence, correlation-block, and family-surface wrappers can
+  fail closed before dispatching work.
+
+Actions run:
+
+- Added
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R` with registry path,
+  read, validate, summary, filter, admitted-row, status, and lane helpers.
+- Exposed `phase18_actions_task_choices()` from
+  `inst/sim/run/sim_run_actions_cell.R` so the validator can share the manual
+  Actions task vocabulary.
+- Added focused tests in
+  `tests/testthat/test-phase18-structured-workflow-registry.R`.
+- Updated the Phase 18 structured workflow registry note, Phase 18 programme,
+  roadmap, and after-task report.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-structured-workflow-registry-validator.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+rg -n "structured workflow registry validator|phase18_read_structured_workflow_registry|phase18_validate_structured_workflow_registry|phase18_structured_workflow_registry_summary|phase18_actions_task_choices|Slice 1815" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The first local registry test run exposed two test/helper issues: the test
+  compared integer `anyDuplicated()` output with `FALSE`, and the summary
+  helper asked `aggregate()` to keep empty combinations. The final helper drops
+  empty combinations, the test now expects `0L`, and both focused test suites
+  passed.
+- The stale-reference scan found the intended helper, test, roadmap, and design
+  references for Slice 1815.
+- `git diff --check` was clean.
+- This slice is workflow plumbing only. It does not run simulations, change
+  likelihoods, or promote diagnostic-only, blocked, or design-only surfaces.
+
 ## 2026-05-30 -- Structured Workflow Registry
 
 Goal:
