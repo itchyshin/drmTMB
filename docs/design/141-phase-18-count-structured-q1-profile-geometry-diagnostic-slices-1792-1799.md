@@ -233,3 +233,16 @@ The next diagnostic should therefore split each trace by lower and upper side
 of the fitted estimate before changing profile settings. A wider `parm.range`,
 lower-boundary-specific profile setting, larger recovery grid, or coverage
 claim still needs side-specific support evidence.
+
+## Slice 1811 Addendum: Trace Side Summary
+
+`phase18_count_structured_q1_profile_trace_side_summary()` now implements the
+side-specific split requested by Slice 1810. The helper reports lower-side and
+upper-side profile row counts, profile-value ranges, maximum likelihood-ratio
+distance, cutoff reach, and whether the corresponding interval endpoint is
+present.
+
+On the real selected trace artifact, every lower side failed to reach the 70%
+cutoff and every upper side reached it. This narrows the next question: the
+selected interval failures are lower-side support failures, not failures to
+generate a profile curve.

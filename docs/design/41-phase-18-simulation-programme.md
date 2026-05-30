@@ -1222,3 +1222,10 @@ errors, and elapsed time by surface before the raw manifest.
      diagnostic should split lower-side and upper-side profile support before
      trying a wider `parm.range`, lower-boundary-specific profile setting, larger
      recovery grid, or coverage claim.
+219. Slice 1811 adds the selected-example trace side-summary helper.
+     `phase18_count_structured_q1_profile_trace_side_summary()` reports
+     lower-side and upper-side profile support separately, including side row
+     counts, profile-value ranges, maximum likelihood-ratio distance, cutoff
+     reach, and endpoint presence. On the real selected trace artifact, every
+     lower side failed to reach the 70% cutoff while every upper side reached it;
+     only the nonfinite example had a finite upper endpoint.
