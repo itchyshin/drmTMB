@@ -1921,6 +1921,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1819 | Family-surface admission plan | Done locally: `phase18_family_surface_workflow_plan()` builds the distribution-level admission table from the registry, keeping six admitted grid rows, one smoke-only NB2 `sigma` row, three blocked rows, and one design-only mixed-response row visible with explicit dispatch statuses. |
 | 1820 | Workflow plan bundle | Done locally: `phase18_structured_workflow_plan_bundle()` and `phase18_structured_workflow_plan_counts()` return the four workflow plan tables and a compact count table: random slopes 9 rows, structured dependence 7 rows, correlation blocks 6 rows, and family surfaces 11 rows, with existing-task, wrapper-target, diagnostic, blocked, and design-only counts. |
 | 1821 | Workflow dry-run printers | Done locally: `phase18_format_structured_workflow_bundle_dry_run()` and `phase18_print_structured_workflow_bundle_dry_run()` render the bundle count table plus one table per workflow plan, and the single-plan dry-run helpers print one plan without dispatching simulations, Actions jobs, likelihoods, or status promotions. |
+| 1822 | Random-slope wrapper target | Done locally: `phase18_random_slope_wrapper_target_plan()` isolates the current `random_slope_wrapper` row, `bivariate_gaussian_slope_only`, records the source-test evidence, names `phase18_run_bivariate_gaussian_mu_slope_smoke()` as the required helper, and keeps dispatch blocked until that helper lands. |
 
 ### Pre-Simulation Readiness Slice Map
 

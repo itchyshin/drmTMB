@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Random-Slope Wrapper Target
+
+Goal:
+
+- Turn the remaining random-slope wrapper row into an explicit, fail-closed
+  target plan.
+
+Actions run:
+
+- Added `phase18_random_slope_wrapper_target_plan()` and its source-evidence
+  and required-helper mapping functions to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to verify the
+  bivariate Gaussian slope-only wrapper target remains non-dispatchable until
+  its simulation helper lands.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1822.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-random-slope-wrapper-target.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_wrapper_target_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "target_status", "required_helper", "dispatch_mode")], row.names=FALSE)'
+rg -n "random-slope wrapper target|phase18_random_slope_wrapper_target_plan|phase18_run_bivariate_gaussian_mu_slope_smoke|no_dispatch_until_helper_lands|Slice 1822" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-random-slope-wrapper-target.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed wrapper target plan has one row,
+  `bivariate_gaussian_slope_only`, with `target_status =
+  "needs_simulation_helper"` and `dispatch_mode =
+  "no_dispatch_until_helper_lands"`.
+- The reference scan found the new helper, test, Slice 1822 design note,
+  roadmap row, check-log entry, and after-task report.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Workflow Dry-Run Printers
 
 Goal:

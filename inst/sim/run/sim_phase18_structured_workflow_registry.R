@@ -257,6 +257,48 @@ phase18_random_slope_workflow_plan <- function(
   )]
 }
 
+phase18_random_slope_wrapper_target_plan <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  plan <- phase18_random_slope_workflow_plan(registry)
+  targets <- plan[
+    plan$workflow_helper == "random_slope_wrapper",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(targets) == 0L) {
+    return(phase18_empty_random_slope_wrapper_target_plan())
+  }
+
+  targets$target_status <- "needs_simulation_helper"
+  targets$source_evidence <- phase18_random_slope_wrapper_source_evidence(
+    targets$lane_id
+  )
+  targets$required_helper <- phase18_random_slope_wrapper_required_helper(
+    targets$lane_id
+  )
+  targets$dispatch_mode <- "no_dispatch_until_helper_lands"
+  row.names(targets) <- NULL
+  targets[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "dispatch_status",
+    "target_status",
+    "actions_task",
+    "workflow_helper",
+    "required_helper",
+    "source_evidence",
+    "dispatch_mode",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_structured_dependence_workflow_plan <- function(
   registry = phase18_read_structured_workflow_registry(),
   include_held = TRUE
@@ -787,6 +829,28 @@ phase18_empty_random_slope_workflow_plan <- function() {
   )
 }
 
+phase18_empty_random_slope_wrapper_target_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    dispatch_status = character(),
+    target_status = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    required_helper = character(),
+    source_evidence = character(),
+    dispatch_mode = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_family_surface_admission_category <- function(admission_status) {
   category <- rep(NA_character_, length(admission_status))
   category[
@@ -1079,6 +1143,40 @@ phase18_random_slope_audit_focus <- function(admission_status) {
     )
   }
   focus
+}
+
+phase18_random_slope_wrapper_source_evidence <- function(lane_id) {
+  evidence <- rep(NA_character_, length(lane_id))
+  evidence[lane_id == "bivariate_gaussian_slope_only"] <- paste(
+    "tests/testthat/test-biv-gaussian.R:",
+    "matching mu1/mu2 slope-only covariance block source test"
+  )
+  unknown <- is.na(evidence)
+  if (any(unknown)) {
+    stop(
+      "Random-slope wrapper has unknown target rows: ",
+      paste(unique(lane_id[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  evidence
+}
+
+phase18_random_slope_wrapper_required_helper <- function(lane_id) {
+  helper <- rep(NA_character_, length(lane_id))
+  helper[lane_id == "bivariate_gaussian_slope_only"] <-
+    "phase18_run_bivariate_gaussian_mu_slope_smoke()"
+  unknown <- is.na(helper)
+  if (any(unknown)) {
+    stop(
+      "Random-slope wrapper has unknown target rows: ",
+      paste(unique(lane_id[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  helper
 }
 
 phase18_structured_workflow_required_columns <- function() {

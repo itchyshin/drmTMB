@@ -1292,3 +1292,9 @@ errors, and elapsed time by surface before the raw manifest.
      plan rows from the registry-derived bundle, while explicitly stating that
      no simulations, GitHub Actions jobs, likelihoods, or status promotions are
      dispatched.
+230. Slice 1822 adds `phase18_random_slope_wrapper_target_plan()`, which
+     isolates the one current random-slope wrapper target:
+     `bivariate_gaussian_slope_only`. It records the source-test evidence and
+     required future helper,
+     `phase18_run_bivariate_gaussian_mu_slope_smoke()`, while keeping dispatch
+     mode at `no_dispatch_until_helper_lands`.

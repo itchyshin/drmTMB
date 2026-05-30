@@ -243,6 +243,27 @@ test_that("Phase 18 random-slope workflow plan can omit needed targets", {
   expect_false(any(is.na(plan$actions_task)))
 })
 
+test_that("Phase 18 random-slope wrapper target plan fails closed", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  targets <- env$phase18_random_slope_wrapper_target_plan(registry)
+
+  expect_equal(nrow(targets), 1L)
+  expect_equal(targets$lane_id, "bivariate_gaussian_slope_only")
+  expect_equal(targets$target_status, "needs_simulation_helper")
+  expect_equal(targets$dispatch_mode, "no_dispatch_until_helper_lands")
+  expect_equal(
+    targets$required_helper,
+    "phase18_run_bivariate_gaussian_mu_slope_smoke()"
+  )
+  expect_match(targets$source_evidence, "test-biv-gaussian", fixed = TRUE)
+  expect_true(is.na(targets$actions_task))
+})
+
 test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
