@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Bivariate Gaussian Slope Actions Task
+
+Goal:
+
+- Wire the bivariate Gaussian `mu1`/`mu2` slope-only grid writer into the
+  manual Phase 18 GitHub Actions runner.
+
+Actions run:
+
+- Added the manual-only `biv_gaussian_mu_slope` task to
+  `phase18_actions_task_choices()`, the Actions runner task dispatch, task
+  dependency sourcing, and the workflow dispatch option/matrix.
+- Promoted the `bivariate_gaussian_slope_only` registry row from
+  `needed:random_slope_wrapper` to `biv_gaussian_mu_slope`.
+- Updated the focused Actions runner and structured workflow registry tests to
+  expect nine random-slope rows with non-none Actions routing and zero
+  random-slope wrapper targets.
+- Added a mocked non-dry-run Actions runner regression to prove
+  `phase18_actions_main()` dispatches to
+  `phase18_write_biv_gaussian_mu_slope_grid_outputs()` and saves
+  `phase18-actions-result.rds`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R .github/workflows/phase18-simulation-grid.yaml inst/sim/registry/phase18_structured_workflow_registry.csv tests/testthat/test-phase18-structured-workflow-registry.R inst/sim/README.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-biv-gaussian-slope-actions-task.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=biv_gaussian_mu_slope --n-reps=1 --master-seed=237 --dry-run=true
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R','tests/testthat/test-phase18-actions-runner.R','tests/testthat/test-phase18-structured-workflow-registry.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+git diff --check
+```
+
+Results:
+
+- The focused Actions runner tests passed with `biv_gaussian_mu_slope` accepted
+  in dry-run mode, dependency sourcing checked, mocked non-dry-run dispatch
+  checked, and the workflow matrix entry verified.
+- The focused structured workflow registry tests passed with the random-slope
+  plan at nine rows with non-none Actions routing and zero wrapper targets.
+- The direct `biv_gaussian_mu_slope` dry-run printed the expected task plan.
+- The parse check passed for the runner and focused tests.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Bivariate Gaussian Slope Grid Writer
 
 Goal:

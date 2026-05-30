@@ -205,7 +205,7 @@ test_that("Phase 18 random-slope workflow plan returns admitted rows", {
   expect_true(all(nzchar(plan$audit_focus)))
 })
 
-test_that("Phase 18 random-slope workflow plan separates needed targets", {
+test_that("Phase 18 random-slope workflow plan dispatches the bivariate slope task", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
 
@@ -213,20 +213,20 @@ test_that("Phase 18 random-slope workflow plan separates needed targets", {
     path = phase18_structured_workflow_registry_csv()
   )
   plan <- env$phase18_random_slope_workflow_plan(registry)
-  needed <- plan$lane_id == "bivariate_gaussian_slope_only"
+  bivariate <- plan$lane_id == "bivariate_gaussian_slope_only"
 
-  expect_true(any(needed))
-  expect_equal(plan$dispatch_status[needed], "needs_wrapper_target")
-  expect_equal(plan$workflow_helper[needed], "random_slope_wrapper")
-  expect_true(is.na(plan$actions_task[needed]))
+  expect_true(any(bivariate))
+  expect_equal(plan$dispatch_status[bivariate], "ready_existing_task")
+  expect_equal(plan$workflow_helper[bivariate], "phase18_actions_main")
+  expect_equal(plan$actions_task[bivariate], "biv_gaussian_mu_slope")
   expect_true(all(
-    plan$dispatch_status[!needed] %in%
+    plan$dispatch_status[!bivariate] %in%
       c("ready_existing_task", "source_test_audit")
   ))
-  expect_false(any(is.na(plan$actions_task[!needed])))
+  expect_false(any(is.na(plan$actions_task)))
 })
 
-test_that("Phase 18 random-slope workflow plan can omit needed targets", {
+test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
 
@@ -238,12 +238,12 @@ test_that("Phase 18 random-slope workflow plan can omit needed targets", {
     include_needed = FALSE
   )
 
-  expect_equal(nrow(plan), 8L)
-  expect_false("bivariate_gaussian_slope_only" %in% plan$lane_id)
+  expect_equal(nrow(plan), 9L)
+  expect_true("bivariate_gaussian_slope_only" %in% plan$lane_id)
   expect_false(any(is.na(plan$actions_task)))
 })
 
-test_that("Phase 18 random-slope wrapper target plan fails closed", {
+test_that("Phase 18 random-slope wrapper target plan is empty after wiring", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
 
@@ -252,20 +252,8 @@ test_that("Phase 18 random-slope wrapper target plan fails closed", {
   )
   targets <- env$phase18_random_slope_wrapper_target_plan(registry)
 
-  expect_equal(nrow(targets), 1L)
-  expect_equal(targets$lane_id, "bivariate_gaussian_slope_only")
-  expect_equal(targets$target_status, "grid_writer_available")
-  expect_equal(targets$dispatch_mode, "local_artifacts_not_actions")
-  expect_equal(
-    targets$required_helper,
-    "phase18_run_bivariate_gaussian_mu_slope_smoke()"
-  )
-  expect_equal(
-    targets$artifact_writer,
-    "phase18_write_biv_gaussian_mu_slope_grid_outputs()"
-  )
-  expect_match(targets$source_evidence, "test-biv-gaussian", fixed = TRUE)
-  expect_true(is.na(targets$actions_task))
+  expect_equal(nrow(targets), 0L)
+  expect_true("artifact_writer" %in% names(targets))
 })
 
 test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
@@ -605,7 +593,8 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$existing_actions_tasks[family], 7L)
   expect_equal(counts$blocked[family], 3L)
   expect_equal(counts$design_only[family], 1L)
-  expect_equal(counts$wrapper_targets[random], 1L)
+  expect_equal(counts$existing_actions_tasks[random], 9L)
+  expect_equal(counts$wrapper_targets[random], 0L)
   expect_equal(counts$wrapper_targets[structured], 4L)
   expect_equal(counts$wrapper_targets[correlation], 3L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
@@ -646,6 +635,6 @@ test_that("Phase 18 structured workflow dry-run prints plan status", {
   text <- paste(out, collapse = "\n")
 
   expect_match(text, "Plan: random_slopes", fixed = TRUE)
-  expect_match(text, "needs_wrapper_target", fixed = TRUE)
+  expect_match(text, "ready_existing_task", fixed = TRUE)
   expect_match(text, "phase18_actions_main", fixed = TRUE)
 })

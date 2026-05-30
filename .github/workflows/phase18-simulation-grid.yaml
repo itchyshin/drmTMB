@@ -20,6 +20,7 @@ on:
           - student_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
+          - biv_gaussian_mu_slope
           - poisson_phylo_q1_formal
           - nbinom2_phylo_q1_formal
       n_reps:
@@ -159,6 +160,9 @@ jobs:
             include_in_all: false
           - task: zero_one_beta_fixed_effect
             seed: 20260536
+            include_in_all: false
+          - task: biv_gaussian_mu_slope
+            seed: 20260603
             include_in_all: false
           - task: poisson_phylo_q1_formal
             seed: 20260601
