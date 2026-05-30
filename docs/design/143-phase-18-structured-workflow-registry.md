@@ -211,6 +211,22 @@ GitHub Actions jobs, likelihoods, or status promotions are dispatched. It is a
 pre-dispatch status view for Ada and Grace, not evidence that a model row has
 been run.
 
+## Slice 1822 Random-Slope Wrapper Target
+
+Slice 1822 adds `phase18_random_slope_wrapper_target_plan()`. The helper
+extracts random-slope rows whose `workflow_helper` is `random_slope_wrapper`
+and labels them as wrapper targets rather than dispatchable Actions rows.
+
+The current target plan has one row:
+
+| Lane | Target status | Required helper | Dispatch mode |
+| --- | --- | --- | --- |
+| `bivariate_gaussian_slope_only` | `needs_simulation_helper` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `no_dispatch_until_helper_lands` |
+
+This keeps the matching bivariate Gaussian `mu1`/`mu2` slope-only source test
+visible, but prevents Ada or Grace from dispatching it through Actions until a
+dedicated simulation helper and artifact path exist.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
