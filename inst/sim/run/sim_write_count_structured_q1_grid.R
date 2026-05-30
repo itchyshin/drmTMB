@@ -1168,6 +1168,96 @@ phase18_write_count_structured_q1_profile_trace_plan <- function(
   )
 }
 
+phase18_count_structured_q1_profile_trace_result <- function(
+  fit,
+  plan_row,
+  profile_fun = stats::profile
+) {
+  if (!inherits(fit, "drmTMB")) {
+    stop("`fit` must be a drmTMB object.", call. = FALSE)
+  }
+  phase18_assert_one_row_data_frame(plan_row, "plan_row")
+  phase18_assert_summary_columns(
+    plan_row,
+    c(
+      "cell_id",
+      "replicate",
+      "seed",
+      "profile_pass",
+      "profile_parameters",
+      "profile_level",
+      "ystep"
+    )
+  )
+  phase18_assert_function(profile_fun, "profile_fun")
+
+  started <- proc.time()[["elapsed"]]
+  prof <- tryCatch(
+    profile_fun(
+      fit,
+      parm = plan_row$profile_parameters[[1L]],
+      level = plan_row$profile_level[[1L]],
+      ystep = plan_row$ystep[[1L]]
+    ),
+    error = function(e) e
+  )
+  elapsed <- proc.time()[["elapsed"]] - started
+  metadata <- phase18_count_structured_q1_profile_trace_metadata(
+    plan_row,
+    elapsed = elapsed
+  )
+
+  if (inherits(prof, "error")) {
+    metadata$trace_status <- "failed"
+    metadata$trace_message <- conditionMessage(prof)
+    return(metadata)
+  }
+  trace <- as.data.frame(prof)
+  if (nrow(trace) == 0L) {
+    metadata$trace_status <- "failed"
+    metadata$trace_message <- "profile trace returned no rows"
+    return(metadata)
+  }
+
+  metadata$trace_status <- "ok"
+  metadata$trace_message <- ""
+  out <- cbind(
+    metadata[rep(1L, nrow(trace)), , drop = FALSE],
+    trace,
+    stringsAsFactors = FALSE
+  )
+  row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_profile_trace_metadata <- function(
+  plan_row,
+  elapsed
+) {
+  optional <- c("failure_class", "example_role", "cell_index")
+  for (name in optional) {
+    if (!name %in% names(plan_row)) {
+      plan_row[[name]] <- NA
+    }
+  }
+  data.frame(
+    cell_id = plan_row$cell_id[[1L]],
+    replicate = as.integer(plan_row$replicate[[1L]]),
+    seed = as.integer(plan_row$seed[[1L]]),
+    failure_class = plan_row$failure_class[[1L]],
+    example_role = plan_row$example_role[[1L]],
+    cell_index = as.integer(plan_row$cell_index[[1L]]),
+    profile_pass = plan_row$profile_pass[[1L]],
+    profile_parameters = plan_row$profile_parameters[[1L]],
+    profile_level = as.numeric(plan_row$profile_level[[1L]]),
+    ystep = as.numeric(plan_row$ystep[[1L]]),
+    trace_status = NA_character_,
+    trace_message = NA_character_,
+    trace_elapsed = as.numeric(elapsed),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_count_structured_q1_profile_failure_class <- function(message) {
   message <- as.character(message)
   out <- rep("other_profile_failure", length(message))

@@ -1158,3 +1158,9 @@ errors, and elapsed time by surface before the raw manifest.
      overwrite an existing table unless requested. This creates a stable input
      artifact for the selected-example rerun helper without changing profile
      settings or running profiles.
+210. Slice 1802 adds the per-row profile-trace result wrapper.
+     `phase18_count_structured_q1_profile_trace_result()` takes one plan row and
+     a profile function, appends plan metadata to successful profile rows, and
+     returns a one-row failure record if profiling errors or returns no rows.
+     The focused tests inject fake profile functions, so this slice tests the
+     result contract without running expensive selected-example profiles.

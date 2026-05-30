@@ -107,3 +107,16 @@ to `tables/count-structured-q1-profile-trace-plan.csv` with overwrite
 protection. The CSV is the planned input for a selected-example rerun helper.
 It is intentionally separate from the main grid artifact manifest because it
 does not summarize a simulation run.
+
+## Slice 1802 Addendum: Trace Result Contract
+
+`phase18_count_structured_q1_profile_trace_result()` now defines the per-row
+result contract for the selected-example rerun. A successful profile call
+returns the profile rows with plan metadata attached: cell id, replicate, seed,
+example role, profile pass, profile target, confidence level, `ystep`, status,
+message, and elapsed time. A failed profile call returns one metadata row with
+`trace_status = "failed"` and the profile error message.
+
+The tests inject fake profile functions, so this addendum verifies the result
+shape without spending CI time on the selected formal-pilot examples. The next
+slice can connect this wrapper to the DGP/fit rerun.

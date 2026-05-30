@@ -143,6 +143,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1792-1799 | Done locally as profile geometry diagnostic note | `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md` records the profile-failure evidence and defines a selected-example profile-trace diagnostic before any profile-setting change or larger recovery grid. |
 | 1800 | Done locally as selected profile-trace plan | `phase18_count_structured_q1_profile_trace_plan()` builds a six-row plan for the three selected formal-pilot examples under current and smaller-`ystep` passes, using exact artifact seeds from run `26669005577`. |
 | 1801 | Done locally as profile-trace plan writer | `phase18_write_count_structured_q1_profile_trace_plan()` writes the selected-example plan to `tables/count-structured-q1-profile-trace-plan.csv` with overwrite protection. |
+| 1802 | Done locally as profile-trace result wrapper | `phase18_count_structured_q1_profile_trace_result()` wraps one plan row and a profile function, returning metadata-rich trace rows or a one-row failure record. |
 
 ## Next Implementation Gate
 
