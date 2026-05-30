@@ -211,6 +211,39 @@ test_that("Phase 18 count structured q1 follow-up conditions split pilot roles",
   expect_equal(unique(all_conditions$pilot_source_run), "26631771105")
 })
 
+test_that("Phase 18 count structured q1 profile trace plan uses selected examples", {
+  source_count_structured_q1()
+
+  plan <- phase18_count_structured_q1_profile_trace_plan()
+
+  expect_equal(nrow(plan), 6L)
+  expect_equal(
+    unique(plan$cell_id),
+    c(
+      "count_structured_q1_006",
+      "count_structured_q1_003",
+      "count_structured_q1_001"
+    )
+  )
+  expect_equal(
+    unique(plan$example_role),
+    c(
+      "minimum_nonfinite_estimate",
+      "minimum_crossing_estimate",
+      "larger_crossing_estimate"
+    )
+  )
+  expect_true(all(!is.na(plan$seed)))
+  expect_equal(
+    unique(plan$seed),
+    c(932584520L, 461195966L, 32713190L)
+  )
+  expect_equal(unique(plan$profile_parameters), "log_sd_phylo")
+  expect_equal(unique(plan$profile_level), 0.70)
+  expect_equal(sort(unique(plan$ystep)), c(0.25, 0.50))
+  expect_equal(unique(plan$profile_pass), c("current", "smaller_ystep"))
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 
