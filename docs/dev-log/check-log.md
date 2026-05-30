@@ -45990,3 +45990,68 @@ Member-group review:
   readiness helper while Bohr prepared the correlation-block wrapper helper and
   Ampere prepared family-surface status tables. Russell later audited the
   combined bundle before PR staging.
+
+## 2026-05-30 - Four-week Phase 6c sprint and Twin/Sister Exchange scaffold
+
+Goal:
+
+- Turn the accepted four-week random-slope and digital-twin exchange plan into
+  GitHub issues, a repo-visible sprint note, a first daily scout log, and a
+  reconciled Phase 6c roadmap pointer.
+
+Changes:
+
+- Created parent issue #436 and child issues #437-#444 for the sprint lanes:
+  digital-twin exchange, support-matrix refresh, Gaussian closeout, bivariate
+  slope gate, non-Gaussian slope admission, structured one-slope audit,
+  coscale boundary, and tutorial/release ledger.
+- Commented on #33 and #128 so the new sprint epic stays linked to the older
+  Phase 6c and random-effect-capacity trackers.
+- Added `docs/design/80-four-week-random-slope-digital-twin-sprint.md` with
+  the sprint issue map, current status matrix, exchange protocol, and
+  provenance guardrails.
+- Added `docs/dev-log/twin-sister-exchange.md` with the first scout cards for
+  `DRM.jl`, `GLLVM.jl`, `gllvmTMB`, a secondary local checkout path for
+  `GLLVM.jl`, and `gllvmTMB-julia-bench`.
+- Left sibling-package comments where the scout found concrete documentation
+  drift: `DRM.jl` #1 for the `meta_V()` / deprecated `meta_known_V()`
+  mismatch and `GLLVM.jl` #14 for stale test-command guidance. The maintainer
+  corrections were mirrored back into the local log: `meta_known_V()` is
+  deprecated, and there is no separate package called `gllvmTMB.jl`.
+- Updated `ROADMAP.md` so the Phase 6c section links #436-#444 and no longer
+  says `phylo(1 + x | species, tree = tree)` does not fit in the current
+  structured one-slope status.
+
+Validation:
+
+```sh
+git status --short --branch
+gh issue list --repo itchyshin/drmTMB --limit 80 --state open --json number,title,labels,url
+gh issue list --repo itchyshin/drmTMB --limit 20 --state open --search "Phase 6c" --json number,title,url
+rg -n "gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl|meta_known_V\\(\\) is the current|meta_known_V\\(\\) is deprecated" docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/dev-log/twin-sister-exchange.md ROADMAP.md
+rg -n "phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylogenetic slopes and richer structured-slope paths remain later" ROADMAP.md docs/design docs/dev-log/known-limitations.md README.md vignettes -g '!docs/pkgdown/**'
+git diff --check
+```
+
+Results:
+
+- The issue scaffold exists as #436-#444, with #436 linked to #33, #128, and
+  the relevant release/simulation/diagnostic issues.
+- The first `rg` scan now finds only the deliberately documented local path
+  correction for the secondary `GLLVM.jl` checkout and the explicit
+  `meta_known_V()` deprecation statement in the scout log.
+- The stale `phylo(1 + x | species, tree = tree)` current-status scan returned
+  no current roadmap/design hits.
+- `git diff --check` passed.
+- No R tests were run because this slice changed roadmap/dev-log/design prose
+  and GitHub issues only; no package code, roxygen, or examples changed.
+
+Member-group review:
+
+- Ada kept the sprint issue set tied to existing trackers instead of replacing
+  #33 or #128.
+- Rose caught and routed the stale Phase 6c roadmap contradiction.
+- Boole accepted the maintainer correction that `meta_V(V = V)` is current and
+  `meta_known_V()` is deprecated.
+- Jason/Gibbs ran the first sibling-package scout and left concrete outbound
+  comments only where evidence existed.

@@ -600,6 +600,12 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 ## Phase 6c: Random Slopes and Structured-Slope Examples
 
 - Tracking issue: [#33](https://github.com/itchyshin/drmTMB/issues/33).
+  Four-week sprint epic:
+  [#436](https://github.com/itchyshin/drmTMB/issues/436), with child issues
+  [#437](https://github.com/itchyshin/drmTMB/issues/437)-[#444](https://github.com/itchyshin/drmTMB/issues/444)
+  for the digital-twin exchange, support-matrix refresh, Gaussian closeout,
+  bivariate slope gate, non-Gaussian slope admission, structured one-slope
+  audit, coscale boundary, and tutorial/release ledger.
 - Treat Phase 6c as the random-slope bridge between the Phase 6 inference work,
   the Phase 6b tutorial layer, and the later Phase 10-12 structural-dependence
   programmes. It does not replace the later bivariate covariance programme; it
@@ -639,15 +645,19 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   unstructured numeric multi-slope `mu` blocks, residual-scale random
   intercepts and independent residual-scale slopes, matching labelled
   `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
-  unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
-  slope is now implemented in Phase 10; phylogenetic slopes and richer
-  structured-slope paths remain later work for Phases 10 and 12.
+  unlabelled Gaussian `mu` random intercepts. Later structured slices also
+  fitted the first coordinate-spatial, phylogenetic, animal-model, and
+  `relmat()` one-slope `mu` paths as independent intercept and slope fields;
+  richer structured-slope paths remain later work for Phases 10 and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
   `mu` block path, with q=3 recovery and extractor coverage. Larger ordinary
   blocks remain advanced, sample-size hungry fits. Structured random slopes
-  are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)` now
-  fits the first coordinate spatial one-slope `mu` path, but
-  `phylo(1 + x | species, tree = tree)` still does not fit.
+  are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)`,
+  `phylo(1 + x | species, tree = tree)`,
+  `animal(1 + x | id, pedigree = pedigree)`, and
+  `relmat(1 + x | id, K = K)` now fit the first univariate Gaussian
+  one-slope `mu` paths, while multiple structured slopes, structured
+  residual-scale slopes, and slope correlations remain planned.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
