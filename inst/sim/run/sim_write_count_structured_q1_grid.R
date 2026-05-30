@@ -226,6 +226,10 @@ phase18_audit_count_structured_q1_profile_gate <- function(
     watch_cells = watch_cells,
     watch_failure_rate_limit = watch_failure_rate_limit
   )
+  gate$failure_summary <- phase18_count_structured_q1_attach_example_result_paths(
+    gate$failure_summary,
+    output_dir
+  )
 
   list(
     surface = "count_structured_q1_profile_gate_audit",
@@ -738,6 +742,34 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
     drop = FALSE
   ]
   row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_attach_example_result_paths <- function(
+  failure_summary,
+  output_dir
+) {
+  if (!is.data.frame(failure_summary) || nrow(failure_summary) == 0L) {
+    return(failure_summary)
+  }
+  if (!all(c("cell_id", "example_replicate") %in% names(failure_summary))) {
+    return(failure_summary)
+  }
+
+  out <- failure_summary
+  replicate <- suppressWarnings(as.integer(out$example_replicate))
+  path <- rep(NA_character_, nrow(out))
+  has_replicate <- !is.na(replicate)
+  path[has_replicate] <- file.path(
+    output_dir,
+    "results",
+    out$cell_id[has_replicate],
+    sprintf("replicate_%04d.rds", replicate[has_replicate])
+  )
+  exists <- !is.na(path) & file.exists(path)
+  path[exists] <- normalizePath(path[exists], mustWork = TRUE)
+  out$example_result_path <- path
+  out$example_result_exists <- exists
   out
 }
 

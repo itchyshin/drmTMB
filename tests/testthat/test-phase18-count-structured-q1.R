@@ -455,13 +455,18 @@ test_that("Phase 18 count structured q1 profile audit reads artifacts", {
   output_dir <- tempfile("phase18-count-structured-q1-profile-audit-")
   withr::defer(unlink(output_dir, recursive = TRUE))
   table_dir <- file.path(output_dir, "tables")
+  result_dir <- file.path(output_dir, "results", "count_structured_q1_001")
   dir.create(table_dir, recursive = TRUE)
+  dir.create(result_dir, recursive = TRUE)
   paths <- phase18_count_structured_q1_grid_paths(table_dir)
+  result_path <- file.path(result_dir, "replicate_0007.rds")
+  saveRDS(list(surface = "count_structured_q1"), result_path)
   utils::write.csv(
     data.frame(
       cell_id = "count_structured_q1_001",
-      replicate = 1L,
-      interval_status = "ok",
+      replicate = 7L,
+      interval_status = "failed",
+      interval_message = "nonfinite_interval",
       stringsAsFactors = FALSE
     ),
     paths$profile_intervals_csv,
@@ -473,7 +478,12 @@ test_that("Phase 18 count structured q1 profile audit reads artifacts", {
   expect_equal(audit$surface, "count_structured_q1_profile_gate_audit")
   expect_true("replicate_csv" %in% audit$missing_artifacts)
   expect_equal(audit$profile_gate$overall$n_interval, 1L)
-  expect_equal(audit$profile_gate$decision$decision, "propose_next_pilot")
+  expect_equal(audit$profile_gate$decision$decision, "hold_interval_diagnostic")
+  expect_equal(
+    audit$profile_gate$failure_summary$example_result_path,
+    normalizePath(result_path, mustWork = TRUE)
+  )
+  expect_true(audit$profile_gate$failure_summary$example_result_exists)
 })
 
 test_that("Phase 18 count structured q1 boundary gate holds failed pilots", {

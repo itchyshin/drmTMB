@@ -1114,3 +1114,8 @@ errors, and elapsed time by surface before the raw manifest.
      replicate, for example `count_structured_q1_001` nonfinite intervals to
      replicate 14 and `count_structured_q1_001` profile-crossing failures to
      replicate 25. This is diagnostic routing only.
+204. Slice 1789 makes that pointer artifact-aware.
+     `phase18_audit_count_structured_q1_profile_gate()` now attaches
+     `example_result_path` and `example_result_exists` to failure-summary rows.
+     On artifact `26669005577`, all 11 example paths existed, so the next
+     geometry note can load a concrete replicate RDS for each failure class.
