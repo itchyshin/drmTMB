@@ -1109,3 +1109,8 @@ errors, and elapsed time by surface before the raw manifest.
      `26669005577`, the classified summary has 11 rows split between
      `nonfinite_interval` and `profile_crossing_failure`, which is usable
      enough for the next geometry-diagnosis note.
+203. Slice 1788 adds `example_replicate` to each `failure_summary` row. The
+     formal-pilot artifact now points from a failure class to a concrete
+     replicate, for example `count_structured_q1_001` nonfinite intervals to
+     replicate 14 and `count_structured_q1_001` profile-crossing failures to
+     replicate 25. This is diagnostic routing only.

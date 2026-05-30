@@ -653,6 +653,7 @@ test_that("Phase 18 count structured q1 profile gate holds failed intervals", {
     gate$failure_summary$example_interval_message[1],
     "nonfinite_interval"
   )
+  expect_equal(gate$failure_summary$example_replicate[1], 90L)
 })
 
 test_that("Phase 18 count structured q1 profile gate allows clean pilots", {
