@@ -69,11 +69,14 @@ Those reports supersede the original memo wherever they disagree with it.
 ## Conservative Next Work
 
 Good next slices are small, measurable, and compatible with the
-one-response/two-response package contract:
+one-response/two-response package contract. The first local smoke sizing run
+for sparse `phylo()` is recorded in `docs/dev-log/benchmark-results.md`; it
+keeps issue #431 open for row-pressure and API guidance rather than closing
+the design gate.
 
 1. Benchmark current sparse `phylo()` scaling on representative `drmTMB`
-   fixtures, including small dense-parity checks and larger p = 50, 200, and
-   1000 timing cells.
+   fixtures beyond the first p = 50, 200, and 1000 smoke sizing cells,
+   including row-pressure checks and any needed dense-parity checks.
 2. Design `sigma ~ 1` profile-out as an optimizer-geometry proposal, with
    equivalence checks against the current unprofiled likelihood before code
    changes.
