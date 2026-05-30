@@ -517,3 +517,71 @@ test_that("Phase 18 family-surface plan can omit blocked rows", {
   expect_equal(nrow(plan), 7L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
 })
+
+test_that("Phase 18 structured workflow bundle returns all plan tables", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  bundle <- env$phase18_structured_workflow_plan_bundle(registry)
+
+  expect_named(
+    bundle$plans,
+    c(
+      "random_slopes",
+      "structured_dependence",
+      "correlation_blocks",
+      "family_surface"
+    )
+  )
+  expect_s3_class(bundle$registry_summary, "data.frame")
+  expect_s3_class(bundle$plan_counts, "data.frame")
+  expect_equal(
+    bundle$plan_counts$n[
+      match("random_slopes", bundle$plan_counts$workflow_plan)
+    ],
+    9L
+  )
+  expect_equal(
+    bundle$plan_counts$n[
+      match("structured_dependence", bundle$plan_counts$workflow_plan)
+    ],
+    7L
+  )
+  expect_equal(
+    bundle$plan_counts$n[
+      match("correlation_blocks", bundle$plan_counts$workflow_plan)
+    ],
+    6L
+  )
+  expect_equal(
+    bundle$plan_counts$n[
+      match("family_surface", bundle$plan_counts$workflow_plan)
+    ],
+    11L
+  )
+})
+
+test_that("Phase 18 structured workflow bundle counts dispatch states", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  counts <- env$phase18_structured_workflow_plan_bundle(registry)$plan_counts
+  family <- counts$workflow_plan == "family_surface"
+  random <- counts$workflow_plan == "random_slopes"
+  structured <- counts$workflow_plan == "structured_dependence"
+  correlation <- counts$workflow_plan == "correlation_blocks"
+
+  expect_equal(counts$existing_actions_tasks[family], 7L)
+  expect_equal(counts$blocked[family], 3L)
+  expect_equal(counts$design_only[family], 1L)
+  expect_equal(counts$wrapper_targets[random], 1L)
+  expect_equal(counts$wrapper_targets[structured], 4L)
+  expect_equal(counts$wrapper_targets[correlation], 3L)
+  expect_equal(counts$diagnostic_only[correlation], 2L)
+})

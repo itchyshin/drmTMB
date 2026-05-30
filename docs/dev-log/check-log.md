@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Workflow Plan Bundle
+
+Goal:
+
+- Bundle the four structured workflow plans into one object and one compact
+  count table for status reporting and next-slice selection.
+
+Actions run:
+
+- Added `phase18_structured_workflow_plan_bundle()` and
+  `phase18_structured_workflow_plan_counts()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to cover bundle
+  contents and count values.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1820.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-workflow-plan-bundle.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); b<-e$phase18_structured_workflow_plan_bundle(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(b$plan_counts, row.names=FALSE)'
+rg -n "workflow plan bundle|phase18_structured_workflow_plan_bundle|phase18_structured_workflow_plan_counts|Slice 1820|plan_counts" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-workflow-plan-bundle.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed count table reports random slopes 9 rows, structured dependence
+  7 rows, correlation blocks 6 rows, and family surface 11 rows, with expected
+  existing-task, wrapper-target, diagnostic, blocked, and design-only counts.
+- The reference scan found the new helper, tests, Slice 1820 design note,
+  roadmap row, check-log entry, and after-task report.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Family-Surface Admission Plan
 
 Goal:
