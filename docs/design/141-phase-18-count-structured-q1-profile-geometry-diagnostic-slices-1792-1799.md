@@ -99,3 +99,11 @@ smaller `ystep = 0.25` setting. The scaffold uses exact seeds from artifact
 
 This addendum still does not rerun profiles or change settings. It only fixes
 the selected examples and control labels for the next executable helper.
+
+## Slice 1801 Addendum: Trace Plan Table
+
+`phase18_write_count_structured_q1_profile_trace_plan()` now writes the scaffold
+to `tables/count-structured-q1-profile-trace-plan.csv` with overwrite
+protection. The CSV is the planned input for a selected-example rerun helper.
+It is intentionally separate from the main grid artifact manifest because it
+does not summarize a simulation run.

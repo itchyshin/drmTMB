@@ -1151,3 +1151,10 @@ errors, and elapsed time by surface before the raw manifest.
      45 seed 932584520, `count_structured_q1_003` replicate 33 seed 461195966,
      and `count_structured_q1_001` replicate 25 seed 32713190. This is a
      scaffold for a rerun helper, not a profile rerun or settings change.
+209. Slice 1801 adds a small writer for that scaffold.
+     `phase18_write_count_structured_q1_profile_trace_plan()` writes the
+     selected-example plan to
+     `tables/count-structured-q1-profile-trace-plan.csv` and refuses to
+     overwrite an existing table unless requested. This creates a stable input
+     artifact for the selected-example rerun helper without changing profile
+     settings or running profiles.

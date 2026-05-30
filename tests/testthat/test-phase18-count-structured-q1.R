@@ -244,6 +244,28 @@ test_that("Phase 18 count structured q1 profile trace plan uses selected example
   expect_equal(unique(plan$profile_pass), c("current", "smaller_ystep"))
 })
 
+test_that("Phase 18 count structured q1 profile trace plan writes a table", {
+  source_count_structured_q1()
+
+  output_dir <- tempfile("phase18-count-structured-q1-trace-plan-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+
+  out <- phase18_write_count_structured_q1_profile_trace_plan(output_dir)
+  written <- utils::read.csv(out$path)
+
+  expect_equal(out$surface, "count_structured_q1_profile_trace_plan")
+  expect_true(file.exists(out$path))
+  expect_equal(nrow(written), 6L)
+  expect_equal(
+    unique(written$seed),
+    c(932584520L, 461195966L, 32713190L)
+  )
+  expect_error(
+    phase18_write_count_structured_q1_profile_trace_plan(output_dir),
+    "already exists"
+  )
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 
