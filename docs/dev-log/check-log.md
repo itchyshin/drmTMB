@@ -2,6 +2,43 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Workflow Dry-Run Printers
+
+Goal:
+
+- Add read-only dry-run printers for the structured workflow plan bundle and
+  individual workflow plans.
+
+Actions run:
+
+- Added bundle and plan dry-run formatter/printer helpers to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to assert the
+  dry-run bundle and single-plan output.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1821.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-workflow-dry-run-printers.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); b<-e$phase18_structured_workflow_plan_bundle(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); e$phase18_print_structured_workflow_bundle_dry_run(b)'
+rg -n "dry-run printer|phase18_format_structured_workflow_bundle_dry_run|phase18_print_structured_workflow_bundle_dry_run|phase18_format_structured_workflow_plan_dry_run|phase18_print_structured_workflow_plan_dry_run|Slice 1821" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-workflow-dry-run-printers.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The live dry-run output prints the count table and all four plan sections,
+  including wrapper targets, blocked/design rows, and the explicit
+  no-dispatch header.
+- The reference scan found the new helpers, tests, Slice 1821 design note,
+  roadmap row, check-log entry, and after-task report.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Workflow Plan Bundle
 
 Goal:

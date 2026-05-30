@@ -1287,3 +1287,8 @@ errors, and elapsed time by surface before the raw manifest.
      1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
      3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
      7 existing tasks, 3 blocked rows, and 1 design-only row.
+229. Slice 1821 adds dry-run printers for the structured workflow bundle and
+     individual workflow plans. The dry-run output renders the count table and
+     plan rows from the registry-derived bundle, while explicitly stating that
+     no simulations, GitHub Actions jobs, likelihoods, or status promotions are
+     dispatched.

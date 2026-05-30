@@ -585,3 +585,42 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$wrapper_targets[correlation], 3L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
 })
+
+test_that("Phase 18 structured workflow dry-run formats bundle status", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  bundle <- env$phase18_structured_workflow_plan_bundle(registry)
+  lines <- env$phase18_format_structured_workflow_bundle_dry_run(bundle)
+  text <- paste(lines, collapse = "\n")
+
+  expect_match(text, "No simulations, GitHub Actions jobs", fixed = TRUE)
+  expect_match(text, "random_slopes", fixed = TRUE)
+  expect_match(text, "structured_dependence", fixed = TRUE)
+  expect_match(text, "bivariate_gaussian_slope_only", fixed = TRUE)
+  expect_match(text, "blocked_design_required", fixed = TRUE)
+})
+
+test_that("Phase 18 structured workflow dry-run prints plan status", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+  out <- capture.output(
+    env$phase18_print_structured_workflow_plan_dry_run(
+      plan,
+      plan_name = "random_slopes"
+    )
+  )
+  text <- paste(out, collapse = "\n")
+
+  expect_match(text, "Plan: random_slopes", fixed = TRUE)
+  expect_match(text, "needs_wrapper_target", fixed = TRUE)
+  expect_match(text, "phase18_actions_main", fixed = TRUE)
+})

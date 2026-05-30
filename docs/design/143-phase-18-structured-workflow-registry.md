@@ -195,6 +195,22 @@ This table is not a simulation result. It is the executable routing summary
 for deciding which workflow wrapper, artifact audit, or design gate should run
 next.
 
+## Slice 1821 Dry-Run Printers
+
+Slice 1821 adds dry-run formatters and printers for the structured workflow
+plan bundle. `phase18_format_structured_workflow_bundle_dry_run()` returns a
+character vector with the bundle count table and one compact table per workflow
+plan. `phase18_print_structured_workflow_bundle_dry_run()` writes those lines
+to the console or a file and returns them invisibly. The single-plan helpers
+`phase18_format_structured_workflow_plan_dry_run()` and
+`phase18_print_structured_workflow_plan_dry_run()` use the same table
+formatter.
+
+The printer is intentionally read-only. Its header says that no simulations,
+GitHub Actions jobs, likelihoods, or status promotions are dispatched. It is a
+pre-dispatch status view for Ada and Grace, not evidence that a model row has
+been run.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
