@@ -1307,3 +1307,9 @@ errors, and elapsed time by surface before the raw manifest.
      scales, residual `rho12`, random-slope SDs, and the slope-slope
      correlation, and keep the workflow target local-only until a grid writer
      and Actions task are added.
+232. Slice 1824 adds `phase18_write_biv_gaussian_mu_slope_grid_outputs()`,
+     which writes aggregate, replicate-level, manifest, and failure-ledger CSV
+     artifacts for the same bivariate Gaussian `mu1`/`mu2` slope-only surface.
+     The random-slope wrapper target is promoted only to
+     `grid_writer_available` with `local_artifacts_not_actions`; no manual
+     Actions task or coverage claim is added in this slice.

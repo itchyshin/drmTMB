@@ -254,11 +254,15 @@ test_that("Phase 18 random-slope wrapper target plan fails closed", {
 
   expect_equal(nrow(targets), 1L)
   expect_equal(targets$lane_id, "bivariate_gaussian_slope_only")
-  expect_equal(targets$target_status, "smoke_helper_available")
-  expect_equal(targets$dispatch_mode, "local_helper_not_actions")
+  expect_equal(targets$target_status, "grid_writer_available")
+  expect_equal(targets$dispatch_mode, "local_artifacts_not_actions")
   expect_equal(
     targets$required_helper,
     "phase18_run_bivariate_gaussian_mu_slope_smoke()"
+  )
+  expect_equal(
+    targets$artifact_writer,
+    "phase18_write_biv_gaussian_mu_slope_grid_outputs()"
   )
   expect_match(targets$source_evidence, "test-biv-gaussian", fixed = TRUE)
   expect_true(is.na(targets$actions_task))
