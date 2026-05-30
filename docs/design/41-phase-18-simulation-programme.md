@@ -1329,3 +1329,9 @@ errors, and elapsed time by surface before the raw manifest.
      `pdHess = TRUE` and zero warnings, and the failure ledger was empty. The
      task remains opt-in and excluded from `task = "all"`; this pilot is
      dispatch and artifact evidence, not a recovery or coverage claim.
+235. Slice 1827 adds read-only workflow status helpers for the remaining
+     planning surfaces: structured-dependence wrapper-target readiness,
+     correlation-block wrapper targets, and family-surface registry status
+     tables. These helpers summarize registry/planning state only. They do not
+     run models, write artifacts, dispatch Actions jobs, promote rows, or make
+     recovery or coverage claims.

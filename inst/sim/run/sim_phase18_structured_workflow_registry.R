@@ -456,6 +456,53 @@ phase18_correlation_block_workflow_plan <- function(
   )]
 }
 
+phase18_correlation_block_wrapper_target_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_diagnostic = TRUE
+) {
+  plan <- phase18_correlation_block_workflow_plan(
+    registry = registry,
+    include_diagnostic = include_diagnostic
+  )
+  targets <- plan[
+    plan$workflow_helper %in% "correlation_block_wrapper",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(targets) == 0L) {
+    return(phase18_empty_correlation_block_wrapper_target_plan())
+  }
+
+  targets$target_status <- phase18_correlation_block_wrapper_target_status(
+    dispatch_status = targets$dispatch_status,
+    interval_policy = targets$interval_policy
+  )
+  targets$required_evidence <- phase18_correlation_block_wrapper_evidence(
+    interval_policy = targets$interval_policy
+  )
+  targets$dispatch_mode <- "read_only_no_models_or_actions"
+  row.names(targets) <- NULL
+  targets[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "dispatch_status",
+    "target_status",
+    "interval_policy",
+    "actions_task",
+    "workflow_helper",
+    "required_evidence",
+    "dispatch_mode",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_family_surface_workflow_plan <- function(
   registry = phase18_read_structured_workflow_registry(),
   include_blocked = TRUE
@@ -527,6 +574,108 @@ phase18_family_surface_workflow_plan <- function(
     "next_autonomous_action",
     "supervision_boundary"
   )]
+}
+
+phase18_family_surface_status_tables <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_blocked = TRUE
+) {
+  plan <- phase18_family_surface_workflow_plan(
+    registry = registry,
+    include_blocked = include_blocked
+  )
+  row_summary <- phase18_family_surface_row_status_summary(plan)
+
+  list(
+    row_summary = row_summary,
+    category_summary = phase18_family_surface_status_count_summary(
+      row_summary,
+      by = c(
+        "admission_category",
+        "admission_status",
+        "dispatch_status"
+      )
+    ),
+    distribution_summary = phase18_family_surface_status_count_summary(
+      row_summary,
+      by = c(
+        "family_group",
+        "family_route",
+        "admission_category",
+        "admission_status"
+      )
+    )
+  )
+}
+
+phase18_family_surface_row_status_summary <- function(plan) {
+  phase18_assert_structured_workflow_plan(plan)
+  row_columns <- c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "admission_category",
+    "dispatch_status",
+    "actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )
+  missing <- setdiff(row_columns, names(plan))
+  if (length(missing) > 0L) {
+    stop(
+      "`plan` is missing family-surface status columns: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  summary <- plan[row_columns]
+  summary$status_scope <- rep("registry_status_only", nrow(summary))
+  row.names(summary) <- NULL
+  summary
+}
+
+phase18_family_surface_status_count_summary <- function(rows, by) {
+  if (!is.data.frame(rows)) {
+    stop("`rows` must be a data frame.", call. = FALSE)
+  }
+  missing <- setdiff(by, names(rows))
+  if (length(missing) > 0L) {
+    stop(
+      "`by` contains unknown columns: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  if (nrow(rows) == 0L) {
+    out <- as.data.frame(
+      stats::setNames(
+        replicate(length(by), character(), simplify = FALSE),
+        by
+      ),
+      stringsAsFactors = FALSE
+    )
+    out$n <- integer()
+    out$status_scope <- character()
+    return(out)
+  }
+
+  rows$.n <- 1L
+  summary <- aggregate(
+    rows[".n"],
+    rows[by],
+    sum
+  )
+  names(summary)[names(summary) == ".n"] <- "n"
+  summary$status_scope <- "registry_status_only"
+  row.names(summary) <- NULL
+  summary[do.call(order, summary[by]), , drop = FALSE]
 }
 
 phase18_structured_workflow_plan_bundle <- function(
@@ -796,6 +945,29 @@ phase18_empty_correlation_block_workflow_plan <- function() {
   )
 }
 
+phase18_empty_correlation_block_wrapper_target_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    dispatch_status = character(),
+    target_status = character(),
+    interval_policy = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    required_evidence = character(),
+    dispatch_mode = character(),
+    audit_focus = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_empty_structured_dependence_workflow_plan <- function() {
   data.frame(
     lane_id = character(),
@@ -1045,6 +1217,38 @@ phase18_correlation_block_audit_focus <- function(
     )
   }
   focus
+}
+
+phase18_correlation_block_wrapper_target_status <- function(
+  dispatch_status,
+  interval_policy
+) {
+  status <- rep("status_only_wrapper_target", length(dispatch_status))
+  status[
+    dispatch_status == "needs_wrapper_target" &
+      interval_policy == "direct_or_layer_specific_q2"
+  ] <- "q2_interval_provenance_needed"
+  status[
+    dispatch_status == "diagnostic_wrapper_target" &
+      interval_policy == "q4_derived_interval_unavailable"
+  ] <- "q4_diagnostic_only"
+  status
+}
+
+phase18_correlation_block_wrapper_evidence <- function(interval_policy) {
+  evidence <- rep(
+    "Audit direct interval targets before profile or bootstrap work.",
+    length(interval_policy)
+  )
+  evidence[interval_policy == "direct_or_layer_specific_q2"] <- paste(
+    "Layer-specific q=2 interval provenance and artifact audit are needed",
+    "before dispatch."
+  )
+  evidence[interval_policy == "q4_derived_interval_unavailable"] <- paste(
+    "Point-estimate diagnostics may be reported; derived q=4 intervals",
+    "remain unavailable."
+  )
+  evidence
 }
 
 phase18_structured_dependence_dispatch_status <- function(
