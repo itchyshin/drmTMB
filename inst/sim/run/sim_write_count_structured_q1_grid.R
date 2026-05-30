@@ -1216,8 +1216,10 @@ phase18_write_count_structured_q1_profile_trace_run <- function(
     fit_fun = fit_fun,
     profile_fun = profile_fun
   )
+  summary <- phase18_count_structured_q1_profile_trace_summary(trace)
   utils::write.csv(plan, paths$plan_csv, row.names = FALSE)
   utils::write.csv(trace, paths$trace_csv, row.names = FALSE)
+  utils::write.csv(summary, paths$summary_csv, row.names = FALSE)
 
   list(
     surface = "count_structured_q1_profile_trace_run",
@@ -1225,7 +1227,8 @@ phase18_write_count_structured_q1_profile_trace_run <- function(
     table_dir = dirs$table_dir,
     paths = paths,
     plan = plan,
-    trace = trace
+    trace = trace,
+    summary = summary
   )
 }
 
@@ -1238,6 +1241,10 @@ phase18_count_structured_q1_profile_trace_run_paths <- function(table_dir) {
     trace_csv = file.path(
       table_dir,
       "count-structured-q1-profile-trace.csv"
+    ),
+    summary_csv = file.path(
+      table_dir,
+      "count-structured-q1-profile-trace-summary.csv"
     )
   )
 }

@@ -1203,3 +1203,8 @@ errors, and elapsed time by surface before the raw manifest.
      region and high-tail spikes remain visible. The helper is internal
      diagnostic plumbing; the endpoint table remains the source for interval
      availability.
+216. Slice 1808 adds the trace summary to the selected-example trace-run
+     writer. `phase18_write_count_structured_q1_profile_trace_run()` now writes
+     `tables/count-structured-q1-profile-trace-summary.csv` beside the plan and
+     raw trace CSVs, so each selected-example trace artifact carries the stable
+     audit table used by the plot and interpretation slices.

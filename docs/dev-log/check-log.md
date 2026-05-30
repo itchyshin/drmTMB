@@ -44578,3 +44578,80 @@ Member-group review:
 - Grace rendered the PNG locally from the real trace artifact.
 - Rose checked that endpoint failures remain in the summary table and prose.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace summary writer
+
+Goal:
+
+- Save the selected-example trace summary table as part of the trace-run
+  artifact, not only as a separate post-processing step.
+
+Changes:
+
+- `phase18_write_count_structured_q1_profile_trace_run()` now writes
+  `tables/count-structured-q1-profile-trace-summary.csv`.
+- `phase18_count_structured_q1_profile_trace_run_paths()` now includes
+  `summary_csv`.
+- The writer returns `summary` in its result object.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-summary-writer.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-summary-writer.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+out <- phase18_write_count_structured_q1_profile_trace_run(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530",
+  overwrite = TRUE
+)
+print(out$paths)
+print(out$summary)
+EOF
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, roadmap, design,
+  check-log, and after-task files.
+- `devtools::test(filter = 'phase18-count-structured-q1', reporter =
+  'summary')` passed.
+- The real writer smoke wrote
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace-plan.csv`,
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace.csv`,
+  and
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace-summary.csv`.
+- The smoke summary had six rows; all rows had `trace_status = "ok"` and
+  `n_trace_failed = 0`.
+- The saved summary preserved the endpoint evidence: the two crossing examples
+  still missed both interval endpoints, while the non-finite example retained a
+  finite upper endpoint and a missing lower endpoint.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the writer artifact self-contained.
+- Fisher checked that the summary remains descriptive endpoint evidence.
+- Florence kept the summary available beside the plot input.
+- Curie covered the new summary CSV in the focused writer test.
+- Grace smoke-tested the real writer output locally.
+- Rose checked that downstream notes no longer need ad hoc summary aggregation.
+- No spawned subagents were running.
