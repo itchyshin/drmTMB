@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Structured Workflow Registry
+
+Goal:
+
+- Turn the current fitted/planned capability audit into a taskable registry for
+  random slopes, phylogenetic, spatial, animal, `relmat()`, q=2/q=4
+  `corpairs()`, residual `rho12`, and family-surface admission.
+
+Actions run:
+
+- Started `codex/structured-workflow-registry` from `origin/main`.
+- Added
+  `docs/design/143-phase-18-structured-workflow-registry.md` with a
+  family-by-dependence status table and autonomous workflow lanes.
+- Added
+  `inst/sim/registry/phase18_structured_workflow_registry.csv` as the first
+  machine-readable registry for admitted, diagnostic, blocked, and design-only
+  workflow rows.
+- Updated the Phase 18 programme and roadmap to point to the registry without
+  changing likelihoods, formula grammar, or Actions dispatch behaviour.
+- Added
+  `docs/dev-log/after-task/2026-05-30-structured-workflow-registry.md`.
+
+Validation:
+
+```sh
+air format docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-structured-workflow-registry.md
+Rscript --vanilla -e "x <- read.csv('inst/sim/registry/phase18_structured_workflow_registry.csv', stringsAsFactors = FALSE); stopifnot(nrow(x) >= 30L, all(c('lane_id', 'workflow_lane', 'admission_status', 'existing_actions_task') %in% names(x))); stopifnot(!anyDuplicated(x[['lane_id']])); print(table(x[['admission_status']]))"
+rg -n "structured workflow registry|phase18_structured_workflow_registry|Slice 1814|random-slope wrapper|correlation-block wrapper|family-surface admission|q=4 derived" docs/design ROADMAP.md docs/dev-log/check-log.md inst/sim/registry
+gh issue list --repo itchyshin/drmTMB --state open --search 'structured workflow registry random slopes phylo spatial animal relmat q2 q4 corpairs' --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- The first local paste of the CSV parse command used `$` inside double quotes,
+  so the shell expanded the column reference before R saw it. The recorded
+  command now uses `[[...]]` indexing and passed.
+- The registry parsed with 34 rows, unique `lane_id` values, and this status
+  distribution: `ready_grid` 18, `ready_source_test` 4, `blocked` 4,
+  `diagnostic_only` 3, `design_only` 1, `hold_smoke_only` 1,
+  `ready_or_smoke` 1, `ready_smoke` 1, and `smoke_formal_admission` 1.
+- The stale-wording scan found the intended new registry references plus
+  compatible historical q=4 derived-interval wording; no fitted-status
+  promotion was found.
+- The issue search returned `[]`; no issue action was needed.
+- `git diff --check` was clean.
+
 ## 2026-05-29 -- Bootstrap Derived-Target Error UX
 
 Goal:
