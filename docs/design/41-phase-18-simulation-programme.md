@@ -1096,3 +1096,10 @@ errors, and elapsed time by surface before the raw manifest.
      metadata, and returns the same profile-gate decision surface used by the
      table helper. This is artifact plumbing only; it does not compute new
      profiles or reinterpret the formal-pilot result.
+201. Slice 1786 adds a profile-failure diagnostic summary to the profile gate.
+     `failure_summary` groups failed requested profile intervals by condition,
+     interval status, and interval message, with the condition denominator and
+     failure rate attached. Running it on artifact `26669005577` keeps the
+     decision at `hold_interval_diagnostic`; the largest failed groups are
+     nonfinite profile intervals in cells `count_structured_q1_001`,
+     `count_structured_q1_003`, and `count_structured_q1_006`.
