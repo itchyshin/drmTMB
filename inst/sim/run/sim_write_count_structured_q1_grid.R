@@ -1146,10 +1146,9 @@ phase18_write_count_structured_q1_profile_trace_plan <- function(
   )
 
   dirs <- phase18_prepare_simple_grid_dirs(output_dir)
-  path <- file.path(
-    dirs$table_dir,
-    "count-structured-q1-profile-trace-plan.csv"
-  )
+  path <- phase18_count_structured_q1_profile_trace_run_paths(
+    dirs$table_dir
+  )$plan_csv
   if (file.exists(path) && !overwrite) {
     stop(
       "Count structured q1 profile trace plan already exists: ",
@@ -1165,6 +1164,63 @@ phase18_write_count_structured_q1_profile_trace_plan <- function(
     table_dir = dirs$table_dir,
     path = path,
     plan = plan
+  )
+}
+
+phase18_write_count_structured_q1_profile_trace_run <- function(
+  output_dir,
+  plan = phase18_count_structured_q1_profile_trace_plan(),
+  conditions = phase18_count_structured_q1_followup_conditions("stable"),
+  overwrite = FALSE,
+  dgp_fun = phase18_dgp_count_structured_q1_cell,
+  fit_fun = phase18_fit_count_structured_q1,
+  profile_fun = stats::profile
+) {
+  phase18_assert_simple_grid_output_dir(output_dir)
+  if (!isTRUE(overwrite) && !identical(overwrite, FALSE)) {
+    stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  dirs <- phase18_prepare_simple_grid_dirs(output_dir)
+  paths <- phase18_count_structured_q1_profile_trace_run_paths(
+    dirs$table_dir
+  )
+  phase18_assert_simple_grid_overwrite(
+    paths,
+    overwrite,
+    "Count structured q1 profile trace run"
+  )
+
+  trace <- phase18_count_structured_q1_profile_trace_run_plan(
+    plan = plan,
+    conditions = conditions,
+    dgp_fun = dgp_fun,
+    fit_fun = fit_fun,
+    profile_fun = profile_fun
+  )
+  utils::write.csv(plan, paths$plan_csv, row.names = FALSE)
+  utils::write.csv(trace, paths$trace_csv, row.names = FALSE)
+
+  list(
+    surface = "count_structured_q1_profile_trace_run",
+    output_dir = dirs$output_dir,
+    table_dir = dirs$table_dir,
+    paths = paths,
+    plan = plan,
+    trace = trace
+  )
+}
+
+phase18_count_structured_q1_profile_trace_run_paths <- function(table_dir) {
+  list(
+    plan_csv = file.path(
+      table_dir,
+      "count-structured-q1-profile-trace-plan.csv"
+    ),
+    trace_csv = file.path(
+      table_dir,
+      "count-structured-q1-profile-trace.csv"
+    )
   )
 }
 

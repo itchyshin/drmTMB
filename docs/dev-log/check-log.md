@@ -44252,3 +44252,82 @@ Member-group review:
 - Grace kept expensive real profiles out of the focused tests.
 - Rose checked that the docs still say this is not formal-pilot rerun evidence.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace run writer
+
+Goal:
+
+- Add the small artifact writer that saves the selected-example trace plan and
+  bound trace rows before running the real selected formal-pilot examples.
+
+Changes:
+
+- Added `phase18_write_count_structured_q1_profile_trace_run()`.
+- Added `phase18_count_structured_q1_profile_trace_run_paths()`.
+- The writer saves
+  `tables/count-structured-q1-profile-trace-plan.csv` and
+  `tables/count-structured-q1-profile-trace.csv`.
+- Overwrite protection now covers both trace-run CSVs.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-run-writer.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-run-writer.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+plan <- phase18_count_structured_q1_profile_trace_plan()[1:2, , drop = FALSE]
+fake_dgp <- function(cell, seed, cell_id, replicate) {
+  data.frame(cell_id = cell_id, replicate = replicate)
+}
+fake_fit <- function(data, cell) {
+  structure(list(cell_id = data$cell_id[[1L]]), class = "drmTMB")
+}
+fake_profile <- function(object, parm, level, ystep) {
+  data.frame(profile_value = c(0.1, 0.2), delta_deviance = c(1, 0))
+}
+out <- phase18_write_count_structured_q1_profile_trace_run(
+  tempfile("trace-run-"),
+  plan = plan,
+  dgp_fun = fake_dgp,
+  fit_fun = fake_fit,
+  profile_fun = fake_profile
+)
+print(out$paths)
+print(utils::read.csv(out$paths$trace_csv))
+unlink(out$output_dir, recursive = TRUE)
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The smoke writer created both trace-run CSV paths and read back four fake
+  profile rows from `count-structured-q1-profile-trace.csv`.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept this to the artifact writer needed before the real trace rerun.
+- Fisher kept the saved trace rows descriptive, not inferential.
+- Curie covered the writer with injected fake DGP, fit, and profile functions.
+- Grace kept the real selected examples out of CI.
+- Rose checked that the writer is not described as new profile evidence.
+- No spawned subagents were running.
