@@ -185,6 +185,78 @@ phase18_admitted_structured_workflow_rows <- function(
   )
 }
 
+phase18_random_slope_workflow_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_needed = TRUE
+) {
+  rows <- phase18_admitted_structured_workflow_rows(
+    registry = registry,
+    workflow_lane = "random_slopes"
+  )
+  if (!include_needed) {
+    rows <- rows[
+      !startsWith(rows$existing_actions_task, "needed:"),
+      ,
+      drop = FALSE
+    ]
+  }
+  if (nrow(rows) == 0L) {
+    return(phase18_empty_random_slope_workflow_plan())
+  }
+
+  needs_target <- startsWith(rows$existing_actions_task, "needed:")
+  plan <- rows[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  plan$dispatch_status <- ifelse(
+    needs_target,
+    "needs_wrapper_target",
+    ifelse(
+      plan$admission_status == "ready_source_test",
+      "source_test_audit",
+      "ready_existing_task"
+    )
+  )
+  plan$actions_task <- ifelse(
+    needs_target,
+    NA_character_,
+    plan$existing_actions_task
+  )
+  plan$workflow_helper <- ifelse(
+    needs_target,
+    sub("^needed:", "", plan$existing_actions_task),
+    "phase18_actions_main"
+  )
+  plan$audit_focus <- phase18_random_slope_audit_focus(
+    plan$admission_status
+  )
+  row.names(plan) <- NULL
+  plan[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "dispatch_status",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
@@ -208,6 +280,59 @@ phase18_structured_workflow_actions_tasks <- function() {
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )
+}
+
+phase18_empty_random_slope_workflow_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    dispatch_status = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    audit_focus = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_random_slope_audit_focus <- function(admission_status) {
+  focus <- rep(NA_character_, length(admission_status))
+  focus[admission_status == "ready_grid"] <- paste(
+    "Run or audit the named grid or smoke artifact before any",
+    "status promotion."
+  )
+  focus[admission_status == "ready_source_test"] <- paste(
+    "Treat focused source tests as readiness evidence; add an artifact",
+    "lane before recovery or coverage claims."
+  )
+  focus[admission_status == "ready_or_smoke"] <- paste(
+    "Confirm whether the row has formal grid evidence or only smoke",
+    "evidence before dispatch."
+  )
+  focus[admission_status == "ready_smoke"] <- paste(
+    "Use as smoke evidence only until a grid, MCSE, and artifact audit",
+    "exist."
+  )
+  focus[admission_status == "smoke_formal_admission"] <- paste(
+    "Run the formal-admission audit before treating the row as",
+    "recovery evidence."
+  )
+  unknown <- is.na(focus)
+  if (any(unknown)) {
+    stop(
+      "Random-slope workflow has unsupported admitted status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  focus
 }
 
 phase18_structured_workflow_required_columns <- function() {
