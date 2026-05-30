@@ -507,8 +507,10 @@ Current pilot files:
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
   coordinate-spatial Gaussian `mu` slope lanes.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
-  set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane; it
-  remains local-only until a manual Actions task is added.
+  set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
+  manual `biv_gaussian_mu_slope` Actions task can run it, but the lane remains
+  opt-in and excluded from `task = "all"` until a small artifact pilot is
+  audited.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
@@ -551,15 +553,16 @@ Current pilot files:
   fixed-effect proportion, bounded-response `mu` random-intercept,
   positive-continuous fixed-effect, fixed-effect Tweedie, count structured
   q=1, positive-continuous `mu` random-intercept, Student-t `mu`
-  random-intercept, ordinal, and zero-one beta tasks, or the opt-in Poisson
-  and NB2 phylogenetic q=1 formal-grid tasks. It writes an RDS result beside
-  the task artifact tables and caps requested replicate or bootstrap workers
-  at 10 before dispatch. The workflow never uses both replicate-layer
-  multicore and bootstrap-layer multicore at the same time. The phylogenetic
-  formal tasks and standalone family tasks are manual-only and are excluded
-  from `task = "all"` by the workflow matrix. Formal tasks also accept
-  one-based `condition_shard` and `condition_shards` inputs so the 288-cell
-  formal tables can be split across multiple Actions runs.
+  random-intercept, ordinal, zero-one beta, and bivariate Gaussian `mu1`/`mu2`
+  slope-only tasks, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
+  tasks. It writes an RDS result beside the task artifact tables and caps
+  requested replicate or bootstrap workers at 10 before dispatch. The workflow
+  never uses both replicate-layer multicore and bootstrap-layer multicore at
+  the same time. The phylogenetic formal tasks, random-slope tasks, and
+  standalone family tasks are manual-only and are excluded from `task = "all"`
+  by the workflow matrix. Formal tasks also accept one-based `condition_shard`
+  and `condition_shards` inputs so the 288-cell formal tables can be split
+  across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

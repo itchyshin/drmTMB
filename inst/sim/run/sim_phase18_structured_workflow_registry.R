@@ -750,6 +750,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
+    "biv_gaussian_mu_slope",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )

@@ -30,7 +30,7 @@ DGP file, an opt-in stress cell, or a failure-ledger row.
 | Ordinal | Admitted only for fixed-effect `cumulative_logit()` location models | `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` records the fixed-effect ordinal ADEMP sheet; `docs/design/112-phase-18-ordinal-fixed-effect-artifacts-slices-1309-1318.md` records the DGP/smoke/grid artifact lane | Keep ordinal random effects, scale/discrimination formulas, bivariate ordinal, and mixed-response ordinal models out |
 | Meta-analysis with known `V` | Admitted for Gaussian `meta_V(V = V)` vector and dense known sampling covariance | `docs/design/48-phase-18-meta-v-ademp.md` records the vector/dense known-`V` ADEMP sheet before larger grids | Keep proportional sampling variance, non-Gaussian known covariance, and phylogenetic-plus-study extensions out |
 | Bivariate Gaussian | Admitted for residual `rho12`, selected intercept covariance blocks, and the matching slope-only `mu1`/`mu2` block | `docs/design/52-phase-18-bivariate-rho12-ademp.md` records the residual-correlation ADEMP sheet; group-level `corpairs()` and slope-only covariance need separate sheets | Keep mixed-response families, random effects in `rho12`, broader bivariate random slopes, and broad q=4/q=8 slope covariance out |
-| Random slopes | Admitted for ordinary Gaussian `mu` q > 2, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent slopes, selected Student-t/lognormal/Gamma/beta/beta-binomial/zero-truncated NB2 `mu` independent slopes, and coordinate-spatial, phylogenetic, animal-model, and `relmat()` Gaussian `mu` one-slope paths | Give each admitted slope class its own condition table for group count, repeats, slope SD, and covariate spread; keep the new selected non-Gaussian slope rows at focused source-test status until a separate artifact-grid decision | Keep bivariate, correlated non-Gaussian, multiple structured, structured slope-correlation, and residual-scale correlated slopes out |
+| Random slopes | Admitted for ordinary Gaussian `mu` q > 2, independent Gaussian `sigma` one-slope terms, ordinary Poisson/NB2 `mu` independent slopes, selected Student-t/lognormal/Gamma/beta/beta-binomial/zero-truncated NB2 `mu` independent slopes, coordinate-spatial, phylogenetic, animal-model, and `relmat()` Gaussian `mu` one-slope paths, and the matching bivariate Gaussian `mu1`/`mu2` slope-only lane | Give each admitted slope class its own condition table for group count, repeats, slope SD, and covariate spread; keep the new selected non-Gaussian slope rows at focused source-test status until a separate artifact-grid decision | Keep broader bivariate random slopes, intercept-plus-slope q4, p8/q8 slope covariance, correlated non-Gaussian, multiple structured, structured slope-correlation, and residual-scale correlated slopes out |
 | Shape and skewness | Admitted for fixed-effect Student-t `nu` smoke, artifact-path, Wald interval, profile-smoke, and bootstrap-smoke evidence; skew-normal and skew-t remain design-only future targets | Extend the fixed-effect Student-t `nu` lane from smoke evidence to formal coverage grids after the interval evidence schema is stable | Keep `nu` random effects, future `tau` random effects, skewness random effects, and latent `skew(id) ~ ...` out |
 | Phylogenetic structured effects | Admitted for fitted Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope, direct-SD, selected bivariate covariance subsets, and ordinary Poisson/NB2 q=1 phylogenetic `mu` first slices | Write small tree-size and phylogenetic-signal condition tables for the fitted Gaussian intercept/direct-SD/one-slope surfaces; keep the Poisson and NB2 q=1 lanes separate until their formal artifacts are run and audited beyond the current smoke/formal-admission evidence | Keep multiple phylogenetic slopes, residual-scale structured slopes, Poisson/NB2 phylogenetic slopes, zero-inflated phylogenetic effects, NB2 `sigma` phylogeny, direct-SD formulas combined with structured `sigma`, structured `rho12`, and predictor-dependent q=4 correlations out |
 | Coordinate spatial structured effects | Admitted for univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric coordinate-spatial `mu` slope, the constant bivariate spatial `mu1`/`mu2` q=2 location covariance, the constant q=4 location-scale covariance, and ordinary Poisson/NB2 q=1 spatial `mu` intercepts as first slices | Extend the existing spatial one-slope and q=2 smoke design with site count, observations per site, field SD, covariate-spread, and q=4 endpoint conditions; `docs/design/56-phase-18-spatial-q2-ademp.md` records the q=2 spatial design sheet, while `phase18_run_spatial_q2_smoke()` and `phase18_write_spatial_q2_grid_outputs()` supply the seeded smoke runner, repeatable CSV artifacts, fixed-effect Wald tables, and profile-status ledgers before broad paired-response reports; `tests/testthat/test-count-structured-mu.R` covers the count q=1 source gate | Keep mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD, spatial `corpair()`, count spatial slopes or labels, and zero-inflated spatial effects out |
@@ -1258,9 +1258,11 @@ errors, and elapsed time by surface before the raw manifest.
 224. Slice 1816 adds `phase18_random_slope_workflow_plan()`, which filters the
      registry to admitted random-slope rows and labels each row as
      `ready_existing_task`, `source_test_audit`, or `needs_wrapper_target`.
-     The current plan has nine admitted rows, excludes blocked/design/diagnostic
-     rows, maps eight rows to existing Actions tasks, and leaves the bivariate
-     Gaussian slope-only row as the first explicit wrapper target.
+     At Slice 1816, the plan had nine admitted rows, excluded blocked/design/
+     diagnostic rows, mapped eight rows to existing Actions tasks, and left the
+     bivariate Gaussian slope-only row as the first explicit wrapper target.
+     After Slice 1825, the current plan has nine rows with non-none Actions
+     routing and zero random-slope wrapper targets.
 225. Slice 1817 adds `phase18_structured_dependence_workflow_plan()`, which
      builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow plan
      from the registry. The current plan has seven rows: four Gaussian
@@ -1282,7 +1284,7 @@ errors, and elapsed time by surface before the raw manifest.
 228. Slice 1820 adds `phase18_structured_workflow_plan_bundle()` and
      `phase18_structured_workflow_plan_counts()`, which return the four landed
      workflow plan tables plus a compact counts table. The current counts are:
-     random slopes 9 rows with 8 existing Actions tasks and 1 wrapper target;
+     random slopes 9 rows with 9 non-none Actions routes and 0 wrapper targets;
      structured dependence 7 rows with 3 existing tasks, 4 wrapper targets, and
      1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
      3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
@@ -1313,3 +1315,10 @@ errors, and elapsed time by surface before the raw manifest.
      The random-slope wrapper target is promoted only to
      `grid_writer_available` with `local_artifacts_not_actions`; no manual
      Actions task or coverage claim is added in this slice.
+233. Slice 1825 adds `biv_gaussian_mu_slope` as a manual-only Phase 18 Actions
+     task in `inst/sim/run/sim_run_actions_cell.R` and
+     `.github/workflows/phase18-simulation-grid.yaml`. The structured workflow
+     registry now maps `bivariate_gaussian_slope_only` to that task, so the
+     random-slope plan has nine non-none Actions routes and zero wrapper
+     targets. The task remains opt-in and excluded from `task = "all"` until a
+     small artifact pilot is audited.

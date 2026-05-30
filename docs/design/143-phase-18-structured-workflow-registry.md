@@ -24,7 +24,7 @@ covariance `V`.
 
 | Family surface | Ordinary random slope status | `phylo()` | `spatial()` | `animal()` | `relmat()` | q=2 / `corpairs()` | q=4 / `corpairs()` | Workflow state |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Gaussian location-scale | Ready for ordinary `mu` q > 2 and independent `sigma` slopes | Ready for Gaussian `mu` one-slope and intercept/direct-SD subsets | Ready for Gaussian `mu` one-slope, `mu`/`sigma` intercepts, and q=2 spatial location covariance | Ready for dense-pedigree Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for known-matrix Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for selected ordinary and structured q=2 rows; direct intervals only where profile targets exist | Fitted for selected ordinary and structured constant blocks, but many q=4 correlations are derived-unavailable | Add a random-slope wrapper and structured-dependence wrapper that dispatch existing smoke surfaces by status |
+| Gaussian location-scale | Ready for ordinary `mu` q > 2 and independent `sigma` slopes | Ready for Gaussian `mu` one-slope and intercept/direct-SD subsets | Ready for Gaussian `mu` one-slope, `mu`/`sigma` intercepts, and q=2 spatial location covariance | Ready for dense-pedigree Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for known-matrix Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for selected ordinary and structured q=2 rows; direct intervals only where profile targets exist | Fitted for selected ordinary and structured constant blocks, but many q=4 correlations are derived-unavailable | Use the random-slope workflow plan and existing task routes for admitted random-slope rows; maintain structured-dependence wrappers by status |
 | Bivariate Gaussian and residual `rho12` | Ready only for matching slope-only `mu1`/`mu2`; intercept-plus-slope q=4 and p8/q8 stay closed | Ready for selected `mu1`/`mu2` and location-scale subsets; hard real-data q2/q4 cases remain diagnostic | Ready for constant q=2 location and constant q=4 location-scale smoke/artifact subsets | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for residual `rho12`, selected group/structured q=2 `corpairs()` rows, and slope-only `mu1`/`mu2` | q=4 rows are visible point estimates with explicit interval limits unless direct targets exist | Add a correlation-block wrapper that separates residual `rho12`, q=2 direct rows, and q=4 derived rows |
 | Counts: Poisson and NB2 | Ready for ordinary non-zero-inflated `mu` independent slopes; NB2 `sigma` has only an ordinary intercept gate | Smoke/formal-admission only for q=1 `mu` intercepts; no count slopes or labelled covariance | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Blocked for labelled count q=2 covariance | Blocked for labelled count q=4 covariance | Keep using `poisson_phylo_q1_formal`, `nbinom2_phylo_q1_formal`, and `count_structured_q1`; add a count-admission audit wrapper before any promotion |
 | Zero-inflated and hurdle counts | Fixed-effect `zi` or `hu` routes only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Failure-ledger rows only until a new likelihood design opens random effects |
@@ -102,12 +102,14 @@ The current random-slope plan has nine admitted rows:
 - four `ready_source_test` rows for bounded responses, positive-continuous
   responses, Student-t, and zero-truncated NB2 `mu` random effects.
 
-The bivariate Gaussian slope-only row is marked `needs_wrapper_target` because
-the registry intentionally names `needed:random_slope_wrapper` rather than an
-existing manual Actions task. Existing-task rows are marked
+The bivariate Gaussian slope-only row now names the manual
+`biv_gaussian_mu_slope` task. Existing-task rows are marked
 `ready_existing_task` or `source_test_audit`; source-tested rows must gain an
 artifact lane before any recovery or coverage claim. The wrapper excludes
 blocked, design-only, and diagnostic-only rows from the plan.
+Only five random-slope rows are grid-ready slope surfaces, including
+`biv_gaussian_mu_slope`; four source-test audit rows route through existing
+family artifact tasks.
 
 ## Slice 1817 Structured-Dependence Workflow Plan
 
@@ -186,7 +188,7 @@ The current bundled count table is:
 
 | Workflow plan | Rows | Existing Actions tasks | Wrapper targets | Diagnostics | Blocked | Design-only |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Random slopes | 9 | 8 | 1 | 0 | 0 | 0 |
+| Random slopes | 9 | 9 | 0 | 0 | 0 | 0 |
 | Structured dependence | 7 | 3 | 4 | 1 | 0 | 0 |
 | Correlation blocks | 6 | 3 | 3 | 2 | 0 | 0 |
 | Family surface | 11 | 7 | 0 | 0 | 3 | 1 |
@@ -217,15 +219,15 @@ Slice 1822 adds `phase18_random_slope_wrapper_target_plan()`. The helper
 extracts random-slope rows whose `workflow_helper` is `random_slope_wrapper`
 and labels them as wrapper targets rather than dispatchable Actions rows.
 
-The current target plan has one row:
+Before Slice 1825, the target plan had one row:
 
 | Lane | Target status | Required helper | Artifact writer | Dispatch mode |
 | --- | --- | --- | --- | --- |
 | `bivariate_gaussian_slope_only` | `grid_writer_available` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `phase18_write_biv_gaussian_mu_slope_grid_outputs()` | `local_artifacts_not_actions` |
 
-This keeps the matching bivariate Gaussian `mu1`/`mu2` slope-only source test
-visible, but prevents Ada or Grace from dispatching it through Actions until a
-dedicated grid writer and Actions target exist.
+This kept the matching bivariate Gaussian `mu1`/`mu2` slope-only source test
+visible while preventing Ada or Grace from dispatching it through Actions
+before a dedicated grid writer and Actions target existed.
 
 ## Slice 1823 Bivariate Slope Smoke Helper
 
@@ -247,8 +249,17 @@ Slice 1824 adds `phase18_write_biv_gaussian_mu_slope_grid_outputs()` for the
 same bivariate Gaussian `mu1`/`mu2` slope-only surface. The writer saves the
 standard simple-grid CSV set: aggregate, replicate-level, manifest, and
 failure-ledger tables. The wrapper target now reports `grid_writer_available`
-and `local_artifacts_not_actions`; it still does not name a manual Actions task
-or make a coverage claim.
+and `local_artifacts_not_actions`; at Slice 1824 it still did not name a manual
+Actions task or make a coverage claim.
+
+## Slice 1825 Bivariate Slope Actions Task
+
+Slice 1825 adds `biv_gaussian_mu_slope` as a manual-only Phase 18 Actions task
+and promotes the `bivariate_gaussian_slope_only` registry row from
+`needed:random_slope_wrapper` to that task. The random-slope workflow now has
+nine rows with non-none Actions routes and zero wrapper targets. The old
+wrapper target helper remains available as a fail-closed empty view when no
+wrapper rows are left.
 
 ## Autonomous Work Plan
 
