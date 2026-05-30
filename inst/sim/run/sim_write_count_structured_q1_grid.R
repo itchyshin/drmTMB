@@ -1283,6 +1283,8 @@ phase18_write_count_structured_q1_profile_trace_plot <- function(
   )
 
   plot <- phase18_plot_count_structured_q1_profile_trace(trace)
+  summary <- phase18_count_structured_q1_profile_trace_summary(trace)
+  side_summary <- phase18_count_structured_q1_profile_trace_side_summary(trace)
   ggplot2::ggsave(
     filename = path,
     plot = plot,
@@ -1299,7 +1301,8 @@ phase18_write_count_structured_q1_profile_trace_plot <- function(
     figure_dir = figure_dir,
     path = path,
     plot = plot,
-    summary = phase18_count_structured_q1_profile_trace_summary(trace)
+    summary = summary,
+    side_summary = side_summary
   )
 }
 

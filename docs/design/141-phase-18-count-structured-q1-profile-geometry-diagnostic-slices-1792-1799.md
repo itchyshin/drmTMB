@@ -257,3 +257,11 @@ overall endpoint-missingness table and the side-specific support table.
 This is still diagnostic evidence, not recovery evidence. The side-summary CSV
 identifies lower-side support as the next profile-setting target; it does not
 change profile settings or relax the formal-pilot gate.
+
+## Slice 1813 Addendum: Plot Writer Side Summary
+
+`phase18_write_count_structured_q1_profile_trace_plot()` now returns the
+side-specific support table beside the plot object and overall trace summary.
+The figure is unchanged. The returned object simply keeps the lower-side and
+upper-side evidence attached to the plot smoke result so the next diagnostic
+does not need to recompute the side split.

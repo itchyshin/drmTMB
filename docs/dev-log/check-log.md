@@ -44957,3 +44957,54 @@ Member-group review:
 - Grace smoke-tested the real selected-example writer output locally.
 - Rose checked that the saved CSV does not relax the formal-pilot gate.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace plot side summary
+
+Goal:
+
+- Keep the side-specific trace-support table attached to the selected-example
+  plot smoke result.
+
+Changes:
+
+- `phase18_write_count_structured_q1_profile_trace_plot()` now returns
+  `side_summary` beside `summary`.
+- Updated the focused plot-writer test to check the returned side-summary rows.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`,
+  and
+  `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot-side-summary.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot-side-summary.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+gh issue list --state open --limit 30 --search "count structured q1 profile"
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, roadmap, design,
+  check-log, and after-task files.
+- `devtools::test(filter = 'phase18-count-structured-q1', reporter =
+  'summary')` passed.
+- `gh issue list --state open --limit 30 --search "count structured q1 profile"`
+  returned no open overlapping issues.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the slice as a return-object extension, not a new artifact format.
+- Fisher checked that the side-support evidence remains diagnostic rather than
+  recovery evidence.
+- Florence noted that the PNG itself is unchanged.
+- Curie covered the returned side summary in the focused plot-writer test.
+- Grace ran formatting, focused tests, issue overlap, and whitespace validation
+  before closure.
+- Rose checked that the formal-pilot gate remains closed.
+- No spawned subagents were running.

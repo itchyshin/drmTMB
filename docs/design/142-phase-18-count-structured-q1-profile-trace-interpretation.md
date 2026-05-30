@@ -141,3 +141,10 @@ side summary.
 The saved side-summary CSV makes the next profile-setting experiment auditable:
 future runs can compare lower-side cutoff reach and endpoint presence directly,
 instead of recomputing the side split from raw trace rows.
+
+## Slice 1813 Addendum: Plot Writer Side Summary
+
+`phase18_write_count_structured_q1_profile_trace_plot()` now returns the same
+side-summary table as `side_summary` beside the saved plot object and overall
+summary. The PNG itself is unchanged; this slice only keeps the lower-side and
+upper-side support evidence attached to the plot smoke result.
