@@ -538,3 +538,116 @@ test_that("Phase 18 count structured q1 boundary gate allows clean pilots", {
   expect_true(all(gate$checks$status == "ok"))
   expect_equal(gate$decision$decision, "propose_next_pilot")
 })
+
+test_that("Phase 18 count structured q1 profile gate holds failed intervals", {
+  source_count_structured_q1()
+
+  intervals <- rbind(
+    data.frame(
+      cell_id = "count_structured_q1_001",
+      family = "poisson",
+      structured_type = "spatial",
+      n_level = 10L,
+      sd_structured = 0.60,
+      replicate = seq_len(89L),
+      interval_status = "ok",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      cell_id = "count_structured_q1_001",
+      family = "poisson",
+      structured_type = "spatial",
+      n_level = 10L,
+      sd_structured = 0.60,
+      replicate = 90:100,
+      interval_status = "failed",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      cell_id = "count_structured_q1_003",
+      family = "nbinom2",
+      structured_type = "animal",
+      n_level = 10L,
+      sd_structured = 0.60,
+      replicate = seq_len(94L),
+      interval_status = "ok",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      cell_id = "count_structured_q1_003",
+      family = "nbinom2",
+      structured_type = "animal",
+      n_level = 10L,
+      sd_structured = 0.60,
+      replicate = 95:100,
+      interval_status = "failed",
+      stringsAsFactors = FALSE
+    )
+  )
+
+  gate <- phase18_count_structured_q1_profile_gate_summary(
+    intervals,
+    watch_cells = c("count_structured_q1_003")
+  )
+
+  expect_equal(gate$surface, "count_structured_q1_profile_gate")
+  expect_equal(gate$overall$n_interval, 200L)
+  expect_equal(gate$overall$failed_interval, 17L)
+  expect_equal(gate$decision$decision, "hold_interval_diagnostic")
+  expect_equal(
+    gate$checks$status[gate$checks$check == "profile_interval_rate"],
+    "failed"
+  )
+  expect_equal(
+    gate$checks$status[
+      gate$checks$check == "profile_condition_failure_rate"
+    ],
+    "failed"
+  )
+  expect_equal(
+    gate$checks$status[gate$checks$check == "watch_profile_failure_rate"],
+    "ok"
+  )
+})
+
+test_that("Phase 18 count structured q1 profile gate allows clean pilots", {
+  source_count_structured_q1()
+
+  intervals <- data.frame(
+    cell_id = rep(
+      c("count_structured_q1_001", "count_structured_q1_002"),
+      each = 100L
+    ),
+    family = rep(c("poisson", "nbinom2"), each = 100L),
+    structured_type = rep(c("spatial", "animal"), each = 100L),
+    n_level = rep(10L, 200L),
+    sd_structured = rep(0.60, 200L),
+    replicate = rep(seq_len(100L), 2L),
+    interval_status = "ok",
+    stringsAsFactors = FALSE
+  )
+  intervals$interval_status[c(4, 55, 132)] <- "failed"
+  intervals <- rbind(
+    intervals,
+    data.frame(
+      cell_id = "count_structured_q1_002",
+      family = "nbinom2",
+      structured_type = "animal",
+      n_level = 10L,
+      sd_structured = 0.60,
+      replicate = 101L,
+      interval_status = "not_requested",
+      stringsAsFactors = FALSE
+    )
+  )
+
+  gate <- phase18_count_structured_q1_profile_gate_summary(
+    intervals,
+    watch_cells = c("count_structured_q1_002")
+  )
+
+  expect_equal(gate$overall$n_interval, 200L)
+  expect_equal(gate$overall$failed_interval, 3L)
+  expect_true(all(gate$checks$status == "ok"))
+  expect_equal(gate$decision$decision, "propose_next_pilot")
+})
