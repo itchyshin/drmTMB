@@ -200,3 +200,11 @@ current and smaller-`ystep` passes, marks the fitted estimate, and draws the
 
 The plot is a curve diagnostic, not an interval-success claim. The summary
 table remains responsible for showing missing lower and upper endpoints.
+
+## Slice 1808 Addendum: Summary CSV in Trace Artifacts
+
+`phase18_write_count_structured_q1_profile_trace_run()` now writes
+`tables/count-structured-q1-profile-trace-summary.csv` beside the selected plan
+and raw trace rows. The writer returns the summary table too, so downstream
+plotting, reporting, and handoff notes can use the same endpoint-missingness
+table without recomputing it from the trace CSV.

@@ -309,13 +309,17 @@ test_that("Phase 18 count structured q1 profile trace run writes tables", {
   )
   written_plan <- utils::read.csv(out$paths$plan_csv)
   written_trace <- utils::read.csv(out$paths$trace_csv)
+  written_summary <- utils::read.csv(out$paths$summary_csv)
 
   expect_equal(out$surface, "count_structured_q1_profile_trace_run")
   expect_true(file.exists(out$paths$plan_csv))
   expect_true(file.exists(out$paths$trace_csv))
+  expect_true(file.exists(out$paths$summary_csv))
   expect_equal(nrow(written_plan), 2L)
   expect_equal(nrow(written_trace), 4L)
+  expect_equal(nrow(written_summary), 2L)
   expect_equal(unique(written_trace$trace_status), "ok")
+  expect_equal(unique(written_summary$trace_status), "ok")
   expect_error(
     phase18_write_count_structured_q1_profile_trace_run(
       output_dir,
