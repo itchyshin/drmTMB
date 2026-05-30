@@ -143,6 +143,9 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_q2.R` generates bivariate Gaussian spatial `mu1`/`mu2`
   data with matching coordinate-spatial q=2 fields and residual `rho12` kept as
   a separate layer.
+- `dgp/sim_dgp_biv_gaussian_mu_slope.R` generates bivariate Gaussian
+  `mu1`/`mu2` data with matching ordinary slope-only random-effect blocks,
+  `(0 + x | p | id)`, and residual `rho12` kept as a separate layer.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
@@ -281,6 +284,9 @@ Current pilot files:
   `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` coefficients on their fitted
   formula scales, adds optional profile and parametric-bootstrap interval
   columns, and includes a helper for named response-scale truth grids.
+- `fit/sim_summarise_biv_gaussian_mu_slope.R` summarises bivariate Gaussian
+  fixed `mu1`/`mu2` coefficients, public residual scales, residual `rho12`,
+  ordinary slope-only SDs, and the slope-slope `corpairs()` correlation.
 - `fit/sim_summarise_student_shape.R` summarises fixed Student-t `mu`,
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
@@ -367,6 +373,8 @@ Current pilot files:
   `meta_V(V = V)` smoke cells.
 - `run/sim_run_biv_rho12_smoke.R` does the same for the bivariate Gaussian
   residual-correlation surface.
+- `run/sim_run_biv_gaussian_mu_slope_smoke.R` does the same for the matching
+  bivariate Gaussian `mu1`/`mu2` slope-only surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
@@ -638,6 +646,9 @@ Current pilot files:
   Gaussian residual `rho12` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence, and
   coverage outputs.
+- `run/sim_summary_biv_gaussian_mu_slope_smoke.R` reduces the matching
+  bivariate Gaussian `mu1`/`mu2` slope-only smoke run into aggregate,
+  replicate, manifest, and failure-ledger tables.
 - `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence,

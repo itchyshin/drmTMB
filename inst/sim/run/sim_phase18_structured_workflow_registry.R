@@ -270,14 +270,14 @@ phase18_random_slope_wrapper_target_plan <- function(
     return(phase18_empty_random_slope_wrapper_target_plan())
   }
 
-  targets$target_status <- "needs_simulation_helper"
+  targets$target_status <- "smoke_helper_available"
   targets$source_evidence <- phase18_random_slope_wrapper_source_evidence(
     targets$lane_id
   )
   targets$required_helper <- phase18_random_slope_wrapper_required_helper(
     targets$lane_id
   )
-  targets$dispatch_mode <- "no_dispatch_until_helper_lands"
+  targets$dispatch_mode <- "local_helper_not_actions"
   row.names(targets) <- NULL
   targets[c(
     "lane_id",
