@@ -43361,3 +43361,94 @@ Member-group review:
 - Fisher kept the failure separate from any artifact audit or recovery claim.
 - Rose recorded the regression and the missing local coverage.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 formal-pilot audit
+
+Goal:
+
+- Audit the successful stable-set `count_structured_q1` formal pilot and decide
+  whether the lane can design a larger recovery grid.
+
+Changes:
+
+- Added
+  `docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`
+  so the count structured q1 slice map records the formal-pilot audit decision.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-audit.md`.
+
+Validation:
+
+```sh
+gh run view 26669005577 --repo itchyshin/drmTMB --job 78608250703
+gh run download 26669005577 --repo itchyshin/drmTMB --dir /tmp/drmtmb-count-structured-formal-lJ18lP
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577"
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+audit <- phase18_audit_count_structured_q1_boundary_gate(out, require_complete = TRUE)
+print(audit$boundary_gate$decision)
+print(audit$boundary_gate$overall)
+print(audit$boundary_gate$checks)
+EOF
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577/tables"
+files <- list.files(out, pattern = "\\.csv$", full.names = TRUE)
+data.frame(table = basename(files), rows = vapply(files, function(f) nrow(read.csv(f, stringsAsFactors = FALSE)), integer(1)))
+EOF
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577/tables"
+replicates <- read.csv(file.path(out, "count-structured-q1-replicates.csv"), stringsAsFactors = FALSE)
+intervals <- read.csv(file.path(out, "count-structured-q1-profile-intervals.csv"), stringsAsFactors = FALSE)
+coverage <- read.csv(file.path(out, "count-structured-q1-profile-coverage.csv"), stringsAsFactors = FALSE)
+print(table(intervals$interval_status))
+print(as.data.frame.matrix(table(intervals$cell_id, intervals$interval_status)))
+coverage$interpretable <- coverage$n_interval >= 90
+print(coverage)
+EOF
+air format docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-audit.md
+git diff --check
+rg -n 'count structured q1.*(ready|passed|promot|recovery claim|coverage claim)|stable.*formal.*(ready|passed|promot)|larger recovery grid' docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/after-task/2026-05-29-count-structured-q1-formal-pilot-audit.md
+gh issue list --repo itchyshin/drmTMB --state open --search 'count structured q1 formal pilot profile interval failure hold_interval_diagnostic' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- GitHub Actions run `26669005577` succeeded from `main` at
+  `f7e090f26729057cf3f4597dc903e8ec384324a0`; the selected
+  `count_structured_q1` job `78608250703` finished in 8m35s.
+- The artifact had 1000 `ok` manifest rows, 1000 profile-target rows, 1000
+  profile-interval rows, and 10 profile-coverage rows.
+- The fit-level boundary helper returned `propose_next_pilot`: 10/1000
+  fitted replicates had SD-boundary warnings, no fitted replicate had a
+  Hessian warning, and no warning-ledger row was unexplained.
+- The direct `log_sd_phylo` profile interval gate stopped the lane:
+  profile intervals were 973 `ok` and 27 failed overall, and
+  `count_structured_q1_001` had 11/100 failed intervals.
+- The two NB2 watch cells stayed below their 10% watch stop rules:
+  `count_structured_q1_003` had 6/100 failed intervals and 2/100
+  SD-boundary warnings; `count_structured_q1_005` had 2/100 failed intervals
+  and 1/100 SD-boundary warnings.
+- The decision is `hold_interval_diagnostic`, not recovery-grid readiness.
+- The stale-claim scan found only the intended negative wording and the earlier
+  workflow-plumbing row.
+- The issue search returned no exact open issue to update.
+
+Member-group review:
+
+- Ada kept the audit on the formal-pilot decision rather than opening a new
+  recovery grid.
+- Fisher treated the 70% coverage rows as descriptive because the profile
+  interval gate stopped first.
+- Curie checked the boundary helper, profile status counts, watch cells, and
+  row counts.
+- Grace verified the successful rerun, selected job runtime, artifact download,
+  formatting, and diff hygiene.
+- Rose kept recovery, bootstrap, and broad coverage claims out of the wording.
+- No spawned subagents were running.
