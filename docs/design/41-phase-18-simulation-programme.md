@@ -1322,3 +1322,9 @@ errors, and elapsed time by surface before the raw manifest.
      random-slope plan has nine non-none Actions routes and zero wrapper
      targets. The task remains opt-in and excluded from `task = "all"` until a
      small artifact pilot is audited.
+234. Slice 1826 adds read-only workflow status helpers for the remaining
+     planning surfaces: structured-dependence wrapper-target readiness,
+     correlation-block wrapper targets, and family-surface registry status
+     tables. These helpers summarize registry/planning state only. They do not
+     run models, write artifacts, dispatch Actions jobs, promote rows, or make
+     recovery or coverage claims.

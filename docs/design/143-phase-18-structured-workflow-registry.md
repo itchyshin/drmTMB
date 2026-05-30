@@ -261,6 +261,22 @@ nine rows with non-none Actions routes and zero wrapper targets. The old
 wrapper target helper remains available as a fail-closed empty view when no
 wrapper rows are left.
 
+## Slice 1826 Workflow Status Helpers
+
+Slice 1826 adds read-only status helpers for three remaining workflow planning
+surfaces. `phase18_structured_dependence_wrapper_target_readiness()` lists the
+four current Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
+wrapper targets and separates the existing spatial grid writer from the
+source-test-ready rows that still need artifact writers.
+`phase18_correlation_block_wrapper_target_plan()` lists the current
+correlation-block wrapper targets, keeping q=2 interval-provenance work
+separate from q=4 diagnostic-only rows. `phase18_family_surface_status_tables()`
+summarizes the family-surface registry by row, admission category, and
+distribution route with `status_scope = "registry_status_only"`.
+
+These helpers do not run models, write artifacts, dispatch Actions jobs,
+promote registry rows, or make recovery or coverage claims.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
