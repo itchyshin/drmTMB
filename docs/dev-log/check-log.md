@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Structured-Dependence Workflow Plan
+
+Goal:
+
+- Build the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow plan
+  from the structured registry while keeping formal-admission, hold-smoke, and
+  diagnostic-only rows distinct.
+
+Actions run:
+
+- Added `phase18_structured_dependence_workflow_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Added helper functions for empty structured-dependence plans, dispatch-status
+  labels, and status-specific audit focus text.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to cover the
+  seven-row plan, wrapper-target rows, formal-admission, held-smoke,
+  diagnostic-only rows, `include_held = FALSE`, and exclusion of blocked rows.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1817.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-structured-dependence-workflow-plan.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_structured_dependence_workflow_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "admission_status", "dispatch_status", "actions_task", "workflow_helper")], row.names=FALSE)'
+rg -n "structured-dependence workflow plan|phase18_structured_dependence_workflow_plan|formal_admission_task|hold_smoke_audit|diagnostic_audit|Slice 1817" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed structured-dependence plan has seven rows: four Gaussian wrapper
+  targets, one Poisson formal-admission task, one NB2 hold-smoke audit row, and
+  one count q=1 diagnostic audit row.
+- No blocked or design-only rows are admitted by the helper.
+- The stale-reference scan found the intended helper, test, roadmap, and design
+  references for Slice 1817.
+- `git diff --check` was clean.
+
 ## 2026-05-30 -- Random-Slope Workflow Plan
 
 Goal:

@@ -1261,3 +1261,10 @@ errors, and elapsed time by surface before the raw manifest.
      The current plan has nine admitted rows, excludes blocked/design/diagnostic
      rows, maps eight rows to existing Actions tasks, and leaves the bivariate
      Gaussian slope-only row as the first explicit wrapper target.
+225. Slice 1817 adds `phase18_structured_dependence_workflow_plan()`, which
+     builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow plan
+     from the registry. The current plan has seven rows: four Gaussian
+     wrapper targets, Poisson `phylo()` q=1 formal-admission, NB2 `phylo()` q=1
+     hold-smoke, and count q=1 spatial/animal/`relmat()` diagnostic audit.
+     Setting `include_held = FALSE` keeps only the four wrapper targets and the
+     Poisson formal-admission row.

@@ -261,3 +261,89 @@ test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   expect_false("mock_blocked_random_slope" %in% plan$lane_id)
   expect_equal(nrow(plan), 9L)
 })
+
+test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_structured_dependence_workflow_plan(registry)
+
+  expect_equal(nrow(plan), 7L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 4L)
+  expect_equal(sum(plan$admission_status == "smoke_formal_admission"), 1L)
+  expect_equal(sum(plan$admission_status == "hold_smoke_only"), 1L)
+  expect_equal(sum(plan$admission_status == "diagnostic_only"), 1L)
+  expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
+  expect_true(all(nzchar(plan$audit_focus)))
+})
+
+test_that("Phase 18 structured-dependence plan separates wrapper and task rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_structured_dependence_workflow_plan(registry)
+  gaussian <- plan$family_group == "continuous_gaussian"
+  poisson <- plan$lane_id == "poisson_phylo_q1_formal"
+  nbinom2 <- plan$lane_id == "nbinom2_phylo_q1_formal"
+  count <- plan$lane_id == "count_structured_q1"
+
+  expect_equal(sum(gaussian), 4L)
+  expect_true(all(plan$dispatch_status[gaussian] == "needs_wrapper_target"))
+  expect_true(all(is.na(plan$actions_task[gaussian])))
+  expect_true(all(
+    plan$workflow_helper[gaussian] == "structured_dependence_wrapper"
+  ))
+  expect_equal(plan$dispatch_status[poisson], "formal_admission_task")
+  expect_equal(plan$actions_task[poisson], "poisson_phylo_q1_formal")
+  expect_equal(plan$dispatch_status[nbinom2], "hold_smoke_audit")
+  expect_equal(plan$actions_task[nbinom2], "nbinom2_phylo_q1_formal")
+  expect_equal(plan$dispatch_status[count], "diagnostic_audit")
+  expect_equal(plan$actions_task[count], "count_structured_q1")
+})
+
+test_that("Phase 18 structured-dependence plan can omit held rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_structured_dependence_workflow_plan(
+    registry,
+    include_held = FALSE
+  )
+
+  expect_equal(nrow(plan), 5L)
+  expect_false(any(
+    plan$admission_status %in%
+      c(
+        "hold_smoke_only",
+        "diagnostic_only"
+      )
+  ))
+})
+
+test_that("Phase 18 structured-dependence plan excludes blocked rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  blocked <- registry[registry$lane_id == "gaussian_phylo_mu_one_slope", ]
+  blocked$lane_id <- "mock_blocked_structured_dependence"
+  blocked$admission_status <- "blocked"
+  blocked$existing_actions_task <- "none"
+  registry <- rbind(registry, blocked)
+
+  plan <- env$phase18_structured_dependence_workflow_plan(registry)
+
+  expect_false("mock_blocked_structured_dependence" %in% plan$lane_id)
+  expect_equal(nrow(plan), 7L)
+})
