@@ -56,6 +56,34 @@ mixed-response bivariate families.
 | Family-surface admission workflow | Show which distributions are fixed-effect, ordinary random-effect, structured, or blocked | Current Phase 18 family tasks and readiness matrix | Add a report table from the registry before each broad-looking simulation report | A report borrows evidence from a neighbouring family or dpar |
 | Formal sharded workflow | Scale only admitted rows after a pilot passes boundary and interval gates | Existing Actions inputs for shards, profiles, cores, and `require_complete` | Extend sharding only after the registry row names the formal gate and audit helper | A smoke or diagnostic row is promoted to recovery evidence without MCSE and artifact audit |
 
+## Slice 1815 Registry Validator
+
+Slice 1815 adds the first executable contract for the registry in
+`inst/sim/run/sim_phase18_structured_workflow_registry.R`. The helper reads the
+CSV, validates required columns, checks unique `lane_id` values, restricts
+`workflow_lane` and `admission_status` to declared vocabularies, and compares
+`existing_actions_task` values with the current Phase 18 Actions task choices.
+Rows marked `blocked` or `design_only` must keep `existing_actions_task ==
+"none"`, so a blocked family surface cannot be promoted accidentally by naming
+an Actions task.
+
+The helper also provides summary and filter functions:
+
+- `phase18_read_structured_workflow_registry()` reads and validates the CSV.
+- `phase18_structured_workflow_registry_summary()` counts rows by workflow
+  lane and status, or by another requested set of registry columns.
+- `phase18_filter_structured_workflow_registry()` filters rows by lane,
+  status, dependence, or family group.
+- `phase18_admitted_structured_workflow_rows()` returns only rows whose status
+  is dispatchable by workflow plumbing: `ready_grid`, `ready_or_smoke`,
+  `ready_smoke`, `ready_source_test`, or `smoke_formal_admission`.
+
+The Actions runner now exposes `phase18_actions_task_choices()`, which lets the
+registry validator share the same task vocabulary as manual GitHub Actions
+dispatch. The validator is still workflow plumbing: it does not run
+simulations, change likelihood code, or promote diagnostic rows to recovery or
+coverage evidence.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
