@@ -191,6 +191,52 @@ phase18_audit_count_structured_q1_boundary_gate <- function(
   )
 }
 
+phase18_audit_count_structured_q1_profile_gate <- function(
+  output_dir,
+  require_complete = FALSE,
+  profile_failure_rate_limit = 0.05,
+  profile_condition_failure_rate_limit = 0.10,
+  watch_cells = character(),
+  watch_failure_rate_limit = 0.10
+) {
+  phase18_assert_simple_grid_output_dir(output_dir)
+  if (!isTRUE(require_complete) && !identical(require_complete, FALSE)) {
+    stop("`require_complete` must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  output_dir <- normalizePath(output_dir, mustWork = TRUE)
+  table_dir <- file.path(output_dir, "tables")
+  paths <- phase18_count_structured_q1_grid_paths(table_dir)
+  missing <- names(paths)[!file.exists(unlist(paths, use.names = FALSE))]
+  if (require_complete && length(missing) > 0L) {
+    stop(
+      "Missing count structured q1 artifacts: ",
+      paste(missing, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  intervals <- phase18_read_count_structured_q1_csv(
+    paths$profile_intervals_csv
+  )
+  gate <- phase18_count_structured_q1_profile_gate_summary(
+    intervals = intervals,
+    profile_failure_rate_limit = profile_failure_rate_limit,
+    profile_condition_failure_rate_limit = profile_condition_failure_rate_limit,
+    watch_cells = watch_cells,
+    watch_failure_rate_limit = watch_failure_rate_limit
+  )
+
+  list(
+    surface = "count_structured_q1_profile_gate_audit",
+    output_dir = output_dir,
+    table_dir = table_dir,
+    paths = paths,
+    missing_artifacts = missing,
+    profile_gate = gate
+  )
+}
+
 phase18_read_count_structured_q1_csv <- function(path) {
   if (!file.exists(path)) {
     return(data.frame())
