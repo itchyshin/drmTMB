@@ -459,6 +459,94 @@ test_that("Phase 18 correlation-block plan excludes blocked rows", {
   expect_equal(nrow(plan), 6L)
 })
 
+test_that("Phase 18 correlation-block wrapper target plan is read-only", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
+
+  expect_equal(nrow(targets), 3L)
+  expect_setequal(
+    targets$lane_id,
+    c(
+      "structured_gaussian_q2",
+      "bivariate_gaussian_group_q4",
+      "structured_gaussian_q4"
+    )
+  )
+  expect_true(all(targets$workflow_helper == "correlation_block_wrapper"))
+  expect_true(all(is.na(targets$actions_task)))
+  expect_true(all(
+    targets$dispatch_mode == "read_only_no_models_or_actions"
+  ))
+  expect_true(all(nzchar(targets$required_evidence)))
+})
+
+test_that("Phase 18 correlation-block wrapper target plan labels q2 and q4", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
+  q2 <- targets$lane_id == "structured_gaussian_q2"
+  q4 <- targets$block_q %in%
+    c(
+      "q4_intercept_corpairs",
+      "q4_structured_corpairs"
+    )
+
+  expect_equal(
+    targets$target_status[q2],
+    "q2_interval_provenance_needed"
+  )
+  expect_true(all(targets$target_status[q4] == "q4_diagnostic_only"))
+  expect_true(all(
+    targets$interval_policy[q4] == "q4_derived_interval_unavailable"
+  ))
+})
+
+test_that("Phase 18 correlation-block wrapper target plan can omit diagnostics", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  targets <- env$phase18_correlation_block_wrapper_target_plan(
+    registry,
+    include_diagnostic = FALSE
+  )
+
+  expect_equal(nrow(targets), 1L)
+  expect_equal(targets$lane_id, "structured_gaussian_q2")
+  expect_equal(
+    targets$target_status,
+    "q2_interval_provenance_needed"
+  )
+})
+
+test_that("Phase 18 correlation-block wrapper target plan is empty when wired", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  wrapper_rows <- registry$existing_actions_task ==
+    "needed:correlation_block_wrapper"
+  registry$existing_actions_task[wrapper_rows] <- "interval_heavy_summary"
+  targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
+
+  expect_equal(nrow(targets), 0L)
+  expect_true("required_evidence" %in% names(targets))
+  expect_true("dispatch_mode" %in% names(targets))
+})
+
 test_that("Phase 18 family-surface workflow plan keeps blocked rows visible", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -529,6 +617,105 @@ test_that("Phase 18 family-surface plan can omit blocked rows", {
 
   expect_equal(nrow(plan), 7L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
+})
+
+test_that("Phase 18 family-surface status tables summarize registry statuses", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  tables <- env$phase18_family_surface_status_tables(registry)
+
+  expect_named(
+    tables,
+    c(
+      "row_summary",
+      "category_summary",
+      "distribution_summary"
+    )
+  )
+  expect_equal(nrow(tables$row_summary), 11L)
+  expect_true(all(tables$row_summary$status_scope == "registry_status_only"))
+  expect_equal(sum(tables$category_summary$n), nrow(tables$row_summary))
+  expect_equal(sum(tables$distribution_summary$n), nrow(tables$row_summary))
+  expect_true(all(
+    tables$category_summary$status_scope == "registry_status_only"
+  ))
+  expect_true(all(
+    tables$distribution_summary$status_scope == "registry_status_only"
+  ))
+
+  category <- tables$category_summary
+  expect_equal(
+    unname(category$n[category$admission_category == "admitted"]),
+    6L
+  )
+  expect_equal(
+    unname(category$n[category$admission_category == "smoke_only"]),
+    1L
+  )
+  expect_equal(
+    unname(category$n[category$admission_category == "blocked"]),
+    3L
+  )
+  expect_equal(
+    unname(category$n[category$admission_category == "design_only"]),
+    1L
+  )
+
+  distribution <- tables$distribution_summary
+  counts <- distribution$family_group == "counts"
+  ordinal <- distribution$family_group == "ordinal"
+  expect_equal(sum(distribution$n[counts]), 2L)
+  expect_equal(sum(distribution$n[ordinal]), 2L)
+  expect_true("nbinom2()" %in% distribution$family_route[counts])
+  expect_true(
+    "zi_poisson;zi_nbinom2;hurdle_nbinom2" %in%
+      distribution$family_route[counts]
+  )
+})
+
+test_that("Phase 18 family-surface status tables can omit blocked rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  tables <- env$phase18_family_surface_status_tables(
+    registry,
+    include_blocked = FALSE
+  )
+
+  expect_equal(nrow(tables$row_summary), 7L)
+  expect_false(any(
+    tables$row_summary$admission_status %in% c("blocked", "design_only")
+  ))
+  expect_false(any(
+    tables$category_summary$admission_category %in%
+      c("blocked", "design_only")
+  ))
+  expect_equal(sum(tables$distribution_summary$n), 7L)
+})
+
+test_that("Phase 18 family-surface status tables are empty-shaped", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  registry <- registry[registry$workflow_lane != "family_surface", ]
+  tables <- env$phase18_family_surface_status_tables(registry)
+
+  expect_equal(nrow(tables$row_summary), 0L)
+  expect_equal(nrow(tables$category_summary), 0L)
+  expect_equal(nrow(tables$distribution_summary), 0L)
+  expect_true("status_scope" %in% names(tables$row_summary))
+  expect_true("status_scope" %in% names(tables$category_summary))
+  expect_true("status_scope" %in% names(tables$distribution_summary))
 })
 
 test_that("Phase 18 structured workflow bundle returns all plan tables", {

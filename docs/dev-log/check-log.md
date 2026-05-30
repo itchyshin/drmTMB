@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
+
+Goal:
+
+- Rebase PR #428's read-only Phase 18 workflow status helper bundle after PRs
+  #429, #430, #432, and #433 moved `main`.
+
+Actions run:
+
+- Resolved conflicts in `ROADMAP.md`,
+  `docs/design/143-phase-18-structured-workflow-registry.md`, and
+  `docs/design/41-phase-18-simulation-programme.md`.
+- Kept the merged bivariate Gaussian slope Actions pilot audit as Slice 1826.
+- Renumbered the workflow status helper bundle to Slice 1827.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+air format ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-correlation-block-wrapper-target-plan.md docs/dev-log/after-task/2026-05-30-family-surface-status-tables.md docs/dev-log/after-task/2026-05-30-structured-dependence-wrapper-readiness.md inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R tests/testthat/test-phase18-structured-workflow-registry.R
+git diff --check
+rg -n '<<<<<<<|=======|>>>>>>>' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md inst/sim/run tests/testthat
+rg -n 'Workflow status helper bundle|Slice 1827|Slice 1826 Workflow Status|Slice 1826 adds read-only workflow|next slice is a benchmark/API gate' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-*.md
+```
+
+Results:
+
+- Focused Phase 18 tests passed for
+  `phase18-structured-dependence-wrapper-readiness` and
+  `phase18-structured-workflow-registry`.
+- `air format` and `git diff --check` passed.
+- Conflict-marker scan found no current conflict markers in the rebased files.
+- Slice-number scan confirmed the workflow status helper bundle now uses
+  Slice 1827, while Slice 1826 remains the bivariate Gaussian slope Actions
+  pilot audit.
+
 ## 2026-05-30 -- Sparse Phylo Row-Pressure Gate
 
 Goal:
@@ -45796,3 +45832,161 @@ Member-group review:
   before closure.
 - Rose checked that the formal-pilot gate remains closed.
 - No spawned subagents were running.
+
+## 2026-05-30 - Family-surface registry status tables
+
+Goal:
+
+- Add read-only family-surface registry status tables for future report slices.
+
+Changes:
+
+- Added `phase18_family_surface_status_tables()` to return row-level,
+  admission-category, and distribution-route summaries from the structured
+  workflow registry.
+- The helper uses the existing `phase18_family_surface_workflow_plan()` and
+  labels each output with `status_scope = "registry_status_only"`.
+- Added focused tests for row counts, category counts, distribution counts, and
+  `include_blocked = FALSE`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-family-surface-status-tables.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, check-log, and
+  after-task files.
+- `devtools::test(filter = 'phase18-structured-workflow-registry', reporter =
+  'summary')` passed.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the helper as a registry-table extension rather than a new family
+  support surface.
+- Curie covered the row, category, distribution, and blocked-row filter
+  summaries in focused tests.
+- Fisher checked that the status tables do not make model-run, recovery, or
+  coverage claims.
+- Rose noted concurrent same-file correlation-block wrapper edits and kept this
+  entry scoped to the family-surface status-table slice.
+- Parallel helper work was active: Ampere prepared the family-surface status
+  table helper while Bohr prepared the correlation-block wrapper helper and
+  Planck prepared structured-dependence readiness. Russell later audited the
+  combined bundle before PR staging.
+
+## 2026-05-30 - Correlation-block wrapper target status helper
+
+Goal:
+
+- Add a read-only status helper for the current Phase 18 correlation-block
+  wrapper targets without running models or dispatching Actions.
+
+Changes:
+
+- Added `phase18_correlation_block_wrapper_target_plan()` to read the existing
+  correlation-block workflow plan and return only rows whose
+  `workflow_helper = "correlation_block_wrapper"`.
+- The helper labels current q=2 structured rows as
+  `q2_interval_provenance_needed`, q=4 diagnostic rows as
+  `q4_diagnostic_only`, and every returned row as
+  `read_only_no_models_or_actions`.
+- Added focused tests for the three current target rows, q=2/q=4 labels,
+  `include_diagnostic = FALSE`, and the empty-table shape after future wiring.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_phase18_structured_workflow_registry.R', 'tests/testthat/test-phase18-structured-workflow-registry.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "testthat::test_file('tests/testthat/test-phase18-structured-workflow-registry.R', reporter = 'summary')"
+Rscript --vanilla -e 'e <- new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local = e); r <- e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv"); p <- e$phase18_correlation_block_wrapper_target_plan(r); print(p[, c("lane_id", "target_status", "interval_policy", "dispatch_mode")], row.names = FALSE)'
+gh issue list --state open --limit 30 --search "phase18 correlation block wrapper"
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation and test files.
+- The parse check passed.
+- The focused registry test file passed with `testthat::test_file()`.
+- The direct helper call returned `structured_gaussian_q2`,
+  `bivariate_gaussian_group_q4`, and `structured_gaussian_q4` with
+  `read_only_no_models_or_actions`.
+- `gh issue list --state open --limit 30 --search
+  "phase18 correlation block wrapper"` returned no open issues.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the helper as a status view over the existing registry plan.
+- Curie covered the current rows, diagnostic filter, and empty-table future
+  wiring path.
+- Fisher checked that q=4 rows stay diagnostic-only and do not claim interval
+  support.
+- Rose noted concurrent same-file family-surface status-table edits and kept
+  this entry scoped to the correlation-block helper.
+- Parallel helper work was active: Bohr prepared the correlation-block wrapper
+  helper while Ampere prepared the family-surface status tables and Planck
+  prepared structured-dependence readiness. Russell later audited the combined
+  bundle before PR staging.
+
+## 2026-05-30 - Structured-dependence wrapper target readiness
+
+Goal:
+
+- Add a disjoint, read-only next-slice helper that summarizes the current
+  structured-dependence wrapper targets after Slice 1825.
+
+Changes:
+
+- Added `phase18_structured_dependence_wrapper_target_readiness()` in a new
+  helper file rather than editing the Slice 1825 registry helper.
+- The helper reads the existing structured-dependence workflow plan, returns
+  only `workflow_helper = "structured_dependence_wrapper"` rows, and labels
+  their readiness as `grid_writer_available` or `source_test_ready`.
+- The returned table marks all current rows as
+  `dispatch_mode = "wrapper_target_not_actions"` and leaves `actions_task`
+  missing, so it is a status view rather than a dispatch path.
+- Added focused tests for the four current Gaussian structured-dependence
+  wrapper targets, the spatial artifact-writer row, source-test evidence rows,
+  and the fail-closed unknown-target path.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R
+Rscript --vanilla -e "devtools::test(filter = '^phase18-structured-dependence-wrapper-readiness$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+gh issue list --repo itchyshin/drmTMB --state open --search "structured dependence wrapper target readiness" --limit 20
+```
+
+Results:
+
+- `air format` completed on the new helper and test files.
+- The focused wrapper-readiness test passed.
+- The adjacent registry plus wrapper-readiness test filters passed together.
+- `gh issue list --repo itchyshin/drmTMB --state open --search
+  "structured dependence wrapper target readiness" --limit 20` returned no
+  open issues.
+
+Member-group review:
+
+- Ada kept the patch disjoint by adding new files and appending this dev-log
+  entry only.
+- Curie covered the current rows, the spatial artifact-writer row, and the
+  unknown-row failure path.
+- Fisher checked that source-test readiness does not become recovery or
+  coverage evidence.
+- Grace ran the focused and adjacent registry tests.
+- Rose noted concurrent same-file registry edits from other work and left them
+  untouched.
+- Parallel helper work was active: Planck prepared the structured-dependence
+  readiness helper while Bohr prepared the correlation-block wrapper helper and
+  Ampere prepared family-surface status tables. Russell later audited the
+  combined bundle before PR staging.
