@@ -1240,3 +1240,10 @@ errors, and elapsed time by surface before the raw manifest.
      returns `side_summary` beside the plot object and overall summary, so plot
      smoke results keep the same side-specific evidence as the trace-run
      artifact.
+222. Slice 1814 adds a structured workflow registry in
+     `docs/design/143-phase-18-structured-workflow-registry.md` and
+     `inst/sim/registry/phase18_structured_workflow_registry.csv`. The registry
+     turns the readiness matrix into taskable rows for random slopes,
+     phylogenetic, spatial, animal, `relmat()`, residual `rho12`, q=2
+     `corpairs()`, q=4 diagnostic rows, and family-surface admission without
+     changing likelihoods or formula grammar.
