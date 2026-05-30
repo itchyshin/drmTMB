@@ -43452,3 +43452,55 @@ Member-group review:
   formatting, and diff hygiene.
 - Rose kept recovery, bootstrap, and broad coverage claims out of the wording.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile-gate helper
+
+Goal:
+
+- Codify the manual formal-pilot profile interval stop rule from
+  `docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md`
+  so future artifact audits can return `hold_interval_diagnostic` without
+  redoing the table logic by hand.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_gate_summary()` and helper
+  functions to `inst/sim/run/sim_write_count_structured_q1_grid.R`.
+- The helper ignores `not_requested` profile intervals, checks the 5% overall
+  profile failure rule, the 10% condition-level profile failure rule, and an
+  optional watch-cell profile-failure rule, then returns
+  `hold_interval_diagnostic` or `propose_next_pilot`.
+- Added focused tests for stopped and clean profile-gate outcomes in
+  `tests/testthat/test-phase18-count-structured-q1.R`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and the formal-pilot audit note.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-gate-helper.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-gate-helper.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- `git diff --check` was clean after formatting the final slice files.
+- The stale-claim scan found only intended negative wording and the earlier
+  workflow-plumbing row.
+
+Member-group review:
+
+- Ada kept the helper scoped to the profile interval audit decision.
+- Fisher preserved the 5% overall and 10% condition-level profile failure
+  stop rules from the formal-pilot design and audit.
+- Curie added tests for both a held pilot and a clean pilot.
+- Grace kept the helper in the simulation-audit path rather than in the
+  user-facing API.
+- Rose kept the wording away from recovery-grid, bootstrap, or broad coverage
+  claims.
+- No spawned subagents were running.

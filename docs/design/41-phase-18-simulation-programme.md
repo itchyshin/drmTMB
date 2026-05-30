@@ -1082,3 +1082,10 @@ errors, and elapsed time by surface before the raw manifest.
      above the 10% condition-level stop rule. The lane therefore stops at
      interval diagnostic evidence. It does not permit a larger recovery-grid
      design, bootstrap intervals, or broad recovery or coverage claims.
+199. Slices 1783-1784 codify that manual profile-interval decision in
+     `phase18_count_structured_q1_profile_gate_summary()`. The helper reads
+     profile-interval rows, ignores `not_requested` intervals, checks the 5%
+     overall failure rule, the 10% condition-level failure rule, and optional
+     watch-cell profile-failure rules, then returns `hold_interval_diagnostic`
+     when any gate fails. This adds an audit helper only; it does not change the
+     DGP, fitted model, likelihood, formula grammar, or recovery-grid readiness.

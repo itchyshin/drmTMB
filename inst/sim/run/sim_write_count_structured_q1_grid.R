@@ -498,6 +498,194 @@ phase18_count_structured_q1_boundary_decision <- function(checks) {
   )
 }
 
+phase18_count_structured_q1_profile_gate_summary <- function(
+  intervals,
+  profile_failure_rate_limit = 0.05,
+  profile_condition_failure_rate_limit = 0.10,
+  watch_cells = character(),
+  watch_failure_rate_limit = 0.10
+) {
+  phase18_count_structured_q1_assert_rate(
+    profile_failure_rate_limit,
+    "profile_failure_rate_limit"
+  )
+  phase18_count_structured_q1_assert_rate(
+    profile_condition_failure_rate_limit,
+    "profile_condition_failure_rate_limit"
+  )
+  phase18_count_structured_q1_assert_rate(
+    watch_failure_rate_limit,
+    "watch_failure_rate_limit"
+  )
+  phase18_assert_summary_columns(
+    intervals,
+    c("cell_id", "replicate", "interval_status")
+  )
+  watch_cells <- as.character(watch_cells)
+  watch_cells <- watch_cells[!is.na(watch_cells) & nzchar(watch_cells)]
+
+  requested <- intervals[
+    is.na(intervals$interval_status) |
+      intervals$interval_status != "not_requested",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(requested) == 0L) {
+    stop("`intervals` must contain requested interval rows.", call. = FALSE)
+  }
+
+  conditions <- phase18_count_structured_q1_profile_conditions(requested)
+  overall <- phase18_count_structured_q1_profile_overall(requested)
+  checks <- phase18_count_structured_q1_profile_checks(
+    overall = overall,
+    conditions = conditions,
+    profile_failure_rate_limit = profile_failure_rate_limit,
+    profile_condition_failure_rate_limit = profile_condition_failure_rate_limit,
+    watch_cells = watch_cells,
+    watch_failure_rate_limit = watch_failure_rate_limit
+  )
+  decision <- phase18_count_structured_q1_profile_decision(checks)
+
+  list(
+    surface = "count_structured_q1_profile_gate",
+    overall = overall,
+    conditions = conditions,
+    checks = checks,
+    decision = decision
+  )
+}
+
+phase18_count_structured_q1_profile_overall <- function(intervals) {
+  failed <- phase18_count_structured_q1_status_not_ok(intervals$interval_status)
+  n_interval <- nrow(intervals)
+  data.frame(
+    n_interval = n_interval,
+    failed_interval = sum(failed),
+    failure_rate = sum(failed) / n_interval,
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_count_structured_q1_profile_conditions <- function(intervals) {
+  condition_vars <- intersect(
+    c(
+      "cell_id",
+      "family",
+      "structured_type",
+      "n_level",
+      "sd_structured",
+      "mean_count",
+      "sigma_baseline"
+    ),
+    names(intervals)
+  )
+  keys <- do.call(
+    paste,
+    c(intervals[condition_vars], list(sep = "\r"))
+  )
+  rows <- lapply(split(intervals, keys, drop = TRUE), function(x) {
+    failed <- phase18_count_structured_q1_status_not_ok(x$interval_status)
+    out <- x[1L, condition_vars, drop = FALSE]
+    out$n_interval <- nrow(x)
+    out$failed_interval <- sum(failed)
+    out$failure_rate <- sum(failed) / nrow(x)
+    out
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_profile_checks <- function(
+  overall,
+  conditions,
+  profile_failure_rate_limit,
+  profile_condition_failure_rate_limit,
+  watch_cells,
+  watch_failure_rate_limit
+) {
+  condition_failed <- conditions$failure_rate >=
+    profile_condition_failure_rate_limit
+  watch_index <- conditions$cell_id %in%
+    watch_cells &
+    conditions$failure_rate >= watch_failure_rate_limit
+
+  data.frame(
+    check = c(
+      "profile_interval_rate",
+      "profile_condition_failure_rate",
+      "watch_profile_failure_rate"
+    ),
+    status = c(
+      ifelse(
+        overall$failure_rate > profile_failure_rate_limit,
+        "failed",
+        "ok"
+      ),
+      ifelse(any(condition_failed), "failed", "ok"),
+      ifelse(any(watch_index), "failed", "ok")
+    ),
+    n = c(
+      overall$failed_interval,
+      sum(condition_failed),
+      sum(watch_index)
+    ),
+    rate = c(
+      overall$failure_rate,
+      NA_real_,
+      NA_real_
+    ),
+    threshold = c(
+      profile_failure_rate_limit,
+      profile_condition_failure_rate_limit,
+      watch_failure_rate_limit
+    ),
+    message = c(
+      paste0(
+        overall$failed_interval,
+        " of ",
+        overall$n_interval,
+        " requested profile intervals were non-ok"
+      ),
+      phase18_count_structured_q1_condition_message(
+        conditions,
+        condition_failed
+      ),
+      phase18_count_structured_q1_condition_message(
+        conditions,
+        watch_index
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_count_structured_q1_profile_decision <- function(checks) {
+  if (!is.data.frame(checks) || !all(c("check", "status") %in% names(checks))) {
+    stop(
+      "`checks` must be a data frame with `check` and `status`.",
+      call. = FALSE
+    )
+  }
+  failed <- checks$status == "failed"
+  decision <- if (any(failed)) {
+    "hold_interval_diagnostic"
+  } else {
+    "propose_next_pilot"
+  }
+  reason <- if (any(failed)) {
+    paste(checks$check[failed], collapse = ", ")
+  } else {
+    "profile interval gate checks passed; a separate design note is still required"
+  }
+  data.frame(
+    surface = "count_structured_q1",
+    decision = decision,
+    reason = reason,
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_count_structured_q1_unexplained_failures <- function(failures, fits) {
   if (!is.data.frame(failures) || nrow(failures) == 0L) {
     return(data.frame())

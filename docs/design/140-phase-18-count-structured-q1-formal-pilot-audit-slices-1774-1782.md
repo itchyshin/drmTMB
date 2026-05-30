@@ -134,6 +134,11 @@ The formal pilot stops at `hold_interval_diagnostic`. The stable set fits
 reliably enough for boundary diagnostics, but direct profile intervals for
 `log_sd_phylo` are not yet reliable enough to design a larger recovery grid.
 
+Slice 1783-1784 codified this manual profile-interval decision in
+`phase18_count_structured_q1_profile_gate_summary()`, so future artifact audits
+can apply the same overall, condition-level, and watch-cell profile-failure stop
+rules.
+
 The next slice should diagnose profile interval geometry for the failed
 spatial and NB2 cells. It should not dispatch a larger formal recovery grid,
 add bootstrap intervals, or make broad recovery or coverage claims for count
