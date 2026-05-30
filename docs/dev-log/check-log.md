@@ -43938,3 +43938,45 @@ Member-group review:
 - Grace checked the formal-pilot artifact.
 - Rose kept endpoint missingness separate from a profile-failure cause claim.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile geometry diagnostic note
+
+Goal:
+
+- Turn the formal-pilot profile-failure evidence into a concrete diagnostic
+  contract before changing profile settings or proposing a larger recovery grid.
+
+Changes:
+
+- Added
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- The note summarizes Actions run `26669005577`, the profile gate stop, the
+  `example_geometry_summary` rows, and the selected examples that should be
+  rerun with profile-trace output.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-geometry-diagnostic-note.md`.
+
+Validation:
+
+```sh
+air format docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-geometry-diagnostic-note.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed after the docs update.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the next step concrete.
+- Fisher kept the evidence descriptive and separate from coverage claims.
+- Florence flagged the need for likelihood-ratio points before any profile plot
+  can be judged.
+- Grace checked that the docs-only slice still passed the focused test.
+- Rose checked the note for unsupported cause claims.
+- No spawned subagents were running.
