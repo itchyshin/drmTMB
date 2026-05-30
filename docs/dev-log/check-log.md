@@ -2,6 +2,90 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Bivariate Gaussian Slope Actions Pilot Audit
+
+Goal:
+
+- Close the follow-up from the `biv_gaussian_mu_slope` Actions wiring slice by
+  auditing the small manual Actions artifact before making any recovery claim.
+
+Actions run:
+
+- Checked recent Phase 18 workflow runs and found successful manual run
+  `26689587073` for `biv_gaussian_mu_slope`.
+- Downloaded the artifact to
+  `/tmp/drmtmb-phase18-biv-gaussian-audit-26689587073`.
+- Audited the uploaded manifest, replicate, aggregate, failure-ledger, and
+  `phase18-actions-result.rds` artifacts.
+- Updated the Phase 18 roadmap, simulation programme, structured workflow
+  registry note, and simulation README so the bivariate Gaussian `mu1`/`mu2`
+  slope lane records the pilot audit as complete while keeping the lane opt-in
+  and excluded from `task = "all"`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-biv-gaussian-slope-actions-pilot-audit.md`.
+
+Validation:
+
+```sh
+gh run list --repo itchyshin/drmTMB --workflow 'Phase 18 simulation grid' --limit 20 --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,createdAt,updatedAt,url
+gh run view 26689587073 --repo itchyshin/drmTMB --json databaseId,displayTitle,event,headBranch,headSha,status,conclusion,createdAt,updatedAt,url,jobs
+gh run view 26689587073 --repo itchyshin/drmTMB --job 78663532348 --log
+gh run download 26689587073 --repo itchyshin/drmTMB --dir /tmp/drmtmb-phase18-biv-gaussian-audit-26689587073
+find /tmp/drmtmb-phase18-biv-gaussian-audit-26689587073 -maxdepth 6 -type f | sort
+Rscript --vanilla -e "base <- '/tmp/drmtmb-phase18-biv-gaussian-audit-26689587073/phase18-biv_gaussian_mu_slope-shard-1-of-1-26689587073'; files <- file.path(base, 'tables', c('biv-gaussian-mu-slope-manifest.csv','biv-gaussian-mu-slope-replicates.csv','biv-gaussian-mu-slope-aggregate.csv','biv-gaussian-mu-slope-failures.csv')); for (f in files) { cat('\n##', basename(f), '\n'); x <- read.csv(f, stringsAsFactors = FALSE); print(dim(x)); print(names(x)); print(x); }; cat('\n## action result\n'); r <- readRDS(file.path(base, 'phase18-actions-result.rds')); str(r, max.level = 2);"
+rg -n "small artifact pilot is audited|small artifact pilot|pilot is audited|biv_gaussian_mu_slope.*recovery|bivariate_gaussian_slope_only.*recovery|biv_gaussian_mu_slope.*coverage|bivariate Gaussian.*coverage claim" README.md NEWS.md ROADMAP.md docs/design inst/sim .github/workflows tests/testthat --glob '!docs/dev-log/**'
+rg -n "until a small artifact pilot is audited|small artifact pilot is audited|pilot is audited" README.md NEWS.md ROADMAP.md docs/design inst/sim .github/workflows tests/testthat --glob '!docs/dev-log/**'
+rg -n "biv_gaussian_mu_slope.*recovery|bivariate_gaussian_slope_only.*recovery|biv_gaussian_mu_slope.*coverage|bivariate Gaussian.*coverage claim" README.md NEWS.md ROADMAP.md docs/design inst/sim .github/workflows tests/testthat --glob '!docs/dev-log/**'
+gh issue list --repo itchyshin/drmTMB --state open --search "biv gaussian slope actions pilot artifact" --limit 20 --json number,title,state,url,labels
+gh issue list --repo itchyshin/drmTMB --state open --search "bivariate Gaussian slope Phase 18" --limit 20 --json number,title,state,url,labels
+git diff --check
+```
+
+Results:
+
+- Run `26689587073` completed successfully on branch
+  `codex/biv-gaussian-slope-actions-task` at commit
+  `3cb180dd0d92f8398ba4371e7b054753fac44bf4`, the same slice now present on
+  `origin/main`.
+- The selected job ran serially with `n_reps=1`, `backend=none`,
+  `bootstrap_nsim=0`, `render_report=false`, `require_complete=true`, and seed
+  `20260603`.
+- The uploaded artifact
+  `phase18-biv_gaussian_mu_slope-shard-1-of-1-26689587073` contained seven
+  files: `phase18-actions-result.rds`, four CSV tables, and one replicate RDS
+  for each of the two pilot cells.
+- The manifest had two rows, both `status == "ok"`, `skipped == FALSE`,
+  `warning_count == 0`, and no errors.
+- The replicate table had 20 rows: two cells x one replicate x 10 parameter
+  summaries for fixed `mu1`/`mu2`, residual `sigma1`/`sigma2`, residual
+  `rho12`, the two random-slope SDs, and the slope-slope correlation.
+- All replicate rows had `converged == TRUE`, `pdHess == TRUE`, and
+  `warning_count == 0`.
+- The aggregate table had 20 rows with `n_replicate == 1`, convergence and
+  `pdHess` rates of 1, warning rates of 0, and `NA` MCSE fields as expected
+  for a one-replicate pilot.
+- The failures table existed with zero rows.
+- The first stale-wording scan found the two expected pre-audit phrases in
+  `docs/design/41-phase-18-simulation-programme.md` and `inst/sim/README.md`;
+  this slice updates them. The follow-up pre-audit scan is clean. The
+  conservative recovery/coverage scan now finds only the intended ROADMAP
+  no-claim sentence for Slice 1826.
+- The direct issue search returned `[]`. The broader bivariate slope search
+  found issue #33 and other related roadmap issues; issue #33 was updated with
+  the pilot-audit evidence.
+- `git diff --check` passed after the documentation edits.
+
+Member-group review:
+
+- Ada kept the task to the completed Actions-pilot audit.
+- Fisher and Curie checked that the artifact proves dispatch and clean pilot
+  completion, not recovery or coverage.
+- Grace checked the run inputs, selected job, artifact upload, and PR #428
+  non-blocker status.
+- Rose checked that stale "until audited" wording was replaced and that the
+  unrelated GLLVM.jl lessons note remains a separate cleanup lane.
+- No spawned subagents edited files.
+
 ## 2026-05-30 -- Bivariate Gaussian Slope Actions Task
 
 Goal:

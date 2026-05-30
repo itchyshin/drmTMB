@@ -508,9 +508,11 @@ Current pilot files:
   coordinate-spatial Gaussian `mu` slope lanes.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
-  manual `biv_gaussian_mu_slope` Actions task can run it, but the lane remains
-  opt-in and excluded from `task = "all"` until a small artifact pilot is
-  audited.
+  manual `biv_gaussian_mu_slope` Actions task can run it. Manual run
+  `26689587073` audited a one-replicate, two-cell artifact with clean manifest,
+  convergence, `pdHess`, and failure-ledger results, but the lane remains
+  opt-in and excluded from `task = "all"` until a deliberately sized recovery
+  or coverage grid is designed.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and

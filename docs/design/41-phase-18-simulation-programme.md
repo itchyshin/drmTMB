@@ -1320,5 +1320,12 @@ errors, and elapsed time by surface before the raw manifest.
      `.github/workflows/phase18-simulation-grid.yaml`. The structured workflow
      registry now maps `bivariate_gaussian_slope_only` to that task, so the
      random-slope plan has nine non-none Actions routes and zero wrapper
-     targets. The task remains opt-in and excluded from `task = "all"` until a
-     small artifact pilot is audited.
+     targets.
+234. Slice 1826 audits manual Phase 18 run `26689587073` for
+     `biv_gaussian_mu_slope`. The uploaded artifact contained
+     `phase18-actions-result.rds`, aggregate, replicate, manifest, and failure
+     CSVs, plus one replicate RDS for each of the two pilot cells. Both
+     manifest rows were `ok`, all 20 replicate-summary rows converged with
+     `pdHess = TRUE` and zero warnings, and the failure ledger was empty. The
+     task remains opt-in and excluded from `task = "all"`; this pilot is
+     dispatch and artifact evidence, not a recovery or coverage claim.
