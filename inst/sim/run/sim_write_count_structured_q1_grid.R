@@ -1123,6 +1123,51 @@ phase18_count_structured_q1_profile_trace_plan <- function(
   out
 }
 
+phase18_write_count_structured_q1_profile_trace_plan <- function(
+  output_dir,
+  plan = phase18_count_structured_q1_profile_trace_plan(),
+  overwrite = FALSE
+) {
+  phase18_assert_simple_grid_output_dir(output_dir)
+  if (!isTRUE(overwrite) && !identical(overwrite, FALSE)) {
+    stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
+  }
+  phase18_assert_summary_columns(
+    plan,
+    c(
+      "cell_id",
+      "replicate",
+      "seed",
+      "profile_pass",
+      "profile_parameters",
+      "profile_level",
+      "ystep"
+    )
+  )
+
+  dirs <- phase18_prepare_simple_grid_dirs(output_dir)
+  path <- file.path(
+    dirs$table_dir,
+    "count-structured-q1-profile-trace-plan.csv"
+  )
+  if (file.exists(path) && !overwrite) {
+    stop(
+      "Count structured q1 profile trace plan already exists: ",
+      path,
+      call. = FALSE
+    )
+  }
+
+  utils::write.csv(plan, path, row.names = FALSE)
+  list(
+    surface = "count_structured_q1_profile_trace_plan",
+    output_dir = dirs$output_dir,
+    table_dir = dirs$table_dir,
+    path = path,
+    plan = plan
+  )
+}
+
 phase18_count_structured_q1_profile_failure_class <- function(message) {
   message <- as.character(message)
   out <- rep("other_profile_failure", length(message))
