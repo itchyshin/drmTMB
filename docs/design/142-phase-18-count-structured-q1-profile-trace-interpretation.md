@@ -95,3 +95,37 @@ that never reaches the cutoff, and lower-side support that reaches the cutoff
 but still fails interval extraction. Only after that split should the team try a
 wider `parm.range`, a lower-boundary-specific profile setting, or a larger
 formal recovery design.
+
+## Slice 1811 Addendum: Side-Specific Support
+
+`phase18_count_structured_q1_profile_trace_side_summary()` now creates the
+side-specific table requested above. It splits each selected example and profile
+pass into lower-side and upper-side rows around the fitted estimate, then
+reports row counts, profile-value ranges, maximum `delta_deviance`, whether the
+side reaches the 70% cutoff, and whether the matching interval endpoint is
+present.
+
+On the real selected trace artifact, every lower side failed to reach the
+cutoff. Every upper side reached the cutoff. The nonfinite example had a finite
+upper endpoint, but the two profile-crossing examples still had missing upper
+endpoints despite upper-side cutoff reach:
+
+| Cell | Replicate | Profile pass | Side | Rows | Maximum `delta_deviance` | Reaches cutoff | Endpoint present |
+| --- | ---: | --- | --- | ---: | ---: | --- | --- |
+| `count_structured_q1_001` | 25 | `current` | lower | 22 | 0.8434117 | no | no |
+| `count_structured_q1_001` | 25 | `current` | upper | 18 | 5.484692 | yes | no |
+| `count_structured_q1_001` | 25 | `smaller_ystep` | lower | 26 | 0.8434117 | no | no |
+| `count_structured_q1_001` | 25 | `smaller_ystep` | upper | 21 | 4.941597 | yes | no |
+| `count_structured_q1_003` | 33 | `current` | lower | 22 | 3.232128e-08 | no | no |
+| `count_structured_q1_003` | 33 | `current` | upper | 19 | 69.44691 | yes | no |
+| `count_structured_q1_003` | 33 | `smaller_ystep` | lower | 23 | 3.232128e-08 | no | no |
+| `count_structured_q1_003` | 33 | `smaller_ystep` | upper | 19 | 69.44691 | yes | no |
+| `count_structured_q1_006` | 45 | `current` | lower | 22 | 3.669049e-08 | no | no |
+| `count_structured_q1_006` | 45 | `current` | upper | 19 | 76.15786 | yes | yes |
+| `count_structured_q1_006` | 45 | `smaller_ystep` | lower | 23 | 3.669049e-08 | no | no |
+| `count_structured_q1_006` | 45 | `smaller_ystep` | upper | 19 | 76.15786 | yes | yes |
+
+This result points to lower-side boundary support as the next diagnostic target.
+It still does not justify a larger recovery grid or a default profile-setting
+change. A wider range or lower-boundary-specific setting should first show that
+the lower side can reach the cutoff for an interpretable reason.

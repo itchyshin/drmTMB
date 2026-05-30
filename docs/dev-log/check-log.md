@@ -44787,3 +44787,90 @@ Member-group review:
 - Rose checked that the note does not relax the formal-pilot gate.
 - Grace ran formatting and whitespace validation before closure.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace side summary
+
+Goal:
+
+- Split selected-example profile-trace support by lower and upper side of the
+  fitted estimate before trying another profile setting.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_trace_side_summary()`.
+- The helper reports lower-side and upper-side row counts, profile-value ranges,
+  maximum likelihood-ratio distance, cutoff reach, and endpoint presence for
+  each selected example and profile pass.
+- Added a focused synthetic test covering endpoint presence and cutoff reach.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`,
+  and
+  `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-side-summary.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-side-summary.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+trace <- utils::read.csv(
+  "/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace.csv"
+)
+out <- phase18_count_structured_q1_profile_trace_side_summary(trace)
+print(out[, c(
+  "cell_id",
+  "replicate",
+  "profile_pass",
+  "profile_side",
+  "endpoint_present",
+  "n_side_trace_row",
+  "max_side_delta_deviance",
+  "side_reaches_cutoff"
+)], row.names = FALSE)
+EOF
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, roadmap, design,
+  check-log, and after-task files.
+- `devtools::test(filter = 'phase18-count-structured-q1', reporter =
+  'summary')` passed.
+- The real side-summary smoke read the selected trace CSV from
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace.csv`.
+- The real side summary had 12 rows: every lower side had
+  `side_reaches_cutoff = FALSE`, every upper side had
+  `side_reaches_cutoff = TRUE`, and only the nonfinite example had finite upper
+  endpoints.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the helper internal and scoped to existing trace rows.
+- Fisher checked that cutoff reach is side-specific and separate from endpoint
+  extraction.
+- Noether checked that the side split is on the link structured-SD scale used
+  by the plot.
+- Florence checked that this helper supports the diagnostic plot rather than
+  replacing it.
+- Curie covered cutoff reach and endpoint presence with a focused synthetic
+  test.
+- Grace ran formatting, focused tests, the real trace smoke, and whitespace
+  validation before closure.
+- Rose checked that the formal-pilot gate remains closed.
+- No spawned subagents were running.

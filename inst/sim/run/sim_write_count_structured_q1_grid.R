@@ -1594,6 +1594,127 @@ phase18_count_structured_q1_missing_count <- function(x, name) {
   sum(is.na(x[[name]]))
 }
 
+phase18_count_structured_q1_profile_trace_side_summary <- function(trace) {
+  if (!is.data.frame(trace) || nrow(trace) == 0L) {
+    stop("`trace` must be a non-empty data frame.", call. = FALSE)
+  }
+  phase18_assert_summary_columns(
+    trace,
+    c(
+      "cell_id",
+      "replicate",
+      "profile_pass",
+      "trace_status",
+      "profile_level",
+      "profile_value",
+      "profile_value_link",
+      "link_estimate",
+      "delta_deviance",
+      "conf.low",
+      "conf.high"
+    )
+  )
+
+  keys <- paste(trace$cell_id, trace$replicate, trace$profile_pass, sep = "\r")
+  rows <- lapply(split(trace, keys, drop = TRUE), function(x) {
+    level <- phase18_count_structured_q1_first(x, "profile_level", 0.70)
+    if (!is.numeric(level) || length(level) != 1L || !is.finite(level)) {
+      level <- 0.70
+    }
+    cutoff <- stats::qchisq(level, df = 1)
+    link_estimate <- as.numeric(
+      phase18_count_structured_q1_first(x, "link_estimate", NA_real_)
+    )
+    profile_value_link <- as.numeric(x$profile_value_link)
+    side_specs <- list(
+      lower = list(
+        rows = if (is.finite(link_estimate)) {
+          x[
+            is.finite(profile_value_link) & profile_value_link <= link_estimate,
+            ,
+            drop = FALSE
+          ]
+        } else {
+          x[FALSE, , drop = FALSE]
+        },
+        endpoint_name = "conf.low"
+      ),
+      upper = list(
+        rows = if (is.finite(link_estimate)) {
+          x[
+            is.finite(profile_value_link) & profile_value_link >= link_estimate,
+            ,
+            drop = FALSE
+          ]
+        } else {
+          x[FALSE, , drop = FALSE]
+        },
+        endpoint_name = "conf.high"
+      )
+    )
+    do.call(
+      rbind,
+      lapply(names(side_specs), function(side) {
+        spec <- side_specs[[side]]
+        side_rows <- spec$rows
+        max_delta <- phase18_count_structured_q1_range_value(
+          side_rows$delta_deviance,
+          max
+        )
+        endpoint_value <- phase18_count_structured_q1_first(
+          x,
+          spec$endpoint_name,
+          NA_real_
+        )
+        data.frame(
+          cell_id = phase18_count_structured_q1_first(x, "cell_id"),
+          replicate = phase18_count_structured_q1_first(x, "replicate"),
+          failure_class = phase18_count_structured_q1_first(
+            x,
+            "failure_class"
+          ),
+          example_role = phase18_count_structured_q1_first(x, "example_role"),
+          profile_pass = phase18_count_structured_q1_first(x, "profile_pass"),
+          profile_parameters = phase18_count_structured_q1_first(
+            x,
+            "profile_parameters"
+          ),
+          profile_side = side,
+          profile_level = level,
+          cutoff_delta_deviance = cutoff,
+          endpoint_value = as.numeric(endpoint_value),
+          endpoint_present = is.finite(as.numeric(endpoint_value)),
+          n_side_trace_row = nrow(side_rows),
+          min_side_profile_value = phase18_count_structured_q1_range_value(
+            side_rows$profile_value,
+            min
+          ),
+          max_side_profile_value = phase18_count_structured_q1_range_value(
+            side_rows$profile_value,
+            max
+          ),
+          min_side_profile_value_link = phase18_count_structured_q1_range_value(
+            side_rows$profile_value_link,
+            min
+          ),
+          max_side_profile_value_link = phase18_count_structured_q1_range_value(
+            side_rows$profile_value_link,
+            max
+          ),
+          max_side_delta_deviance = max_delta,
+          side_reaches_cutoff = isTRUE(
+            is.finite(max_delta) && max_delta >= cutoff
+          ),
+          stringsAsFactors = FALSE
+        )
+      })
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
 phase18_plot_count_structured_q1_profile_trace <- function(trace) {
   phase18_count_structured_q1_require_ggplot2()
   phase18_assert_summary_columns(

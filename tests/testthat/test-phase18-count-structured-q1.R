@@ -562,6 +562,27 @@ test_that("Phase 18 count structured q1 profile trace summary audits traces", {
   expect_true(is.na(animal$min_profile_value))
 })
 
+test_that("Phase 18 count structured q1 profile trace side summary audits sides", {
+  source_count_structured_q1()
+
+  trace <- count_structured_q1_profile_trace_rows()
+  out <- phase18_count_structured_q1_profile_trace_side_summary(trace)
+
+  expect_equal(nrow(out), 4L)
+  expect_equal(out$profile_side, rep(c("lower", "upper"), 2L))
+  expect_equal(out$n_side_trace_row, rep(2L, 4L))
+  expect_equal(out$endpoint_present, c(FALSE, TRUE, FALSE, TRUE))
+
+  current <- out[out$profile_pass == "current", , drop = FALSE]
+  smaller <- out[out$profile_pass == "smaller_ystep", , drop = FALSE]
+  expect_equal(current$side_reaches_cutoff, c(FALSE, TRUE))
+  expect_equal(smaller$side_reaches_cutoff, c(TRUE, TRUE))
+  expect_equal(current$max_side_delta_deviance, c(1, 2))
+  expect_equal(smaller$max_side_delta_deviance, c(1.2, 2.4))
+  expect_equal(current$endpoint_value, c(NA_real_, 0.4))
+  expect_equal(smaller$endpoint_value, c(NA_real_, 0.5))
+})
+
 test_that("Phase 18 count structured q1 profile trace plot builds", {
   testthat::skip_if_not_installed("ggplot2")
   source_count_structured_q1()
