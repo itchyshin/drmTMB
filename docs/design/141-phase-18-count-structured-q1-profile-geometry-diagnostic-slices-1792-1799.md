@@ -173,3 +173,16 @@ inspection. It does not mean the selected examples have usable two-sided
 intervals. The nonfinite-interval example still has missing lower endpoints,
 and both profile-crossing examples still have missing lower and upper endpoints
 in `conf.low`, `conf.high`, and `conf.status`.
+
+## Slice 1806 Addendum: Trace Summary Table
+
+`phase18_count_structured_q1_profile_trace_summary()` now reduces the trace CSV
+to one row per selected example and profile pass. The summary reports how many
+trace rows were produced, how many failed, whether lower or upper interval
+endpoints are missing, the response-scale profile-value range, the maximum
+likelihood-ratio distance (`delta_deviance`), and the interval status.
+
+This summary table is the handoff from raw trace rows to the next visual
+diagnostic. It keeps curve availability separate from interval availability:
+the trace may be `ok` while `conf.low`, `conf.high`, or `conf.status` still
+show why the selected examples stopped the formal-pilot profile gate.
