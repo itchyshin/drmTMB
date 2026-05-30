@@ -43873,3 +43873,68 @@ Member-group review:
 - Grace checked the helper on the real formal-pilot artifact.
 - Rose flagged near-zero structured-SD examples as the next diagnostic target.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile example geometry summary
+
+Goal:
+
+- Add a compact descriptive summary of the example-detail rows by profile
+  failure class.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_example_geometry_summary()`.
+- `phase18_audit_count_structured_q1_profile_gate()` now returns
+  `profile_gate$example_geometry_summary`.
+- The summary groups by `failure_class`, totals failed intervals, counts
+  readable example details, counts missing lower and upper endpoints, reports
+  estimate and estimate/truth ranges, and records the minimum-estimate example.
+- Updated the focused artifact audit test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-example-geometry-summary.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-example-geometry-summary.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577"
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+audit <- phase18_audit_count_structured_q1_profile_gate(
+  out,
+  require_complete = TRUE,
+  watch_cells = c("count_structured_q1_003", "count_structured_q1_005")
+)
+print(audit$profile_gate$example_geometry_summary)
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- On artifact `26669005577`, `nonfinite_interval` had 22 failed intervals across
+  seven rows, all seven example rows missing lower endpoints, no example rows
+  missing upper endpoints, and a minimum example estimate `1.906516e-05` in
+  `count_structured_q1_006` replicate 45.
+- `profile_crossing_failure` had five failed intervals across four rows, all
+  four example rows missing both lower and upper endpoints, and a minimum
+  example estimate `2.168574e-05` in `count_structured_q1_003` replicate 33.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the summary attached to the profile-gate audit.
+- Fisher kept the table descriptive rather than inferential.
+- Curie covered the single-row synthetic summary in the focused test.
+- Grace checked the formal-pilot artifact.
+- Rose kept endpoint missingness separate from a profile-failure cause claim.
+- No spawned subagents were running.

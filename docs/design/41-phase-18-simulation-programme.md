@@ -1128,3 +1128,11 @@ errors, and elapsed time by surface before the raw manifest.
      zero despite truth 0.6. This is diagnostic evidence only; it keeps the
      lane in `hold_interval_diagnostic` until a geometry review explains the
      failed profile intervals.
+206. Slice 1791 summarizes the example-detail rows without adding a new pass or
+     fail rule. `example_geometry_summary` groups by `failure_class`, totals
+     failed intervals, counts missing lower and upper endpoints, reports
+     estimate and estimate/truth ranges, and records the minimum-estimate
+     example. On artifact `26669005577`, nonfinite intervals had 22 failed
+     intervals across seven rows with lower endpoints missing and upper
+     endpoints present, while profile-crossing failures had five failed
+     intervals across four rows with both endpoints missing.

@@ -233,6 +233,10 @@ phase18_audit_count_structured_q1_profile_gate <- function(
   gate$failure_summary <- phase18_count_structured_q1_attach_example_profile_details(
     gate$failure_summary
   )
+  gate$example_geometry_summary <-
+    phase18_count_structured_q1_profile_example_geometry_summary(
+      gate$failure_summary
+    )
 
   list(
     surface = "count_structured_q1_profile_gate_audit",
@@ -892,6 +896,106 @@ phase18_count_structured_q1_empty_example_profile_detail <- function() {
     example_profile_target_parameter = NA_character_,
     stringsAsFactors = FALSE
   )
+}
+
+phase18_count_structured_q1_profile_example_geometry_summary <- function(
+  failure_summary
+) {
+  if (!is.data.frame(failure_summary) || nrow(failure_summary) == 0L) {
+    return(data.frame())
+  }
+  required <- c(
+    "failure_class",
+    "failed_interval",
+    "example_profile_detail_status",
+    "example_truth",
+    "example_estimate",
+    "example_profile_conf_low",
+    "example_profile_conf_high"
+  )
+  if (!all(required %in% names(failure_summary))) {
+    return(data.frame())
+  }
+
+  rows <- lapply(
+    split(failure_summary, failure_summary$failure_class, drop = TRUE),
+    phase18_count_structured_q1_profile_example_geometry_row
+  )
+  out <- do.call(rbind, rows)
+  out <- out[order(out$failure_class), , drop = FALSE]
+  row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_profile_example_geometry_row <- function(x) {
+  detail_ok <- x$example_profile_detail_status == "ok"
+  estimate <- as.numeric(x$example_estimate)
+  truth <- as.numeric(x$example_truth)
+  estimate_ratio <- estimate / truth
+  finite_estimate <- which(is.finite(estimate))
+  min_row <- if (length(finite_estimate) > 0L) {
+    finite_estimate[which.min(estimate[finite_estimate])]
+  } else {
+    NA_integer_
+  }
+
+  data.frame(
+    failure_class = x$failure_class[[1L]],
+    n_failure_summary_row = nrow(x),
+    failed_interval = sum(x$failed_interval, na.rm = TRUE),
+    n_example_detail_ok = sum(detail_ok, na.rm = TRUE),
+    n_missing_lower_endpoint = sum(
+      detail_ok & is.na(x$example_profile_conf_low),
+      na.rm = TRUE
+    ),
+    n_missing_upper_endpoint = sum(
+      detail_ok & is.na(x$example_profile_conf_high),
+      na.rm = TRUE
+    ),
+    min_example_estimate = phase18_count_structured_q1_range_value(
+      estimate,
+      min
+    ),
+    max_example_estimate = phase18_count_structured_q1_range_value(
+      estimate,
+      max
+    ),
+    min_example_estimate_over_truth = phase18_count_structured_q1_range_value(
+      estimate_ratio,
+      min
+    ),
+    max_example_estimate_over_truth = phase18_count_structured_q1_range_value(
+      estimate_ratio,
+      max
+    ),
+    min_example_cell_id = phase18_count_structured_q1_index_value(
+      x,
+      "cell_id",
+      min_row
+    ),
+    min_example_replicate = phase18_count_structured_q1_index_value(
+      x,
+      "example_replicate",
+      min_row
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_count_structured_q1_range_value <- function(x, fun) {
+  x <- as.numeric(x)
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) {
+    return(NA_real_)
+  }
+  fun(x)
+}
+
+phase18_count_structured_q1_index_value <- function(x, name, index) {
+  if (is.na(index) || !name %in% names(x)) {
+    return(NA)
+  }
+  x[[name]][[index]]
 }
 
 phase18_count_structured_q1_profile_failure_class <- function(message) {

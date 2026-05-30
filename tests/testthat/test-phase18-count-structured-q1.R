@@ -522,6 +522,36 @@ test_that("Phase 18 count structured q1 profile audit reads artifacts", {
     audit$profile_gate$failure_summary$example_profile_conf_high,
     0.42
   )
+  expect_equal(nrow(audit$profile_gate$example_geometry_summary), 1L)
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$failure_class,
+    "nonfinite_interval"
+  )
+  expect_equal(audit$profile_gate$example_geometry_summary$failed_interval, 1L)
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$n_missing_lower_endpoint,
+    1L
+  )
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$n_missing_upper_endpoint,
+    0L
+  )
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$min_example_estimate,
+    0.24
+  )
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$max_example_estimate_over_truth,
+    0.4
+  )
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$min_example_cell_id,
+    "count_structured_q1_001"
+  )
+  expect_equal(
+    audit$profile_gate$example_geometry_summary$min_example_replicate,
+    7L
+  )
 })
 
 test_that("Phase 18 count structured q1 boundary gate holds failed pilots", {
