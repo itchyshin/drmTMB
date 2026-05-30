@@ -1229,3 +1229,9 @@ errors, and elapsed time by surface before the raw manifest.
      reach, and endpoint presence. On the real selected trace artifact, every
      lower side failed to reach the 70% cutoff while every upper side reached it;
      only the nonfinite example had a finite upper endpoint.
+220. Slice 1812 adds the side summary to the selected-example trace-run writer.
+     `phase18_write_count_structured_q1_profile_trace_run()` now writes
+     `tables/count-structured-q1-profile-trace-side-summary.csv` beside the
+     selected plan, trace, and summary CSVs, so each trace-run artifact carries
+     the lower-side and upper-side support table needed before any profile
+     setting experiment.

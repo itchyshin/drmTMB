@@ -343,7 +343,12 @@ test_that("Phase 18 count structured q1 profile trace run writes tables", {
   fake_profile <- function(object, parm, level, ystep) {
     data.frame(
       profile_value = c(0.10, 0.20),
+      profile_value_link = log(c(0.10, 0.20)),
+      link_estimate = log(0.10),
       delta_deviance = c(1.0, 0.0),
+      conf.low = NA_real_,
+      conf.high = 0.20,
+      conf.status = "profile",
       stringsAsFactors = FALSE
     )
   }
@@ -358,16 +363,20 @@ test_that("Phase 18 count structured q1 profile trace run writes tables", {
   written_plan <- utils::read.csv(out$paths$plan_csv)
   written_trace <- utils::read.csv(out$paths$trace_csv)
   written_summary <- utils::read.csv(out$paths$summary_csv)
+  written_side_summary <- utils::read.csv(out$paths$side_summary_csv)
 
   expect_equal(out$surface, "count_structured_q1_profile_trace_run")
   expect_true(file.exists(out$paths$plan_csv))
   expect_true(file.exists(out$paths$trace_csv))
   expect_true(file.exists(out$paths$summary_csv))
+  expect_true(file.exists(out$paths$side_summary_csv))
   expect_equal(nrow(written_plan), 2L)
   expect_equal(nrow(written_trace), 4L)
   expect_equal(nrow(written_summary), 2L)
+  expect_equal(nrow(written_side_summary), 4L)
   expect_equal(unique(written_trace$trace_status), "ok")
   expect_equal(unique(written_summary$trace_status), "ok")
+  expect_equal(unique(written_side_summary$endpoint_present), c(FALSE, TRUE))
   expect_error(
     phase18_write_count_structured_q1_profile_trace_run(
       output_dir,
