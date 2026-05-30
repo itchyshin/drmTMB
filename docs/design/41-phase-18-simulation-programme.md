@@ -1089,3 +1089,10 @@ errors, and elapsed time by surface before the raw manifest.
      watch-cell profile-failure rules, then returns `hold_interval_diagnostic`
      when any gate fails. This adds an audit helper only; it does not change the
      DGP, fitted model, likelihood, formula grammar, or recovery-grid readiness.
+200. Slice 1785 adds
+     `phase18_audit_count_structured_q1_profile_gate()`, an artifact-directory
+     wrapper for the profile gate. It reads
+     `count-structured-q1-profile-intervals.csv`, reports missing-artifact
+     metadata, and returns the same profile-gate decision surface used by the
+     table helper. This is artifact plumbing only; it does not compute new
+     profiles or reinterpret the formal-pilot result.

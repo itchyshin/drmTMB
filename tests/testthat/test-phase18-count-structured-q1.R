@@ -449,6 +449,33 @@ test_that("Phase 18 count structured q1 grid writer creates artifacts", {
   )
 })
 
+test_that("Phase 18 count structured q1 profile audit reads artifacts", {
+  source_count_structured_q1()
+
+  output_dir <- tempfile("phase18-count-structured-q1-profile-audit-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  table_dir <- file.path(output_dir, "tables")
+  dir.create(table_dir, recursive = TRUE)
+  paths <- phase18_count_structured_q1_grid_paths(table_dir)
+  utils::write.csv(
+    data.frame(
+      cell_id = "count_structured_q1_001",
+      replicate = 1L,
+      interval_status = "ok",
+      stringsAsFactors = FALSE
+    ),
+    paths$profile_intervals_csv,
+    row.names = FALSE
+  )
+
+  audit <- phase18_audit_count_structured_q1_profile_gate(output_dir)
+
+  expect_equal(audit$surface, "count_structured_q1_profile_gate_audit")
+  expect_true("replicate_csv" %in% audit$missing_artifacts)
+  expect_equal(audit$profile_gate$overall$n_interval, 1L)
+  expect_equal(audit$profile_gate$decision$decision, "propose_next_pilot")
+})
+
 test_that("Phase 18 count structured q1 boundary gate holds failed pilots", {
   source_count_structured_q1()
 

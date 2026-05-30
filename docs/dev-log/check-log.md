@@ -43504,3 +43504,49 @@ Member-group review:
 - Rose kept the wording away from recovery-grid, bootstrap, or broad coverage
   claims.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile-gate artifact audit
+
+Goal:
+
+- Let future count structured q1 artifact audits call the profile gate directly
+  on a downloaded artifact directory rather than manually loading
+  `count-structured-q1-profile-intervals.csv`.
+
+Changes:
+
+- Added `phase18_audit_count_structured_q1_profile_gate()` to
+  `inst/sim/run/sim_write_count_structured_q1_grid.R`.
+- The wrapper validates the output directory, loads the profile interval table,
+  preserves the artifact paths and missing-artifact metadata, and returns the
+  `count_structured_q1_profile_gate` decision surface from the table helper.
+- Added a focused synthetic-artifact test in
+  `tests/testthat/test-phase18-count-structured-q1.R`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-gate-artifact-audit.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-gate-artifact-audit.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- `git diff --check` was clean after formatting the slice files.
+- The stale-claim scan found only intended negative wording and the earlier
+  workflow-plumbing row.
+
+Member-group review:
+
+- Ada kept the slice to the artifact wrapper around the existing profile gate.
+- Curie covered the wrapper with a synthetic requested profile interval row.
+- Fisher kept `not_requested` interval rows out of a profile decision.
+- Grace preserved missing-artifact metadata for downloaded Actions artifacts.
+- Rose kept this separate from new profile computation or recovery evidence.
+- No spawned subagents were running.
