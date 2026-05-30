@@ -1136,3 +1136,10 @@ errors, and elapsed time by surface before the raw manifest.
      intervals across seven rows with lower endpoints missing and upper
      endpoints present, while profile-crossing failures had five failed
      intervals across four rows with both endpoints missing.
+207. Slices 1792-1799 add
+     `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+     The note separates what the formal-pilot artifact proves from what still
+     requires a profile-trace diagnostic. It names the minimum-estimate examples,
+     keeps the lane in `hold_interval_diagnostic`, and says the next executable
+     slice should rerun only selected examples and save likelihood-ratio points
+     before any profile-setting change or larger recovery grid.
