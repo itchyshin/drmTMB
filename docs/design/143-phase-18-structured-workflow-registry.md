@@ -109,6 +109,29 @@ existing manual Actions task. Existing-task rows are marked
 artifact lane before any recovery or coverage claim. The wrapper excludes
 blocked, design-only, and diagnostic-only rows from the plan.
 
+## Slice 1817 Structured-Dependence Workflow Plan
+
+Slice 1817 adds `phase18_structured_dependence_workflow_plan()`. The helper
+filters the registry to `workflow_lane == "structured_dependence"`, excludes
+blocked and design-only rows, and labels each remaining row by dispatch or
+audit state. This lane needs more status detail than the random-slope lane
+because admitted Gaussian wrapper rows, count formal-admission rows, held smoke
+rows, and diagnostic-only rows all need to stay visible but not equivalent.
+
+The current structured-dependence plan has seven rows:
+
+- four Gaussian `ready_grid` rows for `phylo()`, `spatial()`, `animal()`, and
+  `relmat()`, all marked `needs_wrapper_target` with
+  `workflow_helper = "structured_dependence_wrapper"`;
+- one Poisson `phylo()` q=1 row marked `formal_admission_task`;
+- one NB2 `phylo()` q=1 row marked `hold_smoke_audit`;
+- one count q=1 `spatial()`/`animal()`/`relmat()` row marked
+  `diagnostic_audit`.
+
+Callers can set `include_held = FALSE` to keep only admitted rows. That keeps
+the four Gaussian wrapper targets and Poisson formal-admission task while
+dropping held-smoke and diagnostic-only count rows.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |

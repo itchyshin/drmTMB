@@ -257,6 +257,80 @@ phase18_random_slope_workflow_plan <- function(
   )]
 }
 
+phase18_structured_dependence_workflow_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_held = TRUE
+) {
+  rows <- phase18_filter_structured_workflow_registry(
+    registry = registry,
+    workflow_lane = "structured_dependence"
+  )
+  rows <- rows[
+    !rows$admission_status %in% c("blocked", "design_only"),
+    ,
+    drop = FALSE
+  ]
+  if (!include_held) {
+    rows <- rows[
+      rows$admission_status %in%
+        phase18_structured_workflow_admitted_statuses(),
+      ,
+      drop = FALSE
+    ]
+  }
+  if (nrow(rows) == 0L) {
+    return(phase18_empty_structured_dependence_workflow_plan())
+  }
+
+  needs_target <- startsWith(rows$existing_actions_task, "needed:")
+  has_existing_task <- rows$existing_actions_task != "none" & !needs_target
+  plan <- rows[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  plan$dispatch_status <- phase18_structured_dependence_dispatch_status(
+    admission_status = plan$admission_status,
+    needs_target = needs_target
+  )
+  plan$actions_task <- ifelse(
+    has_existing_task,
+    plan$existing_actions_task,
+    NA_character_
+  )
+  plan$workflow_helper <- ifelse(
+    needs_target,
+    sub("^needed:", "", plan$existing_actions_task),
+    ifelse(has_existing_task, "phase18_actions_main", NA_character_)
+  )
+  plan$audit_focus <- phase18_structured_dependence_audit_focus(
+    plan$admission_status
+  )
+  row.names(plan) <- NULL
+  plan[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "dispatch_status",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
@@ -282,6 +356,25 @@ phase18_structured_workflow_actions_tasks <- function() {
   )
 }
 
+phase18_empty_structured_dependence_workflow_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    dispatch_status = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    audit_focus = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_empty_random_slope_workflow_plan <- function() {
   data.frame(
     lane_id = character(),
@@ -299,6 +392,76 @@ phase18_empty_random_slope_workflow_plan <- function() {
     supervision_boundary = character(),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_structured_dependence_dispatch_status <- function(
+  admission_status,
+  needs_target
+) {
+  status <- rep(NA_character_, length(admission_status))
+  status[needs_target] <- "needs_wrapper_target"
+  status[admission_status == "smoke_formal_admission"] <-
+    "formal_admission_task"
+  status[admission_status == "hold_smoke_only"] <- "hold_smoke_audit"
+  status[admission_status == "diagnostic_only"] <- "diagnostic_audit"
+  status[is.na(status) & admission_status == "ready_grid"] <-
+    "ready_existing_task"
+  status[is.na(status) & admission_status == "ready_source_test"] <-
+    "source_test_audit"
+  status[is.na(status) & admission_status == "ready_or_smoke"] <-
+    "ready_or_smoke_audit"
+  status[is.na(status) & admission_status == "ready_smoke"] <-
+    "smoke_audit"
+
+  unknown <- is.na(status)
+  if (any(unknown)) {
+    stop(
+      "Structured-dependence workflow has unsupported status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  status
+}
+
+phase18_structured_dependence_audit_focus <- function(admission_status) {
+  focus <- rep(NA_character_, length(admission_status))
+  focus[admission_status == "ready_grid"] <- paste(
+    "Build or audit the structured-dependence wrapper target before",
+    "dispatching larger grids."
+  )
+  focus[admission_status == "smoke_formal_admission"] <- paste(
+    "Run or audit formal-admission shards before treating the row as",
+    "recovery evidence."
+  )
+  focus[admission_status == "hold_smoke_only"] <- paste(
+    "Keep as smoke evidence until boundary and profile diagnostics clear",
+    "the hold."
+  )
+  focus[admission_status == "diagnostic_only"] <- paste(
+    "Use only for diagnostic artifact audits; do not promote to recovery",
+    "or coverage evidence."
+  )
+  focus[admission_status == "ready_source_test"] <- paste(
+    "Treat source tests as readiness evidence until an artifact lane exists."
+  )
+  focus[admission_status == "ready_or_smoke"] <- paste(
+    "Confirm whether the row has grid or smoke evidence before dispatch."
+  )
+  focus[admission_status == "ready_smoke"] <- paste(
+    "Use as smoke evidence only until a grid and artifact audit exist."
+  )
+  unknown <- is.na(focus)
+  if (any(unknown)) {
+    stop(
+      "Structured-dependence workflow has unsupported status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  focus
 }
 
 phase18_random_slope_audit_focus <- function(admission_status) {
