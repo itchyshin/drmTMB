@@ -536,6 +536,154 @@ phase18_structured_workflow_plan_counts <- function(plans) {
   do.call(rbind, out)
 }
 
+phase18_format_structured_workflow_bundle_dry_run <- function(
+  bundle = phase18_structured_workflow_plan_bundle()
+) {
+  phase18_assert_structured_workflow_bundle(bundle)
+  count_columns <- intersect(
+    c(
+      "workflow_plan",
+      "n",
+      "existing_actions_tasks",
+      "wrapper_targets",
+      "diagnostic_only",
+      "blocked",
+      "design_only"
+    ),
+    names(bundle$plan_counts)
+  )
+  lines <- c(
+    "Phase 18 structured workflow dry run",
+    paste(
+      "No simulations, GitHub Actions jobs, likelihoods, or status",
+      "promotions are dispatched."
+    ),
+    "",
+    "Plan counts",
+    phase18_format_structured_workflow_table(
+      bundle$plan_counts[count_columns]
+    )
+  )
+
+  for (plan_name in names(bundle$plans)) {
+    lines <- c(
+      lines,
+      "",
+      phase18_format_structured_workflow_plan_dry_run(
+        plan = bundle$plans[[plan_name]],
+        plan_name = plan_name
+      )
+    )
+  }
+  lines
+}
+
+phase18_print_structured_workflow_bundle_dry_run <- function(
+  bundle = phase18_structured_workflow_plan_bundle(),
+  file = ""
+) {
+  lines <- phase18_format_structured_workflow_bundle_dry_run(bundle)
+  phase18_write_structured_workflow_lines(lines, file = file)
+}
+
+phase18_format_structured_workflow_plan_dry_run <- function(
+  plan,
+  plan_name = NULL
+) {
+  phase18_assert_structured_workflow_plan(plan)
+  plan_columns <- intersect(
+    c(
+      "lane_id",
+      "family_group",
+      "dpar",
+      "dependence",
+      "block_q",
+      "admission_status",
+      "admission_category",
+      "dispatch_status",
+      "interval_policy",
+      "actions_task",
+      "workflow_helper"
+    ),
+    names(plan)
+  )
+  c(
+    if (!is.null(plan_name)) paste0("Plan: ", plan_name),
+    phase18_format_structured_workflow_table(plan[plan_columns])
+  )
+}
+
+phase18_print_structured_workflow_plan_dry_run <- function(
+  plan,
+  plan_name = NULL,
+  file = ""
+) {
+  lines <- phase18_format_structured_workflow_plan_dry_run(
+    plan = plan,
+    plan_name = plan_name
+  )
+  phase18_write_structured_workflow_lines(lines, file = file)
+}
+
+phase18_write_structured_workflow_lines <- function(lines, file = "") {
+  if (!is.character(lines)) {
+    stop("`lines` must be a character vector.", call. = FALSE)
+  }
+  cat(paste(lines, collapse = "\n"), "\n", sep = "", file = file)
+  invisible(lines)
+}
+
+phase18_format_structured_workflow_table <- function(table) {
+  if (!is.data.frame(table)) {
+    stop("`table` must be a data frame.", call. = FALSE)
+  }
+  if (nrow(table) == 0L) {
+    return("(none)")
+  }
+  table[] <- lapply(table, function(column) {
+    column <- as.character(column)
+    column[is.na(column)] <- ""
+    column
+  })
+  old_width <- getOption("width")
+  options(width = max(old_width, 180L))
+  on.exit(options(width = old_width), add = TRUE)
+  utils::capture.output(print(table, row.names = FALSE, right = FALSE))
+}
+
+phase18_assert_structured_workflow_bundle <- function(bundle) {
+  if (
+    !is.list(bundle) ||
+      is.null(bundle$plans) ||
+      is.null(bundle$plan_counts) ||
+      !is.list(bundle$plans) ||
+      !is.data.frame(bundle$plan_counts)
+  ) {
+    stop(
+      "`bundle` must come from phase18_structured_workflow_plan_bundle().",
+      call. = FALSE
+    )
+  }
+  invisible(bundle)
+}
+
+phase18_assert_structured_workflow_plan <- function(plan) {
+  if (!is.data.frame(plan)) {
+    stop("`plan` must be a workflow plan data frame.", call. = FALSE)
+  }
+  required <- c("lane_id", "admission_status", "dispatch_status")
+  missing <- setdiff(required, names(plan))
+  if (length(missing) > 0L) {
+    stop(
+      "`plan` is missing required columns: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  invisible(plan)
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
