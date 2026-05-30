@@ -648,7 +648,11 @@ test_that("Phase 18 count structured q1 profile gate holds failed intervals", {
   expect_equal(gate$failure_summary$cell_id[1], "count_structured_q1_001")
   expect_equal(gate$failure_summary$failed_interval[1], 11L)
   expect_equal(gate$failure_summary$n_interval[1], 100L)
-  expect_equal(gate$failure_summary$interval_message[1], "nonfinite_interval")
+  expect_equal(gate$failure_summary$failure_class[1], "nonfinite_interval")
+  expect_equal(
+    gate$failure_summary$example_interval_message[1],
+    "nonfinite_interval"
+  )
 })
 
 test_that("Phase 18 count structured q1 profile gate allows clean pilots", {

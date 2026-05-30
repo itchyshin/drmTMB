@@ -1103,3 +1103,9 @@ errors, and elapsed time by surface before the raw manifest.
      decision at `hold_interval_diagnostic`; the largest failed groups are
      nonfinite profile intervals in cells `count_structured_q1_001`,
      `count_structured_q1_003`, and `count_structured_q1_006`.
+202. Slice 1787 classifies the long interval messages before reporting them.
+     `failure_summary` now groups by compact `failure_class` values and keeps
+     one `example_interval_message` for traceability. On artifact
+     `26669005577`, the classified summary has 11 rows split between
+     `nonfinite_interval` and `profile_crossing_failure`, which is usable
+     enough for the next geometry-diagnosis note.
