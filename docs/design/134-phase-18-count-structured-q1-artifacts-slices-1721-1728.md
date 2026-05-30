@@ -130,6 +130,8 @@ syntax, diagnostic, interval, and simulation gates.
 | 1753-1760 | Done locally as follow-up condition sets | `phase18_count_structured_q1_followup_conditions()` splits the 24 diagnostic cells into `stable`, `stable_watch`, `boundary_stress`, and `all`, and the manual Actions task accepts `condition_set`. Only the 10 high-SD `stable` cells can propose a later formal-pilot design. |
 | 1761-1762 | Done as stable diagnostic audit | GitHub Actions run `26638116979` completed `condition_set=stable`, 10 cells x 20 replicates, and returned `propose_next_pilot` with 3/200 SD-boundary warnings, no Hessian warnings, no warning-ledger rows, and no condition-level trigger. |
 | 1763-1770 | Done locally as formal-pilot design | `docs/design/139-phase-18-count-structured-q1-formal-pilot-design-slices-1763-1770.md` specifies a stable-set-only 100-replicate pilot with direct `log_sd_phylo` profile intervals at `profile_level=0.70`, bootstrap disabled, MCSE expectations, watch-cell rules for the two NB2 high-SD cells with earlier low-rate boundary warnings, and a 60-minute runtime budget. |
+| 1771-1773 | Done locally as workflow plumbing | `.github/workflows/phase18-simulation-grid.yaml` exposes `profile_level` and `require_complete`, and `sim_run_actions_cell.R` passes `require_complete` to both dry-run and post-run print-plan calls. |
+| 1774-1782 | Done locally as formal-pilot audit | `docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md` audits GitHub Actions run `26669005577`: the boundary gate passed, but the direct `log_sd_phylo` profile interval gate stopped because `count_structured_q1_001` had 11/100 failed profile intervals. |
 
 ## Next Implementation Gate
 

@@ -1074,3 +1074,11 @@ errors, and elapsed time by surface before the raw manifest.
      inputs, but failed after the task body when the final print-plan call did
      not pass `require_complete`. The runner now passes that argument on both
      dry-run and post-run paths, with a mocked non-dry-run regression test.
+198. Slices 1774-1782 audit the successful formal-pilot rerun
+     `26669005577`. The fit-level boundary gate passed on 1000 stable-set
+     replicates with 10 SD-boundary warning fits and no Hessian warnings, but
+     the direct `log_sd_phylo` profile interval gate did not pass:
+     `count_structured_q1_001` had 11 failed profile intervals out of 100,
+     above the 10% condition-level stop rule. The lane therefore stops at
+     interval diagnostic evidence. It does not permit a larger recovery-grid
+     design, bootstrap intervals, or broad recovery or coverage claims.
