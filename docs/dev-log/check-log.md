@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Random-Slope Workflow Plan
+
+Goal:
+
+- Turn the admitted random-slope rows in the structured workflow registry into
+  a dispatch/audit plan without running simulations or changing model code.
+
+Actions run:
+
+- Added `phase18_random_slope_workflow_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Added helper functions for empty random-slope plans and status-specific audit
+  focus text.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to cover the
+  current nine-row random-slope plan, needed-wrapper target handling,
+  `include_needed = FALSE`, and exclusion of blocked rows.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1816.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-random-slope-workflow-plan.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_workflow_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "admission_status", "dispatch_status", "actions_task", "workflow_helper")], row.names=FALSE)'
+rg -n "random-slope workflow plan|phase18_random_slope_workflow_plan|needs_wrapper_target|source_test_audit|Slice 1816" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed random-slope plan has nine rows: five `ready_grid`, four
+  `ready_source_test`, eight rows mapped to `phase18_actions_main` tasks, and
+  the bivariate Gaussian slope-only row marked `needs_wrapper_target` with
+  `workflow_helper = "random_slope_wrapper"`.
+- No blocked, design-only, or diagnostic-only rows are admitted by the helper.
+- The stale-reference scan found the intended helper, test, roadmap, and design
+  references for Slice 1816.
+- `git diff --check` was clean.
+
 ## 2026-05-30 -- Structured Workflow Registry Validator
 
 Goal:

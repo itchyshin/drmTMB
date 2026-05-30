@@ -1255,3 +1255,9 @@ errors, and elapsed time by surface before the raw manifest.
      or `design_only` rows must not name an Actions task. It also provides
      summary and admitted-row filters for the random-slope, structured
      dependence, correlation-block, and family-surface wrappers that follow.
+224. Slice 1816 adds `phase18_random_slope_workflow_plan()`, which filters the
+     registry to admitted random-slope rows and labels each row as
+     `ready_existing_task`, `source_test_audit`, or `needs_wrapper_target`.
+     The current plan has nine admitted rows, excludes blocked/design/diagnostic
+     rows, maps eight rows to existing Actions tasks, and leaves the bivariate
+     Gaussian slope-only row as the first explicit wrapper target.

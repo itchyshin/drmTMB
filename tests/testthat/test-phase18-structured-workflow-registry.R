@@ -175,3 +175,89 @@ test_that("Phase 18 structured workflow registry uses runner task choices", {
     actions_env$phase18_actions_task_choices()
   )
 })
+
+test_that("Phase 18 random-slope workflow plan returns admitted rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+
+  expect_equal(nrow(plan), 9L)
+  expect_true(all(
+    plan$admission_status %in%
+      c(
+        "ready_grid",
+        "ready_source_test"
+      )
+  ))
+  expect_false(any(
+    plan$admission_status %in%
+      c(
+        "blocked",
+        "design_only",
+        "diagnostic_only"
+      )
+  ))
+  expect_true(all(plan$dependence == "ordinary_group"))
+  expect_true(all(nzchar(plan$audit_focus)))
+})
+
+test_that("Phase 18 random-slope workflow plan separates needed targets", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+  needed <- plan$lane_id == "bivariate_gaussian_slope_only"
+
+  expect_true(any(needed))
+  expect_equal(plan$dispatch_status[needed], "needs_wrapper_target")
+  expect_equal(plan$workflow_helper[needed], "random_slope_wrapper")
+  expect_true(is.na(plan$actions_task[needed]))
+  expect_true(all(
+    plan$dispatch_status[!needed] %in%
+      c("ready_existing_task", "source_test_audit")
+  ))
+  expect_false(any(is.na(plan$actions_task[!needed])))
+})
+
+test_that("Phase 18 random-slope workflow plan can omit needed targets", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_workflow_plan(
+    registry,
+    include_needed = FALSE
+  )
+
+  expect_equal(nrow(plan), 8L)
+  expect_false("bivariate_gaussian_slope_only" %in% plan$lane_id)
+  expect_false(any(is.na(plan$actions_task)))
+})
+
+test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  blocked <- registry[registry$lane_id == "gaussian_ordinary_mu_slopes", ]
+  blocked$lane_id <- "mock_blocked_random_slope"
+  blocked$admission_status <- "blocked"
+  blocked$existing_actions_task <- "none"
+  registry <- rbind(registry, blocked)
+
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+
+  expect_false("mock_blocked_random_slope" %in% plan$lane_id)
+  expect_equal(nrow(plan), 9L)
+})

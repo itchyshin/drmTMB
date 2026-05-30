@@ -84,6 +84,31 @@ dispatch. The validator is still workflow plumbing: it does not run
 simulations, change likelihood code, or promote diagnostic rows to recovery or
 coverage evidence.
 
+## Slice 1816 Random-Slope Workflow Plan
+
+Slice 1816 adds `phase18_random_slope_workflow_plan()`. The helper filters the
+registry to admitted `workflow_lane == "random_slopes"` rows, then returns a
+dispatch plan with the family group, family route, distributional parameter,
+dependence layer, block class, admission status, dispatch status, Actions task
+when one exists, wrapper helper, audit focus, next autonomous action, and
+supervision boundary.
+
+The current random-slope plan has nine admitted rows:
+
+- five `ready_grid` rows already routed through existing Actions tasks:
+  Gaussian ordinary `mu` slopes, Gaussian independent `sigma` slopes, Poisson
+  `mu` random effects, NB2 `mu` random effects, and the bivariate Gaussian
+  slope-only row;
+- four `ready_source_test` rows for bounded responses, positive-continuous
+  responses, Student-t, and zero-truncated NB2 `mu` random effects.
+
+The bivariate Gaussian slope-only row is marked `needs_wrapper_target` because
+the registry intentionally names `needed:random_slope_wrapper` rather than an
+existing manual Actions task. Existing-task rows are marked
+`ready_existing_task` or `source_test_audit`; source-tested rows must gain an
+artifact lane before any recovery or coverage claim. The wrapper excludes
+blocked, design-only, and diagnostic-only rows from the plan.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
