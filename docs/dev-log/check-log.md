@@ -43742,3 +43742,67 @@ Member-group review:
 - Grace checked the helper on the real formal-pilot artifact.
 - Rose kept this as a pointer for the next diagnosis, not a diagnosis itself.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile-failure example result paths
+
+Goal:
+
+- Attach local artifact result paths to the example replicates in profile
+  failure-summary rows.
+
+Changes:
+
+- Added `phase18_count_structured_q1_attach_example_result_paths()`.
+- `phase18_audit_count_structured_q1_profile_gate()` now adds
+  `example_result_path` and `example_result_exists` to artifact-level
+  `failure_summary` rows when `example_replicate` is available.
+- Updated the artifact audit test in
+  `tests/testthat/test-phase18-count-structured-q1.R`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-example-paths.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-example-paths.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577"
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+audit <- phase18_audit_count_structured_q1_profile_gate(
+  out,
+  require_complete = TRUE,
+  watch_cells = c("count_structured_q1_003", "count_structured_q1_005")
+)
+print(audit$profile_gate$failure_summary[, c("cell_id", "failure_class", "example_replicate", "example_result_exists", "failed_interval")])
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- On formal-pilot artifact `26669005577`, all 11 failure-summary rows had
+  `example_result_exists = TRUE`.
+- After Windows CI reported mixed path separators in the synthetic artifact
+  audit test, existing example result paths are normalized with `normalizePath()`;
+  the focused suite and formal-pilot artifact smoke test still passed.
+- `git diff --check` was clean after formatting the slice files.
+- The stale-claim scan found only intended negative wording and the earlier
+  workflow-plumbing row.
+
+Member-group review:
+
+- Ada kept the path attachment inside the artifact-level audit wrapper.
+- Fisher kept the paths tied to failed requested profile intervals.
+- Curie covered path creation and existence in the focused artifact audit test.
+- Grace checked the paths on the real formal-pilot artifact.
+- Rose kept this as diagnostic routing, not a profile-geometry conclusion.
+- No spawned subagents were running.
