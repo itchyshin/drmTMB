@@ -139,6 +139,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1788 | Done locally as profile-failure example replicates | `failure_summary` now reports `example_replicate` for each failure-class row, so the next diagnostic can inspect a concrete replicate immediately. |
 | 1789 | Done locally as profile-failure example result paths | Artifact-level profile gate audits now attach `example_result_path` and `example_result_exists`, linking each failure-class row to a downloaded replicate RDS when one is present. |
 | 1790 | Done locally as profile-failure example details | Artifact-level profile gate audits now read each available example RDS and attach the requested profile row's parameter, truth, estimate, interval endpoints, profile status, and target parameter to `failure_summary`. |
+| 1791 | Done locally as profile-failure example geometry summary | Artifact-level profile gate audits now return `example_geometry_summary`, grouping example-detail rows by `failure_class` with failed-interval totals, endpoint missingness, estimate ranges, estimate/truth ranges, and the minimum-estimate example. |
 
 ## Next Implementation Gate
 
