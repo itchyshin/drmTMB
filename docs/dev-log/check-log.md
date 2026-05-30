@@ -44739,3 +44739,51 @@ Member-group review:
 - Rose checked that the docs still separate curve availability from endpoint
   availability.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace interpretation
+
+Goal:
+
+- Turn the selected-example trace, summary, and plot artifacts into a narrow
+  interpretation note before changing any profile setting.
+
+Changes:
+
+- Added
+  `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`.
+- The note records the exact six selected profile passes, trace-row counts,
+  endpoint-missingness pattern, and maximum likelihood-ratio distances from the
+  local trace-summary CSV.
+- The note concludes that smaller `ystep` alone did not recover endpoints and
+  routes the next diagnostic to side-specific profile support.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-interpretation.md`.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-interpretation.md
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited roadmap, design, check-log, and
+  after-task files.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the note scoped to interpretation, not new settings.
+- Fisher checked that the note separates curve generation from interval
+  endpoint recovery.
+- Florence checked that the PNG is treated as diagnostic support, not a
+  publication figure.
+- Pat checked that the next action is stated plainly.
+- Rose checked that the note does not relax the formal-pilot gate.
+- Grace ran formatting and whitespace validation before closure.
+- No spawned subagents were running.

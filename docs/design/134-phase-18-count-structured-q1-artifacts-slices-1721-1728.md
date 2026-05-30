@@ -151,6 +151,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1807 | Done locally as profile-trace plot helper | `phase18_plot_count_structured_q1_profile_trace()` draws selected-example likelihood-ratio curves for the current and smaller-`ystep` passes. |
 | 1808 | Done locally as profile-trace summary writer | `phase18_write_count_structured_q1_profile_trace_run()` now writes the selected trace summary CSV beside the plan and raw trace tables. |
 | 1809 | Done locally as profile-trace plot writer | `phase18_write_count_structured_q1_profile_trace_plot()` writes the selected trace diagnostic PNG under `figures/` with overwrite protection. |
+| 1810 | Done locally as profile-trace interpretation | `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md` interprets the trace, summary, and PNG artifacts and routes the next diagnostic to side-specific profile support. |
 
 ## Next Implementation Gate
 
