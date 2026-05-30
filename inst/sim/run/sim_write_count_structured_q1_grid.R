@@ -698,6 +698,7 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
       x,
       "interval_message"
     )
+    out$example_replicate <- phase18_count_structured_q1_first(x, "replicate")
     out$failed_interval <- nrow(x)
     out
   })
@@ -719,6 +720,7 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
       "interval_status",
       "failure_class",
       "example_interval_message",
+      "example_replicate",
       "failed_interval",
       "n_interval",
       "failure_rate"
