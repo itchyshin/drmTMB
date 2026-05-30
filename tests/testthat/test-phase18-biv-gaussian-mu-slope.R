@@ -9,7 +9,8 @@ source_phase18_biv_gaussian_mu_slope <- function() {
     "sim/dgp/sim_dgp_biv_gaussian_mu_slope.R",
     "sim/fit/sim_summarise_biv_gaussian_mu_slope.R",
     "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
-    "sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R"
+    "sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R",
+    "sim/run/sim_write_biv_gaussian_mu_slope_grid.R"
   )
   for (file in files) {
     source(system.file(file, package = "drmTMB", mustWork = TRUE), local = env)
@@ -131,6 +132,51 @@ test_that("Phase 18 bivariate Gaussian mu-slope smoke runner summarises output",
     "biv_gaussian_mu_slope_001",
     1L
   )))
+})
+
+test_that("Phase 18 bivariate Gaussian mu-slope grid writer saves artifacts", {
+  source_phase18_biv_gaussian_mu_slope()
+
+  output_dir <- tempfile("phase18-biv-gaussian-mu-slope-grid-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  conditions <- phase18_biv_gaussian_mu_slope_conditions(
+    n_id = 32L,
+    n_each = 6L,
+    rho_slope = 0.25,
+    residual_rho = 0.10
+  )
+
+  out <- phase18_write_biv_gaussian_mu_slope_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 237L
+  )
+
+  expect_identical(out$surface, "biv_gaussian_mu_slope_grid")
+  expect_equal(nrow(out$artifact_manifest), length(out$paths))
+  expect_true(all(out$artifact_manifest$exists))
+  expect_equal(nrow(out$summary$manifest), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 10L)
+  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 10L)
+  expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$failures_csv)), 0L)
+  expect_error(
+    phase18_write_biv_gaussian_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      conditions = conditions,
+      n_rep = 1L,
+      master_seed = 237L
+    ),
+    "already exists"
+  )
+  expect_silent(phase18_write_biv_gaussian_mu_slope_grid_outputs(
+    output_dir = output_dir,
+    conditions = conditions,
+    n_rep = 1L,
+    master_seed = 237L,
+    overwrite = TRUE
+  ))
 })
 
 test_that("Phase 18 bivariate Gaussian mu-slope helpers reject malformed inputs", {

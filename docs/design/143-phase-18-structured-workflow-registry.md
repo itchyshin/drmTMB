@@ -219,9 +219,9 @@ and labels them as wrapper targets rather than dispatchable Actions rows.
 
 The current target plan has one row:
 
-| Lane | Target status | Required helper | Dispatch mode |
-| --- | --- | --- | --- |
-| `bivariate_gaussian_slope_only` | `smoke_helper_available` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `local_helper_not_actions` |
+| Lane | Target status | Required helper | Artifact writer | Dispatch mode |
+| --- | --- | --- | --- | --- |
+| `bivariate_gaussian_slope_only` | `grid_writer_available` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `phase18_write_biv_gaussian_mu_slope_grid_outputs()` | `local_artifacts_not_actions` |
 
 This keeps the matching bivariate Gaussian `mu1`/`mu2` slope-only source test
 visible, but prevents Ada or Grace from dispatching it through Actions until a
@@ -237,9 +237,18 @@ Gaussian `mu1`/`mu2` slope-only block
 fit wrapper, replicate-level summariser, aggregate smoke summariser, and
 focused tests.
 
-The wrapper target remains non-Actions-dispatchable. Its status changes from
-`needs_simulation_helper` to `smoke_helper_available`, while dispatch mode stays
-local-only as `local_helper_not_actions`.
+The wrapper target remains non-Actions-dispatchable. Slice 1823 changes its
+status from `needs_simulation_helper` to `smoke_helper_available`, while
+dispatch mode stays local-only as `local_helper_not_actions`.
+
+## Slice 1824 Bivariate Slope Artifact Writer
+
+Slice 1824 adds `phase18_write_biv_gaussian_mu_slope_grid_outputs()` for the
+same bivariate Gaussian `mu1`/`mu2` slope-only surface. The writer saves the
+standard simple-grid CSV set: aggregate, replicate-level, manifest, and
+failure-ledger tables. The wrapper target now reports `grid_writer_available`
+and `local_artifacts_not_actions`; it still does not name a manual Actions task
+or make a coverage claim.
 
 ## Autonomous Work Plan
 

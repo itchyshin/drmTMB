@@ -270,14 +270,17 @@ phase18_random_slope_wrapper_target_plan <- function(
     return(phase18_empty_random_slope_wrapper_target_plan())
   }
 
-  targets$target_status <- "smoke_helper_available"
+  targets$target_status <- "grid_writer_available"
   targets$source_evidence <- phase18_random_slope_wrapper_source_evidence(
     targets$lane_id
   )
   targets$required_helper <- phase18_random_slope_wrapper_required_helper(
     targets$lane_id
   )
-  targets$dispatch_mode <- "local_helper_not_actions"
+  targets$artifact_writer <- phase18_random_slope_wrapper_artifact_writer(
+    targets$lane_id
+  )
+  targets$dispatch_mode <- "local_artifacts_not_actions"
   row.names(targets) <- NULL
   targets[c(
     "lane_id",
@@ -292,6 +295,7 @@ phase18_random_slope_wrapper_target_plan <- function(
     "actions_task",
     "workflow_helper",
     "required_helper",
+    "artifact_writer",
     "source_evidence",
     "dispatch_mode",
     "next_autonomous_action",
@@ -843,6 +847,7 @@ phase18_empty_random_slope_wrapper_target_plan <- function() {
     actions_task = character(),
     workflow_helper = character(),
     required_helper = character(),
+    artifact_writer = character(),
     source_evidence = character(),
     dispatch_mode = character(),
     next_autonomous_action = character(),
@@ -1177,6 +1182,22 @@ phase18_random_slope_wrapper_required_helper <- function(lane_id) {
     )
   }
   helper
+}
+
+phase18_random_slope_wrapper_artifact_writer <- function(lane_id) {
+  writer <- rep(NA_character_, length(lane_id))
+  writer[lane_id == "bivariate_gaussian_slope_only"] <-
+    "phase18_write_biv_gaussian_mu_slope_grid_outputs()"
+  unknown <- is.na(writer)
+  if (any(unknown)) {
+    stop(
+      "Random-slope wrapper has unknown target rows: ",
+      paste(unique(lane_id[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  writer
 }
 
 phase18_structured_workflow_required_columns <- function() {

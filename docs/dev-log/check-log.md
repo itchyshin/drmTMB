@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Bivariate Gaussian Slope Grid Writer
+
+Goal:
+
+- Add the local artifact writer for the bivariate Gaussian `mu1`/`mu2`
+  slope-only smoke surface before any Actions wiring.
+
+Actions run:
+
+- Added `phase18_write_biv_gaussian_mu_slope_grid_outputs()` with simple-grid
+  aggregate, replicate, manifest, and failure-ledger CSV outputs.
+- Extended the focused bivariate Gaussian slope test to write artifacts,
+  inspect CSV row counts, check the artifact manifest, and exercise the
+  overwrite guard.
+- Updated `phase18_random_slope_wrapper_target_plan()` so
+  `bivariate_gaussian_slope_only` reports `grid_writer_available` and
+  `local_artifacts_not_actions`, with the new writer named explicitly.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  simulation README, and after-task report for Slice 1824.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_biv_gaussian_mu_slope_grid.R tests/testthat/test-phase18-biv-gaussian-mu-slope.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R inst/sim/README.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-biv-gaussian-slope-grid-writer.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-biv-gaussian-mu-slope', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_write_biv_gaussian_mu_slope_grid.R','tests/testthat/test-phase18-biv-gaussian-mu-slope.R','inst/sim/run/sim_phase18_structured_workflow_registry.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_wrapper_target_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "target_status", "artifact_writer", "dispatch_mode")], row.names=FALSE)'
+git diff --check
+```
+
+Results:
+
+- The focused bivariate Gaussian `mu1`/`mu2` slope-only tests passed,
+  including artifact writing, CSV row-count checks, artifact-manifest checks,
+  and overwrite-guard coverage.
+- The focused structured workflow registry tests passed with the wrapper target
+  marked `grid_writer_available` and `local_artifacts_not_actions`.
+- The parse check and target-row print passed.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Bivariate Gaussian Slope Smoke Helper
 
 Goal:

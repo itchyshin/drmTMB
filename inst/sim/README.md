@@ -506,6 +506,9 @@ Current pilot files:
   replicate-level, manifest, and failure-ledger artifact sets for the ordinary
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
   coordinate-spatial Gaussian `mu` slope lanes.
+- `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
+  set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane; it
+  remains local-only until a manual Actions task is added.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
