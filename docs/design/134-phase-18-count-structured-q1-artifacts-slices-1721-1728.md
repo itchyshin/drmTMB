@@ -145,6 +145,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1801 | Done locally as profile-trace plan writer | `phase18_write_count_structured_q1_profile_trace_plan()` writes the selected-example plan to `tables/count-structured-q1-profile-trace-plan.csv` with overwrite protection. |
 | 1802 | Done locally as profile-trace result wrapper | `phase18_count_structured_q1_profile_trace_result()` wraps one plan row and a profile function, returning metadata-rich trace rows or a one-row failure record. |
 | 1803 | Done locally as profile-trace run-plan helper | `phase18_count_structured_q1_profile_trace_run_plan()` connects the plan to DGP, fit, and profile functions, returning bound trace rows while keeping tests on injected fake functions. |
+| 1804 | Done locally as profile-trace run writer | `phase18_write_count_structured_q1_profile_trace_run()` writes the selected plan and bound trace output CSVs with overwrite protection. |
 
 ## Next Implementation Gate
 

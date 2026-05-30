@@ -1172,3 +1172,10 @@ errors, and elapsed time by surface before the raw manifest.
      outputs are column-aligned before binding. Focused tests inject fake DGP,
      fit, and profile functions, so this remains runner plumbing rather than
      formal-pilot rerun evidence.
+212. Slice 1804 adds the selected-example trace-run writer.
+     `phase18_write_count_structured_q1_profile_trace_run()` writes both
+     `tables/count-structured-q1-profile-trace-plan.csv` and
+     `tables/count-structured-q1-profile-trace.csv`, with overwrite protection
+     across both files. The focused tests still inject fake DGP, fit, and
+     profile functions, so this creates the artifact writer without spending CI
+     time on the selected formal-pilot profiles.

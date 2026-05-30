@@ -135,3 +135,16 @@ before binding, so a failed fit can sit beside successful likelihood-ratio
 trace rows without losing the profile columns. The focused tests inject fake
 DGP, fit, and profile functions; this addendum still does not rerun the three
 selected formal-pilot examples or change profile settings.
+
+## Slice 1804 Addendum: Trace Run Tables
+
+`phase18_write_count_structured_q1_profile_trace_run()` now writes the selected
+plan and the bound trace rows as a compact two-table artifact:
+`tables/count-structured-q1-profile-trace-plan.csv` and
+`tables/count-structured-q1-profile-trace.csv`. The helper applies overwrite
+protection across both files, then returns the paths, plan, and trace data.
+
+This writer makes the next real selected-example rerun auditable without
+changing the simulation grid artifact layout. The focused tests still inject
+fake DGP, fit, and profile functions, so this slice records the artifact
+contract rather than new likelihood-profile evidence.

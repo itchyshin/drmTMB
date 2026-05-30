@@ -266,6 +266,58 @@ test_that("Phase 18 count structured q1 profile trace plan writes a table", {
   )
 })
 
+test_that("Phase 18 count structured q1 profile trace run writes tables", {
+  source_count_structured_q1()
+
+  output_dir <- tempfile("phase18-count-structured-q1-trace-run-")
+  withr::defer(unlink(output_dir, recursive = TRUE))
+  plan <- phase18_count_structured_q1_profile_trace_plan()[1:2, , drop = FALSE]
+  fake_dgp <- function(cell, seed, cell_id, replicate) {
+    data.frame(
+      cell_id = cell_id,
+      replicate = replicate,
+      stringsAsFactors = FALSE
+    )
+  }
+  fake_fit <- function(data, cell) {
+    structure(list(cell_id = data$cell_id[[1L]]), class = "drmTMB")
+  }
+  fake_profile <- function(object, parm, level, ystep) {
+    data.frame(
+      profile_value = c(0.10, 0.20),
+      delta_deviance = c(1.0, 0.0),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  out <- phase18_write_count_structured_q1_profile_trace_run(
+    output_dir,
+    plan = plan,
+    dgp_fun = fake_dgp,
+    fit_fun = fake_fit,
+    profile_fun = fake_profile
+  )
+  written_plan <- utils::read.csv(out$paths$plan_csv)
+  written_trace <- utils::read.csv(out$paths$trace_csv)
+
+  expect_equal(out$surface, "count_structured_q1_profile_trace_run")
+  expect_true(file.exists(out$paths$plan_csv))
+  expect_true(file.exists(out$paths$trace_csv))
+  expect_equal(nrow(written_plan), 2L)
+  expect_equal(nrow(written_trace), 4L)
+  expect_equal(unique(written_trace$trace_status), "ok")
+  expect_error(
+    phase18_write_count_structured_q1_profile_trace_run(
+      output_dir,
+      plan = plan,
+      dgp_fun = fake_dgp,
+      fit_fun = fake_fit,
+      profile_fun = fake_profile
+    ),
+    "already exists"
+  )
+})
+
 test_that("Phase 18 count structured q1 profile trace result records traces", {
   source_count_structured_q1()
 
