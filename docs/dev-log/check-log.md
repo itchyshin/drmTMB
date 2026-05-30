@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Correlation-Block Workflow Plan
+
+Goal:
+
+- Build the residual `rho12`, q=2 `corpairs()`, and q=4 diagnostic workflow
+  plan from the structured registry without treating q=4 derived correlations
+  as interval-ready.
+
+Actions run:
+
+- Added `phase18_correlation_block_workflow_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Added helper functions for empty correlation-block plans, dispatch-status
+  labels, interval-policy labels, and audit focus text.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to cover the
+  six-row plan, residual `rho12`, q=4 interval policy, structured q=2 wrapper
+  target, `include_diagnostic = FALSE`, and blocked-row exclusion.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1818.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-correlation-block-workflow-plan.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_correlation_block_workflow_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "admission_status", "dispatch_status", "interval_policy", "actions_task", "workflow_helper")], row.names=FALSE)'
+rg -n "correlation-block workflow plan|phase18_correlation_block_workflow_plan|q4_derived_interval_unavailable|diagnostic_wrapper_target|interval_policy|Slice 1818" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed correlation-block plan has six non-blocked rows: three direct
+  rows mapped to `interval_heavy_summary`, one structured q=2 wrapper target,
+  and two q=4 diagnostic wrapper targets.
+- q=4 rows carry `interval_policy = "q4_derived_interval_unavailable"`.
+- The stale-reference scan found the intended helper, test, roadmap, and design
+  references for Slice 1818.
+- `git diff --check` was clean.
+
 ## 2026-05-30 -- Structured-Dependence Workflow Plan
 
 Goal:

@@ -1268,3 +1268,9 @@ errors, and elapsed time by surface before the raw manifest.
      hold-smoke, and count q=1 spatial/animal/`relmat()` diagnostic audit.
      Setting `include_held = FALSE` keeps only the four wrapper targets and the
      Poisson formal-admission row.
+226. Slice 1818 adds `phase18_correlation_block_workflow_plan()`, which keeps
+     residual `rho12`, q=2 direct or layer-specific `corpairs()` rows, and q=4
+     diagnostic rows separate. The current plan has six non-blocked rows, maps
+     three direct rows to `interval_heavy_summary`, leaves structured q=2 as a
+     wrapper target, marks q=4 rows as diagnostic wrapper targets, and records
+     q=4 interval policy as `q4_derived_interval_unavailable`.
