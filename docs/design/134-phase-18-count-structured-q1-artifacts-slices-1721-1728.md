@@ -153,6 +153,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1809 | Done locally as profile-trace plot writer | `phase18_write_count_structured_q1_profile_trace_plot()` writes the selected trace diagnostic PNG under `figures/` with overwrite protection. |
 | 1810 | Done locally as profile-trace interpretation | `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md` interprets the trace, summary, and PNG artifacts and routes the next diagnostic to side-specific profile support. |
 | 1811 | Done locally as profile-trace side summary | `phase18_count_structured_q1_profile_trace_side_summary()` summarizes lower-side and upper-side profile support separately for each selected example and profile pass. |
+| 1812 | Done locally as profile-trace side summary writer | `phase18_write_count_structured_q1_profile_trace_run()` now writes the side-summary CSV beside the plan, trace, and summary tables. |
 
 ## Next Implementation Gate
 

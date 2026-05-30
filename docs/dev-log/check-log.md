@@ -44874,3 +44874,86 @@ Member-group review:
   validation before closure.
 - Rose checked that the formal-pilot gate remains closed.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace side summary writer
+
+Goal:
+
+- Save the side-specific trace-support table as part of the selected-example
+  trace-run artifact.
+
+Changes:
+
+- `phase18_write_count_structured_q1_profile_trace_run()` now writes
+  `tables/count-structured-q1-profile-trace-side-summary.csv`.
+- `phase18_count_structured_q1_profile_trace_run_paths()` now includes
+  `side_summary_csv`.
+- The writer returns `side_summary` in its result object.
+- Updated the focused writer test to check the new CSV and overwrite
+  protection across all trace-run files.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`,
+  and
+  `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-side-summary-writer.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-side-summary-writer.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+out <- phase18_write_count_structured_q1_profile_trace_run(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-side-summary-writer-20260530",
+  overwrite = TRUE
+)
+print(out$paths)
+print(out$side_summary[, c(
+  "cell_id",
+  "replicate",
+  "profile_pass",
+  "profile_side",
+  "endpoint_present",
+  "side_reaches_cutoff"
+)], row.names = FALSE)
+EOF
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, roadmap, design,
+  check-log, and after-task files.
+- `devtools::test(filter = 'phase18-count-structured-q1', reporter =
+  'summary')` passed.
+- The real selected-example writer smoke wrote all four trace-run CSVs under
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-side-summary-writer-20260530/tables/`,
+  including `count-structured-q1-profile-trace-side-summary.csv`.
+- The saved side summary preserved the real side pattern: lower sides did not
+  reach the cutoff, upper sides did reach the cutoff, and only the nonfinite
+  example had finite upper endpoints.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the writer as an extension of the existing trace-run artifact.
+- Fisher checked that the saved table preserves side-specific cutoff evidence.
+- Noether checked that the artifact still uses the public direct profile target
+  labels.
+- Curie covered the new CSV in the focused writer test.
+- Grace smoke-tested the real selected-example writer output locally.
+- Rose checked that the saved CSV does not relax the formal-pilot gate.
+- No spawned subagents were running.

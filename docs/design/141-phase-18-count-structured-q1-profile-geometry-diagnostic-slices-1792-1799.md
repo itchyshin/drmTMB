@@ -246,3 +246,14 @@ On the real selected trace artifact, every lower side failed to reach the 70%
 cutoff and every upper side reached it. This narrows the next question: the
 selected interval failures are lower-side support failures, not failures to
 generate a profile curve.
+
+## Slice 1812 Addendum: Trace Side Summary CSV
+
+`phase18_write_count_structured_q1_profile_trace_run()` now writes
+`tables/count-structured-q1-profile-trace-side-summary.csv` beside the selected
+plan, trace, and summary CSVs. The trace-run artifact now carries both the
+overall endpoint-missingness table and the side-specific support table.
+
+This is still diagnostic evidence, not recovery evidence. The side-summary CSV
+identifies lower-side support as the next profile-setting target; it does not
+change profile settings or relax the formal-pilot gate.

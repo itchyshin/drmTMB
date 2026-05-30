@@ -129,3 +129,15 @@ This result points to lower-side boundary support as the next diagnostic target.
 It still does not justify a larger recovery grid or a default profile-setting
 change. A wider range or lower-boundary-specific setting should first show that
 the lower side can reach the cutoff for an interpretable reason.
+
+## Slice 1812 Addendum: Saved Side Summary
+
+`phase18_write_count_structured_q1_profile_trace_run()` now saves the
+side-specific support table as
+`tables/count-structured-q1-profile-trace-side-summary.csv`. The selected trace
+artifact now contains four CSVs: the plan, raw trace rows, overall summary, and
+side summary.
+
+The saved side-summary CSV makes the next profile-setting experiment auditable:
+future runs can compare lower-side cutoff reach and endpoint presence directly,
+instead of recomputing the side split from raw trace rows.
