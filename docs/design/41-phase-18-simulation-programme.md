@@ -1208,3 +1208,10 @@ errors, and elapsed time by surface before the raw manifest.
      `tables/count-structured-q1-profile-trace-summary.csv` beside the plan and
      raw trace CSVs, so each selected-example trace artifact carries the stable
      audit table used by the plot and interpretation slices.
+217. Slice 1809 adds a selected-example trace plot writer.
+     `phase18_write_count_structured_q1_profile_trace_plot()` writes
+     `figures/count-structured-q1-profile-trace.png` from trace rows and returns
+     the ggplot object plus the same summary table used by the trace-run writer.
+     The helper stays internal diagnostic plumbing; focused tests use synthetic
+     trace rows and check the PNG path, file size, summary rows, and overwrite
+     protection without rerunning selected formal-pilot profiles.

@@ -1249,6 +1249,53 @@ phase18_count_structured_q1_profile_trace_run_paths <- function(table_dir) {
   )
 }
 
+phase18_write_count_structured_q1_profile_trace_plot <- function(
+  output_dir,
+  trace,
+  overwrite = FALSE,
+  width = 9,
+  height = 5.5,
+  dpi = 160
+) {
+  phase18_assert_simple_grid_output_dir(output_dir)
+  if (!isTRUE(overwrite) && !identical(overwrite, FALSE)) {
+    stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  dirs <- phase18_prepare_simple_grid_dirs(output_dir)
+  figure_dir <- file.path(dirs$output_dir, "figures")
+  dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(
+    figure_dir,
+    "count-structured-q1-profile-trace.png"
+  )
+  phase18_assert_simple_grid_overwrite(
+    list(plot_png = path),
+    overwrite,
+    "Count structured q1 profile trace plot"
+  )
+
+  plot <- phase18_plot_count_structured_q1_profile_trace(trace)
+  ggplot2::ggsave(
+    filename = path,
+    plot = plot,
+    width = width,
+    height = height,
+    units = "in",
+    dpi = dpi
+  )
+
+  list(
+    surface = "count_structured_q1_profile_trace_plot",
+    output_dir = dirs$output_dir,
+    table_dir = dirs$table_dir,
+    figure_dir = figure_dir,
+    path = path,
+    plot = plot,
+    summary = phase18_count_structured_q1_profile_trace_summary(trace)
+  )
+}
+
 phase18_count_structured_q1_profile_trace_result <- function(
   fit,
   plan_row,
