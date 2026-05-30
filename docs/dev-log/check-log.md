@@ -46162,3 +46162,55 @@ Member-group review:
 - Rose/Carson and Sagan caught stale generated HTML and broad structured-slope
   wording.
 - Boole kept current syntax aligned to `meta_V(V = V)`.
+
+## 2026-05-30 - Phase 6c simulation issue bridge
+
+Goal:
+
+- Respond to the maintainer's reminder that the sprint needs an explicit
+  simulation-planning issue for accuracy, coverage, power, runtime, and
+  failure-mode evidence, not only fitted random-slope status.
+
+Changes:
+
+- Confirmed that #59 is already the Phase 18 comprehensive simulation
+  framework and reporting issue, and #255 is the artifact-grain child issue for
+  replicate-level versus aggregate simulation evidence.
+- Linked #59, #255, and #60 from the Phase 6c sprint contract and roadmap so
+  the random-slope child issues route larger operating-characteristic questions
+  into the existing simulation mega-project.
+- Updated the Phase 18 programme note to state that `glmmTMB`, direct TMB
+  baselines, `DRM.jl`, `GLLVM.jl`, and other comparator or twin routes are
+  design mirrors or comparator lanes, not `drmTMB` coverage evidence.
+
+Validation:
+
+```sh
+git diff --check
+rg -n "#59|#255|#60|glmmTMB|direct TMB|DRM\\.jl|GLLVM\\.jl|bias, coverage, or power evidence" docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n "Phase 18 mega-issue|umbrella simulation programme|artifact-grain|comparator-package lane|DRM\\.jl|GLLVM\\.jl|#59|#255|#60" pkgdown-site/ROADMAP.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/search.json docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md
+```
+
+Results:
+
+- `git diff --check` passed.
+- The source scan found the new #59/#255/#60 simulation bridge in the sprint
+  contract, Phase 18 programme, roadmap, and check log.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The local development mirror was refreshed with
+  `override = list(destination = 'pkgdown-site/dev')`.
+- The rendered scan found the new issue bridge in the release and development
+  `ROADMAP.html` and `search.json` outputs.
+
+Member-group review:
+
+- Fisher required bias/accuracy, RMSE, interval coverage, power or Type I
+  error, convergence, Hessian status, boundary rate, runtime, and MCSE language
+  to stay visible.
+- Curie kept the Phase 6c bridge narrow enough to become taskable simulation
+  rows.
+- Rose kept comparator and Julia-twin results out of `drmTMB` evidence claims.

@@ -20,6 +20,18 @@ Child issues:
 - #443: coscale and `corpairs()` boundary.
 - #444: random-slope tutorial and release ledger.
 
+Simulation planning issue:
+
+- #59 is the Phase 18 simulation mega-issue for power, accuracy, coverage,
+  runtime, and failure-mode evidence across families and model types.
+- #255 is the artifact-grain child issue that keeps replicate-level rows,
+  aggregate summaries, MCSE intervals, and figure geometry honest.
+- #60 is the smaller comparator-package lane for `glmmTMB`, direct TMB
+  baselines, Julia twins such as `DRM.jl` and `GLLVM.jl`, and other packages
+  where the parameter target is genuinely comparable. Comparator or twin
+  results can motivate `drmTMB` simulations, but they are not `drmTMB`
+  coverage evidence.
+
 ## Current Sprint Matrix
 
 | Layer | Current status | Sprint action |
@@ -46,6 +58,35 @@ readiness are separate claims.
 | Diagnostic-only | Ordinary or structured q=4 `corpairs()` rows, q=4 spatial/animal/`relmat()` location-scale point-estimate lanes, count q=1 spatial/animal/`relmat()` structured rows before formal recovery, and Ayumi hard real-data q2/q4 cases. | Registry rows marked `diagnostic_only`, plus hard-fit diagnostics in `docs/design/46-pre-simulation-readiness-matrix.md`. |
 | Design-only | Mixed-response bivariate families and any future joint/coplanar likelihood or latent contract work. | `mixed_response_bivariate` in the Phase 18 registry. |
 | Unsupported or blocked | Count labelled q2/q4 covariance, random effects in `rho12`, correlated non-Gaussian slopes, structured count slopes, zero-inflation/hurdle random effects, Student-t `nu` random effects, ordinal random effects, NB2 `sigma` slopes, and structured `sigma`. | Registry rows marked `blocked`, failure-ledger text in the readiness matrix, and the implementation-map planned-neighbour rows. |
+
+## Simulation Admission Bridge
+
+The four-week sprint does not replace the larger Phase 18 simulation programme
+in #59. Each capability child issue should end by saying whether the surface is
+documentation-only, source or smoke only, simulation-ready, or ready for a
+larger operating-characteristic grid. A supported claim needs local `drmTMB`
+evidence for the relevant estimand, not only a successful fit.
+
+For every surface promoted from fitted to simulation evidence, require a small
+ADEMP sheet or equivalent row that names the aim, data-generating mechanism,
+estimand, fitted method, performance measures, replicate plan, and Monte Carlo
+standard-error target. The minimum performance vocabulary is bias or accuracy,
+RMSE, interval coverage, power or Type I error when a null comparison is part
+of the question, convergence and Hessian status, boundary rate, and runtime.
+
+Keep the first Phase 6c simulation bridge narrow:
+
+- #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian
+  `sigma` slopes into #59 only when extractor and direct-SD interval targets
+  are stable.
+- #440 queues the bivariate Gaussian slope-only lane into #59 only when
+  residual `rho12` is separated from group-level covariance in the estimands
+  and report tables.
+- #441 queues non-Gaussian independent `mu` slopes family by family, with
+  fixed-effect likelihood and interval evidence ahead of random-effect claims.
+- #442 queues structured Gaussian one-slope rows only as one-slope rows; q2/q4
+  structured covariance, multiple structured slopes, and structured
+  residual-scale slopes remain separate design or diagnostic lanes.
 
 ## Daily Twin/Sister Exchange
 

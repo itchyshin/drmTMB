@@ -606,6 +606,16 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   for the digital-twin exchange, support-matrix refresh, Gaussian closeout,
   bivariate slope gate, non-Gaussian slope admission, structured one-slope
   audit, coscale boundary, and tutorial/release ledger.
+- Simulation bridge: [#59](https://github.com/itchyshin/drmTMB/issues/59) is
+  the Phase 18 mega-issue for power, accuracy, coverage, runtime, and
+  failure-mode evidence across families and model types; [#255](https://github.com/itchyshin/drmTMB/issues/255)
+  keeps replicate-level versus aggregate simulation artifacts honest; and
+  [#60](https://github.com/itchyshin/drmTMB/issues/60) stays the smaller
+  comparator-package lane for `glmmTMB`, direct TMB baselines, `DRM.jl`,
+  `GLLVM.jl`, and other honest parameter-target comparisons. Phase 6c
+  capability issues should link into #59 when they need accuracy, coverage, or
+  power evidence, rather than treating twin or comparator results as
+  `drmTMB` coverage evidence.
 - Treat Phase 6c as the random-slope bridge between the Phase 6 inference work,
   the Phase 6b tutorial layer, and the later Phase 10-12 structural-dependence
   programmes. It does not replace the later bivariate covariance programme; it
@@ -2060,6 +2070,12 @@ as the whole comprehensive simulation programme.
 - Status: staged. The reusable simulation infrastructure is partly
   implemented locally, while broad operating-characteristic grids and public
   bootstrap intervals remain planned.
+- Tracking issues: [#59](https://github.com/itchyshin/drmTMB/issues/59) is the
+  umbrella simulation programme, [#255](https://github.com/itchyshin/drmTMB/issues/255)
+  preserves replicate-level artifacts for honest coverage and accuracy
+  displays, and [#60](https://github.com/itchyshin/drmTMB/issues/60) is the
+  smaller comparator-package lane to use only after the `drmTMB` estimand is
+  clear.
 - Build a documented simulation programme that lets project leaders, reviewers,
   and applied readers understand when `drmTMB` is accurate enough for the
   models it claims to fit.

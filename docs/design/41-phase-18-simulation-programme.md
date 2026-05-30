@@ -6,6 +6,13 @@ structure of Morris, White, and Crowther (2019) and the transparent-reporting
 items of Williams et al. (2024), but it should stay practical for ecology,
 evolution, and meta-analysis readers.
 
+Tracking issues: #59 is the umbrella simulation programme; #255 is the
+artifact-grain contract for replicate-level and aggregate evidence; #60 is the
+smaller comparator-package lane for `glmmTMB`, direct TMB baselines, Julia twins
+such as `DRM.jl` and `GLLVM.jl`, and other packages only when the parameter
+target is genuinely comparable. Comparator and twin results can suggest design
+questions, but they do not count as `drmTMB` bias, coverage, or power evidence.
+
 The first rule is scope. A surface enters the comprehensive simulation only
 after it has a fitted likelihood, parser validation, extractors, diagnostics,
 interval status, and focused recovery tests. Surfaces that are still only
