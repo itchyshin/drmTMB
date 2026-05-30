@@ -43317,3 +43317,47 @@ Member-group review:
 - Fisher kept the change out of recovery or coverage claims.
 - Rose recorded the preflight mismatch and the workflow-plumbing status.
 - No spawned subagents were running.
+
+## 2026-05-29 - Phase 18 post-run require-complete print-plan fix
+
+Goal:
+
+- Fix the failure in formal pilot Actions run `26667502560`, where the selected
+  `count_structured_q1` job received the intended workflow inputs but failed
+  after the task body because the post-run print-plan call omitted
+  `require_complete`.
+
+Changes:
+
+- Updated `inst/sim/run/sim_run_actions_cell.R` so the non-dry-run
+  `phase18_actions_print_plan()` call receives `require_complete`.
+- Added a mocked non-dry-run `count_structured_q1` regression test that avoids
+  fitting models but still saves `phase18-actions-result.rds` and checks that
+  `require_complete=TRUE` prints after the run.
+- Updated `ROADMAP.md`, the Phase 18 simulation programme, and this check log.
+- Added
+  `docs/dev-log/after-task/2026-05-29-phase18-require-complete-print-plan.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-phase18-require-complete-print-plan.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-actions-runner', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-actions-runner` suite passed.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the fix to the failed post-run print-plan call.
+- Curie added a regression test that exercises the real-run path without
+  running a real simulation.
+- Grace tied the fix to Actions run `26667502560` before rerunning the formal
+  pilot.
+- Fisher kept the failure separate from any artifact audit or recovery claim.
+- Rose recorded the regression and the missing local coverage.
+- No spawned subagents were running.

@@ -1068,3 +1068,9 @@ errors, and elapsed time by surface before the raw manifest.
      operational dispatch plumbing; it does not dispatch a run or add recovery,
      coverage, bootstrap, low-SD, zero-inflated, structured-slope, labelled
      covariance, or structured NB2 `sigma` evidence.
+197. Slice 1773 fixes the post-run print-plan regression exposed by formal
+     pilot Actions run `26667502560`. The selected `count_structured_q1` job
+     received the intended `profile_level=0.70` and `require_complete=true`
+     inputs, but failed after the task body when the final print-plan call did
+     not pass `require_complete`. The runner now passes that argument on both
+     dry-run and post-run paths, with a mocked non-dry-run regression test.
