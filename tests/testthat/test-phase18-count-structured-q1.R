@@ -238,7 +238,17 @@ test_that("Phase 18 count structured q1 profile trace plan uses selected example
     unique(plan$seed),
     c(932584520L, 461195966L, 32713190L)
   )
-  expect_equal(unique(plan$profile_parameters), "log_sd_phylo")
+  expect_equal(
+    plan$profile_parameters,
+    rep(
+      c(
+        "sd:mu:spatial(1 | site)",
+        "sd:mu:animal(1 | id)",
+        "sd:mu:spatial(1 | site)"
+      ),
+      2L
+    )
+  )
   expect_equal(unique(plan$profile_level), 0.70)
   expect_equal(sort(unique(plan$ystep)), c(0.25, 0.50))
   expect_equal(unique(plan$profile_pass), c("current", "smaller_ystep"))

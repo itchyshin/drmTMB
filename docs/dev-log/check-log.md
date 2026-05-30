@@ -44331,3 +44331,95 @@ Member-group review:
 - Grace kept the real selected examples out of CI.
 - Rose checked that the writer is not described as new profile evidence.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace target labels
+
+Goal:
+
+- Fix the selected-example profile trace plan so the real trace writer uses
+  public direct profile target labels accepted by `profile()`.
+
+Changes:
+
+- `phase18_count_structured_q1_profile_trace_examples()` now records
+  per-example `profile_parameters`:
+  `sd:mu:spatial(1 | site)` for `count_structured_q1_006` and
+  `count_structured_q1_001`, and `sd:mu:animal(1 | id)` for
+  `count_structured_q1_003`.
+- `phase18_count_structured_q1_profile_trace_plan()` now defaults to those
+  example-level target labels, while still allowing a scalar
+  `profile_parameters` override for tests or future diagnostics.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-target-labels.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-target-labels.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+out <- phase18_write_count_structured_q1_profile_trace_run(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530",
+  overwrite = TRUE
+)
+print(out$paths)
+print(table(out$trace$profile_pass, out$trace$trace_status, useNA = "ifany"))
+print(stats::aggregate(trace_elapsed ~ cell_id + replicate + profile_pass + trace_status, out$trace, max))
+EOF
+Rscript --vanilla - <<'EOF'
+trace <- utils::read.csv(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530/tables/count-structured-q1-profile-trace.csv",
+  stringsAsFactors = FALSE
+)
+print(stats::aggregate(cbind(
+  n = !is.na(trace_status),
+  missing_low = is.na(conf.low),
+  missing_high = is.na(conf.high)
+) ~ cell_id + profile_pass + failure_class, trace, sum))
+print(unique(trace[, intersect(c(
+  "cell_id", "profile_pass", "failure_class", "estimate",
+  "conf.low", "conf.high", "conf.status"
+), names(trace))]))
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The real selected-example trace writer smoke wrote both CSVs under
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530`.
+- The trace table had 116 `current` rows and 125 `smaller_ystep` rows, all with
+  `trace_status = "ok"`.
+- Endpoint inspection preserved the interval-failure evidence: the
+  nonfinite-interval example had missing lower endpoints but finite upper
+  endpoints, while both profile-crossing examples had missing lower and upper
+  endpoints.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the fix at the boundary between public profile labels and internal
+  TMB parameters.
+- Boole checked that the selected plan uses labels accepted by `profile()`.
+- Fisher kept successful trace generation separate from interval success.
+- Curie updated the focused test to pin per-example target labels.
+- Grace kept the real selected-example trace smoke local and bounded.
+- Rose checked that the docs still preserve the formal-pilot interval failure.
+- No spawned subagents were running.
