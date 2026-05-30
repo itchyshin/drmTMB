@@ -461,6 +461,55 @@ test_that("Phase 18 count structured q1 profile trace run plan binds failures", 
   expect_true(is.na(out$profile_value[[3L]]))
 })
 
+test_that("Phase 18 count structured q1 profile trace summary audits traces", {
+  source_count_structured_q1()
+
+  trace <- phase18_count_structured_q1_profile_trace_bind_rows(list(
+    data.frame(
+      cell_id = "count_structured_q1_006",
+      replicate = 45L,
+      failure_class = "nonfinite_interval",
+      example_role = "minimum_nonfinite_estimate",
+      profile_pass = "current",
+      profile_parameters = "sd:mu:spatial(1 | site)",
+      trace_status = "ok",
+      trace_elapsed = 0.2,
+      estimate = 0.01,
+      conf.low = NA_real_,
+      conf.high = 0.4,
+      conf.status = "profile",
+      profile_value = c(0.01, 0.20),
+      delta_deviance = c(0, 2),
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      cell_id = "count_structured_q1_003",
+      replicate = 33L,
+      failure_class = "profile_crossing_failure",
+      example_role = "minimum_crossing_estimate",
+      profile_pass = "current",
+      profile_parameters = "sd:mu:animal(1 | id)",
+      trace_status = "failed",
+      trace_message = "fit failed",
+      trace_elapsed = 0.1,
+      stringsAsFactors = FALSE
+    )
+  ))
+
+  out <- phase18_count_structured_q1_profile_trace_summary(trace)
+
+  expect_equal(nrow(out), 2L)
+  spatial <- out[out$cell_id == "count_structured_q1_006", , drop = FALSE]
+  animal <- out[out$cell_id == "count_structured_q1_003", , drop = FALSE]
+  expect_equal(spatial$n_trace_row, 2L)
+  expect_equal(spatial$n_missing_lower_endpoint, 2L)
+  expect_equal(spatial$n_missing_upper_endpoint, 0L)
+  expect_equal(spatial$max_delta_deviance, 2)
+  expect_equal(animal$trace_status, "failed")
+  expect_equal(animal$n_trace_failed, 1L)
+  expect_true(is.na(animal$min_profile_value))
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 

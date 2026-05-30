@@ -44423,3 +44423,74 @@ Member-group review:
 - Grace kept the real selected-example trace smoke local and bounded.
 - Rose checked that the docs still preserve the formal-pilot interval failure.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace summary
+
+Goal:
+
+- Add a stable summary table for selected-example profile trace rows before
+  building the visual diagnostic.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_trace_summary()`.
+- Added `phase18_count_structured_q1_trace_status_rollup()`.
+- Added `phase18_count_structured_q1_missing_count()`.
+- The summary groups trace rows by `cell_id`, `replicate`, and `profile_pass`,
+  then reports trace-row counts, failed rows, endpoint missingness,
+  profile-value range, maximum `delta_deviance`, elapsed time, and interval
+  status.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-summary.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-summary.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+trace <- utils::read.csv(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530/tables/count-structured-q1-profile-trace.csv",
+  stringsAsFactors = FALSE
+)
+print(phase18_count_structured_q1_profile_trace_summary(trace))
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The real trace-artifact smoke returned a six-row summary: three selected
+  examples crossed with `current` and `smaller_ystep` passes.
+- All six summary rows had `trace_status = "ok"` and `n_trace_failed = 0`.
+- Endpoint fields preserved the interval diagnostic: the nonfinite-interval
+  example had missing lower endpoints and finite upper endpoints, while both
+  profile-crossing examples had missing lower and upper endpoints.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the summary as the handoff from raw trace rows to plotting.
+- Fisher kept trace availability and interval availability as separate fields.
+- Florence wanted a stable summary before the visual diagnostic.
+- Curie covered success and failure summaries with synthetic trace rows.
+- Grace reused the bounded local trace artifact for smoke validation.
+- Rose checked that endpoint missingness remains explicit.
+- No spawned subagents were running.

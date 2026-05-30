@@ -1188,3 +1188,10 @@ errors, and elapsed time by surface before the raw manifest.
      116 current and 125 smaller-`ystep` trace rows with `trace_status = "ok"`;
      interval extraction still failed or stayed one-sided for the selected
      examples, as shown by `conf.low`, `conf.high`, and `conf.status`.
+214. Slice 1806 adds a trace-summary helper for the selected examples.
+     `phase18_count_structured_q1_profile_trace_summary()` groups trace rows by
+     cell, replicate, and profile pass, then reports trace-row counts, failed
+     rows, endpoint missingness, profile-value ranges, maximum
+     likelihood-ratio distance, and interval status. This makes the next visual
+     diagnostic slice depend on a stable summary table rather than ad hoc CSV
+     aggregation.

@@ -1448,6 +1448,97 @@ phase18_count_structured_q1_profile_trace_bind_rows <- function(pieces) {
   out
 }
 
+phase18_count_structured_q1_profile_trace_summary <- function(trace) {
+  if (!is.data.frame(trace) || nrow(trace) == 0L) {
+    stop("`trace` must be a non-empty data frame.", call. = FALSE)
+  }
+  phase18_assert_summary_columns(
+    trace,
+    c("cell_id", "replicate", "profile_pass", "trace_status")
+  )
+
+  keys <- paste(trace$cell_id, trace$replicate, trace$profile_pass, sep = "\r")
+  rows <- lapply(split(trace, keys, drop = TRUE), function(x) {
+    trace_status <- phase18_count_structured_q1_trace_status_rollup(
+      x$trace_status
+    )
+    data.frame(
+      cell_id = phase18_count_structured_q1_first(x, "cell_id"),
+      replicate = phase18_count_structured_q1_first(x, "replicate"),
+      failure_class = phase18_count_structured_q1_first(
+        x,
+        "failure_class"
+      ),
+      example_role = phase18_count_structured_q1_first(x, "example_role"),
+      profile_pass = phase18_count_structured_q1_first(x, "profile_pass"),
+      profile_parameters = phase18_count_structured_q1_first(
+        x,
+        "profile_parameters"
+      ),
+      trace_status = trace_status,
+      n_trace_row = nrow(x),
+      n_trace_ok = sum(x$trace_status == "ok", na.rm = TRUE),
+      n_trace_failed = sum(x$trace_status == "failed", na.rm = TRUE),
+      trace_elapsed = phase18_count_structured_q1_range_value(
+        x$trace_elapsed,
+        max
+      ),
+      estimate = phase18_count_structured_q1_first(x, "estimate"),
+      conf_low = phase18_count_structured_q1_first(x, "conf.low"),
+      conf_high = phase18_count_structured_q1_first(x, "conf.high"),
+      conf_status = phase18_count_structured_q1_first(
+        x,
+        "conf.status"
+      ),
+      n_missing_lower_endpoint = phase18_count_structured_q1_missing_count(
+        x,
+        "conf.low"
+      ),
+      n_missing_upper_endpoint = phase18_count_structured_q1_missing_count(
+        x,
+        "conf.high"
+      ),
+      min_profile_value = phase18_count_structured_q1_range_value(
+        x$profile_value,
+        min
+      ),
+      max_profile_value = phase18_count_structured_q1_range_value(
+        x$profile_value,
+        max
+      ),
+      max_delta_deviance = phase18_count_structured_q1_range_value(
+        x$delta_deviance,
+        max
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_trace_status_rollup <- function(status) {
+  status <- unique(status[!is.na(status) & nzchar(status)])
+  if (length(status) == 0L) {
+    return("missing")
+  }
+  if (length(status) == 1L) {
+    return(status[[1L]])
+  }
+  if (all(status == "ok")) {
+    return("ok")
+  }
+  "mixed"
+}
+
+phase18_count_structured_q1_missing_count <- function(x, name) {
+  if (!name %in% names(x)) {
+    return(NA_integer_)
+  }
+  sum(is.na(x[[name]]))
+}
+
 phase18_count_structured_q1_profile_failure_class <- function(message) {
   message <- as.character(message)
   out <- rep("other_profile_failure", length(message))
