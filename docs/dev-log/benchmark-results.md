@@ -17,6 +17,9 @@ peak footprint when interpreting those rows.
 
 | Date | Rows | Species | Family | Sigma formula | Factor levels | Memory-light | Status | Convergence | Fit seconds | Fit object MB | Model matrix MB | TMB data MB | R heap after fit MB | Max RSS bytes | Peak footprint bytes |
 | --- | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2026-05-30 | 500 | 50 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 0.553 | 0.469 | 0.078 | 0.144 | 159.153 | 409,518,080 | 342,525,272 |
+| 2026-05-30 | 2,000 | 200 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 1.115 | 1.422 | 0.307 | 0.518 | 159.695 | 455,131,136 | 363,431,184 |
+| 2026-05-30 | 10,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 5.582 | 6.578 | 1.528 | 2.529 | 162.592 | 679,510,016 | 407,799,104 |
 | 2026-05-10 | 10,000 | 100 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable, corrected heap | 0 | 28.450 | 45.730 | 15.261 | 21.326 | 165.544 | 1,401,323,520 | 721,061,472 |
@@ -30,6 +33,18 @@ peak footprint when interpreting those rows.
 
 Interpretation:
 
+- The 2026-05-30 rows are a bounded local smoke sequence for issue #431, not a
+  public speed claim. They used R 4.5.2, TMB 1.9.21, Darwin 25.5.0 on arm64,
+  git SHA `d093bedd`, and `git_dirty = FALSE`.
+- The smoke sequence kept the current sparse `phylo()` location path in view:
+  balanced trees, Gaussian responses, `sigma ~ 1`, `sparse_fixed = FALSE`,
+  `aggregate_gaussian = FALSE`, and `memory_light = TRUE`.
+- All three smoke cells converged with optimizer code 0. The largest cell,
+  10,000 rows and 1,000 species, reported 5.582 fit seconds and 679,510,016
+  bytes macOS max RSS, below the issue #431 stop rules.
+- These rows do not resolve the API gate, combine sparse fixed effects with
+  `phylo()`, test Linux or Windows memory behaviour, validate biological
+  inference, or support a transferred GLLVM.jl speedup claim.
 - The 100k default-storage run retained about 9.2 MB more fitted-object state
   and used about 95 MB more post-fit R heap than the memory-light run.
   The post-fit R-heap comparison uses historical rows collected before the

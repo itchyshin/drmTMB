@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Sparse Phylo Smoke Benchmark Audit
+
+Goal:
+
+- Turn the first issue #431 sparse `phylo()` benchmark sizing run into
+  internal planning evidence without making a public speed, API, recovery, or
+  coverage claim.
+
+Actions run:
+
+- Created branch `codex/sparse-phylo-smoke-audit` from `origin/main` after PR
+  #430 merged.
+- Reran the three bounded smoke cells on the fresh branch so the benchmark
+  harness recorded git SHA `d093bedd` and `git_dirty = FALSE`.
+- Updated `docs/dev-log/benchmark-results.md` with the smoke rows and claim
+  boundary.
+- Added
+  `docs/dev-log/after-task/2026-05-30-sparse-phylo-smoke-audit.md`.
+- Updated `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` so its next-work
+  list points past the completed first smoke sizing run.
+
+Validation:
+
+```sh
+/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 500 --species 50 --memory-light true --eval-max 100 --iter-max 100 --output /tmp/drmtmb-sparse-phylo-scaling-20260530-main.csv
+/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 2000 --species 200 --memory-light true --eval-max 120 --iter-max 120 --output /tmp/drmtmb-sparse-phylo-scaling-20260530-main.csv
+/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 10000 --species 1000 --memory-light true --eval-max 160 --iter-max 160 --output /tmp/drmtmb-sparse-phylo-scaling-20260530-main.csv
+Rscript --vanilla -e "x <- read.csv('/tmp/drmtmb-sparse-phylo-scaling-20260530-main.csv', check.names = FALSE); print(x[, c('run_started_utc','r_version','os','machine','TMB_version','rows','species','tree','fit_sec','convergence','iterations','function_evaluations','gradient_evaluations','sigma_hat','sd_phylo_hat','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','git_sha','git_dirty','benchmark_command')])"
+gh issue view 431 --repo itchyshin/drmTMB --comments
+rg -n "sparse phylogeny from scratch|add sparse phylogeny|blank implementation task|GLLVM\\.jl speedups|drmTMB speedups|coverage improves|10×|100×|public speed claim|scaling claim|recovery claim|coverage claim|API decision|phylo_relaxed|phylo_representation|dense fallback|tau ~" README.md NEWS.md ROADMAP.md docs/design docs/dev-log/benchmark-results.md docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md vignettes bench/README.md
+air format docs/dev-log/benchmark-results.md docs/dev-log/check-log.md docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md docs/dev-log/after-task/2026-05-30-sparse-phylo-smoke-audit.md
+git diff --check
+```
+
+Results:
+
+- The runs used R 4.5.2, TMB 1.9.21, Darwin 25.5.0 on arm64.
+- All three rows used balanced trees, Gaussian responses, `sigma ~ 1`,
+  `sparse_fixed = FALSE`, `aggregate_gaussian = FALSE`, and
+  `memory_light = TRUE`.
+- Rows 500 / species 50 converged with code 0, `fit_sec = 0.553`,
+  `sd_phylo_hat = 0.3989654`, and max RSS 409,518,080 bytes.
+- Rows 2,000 / species 200 converged with code 0, `fit_sec = 1.115`,
+  `sd_phylo_hat = 0.5086050`, and max RSS 455,131,136 bytes.
+- Rows 10,000 / species 1,000 converged with code 0, `fit_sec = 5.582`,
+  `sd_phylo_hat = 0.5065229`, and max RSS 679,510,016 bytes.
+- The largest smoke cell stayed below the issue #431 stop rules.
+- This is local macOS smoke evidence for the current sparse `phylo()` location
+  path. It does not resolve the API gate, combine sparse fixed effects with
+  `phylo()`, test Linux or Windows memory behaviour, validate biological
+  inference, or support transferred GLLVM.jl speed or coverage claims.
+- The stale-wording scan returned intentional guardrail, no-claim, and
+  historical check-log hits; it did not reveal a new current-facing public
+  speed, API, recovery, or coverage claim from this slice.
+- `air format` and `git diff --check` passed.
+
+Member-group review:
+
+- Grace kept the validation boundary local and platform-specific.
+- Rose required a benchmark-results entry, this check-log entry, and an
+  after-task report.
+- Jason kept the result framed as issue #431 smoke sizing, not an API decision.
+- Pat and Darwin kept the reader-facing sentence focused on what a contributor
+  can safely infer next.
+
 ## 2026-05-30 -- GLLVM.jl Lessons Provenance Cleanup
 
 Goal:
