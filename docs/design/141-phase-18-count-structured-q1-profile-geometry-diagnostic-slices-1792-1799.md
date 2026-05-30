@@ -208,3 +208,16 @@ table remains responsible for showing missing lower and upper endpoints.
 and raw trace rows. The writer returns the summary table too, so downstream
 plotting, reporting, and handoff notes can use the same endpoint-missingness
 table without recomputing it from the trace CSV.
+
+## Slice 1809 Addendum: Trace Plot Writer
+
+`phase18_write_count_structured_q1_profile_trace_plot()` now saves the selected
+trace diagnostic as `figures/count-structured-q1-profile-trace.png`. The writer
+uses the existing likelihood-ratio plot helper and returns the ggplot object
+plus the trace summary table, keeping the plotted curve and endpoint
+missingness evidence together for local reports.
+
+This slice does not change the plotting recipe, profile settings, selected
+examples, or interval interpretation. The plot remains a geometry diagnostic:
+it shows where the likelihood-ratio curve was evaluated, while the summary CSV
+still says whether profile interval endpoints were recovered.

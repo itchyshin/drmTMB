@@ -44655,3 +44655,87 @@ Member-group review:
 - Grace smoke-tested the real writer output locally.
 - Rose checked that downstream notes no longer need ad hoc summary aggregation.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace plot writer
+
+Goal:
+
+- Save the selected-example trace diagnostic plot as a durable artifact instead
+  of relying on ad hoc `ggsave()` calls in local reports.
+
+Changes:
+
+- Added `phase18_write_count_structured_q1_profile_trace_plot()`, an internal
+  writer that saves
+  `figures/count-structured-q1-profile-trace.png` from trace rows.
+- The writer returns the ggplot object and the trace summary table, so the plot
+  and endpoint-missingness evidence stay together.
+- Refactored the focused plot test to share a synthetic trace fixture.
+- Added a focused writer test that checks the PNG path, non-empty file size,
+  returned summary, and overwrite protection.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot-writer.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot-writer.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+trace <- utils::read.csv(
+  "/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace.csv"
+)
+out <- phase18_write_count_structured_q1_profile_trace_plot(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-plot-writer-20260530",
+  trace,
+  overwrite = TRUE
+)
+print(out$path)
+print(file.info(out$path)$size)
+EOF
+git diff --check
+```
+
+Results:
+
+- `air format` completed on the edited implementation, test, roadmap, design,
+  check-log, and after-task files.
+- `devtools::test(filter = 'phase18-count-structured-q1', reporter =
+  'summary')` passed after fixing the test fixture scoping issue.
+- The real plot-writer smoke read the trace CSV from
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-summary-writer-20260530/tables/count-structured-q1-profile-trace.csv`
+  and wrote
+  `/private/tmp/drmtmb-count-structured-q1-profile-trace-plot-writer-20260530/figures/count-structured-q1-profile-trace.png`.
+- The rendered PNG was 62,652 bytes and was visually inspected.
+- The smoke summary had six rows; all rows had `trace_status = "ok"` and
+  `n_trace_failed = 0`.
+- `git diff --check` was clean.
+
+Member-group review:
+
+- Ada kept the writer internal and scoped to existing trace rows.
+- Florence checked that this slice preserves the already-audited plot recipe.
+- Fisher checked that the writer returns the summary table rather than turning
+  the PNG into interval-success evidence.
+- Pat checked that the saved artifact has a predictable `figures/` path.
+- Curie covered the writer with synthetic trace rows, avoiding slow profile
+  reruns in CI.
+- Grace rendered and inspected the PNG before closure.
+- Rose checked that the docs still separate curve availability from endpoint
+  availability.
+- No spawned subagents were running.
