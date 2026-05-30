@@ -82,3 +82,20 @@ That slice should not change default profile settings, dispatch a larger
 simulation, or relax the formal-pilot gate. A settings change needs a follow-up
 comparison showing that the selected examples improve for an interpretable
 reason without hiding a boundary or identifiability problem.
+
+## Slice 1800 Addendum: Trace Plan Scaffold
+
+`phase18_count_structured_q1_profile_trace_plan()` now records the first
+selected-example scaffold for that diagnostic. It crosses the three examples
+named above with two planned passes: the current `ystep = 0.50` setting and a
+smaller `ystep = 0.25` setting. The scaffold uses exact seeds from artifact
+`26669005577`, not regenerated registry seeds:
+
+| Cell | Replicate | Seed | Role |
+| --- | ---: | ---: | --- |
+| `count_structured_q1_006` | 45 | 932584520 | Minimum nonfinite-interval estimate |
+| `count_structured_q1_003` | 33 | 461195966 | Minimum profile-crossing estimate |
+| `count_structured_q1_001` | 25 | 32713190 | Larger profile-crossing estimate |
+
+This addendum still does not rerun profiles or change settings. It only fixes
+the selected examples and control labels for the next executable helper.

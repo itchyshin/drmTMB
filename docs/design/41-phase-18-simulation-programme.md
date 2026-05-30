@@ -1143,3 +1143,11 @@ errors, and elapsed time by surface before the raw manifest.
      keeps the lane in `hold_interval_diagnostic`, and says the next executable
      slice should rerun only selected examples and save likelihood-ratio points
      before any profile-setting change or larger recovery grid.
+208. Slice 1800 adds the selected-example trace plan scaffold.
+     `phase18_count_structured_q1_profile_trace_plan()` returns the three
+     formal-pilot examples named in the geometry note crossed with current
+     `ystep = 0.50` and smaller `ystep = 0.25` passes. The plan uses exact
+     artifact seeds from run `26669005577`: `count_structured_q1_006` replicate
+     45 seed 932584520, `count_structured_q1_003` replicate 33 seed 461195966,
+     and `count_structured_q1_001` replicate 25 seed 32713190. This is a
+     scaffold for a rerun helper, not a profile rerun or settings change.

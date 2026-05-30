@@ -998,6 +998,131 @@ phase18_count_structured_q1_index_value <- function(x, name, index) {
   x[[name]][[index]]
 }
 
+phase18_count_structured_q1_profile_trace_examples <- function() {
+  data.frame(
+    cell_id = c(
+      "count_structured_q1_006",
+      "count_structured_q1_003",
+      "count_structured_q1_001"
+    ),
+    replicate = c(45L, 33L, 25L),
+    seed = c(932584520L, 461195966L, 32713190L),
+    failure_class = c(
+      "nonfinite_interval",
+      "profile_crossing_failure",
+      "profile_crossing_failure"
+    ),
+    example_role = c(
+      "minimum_nonfinite_estimate",
+      "minimum_crossing_estimate",
+      "larger_crossing_estimate"
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_count_structured_q1_profile_trace_plan <- function(
+  examples = phase18_count_structured_q1_profile_trace_examples(),
+  condition_set = "stable",
+  master_seed = 20260530L,
+  profile_parameters = "log_sd_phylo",
+  profile_level = 0.70,
+  ystep = c(current = 0.50, smaller_ystep = 0.25)
+) {
+  phase18_assert_summary_columns(examples, c("cell_id", "replicate"))
+  assert_positive_whole_number(master_seed, "master_seed")
+  if (
+    !is.character(profile_parameters) ||
+      length(profile_parameters) != 1L ||
+      !nzchar(profile_parameters)
+  ) {
+    stop("`profile_parameters` must be one non-empty string.", call. = FALSE)
+  }
+  if (
+    !is.numeric(profile_level) ||
+      length(profile_level) != 1L ||
+      !is.finite(profile_level) ||
+      profile_level <= 0 ||
+      profile_level >= 1
+  ) {
+    stop("`profile_level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (
+    !is.numeric(ystep) ||
+      length(ystep) == 0L ||
+      any(!is.finite(ystep)) ||
+      any(ystep <= 0)
+  ) {
+    stop("`ystep` must be a positive numeric vector.", call. = FALSE)
+  }
+
+  profile_pass <- names(ystep)
+  if (is.null(profile_pass) || any(!nzchar(profile_pass))) {
+    profile_pass <- paste0("ystep_", format(ystep, trim = TRUE))
+  }
+  examples <- examples[seq_len(nrow(examples)), , drop = FALSE]
+  examples$replicate <- as.integer(examples$replicate)
+  if (any(is.na(examples$replicate)) || any(examples$replicate <= 0L)) {
+    stop(
+      "`examples$replicate` must contain positive whole numbers.",
+      call. = FALSE
+    )
+  }
+  example_has_seed <- "seed" %in% names(examples)
+  if (example_has_seed) {
+    examples$seed <- as.integer(examples$seed)
+    if (any(is.na(examples$seed)) || any(examples$seed <= 0L)) {
+      stop(
+        "`examples$seed` must contain positive whole numbers.",
+        call. = FALSE
+      )
+    }
+  }
+
+  registry <- phase18_cell_registry(
+    surface = "count_structured_q1",
+    conditions = phase18_count_structured_q1_followup_conditions(condition_set),
+    n_rep = max(examples$replicate),
+    master_seed = master_seed
+  )
+  seed_rows <- registry$seeds[,
+    c("cell_id", "cell_index", "replicate", "seed"),
+    drop = FALSE
+  ]
+  names(seed_rows)[names(seed_rows) == "seed"] <- "registry_seed"
+  plan <- merge(
+    examples,
+    seed_rows,
+    by = c("cell_id", "replicate"),
+    all.x = TRUE,
+    sort = FALSE
+  )
+  if (any(is.na(plan$cell_index))) {
+    stop(
+      "Every selected example must match a seeded registry row.",
+      call. = FALSE
+    )
+  }
+  if (example_has_seed) {
+    plan$seed <- as.integer(plan$seed)
+  } else {
+    plan$seed <- as.integer(plan$registry_seed)
+  }
+  plan$registry_seed <- NULL
+
+  expanded <- lapply(seq_along(ystep), function(i) {
+    out <- plan
+    out$profile_pass <- profile_pass[[i]]
+    out$profile_parameters <- profile_parameters
+    out$profile_level <- profile_level
+    out$ystep <- unname(ystep[[i]])
+    out
+  })
+  out <- do.call(rbind, expanded)
+  row.names(out) <- NULL
+  out
+}
+
 phase18_count_structured_q1_profile_failure_class <- function(message) {
   message <- as.character(message)
   out <- rep("other_profile_failure", length(message))

@@ -141,6 +141,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1790 | Done locally as profile-failure example details | Artifact-level profile gate audits now read each available example RDS and attach the requested profile row's parameter, truth, estimate, interval endpoints, profile status, and target parameter to `failure_summary`. |
 | 1791 | Done locally as profile-failure example geometry summary | Artifact-level profile gate audits now return `example_geometry_summary`, grouping example-detail rows by `failure_class` with failed-interval totals, endpoint missingness, estimate ranges, estimate/truth ranges, and the minimum-estimate example. |
 | 1792-1799 | Done locally as profile geometry diagnostic note | `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md` records the profile-failure evidence and defines a selected-example profile-trace diagnostic before any profile-setting change or larger recovery grid. |
+| 1800 | Done locally as selected profile-trace plan | `phase18_count_structured_q1_profile_trace_plan()` builds a six-row plan for the three selected formal-pilot examples under current and smaller-`ystep` passes, using exact artifact seeds from run `26669005577`. |
 
 ## Next Implementation Gate
 
