@@ -322,6 +322,83 @@ test_that("Phase 18 count structured q1 profile trace result records failures", 
   expect_equal(out$cell_id, "count_structured_q1_006")
 })
 
+test_that("Phase 18 count structured q1 profile trace run plan binds traces", {
+  source_count_structured_q1()
+
+  plan <- phase18_count_structured_q1_profile_trace_plan()[1:2, , drop = FALSE]
+  fake_dgp <- function(cell, seed, cell_id, replicate) {
+    data.frame(
+      y = seed,
+      cell_id = cell_id,
+      replicate = replicate,
+      stringsAsFactors = FALSE
+    )
+  }
+  fake_fit <- function(data, cell) {
+    structure(list(cell_id = data$cell_id[[1L]]), class = "drmTMB")
+  }
+  fake_profile <- function(object, parm, level, ystep) {
+    data.frame(
+      profile_value = c(0.10, 0.20),
+      delta_deviance = c(1.0, 0.0),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  out <- phase18_count_structured_q1_profile_trace_run_plan(
+    plan = plan,
+    dgp_fun = fake_dgp,
+    fit_fun = fake_fit,
+    profile_fun = fake_profile
+  )
+
+  expect_equal(nrow(out), 4L)
+  expect_equal(unique(out$trace_status), "ok")
+  expect_equal(out$cell_id, rep(plan$cell_id, each = 2L))
+  expect_equal(out$seed, rep(plan$seed, each = 2L))
+  expect_equal(out$profile_value, rep(c(0.10, 0.20), 2L))
+})
+
+test_that("Phase 18 count structured q1 profile trace run plan binds failures", {
+  source_count_structured_q1()
+
+  plan <- phase18_count_structured_q1_profile_trace_plan()[1:2, , drop = FALSE]
+  failing_cell_id <- plan$cell_id[[2L]]
+  fake_dgp <- function(cell, seed, cell_id, replicate) {
+    data.frame(
+      cell_id = cell_id,
+      replicate = replicate,
+      stringsAsFactors = FALSE
+    )
+  }
+  fake_fit <- function(data, cell) {
+    if (identical(data$cell_id[[1L]], failing_cell_id)) {
+      stop("fit failed", call. = FALSE)
+    }
+    structure(list(cell_id = data$cell_id[[1L]]), class = "drmTMB")
+  }
+  fake_profile <- function(object, parm, level, ystep) {
+    data.frame(
+      profile_value = c(0.10, 0.20),
+      delta_deviance = c(1.0, 0.0),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  out <- phase18_count_structured_q1_profile_trace_run_plan(
+    plan = plan,
+    dgp_fun = fake_dgp,
+    fit_fun = fake_fit,
+    profile_fun = fake_profile
+  )
+
+  expect_equal(nrow(out), 3L)
+  expect_equal(out$trace_status, c("ok", "ok", "failed"))
+  expect_match(out$trace_message[[3L]], "fit_fun failed: fit failed")
+  expect_equal(out$cell_id[[3L]], failing_cell_id)
+  expect_true(is.na(out$profile_value[[3L]]))
+})
+
 test_that("Phase 18 count structured q1 smoke runner summarises output", {
   source_count_structured_q1()
 

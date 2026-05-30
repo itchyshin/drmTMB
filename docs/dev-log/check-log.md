@@ -44174,3 +44174,81 @@ Member-group review:
 - Grace avoided expensive profiles in tests.
 - Rose kept the result contract separate from evidence about real examples.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace run plan
+
+Goal:
+
+- Connect the selected-example profile trace plan to the DGP, fit, and profile
+  steps without running the expensive formal-pilot examples in the focused
+  tests.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_trace_run_plan()`.
+- Added `phase18_count_structured_q1_profile_trace_failure()`.
+- Added `phase18_count_structured_q1_profile_trace_bind_rows()`.
+- The runner selects the planned condition by `cell_index`, regenerates the
+  replicate with the recorded artifact seed, fits the model, and delegates
+  successful fits to `phase18_count_structured_q1_profile_trace_result()`.
+- DGP and fit errors now return metadata-rich failed trace rows, and mixed
+  success/failure outputs are column-aligned before binding.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-runner.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-runner.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+plan <- phase18_count_structured_q1_profile_trace_plan()[1:2, , drop = FALSE]
+fake_dgp <- function(cell, seed, cell_id, replicate) {
+  data.frame(cell_id = cell_id, replicate = replicate)
+}
+fake_fit <- function(data, cell) {
+  structure(list(cell_id = data$cell_id[[1L]]), class = "drmTMB")
+}
+fake_profile <- function(object, parm, level, ystep) {
+  data.frame(profile_value = c(0.1, 0.2), delta_deviance = c(1, 0))
+}
+print(phase18_count_structured_q1_profile_trace_run_plan(
+  plan = plan,
+  dgp_fun = fake_dgp,
+  fit_fun = fake_fit,
+  profile_fun = fake_profile
+))
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The smoke check returned four fake profile rows from two planned examples,
+  with plan metadata and `trace_status = "ok"` attached.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the helper as runner plumbing rather than a profile-setting change.
+- Fisher kept the trace rows descriptive until the real selected examples run.
+- Curie covered success and fit-failure binding with injected fake functions.
+- Grace kept expensive real profiles out of the focused tests.
+- Rose checked that the docs still say this is not formal-pilot rerun evidence.
+- No spawned subagents were running.

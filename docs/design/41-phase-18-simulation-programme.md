@@ -1164,3 +1164,11 @@ errors, and elapsed time by surface before the raw manifest.
      returns a one-row failure record if profiling errors or returns no rows.
      The focused tests inject fake profile functions, so this slice tests the
      result contract without running expensive selected-example profiles.
+211. Slice 1803 adds the selected-example run-plan helper.
+     `phase18_count_structured_q1_profile_trace_run_plan()` takes the trace
+     plan, selects the matching condition row, regenerates the DGP, fits the
+     model, and then delegates to the per-row result wrapper. DGP and fit errors
+     are returned as metadata-rich failed trace rows, and mixed success/failure
+     outputs are column-aligned before binding. Focused tests inject fake DGP,
+     fit, and profile functions, so this remains runner plumbing rather than
+     formal-pilot rerun evidence.
