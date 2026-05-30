@@ -582,6 +582,9 @@ phase18_count_structured_q1_profile_gate_summary <- function(
 
   conditions <- phase18_count_structured_q1_profile_conditions(requested)
   overall <- phase18_count_structured_q1_profile_overall(requested)
+  failure_summary <- phase18_count_structured_q1_profile_failure_summary(
+    requested
+  )
   checks <- phase18_count_structured_q1_profile_checks(
     overall = overall,
     conditions = conditions,
@@ -596,6 +599,7 @@ phase18_count_structured_q1_profile_gate_summary <- function(
     surface = "count_structured_q1_profile_gate",
     overall = overall,
     conditions = conditions,
+    failure_summary = failure_summary,
     checks = checks,
     decision = decision
   )
@@ -638,6 +642,91 @@ phase18_count_structured_q1_profile_conditions <- function(intervals) {
     out
   })
   out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
+  phase18_assert_summary_columns(
+    intervals,
+    c("cell_id", "replicate", "interval_status")
+  )
+  requested <- intervals[
+    is.na(intervals$interval_status) |
+      intervals$interval_status != "not_requested",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(requested) == 0L) {
+    return(data.frame())
+  }
+
+  failed <- phase18_count_structured_q1_status_not_ok(
+    requested$interval_status
+  )
+  if (!any(failed)) {
+    return(data.frame())
+  }
+
+  failures <- requested[failed, , drop = FALSE]
+  if (!"interval_message" %in% names(failures)) {
+    failures$interval_message <- NA_character_
+  }
+  condition_vars <- intersect(
+    c(
+      "cell_id",
+      "family",
+      "structured_type",
+      "n_level",
+      "sd_structured",
+      "mean_count",
+      "sigma_baseline"
+    ),
+    names(requested)
+  )
+  group_vars <- c(condition_vars, "interval_status", "interval_message")
+  keys <- do.call(
+    paste,
+    c(failures[group_vars], list(sep = "\r"))
+  )
+  rows <- lapply(split(failures, keys, drop = TRUE), function(x) {
+    out <- x[1L, group_vars, drop = FALSE]
+    out$failed_interval <- nrow(x)
+    out
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+
+  denominators <- phase18_count_structured_q1_profile_conditions(requested)
+  denominator_vars <- c(condition_vars, "n_interval", "failure_rate")
+  out <- merge(
+    out,
+    denominators[denominator_vars],
+    by = condition_vars,
+    all.x = TRUE,
+    sort = FALSE
+  )
+  out <- out[,
+    c(
+      condition_vars,
+      "interval_status",
+      "interval_message",
+      "failed_interval",
+      "n_interval",
+      "failure_rate"
+    ),
+    drop = FALSE
+  ]
+  out <- out[
+    order(
+      -out$failed_interval,
+      out$cell_id,
+      out$interval_status,
+      out$interval_message
+    ),
+    ,
+    drop = FALSE
+  ]
   row.names(out) <- NULL
   out
 }

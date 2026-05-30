@@ -43550,3 +43550,69 @@ Member-group review:
 - Grace preserved missing-artifact metadata for downloaded Actions artifacts.
 - Rose kept this separate from new profile computation or recovery evidence.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile-failure diagnostics
+
+Goal:
+
+- Add a compact diagnostic table for failed requested profile intervals before
+  the next count structured q1 geometry diagnosis.
+
+Changes:
+
+- Added `phase18_count_structured_q1_profile_failure_summary()` to
+  `inst/sim/run/sim_write_count_structured_q1_grid.R`.
+- `phase18_count_structured_q1_profile_gate_summary()` now includes
+  `failure_summary`, grouped by condition, interval status, and interval message
+  with condition denominator and failure rate attached.
+- Added focused expectations to
+  `tests/testthat/test-phase18-count-structured-q1.R`.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-diagnostics.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-diagnostics.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577"
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+audit <- phase18_audit_count_structured_q1_profile_gate(
+  out,
+  require_complete = TRUE,
+  watch_cells = c("count_structured_q1_003", "count_structured_q1_005")
+)
+print(audit$profile_gate$decision)
+print(head(audit$profile_gate$failure_summary, 5))
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The formal-pilot artifact still returned `hold_interval_diagnostic`.
+- The largest failure-summary rows were nonfinite profile intervals in
+  `count_structured_q1_001`, `count_structured_q1_003`, and
+  `count_structured_q1_006`; the next rows were interpolation-crossing failures
+  in `count_structured_q1_001` and `count_structured_q1_003`.
+- `git diff --check` was clean after formatting the slice files.
+- The stale-claim scan found only intended negative wording and the earlier
+  workflow-plumbing row.
+
+Member-group review:
+
+- Ada kept the slice to diagnostics attached to the existing gate.
+- Fisher kept failed requested intervals separate from all interval rows.
+- Curie covered message grouping and condition denominators in the focused test.
+- Grace checked the helper on the real formal-pilot artifact.
+- Rose kept this as diagnostic evidence, not a recovery-grid design.
+- No spawned subagents were running.

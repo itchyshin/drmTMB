@@ -134,6 +134,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1774-1782 | Done locally as formal-pilot audit | `docs/design/140-phase-18-count-structured-q1-formal-pilot-audit-slices-1774-1782.md` audits GitHub Actions run `26669005577`: the boundary gate passed, but the direct `log_sd_phylo` profile interval gate stopped because `count_structured_q1_001` had 11/100 failed profile intervals. |
 | 1783-1784 | Done locally as profile-gate helper | `phase18_count_structured_q1_profile_gate_summary()` now turns profile-interval rows into an auditable `hold_interval_diagnostic` or `propose_next_pilot` decision using the formal-pilot overall, condition-level, and watch-cell profile-failure stop rules. |
 | 1785 | Done locally as profile-gate artifact audit | `phase18_audit_count_structured_q1_profile_gate()` now points the profile gate at a downloaded artifact directory and returns the profile-gate decision with paths and missing-artifact metadata. |
+| 1786 | Done locally as profile-failure diagnostics | The profile gate now returns `failure_summary`, so artifact audits report which condition and interval-message groups produced failed requested profile intervals before any geometry redesign is proposed. |
 
 ## Next Implementation Gate
 

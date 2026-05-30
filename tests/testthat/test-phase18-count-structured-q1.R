@@ -611,6 +611,15 @@ test_that("Phase 18 count structured q1 profile gate holds failed intervals", {
       stringsAsFactors = FALSE
     )
   )
+  intervals$interval_message <- "ok"
+  intervals$interval_message[
+    intervals$cell_id == "count_structured_q1_001" &
+      intervals$interval_status == "failed"
+  ] <- "nonfinite_interval"
+  intervals$interval_message[
+    intervals$cell_id == "count_structured_q1_003" &
+      intervals$interval_status == "failed"
+  ] <- "missing_crossing"
 
   gate <- phase18_count_structured_q1_profile_gate_summary(
     intervals,
@@ -635,6 +644,11 @@ test_that("Phase 18 count structured q1 profile gate holds failed intervals", {
     gate$checks$status[gate$checks$check == "watch_profile_failure_rate"],
     "ok"
   )
+  expect_equal(nrow(gate$failure_summary), 2L)
+  expect_equal(gate$failure_summary$cell_id[1], "count_structured_q1_001")
+  expect_equal(gate$failure_summary$failed_interval[1], 11L)
+  expect_equal(gate$failure_summary$n_interval[1], 100L)
+  expect_equal(gate$failure_summary$interval_message[1], "nonfinite_interval")
 })
 
 test_that("Phase 18 count structured q1 profile gate allows clean pilots", {
