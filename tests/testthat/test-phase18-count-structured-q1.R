@@ -460,7 +460,25 @@ test_that("Phase 18 count structured q1 profile audit reads artifacts", {
   dir.create(result_dir, recursive = TRUE)
   paths <- phase18_count_structured_q1_grid_paths(table_dir)
   result_path <- file.path(result_dir, "replicate_0007.rds")
-  saveRDS(list(surface = "count_structured_q1"), result_path)
+  saveRDS(
+    list(
+      surface = "count_structured_q1",
+      summary = data.frame(
+        parameter = "sd:mu:spatial(1 | site)",
+        parameter_class = "structured_sd",
+        truth = 0.60,
+        estimate = 0.24,
+        profile.conf.low = NA_real_,
+        profile.conf.high = 0.42,
+        profile.status = "failed",
+        profile.message = "nonfinite_interval",
+        profile_target_status = "ready",
+        profile_target_parameter = "log_sd_phylo",
+        stringsAsFactors = FALSE
+      )
+    ),
+    result_path
+  )
   utils::write.csv(
     data.frame(
       cell_id = "count_structured_q1_001",
@@ -484,6 +502,26 @@ test_that("Phase 18 count structured q1 profile audit reads artifacts", {
     normalizePath(result_path, mustWork = TRUE)
   )
   expect_true(audit$profile_gate$failure_summary$example_result_exists)
+  expect_equal(
+    audit$profile_gate$failure_summary$example_profile_detail_status,
+    "ok"
+  )
+  expect_equal(
+    audit$profile_gate$failure_summary$example_parameter,
+    "sd:mu:spatial(1 | site)"
+  )
+  expect_equal(
+    audit$profile_gate$failure_summary$example_profile_status,
+    "failed"
+  )
+  expect_equal(
+    audit$profile_gate$failure_summary$example_profile_target_parameter,
+    "log_sd_phylo"
+  )
+  expect_equal(
+    audit$profile_gate$failure_summary$example_profile_conf_high,
+    0.42
+  )
 })
 
 test_that("Phase 18 count structured q1 boundary gate holds failed pilots", {
