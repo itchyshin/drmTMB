@@ -44494,3 +44494,87 @@ Member-group review:
 - Grace reused the bounded local trace artifact for smoke validation.
 - Rose checked that endpoint missingness remains explicit.
 - No spawned subagents were running.
+
+## 2026-05-30 - Count structured q1 profile trace plot
+
+Goal:
+
+- Add an internal plot helper for the selected-example profile trace curves so
+  the diagnostic can be visually inspected before interpreting profile-setting
+  changes.
+
+Changes:
+
+- Added `phase18_plot_count_structured_q1_profile_trace()`.
+- Added `phase18_count_structured_q1_trace_facet()`.
+- Added `phase18_count_structured_q1_require_ggplot2()`.
+- The plot shows likelihood-ratio curves against log structured-SD profile
+  values, facets by selected example, colours and linetypes by profile pass,
+  marks the fitted estimate, and draws the 70% likelihood-ratio cutoff.
+- The y-axis uses a sqrt scale so the cutoff region and high-tail spikes remain
+  visible in the same rendered panel.
+- Updated the focused Phase 18 test, `ROADMAP.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`,
+  and
+  `docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot.md`.
+- The rendered PNG, summary CSV, and figure-audit note are under
+  `docs/dev-log/figure-audits/2026-05-30-count-structured-q1-profile-trace/`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/design/141-phase-18-count-structured-q1-profile-geometry-diagnostic-slices-1792-1799.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-count-structured-q1-profile-trace-plot.md docs/dev-log/figure-audits/2026-05-30-count-structured-q1-profile-trace/figure-audit.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+devtools::load_all(".", quiet = TRUE)
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/dgp/sim_dgp_count_structured_q1.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_aggregate.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_run_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_summary_count_structured_q1_smoke.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+trace <- utils::read.csv(
+  "/tmp/drmtmb-count-structured-q1-profile-trace-targets-20260530/tables/count-structured-q1-profile-trace.csv",
+  stringsAsFactors = FALSE
+)
+plot <- phase18_plot_count_structured_q1_profile_trace(trace)
+dir.create("docs/dev-log/figure-audits/2026-05-30-count-structured-q1-profile-trace", recursive = TRUE, showWarnings = FALSE)
+ggplot2::ggsave(
+  "docs/dev-log/figure-audits/2026-05-30-count-structured-q1-profile-trace/profile-trace.png",
+  plot,
+  width = 9,
+  height = 5,
+  dpi = 150
+)
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- The real trace artifact rendered to
+  `docs/dev-log/figure-audits/2026-05-30-count-structured-q1-profile-trace/profile-trace.png`.
+- The first response-scale render was rejected because scientific-notation
+  x-axis labels and high-tail spikes made the cutoff region hard to inspect.
+  The final render uses log structured-SD values on x and a sqrt y-axis.
+- `profile-trace-summary.csv` and `figure-audit.md` were saved beside the PNG.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the helper internal and tied to the trace artifact.
+- Florence inspected the rendered diagnostic before closure.
+- Fisher checked that the figure shows likelihood-ratio curves, not interval
+  success.
+- Pat checked that facets and axes give an applied reader enough orientation.
+- Grace rendered the PNG locally from the real trace artifact.
+- Rose checked that endpoint failures remain in the summary table and prose.
+- No spawned subagents were running.

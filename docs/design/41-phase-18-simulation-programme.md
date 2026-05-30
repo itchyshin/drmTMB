@@ -1195,3 +1195,11 @@ errors, and elapsed time by surface before the raw manifest.
      likelihood-ratio distance, and interval status. This makes the next visual
      diagnostic slice depend on a stable summary table rather than ad hoc CSV
      aggregation.
+215. Slice 1807 adds the selected-example trace plot helper.
+     `phase18_plot_count_structured_q1_profile_trace()` plots likelihood-ratio
+     curves against the log structured-SD scale, facets by selected example,
+     colours and linetypes by profile pass, and shows the fitted estimate and
+     70% likelihood-ratio cutoff. The y-axis uses a sqrt scale so the cutoff
+     region and high-tail spikes remain visible. The helper is internal
+     diagnostic plumbing; the endpoint table remains the source for interval
+     availability.

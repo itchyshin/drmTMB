@@ -1484,6 +1484,7 @@ phase18_count_structured_q1_profile_trace_summary <- function(trace) {
         max
       ),
       estimate = phase18_count_structured_q1_first(x, "estimate"),
+      link_estimate = phase18_count_structured_q1_first(x, "link_estimate"),
       conf_low = phase18_count_structured_q1_first(x, "conf.low"),
       conf_high = phase18_count_structured_q1_first(x, "conf.high"),
       conf_status = phase18_count_structured_q1_first(
@@ -1537,6 +1538,93 @@ phase18_count_structured_q1_missing_count <- function(x, name) {
     return(NA_integer_)
   }
   sum(is.na(x[[name]]))
+}
+
+phase18_plot_count_structured_q1_profile_trace <- function(trace) {
+  phase18_count_structured_q1_require_ggplot2()
+  phase18_assert_summary_columns(
+    trace,
+    c(
+      "cell_id",
+      "replicate",
+      "profile_pass",
+      "profile_value",
+      "profile_value_link",
+      "delta_deviance"
+    )
+  )
+  summary <- phase18_count_structured_q1_profile_trace_summary(trace)
+  trace$.trace_facet <- phase18_count_structured_q1_trace_facet(trace)
+  summary$.trace_facet <- phase18_count_structured_q1_trace_facet(summary)
+  level <- phase18_count_structured_q1_first(trace, "profile_level", 0.70)
+  if (!is.numeric(level) || length(level) != 1L || !is.finite(level)) {
+    level <- 0.70
+  }
+  cutoff <- stats::qchisq(level, df = 1)
+
+  ggplot2::ggplot(
+    trace,
+    ggplot2::aes(
+      x = .data[["profile_value_link"]],
+      y = .data[["delta_deviance"]],
+      colour = .data[["profile_pass"]],
+      linetype = .data[["profile_pass"]]
+    )
+  ) +
+    ggplot2::geom_hline(
+      yintercept = cutoff,
+      linewidth = 0.35,
+      linetype = "dashed",
+      colour = "grey45"
+    ) +
+    ggplot2::geom_vline(
+      data = summary,
+      ggplot2::aes(xintercept = .data[["link_estimate"]]),
+      inherit.aes = FALSE,
+      linewidth = 0.35,
+      colour = "grey35"
+    ) +
+    ggplot2::geom_line(linewidth = 0.45, na.rm = TRUE) +
+    ggplot2::geom_point(size = 0.8, alpha = 0.75, na.rm = TRUE) +
+    ggplot2::scale_colour_manual(
+      values = c(current = "#C85A5A", smaller_ystep = "#008C95")
+    ) +
+    ggplot2::scale_linetype_manual(
+      values = c(current = "solid", smaller_ystep = "longdash")
+    ) +
+    ggplot2::scale_y_sqrt() +
+    ggplot2::facet_wrap(~.trace_facet, scales = "free_x") +
+    ggplot2::labs(
+      x = "Log structured SD profile value",
+      y = "Likelihood-ratio distance (sqrt scale)",
+      colour = "Profile pass",
+      linetype = "Profile pass"
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.position = "bottom"
+    )
+}
+
+phase18_count_structured_q1_trace_facet <- function(x) {
+  role <- if ("example_role" %in% names(x)) {
+    x$example_role
+  } else {
+    rep(NA_character_, nrow(x))
+  }
+  role[is.na(role) | !nzchar(role)] <- x$cell_id[is.na(role) | !nzchar(role)]
+  paste0(role, "\n", x$cell_id, " rep ", x$replicate)
+}
+
+phase18_count_structured_q1_require_ggplot2 <- function() {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop(
+      "`phase18_plot_count_structured_q1_profile_trace()` requires ggplot2.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
 }
 
 phase18_count_structured_q1_profile_failure_class <- function(message) {
