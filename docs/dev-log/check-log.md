@@ -46055,3 +46055,50 @@ Member-group review:
   `meta_known_V()` is deprecated.
 - Jason/Gibbs ran the first sibling-package scout and left concrete outbound
   comments only where evidence existed.
+
+## 2026-05-30 - Pkgdown wording refresh for sprint scaffold
+
+Goal:
+
+- Respond to the maintainer's follow-up that pkgdown pages must be updated as
+  the sprint moves and that `meta_known_V()` is deprecated while the Julia
+  sister package is `GLLVM.jl`.
+
+Changes:
+
+- Updated `AGENTS.md` so stable terminology leads with `meta_V(V = V)` and
+  mentions deprecated `meta_known_V(V = V)` only as a compatibility alias.
+- Updated `CLAUDE.md` so meta-analysis guidance uses
+  `family = gaussian()` plus `meta_V(V = V)`.
+- Updated current `NEWS.md` wording that still described
+  `phylo(1 + x | species, tree = tree)` as planned, and changed tutorial
+  changelog bullets to lead with preferred `meta_V(V = V)`.
+- Rebuilt the local pkgdown site so `AGENTS.html`, `CLAUDE.html`,
+  `ROADMAP.html`, and `news/index.html` reflect the corrected source.
+
+Validation:
+
+```sh
+rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V' AGENTS.md CLAUDE.md NEWS.md README.md vignettes docs/design docs/dev-log/known-limitations.md -g '!docs/pkgdown/**'
+Rscript --vanilla -e "pkgdown::build_site()"
+rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V|gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl' pkgdown-site/AGENTS.html pkgdown-site/CLAUDE.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/search.json pkgdown-site/articles
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- The source stale-pattern scan returned no hits.
+- `pkgdown::build_site()` completed and regenerated the local site.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The generated-site scan now finds corrected current guidance in
+  `AGENTS.html` and `CLAUDE.html`; remaining `meta_known_V()` hits are
+  explicitly deprecated/compatibility or historical changelog text.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Boole enforced the `meta_V(V = V)` spelling.
+- Grace required the pkgdown rebuild and `pkgdown::check_pkgdown()` pass.
+- Rose kept the structured-slope NEWS wording aligned with the fitted
+  phylogenetic one-slope route.

@@ -18,6 +18,9 @@ one-slope status.
   wording that said `phylo(1 + x | species, tree = tree)` did not fit.
 - Left outbound sibling-package comments for concrete documentation/workflow
   drift: `DRM.jl` #1 and `GLLVM.jl` #14.
+- Updated root agent guidance and current NEWS wording so source and pkgdown
+  pages lead with `meta_V(V = V)`, treat `meta_known_V()` as deprecated, and
+  describe `GLLVM.jl` without implying a separate `gllvmTMB.jl` package.
 
 ## Mathematical Contract
 
@@ -31,6 +34,9 @@ planned.
 ## Files Changed
 
 - `ROADMAP.md`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `NEWS.md`
 - `docs/design/80-four-week-random-slope-digital-twin-sprint.md`
 - `docs/dev-log/twin-sister-exchange.md`
 - `docs/dev-log/check-log.md`
@@ -44,12 +50,17 @@ gh issue list --repo itchyshin/drmTMB --limit 80 --state open --json number,titl
 gh issue list --repo itchyshin/drmTMB --limit 20 --state open --search "Phase 6c" --json number,title,url
 rg -n "gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl|meta_known_V\\(\\) is the current|meta_known_V\\(\\) is deprecated" docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/dev-log/twin-sister-exchange.md ROADMAP.md
 rg -n "phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylogenetic slopes and richer structured-slope paths remain later" ROADMAP.md docs/design docs/dev-log/known-limitations.md README.md vignettes -g '!docs/pkgdown/**'
+rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V' AGENTS.md CLAUDE.md NEWS.md README.md vignettes docs/design docs/dev-log/known-limitations.md -g '!docs/pkgdown/**'
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
 git diff --check
 ```
 
 `git diff --check` passed. The stale phylogenetic-slope current-status scan
-returned no hits. No R tests were run because this slice did not touch package
-code, examples, roxygen, or generated documentation.
+returned no hits. The agent-guidance and NEWS stale-pattern scan returned no
+hits. `pkgdown::build_site()` completed and `pkgdown::check_pkgdown()` returned
+`No problems found`. No R tests were run because this slice did not touch
+package code, examples, or roxygen.
 
 ## Tests Of The Tests
 
@@ -76,6 +87,8 @@ were applied to the local log and mirrored to the outbound GitHub comments.
   documentation mismatch.
 - Created `GLLVM.jl` #14 for stale test-command guidance, then clarified that
   there is no separate `gllvmTMB.jl` package.
+- Commented on #436 with the pkgdown/source consistency follow-up and the
+  maintainer corrections.
 
 ## What Did Not Go Smoothly
 
@@ -96,8 +109,8 @@ after-task notes may correctly preserve old states.
 ## Known Limitations
 
 This slice does not implement random-slope functionality. It sets up the issue
-and documentation framework for the next four weeks. It also does not run
-pkgdown or R tests because no package code or user-facing examples changed.
+and documentation framework for the next four weeks. It does not run R tests
+because no package code, examples, or roxygen changed.
 
 ## Next Actions
 
