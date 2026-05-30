@@ -135,6 +135,7 @@ syntax, diagnostic, interval, and simulation gates.
 | 1783-1784 | Done locally as profile-gate helper | `phase18_count_structured_q1_profile_gate_summary()` now turns profile-interval rows into an auditable `hold_interval_diagnostic` or `propose_next_pilot` decision using the formal-pilot overall, condition-level, and watch-cell profile-failure stop rules. |
 | 1785 | Done locally as profile-gate artifact audit | `phase18_audit_count_structured_q1_profile_gate()` now points the profile gate at a downloaded artifact directory and returns the profile-gate decision with paths and missing-artifact metadata. |
 | 1786 | Done locally as profile-failure diagnostics | The profile gate now returns `failure_summary`, so artifact audits report which condition and interval-message groups produced failed requested profile intervals before any geometry redesign is proposed. |
+| 1787 | Done locally as profile-failure classes | `failure_summary` now reports compact `failure_class` groups plus one `example_interval_message`, avoiding unwieldy multi-line profile messages in audit tables. |
 
 ## Next Implementation Gate
 

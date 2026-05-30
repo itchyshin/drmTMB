@@ -672,6 +672,9 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
   if (!"interval_message" %in% names(failures)) {
     failures$interval_message <- NA_character_
   }
+  failures$failure_class <- phase18_count_structured_q1_profile_failure_class(
+    failures$interval_message
+  )
   condition_vars <- intersect(
     c(
       "cell_id",
@@ -684,13 +687,17 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
     ),
     names(requested)
   )
-  group_vars <- c(condition_vars, "interval_status", "interval_message")
+  group_vars <- c(condition_vars, "interval_status", "failure_class")
   keys <- do.call(
     paste,
     c(failures[group_vars], list(sep = "\r"))
   )
   rows <- lapply(split(failures, keys, drop = TRUE), function(x) {
     out <- x[1L, group_vars, drop = FALSE]
+    out$example_interval_message <- phase18_count_structured_q1_first(
+      x,
+      "interval_message"
+    )
     out$failed_interval <- nrow(x)
     out
   })
@@ -710,7 +717,8 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
     c(
       condition_vars,
       "interval_status",
-      "interval_message",
+      "failure_class",
+      "example_interval_message",
       "failed_interval",
       "n_interval",
       "failure_rate"
@@ -722,12 +730,45 @@ phase18_count_structured_q1_profile_failure_summary <- function(intervals) {
       -out$failed_interval,
       out$cell_id,
       out$interval_status,
-      out$interval_message
+      out$failure_class
     ),
     ,
     drop = FALSE
   ]
   row.names(out) <- NULL
+  out
+}
+
+phase18_count_structured_q1_profile_failure_class <- function(message) {
+  message <- as.character(message)
+  out <- rep("other_profile_failure", length(message))
+  missing <- is.na(message) | !nzchar(message)
+  out[missing] <- "missing_interval_message"
+
+  nonfinite <- !missing &
+    grepl(
+      "nonfinite_interval|non-finite|nonfinite",
+      message,
+      ignore.case = TRUE
+    )
+  out[nonfinite] <- "nonfinite_interval"
+
+  crossing <- !missing &
+    !nonfinite &
+    grepl(
+      paste(
+        c(
+          "two finite crossing",
+          "threshold on both sides",
+          "need at least two non-NA values",
+          "interpolate"
+        ),
+        collapse = "|"
+      ),
+      message,
+      ignore.case = TRUE
+    )
+  out[crossing] <- "profile_crossing_failure"
   out
 }
 
