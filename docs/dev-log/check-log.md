@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Family-Surface Admission Plan
+
+Goal:
+
+- Build the executable family-surface admission table so distribution-level
+  reports can show admitted, smoke-only, blocked, and design-only rows without
+  borrowing evidence across families.
+
+Actions run:
+
+- Added `phase18_family_surface_workflow_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- Added helper functions for empty family-surface plans, admission categories,
+  dispatch-status labels, and audit focus text.
+- Extended
+  `tests/testthat/test-phase18-structured-workflow-registry.R` to cover the
+  eleven-row family-surface plan, admitted versus blocked states, smoke-only
+  NB2 `sigma`, and `include_blocked = FALSE`.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  and after-task report for Slice 1819.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-family-surface-workflow-plan.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_family_surface_workflow_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "admission_status", "admission_category", "dispatch_status", "actions_task")], row.names=FALSE)'
+rg -n "family-surface admission plan|phase18_family_surface_workflow_plan|blocked_design_required|admission_category|Slice 1819" inst/sim/run tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The focused registry tests passed.
+- The printed family-surface plan has eleven rows: six `ready_grid`, one
+  `ready_smoke`, three `blocked`, and one `design_only`.
+- Blocked and design-only rows have no Actions task.
+- The stale-reference scan found the intended helper, test, roadmap, and design
+  references for Slice 1819.
+- `git diff --check` was clean.
+
 ## 2026-05-30 -- Correlation-Block Workflow Plan
 
 Goal:

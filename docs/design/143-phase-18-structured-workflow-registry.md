@@ -154,6 +154,27 @@ The count labelled q=2/q=4 covariance row is blocked and stays out of the
 plan. Callers can set `include_diagnostic = FALSE` to drop q=4 diagnostic rows
 and keep only direct or layer-specific q=2/residual work.
 
+## Slice 1819 Family-Surface Admission Plan
+
+Slice 1819 adds `phase18_family_surface_workflow_plan()`. This helper is the
+executable version of the broad distribution table: it keeps admitted,
+smoke-only, blocked, and design-only family rows visible by default, but labels
+their status so reporting and dispatch do not blur them together.
+
+The current family-surface plan has eleven rows:
+
+- six admitted grid rows: Gaussian location-scale, zero-one beta fixed effects,
+  positive-continuous fixed effects, Tweedie fixed effects, ordinal fixed
+  effects, and meta-known-`V` Gaussian rows;
+- one smoke-only row: NB2 `sigma` random intercepts;
+- three blocked rows: zero-inflated or hurdle count random effects, Student-t
+  `nu` random effects, and ordinal random effects;
+- one design-only row: mixed-response bivariate families.
+
+Blocked and design-only rows have no Actions task. Callers can set
+`include_blocked = FALSE` to keep only admitted or smoke-only family rows for a
+dispatch-oriented report.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
