@@ -25,7 +25,8 @@
 \item{...}{Reserved for future extractor options.}
 }
 \value{
-\code{logLik()} returns an object of class \code{"logLik"}. The other methods
+\code{logLik()} returns an object of class \code{"logLik"}. \code{vcov()} returns a
+numeric covariance matrix. \code{nobs()}, \code{df.residual()}, and \code{deviance()}
 return numeric scalars.
 }
 \description{
@@ -42,9 +43,13 @@ top-level parameters recorded in \code{logLik()}. \code{deviance()} returns
 \code{-2 * logLik}; for these likelihood-based distributional models this is an
 absolute negative twice log-likelihood value, not a saturated-model GLM
 deviance. \code{vcov()} returns the fixed-effect covariance matrix from
-\code{TMB::sdreport()} with rows and columns labelled by distributional
-parameter and coefficient. It intentionally does not include random-effect
-conditional modes or derived response-scale quantities.
+\code{TMB::sdreport()} when the fit contains an \code{sdreport} object with
+\code{pdHess = TRUE}; the same object is available as \code{fit$sdr} and
+\code{fit$sdreport}. If \code{sdreport()} was skipped, failed, or returned
+\code{pdHess = FALSE}, Wald standard errors and Wald confidence intervals are
+unavailable while point estimates remain usable. \code{vcov()} intentionally does
+not include random-effect conditional modes or derived response-scale
+quantities.
 }
 \examples{
 set.seed(20260524)

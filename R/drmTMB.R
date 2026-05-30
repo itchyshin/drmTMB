@@ -250,6 +250,7 @@ drmTMB <- function(
     obj = obj,
     opt = opt,
     sdr = sdr,
+    sdreport = sdr,
     uncertainty = uncertainty$state,
     tmb_state = tmb_state,
     par = par,

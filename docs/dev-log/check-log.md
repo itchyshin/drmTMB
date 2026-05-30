@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- PR #435 Rebase After `phylo_interaction()` Merge
+
+Goal:
+
+- Rebase the issue #417 `sdreport` alias and `pdHess` Wald-inference gate
+  after PR #449 moved `main`, preserving the merged `phylo_interaction()`
+  check-log entry above the issue #417 work.
+
+Actions run:
+
+- Rebasing stopped only in `docs/dev-log/check-log.md`.
+- Preserved the merged #449 entry, the earlier #435 rebase note, the post-fit
+  accessor entry, and the original issue #417 task entry.
+- Confirmed the #435 code diff remained scoped to the `sdreport` alias,
+  positive-definite Hessian covariance gate, profile Wald status, tests, NEWS,
+  model-fit extractor docs, and issue #417 after-task report.
+
+Validation:
+
+```sh
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+air format docs/dev-log/check-log.md
+git diff --check
+GIT_EDITOR=true git rebase --continue
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/methods.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-meta-known-v.R')); invisible(parse('tests/testthat/test-profile-targets.R')); invisible(parse('tests/testthat/test-control.R')); cat('parse ok\n')"
+git diff --check origin/main..HEAD
+Rscript --vanilla -e "devtools::test(filter = 'meta-known-v|profile-targets|control', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Conflict-marker scan found no remaining markers after resolution.
+- `git diff --check` passed before and after the rebase completed.
+- Parse checks passed.
+- The focused `meta-known-v`, `profile-targets`, and `control` test run
+  passed on the #449 base.
+- `pkgdown::check_pkgdown()` reported no problems.
+
 ## 2026-05-31 -- `phylo_interaction()` First Slice
 
 Goal:
@@ -76,6 +115,45 @@ Results:
 - `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
   7m 11s with 0 errors, 0 warnings, and 0 notes.
 
+## 2026-05-31 -- PR #435 Rebase After Post-Fit Accessors
+
+Goal:
+
+- Rebase the issue #417 `sdreport` alias and `pdHess` Wald-inference gate
+  after the post-fit accessor PR moved `main`, preserving both check-log
+  entries and avoiding missing-data lane files.
+
+Actions run:
+
+- Rebasing stopped only in `docs/dev-log/check-log.md`.
+- Preserved the merged May 31 post-fit accessor entry above the May 30 issue
+  #417 entry.
+- Kept the #435 code changes scoped to the `sdreport` alias, covariance gate,
+  profile Wald status, focused tests, NEWS, model-fit extractor docs, and the
+  issue #417 after-task report.
+
+Validation:
+
+```sh
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+air format docs/dev-log/check-log.md
+git diff --check
+GIT_EDITOR=true git rebase --continue
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/methods.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-meta-known-v.R')); invisible(parse('tests/testthat/test-profile-targets.R')); invisible(parse('tests/testthat/test-control.R')); cat('parse ok\n')"
+git diff --check origin/main..HEAD
+Rscript --vanilla -e "devtools::test(filter = 'meta-known-v|profile-targets|control', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Conflict-marker scan found no remaining markers after resolution.
+- `git diff --check` passed before and after the rebase completed.
+- Parse checks passed.
+- The focused `meta-known-v`, `profile-targets`, and `control` test run
+  passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+
 ## 2026-05-31 -- Post-fit Accessors for Convergence and Structured Effects
 
 Goal:
@@ -133,6 +211,60 @@ Results:
 - `git diff --check` passed.
 - `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
   6m 58.2s with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-30 -- Issue #417 sdreport Alias And pdHess Wald Gate
+
+Goal:
+
+- Expose the fitted `TMB::sdreport()` object through both `fit$sdr` and
+  `fit$sdreport`, and stop Hessian-based Wald standard errors,
+  `vcov()`, and Wald confidence intervals from using `sdreport()`
+  covariance when `pdHess = FALSE`.
+
+Actions run:
+
+- Added `fit$sdreport` as a construction-time alias of `fit$sdr`.
+- Made fixed-effect covariance availability require `fit$sdr$pdHess = TRUE`.
+- Kept point estimates available for non-positive-definite Hessian fits while
+  reporting `sdreport_non_pd_hessian` in coefficient summaries and
+  `wald_unavailable` in Wald interval tables.
+- Added the issue #417 `meta_V(V = v)` plus predictor-dependent `sigma`
+  regression and deterministic mutated-fit tests for the non-positive-definite
+  Hessian path.
+- Updated `NEWS.md` and the model-fit extractor documentation to describe the
+  `sdreport` alias and `pdHess = TRUE` covariance gate.
+- Added the issue #417 after-task report.
+
+Validation:
+
+```sh
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-meta-known-v.R", reporter = "summary"); testthat::test_file("tests/testthat/test-profile-targets.R", reporter = "summary"); testthat::test_file("tests/testthat/test-control.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "meta-known-v|profile-targets|control", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+air format R/drmTMB.R R/methods.R R/profile.R NEWS.md tests/testthat/test-meta-known-v.R tests/testthat/test-profile-targets.R tests/testthat/test-control.R man/model-fit-extractors.Rd man/drmTMB-package.Rd DESCRIPTION
+git diff --check
+rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\([^V]|fit\$sdreport|fit\$sdr|sdreport_non_pd_hessian|wald_unavailable|positive-definite Hessian|pdHess = FALSE' README.md ROADMAP.md NEWS.md R tests/testthat man docs/design docs/dev-log/known-limitations.md vignettes
+gh issue view 417 --repo itchyshin/drmTMB --comments
+gh issue comment 417 --repo itchyshin/drmTMB --body '<PR #435 issue-maintenance summary>'
+```
+
+Results:
+
+- The three focused `testthat::test_file()` runs passed for
+  `test-meta-known-v.R`, `test-profile-targets.R`, and `test-control.R`.
+- The filtered `devtools::test()` run passed for
+  `meta-known-v|profile-targets|control`.
+- `devtools::document()` completed; `man/model-fit-extractors.Rd` was updated
+  for the new `pdHess = TRUE` extractor contract, and unrelated roxygen2
+  version/package-author churn was removed.
+- `air format` and `git diff --check` passed.
+- The stale-wording scan found expected historical or design-scope references
+  to `meta_gaussian()`, `tau ~`, `pdHess = FALSE`, and `wald_unavailable`; no
+  new contradiction for this issue #417 slice was found.
+- Issue #417 already recorded PR #434 as a docs-only guardrail and explicitly
+  left the issue open for this code-level diagnostic fix.
+- Added an issue #417 comment pointing to PR #435:
+  `https://github.com/itchyshin/drmTMB/issues/417#issuecomment-4584982371`.
 
 ## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
 
