@@ -40,7 +40,7 @@ do not by themselves support `drmTMB` speed, recovery, or coverage claims.
 
 | Lesson | Local GLLVM.jl evidence | drmTMB status |
 | --- | --- | --- |
-| Sparse augmented phylogenetic precision | `gllvmTMB.jl/src/sparse_phy.jl`, `src/likelihood_sparse_phy.jl`, and `gllvmTMB-julia-bench/report/comparison-final.md` | Already partly absorbed. `drmTMB` has `drm_phylo_augmented_precision()`, passes `Q_phylo`, and declares `DATA_SPARSE_MATRIX(Q_phylo)`. The next slice is a benchmark/API gate, not adding sparse phylogeny from scratch. |
+| Sparse augmented phylogenetic precision | `gllvmTMB.jl/src/sparse_phy.jl`, `src/likelihood_sparse_phy.jl`, and `gllvmTMB-julia-bench/report/comparison-final.md` | Already partly absorbed. `drmTMB` has `drm_phylo_augmented_precision()`, passes `Q_phylo`, and declares `DATA_SPARSE_MATRIX(Q_phylo)`. Issue #431 records the first smoke plus row-pressure gate and keeps `phylo()` tree-only for now; future matrix-input work needs a separate design task. |
 | Transformed-Wald bounded intervals | `gllvmTMB.jl/src/confint_derived_wald.jl`; coverage table in `comparison-final.md` | Already source-checked for direct `rho12` and row-specific Wald `rho12` paths. Future derived bounded quantities need their own targets and simulations before claims. |
 | Gaussian and bivariate Gaussian starts | `gllvmTMB.jl/src/ppca_init.jl` as the motivating principle | Already source-checked for `lm.fit()` location starts, residual-SD starts, and Fisher-z `rho12` starts. Do not repeat the stale claim that defaults are intercept-only zero slopes. |
 | Positive-scale bootstrap percentiles | GLLVM.jl bootstrap coverage and implementation notes in `comparison-final.md` and related bench code | Already implemented for direct positive `exp` targets in `confint(..., method = "bootstrap")`. Coverage remains unclaimed without `drmTMB` simulations. |
@@ -69,14 +69,16 @@ Those reports supersede the original memo wherever they disagree with it.
 ## Conservative Next Work
 
 Good next slices are small, measurable, and compatible with the
-one-response/two-response package contract. The first local smoke sizing run
-for sparse `phylo()` is recorded in `docs/dev-log/benchmark-results.md`; it
-keeps issue #431 open for row-pressure and API guidance rather than closing
-the design gate.
+one-response/two-response package contract. The first local smoke sizing and
+row-pressure runs for sparse `phylo()` are recorded in
+`docs/dev-log/benchmark-results.md`; the issue #431 gate keeps the current
+`phylo()` API tree-only rather than adding a dense/sparse switch or matrix-input
+route.
 
 1. Benchmark current sparse `phylo()` scaling on representative `drmTMB`
-   fixtures beyond the first p = 50, 200, and 1000 smoke sizing cells,
-   including row-pressure checks and any needed dense-parity checks.
+   fixtures beyond the first 50, 200, and 1000 species/tree-tip smoke sizing
+   cells and the first 100,000-row pressure row, including repeated runs or
+   platform checks when a public performance statement is needed.
 2. Design `sigma ~ 1` profile-out as an optimizer-geometry proposal, with
    equivalence checks against the current unprofiled likelihood before code
    changes.

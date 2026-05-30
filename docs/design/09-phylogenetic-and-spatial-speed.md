@@ -109,14 +109,24 @@ Tiny dense Brownian covariance matrices remain comparators in tests and teaching
 docs; they are not the fitted large-tree path.
 
 This matters for the GLLVM.jl transfer audit because the portable lesson is not
-"add sparse phylogeny from scratch." The useful next work is a benchmark and API
-gate: measure when the current augmented precision path is fast enough, document
-the current tree-only contract, and decide whether a future `phylo(A = ...)` or
-`phylo(Ainv = ...)` route belongs in `phylo()` or should stay under
-`relmat()`. Do not add a `phylo_representation` switch, dense fallback, or new
-matrix input until that gate specifies scale, labels, diagnostics,
-`profile_targets()`, `check_drm()`, and any copied-code provenance in
-`inst/COPYRIGHTS`.
+"add sparse phylogeny from scratch." The issue #431 benchmark and API gate now
+documents the current tree-only contract and keeps future `phylo(A = ...)` or
+`phylo(Ainv = ...)` routes out of `phylo()` unless a later design task reopens
+the question. Do not add a `phylo_representation` switch, dense fallback, or new
+matrix input until that later gate specifies scale, labels, diagnostics,
+`profile_targets()`, `check_drm()`, validation evidence, and any copied-code
+provenance in `inst/COPYRIGHTS`.
+
+The 2026-05-30 issue #431 gate keeps the user-facing `phylo()` API tree-only
+for now. Local smoke and row-pressure benchmarks show that the current sparse
+tree path runs for the Gaussian location model at 100,000 rows and 1,000 species
+on the macOS development machine. That row-pressure evidence covers the
+benchmarked Gaussian mean-response path only; it does not extend the same scale
+claim to every implemented likelihood branch. It also does not justify a
+dense/sparse switch, `phylo(A = ...)`, `phylo(Ainv = ...)`, or a new
+matrix-input route. Known precision or relationship-matrix inputs should
+continue to route through `relmat()` unless a later design task reopens the API
+question with labels, diagnostics, profile targets, and validation evidence.
 
 Current local evidence:
 

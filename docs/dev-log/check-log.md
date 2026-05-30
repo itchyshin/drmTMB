@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Sparse Phylo Row-Pressure Gate
+
+Goal:
+
+- Close issue #431 by recording one local macOS row-pressure benchmark for the
+  current tree-only sparse `phylo()` Gaussian location path and by documenting
+  the API gate decision.
+
+Actions run:
+
+- Reran the 100,000-row / 1,000-species benchmark after PR #432's smoke audit
+  branch.
+- Updated `docs/dev-log/benchmark-results.md` with the row-pressure row.
+- Updated `docs/design/09-phylogenetic-and-spatial-speed.md` to keep
+  `phylo()` tree-only for now and to avoid a dense/sparse switch or
+  `phylo(A = ...)` / `phylo(Ainv = ...)` route from this evidence.
+- Updated `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` so the GLLVM.jl
+  routing note no longer treats issue #431's row-pressure/API gate as wholly
+  future work.
+- Added
+  `docs/dev-log/after-task/2026-05-30-sparse-phylo-row-pressure-gate.md`.
+
+Validation:
+
+```sh
+/usr/bin/time -l Rscript bench/large-phylo-location.R --rows 100000 --species 1000 --memory-light true --eval-max 200 --iter-max 200 --output /tmp/drmtmb-sparse-phylo-row-pressure-20260530-post432-main.csv
+Rscript --vanilla -e "x <- read.csv('/tmp/drmtmb-sparse-phylo-row-pressure-20260530-post432-main.csv', check.names = FALSE); print(x[, c('run_started_utc','r_version','os','machine','TMB_version','rows','species','tree','fit_sec','convergence','iterations','function_evaluations','gradient_evaluations','sigma_hat','sd_phylo_hat','fit_object_mb','model_matrix_mb','tmb_data_mb','gc_used_mb_post_fit','git_sha','git_dirty','benchmark_command')])"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-phylo-utils.R'); testthat::test_file('tests/testthat/test-phylo-gaussian.R')"
+gh issue view 431 --repo itchyshin/drmTMB --comments
+rg -n "sparse phylogeny from scratch|add sparse phylogeny|blank implementation task|GLLVM\\.jl speedups|drmTMB speedups|coverage improves|10×|100×|public speed claim|scaling claim|recovery claim|coverage claim|API decision|phylo_relaxed|phylo_representation|dense fallback|phylo\\(A|Ainv|tau ~" README.md NEWS.md ROADMAP.md docs/design docs/dev-log/benchmark-results.md docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md vignettes bench/README.md
+air format docs/dev-log/benchmark-results.md docs/design/09-phylogenetic-and-spatial-speed.md docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-sparse-phylo-row-pressure-gate.md
+git diff --check
+```
+
+Results:
+
+- The benchmark used R 4.5.2, TMB 1.9.21, Darwin 25.5.0 on arm64, git SHA
+  `7c045d21`, and `git_dirty = FALSE`.
+- The model was Gaussian `phylo(1 | species, tree = tree)` for the mean
+  response, with `sigma ~ 1`, a balanced synthetic tree, `memory_light = TRUE`,
+  `sparse_fixed = FALSE`, and `aggregate_gaussian = FALSE`.
+- The 100,000-row / 1,000-species row converged with code 0 after 45
+  iterations and 69 function evaluations.
+- The run reported `fit_sec = 25.471`, `sigma_hat = 0.4013018`,
+  `sd_phylo_hat = 0.5014775`, fitted-object size 47.43359 MB, model-matrix size
+  15.26065 MB, TMB-data size 22.09883 MB, and post-fit R heap 196.0538 MB.
+- macOS `/usr/bin/time -l` reported max RSS 2,253,438,976 bytes and peak
+  footprint 768,132,752 bytes.
+- Targeted phylo tests passed: `test-phylo-utils.R` reported 79 passing
+  expectations, and `test-phylo-gaussian.R` reported 207 passing expectations.
+- `gh issue view 431` showed the issue still open before merge; PR #433 is
+  marked with `Closes #431` and should close the narrow gate when merged.
+- The stale-wording scan returned intentional guardrail, no-claim, and
+  historical hits only. It did not reveal a current-facing public speed,
+  recovery, coverage, dense/sparse switch, or matrix-input claim from this
+  slice.
+- `air format` and `git diff --check` passed.
+- This local row-pressure evidence is enough to keep the current tree-only
+  sparse `phylo()` API and avoid adding a dense/sparse switch or direct
+  matrix-input route from the GLLVM.jl transfer memo. It does not make a public
+  speed, cross-platform memory, biological-inference, recovery, coverage,
+  sparse-fixed-effect, aggregation, bivariate, non-Gaussian, or transferred
+  GLLVM.jl speed claim.
+
+Member-group review:
+
+- Ada kept the slice as benchmark evidence plus a narrow API gate decision.
+- Grace kept the memory evidence tied to local macOS `/usr/bin/time -l`.
+- Jason kept known-precision and relationship-matrix inputs under `relmat()`
+  unless a later design task reopens them.
+- Fisher kept the result separate from recovery, coverage, and biological
+  validation.
+- Rose kept issue #431 as the explicit maintenance target.
+
 ## 2026-05-30 -- Sparse Phylo Smoke Benchmark Audit
 
 Goal:
