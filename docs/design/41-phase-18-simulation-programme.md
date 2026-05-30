@@ -1279,3 +1279,11 @@ errors, and elapsed time by surface before the raw manifest.
      admitted grid rows, one smoke-only NB2 `sigma` row, three blocked rows, and
      one design-only mixed-response row. Blocked and design-only rows stay
      visible by default but have no Actions task.
+228. Slice 1820 adds `phase18_structured_workflow_plan_bundle()` and
+     `phase18_structured_workflow_plan_counts()`, which return the four landed
+     workflow plan tables plus a compact counts table. The current counts are:
+     random slopes 9 rows with 8 existing Actions tasks and 1 wrapper target;
+     structured dependence 7 rows with 3 existing tasks, 4 wrapper targets, and
+     1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
+     3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
+     7 existing tasks, 3 blocked rows, and 1 design-only row.

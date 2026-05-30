@@ -175,6 +175,26 @@ Blocked and design-only rows have no Actions task. Callers can set
 `include_blocked = FALSE` to keep only admitted or smoke-only family rows for a
 dispatch-oriented report.
 
+## Slice 1820 Workflow Plan Bundle
+
+Slice 1820 adds `phase18_structured_workflow_plan_bundle()` and
+`phase18_structured_workflow_plan_counts()`. The bundle returns the registry
+summary, the four plan tables, and a compact count table for reporting current
+workflow coverage.
+
+The current bundled count table is:
+
+| Workflow plan | Rows | Existing Actions tasks | Wrapper targets | Diagnostics | Blocked | Design-only |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Random slopes | 9 | 8 | 1 | 0 | 0 | 0 |
+| Structured dependence | 7 | 3 | 4 | 1 | 0 | 0 |
+| Correlation blocks | 6 | 3 | 3 | 2 | 0 | 0 |
+| Family surface | 11 | 7 | 0 | 0 | 3 | 1 |
+
+This table is not a simulation result. It is the executable routing summary
+for deciding which workflow wrapper, artifact audit, or design gate should run
+next.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |

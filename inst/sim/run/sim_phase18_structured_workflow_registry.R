@@ -483,6 +483,59 @@ phase18_family_surface_workflow_plan <- function(
   )]
 }
 
+phase18_structured_workflow_plan_bundle <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  phase18_validate_structured_workflow_registry(registry)
+  plans <- list(
+    random_slopes = phase18_random_slope_workflow_plan(registry),
+    structured_dependence = phase18_structured_dependence_workflow_plan(
+      registry
+    ),
+    correlation_blocks = phase18_correlation_block_workflow_plan(registry),
+    family_surface = phase18_family_surface_workflow_plan(registry)
+  )
+  list(
+    registry_summary = phase18_structured_workflow_registry_summary(registry),
+    plan_counts = phase18_structured_workflow_plan_counts(plans),
+    plans = plans
+  )
+}
+
+phase18_structured_workflow_plan_counts <- function(plans) {
+  if (is.list(plans) && !is.null(plans$plans)) {
+    plans <- plans$plans
+  }
+  if (!is.list(plans) || length(plans) == 0L) {
+    stop(
+      "`plans` must be a non-empty list of workflow plan tables.",
+      call. = FALSE
+    )
+  }
+
+  out <- lapply(names(plans), function(plan_name) {
+    plan <- plans[[plan_name]]
+    if (!is.data.frame(plan)) {
+      stop("Each workflow plan must be a data frame.", call. = FALSE)
+    }
+    data.frame(
+      workflow_plan = plan_name,
+      n = nrow(plan),
+      existing_actions_tasks = sum(!is.na(plan$actions_task)),
+      wrapper_targets = sum(grepl("wrapper_target", plan$dispatch_status)),
+      ready_grid = sum(plan$admission_status == "ready_grid"),
+      ready_source_test = sum(plan$admission_status == "ready_source_test"),
+      diagnostic_only = sum(plan$admission_status == "diagnostic_only"),
+      ready_smoke = sum(plan$admission_status == "ready_smoke"),
+      hold_smoke_only = sum(plan$admission_status == "hold_smoke_only"),
+      blocked = sum(plan$admission_status == "blocked"),
+      design_only = sum(plan$admission_status == "design_only"),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, out)
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
