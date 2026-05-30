@@ -221,3 +221,15 @@ This slice does not change the plotting recipe, profile settings, selected
 examples, or interval interpretation. The plot remains a geometry diagnostic:
 it shows where the likelihood-ratio curve was evaluated, while the summary CSV
 still says whether profile interval endpoints were recovered.
+
+## Slice 1810 Addendum: Trace Interpretation Note
+
+`docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`
+now interprets the selected-example trace, summary, and plot artifacts. The note
+keeps the main conclusion narrow: all six selected profile passes produced
+trace rows, but the smaller `ystep` pass did not recover missing endpoints.
+
+The next diagnostic should therefore split each trace by lower and upper side
+of the fitted estimate before changing profile settings. A wider `parm.range`,
+lower-boundary-specific profile setting, larger recovery grid, or coverage
+claim still needs side-specific support evidence.

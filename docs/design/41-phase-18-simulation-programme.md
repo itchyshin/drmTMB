@@ -1215,3 +1215,10 @@ errors, and elapsed time by surface before the raw manifest.
      The helper stays internal diagnostic plumbing; focused tests use synthetic
      trace rows and check the PNG path, file size, summary rows, and overwrite
      protection without rerunning selected formal-pilot profiles.
+218. Slice 1810 adds the selected-example trace interpretation note.
+     `docs/design/142-phase-18-count-structured-q1-profile-trace-interpretation.md`
+     records that all six selected profile passes produced trace rows, but the
+     smaller `ystep` pass did not recover missing interval endpoints. The next
+     diagnostic should split lower-side and upper-side profile support before
+     trying a wider `parm.range`, lower-boundary-specific profile setting, larger
+     recovery grid, or coverage claim.
