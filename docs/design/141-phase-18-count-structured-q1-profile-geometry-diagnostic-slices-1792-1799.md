@@ -120,3 +120,18 @@ message, and elapsed time. A failed profile call returns one metadata row with
 The tests inject fake profile functions, so this addendum verifies the result
 shape without spending CI time on the selected formal-pilot examples. The next
 slice can connect this wrapper to the DGP/fit rerun.
+
+## Slice 1803 Addendum: Trace Run Plan
+
+`phase18_count_structured_q1_profile_trace_run_plan()` now connects the
+selected-example plan to the DGP, fit, and profile steps. For each planned row,
+it uses `cell_index` to select the matching stable condition, regenerates the
+replicate with the recorded artifact seed, fits the model, and then delegates
+to `phase18_count_structured_q1_profile_trace_result()`.
+
+DGP and fit errors are returned as failed trace rows with the same metadata
+shape as profile failures. Mixed success and failure rows are column-aligned
+before binding, so a failed fit can sit beside successful likelihood-ratio
+trace rows without losing the profile columns. The focused tests inject fake
+DGP, fit, and profile functions; this addendum still does not rerun the three
+selected formal-pilot examples or change profile settings.

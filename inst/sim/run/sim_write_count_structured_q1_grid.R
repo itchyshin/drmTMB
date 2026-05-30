@@ -1208,15 +1208,19 @@ phase18_count_structured_q1_profile_trace_result <- function(
   )
 
   if (inherits(prof, "error")) {
-    metadata$trace_status <- "failed"
-    metadata$trace_message <- conditionMessage(prof)
-    return(metadata)
+    return(phase18_count_structured_q1_profile_trace_failure(
+      plan_row,
+      conditionMessage(prof),
+      elapsed
+    ))
   }
   trace <- as.data.frame(prof)
   if (nrow(trace) == 0L) {
-    metadata$trace_status <- "failed"
-    metadata$trace_message <- "profile trace returned no rows"
-    return(metadata)
+    return(phase18_count_structured_q1_profile_trace_failure(
+      plan_row,
+      "profile trace returned no rows",
+      elapsed
+    ))
   }
 
   metadata$trace_status <- "ok"
@@ -1228,6 +1232,86 @@ phase18_count_structured_q1_profile_trace_result <- function(
   )
   row.names(out) <- NULL
   out
+}
+
+phase18_count_structured_q1_profile_trace_run_plan <- function(
+  plan = phase18_count_structured_q1_profile_trace_plan(),
+  conditions = phase18_count_structured_q1_followup_conditions("stable"),
+  dgp_fun = phase18_dgp_count_structured_q1_cell,
+  fit_fun = phase18_fit_count_structured_q1,
+  profile_fun = stats::profile
+) {
+  if (!is.data.frame(plan) || nrow(plan) == 0L) {
+    stop("`plan` must be a non-empty data frame.", call. = FALSE)
+  }
+  if (!is.data.frame(conditions) || nrow(conditions) == 0L) {
+    stop("`conditions` must be a non-empty data frame.", call. = FALSE)
+  }
+  phase18_assert_summary_columns(
+    plan,
+    c(
+      "cell_id",
+      "replicate",
+      "seed",
+      "cell_index",
+      "profile_pass",
+      "profile_parameters",
+      "profile_level",
+      "ystep"
+    )
+  )
+  phase18_assert_function(dgp_fun, "dgp_fun")
+  phase18_assert_function(fit_fun, "fit_fun")
+  phase18_assert_function(profile_fun, "profile_fun")
+
+  rows <- lapply(seq_len(nrow(plan)), function(i) {
+    plan_row <- plan[i, , drop = FALSE]
+    started <- proc.time()[["elapsed"]]
+    cell_index <- plan_row$cell_index[[1L]]
+    assert_positive_whole_number(cell_index, "plan_row$cell_index")
+    if (cell_index > nrow(conditions)) {
+      stop(
+        "`plan$cell_index` must refer to a row in `conditions`.",
+        call. = FALSE
+      )
+    }
+    cell <- conditions[cell_index, , drop = FALSE]
+    data <- tryCatch(
+      dgp_fun(
+        cell = cell,
+        seed = plan_row$seed[[1L]],
+        cell_id = plan_row$cell_id[[1L]],
+        replicate = plan_row$replicate[[1L]]
+      ),
+      error = function(e) e
+    )
+    if (inherits(data, "error")) {
+      return(phase18_count_structured_q1_profile_trace_failure(
+        plan_row,
+        paste("dgp_fun failed:", conditionMessage(data)),
+        proc.time()[["elapsed"]] - started
+      ))
+    }
+
+    fit <- tryCatch(
+      fit_fun(data = data, cell = cell),
+      error = function(e) e
+    )
+    if (inherits(fit, "error")) {
+      return(phase18_count_structured_q1_profile_trace_failure(
+        plan_row,
+        paste("fit_fun failed:", conditionMessage(fit)),
+        proc.time()[["elapsed"]] - started
+      ))
+    }
+
+    phase18_count_structured_q1_profile_trace_result(
+      fit,
+      plan_row,
+      profile_fun = profile_fun
+    )
+  })
+  phase18_count_structured_q1_profile_trace_bind_rows(rows)
 }
 
 phase18_count_structured_q1_profile_trace_metadata <- function(
@@ -1256,6 +1340,38 @@ phase18_count_structured_q1_profile_trace_metadata <- function(
     trace_elapsed = as.numeric(elapsed),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_count_structured_q1_profile_trace_failure <- function(
+  plan_row,
+  message,
+  elapsed
+) {
+  metadata <- phase18_count_structured_q1_profile_trace_metadata(
+    plan_row,
+    elapsed = elapsed
+  )
+  metadata$trace_status <- "failed"
+  metadata$trace_message <- message
+  metadata
+}
+
+phase18_count_structured_q1_profile_trace_bind_rows <- function(pieces) {
+  pieces <- Filter(function(x) is.data.frame(x) && nrow(x) > 0L, pieces)
+  if (length(pieces) == 0L) {
+    return(data.frame())
+  }
+  all_names <- unique(unlist(lapply(pieces, names), use.names = FALSE))
+  aligned <- lapply(pieces, function(x) {
+    missing <- setdiff(all_names, names(x))
+    for (name in missing) {
+      x[[name]] <- NA
+    }
+    x[all_names]
+  })
+  out <- do.call(rbind, aligned)
+  row.names(out) <- NULL
+  out
 }
 
 phase18_count_structured_q1_profile_failure_class <- function(message) {
