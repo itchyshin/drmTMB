@@ -1119,3 +1119,12 @@ errors, and elapsed time by surface before the raw manifest.
      `example_result_path` and `example_result_exists` to failure-summary rows.
      On artifact `26669005577`, all 11 example paths existed, so the next
      geometry note can load a concrete replicate RDS for each failure class.
+205. Slice 1790 makes the example pointer interpretable without rerunning
+     profiles. The artifact-level profile gate now reads each available example
+     replicate RDS and attaches the requested profile row's public parameter,
+     truth, estimate, interval endpoints, profile status, and target parameter
+     to `failure_summary`. On artifact `26669005577`, all 11 example rows were
+     readable, and several failed examples had structured-SD estimates near
+     zero despite truth 0.6. This is diagnostic evidence only; it keeps the
+     lane in `hold_interval_diagnostic` until a geometry review explains the
+     failed profile intervals.

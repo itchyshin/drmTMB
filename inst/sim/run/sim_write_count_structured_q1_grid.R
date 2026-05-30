@@ -230,6 +230,9 @@ phase18_audit_count_structured_q1_profile_gate <- function(
     gate$failure_summary,
     output_dir
   )
+  gate$failure_summary <- phase18_count_structured_q1_attach_example_profile_details(
+    gate$failure_summary
+  )
 
   list(
     surface = "count_structured_q1_profile_gate_audit",
@@ -771,6 +774,124 @@ phase18_count_structured_q1_attach_example_result_paths <- function(
   out$example_result_path <- path
   out$example_result_exists <- exists
   out
+}
+
+phase18_count_structured_q1_attach_example_profile_details <- function(
+  failure_summary
+) {
+  if (!is.data.frame(failure_summary) || nrow(failure_summary) == 0L) {
+    return(failure_summary)
+  }
+  if (
+    !all(
+      c("example_result_path", "example_result_exists") %in%
+        names(failure_summary)
+    )
+  ) {
+    return(failure_summary)
+  }
+
+  details <- lapply(seq_len(nrow(failure_summary)), function(i) {
+    phase18_count_structured_q1_example_profile_detail(
+      failure_summary$example_result_path[[i]],
+      failure_summary$example_result_exists[[i]]
+    )
+  })
+  cbind(failure_summary, do.call(rbind, details))
+}
+
+phase18_count_structured_q1_example_profile_detail <- function(path, exists) {
+  out <- phase18_count_structured_q1_empty_example_profile_detail()
+  if (!isTRUE(exists) || is.na(path) || !nzchar(path)) {
+    out$example_profile_detail_status <- "missing_result"
+    return(out)
+  }
+
+  result <- tryCatch(readRDS(path), error = function(e) e)
+  if (inherits(result, "error")) {
+    out$example_profile_detail_status <- "read_error"
+    out$example_profile_message <- conditionMessage(result)
+    return(out)
+  }
+  if (!is.list(result) || !is.data.frame(result$summary)) {
+    out$example_profile_detail_status <- "missing_summary"
+    return(out)
+  }
+
+  summary <- result$summary
+  if (!"profile.status" %in% names(summary)) {
+    out$example_profile_detail_status <- "missing_requested_profile_row"
+    return(out)
+  }
+  requested <- summary[
+    is.na(summary$profile.status) | summary$profile.status != "not_requested",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(requested) == 0L) {
+    out$example_profile_detail_status <- "missing_requested_profile_row"
+    return(out)
+  }
+
+  failed <- phase18_count_structured_q1_status_not_ok(requested$profile.status)
+  row <- if (any(failed)) {
+    requested[which(failed)[[1L]], , drop = FALSE]
+  } else {
+    requested[1L, , drop = FALSE]
+  }
+
+  out$example_profile_detail_status <- "ok"
+  out$example_parameter <- phase18_count_structured_q1_first(row, "parameter")
+  out$example_parameter_class <- phase18_count_structured_q1_first(
+    row,
+    "parameter_class"
+  )
+  out$example_truth <- as.numeric(
+    phase18_count_structured_q1_first(row, "truth", NA_real_)
+  )
+  out$example_estimate <- as.numeric(
+    phase18_count_structured_q1_first(row, "estimate", NA_real_)
+  )
+  out$example_profile_conf_low <- as.numeric(
+    phase18_count_structured_q1_first(row, "profile.conf.low", NA_real_)
+  )
+  out$example_profile_conf_high <- as.numeric(
+    phase18_count_structured_q1_first(row, "profile.conf.high", NA_real_)
+  )
+  out$example_profile_status <- phase18_count_structured_q1_first(
+    row,
+    "profile.status"
+  )
+  out$example_profile_message <- phase18_count_structured_q1_first(
+    row,
+    "profile.message"
+  )
+  out$example_profile_target_status <- phase18_count_structured_q1_first(
+    row,
+    "profile_target_status"
+  )
+  out$example_profile_target_parameter <- phase18_count_structured_q1_first(
+    row,
+    "profile_target_parameter"
+  )
+  out
+}
+
+phase18_count_structured_q1_empty_example_profile_detail <- function() {
+  data.frame(
+    example_profile_detail_status = NA_character_,
+    example_parameter = NA_character_,
+    example_parameter_class = NA_character_,
+    example_truth = NA_real_,
+    example_estimate = NA_real_,
+    example_profile_conf_low = NA_real_,
+    example_profile_conf_high = NA_real_,
+    example_profile_status = NA_character_,
+    example_profile_message = NA_character_,
+    example_profile_target_status = NA_character_,
+    example_profile_target_parameter = NA_character_,
+    stringsAsFactors = FALSE
+  )
 }
 
 phase18_count_structured_q1_profile_failure_class <- function(message) {

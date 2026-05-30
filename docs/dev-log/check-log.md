@@ -43806,3 +43806,70 @@ Member-group review:
 - Grace checked the paths on the real formal-pilot artifact.
 - Rose kept this as diagnostic routing, not a profile-geometry conclusion.
 - No spawned subagents were running.
+
+## 2026-05-29 - Count structured q1 profile-failure example details
+
+Goal:
+
+- Add the requested profile row from each example replicate RDS to the
+  artifact-level profile failure summary.
+
+Changes:
+
+- Added `phase18_count_structured_q1_attach_example_profile_details()`.
+- `phase18_audit_count_structured_q1_profile_gate()` now appends
+  `example_profile_detail_status`, `example_parameter`, `example_truth`,
+  `example_estimate`, `example_profile_conf_low`, `example_profile_conf_high`,
+  `example_profile_status`, `example_profile_message`,
+  `example_profile_target_status`, and `example_profile_target_parameter` to
+  `failure_summary` when an example RDS is available.
+- Updated the synthetic artifact audit test to include and check a requested
+  profile row inside the saved RDS.
+- Updated `ROADMAP.md`, `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md`.
+- Added
+  `docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-example-details.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_write_count_structured_q1_grid.R tests/testthat/test-phase18-count-structured-q1.R ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-29-count-structured-q1-profile-failure-example-details.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-count-structured-q1', reporter = 'summary')"
+Rscript --vanilla - <<'EOF'
+out <- "/tmp/drmtmb-count-structured-formal-lJ18lP/phase18-count_structured_q1-shard-1-of-1-26669005577"
+source("inst/sim/R/sim_registry.R")
+source("inst/sim/R/sim_utils.R")
+source("inst/sim/R/sim_runner.R")
+source("inst/sim/R/sim_uncertainty.R")
+source("inst/sim/fit/sim_summarise_count_structured_q1.R")
+source("inst/sim/run/sim_write_count_structured_q1_grid.R")
+audit <- phase18_audit_count_structured_q1_profile_gate(
+  out,
+  require_complete = TRUE,
+  watch_cells = c("count_structured_q1_003", "count_structured_q1_005")
+)
+print(audit$profile_gate$failure_summary[, c("cell_id", "failure_class", "example_replicate", "example_profile_detail_status", "example_parameter", "example_truth", "example_estimate", "example_profile_conf_low", "example_profile_conf_high", "example_profile_status", "example_profile_target_parameter", "failed_interval")])
+EOF
+git diff --check
+```
+
+Results:
+
+- The focused `phase18-count-structured-q1` suite passed.
+- On artifact `26669005577`, all 11 failure-summary rows had
+  `example_profile_detail_status = "ok"`, `example_profile_status = "failed"`,
+  and `example_profile_target_parameter = "log_sd_phylo"`.
+- Several failed examples had structured-SD estimates near zero despite truth
+  0.6, including `count_structured_q1_006` replicate 45,
+  `count_structured_q1_003` replicate 33, and `count_structured_q1_005`
+  replicate 74.
+- `git diff --check` was clean after formatting the slice files.
+
+Member-group review:
+
+- Ada kept the change inside the artifact audit surface.
+- Fisher kept the fields as interval-geometry evidence, not a coverage claim.
+- Curie covered the synthetic RDS path in the focused profile-gate test.
+- Grace checked the helper on the real formal-pilot artifact.
+- Rose flagged near-zero structured-SD examples as the next diagnostic target.
+- No spawned subagents were running.
