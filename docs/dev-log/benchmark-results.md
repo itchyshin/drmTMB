@@ -4,7 +4,7 @@ This file records selected development benchmark results from ignored CSV
 outputs. Use it as evidence for internal planning, not as a public performance
 claim.
 
-## Large Phylogenetic Gaussian Location-Scale Benchmarks
+## Large Phylogenetic Gaussian Mean-Response Benchmarks
 
 All rows use a balanced synthetic tree, Gaussian responses, and
 `y ~ x1 + x2 + phylo(1 | species, tree = tree)` unless the `Factor levels`
@@ -20,6 +20,7 @@ peak footprint when interpreting those rows.
 | 2026-05-30 | 500 | 50 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 0.553 | 0.469 | 0.078 | 0.144 | 159.153 | 409,518,080 | 342,525,272 |
 | 2026-05-30 | 2,000 | 200 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 1.115 | 1.422 | 0.307 | 0.518 | 159.695 | 455,131,136 | 363,431,184 |
 | 2026-05-30 | 10,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | smoke evidence | 0 | 5.582 | 6.578 | 1.528 | 2.529 | 162.592 | 679,510,016 | 407,799,104 |
+| 2026-05-30 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | row-pressure gate | 0 | 25.471 | 47.434 | 15.261 | 22.099 | 196.054 | 2,253,438,976 | 768,132,752 |
 | 2026-05-10 | 10,000 | 100 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 2.283 | 4.658 | 1.528 | 2.140 | 251.397 | 454,672,384 | 332,383,288 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable | 0 | 25.074 | 45.730 | 15.261 | 21.326 | 405.741 | 1,415,626,752 | 723,666,504 |
 | 2026-05-10 | 100,000 | 1,000 | Gaussian | `sigma ~ 1` | 0 | yes | timing usable, corrected heap | 0 | 28.450 | 45.730 | 15.261 | 21.326 | 165.544 | 1,401,323,520 | 721,061,472 |
@@ -33,9 +34,9 @@ peak footprint when interpreting those rows.
 
 Interpretation:
 
-- The 2026-05-30 rows are a bounded local smoke sequence for issue #431, not a
-  public speed claim. They used R 4.5.2, TMB 1.9.21, Darwin 25.5.0 on arm64,
-  git SHA `d093bedd`, and `git_dirty = FALSE`.
+- The first three 2026-05-30 rows are a bounded local smoke sequence for issue
+  #431, not a public speed claim. They used R 4.5.2, TMB 1.9.21, Darwin 25.5.0
+  on arm64, git SHA `d093bedd`, and `git_dirty = FALSE`.
 - The smoke sequence kept the current sparse `phylo()` location path in view:
   balanced trees, Gaussian responses, `sigma ~ 1`, `sparse_fixed = FALSE`,
   `aggregate_gaussian = FALSE`, and `memory_light = TRUE`.
@@ -45,6 +46,19 @@ Interpretation:
 - These rows do not resolve the API gate, combine sparse fixed effects with
   `phylo()`, test Linux or Windows memory behaviour, validate biological
   inference, or support a transferred GLLVM.jl speedup claim.
+- The 2026-05-30 row-pressure gate reran the same current tree-only sparse
+  `phylo()` path at 100,000 rows and 1,000 species after the smoke cells. It
+  treats row pressure as many observation rows relative to the number of species
+  levels, rather than as a larger tree or broader model-family stress test. It
+  used git SHA `7c045d21` with `git_dirty = FALSE`, and converged with optimizer
+  code 0, 45 iterations, 69 function evaluations, `sd_phylo_hat = 0.5014775`,
+  25.471 fit seconds, and 2,253,438,976 bytes macOS max RSS.
+- The row-pressure row is local development evidence for the current Gaussian
+  mean-response phylogenetic random-effect path: related species are allowed to
+  have similar mean responses through `phylo(1 | species, tree = tree)`, while
+  `sigma ~ 1` keeps the residual scale constant. It does not test `sigma ~ x1`,
+  sparse fixed effects, aggregation, bivariate coscale models, non-Gaussian
+  families, biological inference, or cross-platform memory behaviour.
 - The 100k default-storage run retained about 9.2 MB more fitted-object state
   and used about 95 MB more post-fit R heap than the memory-light run.
   The post-fit R-heap comparison uses historical rows collected before the
