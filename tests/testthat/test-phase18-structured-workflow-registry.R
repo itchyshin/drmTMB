@@ -445,3 +445,75 @@ test_that("Phase 18 correlation-block plan excludes blocked rows", {
   expect_false("count_labelled_q2_q4" %in% plan$lane_id)
   expect_equal(nrow(plan), 6L)
 })
+
+test_that("Phase 18 family-surface workflow plan keeps blocked rows visible", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_family_surface_workflow_plan(registry)
+
+  expect_equal(nrow(plan), 11L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 6L)
+  expect_equal(sum(plan$admission_status == "ready_smoke"), 1L)
+  expect_equal(sum(plan$admission_status == "blocked"), 3L)
+  expect_equal(sum(plan$admission_status == "design_only"), 1L)
+  expect_true(all(nzchar(plan$audit_focus)))
+})
+
+test_that("Phase 18 family-surface plan separates admitted and blocked states", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_family_surface_workflow_plan(registry)
+  ready_grid <- plan$admission_status == "ready_grid"
+  blocked <- plan$admission_status == "blocked"
+  design <- plan$admission_status == "design_only"
+
+  expect_true(all(plan$admission_category[ready_grid] == "admitted"))
+  expect_true(all(plan$dispatch_status[ready_grid] == "ready_existing_task"))
+  expect_false(any(is.na(plan$actions_task[ready_grid])))
+  expect_true(all(plan$admission_category[blocked] == "blocked"))
+  expect_true(all(
+    plan$dispatch_status[blocked] == "blocked_design_required"
+  ))
+  expect_true(all(is.na(plan$actions_task[blocked])))
+  expect_equal(plan$admission_category[design], "design_only")
+  expect_equal(plan$dispatch_status[design], "design_required")
+})
+
+test_that("Phase 18 family-surface plan marks smoke-only rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_family_surface_workflow_plan(registry)
+  nb2_sigma <- plan$lane_id == "nbinom2_sigma_random_intercept"
+
+  expect_equal(plan$admission_category[nb2_sigma], "smoke_only")
+  expect_equal(plan$dispatch_status[nb2_sigma], "smoke_audit")
+  expect_equal(plan$actions_task[nb2_sigma], "first_wave_summary")
+})
+
+test_that("Phase 18 family-surface plan can omit blocked rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_family_surface_workflow_plan(
+    registry,
+    include_blocked = FALSE
+  )
+
+  expect_equal(nrow(plan), 7L)
+  expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
+})

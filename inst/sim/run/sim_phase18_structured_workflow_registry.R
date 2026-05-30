@@ -410,6 +410,79 @@ phase18_correlation_block_workflow_plan <- function(
   )]
 }
 
+phase18_family_surface_workflow_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_blocked = TRUE
+) {
+  rows <- phase18_filter_structured_workflow_registry(
+    registry = registry,
+    workflow_lane = "family_surface"
+  )
+  if (!include_blocked) {
+    rows <- rows[
+      !rows$admission_status %in% c("blocked", "design_only"),
+      ,
+      drop = FALSE
+    ]
+  }
+  if (nrow(rows) == 0L) {
+    return(phase18_empty_family_surface_workflow_plan())
+  }
+
+  needs_target <- startsWith(rows$existing_actions_task, "needed:")
+  has_existing_task <- rows$existing_actions_task != "none" & !needs_target
+  plan <- rows[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  plan$admission_category <- phase18_family_surface_admission_category(
+    plan$admission_status
+  )
+  plan$dispatch_status <- phase18_family_surface_dispatch_status(
+    admission_status = plan$admission_status,
+    has_existing_task = has_existing_task,
+    needs_target = needs_target
+  )
+  plan$actions_task <- ifelse(
+    has_existing_task,
+    plan$existing_actions_task,
+    NA_character_
+  )
+  plan$workflow_helper <- ifelse(
+    needs_target,
+    sub("^needed:", "", plan$existing_actions_task),
+    ifelse(has_existing_task, "phase18_actions_main", NA_character_)
+  )
+  plan$audit_focus <- phase18_family_surface_audit_focus(
+    plan$admission_status
+  )
+  row.names(plan) <- NULL
+  plan[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "admission_category",
+    "dispatch_status",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+}
+
 phase18_structured_workflow_actions_tasks <- function() {
   if (
     exists("phase18_actions_task_choices", mode = "function", inherits = TRUE)
@@ -432,6 +505,26 @@ phase18_structured_workflow_actions_tasks <- function() {
     "zero_one_beta_fixed_effect",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
+  )
+}
+
+phase18_empty_family_surface_workflow_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    block_q = character(),
+    admission_status = character(),
+    admission_category = character(),
+    dispatch_status = character(),
+    actions_task = character(),
+    workflow_helper = character(),
+    audit_focus = character(),
+    next_autonomous_action = character(),
+    supervision_boundary = character(),
+    stringsAsFactors = FALSE
   )
 }
 
@@ -491,6 +584,112 @@ phase18_empty_random_slope_workflow_plan <- function() {
     supervision_boundary = character(),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_family_surface_admission_category <- function(admission_status) {
+  category <- rep(NA_character_, length(admission_status))
+  category[
+    admission_status %in%
+      c(
+        "ready_grid",
+        "ready_or_smoke",
+        "ready_source_test",
+        "smoke_formal_admission"
+      )
+  ] <- "admitted"
+  category[admission_status == "ready_smoke"] <- "smoke_only"
+  category[admission_status == "diagnostic_only"] <- "diagnostic"
+  category[admission_status == "hold_smoke_only"] <- "hold"
+  category[admission_status == "blocked"] <- "blocked"
+  category[admission_status == "design_only"] <- "design_only"
+
+  unknown <- is.na(category)
+  if (any(unknown)) {
+    stop(
+      "Family-surface workflow has unsupported status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  category
+}
+
+phase18_family_surface_dispatch_status <- function(
+  admission_status,
+  has_existing_task,
+  needs_target
+) {
+  status <- rep(NA_character_, length(admission_status))
+  status[admission_status == "blocked"] <- "blocked_design_required"
+  status[admission_status == "design_only"] <- "design_required"
+  status[needs_target & is.na(status)] <- "needs_wrapper_target"
+  status[has_existing_task & admission_status == "ready_grid"] <-
+    "ready_existing_task"
+  status[has_existing_task & admission_status == "ready_smoke"] <-
+    "smoke_audit"
+  status[has_existing_task & admission_status == "ready_or_smoke"] <-
+    "ready_or_smoke_audit"
+  status[has_existing_task & admission_status == "ready_source_test"] <-
+    "source_test_audit"
+  status[is.na(status) & admission_status == "diagnostic_only"] <-
+    "diagnostic_audit"
+
+  unknown <- is.na(status)
+  if (any(unknown)) {
+    stop(
+      "Family-surface workflow has unsupported dispatch rows: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  status
+}
+
+phase18_family_surface_audit_focus <- function(admission_status) {
+  focus <- rep(NA_character_, length(admission_status))
+  focus[admission_status == "ready_grid"] <- paste(
+    "Run or audit the named fixed or family-surface grid before",
+    "summary reporting."
+  )
+  focus[admission_status == "ready_smoke"] <- paste(
+    "Keep as smoke evidence until grid, MCSE, and artifact audit exist."
+  )
+  focus[admission_status == "blocked"] <- paste(
+    "Keep in the failure ledger until a likelihood, grammar, and",
+    "simulation design gate opens it."
+  )
+  focus[admission_status == "design_only"] <- paste(
+    "Keep as design-only until a joint likelihood and validation contract",
+    "exist."
+  )
+  focus[admission_status == "ready_source_test"] <- paste(
+    "Treat source tests as readiness evidence until an artifact lane exists."
+  )
+  focus[admission_status == "ready_or_smoke"] <- paste(
+    "Confirm whether the row has grid or smoke evidence before reporting."
+  )
+  focus[admission_status == "diagnostic_only"] <- paste(
+    "Use only for diagnostic summaries; do not make recovery claims."
+  )
+  focus[admission_status == "hold_smoke_only"] <- paste(
+    "Keep as held smoke evidence until boundary diagnostics clear."
+  )
+  focus[admission_status == "smoke_formal_admission"] <- paste(
+    "Run formal-admission audit before treating as recovery evidence."
+  )
+
+  unknown <- is.na(focus)
+  if (any(unknown)) {
+    stop(
+      "Family-surface workflow has unsupported status values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  focus
 }
 
 phase18_correlation_block_dispatch_status <- function(

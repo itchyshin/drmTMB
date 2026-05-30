@@ -1274,3 +1274,8 @@ errors, and elapsed time by surface before the raw manifest.
      three direct rows to `interval_heavy_summary`, leaves structured q=2 as a
      wrapper target, marks q=4 rows as diagnostic wrapper targets, and records
      q=4 interval policy as `q4_derived_interval_unavailable`.
+227. Slice 1819 adds `phase18_family_surface_workflow_plan()`, the executable
+     family-surface admission table. The current plan has eleven rows: six
+     admitted grid rows, one smoke-only NB2 `sigma` row, three blocked rows, and
+     one design-only mixed-response row. Blocked and design-only rows stay
+     visible by default but have no Actions task.
