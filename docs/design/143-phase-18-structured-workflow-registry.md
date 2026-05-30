@@ -221,11 +221,25 @@ The current target plan has one row:
 
 | Lane | Target status | Required helper | Dispatch mode |
 | --- | --- | --- | --- |
-| `bivariate_gaussian_slope_only` | `needs_simulation_helper` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `no_dispatch_until_helper_lands` |
+| `bivariate_gaussian_slope_only` | `smoke_helper_available` | `phase18_run_bivariate_gaussian_mu_slope_smoke()` | `local_helper_not_actions` |
 
 This keeps the matching bivariate Gaussian `mu1`/`mu2` slope-only source test
 visible, but prevents Ada or Grace from dispatching it through Actions until a
-dedicated simulation helper and artifact path exist.
+dedicated grid writer and Actions target exist.
+
+## Slice 1823 Bivariate Slope Smoke Helper
+
+Slice 1823 adds the local helper named by the random-slope wrapper target:
+`phase18_run_bivariate_gaussian_mu_slope_smoke()`. The helper is an alias for
+`phase18_run_biv_gaussian_mu_slope_smoke()` and fits the matching bivariate
+Gaussian `mu1`/`mu2` slope-only block
+`(0 + x | p | id)` for both responses. The smoke surface includes a seeded DGP,
+fit wrapper, replicate-level summariser, aggregate smoke summariser, and
+focused tests.
+
+The wrapper target remains non-Actions-dispatchable. Its status changes from
+`needs_simulation_helper` to `smoke_helper_available`, while dispatch mode stays
+local-only as `local_helper_not_actions`.
 
 ## Autonomous Work Plan
 

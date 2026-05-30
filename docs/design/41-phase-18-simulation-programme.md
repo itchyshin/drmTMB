@@ -1296,5 +1296,14 @@ errors, and elapsed time by surface before the raw manifest.
      isolates the one current random-slope wrapper target:
      `bivariate_gaussian_slope_only`. It records the source-test evidence and
      required future helper,
-     `phase18_run_bivariate_gaussian_mu_slope_smoke()`, while keeping dispatch
-     mode at `no_dispatch_until_helper_lands`.
+     `phase18_run_bivariate_gaussian_mu_slope_smoke()`; Slice 1823 updates the
+     target once that helper lands.
+231. Slice 1823 lands the local bivariate Gaussian `mu1`/`mu2` slope-only
+     smoke helper named by the wrapper target. The new
+     `phase18_run_biv_gaussian_mu_slope_smoke()` and alias
+     `phase18_run_bivariate_gaussian_mu_slope_smoke()` use a seeded DGP, fit
+     `mu1 = y1 ~ x + (0 + x | p | id)` and
+     `mu2 = y2 ~ x + (0 + x | p | id)`, summarise fixed effects, residual
+     scales, residual `rho12`, random-slope SDs, and the slope-slope
+     correlation, and keep the workflow target local-only until a grid writer
+     and Actions task are added.

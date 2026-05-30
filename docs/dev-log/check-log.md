@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Bivariate Gaussian Slope Smoke Helper
+
+Goal:
+
+- Add the local bivariate Gaussian `mu1`/`mu2` slope-only smoke helper named by
+  the random-slope wrapper target.
+
+Actions run:
+
+- Added seeded DGP, fit summariser, smoke runner, aggregate summariser, and
+  focused tests for the matching bivariate Gaussian `mu1`/`mu2` slope-only
+  route.
+- Added `phase18_run_bivariate_gaussian_mu_slope_smoke()` as the exact alias
+  named by the wrapper-target plan.
+- Updated `phase18_random_slope_wrapper_target_plan()` so
+  `bivariate_gaussian_slope_only` is `smoke_helper_available` but remains
+  `local_helper_not_actions`.
+- Updated the structured workflow registry note, Phase 18 programme, roadmap,
+  simulation README, and after-task report for Slice 1823.
+
+Validation:
+
+```sh
+air format inst/sim/dgp/sim_dgp_biv_gaussian_mu_slope.R inst/sim/fit/sim_summarise_biv_gaussian_mu_slope.R inst/sim/run/sim_run_biv_gaussian_mu_slope_smoke.R inst/sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R tests/testthat/test-phase18-biv-gaussian-mu-slope.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R inst/sim/README.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-biv-gaussian-slope-smoke.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-biv-gaussian-mu-slope', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_biv_gaussian_mu_slope.R','inst/sim/fit/sim_summarise_biv_gaussian_mu_slope.R','inst/sim/run/sim_run_biv_gaussian_mu_slope_smoke.R','inst/sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R','tests/testthat/test-phase18-biv-gaussian-mu-slope.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_wrapper_target_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p[, c("lane_id", "target_status", "required_helper", "dispatch_mode")], row.names=FALSE)'
+rg -n "bivariate Gaussian slope smoke|phase18_run_biv_gaussian_mu_slope_smoke|phase18_run_bivariate_gaussian_mu_slope_smoke|smoke_helper_available|local_helper_not_actions|Slice 1823" inst/sim tests/testthat docs/design ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-biv-gaussian-slope-smoke.md
+git diff --check
+```
+
+Results:
+
+- The focused bivariate Gaussian `mu1`/`mu2` slope-only smoke tests passed.
+- The focused structured workflow registry tests passed with the target row now
+  marked `smoke_helper_available` and `local_helper_not_actions`.
+- The parse check passed for the new DGP, fit, run, summary, and test files.
+- The reference scan found the new helper, alias, Slice 1823 design note,
+  roadmap row, check-log entry, and after-task report.
+- `git diff --check` passed.
+
 ## 2026-05-30 -- Random-Slope Wrapper Target
 
 Goal:
