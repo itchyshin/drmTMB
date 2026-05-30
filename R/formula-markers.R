@@ -12,7 +12,7 @@
 #' @export
 #'
 #' @examples
-#' bf(yi ~ moderator + meta_V(V = vi), sigma ~ moderator)
+#' bf(yi ~ moderator + meta_V(V = vi), sigma ~ 1)
 meta_V <- function(V) {
   invisible(NULL)
 }

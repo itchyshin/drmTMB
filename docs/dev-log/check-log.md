@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-05-30 -- Meta-V Hessian Limitation Note
+
+Goal:
+
+- Document issue #417's reported `pdHess = FALSE` behavior for
+  `meta_V(V = vi)` plus `sigma ~ moderator`, without claiming a code fix.
+
+Actions run:
+
+- Added a caution to `vignettes/meta-analysis.Rmd` before the worked
+  `sigma ~ habitat` example is interpreted, and kept the later caveat after
+  `check_drm()`.
+- Added the same limitation to `docs/design/08-meta-analysis.md`,
+  `docs/dev-log/known-limitations.md`, the README status table,
+  `vignettes/model-map.Rmd`, `ROADMAP.md`, and `NEWS.md`.
+- Narrowed Phase 18 readiness wording in
+  `docs/design/46-pre-simulation-readiness-matrix.md` and
+  `docs/design/48-phase-18-meta-v-ademp.md` so constant-`sigma` known-`V`
+  evidence is not borrowed for predictor-dependent `sigma`.
+- Updated the `meta_V()` roxygen example and generated `man/meta_V.Rd` to use
+  the constant-`sigma` example.
+- Added an after-task report at
+  `docs/dev-log/after-task/2026-05-30-meta-v-hessian-limitation-note.md`.
+
+Validation:
+
+```sh
+air format README.md NEWS.md ROADMAP.md R/formula-markers.R docs/design/08-meta-analysis.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/48-phase-18-meta-v-ademp.md docs/dev-log/known-limitations.md vignettes/meta-analysis.Rmd vignettes/model-map.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-meta-v-hessian-limitation-note.md
+Rscript --vanilla -e "devtools::document()"
+git diff --check
+Rscript --vanilla -e 'pkgload::load_all(".", export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); pkgdown::build_article("meta-analysis", pkg = ".", lazy = FALSE, new_process = FALSE, quiet = FALSE); pkgdown::build_article("model-map", pkg = ".", lazy = FALSE, new_process = FALSE, quiet = FALSE)'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+rg -n 'meta_V\((V = vi|V = V)\)|pdHess = FALSE|offset\(0\.5 \* log\(vi\)|issue #417|Issue #417|Hessian-based|Wald intervals|sigma ~ moderator|sigma ~ habitat|sigma ~ offset|meta_gaussian|tau ~|constant-`sigma`|predictor-dependent `sigma`' README.md NEWS.md ROADMAP.md R/formula-markers.R man/meta_V.Rd vignettes/meta-analysis.Rmd vignettes/model-map.Rmd docs/design/08-meta-analysis.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/48-phase-18-meta-v-ademp.md docs/dev-log/known-limitations.md
+```
+
+Results:
+
+- `air format` and `git diff --check` passed.
+- `devtools::document()` completed and regenerated `man/meta_V.Rd`. It also
+  attempted the normal package recompile and emitted existing local compiler
+  warnings, including the local `xcrun --show-sdk-version` warning and Eigen
+  unused-variable warnings; the command exited successfully. Unrelated
+  roxygen churn in `DESCRIPTION`, `man/drmTMB-package.Rd`, and
+  `man/model-fit-extractors.Rd` was restored before closing the slice.
+- `pkgdown::build_article()` rendered both `meta-analysis` and `model-map` to
+  `pkgdown-site/articles/` without adding tracked generated-site changes.
+- `pkgdown::check_pkgdown()` passed with `No problems found.`
+- The stale-wording scan found the intended issue #417 warnings, intentional
+  design-boundary mentions of `meta_gaussian()` and `tau ~`, and unrelated
+  historical or neighbouring Hessian/Wald entries. It did not find a new
+  runnable `meta_gaussian()` or `tau ~` route.
+- This is a documentation and reference-example slice only. It does not add
+  code-level `pdHess` gating for Wald intervals; issue #417 remains open for
+  that diagnostic or numerical work.
+
 ## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
 
 Goal:

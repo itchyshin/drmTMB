@@ -20,5 +20,5 @@ designed for meta-analysis and other regression problems where part of the
 observation covariance is known in advance.
 }
 \examples{
-bf(yi ~ moderator + meta_V(V = vi), sigma ~ moderator)
+bf(yi ~ moderator + meta_V(V = vi), sigma ~ 1)
 }

@@ -15,6 +15,15 @@ meta-analyses. `check_drm()` reports dense known-covariance fits as notes with
 matrix dimension, storage, density, size, rank, and conditioning so users see
 this boundary before interpretation.
 
+Issue #417 records an active numerical limitation in the same surface:
+`meta_V(V = vi)` with a predictor-dependent residual heterogeneity model such
+as `sigma ~ habitat` can return plausible point estimates while
+`TMB::sdreport()` reports `pdHess = FALSE`. This is not a syntax rejection or a
+known-covariance parser failure; it is an unresolved Hessian/inference issue.
+Until it is fixed, documentation should tell users to treat Hessian-based
+standard errors and Wald intervals from that combination as diagnostic rather
+than final inference.
+
 Williams et al. (2026) introduce `glmmTMB::equalto()` for meta-analysis with
 known sampling error variance-covariance matrices. That paper is an important
 planned comparator and positioning reference for `drmTMB`, but `equalto()` is
@@ -198,6 +207,10 @@ The practical rule is:
 - Dense univariate and bivariate matrix-`V` fits should keep the same estimated
   target inventory as their diagonal/vector-`V` counterparts while respecting
   their separate weighting boundary.
+- If `meta_V(V = vi)` plus `sigma ~ moderator` produces `pdHess = FALSE`, the
+  fitted point estimates may still be useful as diagnostics, but
+  Hessian-based standard errors and Wald intervals should not be promoted to
+  final inference until issue #417 is resolved.
 
 ## Unknown Heterogeneity
 
@@ -357,7 +370,9 @@ be implicit until tests show the behaviour is clear.
 
 ## Heterogeneous Heterogeneity
 
-Location-scale meta-analysis is a central use case:
+Location-scale meta-analysis is a central scientific use case, but the current
+`meta_V(V = vi)` plus predictor-dependent `sigma` surface remains diagnostic
+for Hessian-based inference until issue #417 is resolved:
 
 ```r
 bf(

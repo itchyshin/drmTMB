@@ -82,6 +82,11 @@ animal models, or user-supplied latent relatedness comparators. A later
 comparator sheet can add a conventional meta-analysis route only if it targets
 the same fixed effects and residual heterogeneity scale honestly.
 
+This sheet validates the constant-`sigma` `meta_V(V = V)` lane. It does not
+validate `meta_V(V = vi)` with predictor-dependent `sigma`, which issue #417
+reports can return plausible point estimates while `TMB::sdreport()` reports
+`pdHess = FALSE`.
+
 ## P - Performance Measures
 
 Report metrics by condition cell and estimand:

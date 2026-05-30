@@ -33,6 +33,14 @@
   only as a compatibility alias; `check_drm()` reports that row as a note with
   dimension, density, size, rank, and conditioning because dense `V` is a
   small-to-moderate route until sparse or block-sparse storage exists.
+  Issue #417 reports a narrower numerical limitation for location-scale
+  meta-analysis: `meta_V(V = vi)` combined with `sigma ~ moderator` can recover
+  plausible point estimates while `TMB::sdreport()` reports `pdHess = FALSE`.
+  Until that issue is resolved, Hessian-based standard errors and Wald
+  intervals from this combination should be treated as diagnostic rather than
+  final inference. Offsets in the `sigma` formula, such as
+  `sigma ~ offset(0.5 * log(vi))`, are intentionally unsupported; use
+  `meta_V(V = vi)` for known sampling variance.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no

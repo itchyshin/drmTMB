@@ -142,7 +142,11 @@ dat$yi <- rnorm(n, mean = mu, sd = sqrt(dat$vi + sigma_extra^2))
 head(dat)
 ```
 
-The fitted model mirrors the equations above:
+The fitted model mirrors the equations above. This example uses the issue #417
+surface: `meta_V(V = vi)` with a predictor in `sigma`. The point estimates are
+useful for showing the interpretation, but if `TMB::sdreport()` reports
+`pdHess = FALSE`, do not treat Hessian-based standard errors or Wald intervals
+as final inference.
 
 ```{r}
 fit_meta <- drmTMB(
@@ -172,9 +176,11 @@ sigma_coef
 exp(sigma_coef["habitatforest"])
 ```
 
-In this run, forest studies have about `r round(exp(sigma_coef["habitatforest"]), 2)`
-times the extra heterogeneity SD of grassland studies. That multiplier applies
-to `sigma_i`; it does not alter the known sampling variances `vi`.
+In this diagnostic run, the fitted forest contrast implies about
+`r round(exp(sigma_coef["habitatforest"]), 2)` times the extra heterogeneity SD
+of grassland studies. Interpret that multiplier only after checking the Hessian
+and gradients. The multiplier applies to `sigma_i`; it does not alter the known
+sampling variances `vi`.
 
 ## Categorical moderators and heterogeneous heterogeneity
 
@@ -248,13 +254,14 @@ meta_by_habitat <- aggregate(
 meta_by_habitat
 ```
 
-For this model, the fitted residual heterogeneity SD is larger in forest
-studies. The heterogeneity variance column is the same fitted `sigma` model
-reported as `sigma^2`. The total observation variance column adds the known
-sampling variance `vi`, so it is larger than the estimated heterogeneity
-variance alone. A biological interpretation would be: restoration effects are
-not only larger on average in forests, they are also less predictable across
-forest studies after known sampling uncertainty is accounted for.
+For this diagnostic model, the fitted residual heterogeneity SD is larger in
+forest studies. The heterogeneity variance column is the same fitted `sigma`
+model reported as `sigma^2`. The total observation variance column adds the
+known sampling variance `vi`, so it is larger than the estimated heterogeneity
+variance alone. If the Hessian and gradient diagnostics are clean, a biological
+interpretation would be: restoration effects are not only larger on average in
+forests, they are also less predictable across forest studies after known
+sampling uncertainty is accounted for.
 
 Choose the report scale deliberately:
 
@@ -335,6 +342,15 @@ known sampling covariance problems before interpretation:
 ```{r}
 check_drm(fit_meta)
 ```
+
+If a `meta_V(V = V)` model with a moderator in `sigma` reports
+`pdHess = FALSE`, treat the fitted heterogeneity pattern as a diagnostic result
+rather than as settled inference. Issue #417 reports this pattern for
+`meta_V(V = vi)` combined with `sigma ~ moderator`: the fitted `mu` and
+`sigma` coefficients recovered the simulated truth, but `TMB::sdreport()`
+reported a non-positive-definite Hessian. First try the same mean model with
+`sigma ~ 1`; then add the `sigma` moderator back only if the Hessian,
+gradients, and fitted extra heterogeneity values look stable.
 
 For full-matrix known covariance fits, the `known_sampling_covariance` row is a
 note rather than a problem by itself. It reports the retained matrix dimension,
@@ -567,6 +583,11 @@ positive semidefinite after row subsetting.
 The API should keep `family = gaussian()` and `sigma ~ ...`; it should not
 introduce `meta_gaussian()` or `tau ~` syntax without a separate design
 decision.
+
+Standard R `offset()` terms are not supported in the `sigma` formula. For
+meta-analysis, put known sampling variance or covariance in `meta_V(V = V)` and
+model extra heterogeneity with ordinary `sigma` predictors; do not use
+`sigma ~ offset(log(...))` to fix or rescale heterogeneity.
 
 For large sparse covariance matrices, incomplete bivariate rows, or dense
 full-`V` models that also need non-unit likelihood weights, the current best

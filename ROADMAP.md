@@ -79,8 +79,12 @@ distributional regression models using TMB.
   `mu` random intercepts and random-effect scale formulae such as
   `sd(id) ~ x_group` using independent dense marginal-likelihood comparators.
 - Add sparse known covariance after dense covariance tests pass.
-- Use `sigma ~ x1` for heterogeneous heterogeneity, even when papers
-  describe the same unknown SD as `tau`.
+- Keep `sigma ~ x1` as the intended grammar for heterogeneous heterogeneity,
+  even when papers describe the same unknown SD as `tau`; issue #417 limits
+  Hessian-based inference for this surface under `meta_V(V = vi)`. Point
+  estimates may be plausible while `TMB::sdreport()` reports `pdHess = FALSE`,
+  so the constant-`sigma` Phase 18 known-`V` evidence should not be borrowed
+  for that surface.
 - Tests based on fixed known sampling variance and known extra heterogeneity
   are implemented.
 
