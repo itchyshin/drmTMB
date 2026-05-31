@@ -161,6 +161,44 @@ phylo <- function(term, tree) {
   invisible(NULL)
 }
 
+#' Bipartite phylogenetic interaction marker
+#'
+#' `phylo_interaction()` marks a pair-level phylogenetic interaction between two
+#' partner clades. It is the friendly route for bipartite ecological-network
+#' effects where rows are plant-pollinator, host-symbiont, predator-prey, or
+#' other two-partner interactions. The first fitted slice is a single q=1
+#' location random intercept whose latent precision is the sparse Kronecker
+#' product of the two phylogenetic augmented precisions. Use
+#' `relmat(1 | pair, Q = Q_pair)` as the lower-level user-supplied precision
+#' escape hatch.
+#'
+#' The fitted first slice supports ordinary Gaussian, ordinary Poisson, and
+#' ordinary NB2 location models wherever the existing q=1 structured `mu`
+#' machinery is active. Binary/Bernoulli incidence models and additive models
+#' that combine partner main phylogenies and the pair-level interaction are
+#' planned after the corresponding likelihood and multi-layer structured
+#' recovery tests are in place.
+#'
+#' @param term Structured pair random-effect term, currently
+#'   `1 | partner1:partner2`.
+#' @param tree1 Ultrametric phylogeny for the first partner clade.
+#' @param tree2 Ultrametric phylogeny for the second partner clade.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' bf(
+#'   count ~ x + phylo_interaction(
+#'     1 | plant:pollinator,
+#'     tree1 = plant_tree,
+#'     tree2 = pollinator_tree
+#'   )
+#' )
+phylo_interaction <- function(term, tree1, tree2) {
+  invisible(NULL)
+}
+
 #' Spatial structured-effect marker
 #'
 #' `spatial()` marks structured spatial dependence. The first fitted path is

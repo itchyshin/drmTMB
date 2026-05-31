@@ -129,6 +129,7 @@ drm_validate_gaussian_aggregation_weights <- function(weights) {
 validate_gaussian_aggregation_gaussian <- function(
   meta,
   mu_phylo,
+  mu_phylo_interaction = list(term = NULL),
   mu_spatial,
   mu_animal,
   mu_relmat,
@@ -146,6 +147,7 @@ validate_gaussian_aggregation_gaussian <- function(
   }
   structured_terms <- list(
     mu_phylo$term,
+    mu_phylo_interaction$term,
     mu_spatial$term,
     mu_animal$term,
     mu_relmat$term

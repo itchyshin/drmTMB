@@ -2,6 +2,80 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- `phylo_interaction()` First Slice
+
+Goal:
+
+- Close #447 with the first fitted two-tree pair-level structured-effect
+  marker before the broader Phase 18 power simulations begin.
+
+Changes:
+
+- Added exported `phylo_interaction()` marker syntax for
+  `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`.
+- Added parser guards for random-effect syntax, intercept-only q=1 support,
+  two simple partner variables joined by `:`, distinct partner columns, and
+  named `tree1`/`tree2` phylogeny arguments.
+- Added Gaussian, ordinary Poisson, and ordinary NB2 `mu` routing through the
+  existing structured-effect likelihood path, using a sparse Kronecker
+  precision built from the two augmented partner-tree precisions.
+- Exposed the fitted field through `sdpars$mu`,
+  `ranef(fit, "phylo_interaction_mu")`, and direct `log_sd_phylo`
+  `profile_targets()` rows.
+- Added focused Gaussian/Poisson/NB2 tests, sparse-Kronecker builder checks,
+  malformed-syntax tests, roxygen documentation, NEWS, pkgdown reference
+  navigation, a two-tree article, status-table updates, known limitations, and
+  after-task reports.
+- Left additive partner main phylogenies plus the interaction, binary/Bernoulli
+  incidence models, structured pair slopes, labelled count covariance,
+  simultaneous structured layers, and missing-data work out of scope.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/formula-markers.R R/gaussian-aggregation.R R/parse-formula.R R/profile.R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R README.md ROADMAP.md NEWS.md _pkgdown.yml docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-models.Rmd vignettes/structural-dependence.Rmd vignettes/bipartite-phylogenetic-interactions.Rmd docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/parse-formula.R')); invisible(parse('R/profile.R')); invisible(parse('R/formula-markers.R')); invisible(parse('tests/testthat/test-phylo-interaction.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "invisible(parse(text = xfun::split_source('vignettes/bipartite-phylogenetic-interactions.Rmd')$src)); cat('article code parse ok\n')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "Two-tree phylogenetic interactions|A tale of two phylogenies|ordinary NB2|Q_pair.*must match|phylo_interaction\\(|bipartite-phylogenetic-interactions|#447" pkgdown-site/articles/bipartite-phylogenetic-interactions.html pkgdown-site/articles/index.html pkgdown-site/articles/structural-dependence.html pkgdown-site/articles/phylogenetic-models.html pkgdown-site/reference/index.html pkgdown-site/reference/phylo_interaction.html pkgdown-site/news/index.html
+rg -n "incidence_or_count|Hadfield/Rafferty|Hadfield decomposition|ordinary Poisson .* phylogenetic intercept|missing-data|miss_control|structured_effects" README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/bipartite-phylogenetic-interactions.Rmd R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R _pkgdown.yml
+rg -n "binary|Bernoulli|additive partner|simultaneous structured|pair slopes|labelled count" README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/bipartite-phylogenetic-interactions.Rmd
+git diff --check
+Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never')"
+```
+
+Results:
+
+- Parse checks passed.
+- Focused `phylo-interaction` and `package-skeleton` tests passed before and
+  after `devtools::document()`.
+- `devtools::document()` generated `man/phylo_interaction.Rd` and updated
+  `NAMESPACE`; local roxygen-version churn in unrelated files was removed.
+- The two-tree article code parsed and rendered.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the new
+  `phylo_interaction` reference page and the new
+  `bipartite-phylogenetic-interactions` article.
+- The rendered scan found the new article in the Articles index and navbar,
+  links from the phylogenetic and structural-dependence articles, the Reference
+  index entry, the reference page, and the NEWS entry linking #447.
+- The stale-wording scan found only expected internal
+  `collect_structured_effects` helper names for the `structured_effects`
+  pattern; no missing-data lane terms, old Hadfield wording, or old ordinary
+  Poisson-only structured error text remained in the touched source/status
+  files.
+- The boundary scan found only deliberate planned-boundary wording for
+  binary/Bernoulli incidence, additive partner main phylogenies, simultaneous
+  structured layers, pair slopes, and labelled count covariance.
+- `git diff --check` passed.
+- `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
+  7m 11s with 0 errors, 0 warnings, and 0 notes.
+
 ## 2026-05-31 -- Post-fit Accessors for Convergence and Structured Effects
 
 Goal:

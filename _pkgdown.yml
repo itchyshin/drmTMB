@@ -60,6 +60,8 @@ navbar:
           href: articles/animal-models.html
         - text: Phylogenetic structured effects
           href: articles/phylogenetic-models.html
+        - text: Two-tree phylogenetic interactions
+          href: articles/bipartite-phylogenetic-interactions.html
         - text: Coordinate-spatial structured effects
           href: articles/spatial-models.html
         - text: Known-matrix relmat models
@@ -114,6 +116,7 @@ reference:
       - random_effect_scale_formulas
       - animal
       - phylo
+      - phylo_interaction
       - spatial
       - relmat
       - corpair
@@ -180,6 +183,7 @@ articles:
       - structural-dependence
       - animal-models
       - phylogenetic-models
+      - bipartite-phylogenetic-interactions
       - spatial-models
       - relmat-known-matrices
       - phylogenetic-spatial
