@@ -371,19 +371,20 @@ It requires careful checks that the tree-structured and coordinate-structured
 SDs are both identifiable before `drmTMB` treats the syntax as runnable.
 
 For animal and `relmat()` models, use the known-matrix slices when the matrix
-is already available and the target is a Gaussian location random intercept or
-a two-response q=2 location covariance. If the question is repeatability without known relatedness,
-fit an ordinary `(1 | individual)` or `(1 | line)` Gaussian model and report
-that it ignores pedigree or matrix structure. If the question is species shared
-ancestry, use the fitted `phylo(1 | species, tree = tree)` route. If the
-question is site structure, use the fitted coordinate-spatial route. If the
-matrix is sampling covariance among effect-size estimates, use
-`meta_V(V = V)`, not `relmat()`; `relmat()` is for latent random-effect
-relatedness or precision matrices.
+is already available and the target is a Gaussian `mu` or `sigma` intercept,
+one numeric Gaussian `mu` slope, a two-response q=2 location covariance, or a
+constant q=4 location-scale block. If the question is repeatability without
+known relatedness, fit an ordinary `(1 | individual)` or `(1 | line)` Gaussian
+model and report that it ignores pedigree or matrix structure. If the question
+is species shared ancestry, use the fitted `phylo()` route. If the question is
+site structure, use the fitted coordinate-spatial route. If the matrix is
+sampling covariance among effect-size estimates, use `meta_V(V = V)`, not
+`relmat()`; `relmat()` is for latent random-effect relatedness or precision
+matrices.
 
-| Planned question | Planned syntax | Fitted action now |
+| Current question | Syntax | Fitted action now |
 | --- | --- | --- |
-| Heritable individual differences in a wild pedigree | `animal(1 | individual, pedigree = pedigree)` | Fit `(1 | individual)` as a repeatability sensitivity model and label pedigree relatedness as omitted. |
+| Animal-model additive individual deviations from a pedigree | `animal(1 | individual, pedigree = pedigree)` | Use the fitted univariate Gaussian `mu` first slice; inspect `check_drm()` and `profile_targets()` before interpreting the SD. |
 | Additive genetic variance from a precomputed relationship matrix | `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Use the fitted univariate Gaussian `mu` first slice; inspect `check_drm()` and `profile_targets()` before interpreting the SD. |
 | Experimental-line, genomic, or laboratory relatedness that is not a pedigree, tree, or coordinate surface | `relmat(1 | line, K = K)` or `relmat(1 | line, Q = Q)` | Use the fitted univariate Gaussian `mu` first slice, or switch to `phylo()` / `spatial()` when the known structure belongs to those named routes. |
 | Known sampling covariance among effect-size estimates | `meta_V(V = V)` | Use the fitted Gaussian meta-analysis route; this is observation covariance, not a latent relatedness random effect. |
@@ -1039,11 +1040,14 @@ The general structured-effect bridge is:
   \operatorname{MVN}(\mathbf{0}, \sigma_z^2 \mathbf{K}).
 \]
 
-Here \(d\) is the distributional parameter being modelled. In the first
-implemented case, \(d = \mu\): the structured effect is added to the mean
-predictor. For phylogenetic models, \(\mathbf{K}\) is a tree-derived
-phylogenetic covariance matrix \(\mathbf{A}\). For spatial models,
-\(\mathbf{K}\) will be a distance-derived matrix or an SPDE/GMRF precision.
+Here \(d\) is the distributional parameter being modelled. For the simplest
+fitted examples, \(d = \mu\): the structured effect is added to the mean
+predictor. Current Gaussian first slices also include intercept-only structured
+`sigma` terms and selected bivariate covariance blocks, while structured
+`sigma` slopes and structured `rho12` remain planned. For phylogenetic models,
+\(\mathbf{K}\) is a tree-derived phylogenetic covariance matrix
+\(\mathbf{A}\). For spatial models, \(\mathbf{K}\) will be a distance-derived
+matrix or an SPDE/GMRF precision.
 
 For the implemented univariate Gaussian phylogenetic location model:
 
@@ -1175,9 +1179,10 @@ If a phylogenetic fit fails before optimization, check these points first:
   `phylo(1 | species, tree = tree)` in a univariate Gaussian `mu` formula, or
   matching terms in bivariate Gaussian `mu1` and `mu2` formulas.
 
-Phylogenetic slopes and structured effects in `rho12` are planned. Partial,
-unlabelled, mismatched, and slope q=4 phylogenetic location-scale forms should
-error clearly rather than silently fitting a different model.
+Multiple phylogenetic slopes, phylogenetic slope correlations, non-Gaussian
+phylogenetic slopes, and structured effects in `rho12` remain planned.
+Partial, unlabelled, mismatched, and slope q=4 phylogenetic location-scale
+forms should error clearly rather than silently fitting a different model.
 
 ## Bivariate phylogenetic correlations: model layer by layer
 
@@ -1562,11 +1567,16 @@ reproducible control over boundaries, barriers, coastlines, or uneven sampling.
 The spatial term is deliberately parallel to the phylogenetic term:
 
 ```r
-phylo(1 | species, tree = tree)     # implemented for mu and matching mu1/mu2
-phylo(1 | p | species, tree = tree) # implemented for labelled q4 bivariate blocks
-spatial(1 | site, coords = coords)  # implemented for univariate Gaussian mu
-spatial(1 + x | site, coords = coords) # implemented for one numeric mu slope
-spatial(1 | site, mesh = mesh)      # planned
+# implemented for Gaussian mu/sigma intercepts and matching bivariate blocks
+phylo(1 | species, tree = tree)
+# implemented for one numeric Gaussian mu slope
+phylo(1 + x | species, tree = tree)
+# implemented for Gaussian mu/sigma intercepts and matching bivariate blocks
+spatial(1 | site, coords = coords)
+# implemented for one numeric Gaussian mu slope
+spatial(1 + x | site, coords = coords)
+# planned
+spatial(1 | site, mesh = mesh)
 ```
 
 The mathematical role is the same: add structured Gaussian coefficient fields
@@ -1591,12 +1601,12 @@ cite `fmesher` as software. Any code selectively ported from `gllvmTMB`,
 `sdmTMB`, `fmesher`, or INLA-related sources must be recorded in
 `inst/COPYRIGHTS` before the spatial feature is called complete.
 
-Structural phylogenetic and spatial random slopes are staged more
-conservatively than ordinary grouped random slopes. Coordinate spatial `mu` now
-has the first one-slope path, but it is deliberately independent:
-`spatial(1 + x | site, coords = coords)` returns two SDs and no
-intercept-slope `corpair()` row. Phylogenetic slopes, mesh/SPDE slopes, two
-structured `mu` slopes, and spatial slope correlations remain later gates.
+Structured random slopes are staged more conservatively than ordinary grouped
+random slopes. Coordinate spatial and phylogenetic Gaussian `mu` now have first
+one-slope paths, but they are deliberately independent: each returns separate
+SDs and no intercept-slope `corpair()` row. Multiple structured `mu` slopes,
+residual-scale structured slopes, mesh/SPDE slopes, and structured slope
+correlations remain later gates.
 The combined phylogeny-plus-spatial route should be a separate additive-block
 model with a phylogenetic field and a spatial field, not one large cross-factor
 covariance model. A more interesting future two-response target is the

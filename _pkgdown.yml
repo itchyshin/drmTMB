@@ -109,7 +109,7 @@ reference:
       - truncated_nbinom2
       - biv_gaussian
   - title: Structured-effect markers
-    desc: Fitted and planned random-effect scale, structured covariance, and latent-correlation formula syntax. Each topic names its current status.
+    desc: Status-marked random-effect scale, structured covariance, and latent-correlation syntax; each reference page separates fitted routes from planned neighbours.
     contents:
       - random_effect_scale_formulas
       - animal

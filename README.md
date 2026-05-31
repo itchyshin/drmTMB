@@ -192,13 +192,12 @@ head(sigma(fit)^2) # fitted residual variances
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
   `sd(group) ~ x`, and fitted Gaussian structured routes for `phylo()`,
-  `spatial()`, `animal()`, and `relmat()`. These routes include documented
-  `mu` and `sigma` intercepts, one numeric `mu` slope, q=2 bivariate
-  mean-mean blocks, and constant q=4 location-scale blocks for supported
-  markers. The fitted one-slope support is broader than current Actions
-  artifact routing: only `spatial_mu_slope` is a manual Phase 18 task, while
-  the `phylo()`, `animal()`, and `relmat()` one-slope artifact rows remain
-  wrapper targets. Read
+  `spatial()`, `animal()`, and `relmat()`. For Gaussian structured effects,
+  those markers fit documented `mu` and `sigma` intercept routes, one numeric
+  `mu` slope, q=2 bivariate mean-mean blocks, and constant q=4 location-scale
+  blocks where marked. Artifact routing is narrower than fitted syntax:
+  `spatial_mu_slope` has a manual Actions task, while the `phylo()`,
+  `animal()`, and `relmat()` one-slope rows remain wrapper targets. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Stable-core matrix
@@ -288,21 +287,19 @@ gives the finer ledger by family, distributional parameter, dependence layer,
 q, random-slope support, `corpairs()`, `zi`, and `hu`.
 
 Spatial syntax is part of the structured-effect design. The fitted coordinate
-path supports a univariate Gaussian location random intercept,
-`spatial(1 | site, coords = coords)`, one numeric location slope,
-`spatial(1 + x | site, coords = coords)`, and the first bivariate q=2
-`mu1`/`mu2` location covariance from matching
-`spatial(1 | p | site, coords = coords)` terms. The fitted spatial SDs appear in
-`sdpars$mu`/`sdpars$sigma`, conditional effects in `ranef("spatial_mu")` and
-`ranef("spatial_sigma")`, direct SD and
-correlation targets in `profile_targets()`, and the q=2 mean-mean row in
-`corpairs(level = "spatial")` and `summary()$covariance`. Matching labelled
-spatial terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the constant
-q=4 location-scale block and report six derived spatial covariance rows.
-Mesh/SPDE fields, multiple spatial slopes, residual-scale structured slopes,
-spatial slope correlations, direct spatial SD surfaces,
-predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial
-effects are still planned rather than landing-page workflows.
+path supports univariate Gaussian `mu` and `sigma` intercepts with
+`spatial(1 | site, coords = coords)`, one numeric `mu` slope with
+`spatial(1 + x | site, coords = coords)`, q=2 `mu1`/`mu2` location covariance,
+and constant q=4 location-scale blocks from matching all-four labelled spatial
+terms. The fitted spatial SDs appear in `sdpars$mu`/`sdpars$sigma`,
+conditional effects in `ranef("spatial_mu")` and `ranef("spatial_sigma")`,
+direct SD and correlation targets in `profile_targets()`, and the q=2
+mean-mean row in `corpairs(level = "spatial")` and
+`summary()$covariance`. Mesh/SPDE fields, multiple spatial slopes,
+residual-scale structured slopes, spatial slope correlations, direct spatial SD
+surfaces, predictor-dependent spatial `corpair()` regression, and
+non-Gaussian spatial effects are still planned rather than landing-page
+workflows.
 
 For uncertainty, `confint()` defaults to the fast path when `TMB::sdreport()`
 has been computed: Wald intervals for fixed-effect coefficients plus direct

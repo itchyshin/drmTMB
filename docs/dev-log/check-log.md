@@ -47273,3 +47273,53 @@ Member-group review:
   structured random-slope wording.
 - Fisher kept coverage and power planned until interval-status and rejection
   rule artifacts exist.
+
+## 2026-05-30 - Structured prose and pkgdown cleanup
+
+Goal:
+
+- Fix stale reader-facing wording around Gaussian structured one-slope support,
+  animal/`relmat()` readiness, spatial status, and pkgdown navigation.
+
+Changes:
+
+- Updated README structured-effect prose to split fitted syntax from artifact
+  readiness.
+- Updated `vignettes/phylogenetic-spatial.Rmd` to describe one numeric
+  Gaussian `mu` slopes for `phylo()`, `spatial()`, `animal()`, and `relmat()`
+  without implying multiple structured slopes, slope correlations, or
+  coverage evidence.
+- Updated `vignettes/formula-grammar.Rmd` so planned phylogenetic neighbours
+  no longer conflict with fitted structured `sigma` intercept and covariance
+  routes.
+- Updated `_pkgdown.yml` reference-section prose to emphasize status-marked
+  fitted and planned syntax.
+
+Validation:
+
+```sh
+pkgdown::build_home(quiet = FALSE)
+pkgdown::build_article("phylogenetic-spatial", quiet = FALSE)
+pkgdown::build_article("formula-grammar", quiet = FALSE)
+pkgdown::build_reference(examples = FALSE, lazy = TRUE, devel = TRUE)
+rg -n 'Status-marked random-effect scale|Artifact routing is narrower than fitted syntax|one numeric Gaussian `mu` slope|Structured random slopes are staged|Multiple phylogenetic slopes, phylogenetic slope correlations|residual-scale structured slopes, partial or mismatched|implemented for one numeric Gaussian mu slope|spatial_mu_slope|wrapper targets|meta_V\\(V = V\\)' README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd _pkgdown.yml pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/reference/index.html
+rg -n 'Phylogenetic slopes and structured effects in `rho12` are planned|Phylogenetic slopes.*remain later gates|standalone or partial phylogenetic scale terms|Gaussian location random intercept or a two-response q=2 location covariance|In the first implemented case, `d = mu`|implemented for univariate Gaussian mu|implemented for mu and matching mu1/mu2|Planned question|Planned syntax' README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd _pkgdown.yml pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_home()`, `pkgdown::build_article("phylogenetic-spatial")`,
+  `pkgdown::build_article("formula-grammar")`, and
+  `pkgdown::build_reference(examples = FALSE)` completed and wrote the touched
+  local pkgdown pages.
+- The positive scan found the new source and rendered-page wording.
+- The stale-phrase scan found no matches.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Euclid found the stale public-doc lines and supplied file:line handles.
+- Pat kept the table labels framed as current user questions.
+- Rose kept fitted syntax, wrapper-target status, and coverage/power evidence
+  separate.

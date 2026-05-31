@@ -250,10 +250,11 @@ drm_formula(
 )
 ```
 
-Multiple phylogenetic slopes, Poisson phylogenetic slopes, standalone or
-partial phylogenetic scale terms, structured effects in `rho12`, multiple
-animal-model slopes, multiple lower-level `relmat()` slopes, multiple spatial
-slopes, and mesh-based spatial terms are still planned:
+Multiple phylogenetic slopes, Poisson phylogenetic slopes, residual-scale
+structured slopes, partial or mismatched bivariate phylogenetic scale terms,
+structured effects in `rho12`, multiple animal-model slopes, multiple
+lower-level `relmat()` slopes, multiple spatial slopes, and mesh-based spatial
+terms are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these
