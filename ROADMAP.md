@@ -667,6 +667,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   ledger in `docs/design/59-structural-slope-and-non-gaussian-map.md` now
   records the q2/q4 split, evidence handles, #335 metadata-accessor closure,
   and #446 simulation-plan handoff for those structured one-slope rows.
+- Bivariate slope-only gate: #440 is closed at the evidence-gate level by
+  `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`. Matching
+  slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are fitted,
+  extractor-ready, profile-target-ready, diagnostic-ready, and manual-artifact
+  dispatch-ready through `biv_gaussian_mu_slope`. This remains an
+  artifact-ready lane, not a recovery, coverage, power, multicore, bootstrap,
+  or broad p8/q8 claim; #446 owns the formal simulation-plan handoff.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an
