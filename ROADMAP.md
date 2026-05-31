@@ -682,6 +682,14 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   slopes, non-Gaussian `sigma` or shape random effects, inflation/hurdle random
   effects, ordinal mixed models, and mixed-response bivariate models remain
   planned or blocked until separate evidence exists.
+- Random-slope simulation plan: #446 is closed at the planning level by
+  `docs/design/148-phase6c-random-slope-simulation-plan.md`. The next Phase 18
+  work should run diagnostic pilots in this order: registry preflight,
+  bivariate slope-only artifact pilot, ordinary Gaussian `mu`/`sigma` slope
+  pilots, ordinary Poisson/NB2 `mu` slope pilot, source-tested non-Gaussian
+  slope smoke artifacts, and structured Gaussian one-slope wrapper pilots. A
+  diagnostic pilot can propose a formal grid; it cannot by itself create
+  recovery, coverage, or power claims.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an
