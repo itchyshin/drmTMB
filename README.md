@@ -243,12 +243,13 @@ dimensional multivariate models belong in a different tool.
 Random effects are strongest in the Gaussian routes. The non-Gaussian mixed
 surface is still deliberately small: ordinary Poisson/NB2 `mu` random effects,
 ordinary Student-t/zero-truncated NB2/lognormal/Gamma/beta/beta-binomial `mu`
-random intercepts, and the first ordinary Poisson/NB2 q=1 structured `mu`
-intercepts are fitted for `phylo()`, `spatial()`, `animal()`, and `relmat()`.
-The beta/beta-binomial, lognormal/Gamma, Student-t, and
-zero-truncated NB2 ordinary `mu` random intercepts now have small Phase 18
-artifact lanes, not broad bounded-response, positive-continuous, Student-t, or
-count random-effect claims.
+random intercepts and independent numeric `mu` slopes, and the first ordinary
+Poisson/NB2 q=1 structured `mu` intercepts are fitted for `phylo()`,
+`spatial()`, `animal()`, and `relmat()`. The beta/beta-binomial,
+lognormal/Gamma, Student-t, and zero-truncated NB2 ordinary `mu` random
+intercepts now have small Phase 18 artifact lanes, while their independent
+numeric `mu` slopes have focused source tests; neither path is a broad
+bounded-response, positive-continuous, Student-t, or count random-effect claim.
 Ordinary NB2 also has a first grouped overdispersion path in `sigma`, limited
 to independent random intercepts on the log-`sigma` scale. Most other
 non-Gaussian random-effect and structured-dependence combinations remain

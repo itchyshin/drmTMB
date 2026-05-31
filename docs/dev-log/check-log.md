@@ -47149,3 +47149,43 @@ Member-group review:
 - Rose chose an artifact-schema audit as the lowest-risk #440 follow-up.
 - Fisher kept coverage and power planned until interval-status and rejection
   rule artifacts exist.
+
+## 2026-05-30 - Non-Gaussian slope reader-path prose
+
+Goal:
+
+- Fix small reader-path omissions around selected non-Gaussian independent
+  `mu` slopes and animal/`relmat()` one-slope support.
+
+Changes:
+
+- Updated README current-boundaries prose to mention selected non-Gaussian
+  independent numeric `mu` slopes as source-tested, not broad random-effect
+  support.
+- Added a model-map question row for non-Gaussian repeated-group mean random
+  effects.
+- Updated model-map structural-dependence prose to mention one numeric
+  structured Gaussian `mu` slope for animal and `relmat()` routes.
+
+Validation:
+
+```sh
+rg -n 'independent numeric `mu` slopes|source tests|Do repeated groups need non-Gaussian mean random effects|one numeric structured Gaussian `mu` slope|selected non-Gaussian independent `mu` slopes' README.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-30-nongaussian-slope-reader-path.md
+Rscript -e 'pkgdown::build_article("model-map", quiet = FALSE)'
+git diff --check
+```
+
+Results:
+
+- The source/rendered scan found the README boundary wording, the new model-map
+  question row, the animal/`relmat()` one-slope wording, the after-task note,
+  and the rendered `pkgdown-site/articles/model-map.html` text.
+- `pkgdown::build_article("model-map", quiet = FALSE)` completed and wrote
+  `pkgdown-site/articles/model-map.html`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Huygens identified the reader-path omissions in README and the model map.
+- Pat kept the new row phrased as a question an applied user would ask.
+- Rose kept the source-test boundary visible.
