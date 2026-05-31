@@ -43,7 +43,7 @@ Before closing a task, check for stale names and syntax across the repository.
 Common checks include:
 
 ```sh
-rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]|meta_known_V\\(V = V\\).*compatibility alias" .
+rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]|meta_known_V\\(V = V\\).*(current|preferred|stable|default)" .
 rg "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md docs vignettes R tests
 rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md ROADMAP.md docs vignettes R tests
 ```

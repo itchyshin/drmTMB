@@ -17,6 +17,10 @@ Source checkouts:
   `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/`
 - `/Users/z3437171/Dropbox/Github Local/gllvmTMB-julia-bench/`
 
+`gllvmTMB.jl` is an older local checkout directory for `GLLVM.jl`, not a
+separate package name. Use `GLLVM.jl` in prose unless quoting or documenting
+the local filesystem path.
+
 Current local source state when this note was cleaned:
 
 - `GLLVM.jl` local checkout path `gllvmTMB.jl`: commit `6a0d090`, clean

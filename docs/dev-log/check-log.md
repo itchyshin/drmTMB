@@ -46869,3 +46869,43 @@ Member-group review:
 - Fisher kept q > 2 correlations derived-unavailable for direct profiling.
 - Boole kept `sigma` slopes on `log(sigma)` and avoided implying labelled or
   correlated residual-scale covariance.
+
+## 2026-05-30 - Audit-pattern and GLLVM path cleanup
+
+Goal:
+
+- Remove two small sources of terminology drift found during the overnight
+  Phase 6c consistency audit: a false-positive `meta_known_V()` stale-wording
+  pattern and an older local `gllvmTMB.jl` path that could be misread as a
+  package name.
+
+Changes:
+
+- Updated `docs/design/10-after-task-protocol.md` so stale-name scans flag
+  `meta_known_V(V = V)` only when it is described as current, preferred,
+  stable, or default. Deprecated compatibility-alias wording is now allowed.
+- Added an explicit provenance note to
+  `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md`: `gllvmTMB.jl` is an older
+  local checkout directory for `GLLVM.jl`, not a separate package name.
+
+Validation:
+
+```sh
+rg -n -F 'meta_known_V\\(V = V\\).*(current|preferred|stable|default)' docs/design/10-after-task-protocol.md
+rg -n 'older local checkout directory for `GLLVM.jl`' docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md
+rg -n 'meta_known_V\\(V = V\\).*compatibility alias' docs/design/10-after-task-protocol.md
+git diff --check
+```
+
+Results:
+
+- The positive scan found the updated audit pattern and the GLLVM path note.
+- The false-positive stale scan found no remaining instruction to flag
+  compatibility-alias wording in the after-task protocol.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Rose caught the two drift hazards.
+- Boole kept the current canonical names: `meta_V(V = V)` for preferred
+  known-covariance syntax and `GLLVM.jl` for the Julia sister package.
