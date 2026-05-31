@@ -275,6 +275,78 @@ test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   expect_equal(nrow(plan), 9L)
 })
 
+test_that("Phase 18 random-slope registry preflight reports gated rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  preflight <- env$phase18_random_slope_registry_preflight(registry)
+
+  expect_equal(nrow(preflight$rows), 9L)
+  expect_setequal(
+    preflight$checks$check,
+    c(
+      "random_slope_rows",
+      "required_fields_complete",
+      "existing_actions_tasks",
+      "source_test_audits",
+      "wrapper_targets"
+    )
+  )
+  expect_equal(
+    preflight$checks$value[
+      preflight$checks$check == "required_fields_complete"
+    ],
+    "pass"
+  )
+  expect_equal(sum(is.na(preflight$rows$actions_task)), 0L)
+  expect_match(
+    paste(preflight$rows$lane_id, collapse = "\n"),
+    "bivariate_gaussian_slope_only",
+    fixed = TRUE
+  )
+  expect_equal(sum(!nzchar(preflight$rows$supervision_boundary)), 0L)
+})
+
+test_that("Phase 18 random-slope registry preflight fails closed", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  row <- which(registry$workflow_lane == "random_slopes")[[1L]]
+  registry$supervision_boundary[[row]] <- ""
+
+  expect_error(
+    env$phase18_random_slope_registry_preflight(registry),
+    "supervision_boundary"
+  )
+})
+
+test_that("Phase 18 random-slope registry preflight formats dry-run output", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  preflight <- env$phase18_random_slope_registry_preflight(registry)
+  lines <- env$phase18_format_random_slope_registry_preflight(preflight)
+  text <- paste(lines, collapse = "\n")
+
+  expect_match(
+    text,
+    "Phase 18 random-slope registry preflight",
+    fixed = TRUE
+  )
+  expect_match(text, "No simulations, GitHub Actions jobs", fixed = TRUE)
+  expect_match(text, "bivariate_gaussian_slope_only", fixed = TRUE)
+  expect_match(text, "source_test_audit", fixed = TRUE)
+})
+
 test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)

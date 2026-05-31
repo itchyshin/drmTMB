@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Random-Slope Registry Preflight
+
+Goal:
+
+- Add the first #59 follow-through helper from the closed #446 simulation plan:
+  a dry random-slope registry preflight before diagnostic pilots are dispatched.
+
+Actions run:
+
+- Added `phase18_random_slope_registry_preflight()`,
+  `phase18_format_random_slope_registry_preflight()`, and
+  `phase18_print_random_slope_registry_preflight()`.
+- The helper filters `workflow_lane == "random_slopes"` rows, verifies required
+  gate fields, and labels dispatch status, Actions task, workflow helper, audit
+  focus, next action, and supervision boundary without dispatching any work.
+- Added focused tests for the passing preflight, dry-run formatting, and a
+  fail-closed missing-`supervision_boundary` path.
+- Updated the structured workflow registry design note, the #446 simulation
+  plan, `inst/sim/README.md`, `ROADMAP.md`, and the after-task report.
+- Kept this slice dry-run only: no simulations, GitHub Actions jobs,
+  likelihoods, status promotions, formula grammar, TMB code, or missing-data
+  files changed.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-31-random-slope-registry-preflight.md inst/sim/README.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'phase18_random_slope_registry_preflight|phase18_print_random_slope_registry_preflight|Random-slope registry preflight|workflow_lane == "random_slopes"|No simulations, GitHub Actions jobs|supervision_boundary' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-random-slope-registry-preflight.md docs/dev-log/check-log.md inst/sim/README.md ROADMAP.md
+rg -n 'random-slope registry preflight.*(dispatches|runs simulations|promotes|recovery claim|coverage claim|power claim)|phase18_random_slope_registry_preflight.*(dispatches|runs simulations|promotes)' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat docs/design inst/sim/README.md ROADMAP.md
+git diff --check
+```
+
+Results:
+
+- `air format` completed with no changes needed after the final edit.
+- Focused `devtools::test()` passed for
+  `phase18-structured-workflow-registry`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The positive scan found the new preflight helper, printer, dry-run wording,
+  random-slope lane filter, and `supervision_boundary` gate in the helper,
+  focused tests, design notes, check log, after-task report, simulation README,
+  and roadmap.
+- The stale-claim scan returned no matches in the helper, tests, design notes,
+  simulation README, or roadmap for preflight wording that would claim
+  simulation dispatch, GitHub Actions dispatch, status promotion, recovery,
+  coverage, or power support.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Phase 6c Random-Slope Simulation Plan
 
 Goal:
