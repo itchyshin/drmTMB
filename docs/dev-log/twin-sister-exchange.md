@@ -65,3 +65,14 @@ sister-repo performance or coverage is `drmTMB` evidence.
 Decision: accept both lessons for planning language only. They support the
 Phase 6c issue taxonomy and #446 simulation plan, but they do not count as
 `drmTMB` recovery, power, accuracy, coverage, or speed evidence.
+
+## Third Scout: 2026-05-30 Overnight
+
+| Source | State | Observed pattern | drmTMB action | Risk and comment status |
+| --- | --- | --- | --- | --- |
+| `DRM.jl` at `/Users/z3437171/Dropbox/Github Local/DRM.jl` | branch observed as `gaussian-multi-re`, commit `2edd781`, dirty local work present | The digital twin keeps simulation/readability gates as one slice ledger: tests name the DGP and recovery target, and dev-log entries tie small capabilities to test plus documentation evidence. | For #446, keep each random-slope operating-characteristic lane readable: DGP, estimand, fit route, recovery/coverage/power status, and planned neighbours in the same note. For #444, use status-tagged reader pages only when rendered docs and evidence ledgers are current. | Dirty local work means this is workflow inspiration only. No code copied and no sibling comment warranted. |
+| `GLLVM.jl` at `/Users/z3437171/Dropbox/Github Local/GLLVM.jl` | branch observed as `fix-vitepress-deploy-path`, commit `281fe07`, clean | A profile-derived coverage fix is preserved as a narrative regression test before full coverage lives in bench scripts. Parity and quality gates are opt-in rather than part of the light local suite. | When a #446 random-slope grid exposes bad coverage, degenerate intervals, or convergence artifacts, promote the smallest failing cell into a focused regression test that records the failure story. Keep heavy comparator/parity work optional and separate from CRAN-safe checks. | MIT/GPL boundary still matters. No code copied. No comment warranted. |
+| `gllvmTMB` at `/Users/z3437171/Dropbox/Github Local/gllvmTMB` | `main`, commit `9dcac03`, clean but behind origin | Reader-first docs start with user questions and explicit "Start Here" routes, while advanced examples wait for data, diagnostics, validation, and rendered HTML. Warnings name fallback behavior and what the user should do next. | For #444, use two reader views rather than a larger architecture import: compact formula syntax plus interpretation/status map. For #446, write failure and fallback notes that tell future users or agents the next action. | Checkout is behind origin, so refresh before citing current package status. No code copied and no comment warranted. |
+
+Decision: accept these as process lessons for #444 and #446 only. They do not
+validate any `drmTMB` accuracy, coverage, power, speed, or package-scope claim.

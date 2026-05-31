@@ -1359,3 +1359,11 @@ errors, and elapsed time by surface before the raw manifest.
      estimands and boundary notes, and marks every coverage and power cell as
      `planned_not_estimated`. It is an ADEMP-facing plan, not a recovery,
      accuracy, coverage, or power result.
+238. Slice 1830 adds
+     `docs/design/144-phase6c-gaussian-random-slope-ademp.md`, the first
+     #446 ADEMP sheet. It plans the ordinary Gaussian `mu` q > 2 grouped
+     random-slope lane and the independent Gaussian `sigma` random-slope lane,
+     names pilot condition factors, estimands, direct-versus-derived interval
+     targets, nested `drmTMB` comparators, MCSE guidance, and a Williams
+     11-item self-audit. It does not run grids or promote coverage/power
+     evidence.

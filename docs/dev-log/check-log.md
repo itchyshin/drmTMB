@@ -47026,3 +47026,47 @@ Member-group review:
   avoided implying residual-scale slope covariance support.
 - Grace recorded the full-build interruption and used targeted rendered-page
   evidence for the files actually touched.
+
+## 2026-05-30 - Third twin exchange card and Gaussian slope ADEMP sheet
+
+Goal:
+
+- Record the third bounded twin/sister exchange lesson card for #437 and add
+  the first ADEMP sheet behind the #446 random-slope operating-characteristic
+  plan.
+
+Changes:
+
+- Added a third exchange card to `docs/dev-log/twin-sister-exchange.md`,
+  using local snapshots of `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`.
+- Added `docs/design/144-phase6c-gaussian-random-slope-ademp.md` for ordinary
+  Gaussian `mu` q > 2 grouped random slopes and independent Gaussian `sigma`
+  random slopes.
+- Linked the new ADEMP sheet from
+  `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+
+Validation:
+
+```sh
+rg -n 'Third Scout: 2026-05-30 Overnight|gaussian-multi-re|fix-vitepress-deploy-path|gllvmTMB` at|Phase 6c Gaussian Random-Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|planned_not_estimated|docs/design/144-phase6c-gaussian-random-slope-ademp.md' docs/dev-log/twin-sister-exchange.md docs/design/144-phase6c-gaussian-random-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'sigma ~ z \\+ \\(1 \\+ w \\| id\\)|does not run grids|does not.*claim accuracy|does not.*coverage|does not.*power|correlated residual-scale slope covariance planned|q > 2 correlations derived-only' docs/design/144-phase6c-gaussian-random-slope-ademp.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- The exchange scan found the third card and the three source states.
+- The ADEMP scan found the A, D, E, M, P, and Williams self-audit sections plus
+  the simulation-programme and sprint links.
+- The boundary scan found the no-grid/no-claim language, planned residual-scale
+  covariance boundary, and derived-only q > 2 correlation interval boundary.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Jason kept the exchange card as design-learning only.
+- Curie translated #446 from a planning table into the first concrete ADEMP
+  sheet.
+- Fisher kept power planned-only until a null/alternative contrast and MCSE
+  target exist.

@@ -157,6 +157,12 @@ standard-error target. The minimum performance vocabulary is bias or accuracy,
 RMSE, interval coverage, power or Type I error when a null comparison is part
 of the question, convergence and Hessian status, boundary rate, and runtime.
 
+The first sheet is
+`docs/design/144-phase6c-gaussian-random-slope-ademp.md`. It plans ordinary
+Gaussian `mu` q > 2 grouped random slopes and independent Gaussian `sigma`
+random slopes, while keeping q > 2 correlations derived-only for intervals and
+correlated residual-scale slope covariance planned.
+
 Keep the first Phase 6c simulation bridge narrow:
 
 - #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian
