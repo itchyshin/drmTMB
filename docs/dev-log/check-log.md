@@ -47622,3 +47622,62 @@ Member-group review:
 - Ada kept the slice to dispatch plumbing and documentation synchronization.
 - Grace required generated main and dev pkgdown pages to agree before staging.
 - Rose turned the stale generated dev-site page into a team-improvement item.
+
+## 2026-05-30 - Unsupported structured-slope overreach guards
+
+Goal:
+
+- Keep the structured one-slope public contract honest by rejecting labelled
+  structured slope blocks such as `phylo(1 + x | p | species, tree = tree)`.
+  The fitted Phase 6c surface is unlabelled independent `mu` one-slope paths;
+  structured slope correlations remain planned.
+
+Changes:
+
+- Added a parser guard in `parse_structured_bar_term()` so structured
+  covariance-block labels are accepted only for intercept-only terms.
+- Added regression tests for unsupported random effects in `rho12`, bivariate
+  residual-scale slope overreach, labelled residual-scale ordinary sigma
+  slopes, multiple structured slopes, and labelled `phylo()` and `spatial()`
+  structured slope blocks.
+- Updated the formula grammar design note and tutorial to say that labelled
+  `phylo()`, `animal()`, `spatial()`, and `relmat()` slope blocks remain rejected until
+  structured slope correlations have syntax, simulations, and extractor checks.
+- Excluded unrelated `devtools::document()` output from `DESCRIPTION` and
+  generated Rd files because no roxygen comments changed in this slice.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('R/parse-formula.R','tests/testthat/test-gaussian-random-intercepts.R','tests/testthat/test-phylo-gaussian.R','tests/testthat/test-spatial-gaussian.R'); invisible(lapply(files, parse)); cat('unsupported boundary parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^gaussian-random-intercepts$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phylo-gaussian$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^spatial-gaussian$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_article('formula-grammar', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_reference_index()"
+rg -n 'covariance-block labels currently require intercept-only structured terms|within-observation correlation|bivariate residual-scale random intercepts|Labelled structured slope blocks|structured covariance-block labels are intercept-only|phylo\(1 \+ x \| p \| species|spatial\(1 \+ x \| p \| site' R/parse-formula.R tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd
+rg -n 'phylo\(1 \+ x \| p \| species.*Implemented|spatial\(1 \+ x \| p \| site.*Implemented|animal\(1 \+ x \| p \| id.*Implemented|relmat\(1 \+ x \| p \| id.*Implemented|labelled structured slope.*Implemented|slope correlations are implemented|rho12.*random effects.*Implemented' docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd README.md ROADMAP.md NEWS.md docs/design vignettes
+git diff --check
+```
+
+Results:
+
+- The parse check printed `unsupported boundary parse ok`.
+- The focused Gaussian random-intercepts, phylogenetic Gaussian, and spatial
+  Gaussian test files passed. The new labelled `phylo()` slope test failed
+  before the parser guard because the syntax silently fit independent fields.
+- `pkgdown::build_article("formula-grammar")` and
+  `pkgdown::build_reference_index()` completed; the article build refreshed the
+  ignored local `pkgdown-site/articles/formula-grammar.html` page.
+- The positive scan found the new parser error, tests, and documented rejected
+  `phylo()`/`spatial()` examples. The stale scan found no current source claim
+  that labelled structured slope blocks, structured slope correlations, or
+  random effects in `rho12` are implemented.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Boole kept the supported syntax simple: labels mean intercept covariance
+  blocks, while unlabelled structured one-slope terms mean independent fields.
+- Curie required negative tests for the closest user overreach syntax.
+- Rose excluded unrelated roxygen churn before staging.

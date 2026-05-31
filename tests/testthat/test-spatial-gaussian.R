@@ -677,6 +677,14 @@ test_that("spatial one-slope support stays limited to univariate mu", {
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + spatial(1 + x | p | site, coords = coords), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "covariance-block labels"
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords)),
       family = gaussian(),
       data = dat

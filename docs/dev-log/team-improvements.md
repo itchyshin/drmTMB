@@ -489,3 +489,14 @@ issues, or pull requests.
   pkgdown site, but `pkgdown-site/dev/news/index.html`, `pkgdown-site/dev/ROADMAP.html`,
   and the dev article mirrors still carried the previous "spatial-only manual
   task" and "non-spatial wrapper target" boundary until they were synchronized.
+
+## 2026-05-30 - Planned Syntax Needs Negative Tests
+
+- Improvement implemented: when docs say a nearby formula form is planned rather
+  than fitted, add at least one negative parser or model-fit test for the exact
+  syntax a user is likely to try.
+- Trigger: labelled structured slope blocks such as
+  `phylo(1 + x | p | species, tree = tree)` were documented as planned because
+  they would imply slope correlations, but the parser previously accepted the
+  syntax and fit independent fields. The fix now rejects labelled structured
+  non-intercept terms until syntax, simulation, and extractor evidence exist.
