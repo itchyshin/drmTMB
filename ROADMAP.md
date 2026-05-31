@@ -300,6 +300,12 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
+- `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`
+  is the fitted first pair-level route for two partner phylogenies. It builds
+  one sparse Kronecker precision field for univariate Gaussian `mu` and
+  ordinary Poisson/NB2 `mu`, while additive partner main phylogenies plus the
+  pair interaction, binary/Bernoulli incidence models, structured pair slopes,
+  and simultaneous structured layers remain planned.
 - Full-species Ayumi stress tests keep the bivariate q2 phylogenetic path in a
   cautious lane. The aggregate all-species q2 phylogenetic source fit
   converges, but row-capped all-species q2 targets still false-converge with
@@ -417,7 +423,7 @@ Phase 5 closure boundary:
 
 | Layer | Implemented before spatial expansion | Still planned |
 | --- | --- | --- |
-| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu` and/or `sigma`, matching `mu`/`sigma` structured correlation, one numeric `mu` slope, `sd_phylo(species) ~ z`, profile targets and diagnostics | multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, and richer tree-shape recovery grids |
+| univariate phylogenetic | `phylo(1 | species, tree = tree)` in Gaussian `mu` and/or `sigma`, matching `mu`/`sigma` structured correlation, one numeric `mu` slope, `sd_phylo(species) ~ z`, `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)` for one Gaussian/Poisson/NB2 pair-level Kronecker field, profile targets, and diagnostics | multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, additive partner main phylogenies plus `phylo_interaction()`, binary/Bernoulli incidence models, direct-SD formulas combined with structured `sigma`, and richer tree-shape recovery grids |
 | bivariate phylogenetic | matching `mu1`/`mu2` phylogenetic location correlation, constant full and block-diagonal q=4 location-scale blocks, q=2 predictor-dependent `corpair(..., level = "phylogenetic") ~ w`, bivariate `sd_phylo1()` / `sd_phylo2()`, and Ayumi q2/q4 stress artifacts | q=4 predictor-dependent location-scale and scale-scale `corpair()` regressions; broader predictor-dependent structured scale-scale covariance is not a near-term priority |
 | coordinate spatial | `spatial(1 | site, coords = coords)` in univariate Gaussian `mu` and/or `sigma`, matching univariate `mu`/`sigma` structured correlation, one numeric `mu` slope, matching bivariate `mu1`/`mu2` q=2 covariance, constant all-four q=4 location-scale covariance with `corpairs(level = "spatial")`, and ordinary Poisson/NB2 q=1 `mu` intercepts; `sdpars`, marker-specific `ranef()` blocks, profile targets, and `check_drm()` rows expose the fitted fields | mesh/SPDE, multiple spatial slopes, residual-scale structured slopes, spatial slope correlations, spatial direct-SD, spatial `corpair()`, count spatial slopes, and zero-inflated spatial effects |
 | animal and user-supplied relatedness | Gaussian `mu` and `sigma` intercepts for `animal(1 | id, pedigree/A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`, matching univariate `mu`/`sigma` structured correlations, one numeric `mu` slope, matching labelled `mu1`/`mu2` q=2 location covariance, constant all-four q=4 location-scale covariance, and ordinary Poisson/NB2 q=1 `mu` intercepts with `corpairs()`, `summary()$covariance`, profile-target status, diagnostics, and dense-likelihood tests where relevant | sparse large-pedigree construction, multiple structured slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()` regressions, optional `phylo(..., A/Ainv = ...)` input, animal/`relmat()` count slopes or labels, and generic direct-SD naming design |
