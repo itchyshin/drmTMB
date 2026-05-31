@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Coscale And Corpairs Boundary Extraction
+
+Goal:
+
+- Extract #443 from the Phase 6c draft branch into a small current-main PR that
+  sharpens the reader boundary between residual coscale `rho12`, singular
+  `corpair()` formula markers, and plural `corpairs()` extraction rows.
+
+Actions run:
+
+- Carried over the #443 documentation changes for the bivariate-coscale
+  tutorial, correlation-pair design note, course path, `corpair()` reference,
+  NEWS, ROADMAP, and after-task report.
+- Deliberately omitted the draft-only four-week sprint contract file from this
+  extracted PR.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor, or
+  missing-data files changed beyond roxygen/reference wording.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md R/formula-markers.R docs/course/README.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/after-task/2026-05-30-coscale-corpairs-boundary-ledger.md docs/dev-log/check-log.md vignettes/bivariate-coscale.Rmd
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = 'package-skeleton', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-coscale', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_reference_index()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'rho12|corpair\(|corpairs\(|residual coscale|random effects in `rho12`|slope-specific' README.md NEWS.md ROADMAP.md R/formula-markers.R man/corpair.Rd docs/design/20-coscale-correlation-pairs.md docs/course/README.md vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- `devtools::document()` completed and regenerated `man/corpair.Rd`. It also
+  rewrote unrelated package-level manual files in this checkout, so those
+  unrelated generated files were restored before committing this slice.
+- The focused package-skeleton test passed.
+- The bivariate-coscale article and pkgdown reference index rendered, and
+  `pkgdown::check_pkgdown()` reported no problems.
+- The source and rendered scans found the intended `rho12`, `corpair()`,
+  `corpairs()`, residual-coscale, and slope-specific boundary wording.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- PR #435 Rebase After `phylo_interaction()` Merge
 
 Goal:

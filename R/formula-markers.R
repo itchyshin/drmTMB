@@ -304,11 +304,13 @@ relmat <- function(term, K = NULL, Q = NULL) {
 #' is distinct from residual `rho12` and from the [corpairs()] extractor. The
 #' first fitted paths are q=2 location-location cases for matching labelled
 #' `mu1`/`mu2` random intercepts:
-#' `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`.
+#' `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
 #' and
 #' `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`.
-#' Predictors must be constant within the grouping factor. Spatial,
-#' location-scale, scale-scale, and q=4 `corpair()` regressions remain planned.
+#' Predictors must be constant within the grouping factor. Spatial
+#' `corpair()` regressions, location-scale `corpair()` regressions,
+#' scale-scale `corpair()` regressions, and q=4 `corpair()` regressions remain
+#' planned.
 #' The phylogenetic q=2 route uses a positive-definite two-field loading
 #' contract for the whole tree-coupled species block.
 #'

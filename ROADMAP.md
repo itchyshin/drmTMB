@@ -654,6 +654,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)` now
   fits the first coordinate spatial one-slope `mu` path, but
   `phylo(1 + x | species, tree = tree)` still does not fit.
+- Coscale boundary: in current docs, coscale means residual bivariate Gaussian
+  `rho12`; singular `corpair()` is a formula marker for supported latent
+  random-effect correlation regressions only; plural `corpairs()` is an
+  extractor for residual `rho12` and fitted latent correlation rows. Extracted
+  structured rows do not imply that random effects in `rho12`,
+  predictor-dependent q4, residual-scale, slope-specific, spatial, animal, or
+  `relmat()` `corpair()` regressions are fitted.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
