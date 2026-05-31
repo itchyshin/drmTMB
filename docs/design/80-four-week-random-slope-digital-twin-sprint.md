@@ -168,6 +168,12 @@ plans the matching bivariate Gaussian `mu1`/`mu2` slope-only lane from #440 and
 keeps residual `rho12` separate from group-level slope-slope covariance in
 truth, extraction, interval, and reporting columns.
 
+The artifact-schema audit is
+`docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md`. It records
+that the current bivariate slope-only replicate and aggregate artifacts already
+separate `random_correlation` from `residual_rho12`, while coverage and power
+remain planned until interval-status and rejection-rule artifacts exist.
+
 Keep the first Phase 6c simulation bridge narrow:
 
 - #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian

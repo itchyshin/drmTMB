@@ -47110,3 +47110,42 @@ Member-group review:
 - Curie kept the sheet as a design object, not a simulation result.
 - Boole kept the formula surface limited to the existing matching slope-only
   grammar.
+
+## 2026-05-30 - Bivariate Gaussian slope-only artifact-schema audit
+
+Goal:
+
+- Check the existing `biv_gaussian_mu_slope` artifacts against the #440/#446
+  ADEMP estimands, especially residual `rho12` versus group-level slope-slope
+  correlation separation.
+
+Changes:
+
+- Added `docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md`.
+- Linked the audit from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Strengthened `tests/testthat/test-phase18-biv-gaussian-mu-slope.R` so
+  replicate and aggregate artifacts must keep `random_correlation` separate
+  from `residual_rho12`.
+
+Validation:
+
+```sh
+devtools::test(filter = "phase18-biv-gaussian-mu-slope")
+rg -n 'Bivariate Slope Artifact-Schema Audit|random_correlation|residual_rho12|planned_not_estimated|docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md' docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md tests/testthat/test-phase18-biv-gaussian-mu-slope.R
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "phase18-biv-gaussian-mu-slope")` passed with
+  46 expectations, 0 failures, 0 warnings, and 0 skips.
+- The schema scan found the audit note, sprint/programme links, and the
+  `random_correlation`/`residual_rho12` separation assertions.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Rose chose an artifact-schema audit as the lowest-risk #440 follow-up.
+- Fisher kept coverage and power planned until interval-status and rejection
+  rule artifacts exist.

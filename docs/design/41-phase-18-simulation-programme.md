@@ -1374,3 +1374,11 @@ errors, and elapsed time by surface before the raw manifest.
      slope-slope covariance separation an explicit simulation estimand and
      reporting check. It does not open intercept-plus-slope q4, p8/q8, random
      effects in `rho12`, or mixed-response bivariate surfaces.
+240. Slice 1832 adds
+     `docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md`. It
+     checks the existing `biv_gaussian_mu_slope` writer against the #440/#446
+     ADEMP estimands and records that replicate and aggregate artifacts already
+     keep the group-level slope-slope row (`random_correlation`) separate from
+     residual `rho12` (`residual_rho12`). The slice strengthens the source test
+     for that separation and leaves coverage and power planned until interval
+     and rejection-rule artifacts are designed.
