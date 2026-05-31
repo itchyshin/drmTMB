@@ -47189,3 +47189,44 @@ Member-group review:
 - Huygens identified the reader-path omissions in README and the model map.
 - Pat kept the new row phrased as a question an applied user would ask.
 - Rose kept the source-test boundary visible.
+
+## 2026-05-30 - Non-Gaussian `mu` slope ADEMP sheet
+
+Goal:
+
+- Add the #441/#446 ADEMP sheet for selected ordinary non-Gaussian independent
+  `mu` slopes.
+
+Changes:
+
+- Added `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Kept the scope limited to the six source-tested families in
+  `tests/testthat/test-nongaussian-mu-random-slopes.R`.
+
+Validation:
+
+```sh
+devtools::test(filter = "nongaussian-mu-random-slopes")
+rg -n 'Phase 6c Non-Gaussian `mu` Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|Student-t|lognormal|Gamma|beta-binomial|zero-truncated NB2|docs/design/147-phase6c-nongaussian-mu-slope-ademp.md' docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not promote coverage|correlated non-Gaussian slopes|structured dependence|random effects in `sigma`|shape random effects|zero-one beta|inflation or hurdle' docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "nongaussian-mu-random-slopes")` passed with
+  108 expectations, 0 failures, 0 warnings, and 0 skips.
+- The ADEMP scan found the purpose, A/D/E/M/P sections, Williams self-audit,
+  six source-tested families, and programme/sprint links.
+- The boundary scan found the no-grid/no-promotion language, comparator gate,
+  interval/failure-retention measures, and blocked correlated/structured/
+  scale-shape surfaces.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the plan family-separated and source-test bounded.
+- Fisher kept coverage and power planned until interval provenance and MCSE
+  targets exist.

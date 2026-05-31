@@ -1382,3 +1382,11 @@ errors, and elapsed time by surface before the raw manifest.
      residual `rho12` (`residual_rho12`). The slice strengthens the source test
      for that separation and leaves coverage and power planned until interval
      and rejection-rule artifacts are designed.
+241. Slice 1833 adds
+     `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`, the #441/#446
+     ADEMP sheet for selected ordinary non-Gaussian independent `mu` slopes.
+     It covers only the six source-tested families in
+     `tests/testthat/test-nongaussian-mu-random-slopes.R`, keeps family
+     evidence separate, and leaves coverage, power, correlated slopes,
+     non-Gaussian scale/shape random effects, and structured dependence planned
+     or blocked.

@@ -174,6 +174,13 @@ that the current bivariate slope-only replicate and aggregate artifacts already
 separate `random_correlation` from `residual_rho12`, while coverage and power
 remain planned until interval-status and rejection-rule artifacts exist.
 
+The third sheet is
+`docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`. It plans an
+artifact-admission lane for selected ordinary non-Gaussian independent `mu`
+slopes while keeping family evidence separate and leaving coverage, power,
+correlated slopes, structured dependence, and non-Gaussian scale or shape
+random effects planned or blocked.
+
 Keep the first Phase 6c simulation bridge narrow:
 
 - #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian
