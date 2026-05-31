@@ -650,10 +650,16 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   slopes, structured slope correlations, residual-scale structured slopes, and
   broader bivariate slope blocks remain later work for Phases 10 and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
-  `mu` block path, with q=3 recovery and extractor coverage. Larger ordinary
-  blocks remain advanced, sample-size hungry fits. The structured one-slope
-  Gaussian `mu` handoff is also current: `spatial(1 + x | site, coords =
-  coords)`, `phylo(1 + x | species, tree = tree)`,
+  `mu` block path, with q=3 recovery, q=4 output-contract checks, and
+  extractor coverage in `sdpars$mu`, `corpars$re_cov`, `corpairs()`,
+  `summary()$covariance`, and `profile_targets()`. Larger ordinary blocks
+  remain advanced, sample-size hungry fits; q > 2 SDs are direct profile
+  targets, but q > 2 correlations remain derived-unavailable for direct profile
+  intervals. Gaussian `sigma` random intercepts and independent numeric slopes
+  are fitted on log-`sigma`; correlated residual-scale slope blocks and
+  labelled residual-scale slope covariance remain planned. The structured
+  one-slope Gaussian `mu` handoff is also current: `spatial(1 + x | site,
+  coords = coords)`, `phylo(1 + x | species, tree = tree)`,
   `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
   intercept and slope fields for the first univariate Gaussian route. Multiple
   structured slopes, structured slope correlations, bivariate structured

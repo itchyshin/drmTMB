@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Gaussian Ordinary Random-Slope Closeout
+
+Goal:
+
+- Close #439 by consolidating evidence for ordinary Gaussian `mu` q > 2
+  grouped blocks and independent Gaussian `sigma` slopes before larger Phase 18
+  power simulations.
+
+Actions run:
+
+- Linked ordinary Gaussian `mu` q=3 recovery, q=4 output-contract, extractor,
+  `corpairs()`, `summary()$covariance`, and `profile_targets()` evidence from
+  the roadmap and Phase 6c core design note.
+- Made user-facing status rows explicit that independent Gaussian `sigma`
+  slopes are fitted on log-`sigma`.
+- Kept correlated residual-scale slope blocks and labelled residual-scale slope
+  covariance planned.
+- Removed one stale structured-slope sentence in the Phase 6c core design note
+  so the neighbouring table agrees with the #438 support matrix.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, or missing-data files changed.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-phase6c-gaussian-ordinary-closeout.md docs/dev-log/check-log.md vignettes/model-map.Rmd
+Rscript --vanilla -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-gaussian-mu-random-slope|phase18-random-slope-grid-writers', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'q=3 recovery|q=4 output-contract|log-`sigma`|derived-unavailable|labelled residual-scale slope covariance|Ordinary Gaussian Evidence Closeout' README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-31-phase6c-gaussian-ordinary-closeout.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'phylogeny has intercept-level effects but no fitted slope|correlated residual-scale slope blocks.*(fitted|implemented)|labelled residual-scale slope covariance.*(fitted|implemented)|q > 2 `mu` correlations are direct profile targets|q > 2 correlations are direct profile targets' README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd pkgdown-site --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- The focused Gaussian random-intercepts, Phase 18 Gaussian `mu` random-slope,
+  and Phase 18 random-slope grid-writer tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site in the fresh #439 worktree.
+- The positive source/rendered scan found the intended q=3 recovery, q=4
+  output-contract, log-`sigma`, derived-unavailable, labelled
+  residual-scale-covariance boundary, and ordinary Gaussian evidence-closeout
+  wording.
+- The stale-wording scan found no old phylogeny-has-no-slope wording, no claim
+  that correlated residual-scale slope blocks or labelled residual-scale slope
+  covariance are fitted, and no claim that q > 2 correlations are direct
+  profile targets.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Phase 6c Support Matrix Refresh
 
 Goal:
