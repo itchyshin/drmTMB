@@ -47070,3 +47070,43 @@ Member-group review:
   sheet.
 - Fisher kept power planned-only until a null/alternative contrast and MCSE
   target exist.
+
+## 2026-05-30 - Bivariate Gaussian slope-only ADEMP sheet
+
+Goal:
+
+- Add the second #446 ADEMP sheet, covering the #440 bivariate Gaussian
+  matching `mu1`/`mu2` slope-only lane.
+
+Changes:
+
+- Added `docs/design/145-phase6c-bivariate-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- The sheet makes residual `rho12` versus group-level slope-slope covariance
+  separation an explicit estimand and reporting check.
+
+Validation:
+
+```sh
+rg -n 'Phase 6c Bivariate Gaussian Slope-Only ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|residual `rho12`|slope-slope|Separation errors|docs/design/145-phase6c-bivariate-slope-ademp.md' docs/design/145-phase6c-bivariate-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not.*promote|does not open intercept-plus-slope q4|random effects in `rho12`|mixed-response bivariate|residual-scale slope covariance' docs/design/145-phase6c-bivariate-slope-ademp.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- The ADEMP scan found all A, D, E, M, P, and Williams self-audit sections plus
+  the simulation-programme and sprint links.
+- The boundary scan found the no-grid/no-promotion language and the excluded
+  q4, p8/q8, random-`rho12`, mixed-response, and residual-scale slope
+  surfaces.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Fisher kept residual `rho12` and group-level covariance as separate
+  estimands.
+- Curie kept the sheet as a design object, not a simulation result.
+- Boole kept the formula surface limited to the existing matching slope-only
+  grammar.

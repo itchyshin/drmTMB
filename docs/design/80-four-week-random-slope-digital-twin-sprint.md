@@ -163,6 +163,11 @@ Gaussian `mu` q > 2 grouped random slopes and independent Gaussian `sigma`
 random slopes, while keeping q > 2 correlations derived-only for intervals and
 correlated residual-scale slope covariance planned.
 
+The second sheet is `docs/design/145-phase6c-bivariate-slope-ademp.md`. It
+plans the matching bivariate Gaussian `mu1`/`mu2` slope-only lane from #440 and
+keeps residual `rho12` separate from group-level slope-slope covariance in
+truth, extraction, interval, and reporting columns.
+
 Keep the first Phase 6c simulation bridge narrow:
 
 - #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian

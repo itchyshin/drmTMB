@@ -1367,3 +1367,10 @@ errors, and elapsed time by surface before the raw manifest.
      targets, nested `drmTMB` comparators, MCSE guidance, and a Williams
      11-item self-audit. It does not run grids or promote coverage/power
      evidence.
+239. Slice 1831 adds
+     `docs/design/145-phase6c-bivariate-slope-ademp.md`, the second #446
+     ADEMP sheet. It plans the #440 bivariate Gaussian matching `mu1`/`mu2`
+     slope-only lane and makes residual `rho12` versus group-level
+     slope-slope covariance separation an explicit simulation estimand and
+     reporting check. It does not open intercept-plus-slope q4, p8/q8, random
+     effects in `rho12`, or mixed-response bivariate surfaces.
