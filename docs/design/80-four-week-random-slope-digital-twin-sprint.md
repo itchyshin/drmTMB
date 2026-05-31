@@ -118,14 +118,16 @@ q4, count, and future multi-slope claims.
 | `phylo()` | Fitted for one numeric `mu` slope with independent intercept and slope fields. | Fitted for selected bivariate `mu1`/`mu2` location rows and q2 phylogenetic `corpair()` routes. | Fitted for selected location-scale blocks, but q4 rows remain diagnostic-heavy and interval-limited. | Registry wrapper target for Gaussian one-slope; Poisson/NB2 q1 phylogenetic formal tasks are separate count lanes, not Gaussian one-slope evidence. | Multiple phylogenetic slopes, phylogenetic slope correlations, residual-scale structured slopes, non-Gaussian phylogenetic slopes, and structured `rho12`. |
 | `spatial()` | Fitted for one coordinate-spatial `mu` slope; mesh/SPDE slopes remain planned. | Fitted for constant bivariate spatial `mu1`/`mu2` q2 covariance with DGP, smoke, and grid helpers. | Fitted for constant coordinate-spatial q4 location-scale blocks as smoke/artifact evidence; recovery and interval-status evidence remain separate. | Manual `spatial_mu_slope` Actions task plus spatial q2 smoke/grid helpers. | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, residual-scale structured slopes, spatial direct-SD regression, spatial `corpair()` regression, and count spatial slopes. |
 | `animal()` | Fitted for one dense-pedigree or known-matrix Gaussian `mu` slope. | Fitted for known-matrix bivariate `mu1`/`mu2` q2 covariance with smoke/grid artifacts. | Fitted for constant all-four q4 location-scale blocks as point-estimate smoke; derived q4 intervals remain unavailable. | Registry wrapper target for Gaussian one-slope; animal/`relmat()` q2 and q4 smoke/grid helpers exist, but no standalone one-slope Actions task. | Sparse large-pedigree speed claims, multiple animal slopes, slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count animal slopes, and direct-SD grammar. |
-| `relmat()` | Fitted for one known-matrix Gaussian `mu` slope through `K` or `Q`. | Fitted for known-matrix bivariate `mu1`/`mu2` q2 covariance with smoke/grid artifacts. | Fitted for constant all-four q4 location-scale blocks as point-estimate smoke; derived q4 intervals remain unavailable. | Registry wrapper target for Gaussian one-slope; animal/`relmat()` q2 and q4 smoke/grid helpers exist, but no standalone one-slope Actions task. | Multiple `relmat()` slopes, slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count `relmat()` slopes, and direct-SD grammar. |
+| `relmat()` | Fitted for one known-matrix Gaussian `mu` slope through `K` or `Q`. | Fitted for known-matrix bivariate `mu1`/`mu2` q2 covariance with smoke/grid artifacts. | Fitted for constant all-four q4 location-scale blocks as point-estimate smoke; derived q4 intervals remain unavailable. | Local one-slope artifact writer is available for the wrapper target; no standalone one-slope Actions task. Animal/`relmat()` q2 and q4 smoke/grid helpers remain separate. | Multiple `relmat()` slopes, slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count `relmat()` slopes, and direct-SD grammar. |
 
 The current registry handles this split in
 `inst/sim/registry/phase18_structured_workflow_registry.csv`: Gaussian
-`phylo()`, `animal()`, and `relmat()` one-slope rows are `ready_grid` but need
-a structured-dependence wrapper target; coordinate-spatial one-slope now has
-the manual `spatial_mu_slope` task; structured q2 rows are `ready_or_smoke`;
-structured q4 rows are `diagnostic_only` with derived intervals unavailable.
+`phylo()`, `animal()`, and `relmat()` one-slope rows are `ready_grid` but still
+route through structured-dependence wrapper targets. The coordinate-spatial
+one-slope row has the manual `spatial_mu_slope` task; the `relmat()` row has a
+local artifact writer but no manual Actions task; structured q2 rows are
+`ready_or_smoke`; structured q4 rows are `diagnostic_only` with derived
+intervals unavailable.
 
 ## Issue #438 Support-Matrix Labels
 
@@ -184,8 +186,9 @@ random effects planned or blocked.
 The fourth sheet is
 `docs/design/148-phase6c-structured-one-slope-ademp.md`. It plans the #442
 Gaussian structured one-slope lane for `phylo()`, `spatial()`, `animal()`, and
-`relmat()`, while keeping `spatial_mu_slope` artifact readiness separate from
-the `phylo()`, `animal()`, and `relmat()` wrapper-target rows.
+`relmat()`, while keeping `spatial_mu_slope` Actions readiness, local
+`relmat()` artifact readiness, and the `phylo()`/`animal()` wrapper-target
+rows separate.
 
 Keep the first Phase 6c simulation bridge narrow:
 

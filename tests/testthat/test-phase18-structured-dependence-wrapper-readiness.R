@@ -103,7 +103,8 @@ test_that("structured-dependence readiness summarizes wrapper targets", {
       "gaussian_relmat_mu_one_slope"
     )
   )
-  expect_equal(unname(status_counts[["source_test_ready"]]), 3L)
+  expect_equal(unname(status_counts[["source_test_ready"]]), 2L)
+  expect_equal(unname(status_counts[["grid_writer_available"]]), 1L)
   expect_true(all(readiness$dispatch_status == "needs_wrapper_target"))
   expect_true(all(readiness$workflow_helper == "structured_dependence_wrapper"))
   expect_true(all(is.na(readiness$actions_task)))
@@ -120,10 +121,26 @@ test_that("structured-dependence readiness names current artifact gap", {
     registry
   )
 
-  expect_true(all(startsWith(readiness$required_artifact, "needed:")))
+  expect_true(all(startsWith(
+    readiness$required_artifact[
+      readiness$lane_id != "gaussian_relmat_mu_one_slope"
+    ],
+    "needed:"
+  )))
+  expect_equal(
+    readiness$required_artifact[
+      readiness$lane_id == "gaussian_relmat_mu_one_slope"
+    ],
+    "phase18_write_relmat_mu_slope_grid_outputs()"
+  )
   expect_match(
     readiness$source_evidence[readiness$dependence == "phylo"],
     "test-phylo-gaussian.R",
+    fixed = TRUE
+  )
+  expect_match(
+    readiness$source_evidence[readiness$dependence == "relmat"],
+    "sim_write_relmat_mu_slope_grid.R",
     fixed = TRUE
   )
 })

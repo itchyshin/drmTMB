@@ -73,10 +73,11 @@ phase18_structured_dependence_wrapper_target_status <- function(lane_id) {
     lane_id %in%
       c(
         "gaussian_phylo_mu_one_slope",
-        "gaussian_animal_mu_one_slope",
-        "gaussian_relmat_mu_one_slope"
+        "gaussian_animal_mu_one_slope"
       )
   ] <- "source_test_ready"
+  status[lane_id == "gaussian_relmat_mu_one_slope"] <-
+    "grid_writer_available"
   phase18_assert_known_structured_dependence_wrapper_targets(
     status,
     lane_id
@@ -93,7 +94,7 @@ phase18_structured_dependence_wrapper_required_artifact <- function(lane_id) {
   artifact[lane_id == "gaussian_animal_mu_one_slope"] <-
     "needed:animal_mu_slope_artifact_writer"
   artifact[lane_id == "gaussian_relmat_mu_one_slope"] <-
-    "needed:relmat_mu_slope_artifact_writer"
+    "phase18_write_relmat_mu_slope_grid_outputs()"
   phase18_assert_known_structured_dependence_wrapper_targets(
     artifact,
     lane_id
@@ -113,7 +114,10 @@ phase18_structured_dependence_wrapper_source_evidence <- function(lane_id) {
   evidence[lane_id == "gaussian_animal_mu_one_slope"] <-
     "tests/testthat/test-animal-relmat-gaussian.R"
   evidence[lane_id == "gaussian_relmat_mu_one_slope"] <-
-    "tests/testthat/test-animal-relmat-gaussian.R"
+    paste(
+      "tests/testthat/test-animal-relmat-gaussian.R;",
+      "inst/sim/run/sim_write_relmat_mu_slope_grid.R"
+    )
   phase18_assert_known_structured_dependence_wrapper_targets(
     evidence,
     lane_id

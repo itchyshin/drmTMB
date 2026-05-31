@@ -431,3 +431,17 @@ issues, or pull requests.
   routes were planned, while older phylo-only design notes correctly described
   previous slice boundaries. The same pass also exposed unrelated Rd/link churn
   from the local roxygen version.
+
+## 2026-05-30 - Structured Artifact DGP Truth Contract
+
+- Improvement implemented: when an ADEMP sheet names conditional structured
+  signal recovery, the matching DGP should retain realised latent fields in the
+  truth object even if the first artifact writer only reports fixed effects and
+  SDs.
+- Improvement implemented: new independent structured-slope artifact lanes
+  should assert the no-correlation extractor contract locally. Neighbouring
+  source tests are useful evidence, but the artifact lane should fail if a
+  future extractor change starts reporting unsupported slope correlations.
+- Trigger: the `relmat()` Gaussian `mu` one-slope writer initially stored only
+  fixed effects, SDs, `K`, and `Q` in truth. Hume caught the mismatch with the
+  ADEMP conditional-signal estimand before closeout.

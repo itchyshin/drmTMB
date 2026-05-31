@@ -196,8 +196,9 @@ head(sigma(fit)^2) # fitted residual variances
   those markers fit documented `mu` and `sigma` intercept routes, one numeric
   `mu` slope, q=2 bivariate mean-mean blocks, and constant q=4 location-scale
   blocks where marked. Artifact routing is narrower than fitted syntax:
-  `spatial_mu_slope` has a manual Actions task, while the `phylo()`,
-  `animal()`, and `relmat()` one-slope rows remain wrapper targets. Read
+  `spatial_mu_slope` has a manual Actions task, `relmat()` has a local Phase
+  18 writer, and the `phylo()` and `animal()` one-slope rows remain wrapper
+  targets. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Stable-core matrix

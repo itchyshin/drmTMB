@@ -279,9 +279,10 @@ claim.
 Slice 1827 adds read-only status helpers for three remaining workflow planning
 surfaces. `phase18_structured_dependence_wrapper_target_readiness()` lists the
 four then-current Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
-wrapper targets and separates the existing spatial grid writer from the
-source-test-ready rows that still need artifact writers. After Slice 1828 the
-spatial row is no longer a wrapper target.
+wrapper targets and separates grid-writer availability from source-tested rows
+that still need artifact writers. After Slice 1828 the spatial row is no
+longer a wrapper target, and after Slice 1835 the `relmat()` wrapper target has
+a local artifact writer while remaining outside Actions dispatch.
 `phase18_correlation_block_wrapper_target_plan()` lists the current
 correlation-block wrapper targets, keeping q=2 interval-provenance work
 separate from q=4 diagnostic-only rows. `phase18_family_surface_status_tables()`
@@ -303,7 +304,23 @@ writer. It stays opt-in and excluded from `task = "all"`.
 This slice does not create mesh/SPDE support, multiple spatial slopes, spatial
 slope correlations, structured residual-scale slopes, or recovery/coverage
 claims. `phylo()`, `animal()`, and `relmat()` Gaussian one-slope rows remain
-wrapper targets until they have artifact writers.
+wrapper targets until they have artifact writers or a separate dispatch slice.
+
+## Slice 1835 Relmat One-Slope Artifact Writer
+
+Slice 1835 adds the local known-matrix `relmat()` Gaussian `mu` one-slope
+artifact route. The new DGP, smoke runner, summary helper, and grid writer use
+`relmat(1 + x | id, Q = Q)` to fit independent structured intercept and slope
+fields, then write the same simple aggregate, replicate-level, manifest, and
+failure-ledger CSV set used by the ordinary and spatial one-slope lanes.
+
+The structured-dependence wrapper-readiness helper now reports
+`gaussian_relmat_mu_one_slope` as `grid_writer_available` with required
+artifact `phase18_write_relmat_mu_slope_grid_outputs()`. The registry row still
+uses `needed:structured_dependence_wrapper`, so this slice does not add a
+manual Actions task, `task = "all"` inclusion, recovery, coverage, or power
+claim. `phylo()` and `animal()` remain source-tested wrapper targets that still
+need local artifact writers.
 
 ## Slice 1829 Random-Slope Operating-Characteristic Plan
 

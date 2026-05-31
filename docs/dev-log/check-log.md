@@ -47323,3 +47323,69 @@ Member-group review:
 - Pat kept the table labels framed as current user questions.
 - Rose kept fitted syntax, wrapper-target status, and coverage/power evidence
   separate.
+
+## 2026-05-30 - Relmat Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the known-matrix `relmat()`
+  Gaussian `mu` one-slope lane while keeping the row outside manual Actions,
+  `task = "all"`, recovery, coverage, and power claims.
+
+Changes:
+
+- Added a seeded DGP, smoke runner, summary helper, and grid writer for
+  `relmat(1 + x | id, Q = Q)` with independent known-matrix intercept and
+  slope fields.
+- Added focused tests for DGP reproducibility, malformed inputs, smoke
+  summaries, artifact creation, overwrite protection, realised-field truth,
+  and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_relmat_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_relmat_mu_slope_grid_outputs()` while staying a wrapper
+  target rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase
+  18 README, and the Phase 18/Phase 6c design ledgers to say that `relmat()`
+  has a local artifact writer, `spatial_mu_slope` is Actions-ready, and
+  `phylo()`/`animal()` remain source-tested wrapper targets.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_relmat_mu_slope.R','inst/sim/fit/sim_summarise_relmat_mu_slope.R','inst/sim/run/sim_run_relmat_mu_slope_smoke.R','inst/sim/run/sim_summary_relmat_mu_slope_smoke.R','inst/sim/run/sim_write_relmat_mu_slope_grid.R','tests/testthat/test-phase18-relmat-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('relmat parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-relmat-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-structured-dependence-wrapper-readiness$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(relmat-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE)"
+rg -n 'local Phase 18 writer|local known-matrix `relmat\(\)` Gaussian `mu` one-slope|phase18_write_relmat_mu_slope_grid_outputs|relmat\(1 \+ x \| id, Q = Q\)|relmat\(\)` row has a local artifact writer|local `relmat\(\)` writer status' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*remain wrapper targets|phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*need standalone artifact writers|relmat\(\).*still need standalone artifact writers|meta_known_V\(V = V\).*(current|preferred|new code should)|gllvmTMB\.jl/src|package called `?gllvmTMB\.jl`?' README.md NEWS.md ROADMAP.md docs/design vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles pkgdown-site/reference
+git diff --check
+```
+
+Results:
+
+- The parse check printed `relmat parse ok`.
+- The focused `phase18-relmat-mu-slope` test passed after adding realised-field
+  truth and the local `fit$corpars == list()` assertion.
+- The wrapper-readiness test and combined
+  `phase18-(relmat-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)`
+  test bundle completed without failure.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `relmat()` writer wording in source and
+  rendered pages. The refined stale scan found no current-source or pkgdown
+  claim that `relmat()` still lacks local artifacts, no current
+  `meta_known_V(V = V)` wording as preferred syntax, and no current
+  `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Hypatia recommended `relmat()` as the smallest structured wrapper artifact
+  target because it avoids tree/pedigree construction while exercising the
+  known-matrix slope path.
+- Hume found no blockers, but asked for realised structured fields in truth
+  and a local no-correlation assertion; both were added before closeout.
+- Rose kept the wording split among local artifact writer, Actions task,
+  wrapper target, and coverage/power evidence.

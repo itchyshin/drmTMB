@@ -401,12 +401,13 @@ distributional regression models using TMB.
 - Structured-dependence random-slope boundary: `phylo()`, coordinate
   `spatial()`, `animal()`, and `relmat()` now each have the first fitted
   univariate Gaussian one-slope `mu` route with SD summaries, direct profile
-  targets, diagnostics, and focused recovery evidence. Do not read that as
-  Actions or artifact parity: only `spatial_mu_slope` currently has a manual
-  Phase 18 Actions artifact task, while the phylogenetic, animal-model, and
-  `relmat()` one-slope routes remain wrapper targets. Multiple structured
-  slopes, structured residual-scale slopes, slope correlations, structured
-  `rho12`, and non-Gaussian structured slopes remain planned.
+  targets, diagnostics, and focused source or smoke evidence. Do not read that
+  as Actions or artifact parity: only `spatial_mu_slope` currently has a
+  manual Phase 18 Actions artifact task, `relmat()` has a local Phase 18
+  writer, and the phylogenetic and animal-model one-slope routes remain
+  wrapper targets. Multiple structured slopes, structured residual-scale
+  slopes, slope correlations, structured `rho12`, and non-Gaussian structured
+  slopes remain planned.
 - Keep structured-effect correlations constant during the one-slope baseline.
   Do not add predictor-dependent phylogenetic or spatial slope correlations
   until the fixed-correlation one-slope paths recover reliably. This does not

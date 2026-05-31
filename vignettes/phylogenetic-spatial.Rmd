@@ -253,9 +253,11 @@ location-scale block. `animal()` and `relmat()` fit the same first Gaussian
 intercept and one-slope `mu` pattern when supplied with a pedigree, precomputed
 relationship, or precision matrix, such as `animal(1 | id, pedigree = pedigree)`,
 `animal(1 + x | id, Ainv = Ainv)`, or `relmat(1 + x | id, Q = Q)`.
-Only the coordinate-spatial one-slope route currently has a manual Phase 18
-Actions artifact task, `spatial_mu_slope`; the phylogenetic, animal-model, and
-`relmat()` one-slope routes remain wrapper targets for that artifact layer.
+Artifact routing is narrower than fitted syntax. The coordinate-spatial
+one-slope route has a manual Phase 18 Actions artifact task,
+`spatial_mu_slope`; the known-matrix `relmat()` one-slope route has local
+Phase 18 writer artifacts; and the phylogenetic and animal-model one-slope
+routes remain wrapper targets for that artifact layer.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
 multiple spatial slopes, residual-scale structured slopes, spatial slope
 correlations, non-Gaussian spatial effects, and predictor-dependent spatial

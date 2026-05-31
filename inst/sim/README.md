@@ -130,6 +130,11 @@ Current pilot files:
 - `docs/design/138-phase-18-count-structured-q1-stable-diagnostic-audit-slices-1761-1762.md`
   audits the first `condition_set = "stable"` Actions run and records the
   `propose_next_pilot` decision for a separate stable formal-pilot design.
+- `docs/design/148-phase6c-structured-one-slope-ademp.md` is the #442/#446
+  ADEMP sheet for one numeric Gaussian structured `mu` slope in `phylo()`,
+  `spatial()`, `animal()`, and `relmat()`, keeping route-specific artifact
+  maturity separate from coverage, power, q2/q4 covariance, and multi-slope
+  claims.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -140,6 +145,9 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_mu_slope.R` generates Gaussian spatial `mu` data with
   independent coordinate-spatial intercept and slope fields,
   `spatial(1 + x | site, coords = coords)`.
+- `dgp/sim_dgp_relmat_mu_slope.R` generates Gaussian known-matrix `mu` data
+  with independent `relmat()` intercept and slope fields,
+  `relmat(1 + x | id, Q = Q)`.
 - `dgp/sim_dgp_spatial_q2.R` generates bivariate Gaussian spatial `mu1`/`mu2`
   data with matching coordinate-spatial q=2 fields and residual `rho12` kept as
   a separate layer.
@@ -259,6 +267,9 @@ Current pilot files:
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
+- `fit/sim_summarise_relmat_mu_slope.R` summarises fixed `mu` coefficients,
+  public residual `sigma`, and the two direct known-matrix `relmat()` `mu` SDs
+  for the intercept and slope fields.
 - `fit/sim_summarise_spatial_q2.R` summarises fixed `mu1`/`mu2` coefficients,
   public residual scales, coordinate-spatial SDs, the spatial q=2 correlation,
   and residual `rho12` for bivariate spatial smoke fits.
@@ -335,6 +346,8 @@ Current pilot files:
   Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_spatial_mu_slope_smoke.R` does the same for the coordinate
   spatial Gaussian `mu` one-slope surface.
+- `run/sim_run_relmat_mu_slope_smoke.R` does the same for the known-matrix
+  `relmat()` Gaussian `mu` one-slope surface.
 - `run/sim_run_spatial_q2_smoke.R` does the same for the coordinate-spatial
   q=2 bivariate location-covariance surface.
 - `run/sim_run_poisson_mu_random_effect_smoke.R` does the same for the
@@ -511,6 +524,11 @@ Current pilot files:
   The manual `spatial_mu_slope` Actions task can run the coordinate-spatial
   lane as an opt-in artifact dispatch without adding mesh/SPDE, multiple
   spatial slopes, spatial slope correlations, or recovery/coverage claims.
+- `run/sim_write_relmat_mu_slope_grid.R` writes the same simple artifact set
+  for the known-matrix `relmat()` Gaussian `mu` one-slope lane. It is a local
+  wrapper-target artifact writer only; no manual Actions task, `task = "all"`
+  inclusion, recovery, coverage, power, multiple-slope, slope-correlation, or
+  residual-scale structured-slope claim is added by the writer.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
   manual `biv_gaussian_mu_slope` Actions task can run it. Manual run
@@ -579,6 +597,9 @@ Current pilot files:
 - `run/sim_summary_spatial_mu_slope_smoke.R` runs a tiny coordinate spatial
   Gaussian `mu` one-slope summary smoke grid and returns grouped bias, RMSE,
   MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_relmat_mu_slope_smoke.R` runs a tiny known-matrix
+  `relmat()` Gaussian `mu` one-slope summary smoke grid and returns grouped
+  bias, RMSE, MCSE, manifest, and warning/error ledger outputs.
 - `run/sim_summary_poisson_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated Poisson `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, and warning/error ledger outputs.

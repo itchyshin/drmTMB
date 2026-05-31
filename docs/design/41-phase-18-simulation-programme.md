@@ -1397,3 +1397,14 @@ errors, and elapsed time by surface before the raw manifest.
      lane separate from q2/q4 covariance, structured slope correlations,
      residual-scale structured slopes, structured `rho12`, non-Gaussian
      structured slopes, and route-specific artifact maturity.
+243. Slice 1835 adds the local known-matrix `relmat()` Gaussian `mu`
+     one-slope artifact writer. The DGP, smoke runner, summary helper, and
+     grid writer fit `relmat(1 + x | id, Q = Q)` with independent structured
+     intercept and slope fields and write aggregate, replicate-level,
+     manifest, and failure-ledger CSV artifacts. The structured-dependence
+     wrapper-readiness helper now reports the `relmat()` row as
+     `grid_writer_available`, but the registry still routes it through
+     `needed:structured_dependence_wrapper`. This slice does not add a manual
+     Actions task, include the lane in `task = "all"`, or make recovery,
+     coverage, power, multiple-slope, slope-correlation, or residual-scale
+     structured-slope claims.
