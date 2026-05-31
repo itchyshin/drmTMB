@@ -674,6 +674,14 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   dispatch-ready through `biv_gaussian_mu_slope`. This remains an
   artifact-ready lane, not a recovery, coverage, power, multicore, bootstrap,
   or broad p8/q8 claim; #446 owns the formal simulation-plan handoff.
+- Non-Gaussian `mu` slope gate: #441 is closed at the admission-decision level
+  by `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`. Ordinary Poisson
+  and NB2 independent `mu` slopes are `ready_grid`; Student-t, lognormal,
+  Gamma, beta, beta-binomial, and zero-truncated NB2 independent `mu` slopes
+  are `ready_source_test`. Correlated slopes, labelled covariance, structured
+  slopes, non-Gaussian `sigma` or shape random effects, inflation/hurdle random
+  effects, ordinal mixed models, and mixed-response bivariate models remain
+  planned or blocked until separate evidence exists.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an
