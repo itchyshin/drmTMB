@@ -2,6 +2,62 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Non-Gaussian `mu` Slope Admission
+
+Goal:
+
+- Close #441 by recording which non-Gaussian independent `mu` slope paths move
+  into registry-backed support before the larger #446 simulation plan.
+
+Actions run:
+
+- Added `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`.
+- Recorded ordinary Poisson and NB2 independent `mu` slopes as `ready_grid`.
+- Recorded Student-t, lognormal, Gamma, beta, beta-binomial, and
+  zero-truncated NB2 independent `mu` slopes as `ready_source_test`.
+- Pointed `docs/design/79-supported-nongaussian-evidence-goal.md` and
+  `ROADMAP.md` to the #441 admission decision.
+- Kept correlated slopes, labelled covariance, structured slopes,
+  non-Gaussian `sigma` or shape random effects, inflation/hurdle random
+  effects, ordinal mixed models, zero-one beta random effects, and
+  mixed-response bivariate models planned or blocked.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/79-supported-nongaussian-evidence-goal.md docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'nongaussian-mu-random-slopes|poisson-mean|nbinom2-location-scale|phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Non-Gaussian `mu` Slope Admission|ready_grid|ready_source_test|Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2|#441|#446' ROADMAP.md docs/design/79-supported-nongaussian-evidence-goal.md docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md tests/testthat inst/sim pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'non-Gaussian.*(has|with|provides|supports|proves).*coverage claim|non-Gaussian.*(has|with|provides|supports|proves).*power claim|ready_source_test.*(has|with|provides|supports|proves).*coverage|ready_source_test.*(has|with|provides|supports|proves).*power|source-tested.*(has|with|provides|supports|proves).*coverage|source-tested.*(has|with|provides|supports|proves).*power|Tweedie random effects (are )?(fitted|implemented)|zero-one beta random effects (are )?(fitted|implemented)|ordinal random effects (are )?(fitted|implemented)|correlated .*non-Gaussian.*slopes (are )?(fitted|implemented)|structured non-Gaussian slopes (are )?(fitted|implemented)|Student-t `nu` random effects (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat inst/sim pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+rg -n 'beta\(|beta_binomial\(|student\(|lognormal\(|nbinom2\(|truncated_nbinom2\(|check_drm|profile_targets' pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- `air format` completed without changes after the prose edits.
+- Focused tests passed for `nongaussian-mu-random-slopes`, `poisson-mean`,
+  `nbinom2-location-scale`, `truncated-nbinom2-location-scale`, and
+  `phase18-structured-workflow-registry`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the full site.
+- The positive source/rendered scan found the #441 admission gate, the
+  `ready_grid` and `ready_source_test` statuses, the six source-tested
+  families, #446 routing, registry rows, tests, and rendered ROADMAP text.
+- The stale-claim scan found no current fitted or implemented claims for
+  Tweedie random effects, zero-one beta random effects, ordinal random effects,
+  correlated non-Gaussian slopes, structured non-Gaussian slopes, Student-t
+  `nu` random effects, or source-tested coverage/power support.
+- The rendered Reference-index scan found the relevant family pages and the
+  `check_drm()` / `profile_targets()` helper pages.
+
 ## 2026-05-31 -- Phase 6c Bivariate Slope-Only Evidence Gate
 
 Goal:
