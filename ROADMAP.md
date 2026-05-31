@@ -185,10 +185,12 @@ distributional regression models using TMB.
   preserving target names and indices. The design contract remains
   `docs/design/30-labelled-covariance-block-assembler.md`; the two-member
   dormant contract now crosses the C++ boundary as a no-op visibility check.
-  The registry can internally enumerate all pair rows for a guarded
-  three-member block, but marks that scaffold unimplemented and still blocks
-  TMB export for `q > 2`. Larger shared labels still need simulation recovery
-  and a positive-definite `q > 2` likelihood path before exposure. Internal TMB
+  At the time of that registry slice, the registry could internally enumerate
+  all pair rows for a guarded three-member block, but still marked that scaffold
+  unimplemented. Later ordinary Gaussian `mu` slices superseded that exposure
+  boundary for numeric grouped blocks such as `(1 + x1 + x2 | id)`: q > 2
+  Gaussian `mu` blocks now fit, while larger shared labels still need
+  simulation recovery before routine teaching. Internal TMB
   probes now confirm that `UNSTRUCTURED_CORR_t` plus `VECSCALE_t` can produce a
   positive-definite q=3 correlation, finite objective/gradient, a non-centered
   `sqrt_cov_scale()` transform, a hidden registry-shaped member/group
@@ -640,7 +642,8 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 - Keep three or more structured slopes outside the advertised near-term path.
   The covariance dimension grows quickly, so these models should remain
   distant-future expert use.
-- Do not estimate intercept-slope correlations in the first slope path.
+- For first structured one-slope paths, do not estimate intercept-slope
+  correlations in the baseline path.
   Intercept-slope correlations should still be part of the Phase 6c inference
   roadmap as an advanced, diagnostic-heavy path once the one-slope point
   estimates and recovery tests are stable.

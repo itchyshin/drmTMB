@@ -46795,3 +46795,77 @@ Member-group review:
   structural-dependence article.
 - Rose checked that generated pages did not reintroduce stale wording through
   older source paths.
+
+## 2026-05-30 - Gaussian ordinary random-slope closeout table
+
+Goal:
+
+- Advance #439 with a compact design-ledger table that separates ordinary
+  Gaussian `mu` q > 2 grouped blocks, independent Gaussian `sigma` slopes,
+  first-wave Phase 18 routing, and unsupported residual-scale covariance
+  neighbours.
+
+Changes:
+
+- Added an #439 closeout table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Updated stale roadmap wording that still described q > 2 TMB export as
+  blocked, and qualified the "do not estimate intercept-slope correlations"
+  sentence as applying to first structured one-slope paths.
+- Added location-scale tutorial guidance for q > 2 ordinary Gaussian `mu`
+  blocks and for independent versus correlated residual-scale `sigma` slopes.
+- Added the missing residual-scale random-slope row to the model-map grouped
+  output table.
+- Recorded local evidence handles for q > 2 ordinary Gaussian `mu` blocks:
+  `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary(fit)$covariance`,
+  direct SD `profile_targets()`, and q > 2 derived correlation targets.
+- Recorded local evidence handles for independent Gaussian `sigma` slopes on
+  `log(sigma)`: `sdpars$sigma`, prediction contribution, direct
+  `profile_targets()`, and the Phase 18 smoke runner.
+- Kept correlated residual-scale slope blocks, labelled residual-scale slope
+  covariance, and slope-level mean-scale covariance planned.
+
+Validation:
+
+```sh
+rg -n 'Issue #439 Gaussian Ordinary Closeout|Gaussian `mu` q > 2 grouped blocks|Gaussian `sigma` independent slopes|first_wave_summary|derived and not direct profile-interval targets' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'Gaussian mu supports q > 2 correlated random-slope blocks|Gaussian mu reports larger ordinary multi-slope blocks consistently|Gaussian sigma supports independent residual-scale random slopes|Only independent residual-scale random slopes|Labelled residual-scale random-slope covariance blocks|Phase 18 Gaussian mu random-slope smoke runner summarises q=3 output|Phase 18 Gaussian sigma random-slope smoke runner summarises output|gaussian_ordinary_mu_slopes|gaussian_sigma_independent_slopes' tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-phase18-gaussian-mu-random-slope.R tests/testthat/test-phase18-gaussian-sigma-random-slope.R inst/sim/registry/phase18_structured_workflow_registry.csv
+rg -n 'Later ordinary Gaussian `mu` slices superseded|For first structured one-slope paths|q > 2 blocks estimate one SD per coefficient|independent `sigma` slopes fit on `log\\(sigma\\)`|groups differ in residual-scale slopes' ROADMAP.md vignettes/location-scale.Rmd vignettes/model-map.Rmd
+! rg -n 'still blocks TMB export for `q > 2`|Do not estimate intercept-slope correlations in the first slope path' ROADMAP.md
+Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-gaussian-random-intercepts.R", reporter = "summary"); testthat::test_file("tests/testthat/test-phase18-gaussian-mu-random-slope.R", reporter = "summary"); testthat::test_file("tests/testthat/test-phase18-gaussian-sigma-random-slope.R", reporter = "summary")'
+Rscript -e 'pkgdown::check_pkgdown()'
+Rscript -e 'pkgdown::build_site(preview = FALSE)'
+rg -n 'q &gt; 2 blocks estimate one SD per coefficient|independent <code>sigma</code> slopes fit on <code>log\\(sigma\\)</code>|groups differ in residual-scale slopes|For first structured one-slope paths|Later ordinary Gaussian' pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/search.json
+! rg -n 'still blocks TMB export for <code>q &gt; 2</code>|Do not estimate intercept-slope correlations in the first slope path' pkgdown-site/ROADMAP.html pkgdown-site/search.json
+git diff --check
+```
+
+Results:
+
+- The design scan found the new #439 table and its fitted/planned boundaries.
+- The evidence scan found the local ordinary q > 2, independent `sigma` slope,
+  unsupported `sigma` covariance, smoke-runner, and registry handles.
+- The public-prose scan found the superseded-roadmap note, the structured-slope
+  qualification, the q > 2 tutorial guidance, the `sigma` slope boundary, and
+  the model-map `sigma` slope row.
+- The stale roadmap scan found no remaining unqualified q > 2 export block or
+  broad first-slope correlation prohibition.
+- The targeted Gaussian test file passed with one CRAN skip; both Phase 18
+  Gaussian `mu` and `sigma` random-slope smoke files passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` completed and wrote the local site to
+  `pkgdown-site`; it repeated the existing glmmTMB/TMB version-mismatch warning
+  while reading the convergence article.
+- The rendered-page scan found the q > 2, independent `sigma` slope,
+  model-map, and roadmap updates in the generated pages and search index.
+- The rendered stale scan found no old q > 2 export block or broad first-slope
+  correlation prohibition in the rendered ROADMAP/search index.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept first-wave artifact routing separate from broad operating
+  characteristic evidence.
+- Fisher kept q > 2 correlations derived-unavailable for direct profiling.
+- Boole kept `sigma` slopes on `log(sigma)` and avoided implying labelled or
+  correlated residual-scale covariance.

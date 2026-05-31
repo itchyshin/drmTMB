@@ -68,6 +68,19 @@ and fitted latent correlation rows from ordinary group, phylogenetic, spatial,
 animal-model, and `relmat()` covariance layers where those layers are already
 implemented. It does not fit a new covariance model.
 
+## Issue #439 Gaussian Ordinary Closeout
+
+Use this table as the #439 ordinary Gaussian grouped random-slope closeout
+ledger. It separates fitted extractor support, simulation/artifact admission,
+and unsupported residual-scale covariance claims; use #446 for recovery,
+accuracy, power, and coverage grids.
+
+| Surface | Current support | Evidence handles | Boundary |
+| --- | --- | --- | --- |
+| Gaussian `mu` q > 2 grouped blocks | Fitted for numeric ordinary grouped blocks such as `(1 + x1 + x2 | id)` and larger numeric multi-slope blocks. | `tests/testthat/test-gaussian-random-intercepts.R` checks q=3 and q=4-style ordinary blocks, including `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary(fit)$covariance`, and `profile_targets()`. `tests/testthat/test-phase18-gaussian-mu-random-slope.R` checks the q=3 smoke runner. | Larger q blocks are advanced and sample-size hungry. SD rows are direct profile targets; q > 2 correlation rows are derived and not direct profile-interval targets. |
+| Gaussian `sigma` independent slopes | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`, such as `sigma ~ z + (0 + w | id)`. | `tests/testthat/test-gaussian-random-intercepts.R` checks independent and multiple residual-scale terms, prediction contribution on the `log(sigma)` scale, `sdpars$sigma`, and `profile_targets()`. `tests/testthat/test-phase18-gaussian-sigma-random-slope.R` checks the Phase 18 smoke runner. | Correlated residual-scale slope blocks, labelled residual-scale slope covariance, and slope-level mean-scale covariance remain planned. |
+| Phase 18 routing | Both ordinary Gaussian `mu` slopes and independent Gaussian `sigma` slopes are `ready_grid` rows routed through `first_wave_summary`. | `inst/sim/registry/phase18_structured_workflow_registry.csv` rows `gaussian_ordinary_mu_slopes` and `gaussian_sigma_independent_slopes`; `inst/sim/README.md` first-wave summary entries. | First-wave dispatch is simulation-artifact readiness, not broad power, accuracy, or coverage evidence for every q or covariance pattern. |
+
 ## Issue #441 Non-Gaussian Slope Admission
 
 Use this table until #441 is superseded by a family-specific simulation run.

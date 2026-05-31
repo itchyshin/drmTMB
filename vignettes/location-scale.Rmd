@@ -118,6 +118,12 @@ drmTMB(
 )
 ```
 
+Residual-scale random effects live on `log(sigma)`. The implemented
+residual-scale slope route is independent: `sigma ~ z + (0 + w | id)` fits a
+random slope SD for `w`, while correlated or labelled residual-scale slope
+covariance such as `sigma ~ z + (1 + w | id)` or
+`sigma ~ z + (0 + w | p | id)` remains planned.
+
 The companion article "Which scale are you modelling?" gives a side-by-side
 guide to `sigma ~ x`, `sigma ~ x + (1 | id)`,
 `sigma ~ x + (0 + w | id)`, `sd(id) ~ x_group`,
@@ -382,6 +388,14 @@ intercept-only `mu` and `sigma` terms can now use the same label for the first
 mean-scale covariance block; larger cross-formula and bivariate blocks remain
 future work.
 
+Ordinary Gaussian `mu` can also carry larger numeric grouped blocks, for
+example `(1 + x1 + moisture | id)`. These q > 2 blocks estimate one SD per
+coefficient and the constant correlations among those coefficients. Their SDs
+are direct profile targets, but the q > 2 correlations are derived rows rather
+than direct profile-interval targets. Treat them as advanced fits: they need
+enough groups, repeated observations, and covariate spread to avoid weak-slope
+or boundary diagnostics.
+
 This is where ordinary language can become slippery: the model may contain
 several scale quantities, but only one of them is the residual `sigma`. The
 others should be named by what they scale:
@@ -484,6 +498,9 @@ stating the biological conclusion. Current `sd(population) ~ habitat` syntax
 targets an unlabelled random intercept; coefficient-specific syntax such as
 `sd(population, dpar = "mu", coef = "temperature") ~ habitat` is reserved until
 random-slope SD regression has likelihood code and simulation tests.
+For residual-scale random slopes, keep the same boundary in mind here:
+independent `sigma` slopes fit on `log(sigma)`, while correlated or labelled
+residual-scale slope covariance remains planned.
 
 ### Name the biological response before the symbol
 

@@ -170,6 +170,7 @@ order:
 | groups differ in the `x` slope | `(0 + x | id)` | `sdpars$mu`, `profile_targets(fit)` |
 | group baselines and slopes are correlated | `(1 + x | id)` or `(1 + x | p | id)` | `corpars$mu`, `corpairs(fit, class = "mean-slope")` |
 | groups differ in residual scale | `sigma ~ z + (1 | id)` | `sdpars$sigma`, `sigma(fit)` |
+| groups differ in residual-scale slopes | `sigma ~ z + (0 + w | id)` | `sdpars$sigma`, `profile_targets(fit)`, `sigma(fit)` |
 | group-level predictors change among-group `mu` SD | `sd(id) ~ x_group` | `coef(fit, "sd(id)")`, `prediction_grid()`, `predict_parameters(..., dpar = "sd(id)")`, `marginal_parameters()` |
 
 The last column is the output contract. It keeps among-group `mu` variation,
