@@ -46350,3 +46350,99 @@ Member-group review:
 - Rose flagged #443/#444 as high-value, low-risk reader-facing work.
 - Pat's reader path is now explicit in `docs/course/README.md`, while the
   bivariate slope-only worked tutorial remains a future #444 item.
+
+## 2026-05-30 - Ordinary Gaussian random-slope Actions boundary
+
+Goal:
+
+- Close the #439 simulation-ledger ambiguity between ordinary Gaussian
+  random-slope smoke grids that run inside the first-wave summary and
+  standalone random-slope Actions tasks that stay manual-only.
+
+Changes:
+
+- Updated `inst/sim/README.md` to state that the ordinary Gaussian `mu` q=3
+  and independent `sigma` random-slope smoke grids run through
+  `task = "first_wave_summary"` or `task = "all"` because they are part of the
+  first-wave summary runner.
+- Clarified that only standalone random-slope tasks outside the first-wave
+  summary, phylogenetic formal tasks, and standalone family tasks remain
+  manual-only and excluded from `task = "all"`.
+
+Validation:
+
+```sh
+rg -n 'ordinary Gaussian `mu` and|first-wave summary runner|Standalone random-slope tasks' inst/sim/README.md
+rg -n 'The phylogenetic formal tasks, random-slope tasks, and|random-slope tasks are manual-only and are excluded from `task = "all"`' inst/sim/README.md
+git diff --check
+```
+
+Results:
+
+- The positive scan found the new ordinary Gaussian first-wave and standalone
+  manual-only boundary wording.
+- The stale-pattern scan found no remaining broad sentence that all
+  random-slope tasks are excluded from `task = "all"`; the older first-wave
+  runner list remains as intended.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the claim at smoke-grid dispatch only, without converting it into
+  a recovery or coverage statement.
+- Grace kept Actions matrix scope clear: first-wave summary cells may run under
+  `task = "all"`, while separate opt-in tasks remain manual-only.
+
+## 2026-05-30 - Bivariate Gaussian slope-only extractor gate
+
+Goal:
+
+- Advance #440 by locking the fitted bivariate Gaussian matching slope-only
+  `mu1`/`mu2` covariance row to both `corpairs()` and `summary(fit)$covariance`
+  without promoting simulation recovery or changing parser/likelihood behavior.
+
+Changes:
+
+- Added a regression assertion to the existing bivariate Gaussian
+  `(0 + x | p | id)` slope-only test so exactly one `slope-slope` `corpairs()`
+  row and exactly one `slope-slope` summary covariance row are present.
+- Checked that both extractor rows report the same correlation as
+  `fit$corpars$mu`.
+- Updated `corpairs()` roxygen and regenerated `man/corpairs.Rd` to mention
+  matched bivariate `mu1`/`mu2` slope-only covariance blocks.
+- Updated `docs/design/03-likelihoods.md` so the routing table and bivariate
+  likelihood section name the fitted slope-only row while keeping broader
+  bivariate random slopes, recovery, and `rho12` random effects planned.
+
+Validation:
+
+```sh
+air format R/methods.R tests/testthat/test-biv-gaussian.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^biv-gaussian$', reporter = 'summary')"
+rg -n -F -e 'slope-only covariance' -e 'matching slope-only ordinary `mu1`/`mu2` covariance block' -e 'matched bivariate \\code{mu1}/\\code{mu2} random-intercept and slope-only covariance' R/methods.R man/corpairs.Rd docs/design/03-likelihoods.md
+rg -n -F -e 'Planned double-hierarchical bivariate syntax with random slopes and scale random effects' -e 'matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept' -e 'matched bivariate \\code{mu1}/\\code{mu2} and \\code{sigma1}/\\code{sigma2} random-intercept' R/methods.R man/corpairs.Rd docs/design/03-likelihoods.md
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::document()` completed and regenerated `man/corpairs.Rd` without
+  leaving unrelated generated-file churn.
+- The attempted `testthat::test_file(..., filter = ...)` command failed because
+  the installed `testthat` interface does not accept `filter` for `test_file()`.
+- `devtools::test(filter = '^biv-gaussian$')` passed, covering the bivariate
+  Gaussian file and the matching Phase 18 bivariate slope smoke tests.
+- The first regex stale-wording scan failed on escaped braces, so the final
+  fixed-string stale-wording scan used `rg -F` and returned no hits in the
+  touched source/Rd/design files.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept this as an extractor regression, not a simulation recovery claim.
+- Boole checked that the reader-facing route names `mu1`, `mu2`, `corpairs()`,
+  `summary(fit)$covariance`, and `rho12` with stable meanings.
+- Rose left #440 conservative: fitted slope-only extraction is guarded, while
+  broader bivariate random slopes and recovery promotion remain planned.

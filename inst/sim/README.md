@@ -505,10 +505,12 @@ Current pilot files:
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
   replicate-level, manifest, and failure-ledger artifact sets for the ordinary
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
-  coordinate-spatial Gaussian `mu` slope lanes. The manual
-  `spatial_mu_slope` Actions task can run the coordinate-spatial lane as an
-  opt-in artifact dispatch without adding mesh/SPDE, multiple spatial slopes,
-  spatial slope correlations, or recovery/coverage claims.
+  coordinate-spatial Gaussian `mu` slope lanes. The ordinary Gaussian `mu` and
+  `sigma` random-slope smoke grids are part of the first-wave summary runner
+  and therefore run through `task = "first_wave_summary"` or `task = "all"`.
+  The manual `spatial_mu_slope` Actions task can run the coordinate-spatial
+  lane as an opt-in artifact dispatch without adding mesh/SPDE, multiple
+  spatial slopes, spatial slope correlations, or recovery/coverage claims.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
   manual `biv_gaussian_mu_slope` Actions task can run it. Manual run
@@ -563,11 +565,11 @@ Current pilot files:
   tasks. It writes an RDS result beside the task artifact tables and caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The phylogenetic formal tasks, random-slope tasks, and
-  standalone family tasks are manual-only and are excluded from `task = "all"`
-  by the workflow matrix. Formal tasks also accept one-based `condition_shard`
-  and `condition_shards` inputs so the 288-cell formal tables can be split
-  across multiple Actions runs.
+  the same time. Standalone random-slope tasks outside the first-wave summary,
+  phylogenetic formal tasks, and standalone family tasks are manual-only and
+  are excluded from `task = "all"` by the workflow matrix. Formal tasks also
+  accept one-based `condition_shard` and `condition_shards` inputs so the
+  288-cell formal tables can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.

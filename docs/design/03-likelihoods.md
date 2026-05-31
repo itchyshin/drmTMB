@@ -71,7 +71,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, the matching slope-only ordinary `mu1`/`mu2` covariance block, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
@@ -1577,8 +1577,33 @@ belong to one group-level covariance block. The model reports
 `sdpars$mu["mu1:(1 | p | ID)"]`, `sdpars$mu["mu2:(1 | p | ID)"]`, and
 `corpars$mu["cor(mu1:(Intercept),mu2:(Intercept) | p | ID)"]`.
 
-Planned double-hierarchical bivariate syntax with random slopes and scale
-random effects:
+Implemented slope-only bivariate group-level covariance syntax:
+
+```r
+drmTMB(
+  formula = bf(
+    mu1 = y1 ~ x1 + x2 + (0 + x2 | p | ID),
+    mu2 = y2 ~ x1      + (0 + x2 | p | ID),
+    sigma1 = ~ x1 + x2,
+    sigma2 = ~ x1,
+    rho12 = ~ x1 + x2
+  ),
+  family = c(gaussian(), gaussian()),
+  data = dat
+)
+```
+
+Here the shared `p` label and matching slope term fit one group-level
+slope-slope correlation. The model reports
+`sdpars$mu["mu1:(0 + x2 | p | ID)"]`,
+`sdpars$mu["mu2:(0 + x2 | p | ID)"]`, and
+`corpars$mu["cor(mu1:x2,mu2:x2 | p | ID)"]`; `corpairs()` and
+`summary(fit)$covariance` expose the row with `class = "slope-slope"`. This is
+an extractor and fitted-model gate, not a promotion of simulation recovery or a
+new `rho12` path.
+
+Broader planned double-hierarchical bivariate syntax with random slopes and
+scale random effects:
 
 ```r
 drmTMB(

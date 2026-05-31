@@ -217,9 +217,10 @@ rho12.drmTMB <- function(
 #' `drmTMB` model. The current implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate and
-#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
-#' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-#' covariance blocks from `corpars`, plus fitted bivariate phylogenetic,
+#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks,
+#' matched bivariate `mu1`/`mu2` random-intercept and slope-only covariance
+#' blocks, and matched bivariate `sigma1`/`sigma2` random-intercept covariance
+#' blocks from `corpars`, plus fitted bivariate phylogenetic,
 #' coordinate-spatial, animal-model, and `relmat()` correlation rows. Full q4
 #' phylogenetic, coordinate-spatial, animal-model, and `relmat()` blocks report
 #' six derived endpoint correlations; block-diagonal q4 fallback fits report

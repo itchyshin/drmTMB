@@ -69,9 +69,10 @@ provenance vocabulary as prediction tables.
 \code{drmTMB} model. The current implementation reports correlations that are
 already fitted elsewhere: residual bivariate \code{rho12}, ordinary univariate
 group-level \code{mu} random-effect correlations, matched univariate and
-same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks, and
-matched bivariate \code{mu1}/\code{mu2} and \code{sigma1}/\code{sigma2} random-intercept
-covariance blocks from \code{corpars}, plus fitted bivariate phylogenetic,
+same-response bivariate \code{mu}/\code{sigma} random-intercept covariance blocks,
+matched bivariate \code{mu1}/\code{mu2} random-intercept and slope-only covariance
+blocks, and matched bivariate \code{sigma1}/\code{sigma2} random-intercept covariance
+blocks from \code{corpars}, plus fitted bivariate phylogenetic,
 coordinate-spatial, animal-model, and \code{relmat()} correlation rows. Full q4
 phylogenetic, coordinate-spatial, animal-model, and \code{relmat()} blocks report
 six derived endpoint correlations; block-diagonal q4 fallback fits report
