@@ -13,10 +13,10 @@ covariance route, coordinate spatial Gaussian `mu`, phylogenetic Gaussian
 `mu`, animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, ordinary
 Poisson/NB2 `mu`, and selected ordinary Student-t/lognormal/Gamma/beta/
 beta-binomial/zero-truncated NB2 `mu`. Broader bivariate random slopes and
-most structured
-non-Gaussian dependence remain planned. The only fitted structured
-non-Gaussian routes are the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
-intercepts; they are smoke-level, not broad count parity.
+most structured non-Gaussian dependence remain planned. The fitted structured
+non-Gaussian routes are narrow ordinary Poisson/NB2 q=1 `mu` intercept slices
+for `phylo()`, `spatial()`, `animal()`, and `relmat()`; they are
+source-test, smoke, or diagnostic lanes, not broad count parity.
 
 ## Random-Slope Parity
 
@@ -32,9 +32,34 @@ intercepts; they are smoke-level, not broad count parity.
 | Selected non-Gaussian `mu` group effects | Yes, first slice | Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2 `mu` random intercepts and independent numeric slopes such as `(0 + x | id)` | Correlated slopes, labelled covariance blocks, non-Gaussian `sigma` or shape random effects, zero-one beta random effects, hurdle/inflation random effects, and structured dependence |
 | Ordinary Poisson `mu` group effects | Yes, first slice | Non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes on the log-mean predictor; one q=1 structured log-mean intercept can use `phylo()`, `spatial()`, `animal()`, or `relmat()` | Correlated Poisson slopes, labelled covariance blocks, zero-inflated Poisson random effects, Poisson structured slopes, simultaneous structured types, and structured count covariance |
 | Ordinary NB2 group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor; `sigma ~ z + (1 | id)` fits the first grouped overdispersion random intercept on log-`sigma`; one q=1 structured log-mean intercept can use `phylo()`, `spatial()`, `animal()`, or `relmat()` with fixed-effect `sigma` | Correlated NB2 slopes, NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated NB2 random effects, NB2 structured slopes or structured `sigma`, labelled covariance, and simultaneous structured types |
-| Selected non-Gaussian `mu` group effects | Yes, first slice | Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2 `mu` random intercepts and independent numeric slopes such as `(0 + x | id)` | Correlated slopes, labelled covariance blocks, non-Gaussian `sigma` or shape random effects, zero-one beta random effects, hurdle/inflation random effects, and structured dependence |
 | `sd(group)` random-effect SD models | No slope-specific SD route | Fitted for unlabelled Gaussian `mu` random-intercept SD surfaces such as `sd(id) ~ x_group` | Coefficient-specific random-slope SD formulas such as `sd(id, coef = "x") ~ ...` |
 | Meta-analysis known `V` | Not a random-slope layer | `meta_V(V = V)` treats sampling covariance as known input data | Variance-component meta-analysis and phylogenetic-plus-study extensions |
+
+## Evidence Handles For The Matrix
+
+- Ordinary Gaussian `mu` q > 2 and Gaussian `sigma` independent slopes are
+  tracked in `docs/design/33-phase-6c-core-random-effects.md`,
+  `tests/testthat/test-gaussian-random-intercepts.R`,
+  `tests/testthat/test-gaussian-location-scale.R`,
+  `tests/testthat/test-phase18-gaussian-mu-random-slope.R`, and
+  `tests/testthat/test-phase18-random-slope-grid-writers.R`.
+- The first ordinary bivariate slope-only `mu1`/`mu2` route is tracked in
+  `tests/testthat/test-biv-gaussian.R`,
+  `tests/testthat/test-phase18-biv-gaussian-mu-slope.R`, and the after-task
+  reports for the bivariate Gaussian slope smoke, grid writer, and Actions
+  task.
+- The structured one-slope Gaussian `mu` routes are tracked in
+  `docs/design/44-structured-slope-parity-gate.md`,
+  `docs/design/60-structural-parity-slices-39-82.md`,
+  `tests/testthat/test-spatial-gaussian.R`,
+  `tests/testthat/test-phylo-gaussian.R`, and
+  `tests/testthat/test-animal-relmat-gaussian.R`.
+- The selected non-Gaussian `mu` slope and structured count q=1 boundaries are
+  tracked in `tests/testthat/test-nongaussian-mu-random-slopes.R`,
+  `tests/testthat/test-count-structured-mu.R`,
+  `tests/testthat/test-phase18-count-structured-q1.R`,
+  `docs/design/41-phase-18-simulation-programme.md`, and
+  `docs/design/46-pre-simulation-readiness-matrix.md`.
 
 The practical consequence is that the first structured one-slope parity gap is
 closed for univariate Gaussian `mu`, and the first ordinary bivariate
@@ -64,16 +89,18 @@ For applied users, the current route is therefore:
   a plain grouping factor is enough;
 - use ordinary NB2 `sigma ~ z + (1 | id)` only when the question is grouped
   overdispersion heterogeneity with no simultaneous `mu` random effects;
-- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)` only when the
-  count question is a q=1 phylogenetic log-mean intercept and, for NB2, fixed
-  `sigma` overdispersion is enough;
-- do not fit zero-inflated, spatial, animal, or `relmat()` structured
-  non-Gaussian models yet, and do not put structured effects in NB2 `sigma`.
+- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)`,
+  `spatial(1 | site, coords = coords)`, `animal(1 | id, ...)`, or
+  `relmat(1 | id, ...)` only when the count question is one q=1 structured
+  log-mean intercept and, for NB2, fixed `sigma` overdispersion is enough;
+- do not fit zero-inflated structured count models, structured count slopes,
+  labelled count covariance, simultaneous structured count types, or
+  structured effects in NB2 `sigma`.
 
 That boundary is conservative, but useful. Non-Gaussian links, latent
 structured matrices, zero inflation, and distributional scale or shape
 parameters can all change identifiability. The package should not advertise
-non-Gaussian structural dependence beyond the Poisson/NB2 q=1 phylogenetic
-smoke routes until it has the same evidence standard as the Gaussian routes:
-likelihood code, focused recovery tests, extractors, diagnostics,
+non-Gaussian structural dependence beyond the Poisson/NB2 q=1 structured
+`mu` intercept routes until it has the same evidence standard as the Gaussian
+routes: likelihood code, focused recovery tests, extractors, diagnostics,
 interval-status rows, examples, check-log evidence, and an after-task report.

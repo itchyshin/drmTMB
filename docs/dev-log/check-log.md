@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Support Matrix Refresh
+
+Goal:
+
+- Close #438 by making the random-slope and structured-dependence support
+  matrix agree across README, ROADMAP, design notes, known limitations, and the
+  after-task ledger.
+
+Actions run:
+
+- Updated stale Phase 6c wording that said `phylo(1 + x | species, tree =
+  tree)` did not fit.
+- Updated non-Gaussian structured-dependence wording that still described the
+  fitted count q=1 structured route as phylogeny-only.
+- Removed a duplicate non-Gaussian row from the structural-slope map and added
+  evidence handles for the fitted/smoke/planned matrix.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, or missing-data files changed.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-phase6c-support-matrix-refresh.md docs/dev-log/check-log.md vignettes/model-map.Rmd
+Rscript --vanilla -e "devtools::test(filter = 'package-skeleton|nongaussian-structured-boundary|count-structured-mu', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla -e 'x <- readLines("docs/design/59-structural-slope-and-non-gaussian-map.md"); stopifnot(sum(grepl("^\\\\| Selected non-Gaussian", x)) == 1L)'
+rg -n 'phylo\\(1 \\+ x \\| species, tree = tree\\).*does not fit|phylogenetic slopes, mesh/SPDE|phylogeny-only|non-Gaussian structured paths beyond ordinary Poisson/NB2 q=1 phylogeny|all other `phylo\\(\\)`, `spatial\\(\\)`, `animal\\(\\)`, and `relmat\\(\\)` non-Gaussian structured paths remain blocked' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/model-map.Rmd
+rg -n 'still does not fit|phylogenetic slopes, mesh/SPDE|phylogeny-only|q=1 phylogeny|all other <code>phylo' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html
+rg -n 'multiple phylogenetic slopes|structured one-slope Gaussian `mu`|ordinary Poisson/NB2 q=1 structured `mu` intercepts|Evidence Handles For The Matrix|source-test, smoke, or diagnostic lanes|structured count q=1' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-31-phase6c-support-matrix-refresh.md pkgdown-site --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- The focused package-skeleton, non-Gaussian structured-boundary, and
+  count-structured `mu` tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site after the model-map source update.
+- The duplicate-row guard confirmed that the structural-slope map has exactly
+  one `Selected non-Gaussian` row.
+- The source stale-wording scan found no old `phylo(1 + x | species, tree =
+  tree)` does-not-fit, phylogeny-only, or all-other-structured-count-blocked
+  wording in the refreshed files.
+- The rendered stale-wording scan found no old random-slope or q=1 phylogeny
+  wording in the rebuilt pkgdown pages.
+- The positive source/rendered scan found the intended multiple-phylogenetic
+  slopes, structured one-slope Gaussian `mu`, structured count q=1, and
+  evidence-handle wording.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Coscale And Corpairs Boundary Extraction
 
 Goal:
