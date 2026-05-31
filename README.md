@@ -21,6 +21,11 @@ with a precision parameter such as `phi` or `theta`.
 
 - New to the package? Read
   [Getting started](https://itchyshin.github.io/drmTMB/articles/drmTMB.html).
+- Want the current status before choosing syntax? Use
+  [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
+  for the user-facing model map and the
+  [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
+  when you need the fitted-versus-planned ledger.
 - Not sure which response family fits your data? Use
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - Unsure whether you are modelling residual variation, group variation, or

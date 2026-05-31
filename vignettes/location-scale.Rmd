@@ -857,6 +857,7 @@ question:
 | If the biological question is... | Fit this kind of term | Report this quantity | Check before reporting |
 |---|---|---|---|
 | Do populations differ in thermal plasticity? | `(0 + temperature | population)` or `(1 + temperature | population)` in the `mu` formula | the random-slope SD, in growth-per-temperature units | `check_drm(fit)` and the matching `sd:mu:...temperature...` row in `profile_targets(fit)` |
+| Do high-baseline populations also have steeper thermal reaction norms? | `(1 + temperature | population)` in the `mu` formula | the random-slope SD, and when the correlated block is fitted, the group-level intercept-slope correlation from `corpairs(fit, class = "mean-slope")` | `check_drm(fit)`, the matching `sd:mu:...temperature...` row, and the fitted correlation row in `profile_targets(fit)` |
 | Does predictability change with temperature? | `sigma ~ temperature` | `exp(gamma_temperature)` as the residual-SD ratio, and `exp(2 * gamma_temperature)` when the paper talks about variance | `check_drm(fit)` and the `fixef:sigma:temperature` row in `profile_targets(fit)` |
 | Do habitats differ in among-population variation? | `(1 | population)` plus `sd(population) ~ habitat` | `exp(alpha_habitat)` as the ratio of among-population SDs | `check_drm(fit)` and the `fixef:sd(population):...` row in `profile_targets(fit)` |
 

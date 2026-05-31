@@ -46964,3 +46964,65 @@ Member-group review:
 - Fisher kept accuracy, coverage, and power separate from smoke or source-test
   readiness.
 - Grace kept the manual Actions task boundary unchanged.
+
+## 2026-05-30 - Reader path and release ledger for #444
+
+Goal:
+
+- Advance #444 with a small public-documentation slice: route README readers to
+  the current fitted-versus-planned maps, add the #439 release-ledger bullet,
+  and close one reaction-norm reporting gap in the location-scale tutorial.
+
+Changes:
+
+- Added a README "What can I fit today?" pointer to the model map and
+  implementation map.
+- Added a top NEWS bullet for #439, keeping q > 2 Gaussian `mu` direct
+  correlation profile intervals unavailable and correlated residual-scale
+  slope covariance planned.
+- Added a location-scale reporting-table row for the correlated reaction-norm
+  question `(1 + temperature | population)`, with the random-slope SD and
+  fitted intercept-slope correlation from
+  `corpairs(fit, class = "mean-slope")`.
+- Added a compact after-task report.
+
+Validation:
+
+```sh
+rg -n 'What can I fit today\\?|implementation map|Ordinary Gaussian `mu` q > 2 random-effect blocks|correlated residual-scale slope covariance|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' README.md NEWS.md vignettes/location-scale.Rmd docs/dev-log/after-task/2026-05-30-reader-path-release-ledger-444.md
+git diff --check
+Rscript -e 'pkgdown::check_pkgdown()'
+Rscript -e 'pkgdown::build_site(preview = FALSE)'
+Rscript --vanilla -e 'log <- file("/tmp/drmtmb-pkgdown-build.log", "wt"); sink(log); sink(log, type = "message"); on.exit({sink(type = "message"); sink(); close(log)}, add = TRUE); pkgdown::build_site(preview = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_home(preview = FALSE, quiet = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_news(preview = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_article("location-scale", quiet = FALSE)'
+Rscript --vanilla -e 'pkgdown:::build_search()'
+rg -n 'What can I fit today\\?|implementation map|Ordinary Gaussian <code>mu</code> q &gt; 2 random-effect blocks|correlated residual-scale slope covariance|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/articles/location-scale.html
+rg -n 'What can I fit today\\?|Ordinary Gaussian mu q > 2 random-effect blocks|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/search.json
+git diff --check
+```
+
+Results:
+
+- The source scan found the README pointer, NEWS #439 bullet, location-scale
+  reaction-norm row, and after-task evidence.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Full `pkgdown::build_site(preview = FALSE)` was attempted three times and
+  stopped with exit code `-1` after partial progress; the temp log contained no
+  R/pkgdown error text and stopped after reading later articles.
+- Targeted `pkgdown::build_home()`, `pkgdown::build_news()`,
+  `pkgdown::build_article("location-scale")`, and
+  `pkgdown:::build_search()` completed.
+- Rendered scans found the new README, NEWS, location-scale, and search-index
+  wording in `pkgdown-site`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Pat kept the README path focused on the question a new user asks before
+  choosing syntax.
+- Boole kept the reporting row on fitted `mu` intercept-slope covariance and
+  avoided implying residual-scale slope covariance support.
+- Grace recorded the full-build interruption and used targeted rendered-page
+  evidence for the files actually touched.
