@@ -65,7 +65,7 @@ computation rather than by a conceptual one- or two-slope cap.
 | Gaussian `sigma` | Residual-scale random intercepts and multiple independent numeric slopes on `log(sigma)` are implemented, including separate grouping factors | Correlated scale intercept-slope blocks, then multi-slope scale covariance blocks | simulations recover scale-slope SDs on the modelled `log(sigma)` scale, boundary diagnostics are useful, and examples do not confuse `sigma` slopes with `sd(group)` models |
 | Location-scale covariance | One or more independent matching labelled `mu`/`sigma` random-intercept blocks are implemented | Mean-scale covariance involving slope terms only after the separate `mu` and `sigma` slope blocks are stable | output names identify both distributional parameter and coefficient, and direct correlations have profile or explicit unavailable interval status |
 | Bivariate Gaussian | Random-intercept covariance blocks and the matching slope-only `mu1`/`mu2` route are implemented. Slice 83 fits `(0 + x | p | id)` in both location formulas; q=4 location-slope, residual-scale slope, same-response location-scale slope, and q=8-style all-four slope requests remain blocked | Intercept-plus-slope q=4 location covariance, then same-covariate slope-correlation regression for plasticity-syndrome questions | `corpairs()` carries response and coefficient columns, residual `rho12` stays separate, and simulations vary residual correlation and random-slope SDs |
-| Structured phylogenetic/spatial | Slice 186 audit: coordinate spatial has one univariate Gaussian `mu` slope; phylogeny has intercept-level effects but no fitted slope | Bring phylogeny to the one-slope Gaussian `mu` baseline, then evaluate whether spatial and phylo need a second structured slope | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
+| Structured phylogenetic/spatial/relatedness | Coordinate-spatial, phylogenetic, animal-model, and `relmat()` routes have one univariate Gaussian `mu` slope with independent structured intercept and slope fields | Evaluate whether each structured layer needs a second structured slope, structured slope correlations, or residual-scale structured slopes | each structured layer has SD summaries, direct profile targets, diagnostics, and simulation recovery for at least one fitted slope |
 | Non-Gaussian families | Fixed-effect non-Gaussian families are implemented; ordinary Poisson/NB2 `mu` random intercepts and independent numeric slopes are implemented for non-zero-inflated count models; ordinary NB2 has the first log-`sigma` random-intercept gate; other non-Gaussian `sigma` random effects remain blocked | Revisit correlated count slopes and family-specific scale random effects after the first NB2 `sigma` intercept gate has recovery evidence; shape, zero-inflation, one-inflation, hurdle, ordinal, structured, and cross-parameter covariance blocks come later | family-specific simulations show convergence, boundary behaviour, recovery, and useful failure messages on both model and response scales |
 
 The ordinary location-model benchmark is glmmTMB/lme4-style syntax such as
@@ -79,6 +79,27 @@ interval failure rates. Scale-side random slopes are a separate advantage and a
 separate burden: they can answer harder distributional questions, but they
 need larger validation grids because `sigma` variation is often less directly
 identified than `mu` variation.
+
+## Ordinary Gaussian Evidence Closeout
+
+Issue #439 is the pre-power-simulation closeout for the ordinary Gaussian
+random-slope rows. The fitted `mu` multi-slope evidence is distributed across:
+
+- `tests/testthat/test-gaussian-random-intercepts.R`, which covers
+  independent slopes, one-slope correlated blocks, q=3 recovery, q=4
+  output-contract names, `corpairs()` classes, `summary()$covariance`, and
+  `profile_targets()` status;
+- `tests/testthat/test-phase18-gaussian-mu-random-slope.R`, which records the
+  Phase 18 q=3 smoke surface and artifact summary fields;
+- `tests/testthat/test-phase18-random-slope-grid-writers.R`, which checks the
+  Gaussian `mu` and Gaussian `sigma` random-slope grid writers.
+
+The fitted Gaussian `sigma` evidence is separate: residual-scale random
+intercepts and independent numeric slopes are fitted on log-`sigma`, with
+direct `log_sd_sigma` profile targets. Correlated residual-scale intercept-slope
+or multi-slope covariance blocks, labelled residual-scale slope covariance, and
+slope-level `mu`/`sigma` covariance remain outside the fitted ordinary Gaussian
+claim.
 
 Before Phase 18 comprehensive simulation, every random-slope layer should have
 an explicit status row: implemented, one-slope foundation, planned, or rejected
