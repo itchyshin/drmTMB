@@ -68,6 +68,52 @@ and fitted latent correlation rows from ordinary group, phylogenetic, spatial,
 animal-model, and `relmat()` covariance layers where those layers are already
 implemented. It does not fit a new covariance model.
 
+## Issue #441 Non-Gaussian Slope Admission
+
+Use this table until #441 is superseded by a family-specific simulation run.
+Fixed-effect likelihood support, independent `mu` slope source tests, and
+Phase 18 artifact routes are separate evidence layers.
+
+| Family or lane | Fixed-effect likelihood | Independent `mu` slope source test | Phase 18 artifact route | #441 status |
+| --- | --- | --- | --- | --- |
+| Ordinary Poisson `mu` | Yes | Yes | `poisson_mu_random_effect` smoke/grid lane | Strongest non-Gaussian count `mu` slope candidate; keep correlated slopes, labels, zero inflation, and structured slopes separate. |
+| Ordinary NB2 `mu` | Yes | Yes | `nbinom2_mu_random_effect` smoke/grid lane | Strong count `mu` slope candidate; keep NB2 `sigma` slopes, zero inflation, labelled covariance, and structured slopes separate. |
+| Student-t `mu` | Yes | Yes | `student_mu_random_intercept` artifact lane | Source-tested independent slope, but the current artifact lane is random-intercept focused; do not claim slope recovery or coverage until #446 designs it. |
+| Lognormal `mu` | Yes | Yes | `positive_continuous_mu_random_intercept` artifact lane | Source-tested independent slope; keep correlated positive-continuous slopes, `sigma` random effects, and known-covariance positive-response routes planned. |
+| Gamma `mu` | Yes | Yes | `positive_continuous_mu_random_intercept` artifact lane | Same status as lognormal: source-tested independent slope, not slope-specific Phase 18 recovery or coverage evidence. |
+| Beta `mu` | Yes | Yes | `bounded_response_mu_random_intercept` artifact lane | Source-tested independent slope; keep correlated bounded-response slopes, `sigma` random effects, exact boundary mass, and zero-one beta random effects planned. |
+| Beta-binomial `mu` | Yes | Yes | `bounded_response_mu_random_intercept` artifact lane | Same status as beta: source-tested independent slope, not broad bounded-response random-slope support. |
+| Zero-truncated NB2 `mu` | Yes | Yes | `truncated_nbinom2_mu_random_intercept` artifact lane | Source-tested independent slope; keep correlated slopes, hurdle/inflation neighbours, `sigma` random effects, and structured routes planned. |
+| Tweedie, zero-one beta, hurdle/zero-inflated counts, ordinal, shape parameters | Fixed-effect subsets only where implemented | No #441 slope admission | Separate fixed-effect or design lanes | Do not admit as non-Gaussian random-slope support from #441. |
+
+The current family-spanning source test is
+`tests/testthat/test-nongaussian-mu-random-slopes.R`. It checks fit
+convergence, `pdHess`, random-effect labels, `sdpars$mu`, `ranef()`,
+prediction contribution, direct `profile_targets()` rows, and `check_drm()`
+replication/design diagnostics for Student-t, lognormal, Gamma, beta,
+beta-binomial, and zero-truncated NB2. That is valuable source evidence, but
+not a substitute for a slope-specific Phase 18 recovery, accuracy, coverage,
+or power grid.
+
+## Issue #442 Structured One-Slope Audit
+
+Use this table to keep one-slope Gaussian structured effects separate from q2,
+q4, count, and future multi-slope claims.
+
+| Layer | Gaussian `mu` one-slope | q2 structured covariance | q4 structured covariance | Current artifact route | Keep planned or diagnostic |
+| --- | --- | --- | --- | --- | --- |
+| `phylo()` | Fitted for one numeric `mu` slope with independent intercept and slope fields. | Fitted for selected bivariate `mu1`/`mu2` location rows and q2 phylogenetic `corpair()` routes. | Fitted for selected location-scale blocks, but q4 rows remain diagnostic-heavy and interval-limited. | Registry wrapper target for Gaussian one-slope; Poisson/NB2 q1 phylogenetic formal tasks are separate count lanes, not Gaussian one-slope evidence. | Multiple phylogenetic slopes, phylogenetic slope correlations, residual-scale structured slopes, non-Gaussian phylogenetic slopes, and structured `rho12`. |
+| `spatial()` | Fitted for one coordinate-spatial `mu` slope; mesh/SPDE slopes remain planned. | Fitted for constant bivariate spatial `mu1`/`mu2` q2 covariance with DGP, smoke, and grid helpers. | Fitted for constant coordinate-spatial q4 location-scale blocks as smoke/artifact evidence; recovery and interval-status evidence remain separate. | Manual `spatial_mu_slope` Actions task plus spatial q2 smoke/grid helpers. | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, residual-scale structured slopes, spatial direct-SD regression, spatial `corpair()` regression, and count spatial slopes. |
+| `animal()` | Fitted for one dense-pedigree or known-matrix Gaussian `mu` slope. | Fitted for known-matrix bivariate `mu1`/`mu2` q2 covariance with smoke/grid artifacts. | Fitted for constant all-four q4 location-scale blocks as point-estimate smoke; derived q4 intervals remain unavailable. | Registry wrapper target for Gaussian one-slope; animal/`relmat()` q2 and q4 smoke/grid helpers exist, but no standalone one-slope Actions task. | Sparse large-pedigree speed claims, multiple animal slopes, slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count animal slopes, and direct-SD grammar. |
+| `relmat()` | Fitted for one known-matrix Gaussian `mu` slope through `K` or `Q`. | Fitted for known-matrix bivariate `mu1`/`mu2` q2 covariance with smoke/grid artifacts. | Fitted for constant all-four q4 location-scale blocks as point-estimate smoke; derived q4 intervals remain unavailable. | Registry wrapper target for Gaussian one-slope; animal/`relmat()` q2 and q4 smoke/grid helpers exist, but no standalone one-slope Actions task. | Multiple `relmat()` slopes, slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count `relmat()` slopes, and direct-SD grammar. |
+
+The current registry handles this split in
+`inst/sim/registry/phase18_structured_workflow_registry.csv`: Gaussian
+`phylo()`, `animal()`, and `relmat()` one-slope rows are `ready_grid` but need
+a structured-dependence wrapper target; coordinate-spatial one-slope now has
+the manual `spatial_mu_slope` task; structured q2 rows are `ready_or_smoke`;
+structured q4 rows are `diagnostic_only` with derived intervals unavailable.
+
 ## Issue #438 Support-Matrix Labels
 
 Use these labels in #438, the roadmap, and pkgdown pages until a later evidence

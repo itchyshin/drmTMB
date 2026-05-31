@@ -190,7 +190,10 @@ head(sigma(fit)^2) # fitted residual variances
   `spatial()`, `animal()`, and `relmat()`. These routes include documented
   `mu` and `sigma` intercepts, one numeric `mu` slope, q=2 bivariate
   mean-mean blocks, and constant q=4 location-scale blocks for supported
-  markers. Read
+  markers. The fitted one-slope support is broader than current Actions
+  artifact routing: only `spatial_mu_slope` is a manual Phase 18 task, while
+  the `phylo()`, `animal()`, and `relmat()` one-slope artifact rows remain
+  wrapper targets. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Stable-core matrix

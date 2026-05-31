@@ -389,18 +389,22 @@ distributional regression models using TMB.
   mean-mean correlation and all six fitted phylogenetic q=4 endpoint
   correlations when that block is present.
   Extend this table as new correlation likelihoods are added.
-- Stage structured phylogenetic and spatial slopes conservatively:
-  intercept-only structured effects first, then one `mu` slope, then at most two
-  structured `mu` slopes as an advanced path after simulation recovery. Multiple
-  random factors should enter as separate additive blocks. Intercept-slope
-  `corpair()` rows are distant-future; the more biologically interesting later
-  target is a bivariate slope1-slope2 correlation for the same covariate, a
-  plasticity-syndrome style model.
-- Structured-dependence random-slope boundary: do not claim phylogenetic/spatial
-  slope parity until each structured layer has at least one fitted Gaussian
-  `mu` random slope with SD summaries, direct profile targets, diagnostics, and
-  simulation recovery. The coordinate spatial path has this first one-slope
-  baseline; the phylogenetic path does not yet.
+- Stage structured slopes conservatively: intercept-only structured effects
+  first, then one Gaussian `mu` slope, then at most two structured `mu` slopes
+  as an advanced path after simulation recovery. Multiple random factors should
+  enter as separate additive blocks. Intercept-slope `corpair()` rows are
+  distant-future; the more biologically interesting later target is a bivariate
+  slope1-slope2 correlation for the same covariate, a plasticity-syndrome style
+  model.
+- Structured-dependence random-slope boundary: `phylo()`, coordinate
+  `spatial()`, `animal()`, and `relmat()` now each have the first fitted
+  univariate Gaussian one-slope `mu` route with SD summaries, direct profile
+  targets, diagnostics, and focused recovery evidence. Do not read that as
+  Actions or artifact parity: only `spatial_mu_slope` currently has a manual
+  Phase 18 Actions artifact task, while the phylogenetic, animal-model, and
+  `relmat()` one-slope routes remain wrapper targets. Multiple structured
+  slopes, structured residual-scale slopes, slope correlations, structured
+  `rho12`, and non-Gaussian structured slopes remain planned.
 - Keep structured-effect correlations constant during the one-slope baseline.
   Do not add predictor-dependent phylogenetic or spatial slope correlations
   until the fixed-correlation one-slope paths recover reliably. This does not
@@ -625,9 +629,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   programmes. It does not replace the later bivariate covariance programme; it
   records the slope policy and should implement only the first slope paths that
   have simulation recovery and readable output.
-- Start with one structured `mu` slope for each relevant dependence layer:
-  ordinary grouped effects as the baseline, then phylogenetic effects, then
-  spatial effects. Design for up to two structured `mu` slopes as an advanced
+- Start with one structured Gaussian `mu` slope for each relevant dependence
+  layer: ordinary grouped effects as the baseline, then phylogenetic,
+  coordinate-spatial, animal-model, and `relmat()` effects. The first fitted
+  one-slope routes exist for all four structured layers, but Actions artifact
+  readiness is narrower: only `spatial_mu_slope` is wired as a manual task, and
+  the phylogenetic, animal-model, and `relmat()` one-slope routes remain
+  wrapper targets. Design for up to two structured `mu` slopes as an advanced
   path if diagnostics and recovery remain stable.
 - Keep three or more structured slopes outside the advertised near-term path.
   The covariance dimension grows quickly, so these models should remain
@@ -1426,7 +1434,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 183 | Location-scale covariance | Done: two independent matched univariate `mu`/`sigma` random-intercept covariance blocks can be fitted and reported through `corpars$mu_sigma`, `corpairs()`, `summary()`, and `profile_targets()`. |
 | 184 | Location-scale covariance | Done: `check_drm()` now reports each independent univariate `mu`/`sigma` block separately, and profile tests cover the second `eta_cor_mu_sigma` interval target. |
 | 185 | Bivariate slope route | Superseded by Slice 83: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are now fitted as the first slope-slope covariance route, while `(1 + x | p | id)` q=4 location blocks and all-four q=8 location-scale slope blocks remain closed. |
-| 186 | Phylogenetic random slopes | Done: audit confirms phylogenetic slopes remain rejected/intercept-only while coordinate spatial already fits one independent `mu` slope; the error, docs, and tests now state this parity gap explicitly. |
+| 186 | Phylogenetic random slopes | Superseded by Slices 39-82: this audit originally recorded the pre-parity gap, but `phylo(1 + x | species, tree = tree)` now fits the first univariate Gaussian one-slope `mu` path; multiple phylogenetic slopes, residual-scale structured slopes, and slope correlations remain planned. |
 | 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, residual-scale structured slopes, and bivariate spatial slope syntax. |
 | 188 | Random-effect gate | Done: the one-slope-per-layer status table and remaining Gaussian double-hierarchical limits are published below before the non-Gaussian revisit. |
 
@@ -2207,8 +2215,7 @@ as the whole comprehensive simulation programme.
   leaving correlated scale-slope covariance outside Wave A. Slice 239 records
   the structured-slope parity gate as it stood then: coordinate spatial had one
   fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
-  one-slope paths still required implementation, profile targets, diagnostics,
-  recovery tests, and biological examples. Later slices superseded that
+  one-slope paths were not yet fitted. Later slices superseded that
   boundary; see the Structured Slope Parity Gate below for the current fitted
   one-slope Gaussian `mu` status. Slice 240 records the
   cross-distributional-parameter correlation gate. Slice 241 adds a coordinate

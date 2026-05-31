@@ -46500,11 +46500,14 @@ Changes:
 - Recorded `GLLVM.jl`'s quick-core versus full-quality-battery split as a
   planning lesson for #446: CRAN-safe tests, heavy simulations, quality checks,
   and benchmarks should stay separate evidence gates.
+- Updated the card after the scout returned with the observed `DRM.jl` branch
+  name, the `(0 + x | g)` recovery versus correlated-slope rejection pattern,
+  and the GLLVM coverage-simulation denominator pattern.
 
 Validation:
 
 ```sh
-rg -n 'Second Scout: 2026-05-30 Overnight|one dependence layer, one estimand, one evidence gate|CRAN-safe focused `drmTMB` tests' docs/dev-log/twin-sister-exchange.md
+rg -n 'Second Scout: 2026-05-30 Overnight|one dependence layer, one estimand, one evidence gate|CRAN-safe focused `drmTMB` tests|usable intervals, and MCSE|\\(0 \\+ x \\| g\\)' docs/dev-log/twin-sister-exchange.md
 git diff --check
 ```
 
@@ -46518,3 +46521,277 @@ Member-group review:
 - Jason kept sibling-package observations as design lessons only.
 - Rose kept the accept decision explicit and blocked any cross-repo evidence
   laundering into `drmTMB` support claims.
+
+## 2026-05-30 - Non-Gaussian independent mu-slope admission table
+
+Goal:
+
+- Advance #441 without changing likelihoods by separating fixed-effect
+  likelihood support, source-tested independent `mu` slopes, Phase 18 artifact
+  routes, and unsupported neighbours for non-Gaussian families.
+
+Changes:
+
+- Added an #441 admission table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Marked ordinary Poisson and NB2 `mu` slopes as the strongest current
+  non-Gaussian count candidates because they have dedicated smoke/grid lanes.
+- Marked Student-t, lognormal, Gamma, beta, beta-binomial, and
+  zero-truncated NB2 independent `mu` slopes as source-tested but not yet
+  slope-specific Phase 18 recovery, coverage, or power evidence.
+- Kept Tweedie, zero-one beta, hurdle/zero-inflated counts, ordinal, and
+  shape-parameter random slopes out of #441 admission.
+
+Validation:
+
+```sh
+rg -n 'Issue #441 Non-Gaussian Slope Admission|Source-tested independent slope|tests/testthat/test-nongaussian-mu-random-slopes.R|Tweedie, zero-one beta' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- The source scan found the new #441 table and evidence boundary wording.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Fermat completed the #441 source-only evidence audit and confirmed the
+  conservative split: Poisson/NB2 have dedicated small-grid lanes, while
+  Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2
+  remain source-tested/candidate until slope-specific recovery or coverage
+  grids exist.
+- Curie kept source tests separate from Phase 18 operating-characteristic
+  evidence.
+- Rose blocked a broad "all non-Gaussian slopes" claim.
+
+## 2026-05-30 - Non-Gaussian mu-slope registry prose cleanup
+
+Goal:
+
+- Close the documentation-only #441 registry cleanup by removing lower-section
+  stale prose that still described selected source-tested non-Gaussian `mu`
+  slope routes as fixed-effect-only or random-effects-later surfaces.
+
+Changes:
+
+- Updated `docs/design/02-family-registry.md` so the Student-t, lognormal,
+  Gamma, beta, beta-binomial, and zero-truncated NB2 family sections match the
+  registry table: ordinary unlabelled `mu` random intercepts and independent
+  numeric `mu` slopes are source-tested.
+- Kept the conservative Phase 18 boundary explicit: the current Student-t,
+  positive-continuous, bounded-response, and zero-truncated NB2 artifact lanes
+  are random-intercept focused, not slope-specific recovery, coverage, or power
+  evidence.
+- Left correlated slopes, labelled covariance, non-Gaussian `sigma` random
+  effects outside the narrow NB2 intercept gate, shape random effects,
+  structured effects, hurdle/inflation random effects, known covariance, and
+  bivariate or mixed non-Gaussian models as planned neighbours.
+
+Validation:
+
+```sh
+! rg -n 'Student-t.*fixed-effect only|student\(\).*fixed-effect only|Student-t.*Random effects.*later|The first robust continuous family is univariate and fixed-effect only|beta-binomial.*fixed-effect only|beta_binomial\(\).*fixed-effect only|The implemented model is univariate and fixed-effect only|zero-truncated NB2.*fixed-effect|truncated_nbinom2\(\).*fixed-effect|The implemented model is fixed-effect and univariate' docs/design/02-family-registry.md
+rg -n 'source-tested, while the current Phase 18 .*artifact lane is random-intercept focused|ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes|Correlated Student-t slopes|Correlated zero-truncated slopes|Correlated beta slopes|Correlated slopes' docs/design/02-family-registry.md
+git diff --check
+```
+
+Results:
+
+- The stale-wording scan returned no matches.
+- The positive support/boundary scan found the updated source-tested `mu` slope
+  wording and planned-neighbour guardrails.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Pat checked that applied users see what they can fit now before reading the
+  unsupported-neighbour list.
+- Curie kept source-tested independent slopes separate from Phase 18
+  operating-characteristic evidence.
+- Rose kept the cleanup inside `docs/design/02-family-registry.md`,
+  `docs/dev-log/check-log.md`, and this after-task record.
+
+## 2026-05-30 - Structured Gaussian one-slope audit table
+
+Goal:
+
+- Advance #442 by separating fitted Gaussian structured one-slope `mu` paths
+  from q2/q4 covariance, Actions/artifact routing, and unsupported structured
+  slope neighbours.
+
+Changes:
+
+- Added an #442 structured one-slope table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Marked `phylo()`, `spatial()`, `animal()`, and `relmat()` as fitted for the
+  first univariate Gaussian `mu` one-slope path.
+- Kept q2 structured covariance, q4 diagnostic-heavy covariance, count
+  structured intercept lanes, and future multi-slope or residual-scale
+  structured routes as separate evidence layers.
+- Recorded the current Phase 18 routing boundary: `spatial_mu_slope` is a
+  manual Actions task, while Gaussian `phylo()`, `animal()`, and `relmat()`
+  one-slope rows still need structured-dependence wrapper targets.
+
+Validation:
+
+```sh
+rg -n 'Issue #442 Structured One-Slope Audit|spatial_mu_slope|structured-dependence wrapper target|diagnostic_only|derived intervals unavailable' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'phylo\\(1 \\+ x|spatial_mu_slope|needed:structured_dependence_wrapper|derived_interval_unavailable|animal\\(1 \\+ x|relmat\\(1 \\+ x' docs/design/143-phase-18-structured-workflow-registry.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R README.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd
+git diff --check
+```
+
+Results:
+
+- The source scan found the new #442 table and the planned artifact-routing
+  boundary.
+- The stale/status scan returned expected current status rows plus known
+  historical roadmap entries; no broad "all structured slopes" or q4 interval
+  claim was added by this slice.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Maxwell completed the #442 source-only audit and identified public prose that
+  should continue separating fitted one-slope paths from artifact readiness.
+- Fisher kept q4 covariance rows diagnostic-heavy until recovery and interval
+  evidence are explicit.
+- Grace kept `spatial_mu_slope` as the only current structured one-slope
+  manual Actions route.
+- Rose kept unsupported boundaries visible: multiple structured slopes,
+  slope correlations, structured `rho12`, structured `sigma`, and
+  non-Gaussian structured slopes remain planned.
+
+## 2026-05-30 - Structured Gaussian public prose cleanup
+
+Goal:
+
+- Advance #442 by separating fitted one-slope Gaussian `mu` support from Phase
+  18 Actions or artifact readiness for `phylo()`, `spatial()`, `animal()`, and
+  `relmat()` in public prose.
+
+Changes:
+
+- Updated `vignettes/phylogenetic-spatial.Rmd` so the reader route says all
+  four structured layers have a first fitted univariate Gaussian one-slope
+  `mu` route.
+- Added the artifact boundary in the vignette and README: only
+  `spatial_mu_slope` is currently a manual Phase 18 Actions task, while
+  `phylo()`, `animal()`, and `relmat()` one-slope artifact rows remain wrapper
+  targets.
+- Removed stale roadmap wording that said the phylogenetic path did not yet
+  have the first one-slope baseline.
+- Marked the older Slice 186 phylogenetic random-slope row as superseded and
+  softened the historical Slice 239 summary so it cannot be read as current
+  status.
+- Kept q=4 prose conservative: fitted extractor and diagnostic-heavy paths do
+  not imply broadly available derived intervals.
+- Added
+  `docs/dev-log/after-task/2026-05-30-structured-gaussian-public-prose-cleanup.md`.
+
+Validation:
+
+```sh
+rg -n 'one numeric `mu` slope|spatial_mu_slope|wrapper targets|multiple structured slopes|structured residual `rho12`|structured `sigma` slopes|non-Gaussian structured slopes|phylogenetic path does not yet|coordinate spatial path has this first one-slope baseline' vignettes/phylogenetic-spatial.Rmd ROADMAP.md README.md
+! rg -n 'phylogenetic slopes remain rejected|intercept-only while coordinate spatial|phylogenetic path does not yet|still required implementation|does not fit in the current structured one-slope|still does not fit' ROADMAP.md vignettes/phylogenetic-spatial.Rmd README.md
+rg -n 'structured one-slope|spatial_mu_slope|wrapper targets|q=4 remains fitted and diagnostic-heavy' docs/dev-log/after-task/2026-05-30-structured-gaussian-public-prose-cleanup.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The public-prose scan found the new one-slope and artifact-boundary wording
+  and did not find the stale "phylogenetic path does not yet" wording.
+- The stale-current-status scan returned no matches.
+- The after-task/check-log scan found the #442 boundary notes.
+- `git diff --check` passed.
+- No R tests were run because this task changed prose and status notes only.
+
+Member-group review:
+
+- Darwin kept the vignette route in biological order: animal, phylo, spatial,
+  planned phylo-plus-spatial, then low-level `relmat()`.
+- Grace kept Actions readiness narrower than fitted support.
+- Emmy kept wrappers, artifact routing, and model support separate.
+- Rose blocked any wording that could imply multiple structured slopes,
+  structured `rho12`, structured `sigma` slopes, or non-Gaussian structured
+  slopes are fitted.
+
+## 2026-05-30 - Deprecated meta_known_V and GLLVM path wording cleanup
+
+Goal:
+
+- Fix stale historical dev-log snippets that still made deprecated
+  `meta_known_V(V = V)` look like current syntax or made a local `GLLVM.jl`
+  checkout path look like a separate package.
+
+Changes:
+
+- Updated the Phase 6e tutorial-maturation closure note so `meta_V(V = V)` is
+  the current additive known-covariance syntax and `meta_known_V(V = V)` is
+  named as a deprecated compatibility alias.
+- Updated the Slice 90 flagship location-scale after-task note with the same
+  current/deprecated split.
+- Prefixed the historical `gllvmTMB.jl/src/confint_derived_wald.jl` path with
+  "`GLLVM.jl` local checkout path" so it cannot be read as a separate package
+  named `gllvmTMB.jl`.
+
+Validation:
+
+```sh
+! rg -n 'meta_known_V\\(V = V\\).*current|meta_V\\(\\.\\.\\.\\).*future|planned `meta_V\\(\\)`|^- `gllvmTMB\\.jl/' docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md docs/dev-log/after-task/2026-05-29-claude-gllvmjl-transfer-audit.md
+rg -n 'meta_V\\(V = V\\).*current|meta_known_V\\(V = V\\).*deprecated compatibility alias|GLLVM\\.jl` local checkout path' docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md docs/dev-log/after-task/2026-05-29-claude-gllvmjl-transfer-audit.md
+git diff --check
+```
+
+Results:
+
+- The stale-current syntax and raw-path scan returned no matches.
+- The positive scan found the current `meta_V(V = V)` wording, the deprecated
+  compatibility-alias wording, and the `GLLVM.jl` local-checkout qualifier.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Cicero found the stale snippets before commit.
+- Boole kept `meta_V(V = V)` as the current syntax and
+  `meta_known_V(V = V)` as a compatibility alias.
+- Rose kept the local checkout path from becoming a false package-name claim.
+
+## 2026-05-30 - Phase 6c public docs pkgdown render gate
+
+Goal:
+
+- Verify that the Phase 6c public prose changes render through pkgdown and
+  that the generated pages carry the current structured-slope and meta-analysis
+  wording.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+rg -n 'spatial_mu_slope|wrapper targets|structured residual rho12|structured sigma slopes|non-Gaussian structured slopes|current additive known sampling covariance|deprecated compatibility alias' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/search.json
+! rg -n 'phylogenetic path does not yet|still required implementation|meta_known_V\\(V = V\\).*current additive|meta_V\\(\\.\\.\\.\\).*reserved future|gllvmTMB\\.jl/src' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/search.json
+git diff --check
+```
+
+Results:
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` completed and wrote the local site to
+  `pkgdown-site`.
+- The rendered-page scan found the structured one-slope artifact boundary in
+  `index.html`, `ROADMAP.html`, and `articles/phylogenetic-spatial.html`.
+- The rendered stale scan found no stale "phylogenetic path does not yet",
+  stale current `meta_known_V(V = V)`, reserved-future `meta_V(...)`, or raw
+  `gllvmTMB.jl/src` wording in the rendered pages checked.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Grace kept pkgdown as a first-class artifact for this public-prose slice.
+- Pat kept the reader-facing route aligned between README, roadmap, and the
+  structural-dependence article.
+- Rose checked that generated pages did not reintroduce stale wording through
+  older source paths.
