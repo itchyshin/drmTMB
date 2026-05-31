@@ -68,6 +68,28 @@ gaps are intercept-plus-slope bivariate covariance, all-four p8/q8
 location-scale covariance, multiple structured slopes, structured slope
 correlations, and non-Gaussian structured effects.
 
+## Structured Gaussian Audit Closure
+
+The #442 audit closes the current-status question for the four Gaussian
+structured one-slope routes. The fitted claim is deliberately narrow: one
+numeric univariate Gaussian `mu` slope fits as independent structured intercept
+and slope fields. It is not a slope-correlation model, not a residual-scale
+structured slope, and not a random effect in residual `rho12`.
+
+| Route | One-slope `mu` status | q2/q4 covariance status | Evidence handles | Still outside |
+| --- | --- | --- | --- | --- |
+| `phylo()` | Fitted for one numeric univariate Gaussian `mu` slope with independent phylogenetic intercept and slope fields | q2 bivariate location covariance, q2 phylogenetic `corpair()` regression, selected full q4 location-scale, and block-diagonal q4 fallback rows are fitted first slices; full q4 correlations are derived-only and block-diagonal q4 correlations still need fit-specific profile diagnostics | `tests/testthat/test-phylo-gaussian.R`, `tests/testthat/test-check-drm.R`, `tests/testthat/test-profile-targets.R`, `docs/design/44-structured-slope-parity-gate.md`, `docs/design/46-pre-simulation-readiness-matrix.md` | Multiple phylogenetic slopes, phylogenetic slope correlations, residual-scale structured slopes, structured `rho12`, non-Gaussian phylogenetic slopes, and predictor-dependent q4 correlations |
+| `spatial()` | Fitted for one numeric univariate Gaussian `mu` slope with independent coordinate-spatial intercept and slope fields | q2 bivariate location covariance and constant q4 location-scale rows are fitted first slices; q4 is extractor/diagnostic smoke rather than formal coverage evidence | `tests/testthat/test-spatial-gaussian.R`, `tests/testthat/test-phase18-spatial-mu-slope.R`, `tests/testthat/test-phase18-random-slope-grid-writers.R`, `docs/design/46-pre-simulation-readiness-matrix.md` | Mesh/SPDE, multiple spatial slopes, spatial slope correlations, residual-scale structured slopes, spatial direct-SD surfaces, spatial `corpair()` regression, and non-Gaussian spatial slopes |
+| `animal()` | Fitted for one numeric univariate Gaussian `mu` slope with independent animal-model intercept and slope fields | q2 bivariate location covariance and constant q4 location-scale rows are fitted first slices; q4 correlation intervals are derived-unavailable | `tests/testthat/test-animal-relmat-gaussian.R`, `docs/design/44-structured-slope-parity-gate.md`, `docs/design/46-pre-simulation-readiness-matrix.md` | Sparse large-pedigree speed claims, multiple animal slopes, animal slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count slopes, labelled count covariance, and generic direct-SD grammar |
+| `relmat()` | Fitted for one numeric univariate Gaussian `mu` slope with independent known-matrix intercept and slope fields | q2 bivariate location covariance and constant q4 location-scale rows are fitted first slices; q4 correlation intervals are derived-unavailable | `tests/testthat/test-animal-relmat-gaussian.R`, `docs/design/44-structured-slope-parity-gate.md`, `docs/design/46-pre-simulation-readiness-matrix.md` | Multiple `relmat()` slopes, relatedness slope correlations, residual-scale structured slopes, predictor-dependent `corpair()` regression, count slopes, labelled count covariance, and generic direct-SD grammar |
+
+Metadata access is not a blocker for this audit. Issue #335 is closed by the
+exported `structured_effects()` accessor, so downstream packages no longer
+need formula-string greps to identify `phylo()`, `spatial()`, `animal()`, or
+`relmat()` markers. Phase 18 wrapper and artifact-routing gaps remain in the
+simulation programme and should be handled by #446 or focused follow-up
+issues, not by broadening the fitted-surface claim here.
+
 ## Non-Gaussian Structural Dependence
 
 | Non-Gaussian surface | Implemented now? | What is fitted | What is not fitted |
