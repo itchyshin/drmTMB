@@ -456,3 +456,15 @@ issues, or pull requests.
 - Trigger: CI logs showed the Phase 18 first-wave reports emitting a
   missing-`student_shape_grid` setup error from the strict test path, which was
   too easy to misread as a platform failure.
+
+## 2026-05-30 - Structured Artifact Covariance Objects
+
+- Improvement implemented: structured-effect DGPs should store the covariance
+  object used to generate latent fields, not only scalar SD targets and fitted
+  summaries. For dense-pedigree `animal()` simulations, keep the pedigree,
+  additive relationship matrix, inverse relationship matrix, and realised
+  animal fields together in the truth object.
+- Trigger: the `animal()` Gaussian `mu` one-slope writer needed enough
+  provenance for later signal-correlation and recovery diagnostics without
+  turning the first artifact writer into a sparse large-pedigree performance
+  project.

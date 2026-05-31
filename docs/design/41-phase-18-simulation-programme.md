@@ -1408,3 +1408,14 @@ errors, and elapsed time by surface before the raw manifest.
      Actions task, include the lane in `task = "all"`, or make recovery,
      coverage, power, multiple-slope, slope-correlation, or residual-scale
      structured-slope claims.
+244. Slice 1836 adds the local dense-pedigree `animal()` Gaussian `mu`
+     one-slope artifact writer. The DGP, smoke runner, summary helper, and
+     grid writer fit `animal(1 + x | id, pedigree = pedigree)` with
+     independent animal-model intercept and slope fields and write aggregate,
+     replicate-level, manifest, and failure-ledger CSV artifacts. The
+     structured-dependence wrapper-readiness helper now reports the `animal()`
+     row as `grid_writer_available`, but the registry still routes it through
+     `needed:structured_dependence_wrapper`. This slice does not add a manual
+     Actions task, include the lane in `task = "all"`, or make sparse
+     large-pedigree speed, recovery, coverage, power, multiple-slope,
+     slope-correlation, or residual-scale structured-slope claims.

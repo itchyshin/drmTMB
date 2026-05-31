@@ -15,10 +15,10 @@ correlations, residual-scale structured slopes, structured `rho12`,
 non-Gaussian structured slopes, mesh/SPDE spatial slopes, or q2/q4 covariance.
 
 `spatial()` is the Actions-ready artifact route because it already has the
-manual `spatial_mu_slope` Phase 18 task. `relmat()` now has a local
-wrapper-target artifact writer. `phylo()` and `animal()` remain
-fitted/source-tested wrapper targets that still need standalone artifact
-writers. None of these route-maturity labels is coverage or power evidence.
+manual `spatial_mu_slope` Phase 18 task. `animal()` and `relmat()` now have
+local wrapper-target artifact writers. `phylo()` remains a fitted/source-tested
+wrapper target that still needs a standalone artifact writer. None of these
+route-maturity labels is coverage or power evidence.
 
 ## A - Aims
 
@@ -28,9 +28,9 @@ slope-field SD without optimizer, Hessian, boundary, or diagnostic failures.
 
 Secondary aim 1: compare the four structured routes without borrowing artifact
 maturity across them. Coordinate-spatial one-slope evidence may use the
-existing `spatial_mu_slope` task; the generic known-matrix `relmat()` route may
-use its local wrapper-target writer; phylogenetic and animal-model one-slope
-routes still need separate wrapper artifacts.
+existing `spatial_mu_slope` task; the animal-model and generic known-matrix
+`relmat()` routes may use their local wrapper-target writers; the phylogenetic
+one-slope route still needs a separate wrapper artifact.
 
 Secondary aim 2: keep q2/q4 structured covariance, `corpairs()`, residual
 coscale `rho12`, residual-scale structured effects, non-Gaussian structured
@@ -88,7 +88,7 @@ Store truth and estimates for:
 | Conditional structured slope signal | realised `a1_j` values | `ranef(fit, "mu")` slope terms and signal/rank correlation with truth, reported as a diagnostic |
 | Residual scale | `sigma` | `sigma(fit)` or `coef(fit, "sigma")` on the documented scale |
 | Diagnostics | known successful fit status | convergence, `pdHess`, warnings, `check_drm()` rows, boundary flags, elapsed time |
-| Artifact maturity | route-specific route status | `spatial_mu_slope` task status, local `relmat()` writer status, or wrapper-target status for `phylo()` and `animal()` |
+| Artifact maturity | route-specific route status | `spatial_mu_slope` task status, local `animal()`/`relmat()` writer status, or wrapper-target status for `phylo()` |
 
 Do not report slope-field SD recovery as evidence for q2/q4 covariance,
 `corpairs()`, residual `rho12`, or structured residual-scale effects. Those are
@@ -128,7 +128,7 @@ count as `drmTMB` recovery, coverage, or power evidence.
 | Power or Type I error | planned only until a null/alternative, nested comparator, rejection rule, and MCSE target are named |
 | Convergence rate | proportion with optimizer convergence and usable `pdHess` |
 | Boundary rate | near-zero structured SDs, non-positive-definite covariance construction, warnings, or `check_drm()` non-ok rows |
-| Route artifact readiness | `spatial_mu_slope` task status, local `relmat()` writer status, and wrapper-target status for `phylo()` and `animal()` |
+| Route artifact readiness | `spatial_mu_slope` task status, local `animal()`/`relmat()` writer status, and wrapper-target status for `phylo()` |
 | Failed-fit retention | failed and warning-heavy replicates remain in manifest/failure artifacts rather than being silently dropped |
 | Runtime | median and high quantiles of elapsed fit time |
 
@@ -145,7 +145,7 @@ before formal reporting.
 | 4. Methods | Intended `drmTMB` formulas and nested `drmTMB` comparators are specified; external comparators are gated through #60. |
 | 5. Performance measures | Bias, RMSE, signal recovery, diagnostics, runtime, artifact readiness, and planned-only coverage/power are specified. |
 | 6. Software and computing details | To be recorded by the runner with session info, package versions, seed, backend, and covariance-construction details. |
-| 7. Code availability | Spatial and `relmat()` DGPs, runners, and grid writers live under `inst/sim/`; `phylo()` and `animal()` still need route-specific wrapper artifacts. |
+| 7. Code availability | Spatial, `animal()`, and `relmat()` DGPs, runners, and grid writers live under `inst/sim/`; `phylo()` still needs a route-specific wrapper artifact. |
 | 8. Random-number generation | To be specified in the runner using master and replicate-level seeds. |
 | 9. Empirical application | Not required for this planning sheet; tutorials should keep each structured route tied to its biological or known-matrix question. |
 | 10. Results reporting | To include aggregate plus replicate-level artifacts, failures, boundary flags, interval-status rows, and route maturity. |

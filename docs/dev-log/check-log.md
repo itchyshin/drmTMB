@@ -47431,3 +47431,66 @@ Member-group review:
 - Heisenberg identified the report setup hard-stop as the portability risk and
   recommended a non-strict render default with strict fail-fast behavior
   reserved for manual/formal validation.
+
+## 2026-05-30 - Animal Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the dense-pedigree `animal()`
+  Gaussian `mu` one-slope lane while keeping the row outside manual Actions,
+  `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, and
+  power claims.
+
+Changes:
+
+- Added a seeded dense-pedigree DGP, smoke runner, summary helper, and grid
+  writer for `animal(1 + x | id, pedigree = pedigree)` with independent animal
+  intercept and slope fields.
+- Added focused tests for DGP reproducibility, pedigree and relationship-matrix
+  truth, realised animal fields, smoke summaries, artifact creation, overwrite
+  protection, malformed inputs, and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_animal_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_animal_mu_slope_grid_outputs()` while staying a wrapper target
+  rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase 18
+  README, and the Phase 18/Phase 6c design ledgers to say that `animal()` and
+  `relmat()` have local writers, `spatial_mu_slope` is Actions-ready, and
+  `phylo()` remains the structured one-slope wrapper target without a local
+  writer.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_animal_mu_slope.R','inst/sim/fit/sim_summarise_animal_mu_slope.R','inst/sim/run/sim_run_animal_mu_slope_smoke.R','inst/sim/run/sim_summary_animal_mu_slope_smoke.R','inst/sim/run/sim_write_animal_mu_slope_grid.R','tests/testthat/test-phase18-animal-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('animal writer parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-animal-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(animal-mu-slope|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(animal-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+rg -n 'animal\(\).*local Phase 18 writer|phase18_write_animal_mu_slope_grid_outputs|animal\(1 \+ x \| id, pedigree = pedigree\)|local `animal\(\)`/`relmat\(\)` artifact|animal\(\).*grid_writer_available|dense-pedigree `animal\(\)` Gaussian `mu` one-slope' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'phylogenetic, animal-model, and `relmat\(\)` one-slope routes remain|phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*need local artifact|phylo\(\).*animal\(\).*remain source-tested wrapper targets|`phylo\(\)`/`animal\(\)` wrapper|animal\(\).*still need.*artifact writer|meta_known_V\(V = V\).*(current|preferred|new code should)|package called `?gllvmTMB\.jl`?' README.md NEWS.md ROADMAP.md docs/design vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles pkgdown-site/reference
+git diff --check
+```
+
+Results:
+
+- The parse check printed `animal writer parse ok`.
+- The focused `phase18-animal-mu-slope` test passed.
+- The combined wrapper-readiness and structured-registry test bundles
+  completed without failure.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `animal()` writer wording in source and
+  rendered pages. The stale scan found no current-source or pkgdown claim that
+  `animal()` still lacks local artifacts, no current `meta_known_V(V = V)`
+  wording as preferred syntax, and no current `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice narrow: dense-pedigree artifact writer only, not Actions
+  dispatch or sparse pedigree performance.
+- Curie kept the tests focused on seed discipline, artifact retention, and
+  malformed input.
+- Rose kept local artifact readiness separate from recovery, coverage, power,
+  slope correlations, and residual-scale structured slopes.

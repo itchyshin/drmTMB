@@ -255,9 +255,9 @@ relationship, or precision matrix, such as `animal(1 | id, pedigree = pedigree)`
 `animal(1 + x | id, Ainv = Ainv)`, or `relmat(1 + x | id, Q = Q)`.
 Artifact routing is narrower than fitted syntax. The coordinate-spatial
 one-slope route has a manual Phase 18 Actions artifact task,
-`spatial_mu_slope`; the known-matrix `relmat()` one-slope route has local
-Phase 18 writer artifacts; and the phylogenetic and animal-model one-slope
-routes remain wrapper targets for that artifact layer.
+`spatial_mu_slope`; the animal-model and known-matrix `relmat()` one-slope
+routes have local Phase 18 writer artifacts; and the phylogenetic one-slope
+route remains a wrapper target for that artifact layer.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
 multiple spatial slopes, residual-scale structured slopes, spatial slope
 correlations, non-Gaussian spatial effects, and predictor-dependent spatial
