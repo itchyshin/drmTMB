@@ -83,6 +83,10 @@ Current pilot files:
   planning handoff for the admitted Phase 6c random-slope pilots. It names the
   run order, allowed claims, required artifact tables, MCSE targets, execution
   limits, and stop rules before larger power grids are dispatched.
+- `phase18_random_slope_registry_preflight()` in
+  `run/sim_phase18_structured_workflow_registry.R` prints the admitted
+  random-slope registry rows and their gate fields before any pilot is
+  dispatched.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.

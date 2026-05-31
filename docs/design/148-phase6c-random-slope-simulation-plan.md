@@ -29,7 +29,9 @@ boundary, interval, or artifact checks fail.
 1. **Registry preflight.** Print the `workflow_lane == "random_slopes"` rows
    from `inst/sim/registry/phase18_structured_workflow_registry.csv`, and fail
    closed if any row lacks an `admission_status`, `existing_actions_task`, or
-   `supervision_boundary`.
+   `supervision_boundary`. This dry run is available through
+   `phase18_random_slope_registry_preflight()` and
+   `phase18_print_random_slope_registry_preflight()`.
 2. **Bivariate slope-only pilot.** Reuse the existing `biv_gaussian_mu_slope`
    task because it already writes aggregate, replicate, manifest, and
    failure-ledger artifacts. Increase only from smoke to diagnostic pilot
