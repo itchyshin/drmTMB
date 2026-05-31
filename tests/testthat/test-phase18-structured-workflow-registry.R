@@ -275,6 +275,62 @@ test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   expect_equal(nrow(plan), 9L)
 })
 
+test_that("Phase 18 random-slope operating-characteristic plan is a planning table", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_operating_characteristic_plan(registry)
+  required <- c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "admission_status",
+    "existing_actions_task",
+    "accuracy_status",
+    "coverage_status",
+    "power_status",
+    "minimum_estimands",
+    "boundary_note"
+  )
+
+  expect_equal(nrow(plan), 9L)
+  expect_true(all(required %in% names(plan)))
+  expect_false(any(
+    plan$admission_status %in%
+      c(
+        "blocked",
+        "design_only",
+        "diagnostic_only"
+      )
+  ))
+  expect_true(all(plan$coverage_status == "planned_not_estimated"))
+  expect_true(all(plan$power_status == "planned_not_estimated"))
+  expect_true(all(nzchar(plan$minimum_estimands)))
+  expect_true(all(nzchar(plan$boundary_note)))
+})
+
+test_that("Phase 18 random-slope operating-characteristic plan can omit source-test rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_operating_characteristic_plan(
+    registry,
+    include_source_test = FALSE
+  )
+
+  expect_equal(nrow(plan), 5L)
+  expect_false(any(plan$admission_status == "ready_source_test"))
+  expect_true(all(plan$accuracy_status != "source_tests_exist_artifact_lane_needed"))
+})
+
 test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)

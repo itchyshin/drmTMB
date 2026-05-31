@@ -257,6 +257,56 @@ phase18_random_slope_workflow_plan <- function(
   )]
 }
 
+phase18_random_slope_operating_characteristic_plan <- function(
+  registry = phase18_read_structured_workflow_registry(),
+  include_source_test = TRUE
+) {
+  plan <- phase18_random_slope_workflow_plan(registry)
+  if (!include_source_test) {
+    plan <- plan[
+      plan$admission_status != "ready_source_test",
+      ,
+      drop = FALSE
+    ]
+  }
+  if (nrow(plan) == 0L) {
+    return(phase18_empty_random_slope_operating_characteristic_plan())
+  }
+
+  plan$existing_actions_task <- ifelse(
+    is.na(plan$actions_task),
+    "none",
+    plan$actions_task
+  )
+  plan$accuracy_status <-
+    phase18_random_slope_oc_accuracy_status(plan$admission_status)
+  plan$coverage_status <-
+    phase18_random_slope_oc_coverage_status(plan$lane_id)
+  plan$power_status <-
+    phase18_random_slope_oc_power_status(plan$lane_id)
+  plan$minimum_estimands <-
+    phase18_random_slope_oc_minimum_estimands(plan$lane_id, plan$dpar)
+  plan$boundary_note <- phase18_random_slope_oc_boundary_note(
+    admission_status = plan$admission_status,
+    supervision_boundary = plan$supervision_boundary
+  )
+  row.names(plan) <- NULL
+  plan[c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "admission_status",
+    "existing_actions_task",
+    "accuracy_status",
+    "coverage_status",
+    "power_status",
+    "minimum_estimands",
+    "boundary_note"
+  )]
+}
+
 phase18_random_slope_wrapper_target_plan <- function(
   registry = phase18_read_structured_workflow_registry()
 ) {
@@ -1011,6 +1061,24 @@ phase18_empty_random_slope_workflow_plan <- function() {
   )
 }
 
+phase18_empty_random_slope_operating_characteristic_plan <- function() {
+  data.frame(
+    lane_id = character(),
+    family_group = character(),
+    family_route = character(),
+    dpar = character(),
+    dependence = character(),
+    admission_status = character(),
+    existing_actions_task = character(),
+    accuracy_status = character(),
+    coverage_status = character(),
+    power_status = character(),
+    minimum_estimands = character(),
+    boundary_note = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
 phase18_empty_random_slope_wrapper_target_plan <- function() {
   data.frame(
     lane_id = character(),
@@ -1032,6 +1100,101 @@ phase18_empty_random_slope_wrapper_target_plan <- function() {
     supervision_boundary = character(),
     stringsAsFactors = FALSE
   )
+}
+
+phase18_random_slope_oc_accuracy_status <- function(admission_status) {
+  status <- rep(NA_character_, length(admission_status))
+  status[admission_status == "ready_grid"] <- paste(
+    "artifact_or_smoke_lane_exists_accuracy_not_estimated"
+  )
+  status[admission_status == "ready_source_test"] <- paste(
+    "source_tests_exist_artifact_lane_needed"
+  )
+  status[admission_status == "ready_or_smoke"] <- paste(
+    "grid_or_smoke_status_needs_artifact_audit"
+  )
+  status[admission_status == "ready_smoke"] <- paste(
+    "smoke_only_accuracy_not_estimated"
+  )
+  status[admission_status == "smoke_formal_admission"] <- paste(
+    "formal_admission_needed_accuracy_not_estimated"
+  )
+
+  unknown <- is.na(status)
+  if (any(unknown)) {
+    stop(
+      "Random-slope operating-characteristic plan has unsupported statuses: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  status
+}
+
+phase18_random_slope_oc_coverage_status <- function(lane_id) {
+  rep("planned_not_estimated", length(lane_id))
+}
+
+phase18_random_slope_oc_power_status <- function(lane_id) {
+  rep("planned_not_estimated", length(lane_id))
+}
+
+phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
+  estimands <- rep(
+    paste(
+      "link-scale fixed effects; random-effect SDs; convergence,",
+      "Hessian, warning, boundary, and runtime diagnostics"
+    ),
+    length(lane_id)
+  )
+  estimands[lane_id == "gaussian_ordinary_mu_slopes"] <- paste(
+    "mu fixed effects; mu random-slope SDs; ordinary q > 2 derived",
+    "correlation rows labelled non-direct for intervals; diagnostics"
+  )
+  estimands[lane_id == "gaussian_sigma_independent_slopes"] <- paste(
+    "sigma fixed effects on log(sigma); independent residual-scale",
+    "slope SDs; response-scale sigma summaries; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_slope_only"] <- paste(
+    "mu1 and mu2 fixed effects; paired random-slope SDs;",
+    "slope-slope corpairs row; residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id %in% c(
+    "poisson_mu_random_effects",
+    "nbinom2_mu_random_effects",
+    "truncated_nbinom2_mu_random_effects"
+  )] <- paste(
+    "mu fixed effects; count-scale random-effect SDs;",
+    "mean-response summaries; convergence, boundary, and warning diagnostics"
+  )
+  estimands[lane_id %in% c(
+    "bounded_mu_random_effects",
+    "positive_continuous_mu_random_effects",
+    "student_mu_random_effects"
+  )] <- paste(
+    "mu fixed effects; ordinary mu random-effect SDs;",
+    "family-specific response summaries; convergence and boundary diagnostics"
+  )
+  estimands
+}
+
+phase18_random_slope_oc_boundary_note <- function(
+  admission_status,
+  supervision_boundary
+) {
+  note <- ifelse(
+    admission_status == "ready_source_test",
+    paste(
+      "Focused source tests are readiness evidence only; add an artifact",
+      "lane before recovery, coverage, or power claims."
+    ),
+    paste(
+      "Run replicate grids with MCSE-backed summaries before recovery,",
+      "coverage, or power claims."
+    )
+  )
+  paste(note, supervision_boundary)
 }
 
 phase18_family_surface_admission_category <- function(admission_status) {

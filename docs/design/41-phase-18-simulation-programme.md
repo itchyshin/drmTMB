@@ -1351,3 +1351,11 @@ errors, and elapsed time by surface before the raw manifest.
      from `task = "all"`, and does not create mesh/SPDE, multiple-slope,
      slope-correlation, residual-scale structured-slope, recovery, or coverage
      claims.
+237. Slice 1829 adds
+     `phase18_random_slope_operating_characteristic_plan()`, the #446
+     registry-derived planning table for random-slope accuracy, coverage, and
+     power work. The table keeps nine admitted random-slope rows visible by
+     default, can omit the four source-test-only rows, records minimum
+     estimands and boundary notes, and marks every coverage and power cell as
+     `planned_not_estimated`. It is an ADEMP-facing plan, not a recovery,
+     accuracy, coverage, or power result.

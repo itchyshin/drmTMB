@@ -46909,3 +46909,58 @@ Member-group review:
 - Rose caught the two drift hazards.
 - Boole kept the current canonical names: `meta_V(V = V)` for preferred
   known-covariance syntax and `GLLVM.jl` for the Julia sister package.
+
+## 2026-05-30 - Phase 6c random-slope operating-characteristic plan
+
+Goal:
+
+- Advance #446 by turning the random-slope simulation agenda into a
+  registry-derived operating-characteristic planning table without running
+  grids or claiming recovery, accuracy, coverage, or power.
+
+Changes:
+
+- Added `phase18_random_slope_operating_characteristic_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- The plan returns `lane_id`, family, route, `dpar`, dependence,
+  `admission_status`, `existing_actions_task`, `accuracy_status`,
+  `coverage_status`, `power_status`, `minimum_estimands`, and `boundary_note`.
+- The default plan keeps nine admitted random-slope rows visible; setting
+  `include_source_test = FALSE` returns the five rows with grid or smoke
+  artifact routes.
+- Every coverage and power cell is `planned_not_estimated`; accuracy is labelled
+  as artifact/smoke available but not estimated, or source-test-only with an
+  artifact lane still needed.
+- Documented the #446 table in
+  `docs/design/143-phase-18-structured-workflow-registry.md` and
+  `docs/design/41-phase-18-simulation-programme.md`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_operating_characteristic_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p, row.names=FALSE)'
+Rscript --vanilla -e "devtools::test(filter = 'phase18-random-slope-grid-writers|phase18-biv-gaussian-mu-slope|phase18-gaussian-mu-random-slope', reporter = 'summary')"
+rg -n 'phase18_random_slope_operating_characteristic_plan|planned_not_estimated|source_tests_exist_artifact_lane_needed|Slice 1829 Random-Slope Operating-Characteristic Plan|registry-derived planning table' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- The structured-workflow registry test file passed.
+- The printed plan returned nine admitted random-slope rows with five grid or
+  smoke artifact routes and four source-test rows.
+- Coverage and power statuses were `planned_not_estimated` for every row.
+- The broader random-slope grid-writer smoke checks were run as an adjacent
+  guard for existing random-slope artifact routes.
+- The source scan found the helper, planned-only statuses, tests, and design
+  prose.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept this as a planning artifact and did not run or enlarge simulation
+  grids.
+- Fisher kept accuracy, coverage, and power separate from smoke or source-test
+  readiness.
+- Grace kept the manual Actions task boundary unchanged.

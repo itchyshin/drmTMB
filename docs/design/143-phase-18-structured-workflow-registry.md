@@ -305,6 +305,30 @@ slope correlations, structured residual-scale slopes, or recovery/coverage
 claims. `phylo()`, `animal()`, and `relmat()` Gaussian one-slope rows remain
 wrapper targets until they have artifact writers.
 
+## Slice 1829 Random-Slope Operating-Characteristic Plan
+
+Slice 1829 adds `phase18_random_slope_operating_characteristic_plan()` as the
+#446 planning table for random-slope operating characteristics. The helper is
+registry-derived and read-only: it filters to admitted random-slope rows, keeps
+blocked/design-only/diagnostic rows out, and labels each row with the existing
+Actions task, accuracy status, coverage status, power status, minimum
+estimands, and boundary note.
+
+The current table has nine rows by default: five grid/admitted rows and four
+source-test rows. `include_source_test = FALSE` returns the five rows that
+already have grid or smoke artifact routes. Every coverage and power cell is
+`planned_not_estimated`, and accuracy cells say whether an artifact/smoke lane
+already exists or whether a source-tested row still needs an artifact lane.
+This is not a simulation report. It is an ADEMP-facing routing table that says
+what must be estimated later: fixed effects, random-effect SDs, selected
+correlation rows where fitted, response-scale summaries, convergence,
+Hessian, warning, boundary, and runtime diagnostics.
+
+The power column deliberately stays planned-only until a null/alternative
+contrast, replicate target, and MCSE target are specified. Comparator packages,
+`DRM.jl`, and `GLLVM.jl` may inform design questions, but they do not count as
+`drmTMB` operating-characteristic evidence.
+
 ## Autonomous Work Plan
 
 | Can continue without supervision | Why it is safe |
