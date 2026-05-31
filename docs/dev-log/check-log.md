@@ -47717,3 +47717,40 @@ Member-group review:
   allowing it to escape as CI noise.
 - Grace identified the warning as likely to fail Actions because the workflow
   treats package-check warnings as blocking.
+
+## 2026-05-30 - Animal and relmat labelled-slope rejection tests
+
+Goal:
+
+- Add direct source-test coverage for the remaining structured markers covered
+  by the generic labelled structured-slope parser guard.
+
+Changes:
+
+- Added `relmat(1 + x | p | id, Q = Q)` and
+  `animal(1 + x | p | id, pedigree = pedigree)` negative tests beside their
+  positive independent one-slope Gaussian `mu` tests.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "invisible(parse('tests/testthat/test-animal-relmat-gaussian.R')); cat('animal relmat parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^animal-relmat-gaussian$', reporter = 'summary')"
+rg -n 'relmat\(1 \+ x \| p \| id|animal\(1 \+ x \| p \| id|covariance-block labels currently require intercept-only structured terms' tests/testthat/test-animal-relmat-gaussian.R docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd
+git diff --check
+```
+
+Results:
+
+- The parse check printed `animal relmat parse ok`.
+- The focused `animal-relmat-gaussian` test file passed.
+- The positive scan found the new `animal()` and `relmat()` negative tests plus
+  the matching documented rejected examples.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie closed the marker-coverage gap without adding another simulation
+  requirement.
+- Rose kept this as test evidence for the existing parser contract, not a new
+  feature claim.
