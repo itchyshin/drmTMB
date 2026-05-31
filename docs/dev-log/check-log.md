@@ -2,6 +2,60 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Structured Gaussian One-Slope Audit
+
+Goal:
+
+- Close #442 by checking the fitted Gaussian structured one-slope `mu` routes
+  against current tests, profile targets, diagnostics, `ranef()` labels,
+  roadmap rows, and planned-neighbour boundaries.
+
+Actions run:
+
+- Added a compact structured Gaussian audit-closure table to
+  `docs/design/59-structural-slope-and-non-gaussian-map.md`.
+- Added a rendered ROADMAP pointer to the #442 audit ledger.
+- Separated fitted one numeric univariate Gaussian `mu` slopes for `phylo()`,
+  coordinate `spatial()`, `animal()`, and `relmat()` from q2/q4 covariance
+  status, structured slope correlations, residual-scale structured slopes,
+  structured `rho12`, and non-Gaussian structured slopes.
+- Recorded that #335 is already closed by `structured_effects()`, so no new
+  metadata/extractor issue is needed for this audit.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, or missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian|spatial-gaussian|animal-relmat-gaussian|profile-targets|check-drm', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Structured Gaussian Audit Closure|one numeric univariate Gaussian `mu` slope|derived-unavailable|structured_effects\(\)|#335|#446|#442 audit ledger' ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'phylogeny has intercept-level effects but no fitted slope|one-slope.*planned.*phylo|spatial_mu_slope.*only|only.*spatial_mu_slope|structured slope correlations (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|structured `rho12` (is |are )?(fitted|implemented)|non-Gaussian structured slopes (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- The focused phylogenetic Gaussian, spatial Gaussian, animal/relmat Gaussian,
+  profile-target, and `check_drm()` tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site in the #442 worktree.
+- The positive source/rendered scan found the structured Gaussian audit
+  closure, the one-slope `mu` claim, derived-unavailable q4 boundary,
+  `structured_effects()` / #335 metadata note, #442 ROADMAP pointer, and #446
+  simulation-plan handoff.
+- The stale-wording scan found no old phylogeny-has-no-slope wording, no claim
+  that only `spatial_mu_slope` exists, and no claim that structured slope
+  correlations, residual-scale structured slopes, structured `rho12`, or
+  non-Gaussian structured slopes are fitted.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Phase 6c Gaussian Ordinary Random-Slope Closeout
 
 Goal:

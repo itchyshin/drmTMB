@@ -663,7 +663,10 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
   intercept and slope fields for the first univariate Gaussian route. Multiple
   structured slopes, structured slope correlations, bivariate structured
-  slopes, and residual-scale structured slopes remain planned.
+  slopes, and residual-scale structured slopes remain planned. The #442 audit
+  ledger in `docs/design/59-structural-slope-and-non-gaussian-map.md` now
+  records the q2/q4 split, evidence handles, #335 metadata-accessor closure,
+  and #446 simulation-plan handoff for those structured one-slope rows.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an
