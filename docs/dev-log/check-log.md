@@ -46483,3 +46483,38 @@ Member-group review:
   separate from fitted or smoke-only claims.
 - Rose linked the new issue back to the parent sprint so it does not become an
   orphan planning note.
+
+## 2026-05-30 - Second twin-sister exchange card
+
+Goal:
+
+- Keep the daily exchange routine active after the first sprint setup by
+  recording one bounded scout pass from `DRM.jl` and `GLLVM.jl`.
+
+Changes:
+
+- Added a second lesson card to `docs/dev-log/twin-sister-exchange.md`.
+- Recorded `DRM.jl`'s small structured-effect commit sequence as a planning
+  lesson for #442 and #446: one dependence layer, one estimand, one evidence
+  gate.
+- Recorded `GLLVM.jl`'s quick-core versus full-quality-battery split as a
+  planning lesson for #446: CRAN-safe tests, heavy simulations, quality checks,
+  and benchmarks should stay separate evidence gates.
+
+Validation:
+
+```sh
+rg -n 'Second Scout: 2026-05-30 Overnight|one dependence layer, one estimand, one evidence gate|CRAN-safe focused `drmTMB` tests' docs/dev-log/twin-sister-exchange.md
+git diff --check
+```
+
+Results:
+
+- The source scan found the new lesson-card heading and planning lessons.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Jason kept sibling-package observations as design lessons only.
+- Rose kept the accept decision explicit and blocked any cross-repo evidence
+  laundering into `drmTMB` support claims.

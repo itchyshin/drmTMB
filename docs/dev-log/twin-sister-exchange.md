@@ -54,3 +54,14 @@ patched in `ROADMAP.md` during the sprint scaffold.
 The outgoing comments are documentation and workflow notes only. They do not
 ask either sibling package to adopt `drmTMB` code, and they do not claim that
 sister-repo performance or coverage is `drmTMB` evidence.
+
+## Second Scout: 2026-05-30 Overnight
+
+| Source | State | Observed pattern | drmTMB action | Risk and comment status |
+| --- | --- | --- | --- | --- |
+| `DRM.jl` at `/Users/z3437171/Dropbox/Github Local/DRM.jl` | `main...origin/main [ahead 1]`, commit `5cf13f6` | The digital twin is moving structured Gaussian effects in small, named steps: independent random slope, `relmat()` closed-form GLS, and Gaussian structured `animal()`/`phylo()` effects. The repo keeps the work tied to issue numbers in commit subjects rather than treating "structured effects" as one broad claim. | Use the same shape in #442 and #446: one dependence layer, one estimand, one evidence gate, then a status update. Do not bundle phylo, spatial, animal, and `relmat()` slope promotion into one support claim. | MIT/GPL boundary still matters. No code copied. No comment warranted because the useful lesson is already internal to `drmTMB` planning. |
+| `GLLVM.jl` at `/Users/z3437171/Dropbox/Github Local/GLLVM.jl` | `article-pitfalls...origin/article-pitfalls`, commit `583d1ea` | The sister Julia package separates a quick core test run from the full `Pkg.test()` quality battery that carries Aqua/JET and CI parity. It also names BenchmarkTools and allocation checks as performance gates rather than ordinary correctness evidence. | In #446, separate CRAN-safe focused `drmTMB` tests from optional heavy simulation, benchmark, quality, and comparator gates. A cell can be source-tested, smoke-artifact-ready, diagnostic-pilot-ready, or formal-pilot-ready without pretending all gates are the same. | No code copied. No comment warranted; the lesson is workflow structure, not a bug or missing test in the sibling repo. |
+
+Decision: accept both lessons for planning language only. They support the
+Phase 6c issue taxonomy and #446 simulation plan, but they do not count as
+`drmTMB` recovery, power, accuracy, coverage, or speed evidence.
