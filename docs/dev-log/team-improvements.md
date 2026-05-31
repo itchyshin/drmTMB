@@ -479,3 +479,13 @@ issues, or pull requests.
   evidence, but the artifact writer needed its own balanced-tree DGP, tip
   covariance, and realised phylogenetic fields before it could support later
   recovery diagnostics.
+
+## 2026-05-30 - Pkgdown Dev Mirror Scan
+
+- Improvement implemented: when a slice changes status wording that appears in
+  rendered pkgdown pages, scan both the main generated path and the checked-in
+  `pkgdown-site/dev/` mirror before closeout.
+- Trigger: the non-spatial structured one-slope Actions slice rebuilt the main
+  pkgdown site, but `pkgdown-site/dev/news/index.html`, `pkgdown-site/dev/ROADMAP.html`,
+  and the dev article mirrors still carried the previous "spatial-only manual
+  task" and "non-spatial wrapper target" boundary until they were synchronized.

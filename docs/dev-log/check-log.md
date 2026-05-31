@@ -47557,3 +47557,68 @@ Member-group review:
 - Rose kept local artifact readiness separate from formal recovery, coverage,
   power, structured slope correlations, residual-scale structured slopes, and
   non-Gaussian structured slopes.
+
+## 2026-05-30 - Non-spatial structured one-slope Actions tasks
+
+Goal:
+
+- Wire the non-spatial Gaussian structured `mu` one-slope artifact writers into
+  manual Phase 18 Actions tasks while keeping all four structured one-slope
+  tasks opt-in, excluded from `task = "all"`, and separate from recovery,
+  accuracy, coverage, and power evidence.
+
+Changes:
+
+- Added `phylo_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` to the
+  manual `workflow_dispatch` task list and matrix in
+  `.github/workflows/phase18-simulation-grid.yaml`, each with
+  `include_in_all: false`.
+- Wired those tasks through `phase18_actions_task_choices()`,
+  `phase18_actions_main()`, and `phase18_actions_task_paths()`.
+- Updated the structured workflow registry so the `phylo()`, `animal()`, and
+  `relmat()` Gaussian one-slope rows now map to non-none Actions tasks. The
+  structured-dependence plan now reports seven existing tasks and zero wrapper
+  targets.
+- Updated README, NEWS, ROADMAP, Phase 18 design notes, Phase 6c sprint/ADEMP
+  notes, the Phase 18 simulation README, the model map, and the
+  phylogenetic/spatial article. Rebuilt the main pkgdown site and mechanically
+  synced the updated generated pages into `pkgdown-site/dev/`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_phase18_structured_workflow_registry.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-actions-runner.R','tests/testthat/test-phase18-structured-workflow-registry.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('actions dispatch parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(actions-runner|structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE, devel = TRUE)"
+cp pkgdown-site/index.html pkgdown-site/dev/index.html
+cp pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+cp pkgdown-site/news/index.html pkgdown-site/dev/news/index.html
+cp pkgdown-site/articles/model-map.html pkgdown-site/dev/articles/model-map.html
+cp pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/dev/articles/phylogenetic-spatial.html
+cp pkgdown-site/search.json pkgdown-site/dev/search.json
+rg -n 'only `spatial_mu_slope` currently|`spatial_mu_slope` is the only manual Actions task|remaining non-Actions wrapper targets|while remaining non-Actions wrapper targets|no standalone one-slope Actions task|local wrapper-target artifact writer only|All three remain outside Actions dispatch|The coordinate-spatial path has this first one-slope baseline; the phylogenetic path does not yet|while leaving .*one-slope rows as wrapper targets|current fitted paths are the phylogenetic, coordinate-spatial, and first|structured random intercept from a precomputed' README.md ROADMAP.md NEWS.md docs/design inst/sim/README.md vignettes pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/dev/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/dev/articles/phylogenetic-spatial.html pkgdown-site/articles/model-map.html pkgdown-site/dev/articles/model-map.html
+git diff --check
+```
+
+Results:
+
+- The parse check printed `actions dispatch parse ok`.
+- The combined Actions-runner, structured-workflow-registry, and
+  structured-dependence-wrapper-readiness test bundle passed.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` completed and regenerated
+  the main home, ROADMAP, model-map article, phylogenetic-spatial article, news,
+  and search pages. The `devel = TRUE` build completed, but the checked-in
+  `pkgdown-site/dev/` mirror still needed an explicit mechanical sync for the
+  same changed pages.
+- The stale scan found no remaining current-source, main-site, or dev-site claim
+  that `spatial_mu_slope` is the only manual task, that non-spatial one-slope
+  rows remain wrapper targets, or that the model map still has the old
+  animal/`relmat()` intercept-only wording.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice to dispatch plumbing and documentation synchronization.
+- Grace required generated main and dev pkgdown pages to agree before staging.
+- Rose turned the stale generated dev-site page into a team-improvement item.

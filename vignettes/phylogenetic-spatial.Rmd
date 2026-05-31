@@ -235,11 +235,7 @@ one univariate `mu` intercept and one numeric `mu` slope. These one-slope paths
 estimate independent structured intercept and slope fields with separate SDs;
 they do not fit multiple structured slopes, intercept-slope correlations,
 structured residual `rho12`, structured `sigma` slopes, or non-Gaussian
-structured slopes. `spatial_mu_slope` is the only manual Actions task for this
-one-slope layer; `phylo()`, `animal()`, and `relmat()` have local artifact
-writers but remain non-Actions wrapper targets. These artifact labels are not
-recovery, coverage, or power evidence. A first bivariate path also fits matching
-intercept-only
+structured slopes. A first bivariate path also fits matching intercept-only
 `phylo()` terms in `mu1` and `mu2`, estimating the two phylogenetic location
 SDs and their mean-mean correlation. Matching labelled `phylo()` terms across
 `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first constant bivariate
@@ -257,11 +253,10 @@ location-scale block. `animal()` and `relmat()` fit the same first Gaussian
 intercept and one-slope `mu` pattern when supplied with a pedigree, precomputed
 relationship, or precision matrix, such as `animal(1 | id, pedigree = pedigree)`,
 `animal(1 + x | id, Ainv = Ainv)`, or `relmat(1 + x | id, Q = Q)`.
-Artifact routing is narrower than fitted syntax. The coordinate-spatial
-one-slope route has a manual Phase 18 Actions artifact task,
-`spatial_mu_slope`; the animal-model and known-matrix `relmat()` one-slope
-routes have local Phase 18 writer artifacts; and the phylogenetic one-slope
-route remains a wrapper target for that artifact layer.
+Artifact routing is narrower than fitted syntax. The one-slope routes have
+manual Phase 18 artifact tasks named `phylo_mu_slope`, `spatial_mu_slope`,
+`animal_mu_slope`, and `relmat_mu_slope`. These tasks are opt-in, excluded from
+`task = "all"`, and are not recovery, coverage, or power evidence.
 Mesh/SPDE spatial fields, combined phylogenetic-plus-spatial location models,
 multiple spatial slopes, residual-scale structured slopes, spatial slope
 correlations, non-Gaussian spatial effects, and predictor-dependent spatial
@@ -651,8 +646,10 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | --- | --- | --- |
 | `animal(1 | individual, pedigree = pedigree)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a dense additive relationship matrix built from `id`, `dam`, and `sire` pedigree columns. Sparse large-pedigree precision construction remains planned. |
 | `animal(1 | individual, A = A)` or `animal(1 | individual, Ainv = Ainv)` | Implemented first slice | A univariate Gaussian `mu` random intercept using a precomputed additive relatedness or inverse-relatedness matrix. Use `pedigree`, `A`, or `Ainv`; keep `V` for known sampling covariance in meta-analysis. |
+| `animal(1 + x | individual, pedigree = pedigree)` or `animal(1 + x | individual, Ainv = Ainv)` | Implemented first one-slope slice | One trait has independent animal-model intercept and numeric slope fields in the location predictor. The two fields have separate SDs and do not estimate an intercept-slope correlation. |
 | Matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated animal-model location deviations from the same pedigree-derived or known matrix. `corpairs(level = "animal")` reports this mean-mean row separately from residual `rho12`. |
 | `phylo(1 | species, tree = tree)` in univariate `mu` | Implemented | One trait has a phylogenetic random intercept in the location predictor. |
+| `phylo(1 + x | species, tree = tree)` in univariate `mu` | Implemented first one-slope slice | One trait has independent phylogenetic intercept and numeric slope fields in the location predictor. The two fields share the same tree-derived covariance, have separate SDs, and do not estimate an intercept-slope correlation. |
 | Matching `phylo(1 | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented first slice | Two traits have correlated phylogenetic location deviations; `corpairs(level = "phylogenetic")` reports the mean-mean row separately from residual `rho12`. |
 | Matching labelled `phylo(1 | p | species, tree = tree)` terms in bivariate `mu1` and `mu2` | Implemented | The label is preserved in SD names, the fitted mean-mean correlation, `corpairs(block = "p")`, and profile-target names. |
 | Ordinary `(1 | p | id)` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 group block estimates six latent location-location, location-scale, and scale-scale correlations. |
@@ -666,6 +663,7 @@ phylo+spatial, and `relmat()` location-scale-coscale ladder.
 | Matching labelled `spatial()` terms in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | Two Gaussian responses have a constant coordinate-spatial location-scale covariance block with four endpoint SDs and six derived latent spatial correlations. |
 | `phylo(1 | species, tree = tree) + spatial(1 | site, coords = coords)` in the same `mu` formula | Planned | This is the intended third structural-dependence route, but the fitter currently stops with a planned-feature message because multiple structural `mu` layers need their own identifiability checks. |
 | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Implemented first slice | A lower-level Gaussian `mu` random intercept for user-supplied latent relatedness covariance or precision matrices. |
+| `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` | Implemented first one-slope slice | One trait has independent known-matrix intercept and numeric slope fields in the location predictor. The two fields have separate SDs and do not estimate an intercept-slope correlation. |
 | Matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in bivariate `mu1` and `mu2` | Implemented first q=2 slice | Two Gaussian responses have correlated lower-level known-relatedness location deviations from the same matrix. `corpairs(level = "relmat")` reports this mean-mean row separately from residual `rho12`. |
 | `spatial(1 | site, mesh = mesh)` | Planned | Mesh inputs will provide expert control for the scalable SPDE/GMRF spatial path. |
 

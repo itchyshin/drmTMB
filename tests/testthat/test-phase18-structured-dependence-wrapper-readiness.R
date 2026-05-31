@@ -83,11 +83,33 @@ source_phase18_structured_dependence_readiness <- function() {
   env
 }
 
-test_that("structured-dependence readiness summarizes wrapper targets", {
+test_that("structured-dependence readiness is empty after Actions wiring", {
   env <- source_phase18_structured_dependence_readiness()
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_dependence_registry_csv()
   )
+
+  readiness <- env$phase18_structured_dependence_wrapper_target_readiness(
+    registry
+  )
+
+  expect_equal(nrow(readiness), 0L)
+  expect_true("required_artifact" %in% names(readiness))
+  expect_true("dispatch_mode" %in% names(readiness))
+})
+
+test_that("structured-dependence readiness names synthetic wrapper artifacts", {
+  env <- source_phase18_structured_dependence_readiness()
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_dependence_registry_csv()
+  )
+  targets <- registry$lane_id %in%
+    c(
+      "gaussian_phylo_mu_one_slope",
+      "gaussian_animal_mu_one_slope",
+      "gaussian_relmat_mu_one_slope"
+    )
+  registry$existing_actions_task[targets] <- "needed:structured_dependence_wrapper"
 
   readiness <- env$phase18_structured_dependence_wrapper_target_readiness(
     registry
@@ -95,31 +117,11 @@ test_that("structured-dependence readiness summarizes wrapper targets", {
   status_counts <- table(readiness$target_status)
 
   expect_equal(nrow(readiness), 3L)
-  expect_setequal(
-    readiness$lane_id,
-    c(
-      "gaussian_phylo_mu_one_slope",
-      "gaussian_animal_mu_one_slope",
-      "gaussian_relmat_mu_one_slope"
-    )
-  )
-  expect_false("source_test_ready" %in% names(status_counts))
   expect_equal(unname(status_counts[["grid_writer_available"]]), 3L)
   expect_true(all(readiness$dispatch_status == "needs_wrapper_target"))
   expect_true(all(readiness$workflow_helper == "structured_dependence_wrapper"))
   expect_true(all(is.na(readiness$actions_task)))
   expect_true(all(readiness$dispatch_mode == "wrapper_target_not_actions"))
-})
-
-test_that("structured-dependence readiness names current artifacts", {
-  env <- source_phase18_structured_dependence_readiness()
-  registry <- env$phase18_read_structured_workflow_registry(
-    path = phase18_structured_dependence_registry_csv()
-  )
-
-  readiness <- env$phase18_structured_dependence_wrapper_target_readiness(
-    registry
-  )
 
   expect_equal(
     readiness$required_artifact[
@@ -163,6 +165,7 @@ test_that("structured-dependence readiness fails closed for unknown targets", {
   )
   extra <- registry[registry$lane_id == "gaussian_phylo_mu_one_slope", ]
   extra$lane_id <- "mock_new_structured_wrapper_target"
+  extra$existing_actions_task <- "needed:structured_dependence_wrapper"
   registry <- rbind(registry, extra)
 
   expect_error(

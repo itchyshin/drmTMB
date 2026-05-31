@@ -14,10 +14,10 @@ power evidence, and does not open multiple structured slopes, structured slope
 correlations, residual-scale structured slopes, structured `rho12`,
 non-Gaussian structured slopes, mesh/SPDE spatial slopes, or q2/q4 covariance.
 
-`spatial()` is the Actions-ready artifact route because it already has the
-manual `spatial_mu_slope` Phase 18 task. `phylo()`, `animal()`, and
-`relmat()` now have local wrapper-target artifact writers. None of these
-route-maturity labels is recovery, coverage, or power evidence.
+The four routes now have manual Phase 18 artifact tasks:
+`phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+`relmat_mu_slope`. They are opt-in, excluded from `task = "all"`, and are
+dispatch labels only; none is recovery, coverage, or power evidence.
 
 ## A - Aims
 
@@ -25,10 +25,10 @@ Primary aim: estimate when one numeric Gaussian structured `mu` slope recovers
 the fixed `mu` slope, the structured intercept-field SD, and the structured
 slope-field SD without optimizer, Hessian, boundary, or diagnostic failures.
 
-Secondary aim 1: compare the four structured routes without borrowing artifact
-maturity across them. Coordinate-spatial one-slope evidence may use the
-existing `spatial_mu_slope` task; phylogenetic, animal-model, and generic
-known-matrix routes may use their local wrapper-target writers.
+Secondary aim 1: compare the four structured routes without borrowing evidence
+across them. Each route may use its own manual artifact task, but a successful
+dispatch in one route does not establish recovery, coverage, or power for any
+other route.
 
 Secondary aim 2: keep q2/q4 structured covariance, `corpairs()`, residual
 coscale `rho12`, residual-scale structured effects, non-Gaussian structured
@@ -86,7 +86,7 @@ Store truth and estimates for:
 | Conditional structured slope signal | realised `a1_j` values | `ranef(fit, "mu")` slope terms and signal/rank correlation with truth, reported as a diagnostic |
 | Residual scale | `sigma` | `sigma(fit)` or `coef(fit, "sigma")` on the documented scale |
 | Diagnostics | known successful fit status | convergence, `pdHess`, warnings, `check_drm()` rows, boundary flags, elapsed time |
-| Artifact maturity | route-specific route status | `spatial_mu_slope` task status or local `phylo()`/`animal()`/`relmat()` writer status |
+| Artifact maturity | route-specific route status | manual `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, or `relmat_mu_slope` task status |
 
 Do not report slope-field SD recovery as evidence for q2/q4 covariance,
 `corpairs()`, residual `rho12`, or structured residual-scale effects. Those are

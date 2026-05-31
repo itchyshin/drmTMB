@@ -530,33 +530,22 @@ Current pilot files:
   interval-evidence, interval-diagnostics, and interval-failure CSVs beside
   resumable per-replicate RDS files.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
-  `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
-  `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
+  `run/sim_write_gaussian_sigma_random_slope_grid.R`,
+  `run/sim_write_phylo_mu_slope_grid.R`,
+  `run/sim_write_spatial_mu_slope_grid.R`,
+  `run/sim_write_animal_mu_slope_grid.R`, and
+  `run/sim_write_relmat_mu_slope_grid.R` write simple aggregate,
   replicate-level, manifest, and failure-ledger artifact sets for the ordinary
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
-  coordinate-spatial Gaussian `mu` slope lanes. The ordinary Gaussian `mu` and
+  Gaussian structured `mu` one-slope lanes. The ordinary Gaussian `mu` and
   `sigma` random-slope smoke grids are part of the first-wave summary runner
   and therefore run through `task = "first_wave_summary"` or `task = "all"`.
-  The manual `spatial_mu_slope` Actions task can run the coordinate-spatial
-  lane as an opt-in artifact dispatch without adding mesh/SPDE, multiple
-  spatial slopes, spatial slope correlations, or recovery/coverage claims.
-- `run/sim_write_phylo_mu_slope_grid.R` writes the same simple artifact set
-  for the phylogenetic Gaussian `mu` one-slope lane. It is a local
-  wrapper-target artifact writer only; no manual Actions task, `task = "all"`
-  inclusion, recovery, coverage, power, multiple-slope, slope-correlation,
-  residual-scale structured-slope, or non-Gaussian structured-slope claim is
-  added by the writer.
-- `run/sim_write_animal_mu_slope_grid.R` writes the same simple artifact set
-  for the dense-pedigree `animal()` Gaussian `mu` one-slope lane. It is a
-  local wrapper-target artifact writer only; no manual Actions task,
-  `task = "all"` inclusion, recovery, coverage, power, sparse large-pedigree
-  speed, multiple-slope, slope-correlation, or residual-scale structured-slope
-  claim is added by the writer.
-- `run/sim_write_relmat_mu_slope_grid.R` writes the same simple artifact set
-  for the known-matrix `relmat()` Gaussian `mu` one-slope lane. It is a local
-  wrapper-target artifact writer only; no manual Actions task, `task = "all"`
-  inclusion, recovery, coverage, power, multiple-slope, slope-correlation, or
-  residual-scale structured-slope claim is added by the writer.
+  The manual `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` Actions tasks can run the structured one-slope lanes as
+  opt-in artifact dispatches. They remain excluded from `task = "all"` and do
+  not add mesh/SPDE, sparse large-pedigree speed claims, multiple structured
+  slopes, structured slope correlations, residual-scale structured slopes,
+  non-Gaussian structured slopes, recovery, coverage, or power claims.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
   manual `biv_gaussian_mu_slope` Actions task can run it. Manual run

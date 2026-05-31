@@ -559,6 +559,123 @@ test_that("Phase 18 Actions runner dispatches spatial mu-slope task", {
   expect_equal(result$cores, 1L)
 })
 
+test_that("Phase 18 Actions runner accepts non-spatial structured mu-slope tasks", {
+  script <- phase18_actions_runner_script()
+  tasks <- c("phylo_mu_slope", "animal_mu_slope", "relmat_mu_slope")
+
+  for (task in tasks) {
+    output_dir <- tempfile(paste0("phase18-actions-", task, "-dry-run-"))
+    out <- system2(
+      file.path(R.home("bin"), "Rscript"),
+      c(
+        "--vanilla",
+        shQuote(script),
+        paste0("--task=", task),
+        paste0("--output-dir=", output_dir),
+        "--n-reps=2",
+        "--master-seed=123",
+        "--dry-run=true"
+      ),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+    out <- paste(out, collapse = "\n")
+
+    expect_match(out, paste0("task=", task), fixed = TRUE)
+    expect_match(out, "n_rep=2", fixed = TRUE)
+  }
+})
+
+test_that("Phase 18 Actions runner sources non-spatial structured mu-slope tasks", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  expected <- list(
+    phylo_mu_slope = c(
+      "sim/dgp/sim_dgp_phylo_mu_slope.R",
+      "sim/fit/sim_summarise_phylo_mu_slope.R",
+      "sim/run/sim_run_phylo_mu_slope_smoke.R",
+      "sim/run/sim_summary_phylo_mu_slope_smoke.R",
+      "sim/run/sim_write_phylo_mu_slope_grid.R"
+    ),
+    animal_mu_slope = c(
+      "sim/dgp/sim_dgp_animal_mu_slope.R",
+      "sim/fit/sim_summarise_animal_mu_slope.R",
+      "sim/run/sim_run_animal_mu_slope_smoke.R",
+      "sim/run/sim_summary_animal_mu_slope_smoke.R",
+      "sim/run/sim_write_animal_mu_slope_grid.R"
+    ),
+    relmat_mu_slope = c(
+      "sim/dgp/sim_dgp_relmat_mu_slope.R",
+      "sim/fit/sim_summarise_relmat_mu_slope.R",
+      "sim/run/sim_run_relmat_mu_slope_smoke.R",
+      "sim/run/sim_summary_relmat_mu_slope_smoke.R",
+      "sim/run/sim_write_relmat_mu_slope_grid.R"
+    )
+  )
+
+  for (task in names(expected)) {
+    expect_equal(env$phase18_actions_task_paths(task), expected[[task]])
+  }
+})
+
+test_that("Phase 18 Actions runner dispatches non-spatial structured mu-slope tasks", {
+  script <- phase18_actions_runner_script()
+  writers <- c(
+    phylo_mu_slope = "phase18_write_phylo_mu_slope_grid_outputs",
+    animal_mu_slope = "phase18_write_animal_mu_slope_grid_outputs",
+    relmat_mu_slope = "phase18_write_relmat_mu_slope_grid_outputs"
+  )
+
+  for (task in names(writers)) {
+    env <- new.env(parent = globalenv())
+    source(script, local = env)
+    env$phase18_actions_load_package <- function() {
+      invisible(TRUE)
+    }
+    env$phase18_actions_source_dependencies <- function(task) {
+      invisible(task)
+    }
+    env[[writers[[task]]]] <- function(...) {
+      args <- list(...)
+      list(
+        ok = TRUE,
+        task = task,
+        output_dir = args$output_dir,
+        n_rep = args$n_rep,
+        master_seed = args$master_seed,
+        backend = args$backend,
+        cores = args$cores
+      )
+    }
+
+    output_dir <- tempfile(paste0("phase18-actions-", task, "-run-"))
+    out <- capture.output(
+      env$phase18_actions_main(
+        c(
+          paste0("--task=", task),
+          paste0("--output-dir=", output_dir),
+          "--n-reps=1",
+          "--master-seed=241",
+          "--backend=none",
+          "--cores=1"
+        )
+      )
+    )
+    out <- paste(out, collapse = "\n")
+    result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+    expect_match(out, paste0("task=", task), fixed = TRUE)
+    expect_true(result$ok)
+    expect_equal(result$task, task)
+    expect_equal(result$n_rep, 1L)
+    expect_equal(result$master_seed, 241L)
+    expect_equal(result$backend, "none")
+    expect_equal(result$cores, 1L)
+  }
+})
+
 test_that("Phase 18 Actions runner loads drmTMB for real tasks", {
   script <- phase18_actions_runner_script()
   text <- paste(readLines(script, warn = FALSE), collapse = "\n")
@@ -769,6 +886,38 @@ test_that("Phase 18 workflow exposes spatial mu-slope task", {
     ),
     fixed = TRUE
   )
+})
+
+test_that("Phase 18 workflow exposes non-spatial structured mu-slope tasks", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expected <- c(
+    phylo_mu_slope = "20260605",
+    animal_mu_slope = "20260606",
+    relmat_mu_slope = "20260607"
+  )
+  for (task in names(expected)) {
+    expect_match(text, task, fixed = TRUE)
+    expect_match(text, expected[[task]], fixed = TRUE)
+    expect_match(
+      text,
+      paste(
+        paste0("task: ", task),
+        paste0("seed: ", expected[[task]]),
+        "include_in_all: false",
+        sep = "\n            "
+      ),
+      fixed = TRUE
+    )
+  }
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {

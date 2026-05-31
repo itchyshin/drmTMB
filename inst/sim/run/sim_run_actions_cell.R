@@ -14,6 +14,9 @@ phase18_actions_task_choices <- function() {
     "zero_one_beta_fixed_effect",
     "biv_gaussian_mu_slope",
     "spatial_mu_slope",
+    "phylo_mu_slope",
+    "animal_mu_slope",
+    "relmat_mu_slope",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )
@@ -263,6 +266,33 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "spatial_mu_slope")) {
     out <- phase18_write_spatial_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "phylo_mu_slope")) {
+    out <- phase18_write_phylo_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "animal_mu_slope")) {
+    out <- phase18_write_animal_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "relmat_mu_slope")) {
+    out <- phase18_write_relmat_mu_slope_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -632,6 +662,33 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_spatial_mu_slope_smoke.R",
       "sim/run/sim_summary_spatial_mu_slope_smoke.R",
       "sim/run/sim_write_spatial_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "phylo_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_phylo_mu_slope.R",
+      "sim/fit/sim_summarise_phylo_mu_slope.R",
+      "sim/run/sim_run_phylo_mu_slope_smoke.R",
+      "sim/run/sim_summary_phylo_mu_slope_smoke.R",
+      "sim/run/sim_write_phylo_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "animal_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_animal_mu_slope.R",
+      "sim/fit/sim_summarise_animal_mu_slope.R",
+      "sim/run/sim_run_animal_mu_slope_smoke.R",
+      "sim/run/sim_summary_animal_mu_slope_smoke.R",
+      "sim/run/sim_write_animal_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "relmat_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_relmat_mu_slope.R",
+      "sim/fit/sim_summarise_relmat_mu_slope.R",
+      "sim/run/sim_run_relmat_mu_slope_smoke.R",
+      "sim/run/sim_summary_relmat_mu_slope_smoke.R",
+      "sim/run/sim_write_relmat_mu_slope_grid.R"
     ))
   }
   if (identical(task, "poisson_phylo_q1_formal")) {

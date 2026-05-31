@@ -7,9 +7,9 @@ distributional regression models using TMB.
 
 - Current preview version: `0.1.3`.
 - Meaning of `0.1.3`: a preview that keeps the `0.1.2` profile-inference,
-  tutorial, and roadmap hardening, then adds the first fitted known-relatedness
-  Gaussian `mu` slice and the first coordinate-spatial bivariate q=2
-  `mu1`/`mu2` location covariance slice. It is not the final
+  tutorial, and roadmap hardening, then adds the current structured Gaussian
+  first slices, `meta_V(V = V)` known-covariance syntax, non-Gaussian first
+  routes, and Phase 18 artifact-routing ledgers. It is not the final
   double-hierarchical individual-difference endpoint.
 - Release boundary: Phase 9 is closed at the implemented ordinal and
   denominator-aware MVPs. The first Phase 11 bivariate `mu1`/`mu2`
@@ -21,9 +21,12 @@ distributional regression models using TMB.
   17 return block, especially meta-analysis hardening, is complete. A narrow
   Poisson random-effect pilot simulation may start earlier as a scoped
   operating-characteristics grid. Phase 19 is the one-off comparator
-  demonstration layer; Phase 20 is CRAN and paper preparation. Richer bivariate
-  random slopes, residual-scale slope covariance, structured covariance, and the
-  full double-hierarchical endpoint remain roadmap work for later releases.
+  demonstration layer; Phase 20 is CRAN and paper preparation. Broad
+  random-slope operating characteristics, residual-scale structured slopes,
+  multiple structured slopes, structured slope correlations, structured
+  residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
+  claims, and the full double-hierarchical endpoint remain roadmap work for
+  later releases.
 - Completed before tagging the version:
   - `devtools::check()` passes with 0 errors and 0 warnings;
   - `devtools::test()` and `pkgdown::check_pkgdown()` pass;
@@ -401,11 +404,11 @@ distributional regression models using TMB.
 - Structured-dependence random-slope boundary: `phylo()`, coordinate
   `spatial()`, `animal()`, and `relmat()` now each have the first fitted
   univariate Gaussian one-slope `mu` route with SD summaries, direct profile
-  targets, diagnostics, and focused source or smoke evidence. Do not read that
-  as Actions or artifact parity: only `spatial_mu_slope` currently has a
-  manual Phase 18 Actions artifact task, and `phylo()`, `animal()`, and
-  `relmat()` have local Phase 18 writers while remaining non-Actions wrapper
-  targets. Multiple structured slopes, structured residual-scale
+  targets, diagnostics, and focused source or smoke evidence. The corresponding
+  `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` artifact routes are manual Phase 18 Actions tasks, excluded
+  from `task = "all"`, and still not recovery, coverage, or power evidence.
+  Multiple structured slopes, structured residual-scale
   slopes, slope correlations, structured `rho12`, and non-Gaussian structured
   slopes remain planned.
 - Keep structured-effect correlations constant during the one-slope baseline.
@@ -635,11 +638,12 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 - Start with one structured Gaussian `mu` slope for each relevant dependence
   layer: ordinary grouped effects as the baseline, then phylogenetic,
   coordinate-spatial, animal-model, and `relmat()` effects. The first fitted
-  one-slope routes exist for all four structured layers, but Actions artifact
-  readiness is narrower: only `spatial_mu_slope` is wired as a manual task,
-  while `phylo()`, `animal()`, and `relmat()` have local one-slope artifact
-  writers as non-Actions wrapper targets. Design for up to two structured
-  `mu` slopes as an advanced path if diagnostics and recovery remain stable.
+  one-slope routes exist for all four structured layers, and
+  `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` are manual opt-in Phase 18 artifact tasks. They remain
+  excluded from `task = "all"` and are dispatch evidence only, not recovery,
+  coverage, or power evidence. Design for up to two structured `mu` slopes as
+  an advanced path if diagnostics and recovery remain stable.
 - Keep three or more structured slopes outside the advertised near-term path.
   The covariance dimension grows quickly, so these models should remain
   distant-future expert use.
@@ -1958,7 +1962,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1814 | Structured workflow registry | Done locally: `docs/design/143-phase-18-structured-workflow-registry.md` and `inst/sim/registry/phase18_structured_workflow_registry.csv` turn the current random-slope, structured-dependence, correlation-block, and family-surface audit into taskable rows. The registry includes Gaussian, bivariate Gaussian, counts, bounded responses, positive-continuous responses, Student-t, Tweedie, zero-truncated NB2, ordinal, meta-known-`V`, and mixed-response rows, while keeping blocked or design-only surfaces explicit. |
 | 1815 | Structured workflow registry validator | Done locally: `inst/sim/run/sim_phase18_structured_workflow_registry.R` now reads the registry CSV, validates required columns, unique lane IDs, status and lane vocabularies, known Phase 18 Actions task names, and the rule that `blocked` or `design_only` rows keep `existing_actions_task = "none"`. `phase18_actions_task_choices()` exposes the runner task vocabulary, and focused tests cover registry validation, summaries, admitted-row filters, rejected duplicate lanes, rejected blocked-row promotion, rejected unknown tasks, and runner-task synchronization. |
 | 1816 | Random-slope workflow plan | Done locally: `phase18_random_slope_workflow_plan()` filters the structured workflow registry to admitted random-slope rows, labels dispatch state as `ready_existing_task`, `source_test_audit`, or `needs_wrapper_target`, and keeps blocked, design-only, and diagnostic rows out of the plan. At Slice 1816, eight rows mapped to existing Actions tasks while the bivariate Gaussian slope-only row remained the explicit wrapper target; after Slice 1825, all nine admitted random-slope rows have non-none Actions routing and zero wrapper targets. |
-| 1817 | Structured-dependence workflow plan | Done locally: `phase18_structured_dependence_workflow_plan()` builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow table from the registry, excludes blocked/design rows, and labels Gaussian wrapper targets, Poisson formal-admission, NB2 hold-smoke, and count q=1 diagnostic audit rows separately. |
+| 1817 | Structured-dependence workflow plan | Done locally: `phase18_structured_dependence_workflow_plan()` builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow table from the registry, excludes blocked/design rows, and labels Gaussian existing-task rows, Poisson formal-admission, NB2 hold-smoke, and count q=1 diagnostic audit rows separately. |
 | 1818 | Correlation-block workflow plan | Done locally: `phase18_correlation_block_workflow_plan()` builds the residual `rho12`, q=2 `corpairs()`, and q=4 diagnostic workflow table from the registry, excludes blocked/design rows, maps direct interval rows to `interval_heavy_summary`, leaves structured q=2 as a wrapper target, and marks q=4 rows with `q4_derived_interval_unavailable`. |
 | 1819 | Family-surface admission plan | Done locally: `phase18_family_surface_workflow_plan()` builds the distribution-level admission table from the registry, keeping six admitted grid rows, one smoke-only NB2 `sigma` row, three blocked rows, and one design-only mixed-response row visible with explicit dispatch statuses. |
 | 1820 | Workflow plan bundle | Done locally: `phase18_structured_workflow_plan_bundle()` and `phase18_structured_workflow_plan_counts()` return the four workflow plan tables and a compact count table: random slopes 9 rows, structured dependence 7 rows, correlation blocks 6 rows, and family surfaces 11 rows, with existing-task, wrapper-target, diagnostic, blocked, and design-only counts. |
@@ -1969,9 +1973,10 @@ Use this order unless Slice 191 evidence overturns it:
 | 1825 | Bivariate Gaussian slope Actions task | Done locally: `biv_gaussian_mu_slope` is a manual-only Phase 18 Actions task that calls `phase18_write_biv_gaussian_mu_slope_grid_outputs()`, and the structured workflow registry now maps `bivariate_gaussian_slope_only` to the task so the random-slope plan has nine non-none Actions routes and zero wrapper targets. |
 | 1826 | Bivariate Gaussian slope Actions pilot audit | Done locally: manual Phase 18 run `26689587073` audited the `biv_gaussian_mu_slope` artifact with one replicate in each of the two pilot cells; both manifest rows were `ok`, all 20 replicate-summary rows converged with `pdHess = TRUE` and zero warnings, and the failure ledger was empty. This is dispatch and artifact evidence only, not a recovery, coverage, rendering, multicore, bootstrap, or cross-platform claim. |
 | 1827 | Workflow status helper bundle | Done locally: read-only helpers now summarize structured-dependence wrapper-target readiness, correlation-block wrapper targets, and family-surface registry status tables without running models, writing artifacts, dispatching Actions jobs, promoting rows, or making recovery or coverage claims. |
-| 1828 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry now maps `gaussian_spatial_mu_one_slope` to that task. This makes the spatial one-slope artifact lane dispatchable while leaving non-spatial structured one-slope rows as wrapper targets and making no recovery or coverage claim. |
-| 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope wrapper targets. These writers do not add manual Actions tasks, `task = "all"` inclusion, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, or residual-scale structured slopes. |
-| 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope wrapper target. This writer does not add a manual Actions task, `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, or non-Gaussian structured slopes. |
+| 1828 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry maps `gaussian_spatial_mu_one_slope` to that task. At Slice 1828, non-spatial structured one-slope rows still remained wrapper targets; Slice 1838 later wires those tasks. No recovery or coverage claim is made. |
+| 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope lanes. The writer slices themselves did not add Actions dispatch; Slice 1838 later wires manual tasks while still excluding `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, and residual-scale structured slopes. |
+| 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope lane. The writer slice itself did not add Actions dispatch; Slice 1838 later wires the manual task while still excluding `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, and non-Gaussian structured slopes. |
+| 1838 | Non-spatial structured one-slope Actions tasks | Done locally: `.github/workflows/phase18-simulation-grid.yaml`, `inst/sim/run/sim_run_actions_cell.R`, and the structured workflow registry expose manual-only `phylo_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` tasks beside `spatial_mu_slope`. All four Gaussian structured one-slope artifact tasks are excluded from `task = "all"` and make dispatch/artifact claims only, not recovery, coverage, or power claims. |
 
 ### Pre-Simulation Readiness Slice Map
 
