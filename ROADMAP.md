@@ -638,22 +638,26 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   tolerance plasticity along temperature, desiccation tolerance along humidity,
   or behavioural reaction norms along disturbance.
 - Core ordinary grouped status: the random-intercept, one-slope, and q > 2
-  ordinary Gaussian `mu` baseline is
-  now recorded in `docs/design/33-phase-6c-core-random-effects.md`. The fitted
-  core covers ordinary Gaussian `mu` random intercepts, independent `mu`
-  random slopes, ordinary correlated intercept-slope blocks, ordinary
-  unstructured numeric multi-slope `mu` blocks, residual-scale random
-  intercepts and independent residual-scale slopes, matching labelled
-  `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
-  unlabelled Gaussian `mu` random intercepts. The first coordinate spatial
-  slope is now implemented in Phase 10; phylogenetic slopes and richer
-  structured-slope paths remain later work for Phases 10 and 12.
+  ordinary Gaussian `mu` baseline is now recorded in
+  `docs/design/33-phase-6c-core-random-effects.md`. The fitted core covers
+  ordinary Gaussian `mu` random intercepts, independent `mu` random slopes,
+  ordinary correlated intercept-slope blocks, ordinary unstructured numeric
+  multi-slope `mu` blocks, residual-scale random intercepts and independent
+  residual-scale slopes, matching labelled `mu`/`sigma` random-intercept
+  covariance, and direct `sd(group)` models for unlabelled Gaussian `mu`
+  random intercepts. The first coordinate-spatial, phylogenetic, animal-model,
+  and `relmat()` one-slope Gaussian `mu` paths are fitted; multiple structured
+  slopes, structured slope correlations, residual-scale structured slopes, and
+  broader bivariate slope blocks remain later work for Phases 10 and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
   `mu` block path, with q=3 recovery and extractor coverage. Larger ordinary
-  blocks remain advanced, sample-size hungry fits. Structured random slopes
-  are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)` now
-  fits the first coordinate spatial one-slope `mu` path, but
-  `phylo(1 + x | species, tree = tree)` still does not fit.
+  blocks remain advanced, sample-size hungry fits. The structured one-slope
+  Gaussian `mu` handoff is also current: `spatial(1 + x | site, coords =
+  coords)`, `phylo(1 + x | species, tree = tree)`,
+  `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
+  intercept and slope fields for the first univariate Gaussian route. Multiple
+  structured slopes, structured slope correlations, bivariate structured
+  slopes, and residual-scale structured slopes remain planned.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an

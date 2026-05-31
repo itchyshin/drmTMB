@@ -301,7 +301,8 @@
   structured random effects are not implemented. `phylo()`, `spatial()`,
   `animal()`, and `relmat()` markers outside ordinary count `mu` now error in
   non-Gaussian models with a structured non-Gaussian boundary. Count structured
-  slopes, labelled q=2/q=4 count blocks, bounded, ordinal, shape, inflation,
+  slopes, labelled q=2/q=4 count blocks, simultaneous structured count types,
+  bounded, ordinal, shape, inflation,
   hurdle, and one-inflation structured effects need ordinary family-specific
   random-effect recovery and interval evidence before entering the fitted
   surface.
@@ -350,7 +351,8 @@
   beta exact-boundary mass, ordinal scale or discrimination models,
   count covariance labels and correlated count slopes, count hurdle or
   zero-inflation with random effects or structured effects, non-Gaussian
-  structured routes beyond the ordinary Poisson q=1 phylogenetic `mu` slice,
+  structured routes beyond the ordinary Poisson/NB2 q=1 `mu` intercept slices
+  for `phylo()`, `spatial()`, `animal()`, and `relmat()`,
   and additional non-Gaussian families beyond the first Student-t, lognormal,
   Gamma, beta, beta-binomial, Poisson, negative-binomial, zero-inflated,
   zero-truncated, and hurdle paths are planned but not yet implemented.
