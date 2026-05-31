@@ -2,6 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Random-Slope Simulation Plan
+
+Goal:
+
+- Close #446 by recording the staged simulation plan for admitted Phase 6c
+  random-slope surfaces before any large power, recovery, or coverage grids are
+  dispatched.
+
+Actions run:
+
+- Added `docs/design/148-phase6c-random-slope-simulation-plan.md`.
+- Turned the closed #439, #440, #441, #442, and #443 gates into a concrete
+  run order: registry preflight, bivariate slope-only artifact pilot, ordinary
+  Gaussian `mu`/`sigma` slope pilots, ordinary Poisson/NB2 `mu` slope pilot,
+  source-tested non-Gaussian slope smoke artifacts, and structured Gaussian
+  one-slope wrapper pilots.
+- Recorded compact surface-specific ADEMP sheets, shared ADEMP sections,
+  Williams-style reporting coverage, required artifact tables, worker limits,
+  MCSE targets, and stop rules.
+- Updated `ROADMAP.md` and `inst/sim/README.md` with the #446 handoff.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md inst/sim/README.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry|phase18-biv-gaussian-mu-slope|phase18-random-slope-grid-writers|phase18-gaussian-mu-random-slope|nongaussian-mu-random-slopes|poisson-mean|nbinom2-location-scale', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Phase 6c Random-Slope Simulation Plan|Surface ADEMP Sheets|#446|diagnostic pilots|registry preflight|bivariate slope-only artifact pilot|ordinary Gaussian `mu`/`sigma` slope pilots|source-tested non-Gaussian slope smoke artifacts|structured Gaussian one-slope wrapper|Morris|Williams|MCSE|stop rules' ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md inst/sim/README.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'Phase 6c.*(recovery|coverage|power) claims are now supported|diagnostic pilot.*creates.*(coverage|power)|source-tested.*coverage support|random effects in `rho12` (are )?(fitted|implemented)|correlated non-Gaussian slopes (are )?(fitted|implemented)|multiple structured slopes (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- `air format` completed with no changes needed after the final edit.
+- Focused `devtools::test()` passed for
+  `phase18-structured-workflow-registry`,
+  `phase18-biv-gaussian-mu-slope`,
+  `phase18-random-slope-grid-writers`,
+  `phase18-gaussian-mu-random-slope`,
+  `nongaussian-mu-random-slopes`, `poisson-mean`,
+  `nbinom2-location-scale`, and the matching truncated-NB2 filter expansion.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` completed and rebuilt
+  `pkgdown-site`.
+- The positive source/rendered scan found the #446 planning handoff, surface
+  ADEMP sheets, run order, Morris/Williams references, MCSE language, and stop
+  rules in the source files and rendered `pkgdown-site/ROADMAP.html`.
+- The stale-claim scan returned no matches for unsupported recovery, coverage,
+  power, random-`rho12`, correlated non-Gaussian slope, multiple structured
+  slope, residual-scale structured slope, or p8/q8 implementation claims.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Phase 6c Non-Gaussian `mu` Slope Admission
 
 Goal:

@@ -79,6 +79,10 @@ Current pilot files:
 - `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md` is the one-page ADEMP
   sheet for the overdispersion-aware NB2 phylogenetic q=1 `mu` formal-admission
   lane.
+- `docs/design/148-phase6c-random-slope-simulation-plan.md` is the #446
+  planning handoff for the admitted Phase 6c random-slope pilots. It names the
+  run order, allowed claims, required artifact tables, MCSE targets, execution
+  limits, and stop rules before larger power grids are dispatched.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.
