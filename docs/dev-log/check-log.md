@@ -46283,3 +46283,70 @@ Member-group review:
   `meta_V()` syntax.
 - Rose kept `phylo()`, `animal()`, and `relmat()` one-slope rows visible as
   remaining wrapper targets.
+
+## 2026-05-30 - Coscale and corpairs boundary ledger
+
+Goal:
+
+- Advance #443 and give #444 a course-facing anchor by sharpening the reader
+  boundary among residual `rho12`, singular `corpair()` formula markers, and
+  plural `corpairs()` extraction rows.
+
+Changes:
+
+- Updated `docs/design/20-coscale-correlation-pairs.md` so coscale is defined
+  as residual bivariate Gaussian `rho12`, while `corpair()` and `corpairs()`
+  are separate latent-correlation interfaces.
+- Updated `vignettes/bivariate-coscale.Rmd` to distinguish fitted
+  `corpairs()` rows for ordinary group, phylogenetic, spatial, animal, and
+  `relmat()` layers from still-planned predictor-dependent `corpair()`
+  regressions.
+- Updated `R/formula-markers.R` and regenerated `man/corpair.Rd` so the
+  reference page says spatial `corpair()` regressions remain planned, not all
+  spatial correlation rows.
+- Added `docs/course/README.md` as a compact teaching-path ledger for the
+  current course route and the still-missing bivariate slope-only tutorial.
+- Recorded the #443 boundary language in the four-week sprint contract,
+  roadmap, and NEWS.
+
+Validation:
+
+```sh
+air format R/formula-markers.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^package-skeleton$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n -e 'Coscale means the residual bivariate Gaussian correlation parameter `rho12`' -e 'Coscale boundary: residual `rho12`' docs/design/80-four-week-random-slope-digital-twin-sprint.md ROADMAP.md pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+rg -n 'Spatial|spatial' R/formula-markers.R man/corpair.Rd pkgdown-site/reference/corpair.html pkgdown-site/dev/reference/corpair.html
+rg -n -e 'coordinate-spatial, animal-model, and `relmat\\(\\)` q=2 or constant' -e 'Keep the three correlation words separate' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/dev/articles/bivariate-coscale.html
+rg -n -e 'Phase 6c random slopes are currently taught' -e 'The bivariate coscale tutorial and correlation-pair design note' docs/course/README.md NEWS.md pkgdown-site/news/index.html pkgdown-site/dev/news/index.html
+rg -n 'richer spatial and study-level correlation rows remain planned|Predictors must be constant within the grouping factor\\. Spatial,|GLLVM\\.jl / gllvmTMB\\.jl|meta_V\\(value' vignettes docs/design R man README.md ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::document()` completed and regenerated `man/corpair.Rd`; unrelated
+  roxygen metadata churn was discarded.
+- `devtools::test(filter = '^package-skeleton$')` passed.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- `pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))`
+  completed and refreshed the development mirror.
+- Rendered scans found the new #443 wording in the sprint contract, roadmap,
+  `bivariate-coscale` article, `corpair()` reference page, NEWS, and the
+  release and development pkgdown mirrors.
+- The stale-wording scan returned no current-doc hits.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Aristotle found the stale bivariate-coscale wording and the reference-page
+  ambiguity between spatial `corpairs()` rows and spatial `corpair()`
+  regressions.
+- Rose flagged #443/#444 as high-value, low-risk reader-facing work.
+- Pat's reader path is now explicit in `docs/course/README.md`, while the
+  bivariate slope-only worked tutorial remains a future #444 item.

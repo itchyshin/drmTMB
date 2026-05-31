@@ -44,6 +44,26 @@ Simulation planning issue:
 | Coscale and correlation extraction | Residual `rho12` and fitted group/structured covariance rows are separate output layers. | Use #443 to keep `rho12`, `corpair()`, and `corpairs()` wording precise in random-slope examples. |
 | Tutorial and release ledger | Existing tutorials cover pieces of the ordinary core and bivariate/coscale surfaces. | Use #444 to produce a reader-facing path and reference-index check after status wording is reconciled. |
 
+## Issue #443 Boundary Language
+
+Use this wording in user-facing prose until a later design issue supersedes it.
+Coscale means the residual bivariate Gaussian correlation parameter `rho12`.
+It is a distributional parameter in the residual covariance matrix, not a
+group-level, phylogenetic, spatial, animal-model, or known-matrix covariance
+row. Random effects and structured terms in `rho12` remain unsupported.
+
+The singular `corpair()` marker is a formula for a named latent random-effect
+correlation pair. It is fitted only where the likelihood and positive-definite
+parameterization already exist, currently selected q=2 ordinary and
+phylogenetic location-location routes. Predictor-dependent q=4, spatial,
+animal, `relmat()`, residual-scale, and slope-specific `corpair()` regressions
+remain planned.
+
+The plural `corpairs()` helper is an extractor. It reports residual `rho12`
+and fitted latent correlation rows from ordinary group, phylogenetic, spatial,
+animal-model, and `relmat()` covariance layers where those layers are already
+implemented. It does not fit a new covariance model.
+
 ## Issue #438 Support-Matrix Labels
 
 Use these labels in #438, the roadmap, and pkgdown pages until a later evidence

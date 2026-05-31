@@ -297,8 +297,10 @@ head(rho12(fit_biv))
 
 `corpairs()` gives the same residual correlation in the long correlation-pair
 format. The same table shape now also holds fitted ordinary group-level and
-phylogenetic rows; richer spatial and study-level correlation rows remain
-planned:
+structured rows where their covariance routes are fitted, including
+phylogenetic, coordinate-spatial, animal-model, and `relmat()` q=2 or constant
+q=4 rows. Predictor-dependent spatial, animal, `relmat()`, study-level, q=4,
+residual-scale, and slope-specific `corpair()` regressions remain planned:
 
 ```{r bivariate-coscale-corpairs}
 corpairs(fit_biv)[
@@ -316,6 +318,20 @@ levels later. In this example, a positive coefficient for `disturbance` means
 that observations with larger disturbance have stronger positive residual
 coupling between activity and boldness, after the model has already accounted
 for the predictors in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Keep the three correlation words separate:
+
+| Word | Use it for | Do not use it for |
+|---|---|---|
+| `rho12` | the residual bivariate Gaussian coscale formula and extractor | group-level, phylogenetic, spatial, animal-model, or known-matrix covariance |
+| `corpair()` | a formula for an implemented predictor-dependent latent random-effect pair, currently selected q=2 ordinary and phylogenetic location-location routes | residual correlation or q=4, spatial, animal, `relmat()`, residual-scale, and slope-specific correlation regressions |
+| `corpairs()` | extracting fitted residual and latent correlation rows from the model object | asking the model to fit a new covariance structure |
+
+A location-scale model changes `sigma`; a location-coscale model changes
+residual `rho12`. A double-hierarchical or structured covariance model may
+also report latent correlations through `corpairs()`, but those rows answer
+questions about group, phylogenetic, spatial, animal-model, or known-matrix
+deviations rather than residual coupling within an observation.
 
 ```{r bivariate-coscale-interpretation-table}
 newdat <- data.frame(

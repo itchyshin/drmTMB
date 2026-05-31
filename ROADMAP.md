@@ -668,6 +668,12 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   `relmat(1 + x | id, K = K)` now fit the first univariate Gaussian
   one-slope `mu` paths, while multiple structured slopes, structured
   residual-scale slopes, and slope correlations remain planned.
+- Coscale boundary: residual `rho12`, singular `corpair()` formula markers,
+  and plural `corpairs()` extraction rows are deliberately separate. Coscale
+  means residual bivariate Gaussian `rho12`; `corpair()` fits only selected
+  q=2 latent random-effect correlation regressions where the likelihood exists;
+  and `corpairs()` reports fitted residual or latent correlation rows without
+  creating a new covariance model.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
