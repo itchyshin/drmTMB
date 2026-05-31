@@ -96,6 +96,75 @@ check_drm <- function(object, ...) {
   UseMethod("check_drm")
 }
 
+#' Check whether a fit converged
+#'
+#' `is_converged()` is a compact programmatic flag for workflows that need a
+#' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
+#' fit. By default it checks only stored optimizer status: the `nlminb()`
+#' convergence code must be 0 and the stored objective and log-likelihood must
+#' be finite.
+#'
+#' Set `include_hessian = TRUE` when the next step needs Wald-style
+#' uncertainty. In that mode, `is_converged()` also requires successful
+#' [TMB::sdreport()] output with `pdHess = TRUE`. A fit can therefore be
+#' optimizer-converged while still returning `FALSE` with
+#' `include_hessian = TRUE`; this marks an inference-readiness problem, not
+#' automatic proof that point estimates are unusable.
+#'
+#' Use [check_drm()] when you need the full diagnostic table and messages.
+#'
+#' @param object A `drmTMB` fit.
+#' @param include_hessian Logical; require a positive-definite
+#'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#' @param ... Reserved for future convergence options.
+#'
+#' @return A single logical value.
+#' @export
+#'
+#' @examples
+#' set.seed(20260531)
+#' dat <- data.frame(y = rnorm(30), x = rnorm(30))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' is_converged(fit)
+#' is_converged(fit, include_hessian = TRUE)
+is_converged <- function(object, ...) {
+  UseMethod("is_converged")
+}
+
+#' @rdname is_converged
+#' @export
+is_converged.default <- function(object, ...) {
+  cli::cli_abort("{.fn is_converged} is implemented for {.cls drmTMB} fits.")
+}
+
+#' @rdname is_converged
+#' @export
+is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn is_converged} options."
+    )
+  }
+  if (
+    !is.logical(include_hessian) ||
+      length(include_hessian) != 1L ||
+      is.na(include_hessian)
+  ) {
+    cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
+  }
+
+  optimizer_ok <- identical(as.integer(object$opt$convergence), 0L) &&
+    isTRUE(all(is.finite(c(object$opt$objective, object$logLik))))
+  if (!optimizer_ok || !include_hessian) {
+    return(optimizer_ok)
+  }
+
+  identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) &&
+    isTRUE(object$sdr$pdHess)
+}
+
 #' @rdname check_drm
 #' @export
 check_drm.drmTMB <- function(

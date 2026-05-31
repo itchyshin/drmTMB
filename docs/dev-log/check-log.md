@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Post-fit Accessors for Convergence and Structured Effects
+
+Goal:
+
+- Close the two small package-capability gaps in #317 and #335 before the
+  larger Phase 6c power-simulation work: a compact convergence flag for
+  downstream tooling and a stable metadata table for fitted structured-effect
+  markers.
+
+Changes:
+
+- Added exported `is_converged()` and `is_converged.drmTMB()`.
+- Made the default convergence flag require optimizer convergence code 0 and
+  finite stored objective/log-likelihood values.
+- Added `include_hessian = TRUE` to require successful `TMB::sdreport()`
+  output with `pdHess = TRUE` when downstream Wald-style inference needs it.
+- Added exported `structured_effects()` and `structured_effects.drmTMB()`.
+- Returned one row per fitted `phylo()`, `spatial()`, `animal()`, or
+  `relmat()` structured marker, with grouping, matrix attachment, structure,
+  block, distributional-parameter, coefficient, and original argument metadata.
+- Added roxygen documentation, pkgdown Reference-index entries, NEWS bullets,
+  focused tests, and after-task reports.
+- Kept both helpers read-only: no formula grammar, likelihood, TMB, optimizer,
+  simulation, or missing-data files were changed for this PR.
+
+Validation:
+
+```sh
+air format R/check.R R/methods.R tests/testthat/test-check-drm.R tests/testthat/test-structured-effects.R NEWS.md _pkgdown.yml
+Rscript --vanilla -e "invisible(parse('R/check.R')); invisible(parse('R/methods.R')); invisible(parse('tests/testthat/test-check-drm.R')); invisible(parse('tests/testthat/test-structured-effects.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "is_converged|Check whether a fit converged|include_hessian|#317|structured_effects|Extract structured-effect metadata|matrix_attachment|#335" pkgdown-site/reference/index.html pkgdown-site/reference/is_converged.html pkgdown-site/reference/structured_effects.html pkgdown-site/news/index.html
+git diff --check
+Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never')"
+```
+
+Results:
+
+- Parse checks passed.
+- Focused `check-drm`, `structured-effects`, and `package-skeleton` tests
+  passed before and after `devtools::document()`.
+- `devtools::document()` generated `man/is_converged.Rd`,
+  `man/structured_effects.Rd`, and updated `NAMESPACE`.
+- Incidental `RoxygenNote` and unrelated generated Rd churn were removed from
+  the diff.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built both new reference
+  pages and refreshed the Reference index and NEWS page.
+- The rendered scan found both helpers on the Reference index, their reference
+  pages, and NEWS.
+- `git diff --check` passed.
+- `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
+  6m 58.2s with 0 errors, 0 warnings, and 0 notes.
+
 ## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
 
 Goal:

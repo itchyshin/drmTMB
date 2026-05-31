@@ -1121,6 +1121,38 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
   expect_equal(scale$status, "warning")
 })
 
+test_that("is_converged() reports optimizer and Hessian readiness", {
+  dat <- data.frame(y = stats::rnorm(24), x = stats::rnorm(24))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  expect_identical(is_converged(fit), TRUE)
+  expect_identical(is_converged(fit, include_hessian = TRUE), TRUE)
+
+  nonconverged <- fit
+  nonconverged$opt$convergence <- 1L
+  expect_identical(is_converged(nonconverged), FALSE)
+  expect_identical(is_converged(nonconverged, include_hessian = TRUE), FALSE)
+
+  nonfinite <- fit
+  nonfinite$opt$objective <- Inf
+  expect_identical(is_converged(nonfinite), FALSE)
+
+  bad_hessian <- fit
+  bad_hessian$sdr$pdHess <- FALSE
+  expect_identical(is_converged(bad_hessian), TRUE)
+  expect_identical(is_converged(bad_hessian, include_hessian = TRUE), FALSE)
+
+  no_sdreport <- fit
+  no_sdreport$sdr <- NULL
+  no_sdreport$uncertainty <- list(status = "skipped")
+  expect_identical(is_converged(no_sdreport), TRUE)
+  expect_identical(is_converged(no_sdreport, include_hessian = TRUE), FALSE)
+
+  expect_error(is_converged(fit, include_hessian = NA), "include_hessian")
+  expect_error(is_converged(fit, unknown_option = TRUE), "reserved")
+  expect_error(is_converged(list()), "drmTMB")
+})
+
 test_that("check_drm() validates scalar diagnostic thresholds", {
   dat <- data.frame(y = stats::rnorm(20))
   fit <- drmTMB(bf(y ~ 1), family = gaussian(), data = dat)
