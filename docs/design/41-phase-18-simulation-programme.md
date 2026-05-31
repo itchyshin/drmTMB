@@ -1419,3 +1419,14 @@ errors, and elapsed time by surface before the raw manifest.
      Actions task, include the lane in `task = "all"`, or make sparse
      large-pedigree speed, recovery, coverage, power, multiple-slope,
      slope-correlation, or residual-scale structured-slope claims.
+245. Slice 1837 adds the local phylogenetic Gaussian `mu` one-slope artifact
+     writer. The DGP, smoke runner, summary helper, and grid writer fit
+     `phylo(1 + x | species, tree = tree)` with independent phylogenetic
+     intercept and slope fields and write aggregate, replicate-level,
+     manifest, and failure-ledger CSV artifacts. The structured-dependence
+     wrapper-readiness helper now reports the `phylo()` row as
+     `grid_writer_available`, but the registry still routes it through
+     `needed:structured_dependence_wrapper`. This slice does not add a manual
+     Actions task, include the lane in `task = "all"`, or make recovery,
+     coverage, power, multiple-slope, slope-correlation, residual-scale
+     structured-slope, or non-Gaussian structured-slope claims.

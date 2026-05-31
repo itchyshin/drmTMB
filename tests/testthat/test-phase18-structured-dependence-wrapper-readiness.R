@@ -103,15 +103,15 @@ test_that("structured-dependence readiness summarizes wrapper targets", {
       "gaussian_relmat_mu_one_slope"
     )
   )
-  expect_equal(unname(status_counts[["source_test_ready"]]), 1L)
-  expect_equal(unname(status_counts[["grid_writer_available"]]), 2L)
+  expect_false("source_test_ready" %in% names(status_counts))
+  expect_equal(unname(status_counts[["grid_writer_available"]]), 3L)
   expect_true(all(readiness$dispatch_status == "needs_wrapper_target"))
   expect_true(all(readiness$workflow_helper == "structured_dependence_wrapper"))
   expect_true(all(is.na(readiness$actions_task)))
   expect_true(all(readiness$dispatch_mode == "wrapper_target_not_actions"))
 })
 
-test_that("structured-dependence readiness names current artifact gap", {
+test_that("structured-dependence readiness names current artifacts", {
   env <- source_phase18_structured_dependence_readiness()
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_dependence_registry_csv()
@@ -121,12 +121,12 @@ test_that("structured-dependence readiness names current artifact gap", {
     registry
   )
 
-  expect_true(all(startsWith(
+  expect_equal(
     readiness$required_artifact[
       readiness$lane_id == "gaussian_phylo_mu_one_slope"
     ],
-    "needed:"
-  )))
+    "phase18_write_phylo_mu_slope_grid_outputs()"
+  )
   expect_equal(
     readiness$required_artifact[
       readiness$lane_id == "gaussian_animal_mu_one_slope"
@@ -141,7 +141,7 @@ test_that("structured-dependence readiness names current artifact gap", {
   )
   expect_match(
     readiness$source_evidence[readiness$dependence == "phylo"],
-    "test-phylo-gaussian.R",
+    "sim_write_phylo_mu_slope_grid.R",
     fixed = TRUE
   )
   expect_match(

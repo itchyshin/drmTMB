@@ -145,6 +145,9 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_mu_slope.R` generates Gaussian spatial `mu` data with
   independent coordinate-spatial intercept and slope fields,
   `spatial(1 + x | site, coords = coords)`.
+- `dgp/sim_dgp_phylo_mu_slope.R` generates Gaussian phylogenetic `mu` data
+  with independent phylogenetic intercept and slope fields,
+  `phylo(1 + x | species, tree = tree)`.
 - `dgp/sim_dgp_animal_mu_slope.R` generates Gaussian animal-model `mu` data
   with independent dense-pedigree intercept and slope fields,
   `animal(1 + x | id, pedigree = pedigree)`.
@@ -270,6 +273,9 @@ Current pilot files:
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
+- `fit/sim_summarise_phylo_mu_slope.R` summarises fixed `mu` coefficients,
+  public residual `sigma`, and the two direct phylogenetic `mu` SDs for the
+  intercept and slope fields.
 - `fit/sim_summarise_animal_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct dense-pedigree `animal()` `mu`
   SDs for the intercept and slope fields.
@@ -352,6 +358,8 @@ Current pilot files:
   Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_spatial_mu_slope_smoke.R` does the same for the coordinate
   spatial Gaussian `mu` one-slope surface.
+- `run/sim_run_phylo_mu_slope_smoke.R` does the same for the phylogenetic
+  Gaussian `mu` one-slope surface.
 - `run/sim_run_animal_mu_slope_smoke.R` does the same for the dense-pedigree
   `animal()` Gaussian `mu` one-slope surface.
 - `run/sim_run_relmat_mu_slope_smoke.R` does the same for the known-matrix
@@ -532,6 +540,12 @@ Current pilot files:
   The manual `spatial_mu_slope` Actions task can run the coordinate-spatial
   lane as an opt-in artifact dispatch without adding mesh/SPDE, multiple
   spatial slopes, spatial slope correlations, or recovery/coverage claims.
+- `run/sim_write_phylo_mu_slope_grid.R` writes the same simple artifact set
+  for the phylogenetic Gaussian `mu` one-slope lane. It is a local
+  wrapper-target artifact writer only; no manual Actions task, `task = "all"`
+  inclusion, recovery, coverage, power, multiple-slope, slope-correlation,
+  residual-scale structured-slope, or non-Gaussian structured-slope claim is
+  added by the writer.
 - `run/sim_write_animal_mu_slope_grid.R` writes the same simple artifact set
   for the dense-pedigree `animal()` Gaussian `mu` one-slope lane. It is a
   local wrapper-target artifact writer only; no manual Actions task,
@@ -611,6 +625,9 @@ Current pilot files:
 - `run/sim_summary_spatial_mu_slope_smoke.R` runs a tiny coordinate spatial
   Gaussian `mu` one-slope summary smoke grid and returns grouped bias, RMSE,
   MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_phylo_mu_slope_smoke.R` runs a tiny phylogenetic Gaussian
+  `mu` one-slope summary smoke grid and returns grouped bias, RMSE, MCSE,
+  manifest, and warning/error ledger outputs.
 - `run/sim_summary_animal_mu_slope_smoke.R` runs a tiny dense-pedigree
   `animal()` Gaussian `mu` one-slope summary smoke grid and returns grouped
   bias, RMSE, MCSE, manifest, and warning/error ledger outputs.

@@ -468,3 +468,14 @@ issues, or pull requests.
   provenance for later signal-correlation and recovery diagnostics without
   turning the first artifact writer into a sparse large-pedigree performance
   project.
+
+## 2026-05-30 - Source Fixture To Simulation DGP
+
+- Improvement implemented: when a source test already proves a fitted syntax
+  path, the matching Phase 18 simulation lane should still own a dedicated DGP
+  under `inst/sim/dgp/` with truth metadata, reproducible seeds, and artifact
+  writer tests.
+- Trigger: the `phylo()` Gaussian `mu` one-slope path had strong source-test
+  evidence, but the artifact writer needed its own balanced-tree DGP, tip
+  covariance, and realised phylogenetic fields before it could support later
+  recovery diagnostics.

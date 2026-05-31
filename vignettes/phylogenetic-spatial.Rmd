@@ -235,7 +235,11 @@ one univariate `mu` intercept and one numeric `mu` slope. These one-slope paths
 estimate independent structured intercept and slope fields with separate SDs;
 they do not fit multiple structured slopes, intercept-slope correlations,
 structured residual `rho12`, structured `sigma` slopes, or non-Gaussian
-structured slopes. A first bivariate path also fits matching intercept-only
+structured slopes. `spatial_mu_slope` is the only manual Actions task for this
+one-slope layer; `phylo()`, `animal()`, and `relmat()` have local artifact
+writers but remain non-Actions wrapper targets. These artifact labels are not
+recovery, coverage, or power evidence. A first bivariate path also fits matching
+intercept-only
 `phylo()` terms in `mu1` and `mu2`, estimating the two phylogenetic location
 SDs and their mean-mean correlation. Matching labelled `phylo()` terms across
 `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the first constant bivariate

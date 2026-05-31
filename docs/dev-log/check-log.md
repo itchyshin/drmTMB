@@ -47494,3 +47494,66 @@ Member-group review:
   malformed input.
 - Rose kept local artifact readiness separate from recovery, coverage, power,
   slope correlations, and residual-scale structured slopes.
+
+## 2026-05-30 - Phylo Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the phylogenetic Gaussian `mu`
+  one-slope lane while keeping the row outside manual Actions, `task = "all"`,
+  recovery, coverage, power, multiple phylogenetic slopes, slope correlations,
+  residual-scale structured slopes, and non-Gaussian structured slopes.
+
+Changes:
+
+- Added a seeded balanced-tree DGP, smoke runner, summary helper, and grid
+  writer for `phylo(1 + x | species, tree = tree)` with independent
+  phylogenetic intercept and slope fields.
+- Added focused tests for DGP reproducibility, tree and tip-covariance truth,
+  realised phylogenetic fields, smoke summaries, artifact creation, overwrite
+  protection, malformed inputs, and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_phylo_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_phylo_mu_slope_grid_outputs()` while staying a wrapper target
+  rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase 18
+  README, and the Phase 18/Phase 6c design ledgers to say that `phylo()`,
+  `animal()`, and `relmat()` have local writers, `spatial_mu_slope` is
+  Actions-ready, and recovery/coverage/power evidence remains planned.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_phylo_mu_slope.R','inst/sim/fit/sim_summarise_phylo_mu_slope.R','inst/sim/run/sim_run_phylo_mu_slope_smoke.R','inst/sim/run/sim_summary_phylo_mu_slope_smoke.R','inst/sim/run/sim_write_phylo_mu_slope_grid.R','tests/testthat/test-phase18-phylo-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('phylo writer parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-phylo-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(phylo-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+rg -n 'phase18_write_phylo_mu_slope_grid_outputs|phylo\(1 \+ x \| species, tree = tree\)|local phylogenetic Gaussian `mu` one-slope|local `phylo\(\)`/`animal\(\)`/`relmat\(\)` artifact|phylo\(\).*local Phase 18 writer|phylo\(\).*grid_writer_available|phylo\(\).*have local Phase 18 writers' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'needed:phylo_mu_slope|without a local artifact|still needs a standalone artifact|source-tested Gaussian structured one-slope wrapper target without|phylogenetic one-slope route remains a wrapper target|meta_known_V\(V = V\).*(current|preferred|new code should)|package called `?gllvmTMB\.jl`?' README.md ROADMAP.md NEWS.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md inst/sim/README.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+git diff --check
+```
+
+Results:
+
+- The parse check printed `phylo writer parse ok`.
+- The focused `phase18-phylo-mu-slope` test passed.
+- The combined `phase18-(phylo-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)`
+  test bundle passed after changing the readiness test to assert the
+  now-absent `source_test_ready` bucket by name rather than indexing it.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `phylo()` writer wording in source and
+  rendered pages. The refined stale scan found no current-source or pkgdown
+  claim that `phylo()` still lacks local artifacts, no current
+  `meta_known_V(V = V)` wording as preferred syntax, and no current
+  `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice to one local phylogenetic writer and did not promote it to
+  Actions dispatch.
+- Curie kept the DGP/test surface small by using a deterministic balanced tree.
+- Rose kept local artifact readiness separate from formal recovery, coverage,
+  power, structured slope correlations, residual-scale structured slopes, and
+  non-Gaussian structured slopes.

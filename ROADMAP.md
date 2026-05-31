@@ -403,9 +403,9 @@ distributional regression models using TMB.
   univariate Gaussian one-slope `mu` route with SD summaries, direct profile
   targets, diagnostics, and focused source or smoke evidence. Do not read that
   as Actions or artifact parity: only `spatial_mu_slope` currently has a
-  manual Phase 18 Actions artifact task, `animal()` and `relmat()` have local
-  Phase 18 writers, and the phylogenetic one-slope route remains a wrapper
-  target. Multiple structured slopes, structured residual-scale
+  manual Phase 18 Actions artifact task, and `phylo()`, `animal()`, and
+  `relmat()` have local Phase 18 writers while remaining non-Actions wrapper
+  targets. Multiple structured slopes, structured residual-scale
   slopes, slope correlations, structured `rho12`, and non-Gaussian structured
   slopes remain planned.
 - Keep structured-effect correlations constant during the one-slope baseline.
@@ -637,10 +637,9 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   coordinate-spatial, animal-model, and `relmat()` effects. The first fitted
   one-slope routes exist for all four structured layers, but Actions artifact
   readiness is narrower: only `spatial_mu_slope` is wired as a manual task,
-  `animal()` and `relmat()` have local one-slope artifact writers, and the
-  phylogenetic one-slope route remains a wrapper target. Design for up to two
-  structured `mu` slopes as an advanced path if diagnostics and recovery remain
-  stable.
+  while `phylo()`, `animal()`, and `relmat()` have local one-slope artifact
+  writers as non-Actions wrapper targets. Design for up to two structured
+  `mu` slopes as an advanced path if diagnostics and recovery remain stable.
 - Keep three or more structured slopes outside the advertised near-term path.
   The covariance dimension grows quickly, so these models should remain
   distant-future expert use.
@@ -1972,6 +1971,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1827 | Workflow status helper bundle | Done locally: read-only helpers now summarize structured-dependence wrapper-target readiness, correlation-block wrapper targets, and family-surface registry status tables without running models, writing artifacts, dispatching Actions jobs, promoting rows, or making recovery or coverage claims. |
 | 1828 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry now maps `gaussian_spatial_mu_one_slope` to that task. This makes the spatial one-slope artifact lane dispatchable while leaving non-spatial structured one-slope rows as wrapper targets and making no recovery or coverage claim. |
 | 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope wrapper targets. These writers do not add manual Actions tasks, `task = "all"` inclusion, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, or residual-scale structured slopes. |
+| 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope wrapper target. This writer does not add a manual Actions task, `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, or non-Gaussian structured slopes. |
 
 ### Pre-Simulation Readiness Slice Map
 
