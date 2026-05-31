@@ -1390,3 +1390,10 @@ errors, and elapsed time by surface before the raw manifest.
      evidence separate, and leaves coverage, power, correlated slopes,
      non-Gaussian scale/shape random effects, and structured dependence planned
      or blocked.
+242. Slice 1834 adds
+     `docs/design/148-phase6c-structured-one-slope-ademp.md`, the #442/#446
+     ADEMP sheet for fitted Gaussian structured `mu` one-slope paths. It keeps
+     the one numeric `phylo()`, `spatial()`, `animal()`, and `relmat()` slope
+     lane separate from q2/q4 covariance, structured slope correlations,
+     residual-scale structured slopes, structured `rho12`, non-Gaussian
+     structured slopes, and route-specific artifact maturity.

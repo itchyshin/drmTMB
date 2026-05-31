@@ -47230,3 +47230,46 @@ Member-group review:
 - Curie kept the plan family-separated and source-test bounded.
 - Fisher kept coverage and power planned until interval provenance and MCSE
   targets exist.
+
+## 2026-05-30 - Structured Gaussian one-slope ADEMP sheet
+
+Goal:
+
+- Add the #442/#446 ADEMP sheet for fitted Gaussian structured `mu` one-slope
+  paths.
+
+Changes:
+
+- Added `docs/design/148-phase6c-structured-one-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Kept the scope limited to one numeric Gaussian `mu` slope for `phylo()`,
+  `spatial()`, `animal()`, and `relmat()`, with route-specific artifact
+  maturity called out.
+
+Validation:
+
+```sh
+devtools::test(filter = "^(phase18-spatial-mu-slope|phase18-structured-dependence-wrapper-readiness|phase18-structured-workflow-registry)$")
+rg -n 'Phase 6c Structured Gaussian One-Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|phylo\\(\\)|spatial\\(\\)|animal\\(\\)|relmat\\(\\)|docs/design/148-phase6c-structured-one-slope-ademp.md' docs/design/148-phase6c-structured-one-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not promote coverage|structured slope correlations|residual-scale structured slopes|structured `rho12`|non-Gaussian structured slopes|mesh/SPDE|q2/q4 covariance|wrapper-target' docs/design/148-phase6c-structured-one-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "^(phase18-spatial-mu-slope|phase18-structured-dependence-wrapper-readiness|phase18-structured-workflow-registry)$")`
+  completed without failure.
+- The ADEMP scan found the purpose, A/D/E/M/P sections, Williams self-audit,
+  four structured routes, and programme/sprint links.
+- The boundary scan found the no-grid/no-promotion language, route-maturity
+  split, q2/q4 boundary, and blocked structured slope-correlation,
+  residual-scale, `rho12`, mesh/SPDE, and non-Gaussian neighbours.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the #442 plan source/artifact bounded and warned against broad
+  structured random-slope wording.
+- Fisher kept coverage and power planned until interval-status and rejection
+  rule artifacts exist.

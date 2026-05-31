@@ -181,6 +181,12 @@ slopes while keeping family evidence separate and leaving coverage, power,
 correlated slopes, structured dependence, and non-Gaussian scale or shape
 random effects planned or blocked.
 
+The fourth sheet is
+`docs/design/148-phase6c-structured-one-slope-ademp.md`. It plans the #442
+Gaussian structured one-slope lane for `phylo()`, `spatial()`, `animal()`, and
+`relmat()`, while keeping `spatial_mu_slope` artifact readiness separate from
+the `phylo()`, `animal()`, and `relmat()` wrapper-target rows.
+
 Keep the first Phase 6c simulation bridge narrow:
 
 - #439 queues ordinary Gaussian q > 2 `mu` slopes and independent Gaussian
