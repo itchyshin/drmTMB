@@ -500,3 +500,13 @@ issues, or pull requests.
   they would imply slope correlations, but the parser previously accepted the
   syntax and fit independent fields. The fix now rejects labelled structured
   non-intercept terms until syntax, simulation, and extractor evidence exist.
+
+## 2026-05-30 - Boundary Diagnostics Should Not Leak Warnings
+
+- Improvement implemented: tests that intentionally exercise a boundary fit
+  should suppress the known fit-time warning at the call site and assert the
+  recorded diagnostic status in the summary table.
+- Trigger: the Phase 18 count structured q1 boundary-replicate test correctly
+  expected `fit_diagnostic_status == "warning"`, but the underlying
+  `TMB::sdreport()` warning still escaped into `R CMD check` output and risked
+  failing CI under warning-as-error settings.

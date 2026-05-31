@@ -47681,3 +47681,39 @@ Member-group review:
   blocks, while unlabelled structured one-slope terms mean independent fields.
 - Curie required negative tests for the closest user overreach syntax.
 - Rose excluded unrelated roxygen churn before staging.
+
+## 2026-05-30 - Count structured boundary warning quarantine
+
+Goal:
+
+- Remove a known `TMB::sdreport()` warning from the Phase 18 count structured q1
+  boundary-diagnostic test output while preserving the diagnostic assertion that
+  the fitted structured SD is near the lower boundary.
+
+Changes:
+
+- Wrapped only the intentional boundary-replicate fit in
+  `suppressWarnings()`. The test still checks that the summarised fit reports
+  `fit_diagnostic_status == "warning"` and `sd_boundary_status == "warning"`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "parse('tests/testthat/test-phase18-count-structured-q1.R'); cat('count structured q1 parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-structured-q1$', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The parse check printed `count structured q1 parse ok`.
+- The focused `phase18-count-structured-q1` test file passed with no testthat
+  warnings.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the warning available as structured diagnostic data instead of
+  allowing it to escape as CI noise.
+- Grace identified the warning as likely to fail Actions because the workflow
+  treats package-check warnings as blocking.
