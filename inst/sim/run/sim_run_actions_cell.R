@@ -13,6 +13,7 @@ phase18_actions_task_choices <- function() {
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
     "biv_gaussian_mu_slope",
+    "spatial_mu_slope",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )
@@ -253,6 +254,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "biv_gaussian_mu_slope")) {
     out <- phase18_write_biv_gaussian_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "spatial_mu_slope")) {
+    out <- phase18_write_spatial_mu_slope_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -613,6 +623,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_write_biv_gaussian_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "spatial_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_spatial_mu_slope.R",
+      "sim/fit/sim_summarise_spatial_mu_slope.R",
+      "sim/run/sim_run_spatial_mu_slope_smoke.R",
+      "sim/run/sim_summary_spatial_mu_slope_smoke.R",
+      "sim/run/sim_write_spatial_mu_slope_grid.R"
     ))
   }
   if (identical(task, "poisson_phylo_q1_formal")) {

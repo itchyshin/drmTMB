@@ -122,17 +122,19 @@ rows, and diagnostic-only rows all need to stay visible but not equivalent.
 
 The current structured-dependence plan has seven rows:
 
-- four Gaussian `ready_grid` rows for `phylo()`, `spatial()`, `animal()`, and
-  `relmat()`, all marked `needs_wrapper_target` with
+- three Gaussian `ready_grid` wrapper-target rows for `phylo()`, `animal()`,
+  and `relmat()`, all marked `needs_wrapper_target` with
   `workflow_helper = "structured_dependence_wrapper"`;
+- one Gaussian `ready_grid` spatial row marked `ready_existing_task` through
+  the manual `spatial_mu_slope` task;
 - one Poisson `phylo()` q=1 row marked `formal_admission_task`;
 - one NB2 `phylo()` q=1 row marked `hold_smoke_audit`;
 - one count q=1 `spatial()`/`animal()`/`relmat()` row marked
   `diagnostic_audit`.
 
 Callers can set `include_held = FALSE` to keep only admitted rows. That keeps
-the four Gaussian wrapper targets and Poisson formal-admission task while
-dropping held-smoke and diagnostic-only count rows.
+the three Gaussian wrapper targets, the spatial manual task, and Poisson
+formal-admission task while dropping held-smoke and diagnostic-only count rows.
 
 ## Slice 1818 Correlation-Block Workflow Plan
 
@@ -276,9 +278,10 @@ claim.
 
 Slice 1827 adds read-only status helpers for three remaining workflow planning
 surfaces. `phase18_structured_dependence_wrapper_target_readiness()` lists the
-four current Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
+four then-current Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
 wrapper targets and separates the existing spatial grid writer from the
-source-test-ready rows that still need artifact writers.
+source-test-ready rows that still need artifact writers. After Slice 1828 the
+spatial row is no longer a wrapper target.
 `phase18_correlation_block_wrapper_target_plan()` lists the current
 correlation-block wrapper targets, keeping q=2 interval-provenance work
 separate from q=4 diagnostic-only rows. `phase18_family_surface_status_tables()`
@@ -287,6 +290,20 @@ distribution route with `status_scope = "registry_status_only"`.
 
 These helpers do not run models, write artifacts, dispatch Actions jobs,
 promote registry rows, or make recovery or coverage claims.
+
+## Slice 1828 Spatial One-Slope Actions Task
+
+Slice 1828 adds `spatial_mu_slope` as a manual-only Phase 18 Actions task and
+promotes the `gaussian_spatial_mu_one_slope` registry row from
+`needed:structured_dependence_wrapper` to that task. The task calls the existing
+`phase18_write_spatial_mu_slope_grid_outputs()` helper, so it adds dispatch
+plumbing for an already-tested DGP, smoke runner, summary helper, and grid
+writer. It stays opt-in and excluded from `task = "all"`.
+
+This slice does not create mesh/SPDE support, multiple spatial slopes, spatial
+slope correlations, structured residual-scale slopes, or recovery/coverage
+claims. `phylo()`, `animal()`, and `relmat()` Gaussian one-slope rows remain
+wrapper targets until they have artifact writers.
 
 ## Autonomous Work Plan
 

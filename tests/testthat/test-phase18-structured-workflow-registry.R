@@ -302,16 +302,23 @@ test_that("Phase 18 structured-dependence plan separates wrapper and task rows",
   )
   plan <- env$phase18_structured_dependence_workflow_plan(registry)
   gaussian <- plan$family_group == "continuous_gaussian"
+  spatial <- plan$lane_id == "gaussian_spatial_mu_one_slope"
+  gaussian_wrapper <- gaussian & !spatial
   poisson <- plan$lane_id == "poisson_phylo_q1_formal"
   nbinom2 <- plan$lane_id == "nbinom2_phylo_q1_formal"
   count <- plan$lane_id == "count_structured_q1"
 
   expect_equal(sum(gaussian), 4L)
-  expect_true(all(plan$dispatch_status[gaussian] == "needs_wrapper_target"))
-  expect_true(all(is.na(plan$actions_task[gaussian])))
   expect_true(all(
-    plan$workflow_helper[gaussian] == "structured_dependence_wrapper"
+    plan$dispatch_status[gaussian_wrapper] == "needs_wrapper_target"
   ))
+  expect_true(all(is.na(plan$actions_task[gaussian_wrapper])))
+  expect_true(all(
+    plan$workflow_helper[gaussian_wrapper] == "structured_dependence_wrapper"
+  ))
+  expect_equal(plan$dispatch_status[spatial], "ready_existing_task")
+  expect_equal(plan$actions_task[spatial], "spatial_mu_slope")
+  expect_equal(plan$workflow_helper[spatial], "phase18_actions_main")
   expect_equal(plan$dispatch_status[poisson], "formal_admission_task")
   expect_equal(plan$actions_task[poisson], "poisson_phylo_q1_formal")
   expect_equal(plan$dispatch_status[nbinom2], "hold_smoke_audit")
@@ -782,7 +789,8 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$design_only[family], 1L)
   expect_equal(counts$existing_actions_tasks[random], 9L)
   expect_equal(counts$wrapper_targets[random], 0L)
-  expect_equal(counts$wrapper_targets[structured], 4L)
+  expect_equal(counts$existing_actions_tasks[structured], 4L)
+  expect_equal(counts$wrapper_targets[structured], 3L)
   expect_equal(counts$wrapper_targets[correlation], 3L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
 })

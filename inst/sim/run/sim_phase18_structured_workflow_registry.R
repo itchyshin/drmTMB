@@ -359,6 +359,10 @@ phase18_structured_dependence_workflow_plan <- function(
   plan$audit_focus <- phase18_structured_dependence_audit_focus(
     plan$admission_status
   )
+  plan$audit_focus[plan$dispatch_status == "ready_existing_task"] <- paste(
+    "Run or audit the existing Actions task before treating artifacts as",
+    "recovery evidence."
+  )
   row.names(plan) <- NULL
   plan[c(
     "lane_id",
@@ -900,6 +904,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
     "biv_gaussian_mu_slope",
+    "spatial_mu_slope",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )

@@ -192,7 +192,7 @@ models yet:
 
 - mixed composed families such as `c(gaussian(), poisson())`;
 - the future `meta_V()` umbrella, including proportional sampling-variance
-  models such as `meta_V(value, w = w, scale = "proportional")`;
+  models such as `meta_V(w = w, scale = "proportional")`;
 - bivariate Student-t or bivariate skew-normal families;
 - broader bivariate random slopes, `rho12` random effects, and
   cross-parameter covariance blocks beyond the currently implemented ordinary

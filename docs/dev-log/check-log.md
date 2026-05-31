@@ -46214,3 +46214,72 @@ Member-group review:
 - Curie kept the Phase 6c bridge narrow enough to become taskable simulation
   rows.
 - Rose kept comparator and Julia-twin results out of `drmTMB` evidence claims.
+
+## 2026-05-30 - Spatial mu-slope Actions task
+
+Goal:
+
+- Turn the existing coordinate-spatial Gaussian `mu` one-slope artifact writer
+  into a manual Phase 18 Actions task, without adding new model syntax,
+  likelihood code, or recovery/coverage claims.
+
+Changes:
+
+- Added `spatial_mu_slope` to the Phase 18 Actions runner, manual workflow
+  choices, and structured workflow registry.
+- Routed `spatial_mu_slope` to
+  `phase18_write_spatial_mu_slope_grid_outputs()`.
+- Updated workflow-plan and wrapper-readiness tests so the spatial row is an
+  existing manual task while `phylo()`, `animal()`, and `relmat()` one-slope
+  rows remain structured-dependence wrapper targets.
+- Synchronized the simulation README, Phase 18 programme, structured workflow
+  registry note, roadmap, NEWS, and after-task report.
+- Fixed two source-doc inconsistencies found during the pkgdown audit:
+  matching slope-only bivariate Gaussian `mu1`/`mu2` blocks are now described
+  as fitted in the correlated-block design note, and the future proportional
+  `meta_V()` example no longer repeats the response as a positional argument.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R tests/testthat/test-phase18-structured-workflow-registry.R
+Rscript --vanilla -e "parse('inst/sim/run/sim_run_actions_cell.R'); parse('inst/sim/run/sim_phase18_structured_workflow_registry.R')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(actions-runner|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(spatial-mu-slope|random-slope-grid-writers)$', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=spatial_mu_slope --dry-run=true --n-reps=1 --cores=1 --backend=none
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n 'spatial_mu_slope|spatial one-slope|meta_V\(w = w|matching slope-only `mu1`/`mu2` blocks|three wrapper targets|four existing tasks|Phase 18 now exposes a manual-only `spatial_mu_slope`' pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/source-map.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/news/index.html pkgdown-site/dev/articles/source-map.html pkgdown-site/dev/search.json ROADMAP.md NEWS.md vignettes/source-map.Rmd docs/design/17-correlated-random-effect-blocks.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
+rg -n 'Sagan|meta_V\(value|bivariate `mu1`/`mu2` random-slope covariance blocks|Clarify `meta_known_V|dense `meta_known_V\(V = V\)` fits' docs/dev-log/check-log.md docs/design/17-correlated-random-effect-blocks.md vignettes/source-map.Rmd ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- Both changed R files parsed successfully.
+- The workflow/registry focused test group passed after updating the expected
+  structured-dependence counts to three wrapper targets and four existing
+  Actions tasks.
+- The spatial mu-slope and random-slope grid-writer focused tests passed.
+- The new `spatial_mu_slope` dry run printed the expected task plan.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- `pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))`
+  completed and refreshed the development mirror.
+- Rendered scans found the new spatial task, bivariate slope-only wording,
+  updated `meta_V(w = w)` example, and structured-count wording in source and
+  generated pkgdown pages. The stale scan found only older historical check-log
+  mentions, not current user-facing source.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie selected this as the lowest-risk implementation slice because the DGP,
+  smoke runner, summary helper, grid writer, and tests already existed.
+- Grace kept the task manual-only and excluded from `task = "all"`.
+- Boole caught source-doc drift around bivariate slope-only support and future
+  `meta_V()` syntax.
+- Rose kept `phylo()`, `animal()`, and `relmat()` one-slope rows visible as
+  remaining wrapper targets.

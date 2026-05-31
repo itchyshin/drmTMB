@@ -1272,11 +1272,13 @@ errors, and elapsed time by surface before the raw manifest.
      routing and zero random-slope wrapper targets.
 225. Slice 1817 adds `phase18_structured_dependence_workflow_plan()`, which
      builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow plan
-     from the registry. The current plan has seven rows: four Gaussian
-     wrapper targets, Poisson `phylo()` q=1 formal-admission, NB2 `phylo()` q=1
-     hold-smoke, and count q=1 spatial/animal/`relmat()` diagnostic audit.
-     Setting `include_held = FALSE` keeps only the four wrapper targets and the
-     Poisson formal-admission row.
+     from the registry. After Slice 1828, the current plan has seven rows:
+     three Gaussian wrapper targets for `phylo()`, `animal()`, and `relmat()`,
+     one Gaussian spatial row routed to `spatial_mu_slope`, Poisson `phylo()`
+     q=1 formal-admission, NB2 `phylo()` q=1 hold-smoke, and count q=1
+     spatial/animal/`relmat()` diagnostic audit. Setting
+     `include_held = FALSE` keeps the three Gaussian wrapper targets, the
+     spatial task, and the Poisson formal-admission row.
 226. Slice 1818 adds `phase18_correlation_block_workflow_plan()`, which keeps
      residual `rho12`, q=2 direct or layer-specific `corpairs()` rows, and q=4
      diagnostic rows separate. The current plan has six non-blocked rows, maps
@@ -1292,7 +1294,7 @@ errors, and elapsed time by surface before the raw manifest.
      `phase18_structured_workflow_plan_counts()`, which return the four landed
      workflow plan tables plus a compact counts table. The current counts are:
      random slopes 9 rows with 9 non-none Actions routes and 0 wrapper targets;
-     structured dependence 7 rows with 3 existing tasks, 4 wrapper targets, and
+     structured dependence 7 rows with 4 existing tasks, 3 wrapper targets, and
      1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
      3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
      7 existing tasks, 3 blocked rows, and 1 design-only row.
@@ -1342,3 +1344,10 @@ errors, and elapsed time by surface before the raw manifest.
      tables. These helpers summarize registry/planning state only. They do not
      run models, write artifacts, dispatch Actions jobs, promote rows, or make
      recovery or coverage claims.
+236. Slice 1828 adds `spatial_mu_slope` as a manual-only Phase 18 Actions task.
+     The task calls the existing coordinate-spatial Gaussian `mu` one-slope
+     grid writer and maps `gaussian_spatial_mu_one_slope` from the structured
+     wrapper target to a dispatchable task. The task remains opt-in, excluded
+     from `task = "all"`, and does not create mesh/SPDE, multiple-slope,
+     slope-correlation, residual-scale structured-slope, recovery, or coverage
+     claims.

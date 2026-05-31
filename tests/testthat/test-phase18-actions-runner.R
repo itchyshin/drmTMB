@@ -471,6 +471,94 @@ test_that("Phase 18 Actions runner dispatches bivariate Gaussian mu-slope task",
   expect_equal(result$cores, 1L)
 })
 
+test_that("Phase 18 Actions runner accepts spatial mu-slope task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-spatial-mu-slope-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=spatial_mu_slope",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=spatial_mu_slope", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources spatial mu-slope task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  paths <- c(
+    "sim/dgp/sim_dgp_spatial_mu_slope.R",
+    "sim/fit/sim_summarise_spatial_mu_slope.R",
+    "sim/run/sim_run_spatial_mu_slope_smoke.R",
+    "sim/run/sim_summary_spatial_mu_slope_smoke.R",
+    "sim/run/sim_write_spatial_mu_slope_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("spatial_mu_slope"),
+    paths
+  )
+})
+
+test_that("Phase 18 Actions runner dispatches spatial mu-slope task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_write_spatial_mu_slope_grid_outputs <- function(...) {
+    args <- list(...)
+    list(
+      ok = TRUE,
+      output_dir = args$output_dir,
+      n_rep = args$n_rep,
+      master_seed = args$master_seed,
+      backend = args$backend,
+      cores = args$cores
+    )
+  }
+
+  output_dir <- tempfile("phase18-actions-spatial-mu-slope-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=spatial_mu_slope",
+        paste0("--output-dir=", output_dir),
+        "--n-reps=1",
+        "--master-seed=239",
+        "--backend=none",
+        "--cores=1"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+  result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+  expect_match(out, "task=spatial_mu_slope", fixed = TRUE)
+  expect_true(result$ok)
+  expect_equal(result$n_rep, 1L)
+  expect_equal(result$master_seed, 239L)
+  expect_equal(result$backend, "none")
+  expect_equal(result$cores, 1L)
+})
+
 test_that("Phase 18 Actions runner loads drmTMB for real tasks", {
   script <- phase18_actions_runner_script()
   text <- paste(readLines(script, warn = FALSE), collapse = "\n")
@@ -651,6 +739,31 @@ test_that("Phase 18 workflow exposes bivariate Gaussian mu-slope task", {
     paste(
       "task: biv_gaussian_mu_slope",
       "seed: 20260603",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
+})
+
+test_that("Phase 18 workflow exposes spatial mu-slope task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "spatial_mu_slope", fixed = TRUE)
+  expect_match(text, "20260604", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: spatial_mu_slope",
+      "seed: 20260604",
       "include_in_all: false",
       sep = "\n            "
     ),

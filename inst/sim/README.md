@@ -505,7 +505,10 @@ Current pilot files:
   `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
   replicate-level, manifest, and failure-ledger artifact sets for the ordinary
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
-  coordinate-spatial Gaussian `mu` slope lanes.
+  coordinate-spatial Gaussian `mu` slope lanes. The manual
+  `spatial_mu_slope` Actions task can run the coordinate-spatial lane as an
+  opt-in artifact dispatch without adding mesh/SPDE, multiple spatial slopes,
+  spatial slope correlations, or recovery/coverage claims.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
   manual `biv_gaussian_mu_slope` Actions task can run it. Manual run
