@@ -1470,16 +1470,23 @@ drm_wald_confint <- function(object, parm, level) {
     return(empty_confint_table(method = "wald"))
   }
 
-  cov_fixed <- drm_sdreport_cov_fixed(object)
   z <- stats::qnorm((1 + level) / 2)
-  positions <- profile_target_opt_positions(object, targets)
   variances <- rep(NA_real_, nrow(targets))
-  in_covariance <- !is.na(positions) & positions <= nrow(cov_fixed)
-  variances[in_covariance] <- cov_fixed[
-    cbind(positions[in_covariance], positions[in_covariance])
-  ]
+  hessian_ready <- isTRUE(object$sdr$pdHess)
+  if (hessian_ready) {
+    cov_fixed <- drm_sdreport_cov_fixed(object)
+    positions <- profile_target_opt_positions(object, targets)
+    in_covariance <- !is.na(positions) & positions <= nrow(cov_fixed)
+    variances[in_covariance] <- cov_fixed[
+      cbind(positions[in_covariance], positions[in_covariance])
+    ]
+  } else if (is.null(object$sdr)) {
+    drm_sdreport_cov_fixed(object)
+  }
   se <- profile_wald_standard_errors(variances)
-  interval_ready <- is.finite(targets$link_estimate) & is.finite(se)
+  interval_ready <- hessian_ready &
+    is.finite(targets$link_estimate) &
+    is.finite(se)
   lower <- rep(NA_real_, nrow(targets))
   upper <- rep(NA_real_, nrow(targets))
   if (any(interval_ready)) {

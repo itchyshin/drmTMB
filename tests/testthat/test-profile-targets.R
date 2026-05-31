@@ -614,6 +614,28 @@ test_that("confint marks invalid Wald standard errors unavailable by row", {
   expect_equal(ci$conf.status, rep("wald_unavailable", 2L))
 })
 
+test_that("confint marks non-positive Hessian Wald intervals unavailable", {
+  set.seed(20260530)
+  n <- 70
+  dat <- data.frame(
+    y = stats::rnorm(n),
+    x = stats::rnorm(n)
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
+  bad_hessian <- fit
+  bad_hessian$sdr$pdHess <- FALSE
+  bad_hessian$sdreport <- bad_hessian$sdr
+
+  expect_error(
+    stats::vcov(bad_hessian),
+    "positive-definite Hessian"
+  )
+  expect_no_warning(ci <- stats::confint(bad_hessian))
+  expect_true(all(is.na(ci$lower)))
+  expect_true(all(is.na(ci$upper)))
+  expect_equal(ci$conf.status, rep("wald_unavailable", nrow(ci)))
+})
+
 test_that("confint returns Wald intervals for direct random-effect targets", {
   dat <- new_profile_group_data(n_id = 14, n_each = 5, seed = 20260653)
   fit <- drmTMB(
