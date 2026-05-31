@@ -8,6 +8,32 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-05-30 - Deprecated Alias Drift Guard
+
+- Improvement implemented: prose review now treats `meta_V(V = V)` as the
+  stable public term and `meta_known_V(V = V)` only as a deprecated
+  compatibility alias.
+- Improvement implemented: when a status table says a known-`V` route is
+  stable, Rose and Fisher should check whether the claim is about fitting,
+  fixed-effect intervals, residual heterogeneity intervals, or all three.
+- Trigger: a pkgdown consistency pass found the local prose-review skill still
+  naming `meta_known_V(V = V)` as stable, and older status prose described
+  known-`V` interval routes without calling out the current
+  `meta_V(V = V) + sigma ~ moderator` `pdHess = FALSE` caveat.
+
+## 2026-05-30 - Rendered Pkgdown Mirror Guard
+
+- Improvement implemented: when an audit cites stale generated pkgdown pages,
+  Grace should rebuild both the release mirror (`pkgdown-site/`) and any local
+  development mirror (`pkgdown-site/dev/`) before closeout.
+- Improvement implemented: rendered-page scans should treat "usual interval
+  routes only when Hessian diagnostics are clean" as current wording, while
+  flagging the older unqualified "usual interval routes" phrase.
+- Trigger: after the source docs were corrected, the release mirror rebuilt
+  cleanly but the local `pkgdown-site/dev/articles/` mirror still contained
+  stale `model-map` and `phylogenetic-models` text until it was explicitly
+  rebuilt with `override = list(destination = "pkgdown-site/dev")`.
+
 ## 2026-05-29 - Placeholder CSV Artifact Audits
 
 - Improvement implemented: artifact row-count audits should use safe readers
@@ -405,3 +431,82 @@ issues, or pull requests.
   routes were planned, while older phylo-only design notes correctly described
   previous slice boundaries. The same pass also exposed unrelated Rd/link churn
   from the local roxygen version.
+
+## 2026-05-30 - Structured Artifact DGP Truth Contract
+
+- Improvement implemented: when an ADEMP sheet names conditional structured
+  signal recovery, the matching DGP should retain realised latent fields in the
+  truth object even if the first artifact writer only reports fixed effects and
+  SDs.
+- Improvement implemented: new independent structured-slope artifact lanes
+  should assert the no-correlation extractor contract locally. Neighbouring
+  source tests are useful evidence, but the artifact lane should fail if a
+  future extractor change starts reporting unsupported slope correlations.
+- Trigger: the `relmat()` Gaussian `mu` one-slope writer initially stored only
+  fixed effects, SDs, `K`, and `Q` in truth. Hume caught the mismatch with the
+  ADEMP conditional-signal estimand before closeout.
+
+## 2026-05-30 - Report Defaults Should Be Diagnostic
+
+- Improvement implemented: report templates that are included in package
+  checks should default to rendering diagnostic missing-artifact pages instead
+  of acting as strict completeness gates.
+- Boundary: strict `require_complete = TRUE` remains available for manual or
+  formal validation runs where a hard stop is the intended signal.
+- Trigger: CI logs showed the Phase 18 first-wave reports emitting a
+  missing-`student_shape_grid` setup error from the strict test path, which was
+  too easy to misread as a platform failure.
+
+## 2026-05-30 - Structured Artifact Covariance Objects
+
+- Improvement implemented: structured-effect DGPs should store the covariance
+  object used to generate latent fields, not only scalar SD targets and fitted
+  summaries. For dense-pedigree `animal()` simulations, keep the pedigree,
+  additive relationship matrix, inverse relationship matrix, and realised
+  animal fields together in the truth object.
+- Trigger: the `animal()` Gaussian `mu` one-slope writer needed enough
+  provenance for later signal-correlation and recovery diagnostics without
+  turning the first artifact writer into a sparse large-pedigree performance
+  project.
+
+## 2026-05-30 - Source Fixture To Simulation DGP
+
+- Improvement implemented: when a source test already proves a fitted syntax
+  path, the matching Phase 18 simulation lane should still own a dedicated DGP
+  under `inst/sim/dgp/` with truth metadata, reproducible seeds, and artifact
+  writer tests.
+- Trigger: the `phylo()` Gaussian `mu` one-slope path had strong source-test
+  evidence, but the artifact writer needed its own balanced-tree DGP, tip
+  covariance, and realised phylogenetic fields before it could support later
+  recovery diagnostics.
+
+## 2026-05-30 - Pkgdown Dev Mirror Scan
+
+- Improvement implemented: when a slice changes status wording that appears in
+  rendered pkgdown pages, scan both the main generated path and the checked-in
+  `pkgdown-site/dev/` mirror before closeout.
+- Trigger: the non-spatial structured one-slope Actions slice rebuilt the main
+  pkgdown site, but `pkgdown-site/dev/news/index.html`, `pkgdown-site/dev/ROADMAP.html`,
+  and the dev article mirrors still carried the previous "spatial-only manual
+  task" and "non-spatial wrapper target" boundary until they were synchronized.
+
+## 2026-05-30 - Planned Syntax Needs Negative Tests
+
+- Improvement implemented: when docs say a nearby formula form is planned rather
+  than fitted, add at least one negative parser or model-fit test for the exact
+  syntax a user is likely to try.
+- Trigger: labelled structured slope blocks such as
+  `phylo(1 + x | p | species, tree = tree)` were documented as planned because
+  they would imply slope correlations, but the parser previously accepted the
+  syntax and fit independent fields. The fix now rejects labelled structured
+  non-intercept terms until syntax, simulation, and extractor evidence exist.
+
+## 2026-05-30 - Boundary Diagnostics Should Not Leak Warnings
+
+- Improvement implemented: tests that intentionally exercise a boundary fit
+  should suppress the known fit-time warning at the call site and assert the
+  recorded diagnostic status in the summary table.
+- Trigger: the Phase 18 count structured q1 boundary-replicate test correctly
+  expected `fit_diagnostic_status == "warning"`, but the underlying
+  `TMB::sdreport()` warning still escaped into `R CMD check` output and risked
+  failing CI under warning-as-error settings.

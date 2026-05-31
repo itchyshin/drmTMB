@@ -129,7 +129,7 @@ is useful, but it is not the same as a formal coverage claim.
 | Non-Gaussian structured dependence | Poisson and NB2 q=1 `phylo()`, `spatial()`, `animal()`, and `relmat()` `mu` intercepts fitted | no structured count slopes yet | only one ordinary non-zero-inflated count structured `mu` intercept at a time on the log-mean scale | focused tests cover extraction, diagnostics, direct profile-target rows, and planned-neighbour errors; broader simulation evidence remains separate for the older phylogenetic lanes | Direct `log_sd_phylo` profile targets; no derived correlations |
 | `zi`, `hu`, `zoi`, and `coi` | fixed effects only where supported | no random effects | no covariance layer | fixed-effect tests, with zero-one beta now carrying Phase 18 artifact helpers | Wald fixed effects where implemented |
 | Ordinal, shape, bounded scale | fixed effects only where supported | no random effects | no structured dependence | fixed-effect or family tests | fixed-effect/profile only where implemented |
-| `meta_V(V = V)` | estimated effects plus known sampling covariance | ordinary Gaussian random effects only where otherwise supported | `V` is input data, not latent dependence | formal small grids for vector/dense known `V` | never interval-target `V` |
+| `meta_V(V = V)` | estimated effects plus known sampling covariance | ordinary Gaussian random effects only where otherwise supported | `V` is input data, not latent dependence | formal small grids for vector/dense known `V`; predictor-dependent `sigma` needs fit-specific Hessian checks | never interval-target `V`; Wald SEs and intervals for `sigma ~ moderator` are unreliable when `pdHess = FALSE` |
 
 ## Random-effect and dependence map
 

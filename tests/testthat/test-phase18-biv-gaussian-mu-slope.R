@@ -122,6 +122,23 @@ test_that("Phase 18 bivariate Gaussian mu-slope smoke runner summarises output",
       "rho12"
     )
   )
+  class_by_parameter <- stats::setNames(
+    out$run$summary$parameter_class,
+    out$run$summary$parameter
+  )
+  expect_identical(
+    class_by_parameter[["cor:mu:cor(mu1:x,mu2:x | p | id)"]],
+    "random_correlation"
+  )
+  expect_identical(class_by_parameter[["rho12"]], "residual_rho12")
+  expect_false(any(
+    out$run$summary$parameter_class == "random_correlation" &
+      out$run$summary$parameter == "rho12"
+  ))
+  expect_false(any(
+    out$run$summary$parameter_class == "residual_rho12" &
+      grepl("^cor:mu:", out$run$summary$parameter)
+  ))
   expect_true(all(out$run$summary$converged))
   expect_type(out$run$summary$pdHess, "logical")
   expect_false(anyNA(out$run$summary$pdHess))
@@ -157,8 +174,28 @@ test_that("Phase 18 bivariate Gaussian mu-slope grid writer saves artifacts", {
   expect_equal(nrow(out$artifact_manifest), length(out$paths))
   expect_true(all(out$artifact_manifest$exists))
   expect_equal(nrow(out$summary$manifest), 1L)
-  expect_equal(nrow(utils::read.csv(out$paths$aggregate_csv)), 10L)
-  expect_equal(nrow(utils::read.csv(out$paths$replicate_csv)), 10L)
+  aggregate <- utils::read.csv(out$paths$aggregate_csv, check.names = FALSE)
+  replicates <- utils::read.csv(out$paths$replicate_csv, check.names = FALSE)
+  expect_equal(nrow(aggregate), 10L)
+  expect_equal(nrow(replicates), 10L)
+  expect_identical(
+    replicates$parameter_class[match("rho12", replicates$parameter)],
+    "residual_rho12"
+  )
+  expect_identical(
+    replicates$parameter_class[
+      match("cor:mu:cor(mu1:x,mu2:x | p | id)", replicates$parameter)
+    ],
+    "random_correlation"
+  )
+  expect_false(any(
+    aggregate$parameter_class == "residual_rho12" &
+      grepl("^cor:mu:", aggregate$parameter)
+  ))
+  expect_false(any(
+    aggregate$parameter_class == "random_correlation" &
+      aggregate$parameter == "rho12"
+  ))
   expect_equal(nrow(utils::read.csv(out$paths$manifest_csv)), 1L)
   expect_equal(nrow(utils::read.csv(out$paths$failures_csv)), 0L)
   expect_error(

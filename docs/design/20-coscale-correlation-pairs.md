@@ -35,31 +35,47 @@ drmTMB(
 ```
 
 Here `rho12` is a residual or within-row response-response correlation. It is
-not a phylogenetic correlation, not a spatial correlation, and not a
-group-level random-effect correlation.
+the current coscale parameter: it describes the residual coupling left after
+the response-specific location and scale predictors have been modelled. It is
+not a phylogenetic correlation, not a spatial correlation, not an animal-model
+or known-matrix correlation, and not a group-level random-effect correlation.
+Random effects, `phylo()`, `spatial()`, `animal()`, and `relmat()` terms in
+the `rho12` formula remain unsupported.
 
 The helper `corpairs(fit)` is implemented for fitted correlations that already
 exist: residual bivariate `rho12` summaries, ordinary univariate Gaussian `mu`
-random-effect correlations from `corpars$mu`, the first univariate labelled
-`mu`/`sigma` random-intercept covariance from `corpars$mu_sigma`, the first
-bivariate `mu1`/`mu2` and `sigma1`/`sigma2` labelled random-intercept
-correlations, and one same-response bivariate `mu`/`sigma` random-intercept
-covariance row, the ordinary q=4 all-four bivariate random-intercept block,
-plus the first bivariate phylogenetic `mu1`/`mu2` mean-mean correlation from
-`corpars$phylo`. It is intentionally a reporting helper, not a new likelihood.
-Future rows can be added as phylogenetic scale, phylogenetic mean-scale,
-spatial, study-level, and richer double-hierarchical correlation likelihoods
-become implemented.
+random-effect correlations from `corpars$mu`, ordinary q > 2 `mu` block
+correlations, the first univariate labelled `mu`/`sigma` random-intercept
+covariance from `corpars$mu_sigma`, the first bivariate `mu1`/`mu2` and
+`sigma1`/`sigma2` labelled random-intercept correlations, one same-response
+bivariate `mu`/`sigma` random-intercept covariance row, the ordinary q=4
+all-four bivariate random-intercept block, matching slope-only `mu1`/`mu2`
+blocks, the first bivariate phylogenetic q=2 and q=4 rows, the fitted
+coordinate-spatial q=2 and constant q=4 rows, and the fitted animal-model and
+`relmat()` q=2 and constant q=4 rows. It is intentionally a reporting helper,
+not a new likelihood. Future rows can be added only as the corresponding
+ordinary, structured, study-level, and richer double-hierarchical correlation
+likelihoods become implemented.
+
+Read the names this way:
+
+| Name | Current role | Boundary |
+|---|---|---|
+| `rho12` | Distributional formula and extractor for residual bivariate Gaussian coscale. | Within-observation residual correlation only; no random effects or structured terms in `rho12`. |
+| `corpair()` | Singular formula marker for a named latent random-effect correlation pair. | Fitted for selected q=2 ordinary and phylogenetic location-location correlation regressions; q=4, spatial, animal, `relmat()`, residual-scale, and slope-specific correlation regressions remain planned unless a later design note says otherwise. |
+| `corpairs()` | Plural extractor for correlations already present in a fitted object. | Reports residual, ordinary group, phylogenetic, spatial, animal, and `relmat()` rows where those rows are fitted; it does not create a new covariance model. |
 
 The singular formula marker
 `corpair(group, level = "phylogenetic", block = "...", from = "mu1", to = "mu2") ~ x`
-is reserved for future predictor-dependent latent random-effect correlations.
-`drm_formula()` parses it, but `drmTMB()` rejects it until the likelihood,
-diagnostics, and recovery tests exist. For `level = "phylogenetic"`, this is a
-positive-definite covariance-design gate: a species-varying correlation must
-still define one valid covariance matrix for all species coupled by the tree.
-Use `rho12 = ~ x` for residual within-observation correlation, and use
-`corpairs(fit)` to extract fitted constant latent correlations.
+is the endpoint-specific marker for predictor-dependent latent random-effect
+correlations. `drmTMB()` fits only the implemented q=2 ordinary and
+phylogenetic location-location routes. Other `corpair()` combinations are
+reserved until their likelihood, diagnostics, and recovery tests exist. For
+`level = "phylogenetic"`, this is a positive-definite covariance-design gate: a
+species-varying correlation must still define one valid covariance matrix for
+all species coupled by the tree. Use `rho12 = ~ x` for residual
+within-observation correlation, and use `corpairs(fit)` to extract fitted
+latent correlations.
 
 ## Route Decision: Predictor-Dependent `corpair()`
 

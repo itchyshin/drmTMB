@@ -745,7 +745,7 @@ test_that("Phase 18 count structured q1 boundary replicate exposes fit diagnosti
     cell_id = "count_structured_q1_020",
     replicate = 2L
   )
-  fit <- phase18_fit_count_structured_q1(dat, cell)
+  fit <- suppressWarnings(phase18_fit_count_structured_q1(dat, cell))
   out <- suppressWarnings(
     phase18_summarise_count_structured_q1_fit(
       fit = fit,

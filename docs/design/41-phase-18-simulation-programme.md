@@ -6,6 +6,13 @@ structure of Morris, White, and Crowther (2019) and the transparent-reporting
 items of Williams et al. (2024), but it should stay practical for ecology,
 evolution, and meta-analysis readers.
 
+Tracking issues: #59 is the umbrella simulation programme; #255 is the
+artifact-grain contract for replicate-level and aggregate evidence; #60 is the
+smaller comparator-package lane for `glmmTMB`, direct TMB baselines, Julia twins
+such as `DRM.jl` and `GLLVM.jl`, and other packages only when the parameter
+target is genuinely comparable. Comparator and twin results can suggest design
+questions, but they do not count as `drmTMB` bias, coverage, or power evidence.
+
 The first rule is scope. A surface enters the comprehensive simulation only
 after it has a fitted likelihood, parser validation, extractors, diagnostics,
 interval status, and focused recovery tests. Surfaces that are still only
@@ -1265,11 +1272,13 @@ errors, and elapsed time by surface before the raw manifest.
      routing and zero random-slope wrapper targets.
 225. Slice 1817 adds `phase18_structured_dependence_workflow_plan()`, which
      builds the `phylo()`, `spatial()`, `animal()`, and `relmat()` workflow plan
-     from the registry. The current plan has seven rows: four Gaussian
-     wrapper targets, Poisson `phylo()` q=1 formal-admission, NB2 `phylo()` q=1
-     hold-smoke, and count q=1 spatial/animal/`relmat()` diagnostic audit.
-     Setting `include_held = FALSE` keeps only the four wrapper targets and the
-     Poisson formal-admission row.
+     from the registry. After Slice 1838, the current plan has seven rows: four
+     Gaussian one-slope rows routed to `phylo_mu_slope`, `spatial_mu_slope`,
+     `animal_mu_slope`, and `relmat_mu_slope`, Poisson `phylo()` q=1
+     formal-admission, NB2 `phylo()` q=1 hold-smoke, and count q=1
+     spatial/animal/`relmat()` diagnostic audit. Setting
+     `include_held = FALSE` keeps the four Gaussian manual tasks and the Poisson
+     formal-admission row.
 226. Slice 1818 adds `phase18_correlation_block_workflow_plan()`, which keeps
      residual `rho12`, q=2 direct or layer-specific `corpairs()` rows, and q=4
      diagnostic rows separate. The current plan has six non-blocked rows, maps
@@ -1285,7 +1294,7 @@ errors, and elapsed time by surface before the raw manifest.
      `phase18_structured_workflow_plan_counts()`, which return the four landed
      workflow plan tables plus a compact counts table. The current counts are:
      random slopes 9 rows with 9 non-none Actions routes and 0 wrapper targets;
-     structured dependence 7 rows with 3 existing tasks, 4 wrapper targets, and
+     structured dependence 7 rows with 7 existing tasks, 0 wrapper targets, and
      1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
      3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
      7 existing tasks, 3 blocked rows, and 1 design-only row.
@@ -1335,3 +1344,96 @@ errors, and elapsed time by surface before the raw manifest.
      tables. These helpers summarize registry/planning state only. They do not
      run models, write artifacts, dispatch Actions jobs, promote rows, or make
      recovery or coverage claims.
+236. Slice 1828 adds `spatial_mu_slope` as a manual-only Phase 18 Actions task.
+     The task calls the existing coordinate-spatial Gaussian `mu` one-slope
+     grid writer and maps `gaussian_spatial_mu_one_slope` from the structured
+     wrapper target to a dispatchable task. The task remains opt-in, excluded
+     from `task = "all"`, and does not create mesh/SPDE, multiple-slope,
+     slope-correlation, residual-scale structured-slope, recovery, or coverage
+     claims.
+237. Slice 1829 adds
+     `phase18_random_slope_operating_characteristic_plan()`, the #446
+     registry-derived planning table for random-slope accuracy, coverage, and
+     power work. The table keeps nine admitted random-slope rows visible by
+     default, can omit the four source-test-only rows, records minimum
+     estimands and boundary notes, and marks every coverage and power cell as
+     `planned_not_estimated`. It is an ADEMP-facing plan, not a recovery,
+     accuracy, coverage, or power result.
+238. Slice 1830 adds
+     `docs/design/144-phase6c-gaussian-random-slope-ademp.md`, the first
+     #446 ADEMP sheet. It plans the ordinary Gaussian `mu` q > 2 grouped
+     random-slope lane and the independent Gaussian `sigma` random-slope lane,
+     names pilot condition factors, estimands, direct-versus-derived interval
+     targets, nested `drmTMB` comparators, MCSE guidance, and a Williams
+     11-item self-audit. It does not run grids or promote coverage/power
+     evidence.
+239. Slice 1831 adds
+     `docs/design/145-phase6c-bivariate-slope-ademp.md`, the second #446
+     ADEMP sheet. It plans the #440 bivariate Gaussian matching `mu1`/`mu2`
+     slope-only lane and makes residual `rho12` versus group-level
+     slope-slope covariance separation an explicit simulation estimand and
+     reporting check. It does not open intercept-plus-slope q4, p8/q8, random
+     effects in `rho12`, or mixed-response bivariate surfaces.
+240. Slice 1832 adds
+     `docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md`. It
+     checks the existing `biv_gaussian_mu_slope` writer against the #440/#446
+     ADEMP estimands and records that replicate and aggregate artifacts already
+     keep the group-level slope-slope row (`random_correlation`) separate from
+     residual `rho12` (`residual_rho12`). The slice strengthens the source test
+     for that separation and leaves coverage and power planned until interval
+     and rejection-rule artifacts are designed.
+241. Slice 1833 adds
+     `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`, the #441/#446
+     ADEMP sheet for selected ordinary non-Gaussian independent `mu` slopes.
+     It covers only the six source-tested families in
+     `tests/testthat/test-nongaussian-mu-random-slopes.R`, keeps family
+     evidence separate, and leaves coverage, power, correlated slopes,
+     non-Gaussian scale/shape random effects, and structured dependence planned
+     or blocked.
+242. Slice 1834 adds
+     `docs/design/148-phase6c-structured-one-slope-ademp.md`, the #442/#446
+     ADEMP sheet for fitted Gaussian structured `mu` one-slope paths. It keeps
+     the one numeric `phylo()`, `spatial()`, `animal()`, and `relmat()` slope
+     lane separate from q2/q4 covariance, structured slope correlations,
+     residual-scale structured slopes, structured `rho12`, non-Gaussian
+     structured slopes, and route-specific artifact maturity.
+243. Slice 1835 adds the local known-matrix `relmat()` Gaussian `mu`
+     one-slope artifact writer. The DGP, smoke runner, summary helper, and
+     grid writer fit `relmat(1 + x | id, Q = Q)` with independent structured
+     intercept and slope fields and write aggregate, replicate-level,
+     manifest, and failure-ledger CSV artifacts. The writer slice made the
+     structured-dependence wrapper-readiness helper report the `relmat()` row
+     as `grid_writer_available`; Slice 1838 later wires `relmat_mu_slope` as a
+     manual task. Neither slice includes the lane in `task = "all"` or makes
+     recovery, coverage, power, multiple-slope, slope-correlation, or
+     residual-scale structured-slope claims.
+244. Slice 1836 adds the local dense-pedigree `animal()` Gaussian `mu`
+     one-slope artifact writer. The DGP, smoke runner, summary helper, and
+     grid writer fit `animal(1 + x | id, pedigree = pedigree)` with
+     independent animal-model intercept and slope fields and write aggregate,
+     replicate-level, manifest, and failure-ledger CSV artifacts. The writer
+     slice made the structured-dependence wrapper-readiness helper report the
+     `animal()` row as `grid_writer_available`; Slice 1838 later wires
+     `animal_mu_slope` as a manual task. Neither slice includes the lane in
+     `task = "all"` or makes sparse large-pedigree speed, recovery, coverage,
+     power, multiple-slope, slope-correlation, or residual-scale
+     structured-slope claims.
+245. Slice 1837 adds the local phylogenetic Gaussian `mu` one-slope artifact
+     writer. The DGP, smoke runner, summary helper, and grid writer fit
+     `phylo(1 + x | species, tree = tree)` with independent phylogenetic
+     intercept and slope fields and write aggregate, replicate-level,
+     manifest, and failure-ledger CSV artifacts. The writer slice made the
+     structured-dependence wrapper-readiness helper report the `phylo()` row as
+     `grid_writer_available`; Slice 1838 later wires `phylo_mu_slope` as a
+     manual task. Neither slice includes the lane in `task = "all"` or makes
+     recovery, coverage, power, multiple-slope, slope-correlation,
+     residual-scale structured-slope, or non-Gaussian structured-slope claims.
+246. Slice 1838 adds manual-only Phase 18 Actions tasks for the non-spatial
+     Gaussian structured one-slope artifact lanes: `phylo_mu_slope`,
+     `animal_mu_slope`, and `relmat_mu_slope`. The tasks call their existing
+     grid writers, update the registry rows to non-none Actions routing, and
+     leave all four structured one-slope tasks excluded from `task = "all"`.
+     This is dispatch and artifact-routing evidence only, not recovery,
+     accuracy, coverage, power, sparse large-pedigree speed, multiple-slope,
+     slope-correlation, residual-scale structured-slope, or non-Gaussian
+     structured-slope evidence.

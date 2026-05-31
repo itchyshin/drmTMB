@@ -816,6 +816,12 @@ test_that("bivariate Gaussian supports matching mu1/mu2 slope-only covariance bl
   sd_names <- names(sim$sd_mu)
   pairs <- corpairs(fit)
   slope_pair <- pairs[pairs$class == "slope-slope", , drop = FALSE]
+  covariance <- summary(fit)$covariance
+  slope_covariance <- covariance[
+    covariance$class == "slope-slope",
+    ,
+    drop = FALSE
+  ]
   targets <- profile_targets(fit)
   cor_target <- "cor:mu:cor(mu1:x,mu2:x | p | id)"
   chk <- check_drm(fit)
@@ -834,6 +840,15 @@ test_that("bivariate Gaussian supports matching mu1/mu2 slope-only covariance bl
   expect_equal(slope_pair$parameter, "cor(mu1:x,mu2:x | p | id)")
   expect_equal(slope_pair$block, "p")
   expect_equal(slope_pair$group, "id")
+  expect_equal(slope_pair$estimate, unname(fit$corpars$mu), tolerance = 1e-12)
+  expect_equal(nrow(slope_covariance), 1L)
+  expect_equal(slope_covariance$class, "slope-slope")
+  expect_equal(
+    slope_covariance$correlation,
+    unname(fit$corpars$mu),
+    tolerance = 1e-12
+  )
+  expect_equal(slope_covariance$parameter, names(fit$corpars$mu))
   expect_equal(
     fit$model$random$mu$value[, 1L],
     sim$data$x,

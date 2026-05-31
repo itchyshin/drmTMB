@@ -275,6 +275,62 @@ test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   expect_equal(nrow(plan), 9L)
 })
 
+test_that("Phase 18 random-slope operating-characteristic plan is a planning table", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_operating_characteristic_plan(registry)
+  required <- c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "admission_status",
+    "existing_actions_task",
+    "accuracy_status",
+    "coverage_status",
+    "power_status",
+    "minimum_estimands",
+    "boundary_note"
+  )
+
+  expect_equal(nrow(plan), 9L)
+  expect_true(all(required %in% names(plan)))
+  expect_false(any(
+    plan$admission_status %in%
+      c(
+        "blocked",
+        "design_only",
+        "diagnostic_only"
+      )
+  ))
+  expect_true(all(plan$coverage_status == "planned_not_estimated"))
+  expect_true(all(plan$power_status == "planned_not_estimated"))
+  expect_true(all(nzchar(plan$minimum_estimands)))
+  expect_true(all(nzchar(plan$boundary_note)))
+})
+
+test_that("Phase 18 random-slope operating-characteristic plan can omit source-test rows", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_operating_characteristic_plan(
+    registry,
+    include_source_test = FALSE
+  )
+
+  expect_equal(nrow(plan), 5L)
+  expect_false(any(plan$admission_status == "ready_source_test"))
+  expect_true(all(plan$accuracy_status != "source_tests_exist_artifact_lane_needed"))
+})
+
 test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -307,11 +363,21 @@ test_that("Phase 18 structured-dependence plan separates wrapper and task rows",
   count <- plan$lane_id == "count_structured_q1"
 
   expect_equal(sum(gaussian), 4L)
-  expect_true(all(plan$dispatch_status[gaussian] == "needs_wrapper_target"))
-  expect_true(all(is.na(plan$actions_task[gaussian])))
   expect_true(all(
-    plan$workflow_helper[gaussian] == "structured_dependence_wrapper"
+    plan$dispatch_status[gaussian] == "ready_existing_task"
   ))
+  expect_true(all(
+    plan$workflow_helper[gaussian] == "phase18_actions_main"
+  ))
+  expect_setequal(
+    plan$actions_task[gaussian],
+    c(
+      "phylo_mu_slope",
+      "spatial_mu_slope",
+      "animal_mu_slope",
+      "relmat_mu_slope"
+    )
+  )
   expect_equal(plan$dispatch_status[poisson], "formal_admission_task")
   expect_equal(plan$actions_task[poisson], "poisson_phylo_q1_formal")
   expect_equal(plan$dispatch_status[nbinom2], "hold_smoke_audit")
@@ -782,7 +848,8 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$design_only[family], 1L)
   expect_equal(counts$existing_actions_tasks[random], 9L)
   expect_equal(counts$wrapper_targets[random], 0L)
-  expect_equal(counts$wrapper_targets[structured], 4L)
+  expect_equal(counts$existing_actions_tasks[structured], 7L)
+  expect_equal(counts$wrapper_targets[structured], 0L)
   expect_equal(counts$wrapper_targets[correlation], 3L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
 })

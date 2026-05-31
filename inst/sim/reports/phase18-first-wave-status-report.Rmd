@@ -6,7 +6,7 @@ output:
 params:
   artifact_manifest_csv: null
   artifact_status_csv: null
-  require_complete: true
+  require_complete: false
   notes: ""
 ---
 

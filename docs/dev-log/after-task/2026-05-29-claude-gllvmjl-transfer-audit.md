@@ -12,7 +12,8 @@ Claude's note is useful as a triage input, not as verified project state. I
 checked the highest-priority claims against the cited sister-repo files and the
 current `drmTMB` source:
 
-- `gllvmTMB.jl/src/confint_derived_wald.jl` implements transformed-Wald
+- The `GLLVM.jl` local checkout path
+  `gllvmTMB.jl/src/confint_derived_wald.jl` implements transformed-Wald
   intervals for bounded derived quantities by applying Fisher-z to correlations
   and logit to quantities in `[0, 1]`, then mapping intervals back to the
   response scale. The public wrappers include `correlation_wald_ci()` for

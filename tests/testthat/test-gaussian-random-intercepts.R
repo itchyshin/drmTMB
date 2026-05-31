@@ -1891,11 +1891,47 @@ test_that("unsupported random-effect cases fail clearly", {
     drmTMB(bf(y ~ x + (1 + x | rho12 | id)), family = gaussian(), data = dat),
     "reserved distributional parameter"
   )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~(1 | id)
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "within-observation correlation"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~(0 + x | id),
+        sigma2 = ~1,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "bivariate residual-scale random intercepts"
+  )
   expect_no_error(
     drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ (1 + x | id)), family = gaussian(), data = dat),
+    "Only independent residual-scale random slopes"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ (1 + x | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "Only independent residual-scale random slopes"
   )
   expect_error(

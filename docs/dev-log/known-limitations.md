@@ -33,6 +33,16 @@
   only as a compatibility alias; `check_drm()` reports that row as a note with
   dimension, density, size, rank, and conditioning because dense `V` is a
   small-to-moderate route until sparse or block-sparse storage exists.
+- A current inference limitation affects some Gaussian location-scale
+  meta-analysis fits with known per-effect sampling variance and
+  predictor-dependent residual heterogeneity, for example
+  `bf(y ~ moderator + meta_V(V = v), sigma ~ moderator)`. These fits can
+  converge and return plausible `mu` and `sigma` point estimates while
+  `TMB::sdreport()` reports `pdHess = FALSE`. Treat Wald SEs and Wald
+  confidence intervals from that fit as unreliable until `check_drm()` reports
+  a positive-definite Hessian or a profile/bootstrap diagnostic supports the
+  target. This is a Hessian/inference limitation, not a change to the additive
+  known-`V` likelihood.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no

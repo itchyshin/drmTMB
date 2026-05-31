@@ -123,16 +123,17 @@ rows, and diagnostic-only rows all need to stay visible but not equivalent.
 The current structured-dependence plan has seven rows:
 
 - four Gaussian `ready_grid` rows for `phylo()`, `spatial()`, `animal()`, and
-  `relmat()`, all marked `needs_wrapper_target` with
-  `workflow_helper = "structured_dependence_wrapper"`;
+  `relmat()`, all marked `ready_existing_task` through the manual
+  `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` tasks;
 - one Poisson `phylo()` q=1 row marked `formal_admission_task`;
 - one NB2 `phylo()` q=1 row marked `hold_smoke_audit`;
 - one count q=1 `spatial()`/`animal()`/`relmat()` row marked
   `diagnostic_audit`.
 
 Callers can set `include_held = FALSE` to keep only admitted rows. That keeps
-the four Gaussian wrapper targets and Poisson formal-admission task while
-dropping held-smoke and diagnostic-only count rows.
+the four Gaussian one-slope manual tasks and the Poisson formal-admission task
+while dropping held-smoke and diagnostic-only count rows.
 
 ## Slice 1818 Correlation-Block Workflow Plan
 
@@ -189,7 +190,7 @@ The current bundled count table is:
 | Workflow plan | Rows | Existing Actions tasks | Wrapper targets | Diagnostics | Blocked | Design-only |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Random slopes | 9 | 9 | 0 | 0 | 0 | 0 |
-| Structured dependence | 7 | 3 | 4 | 1 | 0 | 0 |
+| Structured dependence | 7 | 7 | 0 | 1 | 0 | 0 |
 | Correlation blocks | 6 | 3 | 3 | 2 | 0 | 0 |
 | Family surface | 11 | 7 | 0 | 0 | 3 | 1 |
 
@@ -275,10 +276,14 @@ claim.
 ## Slice 1827 Workflow Status Helpers
 
 Slice 1827 adds read-only status helpers for three remaining workflow planning
-surfaces. `phase18_structured_dependence_wrapper_target_readiness()` lists the
-four current Gaussian `phylo()`, `spatial()`, `animal()`, and `relmat()`
-wrapper targets and separates the existing spatial grid writer from the
-source-test-ready rows that still need artifact writers.
+surfaces. `phase18_structured_dependence_wrapper_target_readiness()` lists rows
+that still use `needed:structured_dependence_wrapper`. At Slice 1827 it
+reported the then-current Gaussian `phylo()`, `spatial()`, `animal()`, and
+`relmat()` wrapper targets and separated grid-writer availability from
+source-tested rows that still needed artifact writers. After Slices 1828 and
+1838, all four Gaussian one-slope rows have manual Actions tasks, so the
+current helper returns no registry rows unless a future structured-dependence
+wrapper target is added.
 `phase18_correlation_block_wrapper_target_plan()` lists the current
 correlation-block wrapper targets, keeping q=2 interval-provenance work
 separate from q=4 diagnostic-only rows. `phase18_family_surface_status_tables()`
@@ -287,6 +292,108 @@ distribution route with `status_scope = "registry_status_only"`.
 
 These helpers do not run models, write artifacts, dispatch Actions jobs,
 promote registry rows, or make recovery or coverage claims.
+
+## Slice 1828 Spatial One-Slope Actions Task
+
+Slice 1828 adds `spatial_mu_slope` as a manual-only Phase 18 Actions task and
+promotes the `gaussian_spatial_mu_one_slope` registry row from
+`needed:structured_dependence_wrapper` to that task. The task calls the existing
+`phase18_write_spatial_mu_slope_grid_outputs()` helper, so it adds dispatch
+plumbing for an already-tested DGP, smoke runner, summary helper, and grid
+writer. It stays opt-in and excluded from `task = "all"`.
+
+This slice does not create mesh/SPDE support, multiple spatial slopes, spatial
+slope correlations, structured residual-scale slopes, or recovery/coverage
+claims. At Slice 1828, `phylo()`, `animal()`, and `relmat()` Gaussian one-slope
+rows remained wrapper targets until later writer and dispatch slices landed.
+
+## Slice 1835 Relmat One-Slope Artifact Writer
+
+Slice 1835 adds the local known-matrix `relmat()` Gaussian `mu` one-slope
+artifact route. The new DGP, smoke runner, summary helper, and grid writer use
+`relmat(1 + x | id, Q = Q)` to fit independent structured intercept and slope
+fields, then write the same simple aggregate, replicate-level, manifest, and
+failure-ledger CSV set used by the ordinary and spatial one-slope lanes.
+
+The structured-dependence wrapper-readiness helper reported
+`gaussian_relmat_mu_one_slope` as `grid_writer_available` with required
+artifact `phase18_write_relmat_mu_slope_grid_outputs()`. The writer slice
+stopped at local artifacts and kept `task = "all"`, recovery, coverage, and
+power claims out of scope. At Slice 1835, `phylo()` and `animal()` remained
+source-tested wrapper targets that still needed local artifact writers; Slice
+1838 later wires the manual `relmat_mu_slope` dispatch route.
+
+## Slice 1836 Animal One-Slope Artifact Writer
+
+Slice 1836 adds the local dense-pedigree `animal()` Gaussian `mu` one-slope
+artifact route. The new DGP, smoke runner, summary helper, and grid writer use
+`animal(1 + x | id, pedigree = pedigree)` to fit independent animal-model
+intercept and slope fields, then write aggregate, replicate-level, manifest,
+and failure-ledger CSV artifacts.
+
+The structured-dependence wrapper-readiness helper reported
+`gaussian_animal_mu_one_slope` as `grid_writer_available` with required
+artifact `phase18_write_animal_mu_slope_grid_outputs()`. The writer slice
+stopped at local artifacts and kept `task = "all"`, sparse large-pedigree
+speed, recovery, coverage, and power claims out of scope. At Slice 1836,
+`phylo()` was still waiting for the later Slice 1837 writer; Slice 1838 later
+wires the manual `animal_mu_slope` dispatch route.
+
+## Slice 1837 Phylo One-Slope Artifact Writer
+
+Slice 1837 adds the local phylogenetic Gaussian `mu` one-slope artifact route.
+The new DGP, smoke runner, summary helper, and grid writer use
+`phylo(1 + x | species, tree = tree)` to fit independent phylogenetic
+intercept and slope fields, then write aggregate, replicate-level, manifest,
+and failure-ledger CSV artifacts.
+
+The structured-dependence wrapper-readiness helper reported
+`gaussian_phylo_mu_one_slope` as `grid_writer_available` with required artifact
+`phase18_write_phylo_mu_slope_grid_outputs()`. The writer slice stopped at
+local artifacts and kept `task = "all"`, recovery, coverage, power, multiple
+phylogenetic slopes, slope correlations, residual-scale structured slopes, and
+non-Gaussian structured slopes out of scope. Slice 1838 later wires the manual
+`phylo_mu_slope` dispatch route.
+
+## Slice 1838 Non-Spatial Structured One-Slope Actions Tasks
+
+Slice 1838 adds `phylo_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` as
+manual-only Phase 18 Actions tasks. Each task calls its existing Gaussian `mu`
+one-slope grid writer, and the registry now maps the `gaussian_phylo_mu_one_slope`,
+`gaussian_animal_mu_one_slope`, and `gaussian_relmat_mu_one_slope` rows from
+`needed:structured_dependence_wrapper` to the named task. Together with
+`spatial_mu_slope`, the four Gaussian structured one-slope rows now have
+non-none Actions routing and zero wrapper targets.
+
+These tasks stay opt-in and excluded from `task = "all"`. They add dispatch
+plumbing and artifact routing only; they do not create recovery, accuracy,
+coverage, power, multiple structured slope, structured slope correlation,
+residual-scale structured slope, mesh/SPDE, sparse large-pedigree speed, or
+non-Gaussian structured-slope claims.
+
+## Slice 1829 Random-Slope Operating-Characteristic Plan
+
+Slice 1829 adds `phase18_random_slope_operating_characteristic_plan()` as the
+#446 planning table for random-slope operating characteristics. The helper is
+registry-derived and read-only: it filters to admitted random-slope rows, keeps
+blocked/design-only/diagnostic rows out, and labels each row with the existing
+Actions task, accuracy status, coverage status, power status, minimum
+estimands, and boundary note.
+
+The current table has nine rows by default: five grid/admitted rows and four
+source-test rows. `include_source_test = FALSE` returns the five rows that
+already have grid or smoke artifact routes. Every coverage and power cell is
+`planned_not_estimated`, and accuracy cells say whether an artifact/smoke lane
+already exists or whether a source-tested row still needs an artifact lane.
+This is not a simulation report. It is an ADEMP-facing routing table that says
+what must be estimated later: fixed effects, random-effect SDs, selected
+correlation rows where fitted, response-scale summaries, convergence,
+Hessian, warning, boundary, and runtime diagnostics.
+
+The power column deliberately stays planned-only until a null/alternative
+contrast, replicate target, and MCSE target are specified. Comparator packages,
+`DRM.jl`, and `GLLVM.jl` may inform design questions, but they do not count as
+`drmTMB` operating-characteristic evidence.
 
 ## Autonomous Work Plan
 

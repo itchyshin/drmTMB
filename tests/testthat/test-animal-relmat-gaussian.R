@@ -587,6 +587,23 @@ test_that("animal and relmat Gaussian mu support one structured slope", {
     expect_match(known_check$value, "min_structured_sd=", fixed = TRUE)
     expect_match(known_check$value, "min_sd_ratio=", fixed = TRUE)
   }
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + relmat(1 + x | p | id, Q = Q), sigma ~ 1),
+      family = gaussian(),
+      data = sim$data
+    ),
+    "covariance-block labels currently require intercept-only structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + animal(1 + x | p | id, pedigree = pedigree), sigma ~ 1),
+      family = gaussian(),
+      data = animal_sim$data
+    ),
+    "covariance-block labels currently require intercept-only structured terms"
+  )
 })
 
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {

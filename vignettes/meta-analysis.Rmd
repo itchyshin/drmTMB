@@ -157,6 +157,13 @@ fit_meta <- drmTMB(
 summary(fit_meta)
 ```
 
+Before trusting the coefficient table in your own analysis, run
+`check_drm(fit_meta)`. If a `meta_V(V = V)` model with a moderator in `sigma`
+reports `pdHess = FALSE`, treat the fitted heterogeneity pattern as a diagnostic
+result rather than settled inference. First try the same mean model with
+`sigma ~ 1`; then add the `sigma` moderator back only if the Hessian, gradients,
+and fitted extra-heterogeneity values look stable.
+
 The `mu` rows describe the average effect-size model. In this simulation the
 forest coefficient is positive, so the model estimates a larger mean
 restoration effect for forests than for grasslands, after accounting for study
@@ -340,6 +347,14 @@ For full-matrix known covariance fits, the `known_sampling_covariance` row is a
 note rather than a problem by itself. It reports the retained matrix dimension,
 dense storage, density, size, rank, and conditioning so you can see whether the
 current dense route still matches the scale of the analysis.
+
+For location-scale meta-analysis fits such as
+`bf(y ~ moderator + meta_V(V = v), sigma ~ moderator)`, a clean Hessian is the
+gate for Hessian-based SEs and Wald intervals. If `check_drm()` reports
+`hessian_positive_definite` as a warning, the known sampling variance still
+enters the covariance additively through `meta_V(V = v)`, but the estimated
+extra-heterogeneity coefficients should be treated as point estimates until a
+profile, bootstrap, or simpler `sigma` model supports them.
 
 ## Weights are not sampling variances
 
@@ -563,6 +578,18 @@ separate likelihood and user-interface decisions.
 Negative and missing known variances are rejected or removed through the same
 row-retention rules as the model data; full matrices must be symmetric and
 positive semidefinite after row subsetting.
+
+Current Gaussian meta-analysis supports `meta_V(V = V)` with ordinary `sigma`
+predictors, but `meta_V(V = V) + sigma ~ moderator` can be weakly identified in
+some datasets and may give `pdHess = FALSE`. In that case, treat Wald SEs and
+Wald intervals for the extra-heterogeneity model as unreliable until a profile,
+bootstrap, or simpler `sigma` model supports the target.
+
+Do not put `offset(0.5 * log(v))` in the `sigma` formula to represent known
+sampling error. In `drmTMB`, known sampling variance belongs in
+`meta_V(V = v)`, and residual heterogeneity belongs in `sigma ~ ...`. Formula
+offsets are currently count-family `mu` exposure syntax, so offsets in Gaussian
+or meta-analytic `sigma` formulas are intentionally rejected.
 
 The API should keep `family = gaussian()` and `sigma ~ ...`; it should not
 introduce `meta_gaussian()` or `tau ~` syntax without a separate design

@@ -349,14 +349,16 @@ and a later spatial site block can coexist, but `drmTMB` should not collapse
 them into one giant covariance matrix or estimate cross-factor `corpair()` rows
 before the simpler block-specific models are stable.
 
-Implementation should therefore proceed in this order:
+Implementation has followed this order:
 
-1. intercept-only phylogenetic or spatial structured effects in `mu`;
-2. one structured random slope in `mu`, with strong simulation recovery;
-3. at most two structured `mu` slopes as an advanced path, after diagnostics
-   show enough replication and design variation;
-4. interaction slopes only as experimental models with explicit warnings;
-5. structured slopes in `sigma` or `rho12` only after the `mu` path is stable.
+1. fit intercept-only phylogenetic and spatial structured effects in `mu`;
+2. add one structured random slope in Gaussian `mu`, with focused recovery and
+   diagnostics;
+3. keep multiple structured `mu` slopes as an advanced planned path until
+   diagnostics show enough replication and design variation;
+4. treat interaction slopes as experimental design work with explicit warnings;
+5. keep structured slopes in `sigma` or `rho12` behind separate design and
+   recovery gates.
 
 The number of possible slopes is not a hard mathematical limit, but the package
 should impose conservative defaults and diagnostics. Three or more structured

@@ -37,11 +37,13 @@ A formula marker; never evaluated by users.
 is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor. The
 first fitted paths are q=2 location-location cases for matching labelled
 \code{mu1}/\code{mu2} random intercepts:
-\code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}.
+\code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}
 and
 \code{corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology}.
-Predictors must be constant within the grouping factor. Spatial,
-location-scale, scale-scale, and q=4 \code{corpair()} regressions remain planned.
+Predictors must be constant within the grouping factor. Spatial
+\code{corpair()} regressions, location-scale \code{corpair()} regressions,
+scale-scale \code{corpair()} regressions, and q=4 \code{corpair()} regressions remain
+planned.
 The phylogenetic q=2 route uses a positive-definite two-field loading
 contract for the whole tree-coupled species block.
 }

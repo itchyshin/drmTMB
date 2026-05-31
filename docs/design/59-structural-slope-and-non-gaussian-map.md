@@ -12,11 +12,11 @@ fitted random-slope route for ordinary Gaussian `mu`, ordinary Gaussian
 covariance route, coordinate spatial Gaussian `mu`, phylogenetic Gaussian
 `mu`, animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, ordinary
 Poisson/NB2 `mu`, and selected ordinary Student-t/lognormal/Gamma/beta/
-beta-binomial/zero-truncated NB2 `mu`. Broader bivariate random slopes and
-most structured
-non-Gaussian dependence remain planned. The only fitted structured
-non-Gaussian routes are the first ordinary Poisson/NB2 q=1 phylogenetic `mu`
-intercepts; they are smoke-level, not broad count parity.
+   beta-binomial/zero-truncated NB2 `mu`. Broader bivariate random slopes and
+   most structured non-Gaussian dependence remain planned. The fitted
+   structured non-Gaussian routes are narrow ordinary Poisson/NB2 q=1 `mu`
+   intercept slices for `phylo()`, `spatial()`, `animal()`, and `relmat()`;
+   they are smoke/source/diagnostic lanes, not broad count parity.
 
 ## Random-Slope Parity
 
@@ -64,16 +64,18 @@ For applied users, the current route is therefore:
   a plain grouping factor is enough;
 - use ordinary NB2 `sigma ~ z + (1 | id)` only when the question is grouped
   overdispersion heterogeneity with no simultaneous `mu` random effects;
-- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)` only when the
-  count question is a q=1 phylogenetic log-mean intercept and, for NB2, fixed
-  `sigma` overdispersion is enough;
-- do not fit zero-inflated, spatial, animal, or `relmat()` structured
-  non-Gaussian models yet, and do not put structured effects in NB2 `sigma`.
+- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)`,
+  `spatial(1 | site, coords = coords)`, `animal(1 | id, ...)`, or
+  `relmat(1 | id, ...)` only when the count question is one q=1 structured
+  log-mean intercept and, for NB2, fixed `sigma` overdispersion is enough;
+- do not fit zero-inflated structured count models, structured count slopes,
+  labelled count covariance, simultaneous structured count types, or structured
+  effects in NB2 `sigma`.
 
 That boundary is conservative, but useful. Non-Gaussian links, latent
 structured matrices, zero inflation, and distributional scale or shape
 parameters can all change identifiability. The package should not advertise
-non-Gaussian structural dependence beyond the Poisson/NB2 q=1 phylogenetic
-smoke routes until it has the same evidence standard as the Gaussian routes:
+non-Gaussian structural dependence beyond the Poisson/NB2 q=1 structured
+`mu` intercept routes until it has the same evidence standard as the Gaussian routes:
 likelihood code, focused recovery tests, extractors, diagnostics,
 interval-status rows, examples, check-log evidence, and an after-task report.
