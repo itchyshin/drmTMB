@@ -445,3 +445,14 @@ issues, or pull requests.
 - Trigger: the `relmat()` Gaussian `mu` one-slope writer initially stored only
   fixed effects, SDs, `K`, and `Q` in truth. Hume caught the mismatch with the
   ADEMP conditional-signal estimand before closeout.
+
+## 2026-05-30 - Report Defaults Should Be Diagnostic
+
+- Improvement implemented: report templates that are included in package
+  checks should default to rendering diagnostic missing-artifact pages instead
+  of acting as strict completeness gates.
+- Boundary: strict `require_complete = TRUE` remains available for manual or
+  formal validation runs where a hard stop is the intended signal.
+- Trigger: CI logs showed the Phase 18 first-wave reports emitting a
+  missing-`student_shape_grid` setup error from the strict test path, which was
+  too easy to misread as a platform failure.

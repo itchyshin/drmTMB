@@ -47389,3 +47389,45 @@ Member-group review:
   and a local no-correlation assertion; both were added before closeout.
 - Rose kept the wording split among local artifact writer, Actions task,
   wrapper target, and coverage/power evidence.
+
+## 2026-05-30 - First-wave report non-strict missing-artifact render
+
+Goal:
+
+- Make Phase 18 first-wave report rendering CRAN/check-safe when artifact
+  status tables record missing optional simulation artifacts, while preserving
+  strict fail-fast behavior for explicit manual validation gates.
+
+Changes:
+
+- Changed `require_complete` defaults to `FALSE` in the first-wave status
+  report template, the first-wave summary report template, and
+  `phase18_render_first_wave_summary_report()`.
+- Added synthetic-CSV tests showing the status report and summary report render
+  missing-artifact diagnostics in non-strict mode.
+- Kept strict-mode tests that still error on missing artifacts when
+  `require_complete = TRUE`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/reports/phase18-first-wave-status-report.Rmd','inst/sim/reports/phase18-first-wave-summary-report.Rmd','inst/sim/run/sim_render_first_wave_summary_report.R','tests/testthat/test-phase18-first-wave-status-report.R','tests/testthat/test-phase18-first-wave-summary-report.R'); invisible(lapply(files, function(path) if (grepl('[.]R$', path)) parse(path) else readLines(path, warn = FALSE))); cat('report portability parse/read ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-status-report$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-report$', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The parse/read check printed `report portability parse/read ok`.
+- Both targeted report test files completed without failure. The strict-mode
+  tests still emit the expected R Markdown `Quitting from ... [setup]` message,
+  but that path is now opt-in; default report renders do not hard-stop on
+  missing artifacts.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Heisenberg identified the report setup hard-stop as the portability risk and
+  recommended a non-strict render default with strict fail-fast behavior
+  reserved for manual/formal validation.

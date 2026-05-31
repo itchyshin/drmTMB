@@ -161,3 +161,66 @@ test_that("Phase 18 first-wave summary report renders bundled tables", {
   expect_true(grepl("Warning And Error Summary", html, fixed = TRUE))
   expect_true(grepl("example warning", html, fixed = TRUE))
 })
+
+test_that("Phase 18 first-wave summary report renders missing artifacts by default", {
+  skip_if_not_installed("rmarkdown")
+  skip_if_not(rmarkdown::pandoc_available())
+
+  path <- system.file(
+    "sim/reports/phase18-first-wave-summary-report.Rmd",
+    package = "drmTMB",
+    mustWork = TRUE
+  )
+  output_dir <- tempfile("phase18-first-wave-summary-missing-")
+  dir.create(output_dir)
+  withr::defer(unlink(output_dir, recursive = TRUE))
+
+  artifact_status_csv <- file.path(output_dir, "artifact-status.csv")
+  write.csv(
+    data.frame(
+      surface = "student_shape_grid",
+      n_artifact = 1L,
+      n_present = 0L,
+      n_missing = 1L,
+      n_empty_csv = 0L
+    ),
+    artifact_status_csv,
+    row.names = FALSE
+  )
+
+  out <- rmarkdown::render(
+    input = path,
+    output_file = "phase18-first-wave-summary.html",
+    output_dir = output_dir,
+    intermediates_dir = output_dir,
+    quiet = TRUE,
+    params = list(
+      artifact_status_csv = artifact_status_csv,
+      require_complete = FALSE,
+      max_rows = 20,
+      notes = "summary missing artifact smoke"
+    )
+  )
+
+  expect_true(file.exists(out))
+  html <- paste(readLines(out, warn = FALSE), collapse = "\n")
+  expect_true(grepl("summary missing artifact smoke", html, fixed = TRUE))
+  expect_true(grepl("student_shape_grid", html, fixed = TRUE))
+
+  expect_error(
+    rmarkdown::render(
+      input = path,
+      output_file = "phase18-first-wave-summary-strict.html",
+      output_dir = output_dir,
+      intermediates_dir = output_dir,
+      quiet = TRUE,
+      params = list(
+        artifact_status_csv = artifact_status_csv,
+        require_complete = TRUE,
+        max_rows = 20,
+        notes = ""
+      )
+    ),
+    "missing artifacts for: student_shape_grid"
+  )
+})
