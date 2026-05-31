@@ -68,6 +68,13 @@ gaps are intercept-plus-slope bivariate covariance, all-four p8/q8
 location-scale covariance, multiple structured slopes, structured slope
 correlations, and non-Gaussian structured effects.
 
+The #440 bivariate slope-only evidence gate is recorded in
+`docs/design/145-phase6c-bivariate-slope-evidence-gate.md`. Its decision is
+artifact-ready and held from recovery, coverage, and power claims: the matching
+`mu1`/`mu2` slope-only route has extractor, profile-target, diagnostic,
+Phase 18 helper, artifact-writer, manual Actions, and one small pilot-artifact
+handle, but #446 remains responsible for the formal simulation plan.
+
 ## Structured Gaussian Audit Closure
 
 The #442 audit closes the current-status question for the four Gaussian

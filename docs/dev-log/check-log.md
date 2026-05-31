@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- Phase 6c Bivariate Slope-Only Evidence Gate
+
+Goal:
+
+- Close #440 by recording the current gate decision for the bivariate Gaussian
+  matching slope-only `mu1`/`mu2` route before the larger #446 power, accuracy,
+  and coverage plan.
+
+Actions run:
+
+- Added `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`.
+- Recorded the gate as artifact-ready and held from recovery, coverage, and
+  power claims.
+- Pointed `docs/design/59-structural-slope-and-non-gaussian-map.md` and
+  `ROADMAP.md` to the gate decision.
+- Kept residual `rho12` separate from the group-level slope-slope covariance:
+  Phase 18 records the slope-slope row as `random_correlation` and residual
+  `rho12` as `residual_rho12`.
+- Kept intercept-plus-slope q4 location blocks, same-response location-scale
+  slope covariance, residual-scale slope blocks, random effects in `rho12`,
+  all-four p8/q8 endpoints, predictor-dependent slope `corpair()` regression,
+  and mixed-response bivariate random-slope models closed.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/145-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'biv-gaussian|phase18-biv-gaussian-mu-slope|phase18-actions-runner|phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Bivariate Slope-Only Evidence Gate|artifact-ready|held from recovery, coverage, and power|random_correlation|residual_rho12|biv_gaussian_mu_slope|#440|#446' ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/145-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md inst/sim tests/testthat pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'biv_gaussian_mu_slope.*coverage claim|biv_gaussian_mu_slope.*power claim|biv_gaussian_mu_slope.*recovery claim|bivariate Gaussian slope-only.*coverage claim|bivariate Gaussian slope-only.*power claim|random effects in `rho12` (are )?(fitted|implemented)|intercept-plus-slope q4 (location )?blocks (are )?(fitted|implemented)|residual-scale slope blocks (are )?(fitted|implemented)|p8/q8 endpoints (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- Focused bivariate Gaussian, Phase 18 bivariate slope, Actions runner, and
+  structured workflow registry tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site.
+- The positive source/rendered scan found the #440 gate title, the
+  artifact-ready and held-from-coverage decision, `random_correlation`,
+  `residual_rho12`, `biv_gaussian_mu_slope`, #440, and #446 in the intended
+  source files, tests, simulation helpers, and rendered ROADMAP page.
+- The stale-claim scan returned no matches for accidental bivariate
+  slope-only recovery, coverage, or power claims, nor for claims that random
+  effects in `rho12`, q4 location-slope blocks, residual-scale slope blocks,
+  or p8/q8 endpoints are fitted.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Phase 6c Structured Gaussian One-Slope Audit
 
 Goal:
