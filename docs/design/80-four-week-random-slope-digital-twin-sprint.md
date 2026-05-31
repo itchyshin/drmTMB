@@ -19,11 +19,15 @@ Child issues:
 - #442: structured Gaussian one-slope audit.
 - #443: coscale and `corpairs()` boundary.
 - #444: random-slope tutorial and release ledger.
+- #446: random-slope simulation power, accuracy, and coverage plan.
 
 Simulation planning issue:
 
 - #59 is the Phase 18 simulation mega-issue for power, accuracy, coverage,
   runtime, and failure-mode evidence across families and model types.
+- #446 is the Phase 6c random-slope child issue that turns #59 into a concrete
+  four-week plan for power, accuracy, coverage, convergence, runtime, and
+  failure-ledger evidence before candidate cells are promoted.
 - #255 is the artifact-grain child issue that keeps replicate-level rows,
   aggregate summaries, MCSE intervals, and figure geometry honest.
 - #60 is the smaller comparator-package lane for `glmmTMB`, direct TMB

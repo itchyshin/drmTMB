@@ -605,10 +605,14 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   [#437](https://github.com/itchyshin/drmTMB/issues/437)-[#444](https://github.com/itchyshin/drmTMB/issues/444)
   for the digital-twin exchange, support-matrix refresh, Gaussian closeout,
   bivariate slope gate, non-Gaussian slope admission, structured one-slope
-  audit, coscale boundary, and tutorial/release ledger.
+  audit, coscale boundary, and tutorial/release ledger, plus
+  [#446](https://github.com/itchyshin/drmTMB/issues/446) for the random-slope
+  simulation power, accuracy, and coverage plan.
 - Simulation bridge: [#59](https://github.com/itchyshin/drmTMB/issues/59) is
   the Phase 18 mega-issue for power, accuracy, coverage, runtime, and
-  failure-mode evidence across families and model types; [#255](https://github.com/itchyshin/drmTMB/issues/255)
+  failure-mode evidence across families and model types; [#446](https://github.com/itchyshin/drmTMB/issues/446)
+  is the Phase 6c child issue for turning random-slope candidate cells into a
+  concrete simulation plan; [#255](https://github.com/itchyshin/drmTMB/issues/255)
   keeps replicate-level versus aggregate simulation artifacts honest; and
   [#60](https://github.com/itchyshin/drmTMB/issues/60) stays the smaller
   comparator-package lane for `glmmTMB`, direct TMB baselines, `DRM.jl`,

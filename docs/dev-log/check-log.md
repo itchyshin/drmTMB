@@ -46446,3 +46446,40 @@ Member-group review:
   `summary(fit)$covariance`, and `rho12` with stable meanings.
 - Rose left #440 conservative: fitted slope-only extraction is guarded, while
   broader bivariate random slopes and recovery promotion remain planned.
+
+## 2026-05-30 - Phase 6c simulation planning child issue
+
+Goal:
+
+- Make the user-requested random-slope simulation planning lane explicit, with
+  power, accuracy, coverage, convergence, runtime, and failure-ledger evidence
+  separated from implementation and smoke evidence.
+
+Changes:
+
+- Opened GitHub issue #446 as the Phase 6c random-slope simulation power,
+  accuracy, and coverage plan.
+- Linked #446 from `docs/design/80-four-week-random-slope-digital-twin-sprint.md`
+  and `ROADMAP.md` beside the broader Phase 18 simulation mega-issue #59.
+- Commented on #59 and #436 so the simulation child issue is visible from both
+  the simulation programme and the Phase 6c parent tracker.
+
+Validation:
+
+```sh
+rg -n '#446|random-slope simulation power, accuracy, and coverage plan|Phase 6c child issue' docs/design/80-four-week-random-slope-digital-twin-sprint.md ROADMAP.md
+git diff --check
+```
+
+Results:
+
+- The source scan found #446 in the sprint contract and roadmap.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept #446 as an evidence design gate before large grids run.
+- Fisher required power, accuracy, coverage, and failure diagnostics to stay
+  separate from fitted or smoke-only claims.
+- Rose linked the new issue back to the parent sprint so it does not become an
+  orphan planning note.
