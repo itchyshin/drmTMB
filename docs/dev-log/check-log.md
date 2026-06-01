@@ -46863,3 +46863,53 @@ Member-group review:
 - Fisher checked that an aggregate-grain CSV with `error` columns cannot be
   plotted as a replicate-error cloud.
 - Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 artifact-grain closeout
+
+Goal:
+
+- Close the current #255 artifact-grain contract without turning future
+  gallery hygiene into an indefinite blocker.
+
+Changes:
+
+- Added `docs/design/150-phase-18-artifact-grain-closeout.md` with the current
+  guarantee for first-wave report staging and the count-pilot gallery.
+- Added a first-wave table-bundle test that covers `gaussian_ls_grid`,
+  `meta_v_grid`, `count_mu_random_effect_grid`,
+  `proportion_fixed_effect_grid`, and `biv_rho12_grid`.
+- Updated the Phase 18 simulation README, ROADMAP row 1832, and the Phase 18
+  simulation-programme ledger.
+- Opened #461 for future Phase 18 galleries that add cloud-style,
+  dot-density, empirical-quantile, or replicate-level failure displays.
+
+Validation:
+
+```sh
+air format tests/testthat/test-phase18-first-wave-table-bundle.R docs/design/150-phase-18-artifact-grain-closeout.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-artifact-grain-closeout.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$|^phase18-count-gallery-template$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "artifact-grain closeout|artifact_grain = \"replicate\"|replicate_cloud_allowed|replicate_cloud_gate|fake.*cloud|aggregate-only|Phase 18 artifact-grain|#255|#461|Slice 1832|1832|gaussian_ls_grid|meta_v_grid|count_mu_random_effect_grid|proportion_fixed_effect_grid|biv_rho12_grid" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+git diff --check
+```
+
+Results:
+
+- The focused first-wave table-bundle, first-wave summary-report,
+  first-wave summary-render-helper, and count-gallery template tests passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain closeout scan found the current gate wording, historical
+  notes, #255/#461 references, and the new ROADMAP/design entries.
+- `git diff --check` passed.
+- The prose pass checked that the closeout states a reporting/data-grain
+  guarantee, not new simulation recovery, coverage, or power evidence.
+
+Member-group review:
+
+- Ada kept #255 closure separate from future-gallery hygiene by opening #461.
+- Curie added the synthetic five-surface first-wave test for the current grid
+  surface names.
+- Florence checked that cloud-style displays still require replicate-ready
+  input.
+- Fisher kept aggregate MCSE evidence separate from replicate-error evidence.
+- Rose left the missing-data lane untouched.

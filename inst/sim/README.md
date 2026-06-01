@@ -44,6 +44,9 @@ The
 tables and the grain-status preflight into one reader-facing page. It also
 derives a per-surface replicate-cloud gate, so aggregate-only surfaces stay on
 points, bars, and MCSE intervals until a replicate-ready artifact exists.
+The #255 closeout test covers the current `gaussian_ls_grid`, `meta_v_grid`,
+`count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and
+`biv_rho12_grid` first-wave surface names under that gate.
 Priority columns stay first and displayed rows are capped before any
 publication-style figures are added.
 `run/sim_render_first_wave_summary_report.R` orchestrates the status writer,

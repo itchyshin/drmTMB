@@ -247,6 +247,79 @@ test_that("Phase 18 first-wave table bundle inventories artifact grain", {
   expect_equal(status["absent_csv", "grain_status"], "missing_artifact")
 })
 
+test_that("Phase 18 first-wave grain contract covers current report surfaces", {
+  source_phase18_first_wave_table_bundle()
+  root <- tempfile("phase18-first-wave-grain-surfaces-")
+  dir.create(root)
+  withr::defer(unlink(root, recursive = TRUE))
+
+  surfaces <- c(
+    "gaussian_ls_grid",
+    "meta_v_grid",
+    "count_mu_random_effect_grid",
+    "proportion_fixed_effect_grid",
+    "biv_rho12_grid"
+  )
+  grid_outputs <- lapply(surfaces, function(surface) {
+    surface_dir <- file.path(root, surface)
+    dir.create(surface_dir)
+    aggregate <- file.path(surface_dir, "aggregate.csv")
+    replicates <- file.path(surface_dir, "replicates.csv")
+    write.csv(
+      data.frame(
+        surface = surface,
+        parameter = "mu:x",
+        bias = 0.01,
+        artifact_grain = "aggregate"
+      ),
+      aggregate,
+      row.names = FALSE
+    )
+    write.csv(
+      data.frame(
+        surface = surface,
+        parameter = "mu:x",
+        replicate = 1L,
+        error = 0.01,
+        artifact_grain = "replicate"
+      ),
+      replicates,
+      row.names = FALSE
+    )
+    list(
+      surface = surface,
+      paths = list(
+        aggregate_csv = aggregate,
+        replicate_csv = replicates
+      )
+    )
+  })
+
+  status <- phase18_first_wave_artifact_grain_status(
+    grid_outputs,
+    artifacts = c("aggregate_csv", "replicate_csv")
+  )
+
+  expect_setequal(status$source_surface, surfaces)
+  aggregate <- status[status$source_artifact == "aggregate_csv", ]
+  replicates <- status[status$source_artifact == "replicate_csv", ]
+  expect_equal(aggregate$grain_status, rep("aggregate_only", length(surfaces)))
+  expect_equal(
+    aggregate$plot_geometry,
+    rep("aggregate_points_bars_mcse_only", length(surfaces))
+  )
+  expect_false(any(aggregate$replicate_cloud_allowed))
+  expect_equal(
+    replicates$grain_status,
+    rep("replicate_ready", length(surfaces))
+  )
+  expect_equal(
+    replicates$plot_geometry,
+    rep("replicate_clouds_allowed", length(surfaces))
+  )
+  expect_true(all(replicates$replicate_cloud_allowed))
+})
+
 test_that("Phase 18 first-wave table bundle validates inputs", {
   source_phase18_first_wave_table_bundle()
 
