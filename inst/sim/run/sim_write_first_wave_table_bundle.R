@@ -36,6 +36,10 @@ phase18_write_first_wave_table_bundle <- function(
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   output_dir <- normalizePath(output_dir, mustWork = TRUE)
   paths <- phase18_first_wave_table_bundle_paths(output_dir, artifacts)
+  paths$artifact_grain_status_csv <- file.path(
+    output_dir,
+    "phase18-first-wave-artifact-grain-status.csv"
+  )
   phase18_assert_first_wave_table_bundle_overwrite(paths, overwrite)
 
   tables <- lapply(
@@ -51,6 +55,15 @@ phase18_write_first_wave_table_bundle <- function(
   for (artifact in artifacts) {
     utils::write.csv(tables[[artifact]], paths[[artifact]], row.names = FALSE)
   }
+  grain_status <- phase18_first_wave_artifact_grain_status(
+    grid_outputs = grid_outputs,
+    artifacts = artifacts
+  )
+  utils::write.csv(
+    grain_status,
+    paths$artifact_grain_status_csv,
+    row.names = FALSE
+  )
 
   list(
     surface = "phase18_first_wave_table_bundle",
@@ -60,7 +73,8 @@ phase18_write_first_wave_table_bundle <- function(
       "phase18_first_wave_table_bundle",
       paths
     ),
-    tables = tables
+    tables = tables,
+    grain_status = grain_status
   )
 }
 
@@ -91,6 +105,155 @@ phase18_collect_first_wave_table <- function(grid_outputs, artifact) {
     ))
   }
   phase18_row_bind_fill(pieces)
+}
+
+phase18_first_wave_artifact_grain_status <- function(
+  grid_outputs,
+  artifacts = phase18_first_wave_table_artifacts()
+) {
+  phase18_assert_first_wave_grid_outputs(grid_outputs)
+  phase18_assert_first_wave_artifacts(artifacts)
+
+  rows <- list()
+  index <- 0L
+  for (grid_output in grid_outputs) {
+    paths <- phase18_first_wave_grid_paths(grid_output)
+    surface <- phase18_first_wave_grid_surface(grid_output)
+    for (artifact in artifacts) {
+      index <- index + 1L
+      path <- if (artifact %in% names(paths)) {
+        paths[[artifact]]
+      } else {
+        NA_character_
+      }
+      rows[[index]] <- phase18_first_wave_artifact_grain_row(
+        surface = surface,
+        artifact = artifact,
+        path = path
+      )
+    }
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_first_wave_artifact_grain_row <- function(surface, artifact, path) {
+  if (
+    !is.character(path) ||
+      length(path) != 1L ||
+      is.na(path) ||
+      !nzchar(path) ||
+      !file.exists(path)
+  ) {
+    return(phase18_first_wave_artifact_grain_record(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      n_row = NA_integer_,
+      artifact_grain = NA_character_,
+      grain_status = "missing_artifact",
+      plot_geometry = "not_available"
+    ))
+  }
+
+  table <- phase18_read_first_wave_table(path)
+  if (nrow(table) == 0L) {
+    return(phase18_first_wave_artifact_grain_record(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      n_row = 0L,
+      artifact_grain = NA_character_,
+      grain_status = "empty_artifact",
+      plot_geometry = "not_available"
+    ))
+  }
+  if (!"artifact_grain" %in% names(table)) {
+    return(phase18_first_wave_artifact_grain_record(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      n_row = nrow(table),
+      artifact_grain = NA_character_,
+      grain_status = "missing_grain",
+      plot_geometry = "grain_audit_needed"
+    ))
+  }
+
+  grain <- unique(as.character(table$artifact_grain))
+  grain <- sort(grain[!is.na(grain) & nzchar(grain)])
+  if (length(grain) == 0L) {
+    return(phase18_first_wave_artifact_grain_record(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      n_row = nrow(table),
+      artifact_grain = NA_character_,
+      grain_status = "missing_grain",
+      plot_geometry = "grain_audit_needed"
+    ))
+  }
+  if (length(grain) > 1L) {
+    return(phase18_first_wave_artifact_grain_record(
+      surface = surface,
+      artifact = artifact,
+      path = path,
+      n_row = nrow(table),
+      artifact_grain = paste(grain, collapse = ";"),
+      grain_status = "mixed_grain",
+      plot_geometry = "grain_audit_needed"
+    ))
+  }
+
+  grain_status <- switch(
+    grain,
+    replicate = "replicate_ready",
+    aggregate = "aggregate_only",
+    "supporting_table"
+  )
+  plot_geometry <- switch(
+    grain,
+    replicate = "replicate_clouds_allowed",
+    aggregate = "aggregate_points_bars_mcse_only",
+    "table_only"
+  )
+
+  phase18_first_wave_artifact_grain_record(
+    surface = surface,
+    artifact = artifact,
+    path = path,
+    n_row = nrow(table),
+    artifact_grain = grain,
+    grain_status = grain_status,
+    plot_geometry = plot_geometry
+  )
+}
+
+phase18_first_wave_artifact_grain_record <- function(
+  surface,
+  artifact,
+  path,
+  n_row,
+  artifact_grain,
+  grain_status,
+  plot_geometry
+) {
+  replicate_cloud_allowed <- identical(
+    plot_geometry,
+    "replicate_clouds_allowed"
+  )
+  data.frame(
+    source_surface = surface,
+    source_artifact = artifact,
+    path = path,
+    n_row = n_row,
+    artifact_grain = artifact_grain,
+    grain_status = grain_status,
+    plot_geometry = plot_geometry,
+    replicate_cloud_allowed = replicate_cloud_allowed,
+    stringsAsFactors = FALSE
+  )
 }
 
 phase18_first_wave_table_bundle_paths <- function(output_dir, artifacts) {

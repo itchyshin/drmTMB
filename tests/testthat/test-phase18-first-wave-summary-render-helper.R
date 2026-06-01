@@ -42,7 +42,12 @@ phase18_fake_first_wave_grid_output <- function(root) {
     interval_failures_csv = file.path(table_dir, "interval-failures.csv")
   )
   write.csv(
-    data.frame(parameter = "mu:x", bias = 0.01, rmse = 0.05),
+    data.frame(
+      parameter = "mu:x",
+      bias = 0.01,
+      rmse = 0.05,
+      artifact_grain = "aggregate"
+    ),
     paths$aggregate_csv,
     row.names = FALSE
   )
@@ -109,10 +114,17 @@ test_that("Phase 18 first-wave summary render helper stages report inputs", {
   expect_null(out$report_path)
   expect_true(file.exists(out$status$paths$artifact_status_csv))
   expect_true(file.exists(out$tables$paths$aggregate_csv))
+  expect_true(file.exists(out$tables$paths$artifact_grain_status_csv))
   expect_equal(nrow(out$tables$tables$aggregate_csv), 1L)
   expect_equal(
     out$tables$tables$aggregate_csv$source_surface,
     "gaussian_ls_grid"
+  )
+  expect_equal(
+    out$tables$grain_status$grain_status[
+      out$tables$grain_status$source_artifact == "aggregate_csv"
+    ],
+    "aggregate_only"
   )
   params <- phase18_first_wave_summary_report_params(
     out$status,
@@ -121,6 +133,10 @@ test_that("Phase 18 first-wave summary render helper stages report inputs", {
     notes = "staging only"
   )
   expect_equal(params$artifact_status_csv, out$status$paths$artifact_status_csv)
+  expect_equal(
+    params$artifact_grain_status_csv,
+    out$tables$paths$artifact_grain_status_csv
+  )
   expect_equal(params$aggregate_csv, out$tables$paths$aggregate_csv)
   expect_null(phase18_first_wave_optional_path(list(), "aggregate_csv"))
 })
