@@ -41,3 +41,13 @@ promote any planned model surface. It closes the current artifact-grain
 reporting contract for #255. Future simulation galleries should use #461 to
 apply the same gate whenever they add cloud-style, dot-density, empirical
 quantile, or replicate-level failure displays.
+
+## Future-Gallery Helper
+
+Slice 1833 adds `inst/sim/R/sim_gallery_grain.R` so future galleries can reuse
+the contract instead of copying a local predicate. A gallery may draw
+replicate-error clouds only when its required plot columns are present and the
+candidate table carries either `artifact_grain = "replicate"` or
+`replicate_cloud_gate = "replicate_clouds_allowed"`. When both markers are
+present, both must be permissive; conflicting aggregate-grain inputs remain
+aggregate-only.

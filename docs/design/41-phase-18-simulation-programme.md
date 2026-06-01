@@ -264,6 +264,12 @@ summary report also reads Wald, profile, and bootstrap coverage artifacts when
 present and summarises interval methods by surface before the raw diagnostic
 tables. A run-manifest summary groups run status, skipped rows, warnings,
 errors, and elapsed time by surface before the raw manifest.
+Future figure galleries should source `inst/sim/R/sim_gallery_grain.R` before
+drawing cloud-style geometry. The shared helper requires the plot columns
+needed by the gallery and then accepts either `artifact_grain = "replicate"` or
+`replicate_cloud_gate = "replicate_clouds_allowed"`; if both markers are
+present, both must be permissive, so an aggregate-grain row cannot override the
+gate.
 
 ## Williams-Style Self-Audit
 
@@ -1364,3 +1370,7 @@ errors, and elapsed time by surface before the raw manifest.
      `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and
      `biv_rho12_grid`, keeping aggregate-only rows out of replicate-cloud
      displays and moving future gallery hygiene to #461.
+240. Slice 1833 adds `inst/sim/R/sim_gallery_grain.R` as the reusable
+     future-gallery gate and routes the count-pilot gallery through it, so new
+     cloud-style Phase 18 reports can use the same artifact-grain and
+     replicate-cloud-gate rule instead of reimplementing it.
