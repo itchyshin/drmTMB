@@ -47182,3 +47182,58 @@ Member-group review:
 - Fisher kept fitted first slices separate from recovery, coverage, and power
   claims.
 - Rose checked the unsupported cells remain explicit planned neighbours.
+
+## 2026-06-01 - Public bootstrap interval closeout
+
+Goal:
+
+- Close #265 by mapping the public bootstrap interval checklist to the current
+  `confint(..., method = "bootstrap")` implementation, tests, docs, roadmap,
+  and limitations.
+
+Changes:
+
+- Added `docs/design/153-public-bootstrap-interval-closeout.md` as the #265
+  closeout ledger.
+- Updated ROADMAP Slice 81 and the earlier bootstrap interval rows to mark the
+  first public direct-target bootstrap boundary as complete.
+- Corrected a stale NEWS bullet that still described bootstrap intervals as
+  rejected after the direct `confint()` route had landed.
+- Added an after-task report for the closeout.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/153-public-bootstrap-interval-closeout.md docs/dev-log/after-task/2026-06-01-public-bootstrap-interval-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = '^profile-targets$|^control$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n '#265|Public bootstrap interval closeout|confint\(\.\.\., method = "bootstrap"\)|bootstrap\.n|bootstrap\.failed|bootstrap\.parallel|bootstrap\.workers|direct fitted-object targets|bootstrap_unavailable|summary\(conf\.int = TRUE, method = "bootstrap"\)|corpairs\(conf\.int = TRUE, method = "bootstrap"\)' ROADMAP.md docs/design/153-public-bootstrap-interval-closeout.md docs/dev-log/after-task/2026-06-01-public-bootstrap-interval-closeout.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md R/profile.R tests/testthat/test-profile-targets.R NEWS.md
+rg -n 'bootstrap intervals are not implemented|public interval methods limited to Wald and profile|bootstrap.*rescues every|bootstrap.*automatically (rescues|fixes|recovers)|summary\(.*method = "bootstrap".*(implemented|supported)|corpairs\(.*method = "bootstrap".*(implemented|supported)|prediction.*bootstrap.*(implemented|supported)|derived.*bootstrap.*(implemented|supported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R man tests/testthat
+git diff --check
+```
+
+Results:
+
+- Focused `profile-targets` and `control` tests passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The positive scan found #265, the new closeout ledger, the direct
+  `confint(..., method = "bootstrap")` route, `bootstrap.n`,
+  `bootstrap.failed`, `bootstrap.parallel`, `bootstrap.workers`,
+  `bootstrap_unavailable`, and the explicit `summary()`/`corpairs()`
+  bootstrap boundaries across roadmap, design, implementation, and tests.
+- The stale scan returned only intentional hits: ROADMAP's generic interval
+  hardening row that says bootstrap routes are supported or deliberately
+  unavailable, and the reusable scan recipe in
+  `docs/design/69-comprehensive-function-page-figure-audit.md`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the PR as issue-linked status work rather than changing interval
+  behaviour.
+- Fisher kept direct bootstrap intervals separate from coverage, power, MCSE,
+  and hard-fit recovery claims.
+- Pat checked that the user-facing route names `confint()` but does not imply
+  `summary()` or `corpairs()` bootstrap support.
+- Rose removed the stale NEWS contradiction and kept derived intervals visible
+  as follow-up work.
