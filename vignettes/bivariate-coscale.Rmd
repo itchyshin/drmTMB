@@ -761,6 +761,59 @@ the residual-correlation target `rho12`. Returned profile rows include
 inspect `check_drm(fit)` and the profile path before treating the interval as a
 stable biological estimate.
 
+## First slope-slope covariance slice
+
+The first ordinary bivariate random-slope route asks a narrower
+plasticity-syndrome question: do individuals with steeper response-1 slopes
+also tend to have steeper response-2 slopes for the same predictor? It is a
+group-level covariance question, not residual `rho12`.
+
+For a shared predictor `x`, the fitted mean layer is:
+
+\[
+\begin{aligned}
+\mu_{1ij}
+  &= X_{\mu 1}[ij, ]\beta_{\mu 1} + x_{ij}b_{1j},\\
+\mu_{2ij}
+  &= X_{\mu 2}[ij, ]\beta_{\mu 2} + x_{ij}b_{2j},\\
+\begin{bmatrix}
+b_{1j}\\
+b_{2j}
+\end{bmatrix}
+  &\sim \operatorname{MVN}(\mathbf{0}, \Sigma_{\mu,x,ID}).
+\end{aligned}
+\]
+
+The matching first-slice syntax uses slope-only labelled blocks in both
+location formulas:
+
+```r
+drmTMB(
+  bf(
+    mu1 = y1 ~ x + (0 + x | p | id),
+    mu2 = y2 ~ x + (0 + x | p | id),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  ),
+  family = biv_gaussian(),
+  data = dat
+)
+```
+
+Read this model through `sdpars$mu` for the two response-specific slope SDs,
+`corpairs(fit, class = "slope-slope")` for the group-level slope-slope
+correlation, `summary(fit)$covariance` for the covariance table, and
+`profile_targets(fit)` for the direct SD and correlation target names. Run
+`check_drm(fit)` before interpreting the row; the relevant diagnostic is the
+bivariate `mu` random-effect covariance check, plus the ordinary convergence,
+Hessian, and boundary checks.
+
+This slope-only route deliberately excludes random intercepts from the same
+labelled bivariate block. If the scientific question needs baseline
+individual differences and slope differences in the same two-response block,
+that is an intercept-plus-slope q4 location model and remains planned.
+
 ## Boundaries for this covariance layer
 
 The middle `p` in `(1 | p | ID)` follows grouped covariance-block syntax for
