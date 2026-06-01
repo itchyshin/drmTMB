@@ -35,10 +35,15 @@ before any larger simulation report tries to consume surface-specific tables.
 `run/sim_write_first_wave_table_bundle.R` then combines selected artifact
 tables across grid-writer outputs, adding source surface and artifact columns
 as the leading columns so the next report can compare surfaces without
-hand-binding CSVs. The
+hand-binding CSVs. It also writes
+`phase18-first-wave-artifact-grain-status.csv`, which classifies each selected
+surface/artifact pair as replicate-ready, aggregate-only, missing, empty,
+mixed-grain, or missing-grain before any report draws replicate-error clouds.
+The
 `reports/phase18-first-wave-summary-report.Rmd` skeleton reads those staged
-tables into one reader-facing page, putting priority columns first and capping
-displayed rows before any publication-style figures are added.
+tables and the grain-status preflight into one reader-facing page, putting
+priority columns first and capping displayed rows before any publication-style
+figures are added.
 `run/sim_render_first_wave_summary_report.R` orchestrates the status writer,
 table-bundle writer, and optional HTML summary render in one call.
 
@@ -539,7 +544,9 @@ Current pilot files:
   simulation artifacts.
 - `run/sim_write_first_wave_table_bundle.R` writes selected first-wave artifact
   tables combined across grid-writer outputs, preserving source surface and
-  artifact names while filling missing columns.
+  artifact names while filling missing columns, and writes an artifact-grain
+  preflight table so aggregate-only or missing-grain inputs cannot be mistaken
+  for replicate-ready displays.
 - `run/sim_render_first_wave_summary_report.R` writes first-wave status and
   table-bundle artifacts, then optionally renders the first-wave summary report
   HTML from those staged CSVs.

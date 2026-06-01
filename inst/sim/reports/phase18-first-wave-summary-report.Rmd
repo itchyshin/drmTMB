@@ -5,6 +5,7 @@ output:
     toc: true
 params:
   artifact_status_csv: null
+  artifact_grain_status_csv: null
   aggregate_csv: null
   manifest_csv: null
   failures_csv: null
@@ -330,6 +331,9 @@ artifact_status <- phase18_read_required_csv(
   params$artifact_status_csv,
   "artifact_status_csv"
 )
+artifact_grain_status <- phase18_read_optional_csv(
+  params$artifact_grain_status_csv
+)
 aggregate <- phase18_read_optional_csv(params$aggregate_csv)
 manifest <- phase18_read_optional_csv(params$manifest_csv)
 failures <- phase18_read_optional_csv(params$failures_csv)
@@ -361,9 +365,10 @@ if (
 # Purpose
 
 This first-wave summary report is a staging report for Phase 18 simulation
-outputs. It brings artifact status, aggregate operating-characteristic rows,
-interval diagnostics, and warning/error ledgers into one reader-facing page
-before any publication-style figures or claims are made.
+outputs. It brings artifact status, artifact-grain status, aggregate
+operating-characteristic rows, interval diagnostics, and warning/error ledgers
+into one reader-facing page before any publication-style figures or claims are
+made.
 
 # Notes
 
@@ -382,6 +387,24 @@ phase18_show_table(
     "n_missing",
     "n_empty_csv",
     "n_total_csv_rows"
+  )
+)
+```
+
+# Artifact Grain Status
+
+```{r artifact-grain-status}
+phase18_show_table(
+  artifact_grain_status,
+  "No artifact-grain status CSV supplied.",
+  c(
+    "source_surface",
+    "source_artifact",
+    "artifact_grain",
+    "grain_status",
+    "plot_geometry",
+    "replicate_cloud_allowed",
+    "n_row"
   )
 )
 ```
@@ -610,6 +633,8 @@ phase18_show_table(
 
 - Which surfaces are represented in the artifact-status and aggregate tables?
 - Do any surfaces have missing or empty artifacts that change interpretation?
+- Which artifacts are replicate-ready, aggregate-only, or missing grain tags
+  before any replicate-cloud figures are drawn?
 - Are convergence rate, Hessian rate, warning rate, and elapsed-time summaries
   visible for each estimand?
 - Does the aggregate-bias overview point to rows that need replicate-level

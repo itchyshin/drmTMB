@@ -237,12 +237,18 @@ artifacts are missing. A separate first-wave table-bundle writer can then bind
 selected CSV artifacts across surfaces, preserving source-surface and
 source-artifact columns first while filling missing table columns with `NA`. The
 first summary-report skeleton is table-first: it reads artifact status,
-aggregate operating-characteristic rows, interval diagnostics, interval
-failures, manifests, and warning/error ledgers before figure design begins. A
-render helper now ties those staging pieces together by writing status outputs,
-writing bundled tables, and optionally rendering the HTML summary report from
-the staged CSVs. The summary report displays priority columns first and caps
-large tables, while leaving the full CSVs intact for downstream figures. It
+artifact-grain status, aggregate operating-characteristic rows, interval
+diagnostics, interval failures, manifests, and warning/error ledgers before
+figure design begins. The table-bundle writer emits one grain-status row per
+selected surface/artifact pair so report staging can see whether an artifact is
+replicate-ready, aggregate-only, missing, empty, mixed-grain, or missing-grain.
+Only replicate-ready rows permit replicate-error clouds; all other rows are
+table-only or aggregate geometry until their grain is repaired or their
+replicate-level CSV exists. A render helper now ties those staging pieces
+together by writing status outputs, writing bundled tables, and optionally
+rendering the HTML summary report from the staged CSVs. The summary report
+displays priority columns first and caps large tables, while leaving the full
+CSVs intact for downstream figures. It
 also adds a compact warning/error summary above the raw ledger so recurring
 surface-level diagnostics are visible before a reader scans every event row. A
 first compact aggregate-bias overview gives reviewers a quick visual screen of
@@ -688,6 +694,10 @@ errors, and elapsed time by surface before the raw manifest.
 135. Slices 859-868 add the first compact aggregate-bias overview to the
      first-wave summary report, then rerun the three-surface smoke under
      `inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/`.
+136. Slice 1829 adds a first-wave artifact-grain preflight table to the table
+     bundle and summary-report parameters so report staging can distinguish
+     replicate-ready artifacts from aggregate-only, missing, empty,
+     mixed-grain, and missing-grain artifacts before plotting.
 136. Slices 869-878 add a compact interval-coverage summary to the first-wave
      summary report, then rerun the three-surface smoke under
      `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/`.

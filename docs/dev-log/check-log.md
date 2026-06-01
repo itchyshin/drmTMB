@@ -46680,3 +46680,67 @@ Member-group review:
   readiness helper while Bohr prepared the correlation-block wrapper helper and
   Ampere prepared family-surface status tables. Russell later audited the
   combined bundle before PR staging.
+
+## 2026-06-01 - Phase 18 artifact-grain preflight
+
+Goal:
+
+- Add a small first-wave preflight that separates replicate-ready simulation
+  artifacts from aggregate-only, missing, empty, mixed-grain, and missing-grain
+  artifacts before report templates draw replicate-error clouds.
+
+Changes:
+
+- Added `phase18_first_wave_artifact_grain_status()` to inspect the selected
+  first-wave table artifacts by surface and classify their `artifact_grain`.
+- Updated `phase18_write_first_wave_table_bundle()` to write
+  `phase18-first-wave-artifact-grain-status.csv` beside the combined table
+  bundle.
+- Passed the grain-status CSV through
+  `phase18_first_wave_summary_report_params()` and displayed it in
+  `phase18-first-wave-summary-report.Rmd`.
+- Updated the Phase 18 simulation README, Phase 18 design note, ROADMAP row
+  1829, and after-task report.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_write_first_wave_table_bundle.R', 'inst/sim/run/sim_render_first_wave_summary_report.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-table-bundle$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-render-helper)$', reporter = 'summary')"
+air format inst/sim/run/sim_write_first_wave_table_bundle.R inst/sim/run/sim_render_first_wave_summary_report.R tests/testthat/test-phase18-first-wave-table-bundle.R tests/testthat/test-phase18-first-wave-summary-render-helper.R inst/sim/reports/phase18-first-wave-summary-report.Rmd inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-artifact-grain-preflight.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "phase18-first-wave-artifact-grain-status|artifact-grain status|artifact_grain|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+git diff --check
+```
+
+Results:
+
+- The parse check passed.
+- The focused table-bundle package test passed after loading the current
+  worktree.
+- The adjacent table-bundle plus summary-render-helper tests passed before and
+  after formatting.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain stale-wording scan found the new preflight language plus
+  older historical pseudo-replicate audit notes; no current report wording
+  claims aggregate rows can produce replicate clouds.
+- `git diff --check` passed.
+- GitHub issue maintenance inspected open issue #255, opened PR #458 with
+  `Refs #255`, posted a sync note on #255, and left the issue open because
+  downstream figure/report consumers still need to require
+  `grain_status = "replicate_ready"` before drawing replicate-error clouds.
+
+Member-group review:
+
+- Ada kept the change scoped to report staging and issue #255 rather than
+  dispatching a new grid.
+- Curie added positive and negative grain-status coverage for replicate,
+  aggregate, missing, empty, mixed-grain, and missing-grain inputs.
+- Florence's boundary is explicit: only `replicate_ready` rows may support
+  replicate-error clouds.
+- Fisher checked that aggregate-only rows remain points, bars, and MCSE inputs
+  rather than pseudo-replicate distributions.
+- Rose kept the missing-data lane untouched and recorded this as a Phase 18
+  artifact-grain preflight, not a new simulation-evidence claim.
