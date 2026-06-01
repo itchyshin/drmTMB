@@ -113,6 +113,14 @@ Claude Code should read this file first. It should not introduce a parallel
 agent configuration system inside the package unless the project owner asks for
 one.
 
+The launchable team agents live in two mirrored directories: `.codex/agents/`
+for Codex and `.claude/agents/` for Claude Code. The two sets are one-to-one and
+share verbatim instruction bodies. When an agent is added or its instructions
+change, update both directories in the same change so the runtimes do not drift.
+The standing review names below (Ada, Boole, Noether, Darwin, Florence, Emmy,
+Fisher) are ad-hoc perspectives launched for bounded tasks; they do not have
+dedicated agent files in either directory.
+
 ## Standing Review Roles
 
 These names are shorthand for recurring review perspectives. They do not run

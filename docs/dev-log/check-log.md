@@ -47237,3 +47237,35 @@ Member-group review:
   `summary()` or `corpairs()` bootstrap support.
 - Rose removed the stale NEWS contradiction and kept derived intervals visible
   as follow-up work.
+
+## 2026-06-01 - Claude agent team mirror (branch claude/clause-team-analysis-s1RRw)
+
+Task: mirror `.codex/agents/` into `.claude/agents/` so Claude Code can launch
+the same team as Codex.
+
+- Created 10 `.claude/agents/*.md` subagents, one per `.codex/agents/*.toml`,
+  with instruction bodies copied verbatim. `model_reasoning_effort` high/medium
+  mapped to opus/sonnet; tools scoped by role posture.
+- Added a sync note to `AGENTS.md` and a "Launchable Team Agents" section to
+  `CLAUDE.md`: keep `.codex/agents/` and `.claude/agents/` one-to-one.
+- Checks run: `ls .claude/agents/` (10 files, parity with the TOMLs);
+  `rg -n '^(name|description|model|tools):' .claude/agents/` (valid frontmatter);
+  verbatim-body diff vs the TOMLs; `rg -n "rho12|sigma|tau" .claude/agents/`
+  (canonical names intact, no `tau`); `git status` (only intended files; no
+  R/src/tests changes).
+- NOT run: `devtools::document/test/check` — R toolchain absent in this web
+  container and this change touches no R or C++ code.
+- Follow-up logged in `team-improvements.md`: Curie role-name collision between
+  `AGENTS.md` (simulation/testing) and the literature-curator agent (literature
+  curator).
+
+## 2026-06-01 - Resolve Curie role-name collision (branch claude/clause-team-analysis-s1RRw)
+
+- Owner decision: Curie = simulation/testing specialist (matches AGENTS.md table).
+- Bound Curie to `simulation_tester` in both `.codex/agents/simulation-tester.toml`
+  and `.claude/agents/simulation-tester.md` (verbatim opening line in sync).
+- Removed the "You are Curie" claim from the literature/methods curator in both
+  `.codex/agents/literature-curator.toml` and `.claude/agents/literature-curator.md`.
+- Checks: `rg -n "You are Curie" .codex .claude` -> only the two simulation-tester
+  files; AGENTS.md table line 142 unchanged and now consistent; codex/claude
+  bodies for both agents kept identical.
