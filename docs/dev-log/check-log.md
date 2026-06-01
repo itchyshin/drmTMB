@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-01 -- Twin/sister exchange closeout
+
+Goal:
+
+- Close #437 by making the daily exchange protocol, first scout cards,
+  provenance corrections, and transfer-of-evidence boundary repo-visible on
+  `main`.
+
+Changes:
+
+- Added `docs/dev-log/twin-sister-exchange.md`.
+- Recorded the scout-card protocol, accepted planning lessons from `DRM.jl`,
+  `GLLVM.jl`, and `gllvmTMB`, and the explicit rule that sister-package speed,
+  coverage, recovery, or convergence results do not count as `drmTMB` evidence
+  until reproduced locally.
+- Locked in the `GLLVM.jl` package-name correction and the preferred
+  `meta_V(V = V)` wording.
+- Updated ROADMAP Slice 79 and the #446 simulation-plan routing note.
+- Added
+  `docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'Twin/Sister Exchange Log|#437|DRM\\.jl|GLLVM\\.jl|gllvmTMB|meta_V\\(V = V\\)|sibling-package speed|without local validation|no external code was copied' docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/design/148-phase6c-random-slope-simulation-plan.md
+rg -n 'Twin/sister exchange closeout|Slice 79|#437.*coordination|no sibling speed' ROADMAP.md docs/dev-log/check-log.md
+rg -n 'GLLVM\\.jl.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|gllvmTMB.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|DRM\\.jl.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|sister-package.*(speed|coverage|recovery|convergence).*counts? as drmTMB evidence' ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/twin-sister-exchange.md README.md NEWS.md vignettes
+rg -n 'gllvmTMB\\.jl' docs/dev-log/twin-sister-exchange.md ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md README.md NEWS.md vignettes
+git diff --check
+```
+
+Results:
+
+- `air format` completed without changes after the final edit.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The positive scan found the #437 ledger title, scout sources, naming
+  corrections, no-transfer boundary, ROADMAP Slice 79, check-log entry, and
+  after-task report.
+- The stale-transfer scan returned no matches for sister-package speed,
+  coverage, recovery, or convergence claims being counted as `drmTMB`
+  evidence.
+- The `gllvmTMB.jl` scan found only the intentional correction in
+  `docs/dev-log/twin-sister-exchange.md`.
+- `git diff --check` passed.
+
 ## 2026-05-31 -- Random-Slope Registry Preflight
 
 Goal:

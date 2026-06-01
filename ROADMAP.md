@@ -690,6 +690,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   slope smoke artifacts, and structured Gaussian one-slope wrapper pilots. A
   diagnostic pilot can propose a formal grid; it cannot by itself create
   recovery, coverage, or power claims.
+- Twin/sister exchange closeout: #437 is closed at the coordination level by
+  `docs/dev-log/twin-sister-exchange.md`. The first exchange loop accepted
+  process lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB` for planning only:
+  keep evidence tiers separate, keep simulation denominators visible, and pair
+  reader docs with status maps. No sister-package speed, convergence, coverage,
+  or recovery result is treated as `drmTMB` evidence without local validation,
+  and no external code was copied.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
   random-effect correlation regressions only; plural `corpairs()` is an
@@ -710,6 +717,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
 | 77 | Random-effect slope capacity closeout | Close #128 by tying the current location, scale, bivariate, structured, and non-Gaussian random-slope boundaries to the support matrix, known-limitations ledger, tests, and Phase 18 simulation handoff. | Done locally: `docs/design/59-structural-slope-and-non-gaussian-map.md`, README stable-core rows, `docs/dev-log/known-limitations.md`, and current tests now provide the issue-linked capacity table. Unsupported residual-scale structured slopes, slope-specific `sd()` models, p8/q8 endpoint covariance, and broad non-Gaussian structured slopes remain planned follow-ups. |
 | 78 | Random-slope tutorial and release ledger | Close #444 by tying the reader-facing random-slope course path to model-map status, location-scale equations and diagnostics, bivariate slope-slope guidance, reference-index discoverability, and a finished-versus-planned release ledger. | Done locally: `vignettes/location-scale.Rmd`, `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`, and `docs/design/151-phase6c-random-slope-tutorial-ledger.md` now record the ordinary, residual-scale, bivariate, non-Gaussian, structured, `sd(group)`, `rho12`, `corpair()`, and `corpairs()` teaching boundaries. Unsupported cells remain explicit planned neighbours rather than runnable tutorial syntax. |
+| 79 | Twin/sister exchange closeout | Close #437 by making the daily exchange protocol, first scout cards, provenance corrections, and transfer-of-evidence boundary repo-visible on `main`. | Done locally: `docs/dev-log/twin-sister-exchange.md` records the accepted planning lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`, locks the `GLLVM.jl` and `meta_V(V = V)` naming corrections, and states that no sibling speed, coverage, recovery, or code claim transfers to `drmTMB` without local validation. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 

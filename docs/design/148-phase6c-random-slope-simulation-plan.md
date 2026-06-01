@@ -230,6 +230,6 @@ permit public recovery, coverage, or power claims.
 #446 is closed by this plan once the check-log and after-task report record
 validation. #59 remains open for the broader Phase 18 programme. #444 owns the
 reader-facing tutorial and release-ledger path after the simulation status is
-stable. #437 owns the recurring cross-repo scout protocol and should not be
-used as evidence that another package's speed, convergence, or coverage
-transfers to `drmTMB`.
+stable. The first #437 scout protocol is recorded in
+`docs/dev-log/twin-sister-exchange.md`; it should not be used as evidence that
+another package's speed, convergence, or coverage transfers to `drmTMB`.
