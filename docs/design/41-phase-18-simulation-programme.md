@@ -1358,3 +1358,9 @@ errors, and elapsed time by surface before the raw manifest.
      `artifact_grain = "replicate"` before its bias panel draws
      replicate-error points, so an aggregate-shaped CSV with `error` columns
      cannot create a fake cloud.
+239. Slice 1832 closes the current artifact-grain contract in
+     `docs/design/150-phase-18-artifact-grain-closeout.md`. The table-bundle
+     tests now cover `gaussian_ls_grid`, `meta_v_grid`,
+     `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and
+     `biv_rho12_grid`, keeping aggregate-only rows out of replicate-cloud
+     displays and moving future gallery hygiene to #461.
