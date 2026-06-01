@@ -46966,3 +46966,53 @@ Member-group review:
 - Florence kept cloud-style display tied to actual replicate-level evidence.
 - Fisher kept aggregate MCSE evidence separate from replicate-error rows.
 - Rose confirmed the missing-data lane was untouched.
+
+## 2026-06-01 - Random-slope capacity closeout
+
+Goal:
+
+- Close #128 by tying the current random-effect slope capacity table to the
+  existing implementation, tests, status docs, and Phase 18 simulation handoff.
+
+Changes:
+
+- Marked `docs/design/59-structural-slope-and-non-gaussian-map.md` as the #128
+  closeout ledger.
+- Added ROADMAP Slice 77 for the random-effect slope capacity closeout.
+- Added an after-task report for the closeout.
+
+Validation:
+
+```sh
+air format docs/design/59-structural-slope-and-non-gaussian-map.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-random-slope-capacity-closeout.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n '#128|Random-effect slope capacity closeout|ordinary Gaussian `mu`|residual-scale `sigma`|bivariate slope-only|structured Gaussian one-slope|p8/q8|coefficient-specific `sd`|correlated non-Gaussian slopes' README.md ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/known-limitations.md tests/testthat
+rg -n 'Gaussian location-scale models are implemented|Residual-scale random intercepts|Bivariate Gaussian location-scale-coscale models|Phylogenetic, coordinate-spatial|corpairs\(\) currently reports only correlations' docs/dev-log/known-limitations.md
+rg -n 'Gaussian mu supports q > 2|Gaussian sigma supports independent residual-scale random slopes|random slopes in bivariate models remain planned|non-Gaussian mu supports independent numeric random slopes|Phase 18 random-slope workflow plan returns admitted rows' tests/testthat
+rg -n 'random effects in `rho12` (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)|correlated non-Gaussian slopes (are )?(fitted|implemented)|coefficient-specific `sd`.*(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat || true
+git diff --check
+```
+
+Results:
+
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The positive capacity scans found the issue-linked design map, ROADMAP row,
+  known-limitations entries, and current test evidence for ordinary Gaussian
+  q > 2, Gaussian residual-scale slopes, bivariate planned-boundary tests,
+  selected non-Gaussian `mu` slopes, and Phase 18 random-slope workflow rows.
+- The stale wording scan found no current claim that random effects in
+  `rho12`, residual-scale structured slopes, p8/q8 endpoint covariance,
+  correlated non-Gaussian slopes, or coefficient-specific `sd()` slope models
+  are fitted.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice as issue closeout/status work instead of adding another
+  model surface.
+- Boole checked that formula grammar status did not change.
+- Curie traced the existing source-test handles rather than adding redundant
+  tests.
+- Fisher kept fitted support separate from simulation recovery, coverage, and
+  power evidence.
+- Rose kept broad unsupported cells visible as planned follow-ups.
