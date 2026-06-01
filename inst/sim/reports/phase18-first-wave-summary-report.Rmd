@@ -169,6 +169,96 @@ phase18_bias_overview_data <- function(data) {
   out
 }
 
+phase18_replicate_cloud_gate <- function(data) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data.frame())
+  }
+
+  source_surface <- phase18_missing_text(
+    data,
+    "source_surface",
+    "unknown_surface"
+  )
+  grain_status <- phase18_missing_text(
+    data,
+    "grain_status",
+    "unknown_grain_status"
+  )
+  replicate_allowed <- if ("replicate_cloud_allowed" %in% names(data)) {
+    as.logical(data$replicate_cloud_allowed)
+  } else {
+    grain_status == "replicate_ready"
+  }
+  replicate_allowed[is.na(replicate_allowed)] <- FALSE
+
+  key <- source_surface
+  groups <- split(seq_len(nrow(data)), key)
+  out <- do.call(
+    rbind,
+    lapply(groups, function(index) {
+      n_replicate_ready <- sum(
+        replicate_allowed[index] | grain_status[index] == "replicate_ready"
+      )
+      n_aggregate_only <- sum(grain_status[index] == "aggregate_only")
+      n_not_cloud_ready <- length(index) - n_replicate_ready
+      gate <- if (n_replicate_ready > 0L) {
+        "replicate_clouds_allowed"
+      } else if (n_aggregate_only > 0L) {
+        "aggregate_only_no_clouds"
+      } else {
+        "no_replicate_artifact_ready"
+      }
+      display_rule <- switch(
+        gate,
+        replicate_clouds_allowed = paste(
+          "Replicate-error clouds may use replicate-ready rows for this",
+          "surface."
+        ),
+        aggregate_only_no_clouds = paste(
+          "Use aggregate points, bars, and MCSE intervals; do not draw",
+          "replicate-error clouds."
+        ),
+        no_replicate_artifact_ready = paste(
+          "Do not draw replicate-error clouds until a replicate-ready",
+          "artifact exists."
+        )
+      )
+      data.frame(
+        source_surface = source_surface[index[1L]],
+        replicate_cloud_gate = gate,
+        n_replicate_ready = n_replicate_ready,
+        n_aggregate_only = n_aggregate_only,
+        n_not_cloud_ready = n_not_cloud_ready,
+        display_rule = display_rule,
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+  row.names(out) <- NULL
+  out[order(out$source_surface), , drop = FALSE]
+}
+
+phase18_add_replicate_cloud_gate <- function(data, gate) {
+  if (is.null(data) || nrow(data) == 0L) {
+    return(data)
+  }
+  if (is.null(gate) || nrow(gate) == 0L) {
+    data$replicate_cloud_gate <- "no_grain_status_supplied"
+    return(data)
+  }
+  data$source_surface <- phase18_missing_text(
+    data,
+    "source_surface",
+    "unknown_surface"
+  )
+  match_index <- match(data$source_surface, gate$source_surface)
+  out <- data
+  out$replicate_cloud_gate <- gate$replicate_cloud_gate[match_index]
+  out$replicate_cloud_gate[is.na(out$replicate_cloud_gate)] <-
+    "no_grain_status_supplied"
+  out
+}
+
 phase18_bind_tables <- function(pieces) {
   pieces <- Filter(function(x) is.data.frame(x) && nrow(x) > 0L, pieces)
   if (length(pieces) == 0L) {
@@ -347,6 +437,7 @@ interval_coverage <- phase18_bind_interval_coverage(
 )
 interval_diagnostics <- phase18_read_optional_csv(params$interval_diagnostics_csv)
 interval_failures <- phase18_read_optional_csv(params$interval_failures_csv)
+replicate_cloud_gate <- phase18_replicate_cloud_gate(artifact_grain_status)
 
 if (
   isTRUE(params$require_complete) &&
@@ -409,6 +500,23 @@ phase18_show_table(
 )
 ```
 
+# Replicate Cloud Gate
+
+```{r replicate-cloud-gate}
+phase18_show_table(
+  replicate_cloud_gate,
+  "No replicate-cloud gate rows supplied.",
+  c(
+    "source_surface",
+    "replicate_cloud_gate",
+    "n_replicate_ready",
+    "n_aggregate_only",
+    "n_not_cloud_ready",
+    "display_rule"
+  )
+)
+```
+
 # Aggregate Operating Characteristics
 
 ```{r aggregate}
@@ -438,6 +546,12 @@ phase18_show_table(
 
 ```{r aggregate-bias-overview, fig.width=8.5, fig.height=5}
 bias_overview <- phase18_bias_overview_data(aggregate)
+if (!is.null(bias_overview)) {
+  bias_overview <- phase18_add_replicate_cloud_gate(
+    bias_overview,
+    replicate_cloud_gate
+  )
+}
 if (is.null(bias_overview)) {
   cat("No finite aggregate-bias rows to plot.\n")
 } else if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -474,8 +588,8 @@ if (is.null(bias_overview)) {
       colour = "Surface",
       caption = paste(
         "Full parameter names are listed below. Aggregate rows only;",
-        "replicate-level clouds belong to the",
-        "later Florence-reviewed simulation figures."
+        "replicate-level clouds require",
+        "`replicate_cloud_gate = replicate_clouds_allowed`."
       )
     ) +
     ggplot2::theme_minimal(base_size = 11) +
@@ -493,7 +607,8 @@ if (is.null(bias_overview)) {
     "n_replicate",
     "bias",
     "rmse",
-    "bias_mcse"
+    "bias_mcse",
+    "replicate_cloud_gate"
   )
   phase18_show_table(
     bias_overview[intersect(bias_columns, names(bias_overview))],
@@ -635,6 +750,8 @@ phase18_show_table(
 - Do any surfaces have missing or empty artifacts that change interpretation?
 - Which artifacts are replicate-ready, aggregate-only, or missing grain tags
   before any replicate-cloud figures are drawn?
+- Does each surface's replicate-cloud gate allow clouds, or should the report
+  keep aggregate points, bars, and MCSE intervals only?
 - Are convergence rate, Hessian rate, warning rate, and elapsed-time summaries
   visible for each estimand?
 - Does the aggregate-bias overview point to rows that need replicate-level

@@ -41,9 +41,11 @@ surface/artifact pair as replicate-ready, aggregate-only, missing, empty,
 mixed-grain, or missing-grain before any report draws replicate-error clouds.
 The
 `reports/phase18-first-wave-summary-report.Rmd` skeleton reads those staged
-tables and the grain-status preflight into one reader-facing page, putting
-priority columns first and capping displayed rows before any publication-style
-figures are added.
+tables and the grain-status preflight into one reader-facing page. It also
+derives a per-surface replicate-cloud gate, so aggregate-only surfaces stay on
+points, bars, and MCSE intervals until a replicate-ready artifact exists.
+Priority columns stay first and displayed rows are capped before any
+publication-style figures are added.
 `run/sim_render_first_wave_summary_report.R` orchestrates the status writer,
 table-bundle writer, and optional HTML summary render in one call.
 
