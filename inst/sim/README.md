@@ -47,6 +47,11 @@ points, bars, and MCSE intervals until a replicate-ready artifact exists.
 The #255 closeout test covers the current `gaussian_ls_grid`, `meta_v_grid`,
 `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and
 `biv_rho12_grid` first-wave surface names under that gate.
+`R/sim_gallery_grain.R` provides the shared future-gallery gate: a report may
+draw replicate-error clouds only when required plot columns are present and
+the table carries either `artifact_grain = "replicate"` or
+`replicate_cloud_gate = "replicate_clouds_allowed"` without a conflicting
+grain marker.
 Priority columns stay first and displayed rows are capped before any
 publication-style figures are added.
 `run/sim_render_first_wave_summary_report.R` orchestrates the status writer,
@@ -698,3 +703,4 @@ Current pilot files:
   warning/error summaries, and full warning/error ledgers.
 - `reports/phase18-count-mu-gallery.Rmd` is the first Florence-facing figure
   gallery template for paired Poisson/NB2 `mu` random-effect pilot outputs.
+  It sources `R/sim_gallery_grain.R` before drawing replicate-error clouds.

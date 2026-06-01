@@ -38,6 +38,11 @@ coverage <- phase18_read_optional_csv(params$coverage_csv)
 manifest <- phase18_read_optional_csv(params$manifest_csv)
 failures <- phase18_read_optional_csv(params$failures_csv)
 has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+source(system.file(
+  "sim/R/sim_gallery_grain.R",
+  package = "drmTMB",
+  mustWork = TRUE
+))
 
 phase18_count_gallery_palette <- c(Poisson = "#0072B2", NB2 = "#D55E00")
 phase18_count_gallery_class_palette <- c(
@@ -108,11 +113,10 @@ phase18_count_gallery_add_mcse_interval <- function(data, metric) {
 }
 
 phase18_count_gallery_has_replicates <- function(data) {
-  is.data.frame(data) &&
-    nrow(data) > 0L &&
-    all(c("error", "term", "family", "parameter_class") %in% names(data)) &&
-    "artifact_grain" %in% names(data) &&
-    all(as.character(data$artifact_grain) == "replicate")
+  phase18_gallery_can_draw_replicate_cloud(
+    data,
+    required_columns = c("error", "term", "family", "parameter_class")
+  )
 }
 
 phase18_plot_count_bias <- function(data, replicate_data = NULL) {
@@ -183,7 +187,8 @@ phase18_plot_count_bias <- function(data, replicate_data = NULL) {
       subtitle = if (is.null(replicate_data)) {
         paste(
           "Aggregate mean errors are shown here;",
-          "replicate-error clouds require a replicate-level CSV."
+          "replicate-error clouds require artifact_grain = 'replicate'",
+          "or replicate_cloud_gate = 'replicate_clouds_allowed'."
         )
       } else {
         paste(

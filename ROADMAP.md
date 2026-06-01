@@ -1981,6 +1981,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1830 | Replicate-cloud gate | Done locally: the first-wave summary report now derives a per-surface `replicate_cloud_gate` from the artifact-grain status table and carries that gate into aggregate-bias rows, so aggregate-only surfaces stay on points, bars, and MCSE intervals until a replicate-ready artifact exists. |
 | 1831 | Count-gallery grain gate | Done locally: the count-pilot gallery bias panel now treats replicate CSVs as cloud-ready only when `artifact_grain = "replicate"`, and the rendered template test covers an aggregate-grain CSV with error columns so aggregate-shaped inputs cannot create fake replicate-error clouds. |
 | 1832 | Artifact-grain closeout | Done locally: `docs/design/150-phase-18-artifact-grain-closeout.md` records the #255 current guarantee, and the first-wave table-bundle test now covers `gaussian_ls_grid`, `meta_v_grid`, `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and `biv_rho12_grid` so aggregate-only rows stay out of replicate-cloud displays. Future gallery hygiene is tracked in #461. |
+| 1833 | Future-gallery grain helper | Done locally: `inst/sim/R/sim_gallery_grain.R` provides the reusable Phase 18 gate for cloud-style gallery geometry. The count-pilot gallery now uses it, and tests cover replicate-grain, aggregate-grain, derived-gate, conflicting-gate, and missing-column inputs before future galleries reuse the contract. |
 
 ### Pre-Simulation Readiness Slice Map
 

@@ -17,13 +17,14 @@ test_that("Phase 18 count gallery template is installed and reader-facing", {
   expect_true(grepl("No warning/error ledger CSV supplied", text, fixed = TRUE))
   expect_true(grepl("phase18_count_gallery_theme", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_bias", text, fixed = TRUE))
-  expect_true(grepl("replicate_csv", text, fixed = TRUE))
-  expect_true(grepl("artifact_grain", text, fixed = TRUE))
+  expect_true(grepl("sim_gallery_grain.R", text, fixed = TRUE))
   expect_true(grepl(
-    'as.character(data$artifact_grain) == "replicate"',
+    "phase18_gallery_can_draw_replicate_cloud",
     text,
     fixed = TRUE
   ))
+  expect_true(grepl("replicate_csv", text, fixed = TRUE))
+  expect_true(grepl("artifact_grain", text, fixed = TRUE))
   expect_true(grepl("replicate-level errors", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_rmse", text, fixed = TRUE))
   expect_true(grepl("Monte Carlo uncertainty", text, fixed = TRUE))
@@ -219,4 +220,49 @@ test_that("Phase 18 count gallery does not fake clouds from aggregate grain", {
   expect_true(file.exists(out))
   html <- paste(readLines(out, warn = FALSE), collapse = "\n")
   expect_true(grepl("aggregate grain smoke", html, fixed = TRUE))
+})
+
+test_that("Phase 18 gallery grain helper gates replicate-cloud inputs", {
+  source(system.file(
+    "sim/R/sim_gallery_grain.R",
+    package = "drmTMB",
+    mustWork = TRUE
+  ))
+  required <- c("error", "term", "family", "parameter_class")
+  base <- data.frame(
+    family = "Poisson",
+    parameter_class = "fixed_effect",
+    term = "x",
+    error = 0.01
+  )
+
+  expect_false(phase18_gallery_can_draw_replicate_cloud(base, required))
+
+  replicate_ready <- base
+  replicate_ready$artifact_grain <- "replicate"
+  expect_true(
+    phase18_gallery_can_draw_replicate_cloud(replicate_ready, required)
+  )
+
+  aggregate_grain <- base
+  aggregate_grain$artifact_grain <- "aggregate"
+  expect_false(
+    phase18_gallery_can_draw_replicate_cloud(aggregate_grain, required)
+  )
+
+  gate_ready <- base
+  gate_ready$replicate_cloud_gate <- "replicate_clouds_allowed"
+  expect_true(phase18_gallery_can_draw_replicate_cloud(gate_ready, required))
+
+  conflicting_gate <- replicate_ready
+  conflicting_gate$replicate_cloud_gate <- "aggregate_only_no_clouds"
+  expect_false(
+    phase18_gallery_can_draw_replicate_cloud(conflicting_gate, required)
+  )
+
+  missing_required <- replicate_ready
+  missing_required$error <- NULL
+  expect_false(
+    phase18_gallery_can_draw_replicate_cloud(missing_required, required)
+  )
 })

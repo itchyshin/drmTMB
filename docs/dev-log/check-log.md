@@ -46913,3 +46913,56 @@ Member-group review:
   input.
 - Fisher kept aggregate MCSE evidence separate from replicate-error evidence.
 - Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 future-gallery grain helper
+
+Goal:
+
+- Close #461 by giving future Phase 18 galleries a reusable artifact-grain
+  predicate instead of copying local `artifact_grain` checks.
+
+Changes:
+
+- Added `inst/sim/R/sim_gallery_grain.R` with
+  `phase18_gallery_can_draw_replicate_cloud()`.
+- Routed `reports/phase18-count-mu-gallery.Rmd` through the helper before the
+  bias panel can draw replicate-error clouds.
+- Updated the count-gallery template tests with direct helper coverage for
+  replicate grain, aggregate grain, derived gate, conflicting gate, and missing
+  required columns.
+- Updated the Phase 18 README, simulation-programme design ledger, artifact
+  grain closeout note, and ROADMAP row 1833.
+
+Validation:
+
+```sh
+air format inst/sim/R/sim_gallery_grain.R inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/150-phase-18-artifact-grain-closeout.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-template$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-template$|^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "phase18_gallery_can_draw_replicate_cloud|sim_gallery_grain|replicate_cloud_gate = 'replicate_clouds_allowed'|Future-gallery grain helper|#461|Slice 1833|1833|fake.*cloud|aggregate-grain|artifact_grain = \"replicate\"" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+git diff --check
+```
+
+Results:
+
+- The first focused count-gallery run failed because the template no longer
+  contained the literal `artifact_grain` predicate after the helper extraction.
+  The no-cloud subtitle now states both accepted gate forms, and the rerun
+  passed.
+- The focused first-wave table-bundle, summary-report, and summary-render
+  helper tests passed.
+- The combined focused rerun passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The status scan found the new helper, count-gallery hook, ROADMAP row 1833,
+  #461 references, and historical artifact-grain notes.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the task scoped to #461 future-gallery hygiene.
+- Curie added direct helper tests instead of relying only on rendered HTML.
+- Florence kept cloud-style display tied to actual replicate-level evidence.
+- Fisher kept aggregate MCSE evidence separate from replicate-error rows.
+- Rose confirmed the missing-data lane was untouched.
