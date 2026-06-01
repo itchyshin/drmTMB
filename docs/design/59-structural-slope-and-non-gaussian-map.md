@@ -1,5 +1,11 @@
 # Structural Slopes And Non-Gaussian Dependence Map
 
+This note is the closeout ledger for #128. It keeps ordinary location
+slopes, residual-scale slopes, random-effect scale models, bivariate slope
+blocks, structured Gaussian slopes, and non-Gaussian random-effect slices in
+separate rows so the package does not promote a nearby fitted cell as broad
+random-slope parity.
+
 This note answers two user-facing status questions after the post-0.1.3
 structural-parity slices:
 
