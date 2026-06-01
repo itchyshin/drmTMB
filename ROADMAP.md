@@ -700,8 +700,15 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 - Sprint parent closeout: #436 is closed at the capability-ledger level by
   `docs/design/152-phase6c-random-slope-sprint-closeout.md`. Its child issues
   #437, #438, #439, #440, #441, #442, #443, #444, and #446 are closed on
-  `main`; #33, #59, #60, #147, #265, #342, #61, and #5 remain open for broader
-  structured-slope, simulation, comparator, release, interval, and covariance
+  `main`; #33, #59, #60, #147, #342, #61, and #5 remain open for broader
+  structured-slope, simulation, comparator, release, and covariance work.
+- Public bootstrap interval closeout: #265 is closed at the first public
+  direct-target boundary by
+  `docs/design/153-public-bootstrap-interval-closeout.md`. `confint(...,
+  method = "bootstrap")` is available for selected direct fitted-object
+  targets with refit success/failure metadata; `summary()`, `corpairs()`,
+  prediction tables, `newdata`, derived q4 correlations, repeatability,
+  phylogenetic signal, and operating-characteristic claims remain separate
   work.
 - Coscale boundary: in current docs, coscale means residual bivariate Gaussian
   `rho12`; singular `corpair()` is a formula marker for supported latent
@@ -724,7 +731,8 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 77 | Random-effect slope capacity closeout | Close #128 by tying the current location, scale, bivariate, structured, and non-Gaussian random-slope boundaries to the support matrix, known-limitations ledger, tests, and Phase 18 simulation handoff. | Done locally: `docs/design/59-structural-slope-and-non-gaussian-map.md`, README stable-core rows, `docs/dev-log/known-limitations.md`, and current tests now provide the issue-linked capacity table. Unsupported residual-scale structured slopes, slope-specific `sd()` models, p8/q8 endpoint covariance, and broad non-Gaussian structured slopes remain planned follow-ups. |
 | 78 | Random-slope tutorial and release ledger | Close #444 by tying the reader-facing random-slope course path to model-map status, location-scale equations and diagnostics, bivariate slope-slope guidance, reference-index discoverability, and a finished-versus-planned release ledger. | Done locally: `vignettes/location-scale.Rmd`, `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`, and `docs/design/151-phase6c-random-slope-tutorial-ledger.md` now record the ordinary, residual-scale, bivariate, non-Gaussian, structured, `sd(group)`, `rho12`, `corpair()`, and `corpairs()` teaching boundaries. Unsupported cells remain explicit planned neighbours rather than runnable tutorial syntax. |
 | 79 | Twin/sister exchange closeout | Close #437 by making the daily exchange protocol, first scout cards, provenance corrections, and transfer-of-evidence boundary repo-visible on `main`. | Done locally: `docs/dev-log/twin-sister-exchange.md` records the accepted planning lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`, locks the `GLLVM.jl` and `meta_V(V = V)` naming corrections, and states that no sibling speed, coverage, recovery, or code claim transfers to `drmTMB` without local validation. |
-| 80 | Sprint parent closeout | Close #436 by reconciling child issue state, evidence handles, transfer-of-evidence boundaries, and remaining open follow-up issues. | Done locally: `docs/design/152-phase6c-random-slope-sprint-closeout.md` records that #437-#444 and #446 are closed, keeps fitted/source-tested/artifact-ready/planned/unsupported cells separate, and routes remaining broad work to #33, #59, #60, #147, #265, #342, #61, and #5. |
+| 80 | Sprint parent closeout | Close #436 by reconciling child issue state, evidence handles, transfer-of-evidence boundaries, and remaining open follow-up issues. | Done locally: `docs/design/152-phase6c-random-slope-sprint-closeout.md` records that #437-#444 and #446 are closed, keeps fitted/source-tested/artifact-ready/planned/unsupported cells separate, and routes remaining broad work to #33, #59, #60, #147, #342, #61, and #5. |
+| 81 | Public bootstrap interval closeout | Close #265 by mapping the public bootstrap interval checklist to current `confint()`, target extraction, refit metadata, docs, tests, and limitations. | Done locally: `docs/design/153-public-bootstrap-interval-closeout.md` records that `confint(..., method = "bootstrap")` is implemented for selected direct fitted-object targets and remains explicitly separate from summary/extractor routing, `newdata`, derived intervals, and Phase 18 coverage or power claims. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 
@@ -1446,8 +1454,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
 | 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
 | 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
-| 170 | Bootstrap intervals | Superseded by the fast-CI slice: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
-| 171 | Bootstrap intervals | Done for the first public boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
+| 170 | Bootstrap intervals | Superseded by the fast-CI slice and closed for #265's first boundary: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
+| 171 | Bootstrap intervals | Done for the first public #265 boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
 | 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata. Unsupported non-direct routes still stop before interval work. |
 | 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
 | 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`; direct bootstrap rows report refit success/failure metadata, while unsupported bootstrap surfaces still give explicit unavailable errors. |
