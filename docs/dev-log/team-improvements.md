@@ -424,3 +424,14 @@ issues, or pull requests.
 - Trigger: creating the Claude mirror required reading every agent definition
   side by side, which surfaced the collision. Mirroring was kept faithful
   (existing wording preserved) so the fix stays a deliberate decision.
+
+### 2026-06-01 - Curie collision resolved (owner decision: testing)
+
+Owner decided Curie is the simulation/testing specialist, matching the
+`AGENTS.md` standing-roles table. Applied in both runtimes: `simulation_tester`
+(`.codex/agents/simulation-tester.toml` and `.claude/agents/simulation-tester.md`)
+now opens with "You are Curie, the simulation and testing specialist for drmTMB.",
+and the literature/methods curator (`literature-curator` in both directories) no
+longer claims the Curie name. The literature-curator role stays nameless because
+the standing-roles table assigns it no canonical name (landscape/source-map
+scouting belongs to Jason).

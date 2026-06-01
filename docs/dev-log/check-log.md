@@ -47258,3 +47258,14 @@ the same team as Codex.
 - Follow-up logged in `team-improvements.md`: Curie role-name collision between
   `AGENTS.md` (simulation/testing) and the literature-curator agent (literature
   curator).
+
+## 2026-06-01 - Resolve Curie role-name collision (branch claude/clause-team-analysis-s1RRw)
+
+- Owner decision: Curie = simulation/testing specialist (matches AGENTS.md table).
+- Bound Curie to `simulation_tester` in both `.codex/agents/simulation-tester.toml`
+  and `.claude/agents/simulation-tester.md` (verbatim opening line in sync).
+- Removed the "You are Curie" claim from the literature/methods curator in both
+  `.codex/agents/literature-curator.toml` and `.claude/agents/literature-curator.md`.
+- Checks: `rg -n "You are Curie" .codex .claude` -> only the two simulation-tester
+  files; AGENTS.md table line 142 unchanged and now consistent; codex/claude
+  bodies for both agents kept identical.
