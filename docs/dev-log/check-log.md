@@ -46744,3 +46744,61 @@ Member-group review:
   rather than pseudo-replicate distributions.
 - Rose kept the missing-data lane untouched and recorded this as a Phase 18
   artifact-grain preflight, not a new simulation-evidence claim.
+
+## 2026-06-01 - Phase 18 replicate-cloud gate
+
+Goal:
+
+- Make the first-wave summary report consume the artifact-grain preflight as a
+  plotting gate, so aggregate-only surfaces cannot be read as ready for
+  replicate-error clouds.
+
+Changes:
+
+- Added `phase18_replicate_cloud_gate()` inside the first-wave summary report
+  template to derive a per-surface display gate from
+  `artifact_grain_status_csv`.
+- Added `phase18_add_replicate_cloud_gate()` so aggregate-bias overview rows
+  carry the gate status beside bias, RMSE, and MCSE fields.
+- Added a `Replicate Cloud Gate` table to
+  `phase18-first-wave-summary-report.Rmd`.
+- Updated the summary-report render test, Phase 18 README, Phase 18 design
+  note, ROADMAP row 1830, and after-task report.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-report$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(summary-report|summary-render-helper|table-bundle)$', reporter = 'summary')"
+air format inst/sim/reports/phase18-first-wave-summary-report.Rmd tests/testthat/test-phase18-first-wave-summary-report.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-replicate-cloud-gate.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "replicate_cloud_gate|Replicate Cloud Gate|replicate_clouds_allowed|aggregate_only_no_clouds|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+git diff --check
+```
+
+Results:
+
+- The focused summary-report test passed.
+- The adjacent summary-report, summary-render-helper, and table-bundle tests
+  passed together.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The gate/stale-wording scan found the new gate wording plus historical
+  pseudo-replicate audit notes; current first-wave report wording keeps
+  aggregate-only surfaces out of replicate clouds.
+- `git diff --check` passed.
+- A direct attempt to `parse()` the Rmd file failed on Rmd/YAML syntax; the
+  rendered test path is the valid check for this template.
+- The prose pass checked that the README, design note, ROADMAP row, check-log,
+  and after-task note state the same concrete gate without claiming new
+  simulation evidence.
+
+Member-group review:
+
+- Ada kept this as a report-staging gate rather than a new simulation run.
+- Curie covered the rendered aggregate-only gate in the summary-report smoke.
+- Florence's boundary is explicit in the report: replicate-error clouds need
+  `replicate_cloud_gate = "replicate_clouds_allowed"`.
+- Fisher checked that aggregate-bias rows remain aggregate evidence and do not
+  imply a replicate distribution.
+- Rose left the missing-data lane untouched.

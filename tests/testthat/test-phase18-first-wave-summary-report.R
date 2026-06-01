@@ -20,8 +20,11 @@ test_that("Phase 18 first-wave summary report template is installed", {
   expect_true(grepl("phase18_select_columns", text, fixed = TRUE))
   expect_true(grepl("phase18_failure_summary", text, fixed = TRUE))
   expect_true(grepl("phase18_bias_overview_data", text, fixed = TRUE))
+  expect_true(grepl("phase18_replicate_cloud_gate", text, fixed = TRUE))
+  expect_true(grepl("phase18_add_replicate_cloud_gate", text, fixed = TRUE))
   expect_true(grepl("phase18_interval_coverage_summary", text, fixed = TRUE))
   expect_true(grepl("phase18_manifest_summary", text, fixed = TRUE))
+  expect_true(grepl("Replicate Cloud Gate", text, fixed = TRUE))
   expect_true(grepl("Aggregate Bias Overview", text, fixed = TRUE))
   expect_true(grepl("Interval Coverage Summary", text, fixed = TRUE))
   expect_true(grepl("Run Manifest Summary", text, fixed = TRUE))
@@ -46,6 +49,10 @@ test_that("Phase 18 first-wave summary report renders bundled tables", {
   withr::defer(unlink(output_dir, recursive = TRUE))
 
   artifact_status_csv <- file.path(output_dir, "artifact-status.csv")
+  artifact_grain_status_csv <- file.path(
+    output_dir,
+    "artifact-grain-status.csv"
+  )
   aggregate_csv <- file.path(output_dir, "aggregate.csv")
   manifest_csv <- file.path(output_dir, "manifest.csv")
   failures_csv <- file.path(output_dir, "failures.csv")
@@ -61,6 +68,19 @@ test_that("Phase 18 first-wave summary report renders bundled tables", {
       n_empty_csv = 1L
     ),
     artifact_status_csv,
+    row.names = FALSE
+  )
+  write.csv(
+    data.frame(
+      source_surface = "gaussian_ls_grid",
+      source_artifact = "aggregate_csv",
+      artifact_grain = "aggregate",
+      grain_status = "aggregate_only",
+      plot_geometry = "aggregate_points_bars_mcse_only",
+      replicate_cloud_allowed = FALSE,
+      n_row = 1L
+    ),
+    artifact_grain_status_csv,
     row.names = FALSE
   )
   write.csv(
@@ -138,6 +158,7 @@ test_that("Phase 18 first-wave summary report renders bundled tables", {
     quiet = TRUE,
     params = list(
       artifact_status_csv = artifact_status_csv,
+      artifact_grain_status_csv = artifact_grain_status_csv,
       aggregate_csv = aggregate_csv,
       manifest_csv = manifest_csv,
       failures_csv = failures_csv,
@@ -154,6 +175,8 @@ test_that("Phase 18 first-wave summary report renders bundled tables", {
   html <- paste(readLines(out, warn = FALSE), collapse = "\n")
   expect_true(grepl("summary render smoke", html, fixed = TRUE))
   expect_true(grepl("gaussian_ls_grid", html, fixed = TRUE))
+  expect_true(grepl("Replicate Cloud Gate", html, fixed = TRUE))
+  expect_true(grepl("aggregate_only_no_clouds", html, fixed = TRUE))
   expect_true(grepl("Aggregate Bias Overview", html, fixed = TRUE))
   expect_true(grepl("Interval Coverage Summary", html, fixed = TRUE))
   expect_true(grepl("Interval Diagnostics", html, fixed = TRUE))

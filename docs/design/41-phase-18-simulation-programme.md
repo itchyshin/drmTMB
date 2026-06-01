@@ -247,8 +247,14 @@ table-only or aggregate geometry until their grain is repaired or their
 replicate-level CSV exists. A render helper now ties those staging pieces
 together by writing status outputs, writing bundled tables, and optionally
 rendering the HTML summary report from the staged CSVs. The summary report
-displays priority columns first and caps large tables, while leaving the full
-CSVs intact for downstream figures. It
+derives a per-surface replicate-cloud gate from the grain-status table before
+the aggregate-bias overview is interpreted. Surfaces with
+`replicate_cloud_gate = "replicate_clouds_allowed"` may feed later
+replicate-error figures; surfaces with `aggregate_only_no_clouds` or
+`no_replicate_artifact_ready` remain aggregate points, bars, and MCSE intervals
+until their replicate-level artifacts exist. The report displays priority
+columns first and caps large tables, while leaving the full CSVs intact for
+downstream figures. It
 also adds a compact warning/error summary above the raw ledger so recurring
 surface-level diagnostics are visible before a reader scans every event row. A
 first compact aggregate-bias overview gives reviewers a quick visual screen of
@@ -698,6 +704,9 @@ errors, and elapsed time by surface before the raw manifest.
      bundle and summary-report parameters so report staging can distinguish
      replicate-ready artifacts from aggregate-only, missing, empty,
      mixed-grain, and missing-grain artifacts before plotting.
+137. Slice 1830 adds a per-surface replicate-cloud gate to the first-wave
+     summary report, connecting artifact-grain status to the aggregate-bias
+     overview so aggregate-only surfaces cannot be read as cloud-ready.
 136. Slices 869-878 add a compact interval-coverage summary to the first-wave
      summary report, then rerun the three-surface smoke under
      `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/`.
