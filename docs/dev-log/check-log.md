@@ -46802,3 +46802,64 @@ Member-group review:
 - Fisher checked that aggregate-bias rows remain aggregate evidence and do not
   imply a replicate distribution.
 - Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 count-gallery grain gate
+
+Goal:
+
+- Make the first figure-producing Phase 18 gallery require replicate grain
+  before drawing replicate-error points.
+
+Changes:
+
+- Updated `phase18_count_gallery_has_replicates()` in
+  `phase18-count-mu-gallery.Rmd` so replicate-error points are drawn only when
+  the input has `artifact_grain = "replicate"`.
+- Updated the rendered count-gallery test so the ordinary replicate CSV carries
+  `artifact_grain = "replicate"`.
+- Added a rendered negative smoke with an aggregate-grain CSV that still has
+  `error` columns; the report must render without treating it as replicate
+  cloud input.
+- Updated the Phase 18 README, Phase 18 design note, ROADMAP row 1831, and
+  after-task report.
+- Moved the recent Slice 1829-1831 design-ledger entries to the current end of
+  the Phase 18 numbered ledger, avoiding duplicate local ordinal labels before
+  the older 869-918 entries.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-(template|render-helper)$|^phase18-sim-plot-data$', reporter = 'summary')"
+air format inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-count-gallery-grain-gate.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "artifact_grain = \"replicate\"|artifact_grain|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only|Faint points are replicate-level errors" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+rg -n "Slice 1829|Slice 1830|Slice 1831|136\\. Slice 1829|137\\. Slice 1830|138\\. Slice 1831|236\\. Slice 1829|237\\. Slice 1830|238\\. Slice 1831" docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- The focused count-gallery template, count-gallery render-helper, and
+  sim-plot-data tests passed together.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain stale-wording scan found the new count-gallery gate plus
+  historical pseudo-replicate audit notes; the current count gallery requires
+  `artifact_grain = "replicate"` before cloud-style bias points are drawn.
+- The design-ledger ordering scan found Slice 1829, 1830, and 1831 only at the
+  current ledger tail as rows 236-238.
+- `git diff --check` passed.
+- The prose pass checked that the README, design note, ROADMAP row, check-log,
+  and after-task note describe a display gate, not new simulation evidence.
+
+Member-group review:
+
+- Ada kept the change inside the existing count-pilot gallery instead of
+  adding a new plotting API.
+- Curie covered the positive replicate-grain path and the aggregate-grain
+  negative render smoke.
+- Florence's boundary now reaches an actual figure template, not only the
+  summary-report status table.
+- Fisher checked that an aggregate-grain CSV with `error` columns cannot be
+  plotted as a replicate-error cloud.
+- Rose left the missing-data lane untouched.

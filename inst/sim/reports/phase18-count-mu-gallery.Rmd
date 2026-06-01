@@ -110,7 +110,9 @@ phase18_count_gallery_add_mcse_interval <- function(data, metric) {
 phase18_count_gallery_has_replicates <- function(data) {
   is.data.frame(data) &&
     nrow(data) > 0L &&
-    all(c("error", "term", "family", "parameter_class") %in% names(data))
+    all(c("error", "term", "family", "parameter_class") %in% names(data)) &&
+    "artifact_grain" %in% names(data) &&
+    all(as.character(data$artifact_grain) == "replicate")
 }
 
 phase18_plot_count_bias <- function(data, replicate_data = NULL) {
