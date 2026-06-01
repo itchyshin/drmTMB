@@ -2,6 +2,51 @@
 
 Record meaningful development checks here.
 
+## 2026-06-01 -- Phase 6c sprint parent closeout
+
+Goal:
+
+- Close #436 by reconciling the Phase 6c sprint child issues, evidence handles,
+  transfer-of-evidence boundaries, and remaining open follow-up issues.
+
+Changes:
+
+- Added `docs/design/152-phase6c-random-slope-sprint-closeout.md`.
+- Recorded the child issue status for #437, #438, #439, #440, #441, #442,
+  #443, #444, and #446.
+- Updated `ROADMAP.md` with the #436 closeout bullet and Slice 80.
+- Added
+  `docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+gh issue list --state all --limit 80 --json number,title,state --jq '.[] | select(.number>=436 and .number<=446) | "#\(.number)\t\(.state)\t\(.title)"'
+rg -n 'Phase 6c Random-Slope Sprint Closeout|#436|#437|#438|#439|#440|#441|#442|#443|#444|#446|#33|#59|#60|#147|#265|#342|#61|#5' docs/design/152-phase6c-random-slope-sprint-closeout.md docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md
+rg -n 'Sprint parent closeout|Slice 80|#436.*capability-ledger|#437, #438' ROADMAP.md docs/dev-log/check-log.md
+rg -n 'Phase 6c.*(broad recovery|coverage|power) claims are now supported|diagnostic pilot.*creates.*(coverage|power)|sister.*(speed|coverage|recovery|convergence).*drmTMB evidence|random effects in `rho12` (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)|#436.*closes #33|#436.*closes #59|#436.*closes #60|#436.*closes #147|#436.*closes #265|#436.*closes #342|#436.*closes #61|#436.*closes #5' ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md README.md NEWS.md vignettes
+git diff --check
+```
+
+Results:
+
+- `air format` completed without changes after the final edit.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The issue-state command showed #437, #438, #439, #440, #441, #442, #443,
+  #444, and #446 closed, with #436 still open before this PR.
+- The positive scans found the #436 sprint closeout, child issue table,
+  remaining open follow-up issues, ROADMAP parent-closeout bullet, ROADMAP
+  Slice 80, check-log entry, and after-task report.
+- The stale-claim scan returned no matches for broad recovery, coverage, power,
+  sibling-evidence transfer, random-`rho12`, p8/q8 support, or accidental
+  wording that #436 closes the broader follow-up issues.
+- `git diff --check` passed.
+
 ## 2026-06-01 -- Twin/sister exchange closeout
 
 Goal:
