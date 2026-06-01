@@ -47016,3 +47016,74 @@ Member-group review:
 - Fisher kept fitted support separate from simulation recovery, coverage, and
   power evidence.
 - Rose kept broad unsupported cells visible as planned follow-ups.
+
+## 2026-06-01 - Random-slope tutorial and release ledger
+
+Goal:
+
+- Close #444 by tying the reader-facing random-slope teaching path to the
+  model-map status table, location-scale and bivariate-coscale articles,
+  reference-index discoverability, and a finished-versus-planned ledger.
+
+Changes:
+
+- Added a compact slope-slope first-slice section to
+  `vignettes/bivariate-coscale.Rmd`, pairing the plasticity-syndrome question
+  with equations, matching `drmTMB` syntax, `corpairs()`,
+  `summary()$covariance`, `profile_targets()`, and `check_drm()` guidance.
+- Tightened `vignettes/location-scale.Rmd` for residual-scale random-slope
+  boundaries, ordinary q > 2 Gaussian `mu` blocks, the
+  `corpairs(fit, class = "mean-slope")` reaction-norm interpretation, and
+  structured one-slope caveats.
+- Updated `vignettes/model-map.Rmd` so the status map routes independent
+  residual-scale slopes, selected non-Gaussian `mu` slopes, and the first
+  Gaussian structured one-slope `mu` routes consistently.
+- Added `docs/design/151-phase6c-random-slope-tutorial-ledger.md` as the #444
+  finished-versus-planned release ledger.
+- Updated `docs/design/37-worked-example-inventory.md` and ROADMAP Slice 78.
+
+Validation:
+
+```sh
+air format vignettes/location-scale.Rmd vignettes/model-map.Rmd vignettes/bivariate-coscale.Rmd docs/design/151-phase6c-random-slope-tutorial-ledger.md docs/design/37-worked-example-inventory.md ROADMAP.md
+Rscript --vanilla -e "pkgdown::build_article('location-scale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-cosscale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('model-map', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::test(filter = '^biv-gaussian$|^corpairs$|^gaussian-random-intercepts$', reporter = 'summary')"
+rg -n "random_effect_scale_formulas|rho12|corpair|corpairs|phylo|spatial|animal|relmat|check_drm|profile_targets" _pkgdown.yml
+rg -n "First slope-slope covariance slice|Residual-scale random effects live|Do high-baseline populations|Do repeated groups need non-Gaussian|groups differ in residual-scale slopes|Random-slope tutorial and release ledger|Issue #444 can close|phase6c-random-slope-tutorial-ledger" vignettes docs ROADMAP.md pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html
+rg -n 'random effects in `rho12` (are )?(fitted|implemented)|correlated residual-scale slope.*(is|are )?(fitted|implemented)|coefficient-specific `sd\(\)`.*(is|are )?(fitted|implemented)|intercept-plus-slope q4.*(is|are )?(fitted|implemented)|p8/q8.*(is|are )?(fitted|implemented)|multiple structured slopes.*(is|are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes
+git diff --check
+```
+
+Results:
+
+- `location-scale`, `bivariate-coscale`, and `model-map` article renders
+  completed.
+- The first bivariate render command failed because I typed the article slug as
+  `bivariate-cosscale`. The corrected `bivariate-coscale` render passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- Focused tests for `biv-gaussian`, `corpairs`, and
+  `gaussian-random-intercepts` passed.
+- The reference-index scan found `random_effect_scale_formulas`, `rho12`,
+  `corpair`, `corpairs`, `phylo`, `spatial`, `animal`, `relmat`, `check_drm`,
+  and `profile_targets` in `_pkgdown.yml`.
+- The source/rendered scan found the new slope-slope article section,
+  residual-scale slope wording, reaction-norm row, model-map rows, ROADMAP row,
+  and #444 ledger.
+- The unsupported-boundary scan returned only intentional planning or boundary
+  wording: p8/q8 issue templates, slope-only-not-p8 boundary rows, multiple
+  structured slopes outside the fitted surface, and first-slice structured rows
+  that also name planned neighbouring cells.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice issue-linked and docs-only.
+- Pat checked that a reader can move from model purpose to syntax, output, and
+  diagnostics without reading the design docs first.
+- Fisher kept fitted first slices separate from recovery, coverage, and power
+  claims.
+- Rose checked the unsupported cells remain explicit planned neighbours.
