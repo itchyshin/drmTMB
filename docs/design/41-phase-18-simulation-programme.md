@@ -700,13 +700,6 @@ errors, and elapsed time by surface before the raw manifest.
 135. Slices 859-868 add the first compact aggregate-bias overview to the
      first-wave summary report, then rerun the three-surface smoke under
      `inst/sim/results/slice-859-first-wave-summary-bias-overview-smoke/`.
-136. Slice 1829 adds a first-wave artifact-grain preflight table to the table
-     bundle and summary-report parameters so report staging can distinguish
-     replicate-ready artifacts from aggregate-only, missing, empty,
-     mixed-grain, and missing-grain artifacts before plotting.
-137. Slice 1830 adds a per-surface replicate-cloud gate to the first-wave
-     summary report, connecting artifact-grain status to the aggregate-bias
-     overview so aggregate-only surfaces cannot be read as cloud-ready.
 136. Slices 869-878 add a compact interval-coverage summary to the first-wave
      summary report, then rerun the three-surface smoke under
      `inst/sim/results/slice-869-first-wave-summary-interval-coverage-smoke/`.
@@ -1354,3 +1347,14 @@ errors, and elapsed time by surface before the raw manifest.
      tables. These helpers summarize registry/planning state only. They do not
      run models, write artifacts, dispatch Actions jobs, promote rows, or make
      recovery or coverage claims.
+236. Slice 1829 adds a first-wave artifact-grain preflight table to the table
+     bundle and summary-report parameters so report staging can distinguish
+     replicate-ready artifacts from aggregate-only, missing, empty,
+     mixed-grain, and missing-grain artifacts before plotting.
+237. Slice 1830 adds a per-surface replicate-cloud gate to the first-wave
+     summary report, connecting artifact-grain status to the aggregate-bias
+     overview so aggregate-only surfaces cannot be read as cloud-ready.
+238. Slice 1831 makes the count-pilot gallery require
+     `artifact_grain = "replicate"` before its bias panel draws
+     replicate-error points, so an aggregate-shaped CSV with `error` columns
+     cannot create a fake cloud.

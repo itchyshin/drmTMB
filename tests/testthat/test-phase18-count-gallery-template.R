@@ -18,6 +18,12 @@ test_that("Phase 18 count gallery template is installed and reader-facing", {
   expect_true(grepl("phase18_count_gallery_theme", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_bias", text, fixed = TRUE))
   expect_true(grepl("replicate_csv", text, fixed = TRUE))
+  expect_true(grepl("artifact_grain", text, fixed = TRUE))
+  expect_true(grepl(
+    'as.character(data$artifact_grain) == "replicate"',
+    text,
+    fixed = TRUE
+  ))
   expect_true(grepl("replicate-level errors", text, fixed = TRUE))
   expect_true(grepl("phase18_plot_count_rmse", text, fixed = TRUE))
   expect_true(grepl("Monte Carlo uncertainty", text, fixed = TRUE))
@@ -55,7 +61,8 @@ test_that("Phase 18 count gallery template renders with CSV inputs", {
       dpar = c("mu", "mu"),
       term = c("x", "(1 | id)"),
       replicate = c(1L, 1L),
-      error = c(0.01, -0.02)
+      error = c(0.01, -0.02),
+      artifact_grain = "replicate"
     ),
     replicate_csv,
     row.names = FALSE
@@ -120,4 +127,96 @@ test_that("Phase 18 count gallery template renders with CSV inputs", {
   html <- paste(readLines(out, warn = FALSE), collapse = "\n")
   expect_true(grepl("render smoke", html, fixed = TRUE))
   expect_true(grepl("Florence Checks", html, fixed = TRUE))
+})
+
+test_that("Phase 18 count gallery does not fake clouds from aggregate grain", {
+  skip_if_not_installed("rmarkdown")
+  skip_if_not(rmarkdown::pandoc_available())
+
+  path <- system.file(
+    "sim/reports/phase18-count-mu-gallery.Rmd",
+    package = "drmTMB",
+    mustWork = TRUE
+  )
+  output_dir <- tempfile("phase18-count-gallery-no-cloud-")
+  dir.create(output_dir)
+  withr::defer(unlink(output_dir, recursive = TRUE))
+
+  aggregate_csv <- file.path(output_dir, "aggregate.csv")
+  replicate_csv <- file.path(output_dir, "replicates.csv")
+  coverage_csv <- file.path(output_dir, "coverage.csv")
+  manifest_csv <- file.path(output_dir, "manifest.csv")
+  failures_csv <- file.path(output_dir, "failures.csv")
+  write.csv(
+    data.frame(
+      family = "Poisson",
+      parameter_class = "fixed_effect",
+      dpar = "mu",
+      term = "x",
+      replicate = 1L,
+      error = 0.01,
+      artifact_grain = "aggregate"
+    ),
+    replicate_csv,
+    row.names = FALSE
+  )
+  write.csv(
+    data.frame(
+      family = "Poisson",
+      parameter_class = "fixed_effect",
+      dpar = "mu",
+      term = "x",
+      bias = 0.01,
+      rmse = 0.04,
+      bias_mcse = 0.005,
+      rmse_mcse = 0.004
+    ),
+    aggregate_csv,
+    row.names = FALSE
+  )
+  write.csv(
+    data.frame(
+      family = "Poisson",
+      interval_method = "wald",
+      dpar = "mu",
+      term = "x",
+      coverage = 1
+    ),
+    coverage_csv,
+    row.names = FALSE
+  )
+  write.csv(
+    data.frame(cell_id = "cell_001", replicate = 1L, status = "ok"),
+    manifest_csv,
+    row.names = FALSE
+  )
+  write.csv(
+    data.frame(
+      cell_id = character(),
+      severity = character(),
+      message = character()
+    ),
+    failures_csv,
+    row.names = FALSE
+  )
+
+  out <- rmarkdown::render(
+    input = path,
+    output_file = "phase18-count-gallery-no-cloud.html",
+    output_dir = output_dir,
+    intermediates_dir = output_dir,
+    quiet = TRUE,
+    params = list(
+      aggregate_csv = aggregate_csv,
+      replicate_csv = replicate_csv,
+      coverage_csv = coverage_csv,
+      manifest_csv = manifest_csv,
+      failures_csv = failures_csv,
+      notes = "aggregate grain smoke"
+    )
+  )
+
+  expect_true(file.exists(out))
+  html <- paste(readLines(out, warn = FALSE), collapse = "\n")
+  expect_true(grepl("aggregate grain smoke", html, fixed = TRUE))
 })
