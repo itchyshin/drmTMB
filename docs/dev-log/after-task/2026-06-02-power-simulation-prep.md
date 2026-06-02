@@ -34,6 +34,13 @@ location-scale surface (the first surface admitted in doc 41).
     own.
   - `phase18_power_curve_data()` — add a Monte Carlo band (`power_low`,
     `power_high`) and order rows by sample size for a left-to-right power curve.
+- `inst/sim/run/sim_run_gaussian_ls_power_smoke.R` (new): end-to-end runner
+  `phase18_run_gaussian_ls_power()` that composes the effect-size sweep,
+  registry, replicate runner (reusing the recovery smoke runner's DGP/fit
+  adapters), and the power assembler/curve/target-sample-size helpers. Mirrors
+  `phase18_run_gaussian_ls_smoke()`.
+- `tests/testthat/test-phase18-gaussian-ls-power-runner.R` (new): `skip_on_cran`
+  smoke test that runs the end-to-end runner on a tiny null-plus-signal grid.
 - `tests/testthat/test-phase18-power.R` (new): factory, power counting, the
   failed/non-finite interval filter, named per-parameter nulls, curve
   interpolation, error paths, and a `skip_on_cran` end-to-end pilot that fits the
@@ -79,7 +86,12 @@ No existing files were edited; no `R/`, `src/`, or family behaviour changed.
   synthetic recovery summary with `estimate`/`std.error` flows through Wald
   intervals to a per-cell power table joined to `effect_size`/`n`/`is_null`,
   giving power `c(0, 0.5, 1)` across the three effect cells with the null cell
-  tagged `type_i_error`.
+  tagged `type_i_error`. The end-to-end runner orchestration was validated
+  against the real `phase18_run_replicates()` and `phase18_result_summaries()`
+  with the model fit stubbed: a four-cell sweep (two effect sizes, two sample
+  sizes) with three replicates each flowed through to a correct power table,
+  curve, and target-sample-size read (`below_grid` for the null, `achieved_at_min`
+  for the signal cell).
 - The `skip_on_cran` Gaussian pilot fits `drmTMB` and is left for CI, where the
   dependency tree is installed; it could not run in this container because the
   network policy blocks CRAN and Posit P3M.

@@ -147,10 +147,25 @@ be drawn without bespoke code per surface:
   rows within each effect-size group by sample size so a power curve reads left to
   right.
 
+## End-to-end runner
+
+`inst/sim/run/sim_run_gaussian_ls_power_smoke.R` defines
+`phase18_run_gaussian_ls_power()`, which composes the whole pipeline in one
+call: build the effect-size sweep, register cells and seeds, run replicates with
+the Gaussian location-scale DGP and fit adapters (reused from the recovery smoke
+runner), then assemble a per-cell power table, a power curve, and the
+interpolated target sample size. It mirrors `phase18_run_gaussian_ls_smoke()` and
+returns `$power`, `$curve`, and `$sample_size` alongside the registry and raw
+results. The orchestration was validated end to end against the real
+`phase18_run_replicates()` and `phase18_result_summaries()` with the model fit
+stubbed; the real `drmTMB` fit runs under `skip_on_cran` in CI.
+
 ## What to try next
 
-1. Run the Gaussian location-scale power pilot in `tests/testthat/test-phase18-power.R`
-   to confirm the pipeline composes.
+1. Run the Gaussian location-scale power pilots in
+   `tests/testthat/test-phase18-power.R` and
+   `tests/testthat/test-phase18-gaussian-ls-power-runner.R` to confirm the
+   pipeline composes against real fits.
 2. Widen the levels above and dispatch a sharded run through
    `.github/workflows/phase18-simulation-grid.yaml`, joining the per-cell power
    table back to the condition grid on `cell_id` to draw power curves.
