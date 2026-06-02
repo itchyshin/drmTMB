@@ -245,6 +245,10 @@ test_that("power helpers reject malformed inputs", {
 test_that("power pipeline composes from DGP, fit, intervals, and summary", {
   skip_on_cran()
   source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
     system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
     local = TRUE
   )
