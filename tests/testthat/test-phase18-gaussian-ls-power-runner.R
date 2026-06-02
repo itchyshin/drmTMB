@@ -36,6 +36,14 @@ test_that("Gaussian location-scale power runner returns power, curve, and target
     ),
     local = TRUE
   )
+  source(
+    system.file(
+      "sim/run/sim_run_power_grid.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
   # Reuse the DGP/fit cell adapters defined by the recovery smoke runner.
   source(
     system.file(
