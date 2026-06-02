@@ -47286,3 +47286,19 @@ the same team as Codex.
   legitimate "sigma (not tau)" guidance and the allowed user-tester usage);
   `git status` shows only intended files, no R/src/tests changes.
 - NOT run: devtools::* (R toolchain absent in web container; no R/C++ changed).
+
+## 2026-06-01 - SessionStart hook for Claude Code on the web (branch claude/clause-team-analysis-s1RRw)
+
+- Added `.claude/hooks/session-start.sh` (remote-only, synchronous, idempotent)
+  and `.claude/settings.json` registering it. Installs R release + pandoc +
+  link libs, then the DESCRIPTION dependency tree via remotes, preferring Posit
+  P3M binaries with cloud CRAN fallback. Best-effort: exits 0 with guidance if
+  package repos are blocked.
+- Checks: `bash -n` syntax OK. Ran with CLAUDE_CODE_REMOTE=true: installed R
+  4.3.3 + pandoc from the Ubuntu archive (apt-get update made tolerant of
+  unrelated 403 PPAs). Dependency download could NOT be validated here because
+  this container's egress policy blocks CRAN and P3M (both 403 host_not_allowed);
+  the hook handled it gracefully and exited 0.
+- NOT validated here: devtools::test() / R CMD check, because the package repos
+  are unreachable under this network policy. Will work where
+  packagemanager.posit.co and cloud.r-project.org are allowed.
