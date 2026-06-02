@@ -117,9 +117,15 @@ The launchable team agents live in two mirrored directories: `.codex/agents/`
 for Codex and `.claude/agents/` for Claude Code. The two sets are one-to-one and
 share verbatim instruction bodies. When an agent is added or its instructions
 change, update both directories in the same change so the runtimes do not drift.
-The standing review names below (Ada, Boole, Noether, Darwin, Florence, Emmy,
-Fisher) are ad-hoc perspectives launched for bounded tasks; they do not have
-dedicated agent files in either directory.
+Every standing review name below now has a launchable agent: the job-function
+agents carry the named perspectives (Gauss = `tmb_engineer`, Curie =
+`simulation_tester`, Rose = `systems_auditor`, Grace =
+`reproducibility_engineer`, Jason = `landscape_scout`, Pat = `user_tester`), and
+the review-only perspectives have dedicated files (Ada = `integration_reviewer`,
+Boole = `formula_reviewer`, Noether = `math_consistency_reviewer`, Darwin =
+`audience_reviewer`, Florence = `figure_reviewer`, Emmy = `architecture_reviewer`,
+Fisher = `inference_reviewer`). These review agents are still launched only for
+bounded tasks, not run continuously.
 
 ## Standing Review Roles
 

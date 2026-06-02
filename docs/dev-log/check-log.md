@@ -47269,3 +47269,36 @@ the same team as Codex.
 - Checks: `rg -n "You are Curie" .codex .claude` -> only the two simulation-tester
   files; AGENTS.md table line 142 unchanged and now consistent; codex/claude
   bodies for both agents kept identical.
+
+## 2026-06-01 - Standing-role agents complete the team mirror (branch claude/clause-team-analysis-s1RRw)
+
+- Added launchable agents for the seven review-only standing roles in both
+  runtimes: integration-reviewer (Ada), formula-reviewer (Boole),
+  math-consistency-reviewer (Noether), audience-reviewer (Darwin),
+  figure-reviewer (Florence), architecture-reviewer (Emmy), inference-reviewer
+  (Fisher). Each is `.codex/agents/<name>.toml` + `.claude/agents/<name>.md`
+  with identical bodies.
+- Updated AGENTS.md and CLAUDE.md mirror notes (all standing names now
+  launchable) and fixed the stale CLAUDE.md `literature_curator`/Curie mapping
+  to `simulation_tester`/Curie.
+- Checks: 17 agents per directory; per-pair body diff identical for all 7;
+  frontmatter valid; `rg "\\btau\\b|meta_gaussian|rho ~"` clean (only the
+  legitimate "sigma (not tau)" guidance and the allowed user-tester usage);
+  `git status` shows only intended files, no R/src/tests changes.
+- NOT run: devtools::* (R toolchain absent in web container; no R/C++ changed).
+
+## 2026-06-01 - SessionStart hook for Claude Code on the web (branch claude/clause-team-analysis-s1RRw)
+
+- Added `.claude/hooks/session-start.sh` (remote-only, synchronous, idempotent)
+  and `.claude/settings.json` registering it. Installs R release + pandoc +
+  link libs, then the DESCRIPTION dependency tree via remotes, preferring Posit
+  P3M binaries with cloud CRAN fallback. Best-effort: exits 0 with guidance if
+  package repos are blocked.
+- Checks: `bash -n` syntax OK. Ran with CLAUDE_CODE_REMOTE=true: installed R
+  4.3.3 + pandoc from the Ubuntu archive (apt-get update made tolerant of
+  unrelated 403 PPAs). Dependency download could NOT be validated here because
+  this container's egress policy blocks CRAN and P3M (both 403 host_not_allowed);
+  the hook handled it gracefully and exited 0.
+- NOT validated here: devtools::test() / R CMD check, because the package repos
+  are unreachable under this network policy. Will work where
+  packagemanager.posit.co and cloud.r-project.org are allowed.
