@@ -319,6 +319,12 @@ distributional regression models using TMB.
   weak phylogenetic-SD diagnostics, and ordinary same-species covariance
   overlap for that fitted slice. A CRAN-safe deterministic simulation now
   recovers a positive bivariate phylogenetic mean-mean correlation.
+- `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`
+  is the fitted first pair-level route for two partner phylogenies. It builds
+  one sparse Kronecker precision field for univariate Gaussian `mu` and
+  ordinary Poisson/NB2 `mu`, while additive partner main phylogenies plus the
+  pair interaction, binary/Bernoulli incidence models, structured pair slopes,
+  and simultaneous structured layers remain planned.
 - Full-species Ayumi stress tests keep the bivariate q2 phylogenetic path in a
   cautious lane. The aggregate all-species q2 phylogenetic source fit
   converges, but row-capped all-species q2 targets still false-converge with
@@ -682,32 +688,85 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   tolerance plasticity along temperature, desiccation tolerance along humidity,
   or behavioural reaction norms along disturbance.
 - Core ordinary grouped status: the random-intercept, one-slope, and q > 2
-  ordinary Gaussian `mu` baseline is
-  now recorded in `docs/design/33-phase-6c-core-random-effects.md`. The fitted
-  core covers ordinary Gaussian `mu` random intercepts, independent `mu`
-  random slopes, ordinary correlated intercept-slope blocks, ordinary
-  unstructured numeric multi-slope `mu` blocks, residual-scale random
-  intercepts and independent residual-scale slopes, matching labelled
-  `mu`/`sigma` random-intercept covariance, and direct `sd(group)` models for
-  unlabelled Gaussian `mu` random intercepts. Later structured slices also
-  fitted the first coordinate-spatial, phylogenetic, animal-model, and
-  `relmat()` one-slope `mu` paths as independent intercept and slope fields;
-  richer structured-slope paths remain later work for Phases 10 and 12.
+  ordinary Gaussian `mu` baseline is now recorded in
+  `docs/design/33-phase-6c-core-random-effects.md`. The fitted core covers
+  ordinary Gaussian `mu` random intercepts, independent `mu` random slopes,
+  ordinary correlated intercept-slope blocks, ordinary unstructured numeric
+  multi-slope `mu` blocks, residual-scale random intercepts and independent
+  residual-scale slopes, matching labelled `mu`/`sigma` random-intercept
+  covariance, and direct `sd(group)` models for unlabelled Gaussian `mu`
+  random intercepts. The first coordinate-spatial, phylogenetic, animal-model,
+  and `relmat()` one-slope Gaussian `mu` paths are fitted; multiple structured
+  slopes, structured slope correlations, residual-scale structured slopes, and
+  broader bivariate slope blocks remain later work for Phases 10 and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
-  `mu` block path, with q=3 recovery and extractor coverage. Larger ordinary
-  blocks remain advanced, sample-size hungry fits. Structured random slopes
-  are handed to Phases 10 and 12; `spatial(1 + x | site, coords = coords)`,
-  `phylo(1 + x | species, tree = tree)`,
-  `animal(1 + x | id, pedigree = pedigree)`, and
-  `relmat(1 + x | id, K = K)` now fit the first univariate Gaussian
-  one-slope `mu` paths, while multiple structured slopes, structured
-  residual-scale slopes, and slope correlations remain planned.
-- Coscale boundary: residual `rho12`, singular `corpair()` formula markers,
-  and plural `corpairs()` extraction rows are deliberately separate. Coscale
-  means residual bivariate Gaussian `rho12`; `corpair()` fits only selected
-  q=2 latent random-effect correlation regressions where the likelihood exists;
-  and `corpairs()` reports fitted residual or latent correlation rows without
-  creating a new covariance model.
+  `mu` block path, with q=3 recovery, q=4 output-contract checks, and
+  extractor coverage in `sdpars$mu`, `corpars$re_cov`, `corpairs()`,
+  `summary()$covariance`, and `profile_targets()`. Larger ordinary blocks
+  remain advanced, sample-size hungry fits; q > 2 SDs are direct profile
+  targets, but q > 2 correlations remain derived-unavailable for direct profile
+  intervals. Gaussian `sigma` random intercepts and independent numeric slopes
+  are fitted on log-`sigma`; correlated residual-scale slope blocks and
+  labelled residual-scale slope covariance remain planned. The structured
+  one-slope Gaussian `mu` handoff is also current: `spatial(1 + x | site,
+  coords = coords)`, `phylo(1 + x | species, tree = tree)`,
+  `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
+  intercept and slope fields for the first univariate Gaussian route. Multiple
+  structured slopes, structured slope correlations, bivariate structured
+  slopes, and residual-scale structured slopes remain planned. The #442 audit
+  ledger in `docs/design/59-structural-slope-and-non-gaussian-map.md` now
+  records the q2/q4 split, evidence handles, #335 metadata-accessor closure,
+  and #446 simulation-plan handoff for those structured one-slope rows.
+- Bivariate slope-only gate: #440 is closed at the evidence-gate level by
+  `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`. Matching
+  slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are fitted,
+  extractor-ready, profile-target-ready, diagnostic-ready, and manual-artifact
+  dispatch-ready through `biv_gaussian_mu_slope`. This remains an
+  artifact-ready lane, not a recovery, coverage, power, multicore, bootstrap,
+  or broad p8/q8 claim; #446 owns the formal simulation-plan handoff.
+- Non-Gaussian `mu` slope gate: #441 is closed at the admission-decision level
+  by `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`. Ordinary Poisson
+  and NB2 independent `mu` slopes are `ready_grid`; Student-t, lognormal,
+  Gamma, beta, beta-binomial, and zero-truncated NB2 independent `mu` slopes
+  are `ready_source_test`. Correlated slopes, labelled covariance, structured
+  slopes, non-Gaussian `sigma` or shape random effects, inflation/hurdle random
+  effects, ordinal mixed models, and mixed-response bivariate models remain
+  planned or blocked until separate evidence exists.
+- Random-slope simulation plan: #446 is closed at the planning level by
+  `docs/design/148-phase6c-random-slope-simulation-plan.md`. The next Phase 18
+  work should run diagnostic pilots in this order: registry preflight,
+  bivariate slope-only artifact pilot, ordinary Gaussian `mu`/`sigma` slope
+  pilots, ordinary Poisson/NB2 `mu` slope pilot, source-tested non-Gaussian
+  slope smoke artifacts, and structured Gaussian one-slope wrapper pilots. A
+  diagnostic pilot can propose a formal grid; it cannot by itself create
+  recovery, coverage, or power claims.
+- Twin/sister exchange closeout: #437 is closed at the coordination level by
+  `docs/dev-log/twin-sister-exchange.md`. The first exchange loop accepted
+  process lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB` for planning only:
+  keep evidence tiers separate, keep simulation denominators visible, and pair
+  reader docs with status maps. No sister-package speed, convergence, coverage,
+  or recovery result is treated as `drmTMB` evidence without local validation,
+  and no external code was copied.
+- Sprint parent closeout: #436 is closed at the capability-ledger level by
+  `docs/design/152-phase6c-random-slope-sprint-closeout.md`. Its child issues
+  #437, #438, #439, #440, #441, #442, #443, #444, and #446 are closed on
+  `main`; #33, #59, #60, #147, #342, #61, and #5 remain open for broader
+  structured-slope, simulation, comparator, release, and covariance work.
+- Public bootstrap interval closeout: #265 is closed at the first public
+  direct-target boundary by
+  `docs/design/153-public-bootstrap-interval-closeout.md`. `confint(...,
+  method = "bootstrap")` is available for selected direct fitted-object
+  targets with refit success/failure metadata; `summary()`, `corpairs()`,
+  prediction tables, `newdata`, derived q4 correlations, repeatability,
+  phylogenetic signal, and operating-characteristic claims remain separate
+  work.
+- Coscale boundary: in current docs, coscale means residual bivariate Gaussian
+  `rho12`; singular `corpair()` is a formula marker for supported latent
+  random-effect correlation regressions only; plural `corpairs()` is an
+  extractor for residual `rho12` and fitted latent correlation rows. Extracted
+  structured rows do not imply that random effects in `rho12`,
+  predictor-dependent q4, residual-scale, slope-specific, spatial, animal, or
+  `relmat()` `corpair()` regressions are fitted.
 
 | Slice | Goal | Main work | Done when |
 | --- | --- | --- | --- |
@@ -719,6 +778,11 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | Done for the ordinary core: the source map names the required coefficient-aware `corpair()` syntax, `corpairs()` rows, direct-target interval status, and recovery evidence before bivariate slope correlations are fitted or taught. |
 | 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Done for the ordinary core: the location-scale tutorial now gives a thermal reaction-norm example with fixed slope, random-intercept SD, random-slope SD, group-level intercept-slope correlation, and `profile_targets()` interpretation. Full structured-slope examples wait until Phases 10-13 settle. |
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
+| 77 | Random-effect slope capacity closeout | Close #128 by tying the current location, scale, bivariate, structured, and non-Gaussian random-slope boundaries to the support matrix, known-limitations ledger, tests, and Phase 18 simulation handoff. | Done locally: `docs/design/59-structural-slope-and-non-gaussian-map.md`, README stable-core rows, `docs/dev-log/known-limitations.md`, and current tests now provide the issue-linked capacity table. Unsupported residual-scale structured slopes, slope-specific `sd()` models, p8/q8 endpoint covariance, and broad non-Gaussian structured slopes remain planned follow-ups. |
+| 78 | Random-slope tutorial and release ledger | Close #444 by tying the reader-facing random-slope course path to model-map status, location-scale equations and diagnostics, bivariate slope-slope guidance, reference-index discoverability, and a finished-versus-planned release ledger. | Done locally: `vignettes/location-scale.Rmd`, `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`, and `docs/design/151-phase6c-random-slope-tutorial-ledger.md` now record the ordinary, residual-scale, bivariate, non-Gaussian, structured, `sd(group)`, `rho12`, `corpair()`, and `corpairs()` teaching boundaries. Unsupported cells remain explicit planned neighbours rather than runnable tutorial syntax. |
+| 79 | Twin/sister exchange closeout | Close #437 by making the daily exchange protocol, first scout cards, provenance corrections, and transfer-of-evidence boundary repo-visible on `main`. | Done locally: `docs/dev-log/twin-sister-exchange.md` records the accepted planning lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`, locks the `GLLVM.jl` and `meta_V(V = V)` naming corrections, and states that no sibling speed, coverage, recovery, or code claim transfers to `drmTMB` without local validation. |
+| 80 | Sprint parent closeout | Close #436 by reconciling child issue state, evidence handles, transfer-of-evidence boundaries, and remaining open follow-up issues. | Done locally: `docs/design/152-phase6c-random-slope-sprint-closeout.md` records that #437-#444 and #446 are closed, keeps fitted/source-tested/artifact-ready/planned/unsupported cells separate, and routes remaining broad work to #33, #59, #60, #147, #342, #61, and #5. |
+| 81 | Public bootstrap interval closeout | Close #265 by mapping the public bootstrap interval checklist to current `confint()`, target extraction, refit metadata, docs, tests, and limitations. | Done locally: `docs/design/153-public-bootstrap-interval-closeout.md` records that `confint(..., method = "bootstrap")` is implemented for selected direct fitted-object targets and remains explicitly separate from summary/extractor routing, `newdata`, derived intervals, and Phase 18 coverage or power claims. |
 
 ## Phase 6d: Stable-Core Validation and Engine Hardening
 
@@ -1440,8 +1504,8 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 167 | Profile intervals | Done: direct random-effect SD examples now point users to exact `profile_targets()` names, including random-slope suffixes. |
 | 168 | Profile intervals | Done: random-effect correlation examples now stay separate from residual `rho12`, with direct targets gated by `profile_targets()`. |
 | 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
-| 170 | Bootstrap intervals | Superseded by the fast-CI slice: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
-| 171 | Bootstrap intervals | Done for the first public boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
+| 170 | Bootstrap intervals | Superseded by the fast-CI slice and closed for #265's first boundary: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
+| 171 | Bootstrap intervals | Done for the first public #265 boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
 | 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata. Unsupported non-direct routes still stop before interval work. |
 | 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
 | 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`; direct bootstrap rows report refit success/failure metadata, while unsupported bootstrap surfaces still give explicit unavailable errors. |
@@ -1987,9 +2051,15 @@ Use this order unless Slice 191 evidence overturns it:
 | 1825 | Bivariate Gaussian slope Actions task | Done locally: `biv_gaussian_mu_slope` is a manual-only Phase 18 Actions task that calls `phase18_write_biv_gaussian_mu_slope_grid_outputs()`, and the structured workflow registry now maps `bivariate_gaussian_slope_only` to the task so the random-slope plan has nine non-none Actions routes and zero wrapper targets. |
 | 1826 | Bivariate Gaussian slope Actions pilot audit | Done locally: manual Phase 18 run `26689587073` audited the `biv_gaussian_mu_slope` artifact with one replicate in each of the two pilot cells; both manifest rows were `ok`, all 20 replicate-summary rows converged with `pdHess = TRUE` and zero warnings, and the failure ledger was empty. This is dispatch and artifact evidence only, not a recovery, coverage, rendering, multicore, bootstrap, or cross-platform claim. |
 | 1827 | Workflow status helper bundle | Done locally: read-only helpers now summarize structured-dependence wrapper-target readiness, correlation-block wrapper targets, and family-surface registry status tables without running models, writing artifacts, dispatching Actions jobs, promoting rows, or making recovery or coverage claims. |
-| 1828 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry maps `gaussian_spatial_mu_one_slope` to that task. At Slice 1828, non-spatial structured one-slope rows still remained wrapper targets; Slice 1838 later wires those tasks. No recovery or coverage claim is made. |
-| 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope lanes. The writer slices themselves did not add Actions dispatch; Slice 1838 later wires manual tasks while still excluding `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, and residual-scale structured slopes. |
-| 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope lane. The writer slice itself did not add Actions dispatch; Slice 1838 later wires the manual task while still excluding `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, and non-Gaussian structured slopes. |
+| 1828 | Random-slope registry preflight | Done locally: `phase18_random_slope_registry_preflight()` and `phase18_print_random_slope_registry_preflight()` print the `workflow_lane == "random_slopes"` registry rows, verify that `admission_status`, `existing_actions_task`, and `supervision_boundary` are present, and label each row's dispatch/audit status before any diagnostic pilot is dispatched. This is a dry-run gate only, not a simulation run or promotion claim. |
+| 1829 | Artifact-grain preflight | Done locally: `phase18_write_first_wave_table_bundle()` now writes `phase18-first-wave-artifact-grain-status.csv`, and the summary-report parameters/template read it so Phase 18 report staging can distinguish replicate-ready artifacts from aggregate-only, missing, empty, mixed-grain, and missing-grain inputs before any replicate-error clouds are drawn. |
+| 1830 | Replicate-cloud gate | Done locally: the first-wave summary report now derives a per-surface `replicate_cloud_gate` from the artifact-grain status table and carries that gate into aggregate-bias rows, so aggregate-only surfaces stay on points, bars, and MCSE intervals until a replicate-ready artifact exists. |
+| 1831 | Count-gallery grain gate | Done locally: the count-pilot gallery bias panel now treats replicate CSVs as cloud-ready only when `artifact_grain = "replicate"`, and the rendered template test covers an aggregate-grain CSV with error columns so aggregate-shaped inputs cannot create fake replicate-error clouds. |
+| 1832 | Artifact-grain closeout | Done locally: `docs/design/150-phase-18-artifact-grain-closeout.md` records the #255 current guarantee, and the first-wave table-bundle test now covers `gaussian_ls_grid`, `meta_v_grid`, `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and `biv_rho12_grid` so aggregate-only rows stay out of replicate-cloud displays. Future gallery hygiene is tracked in #461. |
+| 1833 | Future-gallery grain helper | Done locally: `inst/sim/R/sim_gallery_grain.R` provides the reusable Phase 18 gate for cloud-style gallery geometry. The count-pilot gallery now uses it, and tests cover replicate-grain, aggregate-grain, derived-gate, conflicting-gate, and missing-column inputs before future galleries reuse the contract. |
+| 1834 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry maps `gaussian_spatial_mu_one_slope` to that task. No recovery or coverage claim is made. |
+| 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope lanes. The writer slices themselves did not add Actions dispatch; the manual task slice wires them while still excluding `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, and residual-scale structured slopes. |
+| 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope lane. The writer slice itself did not add Actions dispatch; the manual task slice wires it while still excluding `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, and non-Gaussian structured slopes. |
 | 1838 | Non-spatial structured one-slope Actions tasks | Done locally: `.github/workflows/phase18-simulation-grid.yaml`, `inst/sim/run/sim_run_actions_cell.R`, and the structured workflow registry expose manual-only `phylo_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` tasks beside `spatial_mu_slope`. All four Gaussian structured one-slope artifact tasks are excluded from `task = "all"` and make dispatch/artifact claims only, not recovery, coverage, or power claims. |
 | 1839 | Correlation-block status Actions task | Done locally: `correlation_block_status` is a manual-only Phase 18 Actions task that writes read-only CSV status artifacts from `phase18_write_correlation_block_status_outputs()`. The structured q2 and q4 correlation-block rows now have non-none Actions routing, so the correlation-block plan has six task-routed rows and zero wrapper targets while keeping q4 derived intervals unavailable. |
 

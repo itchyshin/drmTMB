@@ -60,6 +60,20 @@ bf(
   when syntax is unsupported.
 - Do not revert Codex or human changes unless explicitly asked.
 
+## Launchable Team Agents
+
+`.claude/agents/` mirrors `.codex/agents/` one-to-one, so Claude Code can launch
+the same team Codex uses. The job-function agents are `tmb_engineer`/Gauss,
+`simulation_tester`/Curie, `systems_auditor`/Rose,
+`reproducibility_engineer`/Grace, `landscape_scout`/Jason, `user_tester`/Pat,
+`reviewer`, `documentation_writer`, `pkgdown_editor`, and `literature_curator`.
+The review-only standing perspectives also have files: `integration_reviewer`/Ada,
+`formula_reviewer`/Boole, `math_consistency_reviewer`/Noether,
+`audience_reviewer`/Darwin, `figure_reviewer`/Florence,
+`architecture_reviewer`/Emmy, and `inference_reviewer`/Fisher. The instruction
+bodies are copied verbatim from the Codex TOMLs. When you add an agent or change
+its instructions, update both directories so the two runtimes stay in sync.
+
 ## Reusing gllvmTMB Code
 
 Selective reuse of A-inverse or SPDE speed code may be appropriate later, but

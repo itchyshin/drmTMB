@@ -131,6 +131,7 @@ test_that("se = FALSE skips sdreport while keeping core methods usable", {
   )
 
   expect_null(fit$sdr)
+  expect_null(fit$sdreport)
   expect_equal(fit$uncertainty$status, "skipped")
   expect_error(stats::vcov(fit), "sdreport")
   expect_error(stats::confint(fit), "sdreport")
@@ -191,6 +192,7 @@ test_that("failed sdreport state is explicit in summaries and diagnostics", {
     control = list(eval.max = 100, iter.max = 100)
   )
   fit$sdr <- NULL
+  fit$sdreport <- NULL
   fit$uncertainty <- list(
     status = "failed",
     se = TRUE,
@@ -220,6 +222,42 @@ test_that("failed sdreport state is explicit in summaries and diagnostics", {
     chk$status[chk$check == "standard_errors_finite"],
     "warning"
   )
+})
+
+test_that("non-positive Hessian state is explicit in summaries and intervals", {
+  dat <- data.frame(
+    y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = list(eval.max = 100, iter.max = 100)
+  )
+  fit$sdr$pdHess <- FALSE
+  fit$sdreport <- fit$sdr
+
+  expect_error(stats::vcov(fit), "positive-definite Hessian")
+  smry <- summary(fit)
+  expect_true(all(is.na(smry$coefficients$std_error)))
+  expect_equal(
+    smry$coefficients$std_error.status,
+    rep("sdreport_non_pd_hessian", nrow(smry$coefficients))
+  )
+  expect_true(all(is.na(smry$parameters$std_error)))
+
+  wald_smry <- summary(fit, conf.int = TRUE)
+  expect_equal(
+    wald_smry$coefficients$conf.status,
+    rep("wald_unavailable", nrow(wald_smry$coefficients))
+  )
+  expect_equal(
+    wald_smry$parameters$conf.status,
+    rep("wald_unavailable", nrow(wald_smry$parameters))
+  )
+  expect_equal(nrow(wald_smry$confint), 0L)
 })
 
 test_that("memory-light storage drops direct-SD phylogenetic model frames", {

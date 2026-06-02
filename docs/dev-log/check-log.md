@@ -21,6 +21,24 @@ Changes:
   focused `check_drm` tests.
 - Kept this as a read-only status accessor: no formula grammar, likelihood,
   TMB, optimizer, or missing-data files were changed for this task.
+## 2026-06-01 -- Phase 6c sprint parent closeout
+
+Goal:
+
+- Close #436 by reconciling the Phase 6c sprint child issues, evidence handles,
+  transfer-of-evidence boundaries, and remaining open follow-up issues.
+
+Changes:
+
+- Added `docs/design/152-phase6c-random-slope-sprint-closeout.md`.
+- Recorded the child issue status for #437, #438, #439, #440, #441, #442,
+  #443, #444, and #446.
+- Updated `ROADMAP.md` with the #436 closeout bullet and Slice 80.
+- Added
+  `docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
 
 Validation:
 
@@ -33,6 +51,12 @@ Rscript --vanilla -e "devtools::test(filter = '^(check-drm|package-skeleton)$', 
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
 rg -n "is_converged|Check whether a fit converged|include_hessian|#317" pkgdown-site/reference/index.html pkgdown-site/reference/is_converged.html pkgdown-site/news/index.html
+air format ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+gh issue list --state all --limit 80 --json number,title,state --jq '.[] | select(.number>=436 and .number<=446) | "#\(.number)\t\(.state)\t\(.title)"'
+rg -n 'Phase 6c Random-Slope Sprint Closeout|#436|#437|#438|#439|#440|#441|#442|#443|#444|#446|#33|#59|#60|#147|#265|#342|#61|#5' docs/design/152-phase6c-random-slope-sprint-closeout.md docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md
+rg -n 'Sprint parent closeout|Slice 80|#436.*capability-ledger|#437, #438' ROADMAP.md docs/dev-log/check-log.md
+rg -n 'Phase 6c.*(broad recovery|coverage|power) claims are now supported|diagnostic pilot.*creates.*(coverage|power)|sister.*(speed|coverage|recovery|convergence).*drmTMB evidence|random effects in `rho12` (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)|#436.*closes #33|#436.*closes #59|#436.*closes #60|#436.*closes #147|#436.*closes #265|#436.*closes #342|#436.*closes #61|#436.*closes #5' ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md README.md NEWS.md vignettes
 git diff --check
 ```
 
@@ -84,6 +108,41 @@ MD0 audit evidence:
   `R/drmTMB.R:3502`.
 - The bivariate C++ Gaussian route assumed paired `y1`/`y2`.
 - Dense known `V` partial-row slicing was deferred.
+- `air format` completed without changes after the final edit.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The issue-state command showed #437, #438, #439, #440, #441, #442, #443,
+  #444, and #446 closed, with #436 still open before this PR.
+- The positive scans found the #436 sprint closeout, child issue table,
+  remaining open follow-up issues, ROADMAP parent-closeout bullet, ROADMAP
+  Slice 80, check-log entry, and after-task report.
+- The stale-claim scan returned no matches for broad recovery, coverage, power,
+  sibling-evidence transfer, random-`rho12`, p8/q8 support, or accidental
+  wording that #436 closes the broader follow-up issues.
+- `git diff --check` passed.
+
+## 2026-06-01 -- Twin/sister exchange closeout
+
+Goal:
+
+- Close #437 by making the daily exchange protocol, first scout cards,
+  provenance corrections, and transfer-of-evidence boundary repo-visible on
+  `main`.
+
+Changes:
+
+- Added `docs/dev-log/twin-sister-exchange.md`.
+- Recorded the scout-card protocol, accepted planning lessons from `DRM.jl`,
+  `GLLVM.jl`, and `gllvmTMB`, and the explicit rule that sister-package speed,
+  coverage, recovery, or convergence results do not count as `drmTMB` evidence
+  until reproduced locally.
+- Locked in the `GLLVM.jl` package-name correction and the preferred
+  `meta_V(V = V)` wording.
+- Updated ROADMAP Slice 79 and the #446 simulation-plan routing note.
+- Added
+  `docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
 
 Validation:
 
@@ -96,6 +155,388 @@ Rscript --vanilla -e "devtools::test()"
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 rg -n "miss_control|response = \"include\"|observed_y|missing response|missing-data|mi\\(|predict_missing|imputed\\(|measurement error|engine = \"em\"|engine = \"profile\"" README.md ROADMAP.md NEWS.md docs vignettes R man tests _pkgdown.yml
 gh issue list --repo itchyshin/drmTMB --state open --search "missing data miss_control mi impute complete-case" --limit 20
+air format ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'Twin/Sister Exchange Log|#437|DRM\\.jl|GLLVM\\.jl|gllvmTMB|meta_V\\(V = V\\)|sibling-package speed|without local validation|no external code was copied' docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/design/148-phase6c-random-slope-simulation-plan.md
+rg -n 'Twin/sister exchange closeout|Slice 79|#437.*coordination|no sibling speed' ROADMAP.md docs/dev-log/check-log.md
+rg -n 'GLLVM\\.jl.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|gllvmTMB.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|DRM\\.jl.*(speed|coverage|recovery|convergence).*(counts?|is|are).*drmTMB evidence|sister-package.*(speed|coverage|recovery|convergence).*counts? as drmTMB evidence' ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/twin-sister-exchange.md README.md NEWS.md vignettes
+rg -n 'gllvmTMB\\.jl' docs/dev-log/twin-sister-exchange.md ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md README.md NEWS.md vignettes
+git diff --check
+```
+
+Results:
+
+- `air format` completed without changes after the final edit.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The positive scan found the #437 ledger title, scout sources, naming
+  corrections, no-transfer boundary, ROADMAP Slice 79, check-log entry, and
+  after-task report.
+- The stale-transfer scan returned no matches for sister-package speed,
+  coverage, recovery, or convergence claims being counted as `drmTMB`
+  evidence.
+- The `gllvmTMB.jl` scan found only the intentional correction in
+  `docs/dev-log/twin-sister-exchange.md`.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Random-Slope Registry Preflight
+
+Goal:
+
+- Add the first #59 follow-through helper from the closed #446 simulation plan:
+  a dry random-slope registry preflight before diagnostic pilots are dispatched.
+
+Actions run:
+
+- Added `phase18_random_slope_registry_preflight()`,
+  `phase18_format_random_slope_registry_preflight()`, and
+  `phase18_print_random_slope_registry_preflight()`.
+- The helper filters `workflow_lane == "random_slopes"` rows, verifies required
+  gate fields, and labels dispatch status, Actions task, workflow helper, audit
+  focus, next action, and supervision boundary without dispatching any work.
+- Added focused tests for the passing preflight, dry-run formatting, and a
+  fail-closed missing-`supervision_boundary` path.
+- Updated the structured workflow registry design note, the #446 simulation
+  plan, `inst/sim/README.md`, `ROADMAP.md`, and the after-task report.
+- Kept this slice dry-run only: no simulations, GitHub Actions jobs,
+  likelihoods, status promotions, formula grammar, TMB code, or missing-data
+  files changed.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-31-random-slope-registry-preflight.md inst/sim/README.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'phase18_random_slope_registry_preflight|phase18_print_random_slope_registry_preflight|Random-slope registry preflight|workflow_lane == "random_slopes"|No simulations, GitHub Actions jobs|supervision_boundary' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-random-slope-registry-preflight.md docs/dev-log/check-log.md inst/sim/README.md ROADMAP.md
+rg -n 'random-slope registry preflight.*(dispatches|runs simulations|promotes|recovery claim|coverage claim|power claim)|phase18_random_slope_registry_preflight.*(dispatches|runs simulations|promotes)' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat docs/design inst/sim/README.md ROADMAP.md
+git diff --check
+```
+
+Results:
+
+- `air format` completed with no changes needed after the final edit.
+- Focused `devtools::test()` passed for
+  `phase18-structured-workflow-registry`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The positive scan found the new preflight helper, printer, dry-run wording,
+  random-slope lane filter, and `supervision_boundary` gate in the helper,
+  focused tests, design notes, check log, after-task report, simulation README,
+  and roadmap.
+- The stale-claim scan returned no matches in the helper, tests, design notes,
+  simulation README, or roadmap for preflight wording that would claim
+  simulation dispatch, GitHub Actions dispatch, status promotion, recovery,
+  coverage, or power support.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Phase 6c Random-Slope Simulation Plan
+
+Goal:
+
+- Close #446 by recording the staged simulation plan for admitted Phase 6c
+  random-slope surfaces before any large power, recovery, or coverage grids are
+  dispatched.
+
+Actions run:
+
+- Added `docs/design/148-phase6c-random-slope-simulation-plan.md`.
+- Turned the closed #439, #440, #441, #442, and #443 gates into a concrete
+  run order: registry preflight, bivariate slope-only artifact pilot, ordinary
+  Gaussian `mu`/`sigma` slope pilots, ordinary Poisson/NB2 `mu` slope pilot,
+  source-tested non-Gaussian slope smoke artifacts, and structured Gaussian
+  one-slope wrapper pilots.
+- Recorded compact surface-specific ADEMP sheets, shared ADEMP sections,
+  Williams-style reporting coverage, required artifact tables, worker limits,
+  MCSE targets, and stop rules.
+- Updated `ROADMAP.md` and `inst/sim/README.md` with the #446 handoff.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md inst/sim/README.md
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry|phase18-biv-gaussian-mu-slope|phase18-random-slope-grid-writers|phase18-gaussian-mu-random-slope|nongaussian-mu-random-slopes|poisson-mean|nbinom2-location-scale', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Phase 6c Random-Slope Simulation Plan|Surface ADEMP Sheets|#446|diagnostic pilots|registry preflight|bivariate slope-only artifact pilot|ordinary Gaussian `mu`/`sigma` slope pilots|source-tested non-Gaussian slope smoke artifacts|structured Gaussian one-slope wrapper|Morris|Williams|MCSE|stop rules' ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/after-task/2026-05-31-phase6c-random-slope-simulation-plan.md docs/dev-log/check-log.md inst/sim/README.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'Phase 6c.*(recovery|coverage|power) claims are now supported|diagnostic pilot.*creates.*(coverage|power)|source-tested.*coverage support|random effects in `rho12` (are )?(fitted|implemented)|correlated non-Gaussian slopes (are )?(fitted|implemented)|multiple structured slopes (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- `air format` completed with no changes needed after the final edit.
+- Focused `devtools::test()` passed for
+  `phase18-structured-workflow-registry`,
+  `phase18-biv-gaussian-mu-slope`,
+  `phase18-random-slope-grid-writers`,
+  `phase18-gaussian-mu-random-slope`,
+  `nongaussian-mu-random-slopes`, `poisson-mean`,
+  `nbinom2-location-scale`, and the matching truncated-NB2 filter expansion.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` completed and rebuilt
+  `pkgdown-site`.
+- The positive source/rendered scan found the #446 planning handoff, surface
+  ADEMP sheets, run order, Morris/Williams references, MCSE language, and stop
+  rules in the source files and rendered `pkgdown-site/ROADMAP.html`.
+- The stale-claim scan returned no matches for unsupported recovery, coverage,
+  power, random-`rho12`, correlated non-Gaussian slope, multiple structured
+  slope, residual-scale structured slope, or p8/q8 implementation claims.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Phase 6c Non-Gaussian `mu` Slope Admission
+
+Goal:
+
+- Close #441 by recording which non-Gaussian independent `mu` slope paths move
+  into registry-backed support before the larger #446 simulation plan.
+
+Actions run:
+
+- Added `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`.
+- Recorded ordinary Poisson and NB2 independent `mu` slopes as `ready_grid`.
+- Recorded Student-t, lognormal, Gamma, beta, beta-binomial, and
+  zero-truncated NB2 independent `mu` slopes as `ready_source_test`.
+- Pointed `docs/design/79-supported-nongaussian-evidence-goal.md` and
+  `ROADMAP.md` to the #441 admission decision.
+- Kept correlated slopes, labelled covariance, structured slopes,
+  non-Gaussian `sigma` or shape random effects, inflation/hurdle random
+  effects, ordinal mixed models, zero-one beta random effects, and
+  mixed-response bivariate models planned or blocked.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/79-supported-nongaussian-evidence-goal.md docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'nongaussian-mu-random-slopes|poisson-mean|nbinom2-location-scale|phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Non-Gaussian `mu` Slope Admission|ready_grid|ready_source_test|Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2|#441|#446' ROADMAP.md docs/design/79-supported-nongaussian-evidence-goal.md docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/dev-log/after-task/2026-05-31-phase6c-nongaussian-mu-slope-admission.md tests/testthat inst/sim pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'non-Gaussian.*(has|with|provides|supports|proves).*coverage claim|non-Gaussian.*(has|with|provides|supports|proves).*power claim|ready_source_test.*(has|with|provides|supports|proves).*coverage|ready_source_test.*(has|with|provides|supports|proves).*power|source-tested.*(has|with|provides|supports|proves).*coverage|source-tested.*(has|with|provides|supports|proves).*power|Tweedie random effects (are )?(fitted|implemented)|zero-one beta random effects (are )?(fitted|implemented)|ordinal random effects (are )?(fitted|implemented)|correlated .*non-Gaussian.*slopes (are )?(fitted|implemented)|structured non-Gaussian slopes (are )?(fitted|implemented)|Student-t `nu` random effects (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat inst/sim pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+rg -n 'beta\(|beta_binomial\(|student\(|lognormal\(|nbinom2\(|truncated_nbinom2\(|check_drm|profile_targets' pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- `air format` completed without changes after the prose edits.
+- Focused tests passed for `nongaussian-mu-random-slopes`, `poisson-mean`,
+  `nbinom2-location-scale`, `truncated-nbinom2-location-scale`, and
+  `phase18-structured-workflow-registry`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the full site.
+- The positive source/rendered scan found the #441 admission gate, the
+  `ready_grid` and `ready_source_test` statuses, the six source-tested
+  families, #446 routing, registry rows, tests, and rendered ROADMAP text.
+- The stale-claim scan found no current fitted or implemented claims for
+  Tweedie random effects, zero-one beta random effects, ordinal random effects,
+  correlated non-Gaussian slopes, structured non-Gaussian slopes, Student-t
+  `nu` random effects, or source-tested coverage/power support.
+- The rendered Reference-index scan found the relevant family pages and the
+  `check_drm()` / `profile_targets()` helper pages.
+
+## 2026-05-31 -- Phase 6c Bivariate Slope-Only Evidence Gate
+
+Goal:
+
+- Close #440 by recording the current gate decision for the bivariate Gaussian
+  matching slope-only `mu1`/`mu2` route before the larger #446 power, accuracy,
+  and coverage plan.
+
+Actions run:
+
+- Added `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`.
+- Recorded the gate as artifact-ready and held from recovery, coverage, and
+  power claims.
+- Pointed `docs/design/59-structural-slope-and-non-gaussian-map.md` and
+  `ROADMAP.md` to the gate decision.
+- Kept residual `rho12` separate from the group-level slope-slope covariance:
+  Phase 18 records the slope-slope row as `random_correlation` and residual
+  `rho12` as `residual_rho12`.
+- Kept intercept-plus-slope q4 location blocks, same-response location-scale
+  slope covariance, residual-scale slope blocks, random effects in `rho12`,
+  all-four p8/q8 endpoints, predictor-dependent slope `corpair()` regression,
+  and mixed-response bivariate random-slope models closed.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, NEWS, pkgdown-navigation, or
+  missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/145-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'biv-gaussian|phase18-biv-gaussian-mu-slope|phase18-actions-runner|phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Bivariate Slope-Only Evidence Gate|artifact-ready|held from recovery, coverage, and power|random_correlation|residual_rho12|biv_gaussian_mu_slope|#440|#446' ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/145-phase6c-bivariate-slope-evidence-gate.md docs/dev-log/after-task/2026-05-31-phase6c-bivariate-slope-evidence-gate.md inst/sim tests/testthat pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'biv_gaussian_mu_slope.*coverage claim|biv_gaussian_mu_slope.*power claim|biv_gaussian_mu_slope.*recovery claim|bivariate Gaussian slope-only.*coverage claim|bivariate Gaussian slope-only.*power claim|random effects in `rho12` (are )?(fitted|implemented)|intercept-plus-slope q4 (location )?blocks (are )?(fitted|implemented)|residual-scale slope blocks (are )?(fitted|implemented)|p8/q8 endpoints (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- Focused bivariate Gaussian, Phase 18 bivariate slope, Actions runner, and
+  structured workflow registry tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site.
+- The positive source/rendered scan found the #440 gate title, the
+  artifact-ready and held-from-coverage decision, `random_correlation`,
+  `residual_rho12`, `biv_gaussian_mu_slope`, #440, and #446 in the intended
+  source files, tests, simulation helpers, and rendered ROADMAP page.
+- The stale-claim scan returned no matches for accidental bivariate
+  slope-only recovery, coverage, or power claims, nor for claims that random
+  effects in `rho12`, q4 location-slope blocks, residual-scale slope blocks,
+  or p8/q8 endpoints are fitted.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Phase 6c Structured Gaussian One-Slope Audit
+
+Goal:
+
+- Close #442 by checking the fitted Gaussian structured one-slope `mu` routes
+  against current tests, profile targets, diagnostics, `ranef()` labels,
+  roadmap rows, and planned-neighbour boundaries.
+
+Actions run:
+
+- Added a compact structured Gaussian audit-closure table to
+  `docs/design/59-structural-slope-and-non-gaussian-map.md`.
+- Added a rendered ROADMAP pointer to the #442 audit ledger.
+- Separated fitted one numeric univariate Gaussian `mu` slopes for `phylo()`,
+  coordinate `spatial()`, `animal()`, and `relmat()` from q2/q4 covariance
+  status, structured slope correlations, residual-scale structured slopes,
+  structured `rho12`, and non-Gaussian structured slopes.
+- Recorded that #335 is already closed by `structured_effects()`, so no new
+  metadata/extractor issue is needed for this audit.
+- Added
+  `docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md`.
+- Kept this slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, or missing-data files changed.
+
+Validation:
+
+```sh
+air format ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian|spatial-gaussian|animal-relmat-gaussian|profile-targets|check-drm', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'Structured Gaussian Audit Closure|one numeric univariate Gaussian `mu` slope|derived-unavailable|structured_effects\(\)|#335|#446|#442 audit ledger' ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/after-task/2026-05-31-phase6c-structured-gaussian-one-slope-audit.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'phylogeny has intercept-level effects but no fitted slope|one-slope.*planned.*phylo|spatial_mu_slope.*only|only.*spatial_mu_slope|structured slope correlations (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|structured `rho12` (is |are )?(fitted|implemented)|non-Gaussian structured slopes (are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- The focused phylogenetic Gaussian, spatial Gaussian, animal/relmat Gaussian,
+  profile-target, and `check_drm()` tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site in the #442 worktree.
+- The positive source/rendered scan found the structured Gaussian audit
+  closure, the one-slope `mu` claim, derived-unavailable q4 boundary,
+  `structured_effects()` / #335 metadata note, #442 ROADMAP pointer, and #446
+  simulation-plan handoff.
+- The stale-wording scan found no old phylogeny-has-no-slope wording, no claim
+  that only `spatial_mu_slope` exists, and no claim that structured slope
+  correlations, residual-scale structured slopes, structured `rho12`, or
+  non-Gaussian structured slopes are fitted.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Phase 6c Gaussian Ordinary Random-Slope Closeout
+
+Goal:
+
+- Close #439 by consolidating evidence for ordinary Gaussian `mu` q > 2
+  grouped blocks and independent Gaussian `sigma` slopes before larger Phase 18
+  power simulations.
+
+Actions run:
+
+- Linked ordinary Gaussian `mu` q=3 recovery, q=4 output-contract, extractor,
+  `corpairs()`, `summary()$covariance`, and `profile_targets()` evidence from
+  the roadmap and Phase 6c core design note.
+- Made user-facing status rows explicit that independent Gaussian `sigma`
+  slopes are fitted on log-`sigma`.
+- Kept correlated residual-scale slope blocks and labelled residual-scale slope
+  covariance planned.
+- Removed one stale structured-slope sentence in the Phase 6c core design note
+  so the neighbouring table agrees with the #438 support matrix.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, formula-grammar, or missing-data files changed.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-phase6c-gaussian-ordinary-closeout.md docs/dev-log/check-log.md vignettes/model-map.Rmd
+Rscript --vanilla -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-gaussian-mu-random-slope|phase18-random-slope-grid-writers', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n 'q=3 recovery|q=4 output-contract|log-`sigma`|derived-unavailable|labelled residual-scale slope covariance|Ordinary Gaussian Evidence Closeout' README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-31-phase6c-gaussian-ordinary-closeout.md pkgdown-site --glob '!pkgdown-site/search.json'
+rg -n 'phylogeny has intercept-level effects but no fitted slope|correlated residual-scale slope blocks.*(fitted|implemented)|labelled residual-scale slope covariance.*(fitted|implemented)|q > 2 `mu` correlations are direct profile targets|q > 2 correlations are direct profile targets' README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/dev-log/known-limitations.md vignettes/model-map.Rmd pkgdown-site --glob '!pkgdown-site/search.json'
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- The focused Gaussian random-intercepts, Phase 18 Gaussian `mu` random-slope,
+  and Phase 18 random-slope grid-writer tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site in the fresh #439 worktree.
+- The positive source/rendered scan found the intended q=3 recovery, q=4
+  output-contract, log-`sigma`, derived-unavailable, labelled
+  residual-scale-covariance boundary, and ordinary Gaussian evidence-closeout
+  wording.
+- The stale-wording scan found no old phylogeny-has-no-slope wording, no claim
+  that correlated residual-scale slope blocks or labelled residual-scale slope
+  covariance are fitted, and no claim that q > 2 correlations are direct
+  profile targets.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Phase 6c Support Matrix Refresh
+
+Goal:
+
+- Close #438 by making the random-slope and structured-dependence support
+  matrix agree across README, ROADMAP, design notes, known limitations, and the
+  after-task ledger.
+
+Actions run:
+
+- Updated stale Phase 6c wording that said `phylo(1 + x | species, tree =
+  tree)` did not fit.
+- Updated non-Gaussian structured-dependence wording that still described the
+  fitted count q=1 structured route as phylogeny-only.
+- Removed a duplicate non-Gaussian row from the structural-slope map and added
+  evidence handles for the fitted/smoke/planned matrix.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor,
+  simulation-runner, or missing-data files changed.
+
+Validation:
+
+```sh
+air format NEWS.md README.md ROADMAP.md docs/design/33-phase-6c-core-random-effects.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-phase6c-support-matrix-refresh.md docs/dev-log/check-log.md vignettes/model-map.Rmd
+Rscript --vanilla -e "devtools::test(filter = 'package-skeleton|nongaussian-structured-boundary|count-structured-mu', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla -e 'x <- readLines("docs/design/59-structural-slope-and-non-gaussian-map.md"); stopifnot(sum(grepl("^\\\\| Selected non-Gaussian", x)) == 1L)'
+rg -n 'phylo\\(1 \\+ x \\| species, tree = tree\\).*does not fit|phylogenetic slopes, mesh/SPDE|phylogeny-only|non-Gaussian structured paths beyond ordinary Poisson/NB2 q=1 phylogeny|all other `phylo\\(\\)`, `spatial\\(\\)`, `animal\\(\\)`, and `relmat\\(\\)` non-Gaussian structured paths remain blocked' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/model-map.Rmd
+rg -n 'still does not fit|phylogenetic slopes, mesh/SPDE|phylogeny-only|q=1 phylogeny|all other <code>phylo' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/source-map.html
+rg -n 'multiple phylogenetic slopes|structured one-slope Gaussian `mu`|ordinary Poisson/NB2 q=1 structured `mu` intercepts|Evidence Handles For The Matrix|source-test, smoke, or diagnostic lanes|structured count q=1' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-31-phase6c-support-matrix-refresh.md pkgdown-site --glob '!pkgdown-site/search.json'
 git diff --check
 ```
 
@@ -135,6 +576,134 @@ Changes:
   self-contained structured-marker test file.
 - Kept this as a read-only post-fit accessor: no formula grammar, likelihood,
   TMB, optimizer, or missing-data files were changed for this task.
+- Formatting passed.
+- The focused package-skeleton, non-Gaussian structured-boundary, and
+  count-structured `mu` tests passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` rebuilt the rendered
+  site after the model-map source update.
+- The duplicate-row guard confirmed that the structural-slope map has exactly
+  one `Selected non-Gaussian` row.
+- The source stale-wording scan found no old `phylo(1 + x | species, tree =
+  tree)` does-not-fit, phylogeny-only, or all-other-structured-count-blocked
+  wording in the refreshed files.
+- The rendered stale-wording scan found no old random-slope or q=1 phylogeny
+  wording in the rebuilt pkgdown pages.
+- The positive source/rendered scan found the intended multiple-phylogenetic
+  slopes, structured one-slope Gaussian `mu`, structured count q=1, and
+  evidence-handle wording.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Coscale And Corpairs Boundary Extraction
+
+Goal:
+
+- Extract #443 from the Phase 6c draft branch into a small current-main PR that
+  sharpens the reader boundary between residual coscale `rho12`, singular
+  `corpair()` formula markers, and plural `corpairs()` extraction rows.
+
+Actions run:
+
+- Carried over the #443 documentation changes for the bivariate-coscale
+  tutorial, correlation-pair design note, course path, `corpair()` reference,
+  NEWS, ROADMAP, and after-task report.
+- Deliberately omitted the draft-only four-week sprint contract file from this
+  extracted PR.
+- Kept the slice documentation-only: no parser, likelihood, TMB, extractor, or
+  missing-data files changed beyond roxygen/reference wording.
+
+Validation:
+
+```sh
+air format NEWS.md ROADMAP.md R/formula-markers.R docs/course/README.md docs/design/20-coscale-correlation-pairs.md docs/dev-log/after-task/2026-05-30-coscale-corpairs-boundary-ledger.md docs/dev-log/check-log.md vignettes/bivariate-coscale.Rmd
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = 'package-skeleton', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-coscale', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_reference_index()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n 'rho12|corpair\(|corpairs\(|residual coscale|random effects in `rho12`|slope-specific' README.md NEWS.md ROADMAP.md R/formula-markers.R man/corpair.Rd docs/design/20-coscale-correlation-pairs.md docs/course/README.md vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- Formatting passed.
+- `devtools::document()` completed and regenerated `man/corpair.Rd`. It also
+  rewrote unrelated package-level manual files in this checkout, so those
+  unrelated generated files were restored before committing this slice.
+- The focused package-skeleton test passed.
+- The bivariate-coscale article and pkgdown reference index rendered, and
+  `pkgdown::check_pkgdown()` reported no problems.
+- The source and rendered scans found the intended `rho12`, `corpair()`,
+  `corpairs()`, residual-coscale, and slope-specific boundary wording.
+- `git diff --check` passed.
+
+## 2026-05-31 -- PR #435 Rebase After `phylo_interaction()` Merge
+
+Goal:
+
+- Rebase the issue #417 `sdreport` alias and `pdHess` Wald-inference gate
+  after PR #449 moved `main`, preserving the merged `phylo_interaction()`
+  check-log entry above the issue #417 work.
+
+Actions run:
+
+- Rebasing stopped only in `docs/dev-log/check-log.md`.
+- Preserved the merged #449 entry, the earlier #435 rebase note, the post-fit
+  accessor entry, and the original issue #417 task entry.
+- Confirmed the #435 code diff remained scoped to the `sdreport` alias,
+  positive-definite Hessian covariance gate, profile Wald status, tests, NEWS,
+  model-fit extractor docs, and issue #417 after-task report.
+
+Validation:
+
+```sh
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+air format docs/dev-log/check-log.md
+git diff --check
+GIT_EDITOR=true git rebase --continue
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/methods.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-meta-known-v.R')); invisible(parse('tests/testthat/test-profile-targets.R')); invisible(parse('tests/testthat/test-control.R')); cat('parse ok\n')"
+git diff --check origin/main..HEAD
+Rscript --vanilla -e "devtools::test(filter = 'meta-known-v|profile-targets|control', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Conflict-marker scan found no remaining markers after resolution.
+- `git diff --check` passed before and after the rebase completed.
+- Parse checks passed.
+- The focused `meta-known-v`, `profile-targets`, and `control` test run
+  passed on the #449 base.
+- `pkgdown::check_pkgdown()` reported no problems.
+
+## 2026-05-31 -- `phylo_interaction()` First Slice
+
+Goal:
+
+- Close #447 with the first fitted two-tree pair-level structured-effect
+  marker before the broader Phase 18 power simulations begin.
+
+Changes:
+
+- Added exported `phylo_interaction()` marker syntax for
+  `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`.
+- Added parser guards for random-effect syntax, intercept-only q=1 support,
+  two simple partner variables joined by `:`, distinct partner columns, and
+  named `tree1`/`tree2` phylogeny arguments.
+- Added Gaussian, ordinary Poisson, and ordinary NB2 `mu` routing through the
+  existing structured-effect likelihood path, using a sparse Kronecker
+  precision built from the two augmented partner-tree precisions.
+- Exposed the fitted field through `sdpars$mu`,
+  `ranef(fit, "phylo_interaction_mu")`, and direct `log_sd_phylo`
+  `profile_targets()` rows.
+- Added focused Gaussian/Poisson/NB2 tests, sparse-Kronecker builder checks,
+  malformed-syntax tests, roxygen documentation, NEWS, pkgdown reference
+  navigation, a two-tree article, status-table updates, known limitations, and
+  after-task reports.
+- Left additive partner main phylogenies plus the interaction, binary/Bernoulli
+  incidence models, structured pair slopes, labelled count covariance,
+  simultaneous structured layers, and missing-data work out of scope.
 
 Validation:
 
@@ -148,6 +717,20 @@ Rscript --vanilla -e "pkgdown::check_pkgdown()"
 Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
 rg -n "structured_effects|Extract structured-effect metadata|phylo_interaction\\(1 \\| plant:pollinator|matrix_attachment|args" pkgdown-site/reference/index.html pkgdown-site/reference/structured_effects.html pkgdown-site/news/index.html
 git diff --check
+air format R/drmTMB.R R/formula-markers.R R/gaussian-aggregation.R R/parse-formula.R R/profile.R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R README.md ROADMAP.md NEWS.md _pkgdown.yml docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-models.Rmd vignettes/structural-dependence.Rmd vignettes/bipartite-phylogenetic-interactions.Rmd docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/parse-formula.R')); invisible(parse('R/profile.R')); invisible(parse('R/formula-markers.R')); invisible(parse('tests/testthat/test-phylo-interaction.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "invisible(parse(text = xfun::split_source('vignettes/bipartite-phylogenetic-interactions.Rmd')$src)); cat('article code parse ok\n')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "Two-tree phylogenetic interactions|A tale of two phylogenies|ordinary NB2|Q_pair.*must match|phylo_interaction\\(|bipartite-phylogenetic-interactions|#447" pkgdown-site/articles/bipartite-phylogenetic-interactions.html pkgdown-site/articles/index.html pkgdown-site/articles/structural-dependence.html pkgdown-site/articles/phylogenetic-models.html pkgdown-site/reference/index.html pkgdown-site/reference/phylo_interaction.html pkgdown-site/news/index.html
+rg -n "incidence_or_count|Hadfield/Rafferty|Hadfield decomposition|ordinary Poisson .* phylogenetic intercept|missing-data|miss_control|structured_effects" README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/bipartite-phylogenetic-interactions.Rmd R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R _pkgdown.yml
+rg -n "binary|Bernoulli|additive partner|simultaneous structured|pair slopes|labelled count" README.md ROADMAP.md NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/bipartite-phylogenetic-interactions.Rmd
+git diff --check
+Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never')"
 ```
 
 Results:
@@ -186,6 +769,46 @@ Actions run:
 - Updated NEWS, after-task reports, and the rendered NEWS page so the
   `phylo_interaction()` slice points to #447 and the
   `correlation_block_status` task points to #446.
+- Focused `phylo-interaction` and `package-skeleton` tests passed before and
+  after `devtools::document()`.
+- `devtools::document()` generated `man/phylo_interaction.Rd` and updated
+  `NAMESPACE`; local roxygen-version churn in unrelated files was removed.
+- The two-tree article code parsed and rendered.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the new
+  `phylo_interaction` reference page and the new
+  `bipartite-phylogenetic-interactions` article.
+- The rendered scan found the new article in the Articles index and navbar,
+  links from the phylogenetic and structural-dependence articles, the Reference
+  index entry, the reference page, and the NEWS entry linking #447.
+- The stale-wording scan found only expected internal
+  `collect_structured_effects` helper names for the `structured_effects`
+  pattern; no missing-data lane terms, old Hadfield wording, or old ordinary
+  Poisson-only structured error text remained in the touched source/status
+  files.
+- The boundary scan found only deliberate planned-boundary wording for
+  binary/Bernoulli incidence, additive partner main phylogenies, simultaneous
+  structured layers, pair slopes, and labelled count covariance.
+- `git diff --check` passed.
+- `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
+  7m 11s with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-31 -- PR #435 Rebase After Post-Fit Accessors
+
+Goal:
+
+- Rebase the issue #417 `sdreport` alias and `pdHess` Wald-inference gate
+  after the post-fit accessor PR moved `main`, preserving both check-log
+  entries and avoiding missing-data lane files.
+
+Actions run:
+
+- Rebasing stopped only in `docs/dev-log/check-log.md`.
+- Preserved the merged May 31 post-fit accessor entry above the May 30 issue
+  #417 entry.
+- Kept the #435 code changes scoped to the `sdreport` alias, covariance gate,
+  profile Wald status, focused tests, NEWS, model-fit extractor docs, and the
+  issue #417 after-task report.
 
 Validation:
 
@@ -204,6 +827,63 @@ Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/
 Rscript --vanilla -e "pkgdown::build_news()"
 rg -n "#447|#446|phylo_interaction\\(\\)|correlation_block_status" NEWS.md docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md docs/dev-log/check-log.md pkgdown-site/news/index.html
 git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+air format docs/dev-log/check-log.md
+git diff --check
+GIT_EDITOR=true git rebase --continue
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/methods.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-meta-known-v.R')); invisible(parse('tests/testthat/test-profile-targets.R')); invisible(parse('tests/testthat/test-control.R')); cat('parse ok\n')"
+git diff --check origin/main..HEAD
+Rscript --vanilla -e "devtools::test(filter = 'meta-known-v|profile-targets|control', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Conflict-marker scan found no remaining markers after resolution.
+- `git diff --check` passed before and after the rebase completed.
+- Parse checks passed.
+- The focused `meta-known-v`, `profile-targets`, and `control` test run
+  passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+
+## 2026-05-31 -- Post-fit Accessors for Convergence and Structured Effects
+
+Goal:
+
+- Close the two small package-capability gaps in #317 and #335 before the
+  larger Phase 6c power-simulation work: a compact convergence flag for
+  downstream tooling and a stable metadata table for fitted structured-effect
+  markers.
+
+Changes:
+
+- Added exported `is_converged()` and `is_converged.drmTMB()`.
+- Made the default convergence flag require optimizer convergence code 0 and
+  finite stored objective/log-likelihood values.
+- Added `include_hessian = TRUE` to require successful `TMB::sdreport()`
+  output with `pdHess = TRUE` when downstream Wald-style inference needs it.
+- Added exported `structured_effects()` and `structured_effects.drmTMB()`.
+- Returned one row per fitted `phylo()`, `spatial()`, `animal()`, or
+  `relmat()` structured marker, with grouping, matrix attachment, structure,
+  block, distributional-parameter, coefficient, and original argument metadata.
+- Added roxygen documentation, pkgdown Reference-index entries, NEWS bullets,
+  focused tests, and after-task reports.
+- Kept both helpers read-only: no formula grammar, likelihood, TMB, optimizer,
+  simulation, or missing-data files were changed for this PR.
+
+Validation:
+
+```sh
+air format R/check.R R/methods.R tests/testthat/test-check-drm.R tests/testthat/test-structured-effects.R NEWS.md _pkgdown.yml
+Rscript --vanilla -e "invisible(parse('R/check.R')); invisible(parse('R/methods.R')); invisible(parse('tests/testthat/test-check-drm.R')); invisible(parse('tests/testthat/test-structured-effects.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "is_converged|Check whether a fit converged|include_hessian|#317|structured_effects|Extract structured-effect metadata|matrix_attachment|#335" pkgdown-site/reference/index.html pkgdown-site/reference/is_converged.html pkgdown-site/reference/structured_effects.html pkgdown-site/news/index.html
+git diff --check
+Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never')"
 ```
 
 Results:
@@ -243,6 +923,44 @@ Actions run:
   state that q=4 remains diagnostic/derived-unavailable.
 - Refreshed stale readiness wording in
   `docs/design/46-pre-simulation-readiness-matrix.md` and `ROADMAP.md`.
+- Parse checks passed.
+- Focused `check-drm`, `structured-effects`, and `package-skeleton` tests
+  passed before and after `devtools::document()`.
+- `devtools::document()` generated `man/is_converged.Rd`,
+  `man/structured_effects.Rd`, and updated `NAMESPACE`.
+- Incidental `RoxygenNote` and unrelated generated Rd churn were removed from
+  the diff.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built both new reference
+  pages and refreshed the Reference index and NEWS page.
+- The rendered scan found both helpers on the Reference index, their reference
+  pages, and NEWS.
+- `git diff --check` passed.
+- `devtools::check(args = c("--no-manual"), error_on = "never")` completed in
+  6m 58.2s with 0 errors, 0 warnings, and 0 notes.
+
+## 2026-05-30 -- Issue #417 sdreport Alias And pdHess Wald Gate
+
+Goal:
+
+- Expose the fitted `TMB::sdreport()` object through both `fit$sdr` and
+  `fit$sdreport`, and stop Hessian-based Wald standard errors,
+  `vcov()`, and Wald confidence intervals from using `sdreport()`
+  covariance when `pdHess = FALSE`.
+
+Actions run:
+
+- Added `fit$sdreport` as a construction-time alias of `fit$sdr`.
+- Made fixed-effect covariance availability require `fit$sdr$pdHess = TRUE`.
+- Kept point estimates available for non-positive-definite Hessian fits while
+  reporting `sdreport_non_pd_hessian` in coefficient summaries and
+  `wald_unavailable` in Wald interval tables.
+- Added the issue #417 `meta_V(V = v)` plus predictor-dependent `sigma`
+  regression and deterministic mutated-fit tests for the non-positive-definite
+  Hessian path.
+- Updated `NEWS.md` and the model-fit extractor documentation to describe the
+  `sdreport` alias and `pdHess = TRUE` covariance gate.
+- Added the issue #417 after-task report.
 
 Validation:
 
@@ -256,6 +974,14 @@ Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/
 rg -n 'After Slice 250|Gaussian `mu` only|animal/`relmat\(\)` models beyond|structured `sigma`,|structured `sigma` and|3 wrapper targets|remaining correlation-block wrapper targets|needed:correlation_block_wrapper|leaves structured q=2 as a wrapper target|q4.*interval-ready|q=4 derived.*interval-ready' README.md ROADMAP.md NEWS.md docs/design inst/sim/README.md vignettes
 gh issue list --repo itchyshin/drmTMB --state open --search 'phase6c random slope coscale correlation block structured q4' --limit 15
 git diff --check
+Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-meta-known-v.R", reporter = "summary"); testthat::test_file("tests/testthat/test-profile-targets.R", reporter = "summary"); testthat::test_file("tests/testthat/test-control.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "meta-known-v|profile-targets|control", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+air format R/drmTMB.R R/methods.R R/profile.R NEWS.md tests/testthat/test-meta-known-v.R tests/testthat/test-profile-targets.R tests/testthat/test-control.R man/model-fit-extractors.Rd man/drmTMB-package.Rd DESCRIPTION
+git diff --check
+rg -n 'meta_gaussian|tau ~|rho ~|meta_known_V\([^V]|fit\$sdreport|fit\$sdr|sdreport_non_pd_hessian|wald_unavailable|positive-definite Hessian|pdHess = FALSE' README.md ROADMAP.md NEWS.md R tests/testthat man docs/design docs/dev-log/known-limitations.md vignettes
+gh issue view 417 --repo itchyshin/drmTMB --comments
+gh issue comment 417 --repo itchyshin/drmTMB --body '<PR #435 issue-maintenance summary>'
 ```
 
 Results:
@@ -272,6 +998,21 @@ Results:
 - The overlapping open issues are #446 and #436. I left both open and did not
   comment because this slice adds routing/status artifacts rather than closing
   the broader Phase 6c simulation or sprint issues.
+- The three focused `testthat::test_file()` runs passed for
+  `test-meta-known-v.R`, `test-profile-targets.R`, and `test-control.R`.
+- The filtered `devtools::test()` run passed for
+  `meta-known-v|profile-targets|control`.
+- `devtools::document()` completed; `man/model-fit-extractors.Rd` was updated
+  for the new `pdHess = TRUE` extractor contract, and unrelated roxygen2
+  version/package-author churn was removed.
+- `air format` and `git diff --check` passed.
+- The stale-wording scan found expected historical or design-scope references
+  to `meta_gaussian()`, `tau ~`, `pdHess = FALSE`, and `wald_unavailable`; no
+  new contradiction for this issue #417 slice was found.
+- Issue #417 already recorded PR #434 as a docs-only guardrail and explicitly
+  left the issue open for this code-level diagnostic fix.
+- Added an issue #417 comment pointing to PR #435:
+  `https://github.com/itchyshin/drmTMB/issues/417#issuecomment-4584982371`.
 
 ## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
 
@@ -46295,6 +47036,26 @@ Changes:
 - Updated `ROADMAP.md` so the Phase 6c section links #436-#444 and no longer
   says `phylo(1 + x | species, tree = tree)` does not fit in the current
   structured one-slope status.
+## 2026-06-01 - Phase 18 artifact-grain preflight
+
+Goal:
+
+- Add a small first-wave preflight that separates replicate-ready simulation
+  artifacts from aggregate-only, missing, empty, mixed-grain, and missing-grain
+  artifacts before report templates draw replicate-error clouds.
+
+Changes:
+
+- Added `phase18_first_wave_artifact_grain_status()` to inspect the selected
+  first-wave table artifacts by surface and classify their `artifact_grain`.
+- Updated `phase18_write_first_wave_table_bundle()` to write
+  `phase18-first-wave-artifact-grain-status.csv` beside the combined table
+  bundle.
+- Passed the grain-status CSV through
+  `phase18_first_wave_summary_report_params()` and displayed it in
+  `phase18-first-wave-summary-report.Rmd`.
+- Updated the Phase 18 simulation README, Phase 18 design note, ROADMAP row
+  1829, and after-task report.
 
 Validation:
 
@@ -46357,6 +47118,12 @@ rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\
 Rscript --vanilla -e "pkgdown::build_site()"
 rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V|gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl' pkgdown-site/AGENTS.html pkgdown-site/CLAUDE.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/search.json pkgdown-site/articles
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_write_first_wave_table_bundle.R', 'inst/sim/run/sim_render_first_wave_summary_report.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-table-bundle$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-render-helper)$', reporter = 'summary')"
+air format inst/sim/run/sim_write_first_wave_table_bundle.R inst/sim/run/sim_render_first_wave_summary_report.R tests/testthat/test-phase18-first-wave-table-bundle.R tests/testthat/test-phase18-first-wave-summary-render-helper.R inst/sim/reports/phase18-first-wave-summary-report.Rmd inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-artifact-grain-preflight.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "phase18-first-wave-artifact-grain-status|artifact-grain status|artifact_grain|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
 git diff --check
 ```
 
@@ -46398,6 +47165,54 @@ Changes:
   `gllvmTMB.jl` could be read as a separate package.
 - Updated the local prose-review skill and team-improvement log to prevent
   deprecated-alias and rendered-pkgdown drift.
+- The parse check passed.
+- The focused table-bundle package test passed after loading the current
+  worktree.
+- The adjacent table-bundle plus summary-render-helper tests passed before and
+  after formatting.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain stale-wording scan found the new preflight language plus
+  older historical pseudo-replicate audit notes; no current report wording
+  claims aggregate rows can produce replicate clouds.
+- `git diff --check` passed.
+- GitHub issue maintenance inspected open issue #255, opened PR #458 with
+  `Refs #255`, posted a sync note on #255, and left the issue open because
+  downstream figure/report consumers still need to require
+  `grain_status = "replicate_ready"` before drawing replicate-error clouds.
+
+Member-group review:
+
+- Ada kept the change scoped to report staging and issue #255 rather than
+  dispatching a new grid.
+- Curie added positive and negative grain-status coverage for replicate,
+  aggregate, missing, empty, mixed-grain, and missing-grain inputs.
+- Florence's boundary is explicit: only `replicate_ready` rows may support
+  replicate-error clouds.
+- Fisher checked that aggregate-only rows remain points, bars, and MCSE inputs
+  rather than pseudo-replicate distributions.
+- Rose kept the missing-data lane untouched and recorded this as a Phase 18
+  artifact-grain preflight, not a new simulation-evidence claim.
+
+## 2026-06-01 - Phase 18 replicate-cloud gate
+
+Goal:
+
+- Make the first-wave summary report consume the artifact-grain preflight as a
+  plotting gate, so aggregate-only surfaces cannot be read as ready for
+  replicate-error clouds.
+
+Changes:
+
+- Added `phase18_replicate_cloud_gate()` inside the first-wave summary report
+  template to derive a per-surface display gate from
+  `artifact_grain_status_csv`.
+- Added `phase18_add_replicate_cloud_gate()` so aggregate-bias overview rows
+  carry the gate status beside bias, RMSE, and MCSE fields.
+- Added a `Replicate Cloud Gate` table to
+  `phase18-first-wave-summary-report.Rmd`.
+- Updated the summary-report render test, Phase 18 README, Phase 18 design
+  note, ROADMAP row 1830, and after-task report.
 
 Validation:
 
@@ -46463,6 +47278,12 @@ Rscript --vanilla -e "pkgdown::build_site()"
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
 rg -n "Phase 18 mega-issue|umbrella simulation programme|artifact-grain|comparator-package lane|DRM\\.jl|GLLVM\\.jl|#59|#255|#60" pkgdown-site/ROADMAP.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/search.json docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-report$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(summary-report|summary-render-helper|table-bundle)$', reporter = 'summary')"
+air format inst/sim/reports/phase18-first-wave-summary-report.Rmd tests/testthat/test-phase18-first-wave-summary-report.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-replicate-cloud-gate.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "replicate_cloud_gate|Replicate Cloud Gate|replicate_clouds_allowed|aggregate_only_no_clouds|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+git diff --check
 ```
 
 Results:
@@ -46509,6 +47330,53 @@ Changes:
   matching slope-only bivariate Gaussian `mu1`/`mu2` blocks are now described
   as fitted in the correlated-block design note, and the future proportional
   `meta_V()` example no longer repeats the response as a positional argument.
+- The focused summary-report test passed.
+- The adjacent summary-report, summary-render-helper, and table-bundle tests
+  passed together.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The gate/stale-wording scan found the new gate wording plus historical
+  pseudo-replicate audit notes; current first-wave report wording keeps
+  aggregate-only surfaces out of replicate clouds.
+- `git diff --check` passed.
+- A direct attempt to `parse()` the Rmd file failed on Rmd/YAML syntax; the
+  rendered test path is the valid check for this template.
+- The prose pass checked that the README, design note, ROADMAP row, check-log,
+  and after-task note state the same concrete gate without claiming new
+  simulation evidence.
+
+Member-group review:
+
+- Ada kept this as a report-staging gate rather than a new simulation run.
+- Curie covered the rendered aggregate-only gate in the summary-report smoke.
+- Florence's boundary is explicit in the report: replicate-error clouds need
+  `replicate_cloud_gate = "replicate_clouds_allowed"`.
+- Fisher checked that aggregate-bias rows remain aggregate evidence and do not
+  imply a replicate distribution.
+- Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 count-gallery grain gate
+
+Goal:
+
+- Make the first figure-producing Phase 18 gallery require replicate grain
+  before drawing replicate-error points.
+
+Changes:
+
+- Updated `phase18_count_gallery_has_replicates()` in
+  `phase18-count-mu-gallery.Rmd` so replicate-error points are drawn only when
+  the input has `artifact_grain = "replicate"`.
+- Updated the rendered count-gallery test so the ordinary replicate CSV carries
+  `artifact_grain = "replicate"`.
+- Added a rendered negative smoke with an aggregate-grain CSV that still has
+  `error` columns; the report must render without treating it as replicate
+  cloud input.
+- Updated the Phase 18 README, Phase 18 design note, ROADMAP row 1831, and
+  after-task report.
+- Moved the recent Slice 1829-1831 design-ledger entries to the current end of
+  the Phase 18 numbered ledger, avoiding duplicate local ordinal labels before
+  the older 869-918 entries.
 
 Validation:
 
@@ -46523,6 +47391,11 @@ Rscript --vanilla -e "pkgdown::check_pkgdown()"
 Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
 rg -n 'spatial_mu_slope|spatial one-slope|meta_V\(w = w|matching slope-only `mu1`/`mu2` blocks|three wrapper targets|four existing tasks|Phase 18 now exposes a manual-only `spatial_mu_slope`' pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/source-map.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/news/index.html pkgdown-site/dev/articles/source-map.html pkgdown-site/dev/search.json ROADMAP.md NEWS.md vignettes/source-map.Rmd docs/design/17-correlated-random-effect-blocks.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
 rg -n 'Sagan|meta_V\(value|bivariate `mu1`/`mu2` random-slope covariance blocks|Clarify `meta_known_V|dense `meta_known_V\(V = V\)` fits' docs/dev-log/check-log.md docs/design/17-correlated-random-effect-blocks.md vignettes/source-map.Rmd ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-(template|render-helper)$|^phase18-sim-plot-data$', reporter = 'summary')"
+air format inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-count-gallery-grain-gate.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "artifact_grain = \"replicate\"|artifact_grain|replicate-error clouds|fake.*cloud|pseudo-replicate|aggregate-only|Faint points are replicate-level errors" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
+rg -n "Slice 1829|Slice 1830|Slice 1831|136\\. Slice 1829|137\\. Slice 1830|138\\. Slice 1831|236\\. Slice 1829|237\\. Slice 1830|238\\. Slice 1831" docs/design/41-phase-18-simulation-programme.md
 git diff --check
 ```
 
@@ -46579,6 +47452,49 @@ Changes:
   current course route and the still-missing bivariate slope-only tutorial.
 - Recorded the #443 boundary language in the four-week sprint contract,
   roadmap, and NEWS.
+- The focused count-gallery template, count-gallery render-helper, and
+  sim-plot-data tests passed together.
+- `air format` completed with no output.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain stale-wording scan found the new count-gallery gate plus
+  historical pseudo-replicate audit notes; the current count gallery requires
+  `artifact_grain = "replicate"` before cloud-style bias points are drawn.
+- The design-ledger ordering scan found Slice 1829, 1830, and 1831 only at the
+  current ledger tail as rows 236-238.
+- `git diff --check` passed.
+- The prose pass checked that the README, design note, ROADMAP row, check-log,
+  and after-task note describe a display gate, not new simulation evidence.
+
+Member-group review:
+
+- Ada kept the change inside the existing count-pilot gallery instead of
+  adding a new plotting API.
+- Curie covered the positive replicate-grain path and the aggregate-grain
+  negative render smoke.
+- Florence's boundary now reaches an actual figure template, not only the
+  summary-report status table.
+- Fisher checked that an aggregate-grain CSV with `error` columns cannot be
+  plotted as a replicate-error cloud.
+- Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 artifact-grain closeout
+
+Goal:
+
+- Close the current #255 artifact-grain contract without turning future
+  gallery hygiene into an indefinite blocker.
+
+Changes:
+
+- Added `docs/design/150-phase-18-artifact-grain-closeout.md` with the current
+  guarantee for first-wave report staging and the count-pilot gallery.
+- Added a first-wave table-bundle test that covers `gaussian_ls_grid`,
+  `meta_v_grid`, `count_mu_random_effect_grid`,
+  `proportion_fixed_effect_grid`, and `biv_rho12_grid`.
+- Updated the Phase 18 simulation README, ROADMAP row 1832, and the Phase 18
+  simulation-programme ledger.
+- Opened #461 for future Phase 18 galleries that add cloud-style,
+  dot-density, empirical-quantile, or replicate-level failure displays.
 
 Validation:
 
@@ -46594,6 +47510,10 @@ rg -n 'Spatial|spatial' R/formula-markers.R man/corpair.Rd pkgdown-site/referenc
 rg -n -e 'coordinate-spatial, animal-model, and `relmat\\(\\)` q=2 or constant' -e 'Keep the three correlation words separate' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/dev/articles/bivariate-coscale.html
 rg -n -e 'Phase 6c random slopes are currently taught' -e 'The bivariate coscale tutorial and correlation-pair design note' docs/course/README.md NEWS.md pkgdown-site/news/index.html pkgdown-site/dev/news/index.html
 rg -n 'richer spatial and study-level correlation rows remain planned|Predictors must be constant within the grouping factor\\. Spatial,|GLLVM\\.jl / gllvmTMB\\.jl|meta_V\\(value' vignettes docs/design R man README.md ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
+air format tests/testthat/test-phase18-first-wave-table-bundle.R docs/design/150-phase-18-artifact-grain-closeout.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-artifact-grain-closeout.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$|^phase18-count-gallery-template$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "artifact-grain closeout|artifact_grain = \"replicate\"|replicate_cloud_allowed|replicate_cloud_gate|fake.*cloud|aggregate-only|Phase 18 artifact-grain|#255|#461|Slice 1832|1832|gaussian_ls_grid|meta_v_grid|count_mu_random_effect_grid|proportion_fixed_effect_grid|biv_rho12_grid" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
 git diff --check
 ```
 
@@ -47036,6 +47956,43 @@ Goal:
 - Verify that the Phase 6c public prose changes render through pkgdown and
   that the generated pages carry the current structured-slope and meta-analysis
   wording.
+- The focused first-wave table-bundle, first-wave summary-report,
+  first-wave summary-render-helper, and count-gallery template tests passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The artifact-grain closeout scan found the current gate wording, historical
+  notes, #255/#461 references, and the new ROADMAP/design entries.
+- `git diff --check` passed.
+- The prose pass checked that the closeout states a reporting/data-grain
+  guarantee, not new simulation recovery, coverage, or power evidence.
+
+Member-group review:
+
+- Ada kept #255 closure separate from future-gallery hygiene by opening #461.
+- Curie added the synthetic five-surface first-wave test for the current grid
+  surface names.
+- Florence checked that cloud-style displays still require replicate-ready
+  input.
+- Fisher kept aggregate MCSE evidence separate from replicate-error evidence.
+- Rose left the missing-data lane untouched.
+
+## 2026-06-01 - Phase 18 future-gallery grain helper
+
+Goal:
+
+- Close #461 by giving future Phase 18 galleries a reusable artifact-grain
+  predicate instead of copying local `artifact_grain` checks.
+
+Changes:
+
+- Added `inst/sim/R/sim_gallery_grain.R` with
+  `phase18_gallery_can_draw_replicate_cloud()`.
+- Routed `reports/phase18-count-mu-gallery.Rmd` through the helper before the
+  bias panel can draw replicate-error clouds.
+- Updated the count-gallery template tests with direct helper coverage for
+  replicate grain, aggregate grain, derived gate, conflicting gate, and missing
+  required columns.
+- Updated the Phase 18 README, simulation-programme design ledger, artifact
+  grain closeout note, and ROADMAP row 1833.
 
 Validation:
 
@@ -47108,6 +48065,12 @@ Rscript -e 'pkgdown::check_pkgdown()'
 Rscript -e 'pkgdown::build_site(preview = FALSE)'
 rg -n 'q &gt; 2 blocks estimate one SD per coefficient|independent <code>sigma</code> slopes fit on <code>log\\(sigma\\)</code>|groups differ in residual-scale slopes|For first structured one-slope paths|Later ordinary Gaussian' pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/search.json
 ! rg -n 'still blocks TMB export for <code>q &gt; 2</code>|Do not estimate intercept-slope correlations in the first slope path' pkgdown-site/ROADMAP.html pkgdown-site/search.json
+air format inst/sim/R/sim_gallery_grain.R inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/150-phase-18-artifact-grain-closeout.md ROADMAP.md
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-template$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-template$|^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "phase18_gallery_can_draw_replicate_cloud|sim_gallery_grain|replicate_cloud_gate = 'replicate_clouds_allowed'|Future-gallery grain helper|#461|Slice 1833|1833|fake.*cloud|aggregate-grain|artifact_grain = \"replicate\"" inst/sim README.md ROADMAP.md NEWS.md docs vignettes tests/testthat
 git diff --check
 ```
 
@@ -47131,6 +48094,16 @@ Results:
   model-map, and roadmap updates in the generated pages and search index.
 - The rendered stale scan found no old q > 2 export block or broad first-slope
   correlation prohibition in the rendered ROADMAP/search index.
+- The first focused count-gallery run failed because the template no longer
+  contained the literal `artifact_grain` predicate after the helper extraction.
+  The no-cloud subtitle now states both accepted gate forms, and the rerun
+  passed.
+- The focused first-wave table-bundle, summary-report, and summary-render
+  helper tests passed.
+- The combined focused rerun passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The status scan found the new helper, count-gallery hook, ROADMAP row 1833,
+  #461 references, and historical artifact-grain notes.
 - `git diff --check` passed.
 
 Member-group review:
@@ -47158,6 +48131,25 @@ Changes:
 - Added an explicit provenance note to
   `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md`: `gllvmTMB.jl` is an older
   local checkout directory for `GLLVM.jl`, not a separate package name.
+- Ada kept the task scoped to #461 future-gallery hygiene.
+- Curie added direct helper tests instead of relying only on rendered HTML.
+- Florence kept cloud-style display tied to actual replicate-level evidence.
+- Fisher kept aggregate MCSE evidence separate from replicate-error rows.
+- Rose confirmed the missing-data lane was untouched.
+
+## 2026-06-01 - Random-slope capacity closeout
+
+Goal:
+
+- Close #128 by tying the current random-effect slope capacity table to the
+  existing implementation, tests, status docs, and Phase 18 simulation handoff.
+
+Changes:
+
+- Marked `docs/design/59-structural-slope-and-non-gaussian-map.md` as the #128
+  closeout ledger.
+- Added ROADMAP Slice 77 for the random-effect slope capacity closeout.
+- Added an after-task report for the closeout.
 
 Validation:
 
@@ -47165,6 +48157,12 @@ Validation:
 rg -n -F 'meta_known_V\\(V = V\\).*(current|preferred|stable|default)' docs/design/10-after-task-protocol.md
 rg -n 'older local checkout directory for `GLLVM.jl`' docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md
 rg -n 'meta_known_V\\(V = V\\).*compatibility alias' docs/design/10-after-task-protocol.md
+air format docs/design/59-structural-slope-and-non-gaussian-map.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-random-slope-capacity-closeout.md
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n '#128|Random-effect slope capacity closeout|ordinary Gaussian `mu`|residual-scale `sigma`|bivariate slope-only|structured Gaussian one-slope|p8/q8|coefficient-specific `sd`|correlated non-Gaussian slopes' README.md ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/known-limitations.md tests/testthat
+rg -n 'Gaussian location-scale models are implemented|Residual-scale random intercepts|Bivariate Gaussian location-scale-coscale models|Phylogenetic, coordinate-spatial|corpairs\(\) currently reports only correlations' docs/dev-log/known-limitations.md
+rg -n 'Gaussian mu supports q > 2|Gaussian sigma supports independent residual-scale random slopes|random slopes in bivariate models remain planned|non-Gaussian mu supports independent numeric random slopes|Phase 18 random-slope workflow plan returns admitted rows' tests/testthat
+rg -n 'random effects in `rho12` (are )?(fitted|implemented)|residual-scale structured slopes (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)|correlated non-Gaussian slopes (are )?(fitted|implemented)|coefficient-specific `sd`.*(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat || true
 git diff --check
 ```
 
@@ -47173,6 +48171,15 @@ Results:
 - The positive scan found the updated audit pattern and the GLLVM path note.
 - The false-positive stale scan found no remaining instruction to flag
   compatibility-alias wording in the after-task protocol.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The positive capacity scans found the issue-linked design map, ROADMAP row,
+  known-limitations entries, and current test evidence for ordinary Gaussian
+  q > 2, Gaussian residual-scale slopes, bivariate planned-boundary tests,
+  selected non-Gaussian `mu` slopes, and Phase 18 random-slope workflow rows.
+- The stale wording scan found no current claim that random effects in
+  `rho12`, residual-scale structured slopes, p8/q8 endpoint covariance,
+  correlated non-Gaussian slopes, or coefficient-specific `sd()` slope models
+  are fitted.
 - `git diff --check` passed.
 
 Member-group review:
@@ -47205,6 +48212,39 @@ Changes:
 - Documented the #446 table in
   `docs/design/143-phase-18-structured-workflow-registry.md` and
   `docs/design/41-phase-18-simulation-programme.md`.
+- Ada kept the slice as issue closeout/status work instead of adding another
+  model surface.
+- Boole checked that formula grammar status did not change.
+- Curie traced the existing source-test handles rather than adding redundant
+  tests.
+- Fisher kept fitted support separate from simulation recovery, coverage, and
+  power evidence.
+- Rose kept broad unsupported cells visible as planned follow-ups.
+
+## 2026-06-01 - Random-slope tutorial and release ledger
+
+Goal:
+
+- Close #444 by tying the reader-facing random-slope teaching path to the
+  model-map status table, location-scale and bivariate-coscale articles,
+  reference-index discoverability, and a finished-versus-planned ledger.
+
+Changes:
+
+- Added a compact slope-slope first-slice section to
+  `vignettes/bivariate-coscale.Rmd`, pairing the plasticity-syndrome question
+  with equations, matching `drmTMB` syntax, `corpairs()`,
+  `summary()$covariance`, `profile_targets()`, and `check_drm()` guidance.
+- Tightened `vignettes/location-scale.Rmd` for residual-scale random-slope
+  boundaries, ordinary q > 2 Gaussian `mu` blocks, the
+  `corpairs(fit, class = "mean-slope")` reaction-norm interpretation, and
+  structured one-slope caveats.
+- Updated `vignettes/model-map.Rmd` so the status map routes independent
+  residual-scale slopes, selected non-Gaussian `mu` slopes, and the first
+  Gaussian structured one-slope `mu` routes consistently.
+- Added `docs/design/151-phase6c-random-slope-tutorial-ledger.md` as the #444
+  finished-versus-planned release ledger.
+- Updated `docs/design/37-worked-example-inventory.md` and ROADMAP Slice 78.
 
 Validation:
 
@@ -47213,6 +48253,16 @@ Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-regis
 Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_operating_characteristic_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p, row.names=FALSE)'
 Rscript --vanilla -e "devtools::test(filter = 'phase18-random-slope-grid-writers|phase18-biv-gaussian-mu-slope|phase18-gaussian-mu-random-slope', reporter = 'summary')"
 rg -n 'phase18_random_slope_operating_characteristic_plan|planned_not_estimated|source_tests_exist_artifact_lane_needed|Slice 1829 Random-Slope Operating-Characteristic Plan|registry-derived planning table' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
+air format vignettes/location-scale.Rmd vignettes/model-map.Rmd vignettes/bivariate-coscale.Rmd docs/design/151-phase6c-random-slope-tutorial-ledger.md docs/design/37-worked-example-inventory.md ROADMAP.md
+Rscript --vanilla -e "pkgdown::build_article('location-scale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-cosscale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('bivariate-coscale', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_article('model-map', new_process = FALSE, quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "devtools::test(filter = '^biv-gaussian$|^corpairs$|^gaussian-random-intercepts$', reporter = 'summary')"
+rg -n "random_effect_scale_formulas|rho12|corpair|corpairs|phylo|spatial|animal|relmat|check_drm|profile_targets" _pkgdown.yml
+rg -n "First slope-slope covariance slice|Residual-scale random effects live|Do high-baseline populations|Do repeated groups need non-Gaussian|groups differ in residual-scale slopes|Random-slope tutorial and release ledger|Issue #444 can close|phase6c-random-slope-tutorial-ledger" vignettes docs ROADMAP.md pkgdown-site/articles/bivariate-coscale.html pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html
+rg -n 'random effects in `rho12` (are )?(fitted|implemented)|correlated residual-scale slope.*(is|are )?(fitted|implemented)|coefficient-specific `sd\(\)`.*(is|are )?(fitted|implemented)|intercept-plus-slope q4.*(is|are )?(fitted|implemented)|p8/q8.*(is|are )?(fitted|implemented)|multiple structured slopes.*(is|are )?(fitted|implemented)' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes
 git diff --check
 ```
 
@@ -47226,6 +48276,23 @@ Results:
   guard for existing random-slope artifact routes.
 - The source scan found the helper, planned-only statuses, tests, and design
   prose.
+- `location-scale`, `bivariate-coscale`, and `model-map` article renders
+  completed.
+- The first bivariate render command failed because I typed the article slug as
+  `bivariate-cosscale`. The corrected `bivariate-coscale` render passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- Focused tests for `biv-gaussian`, `corpairs`, and
+  `gaussian-random-intercepts` passed.
+- The reference-index scan found `random_effect_scale_formulas`, `rho12`,
+  `corpair`, `corpairs`, `phylo`, `spatial`, `animal`, `relmat`, `check_drm`,
+  and `profile_targets` in `_pkgdown.yml`.
+- The source/rendered scan found the new slope-slope article section,
+  residual-scale slope wording, reaction-norm row, model-map rows, ROADMAP row,
+  and #444 ledger.
+- The unsupported-boundary scan returned only intentional planning or boundary
+  wording: p8/q8 issue templates, slope-only-not-p8 boundary rows, multiple
+  structured slopes outside the fitted surface, and first-slice structured rows
+  that also name planned neighbouring cells.
 - `git diff --check` passed.
 
 Member-group review:
@@ -47256,6 +48323,30 @@ Changes:
   fitted intercept-slope correlation from
   `corpairs(fit, class = "mean-slope")`.
 - Added a compact after-task report.
+- Ada kept the slice issue-linked and docs-only.
+- Pat checked that a reader can move from model purpose to syntax, output, and
+  diagnostics without reading the design docs first.
+- Fisher kept fitted first slices separate from recovery, coverage, and power
+  claims.
+- Rose checked the unsupported cells remain explicit planned neighbours.
+
+## 2026-06-01 - Public bootstrap interval closeout
+
+Goal:
+
+- Close #265 by mapping the public bootstrap interval checklist to the current
+  `confint(..., method = "bootstrap")` implementation, tests, docs, roadmap,
+  and limitations.
+
+Changes:
+
+- Added `docs/design/153-public-bootstrap-interval-closeout.md` as the #265
+  closeout ledger.
+- Updated ROADMAP Slice 81 and the earlier bootstrap interval rows to mark the
+  first public direct-target bootstrap boundary as complete.
+- Corrected a stale NEWS bullet that still described bootstrap intervals as
+  rejected after the direct `confint()` route had landed.
+- Added an after-task report for the closeout.
 
 Validation:
 
@@ -47271,6 +48362,11 @@ Rscript --vanilla -e 'pkgdown::build_article("location-scale", quiet = FALSE)'
 Rscript --vanilla -e 'pkgdown:::build_search()'
 rg -n 'What can I fit today\\?|implementation map|Ordinary Gaussian <code>mu</code> q &gt; 2 random-effect blocks|correlated residual-scale slope covariance|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/articles/location-scale.html
 rg -n 'What can I fit today\\?|Ordinary Gaussian mu q > 2 random-effect blocks|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/search.json
+air format NEWS.md ROADMAP.md docs/design/153-public-bootstrap-interval-closeout.md docs/dev-log/after-task/2026-06-01-public-bootstrap-interval-closeout.md docs/dev-log/check-log.md
+Rscript --vanilla -e "devtools::test(filter = '^profile-targets$|^control$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n '#265|Public bootstrap interval closeout|confint\(\.\.\., method = "bootstrap"\)|bootstrap\.n|bootstrap\.failed|bootstrap\.parallel|bootstrap\.workers|direct fitted-object targets|bootstrap_unavailable|summary\(conf\.int = TRUE, method = "bootstrap"\)|corpairs\(conf\.int = TRUE, method = "bootstrap"\)' ROADMAP.md docs/design/153-public-bootstrap-interval-closeout.md docs/dev-log/after-task/2026-06-01-public-bootstrap-interval-closeout.md docs/design/12-profile-likelihood-cis.md docs/dev-log/known-limitations.md R/profile.R tests/testthat/test-profile-targets.R NEWS.md
+rg -n 'bootstrap intervals are not implemented|public interval methods limited to Wald and profile|bootstrap.*rescues every|bootstrap.*automatically (rescues|fixes|recovers)|summary\(.*method = "bootstrap".*(implemented|supported)|corpairs\(.*method = "bootstrap".*(implemented|supported)|prediction.*bootstrap.*(implemented|supported)|derived.*bootstrap.*(implemented|supported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R man tests/testthat
 git diff --check
 ```
 
@@ -50318,3 +51414,91 @@ Status answer:
   structured count slices are tested. It is not close for every
   non-Gaussian mixed, structured, bivariate, missing-data, or distributional
   parameter combination.
+- Focused `profile-targets` and `control` tests passed.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The positive scan found #265, the new closeout ledger, the direct
+  `confint(..., method = "bootstrap")` route, `bootstrap.n`,
+  `bootstrap.failed`, `bootstrap.parallel`, `bootstrap.workers`,
+  `bootstrap_unavailable`, and the explicit `summary()`/`corpairs()`
+  bootstrap boundaries across roadmap, design, implementation, and tests.
+- The stale scan returned only intentional hits: ROADMAP's generic interval
+  hardening row that says bootstrap routes are supported or deliberately
+  unavailable, and the reusable scan recipe in
+  `docs/design/69-comprehensive-function-page-figure-audit.md`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the PR as issue-linked status work rather than changing interval
+  behaviour.
+- Fisher kept direct bootstrap intervals separate from coverage, power, MCSE,
+  and hard-fit recovery claims.
+- Pat checked that the user-facing route names `confint()` but does not imply
+  `summary()` or `corpairs()` bootstrap support.
+- Rose removed the stale NEWS contradiction and kept derived intervals visible
+  as follow-up work.
+
+## 2026-06-01 - Claude agent team mirror (branch claude/clause-team-analysis-s1RRw)
+
+Task: mirror `.codex/agents/` into `.claude/agents/` so Claude Code can launch
+the same team as Codex.
+
+- Created 10 `.claude/agents/*.md` subagents, one per `.codex/agents/*.toml`,
+  with instruction bodies copied verbatim. `model_reasoning_effort` high/medium
+  mapped to opus/sonnet; tools scoped by role posture.
+- Added a sync note to `AGENTS.md` and a "Launchable Team Agents" section to
+  `CLAUDE.md`: keep `.codex/agents/` and `.claude/agents/` one-to-one.
+- Checks run: `ls .claude/agents/` (10 files, parity with the TOMLs);
+  `rg -n '^(name|description|model|tools):' .claude/agents/` (valid frontmatter);
+  verbatim-body diff vs the TOMLs; `rg -n "rho12|sigma|tau" .claude/agents/`
+  (canonical names intact, no `tau`); `git status` (only intended files; no
+  R/src/tests changes).
+- NOT run: `devtools::document/test/check` — R toolchain absent in this web
+  container and this change touches no R or C++ code.
+- Follow-up logged in `team-improvements.md`: Curie role-name collision between
+  `AGENTS.md` (simulation/testing) and the literature-curator agent (literature
+  curator).
+
+## 2026-06-01 - Resolve Curie role-name collision (branch claude/clause-team-analysis-s1RRw)
+
+- Owner decision: Curie = simulation/testing specialist (matches AGENTS.md table).
+- Bound Curie to `simulation_tester` in both `.codex/agents/simulation-tester.toml`
+  and `.claude/agents/simulation-tester.md` (verbatim opening line in sync).
+- Removed the "You are Curie" claim from the literature/methods curator in both
+  `.codex/agents/literature-curator.toml` and `.claude/agents/literature-curator.md`.
+- Checks: `rg -n "You are Curie" .codex .claude` -> only the two simulation-tester
+  files; AGENTS.md table line 142 unchanged and now consistent; codex/claude
+  bodies for both agents kept identical.
+
+## 2026-06-01 - Standing-role agents complete the team mirror (branch claude/clause-team-analysis-s1RRw)
+
+- Added launchable agents for the seven review-only standing roles in both
+  runtimes: integration-reviewer (Ada), formula-reviewer (Boole),
+  math-consistency-reviewer (Noether), audience-reviewer (Darwin),
+  figure-reviewer (Florence), architecture-reviewer (Emmy), inference-reviewer
+  (Fisher). Each is `.codex/agents/<name>.toml` + `.claude/agents/<name>.md`
+  with identical bodies.
+- Updated AGENTS.md and CLAUDE.md mirror notes (all standing names now
+  launchable) and fixed the stale CLAUDE.md `literature_curator`/Curie mapping
+  to `simulation_tester`/Curie.
+- Checks: 17 agents per directory; per-pair body diff identical for all 7;
+  frontmatter valid; `rg "\\btau\\b|meta_gaussian|rho ~"` clean (only the
+  legitimate "sigma (not tau)" guidance and the allowed user-tester usage);
+  `git status` shows only intended files, no R/src/tests changes.
+- NOT run: devtools::* (R toolchain absent in web container; no R/C++ changed).
+
+## 2026-06-01 - SessionStart hook for Claude Code on the web (branch claude/clause-team-analysis-s1RRw)
+
+- Added `.claude/hooks/session-start.sh` (remote-only, synchronous, idempotent)
+  and `.claude/settings.json` registering it. Installs R release + pandoc +
+  link libs, then the DESCRIPTION dependency tree via remotes, preferring Posit
+  P3M binaries with cloud CRAN fallback. Best-effort: exits 0 with guidance if
+  package repos are blocked.
+- Checks: `bash -n` syntax OK. Ran with CLAUDE_CODE_REMOTE=true: installed R
+  4.3.3 + pandoc from the Ubuntu archive (apt-get update made tolerant of
+  unrelated 403 PPAs). Dependency download could NOT be validated here because
+  this container's egress policy blocks CRAN and P3M (both 403 host_not_allowed);
+  the hook handled it gracefully and exited 0.
+- NOT validated here: devtools::test() / R CMD check, because the package repos
+  are unreachable under this network policy. Will work where
+  packagemanager.posit.co and cloud.r-project.org are allowed.

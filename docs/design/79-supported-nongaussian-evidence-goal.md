@@ -62,6 +62,13 @@ family suite:
   simultaneous structured types, structured `sigma`, and non-count
   spatial/animal/`relmat()` effects remain planned or blocked.
 
+The #441 independent-`mu`-slope gate is recorded in
+`docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`. It promotes ordinary
+Poisson and NB2 `mu` slopes as `ready_grid`, keeps Student-t, lognormal, Gamma,
+beta, beta-binomial, and zero-truncated NB2 independent `mu` slopes at
+`ready_source_test`, and routes formal recovery, coverage, and power claims to
+#446.
+
 ## NB2 q1 Formal Shard Audit Rule
 
 The next compute action was operational rather than statistical. All 16

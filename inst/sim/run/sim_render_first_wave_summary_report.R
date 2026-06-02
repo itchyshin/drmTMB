@@ -101,6 +101,10 @@ phase18_first_wave_summary_report_params <- function(
   paths <- tables$paths
   list(
     artifact_status_csv = status$paths$artifact_status_csv,
+    artifact_grain_status_csv = phase18_first_wave_optional_path(
+      paths,
+      "artifact_grain_status_csv"
+    ),
     aggregate_csv = phase18_first_wave_optional_path(paths, "aggregate_csv"),
     manifest_csv = phase18_first_wave_optional_path(paths, "manifest_csv"),
     failures_csv = phase18_first_wave_optional_path(paths, "failures_csv"),

@@ -35,10 +35,25 @@ before any larger simulation report tries to consume surface-specific tables.
 `run/sim_write_first_wave_table_bundle.R` then combines selected artifact
 tables across grid-writer outputs, adding source surface and artifact columns
 as the leading columns so the next report can compare surfaces without
-hand-binding CSVs. The
+hand-binding CSVs. It also writes
+`phase18-first-wave-artifact-grain-status.csv`, which classifies each selected
+surface/artifact pair as replicate-ready, aggregate-only, missing, empty,
+mixed-grain, or missing-grain before any report draws replicate-error clouds.
+The
 `reports/phase18-first-wave-summary-report.Rmd` skeleton reads those staged
-tables into one reader-facing page, putting priority columns first and capping
-displayed rows before any publication-style figures are added.
+tables and the grain-status preflight into one reader-facing page. It also
+derives a per-surface replicate-cloud gate, so aggregate-only surfaces stay on
+points, bars, and MCSE intervals until a replicate-ready artifact exists.
+The #255 closeout test covers the current `gaussian_ls_grid`, `meta_v_grid`,
+`count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and
+`biv_rho12_grid` first-wave surface names under that gate.
+`R/sim_gallery_grain.R` provides the shared future-gallery gate: a report may
+draw replicate-error clouds only when required plot columns are present and
+the table carries either `artifact_grain = "replicate"` or
+`replicate_cloud_gate = "replicate_clouds_allowed"` without a conflicting
+grain marker.
+Priority columns stay first and displayed rows are capped before any
+publication-style figures are added.
 `run/sim_render_first_wave_summary_report.R` orchestrates the status writer,
 table-bundle writer, and optional HTML summary render in one call.
 
@@ -79,6 +94,14 @@ Current pilot files:
 - `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md` is the one-page ADEMP
   sheet for the overdispersion-aware NB2 phylogenetic q=1 `mu` formal-admission
   lane.
+- `docs/design/148-phase6c-random-slope-simulation-plan.md` is the #446
+  planning handoff for the admitted Phase 6c random-slope pilots. It names the
+  run order, allowed claims, required artifact tables, MCSE targets, execution
+  limits, and stop rules before larger power grids are dispatched.
+- `phase18_random_slope_registry_preflight()` in
+  `run/sim_phase18_structured_workflow_registry.R` prints the admitted
+  random-slope registry rows and their gate fields before any pilot is
+  dispatched.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.
@@ -348,7 +371,9 @@ Current pilot files:
 - `R/sim_plot_data.R` prepares plot-ready data tables for Phase 18 outputs,
   starting with paired Poisson/NB2 `mu` random-effect pilot summaries.
 - `R/sim_gallery.R` writes plot-ready count-pilot CSV inputs and renders the
-  first Florence-facing count-pilot gallery artifact from a pilot object.
+  first Florence-facing count-pilot gallery artifact from a pilot object. Its
+  bias panel draws replicate-error points only when the replicate CSV carries
+  `artifact_grain = "replicate"`.
 - `run/sim_run_gaussian_ls_smoke.R` wires the Gaussian location-scale DGP,
   `drmTMB()` fit, summariser, registry, and replicate runner into one
   end-to-end smoke surface.
@@ -576,7 +601,9 @@ Current pilot files:
   simulation artifacts.
 - `run/sim_write_first_wave_table_bundle.R` writes selected first-wave artifact
   tables combined across grid-writer outputs, preserving source surface and
-  artifact names while filling missing columns.
+  artifact names while filling missing columns, and writes an artifact-grain
+  preflight table so aggregate-only or missing-grain inputs cannot be mistaken
+  for replicate-ready displays.
 - `run/sim_render_first_wave_summary_report.R` writes first-wave status and
   table-bundle artifacts, then optionally renders the first-wave summary report
   HTML from those staged CSVs.
@@ -730,3 +757,4 @@ Current pilot files:
   warning/error summaries, and full warning/error ledgers.
 - `reports/phase18-count-mu-gallery.Rmd` is the first Florence-facing figure
   gallery template for paired Poisson/NB2 `mu` random-effect pilot outputs.
+  It sources `R/sim_gallery_grain.R` before drawing replicate-error clouds.

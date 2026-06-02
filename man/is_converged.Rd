@@ -17,28 +17,32 @@ is_converged(object, ...)
 
 \item{...}{Reserved for future convergence options.}
 
-\item{include_hessian}{Logical; require a completed \code{TMB::sdreport()} with
-positive-definite Hessian in addition to optimizer convergence.}
+\item{include_hessian}{Logical; require a positive-definite
+\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.}
 }
 \value{
-A single \code{TRUE} or \code{FALSE}.
+A single logical value.
 }
 \description{
-\code{is_converged()} is a no-rerun logical accessor for downstream tools that
-need a compact convergence flag before comparing or displaying fitted
-models. It checks the optimizer state already stored on the fit. Use
-\code{\link[=check_drm]{check_drm()}} when users need the full diagnostic table with convergence,
-Hessian, boundary, standard-error, design, and replication rows.
+\code{is_converged()} is a compact programmatic flag for workflows that need a
+yes/no answer before comparing, displaying, or post-processing a \code{drmTMB}
+fit. By default it checks only stored optimizer status: the \code{nlminb()}
+convergence code must be 0 and the stored objective and log-likelihood must
+be finite.
 }
 \details{
-By default, \code{is_converged(fit)} returns \code{TRUE} when the optimizer convergence
-code is zero and the stored objective and log-likelihood are finite. With
-\code{include_hessian = TRUE}, it also requires a completed \code{TMB::sdreport()} with
-\code{pdHess = TRUE}; this stricter mode is an inference-readiness flag, not just
-an optimizer flag.
+Set \code{include_hessian = TRUE} when the next step needs Wald-style
+uncertainty. In that mode, \code{is_converged()} also requires successful
+\code{\link[TMB:sdreport]{TMB::sdreport()}} output with \code{pdHess = TRUE}. A fit can therefore be
+optimizer-converged while still returning \code{FALSE} with
+\code{include_hessian = TRUE}; this marks an inference-readiness problem, not
+automatic proof that point estimates are unusable.
+
+Use \code{\link[=check_drm]{check_drm()}} when you need the full diagnostic table and messages.
 }
 \examples{
-dat <- data.frame(y = c(0.1, 0.4, 0.8, 1.1), x = c(-1, 0, 1, 2))
+set.seed(20260531)
+dat <- data.frame(y = rnorm(30), x = rnorm(30))
 fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 is_converged(fit)
 is_converged(fit, include_hessian = TRUE)

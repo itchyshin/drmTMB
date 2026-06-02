@@ -200,16 +200,14 @@ structured_effects_table_row <- function(structured_mu) {
 
   marker <- structured_mu_type(structured_mu)
   args <- structured_effects_args(structured_mu, marker)
-  group1 <- structured_effects_scalar(structured_mu$group1)
-  group2 <- structured_effects_scalar(structured_mu$group2)
 
   data.frame(
     marker = marker,
     grouping_variable = structured_effects_group(structured_mu, marker),
     matrix_attachment = structured_effects_matrix_attachment(args),
     structure = structured_effects_structure(structured_mu, marker),
-    group1 = group1,
-    group2 = group2,
+    group1 = structured_effects_scalar(structured_mu$group1),
+    group2 = structured_effects_scalar(structured_mu$group2),
     label = structured_effects_scalar(structured_mu$label),
     block = phylo_mu_block(structured_mu),
     q = structured_mu_q(structured_mu),
@@ -1872,6 +1870,11 @@ drm_sdreport_cov_fixed <- function(object) {
 }
 
 drm_has_sdreport_covariance <- function(object) {
+  drm_has_sdreport_covariance_matrix(object) &&
+    isTRUE(object$sdr$pdHess)
+}
+
+drm_has_sdreport_covariance_matrix <- function(object) {
   !is.null(object$sdr) &&
     !is.null(object$sdr$cov.fixed) &&
     is.matrix(object$sdr$cov.fixed)
@@ -1931,6 +1934,12 @@ drm_sdreport_unavailable_message <- function(object) {
       drm_uncertainty_message(object)
     ))
   }
+  if (!is.null(object$sdr) && !isTRUE(object$sdr$pdHess)) {
+    return(paste(
+      "Fixed-effect covariance is unavailable because TMB::sdreport()",
+      "did not report a positive-definite Hessian."
+    ))
+  }
   "Fixed-effect covariance is unavailable because this drmTMB fit does not contain a TMB::sdreport() object."
 }
 
@@ -1942,6 +1951,13 @@ drm_uncertainty_check_status <- function(object) {
 }
 
 drm_standard_error_status <- function(object) {
+  if (
+    identical(drm_uncertainty_status(object), "ok") &&
+      !is.null(object$sdr) &&
+      !isTRUE(object$sdr$pdHess)
+  ) {
+    return("sdreport_non_pd_hessian")
+  }
   switch(
     drm_uncertainty_status(object),
     skipped = "sdreport_skipped",
@@ -1965,14 +1981,19 @@ drm_standard_error_status <- function(object) {
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
 #' absolute negative twice log-likelihood value, not a saturated-model GLM
 #' deviance. `vcov()` returns the fixed-effect covariance matrix from
-#' `TMB::sdreport()` with rows and columns labelled by distributional
-#' parameter and coefficient. It intentionally does not include random-effect
-#' conditional modes or derived response-scale quantities.
+#' `TMB::sdreport()` when the fit contains an `sdreport` object with
+#' `pdHess = TRUE`; the same object is available as `fit$sdr` and
+#' `fit$sdreport`. If `sdreport()` was skipped, failed, or returned
+#' `pdHess = FALSE`, Wald standard errors and Wald confidence intervals are
+#' unavailable while point estimates remain usable. `vcov()` intentionally does
+#' not include random-effect conditional modes or derived response-scale
+#' quantities.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #'
-#' @return `logLik()` returns an object of class `"logLik"`. The other methods
+#' @return `logLik()` returns an object of class `"logLik"`. `vcov()` returns a
+#'   numeric covariance matrix. `nobs()`, `df.residual()`, and `deviance()`
 #'   return numeric scalars.
 #'
 #' @examples

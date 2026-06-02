@@ -333,6 +333,7 @@ drmTMB <- function(
     obj = obj,
     opt = opt,
     sdr = sdr,
+    sdreport = sdr,
     uncertainty = uncertainty$state,
     tmb_state = tmb_state,
     par = par,
@@ -4400,8 +4401,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths include selected Gaussian {.code mu}/{.code sigma} slices plus ordinary Poisson/NB2 q=1 {.code mu} intercepts for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured slopes, and simultaneous structured layers, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, plus ordinary Poisson/NB2 q=1 {.code mu} slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
+      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slopes, and structured count scale routes, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }

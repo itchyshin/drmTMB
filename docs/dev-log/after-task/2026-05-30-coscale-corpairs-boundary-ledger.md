@@ -23,6 +23,7 @@ explicit.
   needing a worked tutorial.
 - `ROADMAP.md`, `NEWS.md`, and the four-week sprint contract now carry the
   #443 boundary wording.
+- `ROADMAP.md` and `NEWS.md` now carry the #443 boundary wording.
 
 ## Boundary
 
@@ -38,3 +39,9 @@ Validation is recorded in `docs/dev-log/check-log.md` for 2026-05-30. The
 completed checks covered formatting, roxygen regeneration for `corpair()`, a
 focused formula-marker test, pkgdown release and development rebuilds,
 rendered-page scans, stale wording scans, and diff hygiene.
+Validation is recorded in the 2026-05-31 extraction entry in
+`docs/dev-log/check-log.md`. The completed checks covered formatting, roxygen
+regeneration for `corpair()`, the focused package-skeleton test, rendering the
+bivariate-coscale article, rebuilding the pkgdown reference index,
+`pkgdown::check_pkgdown()`, source and rendered boundary-wording scans, and
+diff hygiene.

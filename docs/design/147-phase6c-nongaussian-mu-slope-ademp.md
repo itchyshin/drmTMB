@@ -1,18 +1,39 @@
-# Phase 6c Non-Gaussian `mu` Slope ADEMP Sheet
+# Phase 6c Non-Gaussian `mu` Slope Admission And ADEMP Sheet
 
 ## Purpose
 
-This note is the #441/#446 operating-characteristic design sheet for selected
-ordinary non-Gaussian independent `mu` random slopes. It follows the ADEMP
-framework of Morris, White, and Crowther (2019) and the Williams et al. (2024)
+This note records the #441 admission decision and the #446
+operating-characteristic design sheet for selected ordinary non-Gaussian
+independent `mu` random slopes. It follows the ADEMP framework of Morris,
+White, and Crowther (2019) and the Williams et al. (2024)
 transparent-reporting checklist for simulation studies.
 
-The sheet covers only the six source-tested families in
-`tests/testthat/test-nongaussian-mu-random-slopes.R`: Student-t, lognormal,
-Gamma, beta, beta-binomial, and zero-truncated NB2. It does not run grids,
-does not promote coverage or power evidence, and does not open correlated
+The gate admits only family-specific first slices. It does not run grids, does
+not promote coverage or power evidence, and does not open correlated
 non-Gaussian slopes, labelled covariance, random effects in `sigma`, `nu`,
 inflation, hurdle, zero-one beta, or structured dependence.
+
+## Gate Result
+
+Selected non-Gaussian independent `mu` slopes are admitted as family-specific
+first slices, not as broad non-Gaussian random-effect parity.
+
+| Family route | Admission status | Evidence now | Held from |
+| --- | --- | --- | --- |
+| Ordinary Poisson `mu` | `ready_grid` | `tests/testthat/test-poisson-mean.R` covers fitting, prediction, extraction, profile targets, diagnostics, and weak-SD checks. The registry maps `poisson_mu_random_effects` to `first_wave_summary`. | Zero-inflated Poisson random effects, correlated slopes, labelled covariance, structured slopes, and bivariate or mixed count models. |
+| Ordinary NB2 `mu` | `ready_grid` | `tests/testthat/test-nbinom2-location-scale.R` covers fitting, prediction, extraction, profile targets, diagnostics, and weak-SD checks. The registry maps `nbinom2_mu_random_effects` to `first_wave_summary`. | Zero-inflated or hurdle random effects, correlated slopes, labelled covariance, NB2 `sigma` slopes, structured slopes, and bivariate or mixed count models. |
+| Student-t `mu` | `ready_source_test` | `tests/testthat/test-nongaussian-mu-random-slopes.R` fits `(0 + x | id)` and checks convergence, `pdHess`, design values, `sdpars$mu`, `ranef()`, prediction, `profile_targets()`, and `check_drm()`. The registry maps `student_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Student-t `sigma` or `nu` random effects, correlated slopes, labelled covariance, structured effects, and bivariate Student-t. |
+| Lognormal `mu` | `ready_source_test` | The shared non-Gaussian slope source test covers fitting, extraction, prediction, profile-target discovery, and diagnostics. The registry maps `positive_continuous_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Lognormal `sigma` random effects, correlated slopes, labelled covariance, known covariance, structured effects, and bivariate or mixed lognormal models. |
+| Gamma `mu` | `ready_source_test` | The shared non-Gaussian slope source test covers fitting, extraction, prediction, profile-target discovery, and diagnostics. The registry maps `positive_continuous_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Gamma `sigma` random effects, correlated slopes, labelled covariance, non-log links, known covariance, structured effects, and bivariate or mixed Gamma models. |
+| Beta `mu` | `ready_source_test` | The shared non-Gaussian slope source test covers strict `(0, 1)` responses, fitting, extraction, prediction, profile-target discovery, and diagnostics. The registry maps `bounded_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Beta `sigma` random effects, exact-boundary mass, correlated slopes, labelled covariance, structured effects, and bivariate or mixed beta models. |
+| Beta-binomial `mu` | `ready_source_test` | The shared non-Gaussian slope source test covers counted successes out of known trials, fitting, extraction, prediction, profile-target discovery, and diagnostics. The registry maps `bounded_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Beta-binomial `sigma` random effects, zero-one inflation, correlated slopes, labelled covariance, structured effects, and bivariate or mixed beta-binomial models. |
+| Zero-truncated NB2 `mu` | `ready_source_test` | The shared non-Gaussian slope source test covers positive counts, fitting, extraction, prediction, profile-target discovery, and diagnostics. The registry maps `truncated_nbinom2_mu_random_effects` to the random-intercept artifact route while slope evidence remains source-tested. | Correlated truncated-NB2 slopes, hurdle-side random effects, `sigma` random effects, structured effects, and bivariate or mixed truncated count models. |
+
+Tweedie, zero-one beta, hurdle or zero-inflated count random effects, ordinal
+random effects, shape random effects, non-Gaussian `sigma` random effects
+outside the narrow NB2 random-intercept gate, correlated slopes, labelled
+non-Gaussian covariance, structured non-Gaussian slopes, and mixed-response
+bivariate models remain planned or blocked.
 
 ## A - Aims
 
@@ -20,13 +41,13 @@ Primary aim: estimate when selected ordinary non-Gaussian `mu` independent
 numeric random slopes recover fixed `mu` effects and the direct random-slope SD
 target without optimizer, Hessian, boundary, or diagnostic failures.
 
-Secondary aim 1: compare the six source-tested family routes without borrowing
-evidence across families. Each family keeps its own link scale, support, and
-boundary stress conditions.
+Secondary aim 1: compare each family route without borrowing evidence across
+families. Each family keeps its own link scale, support, and boundary stress
+conditions.
 
-Secondary aim 2: decide which family groups are ready to move from
-source-tested status to an artifact lane, while keeping interval feasibility,
-coverage, and power planned until interval provenance and MCSE targets exist.
+Secondary aim 2: decide which source-tested family groups are ready to move to
+an artifact lane, while keeping interval feasibility, coverage, and power
+planned until interval provenance and Monte Carlo SE targets exist.
 
 ## D - Data-Generating Mechanism
 
@@ -49,8 +70,9 @@ beta-binomial:      success_ij ~ BetaBinomial(trials, mu, precision = phi)
 zero-truncated NB2: y_ij ~ NB2(mu = exp(eta_mu_ij), sigma), conditional on y_ij > 0
 ```
 
-The first-wave grid should stay small enough to diagnose family-specific
-failure modes:
+Poisson and NB2 rows can start from the existing `first_wave_summary` route.
+The six source-tested families should use a small first-wave grid before any
+formal coverage or power grid:
 
 | Factor | Pilot levels | Why it matters |
 | --- | --- | --- |
@@ -62,9 +84,9 @@ failure modes:
 | boundary stress | family-specific low, moderate | Beta support edges, low beta-binomial trial count, zero-truncation pressure, Gamma/lognormal high `sigma`, and Student-t low `nu` can dominate failure rates. |
 
 Use `n_rep = 200` only for a pilot. A formal interval or power grid should set
-replicates from a Monte Carlo standard-error target before dispatch. For
-example, 500 replicates gives approximately 1 percentage point MCSE for 95%
-coverage; 1000 replicates gives about 0.7 percentage points.
+replicates from a Monte Carlo SE target before dispatch. For example, 500
+replicates gives approximately 1 percentage point MCSE for 95% coverage; 1000
+replicates gives about 0.7 percentage points.
 
 ## E - Estimands
 
@@ -84,7 +106,7 @@ with `(0 + x | id)`.
 
 ## M - Methods
 
-Fit only the already source-tested `drmTMB` formulas:
+Fit only implemented `drmTMB` routes:
 
 ```r
 bf(y ~ x + (0 + x | id), sigma ~ 1)
@@ -95,9 +117,8 @@ bf(cbind(success, failure) ~ x + (0 + x | id), sigma ~ 1)  # beta-binomial
 Comparators are deferred for the first artifact lane. When power or Type I
 error is planned, add a nested no-random-slope `drmTMB` comparator for the same
 family and link scale before dispatch. External comparators should stay out
-unless #60 defines matched targets. Fixed-effect-only comparators may be useful
-for detecting overfit or boundary failure, but they do not estimate the
-random-slope SD.
+unless #60 defines matched targets. Fixed-effect-only comparators may detect
+overfit or boundary failure, but they do not estimate the random-slope SD.
 
 ## P - Performance Measures
 
@@ -116,7 +137,9 @@ random-slope SD.
 | Runtime | median and high quantiles of elapsed fit time |
 
 Every aggregate metric should include an MCSE column or companion MCSE table
-before formal reporting.
+before formal reporting. Every table should name the family, link, dpar,
+grouping factor, random-effect term, artifact grain, and whether the row is
+`ready_grid`, `ready_source_test`, `blocked`, or `design_only`.
 
 ## Williams 11-Item Self-Audit
 
@@ -134,11 +157,9 @@ before formal reporting.
 | 10. Results reporting | To include aggregate plus replicate-level artifacts, failures, boundary flags, and diagnostic rows. |
 | 11. Monte Carlo uncertainty | Pilot uses 200 replicates; formal coverage/power needs an MCSE target before dispatch. |
 
-## Boundary
+## Follow-Up Routing
 
-This sheet does not design correlated non-Gaussian slopes, labelled
-covariance, non-Gaussian `sigma` or shape random effects, zero-one beta random
-effects, inflation or hurdle random effects, structured non-Gaussian
-dependence, or mixed-response bivariate families. Those remain blocked or
-design-only until family-specific likelihood, extractor, interval, diagnostic,
-and simulation evidence exists.
+No new extractor or parser issue is needed for #441. #446 owns the
+slope-specific recovery, coverage, power, convergence, and report-design work.
+#59 owns the broader Phase 18 simulation programme, and #128 remains the wider
+random-effect slope-capacity ledger.

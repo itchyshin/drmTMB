@@ -353,6 +353,93 @@ phase18_random_slope_wrapper_target_plan <- function(
   )]
 }
 
+phase18_random_slope_registry_preflight <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  phase18_validate_structured_workflow_registry(registry)
+  rows <- phase18_filter_structured_workflow_registry(
+    registry = registry,
+    workflow_lane = "random_slopes"
+  )
+  if (nrow(rows) == 0L) {
+    stop("No `workflow_lane == \"random_slopes\"` rows found.", call. = FALSE)
+  }
+  phase18_assert_random_slope_preflight_fields(rows)
+
+  plan <- phase18_random_slope_workflow_plan(registry)
+  plan_row <- match(rows$lane_id, plan$lane_id)
+  rows$dispatch_status <- "held_by_status"
+  rows$actions_task <- NA_character_
+  rows$workflow_helper <- "held_no_dispatch"
+  rows$audit_focus <- "blocked_design_required"
+  matched <- !is.na(plan_row)
+  rows$dispatch_status[matched] <- plan$dispatch_status[plan_row[matched]]
+  rows$actions_task[matched] <- plan$actions_task[plan_row[matched]]
+  rows$workflow_helper[matched] <- plan$workflow_helper[plan_row[matched]]
+  rows$audit_focus[matched] <- plan$audit_focus[plan_row[matched]]
+
+  row_columns <- c(
+    "lane_id",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "dispatch_status",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )
+  rows <- rows[row_columns]
+  row.names(rows) <- NULL
+
+  list(
+    checks = phase18_random_slope_preflight_checks(rows),
+    rows = rows
+  )
+}
+
+phase18_format_random_slope_registry_preflight <- function(
+  preflight = phase18_random_slope_registry_preflight()
+) {
+  phase18_assert_random_slope_registry_preflight(preflight)
+  row_columns <- c(
+    "lane_id",
+    "admission_status",
+    "existing_actions_task",
+    "dispatch_status",
+    "actions_task",
+    "workflow_helper",
+    "audit_focus",
+    "supervision_boundary"
+  )
+  c(
+    "Phase 18 random-slope registry preflight",
+    paste(
+      "No simulations, GitHub Actions jobs, likelihoods, or status",
+      "promotions are dispatched."
+    ),
+    "",
+    "Checks",
+    phase18_format_structured_workflow_table(preflight$checks),
+    "",
+    "Random-slope rows",
+    phase18_format_structured_workflow_table(preflight$rows[row_columns])
+  )
+}
+
+phase18_print_random_slope_registry_preflight <- function(
+  preflight = phase18_random_slope_registry_preflight(),
+  file = ""
+) {
+  lines <- phase18_format_random_slope_registry_preflight(preflight)
+  phase18_write_structured_workflow_lines(lines, file = file)
+}
+
 phase18_structured_dependence_workflow_plan <- function(
   registry = phase18_read_structured_workflow_registry(),
   include_held = TRUE
@@ -932,6 +1019,76 @@ phase18_assert_structured_workflow_plan <- function(plan) {
     )
   }
   invisible(plan)
+}
+
+phase18_assert_random_slope_preflight_fields <- function(rows) {
+  required <- c(
+    "admission_status",
+    "existing_actions_task",
+    "supervision_boundary"
+  )
+  for (column in required) {
+    values <- trimws(as.character(rows[[column]]))
+    missing <- is.na(values) | !nzchar(values)
+    if (any(missing)) {
+      stop(
+        "Random-slope registry preflight requires non-empty `",
+        column,
+        "` values. Missing rows: ",
+        paste(rows$lane_id[missing], collapse = ", "),
+        ".",
+        call. = FALSE
+      )
+    }
+  }
+  invisible(rows)
+}
+
+phase18_random_slope_preflight_checks <- function(rows) {
+  phase18_assert_random_slope_preflight_fields(rows)
+  data.frame(
+    check = c(
+      "random_slope_rows",
+      "required_fields_complete",
+      "existing_actions_tasks",
+      "source_test_audits",
+      "wrapper_targets"
+    ),
+    value = c(
+      as.character(nrow(rows)),
+      "pass",
+      as.character(sum(!is.na(rows$actions_task))),
+      as.character(sum(rows$dispatch_status == "source_test_audit")),
+      as.character(sum(grepl("wrapper_target", rows$dispatch_status)))
+    ),
+    status = c(
+      ifelse(nrow(rows) > 0L, "pass", "fail"),
+      "pass",
+      "informational",
+      "informational",
+      ifelse(
+        any(grepl("wrapper_target", rows$dispatch_status)),
+        "needs_wrapper",
+        "pass"
+      )
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_assert_random_slope_registry_preflight <- function(preflight) {
+  if (
+    !is.list(preflight) ||
+      !is.data.frame(preflight$checks) ||
+      !is.data.frame(preflight$rows)
+  ) {
+    stop(
+      "`preflight` must come from ",
+      "phase18_random_slope_registry_preflight().",
+      call. = FALSE
+    )
+  }
+  invisible(preflight)
 }
 
 phase18_structured_workflow_actions_tasks <- function() {

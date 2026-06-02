@@ -34,6 +34,48 @@ test_that("drmTMB fits Gaussian meta-regression with diagonal known V", {
   expect_true(all(stats::sigma(fit) > 0))
 })
 
+test_that("issue 417 meta_V location-scale example has positive Hessian", {
+  set.seed(42)
+  k <- 80
+  x <- rep(c(0, 1), each = k / 2)
+  dat <- data.frame(
+    y = NA_real_,
+    v = stats::runif(k, 0.01, 0.05),
+    habitat = factor(
+      ifelse(x == 0, "aquatic", "terrestrial"),
+      levels = c("aquatic", "terrestrial")
+    )
+  )
+  mu <- 0.3 - 0.2 * x
+  tau <- exp(-0.7 - 1.0 * x)
+  dat$y <- stats::rnorm(k, mu, sqrt(dat$v + tau^2))
+
+  fit <- drmTMB(
+    bf(y ~ 1 + habitat + meta_V(V = v), sigma ~ 1 + habitat),
+    family = gaussian(),
+    data = dat
+  )
+  ci <- stats::confint(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_identical(fit$sdreport, fit$sdr)
+  expect_lt(max(abs(unname(coef(fit, "mu")) - c(0.3, -0.2))), 0.06)
+  expect_lt(max(abs(unname(coef(fit, "sigma")) - c(-0.7, -1.0))), 0.16)
+  expect_equal(ci$conf.status, rep("wald", nrow(ci)))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+
+  bad_hessian <- fit
+  bad_hessian$sdr$pdHess <- FALSE
+  bad_hessian$sdreport <- bad_hessian$sdr
+  expect_error(stats::vcov(bad_hessian), "positive-definite Hessian")
+  expect_no_warning(bad_ci <- stats::confint(bad_hessian))
+  expect_true(all(is.na(bad_ci$lower)))
+  expect_true(all(is.na(bad_ci$upper)))
+  expect_equal(bad_ci$conf.status, rep("wald_unavailable", nrow(bad_ci)))
+})
+
 test_that("meta_V accepts diagonal and full covariance matrices", {
   set.seed(20260509)
   n <- 80

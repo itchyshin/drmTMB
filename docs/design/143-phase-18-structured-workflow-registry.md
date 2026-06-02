@@ -77,6 +77,12 @@ The helper also provides summary and filter functions:
 - `phase18_admitted_structured_workflow_rows()` returns only rows whose status
   is dispatchable by workflow plumbing: `ready_grid`, `ready_or_smoke`,
   `ready_smoke`, `ready_source_test`, or `smoke_formal_admission`.
+- `phase18_random_slope_registry_preflight()` is the #59/#446 follow-through
+  checkpoint for the random-slope lane. It prints every
+  `workflow_lane == "random_slopes"` row, verifies that `admission_status`,
+  `existing_actions_task`, and `supervision_boundary` are non-empty, and keeps
+  the run dry: no simulations, Actions jobs, likelihoods, or status promotions
+  are dispatched.
 
 The Actions runner now exposes `phase18_actions_task_choices()`, which lets the
 registry validator share the same task vocabulary as manual GitHub Actions
