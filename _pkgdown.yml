@@ -128,6 +128,7 @@ reference:
       - starts_with("drmTMB")
       - drm_control
       - check_drm
+      - is_converged
       - confint.drmTMB
       - profile_targets
       - profile.drmTMB

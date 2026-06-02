@@ -27,6 +27,41 @@ check_drm_test_tree <- function() {
   )
 }
 
+test_that("is_converged() exposes optimizer and Hessian flags without rerunning", {
+  dat <- data.frame(
+    y = c(-0.2, 0.1, 0.4, 0.7, 1.0, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 100, iter.max = 100))
+  )
+
+  expect_true(is_converged(fit))
+  expect_true(is_converged(fit, include_hessian = TRUE))
+
+  nonconverged <- fit
+  nonconverged$opt$convergence <- 1L
+  expect_false(is_converged(nonconverged))
+  expect_false(is_converged(nonconverged, include_hessian = TRUE))
+
+  bad_hessian <- fit
+  bad_hessian$sdr$pdHess <- FALSE
+  expect_true(is_converged(bad_hessian))
+  expect_false(is_converged(bad_hessian, include_hessian = TRUE))
+
+  se_skipped <- fit
+  se_skipped$sdr <- NULL
+  se_skipped$uncertainty <- list(
+    status = "skipped",
+    message = "TMB::sdreport() was skipped."
+  )
+  expect_true(is_converged(se_skipped))
+  expect_false(is_converged(se_skipped, include_hessian = TRUE))
+})
+
 check_drm_mu_sigma_cov_data <- function(
   n_id = 28,
   n_each = 6,
