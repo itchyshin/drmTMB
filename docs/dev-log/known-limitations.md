@@ -272,6 +272,13 @@
   Poisson q=1 `mu` intercepts. The tree must be an ultrametric `phylo` object
   with positive branch lengths, and every observed species must match a tip
   label.
+- `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`
+  is fitted as one q=1 pair-level phylogenetic field for univariate Gaussian
+  `mu` and ordinary Poisson/NB2 `mu`. It does not yet combine with separate
+  partner main phylogenies, binary/Bernoulli incidence families, structured
+  pair slopes, labelled count covariance, or simultaneous structured layers.
+  Independent pair effects should use ordinary random effects with a
+  precomputed pair column.
 - Animal-model and generic known-relatedness structured effects have fitted
   Gaussian slices for `animal(1 | id, pedigree = pedigree)`,
   `animal(1 | id, A = A)`, `animal(1 | id, Ainv = Ainv)`,

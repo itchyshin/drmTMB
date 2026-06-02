@@ -45,6 +45,9 @@ first question is specifically about `animal()`, `pedigree`, `A`, or `Ainv`.
 Read [phylogenetic structured effects](phylogenetic-models.html) when your
 first question is specifically about `phylo()`, tree-based covariance,
 `sd_phylo*()`, or phylogenetic `corpair()` rows.
+Read [two-tree phylogenetic interactions](bipartite-phylogenetic-interactions.html)
+when one observation belongs to a pair of partner species drawn from two
+phylogenies, such as plant-pollinator or host-parasite pairs.
 Read [coordinate-spatial structured effects](spatial-models.html) when your
 first question is specifically about `spatial()`, site coordinates,
 coordinate-spatial slopes, spatial q=2 `corpairs()` rows, or the constant

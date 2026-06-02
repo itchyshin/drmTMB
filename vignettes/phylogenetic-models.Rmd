@@ -133,6 +133,10 @@ location-scale covariance, direct phylogenetic SD surfaces, or a fitted
 phylogenetic correlation-pair regression. The fitted route uses a tree supplied
 as `tree = tree`.
 
+When each observation belongs to a pair of species from two different trees,
+read [two-tree phylogenetic interactions](bipartite-phylogenetic-interactions.html).
+That article covers `phylo_interaction()`, the first fitted pair-level route.
+
 ## What is fitted today
 
 | Question | Syntax | Status |

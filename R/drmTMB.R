@@ -609,6 +609,8 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_entry$rhs <- mu_phylo_interaction$rhs
   mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
   mu_entry$rhs <- mu_spatial$rhs
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
@@ -636,6 +638,7 @@ drm_build_gaussian_ls_spec <- function(
   sigma_entry$rhs <- sigma_relmat$rhs
   raw_structured_terms <- list(
     phylo = list(mu = mu_phylo$term, sigma = sigma_phylo$term),
+    phylo_interaction = list(mu = mu_phylo_interaction$term, sigma = NULL),
     spatial = list(mu = mu_spatial$term, sigma = sigma_spatial$term),
     animal = list(mu = mu_animal$term, sigma = sigma_animal$term),
     relmat = list(mu = mu_relmat$term, sigma = sigma_relmat$term)
@@ -653,7 +656,7 @@ drm_build_gaussian_ls_spec <- function(
     cli::cli_abort(c(
       "Only one structured effect type is implemented per univariate Gaussian model.",
       "x" = "The model contains structured effect types: {.val {active_structured}}.",
-      "i" = "Fit the phylogenetic and spatial structured effects separately until multiple structured layers have their own identifiability checks."
+      "i" = "Fit one structured layer at a time until multiple structured layers have their own identifiability checks."
     ))
   }
   structured_terms <- lapply(
@@ -673,6 +676,7 @@ drm_build_gaussian_ls_spec <- function(
     NULL
   }
   mu_phylo$term <- structured_terms$phylo
+  mu_phylo_interaction$term <- structured_terms$phylo_interaction
   mu_spatial$term <- structured_terms$spatial
   mu_animal$term <- structured_terms$animal
   mu_relmat$term <- structured_terms$relmat
@@ -692,6 +696,7 @@ drm_build_gaussian_ls_spec <- function(
     validate_gaussian_aggregation_gaussian(
       meta = meta,
       mu_phylo = mu_phylo,
+      mu_phylo_interaction = mu_phylo_interaction,
       mu_spatial = mu_spatial,
       mu_animal = mu_animal,
       mu_relmat = mu_relmat,
@@ -706,6 +711,7 @@ drm_build_gaussian_ls_spec <- function(
     validate_sparse_fixed_gaussian(
       meta = meta,
       mu_phylo = mu_phylo,
+      mu_phylo_interaction = mu_phylo_interaction,
       mu_spatial = mu_spatial,
       mu_animal = mu_animal,
       mu_relmat = mu_relmat,
@@ -911,6 +917,7 @@ drm_build_gaussian_ls_spec <- function(
 validate_sparse_fixed_gaussian <- function(
   meta,
   mu_phylo,
+  mu_phylo_interaction = list(term = NULL),
   mu_spatial,
   mu_animal,
   mu_relmat,
@@ -928,6 +935,7 @@ validate_sparse_fixed_gaussian <- function(
   }
   structured_terms <- list(
     mu_phylo$term,
+    mu_phylo_interaction$term,
     mu_spatial$term,
     mu_animal$term,
     mu_relmat$term
@@ -2417,6 +2425,8 @@ drm_build_poisson_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_entry$rhs <- mu_phylo_interaction$rhs
   mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
   mu_entry$rhs <- mu_spatial$rhs
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
@@ -2426,6 +2436,7 @@ drm_build_poisson_spec <- function(
   mu_structured_term <- select_count_mu_structured_term(
     list(
       phylo = mu_phylo$term,
+      phylo_interaction = mu_phylo_interaction$term,
       spatial = mu_spatial$term,
       animal = mu_animal$term,
       relmat = mu_relmat$term
@@ -2655,6 +2666,8 @@ drm_build_nbinom2_spec <- function(
   mu_entry$rhs <- meta$rhs
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
+  mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
+  mu_entry$rhs <- mu_phylo_interaction$rhs
   mu_spatial <- extract_gaussian_mu_spatial_term(mu_entry)
   mu_entry$rhs <- mu_spatial$rhs
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
@@ -2664,6 +2677,7 @@ drm_build_nbinom2_spec <- function(
   mu_structured_term <- select_count_mu_structured_term(
     list(
       phylo = mu_phylo$term,
+      phylo_interaction = mu_phylo_interaction$term,
       spatial = mu_spatial$term,
       animal = mu_animal$term,
       relmat = mu_relmat$term
@@ -3858,8 +3872,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths are Gaussian-only for the fitted {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, plus the first ordinary Poisson {.code mu} phylogenetic intercept.",
-      "i" = "Structured non-Gaussian paths beyond that first count gate, including bounded, ordinal, shape, inflation, hurdle, NB2, and most structured count routes, remain deferred until ordinary family-specific random-effect recovery is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, plus ordinary Poisson/NB2 q=1 {.code mu} slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
+      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slopes, and structured count scale routes, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -4047,7 +4061,7 @@ select_count_mu_structured_term <- function(structured_terms, family_label) {
     cli::cli_abort(c(
       "Only one structured {.code mu} effect type is implemented per {family_label} count model.",
       "x" = "The model contains structured effect types: {.val {active_structured}}.",
-      "i" = "Fit one of {.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured-dependence recovery tests exist."
+      "i" = "Fit one of {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, or {.fn relmat} at a time until combined structured-dependence recovery tests exist."
     ))
   }
   if (length(active_structured) == 0L) {
@@ -4072,6 +4086,7 @@ validate_count_structured_mu_term <- function(
   example <- switch(
     marker,
     phylo = "phylo(1 | species, tree = tree)",
+    phylo_interaction = "phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)",
     spatial = "spatial(1 | site, coords = coords)",
     animal = "animal(1 | id, Ainv = Ainv)",
     relmat = "relmat(1 | id, Q = Q)",
@@ -4821,6 +4836,52 @@ extract_gaussian_mu_known_term <- function(entry, marker, dpar = entry$dpar) {
   list(rhs = rebuild_plus_terms(terms[!is_known]), term = known_term)
 }
 
+extract_gaussian_mu_phylo_interaction_term <- function(
+  entry,
+  dpar = entry$dpar
+) {
+  marker <- "phylo_interaction"
+  terms <- flatten_plus_terms(entry$rhs)
+  is_interaction <- vapply(
+    terms,
+    is_structured_marker_call,
+    logical(1),
+    name = marker
+  )
+  if (!any(is_interaction)) {
+    return(list(rhs = entry$rhs, term = NULL))
+  }
+  if (sum(is_interaction) > 1L) {
+    cli::cli_abort(c(
+      "Only one {.fn phylo_interaction} structured effect is implemented in {.code {dpar}}.",
+      "x" = "Use one term such as {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}."
+    ))
+  }
+
+  interaction_terms <- Filter(
+    function(term) identical(term$type, marker),
+    entry$structured
+  )
+  if (length(interaction_terms) != 1L) {
+    cli::cli_abort(
+      "Internal formula parser error while extracting {.fn phylo_interaction}."
+    )
+  }
+  interaction_term <- interaction_terms[[1L]]
+  if (!identical(interaction_term$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Only intercept-only {.fn phylo_interaction} {.code {dpar}} effects are implemented.",
+      "x" = "Requested structured coefficient{?s}: {.val {interaction_term$coef_names}}.",
+      "i" = "Use {.code phylo_interaction(1 | {interaction_term$group}, tree1 = {interaction_term$tree1}, tree2 = {interaction_term$tree2})}."
+    ))
+  }
+
+  list(
+    rhs = rebuild_plus_terms(terms[!is_interaction]),
+    term = interaction_term
+  )
+}
+
 combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
   if (is.null(mu_term) && is.null(sigma_term)) {
     return(NULL)
@@ -5125,6 +5186,7 @@ structured_mu_random_effect_key <- function(phylo_mu) {
     spatial = "spatial_mu",
     animal = "animal_mu",
     relmat = "relmat_mu",
+    phylo_interaction = "phylo_interaction_mu",
     "phylo_mu"
   )
 }
@@ -5135,6 +5197,7 @@ structured_mu_correlation_key <- function(phylo_mu) {
     spatial = "spatial",
     animal = "animal",
     relmat = "relmat",
+    phylo_interaction = "phylo_interaction",
     "phylo"
   )
 }
@@ -5146,6 +5209,7 @@ structured_mu_corpair_level <- function(phylo_mu) {
     spatial = "spatial",
     animal = "animal",
     relmat = "relmat",
+    phylo_interaction = "phylo_interaction",
     structured_mu_type(phylo_mu)
   )
 }
@@ -5475,6 +5539,7 @@ structured_marker_title <- function(marker) {
   switch(
     marker,
     phylo = "Phylogenetic",
+    phylo_interaction = "Bipartite phylogenetic interaction",
     animal = "Animal-model",
     relmat = "relmat",
     spatial = "Spatial",
@@ -5682,6 +5747,7 @@ structured_mu_vars <- function(term) {
     spatial = spatial_mu_vars(term),
     animal = known_mu_vars(term),
     relmat = known_mu_vars(term),
+    phylo_interaction = phylo_interaction_mu_vars(term),
     phylo_mu_vars(term)
   )
 }
@@ -5707,6 +5773,14 @@ known_mu_vars <- function(term) {
   }
   variables <- term$variables
   unique(c(term$group, variables[!is.na(variables)]))
+}
+
+phylo_interaction_mu_vars <- function(term) {
+  if (is.null(term)) {
+    return(character())
+  }
+  variables <- term$variables
+  unique(c(term$group1, term$group2, variables[!is.na(variables)]))
 }
 
 empty_phylo_mu_structure <- function() {
@@ -5746,6 +5820,7 @@ build_structured_mu_structure <- function(term, data, env) {
     spatial = build_spatial_mu_structure(term, data, env),
     animal = build_known_precision_mu_structure(term, data, env),
     relmat = build_known_precision_mu_structure(term, data, env),
+    phylo_interaction = build_phylo_interaction_mu_structure(term, data, env),
     phylo = build_phylo_mu_structure(term, data, env),
     cli::cli_abort(
       "Internal error: unknown structured-effect type {.val {term$type}}."
@@ -5852,6 +5927,116 @@ build_phylo_mu_structure <- function(term, data, env) {
     node_labels = precision$node_labels,
     species_levels = precision$species_levels,
     group_levels = precision$species_levels
+  )
+}
+
+build_phylo_interaction_mu_structure <- function(term, data, env) {
+  if (is.null(term)) {
+    return(empty_phylo_mu_structure())
+  }
+  marker <- "phylo_interaction"
+  group1 <- term$group1
+  group2 <- term$group2
+  missing_groups <- setdiff(c(group1, group2), names(data))
+  if (length(missing_groups) > 0L) {
+    cli::cli_abort(c(
+      "{.fn phylo_interaction} grouping variable{?s} {.field {missing_groups}} {?was/were} not found in {.arg data}.",
+      "x" = "Use syntax like {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)} where both pair variables are columns in {.arg data}."
+    ))
+  }
+
+  partner1 <- as.character(data[[group1]])
+  partner2 <- as.character(data[[group2]])
+  if (length(unique(partner1)) < 2L || length(unique(partner2)) < 2L) {
+    cli::cli_abort(c(
+      "{.fn phylo_interaction} needs at least two observed levels in each partner clade.",
+      "x" = "{.field {group1}} has {length(unique(partner1))} observed level{?s}; {.field {group2}} has {length(unique(partner2))} observed level{?s}."
+    ))
+  }
+
+  tree1 <- evaluate_phylo_tree(term$tree1, env)
+  tree2 <- evaluate_phylo_tree(term$tree2, env)
+  precision1 <- drm_phylo_augmented_precision(tree1, species = partner1)
+  precision2 <- drm_phylo_augmented_precision(tree2, species = partner2)
+  node_index1 <- precision1$species_node_index[
+    precision1$observation_species_index
+  ]
+  node_index2 <- precision2$species_node_index[
+    precision2$observation_species_index
+  ]
+  if (anyNA(node_index1) || anyNA(node_index2)) {
+    cli::cli_abort(
+      "Internal error: failed to align observations with {.fn phylo_interaction} tip nodes."
+    )
+  }
+
+  n1 <- nrow(precision1$precision)
+  n2 <- nrow(precision2$precision)
+  precision <- Matrix::kronecker(
+    precision2$precision,
+    precision1$precision,
+    make.dimnames = FALSE
+  )
+  precision <- Matrix::drop0(Matrix::Matrix(precision, sparse = TRUE))
+  observation_node_index <- (node_index2 - 1L) * n1 + node_index1
+  node_grid <- expand.grid(
+    partner1 = precision1$node_labels,
+    partner2 = precision2$node_labels,
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  node_labels <- paste0(node_grid$partner1, ":", node_grid$partner2)
+
+  value <- structured_mu_design_matrix(term, data, marker = marker)
+  dpars <- if (is.null(term$dpars)) {
+    "mu"
+  } else {
+    term$dpars
+  }
+  q <- if (length(dpars) > 1L) {
+    length(dpars)
+  } else {
+    ncol(value)
+  }
+  value <- expand_structured_endpoint_value(value, q, dpars, marker = marker)
+
+  list(
+    has = TRUE,
+    type = marker,
+    label = term$label,
+    group = term$group,
+    group1 = group1,
+    group2 = group2,
+    block = "phylo_interaction",
+    covariance_label = term$covariance_label,
+    covariance_mode = "scalar",
+    block_ids = rep(1L, q),
+    block_labels = "phylo_interaction",
+    endpoint_blocks = rep("phylo_interaction", q),
+    endpoint_covariance_labels = rep(NA_character_, q),
+    dpars = dpars,
+    q = q,
+    coef_names = colnames(value),
+    tree = NA_character_,
+    tree1 = term$tree1,
+    tree2 = term$tree2,
+    n_re = nrow(precision),
+    precision = list(
+      precision = precision,
+      log_det_precision = n2 *
+        precision1$log_det_precision +
+        n1 * precision2$log_det_precision
+    ),
+    value = value,
+    observation_node_index = unname(as.integer(observation_node_index)),
+    observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
+    node_labels = node_labels,
+    species_levels = character(),
+    group_levels = node_labels,
+    partner1_levels = precision1$species_levels,
+    partner2_levels = precision2$species_levels,
+    partner1_node_labels = precision1$node_labels,
+    partner2_node_labels = precision2$node_labels
   )
 }
 

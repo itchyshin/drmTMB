@@ -318,6 +318,11 @@ test_that("formula markers are no-op placeholders", {
     "deprecated"
   )
   expect_null(phylo(1 | species, tree = tree))
+  expect_null(phylo_interaction(
+    1 | plant:pollinator,
+    tree1 = plant_tree,
+    tree2 = pollinator_tree
+  ))
   expect_null(spatial(1 | site, coords = coords))
   expect_null(spatial(1 | site, mesh = mesh))
   expect_null(relmat(1 | line, K = K))
@@ -334,7 +339,7 @@ test_that("formula markers are no-op placeholders", {
   ))
 })
 
-test_that("planned structured-effect markers validate their grammar", {
+test_that("structured-effect markers validate planned and fitted grammar", {
   expect_error(
     drm_formula(y ~ x + animal(id)),
     "random-effect syntax"
@@ -370,6 +375,42 @@ test_that("planned structured-effect markers validate their grammar", {
   expect_error(
     drm_formula(y ~ x + phylo(1 | "p" | species, tree = tree)),
     "labels must be simple names"
+  )
+  expect_error(
+    drm_formula(y ~ x + phylo_interaction(plant:pollinator)),
+    "random-effect syntax"
+  )
+  expect_error(
+    drm_formula(
+      y ~ x +
+        phylo_interaction(
+          1 + x | plant:pollinator,
+          tree1 = plant_tree,
+          tree2 = pollinator_tree
+        )
+    ),
+    "intercept-only"
+  )
+  expect_error(
+    drm_formula(
+      y ~ x +
+        phylo_interaction(
+          1 | pair,
+          tree1 = plant_tree,
+          tree2 = pollinator_tree
+        )
+    ),
+    "pair of simple variables"
+  )
+  expect_error(
+    drm_formula(
+      y ~ x +
+        phylo_interaction(
+          1 | plant:pollinator,
+          tree = plant_tree
+        )
+    ),
+    "tree1.*tree2"
   )
   expect_error(
     drm_formula(y ~ x + spatial(1 | site)),

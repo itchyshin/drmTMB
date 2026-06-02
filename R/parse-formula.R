@@ -434,7 +434,7 @@ collect_structured_effects <- function(rhs, dpar) {
 }
 
 structured_marker_names <- function() {
-  c("animal", "phylo", "spatial", "relmat")
+  c("animal", "phylo", "phylo_interaction", "spatial", "relmat")
 }
 
 structured_marker_call_name <- function(expr) {
@@ -470,7 +470,11 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     ))
   }
 
-  term <- parse_structured_bar_term(args[[term_pos]], marker)
+  term <- if (identical(marker, "phylo_interaction")) {
+    parse_phylo_interaction_bar_term(args[[term_pos]], marker)
+  } else {
+    parse_structured_bar_term(args[[term_pos]], marker)
+  }
   marker_args <- args[-term_pos]
   marker_arg_names <- arg_names[-term_pos]
 
@@ -523,6 +527,37 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       list(type = "phylo", dpar = dpar),
       term,
       list(tree = as.character(marker_args[[1L]]))
+    ))
+  }
+
+  if (identical(marker, "phylo_interaction")) {
+    extra <- setdiff(marker_arg_names, c("tree1", "tree2"))
+    if (
+      length(marker_args) != 2L ||
+        length(extra) > 0L ||
+        !all(c("tree1", "tree2") %in% marker_arg_names)
+    ) {
+      cli::cli_abort(c(
+        "{.fn phylo_interaction} requires named {.arg tree1} and {.arg tree2} arguments.",
+        "x" = "Use syntax like {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}.",
+        "i" = "Use {.fn relmat} with a user-built {.arg Q} for lower-level pair precision experiments."
+      ))
+    }
+    tree1_arg <- marker_args[[match("tree1", marker_arg_names)]]
+    tree2_arg <- marker_args[[match("tree2", marker_arg_names)]]
+    if (!is.symbol(tree1_arg) || !is.symbol(tree2_arg)) {
+      cli::cli_abort(c(
+        "{.arg tree1} and {.arg tree2} must name phylogeny objects.",
+        "x" = "Use syntax like {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}."
+      ))
+    }
+    return(c(
+      list(type = "phylo_interaction", dpar = dpar),
+      term,
+      list(
+        tree1 = as.character(tree1_arg),
+        tree2 = as.character(tree2_arg)
+      )
     ))
   }
 
@@ -666,6 +701,64 @@ parse_structured_bar_term <- function(expr, marker) {
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",
     "i" = "Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested."
   ))
+}
+
+parse_phylo_interaction_bar_term <- function(expr, marker) {
+  expr <- strip_parens(expr)
+  if (!is_random_bar_call(expr)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} terms must use random-effect syntax.",
+      "x" = "Use syntax like {.code phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)}."
+    ))
+  }
+
+  lhs <- strip_parens(expr[[2L]])
+  group <- strip_parens(expr[[3L]])
+  if (!is_intercept_one(lhs)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} currently supports only an intercept-only pair effect.",
+      "x" = "Use {.code phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)}.",
+      "i" = "Structured pair slopes need separate syntax, simulations, and extractor checks before fitting."
+    ))
+  }
+  if (!is.call(group) || !identical(group[[1L]], as.name(":"))) {
+    cli::cli_abort(c(
+      "{.fn {marker}} grouping terms must be a pair of simple variables joined by {.code :}.",
+      "x" = "Use syntax like {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}."
+    ))
+  }
+  partner1 <- strip_parens(group[[2L]])
+  partner2 <- strip_parens(group[[3L]])
+  if (!is.symbol(partner1) || !is.symbol(partner2)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} pair members must be simple variables.",
+      "x" = "Use syntax like {.code phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}."
+    ))
+  }
+  partner1 <- as.character(partner1)
+  partner2 <- as.character(partner2)
+  if (identical(partner1, partner2)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} requires two different partner variables.",
+      "x" = "The pair term used {.field {partner1}} on both sides of {.code :}."
+    ))
+  }
+
+  group_name <- paste0(partner1, ":", partner2)
+  list(
+    group = group_name,
+    group1 = partner1,
+    group2 = partner2,
+    variables = NA_character_,
+    coef_names = "(Intercept)",
+    label = format_structured_label(
+      marker,
+      "1",
+      group_name,
+      covariance_label = NULL
+    ),
+    covariance_label = NULL
+  )
 }
 
 format_structured_label <- function(

@@ -1,0 +1,203 @@
+---
+title: "Two-tree phylogenetic interactions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Two-tree phylogenetic interactions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+```
+
+A tale of two phylogenies starts with a row in a paired data set. One partner
+comes from one tree, the other partner comes from another tree, and the response
+belongs to the pair. In bipartite ecological network data this could be a plant
+and a pollinator, a host and a parasite, or any two partner clades where related
+partners may have similar pair-level deviations.
+
+Use `phylo_interaction()` when the pair itself should carry a phylogenetic
+random effect. The fitted first slice is:
+
+```text
+eta_i = X_i beta + z[a_i, b_i]
+vec(z) ~ Normal(0, sd_pair^2 (A_partner2 kron A_partner1))
+```
+
+Here `a_i` is the first partner level, `b_i` is the second partner level,
+`A_partner1` and `A_partner2` are the two phylogenetic covariance matrices, and
+`sd_pair` is the standard deviation of the pair-level structured field. For
+Poisson and NB2 models, `eta_i` is the log mean. For Gaussian models, `eta_i` is
+the location mean.
+
+## What is fitted today
+
+| Question | Syntax | Status |
+| --- | --- | --- |
+| Do pairs from two partner clades share phylogenetically structured deviations? | `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)` | Fitted first q=1 `mu` slice for univariate Gaussian, ordinary Poisson, and ordinary NB2 models. |
+| Do pair deviations need to be independent rather than phylogenetic? | precompute `pair_id <- interaction(plant, pollinator)` and use `(1 | pair_id)` | Fitted through ordinary grouped random effects. The direct grammar `(1 | plant:pollinator)` remains future parser sugar. |
+| Do you already have a labelled Kronecker precision matrix? | `relmat(1 | plant_pollinator, Q = Q_pair)` | Low-level escape hatch for power users who can build and align the pair precision themselves. |
+| Do you need partner main phylogenies plus the pair interaction in one model? | `phylo(1 | plant, ...) + phylo(1 | pollinator, ...) + phylo_interaction(...)` | Planned. Simultaneous structured layers need the next identifiability and reporting checks. |
+| Is the response binary incidence? | Bernoulli/binomial pair model | Planned. Current fitted pair route covers Gaussian, Poisson, and NB2 `mu`, not binary incidence. |
+
+## A small count example
+
+The example below uses two small trees and a count response. The same marker can
+also enter a Gaussian location model or an ordinary NB2 mean model.
+
+```{r simulate-network}
+balanced_partner_tree <- function(n_tip = 4L, prefix = "sp") {
+  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
+  edges <- matrix(integer(), ncol = 2L)
+  edge_lengths <- numeric()
+  next_node <- n_tip + 1L
+
+  build <- function(tips) {
+    if (length(tips) == 1L) {
+      return(tips)
+    }
+    node <- next_node
+    next_node <<- next_node + 1L
+    mid <- length(tips) / 2L
+    left <- build(tips[seq_len(mid)])
+    right <- build(tips[seq.int(mid + 1L, length(tips))])
+    edges <<- rbind(edges, c(node, left), c(node, right))
+    edge_lengths <<- c(edge_lengths, 1, 1)
+    node
+  }
+
+  build(seq_len(n_tip))
+  structure(
+    list(
+      edge = edges,
+      edge.length = edge_lengths,
+      tip.label = paste0(prefix, "_", seq_len(n_tip)),
+      Nnode = n_tip - 1L
+    ),
+    class = "phylo"
+  )
+}
+
+set.seed(20260531)
+plant_tree <- balanced_partner_tree(4, "plant")
+pollinator_tree <- balanced_partner_tree(4, "poll")
+
+pair_grid <- expand.grid(
+  plant = plant_tree$tip.label,
+  pollinator = pollinator_tree$tip.label,
+  KEEP.OUT.ATTRS = FALSE
+)
+
+plant_clade <- ifelse(pair_grid$plant %in% plant_tree$tip.label[1:2], -1, 1)
+pollinator_clade <- ifelse(
+  pair_grid$pollinator %in% pollinator_tree$tip.label[1:2],
+  -1,
+  1
+)
+pair_signal <- 0.45 * plant_clade * pollinator_clade
+names(pair_signal) <- paste(pair_grid$plant, pair_grid$pollinator, sep = ":")
+
+network_dat <- pair_grid[rep(seq_len(nrow(pair_grid)), each = 5), ]
+network_dat$floral_density <- rnorm(nrow(network_dat))
+eta <- 0.6 +
+  0.25 * network_dat$floral_density +
+  pair_signal[paste(network_dat$plant, network_dat$pollinator, sep = ":")]
+network_dat$visits <- rpois(nrow(network_dat), lambda = exp(eta))
+head(network_dat)
+```
+
+Fit the pair-level phylogenetic interaction with one marker:
+
+```{r fit-pair-count}
+fit_pair <- drmTMB(
+  bf(
+    visits ~ floral_density +
+      phylo_interaction(
+        1 | plant:pollinator,
+        tree1 = plant_tree,
+        tree2 = pollinator_tree
+      )
+  ),
+  family = poisson(link = "log"),
+  data = network_dat
+)
+fit_pair$sdpars$mu
+```
+
+The fitted standard deviation is the scale of the latent pair deviations on the
+linear predictor scale. For this Poisson model, that is the log-count scale.
+Use `ranef()` when you want conditional pair deviations, and use
+`profile_targets()` when you want to see whether the pair SD is registered for
+profile-likelihood diagnostics.
+
+```{r inspect-pair-count}
+names(ranef(fit_pair))
+profile_targets(fit_pair)
+```
+
+## Independent pairs are a different question
+
+If the biological question is "do repeated observations of the same pair share
+an unexplained deviation?" and no phylogenetic structure is needed, use an
+ordinary grouped random effect. Precompute the pair identifier first:
+
+```{r independent-pairs, eval = FALSE}
+network_dat$pair_id <- interaction(
+  network_dat$plant,
+  network_dat$pollinator,
+  drop = TRUE
+)
+
+fit_independent_pair <- drmTMB(
+  visits ~ floral_density + (1 | pair_id),
+  family = poisson(link = "log"),
+  data = network_dat
+)
+```
+
+Do not write `(1 | plant:pollinator)` yet. The ordinary random-effect parser
+currently expects a simple grouping column, so `pair_id` is the supported route.
+
+## When to reach for `relmat()`
+
+`relmat()` is the low-level route when you already have the pair precision
+matrix and have checked that its row names match the pair-level factor in the
+data. If the factor is `plant_pollinator`, then the row names and column names of
+`Q_pair` must match the levels of `plant_pollinator` exactly.
+
+```{r relmat-pair-route, eval = FALSE}
+fit_pair_relmat <- drmTMB(
+  visits ~ floral_density +
+    relmat(1 | plant_pollinator, Q = Q_pair),
+  family = poisson(link = "log"),
+  data = network_dat
+)
+```
+
+For most two-tree pair models, `phylo_interaction()` is safer because it builds
+the sparse Kronecker precision from `tree1` and `tree2`, preserves the two
+partner names, and keeps the biological meaning visible in the formula.
+
+## What this does not claim
+
+This first slice is a pair-level structured random intercept. It is not yet the
+full additive model with a main plant phylogeny, a main pollinator phylogeny,
+and a pair interaction:
+
+```{r additive-future, eval = FALSE}
+visits ~ floral_density +
+  phylo(1 | plant, tree = plant_tree) +
+  phylo(1 | pollinator, tree = pollinator_tree) +
+  phylo_interaction(
+    1 | plant:pollinator,
+    tree1 = plant_tree,
+    tree2 = pollinator_tree
+  )
+```
+
+It also does not fit reciprocal evolutionary dynamics, community-only matching
+without pair observations, binary incidence, structured pair slopes, or
+simultaneous spatial or animal-model interactions. Those are different
+statistical questions and need separate model designs.

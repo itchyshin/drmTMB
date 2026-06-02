@@ -2721,7 +2721,10 @@ profile_sd_internal <- function(object, dpar, term) {
   if (
     dpar %in%
       c("mu", "sigma") &&
-      grepl("phylo\\(|spatial\\(|animal\\(|relmat\\(", term)
+      grepl(
+        "phylo\\(|phylo_interaction\\(|spatial\\(|animal\\(|relmat\\(",
+        term
+      )
   ) {
     return("log_sd_phylo")
   }
@@ -2735,7 +2738,10 @@ profile_cor_internal <- function(dpar) {
   if (identical(dpar, "mu")) {
     return("eta_cor_mu")
   }
-  if (dpar %in% c("phylo", "spatial", "animal", "relmat")) {
+  if (
+    dpar %in%
+      c("phylo", "phylo_interaction", "spatial", "animal", "relmat")
+  ) {
     return("eta_cor_phylo")
   }
   paste0("eta_cor_", dpar)
