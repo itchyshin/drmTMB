@@ -2688,21 +2688,28 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   ) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
     if (identical(object$model$V_known_type, "matrix")) {
-      return(as.vector(forwardsolve(
-        t(chol(observation_covariance(object))),
-        response
-      )))
+      return(drm_mask_missing_response_values(
+        object,
+        as.vector(forwardsolve(
+          t(chol(observation_covariance(object))),
+          response
+        ))
+      ))
     }
-    return(response / observation_sigma(object))
+    return(drm_mask_missing_response_values(
+      object,
+      response / observation_sigma(object)
+    ))
   }
 
   response <- cbind(
     y1 = object$model$y1 - predict(object, dpar = "mu1"),
     y2 = object$model$y2 - predict(object, dpar = "mu2")
   )
+  response <- drm_mask_biv_missing_response_values(object, response)
   if (type == "response") {
     return(response)
   }
@@ -2720,7 +2727,24 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   e1 <- response[, "y1"] / sigma1
   e2_raw <- response[, "y2"] / sigma2
   e2 <- (e2_raw - rho12 * e1) / sqrt(1 - rho12^2)
-  cbind(y1 = e1, y2 = e2)
+  out <- cbind(y1 = e1, y2 = e2)
+  missing_data <- object$missing_data
+  if (
+    is.list(missing_data) &&
+      identical(missing_data$response_policy, "include") &&
+      !is.null(missing_data$observed_y1) &&
+      !is.null(missing_data$observed_y2) &&
+      length(missing_data$observed_y1) == nrow(out) &&
+      length(missing_data$observed_y2) == nrow(out)
+  ) {
+    observed_y1 <- as.logical(missing_data$observed_y1)
+    observed_y2 <- as.logical(missing_data$observed_y2)
+    y2_only <- !observed_y1 & observed_y2
+    out[y2_only, "y2"] <- e2_raw[y2_only]
+    out[!observed_y1, "y1"] <- NA_real_
+    out[!observed_y2, "y2"] <- NA_real_
+  }
+  out
 }
 
 #' Extract fitted scale or dispersion

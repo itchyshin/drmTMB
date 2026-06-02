@@ -70,14 +70,14 @@ is the current routing contract:
 
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
-| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, and the first opt-in fixed-effect Gaussian aggregation path. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, the matching slope-only ordinary `mu1`/`mu2` covariance block, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
+| `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, the matching slope-only ordinary `mu1`/`mu2` covariance block, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
-| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
+| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. |
@@ -135,6 +135,903 @@ log-likelihoods within the cell. The first implementation rejects non-unit
 likelihood weights, random effects, direct-SD formulas, structured effects,
 known sampling covariance, bivariate models, non-Gaussian families, and
 combined sparse fixed-effect matrices before TMB is called.
+
+## Univariate Gaussian Response Masks
+
+When `missing = miss_control(response = "include")` is used for a univariate
+Gaussian model, the R builder keeps rows with missing response values only after
+it has verified that all predictors, grouping variables, structured-effect
+inputs, likelihood weights, and known sampling variances needed for retained
+rows are complete. It then stores:
+
+```text
+observed_y_i = 1 if y_i is observed
+observed_y_i = 0 if y_i is missing
+```
+
+Missing responses are replaced by an internal finite sentinel after
+`observed_y` has been recorded. The sentinel is an implementation detail and is
+not part of the statistical model.
+
+For independent-row Gaussian likelihoods, the MD1 TMB branch evaluates:
+
+```text
+nll = sum_i observed_y_i w_i {-log Normal(y_i | mu_i, V_i + sigma_i^2)}
+```
+
+Rows with `observed_y_i = 0` contribute zero response likelihood. The fitted
+coefficients and observed-row log likelihood therefore match an explicit
+complete-case Gaussian fit when there are no row-level latent effects informed
+only through the missing-response rows. The retained rows still have model
+matrices and fitted values, so `fit$missing_data` can map predictions and
+residuals back to the source data. `nobs()` remains the likelihood-contributing
+count, `sum(observed_y)`.
+
+Dense known sampling-covariance matrices are not supported by MD1 response
+masks. A dense `meta_V(V = V)` likelihood is one joint multivariate block, so
+partial response rows need component-level covariance slicing rather than the
+independent-row mask above.
+
+## Univariate Gaussian Missing Predictors
+
+When `missing = miss_control(predictor = "model")` is used with one additive
+`mi(x)` term in a univariate Gaussian location formula, the R builder keeps rows
+where `x` is missing and requires all ordinary response predictors, grouping
+variables, structured-effect inputs, likelihood weights, and `impute`-model
+predictors to be complete. The MD3a route is fixed-effect and Gaussian:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1),
+  data = dat,
+  impute = list(x = x ~ z),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The MD3b route adds one independent random-intercept block to the same
+covariate model:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1),
+  data = dat,
+  impute = list(x = x ~ z + (1 | group)),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The MD4 route instead adds one explicit intercept-only structured covariate
+field. The structured term is supplied in the `impute` formula, not inherited
+from the response model:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1),
+  data = dat,
+  impute = list(x = x ~ z + relmat(1 | line, Q = Q)),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The response model uses the usual Gaussian conditional density:
+
+```text
+y_i | x_i, z_i ~ Normal(mu_i, V_i + sigma_i^2)
+mu_i = eta_without_x_i + beta_x x_i
+```
+
+The fixed-effect predictor model is a second Gaussian likelihood:
+
+```text
+x_i ~ Normal(W_i alpha, sigma_x^2)
+```
+
+With the MD3b grouped route, this becomes:
+
+```text
+u_g ~ Normal(0, 1)
+x_i ~ Normal(W_i alpha + sd_x_group u_group[i], sigma_x^2)
+```
+
+With the MD4 structured route, this becomes:
+
+```text
+u_x ~ Normal(0, sd_x_struct^2 Q_x^-1)
+x_i ~ Normal(W_i alpha + a_i u_x[node_i], sigma_x^2)
+```
+
+Here `Q_x` is the precision matrix built by the explicit `phylo()`,
+`spatial()`, `animal()`, or `relmat()` covariate term, and `a_i` is the
+structured design value. The first fitted MD4 slice is intercept-only, so
+`a_i = 1` in the supported public syntax.
+
+For observed `x_i`, TMB uses the observed value in both the predictor likelihood
+and the response mean. For missing `x_i`, TMB treats `x_i` as a random effect
+and integrates it by the Laplace approximation. With MD3b, the group-level
+covariate intercepts are also TMB random effects; with MD4, the structured
+covariate field is also a TMB random effect. With absent random-effect factors
+omitted, the fitted objective is the joint observed-data likelihood:
+
+```text
+L(theta) = integral p(y_obs | x_obs, x_mis, theta_y)
+                    p(x_obs, x_mis | theta_x)
+                    p(u_group)
+                    p(u_x)
+                    d x_mis d u_group d u_x
+```
+
+The implementation stores `has_mi`, the `mi(x)` column index in the response
+design, the reconstructed `x` vector, the observed/missing predictor mask, and
+the fixed-effect `X_mi` matrix for the predictor model. The model matrix for
+`mi(x)` contains a finite placeholder only so base R can build `X_mu`; the TMB
+objective replaces that column by the observed or latent `x_i` before evaluating
+the likelihood. `fit$missing_data$predictors` records original-row and model-row
+indices for missing `x`; for MD3b it also records the grouping variable and
+number of group levels, and for MD4 it records the structured marker, grouping
+variable, levels, and latent-field size. `imputed()` extracts these fitted
+missing-predictor conditional modes from the
+optimized TMB random effects. When `sdreport()` is available, it also reports
+the corresponding likelihood-based conditional standard errors from the random
+effect covariance approximation. These are not posterior means, credible
+intervals, simulated imputations, or multiple-imputation pooling summaries.
+
+## Binary Missing Predictors In Gaussian Location Models
+
+MD6a adds the first non-Gaussian missing-predictor route. The response model is
+still a univariate Gaussian location model with one additive `mi(x)` term, but
+the missing predictor is binary. The predictor model is fixed-effect
+Bernoulli/logit:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(treatment), sigma ~ 1),
+  data = dat,
+  impute = list(
+    treatment = impute_model(treatment ~ z, family = binomial())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+Let
+
+```text
+pi_i = logit^-1(W_i alpha)
+mu_i(x) = eta_without_x_i + beta_x x
+```
+
+For observed binary predictors, the row contributes the Bernoulli predictor
+likelihood and, when the response is observed, the Gaussian response density:
+
+```text
+log L_i = log p(x_i | pi_i) + observed_y_i log p(y_i | mu_i(x_i), sigma_i)
+```
+
+For missing binary predictors, TMB does not create a continuous latent random
+effect. It sums exactly over the two possible states:
+
+```text
+log L_i =
+  logspace_add(
+    log(1 - pi_i) + observed_y_i log p(y_i | mu_i(0), sigma_i),
+    log(pi_i)     + observed_y_i log p(y_i | mu_i(1), sigma_i)
+  )
+```
+
+When both the response and the binary predictor are missing, the response term
+is zero and the Bernoulli states sum to one. The row is retained for accounting
+but contributes no direct likelihood. `imputed()` reports the fitted
+conditional probability `Pr(x_i = 1 | observed data)` for missing binary
+predictors. For rows with an observed response, that probability combines the
+Bernoulli predictor model and the Gaussian response likelihood; for rows with a
+missing response, it is the prior probability from the predictor model. The
+first binary route does not report conditional standard errors.
+
+MD6a accepts observed binary predictors represented as logical values, two-level
+factors, two-level character values, or numeric/integer 0/1 values. It rejects
+grouped or structured binary predictor models, count predictors, multiple
+missing predictors, and dense known sampling covariance. Count predictors use
+the separate MD7b, MD7c, and MD7e routes.
+
+## Binary Missing Predictors In Poisson Mean Models
+
+MD9a opens the first non-Gaussian response missing-predictor route. The response
+model is an ordinary fixed-effect Poisson mean model with one additive binary
+`mi(x)` term:
+
+```r
+drmTMB(
+  bf(count ~ z + mi(treatment)),
+  family = poisson(),
+  data = dat,
+  impute = list(
+    treatment = impute_model(treatment ~ z, family = binomial())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+Let
+
+```text
+pi_i = logit^-1(W_i alpha)
+eta_yi(x) = o_i + eta_without_x_i + beta_x x
+mu_yi(x) = exp(eta_yi(x))
+```
+
+For observed binary predictors, the row contributes the Bernoulli
+predictor-model likelihood and the Poisson response likelihood:
+
+```text
+log L_i = log p(x_i | pi_i) + log Poisson(y_i | mu_yi(x_i))
+```
+
+For missing binary predictors, TMB sums exactly over the two possible states:
+
+```text
+log L_i =
+  logspace_add(
+    log(1 - pi_i) + log Poisson(y_i | mu_yi(0)),
+    log(pi_i)     + log Poisson(y_i | mu_yi(1))
+  )
+```
+
+This is the same finite-state observed-data idea as MD6a, but the response term
+is the Poisson count density. The Poisson response must be observed in MD9a:
+`miss_control(response = "include")` is still limited to Gaussian response
+models. The route rejects zero-inflated Poisson formulas, Poisson response
+random effects, structured Poisson response terms, non-binary missing predictor
+families, and ordinary missing predictors outside the explicit `mi()` term.
+
+## Ordered Missing Predictors In Gaussian Location Models
+
+MD6b extends the finite-state missing-predictor route to one ordered
+categorical predictor in a univariate Gaussian location model. The predictor
+model is fixed-effect cumulative logit:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(score), sigma ~ 1),
+  data = dat,
+  impute = list(
+    score = impute_model(score ~ z, family = cumulative_logit())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+Let
+
+```text
+Pr(x_i <= k) = logit^-1(c_k - W_i alpha)
+mu_i(k) = eta_without_x_i + X_mu_state[i, k, ] beta_mu
+```
+
+where `c_1 < ... < c_{K-1}` are ordered predictor-model cutpoints. The
+state-specific response design `X_mu_state` is needed because an ordered factor
+can change several response-model contrast columns, not just one numeric
+slope.
+
+For observed ordered predictors, the row contributes the ordinal
+predictor-model likelihood and, when the response is observed, the Gaussian
+response density:
+
+```text
+log L_i = log p_ord(x_i | W_i alpha, c)
+          + observed_y_i log p(y_i | mu_i(x_i), sigma_i)
+```
+
+For missing ordered predictors, TMB sums exactly over the ordered categories:
+
+```text
+log L_i =
+  logsumexp_k(
+    log p_ord(k | W_i alpha, c)
+    + observed_y_i log p(y_i | mu_i(k), sigma_i)
+  )
+```
+
+When both the response and the ordered predictor are missing, the response term
+is zero and the ordinal probabilities sum to one. The row is retained for
+accounting but contributes no direct likelihood. `imputed()` reports the
+conditional expected ordered-category score, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+conditional level probabilities for missing rows.
+
+MD6b accepts ordered factors and numeric/integer category scores with at least
+three categories represented in the observed predictor values. The ordered
+slice itself rejects unordered factors, grouped or structured ordered
+predictor models, multiple missing predictors, and dense known sampling
+covariance. Count predictors use the separate MD7b, MD7c, and MD7e count
+routes rather than the ordered finite-state route.
+
+## Unordered Missing Predictors In Gaussian Location Models
+
+MD6c adds one unordered categorical predictor in a univariate Gaussian location
+model. The predictor model is fixed-effect baseline-category softmax:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(habitat), sigma ~ 1),
+  data = dat,
+  impute = list(
+    habitat = impute_model(habitat ~ z, family = categorical())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+Let the first level be the baseline category. For `k > 1`:
+
+```text
+eta_ik = W_i alpha_k
+Pr(x_i = 1) = 1 / (1 + sum_{k=2}^K exp(eta_ik))
+Pr(x_i = k) = exp(eta_ik) / (1 + sum_{h=2}^K exp(eta_ih))
+```
+
+The row likelihood has the same finite-state shape as MD6b, but with unordered
+softmax probabilities instead of cumulative-logit probabilities:
+
+```text
+observed x_i:
+  log L_i = log p_cat(x_i | W_i alpha)
+            + observed_y_i log p(y_i | mu_i(x_i), sigma_i)
+
+missing x_i:
+  log L_i = logsumexp_k(
+    log p_cat(k | W_i alpha)
+    + observed_y_i log p(y_i | mu_i(k), sigma_i)
+  )
+```
+
+The state-specific response design `X_mi_state_mu` is required because changing
+an unordered factor level can change several response-model contrast columns.
+`imputed()` reports the conditional modal category score for missing rows, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+conditional level probabilities.
+
+MD6c accepts unordered factors, character predictors, and numeric/integer
+category scores when at least three categories are represented among observed
+predictor values. The unordered slice itself rejects ordered factors, grouped
+or structured categorical predictor models, multiple missing predictors, and
+dense known sampling covariance. Count predictors use the separate MD7b, MD7c,
+and MD7e count routes rather than the unordered finite-state route.
+
+## Strict Proportion Missing Predictors In Gaussian Location Models
+
+MD7a adds one strict proportion predictor in a univariate Gaussian location
+model. The predictor model is fixed-effect beta:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(cover), sigma ~ 1),
+  data = dat,
+  impute = list(
+    cover = impute_model(cover ~ z, family = beta())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the same mean-scale parameterization as beta response
+models:
+
+```text
+logit(m_i) = W_i alpha
+phi = 1 / sigma_mi^2
+x_i ~ Beta(m_i phi, (1 - m_i) phi)
+```
+
+For observed `cover_i`, the row contributes the beta predictor-model
+likelihood and, when the response is observed, the Gaussian response density.
+For missing `cover_i`, TMB integrates over the possible proportion values with
+fixed Gauss-Legendre quadrature:
+
+```text
+log L_i = log sum_q w_q
+  p_beta(x_q | m_i, sigma_mi)
+  p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
+```
+
+When both the response and the strict proportion predictor are missing, the
+row is retained for accounting but contributes no direct likelihood.
+`imputed()` reports the conditional quadrature mean for missing rows, and
+`fit$missing_data$predictors[[name]]$quadrature_probabilities` stores the
+normalized quadrature weights.
+
+MD7a accepts numeric predictors strictly inside `(0, 1)`. It rejects exact 0
+or 1 values, grouped or structured beta predictor models, multiple missing
+predictors, and dense known sampling covariance.
+
+## Boundary Proportion Missing Predictors In Gaussian Location Models
+
+MD7d adds one boundary-proportion predictor in a univariate Gaussian location
+model. The predictor model is fixed-effect zero-one beta:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(cover), sigma ~ 1),
+  data = dat,
+  impute = list(
+    cover = impute_model(cover ~ z, family = zero_one_beta())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The first fitted zero-one beta predictor slice uses the `impute` formula for
+the interior mean and estimates constant predictor-model `sigma`, `zoi`, and
+`coi`:
+
+```text
+logit(m_i) = W_i alpha
+phi = 1 / sigma_mi^2
+zoi = Pr(x_i is exactly 0 or 1)
+coi = Pr(x_i is exactly 1 | x_i is exactly 0 or 1)
+```
+
+For an observed predictor value, the row contribution is:
+
+```text
+x_i = 0:
+  log zoi + log(1 - coi)
+
+x_i = 1:
+  log zoi + log coi
+
+0 < x_i < 1:
+  log(1 - zoi) + log BetaDensity(x_i | m_i phi, (1 - m_i) phi)
+```
+
+When the predictor is missing and the response is observed, TMB sums exact
+zero and exact one mass together with deterministic interior beta quadrature:
+
+```text
+log L_i = log sum_q w_q
+  p_zero_one_beta(x_q | m_i, sigma_mi, zoi, coi)
+  p(y_i | mu_i(x_q), sigma_i)
+```
+
+The zero and one nodes have quadrature weight one because they represent point
+mass. Interior nodes use the same fixed Gauss-Legendre rule as the strict beta
+route. When both the response and the boundary-proportion predictor are
+missing, the row is retained for accounting but contributes no direct
+likelihood. `imputed()` reports the fitted conditional quadrature mean for
+missing rows, and `fit$missing_data$predictors[[name]]$quadrature_probabilities`
+stores the normalized zero, interior, and one weights.
+
+MD7d accepts numeric predictors whose observed values are finite and in
+`[0, 1]`, with at least one observed interior value to identify the beta
+component. It rejects out-of-range values, non-numeric predictors, grouped or
+structured zero-one beta predictor models, multiple missing predictors, and
+dense known sampling covariance.
+
+## Denominator-Aware Proportion Missing Predictors In Gaussian Location Models
+
+MD7f adds one denominator-aware proportion predictor in a univariate Gaussian
+location model. The response model uses the proportion variable through
+`mi(cover)`, while the predictor model uses success counts and known trial
+denominators:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(cover), sigma ~ 1),
+  data = dat,
+  impute = list(
+    cover = impute_model(
+      success ~ z,
+      family = beta_binomial(),
+      trials = trials
+    )
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the same beta-binomial parameterization as a
+beta-binomial response model:
+
+```text
+logit(m_i) = W_i alpha
+phi = 1 / sigma_mi^2
+k_i | n_i, m_i, phi ~ BetaBinomial(n_i, m_i phi, (1 - m_i) phi)
+x_i = k_i / n_i
+```
+
+For an observed success count, the row contributes the beta-binomial
+predictor-model likelihood and, when the response is observed, the Gaussian
+response density using `x_i = k_i / n_i`. For a missing success count, TMB sums
+over all possible success counts for that row:
+
+```text
+log L_i = log sum_{k = 0}^{n_i}
+  p_betabinom(k | n_i, m_i, sigma_mi)
+  p(y_i | mu_i(k / n_i), sigma_i) ^ observed_y_i
+```
+
+When both the response and the success count are missing, the row is retained
+for accounting but contributes no direct likelihood. `imputed()` reports the
+conditional proportion mean for missing rows, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+normalized success-count probabilities over `0, ..., n_i`.
+
+MD7f requires complete positive integer trial counts. Observed success counts
+must be integers between zero and the trial count, and observed `mi()`
+proportions must equal success divided by trials. It rejects grouped or
+structured beta-binomial predictor models, multiple missing predictors, and
+dense known sampling covariance.
+
+## Poisson Count Missing Predictors In Gaussian Location Models
+
+MD7b adds one non-negative integer count predictor in a univariate Gaussian
+location model. The predictor model is fixed-effect Poisson:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(abundance), sigma ~ 1),
+  data = dat,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = poisson())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the log-mean parameterization:
+
+```text
+log(lambda_i) = W_i alpha
+x_i ~ Poisson(lambda_i)
+```
+
+For observed `abundance_i`, the row contributes the Poisson predictor-model
+likelihood and, when the response is observed, the Gaussian response density.
+For missing `abundance_i`, TMB sums over a deterministic count support
+`k = 0, ..., K`:
+
+```text
+log L_i = log sum_k
+  p_pois(k | lambda_i)
+  p(y_i | mu_i(k), sigma_i) ^ observed_y_i
+```
+
+When both the response and the count predictor are missing, the row is retained
+for accounting but contributes no direct likelihood. `imputed()` reports the
+conditional expected count for missing rows, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+normalized count-state probabilities over the finite support.
+
+MD7b accepts numeric or integer predictors whose observed values are finite
+non-negative integers. It rejects negative, fractional, and non-finite count
+values, grouped or structured Poisson predictor models, multiple missing
+predictors, and dense known sampling covariance. The count support is
+deliberately bounded in this first slice; very wide count supports error rather
+than silently fitting a fragile approximation.
+
+## Negative-Binomial Count Missing Predictors In Gaussian Location Models
+
+MD7c adds one overdispersed non-negative integer count predictor in a univariate
+Gaussian location model. The predictor model is fixed-effect NB2:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(abundance), sigma ~ 1),
+  data = dat,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = nbinom2())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the same NB2 mean-overdispersion parameterization as a
+count response model:
+
+```text
+log(mu_xi) = W_i alpha
+sigma_x > 0
+Var(x_i | mu_xi, sigma_x) = mu_xi + sigma_x^2 mu_xi^2
+```
+
+For observed `abundance_i`, the row contributes the NB2 predictor-model
+likelihood and, when the response is observed, the Gaussian response density.
+For missing `abundance_i`, TMB sums over a deterministic count support
+`k = 0, ..., K`:
+
+```text
+log L_i = log sum_k
+  p_nb2(k | mu_xi, sigma_x)
+  p(y_i | mu_i(k), sigma_i) ^ observed_y_i
+```
+
+When both the response and the count predictor are missing, the row is retained
+for accounting but contributes no direct likelihood. `imputed()` reports the
+conditional expected count for missing rows, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+normalized count-state probabilities over the finite support.
+
+MD7c accepts numeric or integer predictors whose observed values are finite
+non-negative integers. It rejects negative, fractional, and non-finite count
+values, grouped or structured NB2 predictor models, hurdle count predictor
+models, multiple missing predictors, and dense known sampling covariance. The
+count support is deliberately bounded; very wide NB2 supports error rather than
+silently fitting a fragile finite-sum approximation.
+
+## Zero-Truncated Count Missing Predictors In Gaussian Location Models
+
+MD7e adds one positive count predictor in a univariate Gaussian location model.
+The predictor model is fixed-effect zero-truncated NB2:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(abundance), sigma ~ 1),
+  data = dat,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = truncated_nbinom2())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the same untruncated NB2 mean and overdispersion
+parameters as the response-family route, then conditions on a positive count:
+
+```text
+log(mu_xi) = W_i alpha
+sigma_x > 0
+p_+(mu_xi, sigma_x) = 1 - p_nb2(0 | mu_xi, sigma_x)
+p_zt(k | mu_xi, sigma_x) = p_nb2(k | mu_xi, sigma_x) / p_+
+  for k = 1, 2, ...
+```
+
+For observed `abundance_i`, the row contributes the zero-truncated NB2
+predictor-model likelihood and, when the response is observed, the Gaussian
+response density. For missing `abundance_i`, TMB sums over a deterministic
+positive count support `k = 1, ..., K`:
+
+```text
+log L_i = log sum_k
+  p_zt(k | mu_xi, sigma_x)
+  p(y_i | mu_i(k), sigma_i) ^ observed_y_i
+```
+
+When both the response and the positive-count predictor are missing, the row is
+retained for accounting but contributes no direct likelihood. `imputed()`
+reports the conditional expected positive count for missing rows, and
+`fit$missing_data$predictors[[name]]$conditional_probabilities` stores the
+normalized positive-count probabilities over the finite support.
+
+MD7e accepts numeric or integer predictors whose observed values are finite
+positive integers. It rejects zero, negative, fractional, and non-finite count
+values, grouped or structured zero-truncated NB2 predictor models, hurdle count
+predictor models, multiple missing predictors, and dense known sampling
+covariance. Use `nbinom2()` instead when zero is a possible predictor value.
+
+## Lognormal Positive Continuous Missing Predictors In Gaussian Location Models
+
+MD8a adds one positive continuous predictor in a univariate Gaussian location
+model. The predictor model is fixed-effect lognormal:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(biomass), sigma ~ 1),
+  data = dat,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = lognormal())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model is Gaussian on the log scale:
+
+```text
+log(x_i) ~ Normal(W_i alpha, sigma_x^2)
+mu_i(x) = eta_without_x_i + beta_x x
+```
+
+For observed `biomass_i`, the row contributes the lognormal predictor-model
+likelihood and, when the response is observed, the Gaussian response density:
+
+```text
+log L_i =
+  log Normal(log x_i | W_i alpha, sigma_x)
+  - log x_i
+  + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
+```
+
+For missing `biomass_i`, TMB integrates over standardized log-scale predictor
+states by deterministic Gauss-Hermite quadrature. With standard-normal
+quadrature nodes `q_k` and weights `w_k`,
+
+```text
+x_ik = exp(W_i alpha + sigma_x q_k)
+
+log L_i =
+  log sum_k
+    w_k p(y_i | mu_i(x_ik), sigma_i) ^ observed_y_i
+```
+
+When both the response and the positive predictor are missing, the row is
+retained for accounting but contributes no direct likelihood. `imputed()`
+reports the fitted conditional quadrature mean for missing rows, and
+`fit$missing_data$predictors[[name]]$quadrature_probabilities` stores the
+normalized quadrature weights after conditioning on the observed response.
+
+MD8a accepts numeric predictors whose observed values are finite and greater
+than zero. It rejects zero, negative, and non-finite values, grouped or
+structured lognormal predictor models, semi-continuous predictors with exact
+zeros, multiple missing predictors, and dense known sampling covariance.
+
+## Gamma Positive Continuous Missing Predictors In Gaussian Location Models
+
+MD8b adds a second positive continuous predictor route in a univariate Gaussian
+location model. The predictor model is fixed-effect Gamma mean-CV:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(biomass), sigma ~ 1),
+  data = dat,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = Gamma(link = "log"))
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The predictor model uses the same Gamma mean-CV parameterization as a Gamma
+response model:
+
+```text
+mu_xi = exp(W_i alpha)
+sigma_x > 0
+shape_x = 1 / sigma_x^2
+scale_xi = mu_xi sigma_x^2
+x_i ~ Gamma(shape_x, scale_xi)
+```
+
+For observed `biomass_i`, the row contributes the Gamma predictor-model
+likelihood and, when the response is observed, the Gaussian response density:
+
+```text
+log L_i =
+  log GammaDensity(x_i | shape_x, scale_xi)
+  + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
+```
+
+For missing `biomass_i`, TMB integrates over positive predictor states by
+deterministic Gauss-Laguerre quadrature. With Laguerre nodes `t_k` and weights
+`w_k`,
+
+```text
+x_ik = scale_xi t_k
+
+log L_i =
+  log sum_k
+    w_k t_k^(shape_x - 1) / Gamma(shape_x)
+    p(y_i | mu_i(x_ik), sigma_i) ^ observed_y_i
+```
+
+When both the response and the positive predictor are missing, the row is
+retained for accounting but contributes no direct likelihood. `imputed()`
+reports the fitted conditional quadrature mean for missing rows, and
+`fit$missing_data$predictors[[name]]$quadrature_probabilities` stores the
+normalized quadrature weights after conditioning on the observed response.
+
+MD8b accepts numeric predictors whose observed values are finite and greater
+than zero. It rejects zero, negative, and non-finite values, non-log Gamma
+links, grouped or structured Gamma predictor models, semi-continuous predictors
+with exact zeros, multiple missing predictors, and dense known sampling
+covariance.
+
+## Tweedie Semi-Continuous Missing Predictors In Gaussian Location Models
+
+MD8c adds one non-negative semi-continuous predictor in a univariate Gaussian
+location model. The predictor model is fixed-effect Tweedie:
+
+```r
+drmTMB(
+  bf(y ~ z + mi(biomass), sigma ~ 1),
+  data = dat,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = tweedie())
+  ),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The first fitted Tweedie predictor slice estimates the mean and scale but fixes
+the predictor-model Tweedie power at 1.5:
+
+```text
+mu_xi = exp(W_i alpha)
+phi_x = sigma_x^2
+power_x = 1.5
+x_i ~ Tweedie(mu_xi, phi_x, power_x)
+```
+
+The fixed power keeps the first semi-continuous route on the existing
+`beta_mi` and `log_sigma_mi` parameter path. Estimating `power_x`, or allowing a
+predictor-dependent power formula, needs a later parameter and identifiability
+slice.
+
+For observed `biomass_i`, the row contributes the Tweedie predictor-model
+likelihood and, when the response is observed, the Gaussian response density:
+
+```text
+log L_i =
+  log TweedieDensity(x_i | mu_xi, phi_x, power_x)
+  + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
+```
+
+For missing `biomass_i`, TMB integrates over the exact zero mass plus a
+deterministic positive-support quadrature grid:
+
+```text
+log L_i =
+  log sum_q
+    w_q p_tweedie(x_q | mu_xi, phi_x, power_x)
+    p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
+```
+
+The zero node has weight one and represents the exact Tweedie point mass at
+zero. The positive nodes approximate the continuous density over a bounded
+support chosen from the observed values and initial predictor-model moments.
+When both the response and the Tweedie predictor are missing, the row is
+retained for accounting but contributes no direct likelihood. `imputed()`
+reports the fitted conditional quadrature mean for missing rows, and
+`fit$missing_data$predictors[[name]]$quadrature_probabilities` stores the
+normalized zero-plus-positive quadrature weights.
+
+MD8c accepts numeric predictors whose observed values are finite and greater
+than or equal to zero, with at least one observed positive value to identify the
+continuous component. It rejects negative and non-finite values, grouped or
+structured Tweedie predictor models, estimated or predictor-dependent Tweedie
+power, multiple missing predictors, and dense known sampling covariance.
+
+## Bivariate Gaussian Response Masks
+
+For independent-observation bivariate Gaussian fits, MD2 uses separate response
+masks:
+
+```text
+observed_y1_i = 1 if y1_i is observed
+observed_y2_i = 1 if y2_i is observed
+```
+
+Missing response cells are replaced by an internal finite sentinel after the
+masks have been recorded. The sentinel is not part of the likelihood. For each
+row, the TMB branch evaluates:
+
+```text
+if observed_y1_i = 1 and observed_y2_i = 1:
+  -log MVN([y1_i, y2_i]' | [mu1_i, mu2_i]', Omega_i)
+
+if observed_y1_i = 1 and observed_y2_i = 0:
+  -log Normal(y1_i | mu1_i, sigma1_i)
+
+if observed_y1_i = 0 and observed_y2_i = 1:
+  -log Normal(y2_i | mu2_i, sigma2_i)
+
+if observed_y1_i = 0 and observed_y2_i = 0:
+  0
+```
+
+The marginal one-response contributions do not contain residual `rho12`.
+Complete response pairs are therefore the direct residual-correlation evidence.
+The R builder stores complete-pair, `y1`-only, `y2`-only, and both-missing counts
+in `fit$missing_data`, and warns when complete pairs are too sparse for the
+fitted `rho12` formula. `nobs()` counts rows with at least one observed response.
+Response residual matrices set missing response cells to `NA`; Pearson residuals
+use the bivariate whitening only for complete pairs and use the marginal
+standardization for a `y2`-only row.
+
+Dense bivariate known sampling covariance is deferred for partial-response rows.
+The current dense `meta_V(V = V)` route keeps the row-paired `2n` by `2n`
+covariance matrix and requires complete response pairs. Component-level slicing
+is needed before rows with only one observed response can be combined with dense
+known `V`.
 
 ## Likelihood Weights
 
@@ -1100,10 +1997,11 @@ eta_mu_i = o_i + X_mu[i, ] beta_mu + a_level[i]
 a ~ Normal(0, sd_structured^2 A_structured)
 ```
 
-where `A_structured` is the tree, coordinate, animal-model, or user-supplied
-relatedness covariance implied by `phylo()`, `spatial()`, `animal()`, or
-`relmat()`. The TMB template still uses the sparse precision `Q_phylo`, the
-latent vector `u_phylo`, and the direct SD target `log_sd_phylo` for this shared
+where `A_structured` is the tree, pair-of-trees Kronecker field, coordinate,
+animal-model, or user-supplied relatedness covariance implied by `phylo()`,
+`phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. The TMB template
+still uses the sparse precision `Q_phylo`, the latent vector `u_phylo`, and the
+direct SD target `log_sd_phylo` for this shared
 q=1 count route. This route is implemented for ordinary non-zero-inflated
 Poisson with one unlabelled q=1 structured `mu` intercept. It is not a labelled
 q=2/q=4 count block, not a structured count slope, not a zero-inflated
@@ -1111,15 +2009,19 @@ structured route, and not simultaneous structured dependence. The
 simulation-runner and artifact contract for promoting the phylogenetic route
 beyond smoke-level evidence is recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`; the spatial, animal, and
-`relmat()` count routes currently have focused source-level recovery tests.
+`relmat()` count routes currently have focused source-level recovery tests, and
+the `phylo_interaction()` route has focused Gaussian, Poisson, and NB2 smoke
+tests for the first pair-level field.
 
 For Poisson fits, `predict(fit, dpar = "mu")` and `fitted(fit)` return the
 count mean. There is no fitted `sigma` distributional parameter; `sigma(fit)`
 returns a fixed unit dispersion vector for compatibility with base-R method
 expectations. The response must contain non-negative integer counts after
-missing-row filtering. Known sampling covariance, overdispersion, zero-inflated
-structured effects, bivariate Poisson, and mixed-response Poisson models are
-later phases.
+missing-row filtering. MD9a allows one fixed-effect binary missing predictor in
+an ordinary Poisson mean model; broader missing-predictor Poisson response
+routes are not implied by the ordinary count likelihood. Known sampling
+covariance, overdispersion, zero-inflated structured effects, bivariate Poisson,
+and mixed-response Poisson models are later phases.
 
 ## Implemented Zero-Inflated Poisson Mean
 
@@ -1262,11 +2164,12 @@ This adds the same sparse `Q_phylo`, latent `u_phylo`, and direct
 likelihood remains NB2 and `sigma` remains fixed-effect overdispersion. It is
 implemented only for ordinary non-zero-inflated NB2 with one unlabelled q=1
 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or
-`relmat()`. Correlated NB2 slope blocks, labelled covariance blocks, structured
-count slopes, NB2 `sigma` slopes, labelled or joint `mu`/`sigma` covariance,
-NB2 `sigma` structured effects, zero-inflated NB2 random or structured effects,
-simultaneous structured types, known sampling covariance, and bivariate or
-mixed negative-binomial models are later phases.
+`relmat()`, or from `phylo_interaction()` for one two-partner Kronecker field.
+Correlated NB2 slope blocks, labelled covariance blocks, structured count
+slopes, NB2 `sigma` slopes, labelled or joint `mu`/`sigma` covariance, NB2
+`sigma` structured effects, zero-inflated NB2 random or structured effects,
+simultaneous structured types, binary incidence, known sampling covariance, and
+bivariate or mixed negative-binomial models are later phases.
 
 ## Implemented Zero-Truncated Negative Binomial 2
 
@@ -1445,7 +2348,7 @@ y_stack ~ MVN(mu_stack, V_stack + Omega_stack)
 where `V_stack` is the supplied known sampling covariance and `Omega_stack`
 contains the fitted `sigma1`, `sigma2`, and `rho12` blocks.
 
-The current implementation:
+The current dense-known-`V` implementation:
 
 - requires complete bivariate rows;
 - accepts a `2n` by `2n` dense or block-diagonal `V` in row-paired order;

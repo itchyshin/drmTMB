@@ -1,0 +1,923 @@
+---
+title: "Handling missing data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Handling missing data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.1,
+  dpi = 144
+)
+library(drmTMB)
+```
+
+Missing data in `drmTMB` has two different meanings. A response can be missing,
+so the observation has no measured outcome for one response cell. A predictor
+can be missing, so the model needs a value of a covariate that was not observed.
+The current implementation treats those cases differently.
+
+For missing responses, `drmTMB` can keep the original rows and evaluate the
+observed-response likelihood. Missing response cells contribute no direct
+response likelihood, but the fitted object still knows where those rows were.
+For missing predictors, `drmTMB` requires an explicit predictor model through
+`mi()` and `impute`. The predictor model is part of the same likelihood as the
+response model; it is not a preprocessing fill-in step.
+
+The main missing-predictor module covers one missing predictor at a time in a
+univariate Gaussian location model. The supported predictor families are
+family-aware: Gaussian for continuous predictors, Bernoulli/logit for binary
+predictors, cumulative logit for ordered categories, baseline softmax for
+unordered categories, beta and zero-one beta for proportions, beta-binomial for
+successes out of known trials, Poisson/NB2/zero-truncated NB2 for counts,
+lognormal/Gamma for positive continuous predictors, and Tweedie for
+semi-continuous predictors with exact zeros. The first non-Gaussian response
+route also supports a Poisson count response with one binary missing predictor.
+Complete covariates used to explain the missing predictor can still be ordinary
+model-matrix inputs. Transformed `mi()` terms and multiple missing predictors
+are later work.
+
+The response model and the imputation model use two different formula
+containers. The main `drmTMB()` model uses `drm_formula()` or its short alias
+`bf()`. Entries inside `impute = list(...)` are ordinary two-sided predictor
+formulas, such as `body_mass ~ moisture + canopy`, or `impute_model(...)`
+objects when a predictor-model family must be stated explicitly. Do not wrap
+the `impute` entry itself in `drm_formula()`.
+
+## What is fitted now
+
+The default is still conservative complete-case fitting:
+
+```{r}
+miss_control()
+```
+
+Use `missing = miss_control(response = "include")` when you want supported
+missing responses retained in the fitted object. Use
+`missing = miss_control(predictor = "model")` only when the response formula
+contains one supported `mi()` term and `impute` supplies the corresponding
+predictor model.
+
+| Missing-data case | Current route | Main boundary |
+| --- | --- | --- |
+| Missing univariate Gaussian response | `missing = miss_control(response = "include")` | Predictors, grouping variables, offsets, weights, and structured-effect inputs must be complete. |
+| Missing bivariate Gaussian response cell | `missing = miss_control(response = "include")` | Partial `y1`/`y2` rows are supported without dense known sampling covariance. |
+| One missing numeric predictor | `bf(y ~ z + mi(x), sigma ~ 1)` with `impute = list(x = x ~ z)` | The missing `mi()` variable must be numeric and modelled with one Gaussian predictor model. |
+| One missing binary predictor | `bf(y ~ z + mi(treatment), sigma ~ 1)` with `impute = list(treatment = impute_model(treatment ~ z, family = binomial()))` | The missing `mi()` variable must be binary and modelled with one fixed-effect Bernoulli/logit predictor model. |
+| Poisson response with one missing binary predictor | `bf(count ~ z + mi(treatment))`, `family = poisson()`, with `impute = list(treatment = impute_model(treatment ~ z, family = binomial()))` | The response must be complete counts; the missing predictor must be binary; zero inflation, random effects, and structured response terms are not implemented for this route. |
+| One missing ordered predictor | `bf(y ~ z + mi(score), sigma ~ 1)` with `impute = list(score = impute_model(score ~ z, family = cumulative_logit()))` | The missing `mi()` variable must be ordered categorical and modelled with one fixed-effect cumulative-logit predictor model. |
+| One missing unordered predictor | `bf(y ~ z + mi(habitat), sigma ~ 1)` with `impute = list(habitat = impute_model(habitat ~ z, family = categorical()))` | The missing `mi()` variable must be unordered categorical with at least three levels and modelled with one fixed-effect baseline-category softmax predictor model. |
+| One missing strict proportion predictor | `bf(y ~ z + mi(cover), sigma ~ 1)` with `impute = list(cover = impute_model(cover ~ z, family = beta()))` | The missing `mi()` variable must be numeric and strictly inside `(0, 1)`, then modelled with one fixed-effect beta predictor model. |
+| One missing boundary proportion predictor | `bf(y ~ z + mi(cover), sigma ~ 1)` with `impute = list(cover = impute_model(cover ~ z, family = zero_one_beta()))` | The missing `mi()` variable must be numeric in `[0, 1]`, may include exact zeros or ones, and is modelled with one fixed-effect zero-one beta predictor model. |
+| One missing denominator-aware proportion predictor | `bf(y ~ z + mi(cover), sigma ~ 1)` with `impute = list(cover = impute_model(success ~ z, family = beta_binomial(), trials = trials))` | The `mi()` variable is the proportion used by the response model; the predictor model uses success counts and complete known trial denominators. |
+| One missing Poisson count predictor | `bf(y ~ z + mi(abundance), sigma ~ 1)` with `impute = list(abundance = impute_model(abundance ~ z, family = poisson()))` | The missing `mi()` variable must be a non-negative integer count and modelled with one fixed-effect Poisson predictor model. |
+| One missing negative-binomial count predictor | `bf(y ~ z + mi(abundance), sigma ~ 1)` with `impute = list(abundance = impute_model(abundance ~ z, family = nbinom2()))` | The missing `mi()` variable must be a non-negative integer count and modelled with one fixed-effect NB2 predictor model. |
+| One missing zero-truncated count predictor | `bf(y ~ z + mi(abundance), sigma ~ 1)` with `impute = list(abundance = impute_model(abundance ~ z, family = truncated_nbinom2()))` | The missing `mi()` variable must be a positive integer count and modelled with one fixed-effect zero-truncated NB2 predictor model. |
+| One missing lognormal positive predictor | `bf(y ~ z + mi(biomass), sigma ~ 1)` with `impute = list(biomass = impute_model(biomass ~ z, family = lognormal()))` | The missing `mi()` variable must be positive and modelled with one fixed-effect lognormal predictor model. |
+| One missing Gamma positive predictor | `bf(y ~ z + mi(biomass), sigma ~ 1)` with `impute = list(biomass = impute_model(biomass ~ z, family = Gamma(link = "log")))` | The missing `mi()` variable must be positive and modelled with one fixed-effect Gamma mean-CV predictor model. |
+| One missing Tweedie semi-continuous predictor | `bf(y ~ z + mi(biomass), sigma ~ 1)` with `impute = list(biomass = impute_model(biomass ~ z, family = tweedie()))` | The missing `mi()` variable must be non-negative, may include exact zeros, and is modelled with one fixed-effect Tweedie predictor model. |
+| Grouped or structured predictor model | `impute = list(x = x ~ z + (1 | group))` or `impute = list(x = x ~ z + relmat(1 | line, Q = Q))` | One grouped random intercept or one intercept-only structured covariate field. |
+| Missing-predictor summaries | `imputed(fit)` | Conditional modes for Gaussian predictors, conditional probabilities for binary predictors, conditional expected scores for ordered predictors, conditional modal categories for unordered predictors, conditional means for strict proportion, boundary proportion, denominator-aware beta-binomial, lognormal, Gamma, and Tweedie predictors, and conditional expected counts for count predictors. |
+
+This is likelihood-based missing-data handling. It is not Bayesian posterior
+imputation, not multiple imputation, and not an EM interface.
+
+## Choosing the predictor family
+
+The predictor family should describe the missing covariate, not the response.
+This table is the practical starting point:
+
+| Missing predictor type | Use in `impute_model()` | What is integrated or summed |
+| --- | --- | --- |
+| Continuous on the real line | bare `x ~ z` or `impute_model(x ~ z, family = gaussian())` | a Gaussian latent predictor by Laplace approximation |
+| Binary, logical, or two-level factor | `impute_model(x ~ z, family = binomial())` | the two possible states |
+| Ordered categories | `impute_model(x ~ z, family = cumulative_logit())` | all ordered levels |
+| Unordered categories | `impute_model(x ~ z, family = categorical())` | all unordered levels |
+| Continuous proportion in `(0, 1)` | `impute_model(x ~ z, family = beta())` | deterministic beta quadrature nodes |
+| Continuous proportion in `[0, 1]` with real zeros/ones | `impute_model(x ~ z, family = zero_one_beta())` | exact zero/one mass plus beta quadrature |
+| Successes out of known trials | `impute_model(success ~ z, family = beta_binomial(), trials = trials)` | all integer successes from `0` to `trials` |
+| Non-negative counts | `impute_model(x ~ z, family = poisson())` or `impute_model(x ~ z, family = nbinom2())` | deterministic count states |
+| Positive counts | `impute_model(x ~ z, family = truncated_nbinom2())` | deterministic positive count states |
+| Positive continuous values | `impute_model(x ~ z, family = lognormal())` or `impute_model(x ~ z, family = Gamma(link = "log"))` | deterministic positive quadrature nodes |
+| Non-negative semi-continuous values with exact zeros | `impute_model(x ~ z, family = tweedie())` | exact zero mass plus positive quadrature nodes |
+
+Rendering this article is also a smoke test: the worked examples below fit one
+model for each supported predictor-family route.
+
+## Relation to gllvmTMB and glmmTMB
+
+The sibling `gllvmTMB` missing-data layer uses the same vocabulary:
+`miss_control()`, `mi()`, `impute`, `fit$missing_data`, `predict_missing()` for
+responses, and `imputed()` for predictors. Its multivariate trait engine needs
+per-unit products across trait rows, so its missing-predictor implementation is
+not a drop-in copy of the scalar `drmTMB` route. The shared contract is the
+important part: missing responses are masked or marginalised, missing
+predictors are modelled inside the likelihood, and fitted summaries are not
+posterior draws.
+
+`glmmTMB` has a different missing-data surface. Its documented `na.action`
+argument follows ordinary R model-frame handling: the default drops
+observations containing `NA` in model variables, while `na.exclude` still drops
+those observations for fitting but returns `NA` predictions and residuals for
+excluded cases
+([glmmTMB reference](https://glmmtmb.github.io/glmmTMB/reference/glmmTMB.html)).
+The `drmTMB` route described here is therefore an in-model missing-data layer,
+not a wrapper around `na.action`.
+
+## Missing responses
+
+For a univariate Gaussian response, the included-row likelihood is:
+
+\[
+\ell_i =
+  I_i \log p(y_i \mid \mu_i, \sigma_i),
+\]
+
+where \(I_i = 1\) when the response is observed and \(I_i = 0\) when the
+response is missing. A missing response row is retained for row accounting, but
+it adds zero direct response likelihood.
+
+This example creates a simple growth data set with three missing response
+values:
+
+```{r}
+set.seed(20260531)
+n <- 40
+growth_data <- data.frame(
+  temperature = seq(-1.6, 1.6, length.out = n)
+)
+growth_data$growth <- 0.5 + 0.8 * growth_data$temperature +
+  rnorm(n, sd = 0.25)
+growth_data$growth[c(6, 17, 32)] <- NA_real_
+
+fit_response <- drmTMB(
+  bf(growth ~ temperature, sigma ~ 1),
+  family = gaussian(),
+  data = growth_data,
+  missing = miss_control(response = "include"),
+  control = drm_control(se = FALSE)
+)
+```
+
+`nobs()` reports the number of likelihood-contributing responses, not the
+number of retained rows:
+
+```{r}
+nobs(fit_response)
+fit_response$missing_data$counts
+```
+
+The fitted object preserves original-row accounting:
+
+```{r}
+head(data.frame(
+  original_row = fit_response$missing_data$original_row,
+  observed_y = fit_response$missing_data$observed_y,
+  fitted = fitted(fit_response),
+  residual = residuals(fit_response)
+), 10)
+```
+
+Rows with missing responses have fitted values because their predictors are
+known. Their residuals are `NA` because no response was observed.
+
+## Partial bivariate response pairs
+
+For bivariate Gaussian models, one response can be observed while the other is
+missing. A complete pair contributes the bivariate Gaussian density with
+`rho12`. A row with only `y1` observed contributes the marginal Gaussian density
+for `y1`; a row with only `y2` observed contributes the marginal density for
+`y2`. A row with both responses missing contributes zero direct response
+likelihood but keeps its row identity.
+
+Symbolically, the row contribution is:
+
+```text
+both observed     -> log p(y1_i, y2_i | mu1_i, mu2_i, sigma1_i, sigma2_i, rho12_i)
+only y1 observed  -> log p(y1_i | mu1_i, sigma1_i)
+only y2 observed  -> log p(y2_i | mu2_i, sigma2_i)
+both missing      -> 0
+```
+
+The residual correlation `rho12` is learned directly from complete response
+pairs. Rows with one observed response still help the marginal location and
+scale models, but they do not directly identify `rho12`.
+
+```{r}
+trait_data <- data.frame(
+  x = seq(-1.4, 1.4, length.out = 36)
+)
+trait_data$activity <- 0.3 + 0.7 * trait_data$x + rnorm(36, sd = 0.25)
+trait_data$boldness <- -0.1 - 0.4 * trait_data$x + rnorm(36, sd = 0.30)
+trait_data$activity[c(5, 16, 29)] <- NA_real_
+trait_data$boldness[c(8, 16, 31)] <- NA_real_
+
+fit_pair <- drmTMB(
+  bf(
+    mu1 = activity ~ x,
+    mu2 = boldness ~ x,
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  ),
+  family = c(gaussian(), gaussian()),
+  data = trait_data,
+  missing = miss_control(response = "include"),
+  control = drm_control(se = FALSE)
+)
+
+fit_pair$missing_data$counts
+table(fit_pair$missing_data$response_pattern)
+```
+
+Use the response-pattern counts before interpreting `rho12`. If complete pairs
+are scarce, `drmTMB` warns that the residual correlation is weakly identified.
+
+## Missing predictors
+
+Missing predictors are not handled by dropping a row into the response
+likelihood with an arbitrary filled-in covariate. The response model needs the
+predictor value, so `drmTMB` asks for an explicit model for that predictor.
+
+For the first implemented route, the response model is a univariate Gaussian
+location model:
+
+\[
+\begin{aligned}
+y_i \mid x_i, \mu_i, \sigma
+  &\sim \operatorname{Normal}(\mu_i, \sigma^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 z_i + \beta_2 x_i.
+\end{aligned}
+\]
+
+The `impute` formula defines a Gaussian model for the missing predictor:
+
+\[
+x_i \sim \operatorname{Normal}(W_i \alpha, \sigma_x^2).
+\]
+
+Observed `x` values contribute their predictor-model density and enter the
+response model directly. Missing `x` values are latent TMB random effects.
+TMB's Laplace approximation integrates them from the joint likelihood.
+
+```{r}
+set.seed(20260532)
+n <- 48
+predictor_data <- data.frame(
+  moisture = seq(-1.5, 1.5, length.out = n),
+  canopy = cos(seq_len(n) / 5)
+)
+predictor_data$body_mass_full <- 0.2 + 0.7 * predictor_data$moisture -
+  0.2 * predictor_data$canopy + rnorm(n, sd = 0.08)
+predictor_data$growth <- 0.6 + 1.1 * predictor_data$body_mass_full -
+  0.3 * predictor_data$moisture + rnorm(n, sd = 0.20)
+predictor_data$body_mass <- predictor_data$body_mass_full
+predictor_data$body_mass[c(7, 19, 34, 43)] <- NA_real_
+
+fit_predictor <- drmTMB(
+  bf(growth ~ moisture + mi(body_mass), sigma ~ 1),
+  family = gaussian(),
+  data = predictor_data,
+  impute = list(body_mass = body_mass ~ moisture + canopy),
+  missing = miss_control(predictor = "model")
+)
+
+coef(fit_predictor, "mu")
+imputed(fit_predictor)
+```
+
+Read `imputed(fit_predictor)` as a fitted missing-predictor summary. The
+`estimate` column is the conditional mode used by the fitted likelihood. The
+`std_error` column is a likelihood-based conditional standard error when
+`TMB::sdreport()` is available. It is not a posterior interval and it is not a
+set of multiple-imputation draws.
+
+## Binary missing predictors
+
+Binary predictors are a separate likelihood problem. They should not be forced
+through a Gaussian predictor model just because some values are missing. For a
+binary missing predictor, put the predictor formula in the `impute` list and
+state the predictor-model family with `impute_model()`:
+
+```{r}
+set.seed(20260533)
+n <- 50
+binary_data <- data.frame(
+  z = seq(-1.6, 1.6, length.out = n)
+)
+binary_data$treatment_full <- as.numeric(
+  sin(seq_len(n) * 1.7) + 0.35 * binary_data$z > 0
+)
+binary_data$growth <- 0.45 + 0.55 * binary_data$z +
+  1.25 * binary_data$treatment_full + rnorm(n, sd = 0.08)
+binary_data$treatment <- factor(binary_data$treatment_full, levels = c(0, 1))
+binary_data$treatment[c(6, 15, 28, 43)] <- NA
+
+fit_binary <- drmTMB(
+  bf(growth ~ z + mi(treatment), sigma ~ 1),
+  family = gaussian(),
+  data = binary_data,
+  impute = list(
+    treatment = impute_model(treatment ~ z, family = binomial())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_binary, "mi_treatment")
+imputed(fit_binary)
+```
+
+Here `treatment ~ z` is the formula for the missing predictor itself. It is not
+wrapped in `drm_formula()`. Internally, `drmTMB` sums over the two possible
+states for each missing treatment value. `imputed(fit_binary)` reports the
+fitted conditional probability that the missing predictor is in the second
+factor level.
+
+## Poisson responses with binary missing predictors
+
+The first non-Gaussian response route uses the same binary predictor model, but
+the response likelihood is Poisson rather than Gaussian. This is useful when the
+outcome is a count and a two-level covariate is partly missing:
+
+```{r}
+set.seed(20260543)
+n <- 64
+poisson_binary_data <- data.frame(
+  z = seq(-1.5, 1.8, length.out = n)
+)
+poisson_binary_data$treatment_full <- as.numeric(
+  sin(seq_len(n) * 1.3) + 0.3 * poisson_binary_data$z > 0
+)
+lambda_count <- exp(
+  0.25 + 0.45 * poisson_binary_data$z +
+    0.75 * poisson_binary_data$treatment_full
+)
+poisson_binary_data$count <- pmax(
+  0,
+  round(lambda_count + sqrt(lambda_count) * cos(seq_len(n) / 4))
+)
+poisson_binary_data$treatment <- factor(
+  poisson_binary_data$treatment_full,
+  levels = c(0, 1)
+)
+poisson_binary_data$treatment[c(8, 19, 31, 46, 57)] <- NA
+
+fit_poisson_binary <- drmTMB(
+  bf(count ~ z + mi(treatment)),
+  family = poisson(),
+  data = poisson_binary_data,
+  impute = list(
+    treatment = impute_model(treatment ~ z, family = binomial())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_poisson_binary, "mu")
+coef(fit_poisson_binary, "mi_treatment")
+imputed(fit_poisson_binary)
+```
+
+For a missing treatment value, `drmTMB` sums over treatment 0 and treatment 1,
+combining the Bernoulli predictor-model probability with the Poisson response
+likelihood for the observed count. This route is intentionally narrow: the count
+response must be observed, and zero-inflated, grouped, or structured Poisson
+response models with `mi()` remain later work.
+
+## Ordered missing predictors
+
+Ordered predictors are also finite-state missing predictors. They need their own
+ordinal predictor model rather than a Gaussian model on arbitrary category
+codes:
+
+```{r}
+set.seed(20260535)
+n <- 60
+ordered_data <- data.frame(
+  z = seq(-1.5, 1.5, length.out = n)
+)
+ordered_levels <- c("low", "medium", "high")
+ordered_data$score_full <- cut(
+  ordered_data$z + sin(seq_len(n) * 1.4),
+  breaks = c(-Inf, -0.45, 0.55, Inf),
+  labels = ordered_levels,
+  ordered_result = TRUE
+)
+ordered_data$growth <- 0.25 + 0.5 * ordered_data$z +
+  0.45 * as.numeric(ordered_data$score_full) + rnorm(n, sd = 0.18)
+ordered_data$score <- ordered_data$score_full
+ordered_data$score[c(8, 18, 36, 51)] <- NA
+
+fit_ordered <- drmTMB(
+  bf(growth ~ z + mi(score), sigma ~ 1),
+  family = gaussian(),
+  data = ordered_data,
+  impute = list(
+    score = impute_model(score ~ z, family = cumulative_logit())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_ordered, "mi_score")
+imputed(fit_ordered)
+```
+
+Here the predictor model is a cumulative-logit model for the ordered score.
+For a missing score, `drmTMB` sums over all ordered categories. The reported
+`estimate` is the fitted conditional expected category score, and the
+missing-data metadata stores the conditional probability for each ordered
+level.
+
+## Unordered missing predictors
+
+Unordered categorical predictors use a baseline-category softmax model. This is
+for nominal categories where the order of the levels is not meaningful:
+
+```{r}
+set.seed(20260536)
+n <- 66
+categorical_data <- data.frame(
+  z = seq(-1.7, 1.7, length.out = n)
+)
+categorical_score <- sin(seq_len(n) / 4) + 0.45 * categorical_data$z
+categorical_data$habitat_full <- factor(
+  ifelse(
+    categorical_score < -0.35,
+    "forest",
+    ifelse(categorical_score < 0.55, "grass", "wetland")
+  ),
+  levels = c("forest", "grass", "wetland")
+)
+habitat_effect <- c(forest = -0.35, grass = 0.2, wetland = 0.75)
+categorical_data$growth <- 0.15 + 0.5 * categorical_data$z +
+  unname(habitat_effect[as.character(categorical_data$habitat_full)]) +
+  rnorm(n, sd = 0.12)
+categorical_data$habitat <- categorical_data$habitat_full
+categorical_data$habitat[c(7, 16, 31, 48, 60)] <- NA
+
+fit_categorical <- drmTMB(
+  bf(growth ~ z + mi(habitat), sigma ~ 1),
+  family = gaussian(),
+  data = categorical_data,
+  impute = list(
+    habitat = impute_model(habitat ~ z, family = categorical())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_categorical, "mi_habitat")
+imputed(fit_categorical)
+```
+
+Here the first factor level is the baseline category in the predictor model.
+For a missing habitat value, `drmTMB` sums over all habitat levels.
+`imputed(fit_categorical)` reports the fitted modal category code, and the
+missing-data metadata stores the fitted conditional probability for each
+unordered level.
+
+This is the pattern for broader non-Gaussian missing predictors too: put the
+predictor model in the `impute` list, and make the family explicit. The next
+sections use the same idea for strict proportion, boundary proportion,
+denominator-aware proportion, count, and positive continuous predictors.
+
+## Strict proportion missing predictors
+
+Strict proportion predictors use a beta predictor model. This route is for
+continuous proportions inside `(0, 1)`, not exact zeros, exact ones, or counted
+successes out of a known denominator:
+
+```{r}
+set.seed(20260537)
+n <- 72
+proportion_data <- data.frame(
+  z = seq(-1.8, 1.8, length.out = n)
+)
+proportion_data$cover_full <- plogis(
+  -0.25 + 0.9 * proportion_data$z + 0.18 * sin(seq_len(n) / 5)
+)
+proportion_data$growth <- 0.35 + 1.25 * proportion_data$cover_full -
+  0.30 * proportion_data$z + rnorm(n, sd = 0.10)
+proportion_data$cover <- proportion_data$cover_full
+proportion_data$cover[c(8, 19, 34, 51, 67)] <- NA_real_
+
+fit_proportion <- drmTMB(
+  bf(growth ~ z + mi(cover), sigma ~ 1),
+  family = gaussian(),
+  data = proportion_data,
+  impute = list(
+    cover = impute_model(cover ~ z, family = beta())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_proportion, "mi_cover")
+coef(fit_proportion, "sigma_mi_cover")
+imputed(fit_proportion)
+```
+
+For a missing cover value, `drmTMB` integrates over the possible proportion
+values using deterministic quadrature under the fitted beta predictor model and
+the Gaussian response likelihood. `imputed(fit_proportion)` reports the fitted
+conditional quadrature mean for each missing cover value.
+
+## Boundary proportion missing predictors
+
+Use a zero-one beta predictor model when a proportion covariate is continuous
+on `[0, 1]` and exact zeros or ones are real observations, not coding mistakes.
+The first route uses `cover ~ z` for the predictor-model mean and estimates
+constant interior scale, exact-boundary probability `zoi`, and conditional
+exact-one probability `coi`:
+
+```{r}
+set.seed(20260541)
+n <- 78
+boundary_prop_data <- data.frame(
+  z = seq(-1.8, 1.8, length.out = n)
+)
+boundary_prop_data$cover_full <- plogis(
+  -0.15 + 0.8 * boundary_prop_data$z + 0.12 * sin(seq_len(n) / 4)
+)
+boundary_prop_data$cover_full[seq(6, n, by = 18)] <- 0
+boundary_prop_data$cover_full[seq(13, n, by = 19)] <- 1
+boundary_prop_data$growth <- 0.30 + 1.10 * boundary_prop_data$cover_full -
+  0.25 * boundary_prop_data$z + rnorm(n, sd = 0.10)
+boundary_prop_data$cover <- boundary_prop_data$cover_full
+boundary_prop_data$cover[c(8, 21, 39, 58, 73)] <- NA_real_
+
+fit_boundary_proportion <- drmTMB(
+  bf(growth ~ z + mi(cover), sigma ~ 1),
+  family = gaussian(),
+  data = boundary_prop_data,
+  impute = list(
+    cover = impute_model(cover ~ z, family = zero_one_beta())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_boundary_proportion, "mi_cover")
+coef(fit_boundary_proportion, "sigma_mi_cover")
+coef(fit_boundary_proportion, "zoi_mi_cover")
+coef(fit_boundary_proportion, "coi_mi_cover")
+imputed(fit_boundary_proportion)
+```
+
+For a missing boundary-proportion value, `drmTMB` integrates over exact zero
+mass, exact one mass, and interior beta quadrature under the fitted predictor
+model and the Gaussian response likelihood. `imputed(fit_boundary_proportion)`
+reports the fitted conditional quadrature mean for each missing cover value.
+
+## Denominator-aware proportion missing predictors
+
+Use a beta-binomial predictor model when the covariate used in the response
+model is a proportion, but the observed data are success counts out of known
+trial totals. The main formula still uses the proportion through `mi(cover)`.
+The `impute_model()` formula uses the success-count column on the left-hand
+side and `trials` for the known denominator:
+
+```{r}
+set.seed(20260542)
+n <- 70
+denom_prop_data <- data.frame(
+  z = seq(-1.7, 1.7, length.out = n),
+  trials = rep(8:16, length.out = n)
+)
+p_cover <- plogis(-0.20 + 0.80 * denom_prop_data$z)
+denom_prop_data$success_full <- qbinom(
+  ppoints(n),
+  size = denom_prop_data$trials,
+  prob = p_cover
+)
+denom_prop_data$cover_full <-
+  denom_prop_data$success_full / denom_prop_data$trials
+denom_prop_data$growth <- 0.25 + 1.10 * denom_prop_data$cover_full -
+  0.22 * denom_prop_data$z + rnorm(n, sd = 0.10)
+denom_prop_data$success <- denom_prop_data$success_full
+denom_prop_data$cover <- denom_prop_data$cover_full
+denom_prop_data$success[c(8, 21, 39, 58)] <- NA_real_
+denom_prop_data$cover[c(8, 21, 39, 58)] <- NA_real_
+
+fit_denominator_proportion <- drmTMB(
+  bf(growth ~ z + mi(cover), sigma ~ 1),
+  family = gaussian(),
+  data = denom_prop_data,
+  impute = list(
+    cover = impute_model(
+      success ~ z,
+      family = beta_binomial(),
+      trials = trials
+    )
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_denominator_proportion, "mi_cover")
+coef(fit_denominator_proportion, "sigma_mi_cover")
+imputed(fit_denominator_proportion)
+```
+
+For a missing success count, `drmTMB` sums over all possible successes from
+zero to the known trial total. `imputed(fit_denominator_proportion)` reports
+the fitted conditional proportion mean, not a filled-in integer count.
+
+## Count missing predictors
+
+Count predictors use a Poisson predictor model when the mean-variance
+relationship is close to Poisson. This route is for non-negative integer
+counts, not continuous biomass:
+
+```{r}
+set.seed(20260538)
+n <- 76
+count_data <- data.frame(
+  z = seq(-1.6, 1.7, length.out = n)
+)
+lambda_count <- exp(0.35 + 0.55 * count_data$z)
+count_data$abundance_full <- pmax(
+  0,
+  round(lambda_count + sqrt(lambda_count) * sin(seq_len(n) / 3))
+)
+count_data$growth <- 0.20 + 0.42 * count_data$abundance_full -
+  0.25 * count_data$z + rnorm(n, sd = 0.10)
+count_data$abundance <- count_data$abundance_full
+count_data$abundance[c(7, 18, 33, 49, 68)] <- NA_real_
+
+fit_count <- drmTMB(
+  bf(growth ~ z + mi(abundance), sigma ~ 1),
+  family = gaussian(),
+  data = count_data,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = poisson())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_count, "mi_abundance")
+imputed(fit_count)
+```
+
+For a missing abundance value, `drmTMB` sums over a deterministic count support
+under the fitted Poisson predictor model and the Gaussian response likelihood.
+`imputed(fit_count)` reports the fitted conditional expected count for each
+missing abundance value.
+
+Use `nbinom2()` instead when the missing count predictor is overdispersed:
+
+```{r}
+fit_count_nb <- drmTMB(
+  bf(growth ~ z + mi(abundance), sigma ~ 1),
+  family = gaussian(),
+  data = count_data,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = nbinom2())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_count_nb, "mi_abundance")
+coef(fit_count_nb, "sigma_mi_abundance")
+imputed(fit_count_nb)
+```
+
+The negative-binomial route uses the same NB2 parameterization as a count
+response model, \(Var(x_i) = \mu_i + \sigma_x^2 \mu_i^2\). Missing counts are
+summed over a deterministic count support under the fitted NB2 predictor model.
+
+Use `truncated_nbinom2()` when the predictor is a positive count by design,
+such as days until first event among records where the event occurred:
+
+```{r}
+positive_count_data <- count_data
+positive_count_data$abundance_full <- count_data$abundance_full + 1
+positive_count_data$abundance <- positive_count_data$abundance_full
+positive_count_data$abundance[c(7, 18, 33, 49, 68)] <- NA_real_
+positive_count_data$growth <- 0.20 + 0.42 * positive_count_data$abundance_full -
+  0.25 * positive_count_data$z + rnorm(nrow(positive_count_data), sd = 0.10)
+
+fit_count_trunc_nb <- drmTMB(
+  bf(growth ~ z + mi(abundance), sigma ~ 1),
+  family = gaussian(),
+  data = positive_count_data,
+  impute = list(
+    abundance = impute_model(abundance ~ z, family = truncated_nbinom2())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_count_trunc_nb, "mi_abundance")
+coef(fit_count_trunc_nb, "sigma_mi_abundance")
+imputed(fit_count_trunc_nb)
+```
+
+The zero-truncated route excludes zero from the missing-count support. Use
+`nbinom2()` instead when zero is a possible observed predictor value.
+
+## Positive continuous missing predictors
+
+Positive continuous predictors can use a lognormal or Gamma predictor model.
+These routes are for strictly positive biomass, concentration, duration, or
+size predictors, not exact zeros or semi-continuous variables:
+
+```{r}
+set.seed(20260539)
+n <- 76
+positive_data <- data.frame(
+  z = seq(-1.6, 1.6, length.out = n)
+)
+positive_data$biomass_full <- exp(
+  0.15 + 0.55 * positive_data$z + 0.10 * sin(seq_len(n) / 4)
+)
+positive_data$growth <- 0.40 + 0.85 * positive_data$biomass_full -
+  0.25 * positive_data$z + rnorm(n, sd = 0.10)
+positive_data$biomass <- positive_data$biomass_full
+positive_data$biomass[c(7, 18, 33, 49, 65)] <- NA_real_
+
+fit_positive <- drmTMB(
+  bf(growth ~ z + mi(biomass), sigma ~ 1),
+  family = gaussian(),
+  data = positive_data,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = lognormal())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_positive, "mi_biomass")
+coef(fit_positive, "sigma_mi_biomass")
+imputed(fit_positive)
+```
+
+For a missing biomass value, `drmTMB` integrates over log-scale predictor states
+under the fitted lognormal predictor model and the Gaussian response likelihood.
+`imputed(fit_positive)` reports the fitted conditional quadrature mean for each
+missing biomass value.
+
+Use a Gamma predictor model when the positive covariate is better described by
+a mean-CV model on the original scale:
+
+```{r}
+fit_positive_gamma <- drmTMB(
+  bf(growth ~ z + mi(biomass), sigma ~ 1),
+  family = gaussian(),
+  data = positive_data,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = Gamma(link = "log"))
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_positive_gamma, "mi_biomass")
+coef(fit_positive_gamma, "sigma_mi_biomass")
+imputed(fit_positive_gamma)
+```
+
+For a missing biomass value under the Gamma route, `drmTMB` integrates over
+positive predictor states under the fitted Gamma mean-CV predictor model and the
+Gaussian response likelihood.
+
+## Semi-continuous missing predictors with exact zeros
+
+Use a Tweedie predictor model when the missing covariate is non-negative and can
+have exact zeros as part of the same semi-continuous process. The first route
+fits the predictor mean and scale, fixes the predictor-model Tweedie power at
+1.5, and integrates missing predictor values over the exact zero mass plus a
+deterministic positive quadrature grid:
+
+```{r}
+set.seed(20260540)
+n <- 82
+semi_data <- data.frame(
+  z = seq(-1.7, 1.8, length.out = n)
+)
+semi_data$biomass_full <- ifelse(
+  seq_len(n) %% 6 %in% c(0, 1),
+  0,
+  exp(0.10 + 0.45 * semi_data$z) *
+    (1 + 0.16 * sin(seq_len(n) / 4))
+)
+semi_data$growth <- 0.25 + 0.62 * semi_data$biomass_full -
+  0.18 * semi_data$z + rnorm(n, sd = 0.10)
+semi_data$biomass <- semi_data$biomass_full
+semi_data$biomass[c(7, 18, 31, 44, 58, 76)] <- NA_real_
+
+fit_tweedie_predictor <- drmTMB(
+  bf(growth ~ z + mi(biomass), sigma ~ 1),
+  family = gaussian(),
+  data = semi_data,
+  impute = list(
+    biomass = impute_model(biomass ~ z, family = tweedie())
+  ),
+  missing = miss_control(predictor = "model"),
+  control = drm_control(se = FALSE)
+)
+
+coef(fit_tweedie_predictor, "mi_biomass")
+coef(fit_tweedie_predictor, "sigma_mi_biomass")
+imputed(fit_tweedie_predictor)
+```
+
+`imputed(fit_tweedie_predictor)` reports the fitted conditional quadrature mean
+for each missing biomass value. This is still a likelihood-based summary, not a
+draw from a posterior distribution or a multiple-imputation data set.
+
+## Grouped and structured predictor models
+
+The same one-predictor route can include one grouped random intercept in the
+predictor model:
+
+```r
+drmTMB(
+  bf(growth ~ moisture + mi(body_mass), sigma ~ 1),
+  family = gaussian(),
+  data = predictor_data,
+  impute = list(body_mass = body_mass ~ moisture + (1 | site)),
+  missing = miss_control(predictor = "model")
+)
+```
+
+Use this when missingness in the predictor is tied to a grouping level and a
+separate covariate model is scientifically defensible. The grouped effect is a
+covariate-model random intercept, not a response-model random effect.
+
+Structured covariate models are also explicit. For example, a missing
+species-level trait can use a known relatedness matrix:
+
+```r
+drmTMB(
+  bf(growth ~ moisture + mi(body_mass), sigma ~ 1),
+  family = gaussian(),
+  data = predictor_data,
+  impute = list(body_mass = body_mass ~ moisture + relmat(1 | line, Q = Q)),
+  missing = miss_control(predictor = "model")
+)
+```
+
+The current structured route supports one intercept-only `phylo()`,
+coordinate `spatial()`, `animal()`, or `relmat()` covariate field. It does not
+automatically inherit structure from the response model. That explicitness is
+intentional: a model for a missing trait is a scientific model for the trait,
+not just a technical patch for a response regression.
+
+## Inspect the missing-data metadata
+
+Every fitted route records a `fit$missing_data` object. The most useful fields
+are:
+
+| Field | Meaning |
+| --- | --- |
+| `version` | The fitted implementation slice, such as `"MD1"`, `"MD2"`, `"MD3a"`, `"MD3b"`, `"MD4"`, `"MD6a"`, `"MD6b"`, `"MD6c"`, `"MD7a"`, `"MD7b"`, `"MD7c"`, `"MD7d"`, `"MD7e"`, `"MD7f"`, `"MD8a"`, `"MD8b"`, `"MD8c"`, or `"MD9a"`. |
+| `response_policy` | Whether response rows were dropped or included. |
+| `predictor_policy` | Whether missing predictors fail or are modelled. |
+| `original_row` | Row indices in the user's original data. |
+| `model_row` | Row indices in the retained model frame. |
+| `observed_y` | Logical response mask for univariate fits, or a two-column mask for bivariate fits. |
+| `counts` | Retained rows, observed responses, missing responses, and likelihood-contributing rows. |
+| `predictors` | Metadata and fitted values for explicitly modelled `mi()` predictors. |
+
+For ordinary user work, prefer `nobs()`, `fitted()`, `residuals()`, and
+`imputed()` over hand-parsing internals. The metadata is there so row
+accounting stays auditable.
+
+## Current boundaries
+
+The current implementation deliberately keeps several features out of scope:
+
+- EM, profile, and REML missing-data engines are not implemented.
+- Multiple missing predictors are not implemented.
+- Missing predictors in non-Gaussian response models are implemented only for the
+  MD9a Poisson-response plus binary-predictor route.
+- Hurdle count predictor models, transformed `mi()` terms, interactions inside
+  `mi()`, splines inside `mi()`, and predictor-model random slopes are not
+  implemented.
+- Grouped and structured binary, ordered, unordered, beta/proportion,
+  zero-one beta, Poisson/NB2, lognormal, Gamma, or Tweedie predictor models
+  are not implemented.
+- Dense known sampling-covariance matrices with bivariate partial-response rows
+  are not implemented.
+- `imputed()` does not summarize missing responses.
+- Simulated imputations, posterior means, credible intervals, and
+  multiple-imputation pooling are not implemented.
+- Measurement-error models are a later modelling lane, not part of this
+  missing-data interface.
+
+When you need one of those routes, treat the current error as a design boundary
+rather than a failed fit. For now, fit the supported likelihood-based route, use
+complete-case fitting, or handle the unsupported missingness outside `drmTMB`
+with a method whose assumptions you can state.

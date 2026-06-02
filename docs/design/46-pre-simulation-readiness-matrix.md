@@ -1,4 +1,4 @@
-# Pre-Simulation Readiness Matrix After Slice 250
+# Pre-Simulation Readiness Matrix
 
 This note answers one practical question before broad Phase 18 simulation:
 which model surfaces are ready for operating-characteristic grids, and which
@@ -181,19 +181,23 @@ out of operating-characteristic tables except as failure-ledger entries.
 ## What This Means For Simulation
 
 The first broad-looking simulation report should still be built as a set of
-small named grids, not as one all-features grid. The ready first-wave surfaces
-are Gaussian location-scale, selected Gaussian random-effect/covariance blocks,
-meta-analysis with known `V`, coordinate spatial Gaussian `mu`, Poisson `mu`
-random effects, and NB2 `mu` random effects. Each report should keep its own
-failure ledger and should not borrow interval or diagnostic evidence from a
-neighbouring surface.
+small named grids, not as one all-features grid. The ready and opt-in lanes now
+include Gaussian location-scale, selected Gaussian random-effect/covariance
+blocks, meta-analysis with known `V`, coordinate spatial Gaussian `mu`, ordinary
+Poisson/NB2 `mu` random effects, selected source-tested non-Gaussian `mu`
+slopes, first structured Gaussian one-slope `mu` routes, q=1 structured count
+source-test lanes, and selected animal/`relmat()` smoke-artifact lanes. Each
+report should keep its own failure ledger and should not borrow interval or
+diagnostic evidence from a neighbouring surface.
 
 The main blocked surfaces are not small omissions. Non-Gaussian scale random
-effects, shape/skew random effects, inflation random effects, ordinal random
-effects, mixed-response bivariate families, animal/`relmat()` models beyond the
-known-matrix and dense animal-pedigree Gaussian `mu` subsets, and structured
-non-Gaussian dependence can all change identifiability and runtime. They should
-stay out of comprehensive Phase 18 tables until their own focused gates close.
+effects beyond the ordinary NB2 intercept gate, shape/skew random effects,
+inflation random effects, ordinal random effects, mixed-response bivariate
+families, sparse large-pedigree or large-matrix animal/`relmat()` claims,
+multiple structured slopes, residual-scale structured slopes, structured slope
+correlations, and broad structured non-Gaussian dependence can all change
+identifiability and runtime. They should stay out of comprehensive Phase 18
+tables until their own focused gates close.
 
 ## Next Surface Decisions
 

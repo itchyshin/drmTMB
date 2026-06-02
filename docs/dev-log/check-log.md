@@ -2,6 +2,277 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- `is_converged()` Accessor
+
+Goal:
+
+- Close the compact no-rerun convergence flag requested in #317 so downstream
+  tools can check optimizer convergence before comparing or displaying fitted
+  `drmTMB` models, while keeping `check_drm()` as the full diagnostic table.
+
+Changes:
+
+- Added exported `is_converged()` and `is_converged.drmTMB()`.
+- Made the default flag require optimizer convergence code 0 and finite stored
+  objective/log-likelihood values.
+- Added `include_hessian = TRUE` to additionally require completed
+  `TMB::sdreport()` output with `pdHess = TRUE`.
+- Added roxygen documentation, pkgdown Reference-index entry, NEWS item, and
+  focused `check_drm` tests.
+- Kept this as a read-only status accessor: no formula grammar, likelihood,
+  TMB, optimizer, or missing-data files were changed for this task.
+
+Validation:
+
+```sh
+air format R/check.R tests/testthat/test-check-drm.R NEWS.md _pkgdown.yml
+Rscript --vanilla -e "invisible(parse('R/check.R')); invisible(parse('tests/testthat/test-check-drm.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = 'check-drm', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "is_converged|Check whether a fit converged|include_hessian|#317" pkgdown-site/reference/index.html pkgdown-site/reference/is_converged.html pkgdown-site/news/index.html
+git diff --check
+```
+
+Results:
+
+- Parse checks passed.
+- Focused `check-drm` and `package-skeleton` tests passed.
+- `devtools::document()` generated `man/is_converged.Rd` and updated
+  `NAMESPACE`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the
+  `is_converged` reference page and refreshed the Reference index and NEWS
+  page.
+- The rendered scan found the accessor on the Reference index, the
+  `is_converged` reference page, and NEWS.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Missing Data MD0 and MD1 Response Mask
+
+Goal:
+
+- Promote the accepted missing-data design into an implementation-facing
+  contract, then implement only the first univariate Gaussian missing-response
+  slice.
+
+Changes:
+
+- Added `miss_control()` with `response = c("drop", "include")`,
+  `predictor = "fail"`, and `engine = "laplace"`.
+- Added the explicit `missing =` argument to `drmTMB()` before `...`; `...`
+  remains rejected.
+- Implemented `missing = miss_control(response = "include")` only for
+  univariate Gaussian models with complete predictors and complete model inputs.
+- Added `fit$missing_data` with MD1 version, row mapping, `observed_y`,
+  response/predictor policy, engine, counts, and sentinel metadata.
+- Passed `observed_y` to TMB and gated the independent Gaussian likelihood so
+  masked response rows contribute zero response likelihood.
+- Kept dense known sampling covariance, bivariate partial pairs, missing
+  predictors, `mi()`, `predict_missing()`, `imputed()`, EM, REML, and
+  measurement-error models out of scope.
+- Added `docs/dev-log/after-task/2026-05-31-missing-data-md1.md`.
+
+MD0 audit evidence:
+
+- The pre-MD1 audit found `drmTMB()` rejecting extra `...`.
+- The pre-MD1 univariate Gaussian complete-case gate was at
+  `R/drmTMB.R:740-761`.
+- The pre-MD1 bivariate Gaussian complete-case gate was at
+  `R/drmTMB.R:3502`.
+- The bivariate C++ Gaussian route assumed paired `y1`/`y2`.
+- Dense known `V` partial-row slicing was deferred.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript --vanilla -e "devtools::test()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "miss_control|response = \"include\"|observed_y|missing response|missing-data|mi\\(|predict_missing|imputed\\(|measurement error|engine = \"em\"|engine = \"profile\"" README.md ROADMAP.md NEWS.md docs vignettes R man tests _pkgdown.yml
+gh issue list --repo itchyshin/drmTMB --state open --search "missing data miss_control mi impute complete-case" --limit 20
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` regenerated `NAMESPACE`, `man/drmTMB.Rd`, and the new
+  `man/miss_control.Rd`.
+- `test-missing-data-control.R` passed with 11 expectations.
+- `test-missing-response-gaussian.R` passed with 32 expectations after adding
+  the random-effect sentinel invariance check.
+- `test-gaussian-location-scale.R` passed with 79 expectations and one CRAN
+  skip.
+- `devtools::test()` passed on the final tree with 8,654 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The status scan found the new `miss_control()` docs, tests, likelihood note,
+  and design note, plus historical after-task notes that were true when
+  written and were left as history.
+- The GitHub issue search returned no matching open issue.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Structured-Effects Accessor
+
+Goal:
+
+- Close the #335 upstream API gap by exposing fitted structured-effect marker
+  metadata through `structured_effects()`, so downstream packages do not need
+  formula-text greps for `phylo()`, `spatial()`, `animal()`, `relmat()`, or the
+  first `phylo_interaction()` route.
+
+Changes:
+
+- Added exported `structured_effects()` and `structured_effects.drmTMB()`.
+- Returned a stable base data frame with marker, grouping, matrix attachment,
+  structure, block, distributional-parameter, coefficient, and original
+  argument metadata.
+- Added roxygen documentation, pkgdown Reference-index entry, NEWS item, and a
+  self-contained structured-marker test file.
+- Kept this as a read-only post-fit accessor: no formula grammar, likelihood,
+  TMB, optimizer, or missing-data files were changed for this task.
+
+Validation:
+
+```sh
+air format R/methods.R tests/testthat/test-structured-effects.R
+Rscript --vanilla -e "invisible(parse('R/methods.R')); invisible(parse('tests/testthat/test-structured-effects.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "structured_effects|Extract structured-effect metadata|phylo_interaction\\(1 \\| plant:pollinator|matrix_attachment|args" pkgdown-site/reference/index.html pkgdown-site/reference/structured_effects.html pkgdown-site/news/index.html
+git diff --check
+```
+
+Results:
+
+- Parse checks passed.
+- The focused `structured-effects` and `package-skeleton` tests passed.
+- `devtools::document()` generated `man/structured_effects.Rd` and updated
+  `NAMESPACE`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the
+  `structured_effects` reference page and refreshed the Reference index and
+  NEWS page.
+- The rendered scan found the accessor on the Reference index, the
+  `structured_effects` reference page, and NEWS.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Main Package-Work Thread Startup Audit
+
+Goal:
+
+- Re-establish the main `drmTMB` package-work lane, inspect the active branch,
+  separate main-roadmap work from the missing-data lane, and identify the next
+  smallest issue-linked slice that can close cleanly.
+
+Actions run:
+
+- Inspected `git status --short --branch`, branch tracking, diff stat, recent
+  check-log entries, PR #445, and open GitHub issues.
+- Confirmed PR #445 head `9388a51a` had green R-CMD-check on GitHub Actions.
+- Treated `docs/design/149-missing-data-design.md` and
+  `docs/dev-log/after-task/2026-05-31-missing-data-design.md` as
+  missing-data-lane files and left them untouched.
+- Created issue #447 for the already-implemented first
+  `phylo_interaction()` slice because the narrow open-issue search found no
+  pre-existing matching tracker.
+- Updated NEWS, after-task reports, and the rendered NEWS page so the
+  `phylo_interaction()` slice points to #447 and the
+  `correlation_block_status` task points to #446.
+
+Validation:
+
+```sh
+git status --short --branch
+gh issue list --repo itchyshin/drmTMB --state open --limit 50 --json number,title,labels,assignees,updatedAt,url
+gh pr view 445 --repo itchyshin/drmTMB --json number,title,body,state,isDraft,headRefName,baseRefName,commits,files,closingIssuesReferences,url
+gh run list --repo itchyshin/drmTMB --branch codex/phase6c-twin-exchange --limit 10 --json databaseId,displayTitle,headSha,status,conclusion,workflowName,createdAt,updatedAt,url
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton|phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-actions-runner)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=correlation_block_status --output-dir=/tmp/drmTMB-correlation-block-status-smoke --overwrite=true --dry-run=false
+Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-plan.csv'); print(x[, c('lane_id','admission_status','dispatch_status','actions_task','interval_policy')], row.names = FALSE); y <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-wrapper-targets.csv'); cat('wrapper rows:', nrow(y), '\n')"
+Rscript --vanilla -e "pkgdown::build_news()"
+rg -n "#447|#446|phylo_interaction\\(\\)|correlation_block_status" NEWS.md docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md docs/dev-log/check-log.md pkgdown-site/news/index.html
+git diff --check
+```
+
+Results:
+
+- PR #445's latest pushed head `9388a51a` was green in R-CMD-check before this
+  audit.
+- `devtools::document()` refreshed the intended marker export and
+  `man/phylo_interaction.Rd`; incidental local-roxygen metadata churn was
+  removed from the diff.
+- The focused test bundle completed without failures.
+- The two-tree article rendered from the current source tree.
+- `pkgdown::check_pkgdown()`, `pkgdown::build_site(lazy = TRUE)`, and
+  `pkgdown::build_news()` completed successfully.
+- The local `correlation_block_status` smoke wrote six correlation-block plan
+  rows and zero wrapper-target rows; q=4 rows remained
+  `q4_derived_interval_unavailable`.
+- The rendered NEWS page links `phylo_interaction()` to #447 and
+  `correlation_block_status` to #446.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Correlation-Block Status Actions Task
+
+Goal:
+
+- Add a read-only manual Phase 18 Actions task for the correlation-block
+  workflow table so q=2 and q=4 status rows have artifact routing without
+  promoting q=4 derived correlations to interval-ready status.
+
+Actions run:
+
+- Added `phase18_write_correlation_block_status_outputs()` to write
+  correlation-block plan, dispatch, wrapper-target, registry-summary, and
+  manifest artifacts.
+- Added `correlation_block_status` to the Actions runner task vocabulary,
+  dependency paths, manual workflow matrix, and structured workflow registry.
+- Updated Phase 18 design notes, ROADMAP, NEWS, and the simulation README to
+  state that q=4 remains diagnostic/derived-unavailable.
+- Refreshed stale readiness wording in
+  `docs/design/46-pre-simulation-readiness-matrix.md` and `ROADMAP.md`.
+
+Validation:
+
+```sh
+air format inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_write_correlation_block_status.R tests/testthat/test-phase18-correlation-block-status.R tests/testthat/test-phase18-structured-workflow-registry.R tests/testthat/test-phase18-actions-runner.R ROADMAP.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md NEWS.md inst/sim/README.md
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_phase18_structured_workflow_registry.R','inst/sim/run/sim_write_correlation_block_status.R','tests/testthat/test-phase18-correlation-block-status.R','tests/testthat/test-phase18-structured-workflow-registry.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('correlation block status parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-actions-runner)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-structured-dependence-wrapper-readiness|phase18-actions-runner|phase18-phylo-mu-slope|phase18-spatial-mu-slope|phase18-animal-mu-slope|phase18-relmat-mu-slope|animal-relmat-gaussian|phylo-gaussian|spatial-gaussian)$', reporter = 'summary')"
+rm -rf /tmp/drmTMB-correlation-block-status-smoke && Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=correlation_block_status --output-dir=/tmp/drmTMB-correlation-block-status-smoke --overwrite=true --dry-run=false
+Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-plan.csv'); print(x[, c('lane_id','admission_status','dispatch_status','actions_task','interval_policy')], row.names = FALSE); y <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-wrapper-targets.csv'); cat('wrapper rows:', nrow(y), '\n')"
+rg -n 'After Slice 250|Gaussian `mu` only|animal/`relmat\(\)` models beyond|structured `sigma`,|structured `sigma` and|3 wrapper targets|remaining correlation-block wrapper targets|needed:correlation_block_wrapper|leaves structured q=2 as a wrapper target|q4.*interval-ready|q=4 derived.*interval-ready' README.md ROADMAP.md NEWS.md docs/design inst/sim/README.md vignettes
+gh issue list --repo itchyshin/drmTMB --state open --search 'phase6c random slope coscale correlation block structured q4' --limit 15
+git diff --check
+```
+
+Results:
+
+- `air format`, parse checks, focused Phase 18 tests, the broader
+  random-slope/structured-dependence bundle, the local
+  `correlation_block_status` task smoke, and `git diff --check` passed.
+- The local status artifact reported six correlation-block plan rows and zero
+  wrapper-target rows. The q=4 rows still report
+  `q4_derived_interval_unavailable`.
+- The stale-wording scan found only intentional guardrail wording about
+  structured `sigma` boundaries and q=4 interval unavailability, plus the
+  historical note that rows previously named `needed:correlation_block_wrapper`.
+- The overlapping open issues are #446 and #436. I left both open and did not
+  comment because this slice adds routing/status artifacts rather than closing
+  the broader Phase 6c simulation or sprint issues.
+
 ## 2026-05-30 -- PR #428 Rebase After Sparse Phylo Merges
 
 Goal:
@@ -47754,3 +48025,2296 @@ Member-group review:
   requirement.
 - Rose kept this as test evidence for the existing parser contract, not a new
   feature claim.
+
+## 2026-05-31 - Missing data design scope
+
+Goal:
+
+- Focus the user-requested future work on model-based missing-data handling and
+  remove bipartite phylogenetic location models from this design lane.
+
+Changes:
+
+- Added `docs/design/149-missing-data-design.md`.
+- Added `docs/dev-log/after-task/2026-05-31-missing-data-design.md`.
+- Replaced the previous mixed-scope untracked note before treating it as durable
+  project history.
+- Recorded current complete-case handling, planned observed-response
+  likelihood, later explicit `mi()`/`impute` predictor modelling, and
+  TMB/Laplace as the general frequentist engine.
+- Clarified that one-response bivariate Gaussian rows inform their marginal
+  location and scale likelihood directly, while complete response pairs carry
+  the direct residual-`rho12` evidence.
+
+Validation:
+
+```sh
+nl -ba /Users/z3437171/.codex/attachments/702eb90e-fa5b-4bcf-b84b-5ab04f2bf224/pasted-text.txt | sed -n '1,260p'
+nl -ba /Users/z3437171/.codex/attachments/702eb90e-fa5b-4bcf-b84b-5ab04f2bf224/pasted-text.txt | sed -n '260,520p'
+rg -n "missing data|missing-data|miss_control|observed-data|FIML|mi\\(|missing row|missing-row|complete-case|complete case" docs R tests NEWS.md ROADMAP.md
+rg -n "bipartite|Hadfield|host-parasite|missing-data-and-bipartite" docs/design/149-missing-data-design.md docs/dev-log/after-task/2026-05-31-missing-data-design.md docs/dev-log/check-log.md
+git diff --check -- docs/design/149-missing-data-design.md docs/dev-log/after-task/2026-05-31-missing-data-design.md docs/dev-log/check-log.md
+```
+
+Results:
+
+- The pasted design text was reviewed.
+- The repository scan found current complete-case tests, design references, and
+  the previous mixed-scope draft.
+- The bipartite/Hadfield scan found only intentional scope exclusions,
+  superseded draft filenames, and older unrelated check-log history.
+- `git diff --check` passed for the touched Markdown files.
+- The GitHub issue search for
+  `missing data miss_control mi impute complete-case` returned no open issues.
+- R tests were not run because this was a design/status artifact only; no R
+  code, tests, or generated documentation changed.
+
+Member-group review:
+
+- Ada kept the implementation order as MD0 source audit, MD1 response masks, and
+  MD2 bivariate Gaussian partial-response rows before missing predictors.
+- Boole flagged `miss_control()` and `mi()` as formula/API changes that need
+  grammar documentation before export.
+- Gauss marked TMB/Laplace as the general missing-predictor engine and EM as a
+  future Gaussian helper.
+- Fisher kept imputation uncertainty language on the likelihood scale rather
+  than posterior-summary language.
+- Rose kept bipartite phylogenetic location models out of this missing-data
+  design note.
+
+## 2026-05-31 - phylo_interaction first fitted slice
+
+Goal:
+
+- Add a small formula marker for one pair-level two-phylogeny interaction field,
+  without creating a broad Hadfield wrapper or ordinary independent pair-effect
+  duplicate.
+
+Changes:
+
+- Added `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`
+  as an exported marker.
+- Routed the marker through the existing q=1 structured `mu` machinery for
+  univariate Gaussian, ordinary Poisson, and ordinary NB2 models.
+- Built the pair-level sparse precision as the Kronecker product of the two
+  augmented phylogenetic precisions.
+- Added focused Gaussian, Poisson, NB2, sparse-precision, parser, extractor,
+  `ranef()`, and `profile_targets()` checks.
+- Updated NEWS, README, ROADMAP, formula grammar, likelihood notes, known
+  limitations, pkgdown reference navigation, roxygen docs, and generated Rd
+  files.
+- Kept independent pair effects as ordinary grouped random effects: users should
+  currently precompute a pair column and use `(1 | pair_id)`.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/formula-markers.R R/gaussian-aggregation.R R/parse-formula.R R/profile.R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-interaction.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-package-skeleton.R')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/parse-formula.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-phylo-interaction.R')); cat('parse ok\n')"
+rg -n "phylo_interaction|incidence_or_count|Hadfield/Rafferty|Hadfield decomposition|ordinary Poisson .* phylogenetic intercept" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md vignettes/formula-grammar.Rmd _pkgdown.yml R man tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R
+rg -n "phylo_interaction" pkgdown-site/reference/index.html pkgdown-site/reference/phylo_interaction.html pkgdown-site/news/index.html pkgdown-site/articles/formula-grammar.html
+git diff --check
+```
+
+Results:
+
+- `test-phylo-interaction.R` passed with 55 expectations after adding Gaussian,
+  Poisson, NB2, and sparse-Kronecker checks.
+- `test-package-skeleton.R` passed with 100 expectations after the parser and
+  no-op marker checks.
+- `devtools::document()` regenerated `NAMESPACE`, `man/phylo_interaction.Rd`,
+  and neighbouring roxygen links.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully into ignored local directory
+  `pkgdown-site`. It wrote `reference/phylo_interaction.html`, rebuilt
+  `reference/index.html`, `articles/formula-grammar.html`, `news/index.html`,
+  `sitemap.xml`, and the search index.
+- The rendered pkgdown scan found `phylo_interaction()` on the Reference index,
+  the marker reference page, the formula-grammar article, and the NEWS page.
+- During article rendering, `glmmTMB` emitted an existing package-version
+  mismatch warning against the current `TMB`; it did not stop the site build.
+- The parse command printed `parse ok`.
+- The status scan found the intended `phylo_interaction()` references and no
+  remaining `incidence_or_count`, `Hadfield/Rafferty`, `Hadfield decomposition`,
+  or stale ordinary-Poisson-only structured-error wording in the current
+  inventory.
+- `git diff --check` passed.
+- The GitHub issue search for
+  `phylo interaction Hadfield bipartite pair phylogenetic relmat` returned no
+  open issues before this slice. The main-thread startup audit later created
+  issue #447 so the first `phylo_interaction()` slice has a narrow issue ledger.
+
+Member-group review:
+
+- Boole kept the public interface as a marker, not a bespoke model wrapper.
+- Gauss kept the implementation on the existing sparse-precision TMB path.
+- Curie required Gaussian, Poisson, and NB2 smoke tests once docs claimed all
+  three families.
+- Pat and Rose removed binary-incidence wording until a Bernoulli/binomial
+  family gate exists.
+- Emmy kept `relmat(1 | pair, Q = Q_pair)` as the lower-level escape hatch.
+
+Remaining boundary:
+
+- This is one q=1 pair-level structured field only. Additive partner main
+  phylogenies plus pair interaction, binary/Bernoulli incidence, structured pair
+  slopes, labelled count covariance, simultaneous structured layers, and exact
+  ordinary `(1 | ID1:ID2)` parser sugar remain future work.
+
+## 2026-05-31 -- Bipartite Phylogenetic Interactions Article
+
+Goal:
+
+- Add a reader-facing pkgdown article for `phylo_interaction()` that teaches the
+  current first fitted two-tree pair route without overclaiming binary incidence
+  or full additive partner-phylogeny models.
+
+Changes:
+
+- Added `vignettes/bipartite-phylogenetic-interactions.Rmd` with the title
+  "Two-tree phylogenetic interactions" and the hook "A tale of two
+  phylogenies."
+- Added the article to the Tutorials navbar and Structured Dependence article
+  index in `_pkgdown.yml`.
+- Linked the new article from the structural-dependence overview and the
+  phylogenetic structured-effects article.
+- Kept runnable code to the supported Poisson `mu` pair interaction and kept
+  independent-pair, `relmat()`, and future additive syntax in explicit
+  non-evaluated examples.
+
+Validation:
+
+```sh
+air format vignettes/bipartite-phylogenetic-interactions.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-models.Rmd _pkgdown.yml
+Rscript --vanilla -e "invisible(parse(text = xfun::split_source('vignettes/bipartite-phylogenetic-interactions.Rmd')$src)); cat('article code parse ok\n')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Two-tree phylogenetic interactions|A tale of two phylogenies|ordinary NB2|Q_pair.*must match|phylo_interaction\\(|bipartite-phylogenetic-interactions" pkgdown-site/articles/bipartite-phylogenetic-interactions.html pkgdown-site/articles/index.html pkgdown-site/articles/structural-dependence.html pkgdown-site/articles/phylogenetic-models.html pkgdown-site/reference/index.html
+git status --short --ignored pkgdown-site
+git diff --check
+```
+
+Results:
+
+- `air format` made no further changes.
+- The article code parse printed `article code parse ok`.
+- Source-tree article rendering passed after loading the current package source
+  with `pkgload::load_all()`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully and wrote
+  `pkgdown-site/articles/bipartite-phylogenetic-interactions.html`.
+- The rendered scan found the new article in the navbar, article index,
+  structural-dependence article, phylogenetic-models article, and the reference
+  index navbar. It also found the "A tale of two phylogenies" hook and rendered
+  `phylo_interaction()` output/profile-target text on the article page.
+- `pkgdown-site/` remains ignored local build output.
+- `git diff --check` passed.
+- Article rendering again emitted the existing `glmmTMB`/`TMB` version mismatch
+  warning during unrelated articles; it did not stop the site build.
+- Averroes reviewed the article as a read-only pkgdown editor. No blocking
+  issues were found; the title/navigation were changed from "Bipartite
+  phylogenetic interactions" to "Two-tree phylogenetic interactions", the NB2
+  wording was tightened to "ordinary NB2", and the `relmat()` section now warns
+  that `Q_pair` row and column names must match the pair factor levels exactly.
+
+## 2026-05-31 -- Missing Data MD2 Bivariate Gaussian Response Masks
+
+Goal:
+
+- Extend the accepted missing-data lane from MD1 univariate Gaussian response
+  masks to MD2 independent-observation bivariate Gaussian partial-response rows,
+  without starting missing predictors, dense known-`V` slicing, EM/REML,
+  imputation summaries, or measurement-error models.
+
+Implementation evidence:
+
+- `R/drmTMB.R` now passes `missing = miss_control()` into
+  `drm_build_biv_gaussian_spec()`. With `response = "include"`, the bivariate
+  builder keeps rows with missing `y1`, missing `y2`, or both responses missing
+  after verifying that model-input predictors, grouping variables, and
+  structured inputs are complete.
+- `R/missing-data.R` adds MD2 `fit$missing_data` metadata with `observed_y1`,
+  `observed_y2`, `response_pattern`, complete-pair, one-response, both-missing,
+  and likelihood-row counts, plus the same sentinel metadata used by MD1 tests.
+- `src/drmTMB.cpp` now gates independent bivariate Gaussian row likelihoods:
+  complete pairs use the bivariate density with residual `rho12`, one-response
+  rows use the corresponding marginal Gaussian density, and both-missing rows
+  add zero response likelihood. The covariance-probe branch uses the same mask.
+- `R/methods.R` now masks bivariate response residual cells and uses marginal
+  Pearson residuals for `y2`-only rows instead of conditioning on missing `y1`.
+- Dense bivariate `meta_V(V = V)` remains explicitly deferred for partial
+  response rows because component-level covariance slicing is not implemented.
+
+Tests added:
+
+- `tests/testthat/test-missing-response-biv-gaussian.R` checks default
+  complete-pair equivalence, MD2 row accounting, an independent observed-data
+  likelihood calculation, residual masking, sentinel invariance for objective,
+  coefficients, gradients, and fitted values, missing-predictor failure,
+  dense-known-`V` failure, and the weak-`rho12` complete-pair warning.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records the MD2 implemented
+  boundary and keeps MD3+ predictor-model, imputation-summary, and
+  measurement-error work out of scope.
+- `docs/design/01-formula-grammar.md` records
+  `miss_control(response = "include")` for univariate Gaussian and independent
+  bivariate Gaussian routes separately.
+- `docs/design/03-likelihoods.md` adds the bivariate observed-response mask
+  likelihood contract.
+- `NEWS.md`, `R/drmTMB.R`, `R/missing-data.R`, `man/drmTMB.Rd`, and
+  `man/miss_control.Rd` now describe the univariate and bivariate fitted
+  missing-response support without claiming dense known-`V` partial-row support.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `man/drmTMB.Rd` and
+  `man/miss_control.Rd` for the new missing-data wording.
+- `test-missing-data-control.R`: 11 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `devtools::test()`: 8,699 expectations, no failures, warnings, or skips in
+  the final summary.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: passed.
+
+Stale-wording and issue audit:
+
+- `rg -n "implemented only for univariate Gaussian|bivariate partial pairs|bivariate partial response pairs|Missing predictors, bivariate partial|partial pairs.*planned|univariate Gaussian response masks" R man NEWS.md docs/design vignettes README.md ROADMAP.md docs/dev-log/known-limitations.md` found only current roxygen/Rd wording for the univariate+bivariate support, the intentional historical "After MD1" claim in `docs/design/149-missing-data-design.md`, and unrelated non-missing-data "univariate Gaussian" boundaries.
+- `rg -n "response = \"include\"|partial-response|dense known.*V|observed_y1|observed_y2|both-missing|rho12.*complete" R man NEWS.md docs/design vignettes README.md ROADMAP.md docs/dev-log/known-limitations.md tests/testthat/test-missing-response-biv-gaussian.R` confirmed the current public and design claims point to univariate Gaussian masks, independent bivariate Gaussian partial-response rows, and dense known-`V` deferral.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data miss_control response include" --limit 20` and `gh issue list --repo itchyshin/drmTMB --search "bivariate missing response partial y1 y2" --limit 20` returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- MD2 does not implement missing predictors or `mi()`, dense known-`V`
+  component slicing, EM/profile engines, REML, imputation summaries,
+  measurement-error models, mixed-response bivariate models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data MD3a: One Gaussian `mi()` Predictor
+
+Scope:
+
+- Implemented the first missing-predictor slice for univariate Gaussian models:
+  one additive numeric `mi(x)` term in the location formula, paired with a
+  fixed-effect Gaussian predictor model such as `impute = list(x = x ~ z)` and
+  `missing = miss_control(predictor = "model")`.
+- `R/formula-markers.R` now exports `mi()` as an evaluable formula marker so
+  base R model-frame construction can keep the predictor column.
+- `R/drmTMB.R` adds the explicit `impute` argument, validates that `impute` is
+  used only with `predictor = "model"`, keeps missing `mi()` rows out of the
+  complete-case filter, fills only a design-matrix placeholder, and records
+  `fit$missing_data$version = "MD3a"` with predictor row-accounting metadata.
+- `src/drmTMB.cpp` adds the Gaussian predictor model
+  `x_i ~ Normal(W_i alpha, sigma_x)` and treats missing `x_i` values as TMB
+  random effects integrated by the Laplace approximation. The response mean is
+  corrected inside TMB so the placeholder used to build `X_mu` cannot become
+  the fitted predictor value.
+- Direct `TMB::MakeADFun()` scaffolds in `tests/testthat/test-phylo-utils.R`
+  were updated with dummy missing-predictor data and parameters because they
+  bypass the normal R spec builder.
+- `_pkgdown.yml` now indexes the public `mi()` marker.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` checks row retention,
+  `fit$missing_data$predictors` metadata, finite fitted values and coefficients,
+  finite optimizer gradient, combination with response masks, default
+  complete-case behaviour for ordinary missing predictors, and malformed
+  `mi()`/`impute` inputs.
+- `tests/testthat/test-missing-data-control.R` now treats
+  `miss_control(predictor = "model")` as an implemented control value but keeps
+  non-Gaussian and missing-`impute` runtime guards.
+- `tests/testthat/test-phylo-utils.R` keeps direct TMB prior probes synchronized
+  with the global data/parameter contract.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records MD3a as implemented and
+  keeps grouped covariate random effects, structured imputation, multiple
+  missing predictors, factors, transformations, splines, non-Gaussian predictor
+  models, and public imputation summaries out of scope.
+- `docs/design/03-likelihoods.md` states the joint observed-data likelihood for
+  one missing Gaussian predictor and distinguishes this from multiple
+  imputation.
+- `docs/design/01-formula-grammar.md`, `NEWS.md`, `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and new `man/mi.Rd` describe the fitted boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE`,
+  `man/drmTMB.Rd`, `man/miss_control.Rd`, and `man/mi.Rd`.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 35 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- Initial `devtools::test()` found only three direct `test-phylo-utils.R`
+  failures from missing dummy `has_mi` TMB data in hand-built probe objects.
+  After synchronizing those scaffolds, `test-phylo-utils.R` passed with 79
+  expectations.
+- Final `devtools::test()`: 8,736 expectations, no failures, warnings, or
+  skips.
+- First `pkgdown::check_pkgdown()` found the new public `mi` topic missing from
+  `_pkgdown.yml`; after adding it to the reference index, `pkgdown` reported
+  no problems.
+- `git diff --check`: passed.
+
+Remaining boundary:
+
+- MD3a does not implement grouped covariate random effects (MD3b), structured
+  covariate models (MD4), `imputed()` summaries, multiple missing predictors,
+  factor or non-Gaussian predictor models, transformed or interacted `mi()`
+  terms, dense known-`V` partial-response slicing, EM/profile engines, REML,
+  measurement-error models, or pigauto interoperability.
+
+## 2026-05-31 - Missing Data MD3b: One Grouped Gaussian `mi()` Predictor
+
+Scope:
+
+- Extended the first univariate Gaussian missing-predictor lane from a
+  fixed-effect covariate model to one grouped random-intercept covariate model,
+  for example `impute = list(x = x ~ z + (1 | group))` with
+  `missing = miss_control(predictor = "model")`.
+- `R/missing-data.R` now parses exactly one additive `(1 | group)` term in the
+  `impute` formula, rejects random slopes, multiple random-effect terms,
+  transformed or nested grouping expressions, missing group values, and
+  one-level grouping factors, and records the grouped covariate metadata in
+  `fit$missing_data$predictors[[x]]$random`.
+- `R/drmTMB.R` adds the grouped covariate variable to missing-predictor
+  complete-input checks, routes grouped fits to `version = "MD3b"`, starts and
+  maps `u_mi_group` and `log_sd_mi_group`, and exposes the fitted covariate
+  group SD as `sd_mi_group_x`.
+- `src/drmTMB.cpp` adds `has_mi_group`, `mi_group_index`, `u_mi_group`, and
+  `log_sd_mi_group`, adds the grouped random intercept to the covariate-model
+  linear predictor, and adds the standard-normal latent-effect contribution
+  before Laplace integration.
+- Direct `TMB::MakeADFun()` scaffolds in `tests/testthat/test-phylo-utils.R`
+  were synchronized with dummy grouped-missing-predictor fields because they
+  bypass the normal R builder.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` now checks grouped
+  covariate metadata, retained-row accounting, finite grouped SD coefficients,
+  finite optimizer gradients, response-mask combination, and malformed grouped
+  `impute` formulas.
+- Existing MD1 and MD2 missing-response tests and direct TMB scaffold tests were
+  rerun to guard the shared missing-data data/parameter contract.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records MD3b as implemented while
+  keeping covariate random slopes, multiple covariate random-effect terms,
+  structured covariate models, multiple missing predictors, non-Gaussian
+  predictor models, imputation summaries, EM/profile engines, REML, and
+  measurement-error models out of scope.
+- `docs/design/03-likelihoods.md` adds the grouped covariate-model likelihood.
+- `docs/design/01-formula-grammar.md`, `NEWS.md`, `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and `man/mi.Rd` describe the fitted grouped boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE`,
+  `man/drmTMB.Rd`, `man/miss_control.Rd`, and `man/mi.Rd`.
+- Manual grouped `mi()` sanity fit returned `fit$missing_data$version =
+  "MD3b"`, finite `mi_x`, `sd_mi_group_x`, and `sigma_mi_x` coefficients, and
+  maximum optimizer-gradient component `4.181181e-06`.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 55 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- Final `devtools::test()`: 8,756 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+
+Stale-wording and issue audit:
+
+- `rg -n "MD3b|grouped covariate random effects|one random-intercept|random-intercept covariate|impute = list\\(x = x ~ z \\+ \\(1|impute = list\\(x = x ~ 1 \\+ z \\+ \\(1|covariate random slopes|multiple missing predictors|structured covariate|imputed\\(\\)|measurement-error|measurement error" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found current MD3b implementation wording, intentional MD3a-slice boundaries,
+  and current deferred-scope wording.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data mi grouped random intercept impute" --limit 20`
+  and `gh issue list --repo itchyshin/drmTMB --search "miss_control mi impute missing predictor" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- MD3b does not implement covariate random slopes, multiple covariate
+  random-effect terms, structured covariate models (MD4), `imputed()` summaries
+  (MD5), multiple missing predictors, factor or non-Gaussian predictor models,
+  transformed or interacted `mi()` terms, dense known-`V` partial-response
+  slicing, EM/profile engines, REML, measurement-error models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data MD5: `imputed()` Predictor Summaries
+
+Scope:
+
+- Added exported `imputed()` and `imputed.drmTMB()` for fitted MD3a/MD3b
+  missing-predictor models.
+- The extractor reports conditional modes for modelled missing `mi()`
+  predictors from optimized TMB random effects. With a successful
+  `TMB::sdreport()`, it reports likelihood-based conditional standard errors
+  from the random-effect covariance approximation.
+- `fit$missing_data$predictors[[x]]` now stores fitted `value` and
+  `conditional_mode` entries when a missing-predictor model is fitted, so
+  `imputed()` can still report estimates after `keep_tmb_object = FALSE`.
+- The MD5 boundary is intentionally narrow: no response imputation,
+  simulation-based imputation, posterior means, credible intervals, pooled
+  multiple-imputation summaries, EM/profile engines, REML, measurement-error
+  models, structured covariate models, or multiple missing predictors.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` checks that `imputed()`
+  returns MD3a conditional modes matching `x_miss`, finite `sdreport()` standard
+  errors, all-row output with observed predictor values, operation without a
+  retained TMB object, grouped MD3b output, and clear errors for response-only
+  masks or unknown variables.
+
+Documentation synchronized:
+
+- `R/missing-data.R`, `man/imputed.Rd`, `NAMESPACE`, and `_pkgdown.yml` add the
+  public extractor and reference-index entry.
+- `docs/design/149-missing-data-design.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/01-formula-grammar.md`, and `NEWS.md` record MD5 as implemented
+  for fitted MD3a/MD3b missing predictors while preserving the non-Bayesian and
+  non-multiple-imputation boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-package-skeleton.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE` and
+  `man/imputed.Rd`.
+- `test-missing-predictor-gaussian.R`: 85 expectations, no failures.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-package-skeleton.R`: 100 expectations, no failures.
+- Final `devtools::test()`: 8,786 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+
+Stale-wording and issue audit:
+
+- `rg -n "imputation summaries remain planned|imputed\\(\\).*planned|MD5|posterior|credible intervals|multiple-imputation|simulation-based imputed|response imputation|conditional modes|likelihood-based conditional" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found current MD5 implementation wording, intended non-Bayesian boundary
+  wording, and unrelated posterior/interval cautions outside the missing-data
+  lane.
+- `gh issue list --repo itchyshin/drmTMB --search "imputed missing predictor imputation summaries" --limit 20`
+  and `gh issue list --repo itchyshin/drmTMB --search "missing data imputed conditional modes" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- Missing-data support still does not include structured `mi()` covariate models
+  (MD4), dense known-`V` partial-response slicing, covariate random slopes,
+  multiple covariate random-effect terms, multiple missing predictors, factor
+  or non-Gaussian predictor models, transformed or interacted `mi()` terms,
+  response imputation summaries, simulated imputations, EM/profile engines,
+  REML, measurement-error models, or pigauto interoperability.
+
+## 2026-05-31 - Missing Data MD4: Structured `mi()` Covariate Model
+
+Scope:
+
+- Added the first structured missing-predictor route for one univariate Gaussian
+  numeric `mi()` predictor.
+- The `impute` formula can now include one explicit intercept-only structured
+  covariate model using `phylo()`, coordinate `spatial()`, `animal()`, or
+  `relmat()`, for example
+  `impute = list(x = x ~ z + relmat(1 | line, Q = Q))`.
+- The structured covariate field is independent of the response model and is
+  integrated with missing `x` values by TMB/Laplace. The fitted object records
+  `fit$missing_data$version = "MD4"` and structured metadata under
+  `fit$missing_data$predictors[[x]]$structured`.
+- Kept the boundary narrow: no structured covariate slopes, no grouped-plus-
+  structured covariate model, no `phylo_interaction()` in `impute`, no automatic
+  response-structure inheritance, and no joint response-covariate structured
+  correlations.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` now checks a fitted
+  `relmat(1 | line, Q = Q)` covariate model, `response = "include"` composition,
+  `sd_mi_relmat_x` extraction, `imputed()` conditional modes, and malformed MD4
+  inputs.
+- `tests/testthat/test-phylo-utils.R` now includes mapped-off
+  `has_mi_struct`, `u_mi_struct`, and `log_sd_mi_struct` scaffolding for direct
+  TMB construction.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/01-formula-grammar.md`,
+  `R/missing-data.R`, `R/formula-markers.R`, `R/drmTMB.R`, generated Rd files,
+  and `NEWS.md` now describe MD4 as fitted and keep the remaining unsupported
+  missing-data surfaces explicit.
+
+Validation:
+
+```sh
+air format R/missing-data.R R/formula-markers.R R/drmTMB.R tests/testthat/test-missing-predictor-gaussian.R tests/testthat/test-phylo-utils.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `man/drmTMB.Rd`,
+  `man/mi.Rd`, and `man/miss_control.Rd`.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- Final `devtools::test()`: 8,810 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+
+Stale-wording and issue audit:
+
+- `rg -n "structured covariate models remain planned|structured covariate models|MD3a/MD3b missing-predictor|fitted MD3a/MD3b|public imputation summaries remain|imputation summaries remain planned|one random-intercept Gaussian predictor model|fixed-effect or one random-intercept" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found intended MD4 boundary errors, historical headings, and current
+  simulation-based imputation boundary wording, but no current claim that all
+  structured covariate models remain planned.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data structured mi impute relmat" --limit 20`,
+  `gh issue list --repo itchyshin/drmTMB --search "miss_control mi impute structured" --limit 20`,
+  and `gh issue list --repo itchyshin/drmTMB --search "MD4 missing predictor" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- Missing-data support still does not include dense known-`V` partial-response
+  slicing, structured covariate slopes, more than one structured covariate
+  model, simultaneous grouped and structured covariate random effects,
+  `phylo_interaction()` covariate models, automatic response-structure
+  inheritance, joint response-covariate structured correlations, multiple
+  missing predictors, factor or non-Gaussian predictor models, transformed or
+  interacted `mi()` terms, response imputation summaries, simulated
+  imputations, EM/profile engines, REML, measurement-error models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data Article
+
+Scope:
+
+- Added `vignettes/missing-data.Rmd` as the first user-facing missing-data
+  article.
+- The article explains supported response masks, bivariate partial-response
+  rows, one numeric `mi()` predictor model, grouped/structured covariate-model
+  syntax, `fit$missing_data`, and `imputed()` summaries.
+- `_pkgdown.yml` now lists the article in the `Start Here` article section and
+  the Model Guides navbar.
+- No runtime behaviour changed.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = tempdir(), quiet = TRUE, envir = globalenv())"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+git diff --check
+```
+
+Results:
+
+- The article rendered successfully in a temporary directory against the
+  development package.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `articles/missing-data.html` successfully from the current checkout.
+- `git diff --check` found no whitespace errors.
+
+Consistency and issue audit:
+
+- `rg -n "miss_control|mi\\(|imputed|multiple imputation|measurement-error|missing response|missing predictor" vignettes/missing-data.Rmd _pkgdown.yml docs/design/149-missing-data-design.md docs/dev-log/known-limitations.md NEWS.md README.md ROADMAP.md`
+  confirmed that the new article uses implemented syntax and keeps
+  multiple-imputation, measurement-error, and unsupported predictor-model
+  boundaries explicit.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data article" --limit 20`
+  returned issue `#58`, the broad visualization tracker, which does not need an
+  update for this article.
+- `gh issue list --repo itchyshin/drmTMB --search "miss_control imputed vignette" --limit 20`
+  returned no matching open issues.
+
+Local rendering note:
+
+- A plain `rmarkdown::render()` and a default `pkgdown::build_article()` picked
+  up an older installed `drmTMB` without `miss_control()`. Rendering with
+  `devtools::load_all()` and building the single article in-process validated
+  the article against the development checkout without installing over the
+  user's library.
+
+## 2026-05-31 - Missing Data MD6a Binary Predictor
+
+Scope:
+
+- Added the first non-Gaussian missing-predictor slice: one binary `mi()`
+  predictor in a univariate Gaussian location model.
+- Added `impute_model(formula, family = ...)` as the explicit family wrapper
+  for predictor models. Bare `impute = list(x = x ~ z)` remains the Gaussian
+  predictor-model shortcut.
+- Implemented fixed-effect Bernoulli/logit predictor models with exact
+  two-state summation for missing binary predictor rows, including composition
+  with missing-response masks.
+- Updated the missing-data article, design docs, NEWS, roxygen docs, pkgdown
+  reference navigation, and generated HTML to separate implemented binary
+  support from planned ordered, unordered multinomial, beta/proportion,
+  lognormal, count, grouped binary, and structured binary predictor models.
+
+Validation:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-binary.R tests/testthat/test-phylo-utils.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `test-missing-predictor-binary.R`: 21 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `pkgdown-site/articles/missing-data.html` with the new binary section and
+  `impute_model()` syntax.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,831 expectations, no failures, warnings, or
+  skips. Duration was 665.7 seconds.
+
+Tests of the tests:
+
+- The binary test recomputes the log likelihood independently as a sum of
+  observed Bernoulli terms and `logspace_add` two-state contributions for
+  missing predictor rows, then compares it to `logLik(fit)`.
+- The binary test combines `predictor = "model"` with
+  `response = "include"` and verifies row accounting and residual masks.
+- Boundary tests reject unsupported predictor families, grouped binary
+  predictor models, and more-than-two-level categorical predictors.
+
+Consistency audit:
+
+- `rg -n "missing data|miss_control|mi\\(|impute_model|imputed|missing predictor|non-Gaussian predictor|categorical predictor|proportion predictor|binary predictor|multiple missing" README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml NEWS.md pkgdown-site/articles/missing-data.html`
+  confirmed the status inventory and generated article now mention
+  `impute_model()`, binary missing predictors, and the remaining boundaries.
+- `rg -n "numeric continuous variable|missing categorical predictors|Factor, non-Gaussian|factor or non-Gaussian predictor models|non-Gaussian predictor models remain planned|imputed\\(fit\\).*MD3a/MD3b/MD4|current MD5 slice" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md pkgdown-site/articles/missing-data.html`
+  found only the intentionally historical MD3/MD5 design wording plus the
+  current MD3a/MD3b/MD4/MD6a extractor row; no public article or generated help
+  page still says all categorical or non-Gaussian missing predictors are
+  unsupported.
+- `rg -n "Binary missing predictors|impute_model\\(treatment|proportions, positive|Do not wrap" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html`
+  confirmed the source and generated HTML include the new article section and
+  the `drm_formula()` versus `impute` formula distinction.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "binary missing predictor mi impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing data non-Gaussian predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "categorical missing predictor" --limit 20
+```
+
+The searches returned no matching open issues, so no issue comment or closure
+was made.
+
+Remaining boundary:
+
+- At the MD6a checkpoint, only the first fixed-effect binary
+  missing-predictor route was implemented. Later MD6b, MD6c, and MD7a added
+  ordered, unordered, and strict beta/proportion predictors. Count predictor
+  models, positive-continuous non-Gaussian predictor models, grouped or
+  structured non-Gaussian predictor models, multiple missing predictors,
+  transformed/interacted `mi()` terms, EM/profile engines, REML,
+  simulation-based imputed summaries, response imputation, measurement-error
+  models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD6b Ordered Predictor
+
+Scope:
+
+- Extended the finite-state missing-predictor route from MD6a binary predictors
+  to one ordered categorical predictor in a univariate Gaussian location model.
+- Public syntax is `mi(score)` in the main `bf()`/`drm_formula()` response
+  model and `impute = list(score = impute_model(score ~ z, family =
+  cumulative_logit()))` for the predictor model.
+- The TMB likelihood sums exactly over ordered states for missing predictor
+  rows. Observed ordered predictor rows add the cumulative-logit predictor
+  likelihood and the Gaussian response likelihood when the response is
+  observed.
+- `imputed()` reports the fitted conditional expected ordered-category score;
+  the missing-data metadata stores conditional probabilities by ordered level.
+
+Implementation evidence:
+
+- `R/missing-data.R` now recognizes `cumulative_logit()` as an ordinal
+  `impute_model()` family, validates ordered factors or integer category
+  scores, builds state-specific response-model design matrices, and finalizes
+  ordered missing-predictor metadata.
+- `R/drmTMB.R` keeps ordered `mi()` predictors as supported missing predictors,
+  supplies state-design data to TMB, starts and maps ordered cutpoints, and
+  records `fit$missing_data$version = "MD6b"`.
+- `src/drmTMB.cpp` adds `mi_family == 2`, `mi_n_state`, and
+  `X_mi_state_mu`; the Gaussian branch evaluates cumulative-logit prior
+  probabilities, observed ordered predictor likelihoods, exact log-sum-exp
+  missing-state likelihoods, and reported state probabilities.
+- `tests/testthat/test-missing-predictor-ordered.R` independently recomputes
+  the ordered finite-state likelihood, combines ordered missing predictors with
+  response masks, and checks malformed unordered and grouped ordered predictor
+  boundaries.
+- `NEWS.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/149-missing-data-design.md`,
+  and `vignettes/missing-data.Rmd` now separate implemented binary/ordered
+  finite-state routes from planned unordered, proportion, count, positive
+  continuous, multiple-predictor, grouped finite-state, and structured
+  finite-state routes.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::document()` rewrote `miss_control.Rd`, `impute_model.Rd`, and
+  `imputed.Rd`.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-phylo-utils.R`: 79 expectations, no failures, warnings, or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `pkgdown-site/articles/missing-data.html` with the ordered missing-predictor
+  section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,854 expectations, no failures, warnings, or
+  skips. Duration was 752.4 seconds.
+
+Tests of the tests:
+
+- The ordered test recomputes `logLik(fit)` independently from the
+  cumulative-logit predictor likelihood and Gaussian response likelihood,
+  including exact `logsumexp` over missing ordered states.
+- The ordered test combines `predictor = "model"` with
+  `response = "include"` and checks row accounting plus response residual
+  masks.
+- Boundary tests reject unordered factors, grouped cumulative-logit predictor
+  models, and empty observed ordered categories.
+
+Consistency audit:
+
+- `rg -n "ordered categorical predictors|ordered categories, unordered|ordered or unordered categorical|ordered missing predictor|MD6b|cumulative_logit\\(\\).*impute_model|conditional expected" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml`
+  confirmed that the source docs now mention MD6b ordered support and leave
+  only true boundaries as planned.
+- `rg -n "binary missing predictors|categorical missing predictor|non-Gaussian missing predictor|proportion predictor|unordered multinomial|positive lognormal|count predictors|multiple missing predictors" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml`
+  confirmed that unordered, proportion, count, positive-continuous,
+  multiple-predictor, grouped finite-state, and structured finite-state routes
+  remain described as boundaries.
+- `rg -n "missing|miss_control|mi\\(|imputed" docs/dev-log/known-limitations.md README.md ROADMAP.md _pkgdown.yml vignettes/formula-grammar.Rmd`
+  found no missing-data status page that needed a separate update beyond the
+  article, reference index, and design docs.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "ordered missing predictor cumulative_logit mi impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "categorical missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "non-Gaussian missing predictor" --limit 20
+```
+
+The first two searches returned no open issue rows. The broad non-Gaussian
+query returned only #436, the four-week Phase 6c random-slope and digital-twin
+exchange sprint, so no missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD6b is one fixed-effect ordered categorical predictor in a univariate
+  Gaussian location model. Unordered multinomial predictors, beta/proportion
+  predictors, count predictors, lognormal/Gamma positive continuous predictor
+  models, multiple missing predictors, transformed or interacted `mi()` terms,
+  grouped or structured binary/ordered predictor models, EM/profile engines,
+  REML, simulation-based imputed summaries, response imputation,
+  measurement-error models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD6c Unordered Categorical Predictor
+
+Scope:
+
+- Added the fixed-effect unordered categorical missing-predictor route for one
+  `mi(habitat)` term in a univariate Gaussian location model.
+- Public syntax is
+  `impute = list(habitat = impute_model(habitat ~ z, family = categorical()))`
+  with `missing = miss_control(predictor = "model")`.
+- The predictor model uses a baseline-category softmax over unordered levels.
+  Observed predictor rows add the categorical predictor likelihood; missing
+  predictor rows sum exactly over all possible unordered states and combine the
+  softmax prior with the Gaussian response likelihood when the response is
+  observed.
+- `imputed()` now reports modal unordered-category scores and stores level
+  probabilities in `fit$missing_data$predictors[[name]]$conditional_probabilities`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::document()"
+air format --check R/missing-data.R tests/testthat/test-missing-predictor-categorical.R
+air format R/missing-data.R tests/testthat/test-missing-predictor-categorical.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::document()` regenerated `man/drmTMB.Rd` after the public
+  `missing` argument wording was synchronized with binary, ordered, and
+  unordered finite-state predictor support.
+- `air format --check` reported that `R/missing-data.R` would be reformatted;
+  targeted `air format` was then run on `R/missing-data.R` and
+  `tests/testthat/test-missing-predictor-categorical.R`.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  unordered categorical example and still marks beta/proportion, count, and
+  positive-continuous predictor models as planned.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- `test-phylo-utils.R`: 79 expectations, no failures, warnings, or skips.
+- Full `devtools::test()`: 8,878 expectations, no failures, warnings, or
+  skips. Duration was 631.7 seconds.
+
+Tests of the tests:
+
+- The new unordered categorical test recomputes `logLik(fit)` independently
+  from the baseline-softmax predictor likelihood and Gaussian response
+  likelihood, including exact `logsumexp` over missing unordered states.
+- The test combines `predictor = "model"` with
+  `response = "include"` and checks `nobs()`, observed-response masks, response
+  residual masks, and the same independent likelihood.
+- Boundary tests reject ordered factors, grouped categorical predictor models,
+  empty observed unordered categories, and two-level factors sent to
+  `categorical()`.
+
+Consistency audit:
+
+- `rg -n "unordered categorical predictors|unordered multinomial|unordered.*planned|categorical.*planned|MD6c|categorical\\(\\)|conditional modal" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml R man`
+  found current MD6c implementation/docs and no stale claim that unordered
+  categorical predictors remain generally unsupported.
+- `rg -n "binary slice|binary predictor slice|ordered or unordered|unordered categorical with more than two levels|wait for the unordered|non-Gaussian predictor models remain planned|binary predictors may use|finite-state predictor models" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found two stale/current-boundary wording points. The `drmTMB()` roxygen and
+  `man/drmTMB.Rd` now name binary, ordered categorical, and unordered
+  categorical predictor models; the MD6a design boundary now states that
+  unordered predictors belong to the later MD6c softmax slice.
+- `rg -n "One missing unordered predictor|categorical\\(\\)|baseline-category softmax|beta/proportion|count predictors|positive-continuous" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the unordered categorical route and
+  the remaining non-Gaussian predictor boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "unordered categorical missing predictor categorical impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor categorical" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "proportion missing predictor" --limit 20
+```
+
+All three searches returned no open issue rows, so no missing-data-specific
+issue comment or closure was made.
+
+Remaining boundary:
+
+- MD6c completes the first finite-state trio: binary, ordered categorical, and
+  unordered categorical missing predictors in one univariate Gaussian location
+  model. Beta/proportion predictors, count predictors, positive-continuous
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, grouped or structured finite-state predictor models,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD7a Strict Proportion Predictor
+
+Scope:
+
+- Added the fixed-effect strict proportion missing-predictor route for one
+  numeric `mi(cover)` term in `(0, 1)` inside a univariate Gaussian location
+  model.
+- Public syntax is
+  `impute = list(cover = impute_model(cover ~ z, family = beta()))` with
+  `missing = miss_control(predictor = "model")`.
+- Observed predictor rows add the beta predictor density plus the Gaussian
+  response density. Missing predictor rows with observed responses use
+  deterministic Gauss-Legendre quadrature over the possible proportion values.
+  Rows where both response and predictor are missing are retained for original
+  row accounting and contribute zero observed-data likelihood.
+- `imputed()` reports fitted conditional quadrature means and stores quadrature
+  probabilities in `fit$missing_data$predictors[[name]]`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::load_all()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); devtools::test()"
+git diff --check
+```
+
+Results:
+
+- Initial `test-missing-predictor-beta.R`: 20 expectations, no failures,
+  warnings, or skips.
+- Post-document `test-missing-predictor-beta.R`: 20 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-beta-location-scale.R`: 85 expectations, no failures, warnings, or
+  skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures, warnings,
+  or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  strict proportion example and conditional-quadrature-mean wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- The first full `devtools::test()` run reached the end with 8,886 passing
+  expectations and three direct-TMB fixture errors in `test-phylo-utils.R`;
+  those hand-built data fixtures lacked the new dummy `mi_quad_nodes` and
+  `mi_quad_weights` values.
+- After patching the direct-TMB fixture, `test-phylo-utils.R`: 79
+  expectations, no failures, warnings, or skips.
+- Final full-suite result after the fixture patch: 8,898 expectations, no
+  failures, warnings, or skips in 625.3 seconds.
+- `git diff --check`: no whitespace errors.
+
+Tests of the tests:
+
+- The beta predictor test recomputes `logLik(fit)` independently from the beta
+  predictor likelihood and Gaussian response likelihood, including
+  deterministic quadrature over missing predictor values.
+- The response-mask combination test verifies `nobs()`, observed-response
+  masks, response residual masks, and the same independent likelihood when some
+  responses are also missing.
+- Boundary tests reject exact 0/1 observed proportions, factor predictors, and
+  grouped beta predictor models.
+
+Consistency audit:
+
+- `rg -n "beta/proportion predictors|proportion predictors.*not implemented|beta/proportion.*remain planned|strict proportion.*planned|family = beta\\(\\).*planned" docs/design/149-missing-data-design.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md vignettes/missing-data.Rmd NEWS.md R man README.md ROADMAP.md docs/dev-log/known-limitations.md`
+  found current implementation wording for strict beta/proportion predictors
+  and remaining-boundary wording for exact 0/1 proportions,
+  denominator-aware beta-binomial predictor models, count predictors, and
+  positive-continuous non-Gaussian predictor models.
+- `rg -n "Strict proportion missing predictors|impute = list\\(cover = impute_model\\(cover ~ z, family = beta\\(\\)\\)\\)|conditional quadrature means|count predictors|positive-continuous" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the strict proportion route and the
+  remaining non-Gaussian predictor boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "beta proportion missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "strict proportion missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor beta" --limit 20
+```
+
+All three searches returned no open issue rows, so no missing-data-specific
+issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7a is one fixed-effect strict proportion predictor in a univariate
+  Gaussian location model. Exact 0/1 proportions, denominator-aware
+  beta-binomial predictor models, grouped or structured beta predictor models,
+  Poisson count predictors, positive-continuous non-Gaussian predictor models,
+  multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remained
+  planned at the MD7a checkpoint. MD7b adds the first Poisson count slice.
+
+## 2026-05-31 - Missing Data MD7b Poisson Count Predictor
+
+Scope:
+
+- Added the fixed-effect Poisson count missing-predictor route for one
+  non-negative integer `mi(abundance)` term inside a univariate Gaussian
+  location model.
+- Public syntax is
+  `impute = list(abundance = impute_model(abundance ~ z, family = poisson()))`
+  with `missing = miss_control(predictor = "model")`.
+- Observed predictor rows add the Poisson predictor density plus the Gaussian
+  response density. Missing predictor rows with observed responses use
+  deterministic finite summation over count states. Rows where both response
+  and predictor are missing are retained for original-row accounting and
+  contribute zero observed-data likelihood.
+- `imputed()` reports fitted conditional expected counts and stores
+  count-state probabilities in `fit$missing_data$predictors[[name]]`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson.R')"
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-poisson.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::load_all(); devtools::test()"
+```
+
+Results:
+
+- Initial `test-missing-predictor-poisson.R`: 19 expectations, no failures,
+  warnings, or skips.
+- Post-document `test-missing-predictor-poisson.R`: 19 expectations, no
+  failures, warnings, or skips.
+- `test-missing-predictor-beta.R`: 20 expectations, no failures, warnings, or
+  skips.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips after updating the unsupported-family boundary from `poisson()` to
+  `nbinom2()`.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures, warnings,
+  or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  count predictor example and conditional-expected-count wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,917 expectations, no failures, warnings, or
+  skips; duration 717.9 seconds.
+
+Tests of the tests:
+
+- The Poisson predictor test recomputes `logLik(fit)` independently from the
+  Poisson predictor likelihood and Gaussian response likelihood, including
+  deterministic finite summation over missing count values.
+- The response-mask combination test verifies `nobs()`, observed-response
+  masks, response residual masks, and the same independent likelihood when some
+  responses are also missing.
+- Boundary tests reject negative observed counts, fractional observed counts,
+  and grouped Poisson predictor models.
+
+Consistency audit:
+
+- `rg -n "Count predictors,|count predictors.*not implemented|count predictors remain planned|family = poisson\\(\\).*planned|MD7b|Poisson count missing predictors|conditional expected counts|Negative-" vignettes/missing-data.Rmd docs/design/149-missing-data-design.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md NEWS.md R man pkgdown-site/articles/missing-data.html`
+  found current implementation wording for Poisson count predictors,
+  historical MD6/MD7a boundary text that explicitly points to later MD7b, and
+  remaining-boundary wording for negative-binomial count predictors,
+  positive-continuous non-Gaussian predictor models, grouped/structured count
+  predictor models, and multiple missing predictors.
+- `rg -n "Count missing predictors|impute_model\\(abundance ~ z, family = poisson\\(\\)\\)|conditional expected count|MD7b|negative-binomial" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the count predictor route and the
+  remaining count-family boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "poisson count missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor count" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "negative binomial missing predictor" --limit 20
+```
+
+The exact Poisson and negative-binomial searches returned no open issue rows.
+The broad count search returned only #436, the four-week Phase 6c random-slope
+and digital-twin exchange sprint, so no missing-data-specific issue comment or
+closure was made.
+
+Remaining boundary:
+
+- MD7b is one fixed-effect Poisson count predictor in a univariate Gaussian
+  location model. Negative-binomial or overdispersed count predictor models,
+  grouped or structured count predictor models, positive-continuous
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD8a Lognormal Positive Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding the first
+  positive continuous predictor model after finite-state, strict-proportion, and
+  Poisson count slices.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = lognormal())` for one positive
+  continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect lognormal predictor-model builder, positive-value
+  validation, Gauss-Hermite standard-normal quadrature construction, and TMB
+  `mi_family = 6` data mapping.
+- Added the TMB likelihood branch for observed positive predictor values and
+  missing positive predictor values integrated by deterministic log-scale
+  quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-lognormal.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-lognormal.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Focused `test-missing-predictor-lognormal.R`: 21 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 237 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  positive continuous predictor section, the `lognormal()` `impute_model()`
+  example, and the MD8a metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+
+Tests of the tests:
+
+- The lognormal predictor test recomputes `logLik(fit)` independently from the
+  observed lognormal predictor density, Gaussian response density, and
+  deterministic log-scale quadrature for missing positive predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject zero observed positive values, non-numeric predictors,
+  and grouped lognormal predictor models.
+
+Consistency audit:
+
+- `rg -n "Positive continuous missing predictors|impute_model\\(biomass ~ z, family = lognormal\\(\\)\\)|conditional quadrature mean|MD8a|Gamma and Tweedie|positive-continuous" pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md`
+  confirmed current syntax, rendered article text, generated Rd text,
+  implementation-slice labels, and remaining Gamma/Tweedie or grouped
+  positive-continuous boundaries. Historical MD6 and MD7 claim blocks in
+  `docs/design/149-missing-data-design.md` still mention positive-continuous
+  predictors as planned because they describe earlier checkpoints.
+
+Remaining boundary:
+
+- MD8a is one fixed-effect lognormal positive continuous predictor in a
+  univariate Gaussian location model. Gamma and Tweedie predictor models,
+  exact-zero semi-continuous predictors, grouped or structured
+  positive-continuous predictor models, negative-binomial count predictors,
+  multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD8b Gamma Positive Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding a second
+  positive continuous predictor model for skewed positive covariates.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = Gamma(link = "log"))` for one
+  positive continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect Gamma mean-CV predictor-model builder, positive-value
+  validation, Gauss-Laguerre quadrature construction, and TMB `mi_family = 7`
+  data mapping.
+- Added the TMB likelihood branch for observed positive predictor values and
+  missing positive predictor values integrated by deterministic Gamma
+  quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-gamma.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gamma.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Focused `test-missing-predictor-gamma.R`: 22 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 259 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  Gamma positive predictor example and the MD8b metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()` was not rerun after MD8b. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The Gamma predictor test recomputes `logLik(fit)` independently from the
+  observed Gamma predictor density, Gaussian response density, and
+  deterministic Gamma quadrature for missing positive predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject zero observed positive values, non-numeric predictors,
+  non-log Gamma links, and grouped Gamma predictor models.
+
+Consistency audit:
+
+- `rg -n "Gamma positive|Gamma\\(link = &quot;log&quot;\\)|Gamma\\(link = \\\"log\\\"\\)|MD8b|Tweedie positive|positive-continuous predictor models|Gamma and Tweedie" pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-gamma.R`
+  confirmed current syntax, rendered article text, generated Rd text,
+  implementation-slice labels, C++/R family mapping, and remaining Tweedie or
+  grouped positive-continuous boundaries. Historical MD8a claim blocks in
+  `docs/design/149-missing-data-design.md` still mention Gamma and Tweedie as
+  planned because they describe the earlier MD8a checkpoint.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "Gamma positive missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor positive continuous" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "Tweedie missing predictor" --limit 20
+```
+
+All three searches returned no issue rows, so no issue was commented on,
+closed, or opened for MD8b in this pass.
+
+Remaining boundary:
+
+- MD8b is one fixed-effect Gamma positive continuous predictor in a univariate
+  Gaussian location model. Tweedie predictor models, exact-zero
+  semi-continuous predictors, negative-binomial count predictors, grouped or
+  structured non-Gaussian predictor models, multiple missing predictors,
+  transformed or interacted `mi()` terms, EM/profile engines, REML,
+  simulation-based imputed summaries, response imputation, measurement-error
+  models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD7c Negative-Binomial Count Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding an
+  overdispersion-aware count predictor model.
+
+Implemented:
+
+- Added `impute_model(abundance ~ z, family = nbinom2())` for one
+  non-negative integer `mi()` predictor in a univariate Gaussian location
+  model.
+- Added the fixed-effect NB2 predictor-model builder, non-negative integer
+  count validation, finite count-support construction, and TMB `mi_family = 8`
+  data mapping.
+- Added the TMB likelihood branch for observed count predictor values and
+  missing count predictor values integrated by deterministic finite summation
+  under the fitted NB2 predictor model.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  expected counts, count support, and normalized count-state probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-nbinom2.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Focused `test-missing-predictor-nbinom2.R`: 20 expectations, no failures,
+  warnings, or skips.
+- Adjusted `test-missing-predictor-binary.R`: 21 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 279 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  NB2 count predictor example and the MD7c metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- Full `devtools::test()` was not rerun after MD7c. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The NB2 predictor test recomputes `logLik(fit)` independently from the
+  observed NB2 predictor density, Gaussian response density, and deterministic
+  finite summation over missing count values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject negative observed counts, fractional observed counts,
+  and grouped NB2 predictor models.
+
+Consistency audit:
+
+- `rg -n 'nbinom2\(\)|MD7c|NB2 predictor|negative-binomial count|sigma_mi_abundance|conditional expected counts for count predictors' pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-nbinom2.R`
+  confirmed current NB2 syntax, rendered article text, generated Rd text,
+  implementation-slice labels, TMB family mapping, and `sigma_mi_abundance`
+  extraction.
+- `rg -n 'negative-binomial count predictors|Negative-binomial count predictors|conditional expected counts for Poisson|Poisson count predictors, Tweedie|MD7b/MD8a|MD7b/MD8b' vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md pkgdown-site/articles/missing-data.html`
+  returned only current positive wording in `NEWS.md`; it did not find old
+  generated or article text claiming that NB2 missing predictors remain
+  unimplemented.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "nbinom2 missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "negative binomial missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor count" --limit 20
+```
+
+The exact NB2 and negative-binomial searches returned no issue rows. The broad
+count search returned only #436, the four-week Phase 6c random-slope and
+digital-twin exchange sprint, so no missing-data-specific issue comment or
+closure was made.
+
+Remaining boundary:
+
+- MD7c is one fixed-effect NB2 missing predictor in a univariate Gaussian
+  location model. Zero-truncated or hurdle count predictor models, grouped or
+  structured count predictor models, multiple missing predictors, transformed
+  or interacted `mi()` terms, EM/profile engines, REML, simulation-based
+  imputed summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD8c Tweedie Semi-Continuous Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding a
+  semi-continuous predictor model that allows exact zeros.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = tweedie())` for one non-negative
+  semi-continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect Tweedie predictor-model builder, non-negative value
+  validation, at-least-one-positive observed-value guard, zero-plus-positive
+  quadrature construction, and TMB `mi_family = 9` data mapping.
+- Added the TMB likelihood branch for observed Tweedie predictor values and
+  missing Tweedie predictor values integrated over exact zero mass plus
+  deterministic positive-support quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-tweedie.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-tweedie.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-tweedie-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n "[ \t]+$" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-tweedie.R vignettes/missing-data.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-tweedie.R
+```
+
+Results:
+
+- Focused `test-missing-predictor-tweedie.R`: 24 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 303 expectations,
+  no failures, warnings, or skips.
+- `test-tweedie-location-scale.R`: 86 expectations, no failures; one
+  `glmmTMB`/TMB package-version warning in the comparator skip check.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html`; the
+  rendered page contains the semi-continuous missing-predictor section and the
+  MD8c metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`, the explicit trailing-whitespace scan, and
+  `air format --check` passed.
+- Full `devtools::test()` was not rerun after MD8c. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The Tweedie predictor test recomputes `logLik(fit)` independently from the
+  observed Tweedie predictor density, Gaussian response density, and
+  zero-plus-positive quadrature for missing predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject negative observed values, non-numeric predictors, and
+  grouped Tweedie predictor models.
+
+Consistency audit:
+
+- `rg -n "Semi-continuous missing predictors|family = tweedie\\(\\)|MD8c|Tweedie predictor models, transformed|Tweedie positive-continuous predictor models|Use a later Tweedie" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html man/impute_model.Rd man/miss_control.Rd man/imputed.Rd man/drmTMB.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-tweedie.R`
+  confirmed current Tweedie syntax, rendered article text, generated Rd text,
+  implementation-slice labels, C++/R family mapping, and fixed
+  predictor-model power wording. It did not find stale current docs claiming
+  that Tweedie missing predictors remain unimplemented. Historical MD8a and
+  MD8b claim blocks in `docs/design/149-missing-data-design.md` still mention
+  Tweedie as planned because they describe earlier checkpoints.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "Tweedie missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "semi-continuous missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor positive continuous" --limit 20
+```
+
+All three searches returned no issue rows, so no issue was commented on,
+closed, or opened for MD8c in this pass.
+
+Remaining boundary:
+
+- MD8c is one fixed-effect Tweedie missing predictor in a univariate Gaussian
+  location model. Estimated or predictor-dependent Tweedie power, exact 0/1
+  boundary-proportion models, grouped or structured semi-continuous predictor
+  models, multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD7d Zero-One Beta Boundary-Proportion Predictor
+
+Scope:
+
+- Added a fixed-effect zero-one beta missing-predictor route for one
+  boundary-proportion `mi()` predictor in `[0, 1]` in a univariate Gaussian
+  location model.
+- The predictor model uses `impute_model(x ~ z, family = zero_one_beta())`,
+  estimates constant predictor-model `sigma`, `zoi`, and `coi`, and integrates
+  missing values over exact zero mass, deterministic interior beta quadrature,
+  and exact one mass.
+- Updated `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md`.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-zero-one-beta.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-zero-one-beta.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-zero-one-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-location-scale.R')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-zero-one-beta.R
+git diff --check
+rg -n "zero-one beta|zero_one_beta|MD7d|boundary proportion|boundary-proportion|exact 0/1 proportions|exact 0/1 boundary proportions|Boundary proportion" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-zero-one-beta.R vignettes/missing-data.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "exact 0/1 proportions|exact 0/1 boundary|boundary-proportion.*planned|zero-one beta.*planned|zero_one_beta.*later|Use .*later.*zero|Boundary-proportion predictor models need" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html
+gh issue list --repo itchyshin/drmTMB --search "zero-one beta missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "boundary proportion missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor proportion" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-zero-one-beta.R`: 25 expectations, no
+  failures, warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 328 expectations,
+  no failures, warnings, or skips.
+- `test-zero-one-beta.R`: 56 expectations, no failures, warnings, or skips.
+- `test-beta-location-scale.R`: 85 expectations, no failures, warnings, or
+  skips.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html` with
+  the MD7d boundary-proportion predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `air format --check` and `git diff --check` passed.
+
+Tests of the tests:
+
+- The zero-one beta predictor test recomputes `logLik(fit)` independently from
+  the observed zero-one beta predictor density, Gaussian response density, and
+  exact-boundary plus interior quadrature support for missing predictor values.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject out-of-range observed values, predictors without an
+  observed interior value, non-numeric predictors, and grouped zero-one beta
+  predictor models.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7d wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned current implemented missing-data wording and
+  unrelated older response-family or simulation-plan boundaries. It did not
+  find current missing-data docs claiming that zero-one beta missing predictors
+  remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"zero-one beta missing predictor"`,
+  `"boundary proportion missing predictor"`, and
+  `"missing predictor proportion"` returned no issue rows, so no issue was
+  commented on, closed, or opened for MD7d in this pass.
+
+Remaining boundary:
+
+- MD7d is one fixed-effect zero-one beta missing predictor in a univariate
+  Gaussian location model. Denominator-aware beta-binomial predictor models,
+  grouped or structured non-Gaussian predictor models, multiple missing
+  predictors, transformed or interacted `mi()` terms, zero-truncated or hurdle
+  count predictor models, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD7e Zero-Truncated NB2 Count Predictor
+
+Scope:
+
+- Added a fixed-effect zero-truncated NB2 missing-predictor route for one
+  positive integer `mi()` predictor in a univariate Gaussian location model.
+- The predictor model uses
+  `impute_model(x ~ z, family = truncated_nbinom2())`, estimates the
+  untruncated NB2 mean model and overdispersion scale, and integrates missing
+  values over deterministic positive count states.
+- Updated `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md`.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-truncated-nbinom2.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-truncated-nbinom2-location-scale.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+git diff --check
+rg -n "truncated_nbinom2|zero-truncated|MD7e|positive-count|positive count" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "zero-truncated or hurdle count predictor|Zero-truncated or hurdle count predictor|zero-truncated.*planned|truncated_nbinom2.*Unsupported missing-predictor|truncated_nbinom2.*not implemented|positive-count.*planned" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html tests/testthat/test-missing-predictor-binary.R
+gh issue list --repo itchyshin/drmTMB --search "zero-truncated missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "truncated nbinom2 missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "positive count missing predictor" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-truncated-nbinom2.R`: 21 expectations, no
+  failures, warnings, or skips.
+- Adjusted `test-missing-predictor-binary.R`: 21 expectations, no failures,
+  warnings, or skips.
+- `test-truncated-nbinom2-location-scale.R`: 75 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 349 expectations,
+  no failures, warnings, or skips.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html` with
+  the MD7e zero-truncated count predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `air format --check` and `git diff --check` passed.
+
+Tests of the tests:
+
+- The zero-truncated NB2 predictor test recomputes `logLik(fit)` independently
+  from the observed zero-truncated NB2 predictor density, Gaussian response
+  density, and deterministic positive-count summation for missing predictor
+  values.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject zero observed counts, fractional observed counts, and
+  grouped zero-truncated NB2 predictor models.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7e wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned current implemented missing-data wording and
+  unrelated response-family or Phase 18 planning boundaries. It did not find
+  current missing-data docs claiming that zero-truncated NB2 missing predictors
+  remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"zero-truncated missing predictor"` and
+  `"truncated nbinom2 missing predictor"` returned no issue rows.
+- The broad `"positive count missing predictor"` search returned only #436, the
+  four-week Phase 6c random-slope and digital-twin exchange sprint, so no
+  missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7e is one fixed-effect zero-truncated NB2 missing predictor in a
+  univariate Gaussian location model. Hurdle count predictor models,
+  denominator-aware beta-binomial predictor models, grouped or structured
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 -- MD7f denominator-aware beta-binomial proportion missing predictor
+
+Implemented and audited MD7f, the denominator-aware beta-binomial missing
+predictor slice.
+
+Scope:
+
+- `impute_model(success ~ z, family = beta_binomial(), trials = trials)` now
+  models a missing proportion predictor through integer successes and known
+  denominators while the response model uses `mi(cover)`.
+- The slice is fixed-effect only, supports one missing predictor in a
+  univariate Gaussian location model, and can compose with missing response
+  masks.
+- `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md` were
+  updated.
+
+Commands:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta-binomial.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-binomial.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-beta-binomial.R tests/testthat/test-phylo-utils.R
+git diff --check
+rg -n "beta_binomial|beta-binomial|MD7f|denominator-aware|conditional_proportion_mean" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-beta-binomial.R tests/testthat/test-phylo-utils.R vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "denominator-aware beta-binomial predictor models remain planned|beta-binomial predictor models remain planned|beta_binomial.*not implemented|beta_binomial.*Unsupported missing-predictor|MD7f.*planned|denominator-aware.*planned" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html tests/testthat/test-missing-predictor-beta-binomial.R
+gh issue list --repo itchyshin/drmTMB --search "beta-binomial missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "denominator-aware missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "proportion missing predictor" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-beta-binomial.R`: 27 expectations, no
+  failures, warnings, or skips.
+- Existing `test-beta-binomial.R`: 78 expectations, no failures, warnings, or
+  skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 376 expectations,
+  no failures, warnings, or skips.
+- `rmarkdown::render()` rebuilt
+  `pkgdown-site/articles/missing-data.html` with the MD7f denominator-aware
+  proportion predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- The first full `devtools::test()` run exposed three manual TMB phylogeny
+  scaffold failures because the test data did not include the new
+  `mi_successes` and `mi_trials` data objects required by the compiled
+  template. After updating `tests/testthat/test-phylo-utils.R`, the focused
+  phylogeny test passed with 79 expectations.
+- The final full `devtools::test()` run passed with 9,077 expectations and no
+  failures, warnings, or skips.
+- The final `pkgdown::check_pkgdown()`, `air format --check`, and
+  `git diff --check` passed.
+
+Tests of the tests:
+
+- The beta-binomial predictor test recomputes `logLik(fit)` independently from
+  the observed beta-binomial predictor density, Gaussian response density, and
+  deterministic summation over `0:n_i` successes for rows with missing
+  proportion predictors.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject missing `trials`, expressions in `trials`, fractional
+  successes, successes greater than trials, missing denominator values, grouped
+  beta-binomial predictor formulas, mismatches between observed proportions and
+  `success / trials`, and rows where the response-model proportion is observed
+  but the success count is missing.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7f wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned only current broad future-boundary wording. It did
+  not find current missing-data docs claiming that denominator-aware
+  beta-binomial missing predictors remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"beta-binomial missing predictor"` and
+  `"denominator-aware missing predictor"` returned no issue rows.
+- The broader `"proportion missing predictor"` search also returned no issue
+  rows, so no missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7f is one fixed-effect denominator-aware beta-binomial missing predictor in
+  a univariate Gaussian location model. Multiple missing predictors, grouped or
+  structured non-Gaussian predictor models, transformed or interacted `mi()`
+  terms, hurdle count predictors, EM/profile engines, REML, simulation-based
+  imputed summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 -- Missing-data module family coverage and article closeout
+
+Audited the current missing-data module after the response-mask and
+missing-predictor slices. The implemented claim is now:
+
+- `miss_control(response = "include")` retains missing Gaussian response rows
+  and gates their response likelihood contribution.
+- `miss_control(predictor = "model")` supports one fixed-effect `mi()`
+  predictor at a time in a univariate Gaussian location model.
+- The missing-predictor family coverage is Gaussian, Bernoulli/logit, ordered
+  categorical, unordered categorical, strict beta, zero-one beta,
+  beta-binomial with known trials, Poisson, NB2, zero-truncated NB2,
+  lognormal, Gamma, and Tweedie.
+
+Documentation and consistency work:
+
+- Updated roxygen wording in `R/drmTMB.R` and `R/missing-data.R` so the public
+  contract says "one `mi()` missing predictor in a univariate Gaussian location
+  model" instead of implying the predictor itself must be Gaussian.
+- Updated `vignettes/missing-data.Rmd` with a family-choice table and a short
+  comparison with `gllvmTMB` and `glmmTMB`.
+- Rebuilt `pkgdown-site/articles/missing-data.html` from the vignette and then
+  with `pkgdown::build_article("missing-data")`.
+- Updated `docs/design/149-missing-data-design.md` with the consolidated
+  family-coverage claim, current future boundaries, and clearer labels for the
+  historical staged-claim blocks.
+- Updated `docs/design/03-likelihoods.md` to remove stale wording that placed
+  count predictors in a later slice after the count routes had already landed.
+
+Cross-package audit:
+
+- Local `gllvmTMB` shares the missing-data vocabulary: `miss_control()`,
+  `mi()`, `fit$missing_data`, `predict_missing()`, and `imputed()`.
+  Its docs currently emphasize multivariate per-unit response masking and
+  categorical missing-predictor machinery; count predictor routes remain a
+  separate lane there.
+- Installed `glmmTMB` 1.1.11 exposes ordinary `na.action` behaviour in
+  `glmmTMB()`. Its documentation describes `na.omit` as the default inherited
+  behaviour and `na.exclude` as fitting with dropped rows while returning
+  `NA` predictions or residuals for excluded rows. It does not provide the
+  in-likelihood `mi()` missing-predictor mechanism implemented here.
+
+Commands:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/drmTMB.R R/missing-data.R
+git diff --check
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'one univariate Gaussian `mi\(\)` predictor|one univariate Gaussian mi\(\) predictor|missing predictors still require explicit future|count predictors, multiple missing predictors|beta/proportion, count|Poisson count predictors belong to the later MD7b slice' vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md
+gh issue list --repo itchyshin/drmTMB --search "missing predictor family" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing data article" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "mi impute_model" --limit 20
+```
+
+Results:
+
+- `devtools::document()` passed and regenerated `man/drmTMB.Rd` and
+  `man/miss_control.Rd`.
+- The direct `rmarkdown::render()` pass completed 39 vignette chunks and wrote
+  `pkgdown-site/articles/missing-data.html`.
+- `devtools::test(filter = 'missing-predictor')` passed with 376 expectations,
+  no failures, warnings, or skips.
+- `pkgdown::build_article("missing-data")` completed and rebuilt the pkgdown
+  article page.
+- The full `devtools::test()` suite passed with 9,077 expectations, no
+  failures, warnings, or skips.
+- `pkgdown::check_pkgdown()` passed with no problems found.
+- `air format --check` and `git diff --check` passed.
+- The stale-wording scan returned no matches after the
+  `docs/design/03-likelihoods.md` correction.
+
+GitHub issue audit:
+
+- `"missing predictor family"` returned only #436, the broad Phase 6c sprint
+  issue.
+- `"missing data article"` returned only #58, the older visualization/pkgdown
+  issue.
+- `"mi impute_model"` returned no issue rows.
+- No issue was commented on, closed, or opened because the hits were broad
+  project trackers rather than a specific missing-data family-coverage issue.
+
+Remaining boundary:
+
+- The current module is not a fully general missing-data system. The remaining
+  future work is multiple missing predictors, grouped or structured
+  non-Gaussian predictor models, transformed or interacted `mi()` terms, hurdle
+  count predictor models, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation helpers, measurement-error models, and pigauto
+  interoperability.
+
+## 2026-05-31 -- Missing Data MD9a Poisson Response Binary Predictor
+
+Implemented and audited MD9a, the first non-Gaussian response model that can use
+an explicit missing-predictor model.
+
+Implemented claim:
+
+- `family = poisson()` now supports one fixed-effect binary `mi()` predictor
+  with `impute = list(x = impute_model(x ~ z, family = binomial()))` and
+  `missing = miss_control(predictor = "model")`.
+- Observed binary predictor rows contribute the Bernoulli predictor likelihood
+  plus the Poisson response likelihood.
+- Missing binary predictor rows are integrated by exact two-state summation with
+  the observed Poisson response likelihood.
+- The fitted object records `fit$missing_data$version = "MD9a"` and
+  `imputed()` reports the fitted conditional probability of the second binary
+  state.
+
+Files and documentation updated:
+
+- `R/drmTMB.R`: allows `predictor = "model"` for ordinary Poisson responses,
+  routes `impute` into `drm_build_poisson_spec()`, rejects non-binary
+  Poisson-response `mi()` predictor families, rejects zero-inflated/random/
+  structured Poisson response terms with `mi()`, and labels the metadata as
+  MD9a.
+- `src/drmTMB.cpp`: adds the Poisson-response Bernoulli `mi()` likelihood
+  branch and skips the ordinary Poisson response contribution for rows already
+  integrated over missing predictor states.
+- `R/missing-data.R`: finalizes binary `imputed()` probabilities using the
+  Poisson response likelihood when `spec$model_type == "poisson"`.
+- `tests/testthat/test-missing-predictor-poisson-response.R`: adds the
+  independent likelihood check and boundary tests.
+- `R/drmTMB.R`, `R/missing-data.R`, `man/drmTMB.Rd`, `man/miss_control.Rd`,
+  `man/impute_model.Rd`, `vignettes/missing-data.Rmd`,
+  `docs/design/01-formula-grammar.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/149-missing-data-design.md`, and `NEWS.md`: document the MD9a
+  route and its boundaries.
+
+Verification commands:
+
+```sh
+air format R/drmTMB.R R/missing-data.R tests/testthat/test-missing-data-control.R tests/testthat/test-missing-predictor-poisson-response.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson-response.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-poisson-mean.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); pkgdown::build_reference()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` passed and regenerated `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and `man/impute_model.Rd`.
+- Focused `test-missing-predictor-poisson-response.R`: 13 expectations, no
+  failures, warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-poisson-mean.R`: 138 expectations, no failures, warnings, or skips.
+- `devtools::test(filter = 'missing-predictor')`: 389 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::build_article('missing-data')` rebuilt
+  `pkgdown-site/articles/missing-data.html` with 41 rendered vignette chunks.
+- `pkgdown::build_reference()` rebuilt the local reference pages from generated
+  Rd files.
+- `pkgdown::check_pkgdown()` passed with no problems found after both the article
+  and reference rebuilds.
+- Full `devtools::test()` passed with 9,090 expectations, no failures, warnings,
+  or skips.
+- `git diff --check` passed.
+
+Stale-wording and rendered-site scans:
+
+```sh
+rg -n "MD9a|Poisson responses with binary missing predictors|Poisson response with one missing binary predictor|first non-Gaussian response route|Poisson-response plus binary|family = poisson\\(\\).*mi\\(treatment\\)" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md tests/testthat/test-missing-predictor-poisson-response.R
+rg -n 'only with a univariate Gaussian formula|implemented only for one `mi\(\)` missing predictor in a univariate Gaussian|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html pkgdown-site/reference/impute_model.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md
+```
+
+- The positive scan found the MD9a article section, table row, metadata version,
+  likelihood-design section, formula-grammar row, NEWS entry, generated Rd text,
+  and focused test.
+- The stale scan found only intentional boundary wording: the zero-inflated
+  Poisson `mi()` error in `R/drmTMB.R` and the NEWS sentence that unsupported
+  Poisson-response extensions remain planned.
+
+Cross-package audit:
+
+- Local `gllvmTMB` is on branch `docs/coev-kernel-article` with unrelated dirty
+  files. Its `R/fit-multi.R` contains `mi()` setup and binary/ordered/unordered
+  missing-predictor machinery, but its README still says missing predictors are
+  out. Its `predict_missing()` documentation is response-cell oriented rather
+  than a drop-in scalar Poisson-response missing-predictor route.
+- Installed `glmmTMB` is version 1.1.11. Its help for `glmmTMB()` documents
+  `na.action`: default `na.omit` strips observations containing `NA`, while
+  `na.exclude` drops them for fitting and fills `NA` predictions/residuals for
+  excluded rows. That is not an in-likelihood `mi()` predictor mechanism. The
+  local help query emitted a TMB package-version mismatch warning for the
+  installed `glmmTMB`, so this was treated as documentation evidence only.
+
+Command corrections:
+
+- `Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-poisson.R')"`
+  was attempted before this closeout and failed because that file does not
+  exist. The correct ordinary Poisson regression test file is
+  `tests/testthat/test-poisson-mean.R`, which passed.
+- `pkgdown::build_reference(new_process = FALSE, quiet = FALSE)` was attempted
+  and failed because this installed `pkgdown` version does not accept those
+  arguments. `pkgdown::build_reference()` was rerun with the installed signature
+  and passed.
+
+Remaining boundary:
+
+- MD9a is not a general non-Gaussian missing-data system. It covers one
+  fixed-effect binary missing predictor inside an ordinary fixed-effect Poisson
+  response mean model with complete count responses. Missing Poisson responses,
+  zero-inflated Poisson response models with `mi()`, Poisson response random or
+  structured effects with `mi()`, non-binary missing predictors in Poisson
+  response models, multiple missing predictors, grouped or structured
+  non-Gaussian predictor models, EM/profile/REML engines, simulated imputation
+  summaries, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-06-01 -- Missing Data Final Tidy Closeout
+
+Goal: tidy the missing-data module after the MD9a Poisson-response slice,
+synchronize public docs and reference pages, and rerun package-level gates.
+
+Edits made in the tidy pass:
+
+- Updated `mi()` roxygen in `R/formula-markers.R` so the marker page now names
+  the implemented family-aware predictor routes instead of implying only the
+  Gaussian and binary slices.
+- Replaced stale "first missing-predictor slice" wording in current source
+  messages with "current missing-predictor route" wording in `R/drmTMB.R` and
+  `R/missing-data.R`.
+- Regenerated `man/drmTMB.Rd`, `man/mi.Rd`, and `man/miss_control.Rd`.
+- Rebuilt pkgdown reference pages for `drmTMB()`, `mi()`, `miss_control()`, and
+  `impute_model()`.
+- Added `^\\.claude$` to `.Rbuildignore` after `devtools::check()` reported it
+  as a hidden package-structure NOTE.
+
+Verification commands:
+
+```sh
+air format R/formula-markers.R R/drmTMB.R R/missing-data.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); pkgdown::build_reference()"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+Rscript -e "devtools::check(args = '--no-manual')"
+Rscript -e "devtools::check(args = '--no-manual')"
+git diff --check
+```
+
+Results:
+
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `devtools::test(filter = 'missing-predictor')`: 389 expectations, no
+  failures, warnings, or skips.
+- `pkgdown::build_reference()` completed and rewrote the missing-data reference
+  pages from the generated Rd files.
+- `pkgdown::build_article('missing-data')` rebuilt
+  `pkgdown-site/articles/missing-data.html` from 41 rendered chunks.
+- `pkgdown::check_pkgdown()` passed with no problems found.
+- Full `devtools::test()` passed with 9,090 expectations, no failures,
+  warnings, or skips.
+- The first `devtools::check(args = '--no-manual')` passed with 0 errors, 0
+  warnings, and 1 NOTE for hidden `.claude`.
+- After adding `.claude` to `.Rbuildignore`, the second
+  `devtools::check(args = '--no-manual')` passed with 0 errors, 0 warnings, and
+  1 NOTE: `checking for future file timestamps ... unable to verify current
+  time`. The earlier hidden-file NOTE was gone.
+- `git diff --check` passed.
+
+Stale/status scans:
+
+```sh
+rg -n 'Amazon|amazon' README.md NEWS.md docs vignettes pkgdown-site 2>/dev/null
+rg -n 'first missing-predictor slice|first `mi\(\)` predictor-model|first \.fn mi|one univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' R/formula-markers.R R/drmTMB.R R/missing-data.R man/mi.Rd man/drmTMB.Rd man/miss_control.Rd vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/mi.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md 2>/dev/null
+```
+
+- The `Amazon|amazon` scan found only Font Awesome icon CSS references under
+  `pkgdown-site/deps` and `pkgdown-site/dev/deps`; there is no Amazon-specific
+  article or missing-data prose.
+- The stale/status scan now returns only intentional wording: the NEWS first
+  release bullet, the MD3a formula-grammar row labelled as the first slice, and
+  the explicit zero-inflated Poisson `mi()` planned boundary.
+
+Final boundary: the missing-data module is tidy for the implemented surface, but
+not complete for all conceivable missing-data models. Remaining planned work
+includes multiple missing predictors, non-binary predictors in non-Gaussian
+response models, missing non-Gaussian responses, grouped or structured
+non-Gaussian predictor models, EM/profile/REML engines, simulated imputation
+summaries, measurement-error models, and pigauto interoperability.
+
+## 2026-06-01 -- Resume Audit Of Missing Data Final Tidy Closeout
+
+Goal: resume after interruption, preserve the current working-tree state, and
+audit the completed missing-data final tidy closeout before any new
+implementation slice.
+
+Recovery checkpoint:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "resume missing-data final tidy closeout audit" --next "audit completed missing-data closeout against after-task checklist and prepare the smallest safe handoff"
+```
+
+- Wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-01-104134-codex-checkpoint.md`.
+
+Audit commands:
+
+```sh
+git diff --check
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+rg -n 'Amazon|amazon' README.md NEWS.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/deps/**' --glob '!pkgdown-site/dev/deps/**'
+rg -n 'first missing-predictor slice|first `mi\(\)` predictor-model|first \.fn mi|one univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' R/formula-markers.R R/drmTMB.R R/missing-data.R man/mi.Rd man/drmTMB.Rd man/miss_control.Rd vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/mi.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md
+```
+
+Results:
+
+- `git diff --check` passed.
+- `devtools::test(filter = 'missing-predictor')` passed again with 389
+  expectations, no failures, warnings, or skips.
+- The precise `Amazon|amazon` scan, excluding generated Font Awesome dependency
+  directories, returned no hits.
+- The stale/status scan returned only intentional boundary wording: the NEWS
+  first-release bullets, the MD3a formula-grammar row labelled as the first
+  missing-predictor slice, and the explicit zero-inflated Poisson `mi()` planned
+  boundary in `R/drmTMB.R`.
+
+Audit conclusion: the current closeout claim is coherent. The implemented
+surface remains one-at-a-time modelled missing predictors, mainly in
+univariate Gaussian location models, plus MD9a for an ordinary Poisson response
+with one fixed-effect binary `mi()` predictor and complete count responses.
+The next safe step is not another implementation change on top of this dirty
+tree; it is to prepare a small reviewable handoff or PR slice for the
+missing-data work.
+
+## 2026-06-01 -- Missing Data And Non-Gaussian Status Cleanup
+
+Goal: clean up release-facing status wording after the missing-data closeout,
+make the exact missing-data release boundary explicit, and answer whether the
+package is close to finishing all non-Gaussian support.
+
+Edits made:
+
+- Added a missing-data status row to `README.md`.
+- Added the missing-data release boundary to `ROADMAP.md`.
+- Added a missing-data block to `docs/dev-log/known-limitations.md`.
+- Added a release-readiness interpretation to
+  `docs/design/149-missing-data-design.md`.
+- Corrected stale wording in
+  `docs/dev-log/after-task/2026-05-31-missing-data-module-family-coverage-closeout.md`
+  that implied all current missing-predictor routes were fixed-effect only.
+- Added
+  `docs/dev-log/after-task/2026-06-01-missing-data-non-gaussian-status-cleanup.md`.
+
+Verification commands:
+
+```sh
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'one fixed-effect `mi\(\)` predictor at a time|one fixed-effect mi\(\) predictor at a time|only a univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|missing-data.*done.*general|general missing-data framework.*done' README.md ROADMAP.md NEWS.md docs/design/149-missing-data-design.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-missing-data-module-family-coverage-closeout.md docs/dev-log/after-task/2026-06-01-missing-data-final-tidy-closeout.md vignettes/missing-data.Rmd
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::test(filter = 'missing')`: 479 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: passed.
+- Stale scan: only intentional boundary text remained: NEWS MD9a planned
+  extensions, the new README status row, and the earlier after-task report's
+  recorded scan command.
+- Full `devtools::test()`: 9,090 expectations, no failures, warnings, or
+  skips.
+
+Status answer:
+
+- Missing-data capabilities are done for the current release boundary:
+  Gaussian response masks, one-at-a-time modelled missing predictors in
+  univariate Gaussian location models across the implemented predictor-family
+  set, `imputed()` summaries, and MD9a for ordinary Poisson response with one
+  fixed-effect binary `mi()` predictor.
+- Missing data is not a general framework yet. Multiple missing predictors,
+  missing non-Gaussian responses, non-binary missing predictors in
+  non-Gaussian response models, grouped or structured non-Gaussian predictor
+  models, EM/profile/REML engines, response-imputation summaries,
+  measurement-error models, and pigauto interoperability remain planned.
+- Non-Gaussian support is close only on named axes: one-response fixed-effect
+  families are broad, and first ordinary `mu` random-effect plus selected q=1
+  structured count slices are tested. It is not close for every
+  non-Gaussian mixed, structured, bivariate, missing-data, or distributional
+  parameter combination.

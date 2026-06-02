@@ -59,6 +59,21 @@
   fixed-effect matrices remain out of scope. Fitted-row predictions and
   residuals still use stored original-row model matrices and response vectors;
   no cell-level residual method is exposed yet.
+- Missing-data support is release-ready for the implemented surface, not for
+  every missing-data analysis. `miss_control(response = "include")` is fitted
+  for univariate Gaussian response masks and independent-observation bivariate
+  Gaussian partial-response rows without dense known sampling covariance.
+  `miss_control(predictor = "model")` fits one explicit `mi()` missing
+  predictor at a time in univariate Gaussian location models, with fixed-effect
+  family-aware predictor models plus the grouped and structured Gaussian
+  covariate routes. MD9a is the only non-Gaussian response route: ordinary
+  `family = poisson()` with one fixed-effect binary `mi()` predictor and
+  complete count responses. Multiple missing predictors, missing non-Gaussian
+  responses, non-binary missing predictors in non-Gaussian response models,
+  grouped or structured non-Gaussian predictor models, transformed or
+  interacted `mi()` terms, EM/profile/REML engines, simulation-based imputation
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
