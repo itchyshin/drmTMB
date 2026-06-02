@@ -758,3 +758,46 @@ Current pilot files:
 - `reports/phase18-count-mu-gallery.Rmd` is the first Florence-facing figure
   gallery template for paired Poisson/NB2 `mu` random-effect pilot outputs.
   It sources `R/sim_gallery_grain.R` before drawing replicate-error clouds.
+
+## Power simulations
+
+`R/sim_power.R` adds a power layer on top of the recovery harness. It is for a
+maintainer who wants to estimate, for an admitted surface, the probability that
+the public 95% interval excludes the null as a function of effect size and
+sample size. The design contract is
+`docs/design/154-phase-18-power-simulation-plan.md`.
+
+The pieces, all surface-agnostic:
+
+- `phase18_power_grid_conditions()` crosses a base condition grid with an
+  effect-size sweep, tagging each cell with `effect_size`, `null_value`, and
+  `is_null`. The `is_null` cell (effect equals the null) is the Type I error
+  cell; the rest are power cells.
+- `phase18_summarise_power()` reports per-cell `power = mean(ci_excludes_null)`
+  with binomial MCSE and an `inference` label (`power`, `type_i_error`, or
+  `mixed`).
+- `phase18_assemble_power_table()` turns a recovery summary into that power
+  table, adding Wald intervals if absent and joining condition metadata on
+  `cell_id`.
+- `phase18_power_curve_data()` adds a Monte Carlo band and orders rows by sample
+  size; `phase18_power_target_sample_size()` interpolates the simulated curve to
+  a target power; `phase18_summarise_type_i_error()` audits the null cells
+  against a nominal alpha before any power number is trusted.
+
+The runnable orchestration lives in `run/`:
+
+- `run/sim_run_power_grid.R` defines `phase18_run_power_grid()`, the engine that
+  drives any DGP/fit/summarise adapter set through the sweep and returns
+  `$power`, `$curve`, and `$sample_size`.
+- `run/sim_run_gaussian_ls_power_smoke.R`, `run/sim_run_meta_v_power_smoke.R`,
+  and `run/sim_run_poisson_mu_re_power_smoke.R` are thin per-surface wrappers.
+- `run/sim_write_power_grid.R` persists a result to CSV artifacts plus a
+  manifest, and the `phase18_write_*_power_grid_outputs()` wrappers run and
+  persist in one call.
+
+To launch a grid, dispatch one of the Actions tasks `gaussian_ls_power`,
+`meta_v_power`, or `poisson_mu_re_power` from
+`.github/workflows/phase18-simulation-grid.yaml`, choosing `n_reps` from the
+MCSE budget in doc 154. Artifacts land under
+`inst/sim/results/actions/<task>/tables/`. Join the per-cell power table back to
+the condition registry on `cell_id` to draw power curves.

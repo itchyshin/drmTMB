@@ -105,6 +105,12 @@ for this interval-based pass.
 | Power / Type I error | `mean(ci_excludes_null)` over usable intervals | binomial MCSE `sqrt(p(1-p)/n_sim)` |
 | Target sample size | interpolated `n` where the simulated power curve crosses the target | grid min/max and a status flag |
 
+Before reporting a power number for a surface, audit the null cell with
+`phase18_summarise_type_i_error()`: the observed rejection rate at `delta = 0`
+should sit within a couple of Monte Carlo standard errors of the nominal `alpha`.
+A miscalibrated Type I error rate means the power numbers from the same intervals
+are not trustworthy.
+
 This matches the Power row already specified in
 `docs/design/41-phase-18-simulation-programme.md`. Plan the replicate budget from
 the MCSE before any large run: a power near 0.8 has binomial MCSE about 1.8
