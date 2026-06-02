@@ -128,6 +128,196 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
   blocks[[dpar]]
 }
 
+#' Extract structured-effect metadata
+#'
+#' `structured_effects()` returns the structured random-effect markers that
+#' `drmTMB` parsed and fitted. It gives downstream tools a stable post-fit
+#' metadata table so they do not need to grep or re-parse formula text.
+#'
+#' The current fitted marker grammar is:
+#'
+#' * `phylo(1 | species, tree = tree)`
+#' * `spatial(1 | site, coords = coords)`
+#' * `animal(1 | id, pedigree = pedigree)`,
+#'   `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)`
+#' * `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)`
+#' * `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
+#'
+#' Some Gaussian routes also fit matching location-scale, bivariate, or
+#' one-slope structured blocks. Those routes still return one row per parsed
+#' structured marker, with `dpars` and `coef_names` stored as list columns.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future extractor options.
+#'
+#' @return A data frame with one row per fitted structured-effect marker. The
+#'   `args`, `dpars`, and `coef_names` columns are list columns. Empty fits
+#'   return the same columns with zero rows.
+#' @export
+#'
+#' @examples
+#' dat <- data.frame(
+#'   y = c(0.1, 0.4, 0.8, 1.1),
+#'   x = c(-1, 0, 1, 2)
+#' )
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' structured_effects(fit)
+structured_effects <- function(object, ...) {
+  UseMethod("structured_effects")
+}
+
+#' @rdname structured_effects
+#' @export
+structured_effects.default <- function(object, ...) {
+  cli::cli_abort(
+    "{.fn structured_effects} is implemented for {.cls drmTMB} fits."
+  )
+}
+
+#' @rdname structured_effects
+#' @export
+structured_effects.drmTMB <- function(object, ...) {
+  structured <- object$model$structured
+  if (!is.list(structured) || length(structured) == 0L) {
+    return(empty_structured_effects_table())
+  }
+
+  rows <- lapply(structured, structured_effects_table_row)
+  rows <- rows[vapply(rows, nrow, integer(1L)) > 0L]
+  if (length(rows) == 0L) {
+    return(empty_structured_effects_table())
+  }
+
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+structured_effects_table_row <- function(structured_mu) {
+  if (!is.list(structured_mu) || !isTRUE(structured_mu$has)) {
+    return(empty_structured_effects_table())
+  }
+
+  marker <- structured_mu_type(structured_mu)
+  args <- structured_effects_args(structured_mu, marker)
+  group1 <- structured_effects_scalar(structured_mu$group1)
+  group2 <- structured_effects_scalar(structured_mu$group2)
+
+  data.frame(
+    marker = marker,
+    grouping_variable = structured_effects_group(structured_mu, marker),
+    matrix_attachment = structured_effects_matrix_attachment(args),
+    structure = structured_effects_structure(structured_mu, marker),
+    group1 = group1,
+    group2 = group2,
+    label = structured_effects_scalar(structured_mu$label),
+    block = phylo_mu_block(structured_mu),
+    q = structured_mu_q(structured_mu),
+    n_re = structured_effects_integer(structured_mu$n_re),
+    random_effect_block = structured_mu_random_effect_key(structured_mu),
+    correlation_level = structured_mu_corpair_level(structured_mu),
+    dpars = I(list(phylo_mu_dpars(structured_mu))),
+    coef_names = I(list(as.character(structured_mu$coef_names))),
+    args = I(list(args)),
+    stringsAsFactors = FALSE
+  )
+}
+
+empty_structured_effects_table <- function() {
+  data.frame(
+    marker = character(),
+    grouping_variable = character(),
+    matrix_attachment = character(),
+    structure = character(),
+    group1 = character(),
+    group2 = character(),
+    label = character(),
+    block = character(),
+    q = integer(),
+    n_re = integer(),
+    random_effect_block = character(),
+    correlation_level = character(),
+    dpars = I(vector("list", 0L)),
+    coef_names = I(vector("list", 0L)),
+    args = I(vector("list", 0L)),
+    stringsAsFactors = FALSE
+  )
+}
+
+structured_effects_group <- function(structured_mu, marker) {
+  if (identical(marker, "phylo_interaction")) {
+    return(paste0(structured_mu$group1, ":", structured_mu$group2))
+  }
+  structured_effects_scalar(structured_mu$group)
+}
+
+structured_effects_structure <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = "tree",
+    phylo_interaction = "tree_pair",
+    structured_effects_scalar(structured_mu$structure)
+  )
+}
+
+structured_effects_args <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = list(tree = structured_effects_scalar(structured_mu$tree)),
+    phylo_interaction = list(
+      tree1 = structured_effects_scalar(structured_mu$tree1),
+      tree2 = structured_effects_scalar(structured_mu$tree2),
+      group1 = structured_effects_scalar(structured_mu$group1),
+      group2 = structured_effects_scalar(structured_mu$group2)
+    ),
+    {
+      structure <- structured_effects_scalar(structured_mu$structure)
+      object <- structured_effects_scalar(structured_mu$object)
+      stats::setNames(list(object), structure)
+    }
+  )
+}
+
+structured_effects_matrix_attachment <- function(args) {
+  values <- unlist(
+    args[
+      names(args) %in%
+        c(
+          "tree",
+          "coords",
+          "mesh",
+          "pedigree",
+          "A",
+          "Ainv",
+          "K",
+          "Q",
+          "tree1",
+          "tree2"
+        )
+    ],
+    use.names = FALSE
+  )
+  values <- values[!is.na(values) & nzchar(values)]
+  if (length(values) == 0L) {
+    return(NA_character_)
+  }
+  paste(values, collapse = ":")
+}
+
+structured_effects_scalar <- function(x) {
+  if (is.null(x) || length(x) == 0L || is.na(x[[1L]])) {
+    return(NA_character_)
+  }
+  as.character(x[[1L]])
+}
+
+structured_effects_integer <- function(x) {
+  if (is.null(x) || length(x) == 0L || is.na(x[[1L]])) {
+    return(NA_integer_)
+  }
+  as.integer(x[[1L]])
+}
+
 #' Extract likelihood weights
 #'
 #' `weights()` returns the row likelihood multipliers used by a fitted

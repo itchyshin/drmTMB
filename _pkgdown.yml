@@ -148,6 +148,7 @@ reference:
       - rho12
       - sigma.drmTMB
       - simulate.drmTMB
+      - structured_effects
       - summary.drmTMB
       - weights.drmTMB
   - title: Visualization
