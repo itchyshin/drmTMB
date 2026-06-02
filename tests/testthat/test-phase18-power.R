@@ -364,6 +364,39 @@ test_that("power helpers extend to a sigma effect via named nulls", {
   expect_equal(mu_row$n_interval, 0L)
 })
 
+test_that("type I error audit flags calibration against nominal alpha", {
+  phase18_source_power_helpers()
+
+  power_table <- data.frame(
+    surface = "gaussian_ls",
+    parameter = "mu:x",
+    effect_size = c(0, 0, 0.4),
+    inference = c("type_i_error", "type_i_error", "power"),
+    power = c(0.052, 0.300, 0.850),
+    power_mcse = c(0.010, 0.010, 0.020),
+    stringsAsFactors = FALSE
+  )
+
+  audit <- phase18_summarise_type_i_error(power_table, alpha = 0.05)
+
+  # Only the two null cells are audited; the power cell is dropped.
+  expect_equal(nrow(audit), 2L)
+  expect_equal(audit$type_i_rate, c(0.052, 0.300))
+  expect_true(all(audit$nominal_alpha == 0.05))
+  # 0.052 is within 2 MCSE of 0.05; 0.300 is not (badly miscalibrated).
+  expect_identical(audit$within_tolerance, c(TRUE, FALSE))
+})
+
+test_that("type I error audit needs a way to identify null cells", {
+  phase18_source_power_helpers()
+  expect_error(
+    phase18_summarise_type_i_error(
+      data.frame(power = 0.05, stringsAsFactors = FALSE)
+    ),
+    "inference. or .is_null"
+  )
+})
+
 test_that("power pipeline composes from DGP, fit, intervals, and summary", {
   skip_on_cran()
   source(
