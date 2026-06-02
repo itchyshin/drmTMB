@@ -20,6 +20,7 @@ phase18_run_power_grid <- function(
   target_parameter = "mu:x",
   effect_values = c(0, 0.1, 0.2, 0.35, 0.5),
   null_value = 0,
+  sample_size = "n",
   n_rep = 1L,
   master_seed = 20260602L,
   conf.level = 0.95,
@@ -38,6 +39,13 @@ phase18_run_power_grid <- function(
       !nzchar(target_parameter)
   ) {
     stop("`target_parameter` must be one non-empty string.", call. = FALSE)
+  }
+  if (
+    !is.character(sample_size) ||
+      length(sample_size) != 1L ||
+      !nzchar(sample_size)
+  ) {
+    stop("`sample_size` must be one non-empty string.", call. = FALSE)
   }
   assert_positive_whole_number(n_rep, "n_rep")
 
@@ -75,22 +83,28 @@ phase18_run_power_grid <- function(
     by = c("surface", "cell_id", "parameter")
   )
   target_rows <- power[power$parameter == target_parameter, , drop = FALSE]
-  curve <- phase18_power_curve_data(target_rows, conf.level = conf.level)
-  sample_size <- phase18_power_target_sample_size(
+  curve <- phase18_power_curve_data(
+    target_rows,
+    sample_size = sample_size,
+    conf.level = conf.level
+  )
+  target_sample_size <- phase18_power_target_sample_size(
     curve,
-    target_power = target_power
+    target_power = target_power,
+    sample_size = sample_size
   )
 
   list(
     surface = surface,
     effect_name = effect_name,
     target_parameter = target_parameter,
+    sample_size_column = sample_size,
     registry = registry,
     parallel = attr(results, "phase18_parallel", exact = TRUE),
     results = results,
     summary = summary,
     power = power,
     curve = curve,
-    sample_size = sample_size
+    sample_size = target_sample_size
   )
 }

@@ -71,6 +71,41 @@ test_that("generic power engine assembles power, curve, and target sample size",
   expect_true(all(c("n_target", "status") %in% names(result$sample_size)))
 })
 
+test_that("engine threads a non-default sample_size column (e.g. n_group)", {
+  phase18_source_power_engine()
+
+  # Meta-analysis and Poisson surfaces name their sample-size column n_study /
+  # n_group, not n. The engine must thread that name into the curve and the
+  # target-sample-size read instead of assuming "n".
+  mock_dgp <- function(cell, seed, cell_id, replicate) {
+    dat <- data.frame(cell_id = cell_id, replicate = replicate)
+    attr(dat, "truth") <- list(
+      effect_size = cell$effect_size[[1L]],
+      n = cell$n_group[[1L]]
+    )
+    dat
+  }
+
+  result <- phase18_run_power_grid(
+    surface = "mock_power",
+    base_conditions = data.frame(n_group = c(24L, 96L), beta_mu_x = 0.5),
+    dgp_fun = mock_dgp,
+    fit_fun = phase18_power_mock_fit,
+    summarise_fun = phase18_power_mock_summarise,
+    effect_name = "beta_mu_x",
+    target_parameter = "mu:x",
+    effect_values = c(0, 0.4),
+    sample_size = "n_group",
+    n_rep = 2L,
+    master_seed = 1L
+  )
+
+  expect_identical(result$sample_size_column, "n_group")
+  expect_true("n_group" %in% names(result$curve))
+  expect_true(all(c("power_low", "power_high") %in% names(result$curve)))
+  expect_true(all(c("n_target", "status") %in% names(result$sample_size)))
+})
+
 test_that("power grid writer persists CSV artifacts and a manifest", {
   phase18_source_power_engine()
 

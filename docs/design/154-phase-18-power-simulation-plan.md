@@ -176,7 +176,11 @@ The orchestration is now generic and wired for dispatch:
   `$sample_size`. The per-surface runners are thin wrappers:
   `phase18_run_gaussian_ls_power()`, `phase18_run_meta_v_power()` (moderator
   `mu:x`), and `phase18_run_poisson_mu_re_power()` (population slope `mu:x` with
-  random intercepts and slopes in the model).
+  random intercepts and slopes in the model). Each wrapper sets the engine's
+  `sample_size` argument to the column that names the sample-size axis for that
+  surface (`n` for Gaussian, `n_study` for meta-analysis, `n_group` for the
+  Poisson groups), so the power curve and target-sample-size read use the right
+  axis.
 - `phase18_write_power_grid_tables()` (in `inst/sim/run/sim_write_power_grid.R`)
   persists a runner result to CSV — power table, curve, target-sample-size,
   condition registry, and per-replicate summary — plus a manifest. The
