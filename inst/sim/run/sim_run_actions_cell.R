@@ -20,7 +20,10 @@ phase18_actions_task_choices <- function() {
     "animal_mu_slope",
     "relmat_mu_slope",
     "poisson_phylo_q1_formal",
-    "nbinom2_phylo_q1_formal"
+    "nbinom2_phylo_q1_formal",
+    "gaussian_ls_power",
+    "meta_v_power",
+    "poisson_mu_re_power"
   )
 }
 
@@ -309,6 +312,33 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "relmat_mu_slope")) {
     out <- phase18_write_relmat_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "gaussian_ls_power")) {
+    out <- phase18_write_gaussian_ls_power_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "meta_v_power")) {
+    out <- phase18_write_meta_v_power_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "poisson_mu_re_power")) {
+    out <- phase18_write_poisson_mu_re_power_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -720,6 +750,39 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_relmat_mu_slope_smoke.R",
       "sim/run/sim_summary_relmat_mu_slope_smoke.R",
       "sim/run/sim_write_relmat_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "gaussian_ls_power")) {
+    return(c(
+      "sim/R/sim_power.R",
+      "sim/dgp/sim_dgp_gaussian_ls.R",
+      "sim/fit/sim_summarise_gaussian_ls.R",
+      "sim/run/sim_run_gaussian_ls_smoke.R",
+      "sim/run/sim_run_power_grid.R",
+      "sim/run/sim_run_gaussian_ls_power_smoke.R",
+      "sim/run/sim_write_power_grid.R"
+    ))
+  }
+  if (identical(task, "meta_v_power")) {
+    return(c(
+      "sim/R/sim_power.R",
+      "sim/dgp/sim_dgp_meta_v.R",
+      "sim/fit/sim_summarise_meta_v.R",
+      "sim/run/sim_run_meta_v_smoke.R",
+      "sim/run/sim_run_power_grid.R",
+      "sim/run/sim_run_meta_v_power_smoke.R",
+      "sim/run/sim_write_power_grid.R"
+    ))
+  }
+  if (identical(task, "poisson_mu_re_power")) {
+    return(c(
+      "sim/R/sim_power.R",
+      "sim/dgp/sim_dgp_poisson_mu_random_effect.R",
+      "sim/fit/sim_summarise_poisson_mu_random_effect.R",
+      "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
+      "sim/run/sim_run_power_grid.R",
+      "sim/run/sim_run_poisson_mu_re_power_smoke.R",
+      "sim/run/sim_write_power_grid.R"
     ))
   }
   if (identical(task, "poisson_phylo_q1_formal")) {
