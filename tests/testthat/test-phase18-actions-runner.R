@@ -676,6 +676,78 @@ test_that("Phase 18 Actions runner dispatches non-spatial structured mu-slope ta
   }
 })
 
+test_that("Phase 18 Actions runner accepts correlation-block status task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-correlation-block-status-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=correlation_block_status",
+      paste0("--output-dir=", output_dir),
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=correlation_block_status", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources correlation-block status task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  expect_equal(
+    env$phase18_actions_task_paths("correlation_block_status"),
+    c(
+      "sim/run/sim_phase18_structured_workflow_registry.R",
+      "sim/run/sim_write_correlation_block_status.R"
+    )
+  )
+})
+
+test_that("Phase 18 Actions runner dispatches correlation-block status task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_write_correlation_block_status_outputs <- function(...) {
+    args <- list(...)
+    list(
+      ok = TRUE,
+      output_dir = args$output_dir,
+      overwrite = args$overwrite
+    )
+  }
+
+  output_dir <- tempfile("phase18-actions-correlation-block-status-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=correlation_block_status",
+        paste0("--output-dir=", output_dir),
+        "--overwrite=true"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+  result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+  expect_match(out, "task=correlation_block_status", fixed = TRUE)
+  expect_true(result$ok)
+  expect_true(result$overwrite)
+})
+
 test_that("Phase 18 Actions runner loads drmTMB for real tasks", {
   script <- phase18_actions_runner_script()
   text <- paste(readLines(script, warn = FALSE), collapse = "\n")
@@ -918,6 +990,31 @@ test_that("Phase 18 workflow exposes non-spatial structured mu-slope tasks", {
       fixed = TRUE
     )
   }
+})
+
+test_that("Phase 18 workflow exposes correlation-block status task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "correlation_block_status", fixed = TRUE)
+  expect_match(text, "20260608", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: correlation_block_status",
+      "seed: 20260608",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
 })
 
 test_that("Phase 18 Actions runner rejects nested parallel requests", {

@@ -20,6 +20,7 @@ on:
           - student_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
+          - correlation_block_status
           - biv_gaussian_mu_slope
           - spatial_mu_slope
           - phylo_mu_slope
@@ -164,6 +165,9 @@ jobs:
             include_in_all: false
           - task: zero_one_beta_fixed_effect
             seed: 20260536
+            include_in_all: false
+          - task: correlation_block_status
+            seed: 20260608
             include_in_all: false
           - task: biv_gaussian_mu_slope
             seed: 20260603

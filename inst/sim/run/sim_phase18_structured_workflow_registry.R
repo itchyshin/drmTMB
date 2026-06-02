@@ -19,15 +19,15 @@ phase18_structured_workflow_registry_path <- function(
       file.path(root, registry_file)
     )
   } else {
-    installed <- system.file(registry_file, package = package)
-    if (nzchar(installed)) {
-      candidates <- c(candidates, installed)
-    }
     candidates <- c(
       candidates,
       file.path(getwd(), "inst", registry_file),
       file.path(getwd(), registry_file)
     )
+    installed <- system.file(registry_file, package = package)
+    if (nzchar(installed)) {
+      candidates <- c(candidates, installed)
+    }
   }
 
   hit <- candidates[file.exists(candidates)][1L]
@@ -773,6 +773,7 @@ phase18_structured_workflow_plan_counts <- function(plans) {
       existing_actions_tasks = sum(!is.na(plan$actions_task)),
       wrapper_targets = sum(grepl("wrapper_target", plan$dispatch_status)),
       ready_grid = sum(plan$admission_status == "ready_grid"),
+      ready_or_smoke = sum(plan$admission_status == "ready_or_smoke"),
       ready_source_test = sum(plan$admission_status == "ready_source_test"),
       diagnostic_only = sum(plan$admission_status == "diagnostic_only"),
       ready_smoke = sum(plan$admission_status == "ready_smoke"),
@@ -953,6 +954,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
+    "correlation_block_status",
     "biv_gaussian_mu_slope",
     "spatial_mu_slope",
     "phylo_mu_slope",
@@ -1163,19 +1165,25 @@ phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
     "mu1 and mu2 fixed effects; paired random-slope SDs;",
     "slope-slope corpairs row; residual rho12 kept separate; diagnostics"
   )
-  estimands[lane_id %in% c(
-    "poisson_mu_random_effects",
-    "nbinom2_mu_random_effects",
-    "truncated_nbinom2_mu_random_effects"
-  )] <- paste(
+  estimands[
+    lane_id %in%
+      c(
+        "poisson_mu_random_effects",
+        "nbinom2_mu_random_effects",
+        "truncated_nbinom2_mu_random_effects"
+      )
+  ] <- paste(
     "mu fixed effects; count-scale random-effect SDs;",
     "mean-response summaries; convergence, boundary, and warning diagnostics"
   )
-  estimands[lane_id %in% c(
-    "bounded_mu_random_effects",
-    "positive_continuous_mu_random_effects",
-    "student_mu_random_effects"
-  )] <- paste(
+  estimands[
+    lane_id %in%
+      c(
+        "bounded_mu_random_effects",
+        "positive_continuous_mu_random_effects",
+        "student_mu_random_effects"
+      )
+  ] <- paste(
     "mu fixed effects; ordinary mu random-effect SDs;",
     "family-specific response summaries; convergence and boundary diagnostics"
   )

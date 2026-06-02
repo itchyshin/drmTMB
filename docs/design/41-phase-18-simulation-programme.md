@@ -1282,9 +1282,9 @@ errors, and elapsed time by surface before the raw manifest.
 226. Slice 1818 adds `phase18_correlation_block_workflow_plan()`, which keeps
      residual `rho12`, q=2 direct or layer-specific `corpairs()` rows, and q=4
      diagnostic rows separate. The current plan has six non-blocked rows, maps
-     three direct rows to `interval_heavy_summary`, leaves structured q=2 as a
-     wrapper target, marks q=4 rows as diagnostic wrapper targets, and records
-     q=4 interval policy as `q4_derived_interval_unavailable`.
+     three direct rows to `interval_heavy_summary`, maps the structured q=2 row
+     and q=4 diagnostic rows to the read-only `correlation_block_status` task,
+     and records q=4 interval policy as `q4_derived_interval_unavailable`.
 227. Slice 1819 adds `phase18_family_surface_workflow_plan()`, the executable
      family-surface admission table. The current plan has eleven rows: six
      admitted grid rows, one smoke-only NB2 `sigma` row, three blocked rows, and
@@ -1295,8 +1295,8 @@ errors, and elapsed time by surface before the raw manifest.
      workflow plan tables plus a compact counts table. The current counts are:
      random slopes 9 rows with 9 non-none Actions routes and 0 wrapper targets;
      structured dependence 7 rows with 7 existing tasks, 0 wrapper targets, and
-     1 diagnostic row; correlation blocks 6 rows with 3 existing tasks,
-     3 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
+     1 diagnostic row; correlation blocks 6 rows with 6 existing tasks,
+     0 wrapper targets, and 2 diagnostic rows; family surfaces 11 rows with
      7 existing tasks, 3 blocked rows, and 1 design-only row.
 229. Slice 1821 adds dry-run printers for the structured workflow bundle and
      individual workflow plans. The dry-run output renders the count table and
@@ -1437,3 +1437,9 @@ errors, and elapsed time by surface before the raw manifest.
      accuracy, coverage, power, sparse large-pedigree speed, multiple-slope,
      slope-correlation, residual-scale structured-slope, or non-Gaussian
      structured-slope evidence.
+247. Slice 1839 adds `correlation_block_status` as a manual-only Phase 18
+     Actions task for the correlation-block workflow. It writes read-only CSV
+     status artifacts for the plan, dispatchable rows, remaining wrapper
+     targets, and registry counts. It does not fit models, profile parameters,
+     bootstrap intervals, promote `structured_gaussian_q2`, or make q=4 derived
+     correlations interval-ready.

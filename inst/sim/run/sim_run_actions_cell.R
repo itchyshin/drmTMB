@@ -12,6 +12,7 @@ phase18_actions_task_choices <- function() {
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
+    "correlation_block_status",
     "biv_gaussian_mu_slope",
     "spatial_mu_slope",
     "phylo_mu_slope",
@@ -254,6 +255,11 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       overwrite = overwrite,
       cores = cores,
       backend = backend
+    )
+  } else if (identical(task, "correlation_block_status")) {
+    out <- phase18_write_correlation_block_status_outputs(
+      output_dir = output_dir,
+      overwrite = overwrite
     )
   } else if (identical(task, "biv_gaussian_mu_slope")) {
     out <- phase18_write_biv_gaussian_mu_slope_grid_outputs(
@@ -644,6 +650,12 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_zero_one_beta_fixed_effect_smoke.R",
       "sim/run/sim_summary_zero_one_beta_fixed_effect_smoke.R",
       "sim/run/sim_write_zero_one_beta_fixed_effect_grid.R"
+    ))
+  }
+  if (identical(task, "correlation_block_status")) {
+    return(c(
+      "sim/run/sim_phase18_structured_workflow_registry.R",
+      "sim/run/sim_write_correlation_block_status.R"
     ))
   }
   if (identical(task, "biv_gaussian_mu_slope")) {

@@ -25,7 +25,7 @@ covariance `V`.
 | Family surface | Ordinary random slope status | `phylo()` | `spatial()` | `animal()` | `relmat()` | q=2 / `corpairs()` | q=4 / `corpairs()` | Workflow state |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gaussian location-scale | Ready for ordinary `mu` q > 2 and independent `sigma` slopes | Ready for Gaussian `mu` one-slope and intercept/direct-SD subsets | Ready for Gaussian `mu` one-slope, `mu`/`sigma` intercepts, and q=2 spatial location covariance | Ready for dense-pedigree Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for known-matrix Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for selected ordinary and structured q=2 rows; direct intervals only where profile targets exist | Fitted for selected ordinary and structured constant blocks, but many q=4 correlations are derived-unavailable | Use the random-slope workflow plan and existing task routes for admitted random-slope rows; maintain structured-dependence wrappers by status |
-| Bivariate Gaussian and residual `rho12` | Ready only for matching slope-only `mu1`/`mu2`; intercept-plus-slope q=4 and p8/q8 stay closed | Ready for selected `mu1`/`mu2` and location-scale subsets; hard real-data q2/q4 cases remain diagnostic | Ready for constant q=2 location and constant q=4 location-scale smoke/artifact subsets | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for residual `rho12`, selected group/structured q=2 `corpairs()` rows, and slope-only `mu1`/`mu2` | q=4 rows are visible point estimates with explicit interval limits unless direct targets exist | Add a correlation-block wrapper that separates residual `rho12`, q=2 direct rows, and q=4 derived rows |
+| Bivariate Gaussian and residual `rho12` | Ready only for matching slope-only `mu1`/`mu2`; intercept-plus-slope q=4 and p8/q8 stay closed | Ready for selected `mu1`/`mu2` and location-scale subsets; hard real-data q2/q4 cases remain diagnostic | Ready for constant q=2 location and constant q=4 location-scale smoke/artifact subsets | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for residual `rho12`, selected group/structured q=2 `corpairs()` rows, and slope-only `mu1`/`mu2` | q=4 rows are visible point estimates with explicit interval limits unless direct targets exist | Use `correlation_block_status` to artifact the residual, q=2, and q=4 status boundary without promoting q=4 intervals |
 | Counts: Poisson and NB2 | Ready for ordinary non-zero-inflated `mu` independent slopes; NB2 `sigma` has only an ordinary intercept gate | Smoke/formal-admission only for q=1 `mu` intercepts; no count slopes or labelled covariance | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Blocked for labelled count q=2 covariance | Blocked for labelled count q=4 covariance | Keep using `poisson_phylo_q1_formal`, `nbinom2_phylo_q1_formal`, and `count_structured_q1`; add a count-admission audit wrapper before any promotion |
 | Zero-inflated and hurdle counts | Fixed-effect `zi` or `hu` routes only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Failure-ledger rows only until a new likelihood design opens random effects |
 | Bounded and binary-like responses: `beta()`, `beta_binomial()`, `zero_one_beta()` | `beta()` and `beta_binomial()` have ordinary `mu` intercept artifacts and focused independent-slope tests; `zero_one_beta()` is fixed-effect only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Existing fixed and ordinary `mu` lanes can be audited; structured bounded-response work needs design |
@@ -52,7 +52,7 @@ mixed-response bivariate families.
 | Registry and dry-run validator | Keep the table above parseable and synchronized with current Actions tasks | `inst/sim/registry/phase18_structured_workflow_registry.csv` | Add a small validator that checks status values, task names, and no accidental promotion of blocked rows | Any row changes fitted status without source evidence |
 | Random-slope workflow | Dispatch ordinary and structured one-slope surfaces separately from blocked correlated-slope neighbours | Existing first-wave and surface-specific smoke runners | Add a wrapper that filters registry rows where `workflow_lane == "random_slopes"` and status is `ready_grid` or `ready_source_test` | Correlated non-Gaussian slopes, multiple structured slopes, or slope-level mean-scale covariance are requested |
 | Structured-dependence workflow | Run or audit `phylo()`, `spatial()`, `animal()`, and `relmat()` surfaces without mixing them with residual `rho12` | `poisson_phylo_q1_formal`, `nbinom2_phylo_q1_formal`, `count_structured_q1`, plus Gaussian smoke/grid helpers | Add one wrapper that groups rows by dependence layer and prints the allowed task and required artifact audit | A requested row is `blocked`, `design_only`, or diagnostic-only without an audit plan |
-| Correlation-block workflow | Separate residual `rho12`, group/structured q=2 direct rows, and q=4 derived-unavailable rows | `interval_heavy_summary`, bivariate smoke helpers, `corpairs()` artifacts | Add a wrapper that requires the row's interval policy before dispatching profile or bootstrap work | q=4 derived rows are treated as interval-ready |
+| Correlation-block workflow | Separate residual `rho12`, group/structured q=2 direct rows, and q=4 derived-unavailable rows | `interval_heavy_summary`, `correlation_block_status`, bivariate smoke helpers, `corpairs()` artifacts | Audit the read-only status artifact before any profile or bootstrap work | Stop if q=4 derived rows are treated as interval-ready |
 | Family-surface admission workflow | Show which distributions are fixed-effect, ordinary random-effect, structured, or blocked | Current Phase 18 family tasks and readiness matrix | Add a report table from the registry before each broad-looking simulation report | A report borrows evidence from a neighbouring family or dpar |
 | Formal sharded workflow | Scale only admitted rows after a pilot passes boundary and interval gates | Existing Actions inputs for shards, profiles, cores, and `require_complete` | Extend sharding only after the registry row names the formal gate and audit helper | A smoke or diagnostic row is promoted to recovery evidence without MCSE and artifact audit |
 
@@ -148,10 +148,10 @@ The current correlation-block plan has six rows:
 - three `ready_grid` rows routed through `interval_heavy_summary`: Gaussian
   `mu`/`sigma` q=2 mean-scale covariance, residual `rho12`, and selected
   bivariate Gaussian q=2 `corpairs()` rows;
-- one structured Gaussian q=2 row marked `needs_wrapper_target` with
-  `workflow_helper = "correlation_block_wrapper"`;
-- two q=4 rows marked `diagnostic_wrapper_target` with
-  `interval_policy = "q4_derived_interval_unavailable"`.
+- one structured Gaussian q=2 row routed through the read-only
+  `correlation_block_status` task as `ready_or_smoke_audit`;
+- two q=4 rows routed through `correlation_block_status` as `diagnostic_audit`,
+  with `interval_policy = "q4_derived_interval_unavailable"`.
 
 The count labelled q=2/q=4 covariance row is blocked and stays out of the
 plan. Callers can set `include_diagnostic = FALSE` to drop q=4 diagnostic rows
@@ -191,7 +191,7 @@ The current bundled count table is:
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Random slopes | 9 | 9 | 0 | 0 | 0 | 0 |
 | Structured dependence | 7 | 7 | 0 | 1 | 0 | 0 |
-| Correlation blocks | 6 | 3 | 3 | 2 | 0 | 0 |
+| Correlation blocks | 6 | 6 | 0 | 2 | 0 | 0 |
 | Family surface | 11 | 7 | 0 | 0 | 3 | 1 |
 
 This table is not a simulation result. It is the executable routing summary
@@ -284,9 +284,11 @@ source-tested rows that still needed artifact writers. After Slices 1828 and
 1838, all four Gaussian one-slope rows have manual Actions tasks, so the
 current helper returns no registry rows unless a future structured-dependence
 wrapper target is added.
-`phase18_correlation_block_wrapper_target_plan()` lists the current
+`phase18_correlation_block_wrapper_target_plan()` lists historical or future
 correlation-block wrapper targets, keeping q=2 interval-provenance work
-separate from q=4 diagnostic-only rows. `phase18_family_surface_status_tables()`
+separate from q=4 diagnostic-only rows. After Slice 1839 the current registry
+has no correlation-block wrapper targets because those rows route through the
+read-only `correlation_block_status` task. `phase18_family_surface_status_tables()`
 summarizes the family-surface registry by row, admission category, and
 distribution route with `status_scope = "registry_status_only"`.
 
@@ -370,6 +372,20 @@ plumbing and artifact routing only; they do not create recovery, accuracy,
 coverage, power, multiple structured slope, structured slope correlation,
 residual-scale structured slope, mesh/SPDE, sparse large-pedigree speed, or
 non-Gaussian structured-slope claims.
+
+## Slice 1839 Correlation-Block Status Actions Task
+
+Slice 1839 adds `correlation_block_status` as a manual-only Phase 18 Actions
+task. The task calls `phase18_write_correlation_block_status_outputs()`, which
+writes CSVs for the correlation-block workflow plan, dispatchable rows, any
+remaining wrapper targets, and the correlation-block registry summary.
+
+This is a read-only status artifact. It does not fit models, profile
+parameters, bootstrap intervals, promote `structured_gaussian_q2` beyond
+layer-specific evidence, or make q=4 derived correlations interval-ready. The
+three rows that previously named `needed:correlation_block_wrapper` now route to
+this task, so the correlation-block workflow has six non-none Actions routes and
+zero wrapper targets while retaining two diagnostic-only q=4 rows.
 
 ## Slice 1829 Random-Slope Operating-Characteristic Plan
 

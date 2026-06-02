@@ -559,6 +559,11 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   so a run can parallelize one layer without nesting parallel work in both;
   the runner errors if both layers would use more than one worker.
+- `run/sim_write_correlation_block_status.R` writes read-only status CSVs for
+  the correlation-block workflow plan, dispatchable rows, remaining wrapper
+  targets, and correlation-block registry counts. The manual
+  `correlation_block_status` Actions task can run it without fitting models or
+  promoting q=4 derived correlations to interval-ready status.
 - `run/sim_write_student_shape_grid.R` writes the same artifact set for the
   Student-t fixed-effect shape `nu` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and

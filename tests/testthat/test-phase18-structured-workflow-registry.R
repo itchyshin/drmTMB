@@ -92,6 +92,21 @@ test_that("Phase 18 structured workflow registry validates current rows", {
   expect_equal(anyDuplicated(registry$lane_id), 0L)
 })
 
+test_that("Phase 18 structured workflow registry path prefers checkout files", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  path <- env$phase18_structured_workflow_registry_path()
+
+  expected <- normalizePath(
+    phase18_structured_workflow_registry_csv(),
+    winslash = "/",
+    mustWork = TRUE
+  )
+
+  expect_equal(normalizePath(path, winslash = "/", mustWork = TRUE), expected)
+})
+
 test_that("Phase 18 structured workflow registry summarizes and filters lanes", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -328,7 +343,9 @@ test_that("Phase 18 random-slope operating-characteristic plan can omit source-t
 
   expect_equal(nrow(plan), 5L)
   expect_false(any(plan$admission_status == "ready_source_test"))
-  expect_true(all(plan$accuracy_status != "source_tests_exist_artifact_lane_needed"))
+  expect_true(all(
+    plan$accuracy_status != "source_tests_exist_artifact_lane_needed"
+  ))
 })
 
 test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
@@ -468,12 +485,14 @@ test_that("Phase 18 correlation-block plan protects residual and q4 policies", {
     "q4_derived_interval_unavailable"
   )
   expect_true(all(
-    plan$dispatch_status[group_q4 | structured_q4] ==
-      "diagnostic_wrapper_target"
+    plan$dispatch_status[group_q4 | structured_q4] == "diagnostic_audit"
+  ))
+  expect_true(all(
+    plan$actions_task[group_q4 | structured_q4] == "correlation_block_status"
   ))
 })
 
-test_that("Phase 18 correlation-block plan separates q2 wrapper targets", {
+test_that("Phase 18 correlation-block plan routes q2 status artifacts", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
 
@@ -483,16 +502,16 @@ test_that("Phase 18 correlation-block plan separates q2 wrapper targets", {
   plan <- env$phase18_correlation_block_workflow_plan(registry)
   structured_q2 <- plan$lane_id == "structured_gaussian_q2"
 
-  expect_equal(plan$dispatch_status[structured_q2], "needs_wrapper_target")
+  expect_equal(plan$dispatch_status[structured_q2], "ready_or_smoke_audit")
   expect_equal(
     plan$workflow_helper[structured_q2],
-    "correlation_block_wrapper"
+    "phase18_actions_main"
   )
   expect_equal(
     plan$interval_policy[structured_q2],
     "direct_or_layer_specific_q2"
   )
-  expect_true(is.na(plan$actions_task[structured_q2]))
+  expect_equal(plan$actions_task[structured_q2], "correlation_block_status")
 })
 
 test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
@@ -532,6 +551,14 @@ test_that("Phase 18 correlation-block wrapper target plan is read-only", {
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_workflow_registry_csv()
   )
+  wrapper_rows <- registry$lane_id %in%
+    c(
+      "structured_gaussian_q2",
+      "bivariate_gaussian_group_q4",
+      "structured_gaussian_q4"
+    )
+  registry$existing_actions_task[wrapper_rows] <-
+    "needed:correlation_block_wrapper"
   targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
 
   expect_equal(nrow(targets), 3L)
@@ -558,6 +585,14 @@ test_that("Phase 18 correlation-block wrapper target plan labels q2 and q4", {
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_workflow_registry_csv()
   )
+  wrapper_rows <- registry$lane_id %in%
+    c(
+      "structured_gaussian_q2",
+      "bivariate_gaussian_group_q4",
+      "structured_gaussian_q4"
+    )
+  registry$existing_actions_task[wrapper_rows] <-
+    "needed:correlation_block_wrapper"
   targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
   q2 <- targets$lane_id == "structured_gaussian_q2"
   q4 <- targets$block_q %in%
@@ -583,6 +618,14 @@ test_that("Phase 18 correlation-block wrapper target plan can omit diagnostics",
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_workflow_registry_csv()
   )
+  wrapper_rows <- registry$lane_id %in%
+    c(
+      "structured_gaussian_q2",
+      "bivariate_gaussian_group_q4",
+      "structured_gaussian_q4"
+    )
+  registry$existing_actions_task[wrapper_rows] <-
+    "needed:correlation_block_wrapper"
   targets <- env$phase18_correlation_block_wrapper_target_plan(
     registry,
     include_diagnostic = FALSE
@@ -603,9 +646,6 @@ test_that("Phase 18 correlation-block wrapper target plan is empty when wired", 
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_workflow_registry_csv()
   )
-  wrapper_rows <- registry$existing_actions_task ==
-    "needed:correlation_block_wrapper"
-  registry$existing_actions_task[wrapper_rows] <- "interval_heavy_summary"
   targets <- env$phase18_correlation_block_wrapper_target_plan(registry)
 
   expect_equal(nrow(targets), 0L)
@@ -850,7 +890,9 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$wrapper_targets[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)
   expect_equal(counts$wrapper_targets[structured], 0L)
-  expect_equal(counts$wrapper_targets[correlation], 3L)
+  expect_equal(counts$existing_actions_tasks[correlation], 6L)
+  expect_equal(counts$wrapper_targets[correlation], 0L)
+  expect_equal(counts$ready_or_smoke[correlation], 1L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
 })
 
