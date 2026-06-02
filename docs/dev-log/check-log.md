@@ -47269,3 +47269,20 @@ the same team as Codex.
 - Checks: `rg -n "You are Curie" .codex .claude` -> only the two simulation-tester
   files; AGENTS.md table line 142 unchanged and now consistent; codex/claude
   bodies for both agents kept identical.
+
+## 2026-06-01 - Standing-role agents complete the team mirror (branch claude/clause-team-analysis-s1RRw)
+
+- Added launchable agents for the seven review-only standing roles in both
+  runtimes: integration-reviewer (Ada), formula-reviewer (Boole),
+  math-consistency-reviewer (Noether), audience-reviewer (Darwin),
+  figure-reviewer (Florence), architecture-reviewer (Emmy), inference-reviewer
+  (Fisher). Each is `.codex/agents/<name>.toml` + `.claude/agents/<name>.md`
+  with identical bodies.
+- Updated AGENTS.md and CLAUDE.md mirror notes (all standing names now
+  launchable) and fixed the stale CLAUDE.md `literature_curator`/Curie mapping
+  to `simulation_tester`/Curie.
+- Checks: 17 agents per directory; per-pair body diff identical for all 7;
+  frontmatter valid; `rg "\\btau\\b|meta_gaussian|rho ~"` clean (only the
+  legitimate "sigma (not tau)" guidance and the allowed user-tester usage);
+  `git status` shows only intended files, no R/src/tests changes.
+- NOT run: devtools::* (R toolchain absent in web container; no R/C++ changed).
