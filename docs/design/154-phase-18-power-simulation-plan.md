@@ -131,6 +131,22 @@ All three live in `inst/sim/R/sim_power.R` and reuse the uncertainty helpers in
   crossing sample size with a status flag (`interpolated`, `achieved_at_min`,
   `below_grid`, or `no_data`).
 
+Three more helpers in the same file assemble and shape the output so a report can
+be drawn without bespoke code per surface:
+
+- `phase18_assemble_power_table(summary, conditions, null_value, ...)` takes a
+  recovery summary (the per-replicate output of a fit summariser), adds 95% Wald
+  intervals when they are absent, counts rejections, and joins condition metadata
+  (`effect_size`, `n`, `is_null`) on `cell_id`. Pass the `$cells` table from
+  `phase18_cell_registry()` as `conditions`.
+- `phase18_join_power_conditions(power, conditions, join_key)` is the left join
+  used above, exposed on its own; it keeps every power row and adds only the
+  condition columns the power table does not already carry.
+- `phase18_power_curve_data(power_table, ...)` adds a Monte Carlo band
+  (`power_low`, `power_high`) from `power_mcse`, clamped to `[0, 1]`, and orders
+  rows within each effect-size group by sample size so a power curve reads left to
+  right.
+
 ## What to try next
 
 1. Run the Gaussian location-scale power pilot in `tests/testthat/test-phase18-power.R`

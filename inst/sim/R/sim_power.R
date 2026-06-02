@@ -181,6 +181,108 @@ phase18_power_target_sample_size <- function(
   out
 }
 
+# Assemble a per-cell power table from a recovery summary. Adds 95% Wald
+# intervals when the summary does not already carry them, counts rejections with
+# `phase18_summarise_power()`, and (optionally) joins condition metadata such as
+# `effect_size`, `n`, and `is_null` on `join_key`. `conditions` is typically the
+# `$cells` table from `phase18_cell_registry()`, which carries `cell_id`.
+phase18_assemble_power_table <- function(
+  summary,
+  conditions = NULL,
+  null_value = 0,
+  conf.level = 0.95,
+  by = NULL,
+  join_key = "cell_id"
+) {
+  has_intervals <- all(c("conf.low", "conf.high") %in% names(summary))
+  intervals <- if (has_intervals) {
+    summary
+  } else {
+    phase18_add_wald_intervals(summary, conf.level = conf.level)
+  }
+  power <- phase18_summarise_power(intervals, by = by, null_value = null_value)
+  if (!is.null(conditions)) {
+    power <- phase18_join_power_conditions(power, conditions, join_key)
+  }
+  power
+}
+
+# Left-join condition metadata onto a power table, keeping every power row and
+# bringing in only the condition columns the power table does not already have.
+phase18_join_power_conditions <- function(
+  power,
+  conditions,
+  join_key = "cell_id"
+) {
+  if (!is.data.frame(power) || nrow(power) == 0L) {
+    stop("`power` must be a non-empty data frame.", call. = FALSE)
+  }
+  if (!is.data.frame(conditions) || nrow(conditions) == 0L) {
+    stop("`conditions` must be a non-empty data frame.", call. = FALSE)
+  }
+  if (!join_key %in% names(power) || !join_key %in% names(conditions)) {
+    stop(
+      sprintf("`join_key` '%s' must be a column of both tables.", join_key),
+      call. = FALSE
+    )
+  }
+  add_cols <- setdiff(names(conditions), names(power))
+  cond <- conditions[c(join_key, add_cols)]
+  cond <- cond[!duplicated(cond[[join_key]]), , drop = FALSE]
+  out <- merge(power, cond, by = join_key, all.x = TRUE, sort = FALSE)
+  row.names(out) <- NULL
+  out
+}
+
+# Shape a power table into plotting data: add a Monte Carlo confidence band
+# (`power_low`, `power_high`) from `power_mcse`, clamped to [0, 1], and order rows
+# within each effect-size group by sample size so a power curve reads left to
+# right.
+phase18_power_curve_data <- function(
+  power_table,
+  sample_size = "n",
+  by = NULL,
+  conf.level = 0.95
+) {
+  phase18_assert_summary_columns(power_table, c(sample_size, "power"))
+  if (
+    !is.numeric(conf.level) ||
+      length(conf.level) != 1L ||
+      !is.finite(conf.level) ||
+      conf.level <= 0 ||
+      conf.level >= 1
+  ) {
+    stop("`conf.level` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (is.null(by)) {
+    by <- intersect(
+      c("surface", "parameter", "effect_size"),
+      names(power_table)
+    )
+  }
+
+  z <- stats::qnorm(1 - (1 - conf.level) / 2)
+  power <- as.numeric(power_table$power)
+  mcse <- if ("power_mcse" %in% names(power_table)) {
+    as.numeric(power_table$power_mcse)
+  } else {
+    rep(NA_real_, nrow(power_table))
+  }
+
+  out <- power_table
+  out$power_low <- pmax(0, power - z * mcse)
+  out$power_high <- pmin(1, power + z * mcse)
+
+  ord <- if (length(by) > 0L) {
+    do.call(order, c(unname(out[by]), list(out[[sample_size]])))
+  } else {
+    order(out[[sample_size]])
+  }
+  out <- out[ord, , drop = FALSE]
+  row.names(out) <- NULL
+  out
+}
+
 # --- internal helpers -------------------------------------------------------
 
 phase18_power_null_for_rows <- function(parameter, null_value) {

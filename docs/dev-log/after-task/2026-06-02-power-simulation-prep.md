@@ -27,6 +27,13 @@ location-scale surface (the first surface admitted in doc 41).
     honouring the `interval_status == "ok"` filter the coverage helper uses.
   - `phase18_power_target_sample_size()` — interpolate the simulated `(n, power)`
     curve to a target power, with a status flag.
+  - `phase18_assemble_power_table()` — turn a recovery summary into a per-cell
+    power table: add Wald intervals if absent, count rejections, join condition
+    metadata (`effect_size`, `n`, `is_null`) on `cell_id`.
+  - `phase18_join_power_conditions()` — the left join used above, exposed on its
+    own.
+  - `phase18_power_curve_data()` — add a Monte Carlo band (`power_low`,
+    `power_high`) and order rows by sample size for a left-to-right power curve.
 - `tests/testthat/test-phase18-power.R` (new): factory, power counting, the
   failed/non-finite interval filter, named per-parameter nulls, curve
   interpolation, error paths, and a `skip_on_cran` end-to-end pilot that fits the
@@ -66,7 +73,13 @@ No existing files were edited; no `R/`, `src/`, or family behaviour changed.
   `n_interval`; named per-parameter null targeting (unmatched parameters
   contribute no usable interval); curve interpolation
   (`n_target = 266.67` for the worked example), `below_grid`, and
-  `achieved_at_min`; and every input-validation error path.
+  `achieved_at_min`; and every input-validation error path. The assembler
+  (`phase18_assemble_power_table`), the condition join, the MCSE-band curve
+  data, and the sigma-effect reuse path were also verified standalone: a
+  synthetic recovery summary with `estimate`/`std.error` flows through Wald
+  intervals to a per-cell power table joined to `effect_size`/`n`/`is_null`,
+  giving power `c(0, 0.5, 1)` across the three effect cells with the null cell
+  tagged `type_i_error`.
 - The `skip_on_cran` Gaussian pilot fits `drmTMB` and is left for CI, where the
   dependency tree is installed; it could not run in this container because the
   network policy blocks CRAN and Posit P3M.

@@ -242,6 +242,128 @@ test_that("power helpers reject malformed inputs", {
   )
 })
 
+test_that("assemble_power_table builds intervals, power, and joins conditions", {
+  phase18_source_power_helpers()
+
+  # Synthetic recovery summary: three effect cells, two replicates each, one
+  # parameter, with estimate + std.error (no fit needed). Wald intervals are
+  # derived inside the assembler.
+  summary <- data.frame(
+    surface = "gaussian_ls",
+    cell_id = rep(c("g_001", "g_002", "g_003"), each = 2L),
+    parameter = "mu:x",
+    truth = rep(c(0, 0.3, 0.6), each = 2L),
+    estimate = c(0.02, -0.03, 0.30, 0.05, 0.60, 0.55),
+    std.error = c(0.2, 0.2, 0.1, 0.1, 0.1, 0.1),
+    stringsAsFactors = FALSE
+  )
+  conditions <- data.frame(
+    cell_id = c("g_001", "g_002", "g_003"),
+    surface = "gaussian_ls",
+    effect_size = c(0, 0.3, 0.6),
+    is_null = c(TRUE, FALSE, FALSE),
+    n = c(200L, 200L, 200L),
+    stringsAsFactors = FALSE
+  )
+
+  power <- phase18_assemble_power_table(
+    summary,
+    conditions = conditions,
+    null_value = 0,
+    by = c("surface", "cell_id", "parameter")
+  )
+
+  power <- power[order(power$cell_id), ]
+  expect_equal(power$effect_size, c(0, 0.3, 0.6))
+  expect_equal(power$n, c(200L, 200L, 200L))
+  # g_001: both intervals straddle 0 -> 0. g_002: one excludes 0 -> 0.5.
+  # g_003: both exclude 0 -> 1.
+  expect_equal(power$power, c(0, 0.5, 1))
+  expect_identical(
+    power$inference,
+    c("type_i_error", "power", "power")
+  )
+})
+
+test_that("join_power_conditions keeps power rows and adds new columns only", {
+  phase18_source_power_helpers()
+
+  power <- data.frame(
+    cell_id = c("c1", "c2"),
+    parameter = "mu:x",
+    power = c(0.4, 0.9),
+    stringsAsFactors = FALSE
+  )
+  conditions <- data.frame(
+    cell_id = c("c1", "c2"),
+    parameter = "ignored",
+    effect_size = c(0.2, 0.5),
+    n = c(120L, 360L),
+    stringsAsFactors = FALSE
+  )
+
+  joined <- phase18_join_power_conditions(power, conditions)
+
+  expect_equal(nrow(joined), 2L)
+  # parameter already exists in `power`, so the conditions copy is not merged in.
+  expect_equal(joined$parameter, c("mu:x", "mu:x"))
+  expect_true(all(c("effect_size", "n") %in% names(joined)))
+  expect_equal(joined$effect_size[joined$cell_id == "c2"], 0.5)
+})
+
+test_that("power_curve_data adds an MCSE band and orders by sample size", {
+  phase18_source_power_helpers()
+
+  power_table <- data.frame(
+    surface = "gaussian_ls",
+    parameter = "mu:x",
+    effect_size = 0.3,
+    n = c(400L, 100L, 200L),
+    power = c(0.90, 0.50, 0.75),
+    power_mcse = c(0.02, 0.05, 0.03),
+    stringsAsFactors = FALSE
+  )
+
+  curve <- phase18_power_curve_data(power_table)
+
+  expect_equal(curve$n, c(100L, 200L, 400L))
+  expect_true(all(c("power_low", "power_high") %in% names(curve)))
+  expect_true(all(curve$power_low >= 0 & curve$power_high <= 1))
+  expect_equal(
+    curve$power_high,
+    pmin(1, curve$power + stats::qnorm(0.975) * curve$power_mcse)
+  )
+})
+
+test_that("power helpers extend to a sigma effect via named nulls", {
+  phase18_source_power_helpers()
+
+  # The same extraction works for sigma:z; only the null target changes.
+  summary <- data.frame(
+    surface = "gaussian_ls",
+    cell_id = "g_sigma",
+    parameter = c("mu:x", "sigma:z"),
+    truth = c(0.5, 0.35),
+    conf.low = c(0.2, 0.10),
+    conf.high = c(0.8, 0.60),
+    interval_status = "ok",
+    stringsAsFactors = FALSE
+  )
+
+  power <- phase18_summarise_power(
+    summary,
+    by = c("cell_id", "parameter"),
+    null_value = c("sigma:z" = 0)
+  )
+
+  sigma_row <- power[power$parameter == "sigma:z", ]
+  mu_row <- power[power$parameter == "mu:x", ]
+  expect_equal(sigma_row$power, 1)
+  expect_equal(sigma_row$n_interval, 1L)
+  # mu:x has no matching null target, so it contributes no usable interval.
+  expect_equal(mu_row$n_interval, 0L)
+})
+
 test_that("power pipeline composes from DGP, fit, intervals, and summary", {
   skip_on_cran()
   source(
