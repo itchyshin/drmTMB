@@ -51606,3 +51606,27 @@ gate with the later q4 smoke/artifact lane and q6 source-tested status.
     it emitted one local-library warning that `glmmTMB` was built with TMB
     1.9.17 while the current TMB was 1.9.21.
 - Not run: `devtools::document()`, because no roxygen comments changed.
+
+## 2026-06-03 - Bivariate q4 location GitHub closeout (branch codex/phase6c-twin-exchange)
+
+Task: finish the issue and PR maintenance for the q4 bivariate Gaussian
+location smoke/artifact lane without expanding the simulation claim.
+
+- Pushed commit `1442abae` to `origin/codex/phase6c-twin-exchange`.
+- PR #445 was marked ready for review after the current head had local broad
+  checks and green R-CMD-check jobs on macOS, Ubuntu, and Windows in run
+  26870137519.
+- Posted the Phase 6c closeout comment on #33:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4610200577>.
+- Posted the Phase 18 smoke/artifact-routing comment on #59:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4610201741>.
+- Posted the PR verification and boundary comment on #445:
+  <https://github.com/itchyshin/drmTMB/pull/445#issuecomment-4610203050>.
+- Left #33 and #59 open. The remaining work is q6 artifact routing,
+  residual-scale and same-response location-scale slope covariance, p8/q8
+  endpoint covariance, and recovery, coverage, power, timing, or Monte Carlo
+  evidence. The q4 lane is smoke/artifact-ready only.
+- Checks run:
+  - `gh pr view 445 --json isDraft,state,headRefOid,statusCheckRollup,url`
+    confirmed PR #445 is no longer draft, remains open, and has successful
+    checks at head `1442abae83cddfa523e84c7d4ece9e800e5703e5`.

@@ -114,11 +114,22 @@ random `rho12`, and p8/q8 endpoint support outside this task.
 
 ## GitHub Issue Maintenance
 
-Live issue audit from this recovery pass showed #33 and #59 still open, and
-draft PR #445 still on `codex/phase6c-twin-exchange`. No GitHub comment was
-added because this smoke-lane work is local and the branch is ahead of origin.
-Update #33 or the draft PR after the branch is pushed or the local changes are
-committed.
+Live issue audit from the closeout pass showed #33 and #59 still open and PR
+#445 still on `codex/phase6c-twin-exchange`. After commit `1442abae` was
+pushed, the issue and PR trail was updated:
+
+- #33 received the Phase 6c closeout comment:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4610200577>.
+- #59 received the Phase 18 smoke/artifact-routing comment:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4610201741>.
+- PR #445 received the local and remote verification closeout comment:
+  <https://github.com/itchyshin/drmTMB/pull/445#issuecomment-4610203050>.
+- PR #445 was marked ready for review after the local checks and CI pass.
+
+Both #33 and #59 remain open because this task does not supply q6 artifact
+routing, residual-scale or same-response location-scale slope covariance,
+p8/q8 endpoint covariance, or recovery, coverage, power, timing, and Monte
+Carlo evidence.
 
 ## What Did Not Go Smoothly
 
@@ -146,6 +157,7 @@ random-slope covariance.
 
 ## Next Actions
 
-Run the manual `biv_gaussian_q4_location` Phase 18 Actions task after the local
-branch is pushed, then audit the produced aggregate, replicate, manifest, and
-failure CSVs before any recovery or coverage pilot is opened.
+If the project wants remote artifact CSV evidence next, run the manual
+`biv_gaussian_q4_location` Phase 18 Actions task and audit the produced
+aggregate, replicate, manifest, and failure CSVs. That would be the next
+artifact-audit step, not a recovery, coverage, or power claim.
