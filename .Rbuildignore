@@ -19,6 +19,7 @@
 ^src/\.gitkeep$
 ^README\.Rmd$
 ^CLAUDE\.md$
+^cran-comments\.md$
 ^REFERENCES\.bib$
 ^.*\.Rproj$
 ^\.Rproj\.user$

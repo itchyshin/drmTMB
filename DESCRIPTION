@@ -12,12 +12,10 @@ Description: Fast distributional regression models for univariate and
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous,
     Tweedie semicontinuous, strict-proportion, zero-one bounded, and
-    denominator-aware proportion
-    families, and
-    fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
-    hurdle count, and ordinal cumulative-logit models.
-    Skewness and additional response-family models are staged for later
-    phases.
+    denominator-aware proportion families, and fixed-effect Poisson,
+    negative-binomial, zero-inflated, zero-truncated, hurdle count, and
+    ordinal cumulative-logit models. Skewness and additional response-family
+    models are staged for later phases.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues
