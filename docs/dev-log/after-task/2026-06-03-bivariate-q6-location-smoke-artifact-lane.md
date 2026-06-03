@@ -127,9 +127,21 @@ returned only planned-boundary rows in the readiness matrix. The same scan over
 
 ## GitHub Issue Maintenance
 
-Pending after commit and push. The intended maintenance targets are issue #33,
-issue #59, and PR #445; all should say q6 now has smoke artifact routing while
-formal recovery, coverage, power, q8/p8, residual-scale slope covariance,
+PR #445 had already been merged at the previous head, so the q6 follow-up was
+pushed to the same branch and opened as PR #477:
+<https://github.com/itchyshin/drmTMB/pull/477>.
+
+Issue and PR comments:
+
+- #33 Phase 6c status comment:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611028757>.
+- #59 Phase 18 smoke/artifact-routing comment:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611028987>.
+- PR #477 verification and boundary comment:
+  <https://github.com/itchyshin/drmTMB/pull/477#issuecomment-4611029250>.
+
+#33 and #59 remain open. The q6 lane is smoke-artifact-routed only; formal
+recovery, coverage, power, q8/p8, residual-scale slope covariance,
 same-response location-scale slope covariance, and random `rho12` remain open.
 
 ## What Did Not Go Smoothly
@@ -160,5 +172,5 @@ correlated slopes, or all-four p8/q8 endpoint covariance.
 
 ## Next Actions
 
-Commit and push the q6 lane, post maintenance comments on #33, #59, and PR
-#445, then let GitHub CI validate the branch.
+Let GitHub CI validate PR #477. If CI passes, merge the q6 smoke/artifact lane
+without closing #33 or #59.

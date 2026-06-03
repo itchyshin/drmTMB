@@ -51607,6 +51607,26 @@ gate with the later q4 smoke/artifact lane and q6 source-tested status.
     1.9.17 while the current TMB was 1.9.21.
 - Not run: `devtools::document()`, because no roxygen comments changed.
 
+## 2026-06-03 - Bivariate q6 location GitHub closeout (branch codex/phase6c-twin-exchange)
+
+Task: finish the issue and PR maintenance for the q6 bivariate Gaussian
+location smoke/artifact lane without expanding the simulation claim.
+
+- Pushed commit `542e7d97` to `origin/codex/phase6c-twin-exchange`.
+- Opened follow-up PR #477 after PR #445 had already been merged at the
+  previous head:
+  <https://github.com/itchyshin/drmTMB/pull/477>.
+- Posted the Phase 6c q6 status comment on #33:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611028757>.
+- Posted the Phase 18 q6 smoke/artifact-routing comment on #59:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611028987>.
+- Posted the PR verification and boundary comment on #477:
+  <https://github.com/itchyshin/drmTMB/pull/477#issuecomment-4611029250>.
+- Left #33 and #59 open. Remaining work is formal recovery, coverage, power,
+  q6 derived-correlation intervals, residual-scale bivariate slope covariance,
+  same-response location-scale slope covariance, random effects in `rho12`, and
+  all-four p8/q8 endpoint covariance.
+
 ## 2026-06-03 - Bivariate q4 location GitHub closeout (branch codex/phase6c-twin-exchange)
 
 Task: finish the issue and PR maintenance for the q4 bivariate Gaussian
