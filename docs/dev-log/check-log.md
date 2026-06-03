@@ -51630,3 +51630,50 @@ location smoke/artifact lane without expanding the simulation claim.
   - `gh pr view 445 --json isDraft,state,headRefOid,statusCheckRollup,url`
     confirmed PR #445 is no longer draft, remains open, and has successful
     checks at head `1442abae83cddfa523e84c7d4ece9e800e5703e5`.
+
+## 2026-06-03 - Bivariate q6 location smoke artifact lane (branch codex/phase6c-twin-exchange)
+
+Task: add the Phase 18 smoke/artifact lane for the matching q6 bivariate
+Gaussian location block `(1 + x + z | p | id)` in both `mu1` and `mu2`, while
+keeping formal recovery, coverage, power, residual-scale slopes,
+same-response location-scale slope covariance, random `rho12`, and p8/q8
+endpoint covariance outside the claim.
+
+- Added the seeded q6 DGP, fit summariser, smoke runner, summary helper, and
+  repeatable grid writer for `biv_gaussian_q6_location`.
+- Wired `biv_gaussian_q6_location` into the structured workflow registry, the
+  manual Phase 18 Actions dispatcher, and
+  `.github/workflows/phase18-simulation-grid.yaml` as an opt-in task with seed
+  `20260624`.
+- Added focused q6 smoke/artifact tests and updated runner/registry tests for
+  the new 36-row registry and 11-row random-slope plan.
+- Updated README, NEWS, ROADMAP, known limitations, design ledgers, simulation
+  README, and the rendered-vignette sources so q4/q6 location blocks have smoke
+  artifact routing and q8 remains design-only.
+- Checks run:
+  - `air format inst/sim/dgp/sim_dgp_biv_gaussian_q6_location.R inst/sim/fit/sim_summarise_biv_gaussian_q6_location.R inst/sim/run/sim_run_biv_gaussian_q6_location_smoke.R inst/sim/run/sim_summary_biv_gaussian_q6_location_smoke.R inst/sim/run/sim_write_biv_gaussian_q6_location_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-q6-location.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q6-location')"`
+    returned 45 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 477 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 956
+    passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test()"` returned 9,385 passes, no failures,
+    warnings, or skips in 626.4s.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the local-library warning that `glmmTMB` was built with TMB
+    1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned no problems found.
+  - `Rscript -e "devtools::check(error_on = 'never')"` completed in 8m37.2s
+    with 0 errors, 0 warnings, and 1 NOTE: unable to verify current time.
+  - `rg -n 'q6 location remains source|q6 artifact routing|source-only boundary|q6 source-only|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|source-tested.*q=6|q=6.*source-tested|source-tested matching q=4/q=6|source-tested q=4/q=6|source gates for matching q=4 and q=6|q=4 and q=6.*source-tested|q6 bivariate location artifacts' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat .github/workflows vignettes -g '!docs/dev-log/after-task/**'`
+    returned no current-source matches.
+  - `rg -n 'q6 location remains source|q6 artifact routing|source-only boundary|q6 source-only|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|source-tested.*q=6|q=6.*source-tested|source-tested matching q=4/q=6|source-tested q=4/q=6|source gates for matching q=4 and q=6|q=4 and q=6.*source-tested|q6 bivariate location artifacts' pkgdown-site -g '!search.json'`
+    returned no generated-site matches.
+  - `rg -n 'p8/q8.*(is|are) (fitted|implemented|supported)|random effects in `rho12` (are )?(fitted|implemented)|residual-scale bivariate slope.*(is|are )?(fitted|implemented)|same-response location-scale slope covariance.*(is|are )?(fitted|implemented)|recovery, coverage, and power.*(are )?(supported|ready|implemented)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat -g '!docs/dev-log/after-task/**'`
+    returned only planned-boundary rows in the readiness matrix.
+  - The same unsupported-claim scan over `pkgdown-site -g '!search.json'`
+    returned no generated-site matches.
+  - `git diff --check` passed.
+- Not run: `devtools::document()`, because no roxygen comments changed.

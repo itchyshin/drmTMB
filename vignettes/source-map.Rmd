@@ -194,10 +194,10 @@ models yet:
 - the future `meta_V()` umbrella, including proportional sampling-variance
   models such as `meta_V(w = w, scale = "proportional")`;
 - bivariate Student-t or bivariate skew-normal families;
-- residual-scale bivariate random slopes, `rho12` random effects, q6 artifact
-  routing, and cross-parameter covariance blocks beyond the currently
-  implemented ordinary slope-only, ordinary q4 location, ordinary intercept,
-  phylogenetic, animal, and `relmat()` random-effect slices;
+- residual-scale bivariate random slopes, `rho12` random effects, formal q > 2
+  bivariate location recovery grids, and cross-parameter covariance blocks
+  beyond the currently implemented ordinary slope-only, ordinary q4/q6 location,
+  ordinary intercept, phylogenetic, animal, and `relmat()` random-effect slices;
 - mesh/SPDE spatial fields, residual-scale structured slopes, multiple spatial
   slopes, slope correlations, direct spatial SD surfaces, spatial `corpair()`
   regressions, and non-Gaussian spatial effects outside the ordinary
