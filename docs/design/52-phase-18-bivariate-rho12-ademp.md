@@ -117,7 +117,7 @@ Report metrics by condition cell and estimand:
 | Convergence rate | `mean(converged & pdHess)` |
 | Warning rate | `mean(warning_count > 0)` |
 | Runtime | median and high quantiles of elapsed seconds |
-| Failure ledger | random effects in `rho12`, mixed-response families, bivariate random-slope covariance outside the admitted slope-only and source-tested q=4 location routes, q=8 slope covariance, and structured-correlation requests reported beside the grid |
+| Failure ledger | random effects in `rho12`, mixed-response families, bivariate random-slope covariance outside the admitted slope-only and q4/q6 location smoke routes, q=8 slope covariance, and structured-correlation requests reported beside the grid |
 
 Every aggregate metric should carry an MCSE. Failed, warning-bearing, boundary,
 and interval-failed fits remain in the manifest, warning/error ledger, and

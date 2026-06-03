@@ -115,7 +115,7 @@ conditions.
 | --- | --- | --- |
 | spatial direct-SD regression | fitted spatial intercept/slope SDs and profile targets where available | generic direct-SD syntax design |
 | animal or `relmat()` direct-SD regression | fitted intercept/slope SDs and `profile_targets()` | generic direct-SD syntax plus dense/sparse matrix scaling checks |
-| p8/q8 individual-difference slopes | q2 slope-only `mu1`/`mu2`, q4 location-slope `mu1`/`mu2` source gate, ordinary Gaussian q > 2 `mu`, or univariate pieces | q4 location-slope artifact lane, then p8/q8 simulation gate |
+| p8/q8 individual-difference slopes | q2 slope-only `mu1`/`mu2`, q4/q6 location-slope `mu1`/`mu2` smoke routes, ordinary Gaussian q > 2 `mu`, or univariate pieces | p8/q8 design and simulation gate |
 | spatial q4 location-scale covariance | fitted bivariate Gaussian q4 spatial location-scale block when all four endpoints use matching labelled `spatial()` terms | mesh/SPDE, slope, direct-SD, and non-Gaussian spatial gates |
 | phylogenetic or spatial count model | ordinary Poisson/NB2 `mu` random effects if a plain group is enough | Poisson q1 structured smoke, then NB2 q1 structured practical target |
 

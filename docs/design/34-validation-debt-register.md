@@ -41,7 +41,7 @@ and operating-characteristic evidence justify a broader claim.
 | `re_scale_sd_group` | Random-effect scale models | partial | moderate | Add coefficient-specific random-slope scale likelihood, recovery tests, and diagnostics before widening `sd()` syntax. |
 | `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
-| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only and source-tested q=4/q=6 `mu1`/`mu2` location covariance are fitted; keep residual-scale slope, same-response location-scale slope covariance, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
+| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only and q=4/q=6 `mu1`/`mu2` location covariance are fitted, with smoke artifact routing for q4/q6 location blocks; keep residual-scale slope, same-response location-scale slope covariance, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
 | `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Gaussian `mu`/`sigma` intercepts, one numeric `mu` slope, matching univariate `mu`/`sigma` correlation, and bivariate/q4 slices are fitted; ordinary Poisson/NB2 q=1 rows are tracked separately; keep multiple slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and broader non-Gaussian phylogenetic effects in the debt ledger. |
 | `poisson_phylo_q1_mu` | Ordinary Poisson q=1 phylogenetic `mu` intercept | partial | moderate to high until recovery grids exist | The first phylogenetic count route is fitted for `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`; the opt-in smoke runner, repeatable CSV artifact writer, optional direct `log_sd_phylo` profile-interval artifacts, formal-grid spec, read-back QA, promotion decision, and manual Actions task now exist, but formal recovery grids remain the next evidence gate. The same source path now also admits q=1 `spatial()`, `animal()`, and `relmat()` count `mu` intercepts with focused tests. Keep count structured slopes, labels, simultaneous structured types, zero-inflation, and cross-parameter covariance blocked until separate evidence lands. |
 | `nbinom2_phylo_q1_mu` | Ordinary NB2 q=1 structured `mu` intercept | partial | high after the 500-replicate phylogenetic shard audit | The ordinary non-zero-inflated NB2 route fits one q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` term in `mu` with fixed-effect `sigma`, direct `log_sd_phylo` profile-target exposure, marker-specific `ranef()` blocks, focused tests, and structured diagnostics. The phylogenetic lane also has an overdispersion-aware DGP/grid writer, optional profile artifacts, a formal-grid QA wrapper, a manual Actions task, and an ordinary grouped species-intercept comparator row. Slices 541-555 add a local 288-cell one-replicate sentinel and a 24-cell x 5-replicate representative audit; those artifacts pass read-back QA but keep the promotion decision at `hold_smoke_only` because the formal recovery gate remains unmet. Slices 561-575 cancelled a singleton 500-replicate Actions dispatch after manifest timings implied about 27-31 optimistic 10-worker hours, then added sharded formal-grid dispatch and shard metadata so partial artifacts cannot become coverage claims. The later 16-shard, 500-replicate formal artifact set has all 288 condition cells and 144,000 `ok` manifest rows, but the merged audit keeps the route on hold because direct `log_sd_phylo` profile intervals fail frequently at the true-zero boundary and low-count, low-overdispersion cells retain fixed-`sigma` instability. Keep NB2 structured slopes, structured `sigma`, zero-inflated structure, simultaneous structured types, and labelled count covariance blocked until separate recovery and diagnostic evidence lands. |
@@ -388,10 +388,11 @@ and operating-characteristic evidence justify a broader claim.
   target namespace slices.
 - Debt: full cross-parameter slope covariance, residual-scale slope covariance,
   same-response location-scale slope covariance, and predictor-dependent slope
-  correlations remain blocked. The matching slope-only and source-tested
-  q=4/q=6 `mu1`/`mu2` location covariance routes are fitted, but
-  coefficient-aware `corpair()` regression, p8/q8 endpoint covariance, and
-  q > 2 simulation recovery still need likelihood or artifact evidence.
+  correlations remain blocked. The matching slope-only and q=4/q=6
+  `mu1`/`mu2` location covariance routes are fitted, and q4/q6 location now have
+  smoke artifact routing, but coefficient-aware `corpair()` regression, p8/q8
+  endpoint covariance, and formal q > 2 simulation recovery still need
+  likelihood or recovery-grid evidence.
 
 ### Phylogenetic structured effects
 
@@ -557,10 +558,11 @@ and operating-characteristic evidence justify a broader claim.
   and large-data check-log entries named above.
 - Debt: coefficient-specific `sd()` slopes, random effects in `rho12`, multiple
   structured slopes, structured slope correlations, mesh/SPDE, spatial
-  `corpair()`, residual-scale bivariate random slopes, q6 bivariate location
-  artifacts, mixed composed families, and other reserved neighbours need implementation, recovery tests, diagnostics,
-  documentation, NEWS, check-log evidence, and an after-task report before
-  moving out of blocked status.
+  `corpair()`, residual-scale bivariate random slopes, formal q > 2 bivariate
+  location recovery grids, mixed composed families, and other reserved
+  neighbours need implementation, recovery tests, diagnostics, documentation,
+  NEWS, check-log evidence, and an after-task report before moving out of
+  blocked status.
 
 ## Slice 201 non-Gaussian pre-simulation failure ledger
 

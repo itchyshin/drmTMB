@@ -15,6 +15,7 @@ phase18_actions_task_choices <- function() {
     "correlation_block_status",
     "biv_gaussian_mu_slope",
     "biv_gaussian_q4_location",
+    "biv_gaussian_q6_location",
     "spatial_mu_slope",
     "phylo_mu_slope",
     "animal_mu_slope",
@@ -273,6 +274,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "biv_gaussian_q4_location")) {
     out <- phase18_write_biv_gaussian_q4_location_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q6_location")) {
+    out <- phase18_write_biv_gaussian_q6_location_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -684,6 +694,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_biv_gaussian_q4_location_smoke.R",
       "sim/run/sim_summary_biv_gaussian_q4_location_smoke.R",
       "sim/run/sim_write_biv_gaussian_q4_location_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q6_location")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q6_location.R",
+      "sim/fit/sim_summarise_biv_gaussian_q6_location.R",
+      "sim/run/sim_run_biv_gaussian_q6_location_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q6_location_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q6_location_grid.R"
     ))
   }
   if (identical(task, "spatial_mu_slope")) {
