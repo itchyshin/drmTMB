@@ -129,6 +129,7 @@ label:
 ## Boundary
 
 This sheet does not admit correlated residual-scale slope blocks, labelled
-residual-scale slope covariance, broader bivariate random slopes, or non-Gaussian
-random-slope recovery. Those surfaces stay in their own child issues or in the
-failure ledger until fitted evidence and operating-characteristic designs exist.
+residual-scale slope covariance, bivariate residual-scale or multiple-slope
+location covariance, or non-Gaussian random-slope recovery. Those surfaces stay
+in their own child issues or in the failure ledger until fitted evidence and
+operating-characteristic designs exist.

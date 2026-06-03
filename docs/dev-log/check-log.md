@@ -51502,3 +51502,107 @@ the same team as Codex.
 - NOT validated here: devtools::test() / R CMD check, because the package repos
   are unreachable under this network policy. Will work where
   packagemanager.posit.co and cloud.r-project.org are allowed.
+
+## 2026-06-02 - Bivariate q4 location intercept-slope source gate (branch codex/phase6c-twin-exchange)
+
+Supersession note: this entry records the source-gate slice before the later
+`biv_gaussian_q4_location` smoke/artifact lane was added. The following
+2026-06-02 smoke-lane entry is the current Phase 18 artifact-routing status for
+q4 location blocks; q6 location blocks remain source-tested only.
+
+Task: fit the first matching one-slope q4 bivariate location block for
+`biv_gaussian()`, while keeping residual `rho12`, residual-scale slopes,
+multiple-slope location blocks, p8/q8 endpoint covariance, and simulation
+claims outside this source gate.
+
+- Implemented matching `mu1`/`mu2` labelled `(1 + x | p | id)` support by
+  detecting the two location formulas as a q > 2 location covariance block,
+  expanding the two formulas into four location members, and routing the block
+  through the existing `u_re_cov`, `log_sd_re_cov`, and `theta_re_cov`
+  machinery.
+- Added focused bivariate Gaussian tests for fitting, extractor names,
+  `corpairs()`, `summary(fit)$covariance`, `profile_targets()`,
+  `check_drm()`, prediction contribution, simulation reproducibility, and the
+  multiple-slope rejection boundary.
+- Updated formula grammar, likelihood, README, ROADMAP, known-limitations, and
+  Phase 6c/Phase 18 status ledgers to say this q4 location route is fitted and
+  source-tested, while its six correlations remain derived-unavailable for
+  intervals and the route has no Phase 18 artifact lane yet.
+- Checks run:
+  - `air format R/drmTMB.R R/profile.R tests/testthat/test-biv-gaussian.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 840
+    passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'profile-targets|check-drm|covariance-block-registry|gaussian-random-intercepts|phase18-gaussian-mu-random-slope')"`
+    returned 1,569 passes, no failures, warnings, or skips.
+  - `rg -n 'intercept-plus-slope q4|intercept-plus-slope bivariate blocks|broader bivariate random slopes|First future bivariate slope|\| q4 location slope \|.*Planned|q4 location-only slope block|intercept-plus-slope q=4 bivariate location blocks|intercept-plus-slope q=4 blocks' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes`
+    returned no matches.
+  - `rg -n 'matching one-slope q=4|one-slope intercept-plus-slope q=4|q=4 bivariate location|q4 location block|multiple-slope bivariate location|residual-scale slope blocks|all-four p8/q8|derived-unavailable' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat/test-biv-gaussian.R`
+    returned expected positive boundary/status hits in the synced docs,
+    vignettes, NEWS, README, ROADMAP, and test guard.
+  - `git diff --check` passed after the final closeout edits.
+- Not run: full `devtools::test()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()`. This slice changed no roxygen comments, so
+  `devtools::document()` was not needed.
+
+## 2026-06-02 - Bivariate q4 location smoke artifact lane (branch codex/phase6c-twin-exchange)
+
+Task: add the Phase 18 smoke/artifact lane for the matching q4 bivariate
+Gaussian location block `(1 + x | p | id)` in both `mu1` and `mu2`, without
+claiming recovery, coverage, power, q6 artifact routing, residual-scale slopes,
+random `rho12`, or p8/q8 endpoint support.
+
+- Added the seeded DGP, fit summariser, smoke runner, aggregate writer, and
+  CRAN-safe test file for `biv_gaussian_q4_location`.
+- Wired `biv_gaussian_q4_location` into the structured workflow registry, the
+  manual Phase 18 Actions dispatcher, and `.github/workflows/phase18-simulation-grid.yaml`
+  as an opt-in task with seed `20260609`.
+- Updated Phase 18 design ledgers so q4 location is smoke-artifact routed,
+  q6 location remains source-tested only, and the random-slope registry now has
+  ten admitted rows with six grid/smoke rows and four source-test rows.
+- Checks run:
+  - `air format R/drmTMB.R R/profile.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-biv-gaussian-q4-location.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R inst/sim/dgp/sim_dgp_biv_gaussian_q4_location.R inst/sim/fit/sim_summarise_biv_gaussian_q4_location.R inst/sim/run/sim_run_biv_gaussian_q4_location_smoke.R inst/sim/run/sim_summary_biv_gaussian_q4_location_smoke.R inst/sim/run/sim_write_biv_gaussian_q4_location_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q4-location')"`
+    returned 45 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 453 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 911
+    passes, no failures, warnings, or skips.
+  - `rg -n 'q4 location.*no Phase 18 artifact lane|q4.*would need.*wrapper|nine rows with non-none Actions|five grid/admitted rows|include_source_test = FALSE.*five|q4 location.*source-tested but.*no artifact|intercept-plus-slope q4.*Planned|q4 location.*planned|artifact lane planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat .github/workflows/phase18-simulation-grid.yaml`
+    returned only intentional historical/boundary hits: Slice 1825 "had nine
+    rows" before q4 routing, q6 artifact routing, residual-scale slope,
+    same-response location-scale, and p8/q8 planned boundaries.
+  - `git diff --check` passed.
+- Not run: full `devtools::test()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()`. No roxygen comments changed, so `devtools::document()`
+  was not needed.
+
+## 2026-06-03 - Bivariate q4/q6 location closeout verification (branch codex/phase6c-twin-exchange)
+
+Task: close the remaining local verification items after syncing the q4 source
+gate with the later q4 smoke/artifact lane and q6 source-tested status.
+
+- Added a supersession note to the q4 source-gate after-task report and the
+  matching check-log entry: the source report remains the historical source
+  gate, while `2026-06-02-bivariate-q4-location-smoke-artifact-lane.md` records
+  the current q4 artifact-routing status and q6 source-only boundary.
+- Fixed the duplicated "Matching matching" wording in
+  `docs/dev-log/known-limitations.md`.
+- Updated the `bivariate_gaussian_slope_only` registry boundary so it no longer
+  says q4 needs design; q4 now has its own smoke route, while q6 artifact
+  routing and p8/q8 remain design/future work.
+- Checks run:
+  - `rg -n 'Intercept-plus-slope q4 and p8/q8 need design|Matching matching|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|intercept-plus-slope q4.*Planned|q4 location.*planned|artifact lane planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-06-02-bivariate-q4-location-source-gate.md docs/dev-log/after-task/2026-06-02-bivariate-q4-location-smoke-artifact-lane.md vignettes inst/sim tests/testthat .github/workflows/phase18-simulation-grid.yaml`
+    returned only intentional historical scan recipes, the historical
+    source-gate report, and current planned-boundary rows.
+  - `git diff --check` passed.
+  - `Rscript -e "devtools::test()"` returned 9,316 passes, no failures,
+    warnings, or skips.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned no problems found.
+  - `Rscript -e "devtools::check()"` completed in 8m 9.2s with 0 errors,
+    0 warnings, and 1 NOTE: unable to verify current time.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted one local-library warning that `glmmTMB` was built with TMB
+    1.9.17 while the current TMB was 1.9.21.
+- Not run: `devtools::document()`, because no roxygen comments changed.

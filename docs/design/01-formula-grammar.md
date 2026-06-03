@@ -115,8 +115,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | This route targets the slope1-slope2 plasticity-syndrome correlation without also estimating intercept-slope correlations. The fitted row is exposed through SD/correlation extractors, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()`. |
-| Intercept-plus-slope bivariate blocks such as `(1 + x | p | id)` in both `mu1` and `mu2` | Planned later | These would require a q=4 location block with intercept-intercept, intercept-slope, and slope-slope correlations. They are not opened by the first bivariate one-slope policy. |
-| All-four bivariate location-scale slope blocks across `mu1`, `mu2`, `sigma1`, and `sigma2`; predictor-dependent phylogenetic/spatial q4 correlations; or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not use all-four slope terms to request a q=8 endpoint covariance block in this phase. Do not treat intercept-slope `corpair()` rows as a near-term target; a later slope1-slope2 bivariate plasticity-syndrome target needs coefficient-aware syntax. |
+| Matching one-slope intercept-plus-slope `(1 + x | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented first q=4 location slice | This route estimates two response-specific location intercept SDs, two location slope SDs, and six group-level latent correlations among those four location effects. The four SDs are direct profile targets; the six correlations are derived-unavailable interval rows. |
+| Multiple-slope bivariate location blocks; all-four bivariate location-scale slope blocks across `mu1`, `mu2`, `sigma1`, and `sigma2`; predictor-dependent phylogenetic/spatial q4 correlations; or `rho12` random effects | Planned | Requires larger structured covariance parameterizations, simulation recovery, and naming checks. Do not use all-four slope terms to request a q=8 endpoint covariance block in this phase. Do not treat intercept-slope `corpair()` rows as a near-term target; later slope-correlation regressions need coefficient-aware syntax. |
 | `missing = miss_control(response = "drop")` | Implemented | Default top-level missing-data policy. It keeps the existing complete-case behaviour before likelihood construction. |
 | `missing = miss_control(response = "include")` with `family = gaussian()` | Implemented first slice | Retains rows with missing univariate Gaussian responses when predictors, grouping variables, structured inputs, weights, and known sampling variances are complete. Missing response rows contribute zero Gaussian response likelihood, `fit$missing_data` stores original-row accounting, `nobs()` counts likelihood-contributing rows, and response residuals are `NA` for masked responses. |
 | `missing = miss_control(response = "include")` with `family = biv_gaussian()` or `family = c(gaussian(), gaussian())` | Implemented independent-observation slice | Retains bivariate Gaussian rows with `y1` missing, `y2` missing, or both responses missing when predictors and grouping or structured inputs are complete and no dense known `meta_V(V = V)` matrix is supplied. Complete pairs use the bivariate density with residual `rho12`; one-response rows use the appropriate marginal Gaussian density and do not directly identify `rho12`; both-missing rows contribute zero response likelihood while preserving original-row accounting. Dense known-`V` partial-response slicing, imputation summaries, EM, REML, and measurement-error models remain planned. |
@@ -252,16 +252,21 @@ block-diagonal fallback: two independent q=2 tree blocks, with mean-mean and
 scale-scale phylogenetic correlations but no mean-scale phylogenetic rows.
 Broader bivariate random slopes and `rho12` random effects remain planned.
 
-The first bivariate random-slope target is intentionally narrower than the
-full endpoint and is now fitted. A matching slope-only location block such as
-`(0 + x | p | id)` in both `mu1` and `mu2` estimates the group-level
-association between individual differences in the two response-specific
-slopes without also estimating intercept-slope correlations. Intercept-plus-
-slope location blocks such as `(1 + x | p | id)` in both responses are a later
-q=4 location block, and all-four location-scale slope terms across `mu1`,
-`mu2`, `sigma1`, and `sigma2` are a q=8 endpoint. Those larger p8/q8-style
-endpoints remain rejected until the covariance naming, diagnostics, recovery
-tests, and interval targets are in place.
+The first bivariate random-slope targets are intentionally narrower than the
+full endpoint and are now fitted for location terms. A matching slope-only
+location block such as `(0 + x | p | id)` in both `mu1` and `mu2` estimates the
+group-level association between individual differences in the two
+response-specific slopes without also estimating intercept-slope correlations.
+A matching one-slope location block such as `(1 + x | p | id)` in both
+responses fits a q=4 location block with two intercept SDs, two slope SDs, and
+six latent location correlations. Matching two-slope location blocks such as
+`(1 + x + z | p | id)` in both responses are also source-tested as q=6
+ordinary location covariance blocks with six SDs and 15 latent location
+correlations. The SDs are direct `log_sd_re_cov` profile targets, while q > 2
+correlations are derived and unavailable for direct profile intervals. All-four
+location-scale slope terms across `mu1`, `mu2`, `sigma1`, and `sigma2` remain
+p8/q8-style endpoints until residual-scale slope covariance, endpoint naming,
+diagnostics, recovery tests, and interval targets are in place.
 
 The first fitted bivariate phylogenetic location slice uses matching
 intercept-only `phylo()` terms in the two location formulas:
@@ -800,9 +805,10 @@ covariance-block label.
 Double-hierarchical models for individual differences can contain several
 interpretable correlations among random intercepts, random slopes, random scale
 intercepts, and random scale slopes. Those correlations belong to labelled
-group-level covariance blocks such as `(1 | p | id)` now and
-`(1 + x1 | p | id)` once bivariate random slopes are implemented, not to
-residual `rho12 ~`.
+group-level covariance blocks such as `(1 | p | id)` and the fitted bivariate
+location block `(1 + x1 | p | id)`, not to residual `rho12 ~`. Residual-scale
+slope covariance and all-four location-scale slope endpoints are still separate
+planned blocks.
 
 For each response, the mean block may contain at least two group-level scale
 terms once random slopes are implemented: the random-intercept SD and the
@@ -887,7 +893,7 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson and NB2 models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, and one q=1 structured `mu` intercept may use `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial models also support unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)`. Correlated non-Gaussian slopes, covariance labels, structured count slopes, zero-inflated structured count effects, bounded-response exact-boundary random effects, and NB2 `sigma` structured effects remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, and matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` are implemented. Broader bivariate random slopes are later. |
+| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson and NB2 models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, and one q=1 structured `mu` intercept may use `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial models also support unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)`. Correlated non-Gaussian slopes, covariance labels, structured count slopes, zero-inflated structured count effects, bounded-response exact-boundary random effects, and NB2 `sigma` structured effects remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching one-slope q=4 location blocks such as `(1 + x | p | id)`, and matching source-tested q=6 location blocks such as `(1 + x + z | p | id)` are implemented. Residual-scale slopes, same-response location-scale slope covariance, all-four location-scale slope endpoints, and simulation recovery for q > 2 bivariate location blocks are later. |
 | `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts and independent numeric random slopes. Unlabelled terms such as `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)` are independent scale effects, and multiple independent terms can be combined with zero correlations among their latent effects. Matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit mean-scale covariance blocks, with one row per independent matched label/group pair. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block. Ordinary non-zero-inflated NB2 also supports the first independent `sigma ~ z + (1 | id)` random-intercept gate on the log-overdispersion scale. Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle NB2 `sigma` formulas remain fixed-effect only; NB2 `sigma` slopes, labelled covariance, joint `mu`/`sigma`, zero-inflated NB2, structured NB2 `sigma`, correlated residual-scale slope blocks, labelled `mu`/`sigma` slope covariance, and bivariate scale slopes are later. |
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |

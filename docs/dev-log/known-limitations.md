@@ -88,7 +88,9 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Bivariate intercept-plus-slope q=4 blocks, random effects in `rho12`, and
+  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted as
+  source-tested first slices. Residual-scale slope blocks, same-response
+  location-scale slope covariance, random effects in `rho12`, and
   predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,
   spatial, or group-level covariance parameter.
@@ -368,8 +370,9 @@
 - Cross-formula labelled covariance sharing beyond the implemented univariate
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
-  all-four bivariate q4 intercept block, correlated residual-scale random-slope
-  blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific
+  all-four bivariate q4 intercept block plus the matching q4 and q6 bivariate
+  location blocks, correlated residual-scale random-slope blocks, labelled
+  `mu`/`sigma` random-slope covariance, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance

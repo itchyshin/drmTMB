@@ -63,7 +63,7 @@ The p8/q8 language needs one registry before code:
 | Registry class | Endpoints | Suggested implementation order |
 | --- | --- | --- |
 | q2 slope-only | `mu1:x`, `mu2:x` | Already fitted for ordinary bivariate Gaussian models. |
-| q4 location slope | `mu1:(Intercept)`, `mu1:x`, `mu2:(Intercept)`, `mu2:x` | First future bivariate slope expansion candidate. |
+| q4 location slope | `mu1:(Intercept)`, `mu1:x`, `mu2:(Intercept)`, `mu2:x` | Source-tested ordinary group route; first artifact-lane candidate. |
 | q6 partial location-scale | q4 location slope plus selected scale endpoints | Design only; use only if a clear biological question avoids all-eight covariance. |
 | q8 all-endpoint slope | intercept and slope endpoints for `mu1`, `mu2`, `sigma1`, and `sigma2` | Highest risk; consider constrained or block-diagonal routes before unstructured q8. |
 
@@ -115,7 +115,7 @@ conditions.
 | --- | --- | --- |
 | spatial direct-SD regression | fitted spatial intercept/slope SDs and profile targets where available | generic direct-SD syntax design |
 | animal or `relmat()` direct-SD regression | fitted intercept/slope SDs and `profile_targets()` | generic direct-SD syntax plus dense/sparse matrix scaling checks |
-| p8/q8 individual-difference slopes | q2 slope-only `mu1`/`mu2`, ordinary Gaussian q > 2 `mu`, or univariate pieces | q4 location-slope registry and simulation gate |
+| p8/q8 individual-difference slopes | q2 slope-only `mu1`/`mu2`, q4 location-slope `mu1`/`mu2` source gate, ordinary Gaussian q > 2 `mu`, or univariate pieces | q4 location-slope artifact lane, then p8/q8 simulation gate |
 | spatial q4 location-scale covariance | fitted bivariate Gaussian q4 spatial location-scale block when all four endpoints use matching labelled `spatial()` terms | mesh/SPDE, slope, direct-SD, and non-Gaussian spatial gates |
 | phylogenetic or spatial count model | ordinary Poisson/NB2 `mu` random effects if a plain group is enough | Poisson q1 structured smoke, then NB2 q1 structured practical target |
 

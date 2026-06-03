@@ -22,6 +22,7 @@ on:
           - zero_one_beta_fixed_effect
           - correlation_block_status
           - biv_gaussian_mu_slope
+          - biv_gaussian_q4_location
           - spatial_mu_slope
           - phylo_mu_slope
           - animal_mu_slope
@@ -171,6 +172,9 @@ jobs:
             include_in_all: false
           - task: biv_gaussian_mu_slope
             seed: 20260603
+            include_in_all: false
+          - task: biv_gaussian_q4_location
+            seed: 20260609
             include_in_all: false
           - task: spatial_mu_slope
             seed: 20260604

@@ -3867,6 +3867,10 @@ drm_build_biv_gaussian_spec <- function(
     sigma1_re$terms,
     sigma2_re$terms
   )
+  mu_qgt2_covariance_blocks <- detect_biv_mu_qgt2_covariance_blocks(
+    mu1_re$terms,
+    mu2_re$terms
+  )
   reject_biv_sd_mu_q4_mixture(sd_mu_entries, q4_covariance_blocks)
   if (
     !is.null(meta$V) &&
@@ -3889,8 +3893,18 @@ drm_build_biv_gaussian_spec <- function(
       sigma2_re$terms
     )
   }
-  active_mu1_terms <- remove_biv_q4_terms(mu1_re$terms, q4_covariance_blocks)
-  active_mu2_terms <- remove_biv_q4_terms(mu2_re$terms, q4_covariance_blocks)
+  active_qgt2_covariance_blocks <- c(
+    q4_covariance_blocks,
+    mu_qgt2_covariance_blocks
+  )
+  active_mu1_terms <- remove_biv_q4_terms(
+    mu1_re$terms,
+    active_qgt2_covariance_blocks
+  )
+  active_mu2_terms <- remove_biv_q4_terms(
+    mu2_re$terms,
+    active_qgt2_covariance_blocks
+  )
   active_sigma1_terms <- remove_biv_q4_terms(
     sigma1_re$terms,
     q4_covariance_blocks
@@ -4133,6 +4147,7 @@ drm_build_biv_gaussian_spec <- function(
     re_sigma,
     re_mu_sigma,
     q4_blocks = q4_covariance_blocks,
+    mu_qgt2_blocks = mu_qgt2_covariance_blocks,
     re_mu_full = re_mu_registry,
     re_sigma_full = re_sigma_registry
   )
@@ -5188,14 +5203,20 @@ format_cross_dpar_cor_label <- function(
   from_dpar,
   to_dpar,
   group,
-  covariance_label
+  covariance_label,
+  from_coef = "(Intercept)",
+  to_coef = "(Intercept)"
 ) {
   paste0(
     "cor(",
     from_dpar,
-    ":(Intercept),",
+    ":",
+    from_coef,
+    ",",
     to_dpar,
-    ":(Intercept) | ",
+    ":",
+    to_coef,
+    " | ",
     covariance_label,
     " | ",
     group,
@@ -7714,6 +7735,51 @@ detect_biv_q4_covariance_blocks <- function(
   list(list(block_label = labels[[1L]], group = groups[[1L]]))
 }
 
+detect_biv_mu_qgt2_covariance_blocks <- function(mu1_terms, mu2_terms) {
+  if (length(mu1_terms) != 1L || length(mu2_terms) != 1L) {
+    return(list())
+  }
+
+  terms <- list(mu1 = mu1_terms[[1L]], mu2 = mu2_terms[[1L]])
+  labels <- vapply(
+    terms,
+    function(term) {
+      if (is.null(term$covariance_label)) {
+        NA_character_
+      } else {
+        term$covariance_label
+      }
+    },
+    character(1L)
+  )
+  groups <- vapply(terms, `[[`, character(1L), "group")
+  if (
+    anyNA(labels) ||
+      length(unique(labels)) != 1L ||
+      length(unique(groups)) != 1L
+  ) {
+    return(list())
+  }
+
+  term_types <- vapply(terms, `[[`, character(1L), "type")
+  if (!all(term_types %in% c("correlated_slope", "correlated_block"))) {
+    return(list())
+  }
+  coef_names <- lapply(terms, `[[`, "coef_names")
+  if (!identical(coef_names[[1L]], coef_names[[2L]])) {
+    cli::cli_abort(c(
+      "Bivariate location intercept-slope covariance blocks must use matching coefficients.",
+      "x" = "{.code mu1} uses {.val {coef_names[[1L]]}}, but {.code mu2} uses {.val {coef_names[[2L]]}}.",
+      "i" = "Use matching terms such as {.code (1 + x | p | id)} in both {.code mu1} and {.code mu2}."
+    ))
+  }
+  list(list(
+    block_label = labels[[1L]],
+    group = groups[[1L]],
+    coef_names = coef_names[[1L]]
+  ))
+}
+
 reject_biv_sd_mu_q4_mixture <- function(entries, q4_blocks) {
   if (length(entries) == 0L || length(q4_blocks) == 0L) {
     return(invisible(FALSE))
@@ -7825,6 +7891,7 @@ build_labelled_covariance_block_registry <- function(
   re_sigma,
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   q4_blocks = list(),
+  mu_qgt2_blocks = list(),
   re_mu_full = re_mu,
   re_sigma_full = re_sigma,
   re_mu_full_terms = list(),
@@ -7836,6 +7903,11 @@ build_labelled_covariance_block_registry <- function(
     re_mu_full,
     re_sigma_full,
     q4_blocks
+  )
+  registry <- add_biv_mu_qgt2_covariance_blocks(
+    registry,
+    re_mu_full,
+    mu_qgt2_blocks
   )
   registry <- add_large_same_parameter_covariance_blocks(
     registry,
@@ -7866,6 +7938,72 @@ build_labelled_covariance_block_registry <- function(
   registry$n_blocks <- nrow(registry$blocks)
   registry <- update_qgt2_covariance_counts(registry)
   registry$tmb_data <- labelled_covariance_block_tmb_data(registry)
+  registry
+}
+
+add_biv_mu_qgt2_covariance_blocks <- function(
+  registry,
+  re_mu,
+  mu_qgt2_blocks
+) {
+  if (length(mu_qgt2_blocks) == 0L) {
+    return(registry)
+  }
+
+  for (block in mu_qgt2_blocks) {
+    member_terms <- which(
+      re_mu$covariance_labels == block$block_label &
+        re_mu$group_names == block$group
+    )
+    expected_q <- 2L * length(block$coef_names)
+    if (length(member_terms) != expected_q) {
+      cli::cli_abort(c(
+        "Internal error: bivariate location covariance block metadata did not find the expected members.",
+        "x" = "Block {.code {block$block_label}} on group {.field {block$group}} expected {expected_q} members but found {length(member_terms)}."
+      ))
+    }
+    member_dpars <- re_mu$dpars[member_terms]
+    member_coefs <- re_mu$coef_names[member_terms]
+    expected_dpars <- rep(c("mu1", "mu2"), each = length(block$coef_names))
+    expected_coefs <- rep(block$coef_names, times = 2L)
+    if (
+      !identical(member_dpars, expected_dpars) ||
+        !identical(member_coefs, expected_coefs)
+    ) {
+      cli::cli_abort(c(
+        "Internal error: bivariate location covariance block members are not in endpoint order.",
+        "x" = "Found members: {.val {paste(member_dpars, member_coefs, sep = ':')}}."
+      ))
+    }
+    pair_terms <- utils::combn(member_terms, 2L)
+    pair_labels <- vapply(
+      seq_len(ncol(pair_terms)),
+      function(j) {
+        from <- pair_terms[1L, j]
+        to <- pair_terms[2L, j]
+        format_cross_dpar_cor_label(
+          re_mu$dpars[[from]],
+          re_mu$dpars[[to]],
+          group = block$group,
+          covariance_label = block$block_label,
+          from_coef = re_mu$coef_names[[from]],
+          to_coef = re_mu$coef_names[[to]]
+        )
+      },
+      character(1L)
+    )
+    n_pairs <- length(pair_labels)
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re_mu),
+      member_terms = list(member_terms),
+      parameter = pair_labels,
+      tmb_parameter = rep("theta_re_cov", n_pairs),
+      tmb_index = covariance_registry_next_theta_index(registry, n_pairs),
+      implemented = TRUE
+    )
+  }
+
   registry
 }
 
@@ -8249,6 +8387,8 @@ covariance_registry_member_row <- function(term, re, component) {
   if (length(coef_index) != 1L) {
     coef_index <- NA_integer_
   }
+  n_groups <- length(re$groups[[term]])
+  group_index0 <- re$index0[, term] %% n_groups
   data.frame(
     block_id0 = NA_integer_,
     member_id0 = NA_integer_,
@@ -8261,9 +8401,9 @@ covariance_registry_member_row <- function(term, re, component) {
     group = re$group_names[[term]],
     block_label = re$covariance_labels[[term]],
     label = re$labels[[term]],
-    n_groups = length(re$groups[[term]]),
+    n_groups = n_groups,
     group_levels = I(list(re$groups[[term]])),
-    latent_index0 = I(list(re$index0[, term])),
+    latent_index0 = I(list(group_index0)),
     design_value = I(list(re$value[, term])),
     cor_id0 = I(list(re$re_cor_id0[term_rows])),
     pair_index0 = I(list(re$re_pair_index0[term_rows])),
@@ -8518,6 +8658,36 @@ build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
     pair = "sigma1/sigma2",
     cor_label = format_biv_sigma_cor_label
   )
+}
+
+expand_biv_parameter_random_terms <- function(terms, term_dpars) {
+  expanded_terms <- list()
+  expanded_dpars <- character()
+  for (i in seq_along(terms)) {
+    term <- terms[[i]]
+    coef_names <- term$coef_names
+    if (length(coef_names) == 1L) {
+      expanded_terms[[length(expanded_terms) + 1L]] <- term
+      expanded_dpars <- c(expanded_dpars, term_dpars[[i]])
+      next
+    }
+
+    for (coef_name in coef_names) {
+      member <- term
+      member$coef_names <- coef_name
+      member$variable <- if (identical(coef_name, "(Intercept)")) {
+        NA_character_
+      } else {
+        coef_name
+      }
+      member$variables <- member$variable
+      member$label <- paste0(term$label, ":", coef_name)
+      expanded_terms[[length(expanded_terms) + 1L]] <- member
+      expanded_dpars <- c(expanded_dpars, term_dpars[[i]])
+    }
+  }
+
+  list(terms = expanded_terms, dpars = expanded_dpars)
 }
 
 abort_unsupported_corpair_level <- function(entry, level) {
@@ -8860,11 +9030,14 @@ build_biv_parameter_random_structure <- function(
   is_biv_mu_slope_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types == "slope")
-  if (!is_intercept_block && !is_biv_mu_slope_block) {
+  is_biv_mu_qgt2_block <- identical(unname(dpars), c("mu1", "mu2")) &&
+    length(terms) == 2L &&
+    all(term_types %in% c("correlated_slope", "correlated_block"))
+  if (!is_intercept_block && !is_biv_mu_slope_block && !is_biv_mu_qgt2_block) {
     cli::cli_abort(c(
       "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
-      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)} and the matching slope-only {.code mu1}/{.code mu2} route {.code (0 + x | p | id)}.",
-      "i" = "Intercept-plus-slope and all-four location-scale slope blocks stay closed until q=4 and q=8 endpoint covariance evidence exists."
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
+      "i" = "Residual-scale slopes and all-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
     ))
   }
   labels <- unname(vapply(
@@ -8894,18 +9067,24 @@ build_biv_parameter_random_structure <- function(
       ))
     }
     if (
-      isTRUE(is_biv_mu_slope_block) &&
+      (isTRUE(is_biv_mu_slope_block) || isTRUE(is_biv_mu_qgt2_block)) &&
         !identical(terms[[1L]]$coef_names, terms[[2L]]$coef_names)
     ) {
       cli::cli_abort(c(
-        "Bivariate slope-only {.code mu1/mu2} random effects must use the same slope variable.",
+        "Bivariate {.code mu1/mu2} random effects must use the same random-slope coefficient set.",
         "x" = "{.code mu1} uses coefficient {.val {terms[[1L]]$coef_names}}, but {.code mu2} uses {.val {terms[[2L]]$coef_names}}.",
-        "i" = "Use matching terms such as {.code (0 + x | p | id)} in both {.code mu1} and {.code mu2}."
+        "i" = "Use matching terms such as {.code (0 + x | p | id)} or {.code (1 + x | p | id)} in both {.code mu1} and {.code mu2}."
       ))
     }
     same_parameter_cor <- identical(labels[[1L]], labels[[2L]])
   }
 
+  if (isTRUE(is_biv_mu_qgt2_block)) {
+    same_parameter_cor <- FALSE
+  }
+  expanded_terms <- expand_biv_parameter_random_terms(terms, term_dpars)
+  terms <- expanded_terms$terms
+  term_dpars <- expanded_terms$dpars
   group_name <- groups_present[[1L]]
   group <- factor(data[[group_name]])
   levels_group <- levels(group)
@@ -8925,6 +9104,7 @@ build_biv_parameter_random_structure <- function(
   n_group <- length(levels_group)
   group_index <- as.integer(group)
   n_cols <- length(terms)
+  term_dpar_id0 <- match(term_dpars, dpars) - 1L
   index <- matrix(NA_integer_, nrow = nrow(data), ncol = n_cols)
   value <- matrix(1, nrow = nrow(data), ncol = n_cols)
   base_labels <- unname(vapply(terms, `[[`, character(1L), "label"))
@@ -8952,7 +9132,7 @@ build_biv_parameter_random_structure <- function(
       value[, j] <- as.numeric(data[[variable]])
     }
     term_id0 <- c(term_id0, rep.int(j - 1L, n_group))
-    dpar_id0 <- c(dpar_id0, rep.int(present[[j]] - 1L, n_group))
+    dpar_id0 <- c(dpar_id0, rep.int(term_dpar_id0[[j]], n_group))
     re_pos0 <- c(re_pos0, rep.int(j - 1L, n_group))
     if (isTRUE(same_parameter_cor) && j == 2L) {
       re_cor_id0 <- c(re_cor_id0, rep.int(0L, n_group))
@@ -8985,7 +9165,17 @@ build_biv_parameter_random_structure <- function(
     dpars = term_dpars,
     coef_names = unname(vapply(terms, `[[`, character(1L), "coef_names")),
     group_names = rep(group_name, n_cols),
-    covariance_labels = labels,
+    covariance_labels = unname(vapply(
+      terms,
+      function(term) {
+        if (is.null(term$covariance_label)) {
+          NA_character_
+        } else {
+          term$covariance_label
+        }
+      },
+      character(1L)
+    )),
     groups = groups,
     value_names = value_names
   )

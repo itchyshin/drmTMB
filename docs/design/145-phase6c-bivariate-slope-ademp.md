@@ -21,9 +21,9 @@ group-level random-slope SDs, and the group-level slope-slope correlation.
 Secondary aim 1: check that residual `rho12` recovery remains stable when a
 group-level slope-slope covariance is fitted at the same time.
 
-Secondary aim 2: keep intercept-plus-slope q4, p8/q8 bivariate random-slope
-covariance, residual-scale slope covariance, and random effects in `rho12` out
-of this lane.
+Secondary aim 2: keep the q4 location smoke lane, the source-tested q6 location
+block, p8/q8 bivariate random-slope covariance, residual-scale slope
+covariance, and random effects in `rho12` out of this slope-only lane.
 
 ## D - Data-Generating Mechanism
 
@@ -123,7 +123,7 @@ same residual and group-level covariance targets.
 
 ## Boundary
 
-This sheet does not design intercept-plus-slope q4, p8/q8 bivariate
-random-slope covariance, random effects in `rho12`, mixed-response families, or
-residual-scale slope covariance. Those remain separate design or failure-ledger
-surfaces.
+This sheet does not design the q4 location smoke lane, the source-tested q6
+location block, p8/q8 bivariate random-slope covariance, random effects in
+`rho12`, mixed-response families, or residual-scale slope covariance. Those remain separate design or
+failure-ledger surfaces.

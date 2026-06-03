@@ -5,6 +5,10 @@ surface before the larger #446 power, accuracy, and coverage plan. The reader is
 a future `drmTMB` developer deciding whether the matching `mu1`/`mu2` slope-only
 row is ready for broad simulation.
 
+Supersession note: as of 2026-06-02, matching q=4 and q=6 `mu1`/`mu2`
+location blocks are source-tested in `tests/testthat/test-biv-gaussian.R`.
+This note remains the artifact gate for the narrower #440 slope-only lane.
+
 ## Gate Result
 
 The `biv_gaussian_mu_slope` lane is artifact-ready and held from recovery,
@@ -24,7 +28,7 @@ bf(
 
 This estimates two ordinary group-level slope SDs and one ordinary group-level
 slope-slope correlation between the two response-specific slopes. It does not
-fit an intercept-plus-slope q4 location block, a residual-scale slope block, a
+describe the later q4 location source gate, a residual-scale slope block, a
 random effect in residual `rho12`, or an all-four p8/q8 location-scale endpoint.
 
 ## Evidence Table
@@ -43,8 +47,7 @@ random effect in residual `rho12`, or an all-four p8/q8 location-scale endpoint.
 The gate does not promote neighbouring endpoints. These remain planned or
 unsupported until separate code, tests, and evidence exist:
 
-- intercept-plus-slope q4 location blocks such as matching `(1 + x | p | id)`
-  in `mu1` and `mu2`;
+- q > 2 bivariate location recovery and coverage claims;
 - same-response location-scale slope covariance;
 - residual-scale slope blocks in `sigma1` or `sigma2`;
 - random effects or latent covariance in residual `rho12`;

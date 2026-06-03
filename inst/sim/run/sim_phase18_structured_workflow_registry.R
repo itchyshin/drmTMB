@@ -1113,6 +1113,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "zero_one_beta_fixed_effect",
     "correlation_block_status",
     "biv_gaussian_mu_slope",
+    "biv_gaussian_q4_location",
     "spatial_mu_slope",
     "phylo_mu_slope",
     "animal_mu_slope",
@@ -1321,6 +1322,11 @@ phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
   estimands[lane_id == "bivariate_gaussian_slope_only"] <- paste(
     "mu1 and mu2 fixed effects; paired random-slope SDs;",
     "slope-slope corpairs row; residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_q4_location"] <- paste(
+    "mu1 and mu2 fixed effects; four direct q4 location SDs;",
+    "six derived q4 location correlations kept point/status-only;",
+    "residual rho12 kept separate; diagnostics"
   )
   estimands[
     lane_id %in%

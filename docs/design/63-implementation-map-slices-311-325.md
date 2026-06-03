@@ -70,7 +70,7 @@ should distinguish:
 | Endpoint class | Meaning | Status |
 | --- | --- | --- |
 | q2 slope-only | Two response-specific location slopes, such as `mu1:x` and `mu2:x` | Fitted for ordinary bivariate Gaussian `mu1`/`mu2` |
-| q4 location slope | Intercepts and slopes for `mu1` and `mu2` | Planned |
+| q4 location slope | Intercepts and slopes for `mu1` and `mu2` | Source-tested ordinary group route with the `biv_gaussian_q4_location` smoke artifact lane |
 | q6 partial location-scale | Selected location and scale slope endpoints, excluding some weakly identified pairs | Design-only |
 | q8 all-endpoint slope | Intercepts and slopes across `mu1`, `mu2`, `sigma1`, and `sigma2` | Design-only and high risk |
 

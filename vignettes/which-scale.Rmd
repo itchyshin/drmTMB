@@ -837,10 +837,10 @@ Current planned but not implemented syntax includes:
 - slope-specific and labelled-block random-effect scale models;
 - correlated residual-scale slope blocks in `sigma` and labelled `mu`/`sigma`
   random-slope covariance;
-- broader bivariate random slopes and full cross-parameter covariance blocks
-  spanning more than one pair;
-- cross-formula covariance sharing from repeated labels such as
-  `(1 + x | p | id)`;
+- residual-scale bivariate random slopes and full cross-parameter covariance
+  blocks spanning more than one pair;
+- cross-formula covariance sharing from repeated slope labels outside the
+  matching source-tested bivariate `mu1`/`mu2` q4/q6 location routes;
 - multiple phylogenetic slopes, phylogenetic slope correlations, standalone or
   partial phylogenetic scale terms, predictor-dependent q=4 phylogenetic
   location-scale correlations, structured `rho12` effects, mesh/SPDE spatial

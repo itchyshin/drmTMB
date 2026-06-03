@@ -8,9 +8,9 @@ without confusing residual coscale `rho12` with the group-level slope-slope
 correlation.
 
 The audit is source and schema evidence only. It does not run a new grid, does
-not estimate coverage or power, and does not promote intercept-plus-slope q4,
-p8/q8, random effects in `rho12`, mixed-response bivariate models, or
-residual-scale slope covariance.
+not estimate coverage or power, and does not promote the now source-tested q4
+location block, p8/q8, random effects in `rho12`, mixed-response bivariate
+models, or residual-scale slope covariance.
 
 ## Schema Check
 

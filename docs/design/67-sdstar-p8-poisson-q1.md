@@ -75,12 +75,12 @@ That is 8 latent endpoints, 8 SDs, and 28 pairwise correlations. It is useful
 for questions about individual differences in average response, plasticity,
 predictability, and malleability, but it is also easy to overfit.
 
-The staged path should be:
+The current staged path is:
 
-| Stage | Candidate syntax | Status before fitting |
+| Stage | Candidate syntax | Status |
 | --- | --- | --- |
 | q2 slope-only location | `(0 + x | p | id)` in both `mu1` and `mu2` | fitted first slice; slope1-slope2 row is direct |
-| q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | planned; needs coefficient-aware `corpairs()` rows and recovery |
+| q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | fitted and smoke-artifact wired; q4 correlations are derived-unavailable for intervals |
 | q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | planned; separate from residual `rho12` |
 | q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | planned; high identifiability risk |
 | q8 all-endpoint block | all four dpars with intercept and slope endpoints | planned after q2/q4 evidence; q8 correlations are derived-unavailable until a validated interval method exists |
