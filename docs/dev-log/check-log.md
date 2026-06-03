@@ -51607,21 +51607,31 @@ gate with the later q4 smoke/artifact lane and q6 source-tested status.
     1.9.17 while the current TMB was 1.9.21.
 - Not run: `devtools::document()`, because no roxygen comments changed.
 
-## 2026-06-03 - Bivariate q6 location GitHub closeout (branch codex/phase6c-twin-exchange)
+## 2026-06-03 - Bivariate q6 location GitHub closeout (branch codex/q6-location-smoke-lane)
 
 Task: finish the issue and PR maintenance for the q6 bivariate Gaussian
 location smoke/artifact lane without expanding the simulation claim.
 
-- Pushed commit `542e7d97` to `origin/codex/phase6c-twin-exchange`.
-- Opened follow-up PR #477 after PR #445 had already been merged at the
-  previous head:
-  <https://github.com/itchyshin/drmTMB/pull/477>.
+- The first follow-up PR #477 was opened from the previous sprint branch after
+  PR #445 had already been merged. That compared as the old full-branch diff,
+  so #477 was closed and replaced.
+- Cherry-picked the q6 lane onto clean branch `codex/q6-location-smoke-lane`,
+  based on current `main`, and pushed commits `5ca5a092` and `c6fad83c`.
+- Opened replacement PR #478:
+  <https://github.com/itchyshin/drmTMB/pull/478>.
 - Posted the Phase 6c q6 status comment on #33:
   <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611028757>.
 - Posted the Phase 18 q6 smoke/artifact-routing comment on #59:
   <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611028987>.
-- Posted the PR verification and boundary comment on #477:
+- Posted the original PR verification and boundary comment on #477, now
+  superseded:
   <https://github.com/itchyshin/drmTMB/pull/477#issuecomment-4611029250>.
+- Posted correction comments pointing to clean PR #478:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611071761>
+  and
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611071774>.
+- Posted the clean PR #478 replacement/boundary comment:
+  <https://github.com/itchyshin/drmTMB/pull/478#issuecomment-4611071781>.
 - Left #33 and #59 open. Remaining work is formal recovery, coverage, power,
   q6 derived-correlation intervals, residual-scale bivariate slope covariance,
   same-response location-scale slope covariance, random effects in `rho12`, and
@@ -51651,7 +51661,7 @@ location smoke/artifact lane without expanding the simulation claim.
     confirmed PR #445 is no longer draft, remains open, and has successful
     checks at head `1442abae83cddfa523e84c7d4ece9e800e5703e5`.
 
-## 2026-06-03 - Bivariate q6 location smoke artifact lane (branch codex/phase6c-twin-exchange)
+## 2026-06-03 - Bivariate q6 location smoke artifact lane (branch codex/q6-location-smoke-lane)
 
 Task: add the Phase 18 smoke/artifact lane for the matching q6 bivariate
 Gaussian location block `(1 + x + z | p | id)` in both `mu1` and `mu2`, while

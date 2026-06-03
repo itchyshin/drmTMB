@@ -127,18 +127,27 @@ returned only planned-boundary rows in the readiness matrix. The same scan over
 
 ## GitHub Issue Maintenance
 
-PR #445 had already been merged at the previous head, so the q6 follow-up was
-pushed to the same branch and opened as PR #477:
-<https://github.com/itchyshin/drmTMB/pull/477>.
+PR #445 had already been merged at the previous head. The first q6 follow-up
+was opened as PR #477 from the previous sprint branch, but that compared as the
+old full-branch diff, so PR #477 was closed. The q6 changes were then
+cherry-picked onto clean branch `codex/q6-location-smoke-lane`, based on
+current `main`, and opened as PR #478:
+<https://github.com/itchyshin/drmTMB/pull/478>.
 
 Issue and PR comments:
 
-- #33 Phase 6c status comment:
+- #33 original Phase 6c q6 status comment:
   <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611028757>.
-- #59 Phase 18 smoke/artifact-routing comment:
+- #59 original Phase 18 q6 smoke/artifact-routing comment:
   <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611028987>.
-- PR #477 verification and boundary comment:
+- PR #477 verification and boundary comment, now superseded by #478:
   <https://github.com/itchyshin/drmTMB/pull/477#issuecomment-4611029250>.
+- #33 correction pointing to clean PR #478:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611071761>.
+- #59 correction pointing to clean PR #478:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611071774>.
+- PR #478 replacement/boundary comment:
+  <https://github.com/itchyshin/drmTMB/pull/478#issuecomment-4611071781>.
 
 #33 and #59 remain open. The q6 lane is smoke-artifact-routed only; formal
 recovery, coverage, power, q8/p8, residual-scale slope covariance,
@@ -172,5 +181,5 @@ correlated slopes, or all-four p8/q8 endpoint covariance.
 
 ## Next Actions
 
-Let GitHub CI validate PR #477. If CI passes, merge the q6 smoke/artifact lane
+Let GitHub CI validate PR #478. If CI passes, merge the q6 smoke/artifact lane
 without closing #33 or #59.
