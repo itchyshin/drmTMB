@@ -63,3 +63,28 @@ No `R/`, `src/`, family, or grammar behaviour changed.
    follow-up — this environment's egress proxy returns a uniform `403`, so dead
    links cannot be distinguished from blocked hosts here and must be checked in
    CI or locally.
+
+## Update (CI-verified outcome)
+
+After the first green report-only run, enforcement was tested by flipping
+`error = TRUE` and pushing. CI surfaced roughly 200 flagged terms in three
+buckets — British spellings (`behaviour`, `colour`, `modelling`, ...),
+LaTeX/code tokens from vignettes (`bmatrix`, `frac`, `aes`, `coef`, ...), and
+proper nouns/jargon (`Ayumi`, `Bergmann`, `INLA`, `evolvability`, ...) — and the
+CI error message truncated the list, so a complete wordlist could not be built
+from this network-restricted environment. Enforcement was therefore reverted to
+report-only.
+
+Two maintainer decisions settled the final state:
+
+- **`Language: en-GB`** (not `en-US`). The prose is British English, so en-GB is
+  the correct dictionary; it removes the entire British-spelling bucket of false
+  positives. CI confirmed the `en_GB` hunspell dictionary loads on the ubuntu,
+  macOS, and Windows runners (all three green).
+- **Stay report-only** (`error = FALSE`) for now. Spelling errors print in the CI
+  log without gating the build. To enforce later, run
+  `spelling::update_wordlist()` locally (needs hunspell) to capture the remaining
+  code/jargon terms, commit `inst/WORDLIST`, then flip `error = TRUE`.
+
+Shipped state of PR #474: `Language: en-GB`, report-only spelling check, seeded
+`inst/WORDLIST`; green on all three platforms.
