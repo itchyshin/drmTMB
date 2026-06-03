@@ -191,6 +191,13 @@ Current pilot files:
 - `dgp/sim_dgp_biv_gaussian_q6_location.R` generates bivariate Gaussian
   `mu1`/`mu2` data with matching ordinary q=6 location random-effect blocks,
   `(1 + x + z | p | id)`, and residual `rho12` kept as a separate layer.
+- `dgp/sim_dgp_biv_gaussian_q2_scale.R` generates bivariate Gaussian data with
+  a matching residual-scale random-intercept covariance block,
+  `sigma1 = ~ 1 + (1 | p | id)` and `sigma2 = ~ 1 + (1 | p | id)`, so the two
+  log-`sigma` intercepts share a q=2 scale-scale block while residual `rho12`
+  stays a separate layer. This is the fittable scale-covariance prerequisite
+  for the q8 endpoint gate; bivariate residual-scale random slopes remain
+  closed.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
@@ -345,6 +352,10 @@ Current pilot files:
   Gaussian fixed `mu1`/`mu2` coefficients, public residual scales, residual
   `rho12`, six direct q=6 location SDs, and 15 derived q=6 location
   correlations.
+- `fit/sim_summarise_biv_gaussian_q2_scale.R` summarises bivariate Gaussian
+  fixed `mu1`/`mu2` coefficients, public residual-scale intercepts, residual
+  `rho12`, the two direct q=2 scale SDs from `sdpars$sigma`, and the single
+  derived scale-scale correlation from `corpars$sigma`.
 - `fit/sim_summarise_student_shape.R` summarises fixed Student-t `mu`,
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
@@ -443,6 +454,8 @@ Current pilot files:
   bivariate Gaussian `mu1`/`mu2` slope-only surface.
 - `run/sim_run_biv_gaussian_q6_location_smoke.R` does the same for the
   matching bivariate Gaussian q=6 `mu1`/`mu2` location surface.
+- `run/sim_run_biv_gaussian_q2_scale_smoke.R` does the same for the matching
+  bivariate Gaussian q=2 residual-scale intercept covariance surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
@@ -597,6 +610,11 @@ Current pilot files:
   lane. The manual `biv_gaussian_q6_location` Actions task can run it. The
   lane remains opt-in and excluded from `task = "all"` until a deliberately
   sized recovery or coverage grid is designed.
+- `run/sim_write_biv_gaussian_q2_scale_grid.R` writes the same simple artifact
+  set for the bivariate Gaussian q=2 residual-scale intercept covariance lane.
+  The manual `biv_gaussian_q2_scale` Actions task can run it. The lane remains
+  opt-in and excluded from `task = "all"` until a deliberately sized recovery
+  or coverage grid is designed.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
@@ -760,6 +778,9 @@ Current pilot files:
 - `run/sim_summary_biv_gaussian_q6_location_smoke.R` reduces the matching
   bivariate Gaussian q=6 `mu1`/`mu2` location smoke run into aggregate,
   replicate, manifest, and failure-ledger tables.
+- `run/sim_summary_biv_gaussian_q2_scale_smoke.R` reduces the matching
+  bivariate Gaussian q=2 residual-scale intercept covariance smoke run into
+  aggregate, replicate, manifest, and failure-ledger tables.
 - `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence,

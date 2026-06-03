@@ -89,7 +89,11 @@
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
   Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted with
-  smoke artifact routing. Residual-scale slope blocks, same-response
+  smoke artifact routing. The matching residual-scale q=2 intercept block,
+  `sigma1 = ~ 1 + (1 | p | id)` with `sigma2 = ~ 1 + (1 | p | id)`, now also
+  has smoke artifact routing (`biv_gaussian_q2_scale`), reporting the two
+  direct scale SDs in `sdpars$sigma` and the derived scale-scale correlation in
+  `corpars$sigma`. Residual-scale slope blocks, same-response
   location-scale slope covariance, random effects in `rho12`, and
   predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,

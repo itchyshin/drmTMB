@@ -40,8 +40,8 @@ test_that("Phase 18 correlation-block status writer stages plan tables", {
 
   expect_equal(out$surface, "phase18_correlation_block_status")
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
-  expect_equal(nrow(out$plan), 6L)
-  expect_equal(nrow(out$dispatch), 6L)
+  expect_equal(nrow(out$plan), 7L)
+  expect_equal(nrow(out$dispatch), 7L)
   expect_equal(nrow(out$wrapper_targets), 0L)
   expect_equal(nrow(out$registry_summary), 4L)
   expect_equal(nrow(out$artifact_manifest), length(out$paths))

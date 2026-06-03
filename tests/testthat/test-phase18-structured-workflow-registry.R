@@ -85,8 +85,8 @@ test_that("Phase 18 structured workflow registry validates current rows", {
   )
   status_counts <- table(registry$admission_status)
 
-  expect_equal(nrow(registry), 37L)
-  expect_equal(unname(status_counts[["ready_grid"]]), 20L)
+  expect_equal(nrow(registry), 38L)
+  expect_equal(unname(status_counts[["ready_grid"]]), 21L)
   expect_equal(unname(status_counts[["blocked"]]), 4L)
   expect_equal(unname(status_counts[["design_only"]]), 2L)
   expect_equal(anyDuplicated(registry$lane_id), 0L)
@@ -627,8 +627,8 @@ test_that("Phase 18 correlation-block workflow plan separates interval states", 
   )
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
-  expect_equal(nrow(plan), 6L)
-  expect_equal(sum(plan$admission_status == "ready_grid"), 3L)
+  expect_equal(nrow(plan), 7L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 4L)
   expect_equal(sum(plan$admission_status == "ready_or_smoke"), 1L)
   expect_equal(sum(plan$admission_status == "diagnostic_only"), 2L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
@@ -688,6 +688,27 @@ test_that("Phase 18 correlation-block plan routes q2 status artifacts", {
   expect_equal(plan$actions_task[structured_q2], "correlation_block_status")
 })
 
+test_that("Phase 18 correlation-block plan dispatches the q2 scale task", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_correlation_block_workflow_plan(registry)
+  scale_q2 <- plan$lane_id == "bivariate_gaussian_scale_q2"
+
+  expect_true(any(scale_q2))
+  expect_equal(plan$dispatch_status[scale_q2], "ready_existing_task")
+  expect_equal(plan$workflow_helper[scale_q2], "phase18_actions_main")
+  expect_equal(plan$actions_task[scale_q2], "biv_gaussian_q2_scale")
+  expect_equal(
+    plan$interval_policy[scale_q2],
+    "direct_or_layer_specific_q2"
+  )
+  expect_true(nzchar(plan$audit_focus[scale_q2]))
+})
+
 test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -700,7 +721,7 @@ test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
     include_diagnostic = FALSE
   )
 
-  expect_equal(nrow(plan), 4L)
+  expect_equal(nrow(plan), 5L)
   expect_false(any(plan$admission_status == "diagnostic_only"))
   expect_false(any(grepl("q4", plan$block_q, fixed = TRUE)))
 })
@@ -715,7 +736,7 @@ test_that("Phase 18 correlation-block plan excludes blocked rows", {
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
   expect_false("count_labelled_q2_q4" %in% plan$lane_id)
-  expect_equal(nrow(plan), 6L)
+  expect_equal(nrow(plan), 7L)
 })
 
 test_that("Phase 18 correlation-block wrapper target plan is read-only", {
@@ -1034,7 +1055,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("correlation_blocks", bundle$plan_counts$workflow_plan)
     ],
-    6L
+    7L
   )
   expect_equal(
     bundle$plan_counts$n[
@@ -1065,7 +1086,7 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$design_only[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)
   expect_equal(counts$wrapper_targets[structured], 0L)
-  expect_equal(counts$existing_actions_tasks[correlation], 6L)
+  expect_equal(counts$existing_actions_tasks[correlation], 7L)
   expect_equal(counts$wrapper_targets[correlation], 0L)
   expect_equal(counts$ready_or_smoke[correlation], 1L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
