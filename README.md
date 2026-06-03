@@ -21,6 +21,11 @@ with a precision parameter such as `phi` or `theta`.
 
 - New to the package? Read
   [Getting started](https://itchyshin.github.io/drmTMB/articles/drmTMB.html).
+- Want the current status before choosing syntax? Use
+  [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
+  for the user-facing model map and the
+  [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
+  when you need the fitted-versus-planned ledger.
 - Not sure which response family fits your data? Use
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - Unsure whether you are modelling residual variation, group variation, or
@@ -180,7 +185,9 @@ head(sigma(fit)^2) # fitted residual variances
   Gaussian location-coscale regression with `mu1`, `mu2`, `sigma1`,
   `sigma2`, and `rho12`. Matching labelled random intercepts in `mu1` and
   `mu2`, such as `(1 | p | id)` in both formulas, fit the first bivariate
-  group-level covariance block. Read
+  group-level covariance block; matching location slope blocks such as
+  `(0 + x | p | id)` or `(1 + x | p | id)` in both formulas fit the first
+  slope-only and Q4 location slices. Read
   [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
 - **Known sampling variance or covariance.** Use Gaussian meta-analysis with
   `meta_V(V = V)`; deprecated `meta_known_V(V = V)` remains supported only as a
@@ -188,14 +195,15 @@ head(sigma(fit)^2) # fitted residual variances
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
-  `sd(group) ~ x`, the implemented intercept-only phylogenetic path
-  `phylo(1 | species, tree = tree)`, or the first coordinate-spatial path
-  `spatial(1 | site, coords = coords)` plus one numeric spatial slope,
-  `spatial(1 + x | site, coords = coords)`, for univariate Gaussian `mu`.
-  Matching `phylo()` or `spatial()` terms in bivariate `mu1` and `mu2` fit the
-  first structured mean-mean correlation slices, and matching labelled all-four
-  `phylo()` or `spatial()` terms fit the first constant q=4 location-scale
-  covariance blocks. Read
+  `sd(group) ~ x`, and fitted Gaussian structured routes for `phylo()`,
+  `spatial()`, `animal()`, and `relmat()`. For Gaussian structured effects,
+  those markers fit documented `mu` and `sigma` intercept routes, one numeric
+  `mu` slope, q=2 bivariate mean-mean blocks, and constant q=4 location-scale
+  blocks where marked. Artifact routing is narrower than fitted syntax:
+  `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` are manual opt-in Actions tasks, excluded from
+  `task = "all"`, and do not by themselves establish recovery, coverage, or
+  power. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 ## Stable-core matrix
@@ -222,15 +230,16 @@ Read status words consistently:
 | One-response families | Stable for Gaussian, Student-t, lognormal, Gamma, Tweedie, beta, zero-one beta, beta-binomial, Poisson, NB2, truncated NB2, hurdle NB2, zero-inflated Poisson, zero-inflated NB2, and cumulative-logit ordinal location; ordinary Poisson and NB2 `mu` random intercepts and independent numeric slopes are the first count random-effect slices; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random intercepts now have Phase 18 artifact lanes and independent numeric `mu` slopes have focused recovery tests; ordinary NB2 now has the first log-`sigma` random-intercept slice; and ordinary Poisson/NB2 now have q=1 structured `mu` intercept first slices for `phylo()`, `spatial()`, `animal()`, and `relmat()` | Wald fixed-effect intervals by default; explicit direct profile targets are listed by `profile_targets()`; Tweedie fixed-effect coefficients use the fixed-effect interval path; ordinary Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs are direct `log_sd_mu` profile targets; the bounded-response, positive-continuous, Student-t, and zero-truncated NB2 artifact lanes record fixed-effect Wald rows and direct-SD profile rows for ordinary `(1 | id)` in `mu`; independent selected non-Gaussian `mu` slopes have CRAN-safe smoke recovery checks; NB2 ordinary `sigma` random-intercept SDs are direct `log_sd_sigma` targets; Poisson/NB2 structured SDs are direct `log_sd_phylo` profile targets | Random effects are otherwise mostly Gaussian-only; Tweedie random effects, predictor-dependent Tweedie `nu`, non-Gaussian `sigma` random effects outside the ordinary NB2 intercept gate, correlated bounded-response, positive-continuous, Student-t, and zero-truncated NB2 random slopes, Student-t `nu` random effects, correlated count slopes, zero-inflated count random effects, structured count slopes, simultaneous count structured effects, ordinal scale, zero-one beta random effects, and bivariate bounded-response families remain planned |
 | Gaussian ordinary random effects | Stable for `mu` intercepts, independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric multi-slope blocks; stable for `sigma` intercepts and multiple independent `sigma` slopes on log-`sigma` | `check_drm()` reports replication, weak-slope, boundary, and Hessian diagnostics; q=3 recovery and q=4 output-contract checks cover the ordinary `mu` multi-slope path; q > 2 `mu` block SDs and independent `sigma` slope SDs are direct profile targets, while q > 2 `mu` correlations are derived-unavailable for direct profiling | Larger q blocks can be sample-size hungry; correlated residual-scale slope blocks, labelled residual-scale slope covariance, and coefficient-specific `sd()` slope models remain planned |
 | Random-effect scale models | First slice fitted for `sd(group) ~ x_group` on unlabelled Gaussian `mu` random intercepts | Fixed SD-surface coefficients are direct targets; row-specific group SD summaries are derived | Slope-specific `sd(id, dpar = "mu", coef = "x") ~ ...` is reserved and rejected |
-| Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; deprecated `meta_known_V(V = V)` remains supported only as a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
+| Known sampling covariance | Stable for Gaussian `meta_V(V = V)`, including diagonal, dense, and row-paired bivariate known covariance; deprecated `meta_known_V(V = V)` remains supported only as a compatibility alias | `check_drm()` reports dense full `V` as a note with dimension, density, size, rank, and conditioning; fixed effects and response-scale residual summaries use the usual interval routes only when Hessian diagnostics are clean. Some `meta_V(V = V)` fits with predictor-dependent `sigma` can return plausible point estimates while reporting `pdHess = FALSE`; treat their Wald SEs and intervals as unreliable until a profile, bootstrap, or simpler `sigma` model supports the target | Dense covariance is small-to-moderate unless sparse or block-sparse evidence is added; full dense known `V` with non-unit likelihood weights is rejected |
+| Missing data | First release-ready surface for `miss_control()`: complete-case dropping remains the default; Gaussian response masks retain univariate missing responses and independent bivariate partial-response rows; one `mi()` missing predictor at a time is modelled for the implemented predictor-family set in univariate Gaussian location models; and MD9a fits the first non-Gaussian response route, ordinary Poisson with one fixed-effect binary `mi()` predictor | Missing-response and missing-predictor routes have focused likelihood tests, malformed-input tests, `imputed()` summaries for fitted predictor routes, generated reference pages, and the missing-data article. The final tidy pass recorded 389 missing-predictor expectations and a full package test run with 9,090 expectations passing | This is not a general missing-data framework. Multiple missing predictors, missing non-Gaussian responses, non-binary missing predictors in non-Gaussian response models, grouped or structured non-Gaussian predictor models, EM/profile/REML engines, simulation-based imputation summaries, response imputation, measurement-error models, and pigauto interoperability remain planned |
 | Bivariate Gaussian residual `rho12` | Stable for fixed-effect `mu1`, `mu2`, `sigma1`, `sigma2`, and predictor-dependent residual `rho12` | `rho12()` extracts response-scale residual correlations; row-specific profile intervals use `confint(..., parm = "rho12", newdata = ...)` | Residual `rho12` is not a group-level, phylogenetic, or spatial correlation |
-| Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets and the slope-slope `mu1`/`mu2` row are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; predictor-dependent `corpair()` values use `newdata`; q=4 unstructured-correlation rows are derived and report unavailable derived intervals | Intercept-plus-slope q=4 location blocks, residual-scale slope blocks, all-four p8/q8 location-scale slope endpoints, and predictor-dependent slope `corpair()` regressions remain planned |
+| Ordinary bivariate covariance and `corpairs()` | First slice fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` blocks, source-tested matching q=4 and q=6 `mu1`/`mu2` location blocks, and q=2 `corpair(..., level = "group") ~ x` | Constant q=2 SD/correlation targets and the slope-slope `mu1`/`mu2` row are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; predictor-dependent `corpair()` values use `newdata`; q > 2 location-block SDs are direct `log_sd_re_cov` targets, while q > 2 unstructured-correlation rows are derived and report unavailable derived intervals | Residual-scale slope blocks, same-response location-scale slope covariance, all-four p8/q8 location-scale slope endpoints, predictor-dependent slope `corpair()` regressions, and broad simulation recovery for q > 2 bivariate location blocks remain planned |
 | Phylogenetic structured effects | First slices fitted for Gaussian univariate `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations, one numeric `mu` slope, bivariate `mu1`/`mu2`, labelled q=4 location-scale blocks, `sd_phylo*()` direct-SD surfaces, q=2 phylogenetic `corpair()` regression, ordinary Poisson/NB2 q=1 `mu` intercepts, and `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)` for one pair-level Kronecker phylogenetic field | Direct phylogenetic SD and constant q=2 correlation targets are profile-ready; predictor-dependent `corpair()` values use `newdata`; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets but still need fit-specific profile diagnostics; the Poisson/NB2 q=1 routes are smoke-level with direct `log_sd_phylo` targets | Multiple phylogenetic slopes, residual-scale structured slopes, structured `rho12`, zero-inflated phylogenetic effects, binary/Bernoulli incidence models, additive partner main phylogenies plus `phylo_interaction()`, direct-SD formulas combined with structured `sigma`, and predictor-dependent q=4 correlations remain planned |
 | Coordinate spatial structured effects | First slices fitted for Gaussian `mu` and `sigma`: `spatial(1 | site, coords = coords)` can enter univariate location, residual scale, or matching location-scale blocks; one numeric `spatial(1 + x | site, coords = coords)` slope is fitted for univariate `mu`; matching bivariate `mu1`/`mu2` and all-four q=4 spatial blocks are fitted. Ordinary Poisson/NB2 also fit q=1 `spatial(1 | site, coords = coords)` in `mu` on the log-mean scale. | `sdpars$mu`, `sdpars$sigma`, `ranef("spatial_mu")`, `ranef("spatial_sigma")`, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, and `summary()$covariance` expose the coordinate fields, the univariate mean-scale row, the q=2 spatial mean-mean row, and the six derived q=4 spatial rows; q=4 is fitted extractor/diagnostic smoke, not formal coverage evidence | Mesh/SPDE, multiple spatial slopes, residual-scale structured slopes, spatial slope correlations, direct-SD surfaces, spatial `corpair()` regression, count spatial slopes, labelled count covariance, and zero-inflated spatial effects remain planned |
 | Animal and lower-level relatedness structured effects | Gaussian `mu` and `sigma` intercepts are fitted for `animal(1 | id, pedigree/A/Ainv = ...)` and `relmat(1 | id, K/Q = ...)`; one numeric `mu` slope is fitted for animal and `relmat()` routes; matching labelled `mu1`/`mu2` terms fit q=2 bivariate location covariance, and matching all-four terms fit constant q=4 location-scale covariance. Ordinary Poisson/NB2 also fit q=1 `animal()` and `relmat()` `mu` intercepts on the log-mean scale. | `sdpars$mu`, `sdpars$sigma`, `corpars$animal` / `corpars$relmat`, `ranef("animal_mu")`, `ranef("animal_sigma")`, `ranef("relmat_mu")`, `ranef("relmat_sigma")`, `corpairs()`, `summary()$covariance`, `profile_targets()`, and `check_drm()` expose the fitted structured fields; q=4 correlations are derived-only | Large-pedigree sparse precision construction, multiple structured slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()` regressions, animal/`relmat()` count slopes or labelled count covariance, and generic direct-SD grammar remain planned |
 | Profile intervals and diagnostics | First slice for fixed effects, direct SD/correlation targets, row-specific `sigma`, `sigma1`, `sigma2`, `rho12`, fitted q=2 `corpair()` values, and `confint(..., method = "bootstrap")` simulate/refit intervals for direct targets | `confint()` defaults to fast direct Wald intervals when `sdreport()` is available; SD Wald intervals use the log-SD scale, correlation Wald intervals use a guarded Fisher-z/atanh scale, `profile_precision = "fast"` gives a quicker first-pass profile, `profile_maxit` caps each `TMB::tmbprofile()` target, `parallel = "multicore"` can split profile or bootstrap refits on Unix, and interval output uses `conf.status`, `profile.boundary`, `profile.message`, and bootstrap success/failure counts | Profile and bootstrap support is target-specific; derived q=4 rows report `derived_interval_unavailable` |
 | Large-data fit controls | Opt-in controls for memory-light fitted objects, sparse fixed-effect `mu` matrices, and Gaussian sufficient-statistic aggregation | `check_drm()` reports sparse design and aggregation diagnostics where fitted | These controls are first univariate Gaussian paths, not broad scalability claims |
-| Reserved or planned neighbours | Reserved/rejected or design-only for coefficient-specific `sd()` slopes, random effects in `rho12`, shape random effects, ID-level skewness such as future `skew(id) ~ x`, multiple phylogenetic slopes or phylogenetic slope correlations, mesh/SPDE, spatial `corpair()`, broader bivariate random slopes, and mixed composed families | Planned-feature errors should fire before fitting; no interval target is advertised | These need likelihood code, recovery tests, diagnostics, documentation, and after-task evidence before use |
+| Reserved or planned neighbours | Reserved/rejected or design-only for coefficient-specific `sd()` slopes, random effects in `rho12`, shape random effects, ID-level skewness such as future `skew(id) ~ x`, multiple phylogenetic slopes, non-Gaussian phylogenetic slopes, phylogenetic slope correlations, mesh/SPDE, spatial `corpair()`, residual-scale or location-scale endpoint bivariate slope covariance, and mixed composed families | Planned-feature errors should fire before fitting; no interval target is advertised | These need likelihood code, recovery tests, diagnostics, documentation, and after-task evidence before use |
 
 ## Current boundaries
 
@@ -240,12 +249,13 @@ dimensional multivariate models belong in a different tool.
 Random effects are strongest in the Gaussian routes. The non-Gaussian mixed
 surface is still deliberately small: ordinary Poisson/NB2 `mu` random effects,
 ordinary Student-t/zero-truncated NB2/lognormal/Gamma/beta/beta-binomial `mu`
-random intercepts, and the first ordinary Poisson/NB2 q=1 structured `mu`
-intercepts are fitted for `phylo()`, `spatial()`, `animal()`, and `relmat()`.
-The beta/beta-binomial, lognormal/Gamma, Student-t, and
-zero-truncated NB2 ordinary `mu` random intercepts now have small Phase 18
-artifact lanes, not broad bounded-response, positive-continuous, Student-t, or
-count random-effect claims.
+random intercepts and independent numeric `mu` slopes, and the first ordinary
+Poisson/NB2 q=1 structured `mu` intercepts are fitted for `phylo()`,
+`spatial()`, `animal()`, and `relmat()`. The beta/beta-binomial,
+lognormal/Gamma, Student-t, and zero-truncated NB2 ordinary `mu` random
+intercepts now have small Phase 18 artifact lanes, while their independent
+numeric `mu` slopes have focused source tests; neither path is a broad
+bounded-response, positive-continuous, Student-t, or count random-effect claim.
 Ordinary NB2 also has a first grouped overdispersion path in `sigma`, limited
 to independent random intercepts on the log-`sigma` scale. Most other
 non-Gaussian random-effect and structured-dependence combinations remain
@@ -284,21 +294,19 @@ gives the finer ledger by family, distributional parameter, dependence layer,
 q, random-slope support, `corpairs()`, `zi`, and `hu`.
 
 Spatial syntax is part of the structured-effect design. The fitted coordinate
-path supports a univariate Gaussian location random intercept,
-`spatial(1 | site, coords = coords)`, one numeric location slope,
-`spatial(1 + x | site, coords = coords)`, and the first bivariate q=2
-`mu1`/`mu2` location covariance from matching
-`spatial(1 | p | site, coords = coords)` terms. The fitted spatial SDs appear in
-`sdpars$mu`/`sdpars$sigma`, conditional effects in `ranef("spatial_mu")` and
-`ranef("spatial_sigma")`, direct SD and
-correlation targets in `profile_targets()`, and the q=2 mean-mean row in
-`corpairs(level = "spatial")` and `summary()$covariance`. Matching labelled
-spatial terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit the constant
-q=4 location-scale block and report six derived spatial covariance rows.
-Mesh/SPDE fields, multiple spatial slopes, residual-scale structured slopes,
-spatial slope correlations, direct spatial SD surfaces,
-predictor-dependent spatial `corpair()` regression, and non-Gaussian spatial
-effects are still planned rather than landing-page workflows.
+path supports univariate Gaussian `mu` and `sigma` intercepts with
+`spatial(1 | site, coords = coords)`, one numeric `mu` slope with
+`spatial(1 + x | site, coords = coords)`, q=2 `mu1`/`mu2` location covariance,
+and constant q=4 location-scale blocks from matching all-four labelled spatial
+terms. The fitted spatial SDs appear in `sdpars$mu`/`sdpars$sigma`,
+conditional effects in `ranef("spatial_mu")` and `ranef("spatial_sigma")`,
+direct SD and correlation targets in `profile_targets()`, and the q=2
+mean-mean row in `corpairs(level = "spatial")` and
+`summary()$covariance`. Mesh/SPDE fields, multiple spatial slopes,
+residual-scale structured slopes, spatial slope correlations, direct spatial SD
+surfaces, predictor-dependent spatial `corpair()` regression, and
+non-Gaussian spatial effects are still planned rather than landing-page
+workflows.
 
 For uncertainty, `confint()` defaults to the fast path when `TMB::sdreport()`
 has been computed: Wald intervals for fixed-effect coefficients plus direct

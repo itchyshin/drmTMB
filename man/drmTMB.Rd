@@ -10,17 +10,19 @@ drmTMB(
   data,
   weights = NULL,
   control = list(),
+  impute = NULL,
+  missing = miss_control(),
   ...
 )
 }
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
+\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
-\code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -40,6 +42,55 @@ formula instead.}
 \item{control}{Optional list passed to \code{\link[stats:nlminb]{stats::nlminb()}}, or a
 \code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage
 choices should be supplied together.}
+
+\item{impute}{Optional one-element named list of predictor models for the
+current missing-predictor routes. Bare formulas such as \code{list(x = x ~ z)}
+define Gaussian models for numeric missing predictors. Use
+\code{\link[=impute_model]{impute_model()}} for explicit predictor families, such as
+\code{list(treatment = impute_model(treatment ~ z, family = binomial()))} for
+a binary predictor, \code{list(score = impute_model(score ~ z, family = cumulative_logit()))} for an ordered predictor, or
+\code{list(habitat = impute_model(habitat ~ z, family = categorical()))} for
+an unordered predictor, or
+\code{list(cover = impute_model(cover ~ z, family = beta()))} for a strict
+proportion predictor in \verb{(0, 1)}, or
+\code{list(cover = impute_model(cover ~ z, family = zero_one_beta()))} for a
+boundary proportion predictor in \verb{[0, 1]}, or
+\code{list(cover = impute_model(success ~ z, family = beta_binomial(), trials = trials))} for a denominator-aware success/trial proportion predictor, or
+\code{list(abundance = impute_model(abundance ~ z, family = poisson()))} or
+\code{list(abundance = impute_model(abundance ~ z, family = nbinom2()))} for a
+count predictor, including
+\code{list(abundance = impute_model(abundance ~ z, family = truncated_nbinom2()))} for a positive zero-truncated count predictor, or
+\code{list(biomass = impute_model(biomass ~ z, family = lognormal()))} for a
+positive continuous predictor, or
+\code{list(biomass = impute_model(biomass ~ z, family = Gamma(link = "log")))}
+for a Gamma positive continuous predictor, or
+\code{list(biomass = impute_model(biomass ~ z, family = tweedie()))} for a
+non-negative semi-continuous predictor with exact zeros. Grouped Gaussian
+covariate models use syntax such as
+\code{list(x = x ~ z + (1 | group))}; structured Gaussian covariate models use
+explicit syntax such as \code{list(x = x ~ z + relmat(1 | line, Q = Q))}.
+Most fitted routes use a univariate Gaussian formula containing one \code{mi(x)}
+location term and \code{missing = miss_control(predictor = "model")}. The first
+non-Gaussian response route also supports \code{family = poisson()} with one
+fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}.}
+
+\item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
+keeps the existing complete-case behaviour. In the current fitted slices,
+\code{missing = miss_control(response = "include")} is implemented only for
+univariate Gaussian response masks and bivariate Gaussian partial-response
+rows without dense known covariance. \code{missing = miss_control(predictor = "model")} is implemented for one \code{mi()}
+missing predictor in a univariate Gaussian location model: numeric
+Gaussian predictors may use a
+fixed-effect, one random-intercept, or one intercept-only structured
+Gaussian \code{impute} formula; binary, ordered categorical, unordered
+categorical, strict beta/proportion, zero-one beta boundary-proportion,
+beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
+zero-truncated negative-binomial count, lognormal positive continuous,
+Gamma positive continuous, and Tweedie semi-continuous predictors may use
+one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
+route supports one fixed-effect binary missing predictor with a
+Bernoulli/logit \code{impute_model()}, complete count responses, and no
+zero-inflation, random, or structured response terms.}
 
 \item{...}{Reserved for future model options.}
 }

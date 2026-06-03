@@ -17,6 +17,33 @@ meta_V <- function(V) {
   invisible(NULL)
 }
 
+#' Missing-predictor model marker
+#'
+#' `mi()` marks a predictor whose missing values should be handled by the
+#' missing-data predictor model. Most fitted routes support one `mi(x)` term in
+#' a univariate Gaussian location formula. Numeric missing predictors can use a
+#' matching Gaussian fixed-effect, one random-intercept, or one intercept-only
+#' structured predictor model supplied through `impute`, for example
+#' `impute = list(x = x ~ z)` or
+#' `impute = list(x = x ~ z + relmat(1 | line, Q = Q))`. Family-aware
+#' fixed-effect predictor models supplied with [impute_model()] cover binary,
+#' ordered categorical, unordered categorical, strict proportion, zero-one
+#' boundary proportion, denominator-aware beta-binomial proportion, count,
+#' positive continuous, and semi-continuous predictors. The first
+#' non-Gaussian response route supports `family = poisson()` with one binary
+#' `mi()` predictor modelled by `family = binomial()`.
+#'
+#' @param x A predictor in a supported missing-predictor route.
+#'
+#' @return `x`, so standard R model-frame construction can evaluate the marker.
+#' @export
+#'
+#' @examples
+#' bf(y ~ z + mi(x), sigma ~ 1)
+mi <- function(x) {
+  x
+}
+
 #' Deprecated known sampling covariance marker
 #'
 #' `meta_known_V()` is deprecated as a formula marker in `drmTMB 0.1.3.9000`.

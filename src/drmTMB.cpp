@@ -18,6 +18,29 @@ template<class Type>
 Type objective_function<Type>::operator()()
 {
   DATA_VECTOR(y);
+  DATA_IVECTOR(observed_y);
+  DATA_IVECTOR(observed_y1);
+  DATA_IVECTOR(observed_y2);
+  DATA_INTEGER(has_mi);
+  DATA_INTEGER(mi_family);
+  DATA_INTEGER(mi_col);
+  DATA_VECTOR(mi_x);
+  DATA_VECTOR(mi_successes);
+  DATA_VECTOR(mi_trials);
+  DATA_IVECTOR(mi_observed);
+  DATA_IVECTOR(mi_missing_index);
+  DATA_INTEGER(has_mi_group);
+  DATA_IVECTOR(mi_group_index);
+  DATA_INTEGER(has_mi_struct);
+  DATA_IVECTOR(mi_struct_index);
+  DATA_VECTOR(mi_struct_value);
+  DATA_SPARSE_MATRIX(Q_mi_struct);
+  DATA_SCALAR(log_det_Q_mi_struct);
+  DATA_MATRIX(X_mi);
+  DATA_INTEGER(mi_n_state);
+  DATA_MATRIX(X_mi_state_mu);
+  DATA_VECTOR(mi_quad_nodes);
+  DATA_VECTOR(mi_quad_weights);
   DATA_VECTOR(trials);
   DATA_VECTOR(weights);
   DATA_VECTOR(offset_mu);
@@ -120,6 +143,13 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_sigma2);
   PARAMETER_VECTOR(beta_rho12);
   PARAMETER_VECTOR(beta_cor_mu);
+  PARAMETER_VECTOR(beta_mi);
+  PARAMETER_VECTOR(log_sigma_mi);
+  PARAMETER_VECTOR(x_miss);
+  PARAMETER_VECTOR(u_mi_group);
+  PARAMETER_VECTOR(log_sd_mi_group);
+  PARAMETER_VECTOR(u_mi_struct);
+  PARAMETER_VECTOR(log_sd_mi_struct);
   PARAMETER_VECTOR(u_mu);
   PARAMETER_VECTOR(log_sd_mu);
   PARAMETER_VECTOR(eta_cor_mu);
@@ -137,6 +167,7 @@ Type objective_function<Type>::operator()()
   PARAMETER(eta_cor_phylo);
 
   Type nll = 0;
+  (void)mi_observed;
   (void)n_re_cov_blocks;
   (void)re_cov_block_size;
   (void)re_cov_block_group_count;
@@ -322,13 +353,25 @@ Type objective_function<Type>::operator()()
       vector<Type> sigma2 = exp(log_sigma2);
       Type log2pi = log(Type(2.0) * M_PI);
       for (int i = 0; i < y1.size(); ++i) {
-        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-        Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-        Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
-        row_nll += Type(0.5) * log(one_minus_rho2);
-        row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
-        nll += weights(i) * row_nll;
+        if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+          Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+          Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+          row_nll += Type(0.5) * log(one_minus_rho2);
+          row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+          nll += weights(i) * row_nll;
+        } else if (observed_y1(i) == 1) {
+          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+          Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
+          row_nll += Type(0.5) * z1 * z1;
+          nll += weights(i) * row_nll;
+        } else if (observed_y2(i) == 1) {
+          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+          Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
+          row_nll += Type(0.5) * z2 * z2;
+          nll += weights(i) * row_nll;
+        }
       }
       REPORT(mu1);
       REPORT(mu2);
@@ -429,12 +472,13 @@ Type objective_function<Type>::operator()()
       ADREPORT(beta_mu);
       ADREPORT(beta_sigma);
     } else {
-      vector<Type> mu(y.size());
+      vector<Type> fixed_mu(y.size());
       if (use_sparse_X_mu == 1) {
-        mu = X_mu_sparse * beta_mu;
+        fixed_mu = X_mu_sparse * beta_mu;
       } else {
-        mu = X_mu * beta_mu;
+        fixed_mu = X_mu * beta_mu;
       }
+      vector<Type> mu = fixed_mu;
       vector<Type> log_sigma = X_sigma * beta_sigma;
 
       if (n_re_cov_blocks > 0) {
@@ -717,6 +761,1122 @@ Type objective_function<Type>::operator()()
       }
     }
 
+    if (has_mi == 1 && mi_family == 0) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type sigma_mi = exp(log_sigma_mi(0));
+      Type sd_mi_group = Type(0.0);
+      Type sd_mi_struct = Type(0.0);
+      if (has_mi_group == 1) {
+        sd_mi_group = exp(log_sd_mi_group(0));
+        for (int i = 0; i < mi_eta.size(); ++i) {
+          mi_eta(i) += sd_mi_group * u_mi_group(mi_group_index(i));
+        }
+        for (int g = 0; g < u_mi_group.size(); ++g) {
+          nll -= dnorm(u_mi_group(g), Type(0.0), Type(1.0), true);
+        }
+      }
+      if (has_mi_struct == 1) {
+        sd_mi_struct = exp(log_sd_mi_struct(0));
+        for (int i = 0; i < mi_eta.size(); ++i) {
+          mi_eta(i) +=
+            mi_struct_value(i) * u_mi_struct(mi_struct_index(i));
+        }
+        vector<Type> Q_u_mi_struct = Q_mi_struct * u_mi_struct;
+        Type quadratic_mi_struct = Type(0.0);
+        for (int j = 0; j < u_mi_struct.size(); ++j) {
+          quadratic_mi_struct += u_mi_struct(j) * Q_u_mi_struct(j);
+        }
+        nll += Type(0.5) * (
+          Type(u_mi_struct.size()) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(u_mi_struct.size()) * log_sd_mi_struct(0) -
+          log_det_Q_mi_struct +
+          exp(Type(-2.0) * log_sd_mi_struct(0)) * quadratic_mi_struct
+        );
+      }
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int j = 0; j < mi_missing_index.size(); ++j) {
+        int row = mi_missing_index(j);
+        mi_x_full(row) = x_miss(j);
+      }
+      for (int i = 0; i < mi_x_full.size(); ++i) {
+        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_mi);
+      REPORT(x_miss);
+      if (has_mi_group == 1) {
+        REPORT(u_mi_group);
+        REPORT(log_sd_mi_group);
+        REPORT(sd_mi_group);
+        ADREPORT(log_sd_mi_group);
+        ADREPORT(sd_mi_group);
+      }
+      if (has_mi_struct == 1) {
+        REPORT(u_mi_struct);
+        REPORT(log_sd_mi_struct);
+        REPORT(sd_mi_struct);
+        ADREPORT(log_sd_mi_struct);
+        ADREPORT(sd_mi_struct);
+      }
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type mu1 = mu(i) + beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * dnorm(y(i), mu1, sigma_i, true) : Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * dnorm(y(i), mu0, sigma_i, true) : Type(0.0);
+          nll -= logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          mi_x_full(i) = mi_probability(i);
+          mu(i) += beta_mu(mi_col) * (mi_probability(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 2) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_cutpoints(theta_ord.size());
+      if (theta_ord.size() > 0) {
+        mi_cutpoints(0) = theta_ord(0);
+        for (int j = 1; j < theta_ord.size(); ++j) {
+          mi_cutpoints(j) = mi_cutpoints(j - 1) + exp(theta_ord(j));
+        }
+      }
+      int n_state = mi_n_state;
+      matrix<Type> mi_state_probability(mi_x.size(), n_state);
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+        for (int state = 0; state < n_state; ++state) {
+          Type log_prob;
+          if (state == 0) {
+            log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+          } else if (state == n_state - 1) {
+            log_prob = drm_log1m_inv_logit(
+              mi_cutpoints(n_state - 2) - mi_eta(i)
+            );
+          } else {
+            Type upper = mi_cutpoints(state) - mi_eta(i);
+            Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+            log_prob = drm_log_inv_logit_diff(upper, lower);
+          }
+          mi_state_probability(i, state) = exp(log_prob);
+        }
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          int state = (int) asDouble(mi_x(i)) - 1;
+          Type log_prob;
+          if (state == 0) {
+            log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+          } else if (state == n_state - 1) {
+            log_prob = drm_log1m_inv_logit(
+              mi_cutpoints(n_state - 2) - mi_eta(i)
+            );
+          } else {
+            Type upper = mi_cutpoints(state) - mi_eta(i);
+            Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+            log_prob = drm_log_inv_logit_diff(upper, lower);
+          }
+          nll -= log_prob;
+        } else {
+          vector<Type> log_terms(n_state);
+          for (int state = 0; state < n_state; ++state) {
+            Type log_prob;
+            if (state == 0) {
+              log_prob = drm_log_inv_logit(mi_cutpoints(0) - mi_eta(i));
+            } else if (state == n_state - 1) {
+              log_prob = drm_log1m_inv_logit(
+                mi_cutpoints(n_state - 2) - mi_eta(i)
+              );
+            } else {
+              Type upper = mi_cutpoints(state) - mi_eta(i);
+              Type lower = mi_cutpoints(state - 1) - mi_eta(i);
+              log_prob = drm_log_inv_logit_diff(upper, lower);
+            }
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = observed_y(i) == 1 ?
+              weights(i) * dnorm(y(i), mu_state, sigma_i, true) : Type(0.0);
+            log_terms(state) = log_prob + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int state = 1; state < n_state; ++state) {
+            log_denom = logspace_add(log_denom, log_terms(state));
+          }
+          nll -= log_denom;
+          Type expected_score = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int state = 0; state < n_state; ++state) {
+            Type posterior = exp(log_terms(state) - log_denom);
+            mi_state_probability(i, state) = posterior;
+            expected_score += Type(state + 1) * posterior;
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            expected_mu += (mu(i) - fixed_mu(i) + state_fixed_mu) * posterior;
+          }
+          mi_x_full(i) = expected_score;
+          mu(i) = expected_mu;
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_cutpoints);
+      REPORT(mi_state_probability);
+      ADREPORT(beta_mi);
+      ADREPORT(mi_cutpoints);
+    }
+
+    if (has_mi == 1 && mi_family == 3) {
+      int n_state = mi_n_state;
+      int n_coef = X_mi.cols();
+      matrix<Type> mi_state_probability(mi_x.size(), n_state);
+      vector<Type> mi_x_full(mi_x.size());
+      matrix<Type> mi_log_prior(mi_x.size(), n_state);
+      for (int i = 0; i < mi_x.size(); ++i) {
+        vector<Type> eta_state(n_state);
+        eta_state(0) = Type(0.0);
+        for (int state = 1; state < n_state; ++state) {
+          Type eta = Type(0.0);
+          int offset = (state - 1) * n_coef;
+          for (int col = 0; col < n_coef; ++col) {
+            eta += X_mi(i, col) * beta_mi(offset + col);
+          }
+          eta_state(state) = eta;
+        }
+        Type max_eta = eta_state(0);
+        for (int state = 1; state < n_state; ++state) {
+          max_eta = CppAD::CondExpGt(eta_state(state), max_eta, eta_state(state), max_eta);
+        }
+        Type denom = Type(0.0);
+        for (int state = 0; state < n_state; ++state) {
+          denom += exp(eta_state(state) - max_eta);
+        }
+        Type log_denom = max_eta + log(denom);
+        mi_x_full(i) = mi_x(i);
+        for (int state = 0; state < n_state; ++state) {
+          mi_log_prior(i, state) = eta_state(state) - log_denom;
+          mi_state_probability(i, state) = exp(mi_log_prior(i, state));
+        }
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          int state = (int) asDouble(mi_x(i)) - 1;
+          nll -= mi_log_prior(i, state);
+        } else {
+          vector<Type> log_terms(n_state);
+          for (int state = 0; state < n_state; ++state) {
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = observed_y(i) == 1 ?
+              weights(i) * dnorm(y(i), mu_state, sigma_i, true) : Type(0.0);
+            log_terms(state) = mi_log_prior(i, state) + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int state = 1; state < n_state; ++state) {
+            log_denom = logspace_add(log_denom, log_terms(state));
+          }
+          nll -= log_denom;
+          Type expected_score = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int state = 0; state < n_state; ++state) {
+            Type posterior = exp(log_terms(state) - log_denom);
+            mi_state_probability(i, state) = posterior;
+            expected_score += Type(state + 1) * posterior;
+            Type state_fixed_mu = Type(0.0);
+            int state_row = i * n_state + state;
+            for (int col = 0; col < X_mi_state_mu.cols(); ++col) {
+              state_fixed_mu += X_mi_state_mu(state_row, col) * beta_mu(col);
+            }
+            expected_mu += (mu(i) - fixed_mu(i) + state_fixed_mu) * posterior;
+          }
+          mi_x_full(i) = expected_score;
+          mu(i) = expected_mu;
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_state_probability);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 4) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_beta_mi = log_sigma_mi(0);
+      Type sigma_beta_mi = exp(log_sigma_beta_mi);
+      Type phi_beta_mi = exp(Type(-2.0) * log_sigma_beta_mi);
+      Type beta_mi_eps = Type(1e-12);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type mu_raw = exp(drm_log_inv_logit(mi_eta(i)));
+        mi_mean(i) = beta_mi_eps +
+          (Type(1.0) - Type(2.0) * beta_mi_eps) * mu_raw;
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_beta_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_beta_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            lgamma(alpha_i + beta_i) -
+            lgamma(alpha_i) -
+            lgamma(beta_i) +
+            (alpha_i - Type(1.0)) * log(x_i) +
+            (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_q) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_q) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_beta_mi);
+      REPORT(phi_beta_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 10) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_zob_mi = log_sigma_mi(0);
+      Type sigma_zob_mi = exp(log_sigma_zob_mi);
+      Type phi_zob_mi = exp(Type(-2.0) * log_sigma_zob_mi);
+      Type eta_zoi_mi = beta_zoi(0);
+      Type eta_coi_mi = beta_coi(0);
+      Type log_zoi_mi = -logspace_add(Type(0.0), -eta_zoi_mi);
+      Type log_one_minus_zoi_mi = -logspace_add(Type(0.0), eta_zoi_mi);
+      Type log_coi_mi = -logspace_add(Type(0.0), -eta_coi_mi);
+      Type log_one_minus_coi_mi = -logspace_add(Type(0.0), eta_coi_mi);
+      Type zoi_mi = Type(1.0) / (Type(1.0) + exp(-eta_zoi_mi));
+      Type coi_mi = Type(1.0) / (Type(1.0) + exp(-eta_coi_mi));
+      Type beta_mi_eps = Type(1e-12);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type mu_raw = exp(drm_log_inv_logit(mi_eta(i)));
+        mi_mean(i) = beta_mi_eps +
+          (Type(1.0) - Type(2.0) * beta_mi_eps) * mu_raw;
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_zob_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_zob_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density;
+          if (asDouble(x_i) <= 0.0) {
+            log_density = log_zoi_mi + log_one_minus_coi_mi;
+          } else if (asDouble(x_i) >= 1.0) {
+            log_density = log_zoi_mi + log_coi_mi;
+          } else {
+            log_density =
+              log_one_minus_zoi_mi +
+              lgamma(alpha_i + beta_i) -
+              lgamma(alpha_i) -
+              lgamma(beta_i) +
+              (alpha_i - Type(1.0)) * log(x_i) +
+              (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+          }
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density;
+            if (asDouble(x_q) <= 0.0) {
+              log_density = log_zoi_mi + log_one_minus_coi_mi;
+            } else if (asDouble(x_q) >= 1.0) {
+              log_density = log_zoi_mi + log_coi_mi;
+            } else {
+              log_density =
+                log_one_minus_zoi_mi +
+                lgamma(alpha_i + beta_i) -
+                lgamma(alpha_i) -
+                lgamma(beta_i) +
+                (alpha_i - Type(1.0)) * log(x_q) +
+                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            }
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density;
+            if (asDouble(x_q) <= 0.0) {
+              log_density = log_zoi_mi + log_one_minus_coi_mi;
+            } else if (asDouble(x_q) >= 1.0) {
+              log_density = log_zoi_mi + log_coi_mi;
+            } else {
+              log_density =
+                log_one_minus_zoi_mi +
+                lgamma(alpha_i + beta_i) -
+                lgamma(alpha_i) -
+                lgamma(beta_i) +
+                (alpha_i - Type(1.0)) * log(x_q) +
+                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+            }
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_zob_mi);
+      REPORT(phi_zob_mi);
+      REPORT(zoi_mi);
+      REPORT(coi_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_zob_mi);
+      ADREPORT(beta_zoi);
+      ADREPORT(beta_coi);
+    }
+
+    if (has_mi == 1 && mi_family == 12) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_betabinom_mi = log_sigma_mi(0);
+      Type sigma_betabinom_mi = exp(log_sigma_betabinom_mi);
+      Type phi_betabinom_mi = exp(Type(-2.0) * log_sigma_betabinom_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = Type(1.0) / (Type(1.0) + exp(-mi_eta(i)));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type alpha_i = mi_mean(i) * phi_betabinom_mi;
+        Type beta_i = (Type(1.0) - mi_mean(i)) * phi_betabinom_mi;
+        Type shape_floor = Type(1e-8);
+        alpha_i = CppAD::CondExpLt(
+          alpha_i,
+          shape_floor,
+          shape_floor,
+          alpha_i
+        );
+        beta_i = CppAD::CondExpLt(
+          beta_i,
+          shape_floor,
+          shape_floor,
+          beta_i
+        );
+        Type n_i = mi_trials(i);
+        if (mi_observed(i) == 1) {
+          Type k_i = mi_successes(i);
+          Type failure_i = n_i - k_i;
+          Type log_density =
+            lgamma(n_i + Type(1.0)) -
+            lgamma(k_i + Type(1.0)) -
+            lgamma(failure_i + Type(1.0)) +
+            lgamma(phi_betabinom_mi) -
+            lgamma(n_i + phi_betabinom_mi) +
+            lgamma(k_i + alpha_i) -
+            lgamma(alpha_i) +
+            lgamma(failure_i + beta_i) -
+            lgamma(beta_i);
+          Type x_i = k_i / n_i;
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          int n_success = (int) asDouble(n_i);
+          vector<Type> log_terms(n_success + 1);
+          for (int k = 0; k <= n_success; ++k) {
+            Type k_q = Type(k);
+            Type failure_q = n_i - k_q;
+            Type x_q = k_q / n_i;
+            Type log_density =
+              lgamma(n_i + Type(1.0)) -
+              lgamma(k_q + Type(1.0)) -
+              lgamma(failure_q + Type(1.0)) +
+              lgamma(phi_betabinom_mi) -
+              lgamma(n_i + phi_betabinom_mi) +
+              lgamma(k_q + alpha_i) -
+              lgamma(alpha_i) +
+              lgamma(failure_q + beta_i) -
+              lgamma(beta_i);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(k) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int k = 1; k <= n_success; ++k) {
+            log_denom = logspace_add(log_denom, log_terms(k));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int k = 0; k <= n_success; ++k) {
+            Type posterior = exp(log_terms(k) - log_denom);
+            Type x_q = Type(k) / n_i;
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          mi_x_full(i) = mi_mean(i);
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_betabinom_mi);
+      REPORT(phi_betabinom_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_betabinom_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 5) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_lambda(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_lambda(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_lambda_i = mi_eta(i);
+        Type lambda_i = mi_lambda(i);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density = x_i * log_lambda_i - lambda_i -
+            lgamma(x_i + Type(1.0));
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = x_q * log_lambda_i - lambda_i -
+              lgamma(x_q + Type(1.0));
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = x_q * log_lambda_i - lambda_i -
+              lgamma(x_q + Type(1.0));
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_lambda);
+      ADREPORT(beta_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 8) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_nbinom2_mi = log_sigma_mi(0);
+      Type sigma_nbinom2_mi = exp(log_sigma_nbinom2_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_mu_i = mi_eta(i);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            drm_nbinom2_log_density(
+              x_i,
+              log_mu_i,
+              log_sigma_nbinom2_mi
+            );
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_nbinom2_mi
+              );
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_nbinom2_mi
+              );
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_nbinom2_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_nbinom2_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 11) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_trunc_nbinom2_mi = log_sigma_mi(0);
+      Type sigma_trunc_nbinom2_mi = exp(log_sigma_trunc_nbinom2_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_positive_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        Type log_p0 = drm_nbinom2_log_p0(
+          mi_eta(i),
+          log_sigma_trunc_nbinom2_mi
+        );
+        Type log_trunc_prob = drm_log1mexp(log_p0);
+        mi_positive_mean(i) = mi_mean(i) / exp(log_trunc_prob);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_mu_i = mi_eta(i);
+        Type log_p0 = drm_nbinom2_log_p0(
+          log_mu_i,
+          log_sigma_trunc_nbinom2_mi
+        );
+        Type log_trunc_prob = drm_log1mexp(log_p0);
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            drm_nbinom2_log_density(
+              x_i,
+              log_mu_i,
+              log_sigma_trunc_nbinom2_mi
+            ) -
+            log_trunc_prob;
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_trunc_nbinom2_mi
+              ) -
+              log_trunc_prob;
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density =
+              drm_nbinom2_log_density(
+                x_q,
+                log_mu_i,
+                log_sigma_trunc_nbinom2_mi
+              ) -
+              log_trunc_prob;
+            Type term = exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(mi_positive_mean);
+      REPORT(sigma_trunc_nbinom2_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_trunc_nbinom2_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 6) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_lognormal_mi = log_sigma_mi(0);
+      Type sigma_lognormal_mi = exp(log_sigma_lognormal_mi);
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_x_i = log(x_i);
+          Type log_density =
+            dnorm(log_x_i, mi_eta(i), sigma_lognormal_mi, true) - log_x_i;
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log(mi_quad_weights(q)) + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type z_q = mi_quad_nodes(q);
+            Type x_q = exp(mi_eta(i) + sigma_lognormal_mi * z_q);
+            Type term = mi_quad_weights(q);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_lognormal_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_lognormal_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 7) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_gamma_mi = log_sigma_mi(0);
+      Type sigma_gamma_mi = exp(log_sigma_gamma_mi);
+      Type shape_gamma_mi = exp(Type(-2.0) * log_sigma_gamma_mi);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type scale_i = mi_mean(i) * sigma_gamma_mi * sigma_gamma_mi;
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density =
+            (shape_gamma_mi - Type(1.0)) * log(x_i) -
+            x_i / scale_i -
+            lgamma(shape_gamma_mi) -
+            shape_gamma_mi * log(scale_i);
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type t_q = mi_quad_nodes(q);
+            Type x_q = scale_i * t_q;
+            Type log_prior =
+              log(mi_quad_weights(q)) +
+              (shape_gamma_mi - Type(1.0)) * log(t_q) -
+              lgamma(shape_gamma_mi);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log_prior + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = scale_i * mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type t_q = mi_quad_nodes(q);
+            Type x_q = scale_i * t_q;
+            Type term =
+              mi_quad_weights(q) *
+              exp(
+                (shape_gamma_mi - Type(1.0)) * log(t_q) -
+                lgamma(shape_gamma_mi)
+              );
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_gamma_mi);
+      REPORT(shape_gamma_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_gamma_mi);
+    }
+
+    if (has_mi == 1 && mi_family == 9) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type log_sigma_tweedie_mi = log_sigma_mi(0);
+      Type sigma_tweedie_mi = exp(log_sigma_tweedie_mi);
+      Type phi_tweedie_mi = sigma_tweedie_mi * sigma_tweedie_mi;
+      Type power_tweedie_mi = Type(1.5);
+      vector<Type> mi_mean(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        mi_mean(i) = exp(mi_eta(i));
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        if (mi_observed(i) == 1) {
+          Type x_i = mi_x(i);
+          Type log_density = dtweedie(
+            x_i,
+            mi_mean(i),
+            phi_tweedie_mi,
+            power_tweedie_mi,
+            true
+          );
+          nll -= log_density;
+          mu(i) += beta_mu(mi_col) * (x_i - X_mu(i, mi_col));
+        } else if (observed_y(i) == 1) {
+          vector<Type> log_terms(mi_quad_nodes.size());
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = dtweedie(
+              x_q,
+              mi_mean(i),
+              phi_tweedie_mi,
+              power_tweedie_mi,
+              true
+            );
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+            Type log_y = weights(i) * dnorm(y(i), mu_q, sigma_i, true);
+            log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
+          }
+          Type log_denom = log_terms(0);
+          for (int q = 1; q < mi_quad_nodes.size(); ++q) {
+            log_denom = logspace_add(log_denom, log_terms(q));
+          }
+          nll -= log_denom;
+          Type conditional_mean = Type(0.0);
+          Type expected_mu = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type posterior = exp(log_terms(q) - log_denom);
+            Type x_q = mi_quad_nodes(q);
+            Type mu_q = mu(i) +
+              beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
+            conditional_mean += x_q * posterior;
+            expected_mu += mu_q * posterior;
+          }
+          mi_x_full(i) = conditional_mean;
+          mu(i) = expected_mu;
+        } else {
+          Type prior_norm = Type(0.0);
+          Type prior_mean = Type(0.0);
+          for (int q = 0; q < mi_quad_nodes.size(); ++q) {
+            Type x_q = mi_quad_nodes(q);
+            Type log_density = dtweedie(
+              x_q,
+              mi_mean(i),
+              phi_tweedie_mi,
+              power_tweedie_mi,
+              true
+            );
+            Type term = mi_quad_weights(q) * exp(log_density);
+            prior_norm += term;
+            prior_mean += x_q * term;
+          }
+          mi_x_full(i) = prior_mean / prior_norm;
+          mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(mi_mean);
+      REPORT(sigma_tweedie_mi);
+      REPORT(phi_tweedie_mi);
+      REPORT(power_tweedie_mi);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_tweedie_mi);
+    }
+
     vector<Type> sigma = exp(log_sigma);
     vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
@@ -733,7 +1893,12 @@ Type objective_function<Type>::operator()()
       nll += neg_log_density(y - mu);
     } else {
       for (int i = 0; i < y.size(); ++i) {
-        nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+        if (
+          observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)
+        ) {
+          nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
+        }
       }
     }
 
@@ -1246,9 +2411,51 @@ Type objective_function<Type>::operator()()
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * dpois(y(i), exp(eta1), true) : Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * dpois(y(i), exp(eta0), true) : Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          Type expected_mu =
+            posterior_p1 * exp(eta1) +
+            (Type(1.0) - posterior_p1) * exp(eta0);
+          eta_mu(i) = log(expected_mu);
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> mu = exp(eta_mu);
     for (int i = 0; i < y.size(); ++i) {
-      nll -= weights(i) * dpois(y(i), mu(i), true);
+      if (!(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        nll -= weights(i) * dpois(y(i), mu(i), true);
+      }
     }
     REPORT(eta_mu);
     REPORT(mu);
@@ -2011,13 +3218,25 @@ Type objective_function<Type>::operator()()
     } else {
       Type log2pi = log(Type(2.0) * M_PI);
       for (int i = 0; i < y1.size(); ++i) {
-        Type z1 = (y1(i) - mu1(i)) / sigma1(i);
-        Type z2 = (y2(i) - mu2(i)) / sigma2(i);
-        Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
-        Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
-        row_nll += Type(0.5) * log(one_minus_rho2);
-        row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
-        nll += weights(i) * row_nll;
+        if (observed_y1(i) == 1 && observed_y2(i) == 1) {
+          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+          Type one_minus_rho2 = Type(1.0) - rho12(i) * rho12(i);
+          Type row_nll = log2pi + log_sigma1(i) + log_sigma2(i);
+          row_nll += Type(0.5) * log(one_minus_rho2);
+          row_nll += Type(0.5) * (z1 * z1 - Type(2.0) * rho12(i) * z1 * z2 + z2 * z2) / one_minus_rho2;
+          nll += weights(i) * row_nll;
+        } else if (observed_y1(i) == 1) {
+          Type z1 = (y1(i) - mu1(i)) / sigma1(i);
+          Type row_nll = Type(0.5) * log2pi + log_sigma1(i);
+          row_nll += Type(0.5) * z1 * z1;
+          nll += weights(i) * row_nll;
+        } else if (observed_y2(i) == 1) {
+          Type z2 = (y2(i) - mu2(i)) / sigma2(i);
+          Type row_nll = Type(0.5) * log2pi + log_sigma2(i);
+          row_nll += Type(0.5) * z2 * z2;
+          nll += weights(i) * row_nll;
+        }
       }
     }
 

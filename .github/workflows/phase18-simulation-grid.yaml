@@ -20,7 +20,13 @@ on:
           - student_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
+          - correlation_block_status
           - biv_gaussian_mu_slope
+          - biv_gaussian_q4_location
+          - spatial_mu_slope
+          - phylo_mu_slope
+          - animal_mu_slope
+          - relmat_mu_slope
           - poisson_phylo_q1_formal
           - nbinom2_phylo_q1_formal
       n_reps:
@@ -161,8 +167,26 @@ jobs:
           - task: zero_one_beta_fixed_effect
             seed: 20260536
             include_in_all: false
+          - task: correlation_block_status
+            seed: 20260608
+            include_in_all: false
           - task: biv_gaussian_mu_slope
             seed: 20260603
+            include_in_all: false
+          - task: biv_gaussian_q4_location
+            seed: 20260609
+            include_in_all: false
+          - task: spatial_mu_slope
+            seed: 20260604
+            include_in_all: false
+          - task: phylo_mu_slope
+            seed: 20260605
+            include_in_all: false
+          - task: animal_mu_slope
+            seed: 20260606
+            include_in_all: false
+          - task: relmat_mu_slope
+            seed: 20260607
             include_in_all: false
           - task: poisson_phylo_q1_formal
             seed: 20260601

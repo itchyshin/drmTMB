@@ -27,8 +27,8 @@ behaviour.
 - Recorded paper-grounded location-scale meta-analysis polish as a separate
   later tutorial route rather than inserting known-`V` meta-analysis material
   into the flagship location-scale page.
-- Recorded the planned `meta_V()` umbrella as future design space only:
-  additive known covariance remains current `meta_known_V(V = V)`,
+- Recorded `meta_V(V = V)` as the current additive known-covariance route;
+  deprecated `meta_known_V(V = V)` remains only a compatibility alias, while
   proportional sampling variance such as `pi_i ~ Normal(0, phi_pi / w_i)` is
   not implemented, and neither branch is CRAN-blocking for `0.1.2`.
 - Updated the worked-example inventory, roadmap, and NEWS to mark Slice 90 as

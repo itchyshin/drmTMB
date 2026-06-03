@@ -12,7 +12,13 @@ phase18_actions_task_choices <- function() {
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
+    "correlation_block_status",
     "biv_gaussian_mu_slope",
+    "biv_gaussian_q4_location",
+    "spatial_mu_slope",
+    "phylo_mu_slope",
+    "animal_mu_slope",
+    "relmat_mu_slope",
     "poisson_phylo_q1_formal",
     "nbinom2_phylo_q1_formal"
   )
@@ -251,8 +257,58 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend
     )
+  } else if (identical(task, "correlation_block_status")) {
+    out <- phase18_write_correlation_block_status_outputs(
+      output_dir = output_dir,
+      overwrite = overwrite
+    )
   } else if (identical(task, "biv_gaussian_mu_slope")) {
     out <- phase18_write_biv_gaussian_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q4_location")) {
+    out <- phase18_write_biv_gaussian_q4_location_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "spatial_mu_slope")) {
+    out <- phase18_write_spatial_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "phylo_mu_slope")) {
+    out <- phase18_write_phylo_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "animal_mu_slope")) {
+    out <- phase18_write_animal_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "relmat_mu_slope")) {
+    out <- phase18_write_relmat_mu_slope_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -606,6 +662,12 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_zero_one_beta_fixed_effect_grid.R"
     ))
   }
+  if (identical(task, "correlation_block_status")) {
+    return(c(
+      "sim/run/sim_phase18_structured_workflow_registry.R",
+      "sim/run/sim_write_correlation_block_status.R"
+    ))
+  }
   if (identical(task, "biv_gaussian_mu_slope")) {
     return(c(
       "sim/dgp/sim_dgp_biv_gaussian_mu_slope.R",
@@ -613,6 +675,51 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_write_biv_gaussian_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q4_location")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q4_location.R",
+      "sim/fit/sim_summarise_biv_gaussian_q4_location.R",
+      "sim/run/sim_run_biv_gaussian_q4_location_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q4_location_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q4_location_grid.R"
+    ))
+  }
+  if (identical(task, "spatial_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_spatial_mu_slope.R",
+      "sim/fit/sim_summarise_spatial_mu_slope.R",
+      "sim/run/sim_run_spatial_mu_slope_smoke.R",
+      "sim/run/sim_summary_spatial_mu_slope_smoke.R",
+      "sim/run/sim_write_spatial_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "phylo_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_phylo_mu_slope.R",
+      "sim/fit/sim_summarise_phylo_mu_slope.R",
+      "sim/run/sim_run_phylo_mu_slope_smoke.R",
+      "sim/run/sim_summary_phylo_mu_slope_smoke.R",
+      "sim/run/sim_write_phylo_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "animal_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_animal_mu_slope.R",
+      "sim/fit/sim_summarise_animal_mu_slope.R",
+      "sim/run/sim_run_animal_mu_slope_smoke.R",
+      "sim/run/sim_summary_animal_mu_slope_smoke.R",
+      "sim/run/sim_write_animal_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "relmat_mu_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_relmat_mu_slope.R",
+      "sim/fit/sim_summarise_relmat_mu_slope.R",
+      "sim/run/sim_run_relmat_mu_slope_smoke.R",
+      "sim/run/sim_summary_relmat_mu_slope_smoke.R",
+      "sim/run/sim_write_relmat_mu_slope_grid.R"
     ))
   }
   if (identical(task, "poisson_phylo_q1_formal")) {

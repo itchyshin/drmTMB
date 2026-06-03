@@ -212,7 +212,9 @@ families are later phases.
 
 ## Implemented: Student-t Location-Scale-Shape
 
-The first robust continuous family is univariate and fixed-effect only:
+The first robust continuous family is univariate. It supports fixed effects
+plus ordinary unlabelled `mu` random intercepts and independent numeric `mu`
+slopes:
 
 ```r
 student <- function() {
@@ -228,8 +230,11 @@ student <- function() {
 The response-scale degrees of freedom are
 `nu_i = 2 + exp(eta_nu_i)`. This keeps the model in the finite-variance region
 and makes Student-t a robust continuous extension of the Gaussian
-location-scale MVP. Random effects, known sampling covariance, phylogenetic
-terms, and bivariate Student-t models are later phases.
+location-scale MVP. The ordinary `mu` intercept and independent-slope paths are
+source-tested, but the current Phase 18 Student-t artifact lane is
+random-intercept focused. Correlated Student-t slopes, labelled covariance,
+`sigma` random effects, `nu` random effects, known sampling covariance,
+phylogenetic terms, and bivariate Student-t models are later phases.
 
 ## Planned: Skew-Normal Location-Scale-Shape
 
@@ -283,7 +288,8 @@ for current analysis syntax.
 ## Implemented: Lognormal Location-Scale
 
 The first positive continuous family is univariate. It supports fixed effects
-and ordinary unlabelled `mu` random intercepts:
+plus ordinary unlabelled `mu` random intercepts and independent numeric `mu`
+slopes:
 
 ```r
 lognormal <- function() {
@@ -305,9 +311,11 @@ log(y_i) | mu_i, sigma_i ~ Normal(mu_i, sigma_i^2)
 Here `mu` is the mean of `log(y)`, not the arithmetic mean of `y`. The
 response-scale mean is `exp(mu_i + sigma_i^2 / 2)`, which is what `fitted()`
 returns for lognormal fits. Ordinary repeated-measure grouping can be written
-as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Correlated slopes,
-labelled covariance, `sigma` random effects, known sampling covariance,
-phylogenetic terms, and bivariate or mixed lognormal models are later phases.
+as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. The independent `mu` slope
+path is source-tested, while the current Phase 18 positive-continuous artifact
+lane is random-intercept focused. Correlated slopes, labelled covariance,
+`sigma` random effects, known sampling covariance, phylogenetic terms, and
+bivariate or mixed lognormal models are later phases.
 
 ## Implemented: Gamma Mean-CV
 
@@ -333,8 +341,10 @@ scale_i = mu_i * sigma_i^2
 Here `mu` is the expected response. `sigma` is the coefficient of variation,
 not the residual standard deviation; the residual standard deviation is
 `mu_i * sigma_i`. Ordinary repeated-measure grouping can be written as
-`bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. Non-log `Gamma()` links,
-correlated slopes, labelled covariance, `sigma` random effects, known sampling covariance,
+`bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. The independent `mu` slope
+path is source-tested, while the current Phase 18 positive-continuous artifact
+lane is random-intercept focused. Non-log `Gamma()` links, correlated slopes,
+labelled covariance, `sigma` random effects, known sampling covariance,
 phylogenetic terms, and bivariate or mixed Gamma models are later phases.
 
 ## Implemented: Beta Mean-Scale
@@ -345,8 +355,9 @@ phylogenetic terms, and bivariate or mixed Gamma models are later phases.
 family = beta()
 ```
 
-The implemented model is fixed-effect, univariate, and requires response
-values strictly inside `(0, 1)`:
+The implemented model is univariate, supports fixed effects plus ordinary
+unlabelled `mu` random intercepts and independent numeric `mu` slopes, and
+requires response values strictly inside `(0, 1)`:
 
 ```text
 y_i | mu_i, sigma_i ~ Beta(alpha_i, beta_i)
@@ -362,10 +373,11 @@ Var[y_i] = mu_i (1 - mu_i) sigma_i^2 / (1 + sigma_i^2)
 Here `mu` is the mean proportion. `sigma` is the public scale parameter, not
 beta precision. Internally, `phi = 1 / sigma^2`, so larger `sigma` means more
 variation around the mean. Boundary responses equal to 0 or 1 should use
-`zero_one_beta()` when they are structural outcomes. Ordinary beta `mu` random
-intercepts and independent numeric slopes are fitted; correlated beta slopes,
-labelled covariance, `sigma` random effects, known sampling covariance,
-phylogenetic terms, and bivariate or mixed beta models are later phases.
+`zero_one_beta()` when they are structural outcomes. The independent `mu` slope
+path is source-tested, while the current Phase 18 bounded-response artifact lane
+is random-intercept focused. Correlated beta slopes, labelled covariance,
+`sigma` random effects, known sampling covariance, phylogenetic terms, and
+bivariate or mixed beta models are later phases.
 
 ## Implemented: Zero-One Beta Mean-Scale-Boundary
 
@@ -408,7 +420,8 @@ successes and failures:
 family = beta_binomial()
 ```
 
-The implemented model is univariate and fixed-effect only:
+The implemented model is univariate and supports fixed effects plus ordinary
+unlabelled `mu` random intercepts and independent numeric `mu` slopes:
 
 ```text
 y_i | n_i, p_i ~ Binomial(n_i, p_i)
@@ -429,10 +442,12 @@ positive trials. `fitted()` returns the success probability `mu`,
 `simulate()` returns success counts for the fitted trial totals. Ordinary
 repeated-measure grouping can be written as
 `bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id), sigma ~ z)`.
-Correlated slopes, labelled covariance, `sigma` random effects, known sampling
-covariance, phylogenetic terms, bivariate or mixed beta-binomial models, and a
-possible successes/trials response alias are later phases. The alias design
-guardrails are in
+The independent `mu` slope path is source-tested, while the current Phase 18
+bounded-response artifact lane is random-intercept focused. Correlated slopes,
+labelled covariance, `sigma` random effects, known sampling covariance,
+phylogenetic terms, bivariate or mixed beta-binomial models, and a possible
+successes/trials response alias are later phases. The alias design guardrails
+are in
 `docs/design/24-denominator-response-syntax.md`.
 
 ## Implemented: Cumulative-Logit Ordinal Location
@@ -596,12 +611,14 @@ later phases.
 family = truncated_nbinom2()
 ```
 
-The implemented model is fixed-effect and univariate:
+The implemented model is univariate and supports fixed effects plus ordinary
+unlabelled `mu` random intercepts and independent numeric `mu` slopes:
 
 ```text
 y_i | y_i > 0, mu_i, sigma_i ~ NB2(mu_i, size_i) truncated at zero
-log(mu_i) = X_mu[i, ] beta_mu
+log(mu_i) = X_mu[i, ] beta_mu + Z_mu[i, ] b_mu
 log(sigma_i) = X_sigma[i, ] beta_sigma
+b_mu ~ Normal(0, diag(sd_mu^2)) for independent mu random-effect terms
 size_i = 1 / sigma_i^2
 Pr(y_i = k | y_i > 0) = Pr_NB2(y_i = k) / (1 - Pr_NB2(0))
 E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
@@ -609,7 +626,11 @@ E[y_i | y_i > 0] = mu_i / (1 - Pr_NB2(0))
 
 Here `mu` and `sigma` describe the untruncated NB2 component. This keeps the
 count-scale `sigma` interpretation aligned with `nbinom2()`, while `fitted()`
-returns the observed positive-count mean.
+returns the observed positive-count mean. The independent `mu` slope path is
+source-tested, while the current Phase 18 zero-truncated NB2 artifact lane is
+random-intercept focused. Correlated zero-truncated slopes, labelled covariance,
+`sigma` random effects, structured effects, and hurdle random effects need
+separate recovery evidence.
 
 Adding `hu ~ predictors` fits the implemented hurdle NB2 extension:
 

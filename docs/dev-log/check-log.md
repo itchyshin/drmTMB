@@ -2,6 +2,25 @@
 
 Record meaningful development checks here.
 
+## 2026-05-31 -- `is_converged()` Accessor
+
+Goal:
+
+- Close the compact no-rerun convergence flag requested in #317 so downstream
+  tools can check optimizer convergence before comparing or displaying fitted
+  `drmTMB` models, while keeping `check_drm()` as the full diagnostic table.
+
+Changes:
+
+- Added exported `is_converged()` and `is_converged.drmTMB()`.
+- Made the default flag require optimizer convergence code 0 and finite stored
+  objective/log-likelihood values.
+- Added `include_hessian = TRUE` to additionally require completed
+  `TMB::sdreport()` output with `pdHess = TRUE`.
+- Added roxygen documentation, pkgdown Reference-index entry, NEWS item, and
+  focused `check_drm` tests.
+- Kept this as a read-only status accessor: no formula grammar, likelihood,
+  TMB, optimizer, or missing-data files were changed for this task.
 ## 2026-06-01 -- Phase 6c sprint parent closeout
 
 Goal:
@@ -24,6 +43,14 @@ Changes:
 Validation:
 
 ```sh
+air format R/check.R tests/testthat/test-check-drm.R NEWS.md _pkgdown.yml
+Rscript --vanilla -e "invisible(parse('R/check.R')); invisible(parse('tests/testthat/test-check-drm.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = 'check-drm', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(check-drm|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "is_converged|Check whether a fit converged|include_hessian|#317" pkgdown-site/reference/index.html pkgdown-site/reference/is_converged.html pkgdown-site/news/index.html
 air format ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md docs/dev-log/after-task/2026-06-01-phase6c-sprint-closeout.md docs/dev-log/check-log.md
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 gh issue list --state all --limit 80 --json number,title,state --jq '.[] | select(.number>=436 and .number<=446) | "#\(.number)\t\(.state)\t\(.title)"'
@@ -35,6 +62,52 @@ git diff --check
 
 Results:
 
+- Parse checks passed.
+- Focused `check-drm` and `package-skeleton` tests passed.
+- `devtools::document()` generated `man/is_converged.Rd` and updated
+  `NAMESPACE`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the
+  `is_converged` reference page and refreshed the Reference index and NEWS
+  page.
+- The rendered scan found the accessor on the Reference index, the
+  `is_converged` reference page, and NEWS.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Missing Data MD0 and MD1 Response Mask
+
+Goal:
+
+- Promote the accepted missing-data design into an implementation-facing
+  contract, then implement only the first univariate Gaussian missing-response
+  slice.
+
+Changes:
+
+- Added `miss_control()` with `response = c("drop", "include")`,
+  `predictor = "fail"`, and `engine = "laplace"`.
+- Added the explicit `missing =` argument to `drmTMB()` before `...`; `...`
+  remains rejected.
+- Implemented `missing = miss_control(response = "include")` only for
+  univariate Gaussian models with complete predictors and complete model inputs.
+- Added `fit$missing_data` with MD1 version, row mapping, `observed_y`,
+  response/predictor policy, engine, counts, and sentinel metadata.
+- Passed `observed_y` to TMB and gated the independent Gaussian likelihood so
+  masked response rows contribute zero response likelihood.
+- Kept dense known sampling covariance, bivariate partial pairs, missing
+  predictors, `mi()`, `predict_missing()`, `imputed()`, EM, REML, and
+  measurement-error models out of scope.
+- Added `docs/dev-log/after-task/2026-05-31-missing-data-md1.md`.
+
+MD0 audit evidence:
+
+- The pre-MD1 audit found `drmTMB()` rejecting extra `...`.
+- The pre-MD1 univariate Gaussian complete-case gate was at
+  `R/drmTMB.R:740-761`.
+- The pre-MD1 bivariate Gaussian complete-case gate was at
+  `R/drmTMB.R:3502`.
+- The bivariate C++ Gaussian route assumed paired `y1`/`y2`.
+- Dense known `V` partial-row slicing was deferred.
 - `air format` completed without changes after the final edit.
 - `pkgdown::check_pkgdown()` reported no problems.
 - The issue-state command showed #437, #438, #439, #440, #441, #442, #443,
@@ -74,6 +147,14 @@ Changes:
 Validation:
 
 ```sh
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript --vanilla -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript --vanilla -e "devtools::test()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "miss_control|response = \"include\"|observed_y|missing response|missing-data|mi\\(|predict_missing|imputed\\(|measurement error|engine = \"em\"|engine = \"profile\"" README.md ROADMAP.md NEWS.md docs vignettes R man tests _pkgdown.yml
+gh issue list --repo itchyshin/drmTMB --state open --search "missing data miss_control mi impute complete-case" --limit 20
 air format ROADMAP.md docs/design/148-phase6c-random-slope-simulation-plan.md docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/dev-log/check-log.md
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 rg -n 'Twin/Sister Exchange Log|#437|DRM\\.jl|GLLVM\\.jl|gllvmTMB|meta_V\\(V = V\\)|sibling-package speed|without local validation|no external code was copied' docs/dev-log/twin-sister-exchange.md docs/dev-log/after-task/2026-06-01-twin-sister-exchange-closeout.md docs/design/148-phase6c-random-slope-simulation-plan.md
@@ -461,6 +542,40 @@ git diff --check
 
 Results:
 
+- `devtools::document()` regenerated `NAMESPACE`, `man/drmTMB.Rd`, and the new
+  `man/miss_control.Rd`.
+- `test-missing-data-control.R` passed with 11 expectations.
+- `test-missing-response-gaussian.R` passed with 32 expectations after adding
+  the random-effect sentinel invariance check.
+- `test-gaussian-location-scale.R` passed with 79 expectations and one CRAN
+  skip.
+- `devtools::test()` passed on the final tree with 8,654 expectations.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The status scan found the new `miss_control()` docs, tests, likelihood note,
+  and design note, plus historical after-task notes that were true when
+  written and were left as history.
+- The GitHub issue search returned no matching open issue.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Structured-Effects Accessor
+
+Goal:
+
+- Close the #335 upstream API gap by exposing fitted structured-effect marker
+  metadata through `structured_effects()`, so downstream packages do not need
+  formula-text greps for `phylo()`, `spatial()`, `animal()`, `relmat()`, or the
+  first `phylo_interaction()` route.
+
+Changes:
+
+- Added exported `structured_effects()` and `structured_effects.drmTMB()`.
+- Returned a stable base data frame with marker, grouping, matrix attachment,
+  structure, block, distributional-parameter, coefficient, and original
+  argument metadata.
+- Added roxygen documentation, pkgdown Reference-index entry, NEWS item, and a
+  self-contained structured-marker test file.
+- Kept this as a read-only post-fit accessor: no formula grammar, likelihood,
+  TMB, optimizer, or missing-data files were changed for this task.
 - Formatting passed.
 - The focused package-skeleton, non-Gaussian structured-boundary, and
   count-structured `mu` tests passed.
@@ -593,6 +708,15 @@ Changes:
 Validation:
 
 ```sh
+air format R/methods.R tests/testthat/test-structured-effects.R
+Rscript --vanilla -e "invisible(parse('R/methods.R')); invisible(parse('tests/testthat/test-structured-effects.R')); cat('parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects', reporter = 'summary')"
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(structured-effects|package-skeleton)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+rg -n "structured_effects|Extract structured-effect metadata|phylo_interaction\\(1 \\| plant:pollinator|matrix_attachment|args" pkgdown-site/reference/index.html pkgdown-site/reference/structured_effects.html pkgdown-site/news/index.html
+git diff --check
 air format R/drmTMB.R R/formula-markers.R R/gaussian-aggregation.R R/parse-formula.R R/profile.R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R README.md ROADMAP.md NEWS.md _pkgdown.yml docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-models.Rmd vignettes/structural-dependence.Rmd vignettes/bipartite-phylogenetic-interactions.Rmd docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md
 Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/parse-formula.R')); invisible(parse('R/profile.R')); invisible(parse('R/formula-markers.R')); invisible(parse('tests/testthat/test-phylo-interaction.R')); cat('parse ok\n')"
 Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton)$', reporter = 'summary')"
@@ -612,6 +736,39 @@ Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never
 Results:
 
 - Parse checks passed.
+- The focused `structured-effects` and `package-skeleton` tests passed.
+- `devtools::document()` generated `man/structured_effects.Rd` and updated
+  `NAMESPACE`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` built the
+  `structured_effects` reference page and refreshed the Reference index and
+  NEWS page.
+- The rendered scan found the accessor on the Reference index, the
+  `structured_effects` reference page, and NEWS.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Main Package-Work Thread Startup Audit
+
+Goal:
+
+- Re-establish the main `drmTMB` package-work lane, inspect the active branch,
+  separate main-roadmap work from the missing-data lane, and identify the next
+  smallest issue-linked slice that can close cleanly.
+
+Actions run:
+
+- Inspected `git status --short --branch`, branch tracking, diff stat, recent
+  check-log entries, PR #445, and open GitHub issues.
+- Confirmed PR #445 head `9388a51a` had green R-CMD-check on GitHub Actions.
+- Treated `docs/design/149-missing-data-design.md` and
+  `docs/dev-log/after-task/2026-05-31-missing-data-design.md` as
+  missing-data-lane files and left them untouched.
+- Created issue #447 for the already-implemented first
+  `phylo_interaction()` slice because the narrow open-issue search found no
+  pre-existing matching tracker.
+- Updated NEWS, after-task reports, and the rendered NEWS page so the
+  `phylo_interaction()` slice points to #447 and the
+  `correlation_block_status` task points to #446.
 - Focused `phylo-interaction` and `package-skeleton` tests passed before and
   after `devtools::document()`.
 - `devtools::document()` generated `man/phylo_interaction.Rd` and updated
@@ -656,6 +813,20 @@ Actions run:
 Validation:
 
 ```sh
+git status --short --branch
+gh issue list --repo itchyshin/drmTMB --state open --limit 50 --json number,title,labels,assignees,updatedAt,url
+gh pr view 445 --repo itchyshin/drmTMB --json number,title,body,state,isDraft,headRefName,baseRefName,commits,files,closingIssuesReferences,url
+gh run list --repo itchyshin/drmTMB --branch codex/phase6c-twin-exchange --limit 10 --json databaseId,displayTitle,headSha,status,conclusion,workflowName,createdAt,updatedAt,url
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^(phylo-interaction|package-skeleton|phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-actions-runner)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=correlation_block_status --output-dir=/tmp/drmTMB-correlation-block-status-smoke --overwrite=true --dry-run=false
+Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-plan.csv'); print(x[, c('lane_id','admission_status','dispatch_status','actions_task','interval_policy')], row.names = FALSE); y <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-wrapper-targets.csv'); cat('wrapper rows:', nrow(y), '\n')"
+Rscript --vanilla -e "pkgdown::build_news()"
+rg -n "#447|#446|phylo_interaction\\(\\)|correlation_block_status" NEWS.md docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md docs/dev-log/check-log.md pkgdown-site/news/index.html
+git diff --check
 rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
 air format docs/dev-log/check-log.md
 git diff --check
@@ -717,6 +888,41 @@ Rscript --vanilla -e "devtools::check(args = c('--no-manual'), error_on = 'never
 
 Results:
 
+- PR #445's latest pushed head `9388a51a` was green in R-CMD-check before this
+  audit.
+- `devtools::document()` refreshed the intended marker export and
+  `man/phylo_interaction.Rd`; incidental local-roxygen metadata churn was
+  removed from the diff.
+- The focused test bundle completed without failures.
+- The two-tree article rendered from the current source tree.
+- `pkgdown::check_pkgdown()`, `pkgdown::build_site(lazy = TRUE)`, and
+  `pkgdown::build_news()` completed successfully.
+- The local `correlation_block_status` smoke wrote six correlation-block plan
+  rows and zero wrapper-target rows; q=4 rows remained
+  `q4_derived_interval_unavailable`.
+- The rendered NEWS page links `phylo_interaction()` to #447 and
+  `correlation_block_status` to #446.
+- `git diff --check` passed.
+
+## 2026-05-31 -- Correlation-Block Status Actions Task
+
+Goal:
+
+- Add a read-only manual Phase 18 Actions task for the correlation-block
+  workflow table so q=2 and q=4 status rows have artifact routing without
+  promoting q=4 derived correlations to interval-ready status.
+
+Actions run:
+
+- Added `phase18_write_correlation_block_status_outputs()` to write
+  correlation-block plan, dispatch, wrapper-target, registry-summary, and
+  manifest artifacts.
+- Added `correlation_block_status` to the Actions runner task vocabulary,
+  dependency paths, manual workflow matrix, and structured workflow registry.
+- Updated Phase 18 design notes, ROADMAP, NEWS, and the simulation README to
+  state that q=4 remains diagnostic/derived-unavailable.
+- Refreshed stale readiness wording in
+  `docs/design/46-pre-simulation-readiness-matrix.md` and `ROADMAP.md`.
 - Parse checks passed.
 - Focused `check-drm`, `structured-effects`, and `package-skeleton` tests
   passed before and after `devtools::document()`.
@@ -759,6 +965,15 @@ Actions run:
 Validation:
 
 ```sh
+air format inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_write_correlation_block_status.R tests/testthat/test-phase18-correlation-block-status.R tests/testthat/test-phase18-structured-workflow-registry.R tests/testthat/test-phase18-actions-runner.R ROADMAP.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md NEWS.md inst/sim/README.md
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_phase18_structured_workflow_registry.R','inst/sim/run/sim_write_correlation_block_status.R','tests/testthat/test-phase18-correlation-block-status.R','tests/testthat/test-phase18-structured-workflow-registry.R','tests/testthat/test-phase18-actions-runner.R'); invisible(lapply(files, parse)); cat('correlation block status parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-actions-runner)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^(phase18-correlation-block-status|phase18-structured-workflow-registry|phase18-structured-dependence-wrapper-readiness|phase18-actions-runner|phase18-phylo-mu-slope|phase18-spatial-mu-slope|phase18-animal-mu-slope|phase18-relmat-mu-slope|animal-relmat-gaussian|phylo-gaussian|spatial-gaussian)$', reporter = 'summary')"
+rm -rf /tmp/drmTMB-correlation-block-status-smoke && Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=correlation_block_status --output-dir=/tmp/drmTMB-correlation-block-status-smoke --overwrite=true --dry-run=false
+Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-plan.csv'); print(x[, c('lane_id','admission_status','dispatch_status','actions_task','interval_policy')], row.names = FALSE); y <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/tables/correlation-block-wrapper-targets.csv'); cat('wrapper rows:', nrow(y), '\n')"
+rg -n 'After Slice 250|Gaussian `mu` only|animal/`relmat\(\)` models beyond|structured `sigma`,|structured `sigma` and|3 wrapper targets|remaining correlation-block wrapper targets|needed:correlation_block_wrapper|leaves structured q=2 as a wrapper target|q4.*interval-ready|q=4 derived.*interval-ready' README.md ROADMAP.md NEWS.md docs/design inst/sim/README.md vignettes
+gh issue list --repo itchyshin/drmTMB --state open --search 'phase6c random slope coscale correlation block structured q4' --limit 15
+git diff --check
 Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-meta-known-v.R", reporter = "summary"); testthat::test_file("tests/testthat/test-profile-targets.R", reporter = "summary"); testthat::test_file("tests/testthat/test-control.R", reporter = "summary")'
 Rscript --vanilla -e 'devtools::test(filter = "meta-known-v|profile-targets|control", reporter = "summary")'
 Rscript --vanilla -e 'devtools::document()'
@@ -771,6 +986,18 @@ gh issue comment 417 --repo itchyshin/drmTMB --body '<PR #435 issue-maintenance 
 
 Results:
 
+- `air format`, parse checks, focused Phase 18 tests, the broader
+  random-slope/structured-dependence bundle, the local
+  `correlation_block_status` task smoke, and `git diff --check` passed.
+- The local status artifact reported six correlation-block plan rows and zero
+  wrapper-target rows. The q=4 rows still report
+  `q4_derived_interval_unavailable`.
+- The stale-wording scan found only intentional guardrail wording about
+  structured `sigma` boundaries and q=4 interval unavailability, plus the
+  historical note that rows previously named `needed:correlation_block_wrapper`.
+- The overlapping open issues are #446 and #436. I left both open and did not
+  comment because this slice adds routing/status artifacts rather than closing
+  the broader Phase 6c simulation or sprint issues.
 - The three focused `testthat::test_file()` runs passed for
   `test-meta-known-v.R`, `test-profile-targets.R`, and `test-control.R`.
 - The filtered `devtools::test()` run passed for
@@ -975,6 +1202,8 @@ Actions run:
 - Checked the sister-repo commits, dirty state, and local license files for
   `/Users/z3437171/Dropbox/Github Local/gllvmTMB.jl/` and
   `/Users/z3437171/Dropbox/Github Local/gllvmTMB-julia-bench/`.
+  The `gllvmTMB.jl` path named in this historical check-log entry is a local
+  checkout path for `GLLVM.jl`, not a separate package.
 - Replaced `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md` with a shorter
   status memo that classifies each lesson as already absorbed/source-checked,
   a future design gate, a hypothesis, or outside current `drmTMB` scope.
@@ -1002,12 +1231,13 @@ git diff --check
 
 Results:
 
-- `gllvmTMB.jl` was at commit `6a0d090` with a clean `main...origin/main`.
+- The local `GLLVM.jl` checkout path `gllvmTMB.jl` was at commit `6a0d090` with
+  a clean `main...origin/main`.
 - `gllvmTMB-julia-bench` was at commit `9de254a` with a dirty working tree, so
   the memo now tells future readers to re-check that checkout before relying on
   the benchmark report.
-- Only `gllvmTMB.jl` exposed a local `LICENSE` file, and it is MIT licensed by
-  Shinichi Nakagawa.
+- Only the local `GLLVM.jl` checkout exposed a local `LICENSE` file, and it is
+  MIT licensed by Shinichi Nakagawa.
 - The stale-overclaim scan returned one intentional `note-to-russell.md` hit
   documenting that the cited file was absent; the other stale implementation
   and overclaim phrases were gone.
@@ -46776,6 +47006,36 @@ Member-group review:
   Ampere prepared family-surface status tables. Russell later audited the
   combined bundle before PR staging.
 
+## 2026-05-30 - Four-week Phase 6c sprint and Twin/Sister Exchange scaffold
+
+Goal:
+
+- Turn the accepted four-week random-slope and digital-twin exchange plan into
+  GitHub issues, a repo-visible sprint note, a first daily scout log, and a
+  reconciled Phase 6c roadmap pointer.
+
+Changes:
+
+- Created parent issue #436 and child issues #437-#444 for the sprint lanes:
+  digital-twin exchange, support-matrix refresh, Gaussian closeout, bivariate
+  slope gate, non-Gaussian slope admission, structured one-slope audit,
+  coscale boundary, and tutorial/release ledger.
+- Commented on #33 and #128 so the new sprint epic stays linked to the older
+  Phase 6c and random-effect-capacity trackers.
+- Added `docs/design/80-four-week-random-slope-digital-twin-sprint.md` with
+  the sprint issue map, current status matrix, exchange protocol, and
+  provenance guardrails.
+- Added `docs/dev-log/twin-sister-exchange.md` with the first scout cards for
+  `DRM.jl`, `GLLVM.jl`, `gllvmTMB`, a secondary local checkout path for
+  `GLLVM.jl`, and `gllvmTMB-julia-bench`.
+- Left sibling-package comments where the scout found concrete documentation
+  drift: `DRM.jl` #1 for the `meta_V()` / deprecated `meta_known_V()`
+  mismatch and `GLLVM.jl` #14 for stale test-command guidance. The maintainer
+  corrections were mirrored back into the local log: `meta_known_V()` is
+  deprecated, and there is no separate package called `gllvmTMB.jl`.
+- Updated `ROADMAP.md` so the Phase 6c section links #436-#444 and no longer
+  says `phylo(1 + x | species, tree = tree)` does not fit in the current
+  structured one-slope status.
 ## 2026-06-01 - Phase 18 artifact-grain preflight
 
 Goal:
@@ -46800,6 +47060,64 @@ Changes:
 Validation:
 
 ```sh
+git status --short --branch
+gh issue list --repo itchyshin/drmTMB --limit 80 --state open --json number,title,labels,url
+gh issue list --repo itchyshin/drmTMB --limit 20 --state open --search "Phase 6c" --json number,title,url
+rg -n "gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl|meta_known_V\\(\\) is the current|meta_known_V\\(\\) is deprecated" docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/dev-log/twin-sister-exchange.md ROADMAP.md
+rg -n "phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylogenetic slopes and richer structured-slope paths remain later" ROADMAP.md docs/design docs/dev-log/known-limitations.md README.md vignettes -g '!docs/pkgdown/**'
+git diff --check
+```
+
+Results:
+
+- The issue scaffold exists as #436-#444, with #436 linked to #33, #128, and
+  the relevant release/simulation/diagnostic issues.
+- The first `rg` scan now finds only the deliberately documented local path
+  correction for the secondary `GLLVM.jl` checkout and the explicit
+  `meta_known_V()` deprecation statement in the scout log.
+- The stale `phylo(1 + x | species, tree = tree)` current-status scan returned
+  no current roadmap/design hits.
+- `git diff --check` passed.
+- No R tests were run because this slice changed roadmap/dev-log/design prose
+  and GitHub issues only; no package code, roxygen, or examples changed.
+
+Member-group review:
+
+- Ada kept the sprint issue set tied to existing trackers instead of replacing
+  #33 or #128.
+- Rose caught and routed the stale Phase 6c roadmap contradiction.
+- Boole accepted the maintainer correction that `meta_V(V = V)` is current and
+  `meta_known_V()` is deprecated.
+- Jason/Gibbs ran the first sibling-package scout and left concrete outbound
+  comments only where evidence existed.
+
+## 2026-05-30 - Pkgdown wording refresh for sprint scaffold
+
+Goal:
+
+- Respond to the maintainer's follow-up that pkgdown pages must be updated as
+  the sprint moves and that `meta_known_V()` is deprecated while the Julia
+  sister package is `GLLVM.jl`.
+
+Changes:
+
+- Updated `AGENTS.md` so stable terminology leads with `meta_V(V = V)` and
+  mentions deprecated `meta_known_V(V = V)` only as a compatibility alias.
+- Updated `CLAUDE.md` so meta-analysis guidance uses
+  `family = gaussian()` plus `meta_V(V = V)`.
+- Updated current `NEWS.md` wording that still described
+  `phylo(1 + x | species, tree = tree)` as planned, and changed tutorial
+  changelog bullets to lead with preferred `meta_V(V = V)`.
+- Rebuilt the local pkgdown site so `AGENTS.html`, `CLAUDE.html`,
+  `ROADMAP.html`, and `news/index.html` reflect the corrected source.
+
+Validation:
+
+```sh
+rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V' AGENTS.md CLAUDE.md NEWS.md README.md vignettes docs/design docs/dev-log/known-limitations.md -g '!docs/pkgdown/**'
+Rscript --vanilla -e "pkgdown::build_site()"
+rg -n 'Keep terms stable:.*meta_known|Treat meta-analysis as .*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*still does not fit|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|Which scale.*meta_known|clearer distinction between `meta_known_V|gllvmTMB\\.jl|GLLVM\\.jl / gllvmTMB\\.jl' pkgdown-site/AGENTS.html pkgdown-site/CLAUDE.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/search.json pkgdown-site/articles
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
 Rscript --vanilla -e "files <- c('inst/sim/run/sim_write_first_wave_table_bundle.R', 'inst/sim/run/sim_render_first_wave_summary_report.R'); invisible(lapply(files, parse)); cat('ok parse\n')"
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-table-bundle$', reporter = 'summary')"
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-render-helper)$', reporter = 'summary')"
@@ -46811,6 +47129,42 @@ git diff --check
 
 Results:
 
+- The source stale-pattern scan returned no hits.
+- `pkgdown::build_site()` completed and regenerated the local site.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The generated-site scan now finds corrected current guidance in
+  `AGENTS.html` and `CLAUDE.html`; remaining `meta_known_V()` hits are
+  explicitly deprecated/compatibility or historical changelog text.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Boole enforced the `meta_V(V = V)` spelling.
+- Grace required the pkgdown rebuild and `pkgdown::check_pkgdown()` pass.
+- Rose kept the structured-slope NEWS wording aligned with the fitted
+  phylogenetic one-slope route.
+
+## 2026-05-30 - Phase 6c support matrix and pkgdown refresh
+
+Goal:
+
+- Advance #438 by separating fitted, simulation-ready, smoke/source-only,
+  diagnostic-only, design-only, and blocked random-slope/dependence cells, then
+  refresh pkgdown-facing pages found stale by the agent team.
+
+Changes:
+
+- Added the #438 support-matrix labels to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Updated README/model-map/source-map/implementation-map and related articles so
+  first univariate Gaussian `mu` one-slope `phylo()`, `spatial()`, `animal()`,
+  and `relmat()` routes are not described as wholly planned.
+- Added the `meta_V(V = V) + sigma ~ moderator` `pdHess = FALSE` caveat to
+  public docs and design/known-limitation notes.
+- Corrected `GLLVM.jl` wording where the old local checkout path
+  `gllvmTMB.jl` could be read as a separate package.
+- Updated the local prose-review skill and team-improvement log to prevent
+  deprecated-alias and rendered-pkgdown drift.
 - The parse check passed.
 - The focused table-bundle package test passed after loading the current
   worktree.
@@ -46863,6 +47217,67 @@ Changes:
 Validation:
 
 ```sh
+git diff --check
+rg -n "gllvmTMB\\.jl is|GLLVM\\.jl / gllvmTMB\\.jl|phylogenetic slopes such as|intercept-only phylogenetic|spatial structured effects\\.|spatial, animal, or" README.md vignettes docs/design .agents/skills -g '!docs/pkgdown/**'
+rg -n "usual interval routes$|usual interval routes \\||meta_known_V\\(V = V\\).*stable|Keep terms stable:.*meta_known|phylo\\(1 \\+ x \\| species, tree = tree\\).*remains planned|phylo\\(1 \\+ x \\| species, tree = tree\\).*planned" README.md vignettes docs/design .agents/skills -g '!docs/pkgdown/**'
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n "usual interval routes|phylogenetic slopes such as|implemented path is an intercept-only phylogenetic|intercept-only phylogenetic effect|gllvmTMB\\.jl is|GLLVM\\.jl / gllvmTMB\\.jl" pkgdown-site/index.html pkgdown-site/articles pkgdown-site/ROADMAP.html pkgdown-site/search.json pkgdown-site/dev/index.html pkgdown-site/dev/articles pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/search.json
+rg -n "meta_V\\(V = V\\).*pdHess = FALSE|sigma ~ moderator|offset\\(0\\.5 \\* log\\(v\\)\\)|Issue #438 Support-Matrix Labels|source/diagnostic first slices" README.md vignettes docs/design docs/dev-log/known-limitations.md pkgdown-site/index.html pkgdown-site/articles pkgdown-site/dev/index.html pkgdown-site/dev/articles pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+```
+
+Results:
+
+- `git diff --check` passed.
+- The source stale-pattern scan found no unresolved current-doc hits. Remaining
+  matches are narrow current contexts, historical slice notes, or planned
+  non-Gaussian/structured neighbours.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The local development mirror was explicitly refreshed with
+  `override = list(destination = 'pkgdown-site/dev')`.
+- The rendered-site scan now finds the known-`V` caveat with `pdHess = FALSE`
+  in both release and development mirrors; remaining "usual interval routes"
+  hits include "only when Hessian diagnostics are clean".
+
+Member-group review:
+
+- Grace kept pkgdown release and development mirrors in the validation path.
+- Fisher/Mendel supplied the #438 label categories.
+- Rose/Carson and Sagan caught stale generated HTML and broad structured-slope
+  wording.
+- Boole kept current syntax aligned to `meta_V(V = V)`.
+
+## 2026-05-30 - Phase 6c simulation issue bridge
+
+Goal:
+
+- Respond to the maintainer's reminder that the sprint needs an explicit
+  simulation-planning issue for accuracy, coverage, power, runtime, and
+  failure-mode evidence, not only fitted random-slope status.
+
+Changes:
+
+- Confirmed that #59 is already the Phase 18 comprehensive simulation
+  framework and reporting issue, and #255 is the artifact-grain child issue for
+  replicate-level versus aggregate simulation evidence.
+- Linked #59, #255, and #60 from the Phase 6c sprint contract and roadmap so
+  the random-slope child issues route larger operating-characteristic questions
+  into the existing simulation mega-project.
+- Updated the Phase 18 programme note to state that `glmmTMB`, direct TMB
+  baselines, `DRM.jl`, `GLLVM.jl`, and other comparator or twin routes are
+  design mirrors or comparator lanes, not `drmTMB` coverage evidence.
+
+Validation:
+
+```sh
+git diff --check
+rg -n "#59|#255|#60|glmmTMB|direct TMB|DRM\\.jl|GLLVM\\.jl|bias, coverage, or power evidence" docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n "Phase 18 mega-issue|umbrella simulation programme|artifact-grain|comparator-package lane|DRM\\.jl|GLLVM\\.jl|#59|#255|#60" pkgdown-site/ROADMAP.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/search.json docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-report$', reporter = 'summary')"
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(summary-report|summary-render-helper|table-bundle)$', reporter = 'summary')"
 air format inst/sim/reports/phase18-first-wave-summary-report.Rmd tests/testthat/test-phase18-first-wave-summary-report.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-replicate-cloud-gate.md
@@ -46873,6 +47288,48 @@ git diff --check
 
 Results:
 
+- `git diff --check` passed.
+- The source scan found the new #59/#255/#60 simulation bridge in the sprint
+  contract, Phase 18 programme, roadmap, and check log.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- The local development mirror was refreshed with
+  `override = list(destination = 'pkgdown-site/dev')`.
+- The rendered scan found the new issue bridge in the release and development
+  `ROADMAP.html` and `search.json` outputs.
+
+Member-group review:
+
+- Fisher required bias/accuracy, RMSE, interval coverage, power or Type I
+  error, convergence, Hessian status, boundary rate, runtime, and MCSE language
+  to stay visible.
+- Curie kept the Phase 6c bridge narrow enough to become taskable simulation
+  rows.
+- Rose kept comparator and Julia-twin results out of `drmTMB` evidence claims.
+
+## 2026-05-30 - Spatial mu-slope Actions task
+
+Goal:
+
+- Turn the existing coordinate-spatial Gaussian `mu` one-slope artifact writer
+  into a manual Phase 18 Actions task, without adding new model syntax,
+  likelihood code, or recovery/coverage claims.
+
+Changes:
+
+- Added `spatial_mu_slope` to the Phase 18 Actions runner, manual workflow
+  choices, and structured workflow registry.
+- Routed `spatial_mu_slope` to
+  `phase18_write_spatial_mu_slope_grid_outputs()`.
+- Updated workflow-plan and wrapper-readiness tests so the spatial row is an
+  existing manual task while `phylo()`, `animal()`, and `relmat()` one-slope
+  rows remain structured-dependence wrapper targets.
+- Synchronized the simulation README, Phase 18 programme, structured workflow
+  registry note, roadmap, NEWS, and after-task report.
+- Fixed two source-doc inconsistencies found during the pkgdown audit:
+  matching slope-only bivariate Gaussian `mu1`/`mu2` blocks are now described
+  as fitted in the correlated-block design note, and the future proportional
+  `meta_V()` example no longer repeats the response as a positional argument.
 - The focused summary-report test passed.
 - The adjacent summary-report, summary-render-helper, and table-bundle tests
   passed together.
@@ -46924,6 +47381,16 @@ Changes:
 Validation:
 
 ```sh
+air format inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R tests/testthat/test-phase18-structured-workflow-registry.R
+Rscript --vanilla -e "parse('inst/sim/run/sim_run_actions_cell.R'); parse('inst/sim/run/sim_phase18_structured_workflow_registry.R')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(actions-runner|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(spatial-mu-slope|random-slope-grid-writers)$', reporter = 'summary')"
+Rscript --vanilla inst/sim/run/sim_run_actions_cell.R --task=spatial_mu_slope --dry-run=true --n-reps=1 --cores=1 --backend=none
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n 'spatial_mu_slope|spatial one-slope|meta_V\(w = w|matching slope-only `mu1`/`mu2` blocks|three wrapper targets|four existing tasks|Phase 18 now exposes a manual-only `spatial_mu_slope`' pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/source-map.html pkgdown-site/search.json pkgdown-site/dev/ROADMAP.html pkgdown-site/dev/news/index.html pkgdown-site/dev/articles/source-map.html pkgdown-site/dev/search.json ROADMAP.md NEWS.md vignettes/source-map.Rmd docs/design/17-correlated-random-effect-blocks.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
+rg -n 'Sagan|meta_V\(value|bivariate `mu1`/`mu2` random-slope covariance blocks|Clarify `meta_known_V|dense `meta_known_V\(V = V\)` fits' docs/dev-log/check-log.md docs/design/17-correlated-random-effect-blocks.md vignettes/source-map.Rmd ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
 Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-(template|render-helper)$|^phase18-sim-plot-data$', reporter = 'summary')"
 air format inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-count-gallery-grain-gate.md
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
@@ -46934,6 +47401,57 @@ git diff --check
 
 Results:
 
+- `air format` completed without output.
+- Both changed R files parsed successfully.
+- The workflow/registry focused test group passed after updating the expected
+  structured-dependence counts to three wrapper targets and four existing
+  Actions tasks.
+- The spatial mu-slope and random-slope grid-writer focused tests passed.
+- The new `spatial_mu_slope` dry run printed the expected task plan.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- `pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))`
+  completed and refreshed the development mirror.
+- Rendered scans found the new spatial task, bivariate slope-only wording,
+  updated `meta_V(w = w)` example, and structured-count wording in source and
+  generated pkgdown pages. The stale scan found only older historical check-log
+  mentions, not current user-facing source.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie selected this as the lowest-risk implementation slice because the DGP,
+  smoke runner, summary helper, grid writer, and tests already existed.
+- Grace kept the task manual-only and excluded from `task = "all"`.
+- Boole caught source-doc drift around bivariate slope-only support and future
+  `meta_V()` syntax.
+- Rose kept `phylo()`, `animal()`, and `relmat()` one-slope rows visible as
+  remaining wrapper targets.
+
+## 2026-05-30 - Coscale and corpairs boundary ledger
+
+Goal:
+
+- Advance #443 and give #444 a course-facing anchor by sharpening the reader
+  boundary among residual `rho12`, singular `corpair()` formula markers, and
+  plural `corpairs()` extraction rows.
+
+Changes:
+
+- Updated `docs/design/20-coscale-correlation-pairs.md` so coscale is defined
+  as residual bivariate Gaussian `rho12`, while `corpair()` and `corpairs()`
+  are separate latent-correlation interfaces.
+- Updated `vignettes/bivariate-coscale.Rmd` to distinguish fitted
+  `corpairs()` rows for ordinary group, phylogenetic, spatial, animal, and
+  `relmat()` layers from still-planned predictor-dependent `corpair()`
+  regressions.
+- Updated `R/formula-markers.R` and regenerated `man/corpair.Rd` so the
+  reference page says spatial `corpair()` regressions remain planned, not all
+  spatial correlation rows.
+- Added `docs/course/README.md` as a compact teaching-path ledger for the
+  current course route and the still-missing bivariate slope-only tutorial.
+- Recorded the #443 boundary language in the four-week sprint contract,
+  roadmap, and NEWS.
 - The focused count-gallery template, count-gallery render-helper, and
   sim-plot-data tests passed together.
 - `air format` completed with no output.
@@ -46981,6 +47499,17 @@ Changes:
 Validation:
 
 ```sh
+air format R/formula-markers.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^package-skeleton$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site()"
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))"
+rg -n -e 'Coscale means the residual bivariate Gaussian correlation parameter `rho12`' -e 'Coscale boundary: residual `rho12`' docs/design/80-four-week-random-slope-digital-twin-sprint.md ROADMAP.md pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+rg -n 'Spatial|spatial' R/formula-markers.R man/corpair.Rd pkgdown-site/reference/corpair.html pkgdown-site/dev/reference/corpair.html
+rg -n -e 'coordinate-spatial, animal-model, and `relmat\\(\\)` q=2 or constant' -e 'Keep the three correlation words separate' vignettes/bivariate-coscale.Rmd pkgdown-site/articles/bivariate-coscale.html pkgdown-site/dev/articles/bivariate-coscale.html
+rg -n -e 'Phase 6c random slopes are currently taught' -e 'The bivariate coscale tutorial and correlation-pair design note' docs/course/README.md NEWS.md pkgdown-site/news/index.html pkgdown-site/dev/news/index.html
+rg -n 'richer spatial and study-level correlation rows remain planned|Predictors must be constant within the grouping factor\\. Spatial,|GLLVM\\.jl / gllvmTMB\\.jl|meta_V\\(value' vignettes docs/design R man README.md ROADMAP.md NEWS.md -g '!docs/pkgdown/**'
 air format tests/testthat/test-phase18-first-wave-table-bundle.R docs/design/150-phase-18-artifact-grain-closeout.md docs/design/41-phase-18-simulation-programme.md ROADMAP.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-phase18-artifact-grain-closeout.md
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$|^phase18-count-gallery-template$', reporter = 'summary')"
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
@@ -46990,6 +47519,443 @@ git diff --check
 
 Results:
 
+- `air format` completed without output.
+- `devtools::document()` completed and regenerated `man/corpair.Rd`; unrelated
+  roxygen metadata churn was discarded.
+- `devtools::test(filter = '^package-skeleton$')` passed.
+- `pkgdown::build_site()` completed and refreshed the release mirror.
+- `pkgdown::check_pkgdown()` returned `No problems found`.
+- `pkgdown::build_site(override = list(destination = 'pkgdown-site/dev'))`
+  completed and refreshed the development mirror.
+- Rendered scans found the new #443 wording in the sprint contract, roadmap,
+  `bivariate-coscale` article, `corpair()` reference page, NEWS, and the
+  release and development pkgdown mirrors.
+- The stale-wording scan returned no current-doc hits.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Aristotle found the stale bivariate-coscale wording and the reference-page
+  ambiguity between spatial `corpairs()` rows and spatial `corpair()`
+  regressions.
+- Rose flagged #443/#444 as high-value, low-risk reader-facing work.
+- Pat's reader path is now explicit in `docs/course/README.md`, while the
+  bivariate slope-only worked tutorial remains a future #444 item.
+
+## 2026-05-30 - Ordinary Gaussian random-slope Actions boundary
+
+Goal:
+
+- Close the #439 simulation-ledger ambiguity between ordinary Gaussian
+  random-slope smoke grids that run inside the first-wave summary and
+  standalone random-slope Actions tasks that stay manual-only.
+
+Changes:
+
+- Updated `inst/sim/README.md` to state that the ordinary Gaussian `mu` q=3
+  and independent `sigma` random-slope smoke grids run through
+  `task = "first_wave_summary"` or `task = "all"` because they are part of the
+  first-wave summary runner.
+- Clarified that only standalone random-slope tasks outside the first-wave
+  summary, phylogenetic formal tasks, and standalone family tasks remain
+  manual-only and excluded from `task = "all"`.
+
+Validation:
+
+```sh
+rg -n 'ordinary Gaussian `mu` and|first-wave summary runner|Standalone random-slope tasks' inst/sim/README.md
+rg -n 'The phylogenetic formal tasks, random-slope tasks, and|random-slope tasks are manual-only and are excluded from `task = "all"`' inst/sim/README.md
+git diff --check
+```
+
+Results:
+
+- The positive scan found the new ordinary Gaussian first-wave and standalone
+  manual-only boundary wording.
+- The stale-pattern scan found no remaining broad sentence that all
+  random-slope tasks are excluded from `task = "all"`; the older first-wave
+  runner list remains as intended.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the claim at smoke-grid dispatch only, without converting it into
+  a recovery or coverage statement.
+- Grace kept Actions matrix scope clear: first-wave summary cells may run under
+  `task = "all"`, while separate opt-in tasks remain manual-only.
+
+## 2026-05-30 - Bivariate Gaussian slope-only extractor gate
+
+Goal:
+
+- Advance #440 by locking the fitted bivariate Gaussian matching slope-only
+  `mu1`/`mu2` covariance row to both `corpairs()` and `summary(fit)$covariance`
+  without promoting simulation recovery or changing parser/likelihood behavior.
+
+Changes:
+
+- Added a regression assertion to the existing bivariate Gaussian
+  `(0 + x | p | id)` slope-only test so exactly one `slope-slope` `corpairs()`
+  row and exactly one `slope-slope` summary covariance row are present.
+- Checked that both extractor rows report the same correlation as
+  `fit$corpars$mu`.
+- Updated `corpairs()` roxygen and regenerated `man/corpairs.Rd` to mention
+  matched bivariate `mu1`/`mu2` slope-only covariance blocks.
+- Updated `docs/design/03-likelihoods.md` so the routing table and bivariate
+  likelihood section name the fitted slope-only row while keeping broader
+  bivariate random slopes, recovery, and `rho12` random effects planned.
+
+Validation:
+
+```sh
+air format R/methods.R tests/testthat/test-biv-gaussian.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = '^biv-gaussian$', reporter = 'summary')"
+rg -n -F -e 'slope-only covariance' -e 'matching slope-only ordinary `mu1`/`mu2` covariance block' -e 'matched bivariate \\code{mu1}/\\code{mu2} random-intercept and slope-only covariance' R/methods.R man/corpairs.Rd docs/design/03-likelihoods.md
+rg -n -F -e 'Planned double-hierarchical bivariate syntax with random slopes and scale random effects' -e 'matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept' -e 'matched bivariate \\code{mu1}/\\code{mu2} and \\code{sigma1}/\\code{sigma2} random-intercept' R/methods.R man/corpairs.Rd docs/design/03-likelihoods.md
+git diff --check
+```
+
+Results:
+
+- `air format` completed without output.
+- `devtools::document()` completed and regenerated `man/corpairs.Rd` without
+  leaving unrelated generated-file churn.
+- The attempted `testthat::test_file(..., filter = ...)` command failed because
+  the installed `testthat` interface does not accept `filter` for `test_file()`.
+- `devtools::test(filter = '^biv-gaussian$')` passed, covering the bivariate
+  Gaussian file and the matching Phase 18 bivariate slope smoke tests.
+- The first regex stale-wording scan failed on escaped braces, so the final
+  fixed-string stale-wording scan used `rg -F` and returned no hits in the
+  touched source/Rd/design files.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept this as an extractor regression, not a simulation recovery claim.
+- Boole checked that the reader-facing route names `mu1`, `mu2`, `corpairs()`,
+  `summary(fit)$covariance`, and `rho12` with stable meanings.
+- Rose left #440 conservative: fitted slope-only extraction is guarded, while
+  broader bivariate random slopes and recovery promotion remain planned.
+
+## 2026-05-30 - Phase 6c simulation planning child issue
+
+Goal:
+
+- Make the user-requested random-slope simulation planning lane explicit, with
+  power, accuracy, coverage, convergence, runtime, and failure-ledger evidence
+  separated from implementation and smoke evidence.
+
+Changes:
+
+- Opened GitHub issue #446 as the Phase 6c random-slope simulation power,
+  accuracy, and coverage plan.
+- Linked #446 from `docs/design/80-four-week-random-slope-digital-twin-sprint.md`
+  and `ROADMAP.md` beside the broader Phase 18 simulation mega-issue #59.
+- Commented on #59 and #436 so the simulation child issue is visible from both
+  the simulation programme and the Phase 6c parent tracker.
+
+Validation:
+
+```sh
+rg -n '#446|random-slope simulation power, accuracy, and coverage plan|Phase 6c child issue' docs/design/80-four-week-random-slope-digital-twin-sprint.md ROADMAP.md
+git diff --check
+```
+
+Results:
+
+- The source scan found #446 in the sprint contract and roadmap.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept #446 as an evidence design gate before large grids run.
+- Fisher required power, accuracy, coverage, and failure diagnostics to stay
+  separate from fitted or smoke-only claims.
+- Rose linked the new issue back to the parent sprint so it does not become an
+  orphan planning note.
+
+## 2026-05-30 - Second twin-sister exchange card
+
+Goal:
+
+- Keep the daily exchange routine active after the first sprint setup by
+  recording one bounded scout pass from `DRM.jl` and `GLLVM.jl`.
+
+Changes:
+
+- Added a second lesson card to `docs/dev-log/twin-sister-exchange.md`.
+- Recorded `DRM.jl`'s small structured-effect commit sequence as a planning
+  lesson for #442 and #446: one dependence layer, one estimand, one evidence
+  gate.
+- Recorded `GLLVM.jl`'s quick-core versus full-quality-battery split as a
+  planning lesson for #446: CRAN-safe tests, heavy simulations, quality checks,
+  and benchmarks should stay separate evidence gates.
+- Updated the card after the scout returned with the observed `DRM.jl` branch
+  name, the `(0 + x | g)` recovery versus correlated-slope rejection pattern,
+  and the GLLVM coverage-simulation denominator pattern.
+
+Validation:
+
+```sh
+rg -n 'Second Scout: 2026-05-30 Overnight|one dependence layer, one estimand, one evidence gate|CRAN-safe focused `drmTMB` tests|usable intervals, and MCSE|\\(0 \\+ x \\| g\\)' docs/dev-log/twin-sister-exchange.md
+git diff --check
+```
+
+Results:
+
+- The source scan found the new lesson-card heading and planning lessons.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Jason kept sibling-package observations as design lessons only.
+- Rose kept the accept decision explicit and blocked any cross-repo evidence
+  laundering into `drmTMB` support claims.
+
+## 2026-05-30 - Non-Gaussian independent mu-slope admission table
+
+Goal:
+
+- Advance #441 without changing likelihoods by separating fixed-effect
+  likelihood support, source-tested independent `mu` slopes, Phase 18 artifact
+  routes, and unsupported neighbours for non-Gaussian families.
+
+Changes:
+
+- Added an #441 admission table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Marked ordinary Poisson and NB2 `mu` slopes as the strongest current
+  non-Gaussian count candidates because they have dedicated smoke/grid lanes.
+- Marked Student-t, lognormal, Gamma, beta, beta-binomial, and
+  zero-truncated NB2 independent `mu` slopes as source-tested but not yet
+  slope-specific Phase 18 recovery, coverage, or power evidence.
+- Kept Tweedie, zero-one beta, hurdle/zero-inflated counts, ordinal, and
+  shape-parameter random slopes out of #441 admission.
+
+Validation:
+
+```sh
+rg -n 'Issue #441 Non-Gaussian Slope Admission|Source-tested independent slope|tests/testthat/test-nongaussian-mu-random-slopes.R|Tweedie, zero-one beta' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- The source scan found the new #441 table and evidence boundary wording.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Fermat completed the #441 source-only evidence audit and confirmed the
+  conservative split: Poisson/NB2 have dedicated small-grid lanes, while
+  Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2
+  remain source-tested/candidate until slope-specific recovery or coverage
+  grids exist.
+- Curie kept source tests separate from Phase 18 operating-characteristic
+  evidence.
+- Rose blocked a broad "all non-Gaussian slopes" claim.
+
+## 2026-05-30 - Non-Gaussian mu-slope registry prose cleanup
+
+Goal:
+
+- Close the documentation-only #441 registry cleanup by removing lower-section
+  stale prose that still described selected source-tested non-Gaussian `mu`
+  slope routes as fixed-effect-only or random-effects-later surfaces.
+
+Changes:
+
+- Updated `docs/design/02-family-registry.md` so the Student-t, lognormal,
+  Gamma, beta, beta-binomial, and zero-truncated NB2 family sections match the
+  registry table: ordinary unlabelled `mu` random intercepts and independent
+  numeric `mu` slopes are source-tested.
+- Kept the conservative Phase 18 boundary explicit: the current Student-t,
+  positive-continuous, bounded-response, and zero-truncated NB2 artifact lanes
+  are random-intercept focused, not slope-specific recovery, coverage, or power
+  evidence.
+- Left correlated slopes, labelled covariance, non-Gaussian `sigma` random
+  effects outside the narrow NB2 intercept gate, shape random effects,
+  structured effects, hurdle/inflation random effects, known covariance, and
+  bivariate or mixed non-Gaussian models as planned neighbours.
+
+Validation:
+
+```sh
+! rg -n 'Student-t.*fixed-effect only|student\(\).*fixed-effect only|Student-t.*Random effects.*later|The first robust continuous family is univariate and fixed-effect only|beta-binomial.*fixed-effect only|beta_binomial\(\).*fixed-effect only|The implemented model is univariate and fixed-effect only|zero-truncated NB2.*fixed-effect|truncated_nbinom2\(\).*fixed-effect|The implemented model is fixed-effect and univariate' docs/design/02-family-registry.md
+rg -n 'source-tested, while the current Phase 18 .*artifact lane is random-intercept focused|ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes|Correlated Student-t slopes|Correlated zero-truncated slopes|Correlated beta slopes|Correlated slopes' docs/design/02-family-registry.md
+git diff --check
+```
+
+Results:
+
+- The stale-wording scan returned no matches.
+- The positive support/boundary scan found the updated source-tested `mu` slope
+  wording and planned-neighbour guardrails.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Pat checked that applied users see what they can fit now before reading the
+  unsupported-neighbour list.
+- Curie kept source-tested independent slopes separate from Phase 18
+  operating-characteristic evidence.
+- Rose kept the cleanup inside `docs/design/02-family-registry.md`,
+  `docs/dev-log/check-log.md`, and this after-task record.
+
+## 2026-05-30 - Structured Gaussian one-slope audit table
+
+Goal:
+
+- Advance #442 by separating fitted Gaussian structured one-slope `mu` paths
+  from q2/q4 covariance, Actions/artifact routing, and unsupported structured
+  slope neighbours.
+
+Changes:
+
+- Added an #442 structured one-slope table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Marked `phylo()`, `spatial()`, `animal()`, and `relmat()` as fitted for the
+  first univariate Gaussian `mu` one-slope path.
+- Kept q2 structured covariance, q4 diagnostic-heavy covariance, count
+  structured intercept lanes, and future multi-slope or residual-scale
+  structured routes as separate evidence layers.
+- Recorded the current Phase 18 routing boundary: `spatial_mu_slope` is a
+  manual Actions task, while Gaussian `phylo()`, `animal()`, and `relmat()`
+  one-slope rows still need structured-dependence wrapper targets.
+
+Validation:
+
+```sh
+rg -n 'Issue #442 Structured One-Slope Audit|spatial_mu_slope|structured-dependence wrapper target|diagnostic_only|derived intervals unavailable' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'phylo\\(1 \\+ x|spatial_mu_slope|needed:structured_dependence_wrapper|derived_interval_unavailable|animal\\(1 \\+ x|relmat\\(1 \\+ x' docs/design/143-phase-18-structured-workflow-registry.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R README.md ROADMAP.md vignettes/phylogenetic-spatial.Rmd
+git diff --check
+```
+
+Results:
+
+- The source scan found the new #442 table and the planned artifact-routing
+  boundary.
+- The stale/status scan returned expected current status rows plus known
+  historical roadmap entries; no broad "all structured slopes" or q4 interval
+  claim was added by this slice.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Maxwell completed the #442 source-only audit and identified public prose that
+  should continue separating fitted one-slope paths from artifact readiness.
+- Fisher kept q4 covariance rows diagnostic-heavy until recovery and interval
+  evidence are explicit.
+- Grace kept `spatial_mu_slope` as the only current structured one-slope
+  manual Actions route.
+- Rose kept unsupported boundaries visible: multiple structured slopes,
+  slope correlations, structured `rho12`, structured `sigma`, and
+  non-Gaussian structured slopes remain planned.
+
+## 2026-05-30 - Structured Gaussian public prose cleanup
+
+Goal:
+
+- Advance #442 by separating fitted one-slope Gaussian `mu` support from Phase
+  18 Actions or artifact readiness for `phylo()`, `spatial()`, `animal()`, and
+  `relmat()` in public prose.
+
+Changes:
+
+- Updated `vignettes/phylogenetic-spatial.Rmd` so the reader route says all
+  four structured layers have a first fitted univariate Gaussian one-slope
+  `mu` route.
+- Added the artifact boundary in the vignette and README: only
+  `spatial_mu_slope` is currently a manual Phase 18 Actions task, while
+  `phylo()`, `animal()`, and `relmat()` one-slope artifact rows remain wrapper
+  targets.
+- Removed stale roadmap wording that said the phylogenetic path did not yet
+  have the first one-slope baseline.
+- Marked the older Slice 186 phylogenetic random-slope row as superseded and
+  softened the historical Slice 239 summary so it cannot be read as current
+  status.
+- Kept q=4 prose conservative: fitted extractor and diagnostic-heavy paths do
+  not imply broadly available derived intervals.
+- Added
+  `docs/dev-log/after-task/2026-05-30-structured-gaussian-public-prose-cleanup.md`.
+
+Validation:
+
+```sh
+rg -n 'one numeric `mu` slope|spatial_mu_slope|wrapper targets|multiple structured slopes|structured residual `rho12`|structured `sigma` slopes|non-Gaussian structured slopes|phylogenetic path does not yet|coordinate spatial path has this first one-slope baseline' vignettes/phylogenetic-spatial.Rmd ROADMAP.md README.md
+! rg -n 'phylogenetic slopes remain rejected|intercept-only while coordinate spatial|phylogenetic path does not yet|still required implementation|does not fit in the current structured one-slope|still does not fit' ROADMAP.md vignettes/phylogenetic-spatial.Rmd README.md
+rg -n 'structured one-slope|spatial_mu_slope|wrapper targets|q=4 remains fitted and diagnostic-heavy' docs/dev-log/after-task/2026-05-30-structured-gaussian-public-prose-cleanup.md docs/dev-log/check-log.md
+git diff --check
+```
+
+Results:
+
+- The public-prose scan found the new one-slope and artifact-boundary wording
+  and did not find the stale "phylogenetic path does not yet" wording.
+- The stale-current-status scan returned no matches.
+- The after-task/check-log scan found the #442 boundary notes.
+- `git diff --check` passed.
+- No R tests were run because this task changed prose and status notes only.
+
+Member-group review:
+
+- Darwin kept the vignette route in biological order: animal, phylo, spatial,
+  planned phylo-plus-spatial, then low-level `relmat()`.
+- Grace kept Actions readiness narrower than fitted support.
+- Emmy kept wrappers, artifact routing, and model support separate.
+- Rose blocked any wording that could imply multiple structured slopes,
+  structured `rho12`, structured `sigma` slopes, or non-Gaussian structured
+  slopes are fitted.
+
+## 2026-05-30 - Deprecated meta_known_V and GLLVM path wording cleanup
+
+Goal:
+
+- Fix stale historical dev-log snippets that still made deprecated
+  `meta_known_V(V = V)` look like current syntax or made a local `GLLVM.jl`
+  checkout path look like a separate package.
+
+Changes:
+
+- Updated the Phase 6e tutorial-maturation closure note so `meta_V(V = V)` is
+  the current additive known-covariance syntax and `meta_known_V(V = V)` is
+  named as a deprecated compatibility alias.
+- Updated the Slice 90 flagship location-scale after-task note with the same
+  current/deprecated split.
+- Prefixed the historical `gllvmTMB.jl/src/confint_derived_wald.jl` path with
+  "`GLLVM.jl` local checkout path" so it cannot be read as a separate package
+  named `gllvmTMB.jl`.
+
+Validation:
+
+```sh
+! rg -n 'meta_known_V\\(V = V\\).*current|meta_V\\(\\.\\.\\.\\).*future|planned `meta_V\\(\\)`|^- `gllvmTMB\\.jl/' docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md docs/dev-log/after-task/2026-05-29-claude-gllvmjl-transfer-audit.md
+rg -n 'meta_V\\(V = V\\).*current|meta_known_V\\(V = V\\).*deprecated compatibility alias|GLLVM\\.jl` local checkout path' docs/dev-log/after-phase/2026-05-16-phase-6e-tutorial-maturation-closure.md docs/dev-log/after-task/2026-05-16-slice-90-flagship-location-scale.md docs/dev-log/after-task/2026-05-29-claude-gllvmjl-transfer-audit.md
+git diff --check
+```
+
+Results:
+
+- The stale-current syntax and raw-path scan returned no matches.
+- The positive scan found the current `meta_V(V = V)` wording, the deprecated
+  compatibility-alias wording, and the `GLLVM.jl` local-checkout qualifier.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Cicero found the stale snippets before commit.
+- Boole kept `meta_V(V = V)` as the current syntax and
+  `meta_known_V(V = V)` as a compatibility alias.
+- Rose kept the local checkout path from becoming a false package-name claim.
+
+## 2026-05-30 - Phase 6c public docs pkgdown render gate
+
+Goal:
+
+- Verify that the Phase 6c public prose changes render through pkgdown and
+  that the generated pages carry the current structured-slope and meta-analysis
+  wording.
 - The focused first-wave table-bundle, first-wave summary-report,
   first-wave summary-render-helper, and count-gallery template tests passed.
 - `pkgdown::check_pkgdown()` returned `No problems found`.
@@ -47031,6 +47997,74 @@ Changes:
 Validation:
 
 ```sh
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+Rscript --vanilla -e "pkgdown::build_site(preview = FALSE)"
+rg -n 'spatial_mu_slope|wrapper targets|structured residual rho12|structured sigma slopes|non-Gaussian structured slopes|current additive known sampling covariance|deprecated compatibility alias' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/search.json
+! rg -n 'phylogenetic path does not yet|still required implementation|meta_known_V\\(V = V\\).*current additive|meta_V\\(\\.\\.\\.\\).*reserved future|gllvmTMB\\.jl/src' pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/search.json
+git diff --check
+```
+
+Results:
+
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` completed and wrote the local site to
+  `pkgdown-site`.
+- The rendered-page scan found the structured one-slope artifact boundary in
+  `index.html`, `ROADMAP.html`, and `articles/phylogenetic-spatial.html`.
+- The rendered stale scan found no stale "phylogenetic path does not yet",
+  stale current `meta_known_V(V = V)`, reserved-future `meta_V(...)`, or raw
+  `gllvmTMB.jl/src` wording in the rendered pages checked.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Grace kept pkgdown as a first-class artifact for this public-prose slice.
+- Pat kept the reader-facing route aligned between README, roadmap, and the
+  structural-dependence article.
+- Rose checked that generated pages did not reintroduce stale wording through
+  older source paths.
+
+## 2026-05-30 - Gaussian ordinary random-slope closeout table
+
+Goal:
+
+- Advance #439 with a compact design-ledger table that separates ordinary
+  Gaussian `mu` q > 2 grouped blocks, independent Gaussian `sigma` slopes,
+  first-wave Phase 18 routing, and unsupported residual-scale covariance
+  neighbours.
+
+Changes:
+
+- Added an #439 closeout table to
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Updated stale roadmap wording that still described q > 2 TMB export as
+  blocked, and qualified the "do not estimate intercept-slope correlations"
+  sentence as applying to first structured one-slope paths.
+- Added location-scale tutorial guidance for q > 2 ordinary Gaussian `mu`
+  blocks and for independent versus correlated residual-scale `sigma` slopes.
+- Added the missing residual-scale random-slope row to the model-map grouped
+  output table.
+- Recorded local evidence handles for q > 2 ordinary Gaussian `mu` blocks:
+  `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary(fit)$covariance`,
+  direct SD `profile_targets()`, and q > 2 derived correlation targets.
+- Recorded local evidence handles for independent Gaussian `sigma` slopes on
+  `log(sigma)`: `sdpars$sigma`, prediction contribution, direct
+  `profile_targets()`, and the Phase 18 smoke runner.
+- Kept correlated residual-scale slope blocks, labelled residual-scale slope
+  covariance, and slope-level mean-scale covariance planned.
+
+Validation:
+
+```sh
+rg -n 'Issue #439 Gaussian Ordinary Closeout|Gaussian `mu` q > 2 grouped blocks|Gaussian `sigma` independent slopes|first_wave_summary|derived and not direct profile-interval targets' docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'Gaussian mu supports q > 2 correlated random-slope blocks|Gaussian mu reports larger ordinary multi-slope blocks consistently|Gaussian sigma supports independent residual-scale random slopes|Only independent residual-scale random slopes|Labelled residual-scale random-slope covariance blocks|Phase 18 Gaussian mu random-slope smoke runner summarises q=3 output|Phase 18 Gaussian sigma random-slope smoke runner summarises output|gaussian_ordinary_mu_slopes|gaussian_sigma_independent_slopes' tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-phase18-gaussian-mu-random-slope.R tests/testthat/test-phase18-gaussian-sigma-random-slope.R inst/sim/registry/phase18_structured_workflow_registry.csv
+rg -n 'Later ordinary Gaussian `mu` slices superseded|For first structured one-slope paths|q > 2 blocks estimate one SD per coefficient|independent `sigma` slopes fit on `log\\(sigma\\)`|groups differ in residual-scale slopes' ROADMAP.md vignettes/location-scale.Rmd vignettes/model-map.Rmd
+! rg -n 'still blocks TMB export for `q > 2`|Do not estimate intercept-slope correlations in the first slope path' ROADMAP.md
+Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-gaussian-random-intercepts.R", reporter = "summary"); testthat::test_file("tests/testthat/test-phase18-gaussian-mu-random-slope.R", reporter = "summary"); testthat::test_file("tests/testthat/test-phase18-gaussian-sigma-random-slope.R", reporter = "summary")'
+Rscript -e 'pkgdown::check_pkgdown()'
+Rscript -e 'pkgdown::build_site(preview = FALSE)'
+rg -n 'q &gt; 2 blocks estimate one SD per coefficient|independent <code>sigma</code> slopes fit on <code>log\\(sigma\\)</code>|groups differ in residual-scale slopes|For first structured one-slope paths|Later ordinary Gaussian' pkgdown-site/articles/location-scale.html pkgdown-site/articles/model-map.html pkgdown-site/ROADMAP.html pkgdown-site/search.json
+! rg -n 'still blocks TMB export for <code>q &gt; 2</code>|Do not estimate intercept-slope correlations in the first slope path' pkgdown-site/ROADMAP.html pkgdown-site/search.json
 air format inst/sim/R/sim_gallery_grain.R inst/sim/reports/phase18-count-mu-gallery.Rmd tests/testthat/test-phase18-count-gallery-template.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/150-phase-18-artifact-grain-closeout.md ROADMAP.md
 Rscript --vanilla -e "devtools::test(filter = '^phase18-count-gallery-template$', reporter = 'summary')"
 Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-(table-bundle|summary-report|summary-render-helper)$', reporter = 'summary')"
@@ -47042,6 +48076,24 @@ git diff --check
 
 Results:
 
+- The design scan found the new #439 table and its fitted/planned boundaries.
+- The evidence scan found the local ordinary q > 2, independent `sigma` slope,
+  unsupported `sigma` covariance, smoke-runner, and registry handles.
+- The public-prose scan found the superseded-roadmap note, the structured-slope
+  qualification, the q > 2 tutorial guidance, the `sigma` slope boundary, and
+  the model-map `sigma` slope row.
+- The stale roadmap scan found no remaining unqualified q > 2 export block or
+  broad first-slope correlation prohibition.
+- The targeted Gaussian test file passed with one CRAN skip; both Phase 18
+  Gaussian `mu` and `sigma` random-slope smoke files passed.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site(preview = FALSE)` completed and wrote the local site to
+  `pkgdown-site`; it repeated the existing glmmTMB/TMB version-mismatch warning
+  while reading the convergence article.
+- The rendered-page scan found the q > 2, independent `sigma` slope,
+  model-map, and roadmap updates in the generated pages and search index.
+- The rendered stale scan found no old q > 2 export block or broad first-slope
+  correlation prohibition in the rendered ROADMAP/search index.
 - The first focused count-gallery run failed because the template no longer
   contained the literal `artifact_grain` predicate after the helper extraction.
   The no-cloud subtitle now states both accepted gate forms, and the rerun
@@ -47056,6 +48108,29 @@ Results:
 
 Member-group review:
 
+- Curie kept first-wave artifact routing separate from broad operating
+  characteristic evidence.
+- Fisher kept q > 2 correlations derived-unavailable for direct profiling.
+- Boole kept `sigma` slopes on `log(sigma)` and avoided implying labelled or
+  correlated residual-scale covariance.
+
+## 2026-05-30 - Audit-pattern and GLLVM path cleanup
+
+Goal:
+
+- Remove two small sources of terminology drift found during the overnight
+  Phase 6c consistency audit: a false-positive `meta_known_V()` stale-wording
+  pattern and an older local `gllvmTMB.jl` path that could be misread as a
+  package name.
+
+Changes:
+
+- Updated `docs/design/10-after-task-protocol.md` so stale-name scans flag
+  `meta_known_V(V = V)` only when it is described as current, preferred,
+  stable, or default. Deprecated compatibility-alias wording is now allowed.
+- Added an explicit provenance note to
+  `docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md`: `gllvmTMB.jl` is an older
+  local checkout directory for `GLLVM.jl`, not a separate package name.
 - Ada kept the task scoped to #461 future-gallery hygiene.
 - Curie added direct helper tests instead of relying only on rendered HTML.
 - Florence kept cloud-style display tied to actual replicate-level evidence.
@@ -47079,6 +48154,9 @@ Changes:
 Validation:
 
 ```sh
+rg -n -F 'meta_known_V\\(V = V\\).*(current|preferred|stable|default)' docs/design/10-after-task-protocol.md
+rg -n 'older local checkout directory for `GLLVM.jl`' docs/dev-log/lessons-from-gllvmjl-for-drmtmb.md
+rg -n 'meta_known_V\\(V = V\\).*compatibility alias' docs/design/10-after-task-protocol.md
 air format docs/design/59-structural-slope-and-non-gaussian-map.md ROADMAP.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-01-random-slope-capacity-closeout.md
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
 rg -n '#128|Random-effect slope capacity closeout|ordinary Gaussian `mu`|residual-scale `sigma`|bivariate slope-only|structured Gaussian one-slope|p8/q8|coefficient-specific `sd`|correlated non-Gaussian slopes' README.md ROADMAP.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/dev-log/known-limitations.md tests/testthat
@@ -47090,6 +48168,9 @@ git diff --check
 
 Results:
 
+- The positive scan found the updated audit pattern and the GLLVM path note.
+- The false-positive stale scan found no remaining instruction to flag
+  compatibility-alias wording in the after-task protocol.
 - `pkgdown::check_pkgdown()` returned `No problems found`.
 - The positive capacity scans found the issue-linked design map, ROADMAP row,
   known-limitations entries, and current test evidence for ordinary Gaussian
@@ -47103,6 +48184,34 @@ Results:
 
 Member-group review:
 
+- Rose caught the two drift hazards.
+- Boole kept the current canonical names: `meta_V(V = V)` for preferred
+  known-covariance syntax and `GLLVM.jl` for the Julia sister package.
+
+## 2026-05-30 - Phase 6c random-slope operating-characteristic plan
+
+Goal:
+
+- Advance #446 by turning the random-slope simulation agenda into a
+  registry-derived operating-characteristic planning table without running
+  grids or claiming recovery, accuracy, coverage, or power.
+
+Changes:
+
+- Added `phase18_random_slope_operating_characteristic_plan()` to
+  `inst/sim/run/sim_phase18_structured_workflow_registry.R`.
+- The plan returns `lane_id`, family, route, `dpar`, dependence,
+  `admission_status`, `existing_actions_task`, `accuracy_status`,
+  `coverage_status`, `power_status`, `minimum_estimands`, and `boundary_note`.
+- The default plan keeps nine admitted random-slope rows visible; setting
+  `include_source_test = FALSE` returns the five rows with grid or smoke
+  artifact routes.
+- Every coverage and power cell is `planned_not_estimated`; accuracy is labelled
+  as artifact/smoke available but not estimated, or source-test-only with an
+  artifact lane still needed.
+- Documented the #446 table in
+  `docs/design/143-phase-18-structured-workflow-registry.md` and
+  `docs/design/41-phase-18-simulation-programme.md`.
 - Ada kept the slice as issue closeout/status work instead of adding another
   model surface.
 - Boole checked that formula grammar status did not change.
@@ -47140,6 +48249,10 @@ Changes:
 Validation:
 
 ```sh
+Rscript --vanilla -e "devtools::test(filter = 'phase18-structured-workflow-registry', reporter = 'summary')"
+Rscript --vanilla -e 'e<-new.env(); source("inst/sim/run/sim_phase18_structured_workflow_registry.R", local=e); p<-e$phase18_random_slope_operating_characteristic_plan(e$phase18_read_structured_workflow_registry("inst/sim/registry/phase18_structured_workflow_registry.csv")); print(p, row.names=FALSE)'
+Rscript --vanilla -e "devtools::test(filter = 'phase18-random-slope-grid-writers|phase18-biv-gaussian-mu-slope|phase18-gaussian-mu-random-slope', reporter = 'summary')"
+rg -n 'phase18_random_slope_operating_characteristic_plan|planned_not_estimated|source_tests_exist_artifact_lane_needed|Slice 1829 Random-Slope Operating-Characteristic Plan|registry-derived planning table' inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md
 air format vignettes/location-scale.Rmd vignettes/model-map.Rmd vignettes/bivariate-coscale.Rmd docs/design/151-phase6c-random-slope-tutorial-ledger.md docs/design/37-worked-example-inventory.md ROADMAP.md
 Rscript --vanilla -e "pkgdown::build_article('location-scale', new_process = FALSE, quiet = FALSE)"
 Rscript --vanilla -e "pkgdown::build_article('bivariate-cosscale', new_process = FALSE, quiet = FALSE)"
@@ -47155,6 +48268,14 @@ git diff --check
 
 Results:
 
+- The structured-workflow registry test file passed.
+- The printed plan returned nine admitted random-slope rows with five grid or
+  smoke artifact routes and four source-test rows.
+- Coverage and power statuses were `planned_not_estimated` for every row.
+- The broader random-slope grid-writer smoke checks were run as an adjacent
+  guard for existing random-slope artifact routes.
+- The source scan found the helper, planned-only statuses, tests, and design
+  prose.
 - `location-scale`, `bivariate-coscale`, and `model-map` article renders
   completed.
 - The first bivariate render command failed because I typed the article slug as
@@ -47176,6 +48297,32 @@ Results:
 
 Member-group review:
 
+- Curie kept this as a planning artifact and did not run or enlarge simulation
+  grids.
+- Fisher kept accuracy, coverage, and power separate from smoke or source-test
+  readiness.
+- Grace kept the manual Actions task boundary unchanged.
+
+## 2026-05-30 - Reader path and release ledger for #444
+
+Goal:
+
+- Advance #444 with a small public-documentation slice: route README readers to
+  the current fitted-versus-planned maps, add the #439 release-ledger bullet,
+  and close one reaction-norm reporting gap in the location-scale tutorial.
+
+Changes:
+
+- Added a README "What can I fit today?" pointer to the model map and
+  implementation map.
+- Added a top NEWS bullet for #439, keeping q > 2 Gaussian `mu` direct
+  correlation profile intervals unavailable and correlated residual-scale
+  slope covariance planned.
+- Added a location-scale reporting-table row for the correlated reaction-norm
+  question `(1 + temperature | population)`, with the random-slope SD and
+  fitted intercept-slope correlation from
+  `corpairs(fit, class = "mean-slope")`.
+- Added a compact after-task report.
 - Ada kept the slice issue-linked and docs-only.
 - Pat checked that a reader can move from model purpose to syntax, output, and
   diagnostics without reading the design docs first.
@@ -47204,6 +48351,17 @@ Changes:
 Validation:
 
 ```sh
+rg -n 'What can I fit today\\?|implementation map|Ordinary Gaussian `mu` q > 2 random-effect blocks|correlated residual-scale slope covariance|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' README.md NEWS.md vignettes/location-scale.Rmd docs/dev-log/after-task/2026-05-30-reader-path-release-ledger-444.md
+git diff --check
+Rscript -e 'pkgdown::check_pkgdown()'
+Rscript -e 'pkgdown::build_site(preview = FALSE)'
+Rscript --vanilla -e 'log <- file("/tmp/drmtmb-pkgdown-build.log", "wt"); sink(log); sink(log, type = "message"); on.exit({sink(type = "message"); sink(); close(log)}, add = TRUE); pkgdown::build_site(preview = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_home(preview = FALSE, quiet = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_news(preview = FALSE)'
+Rscript --vanilla -e 'pkgdown::build_article("location-scale", quiet = FALSE)'
+Rscript --vanilla -e 'pkgdown:::build_search()'
+rg -n 'What can I fit today\\?|implementation map|Ordinary Gaussian <code>mu</code> q &gt; 2 random-effect blocks|correlated residual-scale slope covariance|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/articles/location-scale.html
+rg -n 'What can I fit today\\?|Ordinary Gaussian mu q > 2 random-effect blocks|high-baseline populations|corpairs\\(fit, class = "mean-slope"\\)' pkgdown-site/search.json
 air format NEWS.md ROADMAP.md docs/design/153-public-bootstrap-interval-closeout.md docs/dev-log/after-task/2026-06-01-public-bootstrap-interval-closeout.md docs/dev-log/check-log.md
 Rscript --vanilla -e "devtools::test(filter = '^profile-targets$|^control$', reporter = 'summary')"
 Rscript --vanilla -e "pkgdown::check_pkgdown()"
@@ -47214,6 +48372,3048 @@ git diff --check
 
 Results:
 
+- The source scan found the README pointer, NEWS #439 bullet, location-scale
+  reaction-norm row, and after-task evidence.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Full `pkgdown::build_site(preview = FALSE)` was attempted three times and
+  stopped with exit code `-1` after partial progress; the temp log contained no
+  R/pkgdown error text and stopped after reading later articles.
+- Targeted `pkgdown::build_home()`, `pkgdown::build_news()`,
+  `pkgdown::build_article("location-scale")`, and
+  `pkgdown:::build_search()` completed.
+- Rendered scans found the new README, NEWS, location-scale, and search-index
+  wording in `pkgdown-site`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Pat kept the README path focused on the question a new user asks before
+  choosing syntax.
+- Boole kept the reporting row on fitted `mu` intercept-slope covariance and
+  avoided implying residual-scale slope covariance support.
+- Grace recorded the full-build interruption and used targeted rendered-page
+  evidence for the files actually touched.
+
+## 2026-05-30 - Third twin exchange card and Gaussian slope ADEMP sheet
+
+Goal:
+
+- Record the third bounded twin/sister exchange lesson card for #437 and add
+  the first ADEMP sheet behind the #446 random-slope operating-characteristic
+  plan.
+
+Changes:
+
+- Added a third exchange card to `docs/dev-log/twin-sister-exchange.md`,
+  using local snapshots of `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`.
+- Added `docs/design/144-phase6c-gaussian-random-slope-ademp.md` for ordinary
+  Gaussian `mu` q > 2 grouped random slopes and independent Gaussian `sigma`
+  random slopes.
+- Linked the new ADEMP sheet from
+  `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+
+Validation:
+
+```sh
+rg -n 'Third Scout: 2026-05-30 Overnight|gaussian-multi-re|fix-vitepress-deploy-path|gllvmTMB` at|Phase 6c Gaussian Random-Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|planned_not_estimated|docs/design/144-phase6c-gaussian-random-slope-ademp.md' docs/dev-log/twin-sister-exchange.md docs/design/144-phase6c-gaussian-random-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'sigma ~ z \\+ \\(1 \\+ w \\| id\\)|does not run grids|does not.*claim accuracy|does not.*coverage|does not.*power|correlated residual-scale slope covariance planned|q > 2 correlations derived-only' docs/design/144-phase6c-gaussian-random-slope-ademp.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- The exchange scan found the third card and the three source states.
+- The ADEMP scan found the A, D, E, M, P, and Williams self-audit sections plus
+  the simulation-programme and sprint links.
+- The boundary scan found the no-grid/no-claim language, planned residual-scale
+  covariance boundary, and derived-only q > 2 correlation interval boundary.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Jason kept the exchange card as design-learning only.
+- Curie translated #446 from a planning table into the first concrete ADEMP
+  sheet.
+- Fisher kept power planned-only until a null/alternative contrast and MCSE
+  target exist.
+
+## 2026-05-30 - Bivariate Gaussian slope-only ADEMP sheet
+
+Goal:
+
+- Add the second #446 ADEMP sheet, covering the #440 bivariate Gaussian
+  matching `mu1`/`mu2` slope-only lane.
+
+Changes:
+
+- Added `docs/design/145-phase6c-bivariate-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- The sheet makes residual `rho12` versus group-level slope-slope covariance
+  separation an explicit estimand and reporting check.
+
+Validation:
+
+```sh
+rg -n 'Phase 6c Bivariate Gaussian Slope-Only ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|residual `rho12`|slope-slope|Separation errors|docs/design/145-phase6c-bivariate-slope-ademp.md' docs/design/145-phase6c-bivariate-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not.*promote|does not open intercept-plus-slope q4|random effects in `rho12`|mixed-response bivariate|residual-scale slope covariance' docs/design/145-phase6c-bivariate-slope-ademp.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- The ADEMP scan found all A, D, E, M, P, and Williams self-audit sections plus
+  the simulation-programme and sprint links.
+- The boundary scan found the no-grid/no-promotion language and the excluded
+  q4, p8/q8, random-`rho12`, mixed-response, and residual-scale slope
+  surfaces.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Fisher kept residual `rho12` and group-level covariance as separate
+  estimands.
+- Curie kept the sheet as a design object, not a simulation result.
+- Boole kept the formula surface limited to the existing matching slope-only
+  grammar.
+
+## 2026-05-30 - Bivariate Gaussian slope-only artifact-schema audit
+
+Goal:
+
+- Check the existing `biv_gaussian_mu_slope` artifacts against the #440/#446
+  ADEMP estimands, especially residual `rho12` versus group-level slope-slope
+  correlation separation.
+
+Changes:
+
+- Added `docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md`.
+- Linked the audit from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Strengthened `tests/testthat/test-phase18-biv-gaussian-mu-slope.R` so
+  replicate and aggregate artifacts must keep `random_correlation` separate
+  from `residual_rho12`.
+
+Validation:
+
+```sh
+devtools::test(filter = "phase18-biv-gaussian-mu-slope")
+rg -n 'Bivariate Slope Artifact-Schema Audit|random_correlation|residual_rho12|planned_not_estimated|docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md' docs/design/146-phase6c-bivariate-slope-artifact-schema-audit.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md tests/testthat/test-phase18-biv-gaussian-mu-slope.R
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "phase18-biv-gaussian-mu-slope")` passed with
+  46 expectations, 0 failures, 0 warnings, and 0 skips.
+- The schema scan found the audit note, sprint/programme links, and the
+  `random_correlation`/`residual_rho12` separation assertions.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Rose chose an artifact-schema audit as the lowest-risk #440 follow-up.
+- Fisher kept coverage and power planned until interval-status and rejection
+  rule artifacts exist.
+
+## 2026-05-30 - Non-Gaussian slope reader-path prose
+
+Goal:
+
+- Fix small reader-path omissions around selected non-Gaussian independent
+  `mu` slopes and animal/`relmat()` one-slope support.
+
+Changes:
+
+- Updated README current-boundaries prose to mention selected non-Gaussian
+  independent numeric `mu` slopes as source-tested, not broad random-effect
+  support.
+- Added a model-map question row for non-Gaussian repeated-group mean random
+  effects.
+- Updated model-map structural-dependence prose to mention one numeric
+  structured Gaussian `mu` slope for animal and `relmat()` routes.
+
+Validation:
+
+```sh
+rg -n 'independent numeric `mu` slopes|source tests|Do repeated groups need non-Gaussian mean random effects|one numeric structured Gaussian `mu` slope|selected non-Gaussian independent `mu` slopes' README.md vignettes/model-map.Rmd docs/dev-log/after-task/2026-05-30-nongaussian-slope-reader-path.md
+Rscript -e 'pkgdown::build_article("model-map", quiet = FALSE)'
+git diff --check
+```
+
+Results:
+
+- The source/rendered scan found the README boundary wording, the new model-map
+  question row, the animal/`relmat()` one-slope wording, the after-task note,
+  and the rendered `pkgdown-site/articles/model-map.html` text.
+- `pkgdown::build_article("model-map", quiet = FALSE)` completed and wrote
+  `pkgdown-site/articles/model-map.html`.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Huygens identified the reader-path omissions in README and the model map.
+- Pat kept the new row phrased as a question an applied user would ask.
+- Rose kept the source-test boundary visible.
+
+## 2026-05-30 - Non-Gaussian `mu` slope ADEMP sheet
+
+Goal:
+
+- Add the #441/#446 ADEMP sheet for selected ordinary non-Gaussian independent
+  `mu` slopes.
+
+Changes:
+
+- Added `docs/design/147-phase6c-nongaussian-mu-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Kept the scope limited to the six source-tested families in
+  `tests/testthat/test-nongaussian-mu-random-slopes.R`.
+
+Validation:
+
+```sh
+devtools::test(filter = "nongaussian-mu-random-slopes")
+rg -n 'Phase 6c Non-Gaussian `mu` Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|Student-t|lognormal|Gamma|beta-binomial|zero-truncated NB2|docs/design/147-phase6c-nongaussian-mu-slope-ademp.md' docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not promote coverage|correlated non-Gaussian slopes|structured dependence|random effects in `sigma`|shape random effects|zero-one beta|inflation or hurdle' docs/design/147-phase6c-nongaussian-mu-slope-ademp.md docs/design/41-phase-18-simulation-programme.md
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "nongaussian-mu-random-slopes")` passed with
+  108 expectations, 0 failures, 0 warnings, and 0 skips.
+- The ADEMP scan found the purpose, A/D/E/M/P sections, Williams self-audit,
+  six source-tested families, and programme/sprint links.
+- The boundary scan found the no-grid/no-promotion language, comparator gate,
+  interval/failure-retention measures, and blocked correlated/structured/
+  scale-shape surfaces.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the plan family-separated and source-test bounded.
+- Fisher kept coverage and power planned until interval provenance and MCSE
+  targets exist.
+
+## 2026-05-30 - Structured Gaussian one-slope ADEMP sheet
+
+Goal:
+
+- Add the #442/#446 ADEMP sheet for fitted Gaussian structured `mu` one-slope
+  paths.
+
+Changes:
+
+- Added `docs/design/148-phase6c-structured-one-slope-ademp.md`.
+- Linked the sheet from `docs/design/41-phase-18-simulation-programme.md` and
+  `docs/design/80-four-week-random-slope-digital-twin-sprint.md`.
+- Kept the scope limited to one numeric Gaussian `mu` slope for `phylo()`,
+  `spatial()`, `animal()`, and `relmat()`, with route-specific artifact
+  maturity called out.
+
+Validation:
+
+```sh
+devtools::test(filter = "^(phase18-spatial-mu-slope|phase18-structured-dependence-wrapper-readiness|phase18-structured-workflow-registry)$")
+rg -n 'Phase 6c Structured Gaussian One-Slope ADEMP Sheet|A - Aims|D - Data-Generating Mechanism|E - Estimands|M - Methods|P - Performance Measures|Williams 11-Item Self-Audit|phylo\\(\\)|spatial\\(\\)|animal\\(\\)|relmat\\(\\)|docs/design/148-phase6c-structured-one-slope-ademp.md' docs/design/148-phase6c-structured-one-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+rg -n 'does not run grids|does not promote coverage|structured slope correlations|residual-scale structured slopes|structured `rho12`|non-Gaussian structured slopes|mesh/SPDE|q2/q4 covariance|wrapper-target' docs/design/148-phase6c-structured-one-slope-ademp.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md
+git diff --check
+```
+
+Results:
+
+- `devtools::test(filter = "^(phase18-spatial-mu-slope|phase18-structured-dependence-wrapper-readiness|phase18-structured-workflow-registry)$")`
+  completed without failure.
+- The ADEMP scan found the purpose, A/D/E/M/P sections, Williams self-audit,
+  four structured routes, and programme/sprint links.
+- The boundary scan found the no-grid/no-promotion language, route-maturity
+  split, q2/q4 boundary, and blocked structured slope-correlation,
+  residual-scale, `rho12`, mesh/SPDE, and non-Gaussian neighbours.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the #442 plan source/artifact bounded and warned against broad
+  structured random-slope wording.
+- Fisher kept coverage and power planned until interval-status and rejection
+  rule artifacts exist.
+
+## 2026-05-30 - Structured prose and pkgdown cleanup
+
+Goal:
+
+- Fix stale reader-facing wording around Gaussian structured one-slope support,
+  animal/`relmat()` readiness, spatial status, and pkgdown navigation.
+
+Changes:
+
+- Updated README structured-effect prose to split fitted syntax from artifact
+  readiness.
+- Updated `vignettes/phylogenetic-spatial.Rmd` to describe one numeric
+  Gaussian `mu` slopes for `phylo()`, `spatial()`, `animal()`, and `relmat()`
+  without implying multiple structured slopes, slope correlations, or
+  coverage evidence.
+- Updated `vignettes/formula-grammar.Rmd` so planned phylogenetic neighbours
+  no longer conflict with fitted structured `sigma` intercept and covariance
+  routes.
+- Updated `_pkgdown.yml` reference-section prose to emphasize status-marked
+  fitted and planned syntax.
+
+Validation:
+
+```sh
+pkgdown::build_home(quiet = FALSE)
+pkgdown::build_article("phylogenetic-spatial", quiet = FALSE)
+pkgdown::build_article("formula-grammar", quiet = FALSE)
+pkgdown::build_reference(examples = FALSE, lazy = TRUE, devel = TRUE)
+rg -n 'Status-marked random-effect scale|Artifact routing is narrower than fitted syntax|one numeric Gaussian `mu` slope|Structured random slopes are staged|Multiple phylogenetic slopes, phylogenetic slope correlations|residual-scale structured slopes, partial or mismatched|implemented for one numeric Gaussian mu slope|spatial_mu_slope|wrapper targets|meta_V\\(V = V\\)' README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd _pkgdown.yml pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/reference/index.html
+rg -n 'Phylogenetic slopes and structured effects in `rho12` are planned|Phylogenetic slopes.*remain later gates|standalone or partial phylogenetic scale terms|Gaussian location random intercept or a two-response q=2 location covariance|In the first implemented case, `d = mu`|implemented for univariate Gaussian mu|implemented for mu and matching mu1/mu2|Planned question|Planned syntax' README.md vignettes/phylogenetic-spatial.Rmd vignettes/formula-grammar.Rmd _pkgdown.yml pkgdown-site/index.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/articles/formula-grammar.html pkgdown-site/reference/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_home()`, `pkgdown::build_article("phylogenetic-spatial")`,
+  `pkgdown::build_article("formula-grammar")`, and
+  `pkgdown::build_reference(examples = FALSE)` completed and wrote the touched
+  local pkgdown pages.
+- The positive scan found the new source and rendered-page wording.
+- The stale-phrase scan found no matches.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Euclid found the stale public-doc lines and supplied file:line handles.
+- Pat kept the table labels framed as current user questions.
+- Rose kept fitted syntax, wrapper-target status, and coverage/power evidence
+  separate.
+
+## 2026-05-30 - Relmat Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the known-matrix `relmat()`
+  Gaussian `mu` one-slope lane while keeping the row outside manual Actions,
+  `task = "all"`, recovery, coverage, and power claims.
+
+Changes:
+
+- Added a seeded DGP, smoke runner, summary helper, and grid writer for
+  `relmat(1 + x | id, Q = Q)` with independent known-matrix intercept and
+  slope fields.
+- Added focused tests for DGP reproducibility, malformed inputs, smoke
+  summaries, artifact creation, overwrite protection, realised-field truth,
+  and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_relmat_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_relmat_mu_slope_grid_outputs()` while staying a wrapper
+  target rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase
+  18 README, and the Phase 18/Phase 6c design ledgers to say that `relmat()`
+  has a local artifact writer, `spatial_mu_slope` is Actions-ready, and
+  `phylo()`/`animal()` remain source-tested wrapper targets.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_relmat_mu_slope.R','inst/sim/fit/sim_summarise_relmat_mu_slope.R','inst/sim/run/sim_run_relmat_mu_slope_smoke.R','inst/sim/run/sim_summary_relmat_mu_slope_smoke.R','inst/sim/run/sim_write_relmat_mu_slope_grid.R','tests/testthat/test-phase18-relmat-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('relmat parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-relmat-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-structured-dependence-wrapper-readiness$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(relmat-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE)"
+rg -n 'local Phase 18 writer|local known-matrix `relmat\(\)` Gaussian `mu` one-slope|phase18_write_relmat_mu_slope_grid_outputs|relmat\(1 \+ x \| id, Q = Q\)|relmat\(\)` row has a local artifact writer|local `relmat\(\)` writer status' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*remain wrapper targets|phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*need standalone artifact writers|relmat\(\).*still need standalone artifact writers|meta_known_V\(V = V\).*(current|preferred|new code should)|gllvmTMB\.jl/src|package called `?gllvmTMB\.jl`?' README.md NEWS.md ROADMAP.md docs/design vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles pkgdown-site/reference
+git diff --check
+```
+
+Results:
+
+- The parse check printed `relmat parse ok`.
+- The focused `phase18-relmat-mu-slope` test passed after adding realised-field
+  truth and the local `fit$corpars == list()` assertion.
+- The wrapper-readiness test and combined
+  `phase18-(relmat-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)`
+  test bundle completed without failure.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `relmat()` writer wording in source and
+  rendered pages. The refined stale scan found no current-source or pkgdown
+  claim that `relmat()` still lacks local artifacts, no current
+  `meta_known_V(V = V)` wording as preferred syntax, and no current
+  `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Hypatia recommended `relmat()` as the smallest structured wrapper artifact
+  target because it avoids tree/pedigree construction while exercising the
+  known-matrix slope path.
+- Hume found no blockers, but asked for realised structured fields in truth
+  and a local no-correlation assertion; both were added before closeout.
+- Rose kept the wording split among local artifact writer, Actions task,
+  wrapper target, and coverage/power evidence.
+
+## 2026-05-30 - First-wave report non-strict missing-artifact render
+
+Goal:
+
+- Make Phase 18 first-wave report rendering CRAN/check-safe when artifact
+  status tables record missing optional simulation artifacts, while preserving
+  strict fail-fast behavior for explicit manual validation gates.
+
+Changes:
+
+- Changed `require_complete` defaults to `FALSE` in the first-wave status
+  report template, the first-wave summary report template, and
+  `phase18_render_first_wave_summary_report()`.
+- Added synthetic-CSV tests showing the status report and summary report render
+  missing-artifact diagnostics in non-strict mode.
+- Kept strict-mode tests that still error on missing artifacts when
+  `require_complete = TRUE`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/reports/phase18-first-wave-status-report.Rmd','inst/sim/reports/phase18-first-wave-summary-report.Rmd','inst/sim/run/sim_render_first_wave_summary_report.R','tests/testthat/test-phase18-first-wave-status-report.R','tests/testthat/test-phase18-first-wave-summary-report.R'); invisible(lapply(files, function(path) if (grepl('[.]R$', path)) parse(path) else readLines(path, warn = FALSE))); cat('report portability parse/read ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-status-report$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-report$', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The parse/read check printed `report portability parse/read ok`.
+- Both targeted report test files completed without failure. The strict-mode
+  tests still emit the expected R Markdown `Quitting from ... [setup]` message,
+  but that path is now opt-in; default report renders do not hard-stop on
+  missing artifacts.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Heisenberg identified the report setup hard-stop as the portability risk and
+  recommended a non-strict render default with strict fail-fast behavior
+  reserved for manual/formal validation.
+
+## 2026-05-30 - Animal Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the dense-pedigree `animal()`
+  Gaussian `mu` one-slope lane while keeping the row outside manual Actions,
+  `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, and
+  power claims.
+
+Changes:
+
+- Added a seeded dense-pedigree DGP, smoke runner, summary helper, and grid
+  writer for `animal(1 + x | id, pedigree = pedigree)` with independent animal
+  intercept and slope fields.
+- Added focused tests for DGP reproducibility, pedigree and relationship-matrix
+  truth, realised animal fields, smoke summaries, artifact creation, overwrite
+  protection, malformed inputs, and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_animal_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_animal_mu_slope_grid_outputs()` while staying a wrapper target
+  rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase 18
+  README, and the Phase 18/Phase 6c design ledgers to say that `animal()` and
+  `relmat()` have local writers, `spatial_mu_slope` is Actions-ready, and
+  `phylo()` remains the structured one-slope wrapper target without a local
+  writer.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_animal_mu_slope.R','inst/sim/fit/sim_summarise_animal_mu_slope.R','inst/sim/run/sim_run_animal_mu_slope_smoke.R','inst/sim/run/sim_summary_animal_mu_slope_smoke.R','inst/sim/run/sim_write_animal_mu_slope_grid.R','tests/testthat/test-phase18-animal-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('animal writer parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-animal-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(animal-mu-slope|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(animal-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+rg -n 'animal\(\).*local Phase 18 writer|phase18_write_animal_mu_slope_grid_outputs|animal\(1 \+ x \| id, pedigree = pedigree\)|local `animal\(\)`/`relmat\(\)` artifact|animal\(\).*grid_writer_available|dense-pedigree `animal\(\)` Gaussian `mu` one-slope' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'phylogenetic, animal-model, and `relmat\(\)` one-slope routes remain|phylo\(\)`, `animal\(\)`, and `relmat\(\)`.*need local artifact|phylo\(\).*animal\(\).*remain source-tested wrapper targets|`phylo\(\)`/`animal\(\)` wrapper|animal\(\).*still need.*artifact writer|meta_known_V\(V = V\).*(current|preferred|new code should)|package called `?gllvmTMB\.jl`?' README.md NEWS.md ROADMAP.md docs/design vignettes pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles pkgdown-site/reference
+git diff --check
+```
+
+Results:
+
+- The parse check printed `animal writer parse ok`.
+- The focused `phase18-animal-mu-slope` test passed.
+- The combined wrapper-readiness and structured-registry test bundles
+  completed without failure.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `animal()` writer wording in source and
+  rendered pages. The stale scan found no current-source or pkgdown claim that
+  `animal()` still lacks local artifacts, no current `meta_known_V(V = V)`
+  wording as preferred syntax, and no current `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice narrow: dense-pedigree artifact writer only, not Actions
+  dispatch or sparse pedigree performance.
+- Curie kept the tests focused on seed discipline, artifact retention, and
+  malformed input.
+- Rose kept local artifact readiness separate from recovery, coverage, power,
+  slope correlations, and residual-scale structured slopes.
+
+## 2026-05-30 - Phylo Gaussian mu slope artifact writer
+
+Goal:
+
+- Add a local Phase 18 artifact writer for the phylogenetic Gaussian `mu`
+  one-slope lane while keeping the row outside manual Actions, `task = "all"`,
+  recovery, coverage, power, multiple phylogenetic slopes, slope correlations,
+  residual-scale structured slopes, and non-Gaussian structured slopes.
+
+Changes:
+
+- Added a seeded balanced-tree DGP, smoke runner, summary helper, and grid
+  writer for `phylo(1 + x | species, tree = tree)` with independent
+  phylogenetic intercept and slope fields.
+- Added focused tests for DGP reproducibility, tree and tip-covariance truth,
+  realised phylogenetic fields, smoke summaries, artifact creation, overwrite
+  protection, malformed inputs, and the no-correlation extractor contract.
+- Updated the structured-dependence wrapper-readiness helper so
+  `gaussian_phylo_mu_one_slope` reports `grid_writer_available` with
+  `phase18_write_phylo_mu_slope_grid_outputs()` while staying a wrapper target
+  rather than an Actions task.
+- Updated README, ROADMAP, NEWS, the phylogenetic/spatial article, the Phase 18
+  README, and the Phase 18/Phase 6c design ledgers to say that `phylo()`,
+  `animal()`, and `relmat()` have local writers, `spatial_mu_slope` is
+  Actions-ready, and recovery/coverage/power evidence remains planned.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/dgp/sim_dgp_phylo_mu_slope.R','inst/sim/fit/sim_summarise_phylo_mu_slope.R','inst/sim/run/sim_run_phylo_mu_slope_smoke.R','inst/sim/run/sim_summary_phylo_mu_slope_smoke.R','inst/sim/run/sim_write_phylo_mu_slope_grid.R','tests/testthat/test-phase18-phylo-mu-slope.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('phylo writer parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-phylo-mu-slope$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(phylo-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_home(quiet = FALSE); pkgdown::build_article('phylogenetic-spatial', quiet = FALSE)"
+rg -n 'phase18_write_phylo_mu_slope_grid_outputs|phylo\(1 \+ x \| species, tree = tree\)|local phylogenetic Gaussian `mu` one-slope|local `phylo\(\)`/`animal\(\)`/`relmat\(\)` artifact|phylo\(\).*local Phase 18 writer|phylo\(\).*grid_writer_available|phylo\(\).*have local Phase 18 writers' README.md NEWS.md ROADMAP.md inst/sim/README.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+rg -n 'needed:phylo_mu_slope|without a local artifact|still needs a standalone artifact|source-tested Gaussian structured one-slope wrapper target without|phylogenetic one-slope route remains a wrapper target|meta_known_V\(V = V\).*(current|preferred|new code should)|package called `?gllvmTMB\.jl`?' README.md ROADMAP.md NEWS.md docs/design/41-phase-18-simulation-programme.md docs/design/80-four-week-random-slope-digital-twin-sprint.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/148-phase6c-structured-one-slope-ademp.md inst/sim/README.md vignettes/phylogenetic-spatial.Rmd pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html
+git diff --check
+```
+
+Results:
+
+- The parse check printed `phylo writer parse ok`.
+- The focused `phase18-phylo-mu-slope` test passed.
+- The combined `phase18-(phylo-mu-slope|structured-dependence-wrapper-readiness|structured-workflow-registry)`
+  test bundle passed after changing the readiness test to assert the
+  now-absent `source_test_ready` bucket by name rather than indexing it.
+- `pkgdown::build_home()` and `pkgdown::build_article("phylogenetic-spatial")`
+  completed and updated the local rendered pages.
+- The positive scan found the local `phylo()` writer wording in source and
+  rendered pages. The refined stale scan found no current-source or pkgdown
+  claim that `phylo()` still lacks local artifacts, no current
+  `meta_known_V(V = V)` wording as preferred syntax, and no current
+  `gllvmTMB.jl` package-name drift.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice to one local phylogenetic writer and did not promote it to
+  Actions dispatch.
+- Curie kept the DGP/test surface small by using a deterministic balanced tree.
+- Rose kept local artifact readiness separate from formal recovery, coverage,
+  power, structured slope correlations, residual-scale structured slopes, and
+  non-Gaussian structured slopes.
+
+## 2026-05-30 - Non-spatial structured one-slope Actions tasks
+
+Goal:
+
+- Wire the non-spatial Gaussian structured `mu` one-slope artifact writers into
+  manual Phase 18 Actions tasks while keeping all four structured one-slope
+  tasks opt-in, excluded from `task = "all"`, and separate from recovery,
+  accuracy, coverage, and power evidence.
+
+Changes:
+
+- Added `phylo_mu_slope`, `animal_mu_slope`, and `relmat_mu_slope` to the
+  manual `workflow_dispatch` task list and matrix in
+  `.github/workflows/phase18-simulation-grid.yaml`, each with
+  `include_in_all: false`.
+- Wired those tasks through `phase18_actions_task_choices()`,
+  `phase18_actions_main()`, and `phase18_actions_task_paths()`.
+- Updated the structured workflow registry so the `phylo()`, `animal()`, and
+  `relmat()` Gaussian one-slope rows now map to non-none Actions tasks. The
+  structured-dependence plan now reports seven existing tasks and zero wrapper
+  targets.
+- Updated README, NEWS, ROADMAP, Phase 18 design notes, Phase 6c sprint/ADEMP
+  notes, the Phase 18 simulation README, the model map, and the
+  phylogenetic/spatial article. Rebuilt the main pkgdown site and mechanically
+  synced the updated generated pages into `pkgdown-site/dev/`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_actions_cell.R','inst/sim/run/sim_phase18_structured_workflow_registry.R','inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R','tests/testthat/test-phase18-actions-runner.R','tests/testthat/test-phase18-structured-workflow-registry.R','tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R'); invisible(lapply(files, parse)); cat('actions dispatch parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-(actions-runner|structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE)"
+Rscript --vanilla -e "pkgdown::build_site(lazy = TRUE, preview = FALSE, devel = TRUE)"
+cp pkgdown-site/index.html pkgdown-site/dev/index.html
+cp pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html
+cp pkgdown-site/news/index.html pkgdown-site/dev/news/index.html
+cp pkgdown-site/articles/model-map.html pkgdown-site/dev/articles/model-map.html
+cp pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/dev/articles/phylogenetic-spatial.html
+cp pkgdown-site/search.json pkgdown-site/dev/search.json
+rg -n 'only `spatial_mu_slope` currently|`spatial_mu_slope` is the only manual Actions task|remaining non-Actions wrapper targets|while remaining non-Actions wrapper targets|no standalone one-slope Actions task|local wrapper-target artifact writer only|All three remain outside Actions dispatch|The coordinate-spatial path has this first one-slope baseline; the phylogenetic path does not yet|while leaving .*one-slope rows as wrapper targets|current fitted paths are the phylogenetic, coordinate-spatial, and first|structured random intercept from a precomputed' README.md ROADMAP.md NEWS.md docs/design inst/sim/README.md vignettes pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/dev/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/dev/ROADMAP.html pkgdown-site/articles/phylogenetic-spatial.html pkgdown-site/dev/articles/phylogenetic-spatial.html pkgdown-site/articles/model-map.html pkgdown-site/dev/articles/model-map.html
+git diff --check
+```
+
+Results:
+
+- The parse check printed `actions dispatch parse ok`.
+- The combined Actions-runner, structured-workflow-registry, and
+  structured-dependence-wrapper-readiness test bundle passed.
+- `pkgdown::build_site(lazy = TRUE, preview = FALSE)` completed and regenerated
+  the main home, ROADMAP, model-map article, phylogenetic-spatial article, news,
+  and search pages. The `devel = TRUE` build completed, but the checked-in
+  `pkgdown-site/dev/` mirror still needed an explicit mechanical sync for the
+  same changed pages.
+- The stale scan found no remaining current-source, main-site, or dev-site claim
+  that `spatial_mu_slope` is the only manual task, that non-spatial one-slope
+  rows remain wrapper targets, or that the model map still has the old
+  animal/`relmat()` intercept-only wording.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Ada kept the slice to dispatch plumbing and documentation synchronization.
+- Grace required generated main and dev pkgdown pages to agree before staging.
+- Rose turned the stale generated dev-site page into a team-improvement item.
+
+## 2026-05-30 - Unsupported structured-slope overreach guards
+
+Goal:
+
+- Keep the structured one-slope public contract honest by rejecting labelled
+  structured slope blocks such as `phylo(1 + x | p | species, tree = tree)`.
+  The fitted Phase 6c surface is unlabelled independent `mu` one-slope paths;
+  structured slope correlations remain planned.
+
+Changes:
+
+- Added a parser guard in `parse_structured_bar_term()` so structured
+  covariance-block labels are accepted only for intercept-only terms.
+- Added regression tests for unsupported random effects in `rho12`, bivariate
+  residual-scale slope overreach, labelled residual-scale ordinary sigma
+  slopes, multiple structured slopes, and labelled `phylo()` and `spatial()`
+  structured slope blocks.
+- Updated the formula grammar design note and tutorial to say that labelled
+  `phylo()`, `animal()`, `spatial()`, and `relmat()` slope blocks remain rejected until
+  structured slope correlations have syntax, simulations, and extractor checks.
+- Excluded unrelated `devtools::document()` output from `DESCRIPTION` and
+  generated Rd files because no roxygen comments changed in this slice.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "files <- c('R/parse-formula.R','tests/testthat/test-gaussian-random-intercepts.R','tests/testthat/test-phylo-gaussian.R','tests/testthat/test-spatial-gaussian.R'); invisible(lapply(files, parse)); cat('unsupported boundary parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^gaussian-random-intercepts$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^phylo-gaussian$', reporter = 'summary')"
+Rscript --vanilla -e "devtools::test(filter = '^spatial-gaussian$', reporter = 'summary')"
+Rscript --vanilla -e "pkgdown::build_article('formula-grammar', quiet = FALSE)"
+Rscript --vanilla -e "pkgdown::build_reference_index()"
+rg -n 'covariance-block labels currently require intercept-only structured terms|within-observation correlation|bivariate residual-scale random intercepts|Labelled structured slope blocks|structured covariance-block labels are intercept-only|phylo\(1 \+ x \| p \| species|spatial\(1 \+ x \| p \| site' R/parse-formula.R tests/testthat/test-gaussian-random-intercepts.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd
+rg -n 'phylo\(1 \+ x \| p \| species.*Implemented|spatial\(1 \+ x \| p \| site.*Implemented|animal\(1 \+ x \| p \| id.*Implemented|relmat\(1 \+ x \| p \| id.*Implemented|labelled structured slope.*Implemented|slope correlations are implemented|rho12.*random effects.*Implemented' docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd README.md ROADMAP.md NEWS.md docs/design vignettes
+git diff --check
+```
+
+Results:
+
+- The parse check printed `unsupported boundary parse ok`.
+- The focused Gaussian random-intercepts, phylogenetic Gaussian, and spatial
+  Gaussian test files passed. The new labelled `phylo()` slope test failed
+  before the parser guard because the syntax silently fit independent fields.
+- `pkgdown::build_article("formula-grammar")` and
+  `pkgdown::build_reference_index()` completed; the article build refreshed the
+  ignored local `pkgdown-site/articles/formula-grammar.html` page.
+- The positive scan found the new parser error, tests, and documented rejected
+  `phylo()`/`spatial()` examples. The stale scan found no current source claim
+  that labelled structured slope blocks, structured slope correlations, or
+  random effects in `rho12` are implemented.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Boole kept the supported syntax simple: labels mean intercept covariance
+  blocks, while unlabelled structured one-slope terms mean independent fields.
+- Curie required negative tests for the closest user overreach syntax.
+- Rose excluded unrelated roxygen churn before staging.
+
+## 2026-05-30 - Count structured boundary warning quarantine
+
+Goal:
+
+- Remove a known `TMB::sdreport()` warning from the Phase 18 count structured q1
+  boundary-diagnostic test output while preserving the diagnostic assertion that
+  the fitted structured SD is near the lower boundary.
+
+Changes:
+
+- Wrapped only the intentional boundary-replicate fit in
+  `suppressWarnings()`. The test still checks that the summarised fit reports
+  `fit_diagnostic_status == "warning"` and `sd_boundary_status == "warning"`.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "parse('tests/testthat/test-phase18-count-structured-q1.R'); cat('count structured q1 parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^phase18-count-structured-q1$', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The parse check printed `count structured q1 parse ok`.
+- The focused `phase18-count-structured-q1` test file passed with no testthat
+  warnings.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie kept the warning available as structured diagnostic data instead of
+  allowing it to escape as CI noise.
+- Grace identified the warning as likely to fail Actions because the workflow
+  treats package-check warnings as blocking.
+
+## 2026-05-30 - Animal and relmat labelled-slope rejection tests
+
+Goal:
+
+- Add direct source-test coverage for the remaining structured markers covered
+  by the generic labelled structured-slope parser guard.
+
+Changes:
+
+- Added `relmat(1 + x | p | id, Q = Q)` and
+  `animal(1 + x | p | id, pedigree = pedigree)` negative tests beside their
+  positive independent one-slope Gaussian `mu` tests.
+
+Validation:
+
+```sh
+Rscript --vanilla -e "invisible(parse('tests/testthat/test-animal-relmat-gaussian.R')); cat('animal relmat parse ok\n')"
+Rscript --vanilla -e "devtools::test(filter = '^animal-relmat-gaussian$', reporter = 'summary')"
+rg -n 'relmat\(1 \+ x \| p \| id|animal\(1 \+ x \| p \| id|covariance-block labels currently require intercept-only structured terms' tests/testthat/test-animal-relmat-gaussian.R docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd
+git diff --check
+```
+
+Results:
+
+- The parse check printed `animal relmat parse ok`.
+- The focused `animal-relmat-gaussian` test file passed.
+- The positive scan found the new `animal()` and `relmat()` negative tests plus
+  the matching documented rejected examples.
+- `git diff --check` passed.
+
+Member-group review:
+
+- Curie closed the marker-coverage gap without adding another simulation
+  requirement.
+- Rose kept this as test evidence for the existing parser contract, not a new
+  feature claim.
+
+## 2026-05-31 - Missing data design scope
+
+Goal:
+
+- Focus the user-requested future work on model-based missing-data handling and
+  remove bipartite phylogenetic location models from this design lane.
+
+Changes:
+
+- Added `docs/design/149-missing-data-design.md`.
+- Added `docs/dev-log/after-task/2026-05-31-missing-data-design.md`.
+- Replaced the previous mixed-scope untracked note before treating it as durable
+  project history.
+- Recorded current complete-case handling, planned observed-response
+  likelihood, later explicit `mi()`/`impute` predictor modelling, and
+  TMB/Laplace as the general frequentist engine.
+- Clarified that one-response bivariate Gaussian rows inform their marginal
+  location and scale likelihood directly, while complete response pairs carry
+  the direct residual-`rho12` evidence.
+
+Validation:
+
+```sh
+nl -ba /Users/z3437171/.codex/attachments/702eb90e-fa5b-4bcf-b84b-5ab04f2bf224/pasted-text.txt | sed -n '1,260p'
+nl -ba /Users/z3437171/.codex/attachments/702eb90e-fa5b-4bcf-b84b-5ab04f2bf224/pasted-text.txt | sed -n '260,520p'
+rg -n "missing data|missing-data|miss_control|observed-data|FIML|mi\\(|missing row|missing-row|complete-case|complete case" docs R tests NEWS.md ROADMAP.md
+rg -n "bipartite|Hadfield|host-parasite|missing-data-and-bipartite" docs/design/149-missing-data-design.md docs/dev-log/after-task/2026-05-31-missing-data-design.md docs/dev-log/check-log.md
+git diff --check -- docs/design/149-missing-data-design.md docs/dev-log/after-task/2026-05-31-missing-data-design.md docs/dev-log/check-log.md
+```
+
+Results:
+
+- The pasted design text was reviewed.
+- The repository scan found current complete-case tests, design references, and
+  the previous mixed-scope draft.
+- The bipartite/Hadfield scan found only intentional scope exclusions,
+  superseded draft filenames, and older unrelated check-log history.
+- `git diff --check` passed for the touched Markdown files.
+- The GitHub issue search for
+  `missing data miss_control mi impute complete-case` returned no open issues.
+- R tests were not run because this was a design/status artifact only; no R
+  code, tests, or generated documentation changed.
+
+Member-group review:
+
+- Ada kept the implementation order as MD0 source audit, MD1 response masks, and
+  MD2 bivariate Gaussian partial-response rows before missing predictors.
+- Boole flagged `miss_control()` and `mi()` as formula/API changes that need
+  grammar documentation before export.
+- Gauss marked TMB/Laplace as the general missing-predictor engine and EM as a
+  future Gaussian helper.
+- Fisher kept imputation uncertainty language on the likelihood scale rather
+  than posterior-summary language.
+- Rose kept bipartite phylogenetic location models out of this missing-data
+  design note.
+
+## 2026-05-31 - phylo_interaction first fitted slice
+
+Goal:
+
+- Add a small formula marker for one pair-level two-phylogeny interaction field,
+  without creating a broad Hadfield wrapper or ordinary independent pair-effect
+  duplicate.
+
+Changes:
+
+- Added `phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)`
+  as an exported marker.
+- Routed the marker through the existing q=1 structured `mu` machinery for
+  univariate Gaussian, ordinary Poisson, and ordinary NB2 models.
+- Built the pair-level sparse precision as the Kronecker product of the two
+  augmented phylogenetic precisions.
+- Added focused Gaussian, Poisson, NB2, sparse-precision, parser, extractor,
+  `ranef()`, and `profile_targets()` checks.
+- Updated NEWS, README, ROADMAP, formula grammar, likelihood notes, known
+  limitations, pkgdown reference navigation, roxygen docs, and generated Rd
+  files.
+- Kept independent pair effects as ordinary grouped random effects: users should
+  currently precompute a pair column and use `(1 | pair_id)`.
+
+Validation:
+
+```sh
+air format R/drmTMB.R R/formula-markers.R R/gaussian-aggregation.R R/parse-formula.R R/profile.R tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-interaction.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-package-skeleton.R')"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+Rscript --vanilla -e "invisible(parse('R/drmTMB.R')); invisible(parse('R/parse-formula.R')); invisible(parse('R/profile.R')); invisible(parse('tests/testthat/test-phylo-interaction.R')); cat('parse ok\n')"
+rg -n "phylo_interaction|incidence_or_count|Hadfield/Rafferty|Hadfield decomposition|ordinary Poisson .* phylogenetic intercept" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md vignettes/formula-grammar.Rmd _pkgdown.yml R man tests/testthat/test-phylo-interaction.R tests/testthat/test-package-skeleton.R
+rg -n "phylo_interaction" pkgdown-site/reference/index.html pkgdown-site/reference/phylo_interaction.html pkgdown-site/news/index.html pkgdown-site/articles/formula-grammar.html
+git diff --check
+```
+
+Results:
+
+- `test-phylo-interaction.R` passed with 55 expectations after adding Gaussian,
+  Poisson, NB2, and sparse-Kronecker checks.
+- `test-package-skeleton.R` passed with 100 expectations after the parser and
+  no-op marker checks.
+- `devtools::document()` regenerated `NAMESPACE`, `man/phylo_interaction.Rd`,
+  and neighbouring roxygen links.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully into ignored local directory
+  `pkgdown-site`. It wrote `reference/phylo_interaction.html`, rebuilt
+  `reference/index.html`, `articles/formula-grammar.html`, `news/index.html`,
+  `sitemap.xml`, and the search index.
+- The rendered pkgdown scan found `phylo_interaction()` on the Reference index,
+  the marker reference page, the formula-grammar article, and the NEWS page.
+- During article rendering, `glmmTMB` emitted an existing package-version
+  mismatch warning against the current `TMB`; it did not stop the site build.
+- The parse command printed `parse ok`.
+- The status scan found the intended `phylo_interaction()` references and no
+  remaining `incidence_or_count`, `Hadfield/Rafferty`, `Hadfield decomposition`,
+  or stale ordinary-Poisson-only structured-error wording in the current
+  inventory.
+- `git diff --check` passed.
+- The GitHub issue search for
+  `phylo interaction Hadfield bipartite pair phylogenetic relmat` returned no
+  open issues before this slice. The main-thread startup audit later created
+  issue #447 so the first `phylo_interaction()` slice has a narrow issue ledger.
+
+Member-group review:
+
+- Boole kept the public interface as a marker, not a bespoke model wrapper.
+- Gauss kept the implementation on the existing sparse-precision TMB path.
+- Curie required Gaussian, Poisson, and NB2 smoke tests once docs claimed all
+  three families.
+- Pat and Rose removed binary-incidence wording until a Bernoulli/binomial
+  family gate exists.
+- Emmy kept `relmat(1 | pair, Q = Q_pair)` as the lower-level escape hatch.
+
+Remaining boundary:
+
+- This is one q=1 pair-level structured field only. Additive partner main
+  phylogenies plus pair interaction, binary/Bernoulli incidence, structured pair
+  slopes, labelled count covariance, simultaneous structured layers, and exact
+  ordinary `(1 | ID1:ID2)` parser sugar remain future work.
+
+## 2026-05-31 -- Bipartite Phylogenetic Interactions Article
+
+Goal:
+
+- Add a reader-facing pkgdown article for `phylo_interaction()` that teaches the
+  current first fitted two-tree pair route without overclaiming binary incidence
+  or full additive partner-phylogeny models.
+
+Changes:
+
+- Added `vignettes/bipartite-phylogenetic-interactions.Rmd` with the title
+  "Two-tree phylogenetic interactions" and the hook "A tale of two
+  phylogenies."
+- Added the article to the Tutorials navbar and Structured Dependence article
+  index in `_pkgdown.yml`.
+- Linked the new article from the structural-dependence overview and the
+  phylogenetic structured-effects article.
+- Kept runnable code to the supported Poisson `mu` pair interaction and kept
+  independent-pair, `relmat()`, and future additive syntax in explicit
+  non-evaluated examples.
+
+Validation:
+
+```sh
+air format vignettes/bipartite-phylogenetic-interactions.Rmd vignettes/structural-dependence.Rmd vignettes/phylogenetic-models.Rmd _pkgdown.yml
+Rscript --vanilla -e "invisible(parse(text = xfun::split_source('vignettes/bipartite-phylogenetic-interactions.Rmd')$src)); cat('article code parse ok\n')"
+Rscript --vanilla -e "pkgload::load_all('.', export_all = FALSE, helpers = FALSE, attach_testthat = FALSE); rmarkdown::render('vignettes/bipartite-phylogenetic-interactions.Rmd', output_dir = tempfile('drmtmb-bipartite-article-'), quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "pkgdown::build_site()"
+rg -n "Two-tree phylogenetic interactions|A tale of two phylogenies|ordinary NB2|Q_pair.*must match|phylo_interaction\\(|bipartite-phylogenetic-interactions" pkgdown-site/articles/bipartite-phylogenetic-interactions.html pkgdown-site/articles/index.html pkgdown-site/articles/structural-dependence.html pkgdown-site/articles/phylogenetic-models.html pkgdown-site/reference/index.html
+git status --short --ignored pkgdown-site
+git diff --check
+```
+
+Results:
+
+- `air format` made no further changes.
+- The article code parse printed `article code parse ok`.
+- Source-tree article rendering passed after loading the current package source
+  with `pkgload::load_all()`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_site()` completed successfully and wrote
+  `pkgdown-site/articles/bipartite-phylogenetic-interactions.html`.
+- The rendered scan found the new article in the navbar, article index,
+  structural-dependence article, phylogenetic-models article, and the reference
+  index navbar. It also found the "A tale of two phylogenies" hook and rendered
+  `phylo_interaction()` output/profile-target text on the article page.
+- `pkgdown-site/` remains ignored local build output.
+- `git diff --check` passed.
+- Article rendering again emitted the existing `glmmTMB`/`TMB` version mismatch
+  warning during unrelated articles; it did not stop the site build.
+- Averroes reviewed the article as a read-only pkgdown editor. No blocking
+  issues were found; the title/navigation were changed from "Bipartite
+  phylogenetic interactions" to "Two-tree phylogenetic interactions", the NB2
+  wording was tightened to "ordinary NB2", and the `relmat()` section now warns
+  that `Q_pair` row and column names must match the pair factor levels exactly.
+
+## 2026-05-31 -- Missing Data MD2 Bivariate Gaussian Response Masks
+
+Goal:
+
+- Extend the accepted missing-data lane from MD1 univariate Gaussian response
+  masks to MD2 independent-observation bivariate Gaussian partial-response rows,
+  without starting missing predictors, dense known-`V` slicing, EM/REML,
+  imputation summaries, or measurement-error models.
+
+Implementation evidence:
+
+- `R/drmTMB.R` now passes `missing = miss_control()` into
+  `drm_build_biv_gaussian_spec()`. With `response = "include"`, the bivariate
+  builder keeps rows with missing `y1`, missing `y2`, or both responses missing
+  after verifying that model-input predictors, grouping variables, and
+  structured inputs are complete.
+- `R/missing-data.R` adds MD2 `fit$missing_data` metadata with `observed_y1`,
+  `observed_y2`, `response_pattern`, complete-pair, one-response, both-missing,
+  and likelihood-row counts, plus the same sentinel metadata used by MD1 tests.
+- `src/drmTMB.cpp` now gates independent bivariate Gaussian row likelihoods:
+  complete pairs use the bivariate density with residual `rho12`, one-response
+  rows use the corresponding marginal Gaussian density, and both-missing rows
+  add zero response likelihood. The covariance-probe branch uses the same mask.
+- `R/methods.R` now masks bivariate response residual cells and uses marginal
+  Pearson residuals for `y2`-only rows instead of conditioning on missing `y1`.
+- Dense bivariate `meta_V(V = V)` remains explicitly deferred for partial
+  response rows because component-level covariance slicing is not implemented.
+
+Tests added:
+
+- `tests/testthat/test-missing-response-biv-gaussian.R` checks default
+  complete-pair equivalence, MD2 row accounting, an independent observed-data
+  likelihood calculation, residual masking, sentinel invariance for objective,
+  coefficients, gradients, and fitted values, missing-predictor failure,
+  dense-known-`V` failure, and the weak-`rho12` complete-pair warning.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records the MD2 implemented
+  boundary and keeps MD3+ predictor-model, imputation-summary, and
+  measurement-error work out of scope.
+- `docs/design/01-formula-grammar.md` records
+  `miss_control(response = "include")` for univariate Gaussian and independent
+  bivariate Gaussian routes separately.
+- `docs/design/03-likelihoods.md` adds the bivariate observed-response mask
+  likelihood contract.
+- `NEWS.md`, `R/drmTMB.R`, `R/missing-data.R`, `man/drmTMB.Rd`, and
+  `man/miss_control.Rd` now describe the univariate and bivariate fitted
+  missing-response support without claiming dense known-`V` partial-row support.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `man/drmTMB.Rd` and
+  `man/miss_control.Rd` for the new missing-data wording.
+- `test-missing-data-control.R`: 11 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `devtools::test()`: 8,699 expectations, no failures, warnings, or skips in
+  the final summary.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: passed.
+
+Stale-wording and issue audit:
+
+- `rg -n "implemented only for univariate Gaussian|bivariate partial pairs|bivariate partial response pairs|Missing predictors, bivariate partial|partial pairs.*planned|univariate Gaussian response masks" R man NEWS.md docs/design vignettes README.md ROADMAP.md docs/dev-log/known-limitations.md` found only current roxygen/Rd wording for the univariate+bivariate support, the intentional historical "After MD1" claim in `docs/design/149-missing-data-design.md`, and unrelated non-missing-data "univariate Gaussian" boundaries.
+- `rg -n "response = \"include\"|partial-response|dense known.*V|observed_y1|observed_y2|both-missing|rho12.*complete" R man NEWS.md docs/design vignettes README.md ROADMAP.md docs/dev-log/known-limitations.md tests/testthat/test-missing-response-biv-gaussian.R` confirmed the current public and design claims point to univariate Gaussian masks, independent bivariate Gaussian partial-response rows, and dense known-`V` deferral.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data miss_control response include" --limit 20` and `gh issue list --repo itchyshin/drmTMB --search "bivariate missing response partial y1 y2" --limit 20` returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- MD2 does not implement missing predictors or `mi()`, dense known-`V`
+  component slicing, EM/profile engines, REML, imputation summaries,
+  measurement-error models, mixed-response bivariate models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data MD3a: One Gaussian `mi()` Predictor
+
+Scope:
+
+- Implemented the first missing-predictor slice for univariate Gaussian models:
+  one additive numeric `mi(x)` term in the location formula, paired with a
+  fixed-effect Gaussian predictor model such as `impute = list(x = x ~ z)` and
+  `missing = miss_control(predictor = "model")`.
+- `R/formula-markers.R` now exports `mi()` as an evaluable formula marker so
+  base R model-frame construction can keep the predictor column.
+- `R/drmTMB.R` adds the explicit `impute` argument, validates that `impute` is
+  used only with `predictor = "model"`, keeps missing `mi()` rows out of the
+  complete-case filter, fills only a design-matrix placeholder, and records
+  `fit$missing_data$version = "MD3a"` with predictor row-accounting metadata.
+- `src/drmTMB.cpp` adds the Gaussian predictor model
+  `x_i ~ Normal(W_i alpha, sigma_x)` and treats missing `x_i` values as TMB
+  random effects integrated by the Laplace approximation. The response mean is
+  corrected inside TMB so the placeholder used to build `X_mu` cannot become
+  the fitted predictor value.
+- Direct `TMB::MakeADFun()` scaffolds in `tests/testthat/test-phylo-utils.R`
+  were updated with dummy missing-predictor data and parameters because they
+  bypass the normal R spec builder.
+- `_pkgdown.yml` now indexes the public `mi()` marker.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` checks row retention,
+  `fit$missing_data$predictors` metadata, finite fitted values and coefficients,
+  finite optimizer gradient, combination with response masks, default
+  complete-case behaviour for ordinary missing predictors, and malformed
+  `mi()`/`impute` inputs.
+- `tests/testthat/test-missing-data-control.R` now treats
+  `miss_control(predictor = "model")` as an implemented control value but keeps
+  non-Gaussian and missing-`impute` runtime guards.
+- `tests/testthat/test-phylo-utils.R` keeps direct TMB prior probes synchronized
+  with the global data/parameter contract.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records MD3a as implemented and
+  keeps grouped covariate random effects, structured imputation, multiple
+  missing predictors, factors, transformations, splines, non-Gaussian predictor
+  models, and public imputation summaries out of scope.
+- `docs/design/03-likelihoods.md` states the joint observed-data likelihood for
+  one missing Gaussian predictor and distinguishes this from multiple
+  imputation.
+- `docs/design/01-formula-grammar.md`, `NEWS.md`, `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and new `man/mi.Rd` describe the fitted boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE`,
+  `man/drmTMB.Rd`, `man/miss_control.Rd`, and `man/mi.Rd`.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 35 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- Initial `devtools::test()` found only three direct `test-phylo-utils.R`
+  failures from missing dummy `has_mi` TMB data in hand-built probe objects.
+  After synchronizing those scaffolds, `test-phylo-utils.R` passed with 79
+  expectations.
+- Final `devtools::test()`: 8,736 expectations, no failures, warnings, or
+  skips.
+- First `pkgdown::check_pkgdown()` found the new public `mi` topic missing from
+  `_pkgdown.yml`; after adding it to the reference index, `pkgdown` reported
+  no problems.
+- `git diff --check`: passed.
+
+Remaining boundary:
+
+- MD3a does not implement grouped covariate random effects (MD3b), structured
+  covariate models (MD4), `imputed()` summaries, multiple missing predictors,
+  factor or non-Gaussian predictor models, transformed or interacted `mi()`
+  terms, dense known-`V` partial-response slicing, EM/profile engines, REML,
+  measurement-error models, or pigauto interoperability.
+
+## 2026-05-31 - Missing Data MD3b: One Grouped Gaussian `mi()` Predictor
+
+Scope:
+
+- Extended the first univariate Gaussian missing-predictor lane from a
+  fixed-effect covariate model to one grouped random-intercept covariate model,
+  for example `impute = list(x = x ~ z + (1 | group))` with
+  `missing = miss_control(predictor = "model")`.
+- `R/missing-data.R` now parses exactly one additive `(1 | group)` term in the
+  `impute` formula, rejects random slopes, multiple random-effect terms,
+  transformed or nested grouping expressions, missing group values, and
+  one-level grouping factors, and records the grouped covariate metadata in
+  `fit$missing_data$predictors[[x]]$random`.
+- `R/drmTMB.R` adds the grouped covariate variable to missing-predictor
+  complete-input checks, routes grouped fits to `version = "MD3b"`, starts and
+  maps `u_mi_group` and `log_sd_mi_group`, and exposes the fitted covariate
+  group SD as `sd_mi_group_x`.
+- `src/drmTMB.cpp` adds `has_mi_group`, `mi_group_index`, `u_mi_group`, and
+  `log_sd_mi_group`, adds the grouped random intercept to the covariate-model
+  linear predictor, and adds the standard-normal latent-effect contribution
+  before Laplace integration.
+- Direct `TMB::MakeADFun()` scaffolds in `tests/testthat/test-phylo-utils.R`
+  were synchronized with dummy grouped-missing-predictor fields because they
+  bypass the normal R builder.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` now checks grouped
+  covariate metadata, retained-row accounting, finite grouped SD coefficients,
+  finite optimizer gradients, response-mask combination, and malformed grouped
+  `impute` formulas.
+- Existing MD1 and MD2 missing-response tests and direct TMB scaffold tests were
+  rerun to guard the shared missing-data data/parameter contract.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md` records MD3b as implemented while
+  keeping covariate random slopes, multiple covariate random-effect terms,
+  structured covariate models, multiple missing predictors, non-Gaussian
+  predictor models, imputation summaries, EM/profile engines, REML, and
+  measurement-error models out of scope.
+- `docs/design/03-likelihoods.md` adds the grouped covariate-model likelihood.
+- `docs/design/01-formula-grammar.md`, `NEWS.md`, `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and `man/mi.Rd` describe the fitted grouped boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-biv-gaussian.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE`,
+  `man/drmTMB.Rd`, `man/miss_control.Rd`, and `man/mi.Rd`.
+- Manual grouped `mi()` sanity fit returned `fit$missing_data$version =
+  "MD3b"`, finite `mi_x`, `sd_mi_group_x`, and `sigma_mi_x` coefficients, and
+  maximum optimizer-gradient component `4.181181e-06`.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 55 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `test-gaussian-location-scale.R`: 71 expectations and the existing CRAN
+  skip, no failures.
+- `test-biv-gaussian.R`: 718 expectations, no failures.
+- Final `devtools::test()`: 8,756 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+
+Stale-wording and issue audit:
+
+- `rg -n "MD3b|grouped covariate random effects|one random-intercept|random-intercept covariate|impute = list\\(x = x ~ z \\+ \\(1|impute = list\\(x = x ~ 1 \\+ z \\+ \\(1|covariate random slopes|multiple missing predictors|structured covariate|imputed\\(\\)|measurement-error|measurement error" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found current MD3b implementation wording, intentional MD3a-slice boundaries,
+  and current deferred-scope wording.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data mi grouped random intercept impute" --limit 20`
+  and `gh issue list --repo itchyshin/drmTMB --search "miss_control mi impute missing predictor" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- MD3b does not implement covariate random slopes, multiple covariate
+  random-effect terms, structured covariate models (MD4), `imputed()` summaries
+  (MD5), multiple missing predictors, factor or non-Gaussian predictor models,
+  transformed or interacted `mi()` terms, dense known-`V` partial-response
+  slicing, EM/profile engines, REML, measurement-error models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data MD5: `imputed()` Predictor Summaries
+
+Scope:
+
+- Added exported `imputed()` and `imputed.drmTMB()` for fitted MD3a/MD3b
+  missing-predictor models.
+- The extractor reports conditional modes for modelled missing `mi()`
+  predictors from optimized TMB random effects. With a successful
+  `TMB::sdreport()`, it reports likelihood-based conditional standard errors
+  from the random-effect covariance approximation.
+- `fit$missing_data$predictors[[x]]` now stores fitted `value` and
+  `conditional_mode` entries when a missing-predictor model is fitted, so
+  `imputed()` can still report estimates after `keep_tmb_object = FALSE`.
+- The MD5 boundary is intentionally narrow: no response imputation,
+  simulation-based imputation, posterior means, credible intervals, pooled
+  multiple-imputation summaries, EM/profile engines, REML, measurement-error
+  models, structured covariate models, or multiple missing predictors.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` checks that `imputed()`
+  returns MD3a conditional modes matching `x_miss`, finite `sdreport()` standard
+  errors, all-row output with observed predictor values, operation without a
+  retained TMB object, grouped MD3b output, and clear errors for response-only
+  masks or unknown variables.
+
+Documentation synchronized:
+
+- `R/missing-data.R`, `man/imputed.Rd`, `NAMESPACE`, and `_pkgdown.yml` add the
+  public extractor and reference-index entry.
+- `docs/design/149-missing-data-design.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/01-formula-grammar.md`, and `NEWS.md` record MD5 as implemented
+  for fitted MD3a/MD3b missing predictors while preserving the non-Bayesian and
+  non-multiple-imputation boundary.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-biv-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-package-skeleton.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `NAMESPACE` and
+  `man/imputed.Rd`.
+- `test-missing-predictor-gaussian.R`: 85 expectations, no failures.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `test-missing-response-biv-gaussian.R`: 45 expectations, no failures.
+- `test-package-skeleton.R`: 100 expectations, no failures.
+- Final `devtools::test()`: 8,786 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+
+Stale-wording and issue audit:
+
+- `rg -n "imputation summaries remain planned|imputed\\(\\).*planned|MD5|posterior|credible intervals|multiple-imputation|simulation-based imputed|response imputation|conditional modes|likelihood-based conditional" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found current MD5 implementation wording, intended non-Bayesian boundary
+  wording, and unrelated posterior/interval cautions outside the missing-data
+  lane.
+- `gh issue list --repo itchyshin/drmTMB --search "imputed missing predictor imputation summaries" --limit 20`
+  and `gh issue list --repo itchyshin/drmTMB --search "missing data imputed conditional modes" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- Missing-data support still does not include structured `mi()` covariate models
+  (MD4), dense known-`V` partial-response slicing, covariate random slopes,
+  multiple covariate random-effect terms, multiple missing predictors, factor
+  or non-Gaussian predictor models, transformed or interacted `mi()` terms,
+  response imputation summaries, simulated imputations, EM/profile engines,
+  REML, measurement-error models, or pigauto interoperability.
+
+## 2026-05-31 - Missing Data MD4: Structured `mi()` Covariate Model
+
+Scope:
+
+- Added the first structured missing-predictor route for one univariate Gaussian
+  numeric `mi()` predictor.
+- The `impute` formula can now include one explicit intercept-only structured
+  covariate model using `phylo()`, coordinate `spatial()`, `animal()`, or
+  `relmat()`, for example
+  `impute = list(x = x ~ z + relmat(1 | line, Q = Q))`.
+- The structured covariate field is independent of the response model and is
+  integrated with missing `x` values by TMB/Laplace. The fitted object records
+  `fit$missing_data$version = "MD4"` and structured metadata under
+  `fit$missing_data$predictors[[x]]$structured`.
+- Kept the boundary narrow: no structured covariate slopes, no grouped-plus-
+  structured covariate model, no `phylo_interaction()` in `impute`, no automatic
+  response-structure inheritance, and no joint response-covariate structured
+  correlations.
+
+Tests added or updated:
+
+- `tests/testthat/test-missing-predictor-gaussian.R` now checks a fitted
+  `relmat(1 | line, Q = Q)` covariate model, `response = "include"` composition,
+  `sd_mi_relmat_x` extraction, `imputed()` conditional modes, and malformed MD4
+  inputs.
+- `tests/testthat/test-phylo-utils.R` now includes mapped-off
+  `has_mi_struct`, `u_mi_struct`, and `log_sd_mi_struct` scaffolding for direct
+  TMB construction.
+
+Documentation synchronized:
+
+- `docs/design/149-missing-data-design.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/01-formula-grammar.md`,
+  `R/missing-data.R`, `R/formula-markers.R`, `R/drmTMB.R`, generated Rd files,
+  and `NEWS.md` now describe MD4 as fitted and keep the remaining unsupported
+  missing-data surfaces explicit.
+
+Validation:
+
+```sh
+air format R/missing-data.R R/formula-markers.R R/drmTMB.R tests/testthat/test-missing-predictor-gaussian.R tests/testthat/test-phylo-utils.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` completed and regenerated `man/drmTMB.Rd`,
+  `man/mi.Rd`, and `man/miss_control.Rd`.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- Final `devtools::test()`: 8,810 expectations, no failures, warnings, or
+  skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+
+Stale-wording and issue audit:
+
+- `rg -n "structured covariate models remain planned|structured covariate models|MD3a/MD3b missing-predictor|fitted MD3a/MD3b|public imputation summaries remain|imputation summaries remain planned|one random-intercept Gaussian predictor model|fixed-effect or one random-intercept" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found intended MD4 boundary errors, historical headings, and current
+  simulation-based imputation boundary wording, but no current claim that all
+  structured covariate models remain planned.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data structured mi impute relmat" --limit 20`,
+  `gh issue list --repo itchyshin/drmTMB --search "miss_control mi impute structured" --limit 20`,
+  and `gh issue list --repo itchyshin/drmTMB --search "MD4 missing predictor" --limit 20`
+  returned no matching open issues, so no issue comment or closure was made.
+
+Remaining boundary:
+
+- Missing-data support still does not include dense known-`V` partial-response
+  slicing, structured covariate slopes, more than one structured covariate
+  model, simultaneous grouped and structured covariate random effects,
+  `phylo_interaction()` covariate models, automatic response-structure
+  inheritance, joint response-covariate structured correlations, multiple
+  missing predictors, factor or non-Gaussian predictor models, transformed or
+  interacted `mi()` terms, response imputation summaries, simulated
+  imputations, EM/profile engines, REML, measurement-error models, or pigauto
+  interoperability.
+
+## 2026-05-31 - Missing Data Article
+
+Scope:
+
+- Added `vignettes/missing-data.Rmd` as the first user-facing missing-data
+  article.
+- The article explains supported response masks, bivariate partial-response
+  rows, one numeric `mi()` predictor model, grouped/structured covariate-model
+  syntax, `fit$missing_data`, and `imputed()` summaries.
+- `_pkgdown.yml` now lists the article in the `Start Here` article section and
+  the Model Guides navbar.
+- No runtime behaviour changed.
+
+Validation:
+
+```sh
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = tempdir(), quiet = TRUE, envir = globalenv())"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+git diff --check
+```
+
+Results:
+
+- The article rendered successfully in a temporary directory against the
+  development package.
+- `pkgdown::check_pkgdown()` reported no problems.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `articles/missing-data.html` successfully from the current checkout.
+- `git diff --check` found no whitespace errors.
+
+Consistency and issue audit:
+
+- `rg -n "miss_control|mi\\(|imputed|multiple imputation|measurement-error|missing response|missing predictor" vignettes/missing-data.Rmd _pkgdown.yml docs/design/149-missing-data-design.md docs/dev-log/known-limitations.md NEWS.md README.md ROADMAP.md`
+  confirmed that the new article uses implemented syntax and keeps
+  multiple-imputation, measurement-error, and unsupported predictor-model
+  boundaries explicit.
+- `gh issue list --repo itchyshin/drmTMB --search "missing data article" --limit 20`
+  returned issue `#58`, the broad visualization tracker, which does not need an
+  update for this article.
+- `gh issue list --repo itchyshin/drmTMB --search "miss_control imputed vignette" --limit 20`
+  returned no matching open issues.
+
+Local rendering note:
+
+- A plain `rmarkdown::render()` and a default `pkgdown::build_article()` picked
+  up an older installed `drmTMB` without `miss_control()`. Rendering with
+  `devtools::load_all()` and building the single article in-process validated
+  the article against the development checkout without installing over the
+  user's library.
+
+## 2026-05-31 - Missing Data MD6a Binary Predictor
+
+Scope:
+
+- Added the first non-Gaussian missing-predictor slice: one binary `mi()`
+  predictor in a univariate Gaussian location model.
+- Added `impute_model(formula, family = ...)` as the explicit family wrapper
+  for predictor models. Bare `impute = list(x = x ~ z)` remains the Gaussian
+  predictor-model shortcut.
+- Implemented fixed-effect Bernoulli/logit predictor models with exact
+  two-state summation for missing binary predictor rows, including composition
+  with missing-response masks.
+- Updated the missing-data article, design docs, NEWS, roxygen docs, pkgdown
+  reference navigation, and generated HTML to separate implemented binary
+  support from planned ordered, unordered multinomial, beta/proportion,
+  lognormal, count, grouped binary, and structured binary predictor models.
+
+Validation:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-binary.R tests/testthat/test-phylo-utils.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `test-missing-predictor-binary.R`: 21 expectations, no failures.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures.
+- `test-missing-data-control.R`: 13 expectations, no failures.
+- `test-phylo-utils.R`: 79 expectations, no failures.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `pkgdown-site/articles/missing-data.html` with the new binary section and
+  `impute_model()` syntax.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,831 expectations, no failures, warnings, or
+  skips. Duration was 665.7 seconds.
+
+Tests of the tests:
+
+- The binary test recomputes the log likelihood independently as a sum of
+  observed Bernoulli terms and `logspace_add` two-state contributions for
+  missing predictor rows, then compares it to `logLik(fit)`.
+- The binary test combines `predictor = "model"` with
+  `response = "include"` and verifies row accounting and residual masks.
+- Boundary tests reject unsupported predictor families, grouped binary
+  predictor models, and more-than-two-level categorical predictors.
+
+Consistency audit:
+
+- `rg -n "missing data|miss_control|mi\\(|impute_model|imputed|missing predictor|non-Gaussian predictor|categorical predictor|proportion predictor|binary predictor|multiple missing" README.md ROADMAP.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml NEWS.md pkgdown-site/articles/missing-data.html`
+  confirmed the status inventory and generated article now mention
+  `impute_model()`, binary missing predictors, and the remaining boundaries.
+- `rg -n "numeric continuous variable|missing categorical predictors|Factor, non-Gaussian|factor or non-Gaussian predictor models|non-Gaussian predictor models remain planned|imputed\\(fit\\).*MD3a/MD3b/MD4|current MD5 slice" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md pkgdown-site/articles/missing-data.html`
+  found only the intentionally historical MD3/MD5 design wording plus the
+  current MD3a/MD3b/MD4/MD6a extractor row; no public article or generated help
+  page still says all categorical or non-Gaussian missing predictors are
+  unsupported.
+- `rg -n "Binary missing predictors|impute_model\\(treatment|proportions, positive|Do not wrap" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html`
+  confirmed the source and generated HTML include the new article section and
+  the `drm_formula()` versus `impute` formula distinction.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "binary missing predictor mi impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing data non-Gaussian predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "categorical missing predictor" --limit 20
+```
+
+The searches returned no matching open issues, so no issue comment or closure
+was made.
+
+Remaining boundary:
+
+- At the MD6a checkpoint, only the first fixed-effect binary
+  missing-predictor route was implemented. Later MD6b, MD6c, and MD7a added
+  ordered, unordered, and strict beta/proportion predictors. Count predictor
+  models, positive-continuous non-Gaussian predictor models, grouped or
+  structured non-Gaussian predictor models, multiple missing predictors,
+  transformed/interacted `mi()` terms, EM/profile engines, REML,
+  simulation-based imputed summaries, response imputation, measurement-error
+  models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD6b Ordered Predictor
+
+Scope:
+
+- Extended the finite-state missing-predictor route from MD6a binary predictors
+  to one ordered categorical predictor in a univariate Gaussian location model.
+- Public syntax is `mi(score)` in the main `bf()`/`drm_formula()` response
+  model and `impute = list(score = impute_model(score ~ z, family =
+  cumulative_logit()))` for the predictor model.
+- The TMB likelihood sums exactly over ordered states for missing predictor
+  rows. Observed ordered predictor rows add the cumulative-logit predictor
+  likelihood and the Gaussian response likelihood when the response is
+  observed.
+- `imputed()` reports the fitted conditional expected ordered-category score;
+  the missing-data metadata stores conditional probabilities by ordered level.
+
+Implementation evidence:
+
+- `R/missing-data.R` now recognizes `cumulative_logit()` as an ordinal
+  `impute_model()` family, validates ordered factors or integer category
+  scores, builds state-specific response-model design matrices, and finalizes
+  ordered missing-predictor metadata.
+- `R/drmTMB.R` keeps ordered `mi()` predictors as supported missing predictors,
+  supplies state-design data to TMB, starts and maps ordered cutpoints, and
+  records `fit$missing_data$version = "MD6b"`.
+- `src/drmTMB.cpp` adds `mi_family == 2`, `mi_n_state`, and
+  `X_mi_state_mu`; the Gaussian branch evaluates cumulative-logit prior
+  probabilities, observed ordered predictor likelihoods, exact log-sum-exp
+  missing-state likelihoods, and reported state probabilities.
+- `tests/testthat/test-missing-predictor-ordered.R` independently recomputes
+  the ordered finite-state likelihood, combines ordered missing predictors with
+  response masks, and checks malformed unordered and grouped ordered predictor
+  boundaries.
+- `NEWS.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/149-missing-data-design.md`,
+  and `vignettes/missing-data.Rmd` now separate implemented binary/ordered
+  finite-state routes from planned unordered, proportion, count, positive
+  continuous, multiple-predictor, grouped finite-state, and structured
+  finite-state routes.
+
+Validation:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::document()` rewrote `miss_control.Rd`, `impute_model.Rd`, and
+  `imputed.Rd`.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-phylo-utils.R`: 79 expectations, no failures, warnings, or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` wrote
+  `pkgdown-site/articles/missing-data.html` with the ordered missing-predictor
+  section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,854 expectations, no failures, warnings, or
+  skips. Duration was 752.4 seconds.
+
+Tests of the tests:
+
+- The ordered test recomputes `logLik(fit)` independently from the
+  cumulative-logit predictor likelihood and Gaussian response likelihood,
+  including exact `logsumexp` over missing ordered states.
+- The ordered test combines `predictor = "model"` with
+  `response = "include"` and checks row accounting plus response residual
+  masks.
+- Boundary tests reject unordered factors, grouped cumulative-logit predictor
+  models, and empty observed ordered categories.
+
+Consistency audit:
+
+- `rg -n "ordered categorical predictors|ordered categories, unordered|ordered or unordered categorical|ordered missing predictor|MD6b|cumulative_logit\\(\\).*impute_model|conditional expected" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml`
+  confirmed that the source docs now mention MD6b ordered support and leave
+  only true boundaries as planned.
+- `rg -n "binary missing predictors|categorical missing predictor|non-Gaussian missing predictor|proportion predictor|unordered multinomial|positive lognormal|count predictors|multiple missing predictors" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml`
+  confirmed that unordered, proportion, count, positive-continuous,
+  multiple-predictor, grouped finite-state, and structured finite-state routes
+  remain described as boundaries.
+- `rg -n "missing|miss_control|mi\\(|imputed" docs/dev-log/known-limitations.md README.md ROADMAP.md _pkgdown.yml vignettes/formula-grammar.Rmd`
+  found no missing-data status page that needed a separate update beyond the
+  article, reference index, and design docs.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "ordered missing predictor cumulative_logit mi impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "categorical missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "non-Gaussian missing predictor" --limit 20
+```
+
+The first two searches returned no open issue rows. The broad non-Gaussian
+query returned only #436, the four-week Phase 6c random-slope and digital-twin
+exchange sprint, so no missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD6b is one fixed-effect ordered categorical predictor in a univariate
+  Gaussian location model. Unordered multinomial predictors, beta/proportion
+  predictors, count predictors, lognormal/Gamma positive continuous predictor
+  models, multiple missing predictors, transformed or interacted `mi()` terms,
+  grouped or structured binary/ordered predictor models, EM/profile engines,
+  REML, simulation-based imputed summaries, response imputation,
+  measurement-error models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD6c Unordered Categorical Predictor
+
+Scope:
+
+- Added the fixed-effect unordered categorical missing-predictor route for one
+  `mi(habitat)` term in a univariate Gaussian location model.
+- Public syntax is
+  `impute = list(habitat = impute_model(habitat ~ z, family = categorical()))`
+  with `missing = miss_control(predictor = "model")`.
+- The predictor model uses a baseline-category softmax over unordered levels.
+  Observed predictor rows add the categorical predictor likelihood; missing
+  predictor rows sum exactly over all possible unordered states and combine the
+  softmax prior with the Gaussian response likelihood when the response is
+  observed.
+- `imputed()` now reports modal unordered-category scores and stores level
+  probabilities in `fit$missing_data$predictors[[name]]$conditional_probabilities`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::document()"
+air format --check R/missing-data.R tests/testthat/test-missing-predictor-categorical.R
+air format R/missing-data.R tests/testthat/test-missing-predictor-categorical.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::document()` regenerated `man/drmTMB.Rd` after the public
+  `missing` argument wording was synchronized with binary, ordered, and
+  unordered finite-state predictor support.
+- `air format --check` reported that `R/missing-data.R` would be reformatted;
+  targeted `air format` was then run on `R/missing-data.R` and
+  `tests/testthat/test-missing-predictor-categorical.R`.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  unordered categorical example and still marks beta/proportion, count, and
+  positive-continuous predictor models as planned.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- `test-phylo-utils.R`: 79 expectations, no failures, warnings, or skips.
+- Full `devtools::test()`: 8,878 expectations, no failures, warnings, or
+  skips. Duration was 631.7 seconds.
+
+Tests of the tests:
+
+- The new unordered categorical test recomputes `logLik(fit)` independently
+  from the baseline-softmax predictor likelihood and Gaussian response
+  likelihood, including exact `logsumexp` over missing unordered states.
+- The test combines `predictor = "model"` with
+  `response = "include"` and checks `nobs()`, observed-response masks, response
+  residual masks, and the same independent likelihood.
+- Boundary tests reject ordered factors, grouped categorical predictor models,
+  empty observed unordered categories, and two-level factors sent to
+  `categorical()`.
+
+Consistency audit:
+
+- `rg -n "unordered categorical predictors|unordered multinomial|unordered.*planned|categorical.*planned|MD6c|categorical\\(\\)|conditional modal" NEWS.md README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes _pkgdown.yml R man`
+  found current MD6c implementation/docs and no stale claim that unordered
+  categorical predictors remain generally unsupported.
+- `rg -n "binary slice|binary predictor slice|ordered or unordered|unordered categorical with more than two levels|wait for the unordered|non-Gaussian predictor models remain planned|binary predictors may use|finite-state predictor models" R man NEWS.md README.md ROADMAP.md docs/design vignettes docs/dev-log/known-limitations.md`
+  found two stale/current-boundary wording points. The `drmTMB()` roxygen and
+  `man/drmTMB.Rd` now name binary, ordered categorical, and unordered
+  categorical predictor models; the MD6a design boundary now states that
+  unordered predictors belong to the later MD6c softmax slice.
+- `rg -n "One missing unordered predictor|categorical\\(\\)|baseline-category softmax|beta/proportion|count predictors|positive-continuous" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the unordered categorical route and
+  the remaining non-Gaussian predictor boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "unordered categorical missing predictor categorical impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor categorical" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "proportion missing predictor" --limit 20
+```
+
+All three searches returned no open issue rows, so no missing-data-specific
+issue comment or closure was made.
+
+Remaining boundary:
+
+- MD6c completes the first finite-state trio: binary, ordered categorical, and
+  unordered categorical missing predictors in one univariate Gaussian location
+  model. Beta/proportion predictors, count predictors, positive-continuous
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, grouped or structured finite-state predictor models,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD7a Strict Proportion Predictor
+
+Scope:
+
+- Added the fixed-effect strict proportion missing-predictor route for one
+  numeric `mi(cover)` term in `(0, 1)` inside a univariate Gaussian location
+  model.
+- Public syntax is
+  `impute = list(cover = impute_model(cover ~ z, family = beta()))` with
+  `missing = miss_control(predictor = "model")`.
+- Observed predictor rows add the beta predictor density plus the Gaussian
+  response density. Missing predictor rows with observed responses use
+  deterministic Gauss-Legendre quadrature over the possible proportion values.
+  Rows where both response and predictor are missing are retained for original
+  row accounting and contribute zero observed-data likelihood.
+- `imputed()` reports fitted conditional quadrature means and stores quadrature
+  probabilities in `fit$missing_data$predictors[[name]]`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::load_all()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-phylo-utils.R')"
+Rscript -e "devtools::load_all(); devtools::test()"
+git diff --check
+```
+
+Results:
+
+- Initial `test-missing-predictor-beta.R`: 20 expectations, no failures,
+  warnings, or skips.
+- Post-document `test-missing-predictor-beta.R`: 20 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-beta-location-scale.R`: 85 expectations, no failures, warnings, or
+  skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures, warnings,
+  or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  strict proportion example and conditional-quadrature-mean wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- The first full `devtools::test()` run reached the end with 8,886 passing
+  expectations and three direct-TMB fixture errors in `test-phylo-utils.R`;
+  those hand-built data fixtures lacked the new dummy `mi_quad_nodes` and
+  `mi_quad_weights` values.
+- After patching the direct-TMB fixture, `test-phylo-utils.R`: 79
+  expectations, no failures, warnings, or skips.
+- Final full-suite result after the fixture patch: 8,898 expectations, no
+  failures, warnings, or skips in 625.3 seconds.
+- `git diff --check`: no whitespace errors.
+
+Tests of the tests:
+
+- The beta predictor test recomputes `logLik(fit)` independently from the beta
+  predictor likelihood and Gaussian response likelihood, including
+  deterministic quadrature over missing predictor values.
+- The response-mask combination test verifies `nobs()`, observed-response
+  masks, response residual masks, and the same independent likelihood when some
+  responses are also missing.
+- Boundary tests reject exact 0/1 observed proportions, factor predictors, and
+  grouped beta predictor models.
+
+Consistency audit:
+
+- `rg -n "beta/proportion predictors|proportion predictors.*not implemented|beta/proportion.*remain planned|strict proportion.*planned|family = beta\\(\\).*planned" docs/design/149-missing-data-design.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md vignettes/missing-data.Rmd NEWS.md R man README.md ROADMAP.md docs/dev-log/known-limitations.md`
+  found current implementation wording for strict beta/proportion predictors
+  and remaining-boundary wording for exact 0/1 proportions,
+  denominator-aware beta-binomial predictor models, count predictors, and
+  positive-continuous non-Gaussian predictor models.
+- `rg -n "Strict proportion missing predictors|impute = list\\(cover = impute_model\\(cover ~ z, family = beta\\(\\)\\)\\)|conditional quadrature means|count predictors|positive-continuous" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the strict proportion route and the
+  remaining non-Gaussian predictor boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "beta proportion missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "strict proportion missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor beta" --limit 20
+```
+
+All three searches returned no open issue rows, so no missing-data-specific
+issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7a is one fixed-effect strict proportion predictor in a univariate
+  Gaussian location model. Exact 0/1 proportions, denominator-aware
+  beta-binomial predictor models, grouped or structured beta predictor models,
+  Poisson count predictors, positive-continuous non-Gaussian predictor models,
+  multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remained
+  planned at the MD7a checkpoint. MD7b adds the first Poisson count slice.
+
+## 2026-05-31 - Missing Data MD7b Poisson Count Predictor
+
+Scope:
+
+- Added the fixed-effect Poisson count missing-predictor route for one
+  non-negative integer `mi(abundance)` term inside a univariate Gaussian
+  location model.
+- Public syntax is
+  `impute = list(abundance = impute_model(abundance ~ z, family = poisson()))`
+  with `missing = miss_control(predictor = "model")`.
+- Observed predictor rows add the Poisson predictor density plus the Gaussian
+  response density. Missing predictor rows with observed responses use
+  deterministic finite summation over count states. Rows where both response
+  and predictor are missing are retained for original-row accounting and
+  contribute zero observed-data likelihood.
+- `imputed()` reports fitted conditional expected counts and stores
+  count-state probabilities in `fit$missing_data$predictors[[name]]`.
+
+Commands run:
+
+```sh
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson.R')"
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-poisson.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-categorical.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-ordered.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gaussian.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-response-gaussian.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+Rscript -e "devtools::load_all(); devtools::test()"
+```
+
+Results:
+
+- Initial `test-missing-predictor-poisson.R`: 19 expectations, no failures,
+  warnings, or skips.
+- Post-document `test-missing-predictor-poisson.R`: 19 expectations, no
+  failures, warnings, or skips.
+- `test-missing-predictor-beta.R`: 20 expectations, no failures, warnings, or
+  skips.
+- `test-missing-predictor-categorical.R`: 24 expectations, no failures,
+  warnings, or skips.
+- `test-missing-predictor-ordered.R`: 23 expectations, no failures, warnings,
+  or skips.
+- `test-missing-predictor-binary.R`: 21 expectations, no failures, warnings,
+  or skips after updating the unsupported-family boundary from `poisson()` to
+  `nbinom2()`.
+- `test-missing-predictor-gaussian.R`: 109 expectations, no failures,
+  warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-missing-response-gaussian.R`: 32 expectations, no failures, warnings,
+  or skips.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  count predictor example and conditional-expected-count wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()`: 8,917 expectations, no failures, warnings, or
+  skips; duration 717.9 seconds.
+
+Tests of the tests:
+
+- The Poisson predictor test recomputes `logLik(fit)` independently from the
+  Poisson predictor likelihood and Gaussian response likelihood, including
+  deterministic finite summation over missing count values.
+- The response-mask combination test verifies `nobs()`, observed-response
+  masks, response residual masks, and the same independent likelihood when some
+  responses are also missing.
+- Boundary tests reject negative observed counts, fractional observed counts,
+  and grouped Poisson predictor models.
+
+Consistency audit:
+
+- `rg -n "Count predictors,|count predictors.*not implemented|count predictors remain planned|family = poisson\\(\\).*planned|MD7b|Poisson count missing predictors|conditional expected counts|Negative-" vignettes/missing-data.Rmd docs/design/149-missing-data-design.md docs/design/03-likelihoods.md docs/design/01-formula-grammar.md NEWS.md R man pkgdown-site/articles/missing-data.html`
+  found current implementation wording for Poisson count predictors,
+  historical MD6/MD7a boundary text that explicitly points to later MD7b, and
+  remaining-boundary wording for negative-binomial count predictors,
+  positive-continuous non-Gaussian predictor models, grouped/structured count
+  predictor models, and multiple missing predictors.
+- `rg -n "Count missing predictors|impute_model\\(abundance ~ z, family = poisson\\(\\)\\)|conditional expected count|MD7b|negative-binomial" pkgdown-site/articles/missing-data.html`
+  confirmed the rendered article exposes the count predictor route and the
+  remaining count-family boundaries.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "poisson count missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor count" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "negative binomial missing predictor" --limit 20
+```
+
+The exact Poisson and negative-binomial searches returned no open issue rows.
+The broad count search returned only #436, the four-week Phase 6c random-slope
+and digital-twin exchange sprint, so no missing-data-specific issue comment or
+closure was made.
+
+Remaining boundary:
+
+- MD7b is one fixed-effect Poisson count predictor in a univariate Gaussian
+  location model. Negative-binomial or overdispersed count predictor models,
+  grouped or structured count predictor models, positive-continuous
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD8a Lognormal Positive Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding the first
+  positive continuous predictor model after finite-state, strict-proportion, and
+  Poisson count slices.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = lognormal())` for one positive
+  continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect lognormal predictor-model builder, positive-value
+  validation, Gauss-Hermite standard-normal quadrature construction, and TMB
+  `mi_family = 6` data mapping.
+- Added the TMB likelihood branch for observed positive predictor values and
+  missing positive predictor values integrated by deterministic log-scale
+  quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-lognormal.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-lognormal.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Focused `test-missing-predictor-lognormal.R`: 21 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 237 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  positive continuous predictor section, the `lognormal()` `impute_model()`
+  example, and the MD8a metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+
+Tests of the tests:
+
+- The lognormal predictor test recomputes `logLik(fit)` independently from the
+  observed lognormal predictor density, Gaussian response density, and
+  deterministic log-scale quadrature for missing positive predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject zero observed positive values, non-numeric predictors,
+  and grouped lognormal predictor models.
+
+Consistency audit:
+
+- `rg -n "Positive continuous missing predictors|impute_model\\(biomass ~ z, family = lognormal\\(\\)\\)|conditional quadrature mean|MD8a|Gamma and Tweedie|positive-continuous" pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md`
+  confirmed current syntax, rendered article text, generated Rd text,
+  implementation-slice labels, and remaining Gamma/Tweedie or grouped
+  positive-continuous boundaries. Historical MD6 and MD7 claim blocks in
+  `docs/design/149-missing-data-design.md` still mention positive-continuous
+  predictors as planned because they describe earlier checkpoints.
+
+Remaining boundary:
+
+- MD8a is one fixed-effect lognormal positive continuous predictor in a
+  univariate Gaussian location model. Gamma and Tweedie predictor models,
+  exact-zero semi-continuous predictors, grouped or structured
+  positive-continuous predictor models, negative-binomial count predictors,
+  multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD8b Gamma Positive Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding a second
+  positive continuous predictor model for skewed positive covariates.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = Gamma(link = "log"))` for one
+  positive continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect Gamma mean-CV predictor-model builder, positive-value
+  validation, Gauss-Laguerre quadrature construction, and TMB `mi_family = 7`
+  data mapping.
+- Added the TMB likelihood branch for observed positive predictor values and
+  missing positive predictor values integrated by deterministic Gamma
+  quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-gamma.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-gamma.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+```
+
+Results:
+
+- Focused `test-missing-predictor-gamma.R`: 22 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 259 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  Gamma positive predictor example and the MD8b metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: no whitespace errors.
+- Full `devtools::test()` was not rerun after MD8b. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The Gamma predictor test recomputes `logLik(fit)` independently from the
+  observed Gamma predictor density, Gaussian response density, and
+  deterministic Gamma quadrature for missing positive predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject zero observed positive values, non-numeric predictors,
+  non-log Gamma links, and grouped Gamma predictor models.
+
+Consistency audit:
+
+- `rg -n "Gamma positive|Gamma\\(link = &quot;log&quot;\\)|Gamma\\(link = \\\"log\\\"\\)|MD8b|Tweedie positive|positive-continuous predictor models|Gamma and Tweedie" pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-gamma.R`
+  confirmed current syntax, rendered article text, generated Rd text,
+  implementation-slice labels, C++/R family mapping, and remaining Tweedie or
+  grouped positive-continuous boundaries. Historical MD8a claim blocks in
+  `docs/design/149-missing-data-design.md` still mention Gamma and Tweedie as
+  planned because they describe the earlier MD8a checkpoint.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "Gamma positive missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor positive continuous" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "Tweedie missing predictor" --limit 20
+```
+
+All three searches returned no issue rows, so no issue was commented on,
+closed, or opened for MD8b in this pass.
+
+Remaining boundary:
+
+- MD8b is one fixed-effect Gamma positive continuous predictor in a univariate
+  Gaussian location model. Tweedie predictor models, exact-zero
+  semi-continuous predictors, negative-binomial count predictors, grouped or
+  structured non-Gaussian predictor models, multiple missing predictors,
+  transformed or interacted `mi()` terms, EM/profile engines, REML,
+  simulation-based imputed summaries, response imputation, measurement-error
+  models, and pigauto interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD7c Negative-Binomial Count Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding an
+  overdispersion-aware count predictor model.
+
+Implemented:
+
+- Added `impute_model(abundance ~ z, family = nbinom2())` for one
+  non-negative integer `mi()` predictor in a univariate Gaussian location
+  model.
+- Added the fixed-effect NB2 predictor-model builder, non-negative integer
+  count validation, finite count-support construction, and TMB `mi_family = 8`
+  data mapping.
+- Added the TMB likelihood branch for observed count predictor values and
+  missing count predictor values integrated by deterministic finite summation
+  under the fitted NB2 predictor model.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  expected counts, count support, and normalized count-state probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-nbinom2.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+```
+
+Results:
+
+- Focused `test-missing-predictor-nbinom2.R`: 20 expectations, no failures,
+  warnings, or skips.
+- Adjusted `test-missing-predictor-binary.R`: 21 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 279 expectations, no
+  failures, warnings, or skips.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `pkgdown::build_article('missing-data', new_process = FALSE)` rebuilt
+  `pkgdown-site/articles/missing-data.html`; the rendered page contains the
+  NB2 count predictor example and the MD7c metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- Full `devtools::test()` was not rerun after MD7c. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The NB2 predictor test recomputes `logLik(fit)` independently from the
+  observed NB2 predictor density, Gaussian response density, and deterministic
+  finite summation over missing count values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject negative observed counts, fractional observed counts,
+  and grouped NB2 predictor models.
+
+Consistency audit:
+
+- `rg -n 'nbinom2\(\)|MD7c|NB2 predictor|negative-binomial count|sigma_mi_abundance|conditional expected counts for count predictors' pkgdown-site/articles/missing-data.html vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-nbinom2.R`
+  confirmed current NB2 syntax, rendered article text, generated Rd text,
+  implementation-slice labels, TMB family mapping, and `sigma_mi_abundance`
+  extraction.
+- `rg -n 'negative-binomial count predictors|Negative-binomial count predictors|conditional expected counts for Poisson|Poisson count predictors, Tweedie|MD7b/MD8a|MD7b/MD8b' vignettes/missing-data.Rmd man/impute_model.Rd man/drmTMB.Rd man/imputed.Rd man/miss_control.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md pkgdown-site/articles/missing-data.html`
+  returned only current positive wording in `NEWS.md`; it did not find old
+  generated or article text claiming that NB2 missing predictors remain
+  unimplemented.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "nbinom2 missing predictor impute_model" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "negative binomial missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor count" --limit 20
+```
+
+The exact NB2 and negative-binomial searches returned no issue rows. The broad
+count search returned only #436, the four-week Phase 6c random-slope and
+digital-twin exchange sprint, so no missing-data-specific issue comment or
+closure was made.
+
+Remaining boundary:
+
+- MD7c is one fixed-effect NB2 missing predictor in a univariate Gaussian
+  location model. Zero-truncated or hurdle count predictor models, grouped or
+  structured count predictor models, multiple missing predictors, transformed
+  or interacted `mi()` terms, EM/profile engines, REML, simulation-based
+  imputed summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD8c Tweedie Semi-Continuous Predictor
+
+Goal:
+
+- Continue the broad non-Gaussian missing-predictor lane by adding a
+  semi-continuous predictor model that allows exact zeros.
+
+Implemented:
+
+- Added `impute_model(biomass ~ z, family = tweedie())` for one non-negative
+  semi-continuous `mi()` predictor in a univariate Gaussian location model.
+- Added the fixed-effect Tweedie predictor-model builder, non-negative value
+  validation, at-least-one-positive observed-value guard, zero-plus-positive
+  quadrature construction, and TMB `mi_family = 9` data mapping.
+- Added the TMB likelihood branch for observed Tweedie predictor values and
+  missing Tweedie predictor values integrated over exact zero mass plus
+  deterministic positive-support quadrature.
+- Added `fit$missing_data` and `imputed()` finalization for conditional
+  quadrature means, quadrature values, and normalized quadrature probabilities.
+- Updated `NEWS.md`, roxygen/Rd files, the missing-data article, design docs,
+  and the rendered pkgdown article.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-tweedie.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-tweedie.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-tweedie-location-scale.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-gaussian-location-scale.R')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n "[ \t]+$" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-tweedie.R vignettes/missing-data.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-tweedie.R
+```
+
+Results:
+
+- Focused `test-missing-predictor-tweedie.R`: 24 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 303 expectations,
+  no failures, warnings, or skips.
+- `test-tweedie-location-scale.R`: 86 expectations, no failures; one
+  `glmmTMB`/TMB package-version warning in the comparator skip check.
+- `test-gaussian-location-scale.R`: 71 expectations, no failures or warnings;
+  one CRAN-gated skip.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html`; the
+  rendered page contains the semi-continuous missing-predictor section and the
+  MD8c metadata wording.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`, the explicit trailing-whitespace scan, and
+  `air format --check` passed.
+- Full `devtools::test()` was not rerun after MD8c. The most recent full suite
+  in this missing-data lane remains the MD7b run with 8,917 expectations, no
+  failures, warnings, or skips.
+
+Tests of the tests:
+
+- The Tweedie predictor test recomputes `logLik(fit)` independently from the
+  observed Tweedie predictor density, Gaussian response density, and
+  zero-plus-positive quadrature for missing predictor values.
+- The response-mask combination test verifies the same likelihood calculation
+  when some responses are also missing.
+- Boundary tests reject negative observed values, non-numeric predictors, and
+  grouped Tweedie predictor models.
+
+Consistency audit:
+
+- `rg -n "Semi-continuous missing predictors|family = tweedie\\(\\)|MD8c|Tweedie predictor models, transformed|Tweedie positive-continuous predictor models|Use a later Tweedie" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html man/impute_model.Rd man/miss_control.Rd man/imputed.Rd man/drmTMB.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-tweedie.R`
+  confirmed current Tweedie syntax, rendered article text, generated Rd text,
+  implementation-slice labels, C++/R family mapping, and fixed
+  predictor-model power wording. It did not find stale current docs claiming
+  that Tweedie missing predictors remain unimplemented. Historical MD8a and
+  MD8b claim blocks in `docs/design/149-missing-data-design.md` still mention
+  Tweedie as planned because they describe earlier checkpoints.
+
+GitHub issue audit:
+
+```sh
+gh issue list --repo itchyshin/drmTMB --search "Tweedie missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "semi-continuous missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor positive continuous" --limit 20
+```
+
+All three searches returned no issue rows, so no issue was commented on,
+closed, or opened for MD8c in this pass.
+
+Remaining boundary:
+
+- MD8c is one fixed-effect Tweedie missing predictor in a univariate Gaussian
+  location model. Estimated or predictor-dependent Tweedie power, exact 0/1
+  boundary-proportion models, grouped or structured semi-continuous predictor
+  models, multiple missing predictors, transformed or interacted `mi()` terms,
+  EM/profile engines, REML, simulation-based imputed summaries, response
+  imputation, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-05-31 - Missing Data MD7d Zero-One Beta Boundary-Proportion Predictor
+
+Scope:
+
+- Added a fixed-effect zero-one beta missing-predictor route for one
+  boundary-proportion `mi()` predictor in `[0, 1]` in a univariate Gaussian
+  location model.
+- The predictor model uses `impute_model(x ~ z, family = zero_one_beta())`,
+  estimates constant predictor-model `sigma`, `zoi`, and `coi`, and integrates
+  missing values over exact zero mass, deterministic interior beta quadrature,
+  and exact one mass.
+- Updated `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md`.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-zero-one-beta.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-zero-one-beta.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-zero-one-beta.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-location-scale.R')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-zero-one-beta.R
+git diff --check
+rg -n "zero-one beta|zero_one_beta|MD7d|boundary proportion|boundary-proportion|exact 0/1 proportions|exact 0/1 boundary proportions|Boundary proportion" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-zero-one-beta.R vignettes/missing-data.Rmd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "exact 0/1 proportions|exact 0/1 boundary|boundary-proportion.*planned|zero-one beta.*planned|zero_one_beta.*later|Use .*later.*zero|Boundary-proportion predictor models need" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html
+gh issue list --repo itchyshin/drmTMB --search "zero-one beta missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "boundary proportion missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing predictor proportion" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-zero-one-beta.R`: 25 expectations, no
+  failures, warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 328 expectations,
+  no failures, warnings, or skips.
+- `test-zero-one-beta.R`: 56 expectations, no failures, warnings, or skips.
+- `test-beta-location-scale.R`: 85 expectations, no failures, warnings, or
+  skips.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html` with
+  the MD7d boundary-proportion predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `air format --check` and `git diff --check` passed.
+
+Tests of the tests:
+
+- The zero-one beta predictor test recomputes `logLik(fit)` independently from
+  the observed zero-one beta predictor density, Gaussian response density, and
+  exact-boundary plus interior quadrature support for missing predictor values.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject out-of-range observed values, predictors without an
+  observed interior value, non-numeric predictors, and grouped zero-one beta
+  predictor models.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7d wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned current implemented missing-data wording and
+  unrelated older response-family or simulation-plan boundaries. It did not
+  find current missing-data docs claiming that zero-one beta missing predictors
+  remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"zero-one beta missing predictor"`,
+  `"boundary proportion missing predictor"`, and
+  `"missing predictor proportion"` returned no issue rows, so no issue was
+  commented on, closed, or opened for MD7d in this pass.
+
+Remaining boundary:
+
+- MD7d is one fixed-effect zero-one beta missing predictor in a univariate
+  Gaussian location model. Denominator-aware beta-binomial predictor models,
+  grouped or structured non-Gaussian predictor models, multiple missing
+  predictors, transformed or interacted `mi()` terms, zero-truncated or hurdle
+  count predictor models, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 - Missing Data MD7e Zero-Truncated NB2 Count Predictor
+
+Scope:
+
+- Added a fixed-effect zero-truncated NB2 missing-predictor route for one
+  positive integer `mi()` predictor in a univariate Gaussian location model.
+- The predictor model uses
+  `impute_model(x ~ z, family = truncated_nbinom2())`, estimates the
+  untruncated NB2 mean model and overdispersion scale, and integrates missing
+  values over deterministic positive count states.
+- Updated `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md`.
+
+Commands:
+
+```sh
+air format R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-truncated-nbinom2.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-binary.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-truncated-nbinom2-location-scale.R')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R
+git diff --check
+rg -n "truncated_nbinom2|zero-truncated|MD7e|positive-count|positive count" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-truncated-nbinom2.R tests/testthat/test-missing-predictor-binary.R vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "zero-truncated or hurdle count predictor|Zero-truncated or hurdle count predictor|zero-truncated.*planned|truncated_nbinom2.*Unsupported missing-predictor|truncated_nbinom2.*not implemented|positive-count.*planned" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html tests/testthat/test-missing-predictor-binary.R
+gh issue list --repo itchyshin/drmTMB --search "zero-truncated missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "truncated nbinom2 missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "positive count missing predictor" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-truncated-nbinom2.R`: 21 expectations, no
+  failures, warnings, or skips.
+- Adjusted `test-missing-predictor-binary.R`: 21 expectations, no failures,
+  warnings, or skips.
+- `test-truncated-nbinom2-location-scale.R`: 75 expectations, no failures,
+  warnings, or skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 349 expectations,
+  no failures, warnings, or skips.
+- `rmarkdown::render()` rebuilt `pkgdown-site/articles/missing-data.html` with
+  the MD7e zero-truncated count predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `air format --check` and `git diff --check` passed.
+
+Tests of the tests:
+
+- The zero-truncated NB2 predictor test recomputes `logLik(fit)` independently
+  from the observed zero-truncated NB2 predictor density, Gaussian response
+  density, and deterministic positive-count summation for missing predictor
+  values.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject zero observed counts, fractional observed counts, and
+  grouped zero-truncated NB2 predictor models.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7e wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned current implemented missing-data wording and
+  unrelated response-family or Phase 18 planning boundaries. It did not find
+  current missing-data docs claiming that zero-truncated NB2 missing predictors
+  remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"zero-truncated missing predictor"` and
+  `"truncated nbinom2 missing predictor"` returned no issue rows.
+- The broad `"positive count missing predictor"` search returned only #436, the
+  four-week Phase 6c random-slope and digital-twin exchange sprint, so no
+  missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7e is one fixed-effect zero-truncated NB2 missing predictor in a
+  univariate Gaussian location model. Hurdle count predictor models,
+  denominator-aware beta-binomial predictor models, grouped or structured
+  non-Gaussian predictor models, multiple missing predictors, transformed or
+  interacted `mi()` terms, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 -- MD7f denominator-aware beta-binomial proportion missing predictor
+
+Implemented and audited MD7f, the denominator-aware beta-binomial missing
+predictor slice.
+
+Scope:
+
+- `impute_model(success ~ z, family = beta_binomial(), trials = trials)` now
+  models a missing proportion predictor through integer successes and known
+  denominators while the response model uses `mi(cover)`.
+- The slice is fixed-effect only, supports one missing predictor in a
+  univariate Gaussian location model, and can compose with missing response
+  masks.
+- `fit$missing_data`, `imputed()`, coefficient extraction, roxygen/Rd
+  documentation, the missing-data article, design docs, and `NEWS.md` were
+  updated.
+
+Commands:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-beta-binomial.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-beta-binomial.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/missing-data.R R/drmTMB.R tests/testthat/test-missing-predictor-beta-binomial.R tests/testthat/test-phylo-utils.R
+git diff --check
+rg -n "beta_binomial|beta-binomial|MD7f|denominator-aware|conditional_proportion_mean" R/missing-data.R R/drmTMB.R src/drmTMB.cpp tests/testthat/test-missing-predictor-beta-binomial.R tests/testthat/test-phylo-utils.R vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd man/imputed.Rd
+rg -n "denominator-aware beta-binomial predictor models remain planned|beta-binomial predictor models remain planned|beta_binomial.*not implemented|beta_binomial.*Unsupported missing-predictor|MD7f.*planned|denominator-aware.*planned" R man NEWS.md docs/design vignettes pkgdown-site/articles/missing-data.html tests/testthat/test-missing-predictor-beta-binomial.R
+gh issue list --repo itchyshin/drmTMB --search "beta-binomial missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "denominator-aware missing predictor" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "proportion missing predictor" --limit 20
+```
+
+Results:
+
+- Focused `test-missing-predictor-beta-binomial.R`: 27 expectations, no
+  failures, warnings, or skips.
+- Existing `test-beta-binomial.R`: 78 expectations, no failures, warnings, or
+  skips.
+- Combined `devtools::test(filter = 'missing-predictor')`: 376 expectations,
+  no failures, warnings, or skips.
+- `rmarkdown::render()` rebuilt
+  `pkgdown-site/articles/missing-data.html` with the MD7f denominator-aware
+  proportion predictor section.
+- `pkgdown::check_pkgdown()`: no problems found.
+- The first full `devtools::test()` run exposed three manual TMB phylogeny
+  scaffold failures because the test data did not include the new
+  `mi_successes` and `mi_trials` data objects required by the compiled
+  template. After updating `tests/testthat/test-phylo-utils.R`, the focused
+  phylogeny test passed with 79 expectations.
+- The final full `devtools::test()` run passed with 9,077 expectations and no
+  failures, warnings, or skips.
+- The final `pkgdown::check_pkgdown()`, `air format --check`, and
+  `git diff --check` passed.
+
+Tests of the tests:
+
+- The beta-binomial predictor test recomputes `logLik(fit)` independently from
+  the observed beta-binomial predictor density, Gaussian response density, and
+  deterministic summation over `0:n_i` successes for rows with missing
+  proportion predictors.
+- A response-mask composition test repeats the same independent likelihood
+  check when some responses are also missing.
+- Boundary tests reject missing `trials`, expressions in `trials`, fractional
+  successes, successes greater than trials, missing denominator values, grouped
+  beta-binomial predictor formulas, mismatches between observed proportions and
+  `success / trials`, and rows where the response-model proportion is observed
+  but the success count is missing.
+
+Consistency audit:
+
+- The positive scan confirmed current MD7f wording in the implementation,
+  generated Rd files, design docs, article source, rendered article, tests, and
+  `NEWS.md`.
+- The stale scan returned only current broad future-boundary wording. It did
+  not find current missing-data docs claiming that denominator-aware
+  beta-binomial missing predictors remain unimplemented.
+
+GitHub issue audit:
+
+- Searches for `"beta-binomial missing predictor"` and
+  `"denominator-aware missing predictor"` returned no issue rows.
+- The broader `"proportion missing predictor"` search also returned no issue
+  rows, so no missing-data-specific issue comment or closure was made.
+
+Remaining boundary:
+
+- MD7f is one fixed-effect denominator-aware beta-binomial missing predictor in
+  a univariate Gaussian location model. Multiple missing predictors, grouped or
+  structured non-Gaussian predictor models, transformed or interacted `mi()`
+  terms, hurdle count predictors, EM/profile engines, REML, simulation-based
+  imputed summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
+
+## 2026-05-31 -- Missing-data module family coverage and article closeout
+
+Audited the current missing-data module after the response-mask and
+missing-predictor slices. The implemented claim is now:
+
+- `miss_control(response = "include")` retains missing Gaussian response rows
+  and gates their response likelihood contribution.
+- `miss_control(predictor = "model")` supports one fixed-effect `mi()`
+  predictor at a time in a univariate Gaussian location model.
+- The missing-predictor family coverage is Gaussian, Bernoulli/logit, ordered
+  categorical, unordered categorical, strict beta, zero-one beta,
+  beta-binomial with known trials, Poisson, NB2, zero-truncated NB2,
+  lognormal, Gamma, and Tweedie.
+
+Documentation and consistency work:
+
+- Updated roxygen wording in `R/drmTMB.R` and `R/missing-data.R` so the public
+  contract says "one `mi()` missing predictor in a univariate Gaussian location
+  model" instead of implying the predictor itself must be Gaussian.
+- Updated `vignettes/missing-data.Rmd` with a family-choice table and a short
+  comparison with `gllvmTMB` and `glmmTMB`.
+- Rebuilt `pkgdown-site/articles/missing-data.html` from the vignette and then
+  with `pkgdown::build_article("missing-data")`.
+- Updated `docs/design/149-missing-data-design.md` with the consolidated
+  family-coverage claim, current future boundaries, and clearer labels for the
+  historical staged-claim blocks.
+- Updated `docs/design/03-likelihoods.md` to remove stale wording that placed
+  count predictors in a later slice after the count routes had already landed.
+
+Cross-package audit:
+
+- Local `gllvmTMB` shares the missing-data vocabulary: `miss_control()`,
+  `mi()`, `fit$missing_data`, `predict_missing()`, and `imputed()`.
+  Its docs currently emphasize multivariate per-unit response masking and
+  categorical missing-predictor machinery; count predictor routes remain a
+  separate lane there.
+- Installed `glmmTMB` 1.1.11 exposes ordinary `na.action` behaviour in
+  `glmmTMB()`. Its documentation describes `na.omit` as the default inherited
+  behaviour and `na.exclude` as fitting with dropped rows while returning
+  `NA` predictions or residuals for excluded rows. It does not provide the
+  in-likelihood `mi()` missing-predictor mechanism implemented here.
+
+Commands:
+
+```sh
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); rmarkdown::render('vignettes/missing-data.Rmd', output_dir = 'pkgdown-site/articles', output_file = 'missing-data.html', quiet = FALSE)"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "pkgdown::check_pkgdown()"
+air format --check R/drmTMB.R R/missing-data.R
+git diff --check
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "devtools::test()"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'one univariate Gaussian `mi\(\)` predictor|one univariate Gaussian mi\(\) predictor|missing predictors still require explicit future|count predictors, multiple missing predictors|beta/proportion, count|Poisson count predictors belong to the later MD7b slice' vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md
+gh issue list --repo itchyshin/drmTMB --search "missing predictor family" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "missing data article" --limit 20
+gh issue list --repo itchyshin/drmTMB --search "mi impute_model" --limit 20
+```
+
+Results:
+
+- `devtools::document()` passed and regenerated `man/drmTMB.Rd` and
+  `man/miss_control.Rd`.
+- The direct `rmarkdown::render()` pass completed 39 vignette chunks and wrote
+  `pkgdown-site/articles/missing-data.html`.
+- `devtools::test(filter = 'missing-predictor')` passed with 376 expectations,
+  no failures, warnings, or skips.
+- `pkgdown::build_article("missing-data")` completed and rebuilt the pkgdown
+  article page.
+- The full `devtools::test()` suite passed with 9,077 expectations, no
+  failures, warnings, or skips.
+- `pkgdown::check_pkgdown()` passed with no problems found.
+- `air format --check` and `git diff --check` passed.
+- The stale-wording scan returned no matches after the
+  `docs/design/03-likelihoods.md` correction.
+
+GitHub issue audit:
+
+- `"missing predictor family"` returned only #436, the broad Phase 6c sprint
+  issue.
+- `"missing data article"` returned only #58, the older visualization/pkgdown
+  issue.
+- `"mi impute_model"` returned no issue rows.
+- No issue was commented on, closed, or opened because the hits were broad
+  project trackers rather than a specific missing-data family-coverage issue.
+
+Remaining boundary:
+
+- The current module is not a fully general missing-data system. The remaining
+  future work is multiple missing predictors, grouped or structured
+  non-Gaussian predictor models, transformed or interacted `mi()` terms, hurdle
+  count predictor models, EM/profile engines, REML, simulation-based imputed
+  summaries, response imputation helpers, measurement-error models, and pigauto
+  interoperability.
+
+## 2026-05-31 -- Missing Data MD9a Poisson Response Binary Predictor
+
+Implemented and audited MD9a, the first non-Gaussian response model that can use
+an explicit missing-predictor model.
+
+Implemented claim:
+
+- `family = poisson()` now supports one fixed-effect binary `mi()` predictor
+  with `impute = list(x = impute_model(x ~ z, family = binomial()))` and
+  `missing = miss_control(predictor = "model")`.
+- Observed binary predictor rows contribute the Bernoulli predictor likelihood
+  plus the Poisson response likelihood.
+- Missing binary predictor rows are integrated by exact two-state summation with
+  the observed Poisson response likelihood.
+- The fitted object records `fit$missing_data$version = "MD9a"` and
+  `imputed()` reports the fitted conditional probability of the second binary
+  state.
+
+Files and documentation updated:
+
+- `R/drmTMB.R`: allows `predictor = "model"` for ordinary Poisson responses,
+  routes `impute` into `drm_build_poisson_spec()`, rejects non-binary
+  Poisson-response `mi()` predictor families, rejects zero-inflated/random/
+  structured Poisson response terms with `mi()`, and labels the metadata as
+  MD9a.
+- `src/drmTMB.cpp`: adds the Poisson-response Bernoulli `mi()` likelihood
+  branch and skips the ordinary Poisson response contribution for rows already
+  integrated over missing predictor states.
+- `R/missing-data.R`: finalizes binary `imputed()` probabilities using the
+  Poisson response likelihood when `spec$model_type == "poisson"`.
+- `tests/testthat/test-missing-predictor-poisson-response.R`: adds the
+  independent likelihood check and boundary tests.
+- `R/drmTMB.R`, `R/missing-data.R`, `man/drmTMB.Rd`, `man/miss_control.Rd`,
+  `man/impute_model.Rd`, `vignettes/missing-data.Rmd`,
+  `docs/design/01-formula-grammar.md`, `docs/design/03-likelihoods.md`,
+  `docs/design/149-missing-data-design.md`, and `NEWS.md`: document the MD9a
+  route and its boundaries.
+
+Verification commands:
+
+```sh
+air format R/drmTMB.R R/missing-data.R tests/testthat/test-missing-data-control.R tests/testthat/test-missing-predictor-poisson-response.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-predictor-poisson-response.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-poisson-mean.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::load_all(); pkgdown::build_reference()"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+git diff --check
+```
+
+Results:
+
+- `devtools::document()` passed and regenerated `man/drmTMB.Rd`,
+  `man/miss_control.Rd`, and `man/impute_model.Rd`.
+- Focused `test-missing-predictor-poisson-response.R`: 13 expectations, no
+  failures, warnings, or skips.
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `test-poisson-mean.R`: 138 expectations, no failures, warnings, or skips.
+- `devtools::test(filter = 'missing-predictor')`: 389 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::build_article('missing-data')` rebuilt
+  `pkgdown-site/articles/missing-data.html` with 41 rendered vignette chunks.
+- `pkgdown::build_reference()` rebuilt the local reference pages from generated
+  Rd files.
+- `pkgdown::check_pkgdown()` passed with no problems found after both the article
+  and reference rebuilds.
+- Full `devtools::test()` passed with 9,090 expectations, no failures, warnings,
+  or skips.
+- `git diff --check` passed.
+
+Stale-wording and rendered-site scans:
+
+```sh
+rg -n "MD9a|Poisson responses with binary missing predictors|Poisson response with one missing binary predictor|first non-Gaussian response route|Poisson-response plus binary|family = poisson\\(\\).*mi\\(treatment\\)" vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md tests/testthat/test-missing-predictor-poisson-response.R
+rg -n 'only with a univariate Gaussian formula|implemented only for one `mi\(\)` missing predictor in a univariate Gaussian|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html pkgdown-site/reference/impute_model.html R/drmTMB.R R/missing-data.R man/drmTMB.Rd man/miss_control.Rd man/impute_model.Rd docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md NEWS.md
+```
+
+- The positive scan found the MD9a article section, table row, metadata version,
+  likelihood-design section, formula-grammar row, NEWS entry, generated Rd text,
+  and focused test.
+- The stale scan found only intentional boundary wording: the zero-inflated
+  Poisson `mi()` error in `R/drmTMB.R` and the NEWS sentence that unsupported
+  Poisson-response extensions remain planned.
+
+Cross-package audit:
+
+- Local `gllvmTMB` is on branch `docs/coev-kernel-article` with unrelated dirty
+  files. Its `R/fit-multi.R` contains `mi()` setup and binary/ordered/unordered
+  missing-predictor machinery, but its README still says missing predictors are
+  out. Its `predict_missing()` documentation is response-cell oriented rather
+  than a drop-in scalar Poisson-response missing-predictor route.
+- Installed `glmmTMB` is version 1.1.11. Its help for `glmmTMB()` documents
+  `na.action`: default `na.omit` strips observations containing `NA`, while
+  `na.exclude` drops them for fitting and fills `NA` predictions/residuals for
+  excluded rows. That is not an in-likelihood `mi()` predictor mechanism. The
+  local help query emitted a TMB package-version mismatch warning for the
+  installed `glmmTMB`, so this was treated as documentation evidence only.
+
+Command corrections:
+
+- `Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-poisson.R')"`
+  was attempted before this closeout and failed because that file does not
+  exist. The correct ordinary Poisson regression test file is
+  `tests/testthat/test-poisson-mean.R`, which passed.
+- `pkgdown::build_reference(new_process = FALSE, quiet = FALSE)` was attempted
+  and failed because this installed `pkgdown` version does not accept those
+  arguments. `pkgdown::build_reference()` was rerun with the installed signature
+  and passed.
+
+Remaining boundary:
+
+- MD9a is not a general non-Gaussian missing-data system. It covers one
+  fixed-effect binary missing predictor inside an ordinary fixed-effect Poisson
+  response mean model with complete count responses. Missing Poisson responses,
+  zero-inflated Poisson response models with `mi()`, Poisson response random or
+  structured effects with `mi()`, non-binary missing predictors in Poisson
+  response models, multiple missing predictors, grouped or structured
+  non-Gaussian predictor models, EM/profile/REML engines, simulated imputation
+  summaries, measurement-error models, and pigauto interoperability remain
+  planned.
+
+## 2026-06-01 -- Missing Data Final Tidy Closeout
+
+Goal: tidy the missing-data module after the MD9a Poisson-response slice,
+synchronize public docs and reference pages, and rerun package-level gates.
+
+Edits made in the tidy pass:
+
+- Updated `mi()` roxygen in `R/formula-markers.R` so the marker page now names
+  the implemented family-aware predictor routes instead of implying only the
+  Gaussian and binary slices.
+- Replaced stale "first missing-predictor slice" wording in current source
+  messages with "current missing-predictor route" wording in `R/drmTMB.R` and
+  `R/missing-data.R`.
+- Regenerated `man/drmTMB.Rd`, `man/mi.Rd`, and `man/miss_control.Rd`.
+- Rebuilt pkgdown reference pages for `drmTMB()`, `mi()`, `miss_control()`, and
+  `impute_model()`.
+- Added `^\\.claude$` to `.Rbuildignore` after `devtools::check()` reported it
+  as a hidden package-structure NOTE.
+
+Verification commands:
+
+```sh
+air format R/formula-markers.R R/drmTMB.R R/missing-data.R
+Rscript -e "devtools::document()"
+Rscript -e "devtools::load_all(); testthat::test_file('tests/testthat/test-missing-data-control.R')"
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+Rscript -e "devtools::load_all(); pkgdown::build_reference()"
+Rscript -e "devtools::load_all(); pkgdown::build_article('missing-data', new_process = FALSE, quiet = FALSE)"
+Rscript -e "pkgdown::check_pkgdown()"
+Rscript -e "devtools::test()"
+Rscript -e "devtools::check(args = '--no-manual')"
+Rscript -e "devtools::check(args = '--no-manual')"
+git diff --check
+```
+
+Results:
+
+- `test-missing-data-control.R`: 13 expectations, no failures, warnings, or
+  skips.
+- `devtools::test(filter = 'missing-predictor')`: 389 expectations, no
+  failures, warnings, or skips.
+- `pkgdown::build_reference()` completed and rewrote the missing-data reference
+  pages from the generated Rd files.
+- `pkgdown::build_article('missing-data')` rebuilt
+  `pkgdown-site/articles/missing-data.html` from 41 rendered chunks.
+- `pkgdown::check_pkgdown()` passed with no problems found.
+- Full `devtools::test()` passed with 9,090 expectations, no failures,
+  warnings, or skips.
+- The first `devtools::check(args = '--no-manual')` passed with 0 errors, 0
+  warnings, and 1 NOTE for hidden `.claude`.
+- After adding `.claude` to `.Rbuildignore`, the second
+  `devtools::check(args = '--no-manual')` passed with 0 errors, 0 warnings, and
+  1 NOTE: `checking for future file timestamps ... unable to verify current
+  time`. The earlier hidden-file NOTE was gone.
+- `git diff --check` passed.
+
+Stale/status scans:
+
+```sh
+rg -n 'Amazon|amazon' README.md NEWS.md docs vignettes pkgdown-site 2>/dev/null
+rg -n 'first missing-predictor slice|first `mi\(\)` predictor-model|first \.fn mi|one univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' R/formula-markers.R R/drmTMB.R R/missing-data.R man/mi.Rd man/drmTMB.Rd man/miss_control.Rd vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/mi.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md 2>/dev/null
+```
+
+- The `Amazon|amazon` scan found only Font Awesome icon CSS references under
+  `pkgdown-site/deps` and `pkgdown-site/dev/deps`; there is no Amazon-specific
+  article or missing-data prose.
+- The stale/status scan now returns only intentional wording: the NEWS first
+  release bullet, the MD3a formula-grammar row labelled as the first slice, and
+  the explicit zero-inflated Poisson `mi()` planned boundary.
+
+Final boundary: the missing-data module is tidy for the implemented surface, but
+not complete for all conceivable missing-data models. Remaining planned work
+includes multiple missing predictors, non-binary predictors in non-Gaussian
+response models, missing non-Gaussian responses, grouped or structured
+non-Gaussian predictor models, EM/profile/REML engines, simulated imputation
+summaries, measurement-error models, and pigauto interoperability.
+
+## 2026-06-01 -- Resume Audit Of Missing Data Final Tidy Closeout
+
+Goal: resume after interruption, preserve the current working-tree state, and
+audit the completed missing-data final tidy closeout before any new
+implementation slice.
+
+Recovery checkpoint:
+
+```sh
+Rscript tools/codex-checkpoint.R --goal "resume missing-data final tidy closeout audit" --next "audit completed missing-data closeout against after-task checklist and prepare the smallest safe handoff"
+```
+
+- Wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-01-104134-codex-checkpoint.md`.
+
+Audit commands:
+
+```sh
+git diff --check
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing-predictor')"
+rg -n 'Amazon|amazon' README.md NEWS.md docs/design vignettes pkgdown-site --glob '!pkgdown-site/deps/**' --glob '!pkgdown-site/dev/deps/**'
+rg -n 'first missing-predictor slice|first `mi\(\)` predictor-model|first \.fn mi|one univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|Poisson-response.*not implemented' R/formula-markers.R R/drmTMB.R R/missing-data.R man/mi.Rd man/drmTMB.Rd man/miss_control.Rd vignettes/missing-data.Rmd pkgdown-site/articles/missing-data.html pkgdown-site/reference/mi.html pkgdown-site/reference/drmTMB.html pkgdown-site/reference/miss_control.html NEWS.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/design/149-missing-data-design.md
+```
+
+Results:
+
+- `git diff --check` passed.
+- `devtools::test(filter = 'missing-predictor')` passed again with 389
+  expectations, no failures, warnings, or skips.
+- The precise `Amazon|amazon` scan, excluding generated Font Awesome dependency
+  directories, returned no hits.
+- The stale/status scan returned only intentional boundary wording: the NEWS
+  first-release bullets, the MD3a formula-grammar row labelled as the first
+  missing-predictor slice, and the explicit zero-inflated Poisson `mi()` planned
+  boundary in `R/drmTMB.R`.
+
+Audit conclusion: the current closeout claim is coherent. The implemented
+surface remains one-at-a-time modelled missing predictors, mainly in
+univariate Gaussian location models, plus MD9a for an ordinary Poisson response
+with one fixed-effect binary `mi()` predictor and complete count responses.
+The next safe step is not another implementation change on top of this dirty
+tree; it is to prepare a small reviewable handoff or PR slice for the
+missing-data work.
+
+## 2026-06-01 -- Missing Data And Non-Gaussian Status Cleanup
+
+Goal: clean up release-facing status wording after the missing-data closeout,
+make the exact missing-data release boundary explicit, and answer whether the
+package is close to finishing all non-Gaussian support.
+
+Edits made:
+
+- Added a missing-data status row to `README.md`.
+- Added the missing-data release boundary to `ROADMAP.md`.
+- Added a missing-data block to `docs/dev-log/known-limitations.md`.
+- Added a release-readiness interpretation to
+  `docs/design/149-missing-data-design.md`.
+- Corrected stale wording in
+  `docs/dev-log/after-task/2026-05-31-missing-data-module-family-coverage-closeout.md`
+  that implied all current missing-predictor routes were fixed-effect only.
+- Added
+  `docs/dev-log/after-task/2026-06-01-missing-data-non-gaussian-status-cleanup.md`.
+
+Verification commands:
+
+```sh
+Rscript -e "devtools::load_all(); devtools::test(filter = 'missing')"
+Rscript -e "pkgdown::check_pkgdown()"
+git diff --check
+rg -n 'one fixed-effect `mi\(\)` predictor at a time|one fixed-effect mi\(\) predictor at a time|only a univariate Gaussian `mi\(\)` predictor|Poisson count predictors belong to the later|non-Gaussian response route.*planned|missing-data.*done.*general|general missing-data framework.*done' README.md ROADMAP.md NEWS.md docs/design/149-missing-data-design.md docs/design/01-formula-grammar.md docs/design/03-likelihoods.md docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-05-31-missing-data-module-family-coverage-closeout.md docs/dev-log/after-task/2026-06-01-missing-data-final-tidy-closeout.md vignettes/missing-data.Rmd
+Rscript -e "devtools::test()"
+```
+
+Results:
+
+- `devtools::test(filter = 'missing')`: 479 expectations, no failures,
+  warnings, or skips.
+- `pkgdown::check_pkgdown()`: no problems found.
+- `git diff --check`: passed.
+- Stale scan: only intentional boundary text remained: NEWS MD9a planned
+  extensions, the new README status row, and the earlier after-task report's
+  recorded scan command.
+- Full `devtools::test()`: 9,090 expectations, no failures, warnings, or
+  skips.
+
+Status answer:
+
+- Missing-data capabilities are done for the current release boundary:
+  Gaussian response masks, one-at-a-time modelled missing predictors in
+  univariate Gaussian location models across the implemented predictor-family
+  set, `imputed()` summaries, and MD9a for ordinary Poisson response with one
+  fixed-effect binary `mi()` predictor.
+- Missing data is not a general framework yet. Multiple missing predictors,
+  missing non-Gaussian responses, non-binary missing predictors in
+  non-Gaussian response models, grouped or structured non-Gaussian predictor
+  models, EM/profile/REML engines, response-imputation summaries,
+  measurement-error models, and pigauto interoperability remain planned.
+- Non-Gaussian support is close only on named axes: one-response fixed-effect
+  families are broad, and first ordinary `mu` random-effect plus selected q=1
+  structured count slices are tested. It is not close for every
+  non-Gaussian mixed, structured, bivariate, missing-data, or distributional
+  parameter combination.
 - Focused `profile-targets` and `control` tests passed.
 - `pkgdown::check_pkgdown()` returned `No problems found`.
 - The positive scan found #265, the new closeout ledger, the direct
@@ -47302,3 +51502,131 @@ the same team as Codex.
 - NOT validated here: devtools::test() / R CMD check, because the package repos
   are unreachable under this network policy. Will work where
   packagemanager.posit.co and cloud.r-project.org are allowed.
+
+## 2026-06-02 - Bivariate q4 location intercept-slope source gate (branch codex/phase6c-twin-exchange)
+
+Supersession note: this entry records the source-gate slice before the later
+`biv_gaussian_q4_location` smoke/artifact lane was added. The following
+2026-06-02 smoke-lane entry is the current Phase 18 artifact-routing status for
+q4 location blocks; q6 location blocks remain source-tested only.
+
+Task: fit the first matching one-slope q4 bivariate location block for
+`biv_gaussian()`, while keeping residual `rho12`, residual-scale slopes,
+multiple-slope location blocks, p8/q8 endpoint covariance, and simulation
+claims outside this source gate.
+
+- Implemented matching `mu1`/`mu2` labelled `(1 + x | p | id)` support by
+  detecting the two location formulas as a q > 2 location covariance block,
+  expanding the two formulas into four location members, and routing the block
+  through the existing `u_re_cov`, `log_sd_re_cov`, and `theta_re_cov`
+  machinery.
+- Added focused bivariate Gaussian tests for fitting, extractor names,
+  `corpairs()`, `summary(fit)$covariance`, `profile_targets()`,
+  `check_drm()`, prediction contribution, simulation reproducibility, and the
+  multiple-slope rejection boundary.
+- Updated formula grammar, likelihood, README, ROADMAP, known-limitations, and
+  Phase 6c/Phase 18 status ledgers to say this q4 location route is fitted and
+  source-tested, while its six correlations remain derived-unavailable for
+  intervals and the route has no Phase 18 artifact lane yet.
+- Checks run:
+  - `air format R/drmTMB.R R/profile.R tests/testthat/test-biv-gaussian.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 840
+    passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'profile-targets|check-drm|covariance-block-registry|gaussian-random-intercepts|phase18-gaussian-mu-random-slope')"`
+    returned 1,569 passes, no failures, warnings, or skips.
+  - `rg -n 'intercept-plus-slope q4|intercept-plus-slope bivariate blocks|broader bivariate random slopes|First future bivariate slope|\| q4 location slope \|.*Planned|q4 location-only slope block|intercept-plus-slope q=4 bivariate location blocks|intercept-plus-slope q=4 blocks' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes`
+    returned no matches.
+  - `rg -n 'matching one-slope q=4|one-slope intercept-plus-slope q=4|q=4 bivariate location|q4 location block|multiple-slope bivariate location|residual-scale slope blocks|all-four p8/q8|derived-unavailable' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes tests/testthat/test-biv-gaussian.R`
+    returned expected positive boundary/status hits in the synced docs,
+    vignettes, NEWS, README, ROADMAP, and test guard.
+  - `git diff --check` passed after the final closeout edits.
+- Not run: full `devtools::test()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()`. This slice changed no roxygen comments, so
+  `devtools::document()` was not needed.
+
+## 2026-06-02 - Bivariate q4 location smoke artifact lane (branch codex/phase6c-twin-exchange)
+
+Task: add the Phase 18 smoke/artifact lane for the matching q4 bivariate
+Gaussian location block `(1 + x | p | id)` in both `mu1` and `mu2`, without
+claiming recovery, coverage, power, q6 artifact routing, residual-scale slopes,
+random `rho12`, or p8/q8 endpoint support.
+
+- Added the seeded DGP, fit summariser, smoke runner, aggregate writer, and
+  CRAN-safe test file for `biv_gaussian_q4_location`.
+- Wired `biv_gaussian_q4_location` into the structured workflow registry, the
+  manual Phase 18 Actions dispatcher, and `.github/workflows/phase18-simulation-grid.yaml`
+  as an opt-in task with seed `20260609`.
+- Updated Phase 18 design ledgers so q4 location is smoke-artifact routed,
+  q6 location remains source-tested only, and the random-slope registry now has
+  ten admitted rows with six grid/smoke rows and four source-test rows.
+- Checks run:
+  - `air format R/drmTMB.R R/profile.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-biv-gaussian-q4-location.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R inst/sim/dgp/sim_dgp_biv_gaussian_q4_location.R inst/sim/fit/sim_summarise_biv_gaussian_q4_location.R inst/sim/run/sim_run_biv_gaussian_q4_location_smoke.R inst/sim/run/sim_summary_biv_gaussian_q4_location_smoke.R inst/sim/run/sim_write_biv_gaussian_q4_location_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q4-location')"`
+    returned 45 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 453 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 911
+    passes, no failures, warnings, or skips.
+  - `rg -n 'q4 location.*no Phase 18 artifact lane|q4.*would need.*wrapper|nine rows with non-none Actions|five grid/admitted rows|include_source_test = FALSE.*five|q4 location.*source-tested but.*no artifact|intercept-plus-slope q4.*Planned|q4 location.*planned|artifact lane planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim tests/testthat .github/workflows/phase18-simulation-grid.yaml`
+    returned only intentional historical/boundary hits: Slice 1825 "had nine
+    rows" before q4 routing, q6 artifact routing, residual-scale slope,
+    same-response location-scale, and p8/q8 planned boundaries.
+  - `git diff --check` passed.
+- Not run: full `devtools::test()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()`. No roxygen comments changed, so `devtools::document()`
+  was not needed.
+
+## 2026-06-03 - Bivariate q4/q6 location closeout verification (branch codex/phase6c-twin-exchange)
+
+Task: close the remaining local verification items after syncing the q4 source
+gate with the later q4 smoke/artifact lane and q6 source-tested status.
+
+- Added a supersession note to the q4 source-gate after-task report and the
+  matching check-log entry: the source report remains the historical source
+  gate, while `2026-06-02-bivariate-q4-location-smoke-artifact-lane.md` records
+  the current q4 artifact-routing status and q6 source-only boundary.
+- Fixed the duplicated "Matching matching" wording in
+  `docs/dev-log/known-limitations.md`.
+- Updated the `bivariate_gaussian_slope_only` registry boundary so it no longer
+  says q4 needs design; q4 now has its own smoke route, while q6 artifact
+  routing and p8/q8 remain design/future work.
+- Checks run:
+  - `rg -n 'Intercept-plus-slope q4 and p8/q8 need design|Matching matching|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|intercept-plus-slope q4.*Planned|q4 location.*planned|artifact lane planned' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/after-task/2026-06-02-bivariate-q4-location-source-gate.md docs/dev-log/after-task/2026-06-02-bivariate-q4-location-smoke-artifact-lane.md vignettes inst/sim tests/testthat .github/workflows/phase18-simulation-grid.yaml`
+    returned only intentional historical scan recipes, the historical
+    source-gate report, and current planned-boundary rows.
+  - `git diff --check` passed.
+  - `Rscript -e "devtools::test()"` returned 9,316 passes, no failures,
+    warnings, or skips.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned no problems found.
+  - `Rscript -e "devtools::check()"` completed in 8m 9.2s with 0 errors,
+    0 warnings, and 1 NOTE: unable to verify current time.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted one local-library warning that `glmmTMB` was built with TMB
+    1.9.17 while the current TMB was 1.9.21.
+- Not run: `devtools::document()`, because no roxygen comments changed.
+
+## 2026-06-03 - Bivariate q4 location GitHub closeout (branch codex/phase6c-twin-exchange)
+
+Task: finish the issue and PR maintenance for the q4 bivariate Gaussian
+location smoke/artifact lane without expanding the simulation claim.
+
+- Pushed commit `1442abae` to `origin/codex/phase6c-twin-exchange`.
+- PR #445 was marked ready for review after the current head had local broad
+  checks and green R-CMD-check jobs on macOS, Ubuntu, and Windows in run
+  26870137519.
+- Posted the Phase 6c closeout comment on #33:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4610200577>.
+- Posted the Phase 18 smoke/artifact-routing comment on #59:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4610201741>.
+- Posted the PR verification and boundary comment on #445:
+  <https://github.com/itchyshin/drmTMB/pull/445#issuecomment-4610203050>.
+- Left #33 and #59 open. The remaining work is q6 artifact routing,
+  residual-scale and same-response location-scale slope covariance, p8/q8
+  endpoint covariance, and recovery, coverage, power, timing, or Monte Carlo
+  evidence. The q4 lane is smoke/artifact-ready only.
+- Checks run:
+  - `gh pr view 445 --json isDraft,state,headRefOid,statusCheckRollup,url`
+    confirmed PR #445 is no longer draft, remains open, and has successful
+    checks at head `1442abae83cddfa523e84c7d4ece9e800e5703e5`.

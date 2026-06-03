@@ -2721,7 +2721,17 @@ profile_sd_internal <- function(object, dpar, term) {
   if (
     is.list(registry) &&
       nrow(qgt2_members <- qgt2_covariance_members(registry)) > 0L &&
-      any(qgt2_members$dpar == dpar & qgt2_members$label == term)
+      any(
+        vapply(
+          seq_len(nrow(qgt2_members)),
+          function(i) {
+            member <- qgt2_members[i, , drop = FALSE]
+            identical(covariance_registry_member_sd_key(member), dpar) &&
+              identical(member$label[[1L]], term)
+          },
+          logical(1L)
+        )
+      )
   ) {
     return("log_sd_re_cov")
   }

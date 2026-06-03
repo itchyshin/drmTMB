@@ -77,8 +77,9 @@ method developers and R package contributors.
   than vague phrases such as "various factors" or "significant improvements".
 - Use active voice when the agent matters.
 - Do not turn prose into bullets unless the content is a genuine list.
-- Keep terms stable: `sigma`, `rho12`, `sd(group)`, `meta_known_V(V = V)`,
+- Keep terms stable: `sigma`, `rho12`, `sd(group)`, `meta_V(V = V)`,
   `phylo()`, `spatial()`, `mu`, and `nu` should not drift across documents.
+  Mention deprecated `meta_known_V(V = V)` only as a compatibility alias.
   Mention `tau` only when explaining a second shape parameter or when
   contrasting drmTMB's `sigma` with meta-analysis notation.
 - Support factual, statistical, or literature claims with a citation, local

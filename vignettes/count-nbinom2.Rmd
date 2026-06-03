@@ -397,8 +397,8 @@ Do not teach the following as fitted count examples yet:
   or hurdle NB2 count components;
 - `sd(group) ~ ...` random-effect scale models;
 - `meta_V(V = V)` or deprecated `meta_known_V(V = V)` with counts;
-- zero-inflated, hurdle, spatial, animal, or `relmat()` structured count
-  models;
+- zero-inflated or hurdle structured count models, structured count slopes,
+  simultaneous structured count types, and labelled structured count covariance;
 - NB2 phylogenetic slopes, NB2 `sigma` phylogeny, and zero-inflated NB2
   phylogeny;
 - phylogenetic count slopes or labelled q2/q4 phylogenetic count covariance;

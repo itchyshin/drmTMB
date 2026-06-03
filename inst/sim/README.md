@@ -153,6 +153,11 @@ Current pilot files:
 - `docs/design/138-phase-18-count-structured-q1-stable-diagnostic-audit-slices-1761-1762.md`
   audits the first `condition_set = "stable"` Actions run and records the
   `propose_next_pilot` decision for a separate stable formal-pilot design.
+- `docs/design/148-phase6c-structured-one-slope-ademp.md` is the #442/#446
+  ADEMP sheet for one numeric Gaussian structured `mu` slope in `phylo()`,
+  `spatial()`, `animal()`, and `relmat()`, keeping route-specific artifact
+  maturity separate from coverage, power, q2/q4 covariance, and multi-slope
+  claims.
 - `dgp/sim_dgp_gaussian_ls.R` generates Gaussian location-scale data with
   `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_gaussian_mu_random_slope.R` generates Gaussian `mu` data with
@@ -163,6 +168,15 @@ Current pilot files:
 - `dgp/sim_dgp_spatial_mu_slope.R` generates Gaussian spatial `mu` data with
   independent coordinate-spatial intercept and slope fields,
   `spatial(1 + x | site, coords = coords)`.
+- `dgp/sim_dgp_phylo_mu_slope.R` generates Gaussian phylogenetic `mu` data
+  with independent phylogenetic intercept and slope fields,
+  `phylo(1 + x | species, tree = tree)`.
+- `dgp/sim_dgp_animal_mu_slope.R` generates Gaussian animal-model `mu` data
+  with independent dense-pedigree intercept and slope fields,
+  `animal(1 + x | id, pedigree = pedigree)`.
+- `dgp/sim_dgp_relmat_mu_slope.R` generates Gaussian known-matrix `mu` data
+  with independent `relmat()` intercept and slope fields,
+  `relmat(1 + x | id, Q = Q)`.
 - `dgp/sim_dgp_spatial_q2.R` generates bivariate Gaussian spatial `mu1`/`mu2`
   data with matching coordinate-spatial q=2 fields and residual `rho12` kept as
   a separate layer.
@@ -282,6 +296,15 @@ Current pilot files:
 - `fit/sim_summarise_spatial_mu_slope.R` summarises fixed `mu` coefficients,
   public residual `sigma`, and the two direct coordinate-spatial `mu` SDs for
   the intercept and slope fields.
+- `fit/sim_summarise_phylo_mu_slope.R` summarises fixed `mu` coefficients,
+  public residual `sigma`, and the two direct phylogenetic `mu` SDs for the
+  intercept and slope fields.
+- `fit/sim_summarise_animal_mu_slope.R` summarises fixed `mu` coefficients,
+  public residual `sigma`, and the two direct dense-pedigree `animal()` `mu`
+  SDs for the intercept and slope fields.
+- `fit/sim_summarise_relmat_mu_slope.R` summarises fixed `mu` coefficients,
+  public residual `sigma`, and the two direct known-matrix `relmat()` `mu` SDs
+  for the intercept and slope fields.
 - `fit/sim_summarise_spatial_q2.R` summarises fixed `mu1`/`mu2` coefficients,
   public residual scales, coordinate-spatial SDs, the spatial q=2 correlation,
   and residual `rho12` for bivariate spatial smoke fits.
@@ -360,6 +383,12 @@ Current pilot files:
   Gaussian `sigma` independent one-slope surface.
 - `run/sim_run_spatial_mu_slope_smoke.R` does the same for the coordinate
   spatial Gaussian `mu` one-slope surface.
+- `run/sim_run_phylo_mu_slope_smoke.R` does the same for the phylogenetic
+  Gaussian `mu` one-slope surface.
+- `run/sim_run_animal_mu_slope_smoke.R` does the same for the dense-pedigree
+  `animal()` Gaussian `mu` one-slope surface.
+- `run/sim_run_relmat_mu_slope_smoke.R` does the same for the known-matrix
+  `relmat()` Gaussian `mu` one-slope surface.
 - `run/sim_run_spatial_q2_smoke.R` does the same for the coordinate-spatial
   q=2 bivariate location-covariance surface.
 - `run/sim_run_poisson_mu_random_effect_smoke.R` does the same for the
@@ -526,11 +555,22 @@ Current pilot files:
   interval-evidence, interval-diagnostics, and interval-failure CSVs beside
   resumable per-replicate RDS files.
 - `run/sim_write_gaussian_mu_random_slope_grid.R`,
-  `run/sim_write_gaussian_sigma_random_slope_grid.R`, and
-  `run/sim_write_spatial_mu_slope_grid.R` write simple aggregate,
+  `run/sim_write_gaussian_sigma_random_slope_grid.R`,
+  `run/sim_write_phylo_mu_slope_grid.R`,
+  `run/sim_write_spatial_mu_slope_grid.R`,
+  `run/sim_write_animal_mu_slope_grid.R`, and
+  `run/sim_write_relmat_mu_slope_grid.R` write simple aggregate,
   replicate-level, manifest, and failure-ledger artifact sets for the ordinary
   Gaussian `mu` random-slope, independent Gaussian `sigma` random-slope, and
-  coordinate-spatial Gaussian `mu` slope lanes.
+  Gaussian structured `mu` one-slope lanes. The ordinary Gaussian `mu` and
+  `sigma` random-slope smoke grids are part of the first-wave summary runner
+  and therefore run through `task = "first_wave_summary"` or `task = "all"`.
+  The manual `phylo_mu_slope`, `spatial_mu_slope`, `animal_mu_slope`, and
+  `relmat_mu_slope` Actions tasks can run the structured one-slope lanes as
+  opt-in artifact dispatches. They remain excluded from `task = "all"` and do
+  not add mesh/SPDE, sparse large-pedigree speed claims, multiple structured
+  slopes, structured slope correlations, residual-scale structured slopes,
+  non-Gaussian structured slopes, recovery, coverage, or power claims.
 - `run/sim_write_biv_gaussian_mu_slope_grid.R` writes the same simple artifact
   set for the matching bivariate Gaussian `mu1`/`mu2` slope-only lane. The
   manual `biv_gaussian_mu_slope` Actions task can run it. Manual run
@@ -544,6 +584,11 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   so a run can parallelize one layer without nesting parallel work in both;
   the runner errors if both layers would use more than one worker.
+- `run/sim_write_correlation_block_status.R` writes read-only status CSVs for
+  the correlation-block workflow plan, dispatchable rows, remaining wrapper
+  targets, and correlation-block registry counts. The manual
+  `correlation_block_status` Actions task can run it without fitting models or
+  promoting q=4 derived correlations to interval-ready status.
 - `run/sim_write_student_shape_grid.R` writes the same artifact set for the
   Student-t fixed-effect shape `nu` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
@@ -587,11 +632,11 @@ Current pilot files:
   tasks. It writes an RDS result beside the task artifact tables and caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
-  the same time. The phylogenetic formal tasks, random-slope tasks, and
-  standalone family tasks are manual-only and are excluded from `task = "all"`
-  by the workflow matrix. Formal tasks also accept one-based `condition_shard`
-  and `condition_shards` inputs so the 288-cell formal tables can be split
-  across multiple Actions runs.
+  the same time. Standalone random-slope tasks outside the first-wave summary,
+  phylogenetic formal tasks, and standalone family tasks are manual-only and
+  are excluded from `task = "all"` by the workflow matrix. Formal tasks also
+  accept one-based `condition_shard` and `condition_shards` inputs so the
+  288-cell formal tables can be split across multiple Actions runs.
 - `run/sim_summary_gaussian_mu_random_slope_smoke.R` runs a tiny ordinary
   Gaussian `mu` q=3 random-slope summary smoke grid and returns grouped bias,
   RMSE, MCSE, manifest, and warning/error ledger outputs.
@@ -601,6 +646,15 @@ Current pilot files:
 - `run/sim_summary_spatial_mu_slope_smoke.R` runs a tiny coordinate spatial
   Gaussian `mu` one-slope summary smoke grid and returns grouped bias, RMSE,
   MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_phylo_mu_slope_smoke.R` runs a tiny phylogenetic Gaussian
+  `mu` one-slope summary smoke grid and returns grouped bias, RMSE, MCSE,
+  manifest, and warning/error ledger outputs.
+- `run/sim_summary_animal_mu_slope_smoke.R` runs a tiny dense-pedigree
+  `animal()` Gaussian `mu` one-slope summary smoke grid and returns grouped
+  bias, RMSE, MCSE, manifest, and warning/error ledger outputs.
+- `run/sim_summary_relmat_mu_slope_smoke.R` runs a tiny known-matrix
+  `relmat()` Gaussian `mu` one-slope summary smoke grid and returns grouped
+  bias, RMSE, MCSE, manifest, and warning/error ledger outputs.
 - `run/sim_summary_poisson_mu_random_effect_smoke.R` runs a tiny
   non-zero-inflated Poisson `mu` random-effect summary smoke grid and returns
   grouped bias, RMSE, MCSE, manifest, and warning/error ledger outputs.

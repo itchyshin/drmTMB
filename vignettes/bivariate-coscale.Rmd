@@ -812,7 +812,12 @@ Hessian, and boundary checks.
 This slope-only route deliberately excludes random intercepts from the same
 labelled bivariate block. If the scientific question needs baseline
 individual differences and slope differences in the same two-response block,
-that is an intercept-plus-slope q4 location model and remains planned.
+matching q4 and q6 location blocks are now source-tested with syntax such as
+`(1 + x | p | id)` or `(1 + x + z | p | id)` in both location formulas. Treat
+those routes as fitted extractor/profile-target slices rather than a full
+tutorial or simulation artifact lane; residual-scale slope blocks,
+same-response location-scale slope covariance, and all-four p8/q8 endpoint
+covariance remain planned.
 
 ## Boundaries for this covariance layer
 

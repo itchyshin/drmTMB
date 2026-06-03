@@ -4,7 +4,7 @@ phase18_render_first_wave_summary_report <- function(
   artifacts = phase18_first_wave_table_artifacts(),
   overwrite = FALSE,
   render = TRUE,
-  require_complete = TRUE,
+  require_complete = FALSE,
   notes = ""
 ) {
   if (

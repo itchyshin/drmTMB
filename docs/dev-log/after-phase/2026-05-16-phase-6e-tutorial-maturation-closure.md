@@ -48,9 +48,10 @@ Structural dependence:
   phylo() + spatial() in the same mu    -> planned until identifiability checks
 
 Meta-analysis:
-  meta_known_V(V = V)       -> current additive known sampling covariance
+  meta_V(V = V)             -> current additive known sampling covariance
+  meta_known_V(V = V)       -> deprecated compatibility alias
   weights = w               -> row likelihood multipliers, not sampling variance
-  meta_V(...)               -> reserved future umbrella, not implemented
+  proportional sampling variance -> reserved future umbrella, not implemented
 ```
 
 The source and rendered tutorials keep residual `rho12` separate from

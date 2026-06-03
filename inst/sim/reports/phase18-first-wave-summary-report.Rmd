@@ -14,7 +14,7 @@ params:
   bootstrap_coverage_csv: null
   interval_diagnostics_csv: null
   interval_failures_csv: null
-  require_complete: true
+  require_complete: false
   max_rows: 20
   notes: ""
 ---

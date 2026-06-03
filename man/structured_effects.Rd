@@ -35,6 +35,7 @@ The current fitted marker grammar is:
 \item \code{animal(1 | id, pedigree = pedigree)},
 \code{animal(1 | id, A = A)}, or \code{animal(1 | id, Ainv = Ainv)}
 \item \code{relmat(1 | id, K = K)} or \code{relmat(1 | id, Q = Q)}
+\item \code{phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)}
 }
 
 Some Gaussian routes also fit matching location-scale, bivariate, or

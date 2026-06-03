@@ -17,6 +17,14 @@ structured_effects_test_tree <- function(n_tip = 4L, prefix = "sp") {
 
 structured_effects_test_data <- function() {
   species_tree <- structured_effects_test_tree(prefix = "sp")
+  plant_tree <- structured_effects_test_tree(prefix = "plant")
+  pollinator_tree <- structured_effects_test_tree(prefix = "pollinator")
+  pair_grid <- expand.grid(
+    plant = plant_tree$tip.label,
+    pollinator = pollinator_tree$tip.label,
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
   id_levels <- paste0("id_", seq_len(4L))
   site_levels <- paste0("site_", seq_len(4L))
   K <- outer(seq_len(4L), seq_len(4L), function(i, j) 0.35^abs(i - j))
@@ -30,13 +38,17 @@ structured_effects_test_data <- function() {
 
   list(
     data = data.frame(
-      y = seq_len(16L) / 10,
-      x = rep(c(-1, -0.25, 0.25, 1), length.out = 16L),
+      y = seq_len(nrow(pair_grid)) / 10,
+      x = rep(c(-1, -0.25, 0.25, 1), length.out = nrow(pair_grid)),
       species = rep(species_tree$tip.label, each = 4L),
       site = rep(site_levels, each = 4L),
-      id = rep(id_levels, each = 4L)
+      id = rep(id_levels, each = 4L),
+      plant = pair_grid$plant,
+      pollinator = pair_grid$pollinator
     ),
     species_tree = species_tree,
+    plant_tree = plant_tree,
+    pollinator_tree = pollinator_tree,
     coords = coords,
     K = K,
     Q = solve(K)
@@ -128,6 +140,8 @@ test_that("structured_effects() reports current parsed structured markers", {
   sim <- structured_effects_test_data()
   dat <- sim$data
   tree <- sim$species_tree
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
   coords <- sim$coords
   Q <- sim$Q
   env <- environment()
@@ -183,4 +197,32 @@ test_that("structured_effects() reports current parsed structured markers", {
     correlation_level = "relmat"
   )
   expect_equal(relmat_row$args[[1L]], list(Q = "Q"))
+
+  interaction_row <- expect_single_structured_effect(
+    y ~ x +
+      phylo_interaction(
+        1 | plant:pollinator,
+        tree1 = plant_tree,
+        tree2 = pollinator_tree
+      ),
+    dat,
+    env,
+    marker = "phylo_interaction",
+    grouping_variable = "plant:pollinator",
+    matrix_attachment = "plant_tree:pollinator_tree",
+    structure = "tree_pair",
+    random_effect_block = "phylo_interaction_mu",
+    correlation_level = "phylo_interaction"
+  )
+  expect_equal(interaction_row$group1, "plant")
+  expect_equal(interaction_row$group2, "pollinator")
+  expect_equal(
+    interaction_row$args[[1L]],
+    list(
+      tree1 = "plant_tree",
+      tree2 = "pollinator_tree",
+      group1 = "plant",
+      group2 = "pollinator"
+    )
+  )
 })

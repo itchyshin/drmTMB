@@ -70,6 +70,57 @@
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
+#' @param impute Optional one-element named list of predictor models for the
+#'   current missing-predictor routes. Bare formulas such as `list(x = x ~ z)`
+#'   define Gaussian models for numeric missing predictors. Use
+#'   [impute_model()] for explicit predictor families, such as
+#'   `list(treatment = impute_model(treatment ~ z, family = binomial()))` for
+#'   a binary predictor, `list(score = impute_model(score ~ z, family =
+#'   cumulative_logit()))` for an ordered predictor, or
+#'   `list(habitat = impute_model(habitat ~ z, family = categorical()))` for
+#'   an unordered predictor, or
+#'   `list(cover = impute_model(cover ~ z, family = beta()))` for a strict
+#'   proportion predictor in `(0, 1)`, or
+#'   `list(cover = impute_model(cover ~ z, family = zero_one_beta()))` for a
+#'   boundary proportion predictor in `[0, 1]`, or
+#'   `list(cover = impute_model(success ~ z, family = beta_binomial(), trials =
+#'   trials))` for a denominator-aware success/trial proportion predictor, or
+#'   `list(abundance = impute_model(abundance ~ z, family = poisson()))` or
+#'   `list(abundance = impute_model(abundance ~ z, family = nbinom2()))` for a
+#'   count predictor, including
+#'   `list(abundance = impute_model(abundance ~ z, family =
+#'   truncated_nbinom2()))` for a positive zero-truncated count predictor, or
+#'   `list(biomass = impute_model(biomass ~ z, family = lognormal()))` for a
+#'   positive continuous predictor, or
+#'   `list(biomass = impute_model(biomass ~ z, family = Gamma(link = "log")))`
+#'   for a Gamma positive continuous predictor, or
+#'   `list(biomass = impute_model(biomass ~ z, family = tweedie()))` for a
+#'   non-negative semi-continuous predictor with exact zeros. Grouped Gaussian
+#'   covariate models use syntax such as
+#'   `list(x = x ~ z + (1 | group))`; structured Gaussian covariate models use
+#'   explicit syntax such as `list(x = x ~ z + relmat(1 | line, Q = Q))`.
+#'   Most fitted routes use a univariate Gaussian formula containing one `mi(x)`
+#'   location term and `missing = miss_control(predictor = "model")`. The first
+#'   non-Gaussian response route also supports `family = poisson()` with one
+#'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
+#' @param missing Missing-data policy created by [miss_control()]. The default
+#'   keeps the existing complete-case behaviour. In the current fitted slices,
+#'   `missing = miss_control(response = "include")` is implemented only for
+#'   univariate Gaussian response masks and bivariate Gaussian partial-response
+#'   rows without dense known covariance. `missing =
+#'   miss_control(predictor = "model")` is implemented for one `mi()`
+#'   missing predictor in a univariate Gaussian location model: numeric
+#'   Gaussian predictors may use a
+#'   fixed-effect, one random-intercept, or one intercept-only structured
+#'   Gaussian `impute` formula; binary, ordered categorical, unordered
+#'   categorical, strict beta/proportion, zero-one beta boundary-proportion,
+#'   beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
+#'   zero-truncated negative-binomial count, lognormal positive continuous,
+#'   Gamma positive continuous, and Tweedie semi-continuous predictors may use
+#'   one fixed-effect family-aware `impute_model()`. The first Poisson-response
+#'   route supports one fixed-effect binary missing predictor with a
+#'   Bernoulli/logit `impute_model()`, complete count responses, and no
+#'   zero-inflation, random, or structured response terms.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -89,6 +140,8 @@ drmTMB <- function(
   data,
   weights = NULL,
   control = list(),
+  impute = NULL,
+  missing = miss_control(),
   ...
 ) {
   if (!inherits(formula, "drm_formula")) {
@@ -105,8 +158,9 @@ drmTMB <- function(
   }
   formula_env <- drm_formula_env(formula, parent.frame())
   control <- drm_parse_control(control)
+  missing_control <- drm_parse_missing_control(missing)
 
-  weights_expr <- if (missing(weights)) NULL else substitute(weights)
+  weights_expr <- if (base::missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
     weights_expr = weights_expr,
     data = data,
@@ -114,6 +168,29 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (
+    identical(missing_control$response, "include") &&
+      !family_type %in% c("gaussian", "biv_gaussian")
+  ) {
+    cli::cli_abort(c(
+      "{.code miss_control(response = \"include\")} is implemented only for Gaussian response models in this missing-data slice.",
+      "i" = "Use the default {.code missing = miss_control(response = \"drop\")} for this family until its observed-data likelihood slice lands."
+    ))
+  }
+  if (
+    identical(missing_control$predictor, "model") &&
+      !family_type %in% c("gaussian", "poisson")
+  ) {
+    cli::cli_abort(c(
+      "{.code miss_control(predictor = \"model\")} is implemented only for univariate Gaussian models and the first Poisson-response missing-predictor slice.",
+      "i" = "Use complete predictors or {.code missing = miss_control(predictor = \"fail\")} for this family."
+    ))
+  }
+  if (!family_type %in% c("gaussian", "poisson") && !is.null(impute)) {
+    cli::cli_abort(
+      "{.arg impute} is currently implemented only for univariate Gaussian and first-slice Poisson {.fn mi} predictor models."
+    )
+  }
   if (isTRUE(control$sparse_fixed) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
       "Sparse fixed-effect matrices are implemented only for univariate Gaussian models in this phase.",
@@ -139,7 +216,9 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
-      control = control
+      control = control,
+      impute = impute,
+      missing = missing_control
     ),
     student = drm_build_student_ls_spec(
       formula,
@@ -193,7 +272,9 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      impute = impute,
+      missing = missing_control
     ),
     nbinom2 = drm_build_nbinom2_spec(
       formula,
@@ -211,7 +292,8 @@ drmTMB <- function(
       formula,
       data,
       env = formula_env,
-      weights = weights_full
+      weights = weights_full,
+      missing = missing_control
     )
   )
 
@@ -240,6 +322,7 @@ drmTMB <- function(
   sdr <- uncertainty$sdr
   par_list <- obj$env$parList(opt$par)
   par <- split_tmb_parameters(par_list, spec)
+  missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
   fit <- list(
     call = match.call(),
@@ -259,6 +342,7 @@ drmTMB <- function(
     corpars = split_tmb_corpars(par_list, spec),
     random_effects = split_tmb_random_effects(par_list, spec),
     ordinal = ordinal_fit_info(par_list, spec),
+    missing_data = missing_data,
     logLik = -opt$objective,
     df = length(opt$par),
     nobs = spec$nobs
@@ -551,8 +635,12 @@ drm_build_gaussian_ls_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
-  control = drm_control()
+  control = drm_control(),
+  impute = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_sd_mu_dpar <- startsWith(dpars, "sd(")
@@ -691,8 +779,28 @@ drm_build_gaussian_ls_spec <- function(
     sd_phylo_entries,
     mu_phylo$term
   )
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
   sparse_mu <- isTRUE(control$sparse_fixed)
   aggregate_gaussian <- isTRUE(control$aggregate_gaussian)
+  if (include_missing_predictor && sparse_mu) {
+    cli::cli_abort(c(
+      "Gaussian {.fn mi} predictor models are not implemented with sparse fixed-effect matrices in MD3a.",
+      "i" = "Set {.code sparse_fixed = FALSE} for the current Gaussian {.fn mi} route."
+    ))
+  }
+  if (include_missing_response && aggregate_gaussian) {
+    cli::cli_abort(c(
+      "Gaussian response-missingness masks are not implemented with Gaussian aggregation in MD1.",
+      "i" = "Set {.code aggregate_gaussian = FALSE} or use the default {.code missing = miss_control(response = \"drop\")}."
+    ))
+  }
+  if (include_missing_predictor && aggregate_gaussian) {
+    cli::cli_abort(c(
+      "Gaussian {.fn mi} predictor models are not implemented with Gaussian aggregation in MD3a.",
+      "i" = "Set {.code aggregate_gaussian = FALSE} for the current Gaussian {.fn mi} route."
+    ))
+  }
   if (aggregate_gaussian) {
     validate_gaussian_aggregation_gaussian(
       meta = meta,
@@ -738,9 +846,45 @@ drm_build_gaussian_ls_spec <- function(
   f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
   f_sd_phylo <- lapply(sd_phylo_entries, drm_entry_formula, response = FALSE)
 
+  mu_model_vars <- if (include_missing_response) {
+    all.vars(stats::delete.response(stats::terms(f_mu)))
+  } else {
+    all.vars(f_mu)
+  }
+  if (include_missing_predictor) {
+    mu_model_vars <- setdiff(mu_model_vars, mi_setup$variable)
+  }
+  impute_vars <- if (include_missing_predictor) {
+    c(
+      all.vars(stats::delete.response(stats::terms(mi_setup$formula))),
+      mi_setup$trials_variable,
+      if (is.list(mi_setup$random) && isTRUE(mi_setup$random$enabled)) {
+        mi_setup$random$group
+      },
+      if (
+        is.list(mi_setup$structured) &&
+          isTRUE(mi_setup$structured$enabled)
+      ) {
+        structured_mu_vars(mi_setup$structured$term)
+      }
+    )
+  } else {
+    character(0)
+  }
+  if (include_missing_predictor) {
+    response_vars <- all.vars(f_mu[[2L]])
+    response_in_impute <- intersect(impute_vars, response_vars)
+    if (length(response_in_impute) > 0L) {
+      cli::cli_abort(c(
+        "The first {.arg impute} slice does not allow response variables as predictor-model covariates.",
+        "x" = "Remove response variable{?s} {.val {response_in_impute}} from the {.arg impute} formula."
+      ))
+    }
+  }
   vars <- unique(c(
-    all.vars(f_mu),
+    mu_model_vars,
     all.vars(f_sigma),
+    impute_vars,
     unlist(lapply(f_sd_mu, all.vars), use.names = FALSE),
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     structured_mu_vars(structured_term),
@@ -753,6 +897,15 @@ drm_build_gaussian_ls_spec <- function(
     model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
     model_keep <- rep(TRUE, nrow(data))
+  }
+  if (
+    (include_missing_response || include_missing_predictor) && any(!model_keep)
+  ) {
+    cli::cli_abort(c(
+      "Missing predictors, grouping variables, or structured-effect inputs outside explicit {.fn mi} terms are not implemented for current missing-data slices.",
+      "x" = "{sum(!model_keep)} data row{?s} {?has/have} missing model-input value{?s}.",
+      "i" = "Keep ordinary predictors complete, or model one supported missing predictor with {.fn mi} and {.arg impute}."
+    ))
   }
 
   V_known_full <- evaluate_known_v(meta$V, data, env)
@@ -774,17 +927,118 @@ drm_build_gaussian_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
-  y <- stats::model.response(mf_mu)
+  y_raw <- stats::model.response(mf_mu)
+  observed_y <- !is.na(y_raw)
+  if (!include_missing_response && any(!observed_y)) {
+    cli::cli_abort(
+      "Internal complete-case filter left a missing Gaussian response."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "At least one observed Gaussian response is required for fitting."
+    )
+  }
+  response_sentinel <- if (include_missing_response) {
+    drm_missing_response_sentinel()
+  } else {
+    NA_real_
+  }
+  y <- as.numeric(y_raw)
+  if (include_missing_response) {
+    y[!observed_y] <- response_sentinel
+  }
+  if (
+    include_missing_response &&
+      identical(V_known$type, "matrix") &&
+      any(!observed_y)
+  ) {
+    cli::cli_abort(c(
+      "Gaussian response-missingness masks are not implemented for dense known sampling covariance matrices in MD1.",
+      "i" = "Use diagonal {.fn meta_V} variances, complete responses, or the default complete-case response policy."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      identical(V_known$type, "matrix") &&
+      mi_setup$family %in%
+        c(
+          "bernoulli",
+          "ordinal",
+          "categorical",
+          "beta",
+          "zero_one_beta",
+          "beta_binomial",
+          "poisson",
+          "nbinom2",
+          "truncated_nbinom2",
+          "lognormal",
+          "gamma",
+          "tweedie"
+        )
+  ) {
+    cli::cli_abort(c(
+      "Non-Gaussian {.fn mi} predictor models are not implemented with dense known sampling covariance matrices.",
+      "i" = "Use diagonal known variances, complete the non-Gaussian predictor, or fit a supported Gaussian {.fn mi} predictor model."
+    ))
+  }
+
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    missing_response_value <- if (is.null(missing_predictor$response_value)) {
+      missing_predictor$x
+    } else {
+      missing_predictor$response_value
+    }
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_response_value
+  }
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
   X_mu <- drm_fixed_effect_matrix(terms_mu, mf_mu, sparse = sparse_mu)
+  if (include_missing_predictor) {
+    if (missing_predictor$family %in% c("ordinal", "categorical")) {
+      missing_predictor <- drm_missing_predictor_state_design(
+        missing_predictor,
+        mf_mu,
+        terms_mu,
+        X_mu
+      )
+    } else {
+      missing_predictor$mu_col <- match(
+        missing_predictor$model_column,
+        colnames(X_mu)
+      )
+      if (is.na(missing_predictor$mu_col)) {
+        cli::cli_abort(
+          "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+        )
+      }
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   if (sparse_mu) {
     validate_sparse_fixed_gaussian_design(X_sigma)
@@ -846,9 +1100,73 @@ drm_build_gaussian_ls_spec <- function(
     sd_mu,
     re_mu_sigma,
     sd_phylo,
-    re_cov_blocks
+    re_cov_blocks,
+    observed_y = observed_y
   )
-  start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y))
+  start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
+  if (include_missing_predictor) {
+    start$beta_mi <- missing_predictor$beta_start
+    start$log_sigma_mi <- missing_predictor$log_sigma_start
+    start$x_miss <- missing_predictor$x_miss_start
+    start$u_mi_group <- missing_predictor$u_group_start
+    start$log_sd_mi_group <- missing_predictor$log_sd_group_start
+    start$u_mi_struct <- missing_predictor$u_structured_start
+    start$log_sd_mi_struct <- missing_predictor$log_sd_structured_start
+    if (identical(missing_predictor$family, "ordinal")) {
+      start$theta_ord <- missing_predictor$theta_start
+    }
+    if (identical(missing_predictor$family, "zero_one_beta")) {
+      start$beta_zoi <- missing_predictor$zoi_start
+      start$beta_coi <- missing_predictor$coi_start
+    }
+  }
+  predictor_metadata <- drm_missing_predictor_metadata(
+    missing_predictor,
+    original_row = which(keep)
+  )
+  missing_data <- new_drm_missing_data(
+    control = missing,
+    original_row = which(keep),
+    model_row = seq_along(y),
+    observed_y = observed_y,
+    response_sentinel = response_sentinel,
+    predictors = predictor_metadata,
+    version = if (include_missing_predictor) {
+      if (identical(missing_predictor$family, "bernoulli")) {
+        "MD6a"
+      } else if (identical(missing_predictor$family, "ordinal")) {
+        "MD6b"
+      } else if (identical(missing_predictor$family, "categorical")) {
+        "MD6c"
+      } else if (identical(missing_predictor$family, "beta")) {
+        "MD7a"
+      } else if (identical(missing_predictor$family, "poisson")) {
+        "MD7b"
+      } else if (identical(missing_predictor$family, "nbinom2")) {
+        "MD7c"
+      } else if (identical(missing_predictor$family, "zero_one_beta")) {
+        "MD7d"
+      } else if (identical(missing_predictor$family, "truncated_nbinom2")) {
+        "MD7e"
+      } else if (identical(missing_predictor$family, "beta_binomial")) {
+        "MD7f"
+      } else if (identical(missing_predictor$family, "lognormal")) {
+        "MD8a"
+      } else if (identical(missing_predictor$family, "gamma")) {
+        "MD8b"
+      } else if (identical(missing_predictor$family, "tweedie")) {
+        "MD8c"
+      } else if (isTRUE(missing_predictor$structured$enabled)) {
+        "MD4"
+      } else if (isTRUE(missing_predictor$random$enabled)) {
+        "MD3b"
+      } else {
+        "MD3a"
+      }
+    } else {
+      "MD1"
+    }
+  )
 
   spec <- list(
     model_type = "gaussian",
@@ -885,33 +1203,61 @@ drm_build_gaussian_ls_spec <- function(
     aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = c("mu", "sigma", sd_mu$dpars, sd_phylo$dpars),
     start = start,
-    map = gaussian_ls_map(
-      re_mu,
-      re_sigma,
-      sd_mu,
-      phylo_mu,
-      re_mu_sigma,
-      sd_phylo
-    ),
+    map = {
+      map <- gaussian_ls_map(
+        re_mu,
+        re_sigma,
+        sd_mu,
+        phylo_mu,
+        re_mu_sigma,
+        sd_phylo
+      )
+      if (
+        include_missing_predictor &&
+          identical(missing_predictor$family, "ordinal")
+      ) {
+        map$theta_ord <- NULL
+      }
+      map
+    },
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
-      if (isTRUE(phylo_mu$has)) "u_phylo"
+      if (isTRUE(phylo_mu$has)) "u_phylo",
+      if (
+        include_missing_predictor &&
+          identical(missing_predictor$family, "gaussian")
+      ) {
+        "x_miss"
+      },
+      if (
+        include_missing_predictor && isTRUE(missing_predictor$random$enabled)
+      ) {
+        "u_mi_group"
+      },
+      if (
+        include_missing_predictor &&
+          isTRUE(missing_predictor$structured$enabled)
+      ) {
+        "u_mi_struct"
+      }
     ),
     sparse_fixed = list(mu = sparse_mu)
   )
+  spec$missing_data <- missing_data
   check_weights_known_covariance(spec)
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- spec$missing_data$counts$likelihood_rows
   spec
 }
 
@@ -2365,7 +2711,9 @@ drm_build_poisson_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  impute = NULL,
+  missing = miss_control()
 ) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1), "dpar")
@@ -2454,6 +2802,30 @@ drm_build_poisson_spec <- function(
     family_label = "Poisson",
     inflated_label = "Zero-inflated Poisson"
   )
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first Poisson-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_predictor && !is.null(zi_entry)) {
+    cli::cli_abort(c(
+      "Poisson-response {.fn mi} predictor models are not implemented with zero inflation yet.",
+      "i" = "Fit the first non-Gaussian response missing-predictor slice without a {.code zi} formula."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L || !is.null(mu_structured_term))
+  ) {
+    cli::cli_abort(c(
+      "Poisson-response {.fn mi} predictor models are fixed-effect only in the first slice.",
+      "i" = "Remove random or structured terms from the Poisson {.code mu} formula, or fit the Gaussian-response missing-predictor route."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   if (!is.null(zi_entry)) {
     drm_reject_phase1_terms(zi_entry$rhs, zi_entry$dpar)
@@ -2465,9 +2837,29 @@ drm_build_poisson_spec <- function(
   } else {
     NULL
   }
+  mu_model_vars <- all.vars(f_mu)
+  if (include_missing_predictor) {
+    mu_model_vars <- setdiff(mu_model_vars, mi_setup$variable)
+  }
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
+  if (include_missing_predictor) {
+    response_vars <- all.vars(f_mu[[2L]])
+    response_in_impute <- intersect(impute_vars, response_vars)
+    if (length(response_in_impute) > 0L) {
+      cli::cli_abort(c(
+        "The first Poisson-response {.arg impute} slice does not allow response variables as predictor-model covariates.",
+        "x" = "Remove response variable{?s} {.val {response_in_impute}} from the {.arg impute} formula."
+      ))
+    }
+  }
   vars <- unique(c(
-    all.vars(f_mu),
+    mu_model_vars,
     if (!is.null(f_zi)) all.vars(f_zi),
+    impute_vars,
     structured_mu_vars(mu_structured_term),
     random_effect_vars(mu_re$terms)
   ))
@@ -2475,6 +2867,13 @@ drm_build_poisson_spec <- function(
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
   } else {
     keep <- rep(TRUE, nrow(data))
+  }
+  if (include_missing_predictor && any(!keep)) {
+    cli::cli_abort(c(
+      "Missing predictors, grouping variables, or structured-effect inputs outside explicit {.fn mi} terms are not implemented for the Poisson-response missing-predictor slice.",
+      "x" = "{sum(!keep)} data row{?s} {?has/have} missing model-input value{?s}.",
+      "i" = "Keep ordinary predictors complete, or model one supported binary missing predictor with {.fn mi} and {.arg impute}."
+    ))
   }
   data_model <- data[keep, , drop = FALSE]
   weights_model <- subset_likelihood_weights(
@@ -2487,7 +2886,11 @@ drm_build_poisson_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = if (include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_zi <- if (!is.null(f_zi)) {
     stats::model.frame(f_zi, data = data_model, na.action = stats::na.omit)
@@ -2512,10 +2915,35 @@ drm_build_poisson_spec <- function(
     ))
   }
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_zi <- if (!is.null(mf_zi)) {
     stats::model.matrix(stats::terms(mf_zi), mf_zi)
   } else {
@@ -2536,6 +2964,30 @@ drm_build_poisson_spec <- function(
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
   phylo_mu <- build_structured_mu_structure(mu_structured_term, data_model, env)
+  start <- if (has_zi) {
+    zi_poisson_start(y, X_mu, X_zi, offset_mu)
+  } else {
+    poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
+  }
+  if (include_missing_predictor) {
+    start$beta_mi <- missing_predictor$beta_start
+  }
+  missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(y),
+      observed_y = rep(TRUE, length(y)),
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD9a"
+    )
+  } else {
+    NULL
+  }
 
   spec <- list(
     model_type = if (has_zi) "zi_poisson" else "poisson",
@@ -2566,15 +3018,13 @@ drm_build_poisson_spec <- function(
     ),
     random_scale = list(mu = sd_mu, phylo = empty_sd_phylo_structure()),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
+    missing_data = missing_data,
     data = data_model,
     variables = vars,
     keep = keep,
     dpars = if (has_zi) c("mu", "zi") else "mu",
-    start = if (has_zi) {
-      zi_poisson_start(y, X_mu, X_zi, offset_mu)
-    } else {
-      poisson_start(y, X_mu, offset_mu, re_mu = re_mu, phylo_mu = phylo_mu)
-    },
+    start = start,
     map = if (has_zi) zi_poisson_map() else poisson_map(re_mu, phylo_mu),
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
@@ -2585,7 +3035,11 @@ drm_build_poisson_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y)
+  spec$nobs <- if (include_missing_predictor) {
+    spec$missing_data$counts$likelihood_rows
+  } else {
+    length(spec$y)
+  }
   spec
 }
 
@@ -3157,8 +3611,12 @@ drm_build_biv_gaussian_spec <- function(
   formula,
   data,
   env = parent.frame(),
-  weights = NULL
+  weights = NULL,
+  missing = miss_control()
 ) {
+  missing <- drm_parse_missing_control(missing)
+  include_missing_response <- identical(missing$response, "include")
+
   entries <- expand_biv_mvbind_entries(formula$entries)
   dpars <- vapply(entries, `[[`, character(1), "dpar")
   is_corpair_dpar <- vapply(
@@ -3409,6 +3867,10 @@ drm_build_biv_gaussian_spec <- function(
     sigma1_re$terms,
     sigma2_re$terms
   )
+  mu_qgt2_covariance_blocks <- detect_biv_mu_qgt2_covariance_blocks(
+    mu1_re$terms,
+    mu2_re$terms
+  )
   reject_biv_sd_mu_q4_mixture(sd_mu_entries, q4_covariance_blocks)
   if (
     !is.null(meta$V) &&
@@ -3431,8 +3893,18 @@ drm_build_biv_gaussian_spec <- function(
       sigma2_re$terms
     )
   }
-  active_mu1_terms <- remove_biv_q4_terms(mu1_re$terms, q4_covariance_blocks)
-  active_mu2_terms <- remove_biv_q4_terms(mu2_re$terms, q4_covariance_blocks)
+  active_qgt2_covariance_blocks <- c(
+    q4_covariance_blocks,
+    mu_qgt2_covariance_blocks
+  )
+  active_mu1_terms <- remove_biv_q4_terms(
+    mu1_re$terms,
+    active_qgt2_covariance_blocks
+  )
+  active_mu2_terms <- remove_biv_q4_terms(
+    mu2_re$terms,
+    active_qgt2_covariance_blocks
+  )
   active_sigma1_terms <- remove_biv_q4_terms(
     sigma1_re$terms,
     q4_covariance_blocks
@@ -3466,6 +3938,16 @@ drm_build_biv_gaussian_spec <- function(
   f_sd_mu <- lapply(sd_mu_entries, drm_entry_formula, response = FALSE)
   f_sd_phylo <- lapply(sd_phylo_entries, drm_entry_formula, response = FALSE)
   f_corpair <- lapply(corpair_entries, drm_entry_formula, response = FALSE)
+  mu1_model_vars <- if (include_missing_response) {
+    all.vars(stats::delete.response(stats::terms(f_mu1)))
+  } else {
+    all.vars(f_mu1)
+  }
+  mu2_model_vars <- if (include_missing_response) {
+    all.vars(stats::delete.response(stats::terms(f_mu2)))
+  } else {
+    all.vars(f_mu2)
+  }
   sd_mu_groups <- vapply(
     sd_mu_entries,
     function(entry) parse_sd_lhs(entry$lhs)$group,
@@ -3483,8 +3965,8 @@ drm_build_biv_gaussian_spec <- function(
   )
 
   vars <- unique(c(
-    all.vars(f_mu1),
-    all.vars(f_mu2),
+    mu1_model_vars,
+    mu2_model_vars,
     all.vars(f_sigma1),
     all.vars(f_sigma2),
     all.vars(f_rho12),
@@ -3501,6 +3983,12 @@ drm_build_biv_gaussian_spec <- function(
     random_effect_vars(sigma2_re$terms)
   ))
   keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  if (include_missing_response && any(!keep)) {
+    cli::cli_abort(c(
+      "Missing predictors, grouping variables, or structured-effect inputs are not implemented for bivariate Gaussian response masks in MD2.",
+      "i" = "Use complete predictors with {.code missing = miss_control(response = \"include\")}, or keep the default complete-case response policy."
+    ))
+  }
   data_model <- data[keep, , drop = FALSE]
   V_known_full <- evaluate_biv_known_v(meta$V, data, env)
   V_known <- subset_biv_known_v(V_known_full, keep)
@@ -3511,34 +3999,71 @@ drm_build_biv_gaussian_spec <- function(
     sum(keep)
   )
 
+  model_na_action <- if (include_missing_response) {
+    stats::na.pass
+  } else {
+    stats::na.omit
+  }
+
   mf_mu1 <- stats::model.frame(
     f_mu1,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = model_na_action
   )
   mf_mu2 <- stats::model.frame(
     f_mu2,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = model_na_action
   )
   mf_sigma1 <- stats::model.frame(
     f_sigma1,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = model_na_action
   )
   mf_sigma2 <- stats::model.frame(
     f_sigma2,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = model_na_action
   )
   mf_rho12 <- stats::model.frame(
     f_rho12,
     data = data_model,
-    na.action = stats::na.omit
+    na.action = model_na_action
   )
 
-  y1 <- stats::model.response(mf_mu1)
-  y2 <- stats::model.response(mf_mu2)
+  y1_raw <- stats::model.response(mf_mu1)
+  y2_raw <- stats::model.response(mf_mu2)
+  observed_y1 <- !is.na(y1_raw)
+  observed_y2 <- !is.na(y2_raw)
+  if (!include_missing_response && any(!observed_y1 | !observed_y2)) {
+    cli::cli_abort("Internal bivariate Gaussian complete-case filtering error.")
+  }
+  if (!any(observed_y1 | observed_y2)) {
+    cli::cli_abort(
+      "No observations with at least one observed response remain after applying bivariate response missingness rules."
+    )
+  }
+  response_sentinel <- if (include_missing_response) {
+    drm_missing_response_sentinel()
+  } else {
+    NA_real_
+  }
+  y1 <- as.numeric(y1_raw)
+  y2 <- as.numeric(y2_raw)
+  if (include_missing_response) {
+    y1[!observed_y1] <- response_sentinel
+    y2[!observed_y2] <- response_sentinel
+  }
+  if (
+    include_missing_response &&
+      identical(V_known$type, "matrix") &&
+      any(!observed_y1 | !observed_y2)
+  ) {
+    cli::cli_abort(c(
+      "Bivariate response-missingness masks are not implemented for dense known sampling covariance matrices in MD2.",
+      "i" = "Use complete response pairs with {.fn meta_V}, or fit the independent-observation bivariate Gaussian slice first."
+    ))
+  }
   X_mu1 <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu1)),
     mf_mu1
@@ -3550,6 +4075,12 @@ drm_build_biv_gaussian_spec <- function(
   X_sigma1 <- stats::model.matrix(stats::terms(mf_sigma1), mf_sigma1)
   X_sigma2 <- stats::model.matrix(stats::terms(mf_sigma2), mf_sigma2)
   X_rho12 <- stats::model.matrix(stats::terms(mf_rho12), mf_rho12)
+  if (include_missing_response) {
+    drm_warn_weak_biv_rho12_identifiability(
+      complete_pairs = sum(observed_y1 & observed_y2),
+      rho12_parameter_count = ncol(X_rho12)
+    )
+  }
   re_mu_registry <- build_biv_mu_random_structure(
     mu1_re$terms,
     mu2_re$terms,
@@ -3616,6 +4147,7 @@ drm_build_biv_gaussian_spec <- function(
     re_sigma,
     re_mu_sigma,
     q4_blocks = q4_covariance_blocks,
+    mu_qgt2_blocks = mu_qgt2_covariance_blocks,
     re_mu_full = re_mu_registry,
     re_sigma_full = re_sigma_registry
   )
@@ -3645,7 +4177,17 @@ drm_build_biv_gaussian_spec <- function(
     phylo_mu = phylo_mu,
     sd_mu = sd_mu,
     sd_phylo = sd_phylo,
-    re_cov_blocks = re_cov_blocks
+    re_cov_blocks = re_cov_blocks,
+    observed_y1 = observed_y1,
+    observed_y2 = observed_y2
+  )
+  missing_data <- new_drm_biv_missing_data(
+    control = missing,
+    original_row = which(keep),
+    model_row = seq_along(y1),
+    observed_y1 = observed_y1,
+    observed_y2 = observed_y2,
+    response_sentinel = response_sentinel
   )
 
   spec <- list(
@@ -3704,6 +4246,7 @@ drm_build_biv_gaussian_spec <- function(
     structured = list(phylo_mu = phylo_mu),
     variables = vars,
     keep = keep,
+    missing_data = missing_data,
     dpars = c(
       "mu1",
       "mu2",
@@ -3735,7 +4278,7 @@ drm_build_biv_gaussian_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- length(spec$y1)
+  spec$nobs <- spec$missing_data$counts$likelihood_rows
   spec
 }
 
@@ -4660,14 +5203,20 @@ format_cross_dpar_cor_label <- function(
   from_dpar,
   to_dpar,
   group,
-  covariance_label
+  covariance_label,
+  from_coef = "(Intercept)",
+  to_coef = "(Intercept)"
 ) {
   paste0(
     "cor(",
     from_dpar,
-    ":(Intercept),",
+    ":",
+    from_coef,
+    ",",
     to_dpar,
-    ":(Intercept) | ",
+    ":",
+    to_coef,
+    " | ",
     covariance_label,
     " | ",
     group,
@@ -7186,6 +7735,51 @@ detect_biv_q4_covariance_blocks <- function(
   list(list(block_label = labels[[1L]], group = groups[[1L]]))
 }
 
+detect_biv_mu_qgt2_covariance_blocks <- function(mu1_terms, mu2_terms) {
+  if (length(mu1_terms) != 1L || length(mu2_terms) != 1L) {
+    return(list())
+  }
+
+  terms <- list(mu1 = mu1_terms[[1L]], mu2 = mu2_terms[[1L]])
+  labels <- vapply(
+    terms,
+    function(term) {
+      if (is.null(term$covariance_label)) {
+        NA_character_
+      } else {
+        term$covariance_label
+      }
+    },
+    character(1L)
+  )
+  groups <- vapply(terms, `[[`, character(1L), "group")
+  if (
+    anyNA(labels) ||
+      length(unique(labels)) != 1L ||
+      length(unique(groups)) != 1L
+  ) {
+    return(list())
+  }
+
+  term_types <- vapply(terms, `[[`, character(1L), "type")
+  if (!all(term_types %in% c("correlated_slope", "correlated_block"))) {
+    return(list())
+  }
+  coef_names <- lapply(terms, `[[`, "coef_names")
+  if (!identical(coef_names[[1L]], coef_names[[2L]])) {
+    cli::cli_abort(c(
+      "Bivariate location intercept-slope covariance blocks must use matching coefficients.",
+      "x" = "{.code mu1} uses {.val {coef_names[[1L]]}}, but {.code mu2} uses {.val {coef_names[[2L]]}}.",
+      "i" = "Use matching terms such as {.code (1 + x | p | id)} in both {.code mu1} and {.code mu2}."
+    ))
+  }
+  list(list(
+    block_label = labels[[1L]],
+    group = groups[[1L]],
+    coef_names = coef_names[[1L]]
+  ))
+}
+
 reject_biv_sd_mu_q4_mixture <- function(entries, q4_blocks) {
   if (length(entries) == 0L || length(q4_blocks) == 0L) {
     return(invisible(FALSE))
@@ -7297,6 +7891,7 @@ build_labelled_covariance_block_registry <- function(
   re_sigma,
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   q4_blocks = list(),
+  mu_qgt2_blocks = list(),
   re_mu_full = re_mu,
   re_sigma_full = re_sigma,
   re_mu_full_terms = list(),
@@ -7308,6 +7903,11 @@ build_labelled_covariance_block_registry <- function(
     re_mu_full,
     re_sigma_full,
     q4_blocks
+  )
+  registry <- add_biv_mu_qgt2_covariance_blocks(
+    registry,
+    re_mu_full,
+    mu_qgt2_blocks
   )
   registry <- add_large_same_parameter_covariance_blocks(
     registry,
@@ -7338,6 +7938,72 @@ build_labelled_covariance_block_registry <- function(
   registry$n_blocks <- nrow(registry$blocks)
   registry <- update_qgt2_covariance_counts(registry)
   registry$tmb_data <- labelled_covariance_block_tmb_data(registry)
+  registry
+}
+
+add_biv_mu_qgt2_covariance_blocks <- function(
+  registry,
+  re_mu,
+  mu_qgt2_blocks
+) {
+  if (length(mu_qgt2_blocks) == 0L) {
+    return(registry)
+  }
+
+  for (block in mu_qgt2_blocks) {
+    member_terms <- which(
+      re_mu$covariance_labels == block$block_label &
+        re_mu$group_names == block$group
+    )
+    expected_q <- 2L * length(block$coef_names)
+    if (length(member_terms) != expected_q) {
+      cli::cli_abort(c(
+        "Internal error: bivariate location covariance block metadata did not find the expected members.",
+        "x" = "Block {.code {block$block_label}} on group {.field {block$group}} expected {expected_q} members but found {length(member_terms)}."
+      ))
+    }
+    member_dpars <- re_mu$dpars[member_terms]
+    member_coefs <- re_mu$coef_names[member_terms]
+    expected_dpars <- rep(c("mu1", "mu2"), each = length(block$coef_names))
+    expected_coefs <- rep(block$coef_names, times = 2L)
+    if (
+      !identical(member_dpars, expected_dpars) ||
+        !identical(member_coefs, expected_coefs)
+    ) {
+      cli::cli_abort(c(
+        "Internal error: bivariate location covariance block members are not in endpoint order.",
+        "x" = "Found members: {.val {paste(member_dpars, member_coefs, sep = ':')}}."
+      ))
+    }
+    pair_terms <- utils::combn(member_terms, 2L)
+    pair_labels <- vapply(
+      seq_len(ncol(pair_terms)),
+      function(j) {
+        from <- pair_terms[1L, j]
+        to <- pair_terms[2L, j]
+        format_cross_dpar_cor_label(
+          re_mu$dpars[[from]],
+          re_mu$dpars[[to]],
+          group = block$group,
+          covariance_label = block$block_label,
+          from_coef = re_mu$coef_names[[from]],
+          to_coef = re_mu$coef_names[[to]]
+        )
+      },
+      character(1L)
+    )
+    n_pairs <- length(pair_labels)
+    registry <- append_covariance_registry_block(
+      registry,
+      re_list = list(re_mu),
+      member_terms = list(member_terms),
+      parameter = pair_labels,
+      tmb_parameter = rep("theta_re_cov", n_pairs),
+      tmb_index = covariance_registry_next_theta_index(registry, n_pairs),
+      implemented = TRUE
+    )
+  }
+
   registry
 }
 
@@ -7721,6 +8387,8 @@ covariance_registry_member_row <- function(term, re, component) {
   if (length(coef_index) != 1L) {
     coef_index <- NA_integer_
   }
+  n_groups <- length(re$groups[[term]])
+  group_index0 <- re$index0[, term] %% n_groups
   data.frame(
     block_id0 = NA_integer_,
     member_id0 = NA_integer_,
@@ -7733,9 +8401,9 @@ covariance_registry_member_row <- function(term, re, component) {
     group = re$group_names[[term]],
     block_label = re$covariance_labels[[term]],
     label = re$labels[[term]],
-    n_groups = length(re$groups[[term]]),
+    n_groups = n_groups,
     group_levels = I(list(re$groups[[term]])),
-    latent_index0 = I(list(re$index0[, term])),
+    latent_index0 = I(list(group_index0)),
     design_value = I(list(re$value[, term])),
     cor_id0 = I(list(re$re_cor_id0[term_rows])),
     pair_index0 = I(list(re$re_pair_index0[term_rows])),
@@ -7990,6 +8658,36 @@ build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
     pair = "sigma1/sigma2",
     cor_label = format_biv_sigma_cor_label
   )
+}
+
+expand_biv_parameter_random_terms <- function(terms, term_dpars) {
+  expanded_terms <- list()
+  expanded_dpars <- character()
+  for (i in seq_along(terms)) {
+    term <- terms[[i]]
+    coef_names <- term$coef_names
+    if (length(coef_names) == 1L) {
+      expanded_terms[[length(expanded_terms) + 1L]] <- term
+      expanded_dpars <- c(expanded_dpars, term_dpars[[i]])
+      next
+    }
+
+    for (coef_name in coef_names) {
+      member <- term
+      member$coef_names <- coef_name
+      member$variable <- if (identical(coef_name, "(Intercept)")) {
+        NA_character_
+      } else {
+        coef_name
+      }
+      member$variables <- member$variable
+      member$label <- paste0(term$label, ":", coef_name)
+      expanded_terms[[length(expanded_terms) + 1L]] <- member
+      expanded_dpars <- c(expanded_dpars, term_dpars[[i]])
+    }
+  }
+
+  list(terms = expanded_terms, dpars = expanded_dpars)
 }
 
 abort_unsupported_corpair_level <- function(entry, level) {
@@ -8332,11 +9030,14 @@ build_biv_parameter_random_structure <- function(
   is_biv_mu_slope_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types == "slope")
-  if (!is_intercept_block && !is_biv_mu_slope_block) {
+  is_biv_mu_qgt2_block <- identical(unname(dpars), c("mu1", "mu2")) &&
+    length(terms) == 2L &&
+    all(term_types %in% c("correlated_slope", "correlated_block"))
+  if (!is_intercept_block && !is_biv_mu_slope_block && !is_biv_mu_qgt2_block) {
     cli::cli_abort(c(
       "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
-      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)} and the matching slope-only {.code mu1}/{.code mu2} route {.code (0 + x | p | id)}.",
-      "i" = "Intercept-plus-slope and all-four location-scale slope blocks stay closed until q=4 and q=8 endpoint covariance evidence exists."
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
+      "i" = "Residual-scale slopes and all-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
     ))
   }
   labels <- unname(vapply(
@@ -8366,18 +9067,24 @@ build_biv_parameter_random_structure <- function(
       ))
     }
     if (
-      isTRUE(is_biv_mu_slope_block) &&
+      (isTRUE(is_biv_mu_slope_block) || isTRUE(is_biv_mu_qgt2_block)) &&
         !identical(terms[[1L]]$coef_names, terms[[2L]]$coef_names)
     ) {
       cli::cli_abort(c(
-        "Bivariate slope-only {.code mu1/mu2} random effects must use the same slope variable.",
+        "Bivariate {.code mu1/mu2} random effects must use the same random-slope coefficient set.",
         "x" = "{.code mu1} uses coefficient {.val {terms[[1L]]$coef_names}}, but {.code mu2} uses {.val {terms[[2L]]$coef_names}}.",
-        "i" = "Use matching terms such as {.code (0 + x | p | id)} in both {.code mu1} and {.code mu2}."
+        "i" = "Use matching terms such as {.code (0 + x | p | id)} or {.code (1 + x | p | id)} in both {.code mu1} and {.code mu2}."
       ))
     }
     same_parameter_cor <- identical(labels[[1L]], labels[[2L]])
   }
 
+  if (isTRUE(is_biv_mu_qgt2_block)) {
+    same_parameter_cor <- FALSE
+  }
+  expanded_terms <- expand_biv_parameter_random_terms(terms, term_dpars)
+  terms <- expanded_terms$terms
+  term_dpars <- expanded_terms$dpars
   group_name <- groups_present[[1L]]
   group <- factor(data[[group_name]])
   levels_group <- levels(group)
@@ -8397,6 +9104,7 @@ build_biv_parameter_random_structure <- function(
   n_group <- length(levels_group)
   group_index <- as.integer(group)
   n_cols <- length(terms)
+  term_dpar_id0 <- match(term_dpars, dpars) - 1L
   index <- matrix(NA_integer_, nrow = nrow(data), ncol = n_cols)
   value <- matrix(1, nrow = nrow(data), ncol = n_cols)
   base_labels <- unname(vapply(terms, `[[`, character(1L), "label"))
@@ -8424,7 +9132,7 @@ build_biv_parameter_random_structure <- function(
       value[, j] <- as.numeric(data[[variable]])
     }
     term_id0 <- c(term_id0, rep.int(j - 1L, n_group))
-    dpar_id0 <- c(dpar_id0, rep.int(present[[j]] - 1L, n_group))
+    dpar_id0 <- c(dpar_id0, rep.int(term_dpar_id0[[j]], n_group))
     re_pos0 <- c(re_pos0, rep.int(j - 1L, n_group))
     if (isTRUE(same_parameter_cor) && j == 2L) {
       re_cor_id0 <- c(re_cor_id0, rep.int(0L, n_group))
@@ -8457,7 +9165,17 @@ build_biv_parameter_random_structure <- function(
     dpars = term_dpars,
     coef_names = unname(vapply(terms, `[[`, character(1L), "coef_names")),
     group_names = rep(group_name, n_cols),
-    covariance_labels = labels,
+    covariance_labels = unname(vapply(
+      terms,
+      function(term) {
+        if (is.null(term$covariance_label)) {
+          NA_character_
+        } else {
+          term$covariance_label
+        }
+      },
+      character(1L)
+    )),
     groups = groups,
     value_names = value_names
   )
@@ -9355,32 +10073,55 @@ gaussian_ls_start <- function(
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   sd_phylo = empty_sd_phylo_structure(),
-  re_cov_blocks = empty_labelled_covariance_block_registry()
+  re_cov_blocks = empty_labelled_covariance_block_registry(),
+  observed_y = rep(TRUE, length(y))
 ) {
+  observed_y <- as.logical(observed_y)
+  if (length(observed_y) != length(y)) {
+    cli::cli_abort(
+      "Internal Gaussian start error: {.code observed_y} length does not match {.code y}."
+    )
+  }
+  if (!any(observed_y)) {
+    cli::cli_abort(
+      "Internal Gaussian start error: at least one observed response is required."
+    )
+  }
+  y_start <- y[observed_y]
+  V_known_start <- V_known[observed_y]
+  X_mu_start <- X_mu[observed_y, , drop = FALSE]
   if (inherits(X_mu, "sparseMatrix")) {
     beta_mu <- numeric(ncol(X_mu))
     names(beta_mu) <- colnames(X_mu)
     intercept <- match("(Intercept)", names(beta_mu), nomatch = 0L)
     if (intercept > 0L) {
-      beta_mu[[intercept]] <- mean(y)
+      beta_mu[[intercept]] <- mean(y_start)
     }
   } else {
-    lm_start <- stats::lm.fit(x = X_mu, y = y)
+    lm_start <- stats::lm.fit(x = X_mu_start, y = y_start)
     beta_mu <- lm_start$coefficients
     beta_mu[is.na(beta_mu)] <- 0
   }
 
   resid <- y - as.vector(X_mu %*% beta_mu)
-  resid_var <- stats::var(resid)
-  known_v0 <- stats::median(V_known, na.rm = TRUE)
-  y_scale <- stats::sd(y)
+  resid[!observed_y] <- 0
+  resid_observed <- resid[observed_y]
+  resid_var <- stats::var(resid_observed)
+  if (!is.finite(resid_var)) {
+    resid_var <- 0
+  }
+  known_v0 <- stats::median(V_known_start, na.rm = TRUE)
+  if (!is.finite(known_v0)) {
+    known_v0 <- 0
+  }
+  y_scale <- stats::sd(y_start)
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
   sigma_floor <- max(1e-4, 0.05 * y_scale)
   sigma0 <- sqrt(max(resid_var - known_v0, sigma_floor^2))
   if (!is.finite(sigma0) || sigma0 <= 0) {
-    sigma0 <- stats::sd(y)
+    sigma0 <- stats::sd(y_start)
   }
   if (!is.finite(sigma0) || sigma0 <= 0) {
     sigma0 <- 1
@@ -10433,10 +11174,31 @@ biv_gaussian_start <- function(
   phylo_mu = empty_phylo_mu_structure(),
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
   sd_phylo = empty_sd_phylo_structure(),
-  re_cov_blocks = empty_labelled_covariance_block_registry()
+  re_cov_blocks = empty_labelled_covariance_block_registry(),
+  observed_y1 = rep(TRUE, length(y1)),
+  observed_y2 = rep(TRUE, length(y2))
 ) {
-  fit1 <- stats::lm.fit(x = X_mu1, y = y1)
-  fit2 <- stats::lm.fit(x = X_mu2, y = y2)
+  observed_y1 <- as.logical(observed_y1)
+  observed_y2 <- as.logical(observed_y2)
+  if (length(observed_y1) != length(y1) || length(observed_y2) != length(y2)) {
+    cli::cli_abort(
+      "Internal bivariate Gaussian start error: response-mask lengths do not match response lengths."
+    )
+  }
+  if (!any(observed_y1) || !any(observed_y2)) {
+    cli::cli_abort(
+      "Each bivariate Gaussian response needs at least one observed value for starting values."
+    )
+  }
+
+  fit1 <- stats::lm.fit(
+    x = X_mu1[observed_y1, , drop = FALSE],
+    y = y1[observed_y1]
+  )
+  fit2 <- stats::lm.fit(
+    x = X_mu2[observed_y2, , drop = FALSE],
+    y = y2[observed_y2]
+  )
   beta_mu1 <- fit1$coefficients
   beta_mu2 <- fit2$coefficients
   beta_mu1[is.na(beta_mu1)] <- 0
@@ -10444,22 +11206,26 @@ biv_gaussian_start <- function(
 
   resid1 <- y1 - as.vector(X_mu1 %*% beta_mu1)
   resid2 <- y2 - as.vector(X_mu2 %*% beta_mu2)
+  resid1[!observed_y1] <- 0
+  resid2[!observed_y2] <- 0
   V1 <- V_known_diag[seq.int(1L, by = 2L, length.out = length(y1))]
   V2 <- V_known_diag[seq.int(2L, by = 2L, length.out = length(y1))]
   sigma_floor <- 1e-4
   sigma1 <- sqrt(max(
-    stats::var(resid1) - stats::median(V1, na.rm = TRUE),
+    stats::var(resid1[observed_y1]) -
+      stats::median(V1[observed_y1], na.rm = TRUE),
     sigma_floor^2
   ))
   sigma2 <- sqrt(max(
-    stats::var(resid2) - stats::median(V2, na.rm = TRUE),
+    stats::var(resid2[observed_y2]) -
+      stats::median(V2[observed_y2], na.rm = TRUE),
     sigma_floor^2
   ))
   if (!is.finite(sigma1) || sigma1 <= 0) {
-    sigma1 <- stats::sd(y1)
+    sigma1 <- stats::sd(y1[observed_y1])
   }
   if (!is.finite(sigma2) || sigma2 <= 0) {
-    sigma2 <- stats::sd(y2)
+    sigma2 <- stats::sd(y2[observed_y2])
   }
   if (!is.finite(sigma1) || sigma1 <= 0) {
     sigma1 <- 1
@@ -10468,7 +11234,12 @@ biv_gaussian_start <- function(
     sigma2 <- 1
   }
 
-  rho <- stats::cor(resid1, resid2)
+  complete_pairs <- observed_y1 & observed_y2
+  rho <- if (sum(complete_pairs) >= 2L) {
+    stats::cor(resid1[complete_pairs], resid2[complete_pairs])
+  } else {
+    0
+  }
   if (!is.finite(rho)) {
     rho <- 0
   }
@@ -10481,8 +11252,8 @@ biv_gaussian_start <- function(
   beta_sigma2[1L] <- log(sigma2)
   beta_rho12[1L] <- atanh(rho)
 
-  y1_scale <- stats::sd(resid1)
-  y2_scale <- stats::sd(resid2)
+  y1_scale <- stats::sd(resid1[observed_y1])
+  y2_scale <- stats::sd(resid2[observed_y2])
   if (!is.finite(y1_scale) || y1_scale <= 0) {
     y1_scale <- sigma1
   }
@@ -10731,6 +11502,9 @@ biv_gaussian_map <- function(
 }
 
 add_covariance_block_tmb_data <- function(tmb_data, spec) {
+  tmb_data$observed_y <- drm_tmb_observed_y(spec)
+  tmb_data$observed_y1 <- drm_tmb_observed_y1(spec)
+  tmb_data$observed_y2 <- drm_tmb_observed_y2(spec)
   cov_blocks <- if (is.list(spec$random)) {
     spec$random$covariance_blocks
   } else {
@@ -10746,6 +11520,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     structured_mu_tmb_data(spec),
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
+    drm_tmb_missing_predictor_data(spec),
     cov_tmb_data
   )
 }
@@ -10809,6 +11584,31 @@ add_covariance_probe_parameter <- function(spec) {
     is.list(spec$random$mu) &&
     is.list(spec$random$mu$cor_model) &&
     isTRUE(spec$random$mu$cor_model$n_models > 0L)
+  has_mi <- is.list(spec$missing_predictor) &&
+    isTRUE(spec$missing_predictor$enabled)
+  has_gaussian_mi <- has_mi &&
+    identical(spec$missing_predictor$family, "gaussian")
+  has_sigma_mi <- has_mi &&
+    spec$missing_predictor$family %in%
+      c(
+        "gaussian",
+        "beta",
+        "zero_one_beta",
+        "beta_binomial",
+        "lognormal",
+        "gamma",
+        "nbinom2",
+        "truncated_nbinom2",
+        "tweedie"
+      )
+  has_zero_one_beta_mi <- has_mi &&
+    identical(spec$missing_predictor$family, "zero_one_beta")
+  has_mi_group <- has_mi &&
+    is.list(spec$missing_predictor$random) &&
+    isTRUE(spec$missing_predictor$random$enabled)
+  has_mi_struct <- has_mi &&
+    is.list(spec$missing_predictor$structured) &&
+    isTRUE(spec$missing_predictor$structured$enabled)
   if (is.null(spec$start$u_re_cov)) {
     spec$start$u_re_cov <- 0
   }
@@ -10835,13 +11635,15 @@ add_covariance_probe_parameter <- function(spec) {
   }
   if (
     is.null(spec$map$beta_zoi) &&
-      !identical(spec$model_type, "zero_one_beta")
+      !identical(spec$model_type, "zero_one_beta") &&
+      !has_zero_one_beta_mi
   ) {
     spec$map$beta_zoi <- factor(NA)
   }
   if (
     is.null(spec$map$beta_coi) &&
-      !identical(spec$model_type, "zero_one_beta")
+      !identical(spec$model_type, "zero_one_beta") &&
+      !has_zero_one_beta_mi
   ) {
     spec$map$beta_coi <- factor(NA)
   }
@@ -10865,6 +11667,48 @@ add_covariance_probe_parameter <- function(spec) {
   }
   if (is.null(spec$map$theta_phylo) && !has_qgt2_phylo_cov) {
     spec$map$theta_phylo <- factor(NA)
+  }
+  if (is.null(spec$start$beta_mi)) {
+    spec$start$beta_mi <- 0
+  }
+  if (is.null(spec$start$log_sigma_mi)) {
+    spec$start$log_sigma_mi <- 0
+  }
+  if (is.null(spec$start$x_miss)) {
+    spec$start$x_miss <- 0
+  }
+  if (is.null(spec$start$u_mi_group)) {
+    spec$start$u_mi_group <- 0
+  }
+  if (is.null(spec$start$log_sd_mi_group)) {
+    spec$start$log_sd_mi_group <- 0
+  }
+  if (is.null(spec$start$u_mi_struct)) {
+    spec$start$u_mi_struct <- 0
+  }
+  if (is.null(spec$start$log_sd_mi_struct)) {
+    spec$start$log_sd_mi_struct <- 0
+  }
+  if (is.null(spec$map$beta_mi) && !has_mi) {
+    spec$map$beta_mi <- factor(NA)
+  }
+  if (is.null(spec$map$log_sigma_mi) && !has_sigma_mi) {
+    spec$map$log_sigma_mi <- factor(NA)
+  }
+  if (is.null(spec$map$x_miss) && !has_gaussian_mi) {
+    spec$map$x_miss <- factor(NA)
+  }
+  if (is.null(spec$map$u_mi_group) && !has_mi_group) {
+    spec$map$u_mi_group <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_mi_group) && !has_mi_group) {
+    spec$map$log_sd_mi_group <- factor(NA)
+  }
+  if (is.null(spec$map$u_mi_struct) && !has_mi_struct) {
+    spec$map$u_mi_struct <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_mi_struct) && !has_mi_struct) {
+    spec$map$log_sd_mi_struct <- factor(NA)
   }
   spec
 }
@@ -11928,7 +12772,16 @@ split_tmb_parameters <- function(par, spec) {
   if (identical(spec$model_type, "poisson")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)
-    return(list(mu = beta_mu))
+    out <- list(mu = beta_mu)
+    if (
+      is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+    }
+    return(out)
   }
   if (identical(spec$model_type, "zi_poisson")) {
     beta_mu <- unname(par$beta_mu)
@@ -12027,6 +12880,71 @@ split_tmb_parameters <- function(par, spec) {
         names(beta_sd_phylo_dpar) <-
           spec$random_scale$phylo$coef_names_list[[dpar]]
         out[[dpar]] <- beta_sd_phylo_dpar
+      }
+    }
+    if (
+      identical(spec$model_type, "gaussian") &&
+        is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      if (
+        spec$missing_predictor$family %in%
+          c(
+            "gaussian",
+            "beta",
+            "zero_one_beta",
+            "beta_binomial",
+            "lognormal",
+            "gamma",
+            "nbinom2",
+            "truncated_nbinom2",
+            "tweedie"
+          )
+      ) {
+        out[[paste0("sigma_mi_", spec$missing_predictor$variable)]] <-
+          stats::setNames(
+            exp(unname(par$log_sigma_mi)),
+            spec$missing_predictor$variable
+          )
+      }
+      if (identical(spec$missing_predictor$family, "zero_one_beta")) {
+        out[[paste0("zoi_mi_", spec$missing_predictor$variable)]] <-
+          stats::setNames(
+            stats::plogis(unname(par$beta_zoi)),
+            spec$missing_predictor$variable
+          )
+        out[[paste0("coi_mi_", spec$missing_predictor$variable)]] <-
+          stats::setNames(
+            stats::plogis(unname(par$beta_coi)),
+            spec$missing_predictor$variable
+          )
+      }
+      if (
+        is.list(spec$missing_predictor$random) &&
+          isTRUE(spec$missing_predictor$random$enabled)
+      ) {
+        out[[paste0("sd_mi_group_", spec$missing_predictor$variable)]] <-
+          stats::setNames(
+            exp(unname(par$log_sd_mi_group)),
+            spec$missing_predictor$random$group
+          )
+      }
+      if (
+        is.list(spec$missing_predictor$structured) &&
+          isTRUE(spec$missing_predictor$structured$enabled)
+      ) {
+        out[[paste0(
+          "sd_mi_",
+          spec$missing_predictor$structured$type,
+          "_",
+          spec$missing_predictor$variable
+        )]] <- stats::setNames(
+          exp(unname(par$log_sd_mi_struct)),
+          spec$missing_predictor$structured$group
+        )
       }
     }
     return(out)

@@ -95,17 +95,19 @@ In this table, "coscale" means a model for residual correlation, currently
 | `count ~ x + phylo_interaction(1 | partner1:partner2, tree1 = tree1, tree2 = tree2)` or Gaussian `y ~ x + phylo_interaction(...)` | Implemented first slice | Single q=1 location random intercept for a two-partner phylogenetic interaction in univariate Gaussian `mu` and ordinary Poisson/NB2 `mu`. Internally this builds a sparse Kronecker precision from the two augmented phylogenetic precisions. `relmat(1 | pair, Q = Q_pair)` remains the lower-level escape hatch. Binary/Bernoulli incidence models and additive models that combine partner main phylogenies plus `phylo_interaction()` remain planned. |
 | `y ~ x1 + x2`, `family = cumulative_logit()` | Implemented | Fixed-effect univariate ordinal model for ordered scores with cutpoints; ordinal random effects and scale/discrimination formulas are planned. |
 | `cbind(successes, failures) ~ x1`, `family = beta_binomial()` | Implemented | Fixed-effect denominator-aware model for success counts with known trial totals; `sigma` is extra-binomial variation. |
-| `phylo(1 + x1 | species, tree = tree)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent phylogenetic intercept and slope fields; Poisson and NB2 phylogenetic count slopes remain planned. |
-| `animal(1 + x | id, pedigree = ped)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent animal-model intercept and slope fields; multiple slopes and slope correlations remain planned. |
+| `phylo(1 + x1 | species, tree = tree)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent phylogenetic intercept and slope fields; Poisson and NB2 phylogenetic count slopes remain planned. Labelled structured slope blocks such as `phylo(1 + x | p | species, tree = tree)` are rejected until structured slope correlations are designed. |
+| `animal(1 + x | id, pedigree = ped)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent animal-model intercept and slope fields; multiple slopes and slope correlations remain planned. Labelled structured slope blocks such as `animal(1 + x | p | id, pedigree = ped)` are rejected until structured slope correlations are designed. |
 | `spatial(1 | site, coords = coords)` | Implemented first slice | Univariate Gaussian `mu` spatial random intercept using a fixed coordinate covariance foundation; mesh/SPDE paths remain planned. |
-| `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | Univariate Gaussian `mu` spatial random intercept plus one numeric spatial slope. The two coordinate fields are independent and have separate SDs. |
+| `spatial(1 + x | site, coords = coords)` | Implemented first one-slope slice | Univariate Gaussian `mu` spatial random intercept plus one numeric spatial slope. The two coordinate fields are independent and have separate SDs. Labelled structured slope blocks such as `spatial(1 + x | p | site, coords = coords)` are rejected until structured slope correlations are designed. |
 | `spatial(1 | p | site, coords = coords)` in matching bivariate `mu1` and `mu2` formulas | Implemented first q=2 slice | Bivariate Gaussian location covariance for two coordinate-spatial random intercept fields. `corpairs(level = "spatial")` reports the spatial mean-mean row separately from residual `rho12`. |
 | `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q=4 slice | One constant coordinate-spatial location-scale block estimates four endpoint SDs and six latent spatial correlations. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| `relmat(1 + x | id, K = K)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent lower-level relatedness intercept and slope fields; multiple slopes and slope correlations remain planned. |
+| `relmat(1 + x | id, K = K)` | Implemented first one-slope slice | Univariate Gaussian `mu` path with independent lower-level relatedness intercept and slope fields; multiple slopes and slope correlations remain planned. Labelled structured slope blocks such as `relmat(1 + x | p | id, K = K)` are rejected until structured slope correlations are designed. |
 | `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x_group` | Implemented | Predictor-dependent ordinary q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` random intercepts. Predictors must be constant within `id`. |
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | Estimates the ordinary slope1-slope2 plasticity-syndrome correlation without intercept-slope correlations; broader bivariate slope blocks remain planned. |
-| Intercept-plus-slope bivariate blocks, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope1-slope2 correlation regressions need coefficient-aware syntax. |
+| Matching one-slope intercept-plus-slope `(1 + x | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented first q=4 location slice | Estimates two location-intercept SDs, two location-slope SDs, and six group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
+| Matching two-slope `(1 + x + z | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented source-tested q=6 location slice | Estimates six location SDs and 15 group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
+| Residual-scale bivariate slope blocks, same-response location-scale slope covariance, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
 Current implemented univariate Gaussian random-effect forms include:
@@ -213,16 +215,17 @@ This expands internally to `mu1 = y1 ~ x1 + x2` and
 `mu2 = y2 ~ x1 + x2`. Use the explicit `mu1` and `mu2` formulas when the two
 responses need different location predictors.
 
-The first fitted structured-effect marker is an intercept-only phylogenetic
-location effect:
+The first fitted structured-effect marker examples are phylogenetic location
+effects:
 
 ```r
 drm_formula(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+drm_formula(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ z)
 ```
 
-`phylo()` uses an ultrametric branch-length tree and adds a tree-structured
-Gaussian random intercept to the `mu` predictor. Matching intercept-only
-`phylo()` terms in bivariate `mu1` and `mu2` formulas fit the first
+`phylo()` uses an ultrametric branch-length tree and adds tree-structured
+Gaussian random intercept and one-slope fields to the `mu` predictor. Matching
+intercept-only `phylo()` terms in bivariate `mu1` and `mu2` formulas fit the first
 phylogenetic mean-mean correlation slice:
 
 ```r
@@ -250,17 +253,22 @@ drm_formula(
 )
 ```
 
-Multiple phylogenetic slopes, Poisson phylogenetic slopes, standalone or
-partial phylogenetic scale terms, structured effects in `rho12`, multiple
-animal-model slopes, multiple lower-level `relmat()` slopes, multiple spatial
-slopes, and mesh-based spatial terms are still planned:
+Multiple phylogenetic slopes, Poisson phylogenetic slopes, residual-scale
+structured slopes, partial or mismatched bivariate phylogenetic scale terms,
+structured effects in `rho12`, multiple animal-model slopes, multiple
+lower-level `relmat()` slopes, multiple spatial slopes, and mesh-based spatial
+terms are still planned:
 
 ```r
 # planned; drmTMB() will currently reject these
 drm_formula(count ~ x + phylo(1 + x | species, tree = tree))
 drm_formula(y ~ x + phylo(1 + x1 + x2 | species, tree = tree), sigma ~ z)
+drm_formula(y ~ x + phylo(1 + x | p | species, tree = tree), sigma ~ z)
 drm_formula(y ~ x + animal(1 + x1 + x2 | id, pedigree = ped), sigma ~ z)
+drm_formula(y ~ x + animal(1 + x | p | id, pedigree = ped), sigma ~ z)
 drm_formula(y ~ x + relmat(1 + x1 + x2 | id, K = K), sigma ~ z)
+drm_formula(y ~ x + relmat(1 + x | p | id, K = K), sigma ~ z)
+drm_formula(y ~ x + spatial(1 + x | p | site, coords = coords), sigma ~ z)
 drm_formula(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ z)
 ```
 
@@ -292,9 +300,9 @@ numeric `mu` slope as independent intercept and slope fields with separate SDs.
 Additional structured slopes remain the advanced path after more recovery
 evidence.
 Multiple random factors should remain separate additive blocks. The first slope
-models should not estimate intercept-slope `corpair()` rows; the more
-interesting future bivariate target is a slope1-slope2 correlation for the same
-covariate across responses.
+models should not estimate predictor-dependent intercept-slope `corpair()` rows.
+The first fitted bivariate targets are the slope1-slope2 correlation and the
+source-tested q=4/q=6 location blocks for the same covariates across responses.
 
 The first bivariate group-level covariance syntax is explicit about the
 distinction between group-level covariance labels and residual `rho12`:
@@ -350,9 +358,10 @@ phylogenetic correlation. The selected q=2 contract uses two independent unit
 phylogenetic fields and species-specific loadings, so variable `rho_l` is a
 nonstationary phylogenetic covariance model rather than a residual-style
 correlation row. It covers `mu1`-`mu2` only; phylogenetic location-scale and
-scale-scale correlation regressions remain q=4 extensions. Bivariate random
-slopes, bivariate spatial slope blocks, predictor-dependent q=4 phylogenetic or
-spatial correlations, and `rho12` random effects remain planned.
+scale-scale correlation regressions remain q=4 extensions. Multiple-slope
+bivariate location blocks, residual-scale bivariate slope blocks, bivariate
+spatial slope blocks, predictor-dependent q=4 phylogenetic or spatial
+correlations, and `rho12` random effects remain planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs
 in a long table, not just as unlabeled matrices. The design note
 `docs/design/20-coscale-correlation-pairs.md` records the planned labels:

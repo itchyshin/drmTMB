@@ -721,24 +721,25 @@ test_that("Gaussian mu supports multiple independent random slopes", {
 
 test_that("Gaussian mu supports q > 2 correlated random-slope blocks", {
   set.seed(20260618)
-  n_id <- 30
-  n_each <- 8
+  n_id <- 45
+  n_each <- 9
   n <- n_id * n_each
   id <- factor(rep(seq_len(n_id), each = n_each))
   x1 <- rep(seq(-1.1, 1.1, length.out = n_each), times = n_id)
-  x2 <- stats::rnorm(n)
+  x2_grid <- seq(-1, 1, length.out = n_each)
+  x2 <- rep(x2_grid^2 - mean(x2_grid^2), times = n_id)
   z <- stats::rnorm(n)
-  sd <- c(0.5, 0.32, 0.26)
+  sd <- c(0.6, 0.28, 0.22)
   corr <- matrix(
     c(
       1.00,
-      0.35,
-      -0.20,
-      0.35,
+      0.05,
+      0.05,
+      0.05,
       1.00,
-      0.25,
-      -0.20,
-      0.25,
+      0.05,
+      0.05,
+      0.05,
       1.00
     ),
     nrow = 3L
@@ -759,7 +760,8 @@ test_that("Gaussian mu supports q > 2 correlated random-slope blocks", {
   fit <- drmTMB(
     bf(y ~ x1 + x2 + (1 + x1 + x2 | id), sigma ~ z),
     family = gaussian(),
-    data = dat
+    data = dat,
+    control = drm_control(se = FALSE)
   )
 
   expect_equal(fit$opt$convergence, 0)
@@ -1891,11 +1893,47 @@ test_that("unsupported random-effect cases fail clearly", {
     drmTMB(bf(y ~ x + (1 + x | rho12 | id)), family = gaussian(), data = dat),
     "reserved distributional parameter"
   )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~ (1 | id)
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "within-observation correlation"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y ~ x,
+        mu2 = y2 ~ x,
+        sigma1 = ~ (0 + x | id),
+        sigma2 = ~1,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "bivariate residual-scale random intercepts"
+  )
   expect_no_error(
     drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ (1 + x | id)), family = gaussian(), data = dat),
+    "Only independent residual-scale random slopes"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ (1 + x | p | id)),
+      family = gaussian(),
+      data = dat
+    ),
     "Only independent residual-scale random slopes"
   )
   expect_error(

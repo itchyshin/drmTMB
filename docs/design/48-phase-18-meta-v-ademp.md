@@ -82,6 +82,12 @@ animal models, or user-supplied latent relatedness comparators. A later
 comparator sheet can add a conventional meta-analysis route only if it targets
 the same fixed effects and residual heterogeneity scale honestly.
 
+This ADEMP sheet validates the constant-extra-heterogeneity route
+`sigma ~ 1`. It does not validate predictor-dependent extra heterogeneity such
+as `bf(yi ~ x + meta_V(V = V), sigma ~ x)`, which currently needs a separate
+Hessian, profile, or bootstrap gate before its Wald SEs or intervals are treated
+as reliable.
+
 ## P - Performance Measures
 
 Report metrics by condition cell and estimand:

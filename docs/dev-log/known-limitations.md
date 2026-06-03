@@ -37,6 +37,16 @@
   only as a compatibility alias; `check_drm()` reports that row as a note with
   dimension, density, size, rank, and conditioning because dense `V` is a
   small-to-moderate route until sparse or block-sparse storage exists.
+- A current inference limitation affects some Gaussian location-scale
+  meta-analysis fits with known per-effect sampling variance and
+  predictor-dependent residual heterogeneity, for example
+  `bf(y ~ moderator + meta_V(V = v), sigma ~ moderator)`. These fits can
+  converge and return plausible `mu` and `sigma` point estimates while
+  `TMB::sdreport()` reports `pdHess = FALSE`. Treat Wald SEs and Wald
+  confidence intervals from that fit as unreliable until `check_drm()` reports
+  a positive-definite Hessian or a profile/bootstrap diagnostic supports the
+  target. This is a Hessian/inference limitation, not a change to the additive
+  known-`V` likelihood.
 - Sparse fixed-effect matrices are implemented only for the first univariate
   Gaussian `mu` path through `drm_control(sparse_fixed = TRUE)`. The model must
   have fixed effects only, intercept-only `sigma`, no known covariance, no
@@ -53,6 +63,21 @@
   fixed-effect matrices remain out of scope. Fitted-row predictions and
   residuals still use stored original-row model matrices and response vectors;
   no cell-level residual method is exposed yet.
+- Missing-data support is release-ready for the implemented surface, not for
+  every missing-data analysis. `miss_control(response = "include")` is fitted
+  for univariate Gaussian response masks and independent-observation bivariate
+  Gaussian partial-response rows without dense known sampling covariance.
+  `miss_control(predictor = "model")` fits one explicit `mi()` missing
+  predictor at a time in univariate Gaussian location models, with fixed-effect
+  family-aware predictor models plus the grouped and structured Gaussian
+  covariate routes. MD9a is the only non-Gaussian response route: ordinary
+  `family = poisson()` with one fixed-effect binary `mi()` predictor and
+  complete count responses. Multiple missing predictors, missing non-Gaussian
+  responses, non-binary missing predictors in non-Gaussian response models,
+  grouped or structured non-Gaussian predictor models, transformed or
+  interacted `mi()` terms, EM/profile/REML engines, simulation-based imputation
+  summaries, response imputation, measurement-error models, and pigauto
+  interoperability remain planned.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
@@ -63,7 +88,9 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Bivariate intercept-plus-slope q=4 blocks, random effects in `rho12`, and
+  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted as
+  source-tested first slices. Residual-scale slope blocks, same-response
+  location-scale slope covariance, random effects in `rho12`, and
   predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,
   spatial, or group-level covariance parameter.
@@ -343,8 +370,9 @@
 - Cross-formula labelled covariance sharing beyond the implemented univariate
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
-  all-four bivariate q4 intercept block, correlated residual-scale random-slope
-  blocks, labelled `mu`/`sigma` random-slope covariance, slope-specific
+  all-four bivariate q4 intercept block plus the matching q4 and q6 bivariate
+  location blocks, correlated residual-scale random-slope blocks, labelled
+  `mu`/`sigma` random-slope covariance, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance

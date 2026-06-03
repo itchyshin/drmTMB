@@ -1467,6 +1467,7 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
   sim <- new_phylo_gaussian_data(seed = 20260549, n_tip = 8L, n_each = 5L)
   dat <- sim$data
   tree <- sim$tree
+  dat$z <- stats::rnorm(nrow(dat))
   dat$species[[1L]] <- NA_character_
   dat$y[[2L]] <- NA_real_
 
@@ -1495,6 +1496,22 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
       data = sim$data
     ),
     "scale formulas with structured slopes"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 + x + z | species, tree = tree), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "one-slope structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 + x | p | species, tree = tree), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "covariance-block labels"
   )
 })
 

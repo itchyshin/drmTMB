@@ -141,6 +141,7 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #' * `animal(1 | id, pedigree = pedigree)`,
 #'   `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)`
 #' * `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)`
+#' * `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`
 #'
 #' Some Gaussian routes also fit matching location-scale, bivariate, or
 #' one-slope structured blocks. Those routes still return one row per parsed
@@ -202,7 +203,7 @@ structured_effects_table_row <- function(structured_mu) {
 
   data.frame(
     marker = marker,
-    grouping_variable = structured_effects_group(structured_mu),
+    grouping_variable = structured_effects_group(structured_mu, marker),
     matrix_attachment = structured_effects_matrix_attachment(args),
     structure = structured_effects_structure(structured_mu, marker),
     group1 = structured_effects_scalar(structured_mu$group1),
@@ -241,7 +242,10 @@ empty_structured_effects_table <- function() {
   )
 }
 
-structured_effects_group <- function(structured_mu) {
+structured_effects_group <- function(structured_mu, marker) {
+  if (identical(marker, "phylo_interaction")) {
+    return(paste0(structured_mu$group1, ":", structured_mu$group2))
+  }
   structured_effects_scalar(structured_mu$group)
 }
 
@@ -249,6 +253,7 @@ structured_effects_structure <- function(structured_mu, marker) {
   switch(
     marker,
     phylo = "tree",
+    phylo_interaction = "tree_pair",
     structured_effects_scalar(structured_mu$structure)
   )
 }
@@ -257,6 +262,12 @@ structured_effects_args <- function(structured_mu, marker) {
   switch(
     marker,
     phylo = list(tree = structured_effects_scalar(structured_mu$tree)),
+    phylo_interaction = list(
+      tree1 = structured_effects_scalar(structured_mu$tree1),
+      tree2 = structured_effects_scalar(structured_mu$tree2),
+      group1 = structured_effects_scalar(structured_mu$group1),
+      group2 = structured_effects_scalar(structured_mu$group2)
+    ),
     {
       structure <- structured_effects_scalar(structured_mu$structure)
       object <- structured_effects_scalar(structured_mu$object)
@@ -269,7 +280,18 @@ structured_effects_matrix_attachment <- function(args) {
   values <- unlist(
     args[
       names(args) %in%
-        c("tree", "coords", "mesh", "pedigree", "A", "Ainv", "K", "Q")
+        c(
+          "tree",
+          "coords",
+          "mesh",
+          "pedigree",
+          "A",
+          "Ainv",
+          "K",
+          "Q",
+          "tree1",
+          "tree2"
+        )
     ],
     use.names = FALSE
   )
@@ -383,9 +405,10 @@ rho12.drmTMB <- function(
 #' `drmTMB` model. The current implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate and
-#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks, and
-#' matched bivariate `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept
-#' covariance blocks from `corpars`, plus fitted bivariate phylogenetic,
+#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks,
+#' matched bivariate `mu1`/`mu2` random-intercept and slope-only covariance
+#' blocks, and matched bivariate `sigma1`/`sigma2` random-intercept covariance
+#' blocks from `corpars`, plus fitted bivariate phylogenetic,
 #' coordinate-spatial, animal-model, and `relmat()` correlation rows. Full q4
 #' phylogenetic, coordinate-spatial, animal-model, and `relmat()` blocks report
 #' six derived endpoint correlations; block-diagonal q4 fallback fits report
@@ -2686,21 +2709,28 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   ) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
-      return(response)
+      return(drm_mask_missing_response_values(object, response))
     }
     if (identical(object$model$V_known_type, "matrix")) {
-      return(as.vector(forwardsolve(
-        t(chol(observation_covariance(object))),
-        response
-      )))
+      return(drm_mask_missing_response_values(
+        object,
+        as.vector(forwardsolve(
+          t(chol(observation_covariance(object))),
+          response
+        ))
+      ))
     }
-    return(response / observation_sigma(object))
+    return(drm_mask_missing_response_values(
+      object,
+      response / observation_sigma(object)
+    ))
   }
 
   response <- cbind(
     y1 = object$model$y1 - predict(object, dpar = "mu1"),
     y2 = object$model$y2 - predict(object, dpar = "mu2")
   )
+  response <- drm_mask_biv_missing_response_values(object, response)
   if (type == "response") {
     return(response)
   }
@@ -2718,7 +2748,24 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   e1 <- response[, "y1"] / sigma1
   e2_raw <- response[, "y2"] / sigma2
   e2 <- (e2_raw - rho12 * e1) / sqrt(1 - rho12^2)
-  cbind(y1 = e1, y2 = e2)
+  out <- cbind(y1 = e1, y2 = e2)
+  missing_data <- object$missing_data
+  if (
+    is.list(missing_data) &&
+      identical(missing_data$response_policy, "include") &&
+      !is.null(missing_data$observed_y1) &&
+      !is.null(missing_data$observed_y2) &&
+      length(missing_data$observed_y1) == nrow(out) &&
+      length(missing_data$observed_y2) == nrow(out)
+  ) {
+    observed_y1 <- as.logical(missing_data$observed_y1)
+    observed_y2 <- as.logical(missing_data$observed_y2)
+    y2_only <- !observed_y1 & observed_y2
+    out[y2_only, "y2"] <- e2_raw[y2_only]
+    out[!observed_y1, "y1"] <- NA_real_
+    out[!observed_y2, "y2"] <- NA_real_
+  }
+  out
 }
 
 #' Extract fitted scale or dispersion

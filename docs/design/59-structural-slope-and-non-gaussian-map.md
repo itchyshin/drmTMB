@@ -14,8 +14,9 @@ structural-parity slices:
 
 The short answers are closer now, but still bounded. `drmTMB` has at least one
 fitted random-slope route for ordinary Gaussian `mu`, ordinary Gaussian
-`sigma`, the first ordinary bivariate Gaussian slope-only `mu1`/`mu2`
-covariance route, coordinate spatial Gaussian `mu`, phylogenetic Gaussian
+`sigma`, the first ordinary bivariate Gaussian slope-only and source-tested
+q=4/q=6 location `mu1`/`mu2` covariance routes, coordinate spatial Gaussian `mu`,
+phylogenetic Gaussian
 `mu`, animal-model Gaussian `mu`, `relmat()` Gaussian `mu`, ordinary
 Poisson/NB2 `mu`, and selected ordinary Student-t/lognormal/Gamma/beta/
 beta-binomial/zero-truncated NB2 `mu`. Broader bivariate random slopes and
@@ -30,7 +31,7 @@ source-test, smoke, or diagnostic lanes, not broad count parity.
 | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` group effects | Yes | Independent numeric slopes such as `(0 + x | id)` and one correlated intercept-slope block such as `(1 + x | id)`; q > 2 ordinary `mu` blocks are fitted but advanced | Bivariate slope1-slope2 covariance and broader cross-parameter slope covariance |
 | Ordinary Gaussian `sigma` group effects | Yes | Independent residual-scale slopes such as `sigma ~ z + (0 + w | id)` on the log-`sigma` predictor | Correlated residual-scale slope blocks and labelled `mu`/`sigma` slope covariance |
-| Ordinary bivariate group covariance | Yes, first slice | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, constant q=4 intercept location-scale blocks, and matching slope-only `mu1`/`mu2` blocks are fitted | Intercept-plus-slope q=4 bivariate location blocks, residual-scale slope covariance, all-four p8/q8 slope location-scale blocks, and predictor-dependent slope `corpair()` regressions |
+| Ordinary bivariate group covariance | Yes, first slices | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, constant q=4 intercept location-scale blocks, matching slope-only `mu1`/`mu2` blocks, and source-tested matching q=4/q=6 `mu1`/`mu2` location blocks are fitted | Residual-scale slope covariance, same-response location-scale slope covariance, all-four p8/q8 slope location-scale blocks, predictor-dependent slope `corpair()` regressions, and q > 2 simulation recovery |
 | Coordinate spatial Gaussian effects | Yes | `spatial(1 | site, coords = coords)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `spatial(1 + x | site, coords = coords)` fits independent coordinate-spatial intercept and slope fields for univariate Gaussian `mu` | Multiple spatial slopes, residual-scale structured slopes, spatial intercept-slope correlation, bivariate spatial slopes, mesh/SPDE |
 | Phylogenetic Gaussian effects | Yes | `phylo(1 | species, tree = tree)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `phylo(1 + x | species, tree = tree)` fits independent phylogenetic intercept and slope fields for univariate Gaussian `mu`; matching bivariate `mu1`/`mu2`, selected q=4 location-scale, direct `sd_phylo*()`, and q=2 phylogenetic `corpair()` routes are also fitted | Multiple phylogenetic slopes, residual-scale structured slopes, phylogenetic slope correlations, bivariate phylogenetic slopes, and phylogenetic non-Gaussian effects |
 | `animal()` Gaussian effects | Yes | `animal(1 | id, pedigree/A/Ainv = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `animal(1 + x | id, pedigree/A/Ainv = ...)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, residual-scale structured slopes, animal slope correlations, predictor-dependent `corpair()`, direct-SD grammar |
@@ -49,11 +50,12 @@ source-test, smoke, or diagnostic lanes, not broad count parity.
   `tests/testthat/test-gaussian-location-scale.R`,
   `tests/testthat/test-phase18-gaussian-mu-random-slope.R`, and
   `tests/testthat/test-phase18-random-slope-grid-writers.R`.
-- The first ordinary bivariate slope-only `mu1`/`mu2` route is tracked in
+- The first ordinary bivariate slope-only and one-slope q=4 `mu1`/`mu2` location
+  routes are tracked in
   `tests/testthat/test-biv-gaussian.R`,
   `tests/testthat/test-phase18-biv-gaussian-mu-slope.R`, and the after-task
-  reports for the bivariate Gaussian slope smoke, grid writer, and Actions
-  task.
+  reports for the bivariate Gaussian slope smoke, grid writer, Actions task, and
+  q=4 location source gate.
 - The structured one-slope Gaussian `mu` routes are tracked in
   `docs/design/44-structured-slope-parity-gate.md`,
   `docs/design/60-structural-parity-slices-39-82.md`,
@@ -69,9 +71,10 @@ source-test, smoke, or diagnostic lanes, not broad count parity.
 
 The practical consequence is that the first structured one-slope parity gap is
 closed for univariate Gaussian `mu`, and the first ordinary bivariate
-slope-slope gap is now opened for matching `mu1`/`mu2` slopes. The next slope
-gaps are intercept-plus-slope bivariate covariance, all-four p8/q8
-location-scale covariance, multiple structured slopes, structured slope
+slope-slope plus q=4/q=6 location gaps are opened for matching `mu1`/`mu2`
+slopes. The next slope gaps are residual-scale bivariate slope covariance,
+same-response location-scale slope covariance, all-four p8/q8 location-scale
+covariance, multiple structured slopes, structured slope
 correlations, and non-Gaussian structured effects.
 
 The #440 bivariate slope-only evidence gate is recorded in

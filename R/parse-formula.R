@@ -664,6 +664,13 @@ parse_structured_bar_term <- function(expr, marker) {
       covariance_label = covariance_label
     ))
   }
+  if (!is.null(covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn {marker}} covariance-block labels currently require intercept-only structured terms.",
+      "x" = "Use {.code {marker}(1 | p | group, ...)} for fitted intercept covariance blocks or {.code {marker}(1 + x | group, ...)} for independent one-slope paths.",
+      "i" = "Structured slope correlations need separate syntax, simulations, and extractor checks before fitting."
+    ))
+  }
 
   pieces <- flatten_plus_terms(lhs)
   one <- vapply(pieces, is_intercept_one, logical(1))

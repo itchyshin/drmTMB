@@ -22,7 +22,7 @@ Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter the logit-\code{mu} predictor; \code{sigma}
 remains fixed-effect in this first slice.
 
-This helper masks \code{\link[base:Special]{base::beta()}} when \code{drmTMB} is attached. Use
+This helper masks \code{\link[base:beta]{base::beta()}} when \code{drmTMB} is attached. Use
 \code{base::beta()} for the mathematical beta function.
 }
 \examples{

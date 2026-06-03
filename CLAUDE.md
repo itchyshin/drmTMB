@@ -16,7 +16,9 @@ distributional parameter.
 ## Syntax Rules to Preserve
 
 - Use `sigma`, not `tau`, in the public API.
-- Treat meta-analysis as `family = gaussian()` plus `meta_known_V(V = V)`.
+- Treat meta-analysis as `family = gaussian()` plus `meta_V(V = V)`.
+  `meta_known_V(V = V)` is deprecated and should appear only when explaining
+  the compatibility alias.
 - Use `rho12` for bivariate residual correlation. Phylogenetic,
   non-phylogenetic species, spatial, study, site, and other group-level
   correlations should be named as separate covariance summaries, not as
