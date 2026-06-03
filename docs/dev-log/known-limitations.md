@@ -88,8 +88,8 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted as
-  source-tested first slices. Residual-scale slope blocks, same-response
+  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted with
+  smoke artifact routing. Residual-scale slope blocks, same-response
   location-scale slope covariance, random effects in `rho12`, and
   predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,

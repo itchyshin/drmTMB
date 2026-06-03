@@ -104,9 +104,9 @@ or non-Gaussian structured dependence.
 
 ## Next Design Question
 
-The next location-scale question is now p8/q8. The q4 location source gate has
-a source-tested ordinary group route, but no artifact lane. A full
-unstructured p8 block has eight endpoint SDs and 28 latent correlations, so the
-package should decide whether users next need a small q4 artifact lane, a
-smaller block-diagonal route, or a constrained p8 route before any public
-simulation grid is opened.
+The next location-scale question is now p8/q8. The q4 and q6 location routes
+have ordinary group fits and smoke artifact lanes. A full unstructured p8 block
+has eight endpoint SDs and 28 latent correlations, so the package should decide
+whether users next need a smaller block-diagonal route, a constrained p8 route,
+or another q4/q6 recovery grid before any public p8/q8 simulation grid is
+opened.

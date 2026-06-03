@@ -106,7 +106,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Implemented | Predictor-dependent phylogenetic q=2 location-location latent random-effect correlation regression for matching labelled `mu1`/`mu2` `phylo()` terms. Predictors must be constant within `species`. Location-scale, scale-scale, q=4, and spatial `corpair()` regressions remain planned. |
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | Estimates the ordinary slope1-slope2 plasticity-syndrome correlation without intercept-slope correlations; broader bivariate slope blocks remain planned. |
 | Matching one-slope intercept-plus-slope `(1 + x | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented first q=4 location slice | Estimates two location-intercept SDs, two location-slope SDs, and six group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
-| Matching two-slope `(1 + x + z | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented source-tested q=6 location slice | Estimates six location SDs and 15 group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
+| Matching two-slope `(1 + x + z | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented q=6 location slice with smoke artifact routing | Estimates six location SDs and 15 group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
 | Residual-scale bivariate slope blocks, same-response location-scale slope covariance, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
@@ -302,7 +302,8 @@ evidence.
 Multiple random factors should remain separate additive blocks. The first slope
 models should not estimate predictor-dependent intercept-slope `corpair()` rows.
 The first fitted bivariate targets are the slope1-slope2 correlation and the
-source-tested q=4/q=6 location blocks for the same covariates across responses.
+q4/q6 location blocks with smoke artifact routing for the same covariates across
+responses.
 
 The first bivariate group-level covariance syntax is explicit about the
 distinction between group-level covariance labels and residual `rho12`:

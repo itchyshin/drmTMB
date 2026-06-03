@@ -338,8 +338,8 @@ Slice 83 opens the first bivariate one-slope fitted route: matching
 slope-only location terms, for example `(0 + x | p | id)` in both `mu1` and
 `mu2`. This targets the slope1-slope2 plasticity-syndrome correlation without
 also estimating intercept-slope correlations. Matching `(1 + x | p | id)` and
-`(1 + x + z | p | id)` terms in both location formulas are now source-tested
-q=4/q=6 location blocks. Matching slope terms in all four `mu1`, `mu2`,
+`(1 + x + z | p | id)` terms in both location formulas are now q=4/q=6
+location blocks with smoke artifact routing. Matching slope terms in all four `mu1`, `mu2`,
 `sigma1`, and `sigma2` formulas are p8/q8 location-scale endpoints and remain
 deliberately closed in this phase.
 
