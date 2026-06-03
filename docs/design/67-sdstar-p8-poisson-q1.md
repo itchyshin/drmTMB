@@ -85,6 +85,12 @@ The current staged path is:
 | q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | planned; high identifiability risk |
 | q8 all-endpoint block | all four dpars with intercept and slope endpoints | planned after q2/q4 evidence; q8 correlations are derived-unavailable until a validated interval method exists |
 
+The Phase 18 structured workflow registry now carries this as the
+`bivariate_gaussian_q8_endpoint` design row. The helper
+`phase18_biv_gaussian_q8_endpoint_precode_gate()` is a dry-run gate only: it
+names the eight endpoints and 28 correlations, confirms that the row is
+`design_only`, and confirms that no Actions task can dispatch it.
+
 Admission rules:
 
 - Open one endpoint class at a time.

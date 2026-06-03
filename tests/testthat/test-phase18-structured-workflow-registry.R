@@ -85,10 +85,10 @@ test_that("Phase 18 structured workflow registry validates current rows", {
   )
   status_counts <- table(registry$admission_status)
 
-  expect_equal(nrow(registry), 36L)
+  expect_equal(nrow(registry), 37L)
   expect_equal(unname(status_counts[["ready_grid"]]), 20L)
   expect_equal(unname(status_counts[["blocked"]]), 4L)
-  expect_equal(unname(status_counts[["design_only"]]), 1L)
+  expect_equal(unname(status_counts[["design_only"]]), 2L)
   expect_equal(anyDuplicated(registry$lane_id), 0L)
 })
 
@@ -299,6 +299,7 @@ test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
   expect_true("bivariate_gaussian_slope_only" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q4_location" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q6_location" %in% plan$lane_id)
+  expect_false("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
   expect_false(any(is.na(plan$actions_task)))
 })
 
@@ -415,7 +416,7 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
   )
   preflight <- env$phase18_random_slope_registry_preflight(registry)
 
-  expect_equal(nrow(preflight$rows), 11L)
+  expect_equal(nrow(preflight$rows), 12L)
   expect_setequal(
     preflight$checks$check,
     c(
@@ -432,13 +433,54 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
     ],
     "pass"
   )
-  expect_equal(sum(is.na(preflight$rows$actions_task)), 0L)
+  expect_equal(sum(is.na(preflight$rows$actions_task)), 1L)
   expect_match(
     paste(preflight$rows$lane_id, collapse = "\n"),
     "bivariate_gaussian_slope_only",
     fixed = TRUE
   )
+  q8 <- preflight$rows$lane_id == "bivariate_gaussian_q8_endpoint"
+  expect_true(any(q8))
+  expect_equal(preflight$rows$admission_status[q8], "design_only")
+  expect_equal(preflight$rows$dispatch_status[q8], "held_by_status")
+  expect_equal(preflight$rows$workflow_helper[q8], "held_no_dispatch")
+  expect_equal(preflight$rows$audit_focus[q8], "design_required")
   expect_equal(sum(!nzchar(preflight$rows$supervision_boundary)), 0L)
+})
+
+test_that("Phase 18 q8 endpoint pre-code gate stays design-only", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  gate <- env$phase18_biv_gaussian_q8_endpoint_precode_gate(registry)
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+
+  expect_equal(gate$row$lane_id, "bivariate_gaussian_q8_endpoint")
+  expect_equal(gate$row$admission_status, "design_only")
+  expect_equal(gate$row$existing_actions_task, "none")
+  expect_equal(nrow(gate$endpoints), 8L)
+  expect_equal(
+    gate$endpoints$endpoint,
+    c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1:(Intercept)",
+      "sigma1:x",
+      "sigma2:(Intercept)",
+      "sigma2:x"
+    )
+  )
+  expect_equal(
+    gate$checks$value[gate$checks$check == "correlation_count"],
+    "28"
+  )
+  expect_true(all(gate$checks$status == "pass"))
+  expect_false("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
 })
 
 test_that("Phase 18 random-slope registry preflight fails closed", {
@@ -475,6 +517,8 @@ test_that("Phase 18 random-slope registry preflight formats dry-run output", {
   )
   expect_match(text, "No simulations, GitHub Actions jobs", fixed = TRUE)
   expect_match(text, "bivariate_gaussian_slope_only", fixed = TRUE)
+  expect_match(text, "bivariate_gaussian_q8_endpoint", fixed = TRUE)
+  expect_match(text, "held_no_dispatch", fixed = TRUE)
   expect_match(text, "source_test_audit", fixed = TRUE)
 })
 
@@ -1018,6 +1062,7 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$design_only[family], 1L)
   expect_equal(counts$existing_actions_tasks[random], 11L)
   expect_equal(counts$wrapper_targets[random], 0L)
+  expect_equal(counts$design_only[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)
   expect_equal(counts$wrapper_targets[structured], 0L)
   expect_equal(counts$existing_actions_tasks[correlation], 6L)

@@ -51707,3 +51707,35 @@ endpoint covariance outside the claim.
     returned no generated-site matches.
   - `git diff --check` passed.
 - Not run: `devtools::document()`, because no roxygen comments changed.
+
+## 2026-06-03 - Bivariate q8 endpoint pre-code gate (branch codex/q8-endpoint-precode-gate)
+
+Task: keep the next bivariate endpoint slice moving without opening q8
+likelihood support or disturbing the green q6 smoke/artifact PR.
+
+- Added a design-only `bivariate_gaussian_q8_endpoint` row to the Phase 18
+  structured workflow registry. The row has `existing_actions_task = "none"`,
+  so it cannot dispatch through Actions or enter admitted random-slope plans.
+- Added `phase18_biv_gaussian_q8_endpoint_precode_gate()` and
+  `phase18_biv_gaussian_q8_endpoint_taxonomy()` to name the future q8 endpoint
+  vector, record the eight endpoints and 28 implied correlations, and check
+  that the registry row remains design-only with no Actions task.
+- Updated the random-slope preflight so design-only rows are visible as
+  `held_no_dispatch` with `audit_focus = "design_required"`, while q2/q4/q6
+  admitted bivariate location rows keep their own dispatch statuses.
+- Updated the structured-workflow registry note, p8/q8 endpoint plan,
+  implementation-map slice note, simulation README, and roadmap slice 1840.
+- Checks run:
+  - `air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry')"`
+    returned 300 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 496 passes, no failures, warnings, or skips.
+  - `rg -n 'q8.*(ready_grid|ready_existing_task|ready_existing|ready task)|p8.*(ready_grid|ready_existing_task|ready_existing|ready task)|q8 (is|are|now) (fitted|implemented|supported)|p8 (is|are|now) (fitted|implemented|supported)|q8.*existing_actions_task.*(biv|first_wave|summary)|bivariate_gaussian_q8_endpoint.*ready' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat -g '!docs/dev-log/after-task/**'`
+    returned no unsupported q8/p8 fitted or dispatch-promotion claims.
+  - `git diff --check` passed.
+- Not run: `devtools::document()`, because no roxygen comments changed. Full
+  `devtools::test()`, `pkgdown::build_site()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()` were not rerun for this source/test/design-only
+  preflight slice.

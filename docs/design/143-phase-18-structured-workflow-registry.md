@@ -116,7 +116,18 @@ blocked, design-only, and diagnostic-only rows from the plan.
 Seven random-slope rows are grid-ready slope surfaces, including
 `biv_gaussian_mu_slope`, `biv_gaussian_q4_location`, and
 `biv_gaussian_q6_location`; four source-test audit rows route through existing
-family artifact tasks.
+family artifact tasks. The preflight also keeps one non-admitted design row
+visible for `bivariate_gaussian_q8_endpoint`. That row has no Actions task and
+is labelled `held_no_dispatch`, so q8 endpoint covariance cannot enter the
+workflow by being adjacent to q4/q6 location support.
+
+`phase18_biv_gaussian_q8_endpoint_precode_gate()` is the executable companion
+for that stop condition. It returns the eight endpoint labels
+`mu1:(Intercept)`, `mu1:x`, `mu2:(Intercept)`, `mu2:x`,
+`sigma1:(Intercept)`, `sigma1:x`, `sigma2:(Intercept)`, and `sigma2:x`,
+records the 28 pairwise correlations implied by a full q8 block, and checks
+that the registry row remains `design_only` with `existing_actions_task` equal
+to `none`.
 
 ## Slice 1817 Structured-Dependence Workflow Plan
 
