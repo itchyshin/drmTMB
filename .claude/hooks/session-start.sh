@@ -80,8 +80,25 @@ set -e
 if [ "$deps_status" -ne 0 ]; then
   echo "drmTMB session-start hook: R ${R_VERSION:-} installed, but dependency download failed."
   echo "This usually means the environment network policy blocks the R package repos."
-  echo "Allow packagemanager.posit.co and cloud.r-project.org for this environment,"
-  echo "then rerun this hook or run Rscript -e 'remotes::install_deps(dependencies = TRUE)'."
+  # Probe the two package hosts so the message says which one is denied rather
+  # than guessing. A numeric HTTP code (e.g. 403) means the proxy reached the
+  # host and refused it; BLOCKED means no route at all. Either points at the
+  # environment's Network access allowlist, not a bug in this hook.
+  echo "Package host reachability (HTTP status, or BLOCKED if unreachable):"
+  for host in https://packagemanager.posit.co https://cloud.r-project.org; do
+    if command -v curl >/dev/null 2>&1; then
+      code=$(curl -sS -m 8 -o /dev/null -w "%{http_code}" "$host" 2>/dev/null) || code="BLOCKED"
+      [ -z "$code" ] && code="BLOCKED"
+    else
+      code="curl-unavailable"
+    fi
+    printf '  %-32s -> %s\n' "$host" "$code"
+  done
+  echo "To fix: edit the environment's Network access, choose Custom, keep the default"
+  echo "package-manager list, and add packagemanager.posit.co and cloud.r-project.org;"
+  echo "then start a fresh session (changing allowed hosts rebuilds the setup cache)."
+  echo "In an already-allowed session, finish setup with:"
+  echo "  Rscript -e 'remotes::install_deps(dependencies = TRUE)'"
   exit 0
 fi
 
