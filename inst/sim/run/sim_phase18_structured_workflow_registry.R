@@ -372,6 +372,7 @@ phase18_random_slope_registry_preflight <- function(
   rows$actions_task <- NA_character_
   rows$workflow_helper <- "held_no_dispatch"
   rows$audit_focus <- "blocked_design_required"
+  rows$audit_focus[rows$admission_status == "design_only"] <- "design_required"
   matched <- !is.na(plan_row)
   rows$dispatch_status[matched] <- plan$dispatch_status[plan_row[matched]]
   rows$actions_task[matched] <- plan$actions_task[plan_row[matched]]
@@ -400,6 +401,77 @@ phase18_random_slope_registry_preflight <- function(
   list(
     checks = phase18_random_slope_preflight_checks(rows),
     rows = rows
+  )
+}
+
+phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  phase18_validate_structured_workflow_registry(registry)
+  row <- registry[
+    registry$lane_id == "bivariate_gaussian_q8_endpoint",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(row) != 1L) {
+    stop(
+      "Expected exactly one `bivariate_gaussian_q8_endpoint` registry row.",
+      call. = FALSE
+    )
+  }
+
+  endpoints <- phase18_biv_gaussian_q8_endpoint_taxonomy()
+  n_endpoint <- nrow(endpoints)
+  n_correlation <- n_endpoint * (n_endpoint - 1L) / 2L
+  checks <- data.frame(
+    check = c(
+      "registry_row_design_only",
+      "no_actions_task",
+      "endpoint_count",
+      "correlation_count",
+      "supervision_boundary"
+    ),
+    value = c(
+      row$admission_status,
+      row$existing_actions_task,
+      as.character(n_endpoint),
+      as.character(n_correlation),
+      row$supervision_boundary
+    ),
+    status = c(
+      ifelse(row$admission_status == "design_only", "pass", "fail"),
+      ifelse(row$existing_actions_task == "none", "pass", "fail"),
+      ifelse(n_endpoint == 8L, "pass", "fail"),
+      ifelse(n_correlation == 28L, "pass", "fail"),
+      ifelse(nzchar(row$supervision_boundary), "pass", "fail")
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  list(
+    row = row,
+    endpoints = endpoints,
+    checks = checks
+  )
+}
+
+phase18_biv_gaussian_q8_endpoint_taxonomy <- function() {
+  data.frame(
+    endpoint_index = seq_len(8L),
+    endpoint = c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1:(Intercept)",
+      "sigma1:x",
+      "sigma2:(Intercept)",
+      "sigma2:x"
+    ),
+    dpar = rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L),
+    coefficient = rep(c("(Intercept)", "x"), 4L),
+    endpoint_role = rep(c("intercept", "slope"), 4L),
+    stringsAsFactors = FALSE
   )
 }
 
