@@ -16,15 +16,21 @@ on:
           - positive_continuous_fixed_effect
           - tweedie_fixed_effect
           - count_structured_q1
+          - poisson_mu_re_recovery
+          - nbinom2_mu_re_recovery
           - positive_continuous_mu_random_intercept
           - student_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
           - correlation_block_status
           - biv_gaussian_mu_slope
+          - biv_gaussian_mu_slope_recovery
           - biv_gaussian_q4_location
+          - biv_gaussian_q4_location_recovery
           - biv_gaussian_q6_location
+          - biv_gaussian_q6_location_recovery
           - biv_gaussian_q2_scale
+          - biv_gaussian_q2_scale_recovery
           - spatial_mu_slope
           - phylo_mu_slope
           - animal_mu_slope

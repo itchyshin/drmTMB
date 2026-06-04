@@ -1383,3 +1383,36 @@ test_that("Phase 18 Actions runner rejects nested parallel requests", {
     "either the replicate layer or the bootstrap layer"
   )
 })
+
+test_that("Phase 18 workflow dispatch options match the runner task choices", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  lines <- readLines(workflow, warn = FALSE)
+
+  # Extract the `task:` choice input's options block (the indented list items
+  # immediately under the first `options:` after the `task:` input key).
+  task_line <- grep("^      task:\\s*$", lines)[[1L]]
+  options_lines <- grep("^        options:\\s*$", lines)
+  options_start <- options_lines[options_lines > task_line][[1L]]
+  i <- options_start + 1L
+  opts <- character()
+  while (i <= length(lines) && grepl("^          - ", lines[[i]])) {
+    opts <- c(opts, trimws(sub("^          - ", "", lines[[i]])))
+    i <- i + 1L
+  }
+
+  env <- new.env(parent = globalenv())
+  source(phase18_actions_runner_script(), local = env)
+
+  # Every dispatchable task (other than the aggregate "all") must be a
+  # selectable workflow_dispatch option, and vice versa. This guards against a
+  # task being added to the runner/matrix but left unselectable in the workflow
+  # (which is exactly how the recovery lanes were briefly undispatchable).
+  expect_setequal(setdiff(opts, "all"), env$phase18_actions_task_choices())
+})
