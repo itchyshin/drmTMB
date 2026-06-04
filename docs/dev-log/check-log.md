@@ -2,6 +2,28 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Capability Status Classification and Ordered Working Plan
+
+Goal:
+
+- Furnish, for the local-R (Codex) session, an unambiguous classification of
+  implemented vs simulation-evidence vs not-yet-fitted capabilities, and a single
+  flat ordered working plan toward the power simulation.
+
+Changes:
+
+- Added "Capability Status: Three Distinct Categories" (with a table) and
+  "Recommended Working Order" (flat Phase A implement / Phase B run evidence /
+  Phase C comparator+release sequence) to
+  `docs/design/157-capability-completion-worklist.md`.
+- Pointed `docs/design/46-pre-simulation-readiness-matrix.md` at that
+  classification, stressing that a recovery/coverage lane is evidence, not a new
+  capability.
+- Updated the handoff issue #491 to embed the ordered plan.
+
+Checks run:
+
+- Documentation only; no R code, tests, or fitted status changed.
 ## 2026-06-04 -- NB2 mu Random-Effect Standalone Recovery Lane (truncated already covered)
 
 Goal:

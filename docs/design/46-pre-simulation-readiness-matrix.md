@@ -4,6 +4,13 @@ This note answers one practical question before broad Phase 18 simulation:
 which model surfaces are ready for operating-characteristic grids, and which
 surfaces still belong in the failure ledger?
 
+For the implemented-versus-not-yet-fitted classification and the single ordered
+implementation plan toward the power simulation, see
+`docs/design/157-capability-completion-worklist.md`. In particular, note that a
+recovery/coverage *simulation lane* measures an already-implemented surface and
+is **not** itself a new model capability; the not-yet-fitted capabilities are
+the ordered tiers in doc 157.
+
 The rule is stricter than "the model fits once". A surface is ready only when
 the fitted likelihood, parser boundary, extractors, diagnostics, interval
 status, focused recovery tests, and reader-facing boundary are all visible.
