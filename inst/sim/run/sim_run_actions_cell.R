@@ -14,6 +14,7 @@ phase18_actions_task_choices <- function() {
     "zero_one_beta_fixed_effect",
     "correlation_block_status",
     "biv_gaussian_mu_slope",
+    "biv_gaussian_mu_slope_recovery",
     "biv_gaussian_q4_location",
     "biv_gaussian_q4_location_recovery",
     "biv_gaussian_q6_location",
@@ -269,6 +270,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "biv_gaussian_mu_slope")) {
     out <- phase18_write_biv_gaussian_mu_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_mu_slope_recovery")) {
+    out <- phase18_write_biv_gaussian_mu_slope_recovery_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -725,6 +735,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_summary_biv_gaussian_mu_slope_smoke.R",
       "sim/run/sim_write_biv_gaussian_mu_slope_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_mu_slope_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_mu_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_mu_slope.R",
+      "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_mu_slope_recovery.R",
+      "sim/run/sim_write_biv_gaussian_mu_slope_recovery_grid.R"
     ))
   }
   if (identical(task, "biv_gaussian_q4_location")) {
