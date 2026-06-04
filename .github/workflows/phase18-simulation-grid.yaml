@@ -184,6 +184,9 @@ jobs:
           - task: biv_gaussian_q6_location
             seed: 20260624
             include_in_all: false
+          - task: biv_gaussian_q6_location_recovery
+            seed: 20260630
+            include_in_all: false
           - task: biv_gaussian_q2_scale
             seed: 20260625
             include_in_all: false

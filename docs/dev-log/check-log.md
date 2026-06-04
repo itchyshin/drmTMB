@@ -2,6 +2,36 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Bivariate Gaussian q6 Location Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q6 `mu1`/`mu2` location covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reusing the
+  proven q2-scale / q4-location recovery pattern.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q6_location_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_q6_location_recovery_grid.R` (reuse the
+  smoke DGP/fit/runner; add Wald intervals and interval coverage, keeping the
+  six location SDs and fifteen derived location correlations Wald-unavailable).
+- Wired the opt-in `biv_gaussian_q6_location_recovery` Actions task (choices,
+  dispatcher branch, `phase18_actions_task_paths`, workflow matrix), added
+  registry row `bivariate_gaussian_q6_location_recovery` (`ready_grid`,
+  `random_slopes`), the recovery test, and README/NEWS notes.
+
+Checks run:
+
+- Local R has no package dependencies here, so the model-fitting recovery test
+  relies on GitHub Actions `R-CMD-check`.
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically: registry 40 -> 41; `ready_grid` 23 -> 24; random-slope
+  plan 12 -> 13; operating-characteristic 12 -> 13 (and 8 -> 9 without source-test
+  rows); preflight rows 13 -> 14; bundle random_slopes 12 -> 13; task lists
+  setequal; new row dispatches as `ready_existing_task`. All new/edited R files
+  parse cleanly.
+
 ## 2026-06-04 -- Bivariate Gaussian q2 Scale-Intercept Recovery Lane
 
 Goal:
