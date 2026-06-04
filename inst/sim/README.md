@@ -203,6 +203,13 @@ Current pilot files:
   its evidence design follows the bivariate-slope ADEMP
   `docs/design/145-phase6c-bivariate-slope-ademp.md` and the recovery-lane
   pattern in `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
+- `run/sim_summary_biv_gaussian_q6_location_recovery.R` and
+  `run/sim_write_biv_gaussian_q6_location_recovery_grid.R` give the q6
+  `mu1`/`mu2` location lane (`(1 + x + z | p | id)` in both location formulas)
+  the same recovery treatment over its 30 estimands: bias, RMSE, MCSE, and
+  fixed-effect Wald coverage, with the six location SDs and fifteen derived
+  location-location correlations kept `derived_interval_unavailable`. It
+  dispatches through the opt-in `biv_gaussian_q6_location_recovery` Actions task.
 - `dgp/sim_dgp_biv_gaussian_q2_scale.R` generates bivariate Gaussian data with
   a matching residual-scale random-intercept covariance block,
   `sigma1 = ~ 1 + (1 | p | id)` and `sigma2 = ~ 1 + (1 | p | id)`, so the two
