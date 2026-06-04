@@ -191,6 +191,18 @@ Current pilot files:
 - `dgp/sim_dgp_biv_gaussian_q6_location.R` generates bivariate Gaussian
   `mu1`/`mu2` data with matching ordinary q=6 location random-effect blocks,
   `(1 + x + z | p | id)`, and residual `rho12` kept as a separate layer.
+- `run/sim_summary_biv_gaussian_q4_location_recovery.R` and
+  `run/sim_write_biv_gaussian_q4_location_recovery_grid.R` promote the q4
+  `mu1`/`mu2` location lane (`(1 + x | p | id)` in both location formulas) from
+  a single-replicate smoke check to a multi-replicate recovery lane. They reuse
+  the smoke DGP, fit, and runner, run at recovery-scale `n_rep`, and add bias,
+  RMSE, MCSE, and Wald interval coverage. Wald coverage is reported only for the
+  fixed `mu1`/`mu2` endpoints; the four location SDs and six derived
+  location-location correlations stay `derived_interval_unavailable`. The lane
+  dispatches through the opt-in `biv_gaussian_q4_location_recovery` Actions task;
+  its evidence design follows the bivariate-slope ADEMP
+  `docs/design/145-phase6c-bivariate-slope-ademp.md` and the recovery-lane
+  pattern in `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
 - `dgp/sim_dgp_biv_gaussian_q2_scale.R` generates bivariate Gaussian data with
   a matching residual-scale random-intercept covariance block,
   `sigma1 = ~ 1 + (1 | p | id)` and `sigma2 = ~ 1 + (1 | p | id)`, so the two

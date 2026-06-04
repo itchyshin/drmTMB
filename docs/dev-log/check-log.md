@@ -2,6 +2,39 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Bivariate Gaussian q4 Location Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q4 `mu1`/`mu2` location covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reporting
+  bias, RMSE, MCSE, and fixed-effect Wald interval coverage, reusing the proven
+  q2-scale recovery pattern.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q4_location_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R` (reuse the
+  smoke DGP/fit/runner; add Wald intervals and interval coverage, keeping the
+  four location SDs and six derived location correlations Wald-unavailable).
+- Wired the opt-in `biv_gaussian_q4_location_recovery` Actions task (choices in
+  runner and registry generator, dispatcher branch, `phase18_actions_task_paths`,
+  workflow matrix), added registry row `bivariate_gaussian_q4_location_recovery`
+  (`ready_grid`, `random_slopes`), the recovery test, and README/NEWS notes.
+
+Checks run:
+
+- Local R has no package dependencies here, so the model-fitting recovery test
+  relies on GitHub Actions `R-CMD-check`.
+- The registry plan logic is pure base R, so it was executed directly with
+  Rscript against the updated CSV to set every count assertion empirically:
+  registry 38 -> 39; `ready_grid` 21 -> 22; random-slope plan 11 -> 12;
+  operating-characteristic plan 11 -> 12 (and 7 -> 8 without source-test rows);
+  preflight rows 12 -> 13; bundle `plan_counts` random_slopes 11 -> 12 and
+  `existing_actions_tasks[random]` 11 -> 12; task lists setequal; the new row
+  dispatches as `ready_existing_task` with a non-empty operating-characteristic
+  `minimum_estimands`/`boundary_note`. All new/edited R files parse cleanly.
+
 ## 2026-06-03 -- Bivariate Residual-Scale Random-Slope Pre-Code Gate
 
 Goal:
