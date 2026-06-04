@@ -3,6 +3,12 @@
 `drmTMB` is a focused R package for fast univariate and bivariate
 distributional regression models using TMB.
 
+For the dependency-ordered list of remaining capability implementation slices
+between today's fitted surface and the full planned capability set, see
+`docs/design/157-capability-completion-worklist.md`. The fitted-versus-planned
+boundary itself is maintained in
+`docs/design/46-pre-simulation-readiness-matrix.md`.
+
 ## Version 0.1.3 Preview Release
 
 - Current preview version: `0.1.3`.
