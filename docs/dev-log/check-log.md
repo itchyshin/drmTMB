@@ -2,38 +2,65 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Bivariate Gaussian q2 Scale-Intercept Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q2 scale-intercept covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reporting
+  bias, RMSE, MCSE, and fixed-effect Wald interval coverage.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q2_scale_recovery.R` (reuses the
+  smoke DGP/fit/runner; adds Wald intervals and interval coverage, keeping SD
+  and the derived scale-scale correlation Wald-unavailable) and
+  `inst/sim/run/sim_write_biv_gaussian_q2_scale_recovery_grid.R`.
+- Wired the opt-in `biv_gaussian_q2_scale_recovery` Actions task: task choices
+  (runner and registry generator), dispatcher branch, `phase18_actions_task_paths`,
+  and a `.github/workflows/phase18-simulation-grid.yaml` matrix entry
+  (`include_in_all: false`).
+- Added registry row `bivariate_gaussian_scale_q2_recovery` (`ready_grid`,
+  `correlation_blocks`) and the registry count assertions, plus the missed
+  `test-phase18-correlation-block-status.R` plan/dispatch counts (7 -> 8).
+- Added test `tests/testthat/test-phase18-biv-gaussian-q2-scale-recovery.R`,
+  design sheet `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`,
+  README and registry-doc notes, and a NEWS bullet.
+
+Checks run:
+
+- Local R has no package dependencies in this environment (the package
+  repositories are blocked by the network policy), so the model-fitting recovery
+  test relies on GitHub Actions `R-CMD-check`.
+- Rebased onto the q4 location recovery lane, so the registry plan logic was
+  re-executed in pure base R against the merged CSV to set every count
+  empirically: registry 40, `ready_grid` 23, correlation-block plan 8 (5
+  `ready_grid`, 6 without diagnostics), `plan_counts` correlation_blocks 8,
+  correlation-block status plan/dispatch 8, task lists setequal; the new row
+  dispatches as `ready_existing_task`. All new/edited R files parse cleanly.
+
 ## 2026-06-04 -- Bivariate Gaussian q4 Location Recovery Lane
 
 Goal:
 
 - Promote the bivariate Gaussian q4 `mu1`/`mu2` location covariance lane from a
-  single-replicate smoke check to a multi-replicate recovery lane reporting
-  bias, RMSE, MCSE, and fixed-effect Wald interval coverage, reusing the proven
+  single-replicate smoke check to a multi-replicate recovery lane reusing the
   q2-scale recovery pattern.
 
 Changes:
 
 - Added `inst/sim/run/sim_summary_biv_gaussian_q4_location_recovery.R` and
-  `inst/sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R` (reuse the
-  smoke DGP/fit/runner; add Wald intervals and interval coverage, keeping the
-  four location SDs and six derived location correlations Wald-unavailable).
-- Wired the opt-in `biv_gaussian_q4_location_recovery` Actions task (choices in
-  runner and registry generator, dispatcher branch, `phase18_actions_task_paths`,
-  workflow matrix), added registry row `bivariate_gaussian_q4_location_recovery`
-  (`ready_grid`, `random_slopes`), the recovery test, and README/NEWS notes.
+  `inst/sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R`, the opt-in
+  `biv_gaussian_q4_location_recovery` Actions task, registry row
+  `bivariate_gaussian_q4_location_recovery` (`ready_grid`, `random_slopes`), the
+  recovery test, and README/NEWS notes.
 
 Checks run:
 
-- Local R has no package dependencies here, so the model-fitting recovery test
-  relies on GitHub Actions `R-CMD-check`.
-- The registry plan logic is pure base R, so it was executed directly with
-  Rscript against the updated CSV to set every count assertion empirically:
-  registry 38 -> 39; `ready_grid` 21 -> 22; random-slope plan 11 -> 12;
-  operating-characteristic plan 11 -> 12 (and 7 -> 8 without source-test rows);
-  preflight rows 12 -> 13; bundle `plan_counts` random_slopes 11 -> 12 and
-  `existing_actions_tasks[random]` 11 -> 12; task lists setequal; the new row
-  dispatches as `ready_existing_task` with a non-empty operating-characteristic
-  `minimum_estimands`/`boundary_note`. All new/edited R files parse cleanly.
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically (random-slope plan 11 -> 12, operating-characteristic
+  11 -> 12 and 7 -> 8 without source-test rows, preflight rows 12 -> 13, bundle
+  random_slopes 11 -> 12). All new/edited R files parse cleanly.
 
 ## 2026-06-03 -- Bivariate Residual-Scale Random-Slope Pre-Code Gate
 

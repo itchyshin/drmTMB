@@ -210,6 +210,16 @@ Current pilot files:
   stays a separate layer. This is the fittable scale-covariance prerequisite
   for the q8 endpoint gate; bivariate residual-scale random slopes remain
   closed.
+- `run/sim_summary_biv_gaussian_q2_scale_recovery.R` and
+  `run/sim_write_biv_gaussian_q2_scale_recovery_grid.R` promote that same
+  q2 scale-intercept lane from a single-replicate smoke check to a
+  multi-replicate recovery lane. They reuse the smoke DGP, fit, and runner, run
+  at recovery-scale `n_rep`, and add bias, RMSE, MCSE, and Wald interval
+  coverage. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints;
+  the random-effect SD and derived scale-scale correlation rows stay
+  `derived_interval_unavailable`. The lane dispatches through the opt-in
+  `biv_gaussian_q2_scale_recovery` Actions task; its design sheet is
+  `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross

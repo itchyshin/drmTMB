@@ -187,6 +187,9 @@ jobs:
           - task: biv_gaussian_q2_scale
             seed: 20260625
             include_in_all: false
+          - task: biv_gaussian_q2_scale_recovery
+            seed: 20260626
+            include_in_all: false
           - task: spatial_mu_slope
             seed: 20260604
             include_in_all: false

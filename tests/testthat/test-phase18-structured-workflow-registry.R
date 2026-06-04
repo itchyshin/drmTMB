@@ -85,8 +85,8 @@ test_that("Phase 18 structured workflow registry validates current rows", {
   )
   status_counts <- table(registry$admission_status)
 
-  expect_equal(nrow(registry), 39L)
-  expect_equal(unname(status_counts[["ready_grid"]]), 22L)
+  expect_equal(nrow(registry), 40L)
+  expect_equal(unname(status_counts[["ready_grid"]]), 23L)
   expect_equal(unname(status_counts[["blocked"]]), 4L)
   expect_equal(unname(status_counts[["design_only"]]), 2L)
   expect_equal(anyDuplicated(registry$lane_id), 0L)
@@ -627,8 +627,8 @@ test_that("Phase 18 correlation-block workflow plan separates interval states", 
   )
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
-  expect_equal(nrow(plan), 7L)
-  expect_equal(sum(plan$admission_status == "ready_grid"), 4L)
+  expect_equal(nrow(plan), 8L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 5L)
   expect_equal(sum(plan$admission_status == "ready_or_smoke"), 1L)
   expect_equal(sum(plan$admission_status == "diagnostic_only"), 2L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
@@ -721,7 +721,7 @@ test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
     include_diagnostic = FALSE
   )
 
-  expect_equal(nrow(plan), 5L)
+  expect_equal(nrow(plan), 6L)
   expect_false(any(plan$admission_status == "diagnostic_only"))
   expect_false(any(grepl("q4", plan$block_q, fixed = TRUE)))
 })
@@ -736,7 +736,7 @@ test_that("Phase 18 correlation-block plan excludes blocked rows", {
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
   expect_false("count_labelled_q2_q4" %in% plan$lane_id)
-  expect_equal(nrow(plan), 7L)
+  expect_equal(nrow(plan), 8L)
 })
 
 test_that("Phase 18 correlation-block wrapper target plan is read-only", {
@@ -1055,7 +1055,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("correlation_blocks", bundle$plan_counts$workflow_plan)
     ],
-    7L
+    8L
   )
   expect_equal(
     bundle$plan_counts$n[
@@ -1086,7 +1086,7 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$design_only[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)
   expect_equal(counts$wrapper_targets[structured], 0L)
-  expect_equal(counts$existing_actions_tasks[correlation], 7L)
+  expect_equal(counts$existing_actions_tasks[correlation], 8L)
   expect_equal(counts$wrapper_targets[correlation], 0L)
   expect_equal(counts$ready_or_smoke[correlation], 1L)
   expect_equal(counts$diagnostic_only[correlation], 2L)
