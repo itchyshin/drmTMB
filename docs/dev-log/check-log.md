@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Gaussian Variational Approximation Pre-Code Gate
+
+Goal:
+
+- Record the pre-code design gate for a Gaussian variational approximation
+  (GVA) as an accuracy-oriented alternative to Laplace for non-Gaussian
+  random-intercept models (the regime where Laplace is biased).
+
+Changes:
+
+- Added `docs/design/160-gaussian-variational-approximation-gate.md` (motivation,
+  ELBO objective with closed-form Gaussian-prior expectation + entropy + GH
+  data-term quadrature, where it plugs into the TMB template via an
+  `inference_method` flag, S parameterization, `drm_control(inference = "gva")`
+  API, first-slice scope, ADEMP validation against a gold standard, standing
+  review).
+- Added Tier G to `docs/design/157-capability-completion-worklist.md` and a
+  parallel working-order item.
+
+Checks run:
+
+- Design-only; no inference code, engine switch, or fitted GVA support added.
+  Laplace remains the only implemented path. Implementation is local-R/TMB work
+  (the sandbox cannot compile TMB).
+
 ## 2026-06-04 -- Fix: recovery lanes were undispatchable in the workflow
 
 Goal:
