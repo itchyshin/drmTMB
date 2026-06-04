@@ -2,6 +2,41 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Fix: recovery lanes were undispatchable in the workflow
+
+Goal:
+
+- The six `*_recovery` Actions tasks were added to the workflow matrix and the
+  runner task choices but NOT to the `workflow_dispatch` `task` choice
+  `options:` list, and they are `include_in_all: false`. The job only runs a
+  matrix entry when `inputs.task == matrix.task || (inputs.task == 'all' &&
+  include_in_all)`, so the recovery lanes could not be dispatched at all. No
+  test cross-checked the options list against the runner choices, so CI stayed
+  green.
+
+Changes:
+
+- Added the six recovery tasks to the `task` choice `options:` list in
+  `.github/workflows/phase18-simulation-grid.yaml`.
+- Added a regression-guard test in `tests/testthat/test-phase18-actions-runner.R`
+  asserting the dispatch options (minus `all`) are set-equal to
+  `phase18_actions_task_choices()`.
+
+Checks run:
+
+- Validated in base R (no package deps needed) against the edited workflow: 30
+  task options parsed; all six recovery tasks present; options-minus-`all` is
+  set-equal to `phase18_actions_task_choices()`. Test file parses. The test uses
+  the established `skip_if_not(file.exists(workflow))` pattern, so it runs in the
+  dev checkout and skips during installed-package R CMD check.
+
+Note:
+
+- This also corrects an earlier framing: running the recovery lanes (Phase B
+  evidence) does NOT require local R — the GitHub Actions runners build the
+  package and run R, so the lanes can now be dispatched from the cloud once this
+  fix lands.
+
 ## 2026-06-04 -- Capability Status Classification and Ordered Working Plan
 
 Goal:
@@ -24,6 +59,7 @@ Changes:
 Checks run:
 
 - Documentation only; no R code, tests, or fitted status changed.
+
 ## 2026-06-04 -- NB2 mu Random-Effect Standalone Recovery Lane (truncated already covered)
 
 Goal:
