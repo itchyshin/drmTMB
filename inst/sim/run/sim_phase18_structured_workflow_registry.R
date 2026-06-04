@@ -1186,6 +1186,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "correlation_block_status",
     "biv_gaussian_mu_slope",
     "biv_gaussian_q4_location",
+    "biv_gaussian_q4_location_recovery",
     "biv_gaussian_q6_location",
     "biv_gaussian_q2_scale",
     "spatial_mu_slope",
