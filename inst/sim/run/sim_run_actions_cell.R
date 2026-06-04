@@ -9,6 +9,7 @@ phase18_actions_task_choices <- function() {
     "tweedie_fixed_effect",
     "count_structured_q1",
     "poisson_mu_re_recovery",
+    "nbinom2_mu_re_recovery",
     "positive_continuous_mu_random_intercept",
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
@@ -230,6 +231,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "poisson_mu_re_recovery")) {
     out <- phase18_write_poisson_mu_re_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "nbinom2_mu_re_recovery")) {
+    out <- phase18_write_nbinom2_mu_re_recovery_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -702,6 +712,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
       "sim/run/sim_summary_poisson_mu_random_effect_smoke.R",
       "sim/run/sim_write_poisson_mu_re_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "nbinom2_mu_re_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_nbinom2_mu_random_effect.R",
+      "sim/fit/sim_summarise_nbinom2_mu_random_effect.R",
+      "sim/run/sim_run_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_write_nbinom2_mu_re_recovery_grid.R"
     ))
   }
   if (identical(task, "positive_continuous_mu_random_intercept")) {

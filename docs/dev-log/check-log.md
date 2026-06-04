@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- NB2 mu Random-Effect Standalone Recovery Lane (truncated already covered)
+
+Goal:
+
+- Give the ordinary NB2 `mu` random-effect surface its own standalone recovery
+  artifact lane (parallel to the Poisson one), and handle truncated NB2.
+
+Finding:
+
+- NB2 `mu` RE only rode `first_wave_summary` (genuine gap), but its smoke
+  summary already computes the full recovery contract. Truncated NB2 already has
+  a standalone, coverage-emitting artifact lane via its existing
+  `truncated_nbinom2_mu_random_intercept` task and grid writer, so a separate
+  recovery writer would be redundant; it is documented as already covered.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_nbinom2_mu_re_recovery_grid.R` (reuses
+  `phase18_summarise_nbinom2_mu_re_smoke()` at recovery-scale `n_rep`), the
+  opt-in `nbinom2_mu_re_recovery` Actions task, registry row
+  `nbinom2_mu_random_effects_recovery` (`ready_grid`, `random_slopes`), the test,
+  and README/NEWS notes.
+
+Checks run:
+
+- Model-fitting test relies on GitHub Actions `R-CMD-check`. Registry plan logic
+  executed in base R against the updated CSV (stacked on the Poisson lane): registry
+  44, `ready_grid` 27, random-slope plan 16, operating-characteristic 16
+  (12 without source-test rows), preflight rows 17, bundle random_slopes 16, task
+  lists setequal, new row dispatches cleanly. All R files parse.
+
 ## 2026-06-04 -- Poisson mu Random-Effect Standalone Recovery Lane
 
 Goal:

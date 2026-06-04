@@ -258,6 +258,17 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
   `sigma ~ z`; its condition helper can also cross true overdispersion
   settings.
+- `run/sim_write_nbinom2_mu_re_recovery_grid.R` gives the ordinary NB2 `mu`
+  random-effect surface its own standalone recovery artifact set, the same way
+  the Poisson lane does: it runs the already-recovery-capable
+  `phase18_summarise_nbinom2_mu_re_smoke()` at recovery-scale `n_rep` through the
+  opt-in `nbinom2_mu_re_recovery` Actions task and writes isolated bias/RMSE/MCSE,
+  Wald-coverage, and profile-coverage CSVs instead of only riding
+  `first_wave_summary`. (The truncated-NB2 `mu` random-intercept surface already
+  has an equivalent standalone coverage-emitting lane through its existing
+  `truncated_nbinom2_mu_random_intercept` task and
+  `run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R` writer, so it
+  needs no separate recovery writer.)
 - `dgp/sim_dgp_nbinom2_sigma_random_effect.R` generates non-zero-inflated NB2
   count data with fixed-effect log-mean `mu` and an ordinary grouped
   log-`sigma` random intercept, `sigma ~ z + (1 | id)`. Its condition helper
