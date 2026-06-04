@@ -2,6 +2,32 @@
 
 Record meaningful development checks here.
 
+## 2026-06-03 -- Bivariate Residual-Scale Random-Slope Pre-Code Gate
+
+Goal:
+
+- Record the pre-code design gate for bivariate residual-scale random slopes
+  (the "q2 scale slope" prerequisite for the q8 endpoint), with the target
+  model, parameterization plan, extractor/diagnostic contract, identifiability
+  risk, and ADEMP simulation/test plan.
+
+Changes:
+
+- Added `docs/design/155-bivariate-residual-scale-random-slope-gate.md`.
+- Pointed the "q2 scale slope" row in
+  `docs/design/67-sdstar-p8-poisson-q1.md` at the new gate.
+
+Checks run:
+
+- Design-only slice: no R code, tests, roxygen, or registry status changed, so
+  `devtools::test()`, `devtools::check()`, `pkgdown::*`, and
+  `devtools::document()` were not run. (Local R is unavailable in this
+  environment; the package repos are blocked by the network policy.)
+- Confirmed the gate stays honest: it adds no fitted support and does not
+  promote any `q8`/`p8` or scale-slope status. The rejection site cited
+  (`R/drmTMB.R:4963-4969`) and the boundary tests
+  (`tests/testthat/test-biv-gaussian.R:2837-2864`) are unchanged.
+
 ## 2026-05-31 -- `is_converged()` Accessor
 
 Goal:
