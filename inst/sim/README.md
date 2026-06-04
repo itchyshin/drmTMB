@@ -239,6 +239,15 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
   group count, observations per group, fixed effects, and true random-effect
   SDs.
+- `run/sim_write_poisson_mu_re_recovery_grid.R` gives the ordinary Poisson `mu`
+  random-effect surface its own standalone, dispatchable recovery artifact set.
+  The recovery contract (bias, RMSE, MCSE, Wald coverage for the fixed mean
+  coefficients, and profile coverage for the random-effect SD) is already
+  computed by `phase18_summarise_poisson_mu_re_smoke()`; this writer runs that
+  summary at recovery-scale `n_rep` and emits isolated CSV artifacts through the
+  opt-in `poisson_mu_re_recovery` Actions task, instead of only riding the
+  combined `first_wave_summary`. This is the first standalone non-Gaussian
+  recovery artifact lane.
 - `dgp/sim_dgp_poisson_phylo_q1.R` generates non-zero-inflated Poisson count
   data with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, and its condition helper can cross

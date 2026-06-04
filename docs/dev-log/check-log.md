@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Poisson mu Random-Effect Standalone Recovery Lane
+
+Goal:
+
+- Give the ordinary Poisson `mu` random-effect surface its own dispatchable
+  recovery artifact lane (it previously only rode `first_wave_summary`).
+
+Finding:
+
+- The non-Gaussian `mu` random-effect smoke summaries (Poisson, NB2,
+  truncated NB2) already compute the full recovery contract: aggregate
+  bias/RMSE/MCSE, Wald intervals and coverage, and profile intervals and
+  coverage for the random-effect SD. So no new estimator was needed; the gap
+  was only a standalone, artifact-producing dispatch lane.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_poisson_mu_re_recovery_grid.R` (reuses
+  `phase18_summarise_poisson_mu_re_smoke()` at recovery-scale `n_rep` and writes
+  aggregate, replicate, manifest, failure, Wald-interval/coverage, and
+  profile-interval/coverage CSVs), the opt-in `poisson_mu_re_recovery` Actions
+  task, registry row `poisson_mu_random_effects_recovery` (`ready_grid`,
+  `random_slopes`), the test, and README/NEWS notes.
+
+Checks run:
+
+- The model-fitting test relies on GitHub Actions `R-CMD-check`. The registry
+  plan logic was executed in base R against the updated CSV to set every count
+  empirically: registry 42 -> 43; `ready_grid` 25 -> 26; random-slope plan
+  14 -> 15; operating-characteristic 14 -> 15 (10 -> 11 without source-test rows);
+  preflight rows 15 -> 16; bundle random_slopes 14 -> 15; task lists setequal; new
+  row dispatches cleanly with non-empty operating-characteristic fields. All R
+  files parse.
+
 ## 2026-06-04 -- Bivariate Gaussian Slope-Only Recovery Lane
 
 Goal:
