@@ -188,6 +188,13 @@ Current pilot files:
 - `dgp/sim_dgp_biv_gaussian_mu_slope.R` generates bivariate Gaussian
   `mu1`/`mu2` data with matching ordinary slope-only random-effect blocks,
   `(0 + x | p | id)`, and residual `rho12` kept as a separate layer.
+- `run/sim_summary_biv_gaussian_mu_slope_recovery.R` and
+  `run/sim_write_biv_gaussian_mu_slope_recovery_grid.R` promote that slope-only
+  `mu1`/`mu2` lane from a single-replicate smoke check to a multi-replicate
+  recovery lane over its 10 estimands: bias, RMSE, MCSE, and fixed-effect Wald
+  coverage, with the two slope SDs and the derived slope-slope correlation kept
+  `derived_interval_unavailable`. It dispatches through the opt-in
+  `biv_gaussian_mu_slope_recovery` Actions task.
 - `dgp/sim_dgp_biv_gaussian_q6_location.R` generates bivariate Gaussian
   `mu1`/`mu2` data with matching ordinary q=6 location random-effect blocks,
   `(1 + x + z | p | id)`, and residual `rho12` kept as a separate layer.

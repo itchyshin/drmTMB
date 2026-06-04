@@ -2,6 +2,33 @@
 
 Record meaningful development checks here.
 
+## 2026-06-04 -- Bivariate Gaussian Slope-Only Recovery Lane
+
+Goal:
+
+- Promote the lightest bivariate Gaussian recovery candidate, the slope-only
+  `mu1`/`mu2` lane, from smoke to a multi-replicate recovery lane.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_mu_slope_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_mu_slope_recovery_grid.R`, the opt-in
+  `biv_gaussian_mu_slope_recovery` Actions task, registry row
+  `bivariate_gaussian_slope_only_recovery` (`ready_grid`, `random_slopes`), the
+  recovery test, and README/NEWS notes.
+
+Checks run:
+
+- Local R has no dependencies here; the model-fitting recovery test relies on
+  GitHub Actions `R-CMD-check`. Following the q6 lesson, the test asserts the
+  coverage machinery (columns, derived-NA) rather than finite Wald intervals,
+  which are a convergence property.
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically: registry 41 -> 42; `ready_grid` 24 -> 25; random-slope
+  plan 13 -> 14; operating-characteristic 13 -> 14 (9 -> 10 without source-test
+  rows); preflight rows 14 -> 15; bundle random_slopes 13 -> 14; task lists
+  setequal; new row dispatches as `ready_existing_task`. All R files parse.
+
 ## 2026-06-04 -- Bivariate Gaussian q6 Location Recovery Lane
 
 Goal:

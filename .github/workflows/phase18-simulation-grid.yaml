@@ -175,6 +175,9 @@ jobs:
           - task: biv_gaussian_mu_slope
             seed: 20260603
             include_in_all: false
+          - task: biv_gaussian_mu_slope_recovery
+            seed: 20260631
+            include_in_all: false
           - task: biv_gaussian_q4_location
             seed: 20260609
             include_in_all: false
