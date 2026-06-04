@@ -27,7 +27,9 @@ boundary itself is maintained in
   17 return block, especially meta-analysis hardening, is complete. A narrow
   Poisson random-effect pilot simulation may start earlier as a scoped
   operating-characteristics grid. Phase 19 is the one-off comparator
-  demonstration layer; Phase 20 is CRAN and paper preparation. Broad
+  demonstration layer (its comparator-to-`drmTMB` mapping and scale conversions
+  are in `docs/design/158-phase-19-comparator-matrix.md`); Phase 20 is CRAN and
+  paper preparation. Broad
   random-slope operating characteristics, residual-scale structured slopes,
   multiple structured slopes, structured slope correlations, structured
   residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
