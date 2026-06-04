@@ -81,6 +81,9 @@ time.
    aggregation, 1M-row benchmarks — Tier E.
 9. Mixed-response bivariate — Tier F; research-scoped, **defer** (not needed for
    the first power simulation).
+10. *(parallel, inference engine — not a model surface)* Gaussian variational
+    approximation (GVA), an accuracy-oriented alternative to Laplace for
+    non-Gaussian random-intercept models — Tier G; independent of Tiers A–F.
 
 **Phase B — run the evidence (local R / Actions):** for each implemented surface,
 run its recovery/coverage lane at formal replicate count (the ADEMP sheets name
@@ -178,6 +181,26 @@ plasticity, residual variability, and its change. Implement strictly in order.
     until a joint-likelihood or copula/latent-variable contract is designed.
     This is research-scoped and should stay in the failure ledger until that
     contract exists; it is not required for the first power simulation.
+
+## Tier G — Gaussian Variational Approximation (inference engine)
+
+12. **Gaussian variational approximation (GVA).** An accuracy-oriented
+    alternative latent-variable integration method, for non-Gaussian
+    random-intercept models where the Laplace approximation is biased
+    (Bernoulli/low-count Poisson, small clusters). Maximizes an ELBO with a
+    Gaussian `q(u) = N(m, S)` instead of expanding around the conditional mode.
+    - Gate: `docs/design/160-gaussian-variational-approximation-gate.md`.
+    - This is an **inference-engine** addition, not a model-surface tier: it
+      adds an `inference = "gva"` path to the existing TMB template (Laplace
+      stays default), so it is independent of Tiers A–F and can proceed in
+      parallel.
+    - First slice: univariate `mu` random-intercept GLMM (Poisson, Bernoulli),
+      Gaussian-prior expectation in closed form, data-term expectation by
+      adaptive Gauss-Hermite quadrature, block-diagonal `S`.
+    - Out of scope first slice: skew/non-Gaussian `q` (genuine skewness),
+      mean-field VB, structured/low-rank `S`, structured/bivariate models,
+      stochastic ELBO. Validate against a gold standard (high-order GH or MCMC)
+      and label variational SEs as such.
 
 ## Sequencing Note For The Power Simulation
 
