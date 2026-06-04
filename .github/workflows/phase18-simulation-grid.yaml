@@ -199,6 +199,9 @@ jobs:
           - task: poisson_mu_re_recovery
             seed: 20260632
             include_in_all: false
+          - task: nbinom2_mu_re_recovery
+            seed: 20260633
+            include_in_all: false
           - task: spatial_mu_slope
             seed: 20260604
             include_in_all: false

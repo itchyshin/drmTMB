@@ -1180,6 +1180,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "tweedie_fixed_effect",
     "count_structured_q1",
     "poisson_mu_re_recovery",
+    "nbinom2_mu_re_recovery",
     "positive_continuous_mu_random_intercept",
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
