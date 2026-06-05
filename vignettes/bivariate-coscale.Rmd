@@ -815,9 +815,9 @@ individual differences and slope differences in the same two-response block,
 matching q4 and q6 location blocks are now source-tested with syntax such as
 `(1 + x | p | id)` or `(1 + x + z | p | id)` in both location formulas. Treat
 those routes as fitted extractor/profile-target slices rather than a full
-tutorial or simulation artifact lane; residual-scale slope blocks,
-same-response location-scale slope covariance, and all-four p8/q8 endpoint
-covariance remain planned.
+tutorial or broad simulation claim. Matching q2 `sigma1`/`sigma2` scale-slope
+blocks are now fitted as their own route; same-response location-scale slope
+covariance and all-four p8/q8 endpoint covariance remain planned.
 
 ## Boundaries for this covariance layer
 

@@ -31,6 +31,8 @@ on:
           - biv_gaussian_q6_location_recovery
           - biv_gaussian_q2_scale
           - biv_gaussian_q2_scale_recovery
+          - biv_gaussian_q2_scale_slope
+          - biv_gaussian_q2_scale_slope_recovery
           - spatial_mu_slope
           - phylo_mu_slope
           - animal_mu_slope
@@ -207,6 +209,12 @@ jobs:
             include_in_all: false
           - task: nbinom2_mu_re_recovery
             seed: 20260633
+            include_in_all: false
+          - task: biv_gaussian_q2_scale_slope
+            seed: 20260627
+            include_in_all: false
+          - task: biv_gaussian_q2_scale_slope_recovery
+            seed: 20260628
             include_in_all: false
           - task: spatial_mu_slope
             seed: 20260604

@@ -518,6 +518,52 @@ new_biv_gaussian_sigma_re_data <- function(
   )
 }
 
+new_biv_gaussian_sigma_slope_re_data <- function(
+  n_id = 42,
+  n_each = 12,
+  rho_scale = 0.40,
+  residual_rho = 0.15,
+  seed = 2026060401
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- rep(seq(-1.15, 1.15, length.out = n_each), times = n_id)
+  x <- x + stats::rnorm(n, sd = 0.04)
+  z1 <- stats::rnorm(n_id)
+  z2 <- stats::rnorm(n_id)
+  beta_mu1 <- c(0.15, 0.40)
+  beta_mu2 <- c(-0.10, -0.30)
+  beta_sigma1 <- c(`(Intercept)` = log(0.42), x = 0.10)
+  beta_sigma2 <- c(`(Intercept)` = log(0.55), x = -0.08)
+  sd_sigma1 <- 0.30
+  sd_sigma2 <- 0.34
+
+  a1 <- sd_sigma1 * z1
+  a2 <- sd_sigma2 * (rho_scale * z1 + sqrt(1 - rho_scale^2) * z2)
+  e1 <- stats::rnorm(n)
+  e2 <- residual_rho * e1 + sqrt(1 - residual_rho^2) * stats::rnorm(n)
+
+  sigma1_link <- beta_sigma1[[1L]] + beta_sigma1[[2L]] * x + a1[id] * x
+  sigma2_link <- beta_sigma2[[1L]] + beta_sigma2[[2L]] * x + a2[id] * x
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] + beta_mu1[[2L]] * x + exp(sigma1_link) * e1
+  dat$y2 <- beta_mu2[[1L]] + beta_mu2[[2L]] * x + exp(sigma2_link) * e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma = list(beta_sigma1, beta_sigma2),
+    sd_sigma = c(
+      "sigma1:(0 + x | p | id)" = sd_sigma1,
+      "sigma2:(0 + x | p | id)" = sd_sigma2
+    ),
+    rho_scale = rho_scale,
+    residual_rho = residual_rho
+  )
+}
+
 new_biv_gaussian_joint_re_data <- function(
   n_id = 70,
   n_each = 9,
@@ -1737,6 +1783,132 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   expect_match(singleton_scale$message, "fewer than two")
 })
 
+test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-slope covariance blocks", {
+  sim <- new_biv_gaussian_sigma_slope_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~ x + (0 + x | p | id),
+      sigma2 = ~ x + (0 + x | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = list(eval.max = 600, iter.max = 600)
+  )
+
+  fixed_sigma1 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "sigma1")
+  )
+  fixed_sigma2 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "sigma2")
+  )
+  sigma1_link <- predict(fit, dpar = "sigma1", type = "link")
+  sigma2_link <- predict(fit, dpar = "sigma2", type = "link")
+  contribution1 <- drmTMB:::sigma_random_effect_contribution(
+    fit,
+    dpar = "sigma1"
+  )
+  contribution2 <- drmTMB:::sigma_random_effect_contribution(
+    fit,
+    dpar = "sigma2"
+  )
+  pairs <- corpairs(fit)
+  group_pair <- corpairs(fit, class = "scale-scale")
+  smry <- summary(fit)
+  targets <- profile_targets(fit)
+  chk <- check_drm(fit)
+  scale_cov <- chk[chk$check == "biv_sigma_random_effect_covariance", ]
+
+  sd_sigma1 <- "sd:sigma:sigma1:(0 + x | p | id)"
+  sd_sigma2 <- "sd:sigma:sigma2:(0 + x | p | id)"
+  cor_sigma <- "cor:sigma:cor(sigma1:x,sigma2:x | p | id)"
+  sigma_targets <- targets[
+    match(c(sd_sigma1, sd_sigma2, cor_sigma), targets$parm),
+  ]
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_abs_error_below(coef(fit, "mu1"), sim$beta_mu1, 0.25)
+  expect_abs_error_below(coef(fit, "mu2"), sim$beta_mu2, 0.25)
+  expect_abs_error_below(coef(fit, "sigma1"), sim$beta_sigma[[1L]], 0.30)
+  expect_abs_error_below(coef(fit, "sigma2"), sim$beta_sigma[[2L]], 0.30)
+  expect_true(all(is.finite(unname(fit$sdpars$sigma))))
+  expect_true(all(unname(fit$sdpars$sigma) > 0))
+  expect_named(fit$sdpars$sigma, names(sim$sd_sigma))
+  expect_named(
+    fit$corpars$sigma,
+    "cor(sigma1:x,sigma2:x | p | id)"
+  )
+  expect_equal(
+    length(fit$random_effects$sigma$values),
+    2 * nlevels(sim$data$id)
+  )
+  expect_biv_covariance_block_registry(
+    fit$model$random$covariance_blocks,
+    dpars = c("sigma1", "sigma2"),
+    responses = c(1L, 2L),
+    group = "id",
+    block = "p",
+    n_obs = fit$nobs,
+    class = "scale-scale",
+    coef = c("x", "x")
+  )
+  expect_covariance_block_tmb_data_exported(fit)
+  expect_gt(stats::sd(contribution1), 0.01)
+  expect_gt(stats::sd(contribution2), 0.01)
+  expect_equal(sigma1_link, fixed_sigma1 + contribution1, tolerance = 1e-10)
+  expect_equal(sigma2_link, fixed_sigma2 + contribution2, tolerance = 1e-10)
+  expect_equal(
+    predict(fit, newdata = sim$data[1:3, ], dpar = "sigma1", type = "link"),
+    fixed_sigma1[1:3],
+    tolerance = 1e-12
+  )
+  expect_equal(
+    predict(fit, newdata = sim$data[1:3, ], dpar = "sigma2", type = "link"),
+    fixed_sigma2[1:3],
+    tolerance = 1e-12
+  )
+
+  expect_equal(group_pair$from_dpar, "sigma1")
+  expect_equal(group_pair$to_dpar, "sigma2")
+  expect_equal(group_pair$from_coef, "x")
+  expect_equal(group_pair$to_coef, "x")
+  expect_equal(group_pair$group, "id")
+  expect_equal(group_pair$block, "p")
+  expect_equal(group_pair$class, "scale-scale")
+  expect_equal(
+    group_pair$estimate,
+    unname(fit$corpars$sigma),
+    tolerance = 1e-12
+  )
+  expect_equal(nrow(pairs[pairs$level == "residual", , drop = FALSE]), 1L)
+  expect_equal(nrow(corpairs(fit, class = "malleability")), 0L)
+  expect_equal(nrow(corpairs(fit, block = "p")), 1L)
+
+  expect_true(all(
+    c(sd_sigma1, sd_sigma2, cor_sigma) %in% rownames(smry$parameters)
+  ))
+  expect_equal(smry$parameters[sd_sigma1, "component"], "random-effect-sd")
+  expect_equal(smry$parameters[sd_sigma2, "component"], "random-effect-sd")
+  expect_equal(
+    smry$parameters[cor_sigma, "component"],
+    "random-effect-correlation"
+  )
+  expect_equal(
+    sigma_targets$tmb_parameter,
+    c("log_sd_sigma", "log_sd_sigma", "eta_cor_sigma")
+  )
+  expect_equal(sigma_targets$index, c(1L, 2L, 1L))
+  expect_true(all(sigma_targets$profile_ready))
+  expect_equal(scale_cov$status, "ok")
+  expect_match(scale_cov$value, "n_groups=42")
+  expect_match(scale_cov$value, "min_group_n=12")
+  expect_match(scale_cov$message, "scale-scale")
+})
+
 test_that("bivariate Gaussian keeps mu and sigma covariance blocks distinct", {
   sim <- new_biv_gaussian_joint_re_data()
 
@@ -2782,10 +2954,10 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   q8_slope_err <- tryCatch(
     drmTMB(
       bf(
-        mu1 = y1 ~ x + (1 + x | p | id),
-        mu2 = y2 ~ x + (1 + x | p | id),
-        sigma1 = ~ 1 + (1 + x | p | id),
-        sigma2 = ~ 1 + (1 + x | p | id),
+        mu1 = y1 ~ x + (0 + x | p | id),
+        mu2 = y2 ~ x + (0 + x | p | id),
+        sigma1 = ~ 1 + (0 + x | p | id),
+        sigma2 = ~ 1 + (0 + x | p | id),
         rho12 = ~x
       ),
       family = biv_gaussian(),
@@ -2796,9 +2968,9 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_s3_class(q8_slope_err, "rlang_error")
   expect_match(
     conditionMessage(q8_slope_err),
-    "random slopes in bivariate models remain planned"
+    "location-scale covariance blocks are intercept-only"
   )
-  expect_match(conditionMessage(q8_slope_err), "q=8 endpoint covariance")
+  expect_match(conditionMessage(q8_slope_err), "includes random slopes")
   expect_error(
     drmTMB(
       bf(
@@ -2837,20 +3009,6 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_error(
     drmTMB(
       bf(
-        mu1 = y1 ~ x,
-        mu2 = y2 ~ x,
-        sigma1 = ~ 1 + (0 + x | p | id),
-        sigma2 = ~ 1 + (0 + x | p | id),
-        rho12 = ~x
-      ),
-      family = biv_gaussian(),
-      data = dat
-    ),
-    "Residual-scale random slopes in bivariate models remain planned"
-  )
-  expect_error(
-    drmTMB(
-      bf(
         mu1 = y1 ~ x + (1 | p | id),
         mu2 = y2 ~ x,
         sigma1 = ~ 1 + (0 + x | p | id),
@@ -2860,7 +3018,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "Residual-scale random slopes in bivariate models remain planned"
+    "Broader bivariate random-slope covariance blocks"
   )
   expect_error(
     drmTMB(

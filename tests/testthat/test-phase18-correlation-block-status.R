@@ -40,8 +40,8 @@ test_that("Phase 18 correlation-block status writer stages plan tables", {
 
   expect_equal(out$surface, "phase18_correlation_block_status")
   expect_true(all(file.exists(unlist(out$paths, use.names = FALSE))))
-  expect_equal(nrow(out$plan), 8L)
-  expect_equal(nrow(out$dispatch), 8L)
+  expect_equal(nrow(out$plan), 10L)
+  expect_equal(nrow(out$dispatch), 10L)
   expect_equal(nrow(out$wrapper_targets), 0L)
   expect_equal(nrow(out$registry_summary), 4L)
   expect_equal(nrow(out$artifact_manifest), length(out$paths))
@@ -52,6 +52,12 @@ test_that("Phase 18 correlation-block status writer stages plan tables", {
       out$dispatch$lane_id == "structured_gaussian_q2"
     ]),
     "correlation_block_status"
+  )
+  expect_equal(
+    unique(out$dispatch$actions_task[
+      out$dispatch$lane_id == "bivariate_gaussian_scale_slope_q2"
+    ]),
+    "biv_gaussian_q2_scale_slope"
   )
   expect_error(
     phase18_write_correlation_block_status_outputs(output_dir = output_dir),

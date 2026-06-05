@@ -123,7 +123,8 @@ same residual and group-level covariance targets.
 
 ## Boundary
 
-This sheet does not design the q4 or q6 location smoke lanes,
-p8/q8 bivariate random-slope covariance, random effects in
-`rho12`, mixed-response families, or residual-scale slope covariance. Those remain separate design or
-failure-ledger surfaces.
+This sheet does not design the q4 or q6 location smoke lanes, the q2
+`sigma1`/`sigma2` scale-slope lane, p8/q8 bivariate random-slope covariance,
+random effects in `rho12`, mixed-response families, or same-response
+location-scale slope covariance. Those remain separate design or failure-ledger
+surfaces.

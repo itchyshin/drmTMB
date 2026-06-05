@@ -1,13 +1,13 @@
-# Bivariate Residual-Scale Random-Slope Pre-Code Gate
+# Bivariate Residual-Scale Random-Slope Gate
 
-This note is the pre-code design gate for **bivariate residual-scale random
-slopes** — the "q2 scale slope" stage named in
+This note began as the pre-code design gate for **bivariate residual-scale
+random slopes** — the "q2 scale slope" stage named in
 `docs/design/67-sdstar-p8-poisson-q1.md` and the first prerequisite the
 `bivariate_gaussian_q8_endpoint` registry row requires before any q8 endpoint
-likelihood or status promotion. It does not add fitted support. It records the
-target model, the parameterization plan, the identifiability risk, the
-extractor and diagnostic contract, and the simulation/test plan so the eventual
-implementation slice is small, reviewable, and evidence-backed.
+likelihood or status promotion. The matching `sigma1`/`sigma2` slope-only block
+is now fitted as the first implementation slice. This note records the target
+model, the parameterization, the identifiability risk, the extractor and
+diagnostic contract, and the simulation/test evidence boundary.
 
 The reader is an applied ecology, evolution, or environmental-science user who
 wants to ask whether two responses share *individual differences in how
@@ -35,26 +35,20 @@ Two building blocks already exist and should be reused rather than rewritten:
 |---|---|---|
 | Univariate independent residual-scale slope | Implemented | `sigma ~ z + (0 + x | id)` |
 | Bivariate residual-scale random **intercept** covariance | Implemented | `sigma1 = ~ 1 + (1 | p | id)`, `sigma2 = ~ 1 + (1 | p | id)` |
+| Bivariate residual-scale random **slope** covariance | Implemented first slice | `sigma1 = ~ x + (0 + x | p | id)`, `sigma2 = ~ x + (0 + x | p | id)` |
 
-The bivariate intercept block has a Phase 18 smoke/artifact lane
-(`biv_gaussian_q2_scale`) that recovers the two scale SDs in `sdpars$sigma` and
-the scale-scale intercept correlation in `corpars$sigma`.
+The bivariate intercept block has Phase 18 smoke and recovery lanes
+(`biv_gaussian_q2_scale`, `biv_gaussian_q2_scale_recovery`) that recover the two
+scale SDs in `sdpars$sigma` and the scale-scale intercept correlation in
+`corpars$sigma`. The bivariate slope block has parallel smoke and recovery
+lanes (`biv_gaussian_q2_scale_slope`,
+`biv_gaussian_q2_scale_slope_recovery`) for the two scale-slope SDs, the
+group-level scale-slope correlation, fixed scale slopes, and residual `rho12`.
 
-What is closed today: any random-**slope** term in a bivariate scale formula.
-`parse_random_sigma_term()` accepts only an intercept LHS when the
-distributional parameter is `sigma1` or `sigma2`, and otherwise aborts
-(`R/drmTMB.R:4963-4969`):
-
-```
-Only bivariate residual-scale random intercepts are implemented for `sigma1`.
-i Residual-scale random slopes in bivariate models remain planned.
-```
-
-The boundary is locked in by tests at
-`tests/testthat/test-biv-gaussian.R:2837-2864`, covering both the shared-label
-form `(0 + x | p | id)` and the mixed-with-location form. That test is the
-contract the implementation slice must convert from "errors" to "fits with
-recovery evidence".
+What remains closed: same-response location-scale slope covariance, all-four
+p8/q8 location-scale slope endpoints, random effects in `rho12`, non-Gaussian
+scale-slope covariance, and structured-dependence scale slopes. The boundary is
+locked in by malformed-input tests in `tests/testthat/test-biv-gaussian.R`.
 
 ## Target Model
 
@@ -86,7 +80,7 @@ scale-**intercept** block. The intercept-and-slope per response (q4 scale),
 the same-response location-scale slope, and the full q8 endpoint block are
 later, separately gated expansions.
 
-## Future R Syntax
+## R Syntax
 
 ```r
 bf(
@@ -141,9 +135,10 @@ code path.
 | `profile_targets(fit)` | direct `log_sd_sigma` targets for the two slope SDs and an `eta_cor_sigma` target for the correlation, matching the intercept block's target classes |
 | `check_drm(fit)` | a `biv_sigma_random_effect_covariance` row reporting group count, minimum group size, and a singleton-group note |
 
-The scale-slope correlation should be reported as a direct profile target only
-if profiling behaves; otherwise it stays `derived_interval_unavailable`, the
-same conservative rule the q4/q8 endpoints use.
+The two scale-slope SDs and their q2 correlation are direct profile targets.
+The Phase 18 recovery lane reports Wald coverage only for fixed-effect
+endpoints that carry standard errors; it does not promote q8 or same-response
+location-scale intervals.
 
 ## Identifiability Risk
 
@@ -171,16 +166,16 @@ implementation and its simulation grid should respect that:
   `biv_gaussian_q2_scale` DGP, adding the `x`-driven random scale slope.
 - **Estimands.** `sd_sigma1_x`, `sd_sigma2_x`, `cor(sigma1:x,sigma2:x | p | id)`,
   the fixed `sigma` slopes, and `rho12`, kept as separate rows.
-- **Methods.** A single new fit function mirroring
-  `phase18_fit_biv_gaussian_q2_scale` but with `(0 + x | p | id)` in both scale
-  formulas, behind a new registry row distinct from the intercept lane.
+- **Methods.** `phase18_fit_biv_gaussian_q2_scale_slope()` mirrors
+  `phase18_fit_biv_gaussian_q2_scale()` but uses `(0 + x | p | id)` in both
+  scale formulas, behind registry rows distinct from the intercept lane.
 - **Performance measures.** Convergence and `pdHess` rate first (smoke), then
-  bias, empirical coverage, and Monte Carlo standard error before any recovery
-  claim.
+  bias, empirical spread, RMSE, and Monte Carlo standard error. Fixed-effect
+  Wald coverage is reported where standard errors exist.
 - **Malformed-input tests.** Keep rejecting the same-response location-scale
   slope block, the q8 all-four slope block, labelled scale-slope blocks in
-  non-Gaussian families, and random effects in `rho12`; convert only the
-  matching `sigma1`/`sigma2` slope block from error to fit.
+  non-Gaussian families, and random effects in `rho12`; only the matching
+  `sigma1`/`sigma2` slope block is fitted.
 
 ## Admission Rules
 
@@ -189,34 +184,43 @@ implementation and its simulation grid should respect that:
 - Add malformed-input tests and the parser conversion before likelihood algebra.
 - Require `corpairs()` names that tell the reader the pair is `sigma1:x` versus
   `sigma2:x` at the group level, not a residual coupling.
-- Keep the derived correlation at `derived_interval_unavailable` until direct
-  profile, derived-profile, or bootstrap evidence exists.
+- Keep q4/q8 derived correlations at `derived_interval_unavailable` until
+  direct profile, derived-profile, or bootstrap evidence exists.
 - Start with a small, controlled simulation grid; real-data teaching examples
   come after recovery and coverage evidence.
 
 ## What To Try Today
 
-Until this slice lands, an applied user with a scale-slope question should:
+An applied user with a cross-response scale-slope question can now fit the
+matching q2 route:
 
-- fit each response separately with a univariate independent scale slope,
-  `sigma ~ x + (0 + x | id)`, accepting that the cross-response scale-slope
-  correlation is not estimated; or
-- fit the implemented bivariate scale-**intercept** block,
-  `sigma1 = ~ 1 + (1 | p | id)`, `sigma2 = ~ 1 + (1 | p | id)`, when the
-  question is about baseline residual variability rather than its change with a
-  predictor.
+```r
+bf(
+  mu1 = y1 ~ x,
+  mu2 = y2 ~ x,
+  sigma1 = ~ x + (0 + x | p | id),
+  sigma2 = ~ x + (0 + x | p | id),
+  rho12 = ~ 1
+)
+```
 
-The error message at `R/drmTMB.R:4963-4969` should keep pointing users to these
-fitted fallbacks.
+If the question is only about baseline residual variability, fit the
+implemented bivariate scale-**intercept** block,
+`sigma1 = ~ 1 + (1 | p | id)` with
+`sigma2 = ~ 1 + (1 | p | id)`. If the question needs same-response
+location-scale slopes, all-four p8/q8 endpoint covariance, or structured
+scale-slope covariance, that model remains planned and should not be taught as
+current syntax.
 
 ## Cross-References To Keep Aligned
 
 - `docs/design/67-sdstar-p8-poisson-q1.md` — the "q2 scale slope" staged row
-  should point to this gate.
+  records this fitted first slice.
 - `docs/design/28-double-hierarchical-endpoint.md` — implementation order step
   for residual-scale slopes.
 - `docs/design/45-cross-dpar-correlation-gate.md` — the `sigma` and bivariate
-  rows that list correlated residual-scale slope blocks as not-in-Wave-A.
-- `docs/design/143-phase-18-structured-workflow-registry.md` — when a fitted
-  scale-slope lane is admitted, add its registry row; until then the
-  `bivariate_gaussian_q8_endpoint` row keeps this listed as a prerequisite.
+  rows keep the fitted q2 scale-slope route separate from same-response and q8
+  slopes.
+- `docs/design/143-phase-18-structured-workflow-registry.md` — the fitted
+  scale-slope smoke and recovery lanes are admitted registry rows; the
+  `bivariate_gaussian_q8_endpoint` row remains design-only.

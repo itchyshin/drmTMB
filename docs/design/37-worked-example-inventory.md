@@ -244,8 +244,9 @@ The individual-difference section now teaches:
 
 The example stays inside the implemented ordinary bivariate Gaussian
 random-intercept surface. It does not teach the separate matching slope-only
-`mu1`/`mu2` route, the matching q=4 location route, multiple-slope or
-residual-scale bivariate slopes, random effects in `rho12`, bivariate
+`mu1`/`mu2` route, the matching q=2 `sigma1`/`sigma2` scale-slope route, the
+matching q=4 location route, multiple-slope or p8/q8 endpoint bivariate
+slopes, random effects in `rho12`, bivariate
 `meta_V()` plus random effects, mixed-response families, or ordinary spatial
 group-level covariance as fitted syntax.
 

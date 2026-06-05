@@ -1710,6 +1710,9 @@ random_correlation_class <- function(dpar, from_coef, to_coef, to_dpar = dpar) {
     return("mean-slope")
   }
   if (identical(from_family, "sigma") && identical(to_family, "sigma")) {
+    if (!identical(dpar, to_dpar)) {
+      return("scale-scale")
+    }
     if (from_intercept && to_intercept) {
       return("scale-scale")
     }

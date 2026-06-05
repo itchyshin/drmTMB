@@ -222,8 +222,7 @@ Current pilot files:
   `sigma1 = ~ 1 + (1 | p | id)` and `sigma2 = ~ 1 + (1 | p | id)`, so the two
   log-`sigma` intercepts share a q=2 scale-scale block while residual `rho12`
   stays a separate layer. This is the fittable scale-covariance prerequisite
-  for the q8 endpoint gate; bivariate residual-scale random slopes remain
-  closed.
+  for the q8 endpoint gate.
 - `run/sim_summary_biv_gaussian_q2_scale_recovery.R` and
   `run/sim_write_biv_gaussian_q2_scale_recovery_grid.R` promote that same
   q2 scale-intercept lane from a single-replicate smoke check to a
@@ -234,6 +233,18 @@ Current pilot files:
   `derived_interval_unavailable`. The lane dispatches through the opt-in
   `biv_gaussian_q2_scale_recovery` Actions task; its design sheet is
   `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
+- `dgp/sim_dgp_biv_gaussian_q2_scale_slope.R` generates bivariate Gaussian data
+  with a matching residual-scale slope-only covariance block,
+  `sigma1 = ~ x + (0 + x | p | id)` and
+  `sigma2 = ~ x + (0 + x | p | id)`. The two log-`sigma` slopes share a q=2
+  scale-scale block while residual `rho12` stays a separate row-level
+  correlation. `run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R`,
+  `run/sim_write_biv_gaussian_q2_scale_slope_grid.R`,
+  `run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R`, and
+  `run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R` provide smoke and
+  recovery artifacts for the two scale-slope SDs, their group-level
+  correlation, fixed scale slopes, and residual `rho12`. Wald coverage is
+  reported only for fixed-effect endpoints that carry standard errors.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
@@ -720,9 +731,10 @@ Current pilot files:
   fixed-effect proportion, bounded-response `mu` random-intercept,
   positive-continuous fixed-effect, fixed-effect Tweedie, count structured
   q=1, positive-continuous `mu` random-intercept, Student-t `mu`
-  random-intercept, ordinal, zero-one beta, and bivariate Gaussian `mu1`/`mu2`
-  slope-only tasks, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
-  tasks. It writes an RDS result beside the task artifact tables and caps
+  random-intercept, ordinal, zero-one beta, and bivariate Gaussian ordinary
+  covariance tasks for `mu1`/`mu2` and `sigma1`/`sigma2`, or the opt-in Poisson
+  and NB2 phylogenetic q=1 formal-grid tasks. It writes an RDS result beside the
+  task artifact tables and caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
   the same time. Standalone random-slope tasks outside the first-wave summary,

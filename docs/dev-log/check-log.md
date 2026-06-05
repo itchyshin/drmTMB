@@ -52030,3 +52030,66 @@ likelihood support or disturbing the green q6 smoke/artifact PR.
   `devtools::test()`, `pkgdown::build_site()`, `pkgdown::check_pkgdown()`, and
   `devtools::check()` were not rerun for this source/test/design-only
   preflight slice.
+
+## 2026-06-04 - Bivariate q2 scale-slope implementation and recovery lane (branch codex/local-r-q2-scale-slope)
+
+Task: implement the first bivariate Gaussian residual-scale random-slope
+covariance slice for matching labelled q=2 `sigma1`/`sigma2` slope-only
+blocks, wire the Phase 18 smoke/recovery lane, and keep same-response
+location-scale slope covariance plus p8/q8 endpoint covariance closed.
+
+- Opened the ordinary bivariate parser/builder path for matched
+  `sigma1 = ~ x + (0 + x | p | id)` and
+  `sigma2 = ~ x + (0 + x | p | id)` blocks under `biv_gaussian()`.
+- Kept residual `rho12` as a row-level bivariate Gaussian correlation and
+  exposed the new group-level scale-slope correlation as a separate
+  `corpars$sigma` / `corpairs(class = "scale-scale")` row.
+- Added source tests for extractor, summary, profile-target, diagnostic,
+  malformed-input, and contribution/prediction boundaries in
+  `tests/testthat/test-biv-gaussian.R`.
+- Added the Phase 18 DGP, fit summariser, smoke runner, recovery summary,
+  grid writers, registry rows, manual Actions task, and focused source tests
+  for `biv_gaussian_q2_scale_slope` and
+  `biv_gaussian_q2_scale_slope_recovery`.
+- Updated README, NEWS, ROADMAP, known limitations, formula grammar,
+  bivariate scale-slope gate, simulation registry docs, simulation README,
+  implementation/model/location-scale/bivariate-coscale vignettes, and
+  related status inventories so fitted, planned, and historical boundaries
+  stay separate.
+- Checks run:
+  - `air format R/drmTMB.R R/methods.R inst/sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R inst/sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R inst/sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_grid.R inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-biv-gaussian-q2-scale-slope-recovery.R tests/testthat/test-phase18-biv-gaussian-q2-scale-slope.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q2-scale-slope|phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 616 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,272
+    passes, no failures, warnings, or skips.
+  - A first `Rscript -e "devtools::test()"` run returned 9,817 passes,
+    0 warnings, 0 skips, and 3 failures from stale expectations in
+    `test-gaussian-random-intercepts.R` and
+    `test-phase18-correlation-block-status.R`; both expectations were updated
+    to the new boundary and registry counts.
+  - `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-correlation-block-status')"`
+    returned 444 passes, no failures, warnings, or skips.
+  - Final `Rscript -e "devtools::test()"` returned 9,827 passes, no failures,
+    warnings, or skips in 722.3s.
+  - `Rscript -e "devtools::document()"` completed; no extra generated-file
+    drift appeared in `git status`.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+    after the final source-doc wording pass.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote the ignored
+    `pkgdown-site`; it emitted one local-library warning that `glmmTMB` was
+    built with TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "devtools::check(error_on = 'never')"` completed in 8m 29s
+    with 0 errors, 0 warnings, and 0 notes.
+  - `git diff --check` passed.
+  - `rg -n "bivariate residual-scale random slopes remain closed|residual-scale bivariate slope|residual-scale correlated slopes|bivariate random slopes remain planned|bivariate random effects remain planned|Broader bivariate random slopes" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'`
+    returned no current-source matches.
+  - `rg -n "bivariate residual-scale random slopes remain closed|residual-scale bivariate slope|residual-scale correlated slopes|bivariate random slopes remain planned|bivariate random effects remain planned|Broader bivariate random slopes" pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+    returned no generated-site matches.
+  - `rg -n "q=2.*sigma1.*sigma2.*scale-slope|q2.*scale-slope|scale-slope.*sigma1.*sigma2" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+    returned rendered q2 scale-slope support rows in the homepage, ROADMAP,
+    NEWS, and edited articles.
+- GitHub issue maintenance: inspected issue #483 and posted the implementation
+  plus verification comment:
+  <https://github.com/itchyshin/drmTMB/issues/483#issuecomment-4627127721>.
+  The issue remains open pending PR/review closure.

@@ -706,10 +706,13 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   multi-slope `mu` blocks, residual-scale random intercepts and independent
   residual-scale slopes, matching labelled `mu`/`sigma` random-intercept
   covariance, and direct `sd(group)` models for unlabelled Gaussian `mu`
-  random intercepts. The first coordinate-spatial, phylogenetic, animal-model,
-  and `relmat()` one-slope Gaussian `mu` paths are fitted; multiple structured
-  slopes, structured slope correlations, residual-scale structured slopes, and
-  broader bivariate slope blocks remain later work for Phases 10 and 12.
+  random intercepts. Bivariate Gaussian now also has the matching
+  `sigma1`/`sigma2` q2 scale-slope block as a fitted first slice. The first
+  coordinate-spatial, phylogenetic, animal-model, and `relmat()` one-slope
+  Gaussian `mu` paths are fitted; multiple structured slopes, structured slope
+  correlations, residual-scale structured slopes, same-response bivariate
+  location-scale slopes, and p8/q8 endpoint blocks remain later work for Phases
+  10 and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
   `mu` block path, with q=3 recovery, q=4 output-contract checks, and
   extractor coverage in `sdpars$mu`, `corpars$re_cov`, `corpairs()`,
@@ -717,8 +720,10 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   remain advanced, sample-size hungry fits; q > 2 SDs are direct profile
   targets, but q > 2 correlations remain derived-unavailable for direct profile
   intervals. Gaussian `sigma` random intercepts and independent numeric slopes
-  are fitted on log-`sigma`; correlated residual-scale slope blocks and
-  labelled residual-scale slope covariance remain planned. The structured
+  are fitted on log-`sigma`; matching bivariate Gaussian `sigma1`/`sigma2`
+  slope-only covariance is fitted as the first q2 scale-slope slice, while
+  univariate correlated residual-scale slope blocks, same-response
+  location-scale slopes, and p8/q8 endpoints remain planned. The structured
   one-slope Gaussian `mu` handoff is also current: `spatial(1 + x | site,
   coords = coords)`, `phylo(1 + x | species, tree = tree)`,
   `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
@@ -1530,7 +1535,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 182 | Scale random slopes | Done: multiple independent residual-scale Gaussian `sigma` terms are tested as separate log-`sigma` SDs with correlations fixed at zero; correlated and labelled residual-scale slope covariance blocks remain planned. |
 | 183 | Location-scale covariance | Done: two independent matched univariate `mu`/`sigma` random-intercept covariance blocks can be fitted and reported through `corpars$mu_sigma`, `corpairs()`, `summary()`, and `profile_targets()`. |
 | 184 | Location-scale covariance | Done: `check_drm()` now reports each independent univariate `mu`/`sigma` block separately, and profile tests cover the second `eta_cor_mu_sigma` interval target. |
-| 185 | Bivariate slope route | Superseded by Slice 83 and the q4/q6 location smoke routes: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` and matching q=4/q=6 location blocks such as `(1 + x | p | id)` and `(1 + x + z | p | id)` are now fitted, while residual-scale, same-response location-scale, and all-four p8/q8 location-scale slope blocks remain closed. |
+| 185 | Bivariate slope route | Superseded by Slice 83, the q4/q6 location smoke routes, and the q2 scale-slope route: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching q=4/q=6 location blocks such as `(1 + x | p | id)` and `(1 + x + z | p | id)`, and matching q=2 `sigma1`/`sigma2` scale-slope blocks such as `(0 + x | p | id)` in both scale formulas are now fitted, while same-response location-scale and all-four p8/q8 endpoint slope blocks remain closed. |
 | 186 | Phylogenetic random slopes | Superseded by Slices 39-82: this audit originally recorded the pre-parity gap, but `phylo(1 + x | species, tree = tree)` now fits the first univariate Gaussian one-slope `mu` path; multiple phylogenetic slopes, residual-scale structured slopes, and slope correlations remain planned. |
 | 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, residual-scale structured slopes, and bivariate spatial slope syntax. |
 | 188 | Random-effect gate | Done: the one-slope-per-layer status table and remaining Gaussian double-hierarchical limits are published below before the non-Gaussian revisit. |
@@ -1538,9 +1543,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 189 is done: the double-hierarchical endpoint map now reflects the
   current Gaussian boundary after Slices 177-188, including q > 2 ordinary
   `mu`, multiple univariate mean-scale intercept blocks, coordinate-spatial
-  one-slope support, matching bivariate q=4/q=6 location smoke routes, and the
-  still-closed residual-scale bivariate slope, p8/q8 location-scale, and spatial
-  q=4 endpoints.
+  one-slope support, matching bivariate q=4/q=6 location smoke routes, the
+  matching bivariate q2 scale-slope route, and the still-closed same-response
+  location-scale slope, p8/q8 location-scale, and spatial q=4 endpoints.
 - Slices 190-202 are the pre-simulation non-Gaussian gate. The purpose is not
   to implement every attractive family feature before Phase 18. It is to decide
   which non-Gaussian, scale, shape, zero-inflation, hurdle, ordinal, structured,
@@ -1556,9 +1561,9 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Layer | One-Slope Status | Inference and Diagnostics | Remaining Gaussian DH Limit |
 | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` | Fitted for independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric location blocks. | q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, `profile_targets()`, and direct SD profiles are covered. | Larger q blocks are advanced and sample-size hungry; q > 2 correlations remain derived-unavailable for direct profile intervals. |
-| Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated residual-scale slope blocks and labelled residual-scale slope covariance are planned. |
+| Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated univariate residual-scale slope blocks and labelled univariate residual-scale slope covariance are planned. |
 | Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
-| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` blocks, and matching q=4 and q=6 `mu1`/`mu2` location blocks with smoke artifact routing. | Constant q=2 correlation targets and the slope-slope `mu1`/`mu2` target are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q > 2 location-block SDs are direct targets, while q > 2 correlations are derived-only with explicit unavailable interval status. | Residual-scale slope blocks, same-response location-scale slope covariance, p8/q8 all-four slope endpoints, and formal q > 2 simulation recovery remain closed. |
+| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` and `sigma1`/`sigma2` blocks, and matching q=4 and q=6 `mu1`/`mu2` location blocks with smoke artifact routing. | Constant q=2 correlation targets, the slope-slope `mu1`/`mu2` target, and the scale-slope `sigma1`/`sigma2` target are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q > 2 location-block SDs are direct targets, while q > 2 correlations are derived-only with explicit unavailable interval status. | Same-response location-scale slope covariance, p8/q8 all-four slope endpoints, and formal q > 2 simulation recovery remain closed. |
 | Phylogenetic structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one-slope `mu`, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | Multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects remain planned. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate Gaussian `mu1`/`mu2` q=2 location covariance, constant q=4 location-scale covariance, and ordinary Poisson/NB2 q=1 `mu` intercepts. | `sdpars$mu`, `sdpars$sigma`, marker-specific `ranef()` blocks, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, `summary()$covariance`, a slope-field profile interval, the q=2 dense covariance comparator, q=4 extractor/diagnostic tests, and count structured tests are covered. | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD, spatial `corpair()`, count spatial slopes or labels, and zero-inflated spatial effects remain planned. |
 | Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` is fitted for ordinary Poisson/NB2; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random intercepts have Phase 18 artifact lanes and independent numeric `mu` slopes have focused source tests; ordinary NB2 has the first log-`sigma` random-intercept gate. | Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; Student-t, zero-truncated NB2, bounded-response, and positive-continuous artifact lanes record fixed-effect Wald rows and direct-SD profile rows for ordinary `(1 | id)` in `mu`; `tests/testthat/test-nongaussian-mu-random-slopes.R` records CRAN-safe slope recovery, prediction, extractor, profile-target, and diagnostic checks; NB2 `sigma` random-intercept SDs appear in `sdpars$sigma`, `random_effects$sigma`, and direct `log_sd_sigma` profile-target rows; family-specific fixed-effect summaries, structured count diagnostics, and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured slopes, simultaneous structured count types, labelled count covariance, cross-parameter covariance, NB2 `sigma` slopes or structured effects, correlated Student-t/zero-truncated NB2/positive-continuous/bounded-response random slopes, non-Gaussian `sigma` random effects, Student-t `nu` random effects, exact 0/1 boundary mass, other non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
@@ -2165,7 +2170,7 @@ as the whole comprehensive simulation programme.
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
 | 271 | Random slopes | Shape and inflation random effects | Done locally by audit and later updated by the fixed-effect zero-one beta source slice: random-slope requests in Student-t `nu`, zero-inflation `zi`, hurdle `hu`, `zoi`, and `coi` stay blocked with component-specific tests; no random-effect likelihood path was opened. |
 | 272 | Random slopes | Structured random slopes | Superseded by Slices 39-82: one-slope univariate Gaussian `phylo()`, `animal()`, and `relmat()` `mu` paths are now fitted with extractor, profile-target, diagnostic, and recovery-test evidence. Multiple structured slopes, slope correlations, residual-scale structured slopes, structured `rho12`, and non-Gaussian structured effects remain planned. |
-| 273 | Bivariate | Bivariate random-slope combinations | Superseded by Slice 83 for matching slope-only `mu1`/`mu2` and by the q4/q6 smoke routes for matching q=4 and q=6 `mu1`/`mu2` location blocks. Those routes are fitted with extractor, profile-target, diagnostic, and smoke-artifact coverage, while residual-scale slope pairs, same-response location-scale slope combinations, all-four p8/q8-style slope requests, and formal q > 2 location recovery grids remain boundary-tested before Phase 18 treats those grids as simulation evidence. |
+| 273 | Bivariate | Bivariate random-slope combinations | Superseded by Slice 83 for matching slope-only `mu1`/`mu2`, by the q2 scale-slope route for matching `sigma1`/`sigma2`, and by the q4/q6 smoke routes for matching q=4 and q=6 `mu1`/`mu2` location blocks. Those routes are fitted with extractor, profile-target, diagnostic, and smoke or recovery artifact coverage, while same-response location-scale slope combinations, all-four p8/q8-style slope requests, and formal q > 2 location recovery grids remain boundary-tested before Phase 18 treats those grids as simulation evidence. |
 | 274 | Convergence | Control presets and defaults | Done locally: `drm_control(optimizer_preset = "careful")` and `"robust"` now expand to explicit recorded `nlminb()` `iter.max`/`eval.max` budgets, user optimizer values can override a preset, and the convergence guide documents when to use the presets without changing ordinary defaults. |
 | 275 | Convergence | Warm starts from simpler models | Done locally by design boundary: warm-start names such as `start_from`, `warm_start`, `warm_starts`, and `warm_start_from` are now reserved, the simpler-fit ladder and provenance contract are documented, and no source-fit start is copied before target namespaces, row handling, diagnostics, and selected-optimum provenance are implemented. |
 | 276 | Convergence | Multi-optimizer fallback | Done locally by design boundary: fallback-control names such as `fallback_optimizer`, `fallback_optimizers`, `optimizer_fallback`, and `optimizer_fallbacks` are now reserved, the future `nlminb`/BFGS/L-BFGS-B comparison and selected-optimizer provenance contract is documented, and fallback refits remain planned rather than automatic. |
@@ -2321,7 +2326,8 @@ as the whole comprehensive simulation programme.
   and failure-ledger path before larger grids are allowed. A Gaussian `sigma`
   independent one-slope smoke surface is done locally in Slice 238, giving the
   fitted residual-scale `(0 + w | id)` path the same Phase 18 bookkeeping while
-  leaving correlated scale-slope covariance outside Wave A. Slice 239 records
+  leaving correlated univariate scale-slope covariance outside Wave A at that
+  time. Slice 239 records
   the structured-slope parity gate as it stood then: coordinate spatial had one
   fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
   one-slope paths were not yet fitted. Later slices superseded that
