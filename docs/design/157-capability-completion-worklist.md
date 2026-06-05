@@ -31,13 +31,13 @@ Read this first — it is the distinction most likely to be confused.
 2. **Simulation-evidence (lanes).** Recovery/coverage simulation lanes that
    *measure* an already-implemented surface (bias, RMSE, MCSE, coverage). A lane
    adds **no new model capability** — it only quantifies accuracy for a model
-   that already fits. The lanes added recently
-   (`biv_gaussian_q2_scale_recovery`, `biv_gaussian_q2_scale_slope_recovery`,
-   `biv_gaussian_q4_location_recovery`, `biv_gaussian_q6_location_recovery`,
-   `biv_gaussian_mu_slope_recovery`, `poisson_mu_re_recovery`,
-   `nbinom2_mu_re_recovery`, plus the existing
-   `truncated_nbinom2_mu_random_intercept`) are **wired but not yet run at
-   formal scale**; running them locally / on Actions is Phase B below.
+   that already fits. On 2026-06-05, GitHub Actions ran the newly wired formal
+   lanes at 500 replicates per cell. The q2 scale, q2 scale-slope,
+   slope-only `mu1`/`mu2`, Poisson `mu`, and NB2 `mu` lanes produced usable
+   operating-characteristic artifacts, with NB2 retaining overdispersion and
+   profile-SD cautions. The q4 and q6 bivariate Gaussian location lanes
+   produced weak formal artifacts and remain smoke/diagnostic surfaces rather
+   than recovery-ready surfaces.
 3. **Not-yet-fitted (the gap).** Capabilities that require new TMB likelihood
    work and do not fit today. These are the ordered tiers in this note and the
    whole point of the local-R session.
@@ -46,7 +46,7 @@ Read this first — it is the distinction most likely to be confused.
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
 | Bivariate Gaussian: residual `rho12`; `mu1`/`mu2` and `sigma1`/`sigma2` random-**intercept** covariance; slope-only and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks | Implemented (q4/q6 correlations are derived-interval-unavailable) |
-| Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (wired; run at scale in Phase B) |
+| Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
 | Same-response location-scale slope covariance; **q8** endpoint | **Not-yet-fitted** |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
@@ -87,9 +87,11 @@ time.
 
 **Phase B — run the evidence (local R / Actions):** for each implemented surface,
 run its recovery/coverage lane at formal replicate count (the ADEMP sheets name
-the counts), audit the artifacts, and promote the matching row in doc 46. The
-seven recovery lanes listed above are wired and ready to run now, before any new
-Phase A work.
+the counts), audit the artifacts, and promote the matching row in doc 46 only
+when the evidence supports that promotion. The first seven lanes listed above
+were run on Actions on 2026-06-05. They support the q2 scale, q2 scale-slope,
+slope-only `mu1`/`mu2`, Poisson `mu`, and cautious NB2 `mu` rows, but they do
+not support q4/q6 bivariate location promotion.
 
 **Phase C — comparator and release:** run the Phase 19 comparator matrix
 (`docs/design/158-...`) on shared datasets with the tabulated scale conversions,
@@ -107,7 +109,8 @@ Fitted today (see doc 46 for the full matrix): Gaussian fixed-effect
 location-scale; ordinary Gaussian `mu` intercepts, `q > 2` slopes, and
 independent `sigma` slopes; selected bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
 random-intercept covariance blocks; slope-only and q4/q6 `mu1`/`mu2` location
-blocks (smoke); the first q2 `sigma1`/`sigma2` scale-slope block; residual
+blocks (smoke, with weak q4/q6 formal artifacts); the first q2
+`sigma1`/`sigma2` scale-slope block; residual
 `rho12`; `meta_V(V = V)`; coordinate-spatial,
 phylogenetic, `animal()`, and `relmat()` Gaussian `mu`/`sigma` intercepts plus
 one `mu` slope; ordinary Poisson/NB2 `mu` random effects and q=1 structured

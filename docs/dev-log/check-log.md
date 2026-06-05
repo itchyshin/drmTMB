@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-06-05 -- Formal recovery artifacts for seven capability lanes
+
+Goal:
+
+- Run and audit the seven newly dispatchable formal recovery lanes before
+  starting same-response location-scale slope covariance work.
+
+Actions runs:
+
+- `biv_gaussian_q2_scale_recovery`: run 27007018574, success.
+- `biv_gaussian_q2_scale_slope_recovery`: run 27007018442, success.
+- `biv_gaussian_mu_slope_recovery`: run 27007018453, success.
+- `biv_gaussian_q4_location_recovery`: run 27007018436, success at the
+  workflow level but weak as recovery evidence.
+- `biv_gaussian_q6_location_recovery`: run 27007018475, success at the
+  workflow level but weak as recovery evidence.
+- `poisson_mu_re_recovery`: run 27007018434, success.
+- `nbinom2_mu_re_recovery`: run 27007018459, success.
+
+Findings:
+
+- q2 scale, q2 scale-slope, and slope-only `mu1`/`mu2` bivariate Gaussian
+  lanes each completed 500/500 replicates per cell, with zero failure rows and
+  aggregate convergence / `pdHess` / warning rates of 1 / 1 / 0. Fixed-effect
+  Wald coverage was in the expected Monte Carlo range for the fitted formula
+  coefficients; random-effect SDs, group-level correlations, residual `rho12`,
+  and residual-scale rows remain non-Wald endpoints when `std.error` is absent.
+- Poisson `mu` random effects completed 500/500 replicates per cell with
+  aggregate convergence / `pdHess` / warning rates of 1 / 1 / 0. Fixed `mu`
+  Wald coverage ranged from 0.938 to 0.958; profile coverage for random-effect
+  SDs was weak (0.669 to 0.831).
+- NB2 `mu` random effects completed 500/500 replicates per cell. Aggregate
+  convergence was 0.998 and 1.000 with `pdHess` 1.000, but the profile warning
+  ledger recorded 366 `collapsing to unique 'x' values` warnings. Fixed `mu`
+  and `sigma` Wald coverage ranged from 0.930 to 0.982; profile coverage for
+  random-effect SDs was weak (0.647 to 0.822), and the first cell's fixed
+  overdispersion recovery was poor.
+- q4 location completed 500/500 manifest rows per cell, but it is not a
+  recovery pass: cell-level convergence was 0.59 and 0.83, `pdHess` was 0.624
+  and 0.856, warning rates were 0.370 and 0.144, and fixed-effect Wald coverage
+  was well below nominal.
+- q6 location is weaker: 6 and 4 replicate errors by cell, convergence was
+  0.075 and 0.109, `pdHess` was 0.091 and 0.117, warning rates were 0.919 and
+  0.871, and the failure ledger included Cholesky positive-definiteness errors,
+  `NaNs produced`, and `NA/NaN function evaluation`.
+
+Changes:
+
+- Updated README and doc 46/157 status text so q4/q6 formal artifacts are
+  visible as weak diagnostic evidence rather than support-promotion evidence.
+- Added `docs/dev-log/after-task/2026-06-05-formal-recovery-artifact-audit.md`.
+- Posted the formal recovery summary to issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4630620506>.
+
+Checks run:
+
+- Downloaded all seven Actions artifacts under `/tmp/drmtmb-phase18-formal-runs/`
+  and audited the aggregate, manifest, failure, Wald-coverage, and profile
+  coverage CSVs with base R.
+- `rg -n "wired but not yet run|ready to run now|not yet run at formal scale|run at scale in Phase B|q4/q6.*ready|q4/q6.*promotion|formal artifacts are weak|not promotion evidence" README.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-05-formal-recovery-artifact-audit.md`
+  returned only the intended q4/q6 weak-evidence wording.
+- `git diff --check` passed.
+- No package tests were rerun because this slice changed only documentation and
+  audited external Actions artifacts.
+
 ## 2026-06-04 -- Gaussian Variational Approximation Pre-Code Gate
 
 Goal:
