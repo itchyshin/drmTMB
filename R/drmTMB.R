@@ -4960,7 +4960,7 @@ parse_random_sigma_term <- function(expr, dpar) {
       covariance_label = covariance_label
     ))
   }
-  if (!identical(dpar, "sigma")) {
+  if (!dpar %in% c("sigma", "sigma1", "sigma2")) {
     cli::cli_abort(c(
       "Only bivariate residual-scale random intercepts are implemented for {.code {dpar}}.",
       "x" = "Use matching terms such as {.code {dpar} = ~ z + (1 | p | id)}.",
@@ -4982,7 +4982,7 @@ parse_random_sigma_term <- function(expr, dpar) {
       "i" = "Correlated residual-scale intercept-slope blocks such as {.code sigma ~ z + (1 + x | id)} are planned for a later phase."
     ))
   }
-  if (!is.null(covariance_label)) {
+  if (!is.null(covariance_label) && identical(dpar, "sigma")) {
     cli::cli_abort(c(
       "Labelled residual-scale random-slope covariance blocks are not implemented yet.",
       "x" = "Use an unlabelled independent slope such as {.code sigma ~ z + (0 + x | id)}.",
@@ -8551,6 +8551,9 @@ covariance_block_pair_class <- function(
     return("mean-slope")
   }
   if (identical(from_family, "sigma") && identical(to_family, "sigma")) {
+    if (!identical(from_dpar, to_dpar)) {
+      return("scale-scale")
+    }
     if (from_intercept && to_intercept) {
       return("scale-scale")
     }
@@ -9030,14 +9033,22 @@ build_biv_parameter_random_structure <- function(
   is_biv_mu_slope_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types == "slope")
+  is_biv_sigma_slope_block <- identical(unname(dpars), c("sigma1", "sigma2")) &&
+    length(terms) == 2L &&
+    all(term_types == "slope")
   is_biv_mu_qgt2_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types %in% c("correlated_slope", "correlated_block"))
-  if (!is_intercept_block && !is_biv_mu_slope_block && !is_biv_mu_qgt2_block) {
+  if (
+    !is_intercept_block &&
+      !is_biv_mu_slope_block &&
+      !is_biv_sigma_slope_block &&
+      !is_biv_mu_qgt2_block
+  ) {
     cli::cli_abort(c(
       "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
-      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
-      "i" = "Residual-scale slopes and all-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2} or {.code sigma1}/{.code sigma2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
+      "i" = "Same-response location-scale slopes and all-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
     ))
   }
   labels <- unname(vapply(
@@ -9067,13 +9078,15 @@ build_biv_parameter_random_structure <- function(
       ))
     }
     if (
-      (isTRUE(is_biv_mu_slope_block) || isTRUE(is_biv_mu_qgt2_block)) &&
+      (isTRUE(is_biv_mu_slope_block) ||
+        isTRUE(is_biv_sigma_slope_block) ||
+        isTRUE(is_biv_mu_qgt2_block)) &&
         !identical(terms[[1L]]$coef_names, terms[[2L]]$coef_names)
     ) {
       cli::cli_abort(c(
-        "Bivariate {.code mu1/mu2} random effects must use the same random-slope coefficient set.",
-        "x" = "{.code mu1} uses coefficient {.val {terms[[1L]]$coef_names}}, but {.code mu2} uses {.val {terms[[2L]]$coef_names}}.",
-        "i" = "Use matching terms such as {.code (0 + x | p | id)} or {.code (1 + x | p | id)} in both {.code mu1} and {.code mu2}."
+        "Bivariate {.code {pair}} random effects must use the same random-slope coefficient set.",
+        "x" = "{.code {dpars[[1L]]}} uses coefficient {.val {terms[[1L]]$coef_names}}, but {.code {dpars[[2L]]}} uses {.val {terms[[2L]]$coef_names}}.",
+        "i" = "Use matching terms such as {.code (0 + x | p | id)} in both formulas."
       ))
     }
     same_parameter_cor <- identical(labels[[1L]], labels[[2L]])

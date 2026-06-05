@@ -1919,7 +1919,7 @@ test_that("unsupported random-effect cases fail clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "bivariate residual-scale random intercepts"
+    "Broader bivariate random-slope covariance blocks"
   )
   expect_no_error(
     drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)

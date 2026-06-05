@@ -32,9 +32,10 @@ Read this first — it is the distinction most likely to be confused.
    *measure* an already-implemented surface (bias, RMSE, MCSE, coverage). A lane
    adds **no new model capability** — it only quantifies accuracy for a model
    that already fits. The lanes added recently
-   (`biv_gaussian_q2_scale_recovery`, `biv_gaussian_q4_location_recovery`,
-   `biv_gaussian_q6_location_recovery`, `biv_gaussian_mu_slope_recovery`,
-   `poisson_mu_re_recovery`, `nbinom2_mu_re_recovery`, plus the existing
+   (`biv_gaussian_q2_scale_recovery`, `biv_gaussian_q2_scale_slope_recovery`,
+   `biv_gaussian_q4_location_recovery`, `biv_gaussian_q6_location_recovery`,
+   `biv_gaussian_mu_slope_recovery`, `poisson_mu_re_recovery`,
+   `nbinom2_mu_re_recovery`, plus the existing
    `truncated_nbinom2_mu_random_intercept`) are **wired but not yet run at
    formal scale**; running them locally / on Actions is Phase B below.
 3. **Not-yet-fitted (the gap).** Capabilities that require new TMB likelihood
@@ -44,16 +45,16 @@ Read this first — it is the distinction most likely to be confused.
 | Capability | Category |
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
-| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2` and `sigma1`/`sigma2` random-**intercept** covariance; slope-only and q4/q6 `mu1`/`mu2` **location** blocks | Implemented (q4/q6 correlations are derived-interval-unavailable) |
+| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2` and `sigma1`/`sigma2` random-**intercept** covariance; slope-only and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks | Implemented (q4/q6 correlations are derived-interval-unavailable) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (wired; run at scale in Phase B) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| Bivariate residual-scale random **slopes** (q2 scale-slope) | **Not-yet-fitted** |
 | Same-response location-scale slope covariance; **q8** endpoint | **Not-yet-fitted** |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
-So: **q4/q6 exist only for bivariate *Gaussian location*; q8 is design-only; and
-there is no non-Gaussian random-slope correlation or q4/q6/q8 block at all.**
+So: **q4/q6 exist only for bivariate *Gaussian location*, q2 scale-slope exists
+only for matching `sigma1`/`sigma2`, q8 is design-only, and there is no
+non-Gaussian random-slope correlation or q4/q6/q8 block at all.**
 
 ## Recommended Working Order
 
@@ -64,31 +65,30 @@ time.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
-1. Bivariate residual-scale random slopes (q2 scale-slope) — Tier A.1; smallest
-   TMB step, unblocks the rest of Tier A; its recovery lane already exists.
-2. Same-response location-scale slope covariance — Tier A.2; depends on 1.
-3. q8 all-endpoint block — Tier A.3; depends on 1+2. *(Completes the
+1. Same-response location-scale slope covariance — Tier A.1; depends on the
+   completed q2 `sigma1`/`sigma2` scale-slope slice.
+2. q8 all-endpoint block — Tier A.2; depends on 1. *(Completes the
    individual-difference covariance endpoint, the package's headline goal.)*
-4. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
+3. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
    implementation-ready, independent of Tier A, good early win.
-5. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
+4. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic
    covariance).
-6. Correlated non-Gaussian slopes and labelled non-Gaussian covariance —
+5. Correlated non-Gaussian slopes and labelled non-Gaussian covariance —
    currently `blocked`; needs a likelihood-design gate before code.
-7. Random effects in `rho12` — Tier D; needs its own gate first.
-8. *(parallel)* Large-data: sparse fixed effects, sufficient-statistic
+6. Random effects in `rho12` — Tier D; needs its own gate first.
+7. *(parallel)* Large-data: sparse fixed effects, sufficient-statistic
    aggregation, 1M-row benchmarks — Tier E.
-9. Mixed-response bivariate — Tier F; research-scoped, **defer** (not needed for
+8. Mixed-response bivariate — Tier F; research-scoped, **defer** (not needed for
    the first power simulation).
-10. *(parallel, inference engine — not a model surface)* Gaussian variational
+9. *(parallel, inference engine — not a model surface)* Gaussian variational
     approximation (GVA), an accuracy-oriented alternative to Laplace for
     non-Gaussian random-intercept models — Tier G; independent of Tiers A–F.
 
 **Phase B — run the evidence (local R / Actions):** for each implemented surface,
 run its recovery/coverage lane at formal replicate count (the ADEMP sheets name
 the counts), audit the artifacts, and promote the matching row in doc 46. The
-six recovery lanes listed above are wired and ready to run now, before any new
+seven recovery lanes listed above are wired and ready to run now, before any new
 Phase A work.
 
 **Phase C — comparator and release:** run the Phase 19 comparator matrix
@@ -97,8 +97,9 @@ then the 0.2.0 release checklist (`docs/design/159-...`) including the
 profile-likelihood demonstration article.
 
 **Then:** the big power simulation, covering whichever Phase A surfaces have
-passed Phase B recovery/coverage. Phases A.4 (skew-normal) and A.1–A.3 (the
-covariance endpoint) are the highest-value additions for power claims.
+passed Phase B recovery/coverage. Phase A.1–A.2 (the remaining covariance
+endpoint) and the parallel skew-normal first slice are the highest-value
+additions for power claims.
 
 ## Readiness Snapshot
 
@@ -106,54 +107,49 @@ Fitted today (see doc 46 for the full matrix): Gaussian fixed-effect
 location-scale; ordinary Gaussian `mu` intercepts, `q > 2` slopes, and
 independent `sigma` slopes; selected bivariate `mu1`/`mu2` and `sigma1`/`sigma2`
 random-intercept covariance blocks; slope-only and q4/q6 `mu1`/`mu2` location
-blocks (smoke); residual `rho12`; `meta_V(V = V)`; coordinate-spatial,
+blocks (smoke); the first q2 `sigma1`/`sigma2` scale-slope block; residual
+`rho12`; `meta_V(V = V)`; coordinate-spatial,
 phylogenetic, `animal()`, and `relmat()` Gaussian `mu`/`sigma` intercepts plus
 one `mu` slope; ordinary Poisson/NB2 `mu` random effects and q=1 structured
 intercepts; the fixed-effect non-Gaussian family set; fixed-effect ordinal.
 
-The capability gaps below are what stand between that surface and the
-"all capabilities planned" milestone.
+The open capability gaps below are what stand between that surface and the
+"all capabilities planned" milestone. The q2 `sigma1`/`sigma2` scale-slope
+route was closed by issue #483 and now serves as evidence for the next
+individual-difference slice.
 
 ## Tier A — Individual-Difference Covariance Endpoint (#5, #33)
 
 This is the flagship: correlating individual differences in average response,
 plasticity, residual variability, and its change. Implement strictly in order.
 
-1. **Bivariate residual-scale random slopes (q2 scale slope).**
-   - Gate: `docs/design/155-bivariate-residual-scale-random-slope-gate.md`.
-   - Site: convert the rejection at `R/drmTMB.R:4963-4969`; feed per-observation
-     slope design columns into `build_biv_sigma_random_structure` →
-     `build_biv_parameter_random_structure` (q=2 layout unchanged in shape).
-   - Verify: malformed-input tests at
-     `tests/testthat/test-biv-gaussian.R:2837-2864`; recovery lane already
-     scaffolded as `biv_gaussian_q2_scale_recovery`.
-2. **Same-response location-scale slope covariance (`mu1`/`sigma1` slopes).**
+1. **Same-response location-scale slope covariance (`mu1`/`sigma1` slopes).**
    - Gate: `docs/design/28-double-hierarchical-endpoint.md` (step 5) and the
      "q2 same-response location-scale slope" row in
      `docs/design/67-sdstar-p8-poisson-q1.md`. High identifiability risk — needs
      many observations per group.
-   - Depends on slice 1.
-3. **q8 all-endpoint block.**
+   - Depends on the completed q2 `sigma1`/`sigma2` scale-slope slice.
+2. **q8 all-endpoint block.**
    - Gate: `docs/design/67-sdstar-p8-poisson-q1.md`; registry row
      `bivariate_gaussian_q8_endpoint` (currently `design_only`).
-   - Depends on slices 1 and 2. Keep q8 correlations
+   - Depends on same-response location-scale slope evidence. Keep q8 correlations
      `derived_interval_unavailable` until a validated interval method exists.
 
 ## Tier B — Structured Random Slopes (#33, #147)
 
-4. **Phylogenetic `mu` slopes beyond the first; slope correlations.**
+3. **Phylogenetic `mu` slopes beyond the first; slope correlations.**
    - Gate: `docs/design/44-structured-slope-parity-gate.md`,
      `docs/design/148-phase6c-structured-one-slope-ademp.md`.
-5. **Coordinate-spatial `mu` slope correlations** (one independent slope is
+4. **Coordinate-spatial `mu` slope correlations** (one independent slope is
    already fitted). Same parity gate.
-6. **`animal()`/`relmat()` slopes and bivariate genetic covariance (#147).**
+5. **`animal()`/`relmat()` slopes and bivariate genetic covariance (#147).**
    - Gates: `docs/design/54-...`, `55-...`, `58-phase-18-animal-relmat-q4-ademp.md`.
    - Includes sparse large-pedigree precision construction (overlaps Tier E).
-7. **Residual-scale structured slopes** (the structured analogue of Tier A.1).
+6. **Residual-scale structured slopes**.
 
 ## Tier C — Location-Scale-Shape Family (#3)
 
-8. **`skew_normal()` fixed-effect first slice.**
+7. **`skew_normal()` fixed-effect first slice.**
    - Gates: `docs/design/127-...parameterization-decision`,
      `128-...test-contract`, `132-...implementation-gate`,
      `123-...source-map`. The parameterization and test contract are decided;
@@ -163,21 +159,21 @@ plasticity, residual variability, and its change. Implement strictly in order.
 
 ## Tier D — Random Effects in `rho12` (#5 boundary)
 
-9. **Random intercepts in `rho12`**, kept distinct from group-level covariance.
+8. **Random intercepts in `rho12`**, kept distinct from group-level covariance.
    - Boundary: `docs/design/45-cross-dpar-correlation-gate.md`. Needs its own
      gate before likelihood work; currently only fixed-effect/predictor `rho12`
      is fitted.
 
 ## Tier E — Large-Data Readiness (#4)
 
-10. **Sparse fixed-effect matrices** with dense-vs-sparse parity tests, Gaussian
+9. **Sparse fixed-effect matrices** with dense-vs-sparse parity tests, Gaussian
     sufficient-statistic aggregation, and 1M-row / high-species benchmarks.
     - Gate: `docs/design/23-large-data-memory.md`. Benchmarks need a real
       machine, not the sandbox.
 
 ## Tier F — Mixed-Response Bivariate (#5 boundary)
 
-11. **Mixed-response bivariate families** (e.g. Gaussian-count) remain blocked
+10. **Mixed-response bivariate families** (e.g. Gaussian-count) remain blocked
     until a joint-likelihood or copula/latent-variable contract is designed.
     This is research-scoped and should stay in the failure ledger until that
     contract exists; it is not required for the first power simulation.

@@ -10,8 +10,8 @@
 - Residual-scale random intercepts and independent numeric random slopes are
   implemented on log-`sigma` in the `sigma` formula as
   `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)`. Correlated
-  residual-scale slope blocks and labelled residual-scale slope covariance
-  remain planned.
+  univariate residual-scale slope blocks and labelled univariate
+  residual-scale slope covariance remain planned.
 - The first univariate Gaussian cross-formula covariance block is implemented
   for matching labelled `mu` and `sigma` random intercepts, such as
   `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
@@ -90,10 +90,14 @@
   replication, tiny component SDs, and near-boundary latent correlations.
   Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted with
   smoke artifact routing. The matching residual-scale q=2 intercept block,
-  `sigma1 = ~ 1 + (1 | p | id)` with `sigma2 = ~ 1 + (1 | p | id)`, now also
-  has smoke artifact routing (`biv_gaussian_q2_scale`), reporting the two
-  direct scale SDs in `sdpars$sigma` and the derived scale-scale correlation in
-  `corpars$sigma`. Residual-scale slope blocks, same-response
+  `sigma1 = ~ 1 + (1 | p | id)` with `sigma2 = ~ 1 + (1 | p | id)`, has smoke
+  and recovery artifact routing (`biv_gaussian_q2_scale`). The matching
+  residual-scale q=2 slope-only block,
+  `sigma1 = ~ x + (0 + x | p | id)` with
+  `sigma2 = ~ x + (0 + x | p | id)`, has smoke and recovery artifact routing
+  (`biv_gaussian_q2_scale_slope`). These two scale blocks report direct scale
+  SDs in `sdpars$sigma`; the scale-scale correlations are group-level
+  `corpars$sigma` rows and are separate from residual `rho12`. Same-response
   location-scale slope covariance, random effects in `rho12`, and
   predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,
@@ -354,9 +358,11 @@
   intercepts, one-slope structured `mu` paths, q=2 and q=4 structured
   covariance slices, first-slice known-relatedness Gaussian intercepts,
   plus one or more unlabelled Gaussian `mu` random-intercept scale formulae
-  through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
-  covariance blocks, and univariate Student-t models with fixed-effect `mu`,
+  through `sd(group) ~ x_group`, matched labelled bivariate Gaussian
+  `mu1`/`mu2` intercept and slope-only covariance blocks, matched labelled
+  bivariate Gaussian `sigma1`/`sigma2` intercept and slope-only covariance
+  blocks, response-specific `mu`/`sigma` random-intercept covariance blocks, and
+  univariate Student-t models with fixed-effect `mu`,
   `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts and
   independent numeric slopes.
   It also supports univariate lognormal models with `mu` and `sigma` on the
@@ -375,8 +381,9 @@
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
   all-four bivariate q4 intercept block plus the matching q4 and q6 bivariate
-  location blocks, correlated residual-scale random-slope blocks, labelled
-  `mu`/`sigma` random-slope covariance, slope-specific
+  location blocks and matching q2 bivariate `sigma1`/`sigma2` slope-only block,
+  same-response bivariate `mu`/`sigma` random-slope covariance, univariate
+  correlated residual-scale random-slope blocks, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance

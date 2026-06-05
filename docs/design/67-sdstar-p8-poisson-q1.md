@@ -81,7 +81,7 @@ The current staged path is:
 | --- | --- | --- |
 | q2 slope-only location | `(0 + x | p | id)` in both `mu1` and `mu2` | fitted first slice; slope1-slope2 row is direct |
 | q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | fitted and smoke-artifact wired; q4 correlations are derived-unavailable for intervals |
-| q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | planned; pre-code gate in `docs/design/155-bivariate-residual-scale-random-slope-gate.md`; separate from residual `rho12` |
+| q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | fitted first slice with smoke and recovery routing; gate and implementation contract in `docs/design/155-bivariate-residual-scale-random-slope-gate.md`; separate from residual `rho12` |
 | q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | planned; high identifiability risk |
 | q8 all-endpoint block | all four dpars with intercept and slope endpoints | planned after q2/q4 evidence; q8 correlations are derived-unavailable until a validated interval method exists |
 

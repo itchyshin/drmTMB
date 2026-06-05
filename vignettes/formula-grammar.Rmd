@@ -74,6 +74,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice; `p` labels a `mu1`/`mu2` random-intercept covariance block. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice; `p` labels a `sigma1`/`sigma2` random-intercept covariance block on the log-`sigma` scale. |
+| `(0 + x | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented first slice | `p` labels a `sigma1`/`sigma2` scale-slope block on the log-`sigma` scale, reported as `cor(sigma1:x,sigma2:x | p | id)`. Same-response location-scale slope blocks and all-four q8 endpoint slopes remain planned. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, with optional independent `(1 | q | id)` in `mu2` and `sigma2` | Implemented first slice | Each labelled random-intercept pair creates its own response-specific mean-scale covariance block; residual `rho12` stays separate. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 location-scale covariance block reports all six latent random-effect correlations. |
 | `sd1(id) ~ x_group`, `sd2(id) ~ x_group` | Implemented | Family B direct SD formulas for labelled bivariate location random intercepts; not for residual-scale random effects. |
@@ -107,7 +108,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | Matching slope-only `(0 + x | p | id)` in bivariate `mu1` and `mu2` | Implemented first bivariate slope slice | Estimates the ordinary slope1-slope2 plasticity-syndrome correlation without intercept-slope correlations; broader bivariate slope blocks remain planned. |
 | Matching one-slope intercept-plus-slope `(1 + x | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented first q=4 location slice | Estimates two location-intercept SDs, two location-slope SDs, and six group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
 | Matching two-slope `(1 + x + z | p | id)` blocks in bivariate `mu1` and `mu2` | Implemented q=6 location slice with smoke artifact routing | Estimates six location SDs and 15 group-level latent correlations; the SDs are direct profile targets and the correlations are derived-unavailable interval rows. |
-| Residual-scale bivariate slope blocks, same-response location-scale slope covariance, all-four p8/q8 slope location-scale blocks, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
+| Same-response location-scale slope covariance, all-four p8/q8 slope location-scale blocks, residual-scale slope blocks beyond the matching q2 `sigma1`/`sigma2` scale-slope slice, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
 Current implemented univariate Gaussian random-effect forms include:
@@ -360,9 +361,10 @@ phylogenetic fields and species-specific loadings, so variable `rho_l` is a
 nonstationary phylogenetic covariance model rather than a residual-style
 correlation row. It covers `mu1`-`mu2` only; phylogenetic location-scale and
 scale-scale correlation regressions remain q=4 extensions. Multiple-slope
-bivariate location blocks, residual-scale bivariate slope blocks, bivariate
-spatial slope blocks, predictor-dependent q=4 phylogenetic or spatial
-correlations, and `rho12` random effects remain planned.
+bivariate location blocks beyond the smoke-routed ordinary q4/q6 lanes,
+bivariate spatial slope blocks, predictor-dependent q=4 phylogenetic or spatial
+correlations, same-response location-scale slope covariance, all-four p8/q8
+endpoint slope covariance, and `rho12` random effects remain planned.
 Double-hierarchical bivariate fits should continue to report correlation pairs
 in a long table, not just as unlabeled matrices. The design note
 `docs/design/20-coscale-correlation-pairs.md` records the planned labels:
