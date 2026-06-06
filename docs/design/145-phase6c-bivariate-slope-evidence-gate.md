@@ -48,8 +48,10 @@ The gate does not promote neighbouring endpoints. These remain planned or
 unsupported until separate code, tests, and evidence exist:
 
 - q > 2 bivariate location recovery and coverage claims;
-- same-response location-scale slope covariance;
-- residual-scale slope blocks in `sigma1` or `sigma2`;
+- broader same-response location-scale slope covariance beyond the named q2
+  source-tested slice;
+- residual-scale slope blocks in `sigma1` or `sigma2` beyond the named q2
+  scale-scale slice;
 - random effects or latent covariance in residual `rho12`;
 - all-four p8/q8 location-scale slope endpoints;
 - predictor-dependent slope `corpair()` regressions;

@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-05 -- Same-response bivariate mean-scale slope covariance
+
+Goal:
+
+- Implement the first bivariate Gaussian same-response `mu`/`sigma` random-slope
+  covariance slice after the formal recovery artifact audit cleared the
+  prerequisite q2 lanes.
+
+Changes:
+
+- Opened one matching same-response slope-only labelled pair under
+  `biv_gaussian()`, such as
+  `mu1 = y1 ~ x + (0 + x | p | id)` with
+  `sigma1 = ~ x + (0 + x | p | id)`.
+- Kept cross-response `mu1`/`sigma2` or `mu2`/`sigma1` pairs, mismatched
+  coefficients, univariate labelled `sigma` slopes, multiple same-response
+  slope pairs, and all-four p8/q8 endpoint blocks closed.
+- Added deterministic source-recovery coverage in
+  `tests/testthat/test-biv-gaussian.R`, including TMB-data routing,
+  R-side conditional latent-transform reconstruction, fitted SD/correlation
+  recovery, `corpairs(class = "mean-scale-slope")`, `profile_targets()`, and
+  `check_drm()` assertions.
+- Regenerated `man/corpairs.Rd` and updated README, NEWS, ROADMAP,
+  formula-grammar, likelihood, readiness, worklist, validation-debt,
+  simulation-programme, and implementation-map status surfaces so this route is
+  listed as source-tested but not formal Actions recovery evidence.
+- Added
+  `docs/dev-log/after-task/2026-06-05-same-response-mu-sigma-slope-covariance.md`.
+- Posted the progress update to issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4636646218>.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R tests/testthat/test-biv-gaussian.R`
+  completed without errors.
+- `Rscript -e "devtools::document()"` completed and wrote `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,312
+  passes, no failures, warnings, or skips in 180.2s.
+- `git diff --check` passed.
+- `rg -n 'same-response location-scale slope covariance.*(remain|planned|closed|unsupported)|same-response.*mu.*/.*sigma.*(remain planned|closed|unsupported)|same-response.*mu.*sigma.*(remain planned|closed|unsupported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned only intended current-status or boundary rows.
+- `rg -n 'p8/q8.*(fitted|implemented|supported|ready_grid|ready_existing_task)|q8.*(fitted|implemented|supported|ready_grid|ready_existing_task)|all-four p8/q8.*(fitted|implemented|supported)|all-four.*endpoint.*(fitted|implemented|supported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned only intended planning or blocked-boundary rows.
+- `rg -n 'same-response q2|same-response.*source-tested|same-response.*formal Actions|mean-scale-slope|cor\\(mu1:x,sigma1:x' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned the expected source, test, docs, and boundary-status rows.
+
+Not run:
+
+- Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` were not rerun for this focused source/doc slice.
+
 ## 2026-06-05 -- Formal recovery artifacts for seven capability lanes
 
 Goal:
@@ -52158,3 +52209,336 @@ location-scale slope covariance plus p8/q8 endpoint covariance closed.
   plus verification comment:
   <https://github.com/itchyshin/drmTMB/issues/483#issuecomment-4627127721>.
   The issue remains open pending PR/review closure.
+
+## 2026-06-05 - Same-response q2 mu/sigma slope recovery lane (branch codex/formal-recovery-evidence)
+
+Task: promote the fitted same-response bivariate Gaussian q2 `mu`/`sigma`
+slope covariance slice from source-only evidence to a Phase 18 smoke/recovery
+artifact lane, without opening p8/q8 endpoint covariance or broad power claims.
+
+- Added the Phase 18 DGP, fit summariser, smoke runner, smoke grid writer,
+  recovery summary, and recovery grid writer for
+  `biv_gaussian_mu_sigma_slope` and
+  `biv_gaussian_mu_sigma_slope_recovery`.
+- The lane fits matching same-response slope-only blocks, currently
+  `mu1 = y1 ~ x + (0 + x | p | id)` and
+  `sigma1 = ~ x + (0 + x | p | id)`, while response 2 and residual `rho12`
+  stay fixed-effect layers.
+- The summary records 12 estimands: fixed `mu1`/`mu2`, fixed
+  `sigma1`/`sigma2`, one `sd:mu` slope, one `sd:sigma` slope, one derived
+  `cor:mu_sigma` row, and residual `rho12`.
+- Wired the two new tasks into `phase18_actions_task_choices()`,
+  `.github/workflows/phase18-simulation-grid.yaml`, the structured workflow
+  registry CSV, and the registry fallback task list.
+- Added focused tests for seeded DGP output, smoke summary shape, grid writer
+  artifacts and overwrite guard, malformed DGP/cell inputs, recovery bias/MCSE
+  output, fixed-effect Wald coverage tables, and derived SD/correlation
+  Wald-unavailable rows.
+- Updated current status docs and rendered articles so this route is no longer
+  described as source-only. p8/q8 all-endpoint slope covariance, random effects
+  in `rho12`, cross-response/mismatched coefficient pairs, and same-response q2
+  power-grid claims remain gated.
+- Checks run:
+  - `air format inst/sim/dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R inst/sim/fit/sim_summarise_biv_gaussian_mu_sigma_slope.R inst/sim/run/sim_run_biv_gaussian_mu_sigma_slope_smoke.R inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_grid.R inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-mu-sigma-slope.R tests/testthat/test-phase18-biv-gaussian-mu-sigma-slope-recovery.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without output.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope')"`
+    returned 77 passes, no failures, warnings, or skips before the registry
+    wiring tests were updated.
+  - `Rscript inst/sim/run/sim_run_actions_cell.R --task biv_gaussian_mu_sigma_slope --dry-run true --n-reps 1 --backend none --cores 1 --master-seed 20260629`
+    printed the expected dry-run plan.
+  - `Rscript inst/sim/run/sim_run_actions_cell.R --task biv_gaussian_mu_sigma_slope_recovery --dry-run true --n-reps 1 --backend none --cores 1 --master-seed 20260630`
+    printed the expected dry-run plan.
+  - A first `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 534 passes and 8 failures from stale fixed row/count
+    expectations after adding two `ready_grid` correlation-block rows. The
+    expectations were updated from 46/29/10/8 to 48/31/12/10 where appropriate.
+  - Final `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 542 passes, no failures, warnings, or skips.
+  - Final `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope|phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 619 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,389
+    passes, no failures, warnings, or skips in 175.3s.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local-library warning that `glmmTMB` was built with
+    TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n 'same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended p8/q8 boundary text and selected non-Gaussian
+    source-test wording, not stale same-response q2 status.
+  - The same stale-current scan over `pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only intended p8/q8 boundary text in rendered NEWS.
+  - `rg -n 'biv_gaussian_mu_sigma_slope|same-response q2.*smoke/recovery|same-response q2.*recovery' pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/distribution-families.html --glob '!search.json'`
+    returned rendered support rows in ROADMAP and NEWS.
+  - `git diff --check` passed.
+- Not run: full `devtools::test()`, `devtools::check()`, or
+  `devtools::document()`. No roxygen comments changed in this recovery-lane
+  slice.
+- GitHub issue maintenance: inspected overlapping open issues #491, #33, #59,
+  and #5 through `gh issue list` searches, then updated the active local-R work
+  queue issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4637589854>.
+  The issue remains open because the 500-replicate formal artifact audit and
+  p8/q8 follow-up are still gated.
+
+## 2026-06-06 - Same-response q2 mu/sigma slope formal audit (branch codex/formal-recovery-evidence)
+
+Task: run the new `biv_gaussian_mu_sigma_slope_recovery` lane at formal
+replicate count and decide whether it supports same-response q2 power-grid use.
+
+- Ran the local Phase 18 Actions dispatcher after `devtools::load_all()` so the
+  audit used the dirty checkout rather than the last installed package:
+  `Rscript -e 'devtools::load_all(quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(...)'`
+  with `--task biv_gaussian_mu_sigma_slope_recovery`, `--n-reps 500`,
+  `--cores 8`, `--backend multicore`, `--master-seed 20260630`,
+  `--overwrite true`, and `--require-complete true`.
+- The runner exited 0 and wrote local git-ignored artifacts under
+  `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`.
+- Artifact audit:
+  - manifest rows: 1,000; status counts: 1,000 `ok`;
+  - replicate-parameter rows: 12,000;
+  - aggregate rows: 24, covering 12 estimands in each of two cells;
+  - failure-ledger rows: 170 warnings, no skipped or error manifest rows;
+  - warning messages: 92 `NA/NaN function evaluation` and 78 `NaNs produced`.
+- Unique fit diagnostics:
+  - `biv_gaussian_mu_sigma_slope_001`: 428/500 converged with `pdHess = TRUE`
+    and 72/500 had both `converged = FALSE` and `pdHess = FALSE`;
+  - `biv_gaussian_mu_sigma_slope_002`: 442/500 converged with `pdHess = TRUE`
+    and 58/500 had both `converged = FALSE` and `pdHess = FALSE`.
+- Recovery summary:
+  - derived same-response correlation bias was -0.0298 and -0.0352 across the
+    two cells;
+  - `sd:mu` slope bias was -0.0041 and -0.0012;
+  - `sd:sigma` slope bias was 0.0302 and 0.0323;
+  - residual `rho12` bias was -0.0008 and -0.0001.
+- Fixed-effect Wald coverage among interval-available fits ranged from 0.796
+  to 0.850, below the nominal 0.95 target; the two slope SDs, residual `rho12`,
+  and derived `mu_sigma` correlation had zero finite Wald endpoints as intended.
+- Decision: this is completed formal diagnostic evidence, not promotion or
+  power-grid support. Same-response q2 power claims remain gated pending
+  convergence/interval hardening, likely through warning-replicate triage plus
+  profile or bootstrap interval evidence.
+- Updated status wording in NEWS, README, ROADMAP, doc 46, doc 67, doc 157,
+  known limitations, and the new after-task report:
+  `docs/dev-log/after-task/2026-06-06-same-response-mu-sigma-slope-formal-audit.md`.
+- Post-update checks:
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    returned 27 passes, no failures, warnings, or skips.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local `glmmTMB`/`TMB` version mismatch warning.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n "completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power|same-response q2.*not a completed|same-response q2.*still needs|same-response.*power-grid use" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/check-log.md --glob '!docs/dev-log/after-task/2026-06-05-same-response-mu-sigma-slope-recovery-lane.md'`
+    returned only the earlier check-log command and the new task sentence that
+    states the audit tested whether power-grid use is supported.
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned one intended NEWS match where cross-response and all-four p8/q8
+    neighbours remain closed.
+  - `rg -n "same-response q2.*(diagnostic audit|formal audit|500-replicate)|0\\.856|0\\.884|0\\.796-0\\.850|power-grid support" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new diagnostic wording on the homepage, NEWS, and ROADMAP.
+  - `git diff --check` passed.
+- GitHub issue maintenance: posted the formal-audit hold decision to #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4638089487>.
+
+## 2026-06-06 - Same-response q2 mu/sigma slope hardening audit (branch codex/formal-recovery-evidence)
+
+Task: follow up the local 500-replicate same-response q2 `mu`/`sigma` slope
+formal-audit hold by auditing weak replicates, trying stronger refits, checking
+whether the promotion decision changes, and adding endpoint-profile evidence
+before any power-grid claim.
+
+- Audited the 130 weak replicates from
+  `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`: 72 from
+  `biv_gaussian_mu_sigma_slope_001` and 58 from
+  `biv_gaussian_mu_sigma_slope_002`, all with `converged = FALSE` and
+  `pdHess = FALSE`.
+- Regenerated those data sets from their recorded seeds and refit them with
+  stronger optimizer controls. The resulting
+  `refit-audit-20260606/robust-refit-status.csv` table has 130 rows, zero
+  refit errors, zero rescued fits, and 130 `false convergence (8)` outcomes
+  with `pdHess = FALSE`. The robust estimates were unchanged from the original
+  weak-fit estimates.
+- Recomputed fixed-effect coverage from the combined original-plus-refit
+  evidence. All-replicate fixed-effect Wald coverage remains 0.796-0.850
+  because the weak fits still have no valid interval rows. Among the
+  interval-available converged fits, fixed-effect Wald coverage is
+  0.929906542056075-0.97196261682243.
+- Checked endpoint-profile feasibility on two clean representative fits,
+  one from each default recovery cell. Endpoint profiles succeeded for
+  `rho12`, `sd:mu:mu1:(0 + x | p | id)`,
+  `sd:sigma:sigma1:(0 + x | p | id)`, and
+  `cor:mu_sigma:cor(mu1:x,sigma1:x | p | id)` in both cells, producing eight
+  `conf.status = "profile"` rows with no profile boundary flags.
+- Decision: the same-response q2 route remains fitted smoke/recovery plus
+  diagnostic evidence, not power-grid support. Stronger default optimizer
+  controls did not rescue the weak fits; two clean endpoint-profile
+  demonstrations show feasibility, not broad interval calibration.
+- Added `inst/sim/run/sim_audit_biv_gaussian_mu_sigma_slope_hardening.R` so
+  the interactive hardening pass can be regenerated from a formal recovery
+  artifact. The script reads the recovery tables or saved RDS results, rebuilds
+  the weak-replicate table, optionally robust-refits weak seeds, recomputes
+  fixed-effect Wald coverage after replacement, and optionally profiles clean
+  direct q2 targets. The CRAN-safe test covers the table-reading/no-refit path
+  and overwrite guard rather than rerunning the expensive 130-refit audit.
+- Verified the hardening-audit script against the real saved formal artifact
+  in cheap readback mode:
+  `phase18_audit_biv_gaussian_mu_sigma_slope_hardening(artifact_dir = "inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery", output_dir = tempfile("mu-sigma-hardening-readback-"), run_refits = FALSE, profile_replicates_per_cell = 0L, overwrite = FALSE)`
+  returned 130 weak rows, 16 fixed-effect coverage rows, zero refit-status
+  rows, and zero profile-status rows. This checks that the reproducibility
+  script can recover the existing audit substrate without rerunning the
+  expensive refit/profile phases.
+- Updated status wording in NEWS, README, ROADMAP, doc 34, doc 46, doc 67,
+  doc 157, known limitations, the simulation README, and the new after-task
+  report:
+  `docs/dev-log/after-task/2026-06-06-same-response-mu-sigma-slope-hardening-audit.md`.
+- Checks run:
+  - Artifact summary `Rscript - <<'EOF' ... EOF` over
+    `refit-audit-20260606/robust-refit-status.csv`,
+    `robust-combined-fixed-wald-coverage.csv`, and
+    `profile-feasibility-intervals.csv` reported 130 weak rows, zero refit
+    errors, zero rescued fits, 130 false-convergence outcomes, all-replicate
+    fixed-effect Wald coverage 0.796-0.850, interval-available fixed-effect
+    Wald coverage 0.929906542056075-0.97196261682243, eight profile interval
+    rows, `conf.status = "profile"`, and no profile boundary flags.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    returned 27 passes, no failures, warnings, or skips.
+  - After adding the reproducibility script,
+    `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    first found an empty-table alignment bug in the no-refit audit path; after
+    fixing that helper, the same command returned 36 passes, no failures,
+    warnings, or skips.
+  - Real-artifact no-refit readback:
+    `Rscript - <<'EOF' ... EOF` loaded the package and audit helpers, then ran
+    `phase18_audit_biv_gaussian_mu_sigma_slope_hardening(..., run_refits = FALSE, profile_replicates_per_cell = 0L)`
+    against `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`.
+    It returned `weak=130`, `coverage_rows=16`, `refit_rows=0`, and
+    `profile_rows=0`.
+  - `Rscript tools/codex-checkpoint.R --goal "same-response q2 mu/sigma slope hardening audit reproducibility" --next "Review the hardening-audit script/docs diff, then choose whether to run full package checks or open/review the PR."`
+    wrote
+    `docs/dev-log/recovery-checkpoints/2026-06-06-074853-codex-checkpoint.md`.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope')"`
+    returned 86 passes, no failures, warnings, or skips across the
+    same-response smoke and recovery/audit tests.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local-library warning that `glmmTMB` was built with
+    TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|same-response q2.*power-grid support|same-response q2.*power ready|same-response q2.*power readiness|q8.*fitted|p8.*fitted" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended planning and hold-language matches.
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only the intended NEWS sentence that all-four p8/q8 slope endpoints
+    remain closed.
+  - `rg -n "same-response q2.*(diagnostic audit|hardening audit|robust-refit|500-replicate)|0\\.930-0\\.972|130 weak|no rescue|power-grid use|endpoint profiles" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new hardening wording in rendered NEWS and the homepage.
+  - `git diff --check` passed before and after the status patch.
+- Not run: full `devtools::test()`, `devtools::document()`, or
+  `devtools::check()`. No roxygen comments or package code changed in this
+  hardening-status slice.
+- GitHub issue maintenance: the GitHub connector returned 403 when posting to
+  #491, but the local `gh` CLI succeeded:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4638712135>.
+
+## 2026-06-06 - Same-response q2 branch package validation cleanup (branch codex/formal-recovery-evidence)
+
+Task: clean up the accumulated same-response q2 branch after the hardening
+audit, run the broad package gates, and patch stale tests exposed by the full
+suite.
+
+- Ran `air format` over the touched R, simulation, and test files; it completed
+  without output.
+- Ran `Rscript -e "devtools::document()"`; it completed after loading
+  `drmTMB`.
+- First full `Rscript -e "devtools::test()"` ran for 969.7s and reported
+  9,985 passes, zero warnings, zero skips, and four failures:
+  - two stale `test-gaussian-random-intercepts.R` error-message expectations
+    after the same-response q2 implementation started producing the new
+    labelled `mu`/`sigma` and covariance-label guidance;
+  - two stale `test-phase18-correlation-block-status.R` fixed-count
+    expectations that still expected 10 plan/dispatch rows instead of the 12
+    rows created after adding the same-response q2 smoke and recovery tasks.
+- Patched only those stale tests:
+  - `tests/testthat/test-gaussian-random-intercepts.R` now expects the larger
+    labelled `mu`/`sigma` covariance-block message and the covariance-block
+    label requirement for the unlabelled bivariate `sigma1` slope case;
+  - `tests/testthat/test-phase18-correlation-block-status.R` now expects 12
+    plan and dispatch rows.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-correlation-block-status')"`
+  returned 444 passes, no failures, warnings, or skips.
+- Final `Rscript -e "devtools::test()"` ran for 956.6s and returned 9,995
+  passes, no failures, warnings, or skips.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+- `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`; it
+  emitted the known local-library warning that `glmmTMB` was built with TMB
+  1.9.17 while the current TMB was 1.9.21.
+- `Rscript -e "devtools::check()"` returned `Status: OK` in 8m 55.1s with
+  0 errors, 0 warnings, and 0 notes. During `R CMD build`, the local Git
+  fsmonitor socket produced `cp: drmTMB/.git/fsmonitor--daemon.ipc is a socket
+  (not copied).`, then the build and check continued successfully.
+- Stale/evidence scans:
+  - Source scan for stale same-response q2 source-only/power-ready wording:
+    `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|same-response q2.*power-grid support|same-response q2.*power ready|same-response q2.*power readiness|q8.*fitted|p8.*fitted" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended planning, hold-language, and p8/q8 boundary rows.
+  - Rendered stale scan:
+    `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only the intended NEWS row that all-four p8/q8 slope endpoints
+    remain closed.
+  - Rendered evidence scan:
+    `rg -n "same-response q2.*(diagnostic audit|hardening audit|robust-refit|500-replicate)|0\\.930-0\\.972|130 weak|no rescue|power-grid use|endpoint profiles" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new hardening wording in rendered NEWS and the homepage.
+  - Narrow stale-test scan
+    `rg -n "nrow\\(out\\$(plan|dispatch)\\), 10L\\)|\\\"intercept-only\\\"\\s*\\)" tests/testthat/test-phase18-correlation-block-status.R tests/testthat/test-gaussian-random-intercepts.R`
+    returned no matches.
+- `git diff --check` passed after the package-validation cleanup.
+- GitHub issue maintenance: posted the package-validation cleanup result to
+  issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4639932209>.
+- `Rscript tools/codex-checkpoint.R --goal "same-response q2 branch package validation cleanup" --next "Review the broad validation diff and decide whether to open PR review or continue another roadmap/status cleanup slice."`
+  wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-06-120943-codex-checkpoint.md`.
+
+## 2026-06-06 - Same-response q2 resume scope audit
+
+Task: resume from the package-validation checkpoint, audit the broad branch diff,
+and keep the branch scoped to the intended same-response q2 `mu`/`sigma` slope
+route before PR review.
+
+- Rehydrated from
+  `docs/dev-log/recovery-checkpoints/2026-06-06-120943-codex-checkpoint.md`,
+  `git status --short --branch`, `git diff --stat`, and the latest check-log
+  entries.
+- The audit found an accidental fitted q8 all-endpoint path: `R/drmTMB.R`
+  allowed all-four `(1 + x | p | id)` location-scale endpoint blocks, and
+  `tests/testthat/test-biv-gaussian.R` had a success fixture/test for that q8
+  route even though README, ROADMAP, NEWS, design docs, and the Phase 18
+  registry still correctly held q8 as design-only.
+- Patched the scope leak by restoring all-four ordinary location-scale
+  covariance detection to intercept-only q4 blocks, removing the
+  `is_biv_sigma_qgt2_block` fitted path, restoring the unsupported-label-reuse
+  guidance to q4-only support, removing the q8 success fixture/test, and
+  asserting that q8-style all-four slope requests still fail with the
+  intercept-only boundary message.
+- Kept the intended same-response q2 route unchanged: matching one-coefficient
+  `mu1`/`sigma1` or `mu2`/`sigma2` slope-only labels remain fitted and covered.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R` completed without
+  output.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,398 passes,
+  no failures, warnings, or skips in 180.0s.
+- `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry|phase18-correlation-block-status')"`
+  returned 331 passes, no failures, warnings, or skips.
+- `rg -n "supports q8|new_biv_gaussian_q8|q=8 endpoint|q8 endpoint form|q8.*(now|is|are).*fitted|first matching q8|location-scale covariance blocks support either" R tests/testthat docs README.md ROADMAP.md NEWS.md --glob '!docs/dev-log/**'`
+  returned no fitted-q8 support code or success tests; remaining hits were
+  design-only, planned-boundary, or historical strings.
+- `git diff --check` passed after the resume scope audit.
+- `gh issue view 491 --json number,title,state,url,updatedAt` confirmed issue
+  #491 is still open:
+  <https://github.com/itchyshin/drmTMB/issues/491>.
+- `Rscript tools/codex-checkpoint.R --goal "same-response q2 resume scope audit" --next "Review the corrected branch diff, commit the same-response q2 package changes, and open PR review if no further scope issues are found."`
+  wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-06-164805-codex-checkpoint.md`.
+
+Not run:
+
+- Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` were not rerun after this scope-audit patch; they
+  passed earlier in the same branch package-validation cleanup.

@@ -238,9 +238,9 @@ group-level correlations and keep residual `rho12` separate.
 Still deferred:
 
 - factor or multi-column random slopes;
-- same-response location-scale slope covariance, all-four p8/q8 location-scale
-  slope endpoints, and broader cross-parameter slope covariance beyond the
-  intercept-only q=4 foundation and q2 scale-slope slice;
+- all-four p8/q8 location-scale slope endpoints and broader cross-parameter
+  slope covariance beyond the intercept-only q=4 foundation and named q2
+  same-response and scale-scale slices;
 - phylogenetic and spatial correlated slope blocks.
 
 ## Comparator Tests

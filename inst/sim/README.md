@@ -245,6 +245,22 @@ Current pilot files:
   recovery artifacts for the two scale-slope SDs, their group-level
   correlation, fixed scale slopes, and residual `rho12`. Wald coverage is
   reported only for fixed-effect endpoints that carry standard errors.
+- `dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R` generates bivariate Gaussian data
+  with a same-response location-scale slope covariance block,
+  `mu1 = y1 ~ x + (0 + x | p | id)` and
+  `sigma1 = ~ x + (0 + x | p | id)`. The `mu1` slope and log-`sigma1` slope
+  share a q=2 group-level block while response 2 and residual `rho12` stay
+  separate. `run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R`,
+  `run/sim_write_biv_gaussian_mu_sigma_slope_grid.R`,
+  `run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R`, and
+  `run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R` provide smoke and
+  recovery artifacts for the fixed endpoints, the two same-response slope SDs,
+  their derived `mu_sigma` correlation, and residual `rho12`. Wald coverage is
+  reported only for fixed-effect endpoints that carry standard errors.
+  `run/sim_audit_biv_gaussian_mu_sigma_slope_hardening.R` reads those recovery
+  artifacts, rebuilds the weak-replicate table, optionally robust-refits weak
+  seeds, recomputes fixed-effect Wald coverage after replacement, and optionally
+  profiles clean direct q2 targets for local promotion audits.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross

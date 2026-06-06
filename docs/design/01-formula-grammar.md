@@ -78,7 +78,8 @@ In this table, "coscale" means a model for residual correlation, currently
 | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | Implemented for fixed effects | Bivariate Gaussian location-coscale model with predictor-dependent residual correlation. |
 | `(1 | p | id)` in both bivariate `mu1` and `mu2` | Implemented | First bivariate group-level covariance slice: matching labelled random intercepts create `mu1`/`mu2` random-intercept SDs and one group-level correlation. |
 | `(1 | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented | First bivariate residual-scale covariance slice: matching labelled random intercepts enter `log(sigma1)` and `log(sigma2)` and create one scale-scale group-level correlation. |
-| `(0 + x | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented first slice | Matching labelled random slopes enter `log(sigma1)` and `log(sigma2)` as `x * a_id`, creating one group-level scale-slope correlation `cor(sigma1:x,sigma2:x | p | id)`. Same-response location-scale slopes and all-four q8 endpoint slopes remain planned. |
+| `(0 + x | p | id)` in both bivariate `sigma1` and `sigma2` | Implemented first slice | Matching labelled random slopes enter `log(sigma1)` and `log(sigma2)` as `x * a_id`, creating one group-level scale-slope correlation `cor(sigma1:x,sigma2:x | p | id)`. |
+| `(0 + x | p | id)` in same-response bivariate `mu1` and `sigma1`, or `mu2` and `sigma2` | Implemented first slice with smoke/recovery routing | Matching labelled random slopes create one response-specific mean-scale-slope correlation such as `cor(mu1:x,sigma1:x | p | id)`. Cross-response slope labels, mismatched coefficients, and all-four q8 endpoint slopes remain planned. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, with optional independent `(1 | q | id)` in `mu2` and `sigma2` | Implemented first slice | Each matching labelled random-intercept pair creates its own response-specific mean-scale group-level correlation; residual `rho12` stays separate. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 random-intercept covariance block reports all six latent location-location, location-scale, and scale-scale correlations. |
 | `sd1(id) ~ x_group` or `sd2(id) ~ x_group` with the same all-four q=4 block | Rejected | This would mix the Family A joint location-scale covariance block with Family B direct location-SD regression for the same group. |
@@ -251,8 +252,9 @@ correlations. For phylogenetic all-four terms, using one label for `mu1` and
 `mu2` and a different label for `sigma1` and `sigma2` requests the
 block-diagonal fallback: two independent q=2 tree blocks, with mean-mean and
 scale-scale phylogenetic correlations but no mean-scale phylogenetic rows.
-Broader same-response and all-four endpoint bivariate random slopes plus
-`rho12` random effects remain planned.
+Broader all-four endpoint bivariate random slopes plus `rho12` random effects
+remain planned. The first same-response q2 `mu`/`sigma` slope route is a
+separate fitted source-tested slice.
 
 The first bivariate random-slope targets are intentionally narrower than the
 full endpoint and are now fitted for location and scale-scale q2 terms. A
@@ -267,11 +269,11 @@ six latent location correlations. Matching two-slope location blocks such as
 smoke-artifact-routed as q=6 ordinary location covariance blocks with six SDs
 and 15 latent location correlations. The SDs are direct `log_sd_re_cov` profile targets, while q > 2
 correlations are derived and unavailable for direct profile intervals. The
-matching q2 `sigma1`/`sigma2` scale-slope block is fitted separately. All-four
+matching q2 `sigma1`/`sigma2` scale-slope block is fitted separately, as is one
+matching same-response q2 `mu`/`sigma` slope-only block. All-four
 location-scale slope terms across `mu1`, `mu2`, `sigma1`, and `sigma2` remain
-p8/q8-style endpoints until same-response location-scale slope covariance,
-endpoint naming, diagnostics, recovery tests, and interval targets are in
-place.
+p8/q8-style endpoints until endpoint naming, diagnostics, recovery tests, and
+interval targets are in place.
 
 The first fitted bivariate phylogenetic location slice uses matching
 intercept-only `phylo()` terms in the two location formulas:
@@ -812,8 +814,9 @@ interpretable correlations among random intercepts, random slopes, random scale
 intercepts, and random scale slopes. Those correlations belong to labelled
 group-level covariance blocks such as `(1 | p | id)` and the fitted bivariate
 location block `(1 + x1 | p | id)`, not to residual `rho12 ~`. Residual-scale
-slope covariance and all-four location-scale slope endpoints are still separate
-planned blocks.
+slope covariance and same-response location-scale slope covariance have named
+q2 fitted slices; all-four location-scale slope endpoints are a separate
+group-level block and remain planned.
 
 For each response, the mean block may contain at least two group-level scale
 terms once random slopes are implemented: the random-intercept SD and the
@@ -898,8 +901,8 @@ Not every parameter should accept random effects at the same development stage.
 
 | Parameter class | Random effects policy |
 |---|---|
-| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson and NB2 models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, and one q=1 structured `mu` intercept may use `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial models also support unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)`. Correlated non-Gaussian slopes, covariance labels, structured count slopes, zero-inflated structured count effects, bounded-response exact-boundary random effects, and NB2 `sigma` structured effects remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching one-slope q=4 location blocks such as `(1 + x | p | id)`, and matching q=6 location blocks such as `(1 + x + z | p | id)` are implemented with smoke artifact routing. Bivariate residual-scale slope-only `sigma1`/`sigma2` blocks are listed under `sigma`; same-response location-scale slope covariance, all-four location-scale slope endpoints, and formal simulation recovery for q > 2 bivariate location blocks are later. |
-| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts and independent numeric random slopes. Unlabelled terms such as `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)` are independent scale effects, and multiple independent terms can be combined with zero correlations among their latent effects. Matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit mean-scale covariance blocks, with one row per independent matched label/group pair. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block, and matching slope-only labels such as `(0 + x | p | id)` in both `sigma1` and `sigma2` fit the first scale-slope block. Ordinary non-zero-inflated NB2 also supports the first independent `sigma ~ z + (1 | id)` random-intercept gate on the log-overdispersion scale. Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle NB2 `sigma` formulas remain fixed-effect only; NB2 `sigma` slopes, labelled univariate `sigma` covariance, joint `mu`/`sigma` slopes, zero-inflated NB2, structured NB2 `sigma`, correlated univariate residual-scale slope blocks, same-response bivariate location-scale slope covariance, and all-four bivariate scale endpoints are later. |
+| `mu`, `mu1`, `mu2` | Yes for univariate Gaussian `mu`; random intercepts, independent numeric random slopes, and labelled or unlabelled ordinary correlated intercept-slope blocks are implemented. For non-zero-inflated Poisson and NB2 models, ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)` are implemented on the log-mean scale, and one q=1 structured `mu` intercept may use `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. Ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial models also support unlabelled `mu` random intercepts and independent numeric slopes such as `(1 | id) + (0 + x | id)`. Correlated non-Gaussian slopes, covariance labels, structured count slopes, zero-inflated structured count effects, bounded-response exact-boundary random effects, and NB2 `sigma` structured effects remain planned. For bivariate Gaussian models, matching labelled random intercepts in `mu1` and `mu2`, such as `(1 | p | id)` in both formulas, matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching same-response slope-only `mu1`/`sigma1` or `mu2`/`sigma2` blocks, matching one-slope q=4 location blocks such as `(1 + x | p | id)`, and matching q=6 location blocks such as `(1 + x + z | p | id)` are implemented. Bivariate residual-scale slope-only `sigma1`/`sigma2` blocks are listed under `sigma`; all-four location-scale slope endpoints and formal simulation recovery for q > 2 bivariate location blocks are later. |
+| `sigma`, `sigma1`, `sigma2` | Yes for univariate Gaussian `sigma` random intercepts and independent numeric random slopes. Unlabelled terms such as `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)` are independent scale effects, and multiple independent terms can be combined with zero correlations among their latent effects. Matching labelled `mu` and `sigma` intercepts such as `(1 | p | id)` fit mean-scale covariance blocks, with one row per independent matched label/group pair. For bivariate Gaussian models, matching labelled random intercepts in `sigma1` and `sigma2` are implemented as a scale-scale block, matching slope-only labels such as `(0 + x | p | id)` in both `sigma1` and `sigma2` fit the first scale-slope block, and matching same-response `mu1`/`sigma1` or `mu2`/`sigma2` slope-only labels fit the first mean-scale-slope block. Ordinary non-zero-inflated NB2 also supports the first independent `sigma ~ z + (1 | id)` random-intercept gate on the log-overdispersion scale. Student-t, lognormal, Gamma, beta, beta-binomial, truncated NB2, and hurdle NB2 `sigma` formulas remain fixed-effect only; NB2 `sigma` slopes, labelled univariate `sigma` covariance, zero-inflated NB2, structured NB2 `sigma`, correlated univariate residual-scale slope blocks, and all-four bivariate scale endpoints are later. |
 | `sd(group)` | Implemented for one or more distinct unlabelled univariate Gaussian `mu` random intercepts, such as `sd(id) ~ x_group` and `sd(site) ~ site_type`; predictors must be constant within group after missing-row filtering. Labelled scale targets, slopes, `sigma` random-effect scales, bivariate models, and non-Gaussian models are later. |
 | `rho12` | No random effects initially; predictor-dependent fixed effects only. |
 | `nu`; future `tau` | Fixed effects first. Random-effect bar terms in Student-t `nu` fail with a shape-specific boundary; future `nu`/`tau` random effects and ID-level skewness such as `skew(id) ~ x` need fixed-effect likelihood recovery and simulations before fitting. `tau` is reserved for a possible second shape parameter and is not current syntax. |

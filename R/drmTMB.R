@@ -3867,10 +3867,14 @@ drm_build_biv_gaussian_spec <- function(
     sigma1_re$terms,
     sigma2_re$terms
   )
-  mu_qgt2_covariance_blocks <- detect_biv_mu_qgt2_covariance_blocks(
-    mu1_re$terms,
-    mu2_re$terms
-  )
+  mu_qgt2_covariance_blocks <- if (length(q4_covariance_blocks) > 0L) {
+    list()
+  } else {
+    detect_biv_mu_qgt2_covariance_blocks(
+      mu1_re$terms,
+      mu2_re$terms
+    )
+  }
   reject_biv_sd_mu_q4_mixture(sd_mu_entries, q4_covariance_blocks)
   if (
     !is.null(meta$V) &&
@@ -4464,7 +4468,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
       cli::cli_abort(c(
         "This bivariate random-effect syntax is not implemented.",
         "x" = "The {.code {dpar}} formula contains unsupported model terms: {.val {hits}}.",
-        "i" = "Implemented bivariate random-effect paths are matching labelled random intercepts in {.code mu1}/{.code mu2} or {.code sigma1}/{.code sigma2}, plus matching slope-only {.code mu1}/{.code mu2} blocks such as {.code (0 + x | p | id)}.",
+        "i" = "Implemented bivariate random-effect paths are matching labelled random intercepts in {.code mu1}/{.code mu2}, same-response {.code mu}/{.code sigma}, or {.code sigma1}/{.code sigma2}; matching slope-only {.code mu1}/{.code mu2}, same-response {.code mu}/{.code sigma}, or {.code sigma1}/{.code sigma2} blocks such as {.code (0 + x | p | id)}; and selected q > 2 location blocks.",
         "i" = "Residual {.code rho12} is a within-observation correlation, not a group-level random-effect correlation."
       ))
     }
@@ -4975,7 +4979,13 @@ parse_random_sigma_term <- function(expr, dpar) {
     group = as.character(group),
     covariance_label = covariance_label
   )
-  if (!identical(coef$type, "slope")) {
+  if (
+    !identical(coef$type, "slope") &&
+      !(dpar %in%
+        c("sigma1", "sigma2") &&
+        !is.null(covariance_label) &&
+        coef$type %in% c("correlated_slope", "correlated_block"))
+  ) {
     cli::cli_abort(c(
       "Only independent residual-scale random slopes are implemented for {.code sigma}.",
       "x" = "Use {.code sigma ~ z + (1 | id)} for a random intercept or {.code sigma ~ z + (0 + x | id)} for an independent random slope.",
@@ -4986,7 +4996,7 @@ parse_random_sigma_term <- function(expr, dpar) {
     cli::cli_abort(c(
       "Labelled residual-scale random-slope covariance blocks are not implemented yet.",
       "x" = "Use an unlabelled independent slope such as {.code sigma ~ z + (0 + x | id)}.",
-      "i" = "Shared labelled {.code mu}/{.code sigma} slope covariance will follow after the independent residual-scale slope path is stable."
+      "i" = "The first labelled slope covariance slice is bivariate and same-response only, such as {.code mu1} with {.code sigma1}."
     ))
   }
 
@@ -7625,20 +7635,24 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
         "i" = "Use a same-response pair such as {.code mu1} with {.code sigma1}, or wait for the positive-definite q > 2 block parameterization."
       ))
     }
-    if (
-      length(matching_mu) > 1L ||
-        !identical(re_mu$coef_names[[matching_mu]], "(Intercept)")
-    ) {
+    if (length(matching_mu) > 1L) {
       cli::cli_abort(c(
-        "Labelled {.code mu}/{.code sigma} covariance blocks are intercept-only in this phase.",
-        "x" = "The matching {.code mu} block has coefficient{?s}: {.val {re_mu$coef_names[matching_mu]}}.",
-        "i" = "Fit {.code (1 | p | id)} first; random-slope scale covariance will follow after recovery tests."
+        "Larger labelled {.code mu}/{.code sigma} covariance blocks are not implemented yet.",
+        "x" = "Block {.code {block_label}} on group {.field {group_name}} matched {.code mu} coefficients: {.val {re_mu$coef_names[matching_mu]}}.",
+        "i" = "Use one matching coefficient, such as {.code (1 | p | id)} or {.code (0 + x | p | id)}, in one same-response {.code mu}/{.code sigma} pair."
       ))
     }
-    if (!identical(re_sigma$coef_names[[labelled_sigma]], "(Intercept)")) {
-      cli::cli_abort(
-        "Internal error: labelled {.code sigma} covariance block is not intercept-only."
+    if (
+      !identical(
+        re_mu$coef_names[[matching_mu]],
+        re_sigma$coef_names[[labelled_sigma]]
       )
+    ) {
+      cli::cli_abort(c(
+        "Labelled {.code mu}/{.code sigma} covariance blocks need matching coefficients.",
+        "x" = "{.code {re_mu$dpars[[matching_mu]]}} uses {.val {re_mu$coef_names[[matching_mu]]}}, but {.code {re_sigma$dpars[[labelled_sigma]]}} uses {.val {re_sigma$coef_names[[labelled_sigma]]}}.",
+        "i" = "Use matching terms such as {.code (0 + x | p | id)} in the same-response {.code mu} and {.code sigma} formulas."
+      ))
     }
     if (
       !same_response_mu_sigma_dpars(
@@ -7669,7 +7683,9 @@ build_mu_sigma_random_covariance <- function(re_mu, re_sigma) {
       re_mu$dpars[[matching_mu]],
       re_sigma$dpars[[labelled_sigma]],
       group_name,
-      block_label
+      block_label,
+      from_coef = re_mu$coef_names[[matching_mu]],
+      to_coef = re_sigma$coef_names[[labelled_sigma]]
     )
   }
 
@@ -7732,7 +7748,10 @@ detect_biv_q4_covariance_blocks <- function(
     ))
   }
 
-  list(list(block_label = labels[[1L]], group = groups[[1L]]))
+  list(list(
+    block_label = labels[[1L]],
+    group = groups[[1L]]
+  ))
 }
 
 detect_biv_mu_qgt2_covariance_blocks <- function(mu1_terms, mu2_terms) {
@@ -8027,28 +8046,52 @@ add_q4_covariance_blocks <- function(
       re_sigma$covariance_labels == block$block_label &
         re_sigma$group_names == block$group
     )
-    if (length(mu_terms) != 2L || length(sigma_terms) != 2L) {
-      cli::cli_abort(
-        "Internal error: q4 covariance block metadata did not find two location and two scale members."
-      )
+    coef_names <- block$coef_names
+    if (is.null(coef_names)) {
+      coef_names <- "(Intercept)"
     }
-    member_dpars <- c(re_mu$dpars[mu_terms], re_sigma$dpars[sigma_terms])
-    if (!identical(member_dpars, c("mu1", "mu2", "sigma1", "sigma2"))) {
+    expected_n <- 2L * length(coef_names)
+    if (length(mu_terms) != expected_n || length(sigma_terms) != expected_n) {
       cli::cli_abort(c(
-        "Internal error: q4 covariance block members are not in endpoint order.",
-        "x" = "Found members: {.val {member_dpars}}."
+        "Internal error: endpoint covariance block metadata did not find the expected location and scale members.",
+        "x" = "Block {.code {block$block_label}} on group {.field {block$group}} expected {expected_n} location and {expected_n} scale members but found {length(mu_terms)} and {length(sigma_terms)}."
       ))
     }
-    pair_dpars <- utils::combn(member_dpars, 2L)
-    pair_labels <- mapply(
-      format_cross_dpar_cor_label,
-      pair_dpars[1L, ],
-      pair_dpars[2L, ],
-      MoreArgs = list(
-        group = block$group,
-        covariance_label = block$block_label
-      ),
-      USE.NAMES = FALSE
+    member_dpars <- c(re_mu$dpars[mu_terms], re_sigma$dpars[sigma_terms])
+    member_coefs <- c(
+      re_mu$coef_names[mu_terms],
+      re_sigma$coef_names[sigma_terms]
+    )
+    expected_dpars <- rep(
+      c("mu1", "mu2", "sigma1", "sigma2"),
+      each = length(coef_names)
+    )
+    expected_coefs <- rep(coef_names, times = 4L)
+    if (
+      !identical(member_dpars, expected_dpars) ||
+        !identical(member_coefs, expected_coefs)
+    ) {
+      cli::cli_abort(c(
+        "Internal error: endpoint covariance block members are not in endpoint order.",
+        "x" = "Found members: {.val {paste(member_dpars, member_coefs, sep = ':')}}."
+      ))
+    }
+    pair_terms <- utils::combn(seq_along(member_dpars), 2L)
+    pair_labels <- vapply(
+      seq_len(ncol(pair_terms)),
+      function(j) {
+        from <- pair_terms[1L, j]
+        to <- pair_terms[2L, j]
+        format_cross_dpar_cor_label(
+          member_dpars[[from]],
+          member_dpars[[to]],
+          group = block$group,
+          covariance_label = block$block_label,
+          from_coef = member_coefs[[from]],
+          to_coef = member_coefs[[to]]
+        )
+      },
+      character(1L)
     )
     registry <- append_covariance_registry_block(
       registry,
@@ -9019,7 +9062,7 @@ build_biv_parameter_random_structure <- function(
   }
   if (any(n_terms > 1L)) {
     cli::cli_abort(c(
-      "Bivariate {.code {pair}} random effects currently allow at most one random-intercept term per formula.",
+      "Bivariate {.code {pair}} random effects currently allow at most one labelled random-effect term per formula.",
       "x" = "Found {n_terms[[1L]]} term{?s} in {.code {dpars[[1L]]}} and {n_terms[[2L]]} term{?s} in {.code {dpars[[2L]]}}."
     ))
   }
@@ -9039,16 +9082,19 @@ build_biv_parameter_random_structure <- function(
   is_biv_mu_qgt2_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types %in% c("correlated_slope", "correlated_block"))
+  is_single_slope_block <- length(terms) == 1L &&
+    all(term_types == "slope")
   if (
     !is_intercept_block &&
       !is_biv_mu_slope_block &&
       !is_biv_sigma_slope_block &&
-      !is_biv_mu_qgt2_block
+      !is_biv_mu_qgt2_block &&
+      !is_single_slope_block
   ) {
     cli::cli_abort(c(
       "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
-      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2} or {.code sigma1}/{.code sigma2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
-      "i" = "Same-response location-scale slopes and all-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
+      "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2}, same-response {.code mu}/{.code sigma}, or {.code sigma1}/{.code sigma2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
+      "i" = "All-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
     ))
   }
   labels <- unname(vapply(
@@ -9211,15 +9257,6 @@ reject_biv_cross_parameter_label_reuse <- function(
   }
 
   terms <- lapply(terms, function(term) term[[1L]])
-  is_intercept <- vapply(
-    terms,
-    function(term) identical(term$type, "intercept"),
-    logical(1L)
-  )
-  if (!all(is_intercept)) {
-    return(invisible(FALSE))
-  }
-
   labels <- vapply(
     terms,
     function(term) {
