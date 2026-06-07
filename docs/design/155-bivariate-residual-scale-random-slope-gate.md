@@ -45,10 +45,11 @@ lanes (`biv_gaussian_q2_scale_slope`,
 `biv_gaussian_q2_scale_slope_recovery`) for the two scale-slope SDs, the
 group-level scale-slope correlation, fixed scale slopes, and residual `rho12`.
 
-What remains closed: same-response location-scale slope covariance, all-four
-p8/q8 location-scale slope endpoints, random effects in `rho12`, non-Gaussian
-scale-slope covariance, and structured-dependence scale slopes. The boundary is
-locked in by malformed-input tests in `tests/testthat/test-biv-gaussian.R`.
+What remains closed: all-four p8/q8 location-scale slope endpoints, random
+effects in `rho12`, non-Gaussian scale-slope covariance, and
+structured-dependence scale slopes. The same-response q2 `mu`/`sigma` slope
+slice is now a separate source-tested route. The boundary is locked in by
+malformed-input tests in `tests/testthat/test-biv-gaussian.R`.
 
 ## Target Model
 

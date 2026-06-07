@@ -71,7 +71,7 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
@@ -2559,8 +2559,8 @@ correlations. The q=6 SDs are direct `log_sd_re_cov` profile targets, and the
 15 correlations are derived-unavailable interval rows in `corpars$re_cov`,
 `corpairs()`, and `summary(fit)$covariance`.
 
-Broader planned double-hierarchical bivariate syntax with random slopes and
-scale random effects:
+Broader planned double-hierarchical bivariate syntax with simultaneous
+location and scale random slopes:
 
 ```r
 drmTMB(
@@ -2577,9 +2577,9 @@ drmTMB(
 ```
 
 This all-four one-slope endpoint would have eight latent effects per group and
-therefore 8 SDs and 28 correlations. It remains planned until residual-scale
-slope blocks, endpoint naming, diagnostics, recovery tests, and interval-status
-rules exist.
+therefore 8 SDs and 28 correlations. It remains planned until endpoint naming,
+all-four block assembly, diagnostics, recovery tests, and interval-status rules
+exist.
 
 Implementation notes:
 
@@ -2603,9 +2603,11 @@ Implementation notes:
   blocks in `mu1`/`mu2` are implemented as ordinary group-level location
   covariance blocks with smoke artifact routing for the q=4 and q=6 location
   routes. They cannot yet be combined with `meta_V(V = V)`, residual-scale
-  slopes, or same-response location-scale slope covariance.
-- One same-response `mu`/`sigma` random-intercept covariance pair is implemented
-  for `mu1` with `sigma1` or `mu2` with `sigma2`.
+  slopes, or same-response location-scale slope covariance inside one larger
+  block.
+- One same-response `mu`/`sigma` covariance pair is implemented for `mu1` with
+  `sigma1` or `mu2` with `sigma2`; the fitted q2 cases are matching random
+  intercepts or matching slope-only terms such as `(0 + x | p | id)`.
 - Reusing the same label in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
   random-intercept formulas fits one ordinary q=4 latent covariance block:
 
@@ -2638,14 +2640,14 @@ Implementation notes:
   `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
   endpoint location SD parameters only; they do not target residual `sigma1`,
   residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
-- Residual-scale bivariate slopes, same-response location-scale slope
-  covariance, all-four location-scale slope endpoints, `rho12` random effects,
-  phylogenetic random slopes, and predictor-dependent q=4 phylogenetic or
-  spatial correlations remain planned. The first ordinary matching slope-only
-  and smoke-artifact-routed q=4/q=6 location `mu1`/`mu2` blocks are implemented, as are
-  the first constant intercept-only bivariate phylogenetic/spatial q=4 blocks for
-  matching labelled terms in `mu1`, `mu2`, `sigma1`, and `sigma2`. The
-  structured q=4 path supports the full one-label block and the two-label
+- Residual-scale bivariate slope covariance, all-four location-scale slope
+  endpoints, `rho12` random effects, phylogenetic random slopes, and
+  predictor-dependent q=4 phylogenetic or spatial correlations remain planned.
+  The first ordinary matching slope-only, same-response q2 slope, and
+  smoke-artifact-routed q=4/q=6 location `mu1`/`mu2` blocks are implemented, as
+  are the first constant intercept-only bivariate phylogenetic/spatial q=4
+  blocks for matching labelled terms in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+  The structured q=4 path supports the full one-label block and the two-label
   block-diagonal fallback where admitted by the structured layer.
 - The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
   two independent unit tree fields and species-specific loadings. For each

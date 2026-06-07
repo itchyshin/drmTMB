@@ -82,7 +82,7 @@ The current staged path is:
 | q2 slope-only location | `(0 + x | p | id)` in both `mu1` and `mu2` | fitted first slice; slope1-slope2 row is direct |
 | q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | fitted and smoke-artifact wired; q4 correlations are derived-unavailable for intervals |
 | q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | fitted first slice with smoke and recovery routing; gate and implementation contract in `docs/design/155-bivariate-residual-scale-random-slope-gate.md`; separate from residual `rho12` |
-| q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | planned; high identifiability risk |
+| q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | fitted first slice with smoke/recovery routing; high identifiability risk; 2026-06-06 formal audit is diagnostic only, with convergence/positive-Hessian rates 0.856 and 0.884, all-replicate fixed-effect Wald coverage 0.796-0.850, no rescue among 130 robust-refit weak replicates, interval-available fixed-effect coverage 0.930-0.972, and two clean endpoint-profile demonstrations |
 | q8 all-endpoint block | all four dpars with intercept and slope endpoints | planned after q2/q4 evidence; q8 correlations are derived-unavailable until a validated interval method exists |
 
 The Phase 18 structured workflow registry now carries this as the

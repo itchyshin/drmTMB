@@ -97,9 +97,22 @@
   `sigma2 = ~ x + (0 + x | p | id)`, has smoke and recovery artifact routing
   (`biv_gaussian_q2_scale_slope`). These two scale blocks report direct scale
   SDs in `sdpars$sigma`; the scale-scale correlations are group-level
-  `corpars$sigma` rows and are separate from residual `rho12`. Same-response
-  location-scale slope covariance, random effects in `rho12`, and
-  predictor-dependent q=4 phylogenetic or spatial correlations are still
+  `corpars$sigma` rows and are separate from residual `rho12`. Matching
+  same-response q=2 location-scale slope-only blocks, such as
+  `mu1 = y1 ~ x + (0 + x | p | id)` with
+  `sigma1 = ~ x + (0 + x | p | id)`, are also fitted with smoke and recovery
+  artifact routing (`biv_gaussian_mu_sigma_slope`). The 2026-06-06 local
+  500-replicate formal audit for that route is diagnostic rather than
+  promotion evidence because convergence/positive-Hessian rates were 0.856 and
+  0.884 and all-replicate fixed-effect Wald coverage was 0.796-0.850. A
+  follow-up hardening audit refit the 130 weak replicates with stronger
+  controls and did not rescue any of them; all remained false-convergence,
+  `pdHess = FALSE` fits. The already-converged interval-available fits had
+  fixed-effect Wald coverage of 0.930-0.972, and endpoint profiles worked on
+  two clean representative fits for `rho12`, both slope SDs, and the
+  same-response correlation, but broad profile/bootstrap coverage remains
+  unrun. Random effects in `rho12`
+  and predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,
   spatial, or group-level covariance parameter.
 - Phylogenetic, coordinate-spatial, animal-model, and `relmat()` random slopes
@@ -381,9 +394,9 @@
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
   all-four bivariate q4 intercept block plus the matching q4 and q6 bivariate
-  location blocks and matching q2 bivariate `sigma1`/`sigma2` slope-only block,
-  same-response bivariate `mu`/`sigma` random-slope covariance, univariate
-  correlated residual-scale random-slope blocks, slope-specific
+  location blocks, matching q2 bivariate `sigma1`/`sigma2` slope-only block,
+  and matching same-response bivariate `mu`/`sigma` random-slope covariance,
+  univariate correlated residual-scale random-slope blocks, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance

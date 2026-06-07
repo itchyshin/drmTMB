@@ -26,9 +26,9 @@ implemented evidence.
 | Layer | Fitted now | Not in Phase 18 Wave A |
 | --- | --- | --- |
 | Residual `rho12` | Bivariate Gaussian fixed-effect residual correlation, including predictor-dependent `rho12 = ~ x` and row-specific profile targets through `newdata`. | Random effects in `rho12`; covariance between `rho12` random effects and `mu`, `sigma`, `zi`, `hu`, `zoi`, `coi`, or `nu`. |
-| Ordinary Gaussian `mu` | Univariate Gaussian random intercepts, independent slopes, correlated q=2 blocks, q > 2 location blocks such as `(1 + x1 + x2 | id)`, matching slope-only bivariate `mu1`/`mu2` blocks such as `(0 + x | p | id)`, and q4/q6 bivariate location blocks with smoke artifact routing such as `(1 + x | p | id)` and `(1 + x + z | p | id)`. q=3 has recovery-smoke coverage; larger q is advanced, while q4/q6 bivariate location have smoke lanes only. | Predictor-modelled slope correlations and same-response location-scale slope covariance. |
-| Gaussian `sigma` | Random intercepts and independent numeric slopes in the residual-scale formula, multiple matched univariate `mu`/`sigma` random-intercept covariance blocks, and the matching bivariate `sigma1`/`sigma2` q2 slope-only block. | Correlated univariate residual-scale slope blocks, same-response slope-level `mu`/`sigma` covariance, and p8/q8 endpoint covariance. |
-| Bivariate Gaussian covariance blocks | Matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four `mu1`/`mu2`/`sigma1`/`sigma2` random-intercept blocks, matching slope-only `mu1`/`mu2` and `sigma1`/`sigma2` blocks, and smoke-artifact-routed matching q=4/q=6 `mu1`/`mu2` location blocks. | p8/q8 location-scale slope endpoints, same-response location-scale slope covariance, mixed-distribution bivariate likelihoods, and q > 2 direct correlation profiles. |
+| Ordinary Gaussian `mu` | Univariate Gaussian random intercepts, independent slopes, correlated q=2 blocks, q > 2 location blocks such as `(1 + x1 + x2 | id)`, matching slope-only bivariate `mu1`/`mu2` blocks such as `(0 + x | p | id)`, same-response matching slope-only `mu`/`sigma` blocks, and q4/q6 bivariate location blocks with smoke artifact routing such as `(1 + x | p | id)` and `(1 + x + z | p | id)`. q=3 has recovery-smoke coverage; larger q is advanced, while q4/q6 bivariate location have smoke lanes only. | Predictor-modelled slope correlations and all-endpoint location-scale slope covariance. |
+| Gaussian `sigma` | Random intercepts and independent numeric slopes in the residual-scale formula, multiple matched univariate `mu`/`sigma` random-intercept covariance blocks, the matching bivariate `sigma1`/`sigma2` q2 slope-only block, and one same-response matching slope-only bivariate `mu`/`sigma` block. | Correlated univariate residual-scale slope blocks and p8/q8 endpoint covariance. |
+| Bivariate Gaussian covariance blocks | Matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, all-four `mu1`/`mu2`/`sigma1`/`sigma2` random-intercept blocks, matching slope-only `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response `mu`/`sigma` blocks, and smoke-artifact-routed matching q=4/q=6 `mu1`/`mu2` location blocks. | p8/q8 location-scale slope endpoints, mixed-distribution bivariate likelihoods, and q > 2 direct correlation profiles. |
 | Phylogenetic effects | Univariate `mu` and `sigma` intercepts with optional matching `mu`/`sigma` correlation, bivariate `mu1`/`mu2` intercept correlation, all-four q=4 phylogenetic intercept block, `sd_phylo*()` direct-SD routes, and q=2 predictor-dependent `corpair(..., level = "phylogenetic", from = "mu1", to = "mu2")`. Known-matrix animal and `relmat()` Gaussian `mu` and `sigma` intercepts, constant bivariate q=2 location covariance, and constant all-four q=4 location-scale covariance are fitted sibling slices. | Phylogenetic slopes beyond the first `mu` slope, residual-scale structured slopes, q=4 predictor-dependent phylogenetic correlations, and non-Gaussian phylogenetic random effects. Animal/`relmat()` residual-scale structured slopes, predictor-dependent `corpair()` regressions, and direct-SD grammar remain outside Wave A. |
 | Coordinate spatial effects | Univariate Gaussian `mu` and `sigma` intercepts with optional matching `mu`/`sigma` correlation, one independent `mu` slope through `spatial(1 + x | site, coords = coords)`, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance through matching `spatial(1 | p | site, coords = coords)` terms. | Spatial slope correlations, residual-scale structured slopes, spatial direct-SD models, spatial `corpair()` regressions, and non-Gaussian spatial effects. |
 | Non-Gaussian `mu` | Poisson `mu` random intercepts and independent numeric slopes for non-zero-inflated Poisson models. | Correlated non-Gaussian slope blocks, labelled non-Gaussian covariance, zero-inflated or hurdle count-side random effects, and structured non-Gaussian random effects. |
@@ -57,12 +57,13 @@ correlations, q=4 correlation regressions, or random effects in `rho12`.
 Slope-related correlations stay deliberately narrower. Ordinary Gaussian `mu`
 can fit q > 2 constant location blocks. Gaussian `sigma` can fit independent
 slopes, and bivariate Gaussian can now fit the matching q2 `sigma1`/`sigma2`
-scale-slope block. Coordinate spatial can fit one independent `mu` slope. The
-parser can read one-slope `phylo()`, `animal()`, and `relmat()` markers, but
-parser support does not create a fitted slope correlation model. Phylogenetic,
-animal, `relmat()`, non-Gaussian, same-response location-scale, and p8/q8
-slope correlations need their own implementation, diagnostics, interval
-targets, and recovery tests before they enter broad simulations.
+scale-slope block plus one same-response matching q2 `mu`/`sigma` slope block.
+Coordinate spatial can fit one independent `mu` slope. The parser can read
+one-slope `phylo()`, `animal()`, and `relmat()` markers, but parser support does
+not create a fitted slope correlation model. Phylogenetic, animal, `relmat()`,
+non-Gaussian, p8/q8, and broader all-endpoint slope correlations need their own
+implementation, diagnostics, interval targets, and recovery tests before they
+enter broad simulations.
 
 ## Simulation Consequence
 
@@ -95,6 +96,7 @@ bf(y ~ x, sigma ~ z + (0 + w | id))
 
 These are fitted Gaussian surfaces. By contrast, models such as
 `zi ~ x + (1 | id)`, `nu ~ x + (1 | id)`,
-`rho12 ~ x + (1 | id)`, or matched slope labels across `mu` and `sigma` are
-future work until the likelihood, extractor, interval, diagnostic, and
-simulation evidence exists.
+`rho12 ~ x + (1 | id)`, cross-response `mu1`/`sigma2` slope labels, mismatched
+same-response slope labels, or all-four p8/q8 slope labels are future work
+until the likelihood, extractor, interval, diagnostic, and simulation evidence
+exists.

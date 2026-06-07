@@ -1635,7 +1635,7 @@ test_that("labelled sigma covariance needs a matching labelled mu intercept", {
       family = gaussian(),
       data = sim$data
     ),
-    "intercept-only"
+    "Larger labelled `mu`/`sigma` covariance blocks"
   )
 })
 
@@ -1919,7 +1919,7 @@ test_that("unsupported random-effect cases fail clearly", {
       family = biv_gaussian(),
       data = dat
     ),
-    "Broader bivariate random-slope covariance blocks"
+    "covariance-block labels"
   )
   expect_no_error(
     drmTMB(bf(y ~ x, sigma ~ (0 + x | id)), family = gaussian(), data = dat)
