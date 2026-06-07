@@ -4,7 +4,8 @@ This note records the first post-0.1.3 implementation map follow-through. It
 keeps three ideas connected but separate:
 
 1. generic `sd*()` direct-SD grammar is a naming and compatibility plan;
-2. p8/q8 endpoint covariance is a pre-code planning target;
+2. p8/q8 endpoint covariance has a first source-tested ordinary Gaussian slice
+   but no artifact or recovery lane;
 3. ordinary Poisson q=1 phylogenetic `mu` is the first fitted structured
    non-Gaussian slice.
 
@@ -58,9 +59,11 @@ Before parser work opens the generic route, the project needs:
 
 ## p8/q8 Endpoint Plan
 
-p8/q8 refers to future all-endpoint location-scale slope covariance, not a
-current fitted route. For two Gaussian responses with one focal slope `x`, the
-full endpoint vector would be:
+p8/q8 refers to all-endpoint location-scale slope covariance. The first
+ordinary Gaussian route is source-tested when all four bivariate endpoint
+formulas use the same labelled `(1 + x | p | id)` term, but it is not yet a
+simulation-evidence route. For two Gaussian responses with one focal slope `x`,
+the full endpoint vector is:
 
 ```text
 b = (
@@ -83,13 +86,13 @@ The current staged path is:
 | q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | fitted and smoke-artifact wired; q4 correlations are derived-unavailable for intervals |
 | q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | fitted first slice with smoke and recovery routing; gate and implementation contract in `docs/design/155-bivariate-residual-scale-random-slope-gate.md`; separate from residual `rho12` |
 | q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | fitted first slice with smoke/recovery routing; high identifiability risk; 2026-06-06 formal audit is diagnostic only, with convergence/positive-Hessian rates 0.856 and 0.884, all-replicate fixed-effect Wald coverage 0.796-0.850, no rescue among 130 robust-refit weak replicates, interval-available fixed-effect coverage 0.930-0.972, and two clean endpoint-profile demonstrations |
-| q8 all-endpoint block | all four dpars with intercept and slope endpoints | planned after q2/q4 evidence; q8 correlations are derived-unavailable until a validated interval method exists |
+| q8 all-endpoint block | all four dpars with intercept and slope endpoints | source-tested first ordinary Gaussian slice; q8 correlations are derived-unavailable until a validated interval method exists |
 
 The Phase 18 structured workflow registry now carries this as the
-`bivariate_gaussian_q8_endpoint` design row. The helper
-`phase18_biv_gaussian_q8_endpoint_precode_gate()` is a dry-run gate only: it
-names the eight endpoints and 28 correlations, confirms that the row is
-`design_only`, and confirms that no Actions task can dispatch it.
+`bivariate_gaussian_q8_endpoint` source-test row. The helper
+`phase18_biv_gaussian_q8_endpoint_precode_gate()` is still a no-dispatch gate:
+it names the eight endpoints and 28 correlations, confirms that the row is
+`ready_source_test`, and confirms that no Actions task can dispatch it.
 
 Admission rules:
 

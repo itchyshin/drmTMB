@@ -893,6 +893,62 @@ new_biv_gaussian_q4_re_data <- function(
   )
 }
 
+new_biv_gaussian_q8_re_data <- function(
+  n_id = 48,
+  n_each = 10,
+  seed = 2026060701
+) {
+  set.seed(seed)
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x_grid <- seq(-1, 1, length.out = n_each)
+  x <- rep(x_grid, times = n_id)
+  beta_mu1 <- c(0.12, 0.28)
+  beta_mu2 <- c(-0.10, -0.22)
+  beta_sigma1 <- c(log(0.42), 0.05)
+  beta_sigma2 <- c(log(0.48), -0.04)
+  beta_rho12 <- atanh(0.08)
+  sd <- c(0.34, 0.16, 0.36, 0.15, 0.16, 0.07, 0.17, 0.06)
+  corr <- matrix(0.02, nrow = 8L, ncol = 8L)
+  diag(corr) <- 1
+  corr[1L, 3L] <- corr[3L, 1L] <- 0.12
+  corr[2L, 4L] <- corr[4L, 2L] <- 0.10
+  corr[5L, 7L] <- corr[7L, 5L] <- 0.09
+  corr[6L, 8L] <- corr[8L, 6L] <- 0.08
+  corr[1L, 5L] <- corr[5L, 1L] <- -0.06
+  corr[2L, 6L] <- corr[6L, 2L] <- 0.05
+  z <- matrix(stats::rnorm(n_id * 8L), n_id, 8L)
+  b <- sweep(z %*% chol(corr), 2L, sd, `*`)
+  rho12 <- tanh(beta_rho12)
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  dat <- data.frame(id = id, x = x)
+  dat$y1 <- beta_mu1[[1L]] +
+    beta_mu1[[2L]] * x +
+    b[id, 1L] +
+    b[id, 2L] * x +
+    exp(beta_sigma1[[1L]] + beta_sigma1[[2L]] * x + b[id, 5L] + b[id, 6L] * x) *
+      e1
+  dat$y2 <- beta_mu2[[1L]] +
+    beta_mu2[[2L]] * x +
+    b[id, 3L] +
+    b[id, 4L] * x +
+    exp(beta_sigma2[[1L]] + beta_sigma2[[2L]] * x + b[id, 7L] + b[id, 8L] * x) *
+      e2
+
+  list(
+    data = dat,
+    beta_mu1 = beta_mu1,
+    beta_mu2 = beta_mu2,
+    beta_sigma1 = beta_sigma1,
+    beta_sigma2 = beta_sigma2,
+    beta_rho12 = beta_rho12,
+    sd = sd,
+    corr = corr
+  )
+}
+
 expect_abs_error_below <- function(actual, expected, tolerance) {
   expect_lt(max(abs(unname(actual) - unname(expected))), tolerance)
 }
@@ -1623,6 +1679,132 @@ test_that("bivariate Gaussian supports full q4 labelled location-scale covarianc
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260630))
+})
+
+test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope blocks", {
+  sim <- new_biv_gaussian_q8_re_data()
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + (1 + x | p | id),
+      mu2 = y2 ~ x + (1 + x | p | id),
+      sigma1 = ~ x + (1 + x | p | id),
+      sigma2 = ~ x + (1 + x | p | id),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = sim$data,
+    control = drm_control(
+      optimizer = list(eval.max = 800, iter.max = 800),
+      se = FALSE
+    )
+  )
+
+  members <- fit$model$random$covariance_blocks$members
+  pairs <- corpairs(fit, level = "group", block = "p")
+  targets <- profile_targets(fit)
+  covariance <- summary(fit)$covariance
+  expected_sd_mu <- c(
+    "mu1:(1 + x | p | id):(Intercept)",
+    "mu1:(1 + x | p | id):x",
+    "mu2:(1 + x | p | id):(Intercept)",
+    "mu2:(1 + x | p | id):x"
+  )
+  expected_sd_sigma <- c(
+    "sigma1:(1 + x | p | id):(Intercept)",
+    "sigma1:(1 + x | p | id):x",
+    "sigma2:(1 + x | p | id):(Intercept)",
+    "sigma2:(1 + x | p | id):x"
+  )
+  expected_member_dpars <- c(
+    "mu1",
+    "mu1",
+    "mu2",
+    "mu2",
+    "sigma1",
+    "sigma1",
+    "sigma2",
+    "sigma2"
+  )
+  expected_member_coefs <- rep(c("(Intercept)", "x"), times = 4L)
+  expected_pairs <- utils::combn(seq_along(expected_member_dpars), 2L)
+  expected_cor <- vapply(
+    seq_len(ncol(expected_pairs)),
+    function(j) {
+      pair <- expected_pairs[, j]
+      paste0(
+        "cor(",
+        expected_member_dpars[[pair[[1L]]]],
+        ":",
+        expected_member_coefs[[pair[[1L]]]],
+        ",",
+        expected_member_dpars[[pair[[2L]]]],
+        ":",
+        expected_member_coefs[[pair[[2L]]]],
+        " | p | id)"
+      )
+    },
+    character(1L)
+  )
+  fixed_mu1 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "mu1")
+  )
+  fixed_sigma2 <- as.vector(
+    stats::model.matrix(~x, sim$data) %*% coef(fit, "sigma2")
+  )
+  chk <- check_drm(fit)
+  convergence_check <- chk[chk$check == "optimizer_convergence", ]
+  cor_targets <- targets[
+    match(paste0("cor:re_cov:", expected_cor), targets$parm),
+  ]
+
+  expect_s3_class(fit, "drmTMB")
+  expect_true(fit$opt$convergence %in% c(0L, 1L))
+  expect_true(is.finite(fit$opt$objective))
+  expect_true(convergence_check$status %in% c("ok", "warning"))
+  expect_equal(fit$model$random$mu$n_re, 0L)
+  expect_equal(fit$model$random$sigma$n_re, 0L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)
+  expect_equal(
+    fit$model$random$covariance_blocks$n_qgt2_re,
+    8L * nlevels(sim$data$id)
+  )
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_sd, 8L)
+  expect_equal(fit$model$random$covariance_blocks$n_qgt2_theta, 28L)
+  expect_equal(fit$model$random_names, "u_re_cov")
+  expect_equal(members$dpar, expected_member_dpars)
+  expect_equal(members$coef, expected_member_coefs)
+  expect_named(fit$sdpars$mu, expected_sd_mu)
+  expect_named(fit$sdpars$sigma, expected_sd_sigma)
+  expect_named(fit$corpars$re_cov, expected_cor)
+  expect_equal(nrow(pairs), 28L)
+  expect_equal(nrow(covariance), 28L)
+  expect_equal(covariance$parameter, expected_cor)
+  expect_equal(cor_targets$tmb_parameter, rep("theta_re_cov", 28L))
+  expect_equal(cor_targets$target_type, rep("derived", 28L))
+  expect_false(any(cor_targets$profile_ready))
+  expect_equal(
+    cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 28L)
+  )
+  expect_gt(stats::sd(predict(fit, dpar = "mu1") - fixed_mu1), 0.001)
+  expect_gt(
+    stats::sd(predict(fit, dpar = "sigma2", type = "link") - fixed_sigma2),
+    0.001
+  )
+  expect_equal(
+    length(fit$random_effects$covariance_blocks$values),
+    8L * nlevels(sim$data$id)
+  )
+  expect_equal(ncol(fit$random_effects$covariance_blocks$contribution), 8L)
+  expect_true(all(is.finite(unname(fit$sdpars$mu))))
+  expect_true(all(is.finite(unname(fit$sdpars$sigma))))
+  expect_true(all(abs(unname(fit$corpars$re_cov)) < 1))
+
+  sims <- simulate(fit, nsim = 1, seed = 2026060702)
+  expect_named(sims, c("sim_1_y1", "sim_1_y2"))
+  expect_equal(nrow(sims), nrow(sim$data))
+  expect_true(all(is.finite(as.matrix(sims))))
 })
 
 test_that("bivariate q4 syntax can fall back to block-diagonal q2 blocks", {
@@ -3113,11 +3295,11 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_s3_class(q4_location_slope_err, "rlang_error")
   expect_match(
     conditionMessage(q4_location_slope_err),
-    "location-scale covariance blocks are intercept-only"
+    "require matching coefficients"
   )
   expect_match(
     conditionMessage(q4_location_slope_err),
-    "includes random slopes"
+    "Use the same term"
   )
   q8_slope_err <- tryCatch(
     drmTMB(
@@ -3136,7 +3318,7 @@ test_that("bivariate Gaussian rejects unsupported Phase 3 syntax clearly", {
   expect_s3_class(q8_slope_err, "rlang_error")
   expect_match(
     conditionMessage(q8_slope_err),
-    "location-scale covariance blocks are intercept-only"
+    "allow only intercept-only or one-slope endpoint terms"
   )
   expect_match(conditionMessage(q8_slope_err), "includes random slopes")
   expect_error(

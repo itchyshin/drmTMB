@@ -221,20 +221,29 @@ phase18_random_slope_workflow_plan <- function(
     needs_target,
     "needs_wrapper_target",
     ifelse(
-      plan$admission_status == "ready_source_test",
-      "source_test_audit",
-      "ready_existing_task"
+      plan$existing_actions_task == "none" &
+        plan$admission_status == "ready_source_test",
+      "source_test_no_dispatch",
+      ifelse(
+        plan$admission_status == "ready_source_test",
+        "source_test_audit",
+        "ready_existing_task"
+      )
     )
   )
   plan$actions_task <- ifelse(
-    needs_target,
+    needs_target | plan$existing_actions_task == "none",
     NA_character_,
     plan$existing_actions_task
   )
   plan$workflow_helper <- ifelse(
     needs_target,
     sub("^needed:", "", plan$existing_actions_task),
-    "phase18_actions_main"
+    ifelse(
+      plan$existing_actions_task == "none",
+      "held_no_dispatch",
+      "phase18_actions_main"
+    )
   )
   plan$audit_focus <- phase18_random_slope_audit_focus(
     plan$admission_status
@@ -425,7 +434,7 @@ phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
   n_correlation <- n_endpoint * (n_endpoint - 1L) / 2L
   checks <- data.frame(
     check = c(
-      "registry_row_design_only",
+      "registry_row_source_tested",
       "no_actions_task",
       "endpoint_count",
       "correlation_count",
@@ -439,7 +448,7 @@ phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
       row$supervision_boundary
     ),
     status = c(
-      ifelse(row$admission_status == "design_only", "pass", "fail"),
+      ifelse(row$admission_status == "ready_source_test", "pass", "fail"),
       ifelse(row$existing_actions_task == "none", "pass", "fail"),
       ifelse(n_endpoint == 8L, "pass", "fail"),
       ifelse(n_correlation == 28L, "pass", "fail"),
@@ -1163,13 +1172,17 @@ phase18_round_replicates_up <- function(n_min) {
     stop("`n_min` must contain positive finite values.", call. = FALSE)
   }
   cut <- c(250L, 500L, 1000L, 2000L)
-  vapply(n_min, function(n) {
-    hit <- cut[cut >= n]
-    if (length(hit) > 0L) {
-      return(hit[[1L]])
-    }
-    as.integer(ceiling(n / 500) * 500)
-  }, integer(1L))
+  vapply(
+    n_min,
+    function(n) {
+      hit <- cut[cut >= n]
+      if (length(hit) > 0L) {
+        return(hit[[1L]])
+      }
+      as.integer(ceiling(n / 500) * 500)
+    },
+    integer(1L)
+  )
 }
 
 phase18_format_structured_workflow_bundle_dry_run <- function(

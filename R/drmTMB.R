@@ -4093,7 +4093,8 @@ drm_build_biv_gaussian_spec <- function(
   re_sigma_registry <- build_biv_sigma_random_structure(
     sigma1_re$terms,
     sigma2_re$terms,
-    data_model
+    data_model,
+    allow_qgt2 = length(q4_covariance_blocks) > 0L
   )
   re_mu <- build_biv_mu_random_structure(
     active_mu1_terms,
@@ -7732,6 +7733,21 @@ detect_biv_q4_covariance_blocks <- function(
   ) {
     return(list())
   }
+  term_types <- vapply(terms, `[[`, character(1L), "type")
+  coef_names <- lapply(terms, `[[`, "coef_names")
+  shared_coef_names <- Reduce(
+    function(x, y) {
+      if (identical(x, y)) x else NULL
+    },
+    coef_names
+  )
+  if (is.null(shared_coef_names)) {
+    cli::cli_abort(c(
+      "Full bivariate location-scale covariance blocks require matching coefficients.",
+      "x" = "Block {.code {labels[[1L]]}} on group {.field {groups[[1L]]}} uses coefficient sets: {.val {vapply(coef_names, paste, character(1L), collapse = ', ')}}.",
+      "i" = "Use the same term, such as {.code (1 + x | p | group)}, in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
+    ))
+  }
   is_intercept <- vapply(
     terms,
     function(term) {
@@ -7740,17 +7756,27 @@ detect_biv_q4_covariance_blocks <- function(
     },
     logical(1L)
   )
-  if (!all(is_intercept)) {
+  is_one_slope_endpoint <- all(
+    term_types == "correlated_slope",
+    lengths(coef_names) == 2L,
+    vapply(
+      coef_names,
+      function(x) identical(x[[1L]], "(Intercept)"),
+      logical(1L)
+    )
+  )
+  if (!all(is_intercept) && !is_one_slope_endpoint) {
     cli::cli_abort(c(
-      "Full bivariate location-scale covariance blocks are intercept-only in this phase.",
+      "Full bivariate location-scale covariance blocks allow only intercept-only or one-slope endpoint terms in this phase.",
       "x" = "Block {.code {labels[[1L]]}} on group {.field {groups[[1L]]}} includes random slopes.",
-      "i" = "Fit {.code (1 | p | group)} across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} first."
+      "i" = "Use {.code (1 | p | group)} across all four endpoints, or one shared q8 term such as {.code (1 + x | p | group)} across {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
     ))
   }
 
   list(list(
     block_label = labels[[1L]],
-    group = groups[[1L]]
+    group = groups[[1L]],
+    coef_names = shared_coef_names
   ))
 }
 
@@ -8695,14 +8721,20 @@ build_biv_mu_random_structure <- function(mu1_terms, mu2_terms, data) {
   )
 }
 
-build_biv_sigma_random_structure <- function(sigma1_terms, sigma2_terms, data) {
+build_biv_sigma_random_structure <- function(
+  sigma1_terms,
+  sigma2_terms,
+  data,
+  allow_qgt2 = FALSE
+) {
   build_biv_parameter_random_structure(
     sigma1_terms,
     sigma2_terms,
     data,
     dpars = c("sigma1", "sigma2"),
     pair = "sigma1/sigma2",
-    cor_label = format_biv_sigma_cor_label
+    cor_label = format_biv_sigma_cor_label,
+    allow_qgt2 = allow_qgt2
   )
 }
 
@@ -9054,7 +9086,8 @@ build_biv_parameter_random_structure <- function(
   data,
   dpars,
   pair,
-  cor_label
+  cor_label,
+  allow_qgt2 = FALSE
 ) {
   n_terms <- stats::setNames(c(length(terms1), length(terms2)), dpars)
   if (sum(n_terms) == 0L) {
@@ -9079,6 +9112,10 @@ build_biv_parameter_random_structure <- function(
   is_biv_sigma_slope_block <- identical(unname(dpars), c("sigma1", "sigma2")) &&
     length(terms) == 2L &&
     all(term_types == "slope")
+  is_biv_sigma_qgt2_block <- identical(unname(dpars), c("sigma1", "sigma2")) &&
+    isTRUE(allow_qgt2) &&
+    length(terms) == 2L &&
+    all(term_types %in% c("correlated_slope", "correlated_block"))
   is_biv_mu_qgt2_block <- identical(unname(dpars), c("mu1", "mu2")) &&
     length(terms) == 2L &&
     all(term_types %in% c("correlated_slope", "correlated_block"))
@@ -9088,13 +9125,14 @@ build_biv_parameter_random_structure <- function(
     !is_intercept_block &&
       !is_biv_mu_slope_block &&
       !is_biv_sigma_slope_block &&
+      !is_biv_sigma_qgt2_block &&
       !is_biv_mu_qgt2_block &&
       !is_single_slope_block
   ) {
     cli::cli_abort(c(
       "Broader bivariate random-slope covariance blocks are planned but not implemented for {.code {pair}}.",
       "x" = "This phase fits matching labelled random intercepts such as {.code (1 | p | id)}, matching slope-only {.code mu1}/{.code mu2}, same-response {.code mu}/{.code sigma}, or {.code sigma1}/{.code sigma2} terms such as {.code (0 + x | p | id)}, and matching location intercept-slope blocks such as {.code (1 + x | p | id)}.",
-      "i" = "All-four location-scale slope blocks stay closed until separate endpoint covariance evidence exists."
+      "i" = "All-four location-scale slope blocks require the same one-slope term, such as {.code (1 + x | p | id)}, in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
     ))
   }
   labels <- unname(vapply(
@@ -9126,6 +9164,7 @@ build_biv_parameter_random_structure <- function(
     if (
       (isTRUE(is_biv_mu_slope_block) ||
         isTRUE(is_biv_sigma_slope_block) ||
+        isTRUE(is_biv_sigma_qgt2_block) ||
         isTRUE(is_biv_mu_qgt2_block)) &&
         !identical(terms[[1L]]$coef_names, terms[[2L]]$coef_names)
     ) {
@@ -9138,7 +9177,7 @@ build_biv_parameter_random_structure <- function(
     same_parameter_cor <- identical(labels[[1L]], labels[[2L]])
   }
 
-  if (isTRUE(is_biv_mu_qgt2_block)) {
+  if (isTRUE(is_biv_mu_qgt2_block) || isTRUE(is_biv_sigma_qgt2_block)) {
     same_parameter_cor <- FALSE
   }
   expanded_terms <- expand_biv_parameter_random_terms(terms, term_dpars)

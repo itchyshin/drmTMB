@@ -362,9 +362,10 @@ gate.
     opens the matching slope-only bivariate `mu1`/`mu2` route. The q4/q6 smoke
     routes later open the matching q=4 and q=6 `mu1`/`mu2` location blocks, and
     the q2 scale-slope routes later open the matching same-response
-    `mu`/`sigma` and `sigma1`/`sigma2` slope blocks, while p8/q8 endpoint
-    covariance and non-Gaussian scale/shape random-effect slopes remain outside
-    Phase 18 Wave A until their recovery gates close.
+    `mu`/`sigma` and `sigma1`/`sigma2` slope blocks. The first ordinary q8
+    endpoint source test now exists, while q8 artifact/recovery evidence and
+    non-Gaussian scale/shape random-effect slopes remain outside Phase 18 Wave
+    A until their recovery gates close.
 27. Slice 237 adds a CRAN-safe smoke surface for ordinary Gaussian `mu` q=3
     random slopes, including a seeded DGP, replicate runner, summary table,
     aggregate output, manifest, failure ledger, and tests.
