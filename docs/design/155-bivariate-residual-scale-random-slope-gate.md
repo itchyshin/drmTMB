@@ -45,11 +45,12 @@ lanes (`biv_gaussian_q2_scale_slope`,
 `biv_gaussian_q2_scale_slope_recovery`) for the two scale-slope SDs, the
 group-level scale-slope correlation, fixed scale slopes, and residual `rho12`.
 
-What remains closed: all-four p8/q8 location-scale slope endpoints, random
-effects in `rho12`, non-Gaussian scale-slope covariance, and
-structured-dependence scale slopes. The same-response q2 `mu`/`sigma` slope
-slice is now a separate source-tested route. The boundary is locked in by
-malformed-input tests in `tests/testthat/test-biv-gaussian.R`.
+What remains closed: q8 recovery/coverage/power evidence, q8 variants beyond
+the matching one-slope ordinary Gaussian route, random effects in `rho12`,
+non-Gaussian scale-slope covariance, and structured-dependence scale slopes.
+The same-response q2 `mu`/`sigma` slope slice is a separate source-tested
+route. The boundary is locked in by malformed-input tests in
+`tests/testthat/test-biv-gaussian.R`.
 
 ## Target Model
 
@@ -224,4 +225,4 @@ current syntax.
   slopes.
 - `docs/design/143-phase-18-structured-workflow-registry.md` — the fitted
   scale-slope smoke and recovery lanes are admitted registry rows; the
-  `bivariate_gaussian_q8_endpoint` row remains design-only.
+  `bivariate_gaussian_q8_endpoint` row is source-tested with no Actions task.

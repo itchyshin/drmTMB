@@ -23,7 +23,7 @@ it does not yet fit the complete double-hierarchical covariance model.
 | Bivariate `sigma1`/`sigma2` covariance blocks | Implemented first slices | matching labelled `(1 | p | id)` intercept terms or matching labelled `(0 + x | p | id)` slope-only terms in both scale formulas |
 | Same-response bivariate `mu`/`sigma` random-intercept and slope-only covariance blocks | Implemented first slices | one matching labelled intercept pair or one matching labelled `(0 + x | p | id)` slope-only pair in `mu1`/`sigma1` or `mu2`/`sigma2` |
 | Coordinate spatial one-slope path | Implemented for univariate Gaussian `mu` | `spatial(1 + x | site, coords = coords)` with independent intercept and slope fields |
-| Bivariate random-slope covariance blocks and structured spatial q=4 blocks | First slice for ordinary matching slope-only `mu1`/`mu2`, same-response matching slope-only `mu`/`sigma`, matching slope-only `sigma1`/`sigma2`, smoke-artifact-routed matching q=4/q=6 `mu1`/`mu2` location blocks, and constant coordinate-spatial q=4 intercepts; broader blocks planned | matching slope-only and q=4/q=6 location-only `mu1`/`mu2` blocks, matching q2 same-response `mu`/`sigma` slope blocks, matching q2 scale-slope `sigma1`/`sigma2` blocks, and constant spatial q=4 location-scale blocks are fitted; p8/q8 endpoint blocks and spatial slope correlations remain closed |
+| Bivariate random-slope covariance blocks and structured spatial q=4 blocks | First slice for ordinary matching slope-only `mu1`/`mu2`, same-response matching slope-only `mu`/`sigma`, matching slope-only `sigma1`/`sigma2`, smoke-artifact-routed matching q=4/q=6 `mu1`/`mu2` location blocks, source-tested matching q8 all-endpoint ordinary blocks, and constant coordinate-spatial q=4 intercepts; broader blocks planned | matching slope-only and q=4/q=6 location-only `mu1`/`mu2` blocks, matching q2 same-response `mu`/`sigma` slope blocks, matching q2 scale-slope `sigma1`/`sigma2` blocks, the all-four one-slope q8 ordinary Gaussian endpoint, and constant spatial q=4 location-scale blocks are fitted; q8 recovery/power evidence and spatial slope correlations remain closed |
 | Profile-likelihood intervals for covariance summaries | Partly implemented | direct profile targets for first univariate and same-response bivariate `mu`/`sigma`, ordinary bivariate `mu1`/`mu2`, ordinary bivariate `sigma1`/`sigma2` intercept and slope-only covariance parameters, and bivariate phylogenetic `mu1`/`mu2` covariance parameters; ordinary q4 and phylogenetic q4 correlations are listed as derived unstructured-correlation targets, and derived intervals remain planned |
 
 ## Target Model
@@ -167,10 +167,10 @@ covariance interval.
    intercept-only all-four bivariate label pattern and reports all six
    `corpairs()` rows. A matching internal `profile_targets()` scaffold can
    format the six q=4 endpoint correlation targets, but direct profile support,
-   broader recovery evidence, examples, and random-slope p8/q8 endpoint blocks
-   remain later extensions. The ordinary q6 `mu1`/`mu2` location-only block and
-   the q2 `sigma1`/`sigma2` scale-slope block are separate fitted routes, not
-   this all-endpoint location-scale block.
+   broader recovery evidence, and examples remain later extensions. The
+   ordinary q6 `mu1`/`mu2` location-only block, the q2 `sigma1`/`sigma2`
+   scale-slope block, and the first source-tested q8 all-endpoint one-slope
+   block are separate fitted routes.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

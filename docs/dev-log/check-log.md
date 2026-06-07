@@ -52542,3 +52542,69 @@ Not run:
 - Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
   `pkgdown::build_site()` were not rerun after this scope-audit patch; they
   passed earlier in the same branch package-validation cleanup.
+
+## 2026-06-06 - Bivariate q8 all-endpoint source-test retry
+
+Task: retry the ordinary bivariate Gaussian q8 all-endpoint route as its own
+source-tested slice, after the same-response q2 scope audit had correctly
+removed it from the prior branch.
+
+- Rehydrated from `git status --short --branch`, the recent same-response q2
+  check-log entries, `docs/dev-log/after-task/2026-06-06-same-response-q2-resume-scope-audit.md`,
+  and open issues #5, #33, and #491.
+- Implemented the first narrow q8 fit path for matching all-four ordinary
+  bivariate Gaussian endpoint terms:
+  `mu1`, `mu2`, `sigma1`, and `sigma2` must all use the same labelled one-slope
+  term such as `(1 + x | p | id)`.
+- The fitted route reports eight endpoint SDs across `sdpars$mu` and
+  `sdpars$sigma`, 28 derived group-level correlations in `corpars$re_cov`,
+  `corpairs(level = "group", block = "p")`, `summary()$covariance`,
+  `profile_targets()`, and `check_drm()`, while residual `rho12` stays a
+  separate row-level correlation.
+- Kept malformed q8 neighbours closed: mismatched all-four coefficient sets,
+  slope-only all-four endpoint terms, cross-response same-response labels,
+  random `rho12`, structured q8, non-Gaussian q8, and predictor-dependent q8
+  `corpair()` regressions remain unsupported or planned.
+- Moved the Phase 18 `bivariate_gaussian_q8_endpoint` registry row from
+  `design_only` to `ready_source_test` with `existing_actions_task = "none"`;
+  the random-slope workflow reports `source_test_no_dispatch` and keeps q8 out
+  of Actions dispatch until a dedicated smoke/recovery artifact lane exists.
+- Synchronized current status in README, NEWS, ROADMAP, formula grammar,
+  double-hierarchical endpoint notes, readiness matrix, validation debt,
+  cross-dpar gate, q8 gate, structured workflow registry docs, simulation docs,
+  and the Phase 6c tutorial ledger.
+
+Checks run:
+
+- `air format R/drmTMB.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-structured-workflow-registry.R`
+  completed without output.
+- `Rscript -e "devtools::test(filter = '^biv-gaussian$')"` returned 935
+  passes, no failures, warnings, or skips in 55.3s.
+- `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry')"`
+  returned 322 passes, no failures, warnings, or skips in 2.4s.
+- `Rscript -e "devtools::test()"` returned 10,033 passes, no failures,
+  warnings, or skips in 951.0s.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned `No problems found`.
+- `Rscript -e "pkgdown::build_site()"` completed successfully and rebuilt
+  `pkgdown-site`; it emitted the local environment warning that `glmmTMB` was
+  built against TMB 1.9.17 while the current TMB is 1.9.21.
+- `Rscript -e "devtools::check()"` returned `Status: OK` with 0 errors,
+  0 warnings, and 0 notes in 8m 58.3s.
+- An earlier combined focused run
+  `Rscript -e "devtools::test(filter = 'biv-gaussian|phase18-structured-workflow-registry')"`
+  returned all bivariate Gaussian contexts green but failed one stale fixed
+  registry count because the admitted random-slope plan grew from 16 to 17
+  rows. The count was patched and the registry context passed on rerun.
+- `git diff --check` passed.
+- Stale-scope scan:
+  `rg -n "q8.*(design-only|design_only|not-yet-fitted|Not-yet-fitted|no likelihood code|q8 is design-only)|p8/q8.*(remain closed|remains closed|closed|not-yet-fitted|design-only)|all-four.*p8/q8.*(remain closed|closed|planned follow-up)|all-four.*q8.*(remain closed|closed)|future all-endpoint location-scale slope covariance" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry tests/testthat R --glob '!docs/dev-log/after-task/**'`
+  returned only intended boundary rows saying q8 artifact lanes, recovery,
+  coverage, power, or non-Gaussian q8 remain closed, plus the non-Gaussian
+  not-yet-fitted row.
+- GitHub issue maintenance: posted the q8 source-test/no-dispatch result to
+  issue #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4641128537>.
+
+Not run:
+
+- `devtools::document()` was not run because no roxygen comments changed.

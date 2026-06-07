@@ -105,7 +105,9 @@ test_that("Phase 18 structured workflow registry validates current rows", {
     unique(registry$admission_status),
     env$phase18_structured_workflow_statuses()
   )
-  expect_true(all(env$phase18_structured_workflow_lanes() %in% registry$workflow_lane))
+  expect_true(all(
+    env$phase18_structured_workflow_lanes() %in% registry$workflow_lane
+  ))
   expect_equal(anyDuplicated(registry$lane_id), 0L)
 })
 
@@ -258,9 +260,12 @@ test_that("Phase 18 random-slope workflow plan dispatches the bivariate slope ta
   expect_equal(plan$actions_task[bivariate], "biv_gaussian_mu_slope")
   expect_true(all(
     plan$dispatch_status[!bivariate] %in%
-      c("ready_existing_task", "source_test_audit")
+      c("ready_existing_task", "source_test_audit", "source_test_no_dispatch")
   ))
-  expect_false(any(is.na(plan$actions_task)))
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  expect_true(any(q8))
+  expect_true(all(is.na(plan$actions_task[q8])))
+  expect_false(any(is.na(plan$actions_task[!q8])))
 })
 
 test_that("Phase 18 random-slope workflow plan dispatches the q4 location task", {
@@ -326,8 +331,11 @@ test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
   expect_true("bivariate_gaussian_slope_only" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q4_location" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q6_location" %in% plan$lane_id)
-  expect_false("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
-  expect_false(any(is.na(plan$actions_task)))
+  expect_true("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  expect_equal(plan$dispatch_status[q8], "source_test_no_dispatch")
+  expect_true(all(is.na(plan$actions_task[q8])))
+  expect_false(any(is.na(plan$actions_task[!q8])))
 })
 
 test_that("Phase 18 random-slope wrapper target plan is empty after wiring", {
@@ -483,14 +491,14 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
   )
   q8 <- preflight$rows$lane_id == "bivariate_gaussian_q8_endpoint"
   expect_true(any(q8))
-  expect_equal(preflight$rows$admission_status[q8], "design_only")
-  expect_equal(preflight$rows$dispatch_status[q8], "held_by_status")
+  expect_equal(preflight$rows$admission_status[q8], "ready_source_test")
+  expect_equal(preflight$rows$dispatch_status[q8], "source_test_no_dispatch")
   expect_equal(preflight$rows$workflow_helper[q8], "held_no_dispatch")
-  expect_equal(preflight$rows$audit_focus[q8], "design_required")
+  expect_match(preflight$rows$audit_focus[q8], "focused source tests")
   expect_equal(sum(!nzchar(preflight$rows$supervision_boundary)), 0L)
 })
 
-test_that("Phase 18 q8 endpoint pre-code gate stays design-only", {
+test_that("Phase 18 q8 endpoint gate stays source-tested no-dispatch", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
 
@@ -501,7 +509,7 @@ test_that("Phase 18 q8 endpoint pre-code gate stays design-only", {
   plan <- env$phase18_random_slope_workflow_plan(registry)
 
   expect_equal(gate$row$lane_id, "bivariate_gaussian_q8_endpoint")
-  expect_equal(gate$row$admission_status, "design_only")
+  expect_equal(gate$row$admission_status, "ready_source_test")
   expect_equal(gate$row$existing_actions_task, "none")
   expect_equal(nrow(gate$endpoints), 8L)
   expect_equal(
@@ -522,7 +530,10 @@ test_that("Phase 18 q8 endpoint pre-code gate stays design-only", {
     "28"
   )
   expect_true(all(gate$checks$status == "pass"))
-  expect_false("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  expect_true(any(q8))
+  expect_equal(plan$dispatch_status[q8], "source_test_no_dispatch")
+  expect_true(all(is.na(plan$actions_task[q8])))
 })
 
 test_that("Phase 18 random-slope registry preflight fails closed", {
@@ -1143,7 +1154,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("random_slopes", bundle$plan_counts$workflow_plan)
     ],
-    16L
+    17L
   )
   expect_equal(
     bundle$plan_counts$n[
