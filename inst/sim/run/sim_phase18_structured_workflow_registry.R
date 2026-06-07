@@ -434,8 +434,8 @@ phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
   n_correlation <- n_endpoint * (n_endpoint - 1L) / 2L
   checks <- data.frame(
     check = c(
-      "registry_row_source_tested",
-      "no_actions_task",
+      "registry_row_artifact_ready",
+      "actions_task",
       "endpoint_count",
       "correlation_count",
       "supervision_boundary"
@@ -448,8 +448,12 @@ phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
       row$supervision_boundary
     ),
     status = c(
-      ifelse(row$admission_status == "ready_source_test", "pass", "fail"),
-      ifelse(row$existing_actions_task == "none", "pass", "fail"),
+      ifelse(row$admission_status == "ready_grid", "pass", "fail"),
+      ifelse(
+        row$existing_actions_task == "biv_gaussian_q8_endpoint",
+        "pass",
+        "fail"
+      ),
       ifelse(n_endpoint == 8L, "pass", "fail"),
       ifelse(n_correlation == 28L, "pass", "fail"),
       ifelse(nzchar(row$supervision_boundary), "pass", "fail")
@@ -1029,6 +1033,8 @@ phase18_pre_power_simulation_role <- function(lane_id, admission_status) {
     "bivariate_gaussian_q4_location_recovery",
     "bivariate_gaussian_q6_location",
     "bivariate_gaussian_q6_location_recovery",
+    "bivariate_gaussian_q8_endpoint",
+    "bivariate_gaussian_q8_endpoint_recovery",
     "structured_gaussian_q4"
   )
   role[lane_id %in% diagnostic_exceptions] <- "diagnostic"
@@ -1080,17 +1086,19 @@ phase18_pre_power_simulation_boundary <- function(
     "did not rescue weak fits or support broad interval calibration."
   )
 
-  weak_q4_q6 <- lane_id %in%
+  weak_q4_q6_q8 <- lane_id %in%
     c(
       "bivariate_gaussian_group_q4",
       "bivariate_gaussian_q4_location",
       "bivariate_gaussian_q4_location_recovery",
       "bivariate_gaussian_q6_location",
       "bivariate_gaussian_q6_location_recovery",
+      "bivariate_gaussian_q8_endpoint",
+      "bivariate_gaussian_q8_endpoint_recovery",
       "structured_gaussian_q4"
     )
-  boundary[weak_q4_q6] <- paste(
-    "Diagnostic only before power: q4/q6 correlation intervals are derived",
+  boundary[weak_q4_q6_q8] <- paste(
+    "Diagnostic only before power: q4/q6/q8 correlation intervals are derived",
     "or unavailable, and formal artifacts remain weak promotion evidence."
   )
 
@@ -1432,6 +1440,8 @@ phase18_structured_workflow_actions_tasks <- function() {
     "biv_gaussian_q4_location_recovery",
     "biv_gaussian_q6_location",
     "biv_gaussian_q6_location_recovery",
+    "biv_gaussian_q8_endpoint",
+    "biv_gaussian_q8_endpoint_recovery",
     "biv_gaussian_q2_scale",
     "biv_gaussian_q2_scale_recovery",
     "biv_gaussian_q2_scale_slope",
@@ -1656,6 +1666,16 @@ phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
     "mu1 and mu2 fixed effects; six direct q6 location SDs;",
     "15 derived q6 location correlations kept point/status-only;",
     "residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint"] <- paste(
+    "mu1, mu2, sigma1, and sigma2 fixed effects; eight direct q8",
+    "endpoint SDs; 28 derived q8 endpoint correlations kept",
+    "point/status-only; residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint_recovery"] <- paste(
+    "q8 endpoint bias, RMSE, and MCSE for fixed endpoints, eight direct",
+    "SDs, 28 derived endpoint correlations, and residual rho12;",
+    "intervals recorded unavailable because the runner uses se=FALSE"
   )
   estimands[
     lane_id %in%

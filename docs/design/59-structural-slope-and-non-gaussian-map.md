@@ -34,7 +34,7 @@ source-test, smoke, or diagnostic lanes, not broad count parity.
 | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` group effects | Yes | Independent numeric slopes such as `(0 + x | id)` and one correlated intercept-slope block such as `(1 + x | id)`; q > 2 ordinary `mu` blocks are fitted but advanced | Bivariate slope1-slope2 covariance and broader cross-parameter slope covariance |
 | Ordinary Gaussian `sigma` group effects | Yes | Independent residual-scale slopes such as `sigma ~ z + (0 + w | id)` on the log-`sigma` predictor | Correlated univariate residual-scale slope blocks and broader all-endpoint slope covariance |
-| Ordinary bivariate group covariance | Yes, first slices | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, constant q=4 intercept location-scale blocks, matching slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` blocks, and matching q=4/q=6 `mu1`/`mu2` location blocks with smoke artifact routing are fitted | All-four p8/q8 slope location-scale blocks, predictor-dependent slope `corpair()` regressions, and formal q > 2 simulation recovery |
+| Ordinary bivariate group covariance | Yes, first slices | Matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, same-response `mu`/`sigma`, constant q=4 intercept location-scale blocks, matching slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, `sigma1`/`sigma2` blocks, matching q=4/q=6 `mu1`/`mu2` location blocks with smoke artifact routing, and the first ordinary q8 all-endpoint block with diagnostic smoke/recovery routing are fitted | Predictor-dependent slope `corpair()` regressions, q8 coverage/power evidence, broader p8/q8 endpoint variants, and formal q > 2 simulation recovery |
 | Coordinate spatial Gaussian effects | Yes | `spatial(1 | site, coords = coords)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `spatial(1 + x | site, coords = coords)` fits independent coordinate-spatial intercept and slope fields for univariate Gaussian `mu` | Multiple spatial slopes, residual-scale structured slopes, spatial intercept-slope correlation, bivariate spatial slopes, mesh/SPDE |
 | Phylogenetic Gaussian effects | Yes | `phylo(1 | species, tree = tree)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `phylo(1 + x | species, tree = tree)` fits independent phylogenetic intercept and slope fields for univariate Gaussian `mu`; matching bivariate `mu1`/`mu2`, selected q=4 location-scale, direct `sd_phylo*()`, and q=2 phylogenetic `corpair()` routes are also fitted | Multiple phylogenetic slopes, residual-scale structured slopes, phylogenetic slope correlations, bivariate phylogenetic slopes, and phylogenetic non-Gaussian effects |
 | `animal()` Gaussian effects | Yes | `animal(1 | id, pedigree/A/Ainv = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `animal(1 + x | id, pedigree/A/Ainv = ...)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, residual-scale structured slopes, animal slope correlations, predictor-dependent `corpair()`, direct-SD grammar |
@@ -77,9 +77,9 @@ closed for univariate Gaussian `mu`, and the first ordinary bivariate
 slope-slope plus q=4/q=6 location gaps are opened for matching `mu1`/`mu2`
 slopes, the q2 scale-slope gap is opened for matching `sigma1`/`sigma2`, and
 the first same-response q2 `mu`/`sigma` slope gap is opened with smoke/recovery
-routing. The next slope gaps are all-four p8/q8 location-scale covariance,
-multiple structured slopes, structured slope correlations, and non-Gaussian
-structured effects.
+routing. The next slope gaps are q8 coverage/power evidence, multiple
+structured slopes, structured slope correlations, and non-Gaussian structured
+effects.
 
 The #440 bivariate slope-only evidence gate is recorded in
 `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`. Its decision is

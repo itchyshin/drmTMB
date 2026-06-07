@@ -52608,3 +52608,93 @@ Checks run:
 Not run:
 
 - `devtools::document()` was not run because no roxygen comments changed.
+
+## 2026-06-07 - Bivariate q8 endpoint smoke/recovery artifact lane
+
+Task: promote the ordinary bivariate Gaussian q8 all-endpoint route from
+source-test/no-dispatch status to opt-in Phase 18 smoke and diagnostic recovery
+artifact dispatch, without turning q8 into a coverage or power claim.
+
+- Rehydrated from `git status --short --branch`, the 2026-06-06 q8 source-test
+  check-log entry, `docs/dev-log/after-task/2026-06-06-biv-q8-endpoint-source-test.md`,
+  and open issues #5, #33, and #491.
+- Added the q8 endpoint simulation artifact stack:
+  `inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R`,
+  `inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R`,
+  `inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R`,
+  `inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R`,
+  `inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`,
+  `inst/sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R`, and
+  `inst/sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R`.
+- Updated `phase18-simulation-grid.yaml`, `sim_run_actions_cell.R`, and the
+  Phase 18 structured workflow registry so `biv_gaussian_q8_endpoint` and
+  `biv_gaussian_q8_endpoint_recovery` are opt-in Actions task choices.
+- Promoted the registry row `bivariate_gaussian_q8_endpoint` from
+  `ready_source_test` / no Actions task to `ready_grid` /
+  `biv_gaussian_q8_endpoint`, and added
+  `bivariate_gaussian_q8_endpoint_recovery` as a second `ready_grid` row.
+- Kept the q8 evidence boundary explicit: the recovery lane reports bias, RMSE,
+  MCSE, and Wald/profile/bootstrap interval unavailability because the runner
+  uses `se = FALSE`; it does not report coverage or power.
+- Updated current status surfaces in README, NEWS, ROADMAP, formula grammar,
+  double-hierarchical endpoint notes, validation debt, readiness matrix,
+  cross-dpar gate, q8 gate, structured workflow registry docs, simulation
+  programme docs, structural slope map, capability worklist, and `inst/sim`
+  README. The prose pass used the project-local `prose-style-review` skill.
+- The after-task audit found stale q8 boundary wording in public vignettes and
+  older design notes. Updated `vignettes/formula-grammar.Rmd`,
+  `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/implementation-map.Rmd`, ROADMAP, NEWS, and design notes 17, 61,
+  145, 148, 155, 59, and 67 so the first q8 diagnostic artifact lane is
+  separate from broader p8/q8 variants that remain planned.
+- Fixed stale registry test expectations after the random-slope plan grew from
+  17 to 18 rows and the q8 task count grew from 16 to 18 existing Actions
+  tasks.
+- Replaced an underpowered q8 recovery unit-test fixture (`n_id = 24`,
+  `n_each = 6`) with the lane default (`n_id = 48`, `n_each = 10`) after one of
+  two tiny replicates failed with `the leading minor of order 8 is not
+  positive`. The default fixture produced two `ok` replicates and finite MCSE in
+  a direct probe.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R inst/sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R inst/sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint-recovery.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R`
+  completed without output.
+- `git diff --check` passed.
+- `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q8-endpoint')"`
+  returned 75 passes, no failures, warnings, or skips in 50.4s.
+- `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+  returned 578 passes, no failures, warnings, or skips in 19.7s.
+- `Rscript -e "devtools::test()"` returned 10,139 passes, no failures,
+  warnings, or skips in 1107.2s.
+- `Rscript -e "pkgdown::check_pkgdown()"` passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"` completed successfully
+  and rebuilt `pkgdown-site/`. During article rendering it emitted the local
+  TMB/glmmTMB version-mismatch warning:
+  `glmmTMB was built with TMB package version 1.9.17; current TMB package
+  version is 1.9.21`.
+- `Rscript -e "devtools::check()"` passed in 9m 37.3s with 0 errors, 0
+  warnings, and 0 notes.
+- Stale no-dispatch scan:
+  `rg -n "q8.*(no Actions task|no Phase 18 dispatch|no artifact|no-dispatch|no dispatch|artifact/recovery evidence remains|source tests but no|source-tested but|ready_source_test|held_no_dispatch|no Actions|no artifact lane)|bivariate_gaussian_q8_endpoint.*(ready_source_test|held_no_dispatch|no Actions task|existing_actions_task.*none)" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned no matches.
+- Stale q8 status scan:
+  `rg -n "q8 artifact/recovery|q8 recovery/coverage|q8 source-tested|source-tested q8|q8 all-endpoint route is source|q8 currently" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned no matches.
+- Broad p8/q8 boundary scan:
+  `rg -n "all-four p8/q8|p8/q8 endpoint covariance|p8/q8 all-endpoint|q8 endpoint slopes remain planned|all-four q8 endpoint slopes remain planned|future all-endpoint location-scale slope structures, not a fitted|but no artifact or recovery lane" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned only intended current-boundary lines in
+  `vignettes/implementation-map.Rmd`, its rendered pkgdown article, and
+  `docs/design/67-sdstar-p8-poisson-q1.md`.
+- `gh issue view 5 --json number,title,state,url,updatedAt`,
+  `gh issue view 33 --json number,title,state,url,updatedAt`, and
+  `gh issue view 491 --json number,title,state,url,updatedAt` confirmed all
+  three issues are open.
+- GitHub issue maintenance: the GitHub connector could not write to the issue
+  (`403 Resource not accessible by integration`), so `gh issue comment 5
+  --body-file -` posted the local q8 artifact-lane status to #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4642141391>.
+
+Not run:
+
+- `devtools::document()` was not run because no roxygen comments changed.

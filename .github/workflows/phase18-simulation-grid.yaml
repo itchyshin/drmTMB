@@ -29,6 +29,8 @@ on:
           - biv_gaussian_q4_location_recovery
           - biv_gaussian_q6_location
           - biv_gaussian_q6_location_recovery
+          - biv_gaussian_q8_endpoint
+          - biv_gaussian_q8_endpoint_recovery
           - biv_gaussian_q2_scale
           - biv_gaussian_q2_scale_recovery
           - biv_gaussian_q2_scale_slope
@@ -199,6 +201,12 @@ jobs:
             include_in_all: false
           - task: biv_gaussian_q6_location_recovery
             seed: 20260630
+            include_in_all: false
+          - task: biv_gaussian_q8_endpoint
+            seed: 20260634
+            include_in_all: false
+          - task: biv_gaussian_q8_endpoint_recovery
+            seed: 20260635
             include_in_all: false
           - task: biv_gaussian_q2_scale
             seed: 20260625

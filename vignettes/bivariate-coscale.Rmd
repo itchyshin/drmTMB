@@ -816,8 +816,10 @@ matching q4 and q6 location blocks are now source-tested with syntax such as
 `(1 + x | p | id)` or `(1 + x + z | p | id)` in both location formulas. Treat
 those routes as fitted extractor/profile-target slices rather than a full
 tutorial or broad simulation claim. Matching q2 `sigma1`/`sigma2` scale-slope
-blocks are now fitted as their own route; same-response location-scale slope
-covariance and all-four p8/q8 endpoint covariance remain planned.
+blocks and same-response q2 `mu`/`sigma` slope covariance are now fitted as
+their own routes. The first ordinary q8 all-endpoint block has opt-in
+smoke/recovery artifact tasks; broader p8/q8 variants and coverage or power
+claims remain planned.
 
 ## Boundaries for this covariance layer
 
@@ -835,9 +837,10 @@ Other implemented ordinary bivariate random-intercept rows include
 `mu2`-`sigma1`, and `mu2`-`sigma2`), and one `sigma1`-`sigma2` row.
 
 The first ordinary bivariate slope-slope route is now the matching
-`(0 + x | p | id)` block in both `mu1` and `mu2`. Intercept-plus-slope
-bivariate blocks, all-four p8/q8 location-scale slope endpoints, random
-effects in `rho12`, bivariate `meta_V()` plus random effects,
+`(0 + x | p | id)` block in both `mu1` and `mu2`. The first ordinary q8
+all-endpoint block is available as a diagnostic artifact lane, not a tutorial
+or coverage claim. Broader p8/q8 location-scale slope variants, random effects
+in `rho12`, bivariate `meta_V()` plus random effects,
 mixed-response families, and ordinary spatial group-level covariance remain
 future work unless a later status map says otherwise. For phylogenetic
 covariance, use the structural-dependence tutorial and keep those rows

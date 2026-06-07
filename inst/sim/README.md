@@ -100,13 +100,13 @@ Current pilot files:
   limits, and stop rules before larger power grids are dispatched.
 - `phase18_random_slope_registry_preflight()` in
   `run/sim_phase18_structured_workflow_registry.R` prints the random-slope
-  registry rows and their gate fields before any pilot is dispatched. It keeps
-  the source-tested `bivariate_gaussian_q8_endpoint` row visible as
-  `held_no_dispatch` because it has no Actions task, while the admitted q2/q4/q6
-  bivariate location rows keep their own dispatch status.
+  registry rows and their gate fields before any pilot is dispatched. It now
+  shows the q8 endpoint smoke and recovery rows as opt-in `ready_grid` tasks
+  while keeping their promotion boundary explicit.
 - `phase18_biv_gaussian_q8_endpoint_precode_gate()` names the eight q8
   all-endpoint labels, records the 28 implied pairwise correlations, and checks
-  that the registry row stays `ready_source_test` with no Actions task.
+  that the smoke row is artifact-ready before any recovery, coverage, or power
+  claim.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.

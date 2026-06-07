@@ -45,8 +45,8 @@ lanes (`biv_gaussian_q2_scale_slope`,
 `biv_gaussian_q2_scale_slope_recovery`) for the two scale-slope SDs, the
 group-level scale-slope correlation, fixed scale slopes, and residual `rho12`.
 
-What remains closed: q8 recovery/coverage/power evidence, q8 variants beyond
-the matching one-slope ordinary Gaussian route, random effects in `rho12`,
+What remains closed: q8 coverage/power evidence, q8 variants beyond the
+matching one-slope ordinary Gaussian route, random effects in `rho12`,
 non-Gaussian scale-slope covariance, and structured-dependence scale slopes.
 The same-response q2 `mu`/`sigma` slope slice is a separate source-tested
 route. The boundary is locked in by malformed-input tests in
@@ -210,9 +210,10 @@ If the question is only about baseline residual variability, fit the
 implemented bivariate scale-**intercept** block,
 `sigma1 = ~ 1 + (1 | p | id)` with
 `sigma2 = ~ 1 + (1 | p | id)`. If the question needs same-response
-location-scale slopes, all-four p8/q8 endpoint covariance, or structured
-scale-slope covariance, that model remains planned and should not be taught as
-current syntax.
+location-scale slopes, use the named q2 same-response route. If the question
+needs p8 endpoint covariance, q8 variants beyond the first ordinary diagnostic
+lane, or structured scale-slope covariance, that model remains planned and
+should not be taught as current syntax.
 
 ## Cross-References To Keep Aligned
 
@@ -224,5 +225,6 @@ current syntax.
   rows keep the fitted q2 scale-slope route separate from same-response and q8
   slopes.
 - `docs/design/143-phase-18-structured-workflow-registry.md` — the fitted
-  scale-slope smoke and recovery lanes are admitted registry rows; the
-  `bivariate_gaussian_q8_endpoint` row is source-tested with no Actions task.
+  scale-slope smoke and recovery lanes are admitted registry rows; the q8
+  endpoint smoke and recovery rows are admitted diagnostic registry rows without
+  coverage or power promotion.

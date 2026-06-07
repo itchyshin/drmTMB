@@ -50,17 +50,17 @@ Read this first — it is the distinction most likely to be confused.
 | Capability | Category |
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
-| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first source-tested q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2 and q2 scale-slope rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has no artifact lane yet) |
+| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has no coverage or power evidence yet) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| **q8** endpoint recovery/coverage artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 source test exists; no Actions task, recovery grid, coverage, or power claim yet) |
+| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
 So: **q4/q6 exist only for bivariate *Gaussian location*, q2 same-response
 `mu`/`sigma` and q2 scale-slope `sigma1`/`sigma2` exist as first slices, the
-ordinary Gaussian q8 endpoint is source-tested but not artifact- or
-recovery-ready, and there is no non-Gaussian random-slope correlation or
+ordinary Gaussian q8 endpoint is diagnostic-artifact ready but not coverage- or
+power-ready, and there is no non-Gaussian random-slope correlation or
 non-Gaussian q4/q6/q8 block at all.**
 
 ## Recommended Working Order
@@ -72,9 +72,9 @@ time.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
-1. q8 all-endpoint artifact/recovery lane — Tier A.2 follow-up; the first
-   source-tested fitting route exists, but it needs smoke/recovery artifacts
-   before individual-difference power claims.
+1. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
+   route and diagnostic smoke/recovery artifacts exist, but they do not yet
+   support individual-difference power claims.
 2. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
    implementation-ready, independent of Tier A, good early win.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
@@ -114,7 +114,7 @@ then the 0.2.0 release checklist (`docs/design/159-...`) including the
 profile-likelihood demonstration article.
 
 **Then:** the big power simulation, covering whichever Phase A surfaces have
-passed Phase B recovery/coverage. The q8 endpoint, a stronger same-response q2
+passed Phase B recovery/coverage. Q8 coverage/power, a stronger same-response q2
 interval/convergence lane, and the parallel skew-normal first slice are the
 highest-value additions for power claims.
 
@@ -153,13 +153,15 @@ plasticity, residual variability, and its change. Finish it in order.
      formal artifact audit and power-grid evidence remain separate follow-up
      evidence.
 2. **q8 all-endpoint block.**
-   - Gate: `docs/design/67-sdstar-p8-poisson-q1.md`; registry row
-     `bivariate_gaussian_q8_endpoint` (currently `ready_source_test` with no
-     Actions task).
+   - Gate: `docs/design/67-sdstar-p8-poisson-q1.md`; registry rows
+     `bivariate_gaussian_q8_endpoint` and
+     `bivariate_gaussian_q8_endpoint_recovery`.
    - The first ordinary Gaussian fitting slice exists for matching all-four
-     `(1 + x | p | id)` endpoint terms. Add a smoke/recovery artifact lane
-     before recovery, coverage, or power claims. Keep q8 correlations
-     `derived_interval_unavailable` until a validated interval method exists.
+     `(1 + x | p | id)` endpoint terms, with smoke and recovery artifact
+     writers. Treat these as diagnostic before power: the recovery lane records
+     bias, RMSE, MCSE, and interval unavailability, not coverage. Keep q8
+     correlations `derived_interval_unavailable` until a validated interval
+     method exists.
 
 ## Tier B — Structured Random Slopes (#33, #147)
 

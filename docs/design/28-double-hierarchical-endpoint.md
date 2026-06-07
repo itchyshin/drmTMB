@@ -169,8 +169,8 @@ covariance interval.
    format the six q=4 endpoint correlation targets, but direct profile support,
    broader recovery evidence, and examples remain later extensions. The
    ordinary q6 `mu1`/`mu2` location-only block, the q2 `sigma1`/`sigma2`
-   scale-slope block, and the first source-tested q8 all-endpoint one-slope
-   block are separate fitted routes.
+   scale-slope block, and the first q8 all-endpoint one-slope block are
+   separate fitted routes.
 5. Add the univariate four-effect block:
    `bf(y ~ x + (1 + x | p | id), sigma ~ x + (1 + x | p | id))`.
 6. Extend `corpairs()` to report each fitted group-level pair from the shared

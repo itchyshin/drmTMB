@@ -29,7 +29,8 @@ bf(
 This estimates two ordinary group-level slope SDs and one ordinary group-level
 slope-slope correlation between the two response-specific slopes. It does not
 describe the later q4/q6 location smoke routes, a residual-scale slope block, a
-random effect in residual `rho12`, or an all-four p8/q8 location-scale endpoint.
+random effect in residual `rho12`, or the first q8 diagnostic all-endpoint
+artifact lane.
 
 ## Evidence Table
 
@@ -53,7 +54,7 @@ unsupported until separate code, tests, and evidence exist:
 - residual-scale slope blocks in `sigma1` or `sigma2` beyond the named q2
   scale-scale slice;
 - random effects or latent covariance in residual `rho12`;
-- all-four p8/q8 location-scale slope endpoints;
+- p8 endpoint blocks and q8 variants beyond the first ordinary diagnostic lane;
 - predictor-dependent slope `corpair()` regressions;
 - mixed-response bivariate random-slope models.
 
