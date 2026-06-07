@@ -73,14 +73,14 @@ No spawned subagents were running for this slice set.
 | 130 | Mixed-response boundary | Completed as guardrail | Non-Gaussian bivariate families remain planned until a joint likelihood contract exists. |
 | 131 | Structured count fallback | Completed as guardrail | Applied users should use ordinary count random effects when a plain grouping factor is enough. |
 | 132 | Simulation admission | Completed | Slope-only bivariate Gaussian can enter a small smoke grid; non-Gaussian structured dependence stays in the failure ledger. |
-| 133 | p8 status answer | Completed | True p8/q8 location-scale random slopes have not been fitted. |
+| 133 | p8 status answer | Completed, later narrowed by the first q8 diagnostic lane | At this slice boundary, true p8/q8 location-scale random slopes had not been fitted. Later q8 work opened one ordinary diagnostic artifact lane, while broader p8/q8 variants remain planned. |
 | 134 | p8 design risk | Completed | Full p8 would require eight SDs and 28 unstructured correlations, so it needs planning before implementation. |
 | 135 | p8 first design gate | Completed | After 140, start with a design table separating slope-only, q4, q6, and p8/q8 endpoints. |
-| 136 | p8 user route | Completed | Applied users can use slope-only `mu1`/`mu2` now and wait for p8 until recovery evidence exists. |
+| 136 | p8 user route | Completed, later narrowed by the first q8 diagnostic lane | Applied users can use slope-only `mu1`/`mu2` or the first q8 diagnostic artifact lane for matching all-four ordinary endpoints; broader p8/q8 routes still wait for recovery evidence. |
 | 137 | p8 diagnostics requirement | Completed | Any p8 implementation needs profile-target, Hessian, boundary, and recovery diagnostics before tutorial claims. |
 | 138 | p8 documentation requirement | Completed | Any p8 syntax change must update formula grammar, likelihood notes, examples, and known limitations. |
 | 139 | After-task protocol | Completed | Check-log and after-task notes record the implementation, checks, boundaries, and next design question. |
-| 140 | Handoff boundary | Completed | Next work should plan p8/q8 location-scale and generic `sd*()` unification before adding new broad covariance code. |
+| 140 | Handoff boundary | Completed | Next work should plan broader p8/q8 location-scale variants and generic `sd*()` unification before adding new broad covariance code. |
 
 ## Current Boundary
 
@@ -98,7 +98,8 @@ bf(
 
 This estimates two group-level slope SDs and one ordinary slope-slope
 correlation. It does not add intercept-slope correlations, residual-scale
-slope covariance, all-four p8/q8 location-scale slope covariance,
+slope covariance, p8 endpoint covariance, q8 variants beyond the first
+ordinary diagnostic lane,
 predictor-dependent slope `corpair()` regression, random effects in `rho12`,
 or non-Gaussian structured dependence.
 

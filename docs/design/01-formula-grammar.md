@@ -82,7 +82,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `(0 + x | p | id)` in same-response bivariate `mu1` and `sigma1`, or `mu2` and `sigma2` | Implemented first slice with smoke/recovery routing | Matching labelled random slopes create one response-specific mean-scale-slope correlation such as `cor(mu1:x,sigma1:x | p | id)`. Cross-response slope labels and mismatched coefficients remain planned. |
 | `(1 | p | id)` in same-response bivariate `mu1` and `sigma1`, with optional independent `(1 | q | id)` in `mu2` and `sigma2` | Implemented first slice | Each matching labelled random-intercept pair creates its own response-specific mean-scale group-level correlation; residual `rho12` stays separate. |
 | `(1 | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first slice | One ordinary q=4 random-intercept covariance block reports all six latent location-location, location-scale, and scale-scale correlations. |
-| `(1 + x | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first source-tested q8 slice | One ordinary all-endpoint location-scale slope block estimates eight endpoint SDs and 28 latent group-level correlations. The four formulas must use the same label, group, and coefficient set. Recovery, coverage, power, predictor-dependent `corpair()` regressions, structured q8 siblings, non-Gaussian q8 blocks, and random `rho12` remain planned. |
+| `(1 + x | p | id)` in all four bivariate `mu1`, `mu2`, `sigma1`, and `sigma2` formulas | Implemented first q8 slice with diagnostic smoke/recovery artifacts | One ordinary all-endpoint location-scale slope block estimates eight endpoint SDs and 28 latent group-level correlations. The four formulas must use the same label, group, and coefficient set. Coverage, power, predictor-dependent `corpair()` regressions, structured q8 siblings, non-Gaussian q8 blocks, and random `rho12` remain planned. |
 | `sd1(id) ~ x_group` or `sd2(id) ~ x_group` with the same all-four q=4 block | Rejected | This would mix the Family A joint location-scale covariance block with Family B direct location-SD regression for the same group. |
 | `family = c(gaussian(), gaussian())` | Implemented | Public bivariate Gaussian family direction; mixed composed families are planned. |
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
@@ -275,10 +275,10 @@ correlations are derived and unavailable for direct profile intervals. The
 matching q2 `sigma1`/`sigma2` scale-slope block is fitted separately, as is one
 matching same-response q2 `mu`/`sigma` slope-only block. Matching all-four
 location-scale slope terms across `mu1`, `mu2`, `sigma1`, and `sigma2` now fit
-the first ordinary source-tested q8 endpoint with eight direct SD targets and
-28 derived-unavailable correlations. That q8 path still needs a Phase 18
-artifact lane, recovery evidence, coverage evidence, and power checks before it
-can be taught as a routine model.
+the first ordinary q8 endpoint with eight direct SD targets and 28
+derived-unavailable correlations. That q8 path now has diagnostic Phase 18
+smoke/recovery artifacts, but it still needs coverage evidence and power checks
+before it can be taught as a routine model.
 
 The first fitted bivariate phylogenetic location slice uses matching
 intercept-only `phylo()` terms in the two location formulas:
@@ -821,7 +821,7 @@ group-level covariance blocks such as `(1 | p | id)` and the fitted bivariate
 location block `(1 + x1 | p | id)`, not to residual `rho12 ~`. Residual-scale
 slope covariance and same-response location-scale slope covariance have named
 q2 fitted slices; all-four location-scale slope endpoints are a separate
-source-tested q8 group-level block, not residual `rho12`.
+diagnostic q8 group-level block, not residual `rho12`.
 
 For each response, the mean block may contain at least two group-level scale
 terms once random slopes are implemented: the random-intercept SD and the
