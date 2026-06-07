@@ -52698,3 +52698,57 @@ Checks run:
 Not run:
 
 - `devtools::document()` was not run because no roxygen comments changed.
+
+## 2026-06-07 - Bivariate q8 endpoint recovery audit
+
+Goal: run the newly merged q8 endpoint recovery writer at a small local audit
+scale and record whether the lane can support coverage or power claims.
+
+Command:
+
+```sh
+/usr/bin/time -p Rscript -e 'devtools::load_all(".", quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(c("--task=biv_gaussian_q8_endpoint_recovery", "--output-dir=inst/sim/results/actions/biv_gaussian_q8_endpoint_recovery_audit_20260607", "--n-reps=20", "--master-seed=20260635", "--cores=4", "--backend=multicore", "--overwrite=true"))'
+```
+
+Result:
+
+- Completed in 106.57 seconds with `backend=multicore` and `cores=4`.
+- Wrote ignored local artifacts under
+  `inst/sim/results/actions/biv_gaussian_q8_endpoint_recovery_audit_20260607/`.
+- Manifest table: 40 requested replicate slots, 38 `ok`, 2 `error`.
+- Cell `biv_gaussian_q8_endpoint_001`: 19/20 manifest rows `ok`,
+  convergence rate 0.263, positive-Hessian rate 0, mean elapsed 7.64 seconds.
+- Cell `biv_gaussian_q8_endpoint_002`: 19/20 manifest rows `ok`,
+  convergence rate 0.158, positive-Hessian rate 0, mean elapsed 11.40 seconds.
+- Error replicates: cell 001 replicate 15 failed with
+  `the leading minor of order 7 is not positive`; cell 002 replicate 4 failed
+  with `the leading minor of order 8 is not positive`. Both recorded
+  `NA/NaN function evaluation`.
+- Wald interval rows were all unusable because the q8 runner uses `se = FALSE`.
+
+Decision: `hold_diagnostic`. The q8 route remains fitted and
+artifact-ready, but the audit does not support q8 coverage, power, or
+interval claims. The committed audit note is
+`docs/design/161-phase-18-bivariate-q8-recovery-audit.md`.
+
+Checks run after documenting the audit:
+
+- `git diff --check` passed.
+- `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q8-endpoint')"`
+  returned 75 passes, no failures, warnings, or skips in 49.4 seconds.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned `No problems found`.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"` completed successfully
+  and rebuilt `pkgdown-site/`. During article rendering it emitted the known
+  local TMB/glmmTMB version-mismatch warning:
+  `glmmTMB was built with TMB package version 1.9.17; current TMB package
+  version is 1.9.21`.
+- Overclaim scan:
+  `rg -n "q8.*(ready for coverage|ready for power|supports coverage|supports power|coverage-ready|power-ready|coverage result.*0\\.[0-9]|power result)" README.md NEWS.md ROADMAP.md docs inst/sim vignettes pkgdown-site --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/deps/**' --glob '!pkgdown-site/search.json'`
+  returned no matches.
+- Rendered-site audit scan:
+  `rg -n "hold_diagnostic|38/40|0\\.263|0\\.158|q8 diagnostic hold audit|161-phase-18-bivariate-q8-recovery-audit" README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html`
+  found the intended q8 audit wording in source docs and rendered home, NEWS,
+  and ROADMAP pages.
+- GitHub issue maintenance: opened PR #503 for the audit and posted the
+  `hold_diagnostic` summary to issue #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4644265017>.
