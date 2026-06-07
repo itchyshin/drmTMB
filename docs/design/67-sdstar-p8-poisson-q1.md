@@ -86,7 +86,7 @@ The current staged path is:
 | q4 location intercept+slope | `(1 + x | p | id)` in both `mu1` and `mu2` | fitted and smoke-artifact wired; q4 correlations are derived-unavailable for intervals |
 | q2 scale slope | matching `sigma1`/`sigma2` slope-only labels | fitted first slice with smoke and recovery routing; gate and implementation contract in `docs/design/155-bivariate-residual-scale-random-slope-gate.md`; separate from residual `rho12` |
 | q2 same-response location-scale slope | matching `mu1`/`sigma1` or `mu2`/`sigma2` slope labels | fitted first slice with smoke/recovery routing; high identifiability risk; 2026-06-06 formal audit is diagnostic only, with convergence/positive-Hessian rates 0.856 and 0.884, all-replicate fixed-effect Wald coverage 0.796-0.850, no rescue among 130 robust-refit weak replicates, interval-available fixed-effect coverage 0.930-0.972, and two clean endpoint-profile demonstrations |
-| q8 all-endpoint block | all four dpars with intercept and slope endpoints | fitted first ordinary Gaussian slice with diagnostic smoke/recovery artifacts; q8 correlations are derived-unavailable until a validated interval method exists |
+| q8 all-endpoint block | all four dpars with intercept and slope endpoints | fitted first ordinary Gaussian slice with diagnostic smoke/recovery artifacts; the 2026-06-07 local two-cell recovery audit is `hold_diagnostic`; q8 correlations are derived-unavailable until a validated interval method exists |
 
 The Phase 18 structured workflow registry now carries this as the
 `bivariate_gaussian_q8_endpoint` smoke row plus the
@@ -94,6 +94,14 @@ The Phase 18 structured workflow registry now carries this as the
 `phase18_biv_gaussian_q8_endpoint_precode_gate()` names the eight endpoints and
 28 correlations and confirms that the smoke row is `ready_grid` with the
 `biv_gaussian_q8_endpoint` Actions task.
+
+The first local multi-cell recovery audit ran on 2026-06-07 with two default
+cells, 20 requested replicates per cell, and `se = FALSE`. It wrote artifacts
+under
+`inst/sim/results/actions/biv_gaussian_q8_endpoint_recovery_audit_20260607/`.
+The result is a diagnostic hold: 38/40 manifests completed, model convergence
+rates were 0.263 and 0.158, positive-Hessian rates were 0, two replicates
+failed with non-positive leading minors, and no Wald intervals were usable.
 
 Admission rules:
 

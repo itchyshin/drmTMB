@@ -261,6 +261,20 @@ Current pilot files:
   artifacts, rebuilds the weak-replicate table, optionally robust-refits weak
   seeds, recomputes fixed-effect Wald coverage after replacement, and optionally
   profiles clean direct q2 targets for local promotion audits.
+- `dgp/sim_dgp_biv_gaussian_q8_endpoint.R` generates bivariate Gaussian data
+  with matching all-four endpoint blocks,
+  `mu1 = y1 ~ x + (1 + x | p | id)`,
+  `mu2 = y2 ~ x + (1 + x | p | id)`,
+  `sigma1 = ~ x + (1 + x | p | id)`, and
+  `sigma2 = ~ x + (1 + x | p | id)`. The eight endpoint SDs are direct
+  targets, the 28 endpoint correlations are derived group-level summaries, and
+  residual `rho12` stays separate. `run/sim_summary_biv_gaussian_q8_endpoint_smoke.R`,
+  `run/sim_write_biv_gaussian_q8_endpoint_grid.R`,
+  `run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`, and
+  `run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R` provide diagnostic
+  smoke/recovery artifacts. The 2026-06-07 local recovery audit is recorded in
+  `docs/design/161-phase-18-bivariate-q8-recovery-audit.md` and keeps the lane
+  at `hold_diagnostic`, not coverage or power evidence.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross

@@ -42,7 +42,11 @@ Read this first — it is the distinction most likely to be confused.
    local 500-replicate diagnostic audit, but that audit does not support
    power-grid use; a follow-up robust-refit audit did not rescue any of the
    130 weak fits, while two clean representative fits showed endpoint-profile
-   feasibility for the direct q2 targets.
+   feasibility for the direct q2 targets. The q8 endpoint recovery lane now
+   has a 2026-06-07 local two-cell diagnostic audit, but it also stays out of
+   the power grid: 38/40 manifests completed, convergence rates were 0.263
+   and 0.158, positive-Hessian rates were 0, two fits had leading-minor
+   optimization errors, and no Wald intervals were usable.
 3. **Not-yet-fitted (the gap).** Capabilities that require new TMB likelihood
    work and do not fit today. These are the ordered tiers in this note and the
    whole point of the local-R session.
@@ -50,10 +54,10 @@ Read this first — it is the distinction most likely to be confused.
 | Capability | Category |
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
-| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has no coverage or power evidence yet) |
+| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist; coverage, power, and interval claims remain unavailable) |
+| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
@@ -73,8 +77,10 @@ time.
 **Phase A — implement capabilities (local TMB), in this order:**
 
 1. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
-   route and diagnostic smoke/recovery artifacts exist, but they do not yet
-   support individual-difference power claims.
+   route, diagnostic smoke/recovery artifacts, and a 2026-06-07 local
+   two-cell audit exist, but low convergence, zero positive-Hessian rate, two
+   leading-minor optimization errors, and unavailable intervals mean they do
+   not support individual-difference power claims.
 2. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
    implementation-ready, independent of Tier A, good early win.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
@@ -106,7 +112,12 @@ power-grid use. The follow-up hardening audit did not rescue the 130 weak
 false-convergence fits; among interval-available converged fits, fixed-effect
 Wald coverage was 0.930-0.972. Endpoint profiles succeeded on two clean
 representative fits for `rho12`, both slope SDs, and the same-response
-correlation, but broad profile/bootstrap coverage remains unrun.
+correlation, but broad profile/bootstrap coverage remains unrun. The q8
+endpoint recovery lane now has a 2026-06-07 local 20-replicate-per-cell audit
+for the two default cells; it is a `hold_diagnostic` result, not a promotion
+result, because only 8/38 completed fit objects reported optimizer
+convergence, no fit had `pdHess = TRUE`, two fits errored before summary, and
+all Wald interval rows were unusable.
 
 **Phase C — comparator and release:** run the Phase 19 comparator matrix
 (`docs/design/158-...`) on shared datasets with the tabulated scale conversions,
@@ -158,10 +169,13 @@ plasticity, residual variability, and its change. Finish it in order.
      `bivariate_gaussian_q8_endpoint_recovery`.
    - The first ordinary Gaussian fitting slice exists for matching all-four
      `(1 + x | p | id)` endpoint terms, with smoke and recovery artifact
-     writers. Treat these as diagnostic before power: the recovery lane records
-     bias, RMSE, MCSE, and interval unavailability, not coverage. Keep q8
-     correlations `derived_interval_unavailable` until a validated interval
-     method exists.
+   writers. Treat these as diagnostic before power: the recovery lane records
+   bias, RMSE, MCSE, and interval unavailability, not coverage. The
+   2026-06-07 audit confirms the hold: 38/40 requested fits completed, model
+   convergence was 0.263 and 0.158 across the two cells, positive-Hessian
+   rates were 0, two replicates failed with non-positive leading minors, and
+   no Wald intervals were usable. Keep q8 correlations
+   `derived_interval_unavailable` until a validated interval method exists.
 
 ## Tier B — Structured Random Slopes (#33, #147)
 
