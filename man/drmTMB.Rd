@@ -12,6 +12,7 @@ drmTMB(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  engine = c("tmb", "julia"),
   REML = FALSE,
   ...
 )
@@ -92,6 +93,10 @@ one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
 route supports one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete count responses, and no
 zero-inflation, random, or structured response terms.}
+
+\item{engine}{Computational engine. The default \code{"tmb"} uses the native
+\code{drmTMB} TMB backend. The experimental \code{"julia"} route calls DRM.jl
+through JuliaCall for the supported bridge slice.}
 
 \item{REML}{Logical; use restricted maximum likelihood for the first
 univariate Gaussian mixed-model slice. The current REML route supports

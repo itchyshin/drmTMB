@@ -39,6 +39,7 @@ Suggests:
     emmeans,
     glmmTMB,
     ggplot2,
+    JuliaCall,
     knitr,
     lme4,
     MASS,
