@@ -483,15 +483,6 @@ test_that("REML rejects unsupported first-slice neighbours", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + meta_V(V = vi)),
-      family = gaussian(),
-      data = dat,
-      REML = TRUE
-    ),
-    "known Gaussian sampling covariance"
-  )
-  expect_error(
-    drmTMB(
       bf(y ~ x + (1 | id), sigma ~ 1, sd(id) ~ 1),
       family = gaussian(),
       data = dat,
@@ -710,6 +701,29 @@ test_that("negative-binomial 2 mean-dispersion agrees with MASS glm.nb", {
   )
 })
 
+gaussian_full_reml_loglik <- function(y, X, Sigma) {
+  chol_sigma <- chol(Sigma)
+  solve_sigma <- function(B) {
+    backsolve(chol_sigma, forwardsolve(t(chol_sigma), B))
+  }
+  sigma_inv_x <- solve_sigma(X)
+  xt_sigma_inv_x <- crossprod(X, sigma_inv_x)
+  beta <- solve(xt_sigma_inv_x, crossprod(X, solve_sigma(y)))
+  resid <- y - X %*% beta
+  quadratic <- as.numeric(crossprod(resid, solve_sigma(resid)))
+  n <- length(y)
+  p <- ncol(X)
+  log_det_sigma <- determinant(Sigma, logarithm = TRUE)$modulus[[1L]]
+  log_det_xt_sigma_inv_x <-
+    determinant(xt_sigma_inv_x, logarithm = TRUE)$modulus[[1L]]
+  -0.5 *
+    ((n - p) * log(2 * pi) + log_det_sigma + log_det_xt_sigma_inv_x + quadratic)
+}
+
+gaussian_metafor_reml_shift <- function(X) {
+  0.5 * determinant(crossprod(X), logarithm = TRUE)$modulus[[1L]]
+}
+
 test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
   testthat::skip_if_not_installed("metafor")
 
@@ -755,6 +769,68 @@ test_that("Gaussian meta-analysis agrees with metafor for ML tau2", {
     as.numeric(stats::logLik(fit_metafor)),
     tolerance = 1e-4
   )
+})
+
+test_that("Gaussian REML meta-analysis with diagonal known V agrees with metafor estimates", {
+  testthat::skip_if_not_installed("metafor")
+
+  set.seed(20260610)
+  n <- 80
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    vi = stats::runif(n, min = 0.01, max = 0.08)
+  )
+  tau <- 0.25
+  dat$yi <- stats::rnorm(
+    n,
+    mean = 0.2 - 0.4 * dat$x,
+    sd = sqrt(dat$vi + tau^2)
+  )
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = vi)),
+    family = gaussian(),
+    data = dat,
+    REML = TRUE
+  )
+  fit_metafor <- metafor::rma.uni(
+    yi = yi,
+    vi = vi,
+    mods = ~x,
+    data = dat,
+    method = "REML"
+  )
+
+  sigma_hat <- stats::sigma(fit)[[1L]]
+  Sigma <- diag(dat$vi + sigma_hat^2)
+  manual_loglik <- gaussian_full_reml_loglik(dat$yi, fit$model$X$mu, Sigma)
+  metafor_shift <- gaussian_metafor_reml_shift(fit$model$X$mu)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$estimator, "REML")
+  expect_true(fit$REML)
+  expect_equal(fit$model$V_known_type, "diagonal")
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    sigma_hat^2,
+    fit_metafor$tau2,
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    manual_loglik,
+    tolerance = 1e-6
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_metafor)) - metafor_shift,
+    tolerance = 1e-6
+  )
+  expect_equal(attr(stats::logLik(fit), "df"), 3L)
 })
 
 test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
@@ -803,4 +879,67 @@ test_that("dense known-V Gaussian meta-analysis agrees with metafor rma.mv", {
     as.numeric(stats::logLik(fit_metafor)),
     tolerance = 1e-4
   )
+})
+
+test_that("Gaussian REML meta-analysis with dense known V agrees with metafor estimates", {
+  testthat::skip_if_not_installed("metafor")
+
+  set.seed(20260611)
+  n <- 36
+  dat <- data.frame(
+    x = stats::rnorm(n),
+    obs = factor(seq_len(n))
+  )
+  V <- 0.012 * outer(seq_len(n), seq_len(n), function(i, j) 0.35^abs(i - j))
+  beta_mu <- c(0.15, -0.45)
+  tau <- 0.28
+  mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x
+  Sigma <- V + diag(tau^2, n)
+  dat$yi <- as.vector(mu + t(chol(Sigma)) %*% stats::rnorm(n))
+
+  fit <- drmTMB(
+    bf(yi ~ x + meta_V(V = V)),
+    family = gaussian(),
+    data = dat,
+    REML = TRUE
+  )
+  fit_metafor <- metafor::rma.mv(
+    yi = yi,
+    V = V,
+    mods = ~x,
+    random = ~ 1 | obs,
+    data = dat,
+    method = "REML"
+  )
+
+  sigma_hat <- stats::sigma(fit)[[1L]]
+  Sigma_hat <- V + diag(sigma_hat^2, n)
+  manual_loglik <- gaussian_full_reml_loglik(dat$yi, fit$model$X$mu, Sigma_hat)
+  metafor_shift <- gaussian_metafor_reml_shift(fit$model$X$mu)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$estimator, "REML")
+  expect_true(fit$REML)
+  expect_equal(fit$model$V_known_type, "matrix")
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(stats::coef(fit_metafor)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    sigma_hat^2,
+    fit_metafor$sigma2[[1L]],
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    manual_loglik,
+    tolerance = 1e-6
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_metafor)) - metafor_shift,
+    tolerance = 1e-6
+  )
+  expect_equal(attr(stats::logLik(fit), "df"), 3L)
 })

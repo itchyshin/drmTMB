@@ -183,6 +183,34 @@ In this run, forest studies have about `r round(exp(sigma_coef["habitatforest"])
 times the extra heterogeneity SD of grassland studies. That multiplier applies
 to `sigma_i`; it does not alter the known sampling variances `vi`.
 
+## REML for constant residual heterogeneity
+
+When the mean formula is fixed and the residual heterogeneity model is
+intercept-only, `REML = TRUE` can be used for Gaussian known-`V` variance
+component estimation. This is the meta-analysis analogue of fitting a Gaussian
+mixed model by restricted maximum likelihood. Keep ML (`REML = FALSE`) when
+AIC or BIC compares different fixed-effect mean formulas.
+
+```{r}
+fit_meta_reml <- drmTMB(
+  drm_formula(
+    yi ~ habitat + duration + meta_V(V = vi),
+    sigma ~ 1
+  ),
+  family = gaussian(),
+  data = dat,
+  REML = TRUE
+)
+
+ll_reml <- logLik(fit_meta_reml)
+data.frame(
+  estimator = fit_meta_reml$estimator,
+  restricted_logLik = as.numeric(ll_reml),
+  df = attr(ll_reml, "df"),
+  residual_sigma = unname(sigma(fit_meta_reml)[1])
+)
+```
+
 ## Categorical moderators and heterogeneous heterogeneity
 
 Rodriguez et al. (2023) recommend treating unequal between-study heterogeneity

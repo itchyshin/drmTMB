@@ -1399,6 +1399,9 @@ Implementation notes:
   `tests/testthat/test-gaussian-random-effect-scale.R`.
 - Comparator tests against `lme4` for overlapping Gaussian ML and first-slice
   REML random-effect models live in `tests/testthat/test-comparators.R`.
+  Known-`V` REML tests in the same file compare estimates against `metafor`
+  and the restricted log likelihood against an independent full Gaussian REML
+  calculation.
 - The univariate likelihood supports optional known sampling covariance via
   `meta_V(V = V)`, with deprecated `meta_known_V(V = V)` as a compatibility
   alias. It has no residual correlation parameter.
@@ -1406,23 +1409,38 @@ Implementation notes:
 ### First-Slice Gaussian REML
 
 `drmTMB(..., REML = TRUE)` uses restricted maximum likelihood for the first
-ordinary univariate Gaussian mixed-model slice. The implemented route keeps the
-same Gaussian joint likelihood in `src/drmTMB.cpp`, but asks `TMB::MakeADFun()`
-to integrate the `beta_mu` fixed-effect vector together with the ordinary
-latent `mu` random effects. This gives the restricted likelihood for the
-Gaussian mean structure while retaining conditional modes for `beta_mu`, the
-ordinary random effects, and the variance parameters.
+ordinary univariate Gaussian mixed-model and known-`V` meta-analysis slices.
+The implemented route keeps the same Gaussian joint likelihood in
+`src/drmTMB.cpp`, but asks `TMB::MakeADFun()` to integrate the `beta_mu`
+fixed-effect vector together with the ordinary latent `mu` random effects. This
+gives the restricted likelihood for the Gaussian mean structure while retaining
+conditional modes for `beta_mu`, the ordinary random effects, and the variance
+parameters.
 
 The current REML surface is intentionally narrower than the ML Gaussian surface.
 It supports dense full-rank `mu` fixed-effect designs, ordinary `mu` random
-intercepts or numeric slopes, intercept-only `sigma`, complete responses, unit
-likelihood weights, and no known sampling covariance. It rejects bivariate
-Gaussian models, non-Gaussian models, `meta_V(V = V)`, missing-data routes,
-Gaussian row aggregation, sparse fixed-effect matrices, structured
-`phylo()`/`spatial()`/`animal()`/`relmat()` effects, direct `sd()` or
-`sd_phylo()` scale formulae, `sigma` random effects, and q > 2 labelled
-covariance blocks until each neighbour has its own comparator or simulation
-evidence.
+intercepts or numeric slopes, diagonal or dense known sampling covariance
+through `meta_V(V = V)`, intercept-only `sigma`, complete responses, and unit
+likelihood weights. It rejects bivariate Gaussian models, non-Gaussian models,
+missing-data routes, Gaussian row aggregation, sparse fixed-effect matrices,
+structured `phylo()`/`spatial()`/`animal()`/`relmat()` effects, direct `sd()`
+or `sd_phylo()` scale formulae, `sigma` random effects, predictor-dependent
+`sigma`, and q > 2 labelled covariance blocks until each neighbour has its own
+comparator or simulation evidence.
+
+For diagonal or dense `meta_V(V = V)`, `drmTMB` reports the full restricted
+Gaussian log likelihood:
+
+```text
+-0.5 * ((n - p) log(2 pi) + log|Sigma| +
+        log|X' Sigma^{-1} X| + r' Sigma^{-1} r)
+```
+
+where `Sigma` is the total fitted observation covariance after known sampling
+covariance and fitted heterogeneity have been added. `metafor` reports the
+same REML estimates under a log-likelihood convention shifted by
+`0.5 * log|X'X|`; comparator tests record this expected fixed-design determinant
+shift.
 
 For model selection, REML is not the default. AIC/BIC comparisons across
 different fixed-effect formulas should use ML (`REML = FALSE`) because REML

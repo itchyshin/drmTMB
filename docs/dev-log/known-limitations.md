@@ -425,7 +425,8 @@
   covariance remains `meta_V(V = V)`, not `weights`. Full dense
   `meta_V(V = V)` covariance paths currently reject non-unit weights because
   they are joint MVN likelihood blocks; deprecated `meta_known_V(V = V)` remains
-  a compatibility alias.
+  a compatibility alias. `REML = TRUE` is available for univariate Gaussian
+  known-`V` fits only inside the current intercept-only `sigma` REML boundary.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2
