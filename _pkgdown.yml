@@ -90,6 +90,8 @@ navbar:
           href: articles/adding-families.html
         - text: Implemented source map
           href: articles/source-map.html
+        - text: Working with the Julia engine
+          href: articles/julia-engine.html
 
 reference:
   - title: Package
@@ -210,3 +212,4 @@ articles:
       - formula-grammar
       - adding-families
       - source-map
+      - julia-engine

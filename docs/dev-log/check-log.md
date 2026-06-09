@@ -2,6 +2,70 @@
 
 Record meaningful development checks here.
 
+## 2026-06-09 -- Experimental Julia engine bridge packaging
+
+Goal:
+
+- Package the experimental R-to-DRM.jl bridge and reader-facing article as a
+  focused branch, without mixing in concurrent skew-normal, q8, or release
+  readiness changes from the detached working tree.
+
+Changes:
+
+- Added explicit `drmTMB(..., engine = "julia")` dispatch while preserving
+  native `engine = "tmb"` as the default.
+- Added `R/julia-bridge.R` with Gaussian fixed-effect and one Gaussian
+  phylogenetic mean-intercept bridge marshalling, `drmTMB_julia` methods,
+  profile-target inventory, and narrow Julia-side profile/bootstrap confidence
+  interval conversion for the phylogenetic SD target.
+- Added `tests/testthat/test-julia-bridge.R`, benchmark scripts, benchmark
+  records, and the `vignettes/julia-engine.Rmd` pkgdown article.
+- Added the article to the Developer Notes navigation and kept unsupported
+  bridge routes explicit.
+
+Checks run:
+
+- `air format R/drmTMB.R R/julia-bridge.R R/profile.R
+  tests/testthat/test-julia-bridge.R tools/benchmark-julia-engines.R
+  tools/benchmark-r-julia-bootstrap-refits.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::document()'` completed; generated changes
+  were kept to `NAMESPACE` and `man/drmTMB.Rd` after reverting unrelated
+  roxygen link/author rewrites.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-bridge.R")'` returned 71
+  passes with no failures, warnings, or skips.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::build_article("julia-engine");
+  cat("pkgdown article ok\n")'` completed and wrote
+  `pkgdown-site/articles/julia-engine.html`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown check ok\n")'`
+  returned "No problems found."
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::build_site(); cat("pkgdown site ok\n")'`
+  completed.
+- `git diff --check` passed.
+- `rg -n 'engine = "julia"|drmTMB_julia|JuliaCall|DRM\.jl|profile_unavailable|skew_normal\(' README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/julia-engine.Rmd _pkgdown.yml R tests/testthat man --glob '!docs/dev-log/check-log.md'`
+  returned expected current bridge/article/code hits, historical roadmap
+  skew-normal planning rows, and existing native `profile_unavailable` method
+  code.
+- `rg -n '68\.405|4\.710|partial: mu|This is the beauty|cannot read thsi|wokr|eengines|guassian|Jula |spare matrix' vignettes/julia-engine.Rmd pkgdown-site/articles/julia-engine.html docs/dev-log/after-task docs/dev-log/benchmarks NEWS.md`
+  returned only benchmark artifact/history rows, not the rendered article.
+- `rg -n "Working with the Julia engine|Developer Notes|Julia-engine profile|Native R profile|B=10 timing smoke|What works now|What does not work yet|Next parity steps" pkgdown-site/articles/julia-engine.html pkgdown-site/articles/index.html pkgdown-site/sitemap.xml`
+  confirmed the generated article and Developer Notes navigation.
+- `gh issue list --repo itchyshin/drmTMB --state open --search "Julia OR JuliaCall OR DRM.jl OR engine=julia OR engine \"julia\"" --limit 20 --json number,title,state,url,labels`
+  found issue #499 as the matching open tracker.
+
+Not run:
+
+- Full `devtools::test()` and `devtools::check()` were not run for this
+  focused branch packaging slice. Two direct `tools::checkRd()` directory-style
+  attempts failed because this R version expects an explicit Rd file; an
+  internal `tools:::tidy_validate_package_Rd_files_from_dir(".", verbose =
+  FALSE)` call exited 0 but prints broad pre-existing tidy diagnostics, so
+  `pkgdown::check_pkgdown()` and the full pkgdown build are the useful Rd/site
+  gates recorded here.
+
 ## 2026-06-05 -- Same-response bivariate mean-scale slope covariance
 
 Goal:

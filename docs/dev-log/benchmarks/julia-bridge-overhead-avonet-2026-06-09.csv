@@ -1,0 +1,2 @@
+"model","n","rows","tips","cols_before_trim","cols_after_trim","newick_chars","payload_cold_s","payload_warm_s","warm_bridge_reps","warm_bridge_median_s","warm_bridge_min_s","previous_warm_bridge_s","native_tmb_s","direct_drm_jl_s","logLik_julia","julia_converged","julia_uncertainty","julia_finite_dpars"
+"AVONET phylogenetic Gaussian",9993,9993,9993,7,4,568180,10.269,0.022,3,3.784,3.538,17.222,61.113,2.623,-3653.05508862,TRUE,"partial","mu"

@@ -121,6 +121,9 @@
 #'   route supports one fixed-effect binary missing predictor with a
 #'   Bernoulli/logit `impute_model()`, complete count responses, and no
 #'   zero-inflation, random, or structured response terms.
+#' @param engine Computational engine. The default `"tmb"` uses the native
+#'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
+#'   through JuliaCall for the supported bridge slice.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -142,6 +145,7 @@ drmTMB <- function(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  engine = c("tmb", "julia"),
   ...
 ) {
   if (!inherits(formula, "drm_formula")) {
@@ -156,7 +160,21 @@ drmTMB <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  engine <- match.arg(engine)
   formula_env <- drm_formula_env(formula, parent.frame())
+  if (identical(engine, "julia")) {
+    return(drmTMB_julia_bridge(
+      formula = formula,
+      family = family,
+      data = data,
+      env = formula_env,
+      weights_missing = base::missing(weights),
+      control = control,
+      impute = impute,
+      missing = missing,
+      call = match.call()
+    ))
+  }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
 
