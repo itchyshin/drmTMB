@@ -8,19 +8,20 @@ engine and not a broad replacement for ML model selection.
 
 REML is useful for Gaussian mixed-model variance-component estimation when the
 mean structure is fixed. In the first slice, `drmTMB` supports REML for the
-ordinary lme4-overlap surface:
+ordinary lme4-overlap and meta-analysis known-`V` surfaces:
 
 - univariate `family = gaussian()`;
 - dense full-rank `mu` fixed-effect design;
 - ordinary `mu` random intercepts or numeric slopes;
+- optional diagonal or dense known sampling covariance through `meta_V(V = V)`;
 - intercept-only `sigma`;
-- complete responses, unit likelihood weights, and no known sampling
-  covariance.
+- complete responses and unit likelihood weights.
 
 This deliberately excludes bivariate Gaussian models, non-Gaussian models,
-`meta_V(V = V)`, explicit missing-data routes, Gaussian row aggregation, sparse
-fixed-effect matrices, structured effects, direct `sd()` or `sd_phylo()` scale
-formulae, `sigma` random effects, and q > 2 labelled covariance blocks.
+explicit missing-data routes, Gaussian row aggregation, sparse fixed-effect
+matrices, structured effects, direct `sd()` or `sd_phylo()` scale formulae,
+`sigma` random effects, predictor-dependent `sigma`, non-unit weights with
+known dense `V`, and q > 2 labelled covariance blocks.
 
 ## Implementation
 
@@ -49,6 +50,14 @@ random-intercept and correlated random-slope routes against
 `lme4::lmer(..., REML = TRUE)`. They check convergence, fixed effects,
 residual sigma, random-effect SDs, random-effect correlations where present,
 restricted log-likelihood, and reported degrees of freedom.
+
+Known-`V` REML tests compare diagonal `meta_V(V = vi)` and dense
+`meta_V(V = V)` estimates against `metafor` REML fits. The `drmTMB`
+restricted log likelihood is checked against an independent full Gaussian REML
+calculation. `metafor` reports the same optimized estimates but a log-likelihood
+convention shifted by `0.5 * log|X'X|`; the tests record that expected
+fixed-design determinant shift rather than forcing the two conventions to be
+identical.
 
 ML remains the default and should be used for AIC/BIC comparisons across
 different fixed-effect formulas. REML comparisons are meaningful for variance

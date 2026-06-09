@@ -52970,3 +52970,66 @@ Results:
   after `devtools::load_all(quiet = TRUE)` with `new_process = FALSE` wrote
   `pkgdown-site/articles/model-selection.html` and printed
   `pkgdown_article_ok`.
+
+## 2026-06-09: Gaussian REML Known-V Slice
+
+Scope:
+
+- Extended `REML = TRUE` from the ordinary Gaussian lme4-overlap slice to
+  univariate Gaussian known sampling covariance models through diagonal
+  `meta_V(V = vi)` and dense `meta_V(V = V)`, still inside the intercept-only
+  `sigma`, complete-response, unit-weight REML boundary.
+- Added comparator tests that match `metafor` REML fixed effects and
+  heterogeneity variance, while checking `drmTMB`'s reported restricted log
+  likelihood against an independent full Gaussian REML calculation.
+- Synchronized `README.md`, `NEWS.md`, likelihood/testing design docs,
+  known limitations, roxygen/Rd help, and the meta-analysis article.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "meta-known-v")'
+air format .
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/meta-analysis.Rmd", output_dir = tempdir(), quiet = TRUE); cat("meta_analysis_render_ok\n")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+files <- list.files("man", pattern = "\\.Rd$", full.names = TRUE)
+problems <- list()
+for (f in files) {
+  res <- tryCatch(
+    utils::capture.output(tools::checkRd(f)),
+    error = function(e) paste("ERROR:", conditionMessage(e))
+  )
+  res <- res[nzchar(trimws(res))]
+  if (length(res) > 0L) problems[[f]] <- res
+}
+if (length(problems) > 0L) {
+  print(problems)
+  quit(status = 1L)
+}
+cat("checkRd_ok", length(files), "files\n")
+EOF
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown(); pkgdown::build_article("meta-analysis", new_process = FALSE, quiet = TRUE); cat("pkgdown_meta_article_ok\n")'
+rg -n "REML.*known sampling covariance.*planned|known sampling covariance.*REML.*planned|REML.*meta_V.*planned|meta_V\\(V = V\\).*REML.*planned|no known sampling covariance|known Gaussian sampling covariance" README.md NEWS.md R/drmTMB.R docs/design docs/dev-log/known-limitations.md vignettes man tests/testthat/test-comparators.R --glob '!docs/dev-log/check-log.md'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search 'REML meta_V OR known sampling covariance OR restricted maximum likelihood metafor' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `devtools::test(filter = "comparators")` passed with 101 expectations, no
+  failures, warnings, or skips.
+- `devtools::test(filter = "meta-known-v")` passed with 75 expectations, no
+  failures, warnings, or skips.
+- Direct rendering of `vignettes/meta-analysis.Rmd` completed with
+  `meta_analysis_render_ok`.
+- `tools::checkRd()` passed for 54 Rd files.
+- `pkgdown::check_pkgdown()` reported no problems and
+  `pkgdown::build_article("meta-analysis", new_process = FALSE)` wrote
+  `pkgdown-site/articles/meta-analysis.html` with `pkgdown_meta_article_ok`.
+- The stale-wording scan found implemented known-`V` REML wording and the
+  separate planned REML limitation for missing-data routes only.
+- `git diff --check` reported no whitespace problems.
+- GitHub issue search found broad open issues only, not a dedicated overlapping
+  known-`V` REML issue; no issue comment was added.

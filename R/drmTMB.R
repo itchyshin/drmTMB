@@ -124,11 +124,12 @@
 #' @param REML Logical; use restricted maximum likelihood for the first
 #'   univariate Gaussian mixed-model slice. The current REML route supports
 #'   ordinary dense `mu` fixed effects, ordinary `mu` random intercepts or
-#'   slopes, intercept-only `sigma`, complete responses, and no known sampling
-#'   covariance, aggregation, structured effects, or direct `sd()` scale
-#'   formulae. Use the default `REML = FALSE` for likelihood-ratio tests,
-#'   AIC/BIC comparisons across different fixed-effect formulas, non-Gaussian
-#'   models, and currently unsupported Gaussian extensions.
+#'   slopes, diagonal or dense known sampling covariance through [meta_V()],
+#'   intercept-only `sigma`, complete responses, and no aggregation,
+#'   structured effects, or direct `sd()` scale formulae. Use the default
+#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
+#'   different fixed-effect formulas, non-Gaussian models, and currently
+#'   unsupported Gaussian extensions.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -414,12 +415,6 @@ drm_validate_reml_spec <- function(spec) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented with Gaussian row aggregation yet.",
       "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
-    ))
-  }
-  if (!identical(spec$V_known_type, "none")) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented with known Gaussian sampling covariance yet.",
-      "i" = "Use the ML path for {.fn meta_V} models until a separate REML comparator slice lands."
     ))
   }
   if (!all(spec$weights == 1)) {
