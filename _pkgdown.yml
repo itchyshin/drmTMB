@@ -41,6 +41,8 @@ navbar:
           href: articles/convergence.html
         - text: Working with large data
           href: articles/large-data.html
+        - text: Running models with the Julia engine
+          href: articles/julia-engine.html
     tutorials:
       text: Tutorials
       menu:
@@ -92,8 +94,6 @@ navbar:
           href: articles/adding-families.html
         - text: Implemented source map
           href: articles/source-map.html
-        - text: Working with the Julia engine
-          href: articles/julia-engine.html
 
 reference:
   - title: Package
@@ -204,6 +204,7 @@ articles:
     contents:
       - convergence
       - large-data
+      - julia-engine
       - figure-gallery
   - title: Simulation and Validation
     contents:
@@ -215,4 +216,3 @@ articles:
       - formula-grammar
       - adding-families
       - source-map
-      - julia-engine
