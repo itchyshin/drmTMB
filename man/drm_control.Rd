@@ -77,6 +77,14 @@ valid. When using \code{drm_control()}, put optimizer arguments inside
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.
+
+When the selected preset uses the standard \code{nlminb()} budget and no explicit
+optimizer controls, \code{drmTMB()} retries with the next larger deterministic
+preset if the optimizer raises an error such as a non-finite gradient
+evaluation. A successful retry warns and records the selected preset in
+\code{fit$optimizer_used} and every attempted preset in \code{fit$optimizer_attempts}.
+Fits with nonzero convergence codes still return for diagnostic inspection;
+they are not silently retried.
 }
 \examples{
 dat <- data.frame(y = rnorm(20), x = rnorm(20))

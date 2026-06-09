@@ -338,6 +338,15 @@ complex_control <- drm_control(
 no optimizer controls, so ordinary models still use the ordinary `nlminb()`
 defaults.
 
+When the default deterministic `nlminb()` call raises an optimizer error, for
+example a non-finite gradient evaluation on a difficult tree topology,
+`drmTMB()` retries with `optimizer_preset = "careful"` and then `"robust"`.
+The retry is deliberately narrow: it runs only along the existing preset
+budgets, warns if a larger preset succeeds, and records the selected preset in
+`fit$optimizer_used` plus the full attempt table in `fit$optimizer_attempts`.
+If you pass explicit optimizer controls, `drmTMB()` respects those controls
+instead of silently replacing them with the preset ladder.
+
 There is no universal best number. A small Gaussian fixed-effect model should
 not need the same budget as a bivariate phylogenetic location-scale model with
 random slopes and fitted correlations. Use `check_drm()` to decide whether the
@@ -626,7 +635,9 @@ release:
 - automatic simplification suggestions.
 
 The current design records these as future controls rather than silently trying
-many optimizers behind the user's back. For reproducible science, a fitted
+many optimizers behind the user's back. The automatic `nlminb()` preset retry
+above is a narrower error-recovery path, not an alternative-optimizer search.
+For reproducible science, a fitted
 object must record which optimizer, start, objective value, gradient, and
 selected optimum produced the reported estimates.
 
