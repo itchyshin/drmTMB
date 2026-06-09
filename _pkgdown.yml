@@ -31,6 +31,8 @@ navbar:
           href: articles/which-scale.html
         - text: Choosing response families
           href: articles/distribution-families.html
+        - text: Model selection with AIC and BIC
+          href: articles/model-selection.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
         - text: Handling missing data
@@ -178,6 +180,7 @@ articles:
     contents:
       - which-scale
       - distribution-families
+      - model-selection
       - location-scale
       - bivariate-coscale
       - meta-analysis

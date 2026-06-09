@@ -1,0 +1,255 @@
+---
+title: "Model selection with AIC and BIC"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Model selection with AIC and BIC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Model selection comes after candidate models have been chosen, fitted, and
+checked. In `drmTMB`, AIC and BIC can compare fitted distributional-regression
+models, but they do not decide whether a candidate set is biologically sensible
+or whether a weak fit should be interpreted.
+
+AIC and BIC both use the fitted log likelihood and the number of estimated
+parameters:
+
+```text
+AIC = -2 * logLik + 2 * k
+BIC = -2 * logLik + log(n) * k
+```
+
+`k` is the model degrees of freedom and `n` is the number of observations used
+by the fitted model. BIC penalizes extra parameters more strongly than AIC once
+`n > exp(2)`. Compare models only when they were fitted to the same response
+scale and the same analysis rows. Do not compare a model fit to raw counts with
+one fit to transformed counts, or two fits that silently dropped different
+missing rows.
+
+```{r setup}
+library(drmTMB)
+
+criterion_converged <- function(fit) {
+  isTRUE(fit$opt$convergence == 0)
+}
+
+criterion_table <- function(...) {
+  models <- list(...)
+  out <- data.frame(
+    model = names(models),
+    AIC = vapply(models, stats::AIC, numeric(1)),
+    BIC = vapply(models, stats::BIC, numeric(1)),
+    converged = vapply(models, criterion_converged, logical(1)),
+    stringsAsFactors = FALSE
+  )
+  out$delta_AIC <- out$AIC - min(out$AIC)
+  out$delta_BIC <- out$BIC - min(out$BIC)
+  out
+}
+```
+
+## Tail Assumption
+
+A robust Student-t model is useful when the biological process or measurement
+process can produce unusually large residuals. Here the data are generated
+with heavy-tailed residuals, then fitted with a Gaussian model and a Student-t
+model that uses the same `mu` and `sigma` formulas.
+
+```{r tail-example}
+set.seed(2401)
+n <- 220
+x <- rnorm(n)
+tail_dat <- data.frame(x = x)
+tail_dat$y <- 0.2 + 0.7 * x + exp(-0.25) * rt(n, df = 4)
+
+fit_tail_gaussian <- drmTMB(
+  bf(y ~ x, sigma ~ 1),
+  family = gaussian(),
+  data = tail_dat
+)
+
+fit_tail_student <- drmTMB(
+  bf(y ~ x, sigma ~ 1, nu ~ 1),
+  family = student(),
+  data = tail_dat
+)
+
+criterion_table(
+  Gaussian = fit_tail_gaussian,
+  `Student-t` = fit_tail_student
+)
+```
+
+The lower AIC/BIC model is the better criterion fit inside this two-model
+candidate set. That result is not a licence to ignore diagnostics: run
+`check_drm()` and inspect whether the fitted Student-t `nu` parameter is near
+the lower bound or so large that the Student-t model is effectively Gaussian.
+
+```{r tail-check}
+check_drm(fit_tail_student)
+coef(fit_tail_student, "nu")
+```
+
+## Structural Zeros
+
+For count responses, the extra parameter in a zero-inflated model has a
+specific interpretation: it is the probability of a separate structural-zero
+process. This example generates NB2 counts with structural zeros and compares
+ordinary NB2 against ZINB2.
+
+```{r count-example}
+set.seed(2402)
+n <- 260
+x <- rnorm(n)
+mu <- exp(log(2.3) + 0.5 * x)
+sigma <- 0.65
+zi <- plogis(-0.8)
+
+count <- rnbinom(n, size = 1 / sigma^2, mu = mu)
+structural_zero <- runif(n) < zi
+count[structural_zero] <- 0L
+count_dat <- data.frame(count = count, x = x)
+
+fit_nb2 <- drmTMB(
+  bf(count ~ x, sigma ~ 1),
+  family = nbinom2(),
+  data = count_dat
+)
+
+fit_zinb2 <- drmTMB(
+  bf(count ~ x, sigma ~ 1, zi ~ 1),
+  family = nbinom2(),
+  data = count_dat
+)
+
+criterion_table(NB2 = fit_nb2, ZINB2 = fit_zinb2)
+```
+
+If the criterion difference is small, keep both explanations in view. NB2 can
+absorb some extra zeros by increasing overdispersion, while ZINB2 separates
+structural zeros from count variation. Use `zi` only when a structural-zero
+process is plausible for the response and sampling design.
+
+## Scale Formula
+
+Model selection is not only family selection. It can also ask whether a
+distributional parameter needs a predictor. In this Gaussian example the mean
+changes with `x`, and the residual scale also changes with `x`.
+
+```{r scale-example}
+set.seed(2403)
+n <- 220
+x <- rnorm(n)
+sigma <- exp(-0.45 + 0.55 * x)
+scale_dat <- data.frame(
+  x = x,
+  y = 0.3 + 0.55 * x + rnorm(n, sd = sigma)
+)
+
+fit_sigma_constant <- drmTMB(
+  bf(y ~ x, sigma ~ 1),
+  family = gaussian(),
+  data = scale_dat
+)
+
+fit_sigma_x <- drmTMB(
+  bf(y ~ x, sigma ~ x),
+  family = gaussian(),
+  data = scale_dat
+)
+
+criterion_table(`sigma ~ 1` = fit_sigma_constant, `sigma ~ x` = fit_sigma_x)
+```
+
+The `sigma ~ x` model estimates a log-scale slope. A positive slope means the
+modelled residual scale increases as `x` increases. After selecting this
+candidate, interpret the `sigma` coefficient on the ratio scale:
+
+```{r scale-ratio}
+exp(coef(fit_sigma_x, "sigma")["x"])
+```
+
+## A 200-Replicate Article-Support Simulation
+
+The package includes a seeded article-support simulation. It uses 200
+replicates per scenario, which is enough to make the table more stable than a
+plumbing smoke run while still being small enough to ship as documentation
+evidence. It is not a formal operating-characteristic study over sample sizes,
+effect sizes, and candidate-set misspecification.
+
+```{r article-summary}
+summary_path <- system.file(
+  "sim/reports/model-selection-article-summary.csv",
+  package = "drmTMB"
+)
+if (!nzchar(summary_path)) {
+  candidates <- c(
+    "../inst/sim/reports/model-selection-article-summary.csv",
+    "inst/sim/reports/model-selection-article-summary.csv"
+  )
+  summary_path <- candidates[file.exists(candidates)][1L]
+}
+
+model_selection_article <- read.csv(summary_path)
+display_article <- model_selection_article[, c(
+  "scenario",
+  "selection_target",
+  "n_replicate",
+  "aic_truth_selection_rate",
+  "aic_truth_selection_mcse",
+  "bic_truth_selection_rate",
+  "bic_truth_selection_mcse",
+  "candidate_convergence_rate",
+  "candidate_pdHess_rate",
+  "candidate_warning_rate"
+)]
+names(display_article) <- c(
+  "scenario",
+  "target",
+  "replicates",
+  "AIC selected target",
+  "AIC MCSE",
+  "BIC selected target",
+  "BIC MCSE",
+  "candidate convergence",
+  "candidate pdHess",
+  "candidate warning"
+)
+knitr::kable(display_article, digits = 3)
+```
+
+The `normal_tail` row is deliberately useful: the Gaussian model is selected,
+but the unnecessary Student-t candidate often carries warning or weak-Hessian
+status because the extra tail parameter is unnecessary for normal data. The
+`heavy_tail` and `extra_zeros` rows show the criterion tradeoff: AIC more often
+keeps the extra Student-t or zero-inflation parameter, while BIC often prefers
+the simpler candidate under this sample size because its penalty is stronger.
+That is the workflow lesson. Selection criteria answer "which candidate has
+the smaller penalized likelihood score?", while diagnostics answer "is this
+candidate fit stable enough to use?".
+
+## Practical Checklist
+
+Use this sequence when comparing fitted `drmTMB` models:
+
+1. Define the candidate set before looking at AIC/BIC.
+2. Fit all candidates to the same response, row set, offsets, and weights.
+3. Run `check_drm()` and keep convergence, Hessian status, warnings, and
+   boundary diagnostics beside the criterion table.
+4. Exclude errored fits from selection and treat nonconverged or weak-Hessian
+   fits as diagnostic findings, not as ordinary winners.
+5. Report AIC and BIC differences, not only the winning model.
+6. Interpret the selected model's `mu`, `sigma`, `nu`, `zi`, or `rho12`
+   parameters in scientific units or ratios.
+
+When AIC and BIC disagree, describe the tradeoff. AIC is more willing to keep
+extra parameters when they improve fit; BIC asks for stronger evidence as
+sample size grows. In applied `drmTMB` work, that disagreement is often a sign
+to inspect predictions, residuals, and the scientific meaning of the extra
+distributional parameter rather than to declare one criterion universally
+correct.
