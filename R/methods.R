@@ -21,6 +21,9 @@ print.drmTMB <- function(x, ...) {
   )
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
+  if (!is.null(x$estimator)) {
+    cli::cli_text("  estimator: {x$estimator}")
+  }
   if (has_mu_random_effects(x)) {
     cli::cli_text("  mu random-effect terms: {n_mu_random_effect_terms(x)}")
   }
@@ -1833,13 +1836,13 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  cov_fixed <- drm_sdreport_cov_fixed(object)
+  cov_fixed <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
   positions <- rep(NA_integer_, length(labels))
-  opt_names <- names(object$opt$par)
+  opt_names <- drm_sdreport_coefficient_parameter_names(object)
   for (i in seq_along(labels)) {
     row <- matched[[i]]
     if (is.na(row)) {
@@ -1870,6 +1873,31 @@ drm_sdreport_cov_fixed <- function(object) {
     ))
   }
   object$sdr$cov.fixed
+}
+
+drm_sdreport_cov_coefficients <- function(object) {
+  if (!drm_has_sdreport_covariance(object)) {
+    cli::cli_abort(c(
+      drm_sdreport_unavailable_message(object),
+      "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
+    ))
+  }
+  if (isTRUE(object$REML)) {
+    if (!is.matrix(object$sdr$cov)) {
+      cli::cli_abort(
+        "Fixed-effect covariance is unavailable because the REML sdreport does not contain a full covariance matrix."
+      )
+    }
+    return(object$sdr$cov)
+  }
+  object$sdr$cov.fixed
+}
+
+drm_sdreport_coefficient_parameter_names <- function(object) {
+  if (isTRUE(object$REML)) {
+    return(names(object$sdr$value))
+  }
+  names(object$opt$par)
 }
 
 drm_has_sdreport_covariance <- function(object) {
@@ -2025,6 +2053,12 @@ logLik.drmTMB <- function(object, ...) {
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
+  if (!is.null(object$estimator)) {
+    attr(out, "estimator") <- object$estimator
+  }
+  if (isTRUE(object$REML)) {
+    attr(out, "REML") <- TRUE
+  }
   class(out) <- "logLik"
   out
 }
@@ -3048,6 +3082,7 @@ summary.drmTMB <- function(
     ordinal = object$ordinal,
     uncertainty = object$uncertainty,
     logLik = stats::logLik(object),
+    estimator = object$estimator,
     convergence = object$opt$convergence,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
@@ -3061,6 +3096,9 @@ summary.drmTMB <- function(
 #' @export
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
+  if (!is.null(x$estimator)) {
+    cli::cli_text("estimator: {x$estimator}")
+  }
   if (isTRUE(x$conf.int)) {
     cli::cli_text(
       "confidence intervals: {x$conf.method}, level = {format(x$conf.level)}"

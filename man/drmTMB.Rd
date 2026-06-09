@@ -13,6 +13,7 @@ drmTMB(
   impute = NULL,
   missing = miss_control(),
   engine = c("tmb", "julia"),
+  REML = FALSE,
   ...
 )
 }
@@ -96,6 +97,15 @@ zero-inflation, random, or structured response terms.}
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
 \code{drmTMB} TMB backend. The experimental \code{"julia"} route calls DRM.jl
 through JuliaCall for the supported bridge slice.}
+
+\item{REML}{Logical; use restricted maximum likelihood for the first
+univariate Gaussian mixed-model slice. The current REML route supports
+ordinary dense \code{mu} fixed effects, ordinary \code{mu} random intercepts or
+slopes, intercept-only \code{sigma}, complete responses, and no known sampling
+covariance, aggregation, structured effects, or direct \code{sd()} scale
+formulae. Use the default \code{REML = FALSE} for likelihood-ratio tests,
+AIC/BIC comparisons across different fixed-effect formulas, non-Gaussian
+models, and currently unsupported Gaussian extensions.}
 
 \item{...}{Reserved for future model options.}
 }

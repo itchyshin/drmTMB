@@ -80,6 +80,9 @@ Current pilot files:
   sheet for the bivariate Gaussian residual `rho12` lane.
 - `docs/design/53-phase-18-student-shape-ademp.md` is the one-page ADEMP
   sheet for the fixed-effect Student-t shape `nu` lane.
+- `docs/design/167-model-selection-aic-bic-simulation-design.md` is the
+  article-support ADEMP sheet for AIC/BIC candidate-selection comparisons
+  across continuous-tail, count-zero, and scale-formula examples.
 - `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
   one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
   matching q=2 bivariate location-covariance lanes.
@@ -360,6 +363,11 @@ Current pilot files:
 - `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
   `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
   transform and optional mean-shape predictor correlation.
+- `dgp/sim_dgp_model_selection.R` generates paired model-selection cells for
+  Gaussian versus Student-t tails, NB2 versus ZINB2 structural zeros, and
+  constant versus predictor-dependent Gaussian `sigma` formulas. It records a
+  `selection_target` for each cell so AIC/BIC truth-selection summaries can be
+  computed without treating the article-support run as a formal power grid.
 - `dgp/sim_dgp_animal_relmat_q2.R` generates bivariate Gaussian data with a
   known animal or lower-level relatedness matrix, matching q=2 `mu1`/`mu2`
   structured effects, and residual `rho12` kept as a separate layer.
@@ -457,6 +465,9 @@ Current pilot files:
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
   named response-scale truth grids.
+- `fit/sim_summarise_model_selection.R` summarises candidate-level AIC, BIC,
+  log likelihood, degrees of freedom, convergence, Hessian status, warnings,
+  errors, and target-selection indicators for the model-selection lane.
 - `fit/sim_summarise_animal_relmat_q2.R` summarises fixed `mu1`/`mu2`
   coefficients, public residual scales, structured SDs, structured
   correlations, and residual `rho12` for known-matrix animal/`relmat()` q=2
@@ -555,6 +566,10 @@ Current pilot files:
   bivariate Gaussian q=2 residual-scale intercept covariance surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
+- `run/sim_run_model_selection_smoke.R` does the same for the article-support
+  AIC/BIC model-selection surface, writing one candidate row per replicate and
+  preserving warning-bearing candidates. The file name keeps the Phase 18 smoke
+  runner convention, but the article table is generated at 200 replicates.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
   animal/`relmat()` q=2 bivariate location-covariance surface.
 - `run/sim_run_animal_relmat_q4_smoke.R` does the same for the constant
@@ -729,6 +744,12 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   for the same reason as the bivariate `rho12` grid, with the same nested-
   parallel guard.
+- `run/sim_write_model_selection_smoke.R` writes model-selection candidate,
+  selection-summary, manifest, and failure CSVs. The 200-replicate
+  article-support artifact lives at
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`, and the
+  compact vignette table is copied to
+  `inst/sim/reports/model-selection-article-summary.csv`.
 - `run/sim_write_first_wave_artifact_status.R` writes bound
   artifact-manifest and surface-status CSVs from multiple grid-writer outputs,
   giving report templates a small preflight table before they read individual

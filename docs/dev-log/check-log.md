@@ -52816,3 +52816,221 @@ Checks run after documenting the audit:
 - GitHub issue maintenance: opened PR #503 for the audit and posted the
   `hold_diagnostic` summary to issue #5:
   <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4644265017>.
+
+## 2026-06-09 - model-selection article and AIC/BIC n200 support run
+
+Goal:
+
+- Add a reader-facing model-selection article that compares AIC and BIC across
+  small, explicit `drmTMB` candidate sets, with simulation evidence kept
+  honest about sample size and diagnostics.
+
+Implemented:
+
+- Added `vignettes/model-selection.Rmd` and routed it through `_pkgdown.yml`
+  under Model Guides and the "Choose Your Model" article section.
+- Added the article-support ADEMP sheet
+  `docs/design/167-model-selection-aic-bic-simulation-design.md`.
+- Added the Phase 18 model-selection DGP, candidate fitter, smoke runner,
+  writer, compact summary table, and focused tests:
+  `inst/sim/dgp/sim_dgp_model_selection.R`,
+  `inst/sim/fit/sim_summarise_model_selection.R`,
+  `inst/sim/run/sim_run_model_selection_smoke.R`,
+  `inst/sim/run/sim_write_model_selection_smoke.R`,
+  `inst/sim/reports/model-selection-article-summary.csv`, and
+  `tests/testthat/test-phase18-model-selection-smoke.R`.
+- Wrote local 200-replicate article-support artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`.
+- Synchronized NEWS, the worked-example inventory, and the Phase 18 simulation
+  README.
+
+Evidence:
+
+- The article-support run used six paired cells and 200 replicates per cell:
+  Gaussian versus Student-t, NB2 versus ZINB2, and `sigma ~ 1` versus
+  `sigma ~ x`.
+- AIC target-selection rates were 0.825 for `constant_sigma`, 0.920 for
+  `extra_zeros`, 0.840 for `heavy_tail`, 0.935 for `nb2_counts`, 0.945 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- BIC target-selection rates were 0.975 for `constant_sigma`, 0.730 for
+  `extra_zeros`, 0.665 for `heavy_tail`, 0.990 for `nb2_counts`, 0.980 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- The 200-replicate result makes the intended tradeoff visible: AIC is more
+  willing to keep the extra Student-t or zero-inflation parameter, while BIC
+  more often prefers the simpler candidate under this sample size. The
+  `normal_tail` row still shows that unnecessary Student-t candidates can carry
+  warning or weak-Hessian status.
+- The table is documentation evidence only. It is not a calibrated power,
+  false-positive, or full operating-characteristic grid.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'parse(file="inst/sim/dgp/sim_dgp_model_selection.R"); parse(file="inst/sim/fit/sim_summarise_model_selection.R"); parse(file="inst/sim/run/sim_run_model_selection_smoke.R"); parse(file="inst/sim/run/sim_write_model_selection_smoke.R"); parse(file="tests/testthat/test-phase18-model-selection-smoke.R"); cat("parse ok\n")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phase18-model-selection-smoke", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'styler::style_file(c("inst/sim/dgp/sim_dgp_model_selection.R", "inst/sim/fit/sim_summarise_model_selection.R", "inst/sim/run/sim_run_model_selection_smoke.R", "inst/sim/run/sim_write_model_selection_smoke.R", "tests/testthat/test-phase18-model-selection-smoke.R"))'
+/usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); # sourced sim helpers; phase18_write_model_selection_smoke_outputs(output_dir = "docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200", n_rep = 200L, master_seed = 20260609L, overwrite = TRUE, cores = 6L, backend = "multicore", save_results = FALSE)'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = TRUE); cat("render ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::build_article("model-selection", quiet = TRUE)'
+rg -n "best model|AIC.*proves|BIC.*proves|formal.*model-selection|formal.*AIC|formal.*BIC|calibrated.*model-selection|operating-characteristic|power grid|same data|same analysis rows|same response" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md NEWS.md docs/design/37-worked-example-inventory.md inst/sim/README.md
+rg -n "model-selection|model selection|AIC|BIC" README.md ROADMAP.md NEWS.md docs vignettes inst/sim --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
+rg -n "[[:blank:]]$|^<<<<<<<|^=======$|^>>>>>>>" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md inst/sim/dgp/sim_dgp_model_selection.R inst/sim/fit/sim_summarise_model_selection.R inst/sim/run/sim_run_model_selection_smoke.R inst/sim/run/sim_write_model_selection_smoke.R tests/testthat/test-phase18-model-selection-smoke.R inst/sim/reports/model-selection-article-summary.csv
+git diff --check -- NEWS.md _pkgdown.yml docs/design/37-worked-example-inventory.md inst/sim/README.md
+```
+
+Result: focused tests passed before the n200 follow-up; the n200 follow-up
+finished in about 24 seconds with `backend = "multicore"` and
+`save_results = FALSE`, writing 2,400 candidate rows, 1,200 manifest rows, six
+selection-summary rows, and an empty failure ledger. Direct vignette render
+passed after pointing `RSTUDIO_PANDOC` at RStudio's bundled Pandoc.
+`pkgdown::check_pkgdown()` reported no problems, and
+`pkgdown::build_article("model-selection")` wrote
+`articles/model-selection.html`. The first pkgdown article render exposed a
+fragile `is_converged()` helper in the vignette; replacing it with a local
+`fit$opt$convergence == 0` helper fixed the article. The stale wording scans
+kept the article-support/formal-grid boundary visible. GitHub issue searches for
+`model selection AIC BIC` and `AIC BIC logLik model-fit extractors` found no
+overlapping open issue.
+
+## 2026-06-09: Gaussian REML First Slice
+
+Scope:
+
+- Added top-level `drmTMB(..., REML = TRUE)` for the first univariate Gaussian
+  mixed-model slice: dense full-rank `mu` fixed effects, ordinary `mu` random
+  intercepts or slopes, intercept-only `sigma`, complete responses, unit
+  likelihood weights, and no known sampling covariance, row aggregation,
+  structured effects, direct `sd()` scale formulae, `sigma` random effects, or
+  q > 2 labelled covariance blocks.
+- Implemented REML by adding `beta_mu` to the `TMB::MakeADFun(random = ...)`
+  integration set when `REML = TRUE`; the TMB likelihood template itself did
+  not need a new branch.
+- Added fit metadata (`estimator`, `REML`, `tmb_random_names`) and kept
+  `logLik()` df aligned with `lme4::logLik()` by counting the integrated
+  `beta_mu` coefficients.
+- Updated `vcov.drmTMB()` so REML coefficient covariance uses the full
+  `sdreport` covariance matrix, because integrated `beta_mu` coefficients are
+  not in `sdr$cov.fixed`.
+- Synchronized `NEWS.md`, `README.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`,
+  `docs/design/149-missing-data-design.md`,
+  `docs/design/168-gaussian-reml-first-slice.md`,
+  `docs/dev-log/known-limitations.md`, `vignettes/model-selection.Rmd`, and
+  generated `man/drmTMB.Rd`.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+set.seed(20260512)
+n_id <- 30; n_each <- 8; n <- n_id * n_each
+dat <- data.frame(id = factor(rep(seq_len(n_id), each = n_each)), x = rnorm(n))
+u <- rnorm(n_id, sd = .6)
+dat$y <- rnorm(n, .4 + .7 * dat$x + u[dat$id], .5)
+fit <- drmTMB(bf(y ~ x + (1 | id)), data = dat, REML = TRUE)
+fit_lme4 <- lme4::lmer(y ~ x + (1 | id), data = dat, REML = TRUE)
+stopifnot(abs(as.numeric(logLik(fit)) - as.numeric(logLik(fit_lme4))) < 1e-8)
+cat("reml_probe_ok\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators|control|gaussian-location-scale|gaussian-random-intercepts")'
+air format .
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+set.seed(20260612)
+dat <- data.frame(id = factor(rep(1:10, each = 5)), x = rnorm(50))
+dat$y <- rnorm(50, 0.2 + 0.4 * dat$x + rnorm(10, 0, 0.5)[dat$id], 0.6)
+fit <- drmTMB(bf(y ~ x + (1 | id)), data = dat, REML = TRUE)
+ll <- logLik(fit)
+stopifnot(fit$REML, identical(fit$estimator, "REML"))
+stopifnot(identical(attr(ll, "estimator"), "REML"), isTRUE(attr(ll, "REML")))
+stopifnot(attr(ll, "df") == 4L, nrow(vcov(fit)) == 3L)
+stopifnot(all(is.finite(diag(vcov(fit))[c("mu:(Intercept)", "mu:x")])))
+err <- tryCatch(drmTMB(bf(y ~ x, sigma ~ x), data = dat, REML = TRUE), error = conditionMessage)
+stopifnot(grepl("intercept-only", err))
+cat("reml_api_probe_ok\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test()'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+files <- list.files("man", pattern = "\\.Rd$", full.names = TRUE)
+problems <- list()
+for (f in files) {
+  res <- tryCatch(
+    utils::capture.output(tools::checkRd(f)),
+    error = function(e) paste("ERROR:", conditionMessage(e))
+  )
+  res <- res[nzchar(trimws(res))]
+  if (length(res) > 0L) problems[[f]] <- res
+}
+if (length(problems) > 0L) {
+  print(problems)
+  quit(status = 1L)
+}
+cat("checkRd_ok", length(files), "files\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = TRUE); cat("model_selection_render_ok\n")'
+rg -n "REML can be considered later|EM/profile/REML|EM/REML|REML engines|REML.*planned|REML" README.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes/model-selection.Rmd man/drmTMB.Rd --glob '!docs/dev-log/check-log.md'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search 'REML OR restricted maximum likelihood OR Gaussian mixed model' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- The direct TMB probe matched `lme4::lmer(..., REML = TRUE)` for the
+  restricted log-likelihood to less than `1e-8`.
+- Focused comparator tests passed with 84 expectations, no failures, warnings,
+  or skips.
+- Adjacent comparator/control/Gaussian tests passed with 729 expectations, no
+  failures, warnings, or skips.
+- Full `devtools::test()` passed with 10,189 expectations, no failures,
+  warnings, or skips.
+- `tools::checkRd()` passed for 54 Rd files.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Direct render of `vignettes/model-selection.Rmd` completed with
+  `model_selection_render_ok`.
+- `git diff --check` reported no whitespace problems.
+- The REML stale-wording scan left implemented REML claims, explicit
+  missing-data-route REML limitations, and planned unsupported Gaussian
+  neighbours only.
+- GitHub issue search found broad open issues #60 and #491, but no dedicated
+  open REML issue; no issue comment was added in this implementation branch.
+
+## 2026-06-09: Gaussian REML Article Example and Check Gate
+
+Scope:
+
+- Added a reader-facing `model-selection` article section that compares
+  Gaussian mixed-model fixed-effect formulas under ML, then refits the selected
+  mean structure with `REML = TRUE` for variance-component estimation.
+- The example reports the restricted log-likelihood, df, residual `sigma`, and
+  group-level random-intercept SD, and conditionally compares the restricted
+  log-likelihood to `lme4::lmer(..., REML = TRUE)` when `lme4` is installed.
+- Ran the heavier merge-readiness package check after the article edit.
+
+Checks run:
+
+```sh
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = FALSE); cat("model_selection_render_ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'res <- devtools::check(document = FALSE, args = c("--as-cran"), error_on = "never"); print(res); if (length(res$errors) || length(res$warnings)) quit(status = 1L); quit(status = 0L)'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown(); pkgdown::build_article("model-selection", quiet = TRUE); cat("pkgdown_article_ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("model-selection", new_process = FALSE, quiet = TRUE); cat("pkgdown_article_ok\n")'
+```
+
+Results:
+
+- Direct render of `vignettes/model-selection.Rmd` completed with
+  `model_selection_render_ok`.
+- `devtools::check(document = FALSE, args = c("--as-cran"))` completed in
+  12m 46.7s with 0 errors, 0 warnings, and 1 note. The note was
+  `unable to verify current time`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- A first `pkgdown::build_article("model-selection")` attempt failed because
+  the new process rendered against an older installed `drmTMB` where `REML`
+  fell through to `...`. The source vignette was not the problem: rerunning
+  after `devtools::load_all(quiet = TRUE)` with `new_process = FALSE` wrote
+  `pkgdown-site/articles/model-selection.html` and printed
+  `pkgdown_article_ok`.

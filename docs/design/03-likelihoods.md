@@ -1397,11 +1397,38 @@ Implementation notes:
   `tests/testthat/test-gaussian-random-intercepts.R`.
 - Random-effect scale recovery tests live in
   `tests/testthat/test-gaussian-random-effect-scale.R`.
-- Comparator tests against `lme4` for overlapping Gaussian ML random-effect
-  models live in `tests/testthat/test-comparators.R`.
+- Comparator tests against `lme4` for overlapping Gaussian ML and first-slice
+  REML random-effect models live in `tests/testthat/test-comparators.R`.
 - The univariate likelihood supports optional known sampling covariance via
   `meta_V(V = V)`, with deprecated `meta_known_V(V = V)` as a compatibility
   alias. It has no residual correlation parameter.
+
+### First-Slice Gaussian REML
+
+`drmTMB(..., REML = TRUE)` uses restricted maximum likelihood for the first
+ordinary univariate Gaussian mixed-model slice. The implemented route keeps the
+same Gaussian joint likelihood in `src/drmTMB.cpp`, but asks `TMB::MakeADFun()`
+to integrate the `beta_mu` fixed-effect vector together with the ordinary
+latent `mu` random effects. This gives the restricted likelihood for the
+Gaussian mean structure while retaining conditional modes for `beta_mu`, the
+ordinary random effects, and the variance parameters.
+
+The current REML surface is intentionally narrower than the ML Gaussian surface.
+It supports dense full-rank `mu` fixed-effect designs, ordinary `mu` random
+intercepts or numeric slopes, intercept-only `sigma`, complete responses, unit
+likelihood weights, and no known sampling covariance. It rejects bivariate
+Gaussian models, non-Gaussian models, `meta_V(V = V)`, missing-data routes,
+Gaussian row aggregation, sparse fixed-effect matrices, structured
+`phylo()`/`spatial()`/`animal()`/`relmat()` effects, direct `sd()` or
+`sd_phylo()` scale formulae, `sigma` random effects, and q > 2 labelled
+covariance blocks until each neighbour has its own comparator or simulation
+evidence.
+
+For model selection, REML is not the default. AIC/BIC comparisons across
+different fixed-effect formulas should use ML (`REML = FALSE`) because REML
+integrates over the fitted fixed-effect design. REML is the Gaussian
+mixed-model option for variance-component estimation within a fixed mean
+structure.
 
 ## Implemented Meta-Analytic Gaussian Regression
 

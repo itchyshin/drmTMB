@@ -48,6 +48,67 @@ test_that("Gaussian random intercepts agree with lme4 on an overlapping model", 
   expect_equal(stats::BIC(fit), stats::BIC(fit_lme4), tolerance = 1e-4)
 })
 
+test_that("Gaussian REML random intercepts agree with lme4", {
+  testthat::skip_if_not_installed("lme4")
+
+  set.seed(20260609)
+  n_id <- 30
+  n_each <- 8
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  u_id <- stats::rnorm(n_id, sd = 0.6)
+  dat$y <- stats::rnorm(
+    n,
+    mean = 0.4 + 0.7 * dat$x + u_id[dat$id],
+    sd = 0.5
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat,
+    REML = TRUE
+  )
+  fit_lme4 <- lme4::lmer(y ~ x + (1 | id), data = dat, REML = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$estimator, "REML")
+  expect_true(fit$REML)
+  expect_equal(fit$model$tmb_random_names, c("u_mu", "beta_mu"))
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(lme4::fixef(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit$sdpars$mu),
+    unname(attr(lme4::VarCorr(fit_lme4)$id, "stddev")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit)[[1L]],
+    stats::sigma(fit_lme4),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    attr(stats::logLik(fit), "df"),
+    attr(stats::logLik(fit_lme4), "df")
+  )
+  expect_equal(attr(stats::logLik(fit), "estimator"), "REML")
+  expect_true(all(is.finite(diag(stats::vcov(fit))[c(
+    "mu:(Intercept)",
+    "mu:x"
+  )])))
+})
+
 test_that("Poisson random intercepts agree with lme4 on an overlapping model", {
   testthat::skip_if_not_installed("lme4")
 
@@ -259,6 +320,71 @@ test_that("Gaussian correlated random slopes agree with lme4 on an overlapping m
   )
 })
 
+test_that("Gaussian REML correlated random slopes agree with lme4", {
+  testthat::skip_if_not_installed("lme4")
+
+  set.seed(20260610)
+  n_id <- 32
+  n_each <- 8
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  sd0 <- 0.5
+  sd1 <- 0.35
+  rho_re <- 0.4
+  z0 <- stats::rnorm(n_id)
+  z1 <- stats::rnorm(n_id)
+  u0 <- sd0 * z0
+  u1 <- sd1 * (rho_re * z0 + sqrt(1 - rho_re^2) * z1)
+  dat$y <- stats::rnorm(
+    n,
+    mean = 0.25 + 0.65 * dat$x + u0[dat$id] + u1[dat$id] * dat$x,
+    sd = 0.45
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 + x | id)),
+    family = gaussian(),
+    data = dat,
+    REML = TRUE
+  )
+  fit_lme4 <- lme4::lmer(y ~ x + (1 + x | id), data = dat, REML = TRUE)
+  vc_lme4 <- lme4::VarCorr(fit_lme4)$id
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    unname(coef(fit, "mu")),
+    unname(lme4::fixef(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit$sdpars$mu),
+    unname(attr(vc_lme4, "stddev")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit$corpars$mu),
+    unname(attr(vc_lme4, "correlation")[1, 2]),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit)[[1L]],
+    stats::sigma(fit_lme4),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit)),
+    as.numeric(stats::logLik(fit_lme4)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    attr(stats::logLik(fit), "df"),
+    attr(stats::logLik(fit_lme4), "df")
+  )
+})
+
 test_that("labelled Gaussian correlated random slopes agree with lme4 semantics", {
   testthat::skip_if_not_installed("lme4")
 
@@ -321,6 +447,57 @@ test_that("labelled Gaussian correlated random slopes agree with lme4 semantics"
     as.numeric(stats::logLik(fit)),
     as.numeric(stats::logLik(fit_lme4)),
     tolerance = 1e-4
+  )
+})
+
+test_that("REML rejects unsupported first-slice neighbours", {
+  set.seed(20260611)
+  n_id <- 8
+  n_each <- 4
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n),
+    vi = stats::runif(n, 0.02, 0.05)
+  )
+  dat$y <- stats::rnorm(n, 0.4 + 0.7 * dat$x, sd = 0.5)
+  dat$count <- stats::rpois(n, exp(0.4 + 0.2 * dat$x))
+
+  expect_error(
+    drmTMB(
+      bf(count ~ x + (1 | id)),
+      family = stats::poisson(),
+      data = dat,
+      REML = TRUE
+    ),
+    "univariate Gaussian"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ x),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "intercept-only"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + meta_V(V = vi)),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "known Gaussian sampling covariance"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1, sd(id) ~ 1),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "direct random-effect scale"
   )
 })
 
