@@ -9836,11 +9836,11 @@ rebuild_plus_terms <- function(terms) {
 
 is_meta_known_v_call <- function(expr) {
   expr <- strip_parens(expr)
-  is.call(expr) && as.character(expr[[1L]]) %in% c("meta_known_V", "meta_V")
+  is.call(expr) && drm_call_name(expr) %in% c("meta_known_V", "meta_V")
 }
 
 extract_meta_known_v_arg <- function(expr) {
-  fn_name <- as.character(expr[[1L]])
+  fn_name <- drm_call_name(expr)
   args <- as.list(expr)[-1L]
   arg_names <- names(args)
   if (is.null(arg_names)) {
@@ -9881,7 +9881,7 @@ formula_contains_call <- function(expr, name) {
   if (!is.call(expr)) {
     return(FALSE)
   }
-  identical(expr[[1L]], as.name(name)) ||
+  identical(drm_call_name(expr), name) ||
     any(vapply(
       as.list(expr)[-1L],
       function(part) formula_contains_call(part, name),
@@ -9894,6 +9894,26 @@ strip_parens <- function(expr) {
     expr <- expr[[2L]]
   }
   expr
+}
+
+drm_call_name <- function(expr) {
+  expr <- strip_parens(expr)
+  if (!is.call(expr)) {
+    return(NA_character_)
+  }
+  fun <- expr[[1L]]
+  if (is.symbol(fun)) {
+    return(as.character(fun))
+  }
+  if (
+    is.call(fun) &&
+      drm_call_name(fun) %in% c("::", ":::") &&
+      length(fun) >= 3L &&
+      is.symbol(fun[[3L]])
+  ) {
+    return(as.character(fun[[3L]]))
+  }
+  NA_character_
 }
 
 evaluate_known_v <- function(expr, data, env) {

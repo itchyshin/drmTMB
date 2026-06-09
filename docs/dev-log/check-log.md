@@ -53033,3 +53033,41 @@ Results:
 - `git diff --check` reported no whitespace problems.
 - GitHub issue search found broad open issues only, not a dedicated overlapping
   known-`V` REML issue; no issue comment was added.
+
+## 2026-06-09: Namespaced Formula Marker Parser Fix
+
+Scope:
+
+- Fixed issue #504 by normalizing formula call names before marker comparisons,
+  so `drmTMB::phylo(...)` and other namespace-qualified exported markers are
+  treated like their unqualified equivalents.
+- Hardened `meta_V()` detection, recursive formula call searches, structured
+  marker recognition, random-effect scale left-hand sides, and `corpair()`
+  left-hand sides against namespaced call heads.
+- Added a bivariate Gaussian phylogenetic regression test for the reported
+  `drmTMB::phylo(1 | p | species, tree = tree)` formula pattern.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+# Pinned issue #504 reproducer with drmTMB::phylo(...) in both bivariate location formulas.
+# Printed issue_504_reproducer_ok and the expected phylo SD names.
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "meta-known-v|package-skeleton")'
+air format R/drmTMB.R R/parse-formula.R tests/testthat/test-phylo-gaussian.R
+```
+
+Results:
+
+- The pinned issue #504 reproducer now fits and prints
+  `issue_504_reproducer_ok`; `fit$sdpars$mu` contains
+  `mu1:phylo(1 | p | species)` and `mu2:phylo(1 | p | species)`.
+- `devtools::test(filter = "phylo-gaussian")` passed with 213 expectations, no
+  failures, warnings, or skips.
+- `devtools::test(filter = "meta-known-v|package-skeleton")` passed with 175
+  expectations, no failures, warnings, or skips.
+- Issue #505 was verified as already fixed on current `main`, commented with
+  `drm_control(se = TRUE)` and targeted-test evidence, and closed as completed.
