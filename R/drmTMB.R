@@ -121,6 +121,14 @@
 #'   route supports one fixed-effect binary missing predictor with a
 #'   Bernoulli/logit `impute_model()`, complete count responses, and no
 #'   zero-inflation, random, or structured response terms.
+#' @param REML Logical; use restricted maximum likelihood for the first
+#'   univariate Gaussian mixed-model slice. The current REML route supports
+#'   ordinary dense `mu` fixed effects, ordinary `mu` random intercepts or
+#'   slopes, intercept-only `sigma`, complete responses, and no known sampling
+#'   covariance, aggregation, structured effects, or direct `sd()` scale
+#'   formulae. Use the default `REML = FALSE` for likelihood-ratio tests,
+#'   AIC/BIC comparisons across different fixed-effect formulas, non-Gaussian
+#'   models, and currently unsupported Gaussian extensions.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -142,6 +150,7 @@ drmTMB <- function(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  REML = FALSE,
   ...
 ) {
   if (!inherits(formula, "drm_formula")) {
@@ -159,6 +168,7 @@ drmTMB <- function(
   formula_env <- drm_formula_env(formula, parent.frame())
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
+  REML <- drm_control_flag(REML, "REML")
 
   weights_expr <- if (base::missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
@@ -168,6 +178,22 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (isTRUE(REML) && !identical(family_type, "gaussian")) {
+    cli::cli_abort(c(
+      "{.arg REML} is implemented only for the first univariate Gaussian mixed-model slice.",
+      "i" = "Use {.code family = gaussian()} or set {.code REML = FALSE}."
+    ))
+  }
+  if (
+    isTRUE(REML) &&
+      (!identical(missing_control$response, "drop") ||
+        !identical(missing_control$predictor, "fail"))
+  ) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with explicit missing-data engines yet.",
+      "i" = "Use the default {.code missing = miss_control()} or set {.code REML = FALSE}."
+    ))
+  }
   if (
     identical(missing_control$response, "include") &&
       !family_type %in% c("gaussian", "biv_gaussian")
@@ -299,12 +325,13 @@ drmTMB <- function(
 
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
+  spec <- drm_apply_estimator_spec(spec, REML = REML)
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
     parameters = spec$start,
     map = spec$map,
-    random = spec$random_names,
+    random = spec$tmb_random_names,
     DLL = "drmTMB",
     silent = TRUE
   )
@@ -344,11 +371,111 @@ drmTMB <- function(
     ordinal = ordinal_fit_info(par_list, spec),
     missing_data = missing_data,
     logLik = -opt$objective,
-    df = length(opt$par),
-    nobs = spec$nobs
+    df = drm_fit_df(spec, opt),
+    nobs = spec$nobs,
+    estimator = spec$estimator,
+    REML = isTRUE(REML)
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_apply_estimator_spec <- function(spec, REML = FALSE) {
+  if (!isTRUE(REML)) {
+    spec$estimator <- "ML"
+    spec$tmb_random_names <- spec$random_names
+    return(spec)
+  }
+
+  drm_validate_reml_spec(spec)
+  spec$estimator <- "REML"
+  spec$tmb_random_names <- c(spec$random_names, "beta_mu")
+  spec
+}
+
+drm_validate_reml_spec <- function(spec) {
+  if (!identical(spec$model_type, "gaussian")) {
+    cli::cli_abort(
+      "{.arg REML} is implemented only for univariate Gaussian models."
+    )
+  }
+  if (isTRUE(spec$sparse_fixed$mu)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with sparse fixed-effect matrices yet.",
+      "i" = "Use {.code control = drm_control(sparse_fixed = FALSE)} or set {.code REML = FALSE}."
+    ))
+  }
+  gaussian_aggregation <- if (is.list(spec$aggregation)) {
+    spec$aggregation$gaussian
+  } else {
+    NULL
+  }
+  if (is.list(gaussian_aggregation) && isTRUE(gaussian_aggregation$enabled)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with Gaussian row aggregation yet.",
+      "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
+    ))
+  }
+  if (!identical(spec$V_known_type, "none")) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with known Gaussian sampling covariance yet.",
+      "i" = "Use the ML path for {.fn meta_V} models until a separate REML comparator slice lands."
+    ))
+  }
+  if (!all(spec$weights == 1)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with non-unit likelihood weights yet.",
+      "i" = "Use unit weights or set {.code REML = FALSE}."
+    ))
+  }
+  if (ncol(spec$X$sigma) != 1L) {
+    cli::cli_abort(c(
+      "{.arg REML} currently requires an intercept-only {.code sigma} formula.",
+      "i" = "Use {.code sigma ~ 1} or set {.code REML = FALSE}."
+    ))
+  }
+  if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} currently supports ordinary {.code mu} random effects only.",
+      "i" = "Remove {.code sigma} random effects or set {.code REML = FALSE}."
+    ))
+  }
+  if (spec$random$covariance_blocks$n_qgt2_re > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented for q > 2 labelled covariance blocks yet.",
+      "i" = "Use ordinary random-intercept or random-slope location blocks, or set {.code REML = FALSE}."
+    ))
+  }
+  if (
+    spec$random_scale$mu$n_models > 0L ||
+      spec$random_scale$phylo$n_models > 0L
+  ) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented with direct random-effect scale formulae yet.",
+      "i" = "Use ordinary location random effects such as {.code (1 | id)}, or set {.code REML = FALSE}."
+    ))
+  }
+  if (isTRUE(spec$structured$phylo_mu$has)) {
+    cli::cli_abort(c(
+      "{.arg REML} is not implemented for structured Gaussian effects yet.",
+      "i" = "Use ordinary grouped random effects or set {.code REML = FALSE}."
+    ))
+  }
+  if (qr(as.matrix(spec$X$mu))$rank < ncol(spec$X$mu)) {
+    cli::cli_abort(c(
+      "{.arg REML} requires a full-rank dense {.code mu} fixed-effect design in this first slice.",
+      "i" = "Remove aliased fixed-effect columns or set {.code REML = FALSE}."
+    ))
+  }
+  invisible(TRUE)
+}
+
+drm_fit_df <- function(spec, opt) {
+  df <- length(opt$par)
+  if (identical(spec$estimator, "REML")) {
+    df <- df + ncol(spec$X$mu)
+  }
+  df
 }
 
 drm_compute_uncertainty <- function(obj, opt, control) {

@@ -12,6 +12,7 @@ drmTMB(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  REML = FALSE,
   ...
 )
 }
@@ -91,6 +92,15 @@ one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
 route supports one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete count responses, and no
 zero-inflation, random, or structured response terms.}
+
+\item{REML}{Logical; use restricted maximum likelihood for the first
+univariate Gaussian mixed-model slice. The current REML route supports
+ordinary dense \code{mu} fixed effects, ordinary \code{mu} random intercepts or
+slopes, intercept-only \code{sigma}, complete responses, and no known sampling
+covariance, aggregation, structured effects, or direct \code{sd()} scale
+formulae. Use the default \code{REML = FALSE} for likelihood-ratio tests,
+AIC/BIC comparisons across different fixed-effect formulas, non-Gaussian
+models, and currently unsupported Gaussian extensions.}
 
 \item{...}{Reserved for future model options.}
 }
