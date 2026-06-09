@@ -120,15 +120,11 @@ is_sd_lhs <- function(lhs) {
 
 is_corpair_lhs <- function(lhs) {
   lhs <- strip_parens(lhs)
-  is.call(lhs) && identical(lhs[[1L]], as.name("corpair"))
+  is.call(lhs) && identical(drm_call_name(lhs), "corpair")
 }
 
 random_scale_lhs_function <- function(lhs) {
-  fun <- lhs[[1L]]
-  if (is.symbol(fun)) {
-    return(as.character(fun))
-  }
-  deparse1(fun)
+  drm_call_name(lhs)
 }
 
 random_scale_lhs_functions <- function() {
@@ -451,7 +447,7 @@ structured_marker_call_name <- function(expr) {
 
 is_structured_marker_call <- function(expr, name) {
   expr <- strip_parens(expr)
-  is.call(expr) && identical(expr[[1L]], as.name(name))
+  is.call(expr) && identical(drm_call_name(expr), name)
 }
 
 parse_structured_marker_call <- function(expr, marker, dpar) {

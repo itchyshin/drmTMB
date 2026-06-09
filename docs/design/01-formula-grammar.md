@@ -42,6 +42,13 @@ Use three status words consistently across documentation:
 In this table, "coscale" means a model for residual correlation, currently
 `rho12` in two-response Gaussian models.
 
+Exported formula markers may be written unqualified after `library(drmTMB)` or
+namespace-qualified as `drmTMB::marker(...)`. The parser normalizes the marker
+call name before matching implemented markers such as `phylo()`, `spatial()`,
+`animal()`, `relmat()`, `phylo_interaction()`, `meta_V()`, `sd_phylo()`, and
+`corpair()`. This is a marker-specific rule; arbitrary namespaced R functions
+are not treated as fitted structured-effect syntax.
+
 | Syntax | Current status | Notes |
 | --- | --- | --- |
 | `drm_formula()` and `bf()` | Implemented | `drm_formula()` is the explicit constructor; `bf()` is a short alias. |

@@ -712,6 +712,40 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631))
 })
 
+test_that("namespaced phylo markers are accepted in bivariate formulas", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  dat <- data.frame(
+    y1 = seq(-0.2, 0.5, length.out = 8L),
+    y2 = seq(0.3, -0.4, length.out = 8L),
+    x = rep(c(-1, 1), 4L),
+    species = rep(tree$tip.label, each = 2L)
+  )
+
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ x + drmTMB::phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + drmTMB::phylo(1 | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 80L, iter.max = 80L)
+    )
+  ))
+
+  expect_s3_class(fit, "drmTMB")
+  expect_named(
+    fit$sdpars$mu,
+    c("mu1:phylo(1 | p | species)", "mu2:phylo(1 | p | species)")
+  )
+  expect_equal(fit$model$structured$phylo_mu$block, "p")
+  expect_equal(fit$model$structured$phylo_mu$type, "phylo")
+})
+
 test_that("bivariate phylogenetic mean correlation recovers simulated signal", {
   sim <- new_biv_phylo_gaussian_data(
     seed = 20260632,
