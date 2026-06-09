@@ -31,6 +31,11 @@ scale and the same analysis rows. Do not compare a model fit to raw counts with
 one fit to transformed counts, or two fits that silently dropped different
 missing rows.
 
+For Gaussian mixed models, use ML (`REML = FALSE`) when AIC or BIC compares
+different fixed-effect formulas. REML is useful for Gaussian variance-component
+estimation inside a fixed mean structure, but the restricted likelihood depends
+on the fixed-effect design that was integrated out.
+
 ```{r setup}
 library(drmTMB)
 
@@ -50,6 +55,85 @@ criterion_table <- function(...) {
   out$delta_AIC <- out$AIC - min(out$AIC)
   out$delta_BIC <- out$BIC - min(out$BIC)
   out
+}
+```
+
+## Gaussian REML After Mean-Model Selection
+
+For Gaussian mixed models, first compare different fixed-effect formulas with
+ML. This example includes a random intercept for repeated measurements and a
+noise predictor `z` that was not used to generate the response.
+
+```{r gaussian-reml-example}
+set.seed(2404)
+n_id <- 12L
+n_each <- 6L
+id <- factor(rep(seq_len(n_id), each = n_each))
+x <- rnorm(n_id * n_each)
+z <- rnorm(n_id * n_each)
+u <- rnorm(n_id, sd = 0.65)
+mixed_dat <- data.frame(
+  id = id,
+  x = x,
+  z = z,
+  y = 0.2 + 0.7 * x + u[id] + rnorm(n_id * n_each, sd = 0.45)
+)
+
+fit_mixed_x_ml <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ 1),
+  family = gaussian(),
+  data = mixed_dat
+)
+
+fit_mixed_x_z_ml <- drmTMB(
+  bf(y ~ x + z + (1 | id), sigma ~ 1),
+  family = gaussian(),
+  data = mixed_dat
+)
+
+criterion_table(`y ~ x` = fit_mixed_x_ml, `y ~ x + z` = fit_mixed_x_z_ml)
+```
+
+Once the fixed-effect mean structure is chosen, refit that structure with
+`REML = TRUE` when the target is Gaussian variance-component estimation. The
+first REML slice covers ordinary univariate Gaussian random intercepts and
+slopes in `mu` with intercept-only `sigma`.
+
+```{r gaussian-reml-fit}
+fit_mixed_x_reml <- drmTMB(
+  bf(y ~ x + (1 | id), sigma ~ 1),
+  family = gaussian(),
+  data = mixed_dat,
+  REML = TRUE
+)
+
+ll_reml <- logLik(fit_mixed_x_reml)
+data.frame(
+  estimator = fit_mixed_x_reml$estimator,
+  restricted_logLik = as.numeric(ll_reml),
+  df = attr(ll_reml, "df"),
+  residual_sigma = unname(sigma(fit_mixed_x_reml)[1]),
+  id_sd = unname(fit_mixed_x_reml$sdpars$mu["(1 | id)"])
+)
+```
+
+When `lme4` is installed, the restricted log likelihood for this overlap model
+matches `lme4::lmer(..., REML = TRUE)`.
+
+```{r gaussian-reml-lme4}
+if (requireNamespace("lme4", quietly = TRUE)) {
+  fit_lme4_reml <- lme4::lmer(
+    y ~ x + (1 | id),
+    data = mixed_dat,
+    REML = TRUE
+  )
+  data.frame(
+    engine = c("drmTMB", "lme4"),
+    restricted_logLik = c(
+      as.numeric(logLik(fit_mixed_x_reml)),
+      as.numeric(logLik(fit_lme4_reml))
+    )
+  )
 }
 ```
 
@@ -239,6 +323,8 @@ Use this sequence when comparing fitted `drmTMB` models:
 
 1. Define the candidate set before looking at AIC/BIC.
 2. Fit all candidates to the same response, row set, offsets, and weights.
+   For Gaussian mixed models with different fixed-effect formulas, keep
+   `REML = FALSE`.
 3. Run `check_drm()` and keep convergence, Hessian status, warnings, and
    boundary diagnostics beside the criterion table.
 4. Exclude errored fits from selection and treat nonconverged or weak-Hessian

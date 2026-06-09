@@ -47,6 +47,11 @@ Implemented comparator smoke tests:
   `lme4::lmer(..., REML = FALSE)`;
 - labelled and unlabelled correlated Gaussian random-slope blocks against
   `lme4::lmer(..., REML = FALSE)`;
+- first-slice Gaussian REML random intercepts and correlated random-slope
+  blocks against `lme4::lmer(..., REML = TRUE)`;
+- unsupported Gaussian REML neighbours, including non-Gaussian families,
+  predictor-dependent `sigma`, known sampling covariance, and direct `sd()`
+  scale formulae;
 - intercept-only Gaussian random-effect scale formulae such as `sd(id) ~ 1`
   against `lme4::lmer(..., REML = FALSE)`;
 - Gaussian fixed-effect and random-intercept location-scale models against

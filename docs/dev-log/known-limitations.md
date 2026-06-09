@@ -75,9 +75,9 @@
   complete count responses. Multiple missing predictors, missing non-Gaussian
   responses, non-binary missing predictors in non-Gaussian response models,
   grouped or structured non-Gaussian predictor models, transformed or
-  interacted `mi()` terms, EM/profile/REML engines, simulation-based imputation
-  summaries, response imputation, measurement-error models, and pigauto
-  interoperability remain planned.
+  interacted `mi()` terms, EM/profile engines, REML for explicit missing-data
+  routes, simulation-based imputation summaries, response imputation,
+  measurement-error models, and pigauto interoperability remain planned.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
