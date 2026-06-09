@@ -355,12 +355,8 @@ drmTMB <- function(
     silent = TRUE
   )
 
-  opt <- stats::nlminb(
-    start = obj$par,
-    objective = obj$fn,
-    gradient = obj$gr,
-    control = control$optimizer
-  )
+  optimizer <- drm_optimize_with_preset_retry(obj, control)
+  opt <- optimizer$opt
   drm_pin_tmb_object_to_optimum(obj, opt)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
@@ -393,10 +389,155 @@ drmTMB <- function(
     df = drm_fit_df(spec, opt),
     nobs = spec$nobs,
     estimator = spec$estimator,
-    REML = isTRUE(REML)
+    REML = isTRUE(REML),
+    optimizer_used = optimizer$selected,
+    optimizer_attempts = optimizer$attempts
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
+}
+
+drm_optimize_with_preset_retry <- function(
+  obj,
+  control,
+  optimizer = stats::nlminb,
+  warn = TRUE
+) {
+  attempt_specs <- drm_optimizer_attempt_specs(control)
+  rows <- vector("list", length(attempt_specs))
+  last_error <- NULL
+
+  for (i in seq_along(attempt_specs)) {
+    spec <- attempt_specs[[i]]
+    elapsed_start <- proc.time()[["elapsed"]]
+    result <- tryCatch(
+      list(
+        ok = TRUE,
+        value = optimizer(
+          start = obj$par,
+          objective = obj$fn,
+          gradient = obj$gr,
+          control = spec$control
+        )
+      ),
+      error = function(e) list(ok = FALSE, value = e)
+    )
+    elapsed <- proc.time()[["elapsed"]] - elapsed_start
+
+    if (isTRUE(result$ok)) {
+      opt <- result$value
+      rows[[i]] <- drm_optimizer_attempt_row(
+        attempt = i,
+        preset = spec$preset,
+        control = spec$control,
+        status = "ok",
+        convergence = opt$convergence,
+        message = opt$message,
+        objective = opt$objective,
+        elapsed_sec = elapsed,
+        selected = TRUE
+      )
+      attempts <- drm_optimizer_attempts_frame(rows[seq_len(i)])
+      selected <- drm_optimizer_selected_record(attempts[i, , drop = FALSE])
+      if (isTRUE(warn) && i > 1L) {
+        cli::cli_warn(c(
+          "{.fn drmTMB} retried {.fn stats::nlminb} after an optimizer error.",
+          "i" = "The selected optimizer preset is {.val {spec$preset}}.",
+          "i" = "Inspect {.code fit$optimizer_attempts} before interpreting the fit."
+        ))
+      }
+      return(list(opt = opt, selected = selected, attempts = attempts))
+    }
+
+    last_error <- result$value
+    rows[[i]] <- drm_optimizer_attempt_row(
+      attempt = i,
+      preset = spec$preset,
+      control = spec$control,
+      status = "error",
+      convergence = NA_integer_,
+      message = conditionMessage(last_error),
+      objective = NA_real_,
+      elapsed_sec = elapsed,
+      selected = FALSE
+    )
+  }
+
+  attempts <- drm_optimizer_attempts_frame(rows)
+  if (nrow(attempts) == 1L) {
+    stop(last_error)
+  }
+  cli::cli_abort(
+    c(
+      "{.fn drmTMB} failed in all {.fn stats::nlminb} optimizer preset attempts.",
+      "i" = "Attempted presets: {.val {attempts$optimizer_preset}}.",
+      "i" = "Inspect model structure, starting values, and data scale before increasing optimizer complexity."
+    ),
+    parent = last_error
+  )
+}
+
+drm_optimizer_attempt_specs <- function(control) {
+  current <- control$optimizer_preset
+  ladder <- c("default", "careful", "robust")
+  current_index <- match(current, ladder)
+  custom_optimizer <- length(control$optimizer) > 0L &&
+    !identical(control$optimizer, drm_control_optimizer(list(), current))
+  if (is.na(current_index) || isTRUE(custom_optimizer)) {
+    return(list(list(preset = current, control = control$optimizer)))
+  }
+  lapply(ladder[current_index:length(ladder)], function(preset) {
+    list(
+      preset = preset,
+      control = drm_control_optimizer(list(), preset)
+    )
+  })
+}
+
+drm_optimizer_attempt_row <- function(
+  attempt,
+  preset,
+  control,
+  status,
+  convergence,
+  message,
+  objective,
+  elapsed_sec,
+  selected
+) {
+  data.frame(
+    attempt = as.integer(attempt),
+    optimizer = "nlminb",
+    optimizer_preset = as.character(preset),
+    status = as.character(status),
+    convergence = as.integer(convergence),
+    message = as.character(if (is.null(message)) NA_character_ else message),
+    objective = as.numeric(objective),
+    elapsed_sec = as.numeric(elapsed_sec),
+    selected = as.logical(selected),
+    stringsAsFactors = FALSE
+  ) |>
+    cbind(control = I(list(control)))
+}
+
+drm_optimizer_attempts_frame <- function(rows) {
+  rows <- Filter(Negate(is.null), rows)
+  out <- do.call(rbind, rows)
+  rownames(out) <- NULL
+  out
+}
+
+drm_optimizer_selected_record <- function(row) {
+  list(
+    optimizer = row$optimizer[[1L]],
+    optimizer_preset = row$optimizer_preset[[1L]],
+    attempt = row$attempt[[1L]],
+    retried = row$attempt[[1L]] > 1L,
+    convergence = row$convergence[[1L]],
+    message = row$message[[1L]],
+    objective = row$objective[[1L]],
+    control = row$control[[1L]]
+  )
 }
 
 drm_apply_estimator_spec <- function(spec, REML = FALSE) {

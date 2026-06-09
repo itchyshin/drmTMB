@@ -40,6 +40,15 @@ and are stored on the fitted object as ordinary optimizer settings. User-supplie
 `optimizer = list(...)` values override the selected preset when a fit needs a
 specific budget.
 
+Issue #506 adds a narrow deterministic preset retry inside the same `nlminb()`
+contract. When a fit starts from `optimizer_preset = "default"` and no explicit
+optimizer controls, `drmTMB()` catches optimizer-call errors, then retries the
+same objective with `"careful"` and `"robust"` budgets. The retry path is not a
+fallback optimizer search: it does not run BFGS, L-BFGS-B, stochastic
+multi-start, or model simplification. A successful retry warns and records the
+selected preset in `fit$optimizer_used`; every attempted preset is recorded in
+`fit$optimizer_attempts`.
+
 For backward compatibility, plain lists remain optimizer-only controls:
 
 ```r

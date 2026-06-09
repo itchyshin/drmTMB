@@ -30,7 +30,106 @@ test_that("optimizer presets are recorded on fitted objects", {
   expect_equal(fit$control$optimizer_preset, "careful")
   expect_equal(fit$control$optimizer$iter.max, 1000L)
   expect_equal(fit$control$optimizer$eval.max, 1000L)
+  expect_equal(fit$optimizer_used$optimizer, "nlminb")
+  expect_equal(fit$optimizer_used$optimizer_preset, "careful")
+  expect_false(fit$optimizer_used$retried)
+  expect_equal(fit$optimizer_attempts$optimizer_preset, "careful")
+  expect_equal(fit$optimizer_attempts$status, "ok")
   expect_equal(fit$uncertainty$status, "skipped")
+})
+
+test_that("default optimizer errors retry larger nlminb presets", {
+  obj <- list(
+    par = c(beta = 1),
+    fn = function(par) sum(par^2),
+    gr = function(par) 2 * par
+  )
+  calls <- list()
+  optimizer <- function(start, objective, gradient, control) {
+    calls[[length(calls) + 1L]] <<- control
+    if (length(calls) == 1L) {
+      stop("NA/NaN gradient evaluation")
+    }
+    list(
+      par = start,
+      objective = objective(start),
+      convergence = 0L,
+      message = "relative convergence (4)",
+      iterations = 1L,
+      evaluations = c("function" = 1L, "gradient" = 1L)
+    )
+  }
+
+  expect_snapshot(
+    result <- drmTMB:::drm_optimize_with_preset_retry(
+      obj,
+      drm_control(),
+      optimizer = optimizer
+    )
+  )
+
+  expect_equal(length(calls), 2L)
+  expect_equal(calls[[1L]], list())
+  expect_equal(calls[[2L]], list(iter.max = 1000L, eval.max = 1000L))
+  expect_equal(result$selected$optimizer, "nlminb")
+  expect_equal(result$selected$optimizer_preset, "careful")
+  expect_true(result$selected$retried)
+  expect_equal(result$attempts$optimizer_preset, c("default", "careful"))
+  expect_equal(result$attempts$status, c("error", "ok"))
+  expect_false(result$attempts$selected[[1L]])
+  expect_true(result$attempts$selected[[2L]])
+})
+
+test_that("custom optimizer controls do not enter the preset retry ladder", {
+  obj <- list(
+    par = c(beta = 1),
+    fn = function(par) sum(par^2),
+    gr = function(par) 2 * par
+  )
+  calls <- list()
+  optimizer <- function(start, objective, gradient, control) {
+    calls[[length(calls) + 1L]] <<- control
+    stop("NA/NaN gradient evaluation")
+  }
+
+  expect_snapshot(
+    drmTMB:::drm_optimize_with_preset_retry(
+      obj,
+      drm_control(optimizer = list(eval.max = 10L)),
+      optimizer = optimizer
+    ),
+    error = TRUE
+  )
+
+  expect_equal(length(calls), 1L)
+  expect_equal(calls[[1L]], list(eval.max = 10L))
+})
+
+test_that("preset retry reports failure after all larger presets fail", {
+  obj <- list(
+    par = c(beta = 1),
+    fn = function(par) sum(par^2),
+    gr = function(par) 2 * par
+  )
+  calls <- list()
+  optimizer <- function(start, objective, gradient, control) {
+    calls[[length(calls) + 1L]] <<- control
+    stop("NA/NaN gradient evaluation")
+  }
+
+  expect_snapshot(
+    drmTMB:::drm_optimize_with_preset_retry(
+      obj,
+      drm_control(),
+      optimizer = optimizer
+    ),
+    error = TRUE
+  )
+
+  expect_equal(length(calls), 3L)
+  expect_equal(calls[[1L]], list())
+  expect_equal(calls[[2L]], list(iter.max = 1000L, eval.max = 1000L))
+  expect_equal(calls[[3L]], list(iter.max = 5000L, eval.max = 5000L))
 })
 
 test_that("future optimizer contract names are reserved in plain control lists", {

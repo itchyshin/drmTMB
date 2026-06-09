@@ -15,6 +15,14 @@
 #' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
 #' the selected preset.
 #'
+#' When the selected preset uses the standard `nlminb()` budget and no explicit
+#' optimizer controls, `drmTMB()` retries with the next larger deterministic
+#' preset if the optimizer raises an error such as a non-finite gradient
+#' evaluation. A successful retry warns and records the selected preset in
+#' `fit$optimizer_used` and every attempted preset in `fit$optimizer_attempts`.
+#' Fits with nonzero convergence codes still return for diagnostic inspection;
+#' they are not silently retried.
+#'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
 #' @param se Logical; compute standard errors and fixed-effect covariance with

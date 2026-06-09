@@ -53135,3 +53135,58 @@ Results:
   expectations, no failures, warnings, or skips.
 - Issue #505 was verified as already fixed on current `main`, commented with
   `drm_control(se = TRUE)` and targeted-test evidence, and closed as completed.
+
+## 2026-06-09: Optimizer Preset Error Retry
+
+Scope:
+
+- Implemented issue #506 as a narrow deterministic `nlminb()` preset retry:
+  default no-custom-control optimizer-call errors retry `"careful"` and then
+  `"robust"` before failing.
+- Added `fit$optimizer_used` for the selected optimizer preset and
+  `fit$optimizer_attempts` for every attempted preset.
+- Kept nonzero convergence-code fits as returned diagnostic objects rather than
+  silently rerunning them, and kept alternative optimizers such as BFGS or
+  L-BFGS-B in the planned fallback-optimizer contract.
+- Updated `?drm_control`, the convergence vignette, NEWS, ROADMAP, and the
+  optimizer/start/map design note.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript -e 'devtools::test(filter = "control|optimizer-contract", reporter = "summary")'
+Rscript -e 'devtools::document()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = TRUE); cat("convergence_render_ok\n")'
+Rscript - <<'EOF'
+res <- utils::capture.output(tools::checkRd("man/drm_control.Rd"))
+res <- res[nzchar(trimws(res))]
+if (length(res)) {
+  cat(res, sep = "\n")
+  quit(status = 1L)
+}
+cat("drm_control_checkRd_ok\n")
+EOF
+rg -n 'fallback optimizer.*automatic|fallback optimizers.*automatic|fallback refits.*automatic|BFGS.*automatic|L-BFGS-B.*automatic|optimizer_attempts|optimizer_used|optimizer preset retry|non-finite gradient|NA/NaN gradient' NEWS.md R/control.R R/drmTMB.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md vignettes/convergence.Rmd man/drm_control.Rd tests/testthat/test-optimizer-contract.R
+git diff --check
+Rscript -e 'devtools::test(reporter = "summary")'
+Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+```
+
+Results:
+
+- Focused optimizer tests passed after adding snapshots for the retry warning,
+  explicit-control error, and all-presets-fail error.
+- Combined `control|optimizer-contract` tests passed, including existing
+  missing-data control checks.
+- `devtools::document()` regenerated `man/drm_control.Rd`.
+- The convergence vignette rendered with `convergence_render_ok`.
+- `tools::checkRd("man/drm_control.Rd")` printed
+  `drm_control_checkRd_ok`.
+- The stale-wording scan found the new `fit$optimizer_used` /
+  `fit$optimizer_attempts` wording and retained planned alternative-optimizer
+  fallback wording only where the text distinguishes it from preset retry.
+- `git diff --check` reported no whitespace problems.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
