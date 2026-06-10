@@ -1122,6 +1122,22 @@ predict.drmTMB_julia <- function(
 # ---------------------------------------------------------------------------
 
 # R family -> DRM family tag. NULL means "not a cross-family-supported axis".
+#
+# Tier-1 axes (Gaussian / Poisson / Binomial) and Tier-2 axes (NB2 / Beta /
+# Gamma) are both keyed off base-R `family` objects (class "family"), because
+# the cross-family route is composed via `drm_composed_families()` /
+# `is_r_family_object()`. The link guard for each axis matches the link the
+# DRM.jl `_mf_obs_ll` likelihood assumes: log mean for Poisson / NB2 / Gamma,
+# logit mean for Binomial / Beta, identity for Gaussian. DRM.jl fits each
+# axis's dispersion internally (log sigma for Gaussian/Beta/Gamma, log size
+# for NB2) and returns it, so there is no R-side dispersion to pass in.
+#
+# Constructors that produce the required base-R `family` objects:
+#   gaussian()  poisson()  binomial()                       (Tier 1, stats)
+#   glmmTMB::nbinom2()                  -> family "nbinom2"  (Tier 2, NB2)
+#   MASS::negative.binomial(theta)      -> family "Negative Binomial(theta)"
+#   glmmTMB::beta_family()              -> family "beta"     (Tier 2, Beta)
+#   Gamma(link = "log")                 -> family "Gamma"    (Tier 2, Gamma)
 drm_julia_xfam_family_tag <- function(family) {
   if (!is_r_family_object(family)) {
     return(NULL)
@@ -1141,7 +1157,36 @@ drm_julia_xfam_family_tag <- function(family) {
     }
     return("binomial")
   }
+  if (identical(family$family, "nbinom2") || drm_is_nbinom_family(family)) {
+    if (!identical(family$link, "log")) {
+      return(NULL)
+    }
+    return("nbinom2")
+  }
+  if (identical(family$family, "beta")) {
+    if (!identical(family$link, "logit")) {
+      return(NULL)
+    }
+    return("beta")
+  }
+  if (identical(family$family, "Gamma")) {
+    # DRM.jl's Gamma axis uses a log mean link; base R Gamma() defaults to
+    # "inverse", so only the log-link Gamma composes here.
+    if (!identical(family$link, "log")) {
+      return(NULL)
+    }
+    return("gamma")
+  }
   NULL
+}
+
+# MASS::negative.binomial(theta) tags its family as "Negative Binomial(<theta>)"
+# rather than "nbinom2". Treat any such object as an NB2 axis; DRM.jl re-fits the
+# size parameter, so the embedded theta is not used.
+drm_is_nbinom_family <- function(family) {
+  is.character(family$family) &&
+    length(family$family) == 1L &&
+    grepl("^Negative Binomial", family$family)
 }
 
 # TRUE when `family` is a two-element composed family that the cross-family
@@ -1323,6 +1368,9 @@ drm_julia_xfam_helper_source <- function() {
     "    _fam(s) = s == \"gaussian\" ? DRM.Gaussian() :",
     "             s == \"poisson\"  ? DRM.Poisson() :",
     "             s == \"binomial\" ? DRM.Binomial() :",
+    "             s == \"nbinom2\"  ? DRM.NegBinomial2() :",
+    "             s == \"beta\"     ? DRM.Beta() :",
+    "             s == \"gamma\"    ? DRM.Gamma() :",
     "             error(\"unsupported cross-family tag: \" * s)",
     "    r = DRM.fit_mixed_family(; y1 = Float64.(vec(y1)), X1 = Float64.(X1), fam1 = _fam(fam1),",
     "                               y2 = Float64.(vec(y2)), X2 = Float64.(X2), fam2 = _fam(fam2),",

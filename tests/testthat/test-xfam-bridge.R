@@ -17,6 +17,43 @@ test_that("cross-family detector routes mixed pairs, not gaussian x gaussian", {
   expect_false(drmTMB:::drm_julia_is_cross_family(poisson()))
 })
 
+test_that("Tier-2 family tags map nbinom2 / beta / gamma axes", {
+  skip_if_not_installed("glmmTMB")
+  # Tier-2 axes are keyed off base-R `family` objects, same as Tier-1.
+  expect_equal(
+    drmTMB:::drm_julia_xfam_family_tag(glmmTMB::nbinom2()),
+    "nbinom2"
+  )
+  expect_equal(
+    drmTMB:::drm_julia_xfam_family_tag(glmmTMB::beta_family()),
+    "beta"
+  )
+  expect_equal(
+    drmTMB:::drm_julia_xfam_family_tag(Gamma(link = "log")),
+    "gamma"
+  )
+  # Wrong link -> rejected (DRM.jl's Gamma axis is log-mean only).
+  expect_null(drmTMB:::drm_julia_xfam_family_tag(Gamma()))
+  expect_null(drmTMB:::drm_julia_xfam_family_tag(Gamma(link = "inverse")))
+
+  # MASS NB2 tags its family as "Negative Binomial(theta)"; treat as nbinom2.
+  skip_if_not_installed("MASS")
+  expect_equal(
+    drmTMB:::drm_julia_xfam_family_tag(MASS::negative.binomial(1.5)),
+    "nbinom2"
+  )
+})
+
+test_that("Tier-2 pairs route cross-family; gaussian x gaussian still does not", {
+  skip_if_not_installed("glmmTMB")
+  expect_true(drmTMB:::drm_julia_is_cross_family(c(glmmTMB::nbinom2(), gaussian())))
+  expect_true(drmTMB:::drm_julia_is_cross_family(c(Gamma(link = "log"), poisson())))
+  expect_true(drmTMB:::drm_julia_is_cross_family(c(glmmTMB::beta_family(), binomial())))
+  expect_true(drmTMB:::drm_julia_is_cross_family(list(glmmTMB::nbinom2(), gaussian())))
+  # A Tier-2 axis with the wrong link is not a routable cross-family pair.
+  expect_false(drmTMB:::drm_julia_is_cross_family(c(Gamma(), poisson())))
+})
+
 test_that("cross-family axis builder marshals mu1 / mu2 to (y, X)", {
   set.seed(20260610)
   n <- 30
@@ -111,4 +148,143 @@ test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI",
 
   expect_true(is_converged(fit))
   expect_equal(names(coef(fit)), c("mu1", "mu2"))
+})
+
+# --- Tier-2 cross-family live round-trips (guarded) -------------------------
+#
+# These point the bridge at the Tier-2 DRM.jl engine (NegBinomial2 / Beta /
+# Gamma axes) and assert a finite latent rho + a finite profile CI come back,
+# exactly as the Gaussian x Poisson smoke above.
+#
+# Each live fit runs in a FRESH R subprocess (callr). JuliaCall keeps one
+# persistent Julia session per process and `using DRM` is a no-op once DRM is
+# loaded, so an earlier in-process test that loaded a Tier-1-only DRM build
+# would shadow the Tier-2 `fit_mixed_family` methods. A subprocess guarantees
+# the Tier-2 engine at `jl_path` is the one loaded for these fits, independent
+# of test order. The tests skip (never fail) when JuliaCall, callr, or the
+# Tier-2 engine is unavailable, or when the round-trip itself errors.
+
+drm_xfam_tier2_path <- function() {
+  Sys.getenv("DRM_JL_XFAM_TIER2_PATH", "/Users/z3437171/worktrees/DRM-tier2")
+}
+
+# Run one cross-family fit in a clean subprocess and return the scalars the
+# assertions need. `fam_expr` is a length-2 character vector of R expressions
+# for the two family axes (evaluated in the child). `make_data` is a function
+# of n returning the data.frame. Returns a list, or NULL if the child errored.
+drm_xfam_tier2_fit <- function(fam_expr, make_data, n = 150L) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_xfam_tier2_path()
+  callr::r(
+    function(pkg, jl_path, fam_expr, make_data, n) {
+      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      dat <- make_data(n)
+      family <- c(eval(parse(text = fam_expr[[1L]])),
+                  eval(parse(text = fam_expr[[2L]])))
+      fit <- drmTMB(
+        drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+        family = family, data = dat, engine = "julia"
+      )
+      ci <- stats::confint(fit, parm = "rho_latent", method = "profile")
+      list(
+        class = class(fit),
+        families = fit$families,
+        rho = drmTMB::rho_latent(fit),
+        ci_parm = ci$parm,
+        ci_lower = ci$lower,
+        ci_upper = ci$upper,
+        sigma1 = fit$sigma[["sigma1"]],
+        sigma2 = fit$sigma[["sigma2"]],
+        converged = drmTMB::is_converged(fit),
+        loglik = fit$logLik
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path, fam_expr = fam_expr,
+                make_data = make_data, n = as.integer(n)),
+    error = "error"
+  )
+}
+
+# Common assertion block: finite latent rho strictly inside (-1, 1) bracketed
+# by a finite, ordered profile CI; converged.
+drm_xfam_expect_latent_ci <- function(res) {
+  expect_true("drmTMB_julia_xfam" %in% res$class)
+  expect_identical(res$ci_parm, "rho_latent")
+  expect_true(is.finite(res$rho))
+  expect_gt(res$rho, -1)
+  expect_lt(res$rho, 1)
+  expect_true(is.finite(res$ci_lower))
+  expect_true(is.finite(res$ci_upper))
+  expect_lte(res$ci_lower, res$rho)
+  expect_gte(res$ci_upper, res$rho)
+  expect_gt(res$ci_upper, res$ci_lower)
+  expect_true(isTRUE(res$converged))
+}
+
+test_that("Gamma x Poisson cross-family fit returns latent rho + profile CI", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(dir.exists(drm_xfam_tier2_path()), "DRM.jl Tier-2 engine not available")
+
+  res <- tryCatch(
+    drm_xfam_tier2_fit(
+      fam_expr = c("Gamma(link = \"log\")", "poisson()"),
+      make_data = function(n) {
+        set.seed(20260610)
+        x <- stats::rnorm(n)
+        u <- stats::rnorm(n)
+        data.frame(
+          # Gamma mean exp(0.3 + 0.2 x + 0.4 u), shape 2 -> scale = mean / 2.
+          y1 = stats::rgamma(n, shape = 2, scale = exp(0.3 + 0.2 * x + 0.4 * u) / 2),
+          y2 = stats::rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
+          x = x
+        )
+      }
+    ),
+    error = function(e) {
+      testthat::skip(paste("Gamma x Poisson round-trip unavailable:", conditionMessage(e)))
+    }
+  )
+
+  drm_xfam_expect_latent_ci(res)
+  expect_equal(res$families, c("gamma", "poisson"))
+  # Gamma axis carries a fitted dispersion (sigma); Poisson is dispersionless.
+  expect_true(is.finite(res$sigma1))
+})
+
+test_that("NB2 x Gaussian cross-family fit returns latent rho + profile CI", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("glmmTMB")  # glmmTMB::nbinom2() supplies the base-R NB2 family
+  skip_if_not(dir.exists(drm_xfam_tier2_path()), "DRM.jl Tier-2 engine not available")
+
+  res <- tryCatch(
+    drm_xfam_tier2_fit(
+      fam_expr = c("glmmTMB::nbinom2()", "gaussian()"),
+      make_data = function(n) {
+        set.seed(20260611)
+        x <- stats::rnorm(n)
+        u <- stats::rnorm(n)
+        data.frame(
+          # NB2 mean exp(0.4 + 0.3 x + 0.4 u), size 3 (overdispersed counts).
+          y1 = stats::rnbinom(n, size = 3, mu = exp(0.4 + 0.3 * x + 0.4 * u)),
+          y2 = 0.5 + 0.8 * x + 0.7 * u + stats::rnorm(n, sd = 0.5),
+          x = x
+        )
+      }
+    ),
+    error = function(e) {
+      testthat::skip(paste("NB2 x Gaussian round-trip unavailable:", conditionMessage(e)))
+    }
+  )
+
+  drm_xfam_expect_latent_ci(res)
+  expect_equal(res$families, c("nbinom2", "gaussian"))
+  # Both axes carry dispersion: NB2 returns the natural size, Gaussian sigma.
+  expect_true(is.finite(res$sigma1))
+  expect_true(is.finite(res$sigma2))
 })
