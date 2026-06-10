@@ -29,6 +29,19 @@ drmTMB_julia_bridge <- function(
   missing,
   call
 ) {
+  if (drm_julia_is_cross_family(family)) {
+    return(drmTMB_julia_xfam_bridge(
+      formula = formula,
+      family = family,
+      data = data,
+      env = env,
+      weights_missing = weights_missing,
+      control = control,
+      impute = impute,
+      missing = missing,
+      call = call
+    ))
+  }
   if (!isTRUE(weights_missing)) {
     cli::cli_abort(
       "{.code engine = \"julia\"} does not support {.arg weights} yet."
@@ -550,6 +563,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads)"
     )
   )
+  JuliaCall::julia_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
   invisible(TRUE)
@@ -1092,5 +1106,404 @@ predict.drmTMB_julia <- function(
   }
   cli::cli_abort(
     "{.fn predict} for {.code engine = \"julia\"} has no stored response-scale values for {.arg dpar = \"{dpar}\"} yet."
+  )
+}
+
+# ---------------------------------------------------------------------------
+# Cross-family bivariate route (engine = "julia").
+#
+# Routes `family = c(faA, faB)` with faA / faB possibly DIFFERENT (e.g.
+# c(poisson(), gaussian())) to DRM.fit_mixed_family, which fits
+#   y1 ~ famA(eta1), y2 ~ famB(eta2),  eta_k = X_k beta_k + lambda_k u,  u ~ N(0, 1)
+# and reports the dependence on the latent / link scale (Nakagawa & Schielzeth
+# 2010). The Gaussian x Gaussian pair keeps the verified residual-rho12
+# biv_gaussian route; this cross-family path is taken only when at least one
+# axis is non-Gaussian. The TMB path never reaches here.
+# ---------------------------------------------------------------------------
+
+# R family -> DRM family tag. NULL means "not a cross-family-supported axis".
+drm_julia_xfam_family_tag <- function(family) {
+  if (!is_r_family_object(family)) {
+    return(NULL)
+  }
+  if (identical(family$family, "gaussian")) {
+    return("gaussian")
+  }
+  if (identical(family$family, "poisson")) {
+    if (!identical(family$link, "log")) {
+      return(NULL)
+    }
+    return("poisson")
+  }
+  if (identical(family$family, "binomial")) {
+    if (!identical(family$link, "logit")) {
+      return(NULL)
+    }
+    return("binomial")
+  }
+  NULL
+}
+
+# TRUE when `family` is a two-element composed family that the cross-family
+# Julia route should handle, i.e. both axes map to DRM families and the pair is
+# NOT gaussian x gaussian (which keeps the verified biv_gaussian route).
+drm_julia_is_cross_family <- function(family) {
+  composed <- drm_composed_families(family)
+  if (is.null(composed) || length(composed) != 2L) {
+    return(FALSE)
+  }
+  tags <- lapply(composed, drm_julia_xfam_family_tag)
+  if (any(vapply(tags, is.null, logical(1L)))) {
+    return(FALSE)
+  }
+  tags <- vapply(tags, identity, character(1L))
+  !identical(tags, c("gaussian", "gaussian"))
+}
+
+drmTMB_julia_xfam_bridge <- function(
+  formula,
+  family,
+  data,
+  env,
+  weights_missing,
+  control,
+  impute,
+  missing,
+  call
+) {
+  if (!isTRUE(weights_missing)) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg weights} yet."
+    )
+  }
+  if (!is.null(impute)) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg impute} yet."
+    )
+  }
+  missing_control <- drm_parse_missing_control(missing)
+  if (
+    !identical(missing_control$response, "drop") ||
+      !identical(missing_control$predictor, "fail")
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg missing} routes yet.",
+      i = "Cross-family bivariate fits currently require complete responses and predictors."
+    ))
+  }
+  if (!drm_julia_default_control(control)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models currently accept only default {.arg control}.",
+      i = "TMB optimizer / storage / sparse controls do not apply to the cross-family latent engine."
+    ))
+  }
+
+  composed <- drm_composed_families(family)
+  tags <- vapply(composed, drm_julia_xfam_family_tag, character(1L))
+  axes <- drm_julia_xfam_axes(formula = formula, data = data, env = env)
+
+  result <- drm_julia_call_xfam(
+    y1 = axes$mu1$y,
+    X1 = axes$mu1$X,
+    fam1 = tags[[1L]],
+    y2 = axes$mu2$y,
+    X2 = axes$mu2$X,
+    fam2 = tags[[2L]]
+  )
+
+  new_drmTMB_julia_xfam(
+    result = result,
+    call = call,
+    formula = formula,
+    family = family,
+    families = tags,
+    axes = axes,
+    data = data
+  )
+}
+
+# Build the (y, X) design for the mu1 and mu2 location formulas. Mirrors the
+# native biv_gaussian extraction: each location entry carries a response and an
+# RHS, which we turn into `response ~ rhs` and pass through model.frame /
+# model.matrix on complete cases.
+drm_julia_xfam_axes <- function(formula, data, env) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+
+  unsupported <- setdiff(unique(dpars), c("mu1", "mu2"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models currently support only {.code mu1} and {.code mu2} location formulas.",
+      x = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      i = "Scale ({.code sigma1} / {.code sigma2}) and correlation ({.code rho12}) formulas are not wired into the cross-family latent engine yet."
+    ))
+  }
+  for (required in c("mu1", "mu2")) {
+    if (sum(dpars == required) != 1L) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} cross-family models require exactly one {.code {required}} formula."
+      )
+    }
+  }
+
+  mu1 <- drm_julia_xfam_axis(entries[[which(dpars == "mu1")]], data, env, "mu1")
+  mu2 <- drm_julia_xfam_axis(entries[[which(dpars == "mu2")]], data, env, "mu2")
+  if (length(mu1$y) != length(mu2$y)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family responses must have equal length after dropping missing rows.",
+      x = "{.code mu1} has {length(mu1$y)} complete row{?s}; {.code mu2} has {length(mu2$y)}.",
+      i = "Cross-family fits do not yet support per-axis missingness."
+    ))
+  }
+  list(mu1 = mu1, mu2 = mu2)
+}
+
+drm_julia_xfam_axis <- function(entry, data, env, dpar) {
+  if (is.na(entry$response)) {
+    cli::cli_abort(
+      "The {.code {dpar}} formula must include a response on the left-hand side."
+    )
+  }
+  rhs <- deparse1(entry$rhs)
+  f <- stats::as.formula(
+    paste(entry$response, "~", rhs),
+    env = env
+  )
+  mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
+  y <- as.numeric(stats::model.response(mf))
+  X <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf)),
+    mf
+  )
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain for {.code {dpar}} after dropping missing rows."
+    )
+  }
+  list(
+    response = entry$response,
+    y = y,
+    X = X,
+    coef_names = colnames(X)
+  )
+}
+
+drm_julia_call_xfam <- function(y1, X1, fam1, y2, X2, fam2) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models require the {.pkg JuliaCall} package.",
+      i = "Install it with {.code install.packages(\"JuliaCall\")}, then retry."
+    ))
+  }
+  drm_julia_setup()
+  JuliaCall::julia_call(
+    "drmTMB_mixed_family",
+    as.double(y1),
+    drm_julia_as_matrix(X1),
+    fam1,
+    as.double(y2),
+    drm_julia_as_matrix(X2),
+    fam2
+  )
+}
+
+drm_julia_as_matrix <- function(x) {
+  out <- as.matrix(x)
+  storage.mode(out) <- "double"
+  dimnames(out) <- NULL
+  out
+}
+
+# Julia-side helper, registered once in drm_julia_setup(). Maps family tag
+# strings to DRM family instances and calls DRM.fit_mixed_family with the
+# profile-likelihood CI on the latent-scale correlation.
+drm_julia_xfam_helper_source <- function() {
+  paste(
+    "function drmTMB_mixed_family(y1, X1, fam1::AbstractString, y2, X2, fam2::AbstractString)",
+    "    _fam(s) = s == \"gaussian\" ? DRM.Gaussian() :",
+    "             s == \"poisson\"  ? DRM.Poisson() :",
+    "             s == \"binomial\" ? DRM.Binomial() :",
+    "             error(\"unsupported cross-family tag: \" * s)",
+    "    r = DRM.fit_mixed_family(; y1 = Float64.(vec(y1)), X1 = Float64.(X1), fam1 = _fam(fam1),",
+    "                               y2 = Float64.(vec(y2)), X2 = Float64.(X2), fam2 = _fam(fam2),",
+    "                               profile = true, B = 0)",
+    "    return Dict{String,Any}(",
+    "        \"rho_latent\"        => r.rho_latent,",
+    "        \"rho_ci_wald_lower\" => r.rho_ci_wald[1],",
+    "        \"rho_ci_wald_upper\" => r.rho_ci_wald[2],",
+    "        \"rho_ci_prof_lower\" => r.rho_ci_profile[1],",
+    "        \"rho_ci_prof_upper\" => r.rho_ci_profile[2],",
+    "        \"beta1\"             => collect(r.β1),",
+    "        \"beta2\"             => collect(r.β2),",
+    "        \"lambda1\"           => r.λ1,",
+    "        \"lambda2\"           => r.λ2,",
+    "        \"sigma1\"            => r.σ1,",
+    "        \"sigma2\"            => r.σ2,",
+    "        \"loglik\"            => r.loglik,",
+    "        \"converged\"         => r.converged,",
+    "        \"iterations\"        => r.iterations)",
+    "end",
+    sep = "\n"
+  )
+}
+
+new_drmTMB_julia_xfam <- function(
+  result,
+  call,
+  formula,
+  family,
+  families,
+  axes,
+  data
+) {
+  result <- as.list(result)
+  scalar <- function(x) as.numeric(x)[[1L]]
+  rho_latent <- scalar(result$rho_latent)
+  rho_ci_wald <- c(
+    lower = scalar(result$rho_ci_wald_lower),
+    upper = scalar(result$rho_ci_wald_upper)
+  )
+  rho_ci_profile <- c(
+    lower = scalar(result$rho_ci_prof_lower),
+    upper = scalar(result$rho_ci_prof_upper)
+  )
+
+  coefficients <- list(
+    mu1 = stats::setNames(
+      as.numeric(unlist(result$beta1, use.names = FALSE)),
+      axes$mu1$coef_names
+    ),
+    mu2 = stats::setNames(
+      as.numeric(unlist(result$beta2, use.names = FALSE)),
+      axes$mu2$coef_names
+    )
+  )
+
+  out <- list(
+    call = call,
+    formula = formula,
+    family = family,
+    families = families,
+    data = data,
+    engine = "julia",
+    model = list(
+      model_type = "cross_family",
+      families = families,
+      responses = c(axes$mu1$response, axes$mu2$response),
+      dpars = c("mu1", "mu2")
+    ),
+    bridge = result,
+    coefficients = coefficients,
+    loadings = c(
+      lambda1 = scalar(result$lambda1),
+      lambda2 = scalar(result$lambda2)
+    ),
+    sigma = c(
+      sigma1 = scalar(result$sigma1),
+      sigma2 = scalar(result$sigma2)
+    ),
+    rho_latent = rho_latent,
+    rho_ci_wald = rho_ci_wald,
+    rho_ci_profile = rho_ci_profile,
+    logLik = scalar(result$loglik),
+    nobs = length(axes$mu1$y),
+    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L)
+  )
+  class(out) <- c("drmTMB_julia_xfam", "drmTMB_julia")
+  out
+}
+
+#' @export
+print.drmTMB_julia_xfam <- function(x, ...) {
+  cli::cli_text("<drmTMB Julia-engine cross-family fit>")
+  cli::cli_text(
+    "  families: {x$families[[1]]} × {x$families[[2]]}"
+  )
+  cli::cli_text("  observations: {x$nobs}")
+  cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  cli::cli_text(
+    "  latent rho: {format(x$rho_latent, digits = 4)}"
+  )
+  cli::cli_text("  convergence: {x$opt$convergence}")
+  invisible(x)
+}
+
+#' @export
+coef.drmTMB_julia_xfam <- function(object, dpar = NULL, ...) {
+  if (is.null(dpar)) {
+    return(object$coefficients)
+  }
+  dpar <- match.arg(dpar, names(object$coefficients))
+  object$coefficients[[dpar]]
+}
+
+#' @export
+logLik.drmTMB_julia_xfam <- function(object, ...) {
+  out <- object$logLik
+  attr(out, "nobs") <- object$nobs
+  class(out) <- "logLik"
+  out
+}
+
+#' @export
+nobs.drmTMB_julia_xfam <- function(object, ...) {
+  object$nobs
+}
+
+#' @export
+is_converged.drmTMB_julia_xfam <- function(object, include_hessian = FALSE, ...) {
+  isTRUE(object$opt$convergence == 0L)
+}
+
+#' Latent-scale correlation from a cross-family Julia fit
+#'
+#' @param object A `drmTMB_julia_xfam` cross-family fit.
+#' @param ... Unused.
+#' @return The latent / link-scale correlation between the two responses.
+#' @export
+rho_latent <- function(object, ...) {
+  UseMethod("rho_latent")
+}
+
+#' @export
+rho_latent.drmTMB_julia_xfam <- function(object, ...) {
+  object$rho_latent
+}
+
+#' @export
+confint.drmTMB_julia_xfam <- function(
+  object,
+  parm = "rho_latent",
+  level = 0.95,
+  method = c("profile", "wald"),
+  ...
+) {
+  method <- match.arg(method)
+  if (!identical(level, 0.95)) {
+    cli::cli_abort(c(
+      "Cross-family Julia fits currently return a fixed 95% interval for {.code rho_latent}.",
+      i = "The latent-correlation CIs are computed at {.code level = 0.95} inside DRM.fit_mixed_family."
+    ))
+  }
+  if (!is.null(parm) && !identical(parm, "rho_latent")) {
+    cli::cli_abort(c(
+      "Cross-family Julia fits currently expose a confidence interval only for {.code rho_latent}.",
+      i = "Use {.code parm = \"rho_latent\"} (the latent-scale residual correlation)."
+    ))
+  }
+  interval <- if (identical(method, "profile")) {
+    object$rho_ci_profile
+  } else {
+    object$rho_ci_wald
+  }
+  data.frame(
+    parm = "rho_latent",
+    level = level,
+    lower = unname(interval[["lower"]]),
+    upper = unname(interval[["upper"]]),
+    scale = "latent",
+    method = method,
+    stringsAsFactors = FALSE,
+    row.names = NULL
   )
 }
