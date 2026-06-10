@@ -363,6 +363,107 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   expect_true(is.nan(stats::vcov(fit_partial)[3, 3]))
 })
 
+test_that("engine = 'julia' permits Gaussian response-missing rows", {
+  calls <- list()
+  testthat::local_mocked_bindings(
+    drm_julia_call_bridge = function(
+      formula,
+      family,
+      data,
+      tree = NULL,
+      options = list()
+    ) {
+      calls[[length(calls) + 1L]] <<- list(
+        formula = formula,
+        family = family,
+        data = data,
+        tree = tree,
+        options = options
+      )
+      if (identical(family, "biv_gaussian")) {
+        n <- length(data$y1)
+        return(list(
+          coef_names = c(
+            "mu1_(Intercept)", "mu1_x", "mu2_(Intercept)", "mu2_x",
+            "sigma1_(Intercept)", "sigma2_(Intercept)", "rho12_(Intercept)"
+          ),
+          coefficients = c(0.1, 0.2, -0.1, 0.3, -0.2, -0.3, 0.25),
+          vcov = diag(rep(0.01, 7L)),
+          loglik = -15,
+          aic = 44,
+          bic = 48,
+          df = 7L,
+          nobs = n - 1L,
+          converged = TRUE,
+          fitted = list(mu1 = seq_len(n), mu2 = seq_len(n) + 1),
+          residuals = list(mu1 = c(0, NaN, rep(0, n - 2L)), mu2 = rep(0, n)),
+          sigma = list(
+            sigma1 = rep(0.8, n),
+            sigma2 = rep(0.9, n),
+            rho12 = rep(0.2, n)
+          ),
+          corpairs = rep(0.2, n)
+        ))
+      }
+      n <- length(data$y)
+      list(
+        coef_names = c("mu_(Intercept)", "mu_x", "sigma_(Intercept)"),
+        coefficients = c(0.1, 0.4, -0.2),
+        vcov = diag(c(0.01, 0.02, 0.03)),
+        loglik = -10,
+        aic = 26,
+        bic = 28,
+        df = 3L,
+        nobs = n - 1L,
+        converged = TRUE,
+        fitted = seq_len(n),
+        residuals = c(0, NaN, rep(0, n - 2L)),
+        sigma = rep(0.8, n),
+        corpairs = list()
+      )
+    },
+    .package = "drmTMB"
+  )
+
+  dat <- data.frame(y = c(1, NA, 3, 4), x = c(-1, 0, 1, 2))
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    data = dat,
+    engine = "julia",
+    missing = miss_control(response = "include")
+  )
+  expect_s3_class(fit, "drmTMB_julia")
+  expect_equal(calls[[1L]]$family, "gaussian")
+  expect_true(is.na(calls[[1L]]$data$y[[2L]]))
+  expect_equal(stats::nobs(fit), 3L)
+  expect_true(is.nan(stats::residuals(fit)[[2L]]))
+
+  bdat <- data.frame(
+    y1 = c(1, NA, 3, 4),
+    y2 = c(2, 3, NA, 5),
+    x = c(-1, 0, 1, 2)
+  )
+  bfit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = bdat,
+    engine = "julia",
+    missing = miss_control(response = "include")
+  )
+  expect_s3_class(bfit, "drmTMB_julia")
+  expect_equal(calls[[2L]]$family, "biv_gaussian")
+  expect_true(is.na(calls[[2L]]$data$y1[[2L]]))
+  expect_true(is.na(calls[[2L]]$data$y2[[3L]]))
+  expect_equal(stats::nobs(bfit), 3L)
+  expect_equal(length(stats::fitted(bfit)$mu1), 4L)
+})
+
 test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
   dat <- data.frame(y = 1:4, x = c(-1, 0, 1, 2))
 
@@ -392,6 +493,25 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
       engine = "julia"
     ),
     "only Gaussian"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      data = dat,
+      engine = "julia",
+      missing = miss_control(predictor = "model")
+    ),
+    "missing-predictor"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      family = nbinom2(),
+      data = dat,
+      engine = "julia",
+      missing = miss_control(response = "include")
+    ),
+    "only for Gaussian"
   )
   expect_error(
     drmTMB(

@@ -40,13 +40,20 @@ drmTMB_julia_bridge <- function(
     )
   }
   missing_control <- drm_parse_missing_control(missing)
+  family_type <- drm_family_type(family)
+  if (!identical(missing_control$predictor, "fail")) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support missing-predictor routes yet.",
+      i = "Use the native {.code engine = \"tmb\"} path for {.code mi()} / {.arg impute} models."
+    ))
+  }
   if (
-    !identical(missing_control$response, "drop") ||
-      !identical(missing_control$predictor, "fail")
+    identical(missing_control$response, "include") &&
+      !family_type %in% c("gaussian", "biv_gaussian")
   ) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} does not support {.arg missing} routes yet.",
-      i = "Use the native {.code engine = \"tmb\"} path for missing-data models."
+      "{.code engine = \"julia\"} supports response-missing rows only for Gaussian models in this slice.",
+      i = "Use the native {.code engine = \"tmb\"} path for non-Gaussian missing-response models."
     ))
   }
   if (!drm_julia_default_control(control)) {
@@ -56,7 +63,6 @@ drmTMB_julia_bridge <- function(
     ))
   }
 
-  family_type <- drm_family_type(family)
   family_tag <- drm_julia_family_tag(family_type)
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,

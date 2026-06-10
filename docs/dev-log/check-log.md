@@ -53315,3 +53315,41 @@ Results:
   index entry. No rendered `Working with the Julia engine` hit remained in the
   checked article/index files.
 - `git diff --check` reported no whitespace problems.
+
+## 2026-06-10: Julia Engine Response-Missing Bridge
+
+Scope:
+
+- Relaxed the R Julia-engine bridge guard so `missing = miss_control(response =
+  "include", predictor = "fail")` can reach DRM.jl for Gaussian and bivariate
+  Gaussian models.
+- Kept missing-predictor routes blocked before Julia with a specific
+  missing-predictor message.
+- Added mocked R bridge tests to confirm response `NA` cells are passed to Julia
+  for univariate and bivariate Gaussian formulas.
+
+Checks run:
+
+```sh
+Rscript -e 'pkgload::load_all("."); testthat::test_file("tests/testthat/test-julia-bridge.R")'
+Rscript - <<'EOF'
+pkgload::load_all("/tmp/drmtmb-julia-engine-pr")
+Sys.setenv(DRM_JL_PATH = "/Users/z3437171/Dropbox/Github Local/DRM.jl")
+# live univariate and bivariate response-missing engine = "julia" smoke
+EOF
+```
+
+Results:
+
+- `test-julia-bridge.R` passed with 84 expectations.
+- Installed `JuliaCall` and its `rjson` dependency into the user R library so the
+  live bridge smoke can run.
+- The live univariate Gaussian smoke matched native TMB logLik with difference
+  `4.831691e-13`, used `nobs = 18` in both engines, and returned `NaN` residuals
+  at missing response rows.
+- The live bivariate Gaussian smoke matched native TMB logLik with difference
+  `2.915925e-10`, used `nobs = 29` in both engines, and returned `NaN` residuals
+  for missing `y1` and `y2` cells.
+- Boundary retained: Julia q=4 phylogenetic location-scale response-missing
+  support is not exposed yet because the DRM.jl sparse latent kernel still needs
+  an observed-cell mask slice.
