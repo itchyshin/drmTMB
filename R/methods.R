@@ -4,6 +4,7 @@ print.drmTMB <- function(x, ...) {
     x$model$model_type,
     gaussian = "Gaussian location-scale",
     student = "Student-t location-scale-shape",
+    skew_normal = "skew-normal location-scale-shape",
     lognormal = "Lognormal location-scale",
     gamma = "Gamma mean-CV",
     beta = "Beta mean-scale",
@@ -2278,6 +2279,19 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     return(sims)
   }
 
+  if (identical(object$model$model_type, "skew_normal")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    nu <- predict(object, dpar = "nu")
+    sims <- replicate(
+      nsim,
+      rskew_normal_public(length(mu), mu = mu, sigma = sigma, nu = nu)
+    )
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
   if (identical(object$model$model_type, "lognormal")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
@@ -2530,6 +2544,18 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   as.data.frame(out)
 }
 
+rskew_normal_public <- function(n, mu, sigma, nu) {
+  mu <- rep(mu, length.out = n)
+  sigma <- rep(sigma, length.out = n)
+  nu <- rep(nu, length.out = n)
+  delta <- nu / sqrt(1 + nu^2)
+  mean_shift <- delta * sqrt(2 / pi)
+  omega <- sigma / sqrt(1 - mean_shift^2)
+  xi <- mu - omega * mean_shift
+  xi +
+    omega * (delta * abs(stats::rnorm(n)) + sqrt(1 - delta^2) * stats::rnorm(n))
+}
+
 rtweedie_compound <- function(n, mu, phi, power) {
   mu <- rep(mu, length.out = n)
   phi <- rep(phi, length.out = n)
@@ -2742,7 +2768,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   }
   if (
     identical(object$model$model_type, "gaussian") ||
-      identical(object$model$model_type, "student")
+      identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal")
   ) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
@@ -2811,7 +2838,9 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' univariate Gaussian location-scale models this is the fitted residual
 #' `sigma_i` vector on the response scale. For Student-t models this is the
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
-#' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
+#' `sigma * sqrt(nu / (nu - 2))`. For skew-normal models this is the response
+#' standard deviation under the public moment parameterization, not the native
+#' Azzalini scale `omega`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
 #' coefficient of variation. For Tweedie models this is the public scale
 #' parameter where internal dispersion is `phi = sigma^2`. For beta,
@@ -2846,6 +2875,7 @@ sigma.drmTMB <- function(object, ...) {
   if (
     identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal") ||
       identical(object$model$model_type, "lognormal") ||
       identical(object$model$model_type, "gamma") ||
       identical(object$model$model_type, "tweedie") ||
@@ -4398,7 +4428,8 @@ drm_fitted_response <- function(object) {
   }
   if (
     identical(object$model$model_type, "gaussian") ||
-      identical(object$model$model_type, "student")
+      identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal")
   ) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
@@ -4430,6 +4461,7 @@ drm_dpar_link <- function(object, dpar) {
     object$model$model_type,
     gaussian = c(mu = "identity", sigma = "log"),
     student = c(mu = "identity", sigma = "log", nu = "logm2"),
+    skew_normal = c(mu = "identity", sigma = "log", nu = "identity"),
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
     tweedie = c(mu = "log", sigma = "log", nu = "logit12"),

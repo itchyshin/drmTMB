@@ -24,20 +24,24 @@ aliases, or hurdle aliases.
 
 ## Team B: Skew-Normal No-Fit Boundary
 
-`tests/testthat/test-skew-normal-boundary.R` already required
-`skew_normal()` to be absent from the package namespace and checked the source
-map for planned-only wording. It now also reads
+`tests/testthat/test-skew-normal-boundary.R` originally required
+the family constructor to stay unexported and checked the source
+map for planned-only wording. That absence gate is now superseded by
+`tests/testthat/test-skew-normal-location-scale.R`, which expects the exported
+constructor and checks unsupported-neighbour rejection. The historical boundary
+test also read
 `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md` and
-checks that the first-test contract:
+checked that the first-test contract:
 
-- labels the example syntax as planned, not fitted;
-- keeps the `skew_normal()` constructor absent;
-- records no-C++ admission criteria;
+- labelled the example syntax as planned, not fitted;
+- kept the constructor unexported;
+- recorded no-C++ admission criteria;
 - keeps `rho12` outside the first skew-normal lane.
 
-This is still a design-only boundary. It does not add a constructor, R builder,
-TMB family enum, source branch, density helper, reference page, or runnable
-example.
+This is now a historical design-only boundary. The fitted first slice adds the
+constructor, R builder, TMB branch, methods, reference page, and fixed-effect
+example while keeping random, structured, covariance, bivariate, `rho12`, and
+latent `skew(id)` neighbours out.
 
 ## Slice Status
 
@@ -45,8 +49,8 @@ example.
 | --- | --- | --- |
 | 1629 | Done | Low-zero and high-zero comparator cells now assert `fitted(fit) == predict(fit, dpar = "mu")`. |
 | 1630 | Done | Low-zero and high-zero comparator cells now assert response-scale `nu` stays in `(1, 2)` and matches the inverse-link transform. |
-| 1687 | Done | The skew-normal boundary test reads the first-test contract as part of the no-fit boundary scan. |
-| 1688 | Done | The boundary test still requires `skew_normal()` to be absent from the namespace. |
+| 1687 | Superseded | The old no-fit scan is replaced by a stale-claim scan and unsupported-neighbour tests. |
+| 1688 | Superseded | The old constructor absence check is replaced by exported-constructor and malformed-neighbour checks. |
 
 ## What Remains Closed
 

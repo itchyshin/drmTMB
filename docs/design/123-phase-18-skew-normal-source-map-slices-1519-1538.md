@@ -30,12 +30,12 @@ The local design already fixes the narrow boundary:
 
 | Source | Current local contract |
 | --- | --- |
-| `docs/design/03-likelihoods.md`, "Planned Skew-Normal Location-Scale-Shape Gate" | Candidate moment-parameter contract with public `mu = E[y]`, public `sigma = SD[y]`, `nu_i = eta_nu_i`, normal limit at `nu = 0`, and positive `nu` as right-skewed residuals after transforming internally to native `xi`, `omega`, and `alpha`. |
-| `docs/design/02-family-registry.md`, "Planned: Skew-Normal Location-Scale-Shape" | Planned family object has `dpars = c("mu", "sigma", "nu")` and links `identity`, `log`, and `identity`; no constructor is implemented. |
+| `docs/design/03-likelihoods.md`, "Implemented Skew-Normal Location-Scale-Shape" | Moment-parameter contract with public `mu = E[y]`, public `sigma = SD[y]`, `nu_i = eta_nu_i`, normal limit at `nu = 0`, and positive `nu` as right-skewed residuals after transforming internally to native `xi`, `omega`, and `alpha = nu`. |
+| `docs/design/02-family-registry.md`, "Implemented: Skew-Normal Location-Scale-Shape" | The family object has `dpars = c("mu", "sigma", "nu")` and links `identity`, `log`, and `identity`; the fitted route is fixed-effect and univariate. |
 | `docs/design/14-gamlss-parameter-names.md` | `nu` is the canonical first shape parameter. `skew` can be considered later as an alias, not as the first public spelling. |
 | `docs/design/19-phylogenetic-location-scale-shape.md` | Residual `nu ~ x` and future latent-effect `skew(id) ~ x` are different scientific questions. |
-| `docs/design/41-phase-18-simulation-programme.md` and `docs/design/46-pre-simulation-readiness-matrix.md` | Fixed-effect Student-t `nu` is admitted; skew-normal and skew-t remain design-only until likelihood, interval, diagnostic, and recovery evidence exists. |
-| `R/drmTMB.R` and `tests/testthat/test-student-location-scale.R` | Bar terms in `nu` or future `tau` formulas fail with a shape-specific boundary, including a message that future skew-normal and skew-t shape parameters need fixed-effect recovery before random effects. |
+| `docs/design/41-phase-18-simulation-programme.md` and `docs/design/46-pre-simulation-readiness-matrix.md` | Fixed-effect Student-t `nu` is admitted; fixed-effect skew-normal `nu` is now admitted as a first slice; skew-t and shape random effects remain planned until likelihood, interval, diagnostic, and recovery evidence exists. |
+| `R/drmTMB.R` and `tests/testthat/test-student-location-scale.R` | Bar terms in `nu` or future `tau` formulas fail with a shape-specific boundary, including a message that skew-normal and skew-t shape random effects need separate likelihood recovery before fitting. |
 | `ROADMAP.md`, Phase 16 and row 1953 | First asymmetry slice is fixed-effect and univariate; no `sigma` random effects, `nu` random effects, `sd(group)` scale models, `phylo()`, `spatial()`, bivariate skew-normal, or `rho12`. |
 
 ## Software Source Map

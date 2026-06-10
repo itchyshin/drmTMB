@@ -53220,3 +53220,67 @@ Results:
 - `pkgdown::check_pkgdown()` reported no problems and printed
   `pkgdown_check_ok`.
 - `git diff --check` reported no whitespace problems.
+
+## 2026-06-09: Skew-Normal Fixed-Effect First Slice
+
+Scope:
+
+- Added exported `skew_normal()` as a univariate fixed-effect
+  location-scale-shape family with public `mu = E[y]`, public `sigma = SD[y]`,
+  and residual slant `nu` on the identity scale.
+- Added the R builder, TMB `model_type = 17` branch, simulation, residuals,
+  `sigma()`, `fitted()`, `predict()`, `summary()`, `profile_targets()`,
+  fixed-effect interval visibility, and `check_drm()` finite/large-slant
+  diagnostics for the first slice.
+- Kept random effects in `mu`, `sigma`, or `nu`, `sd(group)`, structured
+  effects, known sampling covariance, bivariate skew-normal models, residual
+  `rho12`, latent `skew(id)`, and `skew` aliases rejected with explicit
+  boundary messages.
+- Updated README, NEWS, ROADMAP, `_pkgdown.yml`, family registry, likelihood
+  notes, family-link contract, known limitations, distribution-family tutorial,
+  generated Rd, and historical Phase 18 skew-normal design notes so they no
+  longer describe the constructor as absent.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal|family-link-contract|student-location-scale", reporter = "summary")'
+Rscript --vanilla -e 'invisible(lapply(c("man/skew_normal.Rd", "man/drmTMB.Rd", "man/sigma.drmTMB.Rd", "man/check_drm.Rd", "man/model-fit-extractors.Rd", "man/beta.Rd"), tools::checkRd)); cat("checkRd_ok\n")'
+rg -n 'skew_normal\(\).*(not implemented|not fitted|absent|planned, not fitted|future)|Planned Skew-Normal|skew-normal.*not implemented|no `skew_normal\(\)` constructor|skew_normal.*future work|without adding `skew_normal\(\)`|keep `skew_normal\(\)` absent|No `skew_normal\(\)` constructor|future skew-normal' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n 'important to note|in order to|various factors|significant improvements|leverages|stable broad|formal power|coverage claim' README.md NEWS.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/19-family-link-contract.md docs/dev-log/known-limitations.md vignettes/distribution-families.Rmd R/family.R R/drmTMB.R
+git diff --check
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+Rscript --vanilla -e 'devtools::check(document = FALSE, manual = FALSE, error_on = "never")'
+```
+
+Results:
+
+- `devtools::document()` created `man/skew_normal.Rd` and updated the relevant
+  family, fitting, extractor, and diagnostic Rd topics; unrelated roxygen
+  metadata/link churn was removed from the diff.
+- Focused skew-normal, family-link, and Student-t shape-boundary tests passed.
+- `tools::checkRd()` printed `checkRd_ok`.
+- The stale constructor-absence scan returned no matches after the historical
+  design notes were marked as superseded.
+- The prose-style scan found one stale NEWS sentence that called fixed-effect
+  skew-normal planned; it was corrected to fitted fixed-effect skew-normal.
+- `git diff --check` reported no whitespace problems.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `devtools::check(document = FALSE, manual = FALSE, error_on = "never")`
+  finished in 12m 18s with 0 errors, 0 warnings, and 0 notes.
+- After rebasing onto `origin/main` at `feec1049`, the only conflict was the
+  check-log append. The rebased branch passed `git diff --check`, conflict
+  marker scan, the same stale constructor-absence scan, the same Rd check,
+  focused `skew-normal|family-link-contract|student-location-scale` tests, and
+  `pkgdown::check_pkgdown()`.
+
+Known remaining boundaries:
+
+- Issue #3 should stay open after this first slice. Formal multi-replicate
+  operating-characteristic grids, external fitted-model comparators, random
+  effects, structured effects, known covariance, bivariate skew-normal models,
+  residual `rho12`, latent `skew(id)`, and `skew` aliases remain future work.

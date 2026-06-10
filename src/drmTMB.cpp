@@ -2008,6 +2008,42 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
+  } else if (model_type == 17) {
+    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> nu = eta_nu;
+    vector<Type> xi(y.size());
+    vector<Type> omega(y.size());
+    Type log_two = log(Type(2.0));
+    Type sqrt_two_over_pi = sqrt(Type(2.0) / Type(M_PI));
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = eta_nu(i);
+      Type delta = alpha / sqrt(Type(1.0) + alpha * alpha);
+      Type mean_shift = delta * sqrt_two_over_pi;
+      Type variance_factor = Type(1.0) - mean_shift * mean_shift;
+      omega(i) = sigma(i) / sqrt(variance_factor);
+      xi(i) = mu(i) - omega(i) * mean_shift;
+      Type z = (y(i) - xi(i)) / omega(i);
+      Type skew_cdf = pnorm(alpha * z, Type(0.0), Type(1.0));
+      Type log_density =
+        log_two -
+        log(omega(i)) +
+        dnorm(z, Type(0.0), Type(1.0), true) +
+        log(skew_cdf + Type(1e-300));
+      nll -= weights(i) * log_density;
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_nu);
+    REPORT(nu);
+    REPORT(xi);
+    REPORT(omega);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
   } else if (model_type == 4) {
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;

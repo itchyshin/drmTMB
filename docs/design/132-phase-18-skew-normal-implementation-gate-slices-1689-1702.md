@@ -140,9 +140,11 @@ names.
 ## Documentation And Provenance
 
 The first implementation PR must add roxygen2 documentation for
-`skew_normal()` before exporting support. Examples must be runnable only after
-the constructor, likelihood branch, methods, and tests exist. Until then, every
-code example with `family = skew_normal()` must be labelled planned or future.
+`skew_normal()` before exporting support. That first slice now exists, so code
+examples with `family = skew_normal()` may be runnable when they stay inside
+the fixed-effect univariate boundary. Examples that use random effects,
+structured effects, known covariance, bivariate responses, `rho12`, aliases,
+or latent `skew(id)` syntax must still be labelled planned or unsupported.
 
 The package can use `sn`, `RTMBdist`, `brms`, and `glmmTMB` as comparators or
 semantic precedents, but not as unrecorded code sources. If any likelihood or

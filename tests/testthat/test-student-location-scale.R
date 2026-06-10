@@ -240,6 +240,6 @@ test_that("Student-t shape random effects have a specific boundary", {
       family = student(),
       data = dat
     ),
-    "future skew-normal and skew-t shape parameters"
+    "skew-normal fixed-effect"
   )
 })

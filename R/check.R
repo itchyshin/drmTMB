@@ -12,7 +12,8 @@
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, known sampling covariance summaries,
+#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
 #' univariate Gaussian fit includes one or more matched labelled
@@ -197,6 +198,7 @@ check_drm.drmTMB <- function(
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_skew_normal_nu(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -776,6 +778,46 @@ check_student_nu <- function(object) {
     "ok",
     value,
     "All fitted Student-t nu values are finite and above the boundary at 2."
+  )
+}
+
+check_skew_normal_nu <- function(object) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) e)
+  if (inherits(nu, "error")) {
+    return(check_row(
+      "skew_normal_nu",
+      "warning",
+      NA_character_,
+      paste("Could not extract skew-normal nu values:", conditionMessage(nu))
+    ))
+  }
+  if (!all(is.finite(nu))) {
+    return(check_row(
+      "skew_normal_nu",
+      "error",
+      NA_character_,
+      "At least one fitted skew-normal nu value is non-finite."
+    ))
+  }
+
+  max_abs <- max(abs(nu), 0)
+  value <- paste0("max_abs=", format_check_number(max_abs))
+  if (max_abs > 10) {
+    return(check_row(
+      "skew_normal_nu",
+      "note",
+      value,
+      "At least one fitted skew-normal slant value is large; inspect the profile target, residual shape, and Gaussian or Student-t sensitivity models before interpreting skewness."
+    ))
+  }
+  check_row(
+    "skew_normal_nu",
+    "ok",
+    value,
+    "All fitted skew-normal nu values are finite."
   )
 }
 

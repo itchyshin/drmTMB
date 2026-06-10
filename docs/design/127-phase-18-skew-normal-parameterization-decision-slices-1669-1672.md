@@ -1,9 +1,10 @@
 # Phase 18 Skew-Normal Parameterization Decision, Slices 1669-1672
 
 This note closes the first Team B follow-on gate after the skew-normal source
-map. It does not implement `skew_normal()`. Its reader is the future
+map. It originally did not implement `skew_normal()`; it is now superseded by
+the fitted first slice, which uses this same moment contract. Its reader is the
 implementation contributor who must know what `mu`, `sigma`, and `nu` mean
-before adding a constructor or TMB density branch.
+before changing the constructor or TMB density branch.
 
 ## Decision
 
