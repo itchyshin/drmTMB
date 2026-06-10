@@ -1,5 +1,9 @@
 # Phase 18 Skew-Normal First-Test Contract, Slices 1673-1702
 
+Superseded status: the fixed-effect `skew_normal()` first slice now exists, and
+the `skew_normal_fixed_effect` Phase 18 artifact lane adds repeatable
+smoke/grid evidence. This note remains as historical test-contract context.
+
 This note is Team B's design-only gate after the skew-normal
 parameterization decision. It does not implement `skew_normal()`, add a
 constructor, or admit any C++ likelihood branch. Its reader is the contributor
@@ -8,7 +12,7 @@ who will write the first tests before fitting support is exposed.
 The contract keeps the first lane univariate and fixed-effect:
 
 ```r
-# Planned, not fitted yet:
+# Historical gate example:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),

@@ -15,6 +15,7 @@ on:
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
           - tweedie_fixed_effect
+          - skew_normal_fixed_effect
           - count_structured_q1
           - poisson_mu_re_recovery
           - nbinom2_mu_re_recovery
@@ -62,7 +63,7 @@ on:
           - none
           - multicore
       bootstrap_nsim:
-        description: "Bootstrap draws for interval-heavy task; 0 disables"
+        description: "Bootstrap draws for interval-capable tasks; 0 disables"
         required: true
         default: "0"
         type: number
@@ -165,6 +166,9 @@ jobs:
             include_in_all: false
           - task: tweedie_fixed_effect
             seed: 20260542
+            include_in_all: false
+          - task: skew_normal_fixed_effect
+            seed: 20260618
             include_in_all: false
           - task: count_structured_q1
             seed: 20260543

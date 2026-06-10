@@ -272,10 +272,11 @@ and operating-characteristic evidence justify a broader claim.
   boundary.
 - Diagnostics and intervals: no shape random-effect diagnostics or intervals
   exist because no shape random-effect likelihood is fitted yet.
-- Debt: fixed-effect skew-normal and skew-t recovery, normal or Student-t limit
-  checks, separation of `sigma ~ x` from `nu ~ x`, then simulation evidence
-  before adding `nu`/`tau` random effects or latent ID-level skewness such as
-  future `skew(id) ~ x`.
+- Debt: formal high-replicate skew-normal operating-characteristic grids,
+  external comparators on the public moment scale, skew-t recovery and normal
+  or Student-t limit checks, separation of `sigma ~ x` from `nu ~ x` in larger
+  designs, then simulation evidence before adding `nu`/`tau` random effects or
+  latent ID-level skewness such as future `skew(id) ~ x`.
 
 ### Gaussian ordinary random effects
 

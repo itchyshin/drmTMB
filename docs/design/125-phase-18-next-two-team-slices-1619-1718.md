@@ -123,7 +123,7 @@ the first test contract so the future `skew_normal()` branch is not ambiguous.
 
 | Slice | Task | Done when |
 | --- | --- | --- |
-| 1669 | Rehydrate the skew-normal source map | Issue #3, `docs/design/123...`, likelihood design, family registry, and roadmap agree that skew-normal is design-only. |
+| 1669 | Rehydrate the skew-normal source map | Historical gate: issue #3, `docs/design/123...`, likelihood design, family registry, and roadmap agreed that skew-normal was design-only before the fixed-effect first slice landed. |
 | 1670 | Name the reader-facing question | The note says the first family models residual asymmetry after `mu` and `sigma`, not latent-effect skewness. |
 | 1671 | Compare native and moment parameterizations | The decision note contrasts `mu = xi`, `sigma = omega`, `nu = alpha` with response mean, response SD, and `alpha`. |
 | 1672 | Decide the default parameterization for the next implementation lane | Ada, Boole, Gauss, Noether, Fisher, and Pat record whether to keep native parameters or switch to moment parameters. |

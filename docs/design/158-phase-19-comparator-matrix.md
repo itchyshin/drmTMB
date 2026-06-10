@@ -68,7 +68,7 @@ Internal-to-comparator conversions:
 | Phylogenetic `mu` | `MCMCglmm`, `brms` (phylo), `phylolm`, `phyr` | phylogenetic SD / signal | Bayesian comparators differ in prior; `phylolm` is fixed-effect only |
 | Coordinate-spatial `mu` | `spaMM`, `INLA` | spatial field | `drmTMB` coordinate fields vs SPDE/Matern differ in parameterization |
 | `animal()` / `relmat()` | `MCMCglmm`, `ASReml`, `brms` | additive-genetic variance, heritability | ASReml is licensed; MCMCglmm/brms are Bayesian |
-| `skew_normal()` (planned) | `gamlss` (SN1/SN2), `sn` package | location, scale, skewness | not yet fitted in `drmTMB` (Tier C in doc 157) |
+| `skew_normal()` fixed-effect | `gamlss` (SN1/SN2), `sn` package | response mean, response SD, residual slant | `drmTMB` uses public moment parameters, so comparators must map native location/scale/skewness to `mu = E[y]`, `sigma = SD[y]`, and `nu` before comparing estimates |
 
 ## Definition Of Done For Phase 19
 

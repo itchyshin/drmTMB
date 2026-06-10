@@ -1,5 +1,9 @@
 # Phase 18 Skew-Normal Source Map, Slices 1519-1538
 
+Superseded status: the fixed-effect `skew_normal()` first slice now exists, and
+the `skew_normal_fixed_effect` Phase 18 artifact lane adds repeatable
+smoke/grid evidence. This note remains as historical source-map context.
+
 This note is an admission gate for the first skew-normal lane. It does not
 implement `skew_normal()`. Its reader is the R package contributor who will
 eventually add a fixed-effect likelihood and must know which existing software,
@@ -9,7 +13,7 @@ The first target is residual or observation-level asymmetry in a univariate
 continuous response:
 
 ```r
-# Planned, not fitted yet:
+# Historical gate example:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),

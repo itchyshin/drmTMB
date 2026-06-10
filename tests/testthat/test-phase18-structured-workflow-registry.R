@@ -984,8 +984,8 @@ test_that("Phase 18 family-surface workflow plan keeps blocked rows visible", {
   )
   plan <- env$phase18_family_surface_workflow_plan(registry)
 
-  expect_equal(nrow(plan), 11L)
-  expect_equal(sum(plan$admission_status == "ready_grid"), 6L)
+  expect_equal(nrow(plan), 12L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 7L)
   expect_equal(sum(plan$admission_status == "ready_smoke"), 1L)
   expect_equal(sum(plan$admission_status == "blocked"), 3L)
   expect_equal(sum(plan$admission_status == "design_only"), 1L)
@@ -1043,7 +1043,7 @@ test_that("Phase 18 family-surface plan can omit blocked rows", {
     include_blocked = FALSE
   )
 
-  expect_equal(nrow(plan), 7L)
+  expect_equal(nrow(plan), 8L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
 })
 
@@ -1064,7 +1064,7 @@ test_that("Phase 18 family-surface status tables summarize registry statuses", {
       "distribution_summary"
     )
   )
-  expect_equal(nrow(tables$row_summary), 11L)
+  expect_equal(nrow(tables$row_summary), 12L)
   expect_true(all(tables$row_summary$status_scope == "registry_status_only"))
   expect_equal(sum(tables$category_summary$n), nrow(tables$row_summary))
   expect_equal(sum(tables$distribution_summary$n), nrow(tables$row_summary))
@@ -1078,7 +1078,7 @@ test_that("Phase 18 family-surface status tables summarize registry statuses", {
   category <- tables$category_summary
   expect_equal(
     unname(category$n[category$admission_category == "admitted"]),
-    6L
+    7L
   )
   expect_equal(
     unname(category$n[category$admission_category == "smoke_only"]),
@@ -1117,7 +1117,7 @@ test_that("Phase 18 family-surface status tables can omit blocked rows", {
     include_blocked = FALSE
   )
 
-  expect_equal(nrow(tables$row_summary), 7L)
+  expect_equal(nrow(tables$row_summary), 8L)
   expect_false(any(
     tables$row_summary$admission_status %in% c("blocked", "design_only")
   ))
@@ -1125,7 +1125,7 @@ test_that("Phase 18 family-surface status tables can omit blocked rows", {
     tables$category_summary$admission_category %in%
       c("blocked", "design_only")
   ))
-  expect_equal(sum(tables$distribution_summary$n), 7L)
+  expect_equal(sum(tables$distribution_summary$n), 8L)
 })
 
 test_that("Phase 18 family-surface status tables are empty-shaped", {
@@ -1188,7 +1188,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("family_surface", bundle$plan_counts$workflow_plan)
     ],
-    11L
+    12L
   )
 })
 
@@ -1205,7 +1205,7 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   structured <- counts$workflow_plan == "structured_dependence"
   correlation <- counts$workflow_plan == "correlation_blocks"
 
-  expect_equal(counts$existing_actions_tasks[family], 7L)
+  expect_equal(counts$existing_actions_tasks[family], 8L)
   expect_equal(counts$blocked[family], 3L)
   expect_equal(counts$design_only[family], 1L)
   expect_equal(counts$existing_actions_tasks[random], 18L)

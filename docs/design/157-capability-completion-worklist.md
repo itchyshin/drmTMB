@@ -57,9 +57,10 @@ Read this first — it is the distinction most likely to be confused.
 | Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
+| `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane; formal high-replicate operating characteristics remain future evidence |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
-| skew-normal; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
+| skew-normal random/structured/bivariate/known-covariance/latent-skew extensions; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
 So: **q4/q6 exist only for bivariate *Gaussian location*, q2 same-response
 `mu`/`sigma` and q2 scale-slope `sigma1`/`sigma2` exist as first slices, the
@@ -81,8 +82,10 @@ time.
    two-cell audit exist, but low convergence, zero positive-Hessian rate, two
    leading-minor optimization errors, and unavailable intervals mean they do
    not support individual-difference power claims.
-2. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
-   implementation-ready, independent of Tier A, good early win.
+2. *(parallel)* `skew_normal()` fixed-effect artifact depth — Tier C follow-up;
+   the first fitted slice exists, and the remaining useful work is a larger
+   formal operating-characteristic run plus any external comparator that can
+   match the public moment parameterization honestly.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic
    covariance).
@@ -194,10 +197,12 @@ plasticity, residual variability, and its change. Finish it in order.
 7. **`skew_normal()` fixed-effect first slice.**
    - Gates: `docs/design/127-...parameterization-decision`,
      `128-...test-contract`, `132-...implementation-gate`,
-     `123-...source-map`. The parameterization and test contract are decided;
-     this slice is implementation-ready.
+     `123-...source-map`. The parameterization, source tests, and fixed-effect
+     likelihood are implemented; `test-phase18-skew-normal-fixed-effect.R`
+     adds the repeatable smoke/grid artifact lane.
    - Scope: univariate fixed-effect `mu`/`sigma`/`nu` only; no random or
-     structured effects in the first slice.
+     structured effects in the first slice. Formal high-replicate operating
+     characteristics and honest external comparators remain future evidence.
 
 ## Tier D — Random Effects in `rho12` (#5 boundary)
 

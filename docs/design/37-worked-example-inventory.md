@@ -60,11 +60,11 @@ slices. The status is:
 | --- | --- | --- |
 | Animal and `relmat()` known matrices | The focused animal and `relmat()` articles now have runnable examples for univariate `animal(Ainv = Ainv)` / `relmat(Q = Q)` in `mu` and/or `sigma`, one-slope Gaussian `mu` routes, bivariate q=2 location covariance, and constant q=4 location-scale covariance, with `check_drm()`, `corpairs()`, and profile-target status in the reader path. Pedigree construction at scale, multiple slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()`, non-Gaussian relatedness effects, and direct-SD grammar remain planned. | Use the focused structural-dependence articles for precomputed relatedness-matrix examples; next add an ADEMP q=4 addendum before admitting broad animal/`relmat()` q=4 grids. |
 | Student-t | `vignettes/robust-student.Rmd` is a worked secondary tutorial with model equation, fitted seedling example, `check_drm()`, coefficient interpretation, and Gaussian comparison. | Link users there for robust fixed-effect continuous responses with `mu`, `sigma`, and fixed-effect `nu`. |
-| Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap show planned syntax and boundaries, but no fitted skew-family likelihood exists. | Keep skew examples as design-only until fixed-effect skew-normal likelihood, normal-limit checks, positive/negative skew recovery, interval evidence, and false-positive heteroscedasticity tests pass. |
+| Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap now show fixed-effect `skew_normal()` as a fitted residual-asymmetry route with source tests and a Phase 18 smoke/grid artifact lane. Skew-t, skew-normal random effects, known covariance, structured effects, bivariate skew-normal models, residual `rho12`, and latent `skew(id)` remain planned. | Use fixed-effect `skew_normal()` examples only for residual asymmetry; keep skew-t and richer skew-normal examples as design-only until their likelihood, recovery, diagnostic, interval, and comparator evidence exists. |
 
-This is intentionally conservative. A planned marker example is useful because
-it teaches the intended grammar and the nearest fitted alternative, but it must
-not be written like a model a reader can run today.
+This is intentionally conservative. A planned marker example is useful when it
+teaches future grammar and the nearest fitted alternative, but it must not be
+written like a model a reader can run today.
 
 ## Slice 90 Status: Flagship Location-Scale Tutorial
 

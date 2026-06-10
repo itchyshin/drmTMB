@@ -7,6 +7,7 @@ phase18_actions_task_choices <- function() {
     "bounded_response_mu_random_intercept",
     "positive_continuous_fixed_effect",
     "tweedie_fixed_effect",
+    "skew_normal_fixed_effect",
     "count_structured_q1",
     "poisson_mu_re_recovery",
     "nbinom2_mu_re_recovery",
@@ -217,6 +218,20 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       n_rep = n_rep,
       master_seed = master_seed,
       overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "skew_normal_fixed_effect")) {
+    out <- phase18_write_skew_normal_fe_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
+      bootstrap_nsim = bootstrap_nsim,
+      bootstrap_cores = bootstrap_cores,
+      bootstrap_backend = bootstrap_backend,
       cores = cores,
       backend = backend
     )
@@ -583,7 +598,11 @@ phase18_actions_source_dependencies <- function(task) {
     "sim/R/sim_runner.R",
     "sim/R/sim_aggregate.R",
     "sim/R/sim_uncertainty.R",
-    if (identical(task, "interval_heavy_summary")) "sim/R/sim_bootstrap.R",
+    if (
+      task %in% c("interval_heavy_summary", "skew_normal_fixed_effect")
+    ) {
+      "sim/R/sim_bootstrap.R"
+    },
     phase18_actions_task_paths(task)
   ))
   for (path in paths) {
@@ -754,6 +773,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_summary_tweedie_fixed_effect_smoke.R",
       "sim/run/sim_write_tweedie_fixed_effect_grid.R"
+    ))
+  }
+  if (identical(task, "skew_normal_fixed_effect")) {
+    return(c(
+      "sim/dgp/sim_dgp_skew_normal_fixed_effect.R",
+      "sim/fit/sim_summarise_skew_normal_fixed_effect.R",
+      "sim/run/sim_run_skew_normal_fixed_effect_smoke.R",
+      "sim/run/sim_summary_skew_normal_fixed_effect_smoke.R",
+      "sim/run/sim_write_skew_normal_fixed_effect_grid.R"
     ))
   }
   if (identical(task, "count_structured_q1")) {

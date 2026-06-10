@@ -363,6 +363,11 @@ Current pilot files:
 - `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
   `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
   transform and optional mean-shape predictor correlation.
+- `dgp/sim_dgp_skew_normal_fixed_effect.R` generates skew-normal responses
+  with fixed-effect `mu ~ x`, `sigma ~ z`, and `nu ~ w`. It uses the public
+  moment contract, then transforms to native skew-normal `xi`, `omega`, and
+  `alpha = nu` for simulation so `mu` remains the response mean and `sigma`
+  remains the response standard deviation.
 - `dgp/sim_dgp_model_selection.R` generates paired model-selection cells for
   Gaussian versus Student-t tails, NB2 versus ZINB2 structural zeros, and
   constant versus predictor-dependent Gaussian `sigma` formulas. It records a
@@ -465,6 +470,10 @@ Current pilot files:
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
   named response-scale truth grids.
+- `fit/sim_summarise_skew_normal_fixed_effect.R` summarises fixed
+  skew-normal `mu`, `sigma`, and `nu` coefficients on their formula scales,
+  adds optional profile and parametric-bootstrap interval columns, and includes
+  a helper for named public-moment truth grids.
 - `fit/sim_summarise_model_selection.R` summarises candidate-level AIC, BIC,
   log likelihood, degrees of freedom, convergence, Hessian status, warnings,
   errors, and target-selection indicators for the model-selection lane.
@@ -566,6 +575,9 @@ Current pilot files:
   bivariate Gaussian q=2 residual-scale intercept covariance surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
+- `run/sim_run_skew_normal_fixed_effect_smoke.R` does the same for the
+  fixed-effect skew-normal residual-slant surface, using moderate default
+  sample sizes because stochastic skewness recovery is sample-size dependent.
 - `run/sim_run_model_selection_smoke.R` does the same for the article-support
   AIC/BIC model-selection surface, writing one candidate row per replicate and
   preserving warning-bearing candidates. The file name keeps the Phase 18 smoke
@@ -744,6 +756,11 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   for the same reason as the bivariate `rho12` grid, with the same nested-
   parallel guard.
+- `run/sim_write_skew_normal_fixed_effect_grid.R` writes the same artifact set
+  for the fixed-effect skew-normal `nu` grid, with optional profile,
+  parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
+  interval-failure CSVs. The default grid uses `n = 720` and `1440`; larger
+  formal operating-characteristic runs remain a separate evidence step.
 - `run/sim_write_model_selection_smoke.R` writes model-selection candidate,
   selection-summary, manifest, and failure CSVs. The 200-replicate
   article-support artifact lives at
@@ -780,8 +797,9 @@ Current pilot files:
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
   interval-heavy task, standalone zero-truncated NB2 `mu` random-intercept,
   fixed-effect proportion, bounded-response `mu` random-intercept,
-  positive-continuous fixed-effect, fixed-effect Tweedie, count structured
-  q=1, positive-continuous `mu` random-intercept, Student-t `mu`
+  positive-continuous fixed-effect, fixed-effect Tweedie, fixed-effect
+  skew-normal, count structured q=1, positive-continuous `mu` random-intercept,
+  Student-t `mu`
   random-intercept, ordinal, zero-one beta, and bivariate Gaussian ordinary
   covariance tasks for `mu1`/`mu2` and `sigma1`/`sigma2`, or the opt-in Poisson
   and NB2 phylogenetic q=1 formal-grid tasks. It writes an RDS result beside the
@@ -904,6 +922,10 @@ Current pilot files:
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence,
   coverage outputs, and interval-failure ledgers.
+- `run/sim_summary_skew_normal_fixed_effect_smoke.R` does the same for the
+  fixed-effect skew-normal residual-slant smoke grid, including
+  formula-coefficient Wald intervals, optional profile and parametric-bootstrap
+  interval evidence, coverage outputs, and interval-failure ledgers.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.
