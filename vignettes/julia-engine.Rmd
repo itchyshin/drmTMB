@@ -22,7 +22,18 @@ marshals one Gaussian phylogenetic mean model,
 `phylo(1 | species, tree = tree)` with `sigma ~ 1`, through DRM.jl's default
 all-node sparse route. That phylogenetic cell now has narrow
 `confint()` support for the residual phylogenetic SD in the `mu` model with
-`method = "profile"` or `method = "bootstrap"`. The bridge does not yet support weights,
+`method = "profile"` or `method = "bootstrap"`.
+
+It additionally routes the bivariate **q = 4 phylogenetic location-scale model**
+(the PLSM): intercept `phylo(1 | p | species)` on all four axes (`mu1`, `mu2`,
+`sigma1`, `sigma2`), sharing one tree and grouping factor, fit through DRM.jl's
+exact-gradient sparse q = 4 engine. The bridge translates drmTMB's labelled
+covariance-block grammar `phylo(1 | p | species)` to DRM.jl's `phylo(1 | species)`
+(DRM.jl implies the 4x4 between-species covariance from the four shared axes).
+Round-trip parity against `engine = "tmb"` matches the log-likelihood and fixed
+effects on a seeded q = 4 fixture (verified locally; CI does not run Julia).
+
+The bridge does not yet support weights,
 missing-data routes, imputation, non-default control settings, non-Gaussian
 families, random-effect scale formulas, `corpair()` formula entries, `newdata`
 prediction, simulation, or persistent Julia fit handles.
@@ -43,6 +54,24 @@ Use `engine = "julia"` only when you are deliberately testing the bridge:
 fit_julia <- drmTMB(
   bf(y ~ x, sigma ~ x),
   family = gaussian(),
+  data = dat,
+  engine = "julia"
+)
+```
+
+The bivariate q = 4 phylogenetic location-scale route uses matching
+`phylo(1 | p | species, tree = tree)` terms on all four axes:
+
+```{r julia-engine-q4, eval = FALSE}
+fit_q4 <- drmTMB(
+  bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~ 1
+  ),
+  family = biv_gaussian(),
   data = dat,
   engine = "julia"
 )
