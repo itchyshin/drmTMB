@@ -924,11 +924,11 @@ gate.
      intercept-only `nu`; predictor-dependent power, random effects,
      structured effects, bivariate or mixed-response Tweedie, zero-inflation
      aliases, and hurdle aliases stay outside the fitted claim.
-174. Slices 1519-1538 add the skew-normal source map as a design-only gate.
+174. Slices 1519-1538 add the skew-normal source map as the design gate that
+     was later superseded by the fitted first slice.
      The note records comparator packages, native-versus-moment
      parameterization choices, local papers, unsupported neighbours, and
-     first implementation tests without adding `skew_normal()` or changing
-     shared family constructors.
+     first implementation tests before the constructor and TMB branch landed.
 175. Slices 1619-1668 are the next Team A Tweedie evidence-hardening lane in
      `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`. The lane
      should decide the PR boundary, add or design the `glmmTMB::tweedie()`
@@ -941,7 +941,9 @@ gate.
      should choose and document the native-versus-moment parameterization,
      define `fitted()`, `sigma()`, `predict(dpar = "nu")`, normal-limit,
      sign-convention, comparator, simulation, interval-status, and diagnostic
-     tests, and stop before adding `skew_normal()` or any C++ likelihood code.
+     tests. This gate is now superseded by the fitted first slice; the next
+     work is broader recovery and comparator evidence, not the first C++
+     likelihood code.
 177. Slices 1619-1628 add the first `glmmTMB::tweedie()` comparator contract
      in
      `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md`.
@@ -956,21 +958,21 @@ gate.
      skew-normal lane in
      `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md`.
      Public `mu` is the response mean, public `sigma` is the response standard
-     deviation, and `nu` is the slant/shape parameter. The future likelihood
-     may transform to native `xi`, `omega`, and `alpha` internally, but no
-     constructor or TMB branch is added in this design-only slice.
+     deviation, and `nu` is the slant/shape parameter. The fitted first slice
+     now transforms to native `xi`, `omega`, and `alpha = nu` internally.
 179. Slices 1673-1702 add the skew-normal first-test contract in
      `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`.
      The contract names the density-normalization target, Gaussian
      normal-limit test, sign-orientation test, false-positive boundaries, and
-     no-C++ admission criteria before any `skew_normal()` constructor, source
-     branch, or user-facing example is added.
+     admission criteria that the fitted first slice now exercises in source
+     tests.
 180. Slices 1629-1630 and 1687-1688 add a narrow semantic-boundary test pass in
      `docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md`.
      The Tweedie comparator now rechecks `fitted()` as unconditional `mu` and
      response-scale `nu` in `(1, 2)` inside both zero-regime cells. The
-     skew-normal boundary test now reads the first-test contract while still
-     requiring `skew_normal()` to be absent.
+     skew-normal boundary test now reads the first-test contract and has been
+     superseded by malformed-neighbour tests for unsupported random,
+     structured, bivariate, covariance, and alias syntax.
 181. Slices 1631-1632 and 1685-1686 add comparator and support-boundary
      decisions in
      `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md`.
@@ -978,7 +980,7 @@ gate.
      weighted external comparator waits for a dedicated weighting-semantics
      check. Tweedie offsets stay outside the first comparator pass because
      offset syntax is currently implemented only for count-family `mu`
-     exposure models. The future skew-normal lane should validate finite
+     exposure models. The fitted skew-normal first slice validates finite
      continuous responses after model-frame filtering and should use shared
      fixed-effect rank handling unless density tests expose a family-specific
      issue.
@@ -1007,12 +1009,12 @@ gate.
      aliases.
 185. Slices 1689-1702 add the skew-normal implementation gate in
      `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md`.
-     The gate keeps `skew_normal()` planned, not fitted, while naming the
-     required density, normal-limit, sign-orientation, malformed-neighbour,
-     method, documentation, provenance, no-fit boundary, recovery,
+     The gate named the required density, normal-limit, sign-orientation,
+     malformed-neighbour, method, documentation, provenance, recovery,
      false-positive, confounding, interval-status, diagnostic, runtime, DGP,
-     and summary checks for the first implementation PR. It does not add a
-     constructor, TMB branch, formula-grammar change, or user-facing example.
+     and summary checks for the first implementation PR. The fitted first
+     slice now covers the source-level subset; formal DGP/grid evidence remains
+     future work.
 186. Slice 1703 adds a test-only skew-normal density contract fixture in
      `tests/testthat/helper-skew-normal-density.R` and
      `tests/testthat/test-skew-normal-density-contract.R`. The fixture checks

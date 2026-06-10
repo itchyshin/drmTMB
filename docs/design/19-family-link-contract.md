@@ -23,6 +23,9 @@ The implemented families use these parameter meanings:
 | Student-t | `mu` | identity | location parameter and mean when `nu > 1` |
 | Student-t | `sigma` | log | Student-t scale parameter |
 | Student-t | `nu` | `logm2` | degrees of freedom, `nu = 2 + exp(eta_nu)` |
+| Skew-normal | `mu` | identity | arithmetic mean of `y` |
+| Skew-normal | `sigma` | log | response standard deviation of `y` |
+| Skew-normal | `nu` | identity | residual slant/asymmetry; positive values indicate right skew |
 | Lognormal | `mu` | identity | mean of `log(y)`, not mean of `y` |
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
@@ -84,6 +87,7 @@ Examples:
 ```text
 Gaussian:   predict(mu) = E[y] = fitted()
 Student-t:  predict(mu) = location; fitted() currently returns mu
+Skew-normal: predict(mu) = E[y] = fitted(); predict(nu) = residual slant
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
 Beta:       predict(mu) = E[y] = fitted()
@@ -180,6 +184,41 @@ exact-zero mass, and `sigma(fit)` returns public `sigma`. The first slice keeps
 `nu ~ 1` intercept-only; predictor-dependent power models, random effects,
 structured effects, bivariate Tweedie models, zero-inflation aliases, and
 hurdle aliases remain separate gates.
+
+## Implemented Skew-Normal Continuous Contract
+
+For `skew_normal()`, the first implementation is a univariate fixed-effect
+moment-parameterized skew-normal model:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ SkewNormalMoment(mu_i, sigma_i, nu_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+nu_i = eta_nu_i
+delta_i = nu_i / sqrt(1 + nu_i^2)
+omega_i = sigma_i / sqrt(1 - 2 * delta_i^2 / pi)
+xi_i = mu_i - omega_i * delta_i * sqrt(2 / pi)
+z_i = (y_i - xi_i) / omega_i
+log f(y_i) = log(2) - log(omega_i) + log phi(z_i) + log Phi(nu_i z_i)
+```
+
+Here `mu` is the arithmetic response mean and `sigma` is the response standard
+deviation by construction. The native density scale is `xi`, `omega`, and
+`alpha = nu`, but those are implementation details rather than user-facing
+distributional parameters. `fitted()` returns `mu`, `sigma(fit)` returns public
+`sigma`, and `predict(fit, dpar = "nu")` returns the residual slant on the
+identity scale. Positive `nu` indicates right-skewed residuals, negative `nu`
+indicates left-skewed residuals, and `nu = 0` reduces to the Gaussian
+location-scale likelihood.
+
+The first route rejects random effects, structured effects, known sampling
+covariance, bivariate responses, residual `rho12`, aliases such as `skew ~ x`,
+and latent `skew(id)` syntax. Those neighbours need their own likelihood,
+diagnostic, interval, and recovery evidence before they can share this
+contract.
 
 ## Implemented Poisson Count Contract
 

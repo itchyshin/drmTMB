@@ -114,6 +114,7 @@ reference:
       - cumulative_logit
       - categorical
       - student
+      - skew_normal
       - lognormal
       - tweedie
       - nbinom2

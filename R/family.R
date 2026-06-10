@@ -61,6 +61,44 @@ student <- function() {
   )
 }
 
+#' Skew-normal response family
+#'
+#' `skew_normal()` defines a one-response skew-normal distribution with
+#' formulas for location `mu`, residual standard deviation `sigma`, and
+#' residual slant `nu`.
+#'
+#' The first implementation is fixed-effect and univariate:
+#' `mu = eta_mu`, `log(sigma) = eta_sigma`, and `nu = eta_nu`. The likelihood
+#' transforms internally to the native Azzalini location `xi`, scale `omega`,
+#' and slant `alpha = nu`, but user-facing methods keep the public moment
+#' parameterization: [fitted()] returns `E[y] = mu`, [stats::sigma()] returns
+#' `SD[y] = sigma`, and `predict(..., dpar = "nu")` returns the residual slant.
+#' Positive `nu` gives right-skewed residuals, negative `nu` gives left-skewed
+#' residuals, and `nu = 0` reduces to the Gaussian location-scale likelihood.
+#'
+#' Random effects, `sigma` or `nu` random effects, `sd(group)` scale formulas,
+#' structured effects, known sampling covariance, bivariate skew-normal models,
+#' residual `rho12`, and latent `skew(id)` syntax remain planned but
+#' unsupported in this first slice.
+#'
+#' @return A `drm_family` object.
+#' @export
+#'
+#' @examples
+#' skew_normal()
+skew_normal <- function() {
+  structure(
+    list(
+      name = "skew_normal",
+      family = "skew_normal",
+      n_response = 1L,
+      dpars = c("mu", "sigma", "nu"),
+      links = c(mu = "identity", sigma = "log", nu = "identity")
+    ),
+    class = "drm_family"
+  )
+}
+
 #' Lognormal response family
 #'
 #' `lognormal()` defines a one-response positive continuous distribution with

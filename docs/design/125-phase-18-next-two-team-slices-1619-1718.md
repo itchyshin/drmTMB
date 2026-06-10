@@ -5,9 +5,12 @@ This note answers the post-closeout question: after the first fitted
 The reader is an R package contributor who needs a narrow work queue, not a
 broad wish list.
 
-The plan keeps the fitted and design-only surfaces separate. Team A hardens the
-implemented Tweedie fixed-effect route. Team B turns the skew-normal source map
-into a parameterization and test decision without adding `skew_normal()` yet.
+The plan kept the fitted and design-only surfaces separate at the time it was
+written. Team A hardened the implemented Tweedie fixed-effect route. Team B
+turned the skew-normal source map into a parameterization and test decision.
+That Team B gate is now superseded by the fitted `skew_normal()` first slice;
+use this note as historical context for the moment contract, not as a current
+instruction to keep the constructor absent.
 
 ## Current Starting Point
 
@@ -138,12 +141,12 @@ the first test contract so the future `skew_normal()` branch is not ambiguous.
 | 1684 | Decide starting values for `nu` | The implementation plan says whether exact zero starts are safe or whether a small nonzero start avoids flat derivatives. |
 | 1685 | Decide support and missingness checks | The plan covers finite continuous responses and model-frame filtering before support validation. |
 | 1686 | Decide rank-deficiency behaviour | The plan records whether shared fixed-effect rank handling is enough or family-specific diagnostics are needed. |
-| 1687 | Add a no-fit boundary scan | Source and rendered scans must catch accidental claims that `skew_normal()` is fitted. |
-| 1688 | Keep constructor absent | Tests continue to expect `skew_normal()` to be absent until the full family lane lands. |
+| 1687 | Replace no-fit boundary scan | Source and rendered scans should now catch stale absence claims and unsupported-neighbour overclaims. |
+| 1688 | Constructor absence superseded | Tests now expect the exported `skew_normal()` first slice and explicit rejection of unsupported neighbours. |
 | 1689 | Keep formula grammar unchanged | `docs/design/01-formula-grammar.md` stays unchanged unless the canonical syntax changes. |
-| 1690 | Keep family registry honest | The registry says planned, not implemented, until constructor, likelihood, methods, docs, and tests land. |
-| 1691 | Keep likelihood design honest | The likelihood design may record the decision, but not claim code exists. |
-| 1692 | Keep README and pkgdown examples absent | User-facing examples remain planned-only until runnable code exists. |
+| 1690 | Keep family registry honest | The registry should say fixed-effect first slice for `skew_normal()` and planned for random, structured, bivariate, covariance, and alias neighbours. |
+| 1691 | Keep likelihood design honest | The likelihood design may claim code exists only for the fitted first slice. |
+| 1692 | Keep README and pkgdown examples bounded | User-facing examples must remain inside the fixed-effect first slice until richer code exists. |
 | 1693 | Draft first implementation checklist | The checklist covers constructor, builder, TMB branch, extractors, simulation, residuals, docs, and tests. |
 | 1694 | Draft first density tests | Tests compare log density at negative, zero, and positive `nu`, including tail points. |
 | 1695 | Draft first recovery tests | Tests include intercept-only `nu`, then `nu ~ w`, with positive and negative skew. |

@@ -232,9 +232,18 @@
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
   slopes. Student-t `nu` is a fixed-effect tail-shape parameter; random effects
-  in `sigma` or `nu`, future skew-normal or skew-t shape random effects,
-  correlated Student-t slopes, and latent ID-level skewness syntax such as
-  `skew(id) ~ x` are not yet implemented.
+  in `sigma` or `nu`, skew-t shape random effects, correlated Student-t slopes,
+  and latent ID-level skewness syntax such as `skew(id) ~ x` are not yet
+  implemented.
+- Univariate skew-normal location-scale-shape models are implemented as a
+  fixed-effect first slice for residual asymmetry with `family = skew_normal()`.
+  Public `mu` is the response mean, public `sigma` is the response standard
+  deviation, and `nu` is residual slant on the identity scale. Random effects in
+  `mu`, `sigma`, or `nu`, `sd(group)` scale formulae, known sampling covariance,
+  structured effects, bivariate skew-normal models, residual `rho12`, latent
+  `skew(id)` syntax, and `skew` aliases are not yet implemented. The current
+  evidence is focused source tests, not a formal multi-replicate operating
+  characteristics grid.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
@@ -409,9 +418,10 @@
   zero-inflation with random effects or structured effects, non-Gaussian
   structured routes beyond the ordinary Poisson/NB2 q=1 `mu` intercept slices
   for `phylo()`, `spatial()`, `animal()`, and `relmat()`,
-  and additional non-Gaussian families beyond the first Student-t, lognormal,
-  Gamma, beta, beta-binomial, Poisson, negative-binomial, zero-inflated,
-  zero-truncated, and hurdle paths are planned but not yet implemented.
+  and additional non-Gaussian families beyond the first Student-t, skew-normal,
+  lognormal, Gamma, beta, beta-binomial, Poisson, negative-binomial,
+  zero-inflated, zero-truncated, and hurdle paths are planned but not yet
+  implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.

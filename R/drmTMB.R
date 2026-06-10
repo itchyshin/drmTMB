@@ -2,7 +2,7 @@
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
 #' supports univariate Gaussian location-scale models,
-#' univariate Student-t location-scale-shape models, lognormal
+#' univariate Student-t and skew-normal location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' Tweedie mean-scale-power models for non-negative semicontinuous responses,
 #' beta mean-scale models for strict proportions,
@@ -50,7 +50,7 @@
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
-#'   [lognormal()], [stats::Gamma()] with `link = "log"`,
+#'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
 #'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
 #'   [beta_binomial()], [cumulative_logit()],
 #'   [stats::poisson()] with `link = "log"`, [nbinom2()],
@@ -266,6 +266,12 @@ drmTMB <- function(
       missing = missing_control
     ),
     student = drm_build_student_ls_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full
+    ),
+    skew_normal = drm_build_skew_normal_ls_spec(
       formula,
       data,
       env = formula_env,
@@ -843,6 +849,9 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "student")) {
     return("student")
   }
+  if (inherits(family, "drm_family") && identical(family$name, "skew_normal")) {
+    return("skew_normal")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "lognormal")) {
     return("lognormal")
   }
@@ -866,7 +875,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -1766,6 +1775,224 @@ drm_build_student_ls_spec <- function(
     start = student_ls_start(y, X_mu, X_sigma, X_nu, re_mu = re_mu),
     map = student_ls_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_skew_normal_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "nu"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models only support {.code mu}, {.code sigma}, and {.code nu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Use canonical residual-shape syntax such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}; aliases such as {.code skew ~ w} or latent {.code skew(id) ~ w} remain planned."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn skew_normal} models.",
+      "i" = "Start with fixed-effect skew-normal formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}."
+    ))
+  }
+  mu_responses <- vapply(
+    entries[dpars == "mu"],
+    function(entry) {
+      if (is.na(entry$response)) {
+        return(NA_character_)
+      }
+      entry$response
+    },
+    character(1L)
+  )
+  unsupported_skew_response <- mu_responses[
+    !is.na(mu_responses) & grepl("^skew\\(", mu_responses)
+  ]
+  if (length(unsupported_skew_response) > 0L) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models use {.code nu} for fixed-effect residual slant.",
+      "x" = "Latent skewness syntax such as {.code {unsupported_skew_response[[1L]]} ~ ...} is not implemented.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ z, nu ~ w)} for the fixed-effect first slice."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A {.fn skew_normal} model requires exactly one location formula."
+    )
+  }
+  for (optional in c("sigma", "nu")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "A {.fn skew_normal} model can have at most one {.code {optional}} formula."
+      )
+    }
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+  nu_entry <- if (any(dpars == "nu")) {
+    entries[[which(dpars == "nu")]]
+  } else {
+    default_dpar_entry("nu", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "{.fn skew_normal} models currently support one continuous response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models require a single continuous response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} belongs to denominator-aware count or proportion families."
+    ))
+  }
+  if (!is.na(nu_entry$response)) {
+    cli::cli_abort(
+      "The {.code nu} formula must be one-sided, for example {.code nu ~ w}."
+    )
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} is not implemented for {.fn skew_normal} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_skew_normal_random_terms(mu_re$terms, "mu")
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_skew_normal_random_terms(sigma_re$terms, "sigma")
+  nu_re <- extract_random_mu_terms(nu_entry$rhs, "nu")
+  nu_entry$rhs <- nu_re$rhs
+  validate_skew_normal_random_terms(nu_re$terms, "nu")
+
+  for (entry in list(mu_entry, sigma_entry, nu_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_nu <- stats::model.frame(
+    f_nu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  if (!is.null(dim(y))) {
+    cli::cli_abort(
+      "{.fn skew_normal} models require a single continuous response."
+    )
+  }
+  if (!all(is.finite(y))) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models require finite continuous response values.",
+      "x" = "The response {.val {mu_entry$response}} contains non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+
+  if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
+    cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
+  }
+
+  spec <- list(
+    model_type = "skew_normal",
+    y = as.numeric(y),
+    weights = weights_model,
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma, nu = X_nu),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma),
+      nu = stats::terms(mf_nu)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(
+      mu = empty_sd_mu_structure(0L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma", "nu"),
+    start = skew_normal_ls_start(y, X_mu, X_sigma, X_nu),
+    map = skew_normal_ls_map(),
+    random_names = NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -4732,7 +4959,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
         "Shape random effects are not implemented.",
         "x" = "The {.code {dpar}} formula contains a random-effect bar term.",
         "i" = "Keep shape formulas fixed-effect for now, such as {.code nu ~ x}.",
-        "i" = "Student-t {.code nu} models tail shape; future skew-normal and skew-t shape parameters need fixed-effect likelihood recovery before random effects are added.",
+        "i" = "Student-t {.code nu} models tail shape; skew-normal fixed-effect {.code nu} models residual slant; skew-normal and skew-t shape random effects need separate likelihood recovery before fitting.",
         "i" = "Latent group-level skewness, such as future {.code skew(id) ~ x}, remains design-only until simulations separate it from residual skewness and heteroscedasticity."
       ))
     }
@@ -5075,6 +5302,19 @@ validate_student_sigma_random_terms <- function(terms) {
     "Non-Gaussian {.code sigma} random effects are not implemented for {.fn student}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary Student-t {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
+  ))
+}
+
+validate_skew_normal_random_terms <- function(terms, dpar) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "{.fn skew_normal} random effects are not implemented in this first fixed-effect slice.",
+    "x" = "The {.code {dpar}} formula contains unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "Use fixed-effect formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}.",
+    "i" = "Residual-shape random effects, residual-scale random effects, ordinary grouped skew-normal random effects, and latent {.code skew(id)} syntax need separate likelihood, extractor, interval, and simulation-recovery evidence."
   ))
 }
 
@@ -10623,6 +10863,62 @@ student_nu_start <- function(y, X_mu, beta_mu, X_nu) {
   beta_nu
 }
 
+skew_normal_ls_start <- function(y, X_mu, X_sigma, X_nu) {
+  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma)
+  c(
+    list(
+      beta_mu = gaussian_start$beta_mu,
+      beta_sigma = gaussian_start$beta_sigma,
+      beta_nu = skew_normal_nu_start(
+        y,
+        X_mu,
+        gaussian_start$beta_mu,
+        X_sigma,
+        gaussian_start$beta_sigma,
+        X_nu
+      )
+    ),
+    list(
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      eta_cor_mu_sigma = 0,
+      eta_cor_sigma = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0,
+      eta_cor_phylo = 0
+    )
+  )
+}
+
+skew_normal_nu_start <- function(y, X_mu, beta_mu, X_sigma, beta_sigma, X_nu) {
+  beta_nu <- numeric(ncol(X_nu))
+  if (length(beta_nu) == 0L) {
+    return(beta_nu)
+  }
+  mu <- as.vector(X_mu %*% beta_mu)
+  sigma <- exp(as.vector(X_sigma %*% beta_sigma))
+  standardized <- (y - mu) / sigma
+  skewness <- mean((standardized - mean(standardized))^3) /
+    stats::sd(standardized)^3
+  if (!is.finite(skewness)) {
+    skewness <- 0
+  }
+  start_sign <- if (skewness < 0) -1 else 1
+  beta_nu[[1L]] <- start_sign * min(5, max(0.1, 2 * abs(skewness)))
+  beta_nu
+}
+
 lognormal_ls_start <- function(
   y,
   X_mu,
@@ -11790,6 +12086,12 @@ student_ls_map <- function(
   out
 }
 
+skew_normal_ls_map <- function() {
+  out <- gaussian_ls_map()
+  out$beta_nu <- NULL
+  out
+}
+
 covariance_block_re_start <- function(registry, y_scale = c(1, 1)) {
   if (
     !is.list(registry) ||
@@ -12240,6 +12542,64 @@ make_tmb_data <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 3L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = spec$X$nu,
+      X_zi = dummy_matrix,
+      X_sd_mu = sd_mu$X,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = re_mu$n_terms,
+      n_mu_re_cors = 0L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+  if (identical(spec$model_type, "skew_normal")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
+    return(list(
+      model_type = 17L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -13223,6 +13583,7 @@ split_tmb_parameters <- function(par, spec) {
   if (
     identical(spec$model_type, "gaussian") ||
       identical(spec$model_type, "student") ||
+      identical(spec$model_type, "skew_normal") ||
       identical(spec$model_type, "lognormal") ||
       identical(spec$model_type, "gamma") ||
       identical(spec$model_type, "tweedie") ||
@@ -13238,6 +13599,7 @@ split_tmb_parameters <- function(par, spec) {
     out <- list(mu = beta_mu, sigma = beta_sigma)
     if (
       identical(spec$model_type, "student") ||
+        identical(spec$model_type, "skew_normal") ||
         identical(spec$model_type, "tweedie")
     ) {
       beta_nu <- unname(par$beta_nu)
@@ -13432,6 +13794,7 @@ split_tmb_sdpars <- function(par, spec) {
         "gaussian",
         "biv_gaussian",
         "student",
+        "skew_normal",
         "lognormal",
         "gamma",
         "tweedie",
