@@ -53190,3 +53190,33 @@ Results:
 - Full `devtools::test()` passed.
 - `pkgdown::check_pkgdown()` reported no problems and printed
   `pkgdown_check_ok`.
+
+## 2026-06-09: Julia Engine Article Navigation
+
+Scope:
+
+- Promoted the Julia-engine article from the developer-only navbar path to the
+  user-facing Model Guides menu.
+- Moved `julia-engine` from the Developer Notes article-index group to the
+  Inference, Diagnostics, and Figures group beside the large-data guide.
+
+Checks run:
+
+```sh
+Rscript -e 'pkgdown::build_site()'
+Rscript -e 'pkgdown::check_pkgdown()'
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site()` completed and regenerated the site. The local build
+  printed the known local `glmmTMB`/`TMB` version-mismatch warning while
+  rendering `convergence.Rmd`, but the site build finished.
+- Rendered navbar checks found `Running models with the Julia engine` under
+  `Model Guides` in `pkgdown-site/articles/drmTMB.html`,
+  `pkgdown-site/articles/index.html`, and
+  `pkgdown-site/articles/julia-engine.html`.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `git diff --check` reported no whitespace problems.
