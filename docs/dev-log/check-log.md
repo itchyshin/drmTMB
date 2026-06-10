@@ -53284,3 +53284,34 @@ Known remaining boundaries:
   operating-characteristic grids, external fitted-model comparators, random
   effects, structured effects, known covariance, bivariate skew-normal models,
   residual `rho12`, latent `skew(id)`, and `skew` aliases remain future work.
+
+## 2026-06-09: Julia Engine Article Title
+
+Scope:
+
+- Aligned the Julia-engine article title and vignette index entry with the
+  user-facing navbar label: "Running models with the Julia engine".
+
+Checks run:
+
+```sh
+Rscript -e 'pkgdown::build_article("julia-engine")'
+Rscript -e 'pkgdown::build_site()'
+Rscript -e 'pkgdown::check_pkgdown()'
+rg -n "Running models with the Julia engine|Working with the Julia engine" vignettes/julia-engine.Rmd pkgdown-site/articles/julia-engine.html pkgdown-site/articles/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_article("julia-engine")` completed.
+- `pkgdown::build_site()` completed. The local build again printed the known
+  local `glmmTMB`/`TMB` version-mismatch warning while rendering
+  `convergence.Rmd`, but the site build finished.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- Rendered scans found `Running models with the Julia engine` in the vignette
+  source, article page title, article page heading, navbar entry, and article
+  index entry. No rendered `Working with the Julia engine` hit remained in the
+  checked article/index files.
+- `git diff --check` reported no whitespace problems.

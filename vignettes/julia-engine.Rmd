@@ -1,8 +1,8 @@
 ---
-title: "Working with the Julia engine"
+title: "Running models with the Julia engine"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Working with the Julia engine}
+  %\VignetteIndexEntry{Running models with the Julia engine}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
