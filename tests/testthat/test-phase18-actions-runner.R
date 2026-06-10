@@ -173,6 +173,33 @@ test_that("Phase 18 Actions runner accepts Tweedie fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts skew-normal fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-skew-normal-fe-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=skew_normal_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--profile-parameters=nu:w",
+      "--bootstrap-nsim=2",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=skew_normal_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+  expect_match(out, "profile_parameters=nu:w", fixed = TRUE)
+  expect_match(out, "bootstrap_nsim=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   script <- phase18_actions_runner_script()
   env <- new.env(parent = globalenv())
@@ -194,6 +221,24 @@ test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   expect_equal(
     env$phase18_actions_task_paths("tweedie_fixed_effect"),
     tweedie_paths
+  )
+})
+
+test_that("Phase 18 Actions runner sources skew-normal task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  skew_normal_paths <- c(
+    "sim/dgp/sim_dgp_skew_normal_fixed_effect.R",
+    "sim/fit/sim_summarise_skew_normal_fixed_effect.R",
+    "sim/run/sim_run_skew_normal_fixed_effect_smoke.R",
+    "sim/run/sim_summary_skew_normal_fixed_effect_smoke.R",
+    "sim/run/sim_write_skew_normal_fixed_effect_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("skew_normal_fixed_effect"),
+    skew_normal_paths
   )
 })
 

@@ -246,11 +246,9 @@ and bivariate Student-t models are later phases. Start with this fixed-effect
 path when you need a robust continuous comparison to a Gaussian
 location-scale model.
 
-Skew-normal residual asymmetry is a separate planned family, not a fitted
-option today:
+Skew-normal residual asymmetry is a separate fitted fixed-effect family:
 
 ```r
-# Planned, not fitted yet:
 drmTMB(
   bf(y ~ x1, sigma ~ x2, nu ~ x3),
   family = skew_normal(),
@@ -258,11 +256,11 @@ drmTMB(
 )
 ```
 
-Use this planned syntax only in design notes until `skew_normal()` has a
-density implementation, a normal-limit check at `nu = 0`, recovery for
-positive and negative skew, and tests showing that `nu ~ x` is not merely
-absorbing heteroscedasticity or outliers. For now, fit the Gaussian and
-Student-t models above and report whether the location and scale conclusions
-are robust to heavier tails. ID-level skewness such as future `skew(id) ~ x`
-is a different latent-effect question, not an alias for residual Student-t
-`nu` or planned skew-normal `nu`.
+Use this model when the question is residual asymmetry rather than heavy tails.
+The fitted first slice has density, Gaussian-limit, positive- and negative-skew
+recovery, false-positive, interval-visibility, and Phase 18 smoke/grid artifact
+tests. Random effects, known covariance, structured effects, bivariate
+skew-normal models, residual `rho12`, aliases such as `skew ~ x`, and
+ID-level skewness such as future `skew(id) ~ x` remain later routes. Gaussian,
+Student-t, and skew-normal fits answer different residual-distribution
+questions, so compare them as sensitivity models rather than aliases.

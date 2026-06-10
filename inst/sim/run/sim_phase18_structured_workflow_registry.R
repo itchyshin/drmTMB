@@ -1448,6 +1448,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "biv_gaussian_q2_scale_slope_recovery",
     "biv_gaussian_mu_sigma_slope",
     "biv_gaussian_mu_sigma_slope_recovery",
+    "skew_normal_fixed_effect",
     "spatial_mu_slope",
     "phylo_mu_slope",
     "animal_mu_slope",

@@ -53315,3 +53315,76 @@ Results:
   index entry. No rendered `Working with the Julia engine` hit remained in the
   checked article/index files.
 - `git diff --check` reported no whitespace problems.
+
+## 2026-06-09: Skew-Normal Fixed-Effect Artifact Lane
+
+Scope:
+
+- Added a Phase 18 standalone artifact lane for fixed-effect `skew_normal()`
+  models with `mu`, `sigma`, and `nu` predictors. The lane is intentionally
+  fixed-effect only; random effects, structured effects, bivariate residual
+  correlation, known covariance, latent skew syntax, and skew-t remain separate
+  future surfaces.
+- Added the DGP, fit runner, summariser, grid writer, Actions dispatch task,
+  registry row, and source tests needed to rerun a small smoke/grid artifact
+  lane. The DGP uses moderate default sample sizes (`n = 720` and `n = 1440`)
+  because skew-normal shape recovery is sample-size dependent and tiny smoke
+  cells are too noisy to support capability claims.
+- Kept inference claims bounded to a repeatable artifact lane. This is not yet
+  a formal 500/1000-replicate operating-characteristic result and does not close
+  issue #3.
+- Updated NEWS, ROADMAP, family registry, simulation programme notes, readiness
+  matrices, worked-example inventory, validation debt, known limitations,
+  simulation README, `model-map`, `robust-student`, and historical skew-normal
+  design notes so fitted fixed-effect skew-normal support is separated from
+  richer planned skew-family work.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal|phase18-skew-normal-fixed-effect|phase18-actions-runner", reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::build_article("robust-student"); pkgdown::build_article("model-map"); cat("articles_ok\n")'
+rg -n 'separate fitted fixed-effect family|residual asymmetry rather than heavy tails|Phase 18 smoke/grid artifact|skew_normal\(\)' pkgdown-site/articles/robust-student.html
+rg -n 'skew-normal residual asymmetry|Phase 18 artifact tests|fixed-effect `skew_normal\(\)`' pkgdown-site/articles/robust-student.html pkgdown-site/articles/model-map.html
+Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+git diff --check
+rg -n 'Planned, not fitted yet|Use this planned syntax|not a fitted option today|skew-family likelihood exists|skew-normal.*not yet fitted|skew-normal.*not implemented|skew-normal.*remain design|skew_normal\(\) \(planned\)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim .github --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n '^(<<<<<<<|=======|>>>>>>>)' .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/dev-log/after-task/2026-06-09-skew-normal-fixed-effect-artifact-lane.md inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R tests/testthat/test-phase18-skew-normal-fixed-effect.R
+Rscript --vanilla -e 'devtools::test(filter = "phase18-structured-workflow-registry", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
+```
+
+Results:
+
+- The focused skew-normal Phase 18 source tests passed after tightening helper
+  scoping and treating profile warnings as warning-severity ledger rows rather
+  than hard errors.
+- The Actions-runner dry-run tests passed for the new
+  `skew_normal_fixed_effect` task with profile/bootstrap arguments.
+- The combined focused test filter passed for the new artifact lane plus the
+  existing skew-normal density/location-scale tests.
+- The two touched articles rendered, and rendered HTML scans found the updated
+  fixed-effect skew-normal wording in `robust-student` and `model-map`.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `git diff --check` reported no whitespace problems.
+- The stale skew-normal planned/unsupported wording scan returned only unrelated
+  phylogenetic-spatial planned-example wording, not fixed-effect skew-normal
+  contradictions.
+- The touched-file conflict-marker scan returned no merge-conflict markers.
+- PR #517 initially failed the macOS `R-CMD-check` because the structured
+  workflow registry validator's fallback Actions-task list did not include
+  `skew_normal_fixed_effect`. Adding the task there and updating the
+  family-surface count fixtures fixed the failure locally.
+- The focused structured-workflow-registry and Actions-runner tests passed after
+  that CI follow-up patch, and `git diff --check` remained clean.
+
+Known remaining boundaries:
+
+- Next skew-normal capability depth should run formal higher-replicate grids,
+  add fitted-model comparator checks on the public moment scale, and then decide
+  whether to extend to random/structured/bivariate skew-family surfaces. This
+  slice only makes fixed-effect skew-normal useful enough to rerun, inspect, and
+  cite as a bounded artifact lane.

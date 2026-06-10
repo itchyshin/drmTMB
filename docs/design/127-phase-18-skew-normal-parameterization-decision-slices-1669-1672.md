@@ -73,7 +73,7 @@ models, and `rho12`.
 
 | Slice | Status | Evidence |
 | --- | --- | --- |
-| 1669 | Done | The skew-normal source map and issue #3 still mark the family as design-only. |
+| 1669 | Superseded | At the time of this decision, the skew-normal source map and issue #3 marked the family as design-only; the fixed-effect first slice and Phase 18 artifact lane now exist. |
 | 1670 | Done | The first reader-facing question is residual asymmetry after `mu` and `sigma`, not latent-effect skewness. |
 | 1671 | Done | This note compares native Azzalini and moment parameterizations. |
 | 1672 | Done | The decision is moment parameters for the first fitted lane. |

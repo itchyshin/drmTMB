@@ -242,8 +242,9 @@
   `mu`, `sigma`, or `nu`, `sd(group)` scale formulae, known sampling covariance,
   structured effects, bivariate skew-normal models, residual `rho12`, latent
   `skew(id)` syntax, and `skew` aliases are not yet implemented. The current
-  evidence is focused source tests, not a formal multi-replicate operating
-  characteristics grid.
+  evidence is focused source tests plus a repeatable Phase 18 smoke/grid
+  artifact lane; it is not a formal 500- or 1000-replicate operating
+  characteristics result.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
