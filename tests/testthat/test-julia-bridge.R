@@ -416,3 +416,75 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
     "only with a .*phylo.* random intercept"
   )
 })
+
+test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
+  tree <- structure(
+    list(
+      edge = matrix(
+        c(7, 5, 7, 6, 5, 1, 5, 2, 6, 3, 6, 4),
+        ncol = 2,
+        byrow = TRUE
+      ),
+      edge.length = rep(1, 6),
+      tip.label = paste0("sp_", 1:4),
+      Nnode = 3L
+    ),
+    class = "phylo"
+  )
+  form <- bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~1
+  )
+
+  # The labelled covariance block phylo(1 | p | species) collapses to DRM.jl's
+  # plain phylo(1 | species) on every axis (DRM.jl implies the 4x4 Sigma_a).
+  spec <- drmTMB:::drm_julia_formula_spec(form)
+  expect_equal(spec$mu1, "y1 ~ x + phylo(1 | species)")
+  expect_equal(spec$mu2, "y2 ~ x + phylo(1 | species)")
+  expect_equal(spec$sigma1, "sigma1 ~ 1 + phylo(1 | species)")
+  expect_equal(spec$sigma2, "sigma2 ~ 1 + phylo(1 | species)")
+  expect_equal(spec$rho12, "rho12 ~ 1")
+
+  dat <- data.frame(
+    y1 = seq_len(8),
+    y2 = seq_len(8) + 0.5,
+    x = seq(-1, 1, length.out = 8),
+    species = paste0("sp_", c(1, 1, 2, 2, 3, 3, 4, 4))
+  )
+  cache <- get("drm_julia_phylo_payload_cache", asNamespace("drmTMB"))
+  rm(list = ls(cache, all.names = TRUE), envir = cache)
+  on.exit(rm(list = ls(cache, all.names = TRUE), envir = cache), add = TRUE)
+
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = form,
+    family_type = "biv_gaussian",
+    data = dat,
+    env = environment()
+  )
+  # q4 route: DRM.jl defaults (no g_tol override); the block label "p" is NOT a
+  # data column; the tree is marshalled as Newick; markers preserved per axis.
+  expect_equal(payload$options, list())
+  expect_equal(payload$formula$sigma1, "sigma1 ~ 1 + phylo(1 | species)")
+  expect_false("p" %in% names(payload$data))
+  expect_true(all(c("y1", "y2", "x", "species") %in% names(payload$data)))
+  expect_match(payload$tree, "^\\(\\(sp_1:1")
+
+  # rho12 may not carry phylo on the bridge route.
+  expect_error(
+    drmTMB:::drm_julia_phylo_payload(
+      formula = bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+        rho12 = ~ 1 + phylo(1 | p | species, tree = tree)
+      ),
+      family_type = "biv_gaussian",
+      data = dat,
+      env = environment()
+    )
+  )
+})

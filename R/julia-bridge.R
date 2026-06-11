@@ -229,7 +229,9 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
     lapply(formula$entries, function(entry) {
       c(
         if (!is.na(entry$response)) entry$response,
-        all.vars(drm_julia_strip_phylo_tree(entry$rhs))
+        all.vars(
+          drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
+        )
       )
     }),
     use.names = FALSE
@@ -248,6 +250,11 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
 
 drm_julia_bridge_options <- function(phylo_payload) {
   if (is.null(phylo_payload)) {
+    return(list())
+  }
+  if (isTRUE(phylo_payload$bivariate)) {
+    # The q=4 PLSM route uses DRM.jl's own defaults (no g_tol override): the
+    # direct-fit parity check matched the bridge to 0 with defaults.
     return(list())
   }
 
@@ -280,7 +287,9 @@ drm_julia_formula_spec <- function(formula) {
 }
 
 drm_julia_formula_entry <- function(entry) {
-  rhs <- deparse1(drm_julia_strip_phylo_tree(entry$rhs))
+  rhs <- deparse1(
+    drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
+  )
   if (!is.na(entry$response)) {
     return(paste(entry$response, "~", rhs))
   }
@@ -363,66 +372,91 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   if (length(phylo_terms) == 0L) {
     return(NULL)
   }
-  # Univariate Gaussian keeps the verified sparse all-node route. Poisson and NB2
-  # add the large-p phylogenetic COUNT route, and Gamma / Beta / Binomial add the
-  # non-Gaussian location-scale and mean-only phylo routes (all DRM.jl sparse O(p)
-  # Laplace). Every one marshals the same tree + group payload; only the response
-  # family tag differs. The phylo-only set is shared with `drm_julia_family_tag`.
+  # Univariate Gaussian keeps the verified sparse all-node route. Poisson, NB2,
+  # Gamma, Beta, and Binomial add the non-Gaussian phylo (count / location-scale /
+  # mean-only) routes; bivariate Gaussian (q=4 PLSM) admits intercept phylo on
+  # mu1/mu2/sigma1/sigma2 sharing ONE tree + grouping factor. All marshal the same
+  # tree + group payload. The phylo-only set is shared with `drm_julia_family_tag`.
   phylo_families <- c("gaussian", drm_julia_phylo_only_families())
-  if (!family_type %in% phylo_families) {
+  if (family_type %in% phylo_families) {
+    if (length(phylo_terms) != 1L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
+        i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
+      ))
+    }
+    term <- phylo_terms[[1L]]
+    if (!identical(term$dpar, "mu") || !identical(term$coef_names, "(Intercept)")) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the {.code mu} formula.",
+        i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes, residual-scale phylogenetic effects, or direct-SD formulas."
+      ))
+    }
+    sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
+    if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
+        i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
+      ))
+    }
+    rep_term <- term
+    labels <- term$label
+    bivariate <- FALSE
+  } else if (identical(family_type, "biv_gaussian")) {
+    allowed <- c("mu1", "mu2", "sigma1", "sigma2")
+    dpars <- vapply(phylo_terms, `[[`, character(1L), "dpar")
+    if (!all(dpars %in% allowed)) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} routes bivariate {.fn phylo} only on {.val {allowed}}.",
+        x = "Unsupported phylogenetic axis: {.val {setdiff(dpars, allowed)}}.",
+        i = "Use native {.code engine = \"tmb\"} for phylogenetic {.code rho12} or other axes."
+      ))
+    }
+    if (!all(allowed %in% dpars)) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} routes the bivariate q=4 PLSM only when {.fn phylo} is on all four axes {.val {allowed}}.",
+        x = "Missing phylogenetic axis: {.val {setdiff(allowed, dpars)}}.",
+        i = "Use native {.code engine = \"tmb\"} for partial bivariate phylogenetic structure."
+      ))
+    }
+    if (!all(vapply(phylo_terms, function(t) identical(t$coef_names, "(Intercept)"), logical(1L)))) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} currently supports only intercept {.code phylo(1 | group, tree = tree)} terms in the bivariate q=4 route.",
+        i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes in the location-scale model."
+      ))
+    }
+    groups <- vapply(phylo_terms, `[[`, character(1L), "group")
+    trees <- vapply(phylo_terms, `[[`, character(1L), "tree")
+    if (length(unique(groups)) != 1L || length(unique(trees)) != 1L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree and grouping factor.",
+        i = "Use native {.code engine = \"tmb\"} for heterogeneous phylogenetic structure across axes."
+      ))
+    }
+    rep_term <- phylo_terms[[1L]]
+    labels <- vapply(phylo_terms, `[[`, character(1L), "label")
+    bivariate <- TRUE
+  } else {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian, Poisson, NB2, Gamma, Beta, or Binomial bridge fits in this slice.",
-      i = "Use native {.code engine = \"tmb\"} for bivariate or other phylogenetic fits until the bridge has parity tests."
-    ))
-  }
-  if (length(phylo_terms) != 1L) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
-      i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
+      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits.",
+      i = "Use native {.code engine = \"tmb\"} for other phylogenetic fits until the bridge has parity tests."
     ))
   }
 
-  term <- phylo_terms[[1L]]
-  if (
-    !identical(term$dpar, "mu") ||
-      !identical(term$coef_names, "(Intercept)")
-  ) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the {.code mu} formula.",
-      i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes, residual-scale phylogenetic effects, or direct-SD formulas."
-    ))
-  }
-  sigma_entries <- Filter(
-    function(entry) identical(entry$dpar, "sigma"),
-    formula$entries
-  )
-  if (
-    length(sigma_entries) > 0L &&
-      !all(vapply(
-        sigma_entries,
-        function(entry) drm_julia_is_intercept_rhs(entry$rhs),
-        logical(1L)
-      ))
-  ) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
-      i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
-    ))
-  }
-  if (!term$group %in% names(data)) {
+  if (!rep_term$group %in% names(data)) {
     cli::cli_abort(
-      "Phylogenetic grouping variable {.field {term$group}} was not found in {.arg data}."
+      "Phylogenetic grouping variable {.field {rep_term$group}} was not found in {.arg data}."
     )
   }
 
-  tree <- get(term$tree, envir = env, inherits = TRUE)
-  species <- as.character(data[[term$group]])
+  tree <- get(rep_term$tree, envir = env, inherits = TRUE)
+  species <- as.character(data[[rep_term$group]])
   cache <- drm_julia_phylo_payload_cache
   if (
     !is.null(cache$full_tree) &&
       identical(cache$full_tree, tree) &&
-      identical(cache$full_group, term$group) &&
-      identical(cache$full_label, term$label) &&
+      identical(cache$full_group, rep_term$group) &&
+      identical(cache$full_label, labels) &&
       identical(cache$full_species, species)
   ) {
     return(cache$full_payload)
@@ -437,16 +471,17 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
 
   payload <- list(
     newick = tree_payload$newick,
-    group = term$group,
+    group = rep_term$group,
     row_order = row_order,
+    bivariate = bivariate,
     structured_sd_scales = stats::setNames(
-      tree_payload$sd_scale,
-      term$label
+      rep(tree_payload$sd_scale, length(labels)),
+      labels
     )
   )
   cache$full_tree <- tree
-  cache$full_group <- term$group
-  cache$full_label <- term$label
+  cache$full_group <- rep_term$group
+  cache$full_label <- labels
   cache$full_species <- species
   cache$full_payload <- payload
   payload
@@ -543,6 +578,41 @@ drm_julia_strip_structured_kwargs <- function(expr) {
     call[-1L] <- lapply(call[-1L], drm_julia_strip_structured_kwargs)
   }
   as.call(call)
+}
+
+# Collapse drmTMB's labelled covariance-block grammar `re | label | group` to
+# DRM.jl's `re | group` inside phylo() calls. DRM.jl implies the q=4 4x4 Sigma_a
+# from the four location/scale axes sharing one tree + grouping factor, so the
+# block label is dropped on the way across the bridge. No-op for the plain
+# `re | group` form (univariate route and unlabelled bivariate terms).
+drm_julia_collapse_phylo_block <- function(expr) {
+  if (!is.call(expr)) {
+    return(expr)
+  }
+  parts <- as.list(expr)
+  if (identical(parts[[1L]], as.name("phylo"))) {
+    nm <- names(parts)
+    for (i in seq_along(parts)) {
+      if (i == 1L) {
+        next
+      }
+      if (!is.null(nm) && !is.na(nm[[i]]) && nzchar(nm[[i]])) {
+        next
+      }
+      bar <- parts[[i]]
+      if (
+        is.call(bar) && identical(bar[[1L]], as.name("|")) && length(bar) == 3L &&
+          is.call(bar[[2L]]) && identical(bar[[2L]][[1L]], as.name("|")) &&
+          length(bar[[2L]]) == 3L
+      ) {
+        parts[[i]] <- call("|", bar[[2L]][[2L]], bar[[3L]])
+      }
+      break
+    }
+    return(as.call(parts))
+  }
+  parts[-1L] <- lapply(parts[-1L], drm_julia_collapse_phylo_block)
+  as.call(parts)
 }
 
 drm_julia_phylo_newick <- function(tree, info = NULL) {
