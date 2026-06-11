@@ -191,7 +191,18 @@ test_that("Julia bridge object exposes standard fitted-model methods", {
   expect_equal(predict(fit, dpar = "sigma"), rep(0.8, 6))
   expect_true(is_converged(fit))
   expect_error(rho12(fit), "no residual")
-  expect_error(predict(fit, newdata = data.frame(x = 1)), "newdata")
+  # newdata mu prediction is population-level (RE = 0); identity link here, so
+  # the response equals the fixed-effect linear predictor 0.1 + 0.4 * x.
+  expect_equal(predict(fit, newdata = data.frame(x = 1)), 0.5)
+  expect_equal(
+    predict(fit, newdata = data.frame(x = 1), type = "link"),
+    0.5
+  )
+  # sigma on fresh newdata remains unsupported on the Julia route.
+  expect_error(
+    predict(fit, newdata = data.frame(x = 1), dpar = "sigma"),
+    "location parameter"
+  )
 })
 
 test_that("Julia phylo bridge keeps structured scales out of fixed effects", {

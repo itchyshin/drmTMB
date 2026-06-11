@@ -1510,25 +1510,177 @@ is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
   isTRUE(object$opt$convergence == 0L)
 }
 
+# Locate the formula entry that supplies a distributional parameter's mean
+# sub-model (`mu` / `mu1` / `mu2`). The fixed-effect coefficient vector and the
+# entry's right-hand side together describe the linear predictor, so this is the
+# anchor for a newdata prediction. Errors if the parameter has no entry.
+drm_julia_predict_entry <- function(object, dpar) {
+  entries <- object$formula$entries
+  for (entry in entries) {
+    if (identical(entry$dpar, dpar)) {
+      return(entry)
+    }
+  }
+  cli::cli_abort(
+    "{.fn predict} could not find a {.code {dpar}} formula entry on this Julia-engine fit."
+  )
+}
+
+# Build the mean-model design matrix for `newdata`, reconstructing the model
+# terms from the fit's TRAINING data so factor contrasts and column ordering
+# match the fitted coefficients. Structured (phylo / spatial) terms are
+# group-level and contribute nothing to the population-level linear predictor;
+# they are dropped from the right-hand side before the design is built, so the
+# returned columns are exactly the fixed-effect regressors named in
+# `object$coefficients[[dpar]]`. Random effects are held at zero (population
+# level) -- a newdata row need not belong to any fitted group.
+drm_julia_predict_design <- function(object, entry, newdata) {
+  rhs <- drm_strip_structured_terms(entry$rhs)
+  train <- object$data
+  if (is.null(train)) {
+    cli::cli_abort(
+      "{.fn predict} with {.arg newdata} needs the original {.arg data}; this Julia-engine fit did not store it."
+    )
+  }
+  fixed_formula <- stats::reformulate(deparse1(rhs))
+  train_terms <- stats::terms(
+    stats::model.frame(fixed_formula, data = train)
+  )
+  xlev <- stats::.getXlevels(train_terms, stats::model.frame(train_terms, train))
+  newdata_frame <- stats::model.frame(
+    train_terms,
+    data = newdata,
+    na.action = stats::na.pass,
+    xlev = xlev
+  )
+  stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+}
+
+# Drop phylo() / spatial() / relmat() / animal() structured markers from a
+# right-hand side, leaving only the population-level fixed-effect terms. Returns
+# the intercept (`1`) when nothing else remains.
+drm_strip_structured_terms <- function(rhs) {
+  labels <- attr(stats::terms(stats::reformulate(deparse1(rhs))), "term.labels")
+  markers <- c("phylo", "spatial", "relmat", "animal")
+  is_structured <- vapply(
+    labels,
+    function(lab) {
+      parsed <- tryCatch(str2lang(lab), error = function(e) NULL)
+      is.call(parsed) &&
+        is.name(parsed[[1L]]) &&
+        as.character(parsed[[1L]]) %in% markers
+    },
+    logical(1L)
+  )
+  kept <- labels[!is_structured]
+  if (length(kept) == 0L) {
+    return(quote(1))
+  }
+  stats::reformulate(kept)[[2L]]
+}
+
+# Inverse-link for the mean of a location parameter, used by `type = "response"`.
+# A univariate fit carries the link the linear predictor lives on directly in
+# `object$family$linkinv`. A cross-family fit stores a per-axis family TAG in
+# `object$families`, so the mu1 / mu2 inverse link is looked up from that tag.
+drm_julia_predict_linkinv <- function(object, dpar) {
+  if (dpar %in% c("mu1", "mu2") && !is.null(object$families)) {
+    tag <- object$families[[if (identical(dpar, "mu1")) 1L else 2L]]
+    return(drm_julia_tag_linkinv(tag))
+  }
+  fam <- object$family
+  if (is.list(fam) && is.function(fam$linkinv)) {
+    return(fam$linkinv)
+  }
+  cli::cli_abort(
+    "{.fn predict} could not resolve an inverse link for {.code {dpar}} on this Julia-engine fit; use {.code type = \"link\"}."
+  )
+}
+
+# Mean inverse-link for a DRM.jl cross-family axis tag. Mirrors the links the
+# bridge enforces for each family (see `drm_julia_xfam_family_tag`).
+drm_julia_tag_linkinv <- function(tag) {
+  switch(
+    tag,
+    gaussian = stats::gaussian()$linkinv,
+    poisson = stats::poisson()$linkinv,
+    nbinom2 = stats::poisson()$linkinv,
+    gamma = stats::poisson()$linkinv,
+    binomial = stats::binomial()$linkinv,
+    beta = stats::binomial()$linkinv,
+    cli::cli_abort(
+      "{.fn predict} has no response-scale inverse link for cross-family axis {.val {tag}} yet; use {.code type = \"link\"}."
+    )
+  )
+}
+
+#' Predict from a Julia-engine `drmTMB` fit
+#'
+#' With `newdata = NULL`, `predict()` returns the stored fitted values for the
+#' requested distributional parameter. With `newdata` supplied, it returns a
+#' **population-level, fixed-effect** prediction for the location parameter
+#' (`mu` / `mu1` / `mu2`): the linear predictor `X %*% beta` built from the
+#' fit's fixed-effect coefficients and a design matrix constructed from
+#' `newdata` using the training-data model terms. Group-level random effects
+#' (phylogenetic / spatial / study) are held at **zero** -- a `newdata` row need
+#' not belong to any fitted group -- so the result is the marginal mean at the
+#' population level, matching the native [predict.drmTMB()] contract for
+#' `newdata`. `type = "link"` returns the linear predictor; `type = "response"`
+#' applies the model's inverse link.
+#'
+#' Predicting `sigma` / `rho12` for fresh `newdata` is not implemented; refit
+#' with `engine = "tmb"` for those.
+#'
+#' @param object A `drmTMB_julia` fit.
+#' @param newdata Optional data frame. When supplied, predictions are
+#'   population-level (random effects set to zero).
+#' @param dpar Distributional parameter to predict. Defaults to the first
+#'   (`mu`). With `newdata`, must be a location parameter (`mu` / `mu1` /
+#'   `mu2`).
+#' @param type `"response"` (default) or `"link"`.
+#' @param ... Reserved.
+#'
+#' @return A numeric vector of predictions, length `nrow(newdata)` when
+#'   `newdata` is supplied.
 #' @export
 predict.drmTMB_julia <- function(
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response"),
+  type = c("response", "link"),
   ...
 ) {
-  match.arg(type)
-  if (!is.null(newdata)) {
-    cli::cli_abort(c(
-      "{.fn predict} with {.arg newdata} is not implemented for Julia-engine fits yet.",
-      i = "Refit with {.code engine = \"tmb\"}, or call DRM.jl directly for now."
-    ))
-  }
+  type <- match.arg(type)
   if (is.null(dpar)) {
     dpar <- names(object$coefficients)[[1L]]
   }
   dpar <- match.arg(dpar, names(object$coefficients))
+
+  if (!is.null(newdata)) {
+    if (!dpar %in% c("mu", "mu1", "mu2")) {
+      cli::cli_abort(c(
+        "{.fn predict} with {.arg newdata} for {.code engine = \"julia\"} supports only the location parameter ({.code mu} / {.code mu1} / {.code mu2}).",
+        i = "Refit with {.code engine = \"tmb\"} to predict {.code {dpar}} on fresh {.arg newdata}."
+      ))
+    }
+    entry <- drm_julia_predict_entry(object, dpar)
+    X <- drm_julia_predict_design(object, entry, newdata)
+    beta <- object$coefficients[[dpar]]
+    common <- intersect(colnames(X), names(beta))
+    if (length(common) != length(beta) || length(common) != ncol(X)) {
+      cli::cli_abort(c(
+        "{.fn predict} could not align the {.arg newdata} design with the fitted {.code {dpar}} coefficients.",
+        i = "{.arg newdata} must use the same predictors as the fitted model."
+      ))
+    }
+    eta <- as.numeric(X[, common, drop = FALSE] %*% beta[common])
+    if (identical(type, "link")) {
+      return(eta)
+    }
+    linkinv <- drm_julia_predict_linkinv(object, dpar)
+    return(linkinv(eta))
+  }
+
   if (dpar %in% c("mu", "mu1", "mu2")) {
     if (is.list(object$fitted)) {
       return(object$fitted[[dpar]])
