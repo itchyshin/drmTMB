@@ -66,7 +66,8 @@ test_that("cross-family axis builder marshals mu1 / mu2 to (y, X)", {
   axes <- drmTMB:::drm_julia_xfam_axes(
     formula = form,
     data = dat,
-    env = environment()
+    env = environment(),
+    tags = c("gaussian", "poisson")
   )
 
   expect_equal(axes$mu1$response, "y1")
@@ -75,6 +76,56 @@ test_that("cross-family axis builder marshals mu1 / mu2 to (y, X)", {
   expect_length(axes$mu2$y, n)
   expect_equal(axes$mu1$coef_names, c("(Intercept)", "x"))
   expect_equal(dim(axes$mu1$X), c(n, 2L))
+  # Absent sigma formula -> intercept-only Xsigma on the dispersion-carrying
+  # Gaussian axis; the dispersionless Poisson axis carries no Xsigma columns.
+  expect_equal(axes$sigma1$coef_names, "(Intercept)")
+  expect_equal(dim(axes$sigma1$X), c(n, 1L))
+})
+
+test_that("cross-family axis builder marshals sigma1 covariate design", {
+  set.seed(20260610)
+  n <- 30
+  dat <- data.frame(
+    y1 = stats::rnorm(n),
+    y2 = stats::rpois(n, 2),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  # sigma1 ~ z builds a 2-column Xsigma (intercept + z) on the Gaussian axis.
+  form <- bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~z)
+  axes <- drmTMB:::drm_julia_xfam_axes(
+    formula = form,
+    data = dat,
+    env = environment(),
+    tags = c("gaussian", "poisson")
+  )
+  expect_equal(axes$sigma1$coef_names, c("(Intercept)", "z"))
+  expect_equal(dim(axes$sigma1$X), c(n, 2L))
+  expect_equal(unname(axes$sigma1$X[, 2L]), dat$z)
+  # sigma2 absent -> intercept-only on the (dispersionless) Poisson axis, but the
+  # engine drops it; the design itself is still intercept-only here.
+  expect_equal(axes$sigma2$coef_names, "(Intercept)")
+})
+
+test_that("cross-family sigma on a dispersionless axis is rejected", {
+  set.seed(20260610)
+  n <- 20
+  dat <- data.frame(
+    y1 = stats::rnorm(n),
+    y2 = stats::rpois(n, 2),
+    x = stats::rnorm(n)
+  )
+  # A sigma2 sub-model on the Poisson axis has no dispersion to model.
+  form <- bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma2 = ~x)
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      formula = form,
+      data = dat,
+      env = environment(),
+      tags = c("gaussian", "poisson")
+    ),
+    "dispersion sub-model"
+  )
 })
 
 test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI", {
@@ -287,4 +338,96 @@ test_that("NB2 x Gaussian cross-family fit returns latent rho + profile CI", {
   # Both axes carry dispersion: NB2 returns the natural size, Gaussian sigma.
   expect_true(is.finite(res$sigma1))
   expect_true(is.finite(res$sigma2))
+})
+
+# --- Cross-family covariate sigma sub-model live round-trip (guarded) -------
+#
+# Points the bridge at the sigma-capable DRM.jl engine (fit_mixed_family with
+# Xsigma1 / Xsigma2 covariate dispersion designs) and asserts the per-axis
+# log-sigma sub-model coefficients (beta_sigma) come back finite, named by the
+# Xsigma design columns, with the dispersionless Poisson axis carrying none.
+# Runs in a FRESH R subprocess (callr) for the same reason as the Tier-2 fits:
+# JuliaCall keeps one persistent Julia session per process, so a subprocess
+# guarantees the sigma-capable engine at `jl_path` is the one loaded for this
+# fit, independent of test order. Skips (never fails) when JuliaCall, callr, or
+# the sigma engine is unavailable, or when the round-trip itself errors.
+
+drm_xfam_xsigma_path <- function() {
+  Sys.getenv("DRM_JL_XSIGMA_PATH", "/Users/z3437171/worktrees/DRM-xsigma")
+}
+
+# Fit a Gaussian x Poisson cross-family model with a sigma1 ~ x dispersion
+# sub-model on the Gaussian axis in a clean subprocess; return the scalars and
+# coefficient vectors the assertions need. Returns a list, or NULL on child
+# error.
+drm_xfam_xsigma_fit <- function(n = 150L) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_xfam_xsigma_path()
+  callr::r(
+    function(pkg, jl_path, n) {
+      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      set.seed(20260610)
+      x <- stats::rnorm(n)
+      u <- stats::rnorm(n)
+      dat <- data.frame(
+        y1 = 0.5 + 0.8 * x + 0.7 * u + stats::rnorm(n, sd = 0.5),
+        y2 = stats::rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
+        x = x
+      )
+
+      fit <- drmTMB::drmTMB(
+        drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~x),
+        family = c(stats::gaussian(), stats::poisson()),
+        data = dat, engine = "julia"
+      )
+
+      sc1 <- stats::coef(fit, "sigma1")
+      sc2 <- stats::coef(fit, "sigma2")
+      list(
+        class = class(fit),
+        families = fit$families,
+        sigma_coef1 = unname(sc1),
+        sigma_coef1_names = names(sc1),
+        sigma_coef2_len = length(sc2),
+        rho = drmTMB::rho_latent(fit),
+        converged = drmTMB::is_converged(fit)
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path, n = as.integer(n)),
+    error = "error"
+  )
+}
+
+test_that("cross-family covariate sigma sub-model returns finite beta_sigma", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(
+    dir.exists(drm_xfam_xsigma_path()),
+    "DRM.jl covariate-sigma engine not available"
+  )
+
+  res <- tryCatch(
+    drm_xfam_xsigma_fit(n = 150L),
+    error = function(e) {
+      testthat::skip(paste(
+        "Cross-family covariate-sigma round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true("drmTMB_julia_xfam" %in% res$class)
+  expect_equal(res$families, c("gaussian", "poisson"))
+  # The Gaussian axis carries a 2-coefficient log-sigma sub-model (intercept + x
+  # slope), both finite; the dispersionless Poisson axis carries none.
+  expect_equal(res$sigma_coef1_names, c("(Intercept)", "x"))
+  expect_length(res$sigma_coef1, 2L)
+  expect_true(all(is.finite(res$sigma_coef1)))
+  expect_equal(res$sigma_coef2_len, 0L)
+  expect_true(is.finite(res$rho))
+  expect_true(isTRUE(res$converged))
 })

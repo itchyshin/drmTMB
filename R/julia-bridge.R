@@ -1278,7 +1278,9 @@ drmTMB_julia_xfam_bridge <- function(
 
   composed <- drm_composed_families(family)
   tags <- vapply(composed, drm_julia_xfam_family_tag, character(1L))
-  axes <- drm_julia_xfam_axes(formula = formula, data = data, env = env)
+  axes <- drm_julia_xfam_axes(
+    formula = formula, data = data, env = env, tags = tags
+  )
 
   result <- drm_julia_call_xfam(
     y1 = axes$mu1$y,
@@ -1286,7 +1288,9 @@ drmTMB_julia_xfam_bridge <- function(
     fam1 = tags[[1L]],
     y2 = axes$mu2$y,
     X2 = axes$mu2$X,
-    fam2 = tags[[2L]]
+    fam2 = tags[[2L]],
+    Xsigma1 = axes$sigma1$X,
+    Xsigma2 = axes$sigma2$X
   )
 
   new_drmTMB_julia_xfam(
@@ -1300,26 +1304,46 @@ drmTMB_julia_xfam_bridge <- function(
   )
 }
 
-# Build the (y, X) design for the mu1 and mu2 location formulas. Mirrors the
-# native biv_gaussian extraction: each location entry carries a response and an
-# RHS, which we turn into `response ~ rhs` and pass through model.frame /
-# model.matrix on complete cases.
-drm_julia_xfam_axes <- function(formula, data, env) {
+# Build the (y, X) design for the mu1 / mu2 location formulas and the optional
+# Xsigma1 / Xsigma2 dispersion (log-sigma sub-model) designs. Mirrors the native
+# biv_gaussian extraction: each location entry carries a response and an RHS,
+# which we turn into `response ~ rhs` and pass through model.frame / model.matrix
+# on complete cases.
+#
+# A `sigma_k` entry carries only an RHS (no response), so we pair it with its
+# axis's mu response to build `mu_response ~ sigma_rhs`; na.omit then drops the
+# SAME rows the mu axis dropped, keeping the dispersion design row-aligned with
+# its location design. An absent `sigma_k` formula yields an intercept-only
+# Xsigma (the current scalar-dispersion behaviour). `tags` is the per-axis DRM
+# family tag (e.g. "gaussian", "poisson"); a `sigma_k` formula on a
+# dispersionless axis (Poisson / Binomial) is rejected, since DRM.jl carries no
+# dispersion sub-model there.
+drm_julia_xfam_axes <- function(formula, data, env, tags) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1L), "dpar")
 
-  unsupported <- setdiff(unique(dpars), c("mu1", "mu2"))
+  unsupported <- setdiff(
+    unique(dpars),
+    c("mu1", "mu2", "sigma1", "sigma2")
+  )
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family models currently support only {.code mu1} and {.code mu2} location formulas.",
+      "{.code engine = \"julia\"} cross-family models currently support only {.code mu1} / {.code mu2} location and {.code sigma1} / {.code sigma2} dispersion formulas.",
       x = "Unsupported parameter{?s}: {.val {unsupported}}.",
-      i = "Scale ({.code sigma1} / {.code sigma2}) and correlation ({.code rho12}) formulas are not wired into the cross-family latent engine yet."
+      i = "Correlation ({.code rho12}) formulas are not wired into the cross-family latent engine yet."
     ))
   }
   for (required in c("mu1", "mu2")) {
     if (sum(dpars == required) != 1L) {
       cli::cli_abort(
         "{.code engine = \"julia\"} cross-family models require exactly one {.code {required}} formula."
+      )
+    }
+  }
+  for (optional in c("sigma1", "sigma2")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} cross-family models accept at most one {.code {optional}} formula."
       )
     }
   }
@@ -1333,7 +1357,71 @@ drm_julia_xfam_axes <- function(formula, data, env) {
       i = "Cross-family fits do not yet support per-axis missingness."
     ))
   }
-  list(mu1 = mu1, mu2 = mu2)
+
+  sigma1 <- drm_julia_xfam_sigma(
+    entry = if (any(dpars == "sigma1")) {
+      entries[[which(dpars == "sigma1")]]
+    } else {
+      NULL
+    },
+    mu = mu1, tag = tags[[1L]], data = data, env = env, dpar = "sigma1"
+  )
+  sigma2 <- drm_julia_xfam_sigma(
+    entry = if (any(dpars == "sigma2")) {
+      entries[[which(dpars == "sigma2")]]
+    } else {
+      NULL
+    },
+    mu = mu2, tag = tags[[2L]], data = data, env = env, dpar = "sigma2"
+  )
+
+  list(mu1 = mu1, mu2 = mu2, sigma1 = sigma1, sigma2 = sigma2)
+}
+
+# Build one axis's Xsigma design (the log-sigma sub-model regressors). An absent
+# `entry` (no sigma_k formula) returns an intercept-only design over the mu
+# axis's rows, reproducing the scalar-dispersion default. A present entry must
+# land on a dispersion-carrying axis (Gaussian / NB2 / Beta / Gamma); on a
+# dispersionless axis (Poisson / Binomial) it is rejected. The design is built
+# from `mu_response ~ sigma_rhs` so na.omit drops the same rows the mu axis did,
+# keeping Xsigma row-aligned with X.
+drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
+  dispersionless <- c("poisson", "binomial")
+  if (is.null(entry)) {
+    return(list(
+      X = matrix(1, nrow = length(mu$y), ncol = 1L),
+      coef_names = "(Intercept)"
+    ))
+  }
+  if (tag %in% dispersionless) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models cannot fit a {.code {dpar}} dispersion sub-model on a {.val {tag}} axis.",
+      i = "{.val {tag}} has no dispersion parameter; drop the {.code {dpar}} formula."
+    ))
+  }
+  if (!is.na(entry$response)) {
+    cli::cli_abort(
+      "The {.code {dpar}} formula must be one-sided (no response on the left-hand side)."
+    )
+  }
+  rhs <- deparse1(entry$rhs)
+  f <- stats::as.formula(
+    paste(mu$response, "~", rhs),
+    env = env
+  )
+  mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
+  X <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf)),
+    mf
+  )
+  if (nrow(X) != length(mu$y)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family {.code {dpar}} design must align row-for-row with its {.code mu} axis.",
+      x = "{.code {dpar}} has {nrow(X)} complete row{?s}; its {.code mu} axis has {length(mu$y)}.",
+      i = "Cross-family fits do not yet support per-axis missingness."
+    ))
+  }
+  list(X = X, coef_names = colnames(X))
 }
 
 drm_julia_xfam_axis <- function(entry, data, env, dpar) {
@@ -1366,7 +1454,16 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
   )
 }
 
-drm_julia_call_xfam <- function(y1, X1, fam1, y2, X2, fam2) {
+drm_julia_call_xfam <- function(
+  y1,
+  X1,
+  fam1,
+  y2,
+  X2,
+  fam2,
+  Xsigma1 = matrix(1, nrow = length(y1), ncol = 1L),
+  Xsigma2 = matrix(1, nrow = length(y2), ncol = 1L)
+) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} cross-family models require the {.pkg JuliaCall} package.",
@@ -1381,7 +1478,9 @@ drm_julia_call_xfam <- function(y1, X1, fam1, y2, X2, fam2) {
     fam1,
     as.double(y2),
     drm_julia_as_matrix(X2),
-    fam2
+    fam2,
+    drm_julia_as_matrix(Xsigma1),
+    drm_julia_as_matrix(Xsigma2)
   )
 }
 
@@ -1397,7 +1496,7 @@ drm_julia_as_matrix <- function(x) {
 # profile-likelihood CI on the latent-scale correlation.
 drm_julia_xfam_helper_source <- function() {
   paste(
-    "function drmTMB_mixed_family(y1, X1, fam1::AbstractString, y2, X2, fam2::AbstractString)",
+    "function drmTMB_mixed_family(y1, X1, fam1::AbstractString, y2, X2, fam2::AbstractString, Xsigma1, Xsigma2)",
     "    _fam(s) = s == \"gaussian\" ? DRM.Gaussian() :",
     "             s == \"poisson\"  ? DRM.Poisson() :",
     "             s == \"binomial\" ? DRM.Binomial() :",
@@ -1407,6 +1506,7 @@ drm_julia_xfam_helper_source <- function() {
     "             error(\"unsupported cross-family tag: \" * s)",
     "    r = DRM.fit_mixed_family(; y1 = Float64.(vec(y1)), X1 = Float64.(X1), fam1 = _fam(fam1),",
     "                               y2 = Float64.(vec(y2)), X2 = Float64.(X2), fam2 = _fam(fam2),",
+    "                               Xsigma1 = Float64.(Xsigma1), Xsigma2 = Float64.(Xsigma2),",
     "                               profile = true, B = 0)",
     "    return Dict{String,Any}(",
     "        \"rho_latent\"        => r.rho_latent,",
@@ -1416,6 +1516,8 @@ drm_julia_xfam_helper_source <- function() {
     "        \"rho_ci_prof_upper\" => r.rho_ci_profile[2],",
     "        \"beta1\"             => collect(r.\u{03b2}1),",
     "        \"beta2\"             => collect(r.\u{03b2}2),",
+    "        \"sigma_coef1\"       => collect(r.\u{03b2}\u{03c3}1),",
+    "        \"sigma_coef2\"       => collect(r.\u{03b2}\u{03c3}2),",
     "        \"lambda1\"           => r.\u{03bb}1,",
     "        \"lambda2\"           => r.\u{03bb}2,",
     "        \"sigma1\"            => r.\u{03c3}1,",
@@ -1460,6 +1562,23 @@ new_drmTMB_julia_xfam <- function(
     )
   )
 
+  # Dispersion (log-sigma) sub-model coefficients, one block per axis. The engine
+  # returns an empty vector for a dispersionless axis (Poisson / Binomial), in
+  # which case the block is a zero-length named numeric. Otherwise the names are
+  # the Xsigma design columns ("(Intercept)" + any sigma_k covariates).
+  sigma_coef_axis <- function(raw, coef_names) {
+    vals <- as.numeric(unlist(raw, use.names = FALSE))
+    if (length(vals) == length(coef_names)) {
+      stats::setNames(vals, coef_names)
+    } else {
+      vals
+    }
+  }
+  sigma_coef <- list(
+    sigma1 = sigma_coef_axis(result$sigma_coef1, axes$sigma1$coef_names),
+    sigma2 = sigma_coef_axis(result$sigma_coef2, axes$sigma2$coef_names)
+  )
+
   out <- list(
     call = call,
     formula = formula,
@@ -1475,6 +1594,7 @@ new_drmTMB_julia_xfam <- function(
     ),
     bridge = result,
     coefficients = coefficients,
+    sigma_coef = sigma_coef,
     loadings = c(
       lambda1 = scalar(result$lambda1),
       lambda2 = scalar(result$lambda2)
@@ -1514,8 +1634,12 @@ coef.drmTMB_julia_xfam <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {
     return(object$coefficients)
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
-  object$coefficients[[dpar]]
+  # Location blocks (mu1 / mu2) plus, when present, the log-sigma dispersion
+  # sub-model blocks (sigma1 / sigma2). The latter are zero-length for a
+  # dispersionless axis (Poisson / Binomial).
+  blocks <- c(object$coefficients, object$sigma_coef)
+  dpar <- match.arg(dpar, names(blocks))
+  blocks[[dpar]]
 }
 
 #' @export
