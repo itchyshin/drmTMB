@@ -305,8 +305,18 @@ test_that("skew-normal fixed-effect shape intervals are visible", {
 
   targets <- profile_targets(fit)
   nu_targets <- targets[targets$dpar == "nu", , drop = FALSE]
-  ci <- stats::confint(fit, parm = "nu:x", level = 0.90)
-  summary_ci <- summary(fit, conf.int = TRUE, level = 0.90)
+  # Wald slant intervals now warn that they are miscalibrated near nu = 0; the
+  # values are still returned for visibility, so capture the expected warning.
+  expect_warning(
+    ci <- stats::confint(fit, parm = "nu:x", level = 0.90),
+    "slant",
+    ignore.case = TRUE
+  )
+  expect_warning(
+    summary_ci <- summary(fit, conf.int = TRUE, level = 0.90),
+    "slant",
+    ignore.case = TRUE
+  )
   pred <- predict_parameters(
     fit,
     newdata = data.frame(x = c(-0.5, 0.5), z = 0),
