@@ -13,6 +13,7 @@
 ^AGENTS\.md$
 ^CONTRIBUTING\.md$
 ^ROADMAP\.md$
+^tools$
 ^LICENSE$
 ^inst/extdata/\.gitkeep$
 ^inst/sim/results($|/)
