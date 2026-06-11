@@ -5646,7 +5646,11 @@ validate_random_mu_covariance_label <- function(label) {
     "skew",
     "kurtosis",
     "shape",
-    "zi"
+    "zi",
+    "hu",
+    "zoi",
+    "coi",
+    "phi"
   )
   if (label %in% reserved) {
     cli::cli_abort(c(
