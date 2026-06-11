@@ -1462,6 +1462,25 @@ drm_profile_response_newdata_confint <- function(
   out
 }
 
+skew_normal_slant_targets <- function(object, targets) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(character())
+  }
+  targets$parm[targets$dpar == "nu"]
+}
+
+warn_skew_normal_slant_wald <- function(object, targets) {
+  slant <- skew_normal_slant_targets(object, targets)
+  if (length(slant) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_warn(c(
+    "!" = "{cli::qty(slant)}Wald confidence interval{?s} for the skew-normal slant ({.val {slant}}) {?is/are} miscalibrated near {.code nu = 0}, where the Azzalini information is near-singular.",
+    "i" = "{cli::qty(slant)}Use {.code method = \"profile\"} (or {.code method = \"bootstrap\"}) for the slant interval{?s} instead."
+  ))
+  invisible(NULL)
+}
+
 drm_wald_confint <- function(object, parm, level) {
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
@@ -1473,6 +1492,7 @@ drm_wald_confint <- function(object, parm, level) {
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "wald"))
   }
+  warn_skew_normal_slant_wald(object, targets)
 
   z <- stats::qnorm((1 + level) / 2)
   variances <- rep(NA_real_, nrow(targets))
