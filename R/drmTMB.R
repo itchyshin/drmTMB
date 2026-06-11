@@ -128,6 +128,7 @@
 #'   univariate Gaussian mixed-model slice. The current REML route supports
 #'   ordinary dense `mu` fixed effects, ordinary `mu` random intercepts or
 #'   slopes, diagonal or dense known sampling covariance through [meta_V()],
+#'   non-unit likelihood `weights` (with diagonal or no known covariance),
 #'   intercept-only `sigma`, complete responses, and no aggregation,
 #'   structured effects, or direct `sd()` scale formulae. Use the default
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
@@ -580,12 +581,6 @@ drm_validate_reml_spec <- function(spec) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented with Gaussian row aggregation yet.",
       "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
-    ))
-  }
-  if (!all(spec$weights == 1)) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented with non-unit likelihood weights yet.",
-      "i" = "Use unit weights or set {.code REML = FALSE}."
     ))
   }
   if (ncol(spec$X$sigma) != 1L) {

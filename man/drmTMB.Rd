@@ -102,6 +102,7 @@ through JuliaCall for the supported bridge slice.}
 univariate Gaussian mixed-model slice. The current REML route supports
 ordinary dense \code{mu} fixed effects, ordinary \code{mu} random intercepts or
 slopes, diagonal or dense known sampling covariance through \code{\link[=meta_V]{meta_V()}},
+non-unit likelihood \code{weights} (with diagonal or no known covariance),
 intercept-only \code{sigma}, complete responses, and no aggregation,
 structured effects, or direct \code{sd()} scale formulae. Use the default
 \code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
