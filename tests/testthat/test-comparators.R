@@ -109,6 +109,96 @@ test_that("Gaussian REML random intercepts agree with lme4", {
   )])))
 })
 
+test_that("Gaussian REML weights match row duplication", {
+  set.seed(20260610)
+  n_id <- 12
+  n_each <- 6
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n)
+  )
+  u_id <- stats::rnorm(n_id, sd = 0.6)
+  dat$y <- stats::rnorm(
+    n,
+    mean = 0.4 + 0.7 * dat$x + u_id[dat$id],
+    sd = 0.5
+  )
+  w <- rep(c(1, 2, 3), length.out = n)
+  dat_expanded <- dat[rep(seq_len(n), w), , drop = FALSE]
+
+  fit_weighted <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat,
+    weights = w,
+    REML = TRUE
+  )
+  fit_expanded <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat_expanded,
+    REML = TRUE
+  )
+
+  expect_equal(fit_weighted$estimator, "REML")
+  expect_true(fit_weighted$REML)
+  expect_equal(
+    fit_weighted$model$tmb_random_names,
+    c("u_mu", "beta_mu")
+  )
+  expect_equal(stats::weights(fit_weighted), w)
+
+  # Integer likelihood weights are row log-likelihood multipliers, so a
+  # weighted REML fit must reproduce the REML fit on the row-expanded data,
+  # including the restricted log-likelihood and its degrees of freedom.
+  expect_equal(
+    unname(coef(fit_weighted, "mu")),
+    unname(coef(fit_expanded, "mu")),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    unname(fit_weighted$sdpars$mu),
+    unname(fit_expanded$sdpars$mu),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    stats::sigma(fit_weighted)[[1L]],
+    stats::sigma(fit_expanded)[[1L]],
+    tolerance = 1e-4
+  )
+  expect_equal(
+    as.numeric(stats::logLik(fit_weighted)),
+    as.numeric(stats::logLik(fit_expanded)),
+    tolerance = 1e-4
+  )
+  expect_equal(
+    attr(stats::logLik(fit_weighted), "df"),
+    attr(stats::logLik(fit_expanded), "df")
+  )
+  expect_equal(attr(stats::logLik(fit_weighted), "estimator"), "REML")
+
+  vcov_mu <- diag(stats::vcov(fit_weighted))[c(
+    "mu:(Intercept)",
+    "mu:x"
+  )]
+  expect_true(all(is.finite(vcov_mu)))
+  expect_true(all(vcov_mu > 0))
+
+  # REML inflates the variance-component relative to ML on the same weighted
+  # data; the random-intercept SD should be larger and remain sensible.
+  fit_ml <- drmTMB(
+    bf(y ~ x + (1 | id)),
+    family = gaussian(),
+    data = dat,
+    weights = w,
+    REML = FALSE
+  )
+  expect_true(is.finite(fit_weighted$sdpars$mu))
+  expect_true(fit_weighted$sdpars$mu > 0)
+  expect_gt(fit_weighted$sdpars$mu, fit_ml$sdpars$mu)
+})
+
 test_that("Poisson random intercepts agree with lme4 on an overlapping model", {
   testthat::skip_if_not_installed("lme4")
 
