@@ -1381,12 +1381,12 @@ drm_julia_xfam_helper_source <- function() {
     "        \"rho_ci_wald_upper\" => r.rho_ci_wald[2],",
     "        \"rho_ci_prof_lower\" => r.rho_ci_profile[1],",
     "        \"rho_ci_prof_upper\" => r.rho_ci_profile[2],",
-    "        \"beta1\"             => collect(r.β1),",
-    "        \"beta2\"             => collect(r.β2),",
-    "        \"lambda1\"           => r.λ1,",
-    "        \"lambda2\"           => r.λ2,",
-    "        \"sigma1\"            => r.σ1,",
-    "        \"sigma2\"            => r.σ2,",
+    "        \"beta1\"             => collect(r.\u{03b2}1),",
+    "        \"beta2\"             => collect(r.\u{03b2}2),",
+    "        \"lambda1\"           => r.\u{03bb}1,",
+    "        \"lambda2\"           => r.\u{03bb}2,",
+    "        \"sigma1\"            => r.\u{03c3}1,",
+    "        \"sigma2\"            => r.\u{03c3}2,",
     "        \"loglik\"            => r.loglik,",
     "        \"converged\"         => r.converged,",
     "        \"iterations\"        => r.iterations)",
@@ -1465,7 +1465,7 @@ new_drmTMB_julia_xfam <- function(
 print.drmTMB_julia_xfam <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine cross-family fit>")
   cli::cli_text(
-    "  families: {x$families[[1]]} × {x$families[[2]]}"
+    "  families: {x$families[[1]]} \u{00d7} {x$families[[2]]}"
   )
   cli::cli_text("  observations: {x$nobs}")
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
