@@ -1,630 +1,348 @@
 ---
-title: "Mean effects and residual heterogeneity in meta-analysis"
+title: "Random-effects meta-analysis with known sampling variances"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Mean effects and residual heterogeneity in meta-analysis}
+  %\VignetteIndexEntry{Random-effects meta-analysis with known sampling variances}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(drmTMB)
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
-Meta-analysis in `drmTMB` is ordinary Gaussian distributional regression with
-known sampling covariance. The sampling covariance is supplied with
-`meta_V(V = V)` inside the location formula; it is not a separate
-`meta_gaussian()` family. Deprecated `meta_known_V(V = V)` remains supported
-only as a compatibility alias for older examples.
+A random-effects meta-analysis pools effect sizes from several studies while
+acknowledging that the studies differ. Each study reports an effect size
+together with its sampling variance, which is treated as **known**. The model
+estimates two things on top of that known uncertainty: a pooled mean effect and
+the between-study heterogeneity.
 
-The distinction matters. A meta-analysis usually has two sources of variation:
-known sampling error from the original studies, and unknown heterogeneity that
-the meta-analytic model estimates. In `drmTMB`, known sampling covariance is
-`V`, and unknown residual heterogeneity is `sigma`.
+In `drmTMB` this is ordinary Gaussian distributional regression with a known
+sampling covariance. There is no separate meta-analysis family. You fit
+`family = gaussian()`, you supply the known per-study variances with
+`meta_V()` inside the location formula, and the between-study heterogeneity is
+the residual scale `sigma`.
 
-Throughout this article, `Normal(a, b)` and `MVN(a, B)` use variance or
-covariance as the second argument.
-
-The source logic mirrors recent location-scale meta-analysis papers and notes:
-Nakagawa et al. (2025) frame heterogeneity as a biological and methodological
-response, Yang and Nakagawa's distributional-regression manuscript treats
-location, scale, and shape as modelled distributional parameters, Rodriguez et
-al. (2023) argue that categorical moderators should usually allow unequal
-between-study heterogeneity, and Nakagawa's 2022 unifying note separates
-ordinary row weights from proportional sampling-variance components. The fitted
-syntax below stays inside the currently implemented `drmTMB` surface.
+Throughout, `Normal(a, b)` uses the variance (not the standard deviation) as
+its second argument.
 
 ## The model
 
-For a univariate meta-analysis with independent sampling errors, the model is:
+Write \(y_i\) for the observed effect size from study \(i\) and \(v_i\) for its
+**known** sampling variance. The random-effects model is
 
 \[
-y_i \mid \mu_i, \sigma_i, v_i
-  \sim \operatorname{Normal}(\mu_i, v_i + \sigma_i^2)
+y_i \mid \mu, \tau, v_i
+  \;\sim\;
+  \operatorname{Normal}\!\left(\mu,\; v_i + \tau^2\right),
+\qquad i = 1, \ldots, K.
 \]
 
-\[
-\mu_i = \mathbf{x}_{\mu i}^{\top}\boldsymbol{\beta}_{\mu},
-\qquad
-\log(\sigma_i) =
-  \mathbf{x}_{\sigma i}^{\top}\boldsymbol{\beta}_{\sigma}.
-\]
+Each study sees the same pooled mean \(\mu\) but its own total variance
+\(v_i + \tau^2\): the known sampling variance \(v_i\) that the primary study
+already quantified, plus a shared between-study variance \(\tau^2\) that the
+meta-analysis estimates. When \(\tau = 0\) every study is just a noisy
+measurement of one common effect (a fixed-effect, or common-effect,
+meta-analysis); when \(\tau > 0\) the true study effects themselves scatter
+around \(\mu\).
 
-The matching R syntax is:
+The two unknowns map onto the two `drmTMB` distributional parameters:
+
+| Meta-analysis quantity | Symbol | `drmTMB` parameter | How to read it |
+|---|---|---|---|
+| pooled effect | \(\mu\) | `mu` intercept | the average effect across studies |
+| known sampling variance | \(v_i\) | `meta_V(V = vi)` | supplied, not estimated |
+| between-study SD | \(\tau\) | `sigma` | how much true effects differ across studies |
+| between-study variance | \(\tau^2\) | `sigma^2` | the heterogeneity variance \(\tau^2\) |
+
+The matching R syntax is
 
 ```r
 drmTMB(
-  drm_formula(
-    yi ~ x1 + x2 + meta_V(V = vi),
-    sigma ~ x1
-  ),
+  bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
   family = gaussian(),
   data = dat
 )
 ```
 
-Here `vi` contains known sampling variances. If a dataset contains standard
-errors, square them before fitting. The `sigma` formula models the extra
-heterogeneity left after the known sampling variance has been included. In
-meta-analysis papers this extra heterogeneity SD is often written as `tau`;
-`drmTMB` keeps the public parameter name `sigma` so that meta-analysis uses the
-same distributional grammar as other Gaussian models.
+Two points are worth stating plainly.
 
-Read each symbol before interpreting coefficients:
+First, `vi` must be a **variance**. If your dataset stores standard errors,
+square them (`vi <- se^2`) before fitting.
 
-| Symbol or syntax | Meaning in a meta-analysis | In the restoration example |
-|---|---|---|
-| \(y_i\), `yi` | observed effect size for effect-size row \(i\) | standardized biodiversity response to restoration |
-| \(v_i\), `vi` | known sampling variance for \(y_i\), treated as known before fitting | uncertainty from the primary restoration study |
-| \(\mathbf{V}\), `V` | known sampling covariance matrix when effect sizes are correlated | a dense or block-diagonal covariance matrix for correlated effect sizes |
-| \(\mu_i\), `mu` | expected effect size after location moderators | mean restoration effect for a habitat and duration value |
-| \(\boldsymbol{\beta}_{\mu}\) | location coefficients in the mean model | average forest-grassland and duration contrasts |
-| \(\sigma_i\), `sigma` | fitted extra residual heterogeneity SD after known sampling variance is included | remaining among-effect-size unpredictability |
-| \(\boldsymbol{\beta}_{\sigma}\) | log-SD coefficients for extra heterogeneity | habitat effects on residual heterogeneity, reported as `exp(coef)` SD ratios |
-| `sd(study)` | study-level random-effect SD, when repeated effect sizes are grouped within studies | among-study heterogeneity distinct from residual `sigma` |
-| `weights = w` | ordinary row log-likelihood multiplier | not a substitute for known sampling variance |
+Second, the residual scale `sigma` *is* the between-study heterogeneity \(\tau\).
+Meta-analysts usually call this quantity `tau` and report `tau^2`. `drmTMB`
+keeps the public parameter name `sigma` so that meta-analysis uses exactly the
+same distributional grammar as every other Gaussian model in the package; you
+recover the familiar `tau^2` simply by squaring `sigma`. The marker
+`meta_V()` puts the *known* variance into the likelihood; `sigma` estimates the
+*unknown* variance that is left over.
 
-For correlated effect sizes, the same idea is written with a full known
-sampling covariance matrix:
+## A simulated dataset
 
-\[
-\mathbf{y} \sim
-  \operatorname{MVN}
-  \left(
-    \boldsymbol{\mu},
-    \mathbf{V} + \operatorname{diag}(\sigma_1^2,\ldots,\sigma_n^2)
-  \right).
-\]
-
-The right-hand side of `meta_V(V = V)` may be a variance column, a vector, a
-diagonal matrix, a dense block-diagonal matrix, or a dense full covariance
-matrix.
-
-Dense means dense. If `V` is supplied as a full matrix, `drmTMB` stores the
-retained covariance as a dense R matrix. This is useful for small to moderate
-correlated-effect examples and for likelihood-comparator checks, but it is not
-the large-meta-analysis storage route. Large block-diagonal or sparse known
-covariance structures need a future sparse or block-sparse path before they
-should be treated as scalable.
-
-## Worked example: restoration effects
-
-Suppose we are synthesising effect sizes from studies that compare ecological
-restoration with a control condition. The response `yi` is a standardised
-effect size for biodiversity. The known sampling variance `vi` comes from each
-primary study. We ask two questions:
-
-1. Is the mean restoration effect different in forests and grasslands?
-2. Is the unexplained among-effect-size heterogeneity larger in one habitat?
-
-This simulated dataset stands in for the structure of a real ecological
-meta-analysis:
+We simulate `K = 30` studies. Each study has a true effect drawn around a
+common mean, and we observe that true effect with known sampling error.
 
 ```{r}
-set.seed(20)
-n <- 80
-dat <- data.frame(
-  study = factor(seq_len(n)),
-  habitat = factor(
-    rep(c("grassland", "forest"), length.out = n),
-    levels = c("grassland", "forest")
-  ),
-  duration = scale(runif(n, 1, 8))[, 1]
-)
+set.seed(101)
 
-dat$vi <- runif(n, 0.015, 0.08)
+K <- 30
+mu_true <- 0.40 # pooled effect
+tau_true <- 0.30 # between-study SD
 
-mu <- 0.12 + 0.22 * (dat$habitat == "forest") + 0.08 * dat$duration
-sigma_extra <- exp(-1.65 + 0.55 * (dat$habitat == "forest"))
+# Known sampling variances: larger studies (smaller vi) and smaller studies.
+vi <- runif(K, 0.02, 0.10)
 
-dat$yi <- rnorm(n, mean = mu, sd = sqrt(dat$vi + sigma_extra^2))
+# True study effects scatter around mu_true with SD tau_true.
+theta_i <- rnorm(K, mean = mu_true, sd = tau_true)
+
+# Observed effect sizes: each true effect seen with its known sampling error.
+yi <- rnorm(K, mean = theta_i, sd = sqrt(vi))
+
+dat <- data.frame(study = factor(seq_len(K)), yi = yi, vi = vi)
 head(dat)
 ```
 
-The fitted model mirrors the equations above:
+The data frame has one row per study: the effect size `yi` and its known
+sampling variance `vi`.
+
+## Fitting the model
 
 ```{r}
-fit_meta <- drmTMB(
-  drm_formula(
-    yi ~ habitat + duration + meta_V(V = vi),
-    sigma ~ habitat
-  ),
+fit <- drmTMB(
+  bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
   family = gaussian(),
   data = dat
 )
 
-summary(fit_meta)
+summary(fit)
 ```
 
-Before trusting the coefficient table in your own analysis, run
-`check_drm(fit_meta)`. If a `meta_V(V = V)` model with a moderator in `sigma`
-reports `pdHess = FALSE`, treat the fitted heterogeneity pattern as a diagnostic
-result rather than settled inference. First try the same mean model with
-`sigma ~ 1`; then add the `sigma` moderator back only if the Hessian, gradients,
-and fitted extra-heterogeneity values look stable.
-
-The `mu` rows describe the average effect-size model. In this simulation the
-forest coefficient is positive, so the model estimates a larger mean
-restoration effect for forests than for grasslands, after accounting for study
-duration and known sampling variance.
-
-The `sigma` rows are on the log-SD scale. They describe extra heterogeneity,
-not sampling error. The forest contrast can be read as a multiplicative change
-in the residual heterogeneity SD:
+Before reading the coefficients, confirm the fit is sound. A clean optimisation
+and a positive-definite Hessian are the gate for trusting the Wald standard
+errors and intervals.
 
 ```{r}
-sigma_coef <- coef(fit_meta, "sigma")
-sigma_coef
-exp(sigma_coef["habitatforest"])
+fit$opt$convergence # 0 means the optimiser converged
+fit$sdr$pdHess # TRUE means the Hessian is positive definite
 ```
 
-In this run, forest studies have about `r round(exp(sigma_coef["habitatforest"]), 2)`
-times the extra heterogeneity SD of grassland studies. That multiplier applies
-to `sigma_i`; it does not alter the known sampling variances `vi`.
+```{r}
+check_drm(fit)
+```
 
-## REML for constant residual heterogeneity
+## The pooled effect
 
-When the mean formula is fixed and the residual heterogeneity model is
-intercept-only, `REML = TRUE` can be used for Gaussian known-`V` variance
-component estimation. This is the meta-analysis analogue of fitting a Gaussian
-mixed model by restricted maximum likelihood. Keep ML (`REML = FALSE`) when
-AIC or BIC compares different fixed-effect mean formulas.
+The pooled effect is the `mu` intercept. Its Wald confidence interval comes from
+`confint()`.
 
 ```{r}
-fit_meta_reml <- drmTMB(
-  drm_formula(
-    yi ~ habitat + duration + meta_V(V = vi),
-    sigma ~ 1
-  ),
+mu_hat <- coef(fit, "mu")[["(Intercept)"]]
+mu_hat
+
+confint(fit, parm = "mu:(Intercept)")[, c("parm", "lower", "upper")]
+```
+
+In this run the pooled estimate is about `r round(mu_hat, 3)`, which sits near
+the simulated `mu_true = 0.40`. The interval reflects uncertainty in the mean
+*after* both the known sampling variances and the estimated between-study
+heterogeneity have been accounted for.
+
+## Between-study heterogeneity
+
+The between-study SD \(\tau\) is the residual scale `sigma`. Because the `sigma`
+formula here is intercept-only, every study shares the same value, so we take
+the first element. Squaring it gives the heterogeneity variance \(\tau^2\) that
+meta-analysis reports.
+
+```{r}
+tau_hat <- sigma(fit)[1]
+c(tau = unname(tau_hat), tau_squared = unname(tau_hat^2))
+```
+
+Heterogeneity is easier to communicate as a proportion. \(I^2\) is the share of
+the total variation that is between-study rather than sampling noise. With the
+usual "typical" within-study variance \(\tilde v\) of Higgins and Thompson
+(2002),
+
+\[
+\tilde v =
+  \frac{(K-1)\sum_i w_i}{\left(\sum_i w_i\right)^2 - \sum_i w_i^2},
+\qquad w_i = 1 / v_i,
+\qquad
+I^2 = \frac{\tau^2}{\tau^2 + \tilde v}.
+\]
+
+```{r}
+w <- 1 / dat$vi
+v_typical <- ((K - 1) * sum(w)) / (sum(w)^2 - sum(w^2))
+I2 <- tau_hat^2 / (tau_hat^2 + v_typical)
+
+c(
+  tau_squared = unname(tau_hat^2),
+  typical_v = v_typical,
+  I2_percent = unname(100 * I2)
+)
+```
+
+An \(I^2\) of this size means a substantial fraction of the variation among the
+observed effect sizes reflects genuine differences between studies, not just
+within-study sampling error. The pooled mean is still meaningful, but it is a
+mean of effects that really do differ.
+
+## Cross-check against metafor
+
+The same model can be fitted with `metafor::rma()` using maximum likelihood. It
+should agree with `drmTMB`, because both fit the identical random-effects
+likelihood \(y_i \sim \operatorname{Normal}(\mu, v_i + \tau^2)\). This is a
+useful sanity check when you first adopt the `drmTMB` spelling.
+
+```{r}
+if (requireNamespace("metafor", quietly = TRUE)) {
+  rma_fit <- metafor::rma(yi = yi, vi = vi, method = "ML", data = dat)
+
+  comparison <- data.frame(
+    quantity = c("pooled mu", "tau^2", "I^2 (%)"),
+    drmTMB = c(mu_hat, tau_hat^2, 100 * I2),
+    metafor = c(as.numeric(rma_fit$beta), rma_fit$tau2, rma_fit$I2)
+  )
+  print(comparison, row.names = FALSE, digits = 4)
+}
+```
+
+The two engines return the same pooled effect and the same heterogeneity
+variance. `drmTMB` is doing ML random-effects meta-analysis; it simply spells
+the known sampling variance as `meta_V()` and the heterogeneity as `sigma`.
+
+## REML for the heterogeneity
+
+The ML estimate of \(\tau^2\) is known to be biased downward, because it does
+not account for the degrees of freedom spent estimating \(\mu\). When the mean
+model is fixed and you only want a better heterogeneity estimate, restricted
+maximum likelihood (`REML = TRUE`) is the standard remedy. Keep ML
+(`REML = FALSE`, the default) whenever you intend to compare different
+fixed-effect mean models with AIC or BIC, since restricted likelihoods are not
+comparable across different mean structures.
+
+```{r}
+fit_reml <- drmTMB(
+  bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
   family = gaussian(),
   data = dat,
   REML = TRUE
 )
 
-ll_reml <- logLik(fit_meta_reml)
 data.frame(
-  estimator = fit_meta_reml$estimator,
-  restricted_logLik = as.numeric(ll_reml),
-  df = attr(ll_reml, "df"),
-  residual_sigma = unname(sigma(fit_meta_reml)[1])
+  estimator = c("ML", "REML"),
+  pooled_mu = c(coef(fit, "mu")[[1]], coef(fit_reml, "mu")[[1]]),
+  tau = c(sigma(fit)[1], sigma(fit_reml)[1]),
+  tau_squared = c(sigma(fit)[1]^2, sigma(fit_reml)[1]^2)
 )
 ```
 
-## Categorical moderators and heterogeneous heterogeneity
+The REML between-study variance is slightly larger than the ML one, as expected.
 
-Rodriguez et al. (2023) recommend treating unequal between-study heterogeneity
-as the default when testing categorical moderators. In `drmTMB`, the current
-Gaussian meta-analysis route expresses that idea with a `sigma` formula rather
-than a new `tau ~` syntax. For the two-habitat example above,
+## Meta-regression: moderators on the mean
 
-\[
-\log(\sigma_i) =
-  \gamma_0 + \gamma_1 \operatorname{forest}_i,
-\]
-
-so the fitted extra heterogeneity SDs are
-
-\[
-\sigma_{\mathrm{grassland}} = \exp(\gamma_0),
-\qquad
-\sigma_{\mathrm{forest}} = \exp(\gamma_0 + \gamma_1).
-\]
-
-The scale coefficient \(\gamma_1\) is therefore not another mean effect. It is
-the log ratio of forest to grassland residual heterogeneity SD:
-
-\[
-\frac{\sigma_{\mathrm{forest}}}
-     {\sigma_{\mathrm{grassland}}}
-  = \exp(\gamma_1).
-\]
-
-If the report uses variance-facing meta-analysis language, the corresponding
-extra heterogeneity variance ratio is:
-
-\[
-\frac{\sigma_{\mathrm{forest}}^2}
-     {\sigma_{\mathrm{grassland}}^2}
-  = \exp(2\gamma_1).
-\]
-
-Biologically, the mean forest coefficient asks whether restoration has a larger
-average biodiversity effect in forests. The `sigma` forest coefficient asks a
-different question: are forest restoration effects less predictable across
-studies after known sampling error and duration are accounted for? Those two
-answers can point in the same direction, opposite directions, or only one can be
-important.
-
-It is often helpful to translate fitted values back to the response scale and
-to the variance scale used in many meta-analysis summaries:
+If a study-level covariate might explain part of the variation in effect sizes,
+add it to the `mu` formula. This is a random-effects meta-regression: the known
+sampling variances stay in `meta_V()`, `sigma` becomes the *residual* (after
+moderators) between-study SD, and the new coefficient measures how the effect
+size changes with the moderator.
 
 ```{r}
-meta_report <- data.frame(
-  habitat = dat$habitat,
-  known_sampling_variance = dat$vi,
-  fitted_extra_heterogeneity_sd = sigma(fit_meta)
-)
-meta_report$fitted_extra_heterogeneity_variance <-
-  meta_report$fitted_extra_heterogeneity_sd^2
-meta_report$total_observation_variance <-
-  meta_report$known_sampling_variance +
-  meta_report$fitted_extra_heterogeneity_variance
+set.seed(202)
+dat$dose <- scale(runif(K, 1, 10))[, 1] # a study-level moderator
+# Give the effect size a genuine dependence on the moderator.
+dat$yi <- dat$yi + 0.25 * dat$dose
 
-meta_by_habitat <- aggregate(
-  meta_report[c(
-    "fitted_extra_heterogeneity_sd",
-    "fitted_extra_heterogeneity_variance",
-    "total_observation_variance"
-  )],
-  list(habitat = meta_report$habitat),
-  mean
+fit_mr <- drmTMB(
+  bf(yi ~ 1 + dose + meta_V(V = vi), sigma ~ 1),
+  family = gaussian(),
+  data = dat
 )
-meta_by_habitat
+
+coef(fit_mr, "mu")
 ```
 
-For this model, the fitted residual heterogeneity SD is larger in forest
-studies. The heterogeneity variance column is the same fitted `sigma` model
-reported as `sigma^2`. The total observation variance column adds the known
-sampling variance `vi`, so it is larger than the estimated heterogeneity
-variance alone. A biological interpretation would be: restoration effects are
-not only larger on average in forests, they are also less predictable across
-forest studies after known sampling uncertainty is accounted for.
-
-Choose the report scale deliberately:
-
-| Quantity | Computation | Interpretation |
-|---|---|---|
-| known sampling variance | `vi` or the supplied `V` | uncertainty known before fitting |
-| extra heterogeneity SD | `sigma(fit_meta)` | residual between-effect-size SD after known sampling variance is included |
-| extra heterogeneity variance | `sigma(fit_meta)^2` | variance-scale version of the fitted `sigma` model |
-| total observation variance | `vi + sigma(fit_meta)^2` for diagonal `V` | sampling variance plus estimated extra heterogeneity |
-
-This is why `drmTMB` keeps the public parameter name `sigma`: it is the fitted
-extra heterogeneity scale in the Gaussian likelihood. If a meta-analysis report
-needs the usual variance-facing language, square `sigma` and say that the
-reported column is `sigma^2`.
-
-```{r meta-variance-components-figure, eval=requireNamespace("ggplot2", quietly = TRUE), fig.width=7.2, fig.height=4.4, fig.cap="Variance-scale summary for the restoration meta-analysis example. Stacked bars separate mean known sampling variance from fitted extra heterogeneity variance by habitat; points mark the mean total observation variance. These are variance components, not confidence intervals.", fig.alt="Stacked bar plot by habitat showing known sampling variance and fitted extra heterogeneity variance as separate components, with a point marking total observation variance for grassland and forest studies."}
-library(ggplot2)
-
-meta_components <- rbind(
-  data.frame(
-    habitat = meta_by_habitat$habitat,
-    component = "Known sampling variance",
-    variance = aggregate(
-      known_sampling_variance ~ habitat,
-      data = meta_report,
-      mean
-    )$known_sampling_variance
-  ),
-  data.frame(
-    habitat = meta_by_habitat$habitat,
-    component = "Fitted extra heterogeneity",
-    variance = meta_by_habitat$fitted_extra_heterogeneity_variance
-  )
-)
-meta_components$component <- factor(
-  meta_components$component,
-  levels = c("Fitted extra heterogeneity", "Known sampling variance")
-)
-
-ggplot(meta_components, aes(habitat, variance, fill = component)) +
-  geom_col(width = 0.58, colour = "white", linewidth = 0.3) +
-  geom_point(
-    data = meta_by_habitat,
-    aes(
-      x = habitat,
-      y = total_observation_variance
-    ),
-    inherit.aes = FALSE,
-    size = 2.8,
-    shape = 21,
-    fill = "white",
-    colour = "grey20",
-    stroke = 0.9
-  ) +
-  scale_fill_manual(values = c(
-    "Known sampling variance" = "#56B4E9",
-    "Fitted extra heterogeneity" = "#CC79A7"
-  )) +
-  labs(
-    title = "Known sampling variance is not residual heterogeneity",
-    subtitle = "Bars are variance components; white points mark their mean total",
-    x = "Habitat",
-    y = "Variance",
-    fill = "Component"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position = "bottom",
-    plot.title = element_text(face = "bold"),
-    plot.subtitle = element_text(colour = "grey30")
-  )
-```
-
-A quick diagnostic check flags optimizer, Hessian, row-filtering, scale, and
-known sampling covariance problems before interpretation:
+The `dose` coefficient is the change in the pooled effect per one-SD change in
+the moderator. After fitting a moderator, the residual `sigma` is the
+between-study heterogeneity that the moderator did *not* explain; comparing it
+with the no-moderator `sigma` shows how much heterogeneity the moderator
+absorbed.
 
 ```{r}
-check_drm(fit_meta)
+c(
+  residual_tau_no_moderator = unname(sigma(fit)[1]),
+  residual_tau_with_moderator = unname(sigma(fit_mr)[1])
+)
 ```
 
-For full-matrix known covariance fits, the `known_sampling_covariance` row is a
-note rather than a problem by itself. It reports the retained matrix dimension,
-dense storage, density, size, rank, and conditioning so you can see whether the
-current dense route still matches the scale of the analysis.
+## Multiple effect sizes per study
 
-For location-scale meta-analysis fits such as
-`bf(y ~ moderator + meta_V(V = v), sigma ~ moderator)`, a clean Hessian is the
-gate for Hessian-based SEs and Wald intervals. If `check_drm()` reports
-`hessian_positive_definite` as a warning, the known sampling variance still
-enters the covariance additively through `meta_V(V = v)`, but the estimated
-extra-heterogeneity coefficients should be treated as point estimates until a
-profile, bootstrap, or simpler `sigma` model supports them.
-
-## Weights are not sampling variances
-
-The top-level `weights =` argument and `meta_V(V = V)` answer different
-questions. Ordinary likelihood weights multiply each observation's
-log-likelihood contribution:
-
-\[
-\ell(\theta) =
-  \sum_i w_i \ell_i(\theta).
-\]
-
-Known sampling covariance changes the covariance model:
-
-\[
-\mathbf{y} \sim
-  \operatorname{MVN}
-  \left(
-    \boldsymbol{\mu},
-    \mathbf{V} + \boldsymbol{\Omega}_{\mathrm{estimated}}
-  \right).
-\]
-
-Thus `weights = 1 / vi` is not the same model as
-`meta_V(V = vi)`. Use `meta_V(V = vi)` when `vi` is known sampling variance.
-Use `weights =` only when the intended analysis is a weighted likelihood, such
-as case weights or externally defined row weights. The practical consequence is
-that `weights = 1 / vi` changes how much each row contributes to the
-likelihood; it does not put `vi` into the modelled sampling variance. The
-current dense full-`V` path rejects non-unit weights until joint-block
-weighting has a separate design.
-
-A proportional sampling-variance model, for example a term such as
-\(\pi_i \sim \operatorname{Normal}(0, \phi_\pi / w_i)\), is a different model
-again. It is not implemented in `drmTMB` yet and should not be mimicked with
-the top-level `weights =` argument. The preferred additive known-`V` spelling
-is `meta_V(V = V)`; the proportional branch remains design-only:
+The worked example above has one effect size per study, so `sigma` carries the
+whole between-study story. When a study contributes several effect sizes, two
+levels of variation appear: a study-level random effect for the studies, and a
+residual for the effect sizes within a study. Those are different questions, and
+`drmTMB` keeps them in different places:
 
 ```r
-# Preferred additive known-V spelling.
-meta_V(V = V)
-
-# Future design only; this call is not implemented.
-meta_V(w = w, scale = "proportional")
-```
-
-Deprecated `meta_known_V(V = V)` remains a compatibility alias for the additive
-known-`V` form, not a second likelihood path. The response is already on the
-left-hand side of the model formula, so `meta_V()` should not repeat it as a
-positional argument. Current fitted examples should use `meta_V(V = V)` for
-known sampling covariance and `weights =` only for likelihood weights.
-
-## Known sampling variance plus group-level heterogeneity
-
-Some meta-analyses contain multiple effect sizes per study, species, lab, or
-site. Then `sigma` and `sd(group)` answer different questions. The next code
-block is schematic; it assumes a dataset such as `dat_repeated`, with multiple
-rows per study and a study-level `habitat` value that is constant within each
-study after missing rows are removed:
-
-```r
-fit_study <- drmTMB(
-  drm_formula(
-    yi ~ treatment + (1 | study) + meta_V(V = vi),
-    sigma ~ 1,
-    sd(study) ~ habitat
-  ),
+# Schematic: several effect sizes per study (not evaluated here).
+drmTMB(
+  bf(yi ~ 1 + moderator + (1 | study) + meta_V(V = vi), sigma ~ 1),
   family = gaussian(),
   data = dat_repeated
 )
 ```
 
-The symbolic model is:
+Here `(1 | study)` is the between-study random effect and `sigma` is the
+within-study residual heterogeneity, while `meta_V(V = vi)` still supplies the
+known sampling variances. A grouping factor used in `(1 | study)` must have at
+least one study with repeated rows; a data set with exactly one row per study is
+the single-level model shown above, where `sigma` alone represents
+between-study heterogeneity.
+
+## Known sampling variance is not a weight
+
+Inverse-variance weights and known sampling variances answer different
+questions, and `meta_V()` is not the same as the top-level `weights` argument.
+
+A likelihood weight multiplies a study's contribution to the log-likelihood:
 
 \[
-y_i = \mu_i + b_{j[i]} + r_i + s_i,
-\qquad
-\mu_i = \mathbf{x}_{\mu i}^{\top}\boldsymbol{\beta}_{\mu},
+\ell(\theta) = \sum_i w_i \, \ell_i(\theta).
 \]
+
+A known sampling variance enters the *covariance* of the response:
 
 \[
-b_j \sim \operatorname{Normal}(0, \omega_j^2),
-\qquad
-\log(\omega_j) =
-  \mathbf{x}_{\omega j}^{\top}\boldsymbol{\alpha},
+y_i \sim \operatorname{Normal}(\mu,\; v_i + \tau^2).
 \]
 
-\[
-r_i \sim \operatorname{Normal}(0, \sigma_i^2),
-\qquad
-\mathbf{s} \sim \operatorname{MVN}(\mathbf{0}, \mathbf{V}).
-\]
+So `weights = 1 / vi` is **not** the random-effects meta-analysis model. It
+rescales how much each row counts toward the likelihood; it does not put `vi`
+into the modelled sampling variance, and it does not let `tau^2` be estimated on
+top of the known variances. For meta-analysis with known sampling variances,
+use `meta_V(V = vi)`. Reserve `weights =` for genuine likelihood weights such as
+externally defined case weights.
 
-Here `s_i` is the known sampling-error component supplied by
-`meta_V(V = vi)` or `meta_V(V = V)`. The `sigma` formula models remaining
-observation-level heterogeneity. The `sd(study)` formula models `\omega_j`,
-the study-level random-effect standard deviation. Predictors in
-`sd(study) ~ ...` must be constant within each study after missing-data
-filtering; otherwise a single study-level random-effect SD would not be well
-defined.
+## Notes on the function names
 
-After integrating over the random effects, the marginal covariance is:
+* `meta_V(V = V)` is the current marker for known sampling variance or
+  covariance. The argument may be a column of variances (as above), a vector, a
+  diagonal matrix, or a dense covariance matrix when the effect sizes are
+  correlated.
+* `meta_known_V(V = V)` is a deprecated alias kept only for backward
+  compatibility. It routes to the same additive known-variance likelihood but
+  emits a deprecation warning; prefer `meta_V()` in new code.
+* There is intentionally no `meta_gaussian()` family and no `tau ~` syntax.
+  Meta-analysis reuses `family = gaussian()` and `sigma ~ ...` so that it shares
+  the distributional-regression grammar with the rest of `drmTMB`.
 
-\[
-\boldsymbol{\Omega} =
-  \mathbf{V}
-  + \operatorname{diag}(\sigma_1^2,\ldots,\sigma_n^2)
-  + \mathbf{Z}_{study}
-    \operatorname{diag}(\omega_1^2,\ldots,\omega_J^2)
-    \mathbf{Z}_{study}^{\top}.
-\]
+## Reference
 
-This is the distinction to keep in mind: `sigma ~ habitat` asks whether
-effect-size-level residual heterogeneity changes with habitat, while
-`sd(study) ~ habitat` asks whether the study-level random-effect SD changes
-with habitat.
-
-## Bivariate meta-analysis
-
-Bivariate meta-analysis uses the same Gaussian bivariate route as other
-location-coscale models, where coscale means the residual correlation
-component `rho12`. The known sampling covariance should include the within-study
-covariance between the two effect-size estimates when it is available.
-
-For study \(i\), write:
-
-\[
-\mathbf{y}_i =
-  \begin{bmatrix} y_{1i} \\ y_{2i} \end{bmatrix},
-\qquad
-\mathbf{S}_i =
-  \begin{bmatrix}
-    v_{1i} & c_{12i} \\
-    c_{12i} & v_{2i}
-  \end{bmatrix}.
-\]
-
-The fitted residual covariance is:
-
-\[
-\boldsymbol{\Omega}_i =
-  \begin{bmatrix}
-    \sigma_{1i}^2
-      & \rho_{12i}\sigma_{1i}\sigma_{2i} \\
-    \rho_{12i}\sigma_{1i}\sigma_{2i}
-      & \sigma_{2i}^2
-  \end{bmatrix},
-\qquad
-\rho_{12i} = \tanh(\eta_{\rho12 i}).
-\]
-
-The full observation model is:
-
-\[
-\mathbf{y}_i \sim
-  \operatorname{MVN}
-  \left(
-    \boldsymbol{\mu}_i,
-    \mathbf{S}_i + \boldsymbol{\Omega}_i
-  \right).
-\]
-
-The helper `meta_vcov_bivariate()` builds the common row-paired matrix:
-
-```r
-V <- meta_vcov_bivariate(
-  v1 = c(0.04, 0.03),
-  v2 = c(0.05, 0.02),
-  cor12 = c(0.4, 0.2)
-)
-V
-```
-
-The stacking is `[y1_1, y2_1, y1_2, y2_2, ...]`. In a fitted model, this known
-sampling covariance is added to the estimated residual covariance:
-
-```r
-fit_biv <- drmTMB(
-  drm_formula(
-    mu1 = y1 ~ habitat + meta_V(V = V),
-    mu2 = y2 ~ habitat,
-    sigma1 = ~ habitat,
-    sigma2 = ~ habitat,
-    rho12 = ~ habitat
-  ),
-  family = c(gaussian(), gaussian()),
-  data = dat
-)
-```
-
-Here `rho12` is the estimated residual correlation after the known within-study
-sampling covariance has already been included. In a model where the estimated
-residual component represents between-study heterogeneity, this is the
-between-study residual correlation. In other words, `rho12` should not be asked
-to explain sampling correlation that belongs in `V`. The current implementation
-expects complete bivariate rows and a dense `2n` by `2n` row-paired `V` matrix.
-
-For reporting, translate the fitted residual scales and residual correlation
-into marginal residual variances and residual covariance:
-
-```r
-s <- sigma(fit_biv)
-residual_variance_1 <- s$sigma1^2
-residual_variance_2 <- s$sigma2^2
-residual_covariance_12 <- rho12(fit_biv) * s$sigma1 * s$sigma2
-```
-
-These are residual heterogeneity summaries after the known sampling covariance
-has been accounted for. They are not replacements for the supplied `V`.
-
-## Implementation caveats
-
-Dense full covariance is useful for correlated effect sizes and can represent
-block-diagonal covariance. Sparse covariance storage is planned for larger
-phylogenetic and spatial workloads.
-
-Bivariate known-`V` fitting currently uses a dense row-paired matrix and
-complete bivariate rows. Missing single outcomes and sparse matrix storage need
-separate likelihood and user-interface decisions.
-
-Negative and missing known variances are rejected or removed through the same
-row-retention rules as the model data; full matrices must be symmetric and
-positive semidefinite after row subsetting.
-
-Current Gaussian meta-analysis supports `meta_V(V = V)` with ordinary `sigma`
-predictors, but `meta_V(V = V) + sigma ~ moderator` can be weakly identified in
-some datasets and may give `pdHess = FALSE`. In that case, treat Wald SEs and
-Wald intervals for the extra-heterogeneity model as unreliable until a profile,
-bootstrap, or simpler `sigma` model supports the target.
-
-Do not put `offset(0.5 * log(v))` in the `sigma` formula to represent known
-sampling error. In `drmTMB`, known sampling variance belongs in
-`meta_V(V = v)`, and residual heterogeneity belongs in `sigma ~ ...`. Formula
-offsets are currently count-family `mu` exposure syntax, so offsets in Gaussian
-or meta-analytic `sigma` formulas are intentionally rejected.
-
-The API should keep `family = gaussian()` and `sigma ~ ...`; it should not
-introduce `meta_gaussian()` or `tau ~` syntax without a separate design
-decision.
-
-For large sparse covariance matrices, incomplete bivariate rows, or dense
-full-`V` models that also need non-unit likelihood weights, the current best
-practice is to simplify the fitted example, run a sensitivity analysis with
-the supported covariance structure, and treat the unsupported path as a design
-request rather than forcing it through `weights =`.
+Higgins, J. P. T., and Thompson, S. G. (2002). Quantifying heterogeneity in a
+meta-analysis. *Statistics in Medicine*, 21(11), 1539-1558.
