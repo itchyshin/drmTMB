@@ -42,6 +42,19 @@ drmTMB_julia_bridge <- function(
       call = call
     ))
   }
+  if (drm_julia_has_structured_term(formula)) {
+    return(drmTMB_julia_structured_bridge(
+      formula = formula,
+      family = family,
+      data = data,
+      env = env,
+      weights_missing = weights_missing,
+      control = control,
+      impute = impute,
+      missing = missing,
+      call = call
+    ))
+  }
   if (!isTRUE(weights_missing)) {
     cli::cli_abort(
       "{.code engine = \"julia\"} does not support {.arg weights} yet."
@@ -486,23 +499,48 @@ drm_julia_is_intercept_rhs <- function(rhs) {
   identical(rhs, 1) || identical(rhs, quote(1))
 }
 
+# Structured markers that carry an auxiliary object (tree / matrix / coords) as a
+# named kwarg that DRM.jl receives separately, NOT in the formula. Each marker's
+# entry lists the kwarg names to strip before deparsing the formula for the Julia
+# bridge: `phylo(1 | g, tree = t)` -> `phylo(1 | g)`,
+# `relmat(1 | g, K = K)` -> `relmat(1 | g)`, etc. Stripping also removes the
+# object symbol from `all.vars`, so the bridge does not look for the matrix in
+# `data`.
+drm_julia_structured_marker_kwargs <- function() {
+  list(
+    phylo = "tree",
+    relmat = c("K", "Q"),
+    animal = c("A", "Ainv", "pedigree"),
+    spatial = c("coords", "mesh")
+  )
+}
+
+# Back-compat name kept for the phylo route; now strips the auxiliary-object
+# kwarg from any structured marker (phylo / relmat / animal / spatial).
 drm_julia_strip_phylo_tree <- function(expr) {
+  drm_julia_strip_structured_kwargs(expr)
+}
+
+drm_julia_strip_structured_kwargs <- function(expr) {
   if (!is.call(expr)) {
     return(expr)
   }
   call <- as.list(expr)
-  if (identical(call[[1L]], as.name("phylo"))) {
+  marker_kwargs <- drm_julia_structured_marker_kwargs()
+  head <- call[[1L]]
+  marker <- if (is.name(head)) as.character(head) else NULL
+  if (!is.null(marker) && marker %in% names(marker_kwargs)) {
+    drop <- marker_kwargs[[marker]]
     names_call <- names(call)
-    keep <- is.na(names_call) | !identical(names_call, "tree")
     if (is.null(names_call)) {
       keep <- rep(TRUE, length(call))
     } else {
-      keep <- names_call != "tree"
+      keep <- !(names_call %in% drop)
       keep[is.na(keep)] <- TRUE
     }
     call <- call[keep]
   } else {
-    call[-1L] <- lapply(call[-1L], drm_julia_strip_phylo_tree)
+    call[-1L] <- lapply(call[-1L], drm_julia_strip_structured_kwargs)
   }
   as.call(call)
 }
@@ -629,6 +667,16 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     paste(
       "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads) =",
       "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads)"
+    )
+  )
+  # General-covariance structured route: the user-supplied K / A / coords matrix
+  # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge,
+  # which routes relmat -> K, animal -> A, spatial -> coords (Gaussian) / K
+  # (counts/Gamma) into the matching `drm()` keyword.
+  JuliaCall::julia_command(
+    paste(
+      "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
+      "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
     )
   )
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
@@ -819,10 +867,15 @@ drm_julia_structured_parameters <- function(
     return(list(sdpars = empty_sdpars))
   }
 
+  # Structured terms that yield a `resd_<group>` SD block on the Julia side:
+  # the phylo route plus the general-covariance relmat / animal / spatial route.
+  # Keying the SD by each term's formula label (e.g. "relmat(1 | id)") matches
+  # the native drmTMB extractor naming.
+  structured_types <- c("phylo", drm_julia_structured_marker_types())
   terms <- unlist(
     lapply(formula$entries, function(entry) {
       Filter(
-        function(term) identical(term$type, "phylo"),
+        function(term) term$type %in% structured_types,
         entry$structured
       )
     }),
@@ -1174,6 +1227,320 @@ predict.drmTMB_julia <- function(
   }
   cli::cli_abort(
     "{.fn predict} for {.code engine = \"julia\"} has no stored response-scale values for {.arg dpar = \"{dpar}\"} yet."
+  )
+}
+
+# ---------------------------------------------------------------------------
+# Univariate structured (general-covariance) route via engine = "julia".
+#
+# Routes a univariate `relmat(1 | g)` / `animal(1 | g)` / `spatial(1 | g)` mean
+# random intercept to DRM.jl's general-covariance sparse Laplace. Unlike the
+# phylo route -- which serializes a tree and lets DRM.jl rebuild the precision --
+# these markers carry a USER-SUPPLIED covariance matrix that crosses JuliaCall as
+# a plain numeric matrix and is handed to `drm(...)` through the matching keyword:
+#
+#   relmat(1 | g, K = K)   -> drm(...; K = K)        (relatedness / GRM / kernel)
+#   animal(1 | g, A = A)   -> drm(...; A = A)        (additive relationship matrix)
+#   spatial(1 | g, coords) -> drm(...; coords = ..)  (Gaussian: coordinate spatial)
+#   spatial(1 | g, K = K)  -> drm(...; K = K)        (counts/Gamma: precomputed cov)
+#
+# DRM.jl rescales the covariance to a unit-diagonal correlation, so the recovered
+# `resd_<group>` block is the random-effect SD directly on the response scale (no
+# tree-depth SD rescaling -- structured SD scale is 1). The matrix's rows must be
+# ordered as the grouping levels first appear in `data` (DRM.jl's convention); the
+# bridge passes `data` unreordered, so no row permutation is applied.
+#
+# Supported families are exactly DRM.jl's general-covariance set: Gaussian,
+# Poisson, NB2, and Gamma. Beta / Binomial support only `phylo()` in DRM.jl and
+# are rejected here. `Q` (precision), `Ainv`, `pedigree`, and `mesh` marker forms
+# are rejected because `drm()` consumes only K / A / coords for these routes.
+# ---------------------------------------------------------------------------
+
+# Families that route through the Julia engine with a general-covariance
+# structured term (relmat / animal / spatial). This is DRM.jl's user-supplied
+# covariance set and is DISTINCT from the phylo-only set: Beta and Binomial fit
+# phylo but have no relmat/animal/spatial `drm()` route, so they are excluded.
+drm_julia_structured_families <- function() {
+  c("gaussian", "poisson", "nbinom2", "gamma")
+}
+
+# Structured-marker types this route marshals. Excludes "phylo" (its own
+# tree-serializing route) and "phylo_interaction" (Kronecker pair precision, no
+# single-matrix bridge form yet).
+drm_julia_structured_marker_types <- function() {
+  c("relmat", "animal", "spatial")
+}
+
+# TRUE when any formula entry carries a relmat / animal / spatial structured term.
+drm_julia_has_structured_term <- function(formula) {
+  length(drm_julia_collect_structured_terms(formula)) > 0L
+}
+
+drm_julia_collect_structured_terms <- function(formula) {
+  marker_types <- drm_julia_structured_marker_types()
+  unlist(
+    lapply(formula$entries, function(entry) {
+      Filter(
+        function(term) term$type %in% marker_types,
+        entry$structured
+      )
+    }),
+    recursive = FALSE
+  )
+}
+
+drmTMB_julia_structured_bridge <- function(
+  formula,
+  family,
+  data,
+  env,
+  weights_missing,
+  control,
+  impute,
+  missing,
+  call
+) {
+  if (!isTRUE(weights_missing)) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} structured models do not support {.arg weights} yet."
+    )
+  }
+  if (!is.null(impute)) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} structured models do not support {.arg impute} yet."
+    )
+  }
+  missing_control <- drm_parse_missing_control(missing)
+  if (
+    !identical(missing_control$response, "drop") ||
+      !identical(missing_control$predictor, "fail")
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models do not support {.arg missing} routes yet.",
+      i = "Use the native {.code engine = \"tmb\"} path for missing-data structured models."
+    ))
+  }
+  if (!drm_julia_default_control(control)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models currently accept only default {.arg control}.",
+      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
+    ))
+  }
+
+  family_type <- drm_julia_bridge_family_type(family)
+  family_tag <- drm_julia_structured_family_tag(family_type)
+  payload <- drm_julia_structured_payload(
+    formula = formula,
+    family_type = family_type,
+    data = data,
+    env = env
+  )
+
+  result <- drm_julia_call_structured(
+    formula = payload$formula,
+    family = family_tag,
+    data = payload$data,
+    matrix = payload$matrix,
+    kwarg = payload$kwarg,
+    options = payload$options
+  )
+  new_drmTMB_julia(
+    result = result,
+    call = call,
+    formula = formula,
+    family = family,
+    data = data,
+    family_type = family_type,
+    structured_sd_scales = payload$structured_sd_scales,
+    bridge_payload = NULL
+  )
+}
+
+# Gate which families route with a general-covariance structured term. Mirrors
+# `drm_julia_family_tag` but for the relmat/animal/spatial set; structured terms
+# never appear in a bivariate bridge fit, so only the univariate tags pass.
+drm_julia_structured_family_tag <- function(family_type) {
+  structured_families <- drm_julia_structured_families()
+  if (family_type %in% structured_families) {
+    return(family_type)
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} routes {.fn relmat} / {.fn animal} / {.fn spatial} structured terms only for univariate Gaussian, Poisson, NB2, or Gamma fits.",
+    i = "DRM.jl fits these general-covariance random intercepts for those families; use {.code engine = \"tmb\"} for {.val {family_type}} structured models."
+  ))
+}
+
+# Validate the single structured term and marshal its user-supplied matrix.
+# Returns the DRM.jl formula spec (marker matrix kwarg stripped), the column
+# table, the numeric matrix, the `drm()` keyword it maps to ("K" / "A" /
+# "coords"), the structured SD scale (always 1 here), and the options list.
+drm_julia_structured_payload <- function(formula, family_type, data, env) {
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 1L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} currently supports one {.fn relmat} / {.fn animal} / {.fn spatial} structured term.",
+      i = "Use native {.code engine = \"tmb\"} for multiple structured terms."
+    ))
+  }
+  term <- terms[[1L]]
+
+  if (
+    !identical(term$dpar, "mu") ||
+      !identical(term$coef_names, "(Intercept)")
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} currently supports only {.code {term$type}(1 | group, ...)} in the {.code mu} formula.",
+      i = "Use native {.code engine = \"tmb\"} for structured slopes, residual-scale structured effects, or direct-SD formulas."
+    ))
+  }
+  sigma_entries <- Filter(
+    function(entry) identical(entry$dpar, "sigma"),
+    formula$entries
+  )
+  if (
+    length(sigma_entries) > 0L &&
+      !all(vapply(
+        sigma_entries,
+        function(entry) drm_julia_is_intercept_rhs(entry$rhs),
+        logical(1L)
+      ))
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} uses DRM.jl's general-covariance sparse route, which currently requires {.code sigma ~ 1}.",
+      i = "Use native {.code engine = \"tmb\"} for structured models with predictor-dependent residual scale."
+    ))
+  }
+  if (!term$group %in% names(data)) {
+    cli::cli_abort(
+      "Structured grouping variable {.field {term$group}} was not found in {.arg data}."
+    )
+  }
+
+  resolved <- drm_julia_structured_matrix(
+    term = term,
+    family_type = family_type,
+    env = env,
+    data = data
+  )
+
+  list(
+    formula = drm_julia_formula_spec(formula),
+    data = drm_julia_bridge_data(data, formula),
+    matrix = resolved$matrix,
+    kwarg = resolved$kwarg,
+    options = list(),
+    structured_sd_scales = stats::setNames(1, term$label)
+  )
+}
+
+# Resolve a structured term's user-supplied matrix to the (numeric matrix,
+# `drm()` keyword) pair the Julia bridge needs. The parser stores the marker's
+# matrix slot as `structure` (the keyword the USER wrote: "K"/"Q"/"A"/"Ainv"/
+# "coords"/"mesh") and `object` (the symbol to look up in `env`). Only the slots
+# DRM.jl's `drm()` consumes for these routes are accepted; precision ("Q",
+# "Ainv"), pedigree, and mesh forms are rejected with a pointer to `engine="tmb"`.
+drm_julia_structured_matrix <- function(term, family_type, env, data) {
+  type <- term$type
+  slot <- term$structure
+  obj_name <- term$object
+
+  if (identical(type, "relmat")) {
+    if (!identical(slot, "K")) {
+      drm_julia_structured_reject_slot(type, slot, "K", "covariance")
+    }
+    kwarg <- "K"
+  } else if (identical(type, "animal")) {
+    if (!identical(slot, "A")) {
+      drm_julia_structured_reject_slot(type, slot, "A", "relatedness")
+    }
+    kwarg <- "A"
+  } else {
+    # spatial: DRM.jl estimates the spatial range jointly from raw `coords`, which
+    # is a GAUSSIAN-only path. The drmTMB grammar only lets `spatial()` carry
+    # `coords` / `mesh` (never `K`), so a non-Gaussian spatial fit has no bridge
+    # form -- pass the precomputed spatial covariance through `relmat(1 | g, K = K)`
+    # instead (DRM.jl fits an identical general-covariance random intercept).
+    if (!identical(family_type, "gaussian")) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl).",
+        i = "For a {.val {family_type}} spatial random intercept, pass a precomputed spatial covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."
+      ))
+    }
+    if (!identical(slot, "coords")) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} Gaussian {.fn spatial} models require {.arg coords}.",
+        x = "Got {.code spatial(1 | {term$group}, {slot} = ...)}.",
+        i = "Use {.code spatial(1 | {term$group}, coords = coords)}; {.arg mesh} is not wired into the bridge yet."
+      ))
+    }
+    kwarg <- "coords"
+  }
+
+  value <- get(obj_name, envir = env, inherits = TRUE)
+  if (!is.matrix(value) && !is.data.frame(value)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} could not marshal {.fn {type}} {.arg {slot}} object {.val {obj_name}}.",
+      x = "Expected a numeric matrix or data frame, got {.cls {class(value)}}.",
+      i = "Sparse precision objects, pedigrees, and meshes are not marshalled by this route yet."
+    ))
+  }
+  matrix <- drm_julia_as_matrix(value)
+  if (!all(is.finite(matrix))) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires finite values in the {.fn {type}} {.arg {slot}} matrix."
+    )
+  }
+  if (identical(kwarg, "coords")) {
+    if (ncol(matrix) < 1L) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} {.fn spatial} {.arg coords} must have at least one coordinate column."
+      )
+    }
+  } else if (nrow(matrix) != ncol(matrix)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.fn {type}} {.arg {slot}} must be a square covariance/relatedness matrix.",
+      x = "Got a {nrow(matrix)} x {ncol(matrix)} matrix."
+    ))
+  }
+  list(matrix = matrix, kwarg = kwarg)
+}
+
+drm_julia_structured_reject_slot <- function(type, slot, expected, kind) {
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} routes {.fn {type}} only with a {kind} matrix supplied as {.arg {expected}}.",
+    x = "Got {.code {type}(1 | group, {slot} = ...)}.",
+    i = "Precision / inverse forms ({.arg Q}, {.arg Ainv}) and pedigrees are not marshalled by the bridge; supply the {kind} matrix as {.arg {expected}}, or use {.code engine = \"tmb\"}."
+  ))
+}
+
+drm_julia_call_structured <- function(
+  formula,
+  family,
+  data,
+  matrix,
+  kwarg,
+  options = list()
+) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} requires the {.pkg JuliaCall} package.",
+      i = "Install it with {.code install.packages(\"JuliaCall\")}, then retry."
+    ))
+  }
+
+  drm_julia_setup()
+  K <- if (identical(kwarg, "K")) matrix else NULL
+  A <- if (identical(kwarg, "A")) matrix else NULL
+  coords <- if (identical(kwarg, "coords")) matrix else NULL
+  JuliaCall::julia_call(
+    "drmTMB_drm_bridge_structured",
+    formula,
+    family,
+    as.list(data),
+    K,
+    A,
+    coords,
+    if (length(options) == 0L) NULL else options
   )
 }
 
