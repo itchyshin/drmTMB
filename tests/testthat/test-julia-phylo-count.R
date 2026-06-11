@@ -40,9 +40,26 @@ test_that("family-tag gating routes phylo count, rejects plain count", {
     drmTMB:::drm_julia_family_tag("nbinom2", has_phylo = FALSE),
     "only with a .*phylo.* random intercept"
   )
-  # Other non-Gaussian families are rejected regardless of phylo.
+  # Gamma / Beta / Binomial now ALSO route when a phylo term is present
+  # (DRM.jl's non-Gaussian phylo Laplace), and are rejected without one.
+  for (fam in c("gamma", "beta", "binomial")) {
+    expect_equal(
+      drmTMB:::drm_julia_family_tag(fam, has_phylo = TRUE),
+      fam
+    )
+    expect_error(
+      drmTMB:::drm_julia_family_tag(fam, has_phylo = FALSE),
+      "only with a .*phylo.* random intercept"
+    )
+  }
+  # Genuinely-unsupported families are still rejected regardless of phylo.
+  # beta_binomial has no Julia phylo route (DRM.jl BetaBinomial has no tree arg).
   expect_error(
-    drmTMB:::drm_julia_family_tag("gamma", has_phylo = TRUE),
+    drmTMB:::drm_julia_family_tag("beta_binomial", has_phylo = TRUE),
+    "Gaussian one-/two-response"
+  )
+  expect_error(
+    drmTMB:::drm_julia_family_tag("student", has_phylo = TRUE),
     "Gaussian one-/two-response"
   )
 })

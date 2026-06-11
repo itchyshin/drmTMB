@@ -69,7 +69,7 @@ drmTMB_julia_bridge <- function(
     ))
   }
 
-  family_type <- drm_family_type(family)
+  family_type <- drm_julia_bridge_family_type(family)
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   bridge_payload <- drm_julia_bridge_payload(
@@ -107,27 +107,59 @@ drm_julia_default_control <- function(control) {
   is.null(control) || (is.list(control) && length(control) == 0L)
 }
 
+# Bridge-local family classifier. drmTMB's native `drm_family_type()` is the
+# source of truth for every family the TMB engine fits, but it has no branch for
+# a plain base-R `binomial()` (native binomial support is via `beta_binomial()`).
+# DRM.jl DOES fit a univariate Binomial phylo model, so the bridge recognizes a
+# `binomial(link = "logit")` object here and maps it to the "binomial" tag;
+# every other family defers to `drm_family_type()`. The logit-link guard mirrors
+# DRM.jl's Binomial likelihood (logit mean); other links fall through to
+# `drm_family_type()`, which rejects them with the standard message.
+drm_julia_bridge_family_type <- function(family) {
+  if (
+    inherits(family, "family") &&
+      identical(family$family, "binomial") &&
+      identical(family$link, "logit")
+  ) {
+    return("binomial")
+  }
+  drm_family_type(family)
+}
+
+# Families that route through the Julia engine ONLY with a phylo(1 | group)
+# random intercept. DRM.jl's sparse all-node Laplace is the large-p
+# phylogenetic speed edge for these; a plain GLM without a phylo term stays on
+# the native TMB path. Each tag string must match a `_bridge_family` case in
+# DRM.jl's src/bridge.jl AND a family whose `drm(...)` method accepts `tree =`.
+#   poisson / nbinom2 -> count phylo Laplace (verified large-p lane)
+#   gamma / beta      -> non-Gaussian location-scale phylo Laplace (sigma ~ 1)
+#   binomial          -> mean-only phylo Laplace
+# beta_binomial is deliberately excluded: DRM.jl's BetaBinomial `drm()` has no
+# `tree` kwarg, so a beta-binomial phylo fit has no Julia route yet.
+drm_julia_phylo_only_families <- function() {
+  c("poisson", "nbinom2", "gamma", "beta", "binomial")
+}
+
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
 # Julia engine may route. Gaussian one-/two-response models route unconditionally
-# (the verified base lane). Count families (Poisson, NB2) route ONLY when the
-# model carries a phylogenetic random intercept: DRM.jl's sparse O(p) phylo
-# Laplace is the speed edge there (many tips), so a plain count GLM without a
-# phylo term stays on the native TMB path. Everything else is rejected.
+# (the verified base lane). The phylo-only families above route ONLY when the
+# model carries a phylogenetic random intercept. Everything else is rejected.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
   if (family_type %in% c("gaussian", "biv_gaussian")) {
     return(family_type)
   }
-  if (isTRUE(has_phylo) && family_type %in% c("poisson", "nbinom2")) {
+  phylo_only <- drm_julia_phylo_only_families()
+  if (isTRUE(has_phylo) && family_type %in% phylo_only) {
     return(family_type)
   }
-  if (family_type %in% c("poisson", "nbinom2")) {
+  if (family_type %in% phylo_only) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} routes {.val {family_type}} models only with a {.fn phylo} random intercept.",
-      i = "DRM.jl's sparse all-node engine is the large-p phylogenetic speed edge; use {.code engine = \"tmb\"} for non-phylogenetic count models."
+      i = "DRM.jl's sparse all-node engine is the large-p phylogenetic speed edge; use {.code engine = \"tmb\"} for non-phylogenetic {.val {family_type}} models."
     ))
   }
   cli::cli_abort(c(
-    "{.code engine = \"julia\"} currently supports Gaussian one-/two-response models and large-p phylogenetic Poisson or NB2 count models.",
+    "{.code engine = \"julia\"} currently supports Gaussian one-/two-response models and large-p phylogenetic Poisson, NB2, Gamma, Beta, or Binomial models.",
     i = "Use {.code engine = \"tmb\"} for other non-Gaussian drmTMB fits until the R bridge has coefficient-scale parity tests."
   ))
 }
@@ -319,12 +351,15 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     return(NULL)
   }
   # Univariate Gaussian keeps the verified sparse all-node route. Poisson and NB2
-  # add the large-p phylogenetic COUNT route (DRM.jl's sparse O(p) Laplace), which
-  # marshals the same tree + group payload; only the response family tag differs.
-  if (!family_type %in% c("gaussian", "poisson", "nbinom2")) {
+  # add the large-p phylogenetic COUNT route, and Gamma / Beta / Binomial add the
+  # non-Gaussian location-scale and mean-only phylo routes (all DRM.jl sparse O(p)
+  # Laplace). Every one marshals the same tree + group payload; only the response
+  # family tag differs. The phylo-only set is shared with `drm_julia_family_tag`.
+  phylo_families <- c("gaussian", drm_julia_phylo_only_families())
+  if (!family_type %in% phylo_families) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian, Poisson, or NB2 bridge fits in this slice.",
-      i = "Use native {.code engine = \"tmb\"} for bivariate or other non-Gaussian phylogenetic fits until the bridge has parity tests."
+      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian, Poisson, NB2, Gamma, Beta, or Binomial bridge fits in this slice.",
+      i = "Use native {.code engine = \"tmb\"} for bivariate or other phylogenetic fits until the bridge has parity tests."
     ))
   }
   if (length(phylo_terms) != 1L) {
