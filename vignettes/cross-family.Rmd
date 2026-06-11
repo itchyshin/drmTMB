@@ -1,0 +1,317 @@
+---
+title: "Cross-family bivariate models with the Julia engine"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Cross-family bivariate models with the Julia engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This article documents the *cross-family* bivariate route: two responses from
+**different** distribution families, coupled through a single shared
+latent-scale correlation, fitted through the DRM.jl engine via
+`engine = "julia"`. It is written for analysts who want to ask whether two
+traits measured on incompatible response scales -- for example a continuous
+Gaussian trait and a Poisson count -- move together once each trait's own mean
+and scale model is in place.
+
+The route is **experimental** and lives on a separate development branch. On the
+default `drmTMB` install the Julia bridge admits the Gaussian one-response and
+Gaussian two-response cells (see `vignette("julia-engine")`); the cross-family
+pair is staged behind the same `engine = "julia"` mechanism and the same
+`family = c(famA(), famB())` two-response syntax. Every live code chunk below is
+marked `eval = FALSE` so the article builds without Julia, JuliaCall, or DRM.jl
+present. Each chunk is followed by a narration of the output you should expect on
+a working cross-family checkout.
+
+## Why couple different families
+
+`drmTMB`'s native bivariate Gaussian model (`biv_gaussian()`, or equivalently
+`family = c(gaussian(), gaussian())`) answers a familiar question: after
+modelling each response's mean and residual scale, do the two residuals
+co-vary? The residual correlation `rho12` is the answer, and it lives on the
+shared Gaussian scale where "residual" has an unambiguous meaning.
+
+That construction breaks the moment the two responses are not both Gaussian. A
+count has no residual that is interchangeable with a Gaussian residual; a
+strictly positive trait, a proportion, and a Gaussian measurement each carry
+their own mean--variance relationship and their own natural scale. You cannot
+correlate a raw Poisson residual with a raw Gaussian residual and expect the
+number to mean anything portable.
+
+The cross-family model solves this by moving the dependence off the response
+scale and onto a **shared latent scale**. Each response keeps its own family,
+its own link, and its own distributional formulas for mean and scale. The
+coupling is a single correlation `rho12` between the two latent linear
+predictors -- the standardized, Gaussian-scale quantities that sit *behind* each
+family's link function. This is the same device that underlies copula and latent
+multivariate generalized-linear models: the marginals are whatever each trait
+needs, and a Gaussian dependence structure ties them together.
+
+Concrete questions this answers:
+
+- Is a continuous performance trait (Gaussian) associated with a count of
+  offspring or seeds (Poisson) at the individual level, after each is regressed
+  on the same covariates?
+- Do two non-Gaussian traits -- say a positive-continuous size and a count --
+  share latent variation that no single-family model can express?
+
+The scientific payoff is a correlation you can interpret across mismatched
+scales, with each trait still described by the family that fits it.
+
+## What the latent-scale correlation means
+
+Write the two responses as `y1` from family A and `y2` from family B. The
+cross-family model gives each its own mean and scale formulas, exactly as a
+univariate `drmTMB` fit would:
+
+```text
+y1_i ~ familyA(mu1_i, sigma1_i)
+y2_i ~ familyB(mu2_i, sigma2_i)
+
+g1(mu1_i) = X_mu1[i, ] beta_mu1      (familyA link g1, e.g. log for Poisson)
+g2(mu2_i) = X_mu2[i, ] beta_mu2      (familyB link g2, e.g. identity for Gaussian)
+```
+
+The dependence enters through a pair of correlated latent Gaussian variables,
+one per response, with unit variance and correlation `rho12`:
+
+```text
+[z1_i, z2_i]' ~ Normal(0, R),   R = [ 1      rho12 ]
+                                    [ rho12  1     ]
+rho12 = tanh(eta_rho12)
+```
+
+Each family draws its response conditional on its own latent variable. For a
+Gaussian response the latent variable *is* the standardized residual, so the
+construction reduces to the ordinary residual correlation when both families are
+Gaussian -- the cross-family model is a strict generalization of
+`biv_gaussian()`. For a non-Gaussian response, `z` is the latent driver that the
+family's link and variance function transform into the observed scale.
+
+Interpretation of `rho12`:
+
+- `rho12` is a **latent-scale** correlation, not a correlation of the raw
+  responses and not a group-level, phylogenetic, or spatial correlation. It is
+  the residual coupling after each trait's mean and scale model is removed,
+  expressed on the common Gaussian latent scale.
+- A positive `rho12` means individuals whose latent value for trait 1 is above
+  what its covariates predict also tend to have a latent value for trait 2 above
+  what *its* covariates predict. With a Gaussian trait and a Poisson count, that
+  reads as: individuals larger than expected on the continuous trait tend to be
+  the same individuals that count higher than their covariate-predicted rate.
+- It is bounded in `(-1, 1)` by the `tanh` parameterization of `eta_rho12`,
+  which is the same scale convention native `drmTMB` uses for residual `rho12`.
+
+Because the marginals stay in their own families, the correlation is comparable
+across the scale mismatch: it is not contaminated by the fact that a count has a
+mean-linked variance while a Gaussian trait does not.
+
+## Set up the bridge
+
+The cross-family route uses the identical JuliaCall bridge as the rest of the
+Julia engine, so the setup is the same as in `vignette("julia-engine")`. The R
+package does not install Julia, JuliaCall, or DRM.jl for you; the bridge expects
+that R can load `JuliaCall`, that Julia can load DRM.jl, and that `drmTMB` knows
+which DRM.jl environment to activate.
+
+```{r install-juliacall, eval = FALSE}
+install.packages("JuliaCall")
+```
+
+Point `drmTMB` at a DRM.jl checkout with an R option during local development:
+
+```{r set-drmjl-option, eval = FALSE}
+options(drmTMB.DRM.jl.path = "/path/to/DRM.jl")
+```
+
+or with an environment variable for shell-driven checks:
+
+```sh
+export DRM_JL_PATH="/path/to/DRM.jl"
+```
+
+If neither is set, `drmTMB` looks for a sibling checkout at `../DRM.jl` from the
+current working directory.
+
+## The cross-family usage pattern
+
+The syntax is the two-response `bf()` front end plus a **two-element family
+vector** whose elements differ. `family = c(famA(), famB())` is the established
+way to declare a two-response model; supplying two *different* families is what
+selects the cross-family route. The first family governs response 1
+(`mu1`/`sigma1`), the second governs response 2 (`mu2`/`sigma2`), and `rho12`
+couples their latent scales.
+
+The example below simulates an individual-level data set where a continuous
+performance trait (Gaussian) and a reproductive count (Poisson) both respond to
+a body-condition covariate, and the two share positive latent variation.
+
+```{r simulate-crossfamily, eval = FALSE}
+set.seed(20260610)
+n <- 200
+dat <- data.frame(condition = runif(n, -1.5, 1.5))
+
+## shared latent draws with correlation rho12_true
+rho12_true <- 0.45
+z1 <- rnorm(n)
+z2 <- rho12_true * z1 + sqrt(1 - rho12_true^2) * rnorm(n)
+
+## response 1: Gaussian continuous trait on the identity scale
+mu1 <- 2.0 + 1.1 * dat$condition
+sigma1 <- 0.8
+dat$performance <- mu1 + sigma1 * z1
+
+## response 2: Poisson count on the log scale, driven by the second latent
+log_mu2 <- 0.4 + 0.6 * dat$condition + 0.5 * z2
+dat$offspring <- rpois(n, lambda = exp(log_mu2))
+```
+
+Declare one formula per distributional parameter with `bf()`, then pass the two
+differing families as a vector and request the Julia engine:
+
+```{r fit-crossfamily, eval = FALSE}
+bform <- bf(
+  mu1 = performance ~ condition,
+  mu2 = offspring   ~ condition,
+  sigma1 = ~ 1,
+  rho12  = ~ 1
+)
+
+fit_xf <- drmTMB(
+  bform,
+  family = c(gaussian(), poisson(link = "log")),  # DIFFERENT families
+  data   = dat,
+  engine = "julia"
+)
+
+fit_xf
+```
+
+A successful cross-family fit prints as a lightweight `<drmTMB Julia-engine
+fit>`: the bridge returns plain pieces from DRM.jl and `drmTMB` reconstructs the
+coefficients, likelihood summary, fitted values, and the latent correlation
+payload, rather than pretending to be a full native fit.
+
+Note the parameter set. The Gaussian response keeps a `sigma1` scale formula;
+the Poisson response has no separate dispersion parameter, so there is no
+`sigma2` entry. `rho12 ~ 1` requests a single constant latent correlation.
+
+## Reading the latent-scale correlation
+
+The point estimate of the latent correlation comes back through the same
+accessor as the native bivariate Gaussian fit. There is no separate
+`rho_latent()` function: for a cross-family fit, `rho12()` *is* the latent-scale
+correlation, because that is the scale on which the cross-family `rho12` is
+defined.
+
+```{r extract-rho, eval = FALSE}
+## the latent-scale correlation between the two responses
+rho12(fit_xf)
+
+## coefficients split by distributional parameter
+coef(fit_xf)
+```
+
+Expected shape of the output: `rho12(fit_xf)` returns the fitted latent
+correlation -- for the simulation above, a single positive value near the
+`rho12_true = 0.45` used to generate the data (recovery is approximate at
+`n = 200` and depends on the count's information content). `coef(fit_xf)` is a
+named list with a `mu1` block on the Gaussian identity scale, a `mu2` block on
+the Poisson log scale, a `sigma1` block (log residual SD of the Gaussian trait),
+and a one-entry `rho12` block holding `eta_rho12` on the `tanh` scale.
+
+Read each block on its own family's scale: `mu1` effects are changes in expected
+performance per unit condition; `mu2` effects are changes in log expected
+offspring count per unit condition; `rho12` is the latent coupling that ties the
+two together.
+
+## Confidence intervals for rho12
+
+The Julia engine exposes interval estimation through `confint()` with a
+`method` argument. For the latent correlation, the **profile-likelihood**
+interval is the right default: it respects the `(-1, 1)` boundary of a
+correlation far better than a symmetric Wald interval, which is especially
+important when `rho12` is moderate-to-large or the sample is small.
+
+```{r confint-profile, eval = FALSE}
+## profile-likelihood interval for the latent-scale correlation
+confint(fit_xf, parm = "rho12", method = "profile", level = 0.95)
+```
+
+Expected output: a one-row matrix (or data frame) giving the profile lower and
+upper limits for `rho12` at the 95% level, with both limits inside `(-1, 1)`.
+For the simulated data the interval should comfortably exclude zero, supporting
+the conclusion that the continuous trait and the count share positive latent
+variation after each is adjusted for body condition.
+
+A Wald interval is available as the faster, symmetric alternative when the
+latent-scale Hessian block is returned and `rho12` sits away from the boundary:
+
+```{r confint-wald, eval = FALSE}
+## symmetric Wald interval, when the rho12 Hessian block is available
+confint(fit_xf, parm = "rho12", method = "wald", level = 0.95)
+```
+
+Prefer the profile interval for reporting. The Wald interval can stray outside
+`(-1, 1)` and understate asymmetry near the boundary; treat it as a quick check,
+not the headline number, exactly as the rest of the Julia-engine inference
+surface advises.
+
+## What the cross-family bridge returns
+
+When the route is live, the familiar R extractors work on the returned
+`drmTMB_julia` object, each reading the cross-family payload that DRM.jl sends
+back:
+
+| R method | Cross-family behaviour |
+| --- | --- |
+| `coef()` / `fixef()` | fixed-effect coefficients split by distributional parameter, each on its own family's link scale |
+| `rho12()` / `corpairs()` | the latent-scale correlation payload |
+| `confint(method = "profile")` | profile-likelihood interval for `rho12` (preferred) |
+| `confint(method = "wald")` | symmetric Wald interval for `rho12` when its Hessian block is available |
+| `logLik()`, `nobs()`, `df.residual()` | likelihood and dimension summaries |
+| `fitted()` / `predict(dpar = ...)` | in-sample `mu1`, `mu2` on each response scale; no `newdata` yet |
+| `is_converged()` | convergence flag returned by DRM.jl |
+
+This is enough to fit a cross-family pair, read the latent correlation with its
+profile interval, and bring the fitted means back to R for plotting and
+reporting -- the same workflow the Gaussian bridge already supports, extended to
+the case where the two responses do not share a scale.
+
+## Current status and boundaries
+
+To keep the article honest about what ships today:
+
+- The Gaussian one-response and Gaussian two-response cells are the admitted
+  Julia-engine routes on the default branch. They have R-scale parity tests
+  against the native TMB backend (see `vignette("julia-engine")`).
+- The cross-family route -- `family = c(famA(), famB())` with **different**
+  families through `engine = "julia"` -- is experimental and developed on a
+  separate branch. On a default install, a mixed-family two-response request is
+  declined until its coefficient-scale and latent-correlation parity tests land.
+- The underlying two-response *syntax* is not new: `c(gaussian(), gaussian())`
+  already routes to the native bivariate Gaussian engine. The cross-family work
+  is about admitting **unequal** family pairs and returning their latent `rho12`
+  with profile and Wald intervals through the bridge.
+- For any analysis you need to run now on the default branch, use the native
+  `engine = "tmb"` path with the families it supports, and use `engine =
+  "julia"` only when deliberately exercising the bridge.
+
+The design intent is a narrow, well-tested extension: the same `bf()` front end,
+the same `family = c(...)` two-response declaration, the same `rho12()` and
+`confint(method = "profile")` accessors, now spanning two responses that live on
+different scales and are coupled by a single interpretable latent correlation.
+
+## See also
+
+- `vignette("julia-engine")` -- the Julia bridge mechanism, setup, admitted
+  cells, and native-vs-Julia parity evidence.
+- `vignette("bivariate-coscale")` -- residual `rho12` and co-scale modelling in
+  the native Gaussian bivariate engine.
+- `vignette("distribution-families")` -- the response families available in
+  `drmTMB`.
