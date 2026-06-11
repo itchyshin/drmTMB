@@ -84,7 +84,7 @@ test_that("phylo payload guard admits gamma/beta/binomial, rejects others", {
       data = dat,
       env = environment()
     ),
-    "univariate Gaussian, Poisson, NB2, Gamma, Beta, or Binomial"
+    "univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial"
   )
 })
 
