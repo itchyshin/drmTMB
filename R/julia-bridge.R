@@ -973,12 +973,40 @@ vcov.drmTMB_julia <- function(object, ...) {
   object$vcov
 }
 
+#' Confidence intervals for a Julia-engine `drmTMB` fit
+#'
+#' `confint()` on a `engine = "julia"` fit exposes two interval families:
+#'
+#' * `method = "wald"` (the default) builds symmetric Wald intervals for the
+#'   fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
+#'   scale, using the fixed-effect covariance DRM.jl marshals back through the
+#'   bridge (`vcov(object)`). This mirrors the native drmTMB Wald path, whose
+#'   fixed-effect rows are also reported on the link scale.
+#' * `method = "profile"` / `method = "bootstrap"` re-enter DRM.jl's inference
+#'   primitive for the Gaussian phylogenetic SD target only, transformed back to
+#'   the positive response scale.
+#'
+#' @param object A `drmTMB_julia` fit.
+#' @param parm Optional target selection. For `"wald"`, compact coefficient
+#'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
+#'   `"bootstrap"`, the SD target name (`"sd:mu:phylo(1 | species)"`).
+#' @param level Confidence level.
+#' @param method `"wald"` (default), `"profile"`, or `"bootstrap"`.
+#' @param R Bootstrap replicate count (used only when `method = "bootstrap"`).
+#' @param seed Optional bootstrap seed.
+#' @param threads Logical; request Julia-side threaded inference for the
+#'   profile / bootstrap path.
+#' @param ... Unused.
+#'
+#' @return A confidence-interval data frame with the shared `parm`, `level`,
+#'   `lower`, `upper`, `scale`, `transformation`, `tmb_parameter`, `index`,
+#'   `method`, and `conf.status` columns.
 #' @export
 confint.drmTMB_julia <- function(
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "bootstrap"),
+  method = c("wald", "profile", "bootstrap"),
   R = 199L,
   seed = NULL,
   threads = FALSE,
@@ -992,10 +1020,15 @@ confint.drmTMB_julia <- function(
   }
   method <- validate_interval_method(
     method,
-    c("profile", "bootstrap"),
+    c("wald", "profile", "bootstrap"),
     "confint()"
   )
   validate_profile_level(level)
+
+  if (identical(method, "wald")) {
+    return(drm_julia_wald_confint(object, parm = parm, level = level))
+  }
+
   threads <- drm_julia_validate_threads(threads)
   seed <- drm_julia_validate_seed(seed)
   if (identical(method, "bootstrap")) {
@@ -1025,6 +1058,102 @@ confint.drmTMB_julia <- function(
     level = level,
     method = method
   )
+}
+
+# Wald confidence intervals for the fixed-effect coefficients of a Julia-engine
+# fit. The DRM.jl bridge already marshals the fixed-effect coefficient vector
+# (`object$coef_vector`, on the link / linear-predictor scale) and the matching
+# fixed-effect covariance block (`object$vcov`). This builds the same confint
+# table the native Wald path returns, on the link scale, so a routed Poisson /
+# NB2 / Gamma / Beta / Binomial / Gaussian phylo fit reports finite coefficient
+# intervals wherever DRM.jl returned a finite covariance.
+drm_julia_wald_confint <- function(object, parm = NULL, level = 0.95) {
+  validate_profile_level(level)
+  targets <- drm_julia_wald_targets(object)
+  targets <- profile_match_confint_targets(targets, parm, fixed_only = FALSE)
+  if (nrow(targets) == 0L) {
+    return(empty_confint_table(method = "wald"))
+  }
+
+  V <- object$vcov
+  z <- stats::qnorm((1 + level) / 2)
+  variances <- rep(NA_real_, nrow(targets))
+  if (is.matrix(V) && length(V) > 0L) {
+    pos <- match(targets$tmb_parameter, rownames(V))
+    in_cov <- !is.na(pos)
+    variances[in_cov] <- V[cbind(pos[in_cov], pos[in_cov])]
+  }
+  se <- profile_wald_standard_errors(variances)
+  interval_ready <- is.finite(targets$link_estimate) & is.finite(se)
+  lower <- rep(NA_real_, nrow(targets))
+  upper <- rep(NA_real_, nrow(targets))
+  if (any(interval_ready)) {
+    lower[interval_ready] <- targets$link_estimate[interval_ready] -
+      z * se[interval_ready]
+    upper[interval_ready] <- targets$link_estimate[interval_ready] +
+      z * se[interval_ready]
+  }
+
+  out <- data.frame(
+    parm = targets$parm,
+    level = level,
+    lower = lower,
+    upper = upper,
+    scale = targets$scale,
+    transformation = targets$transformation,
+    tmb_parameter = targets$tmb_parameter,
+    index = targets$index,
+    method = "wald",
+    profile.engine = NA_character_,
+    conf.status = ifelse(interval_ready, "wald", "wald_unavailable"),
+    profile.boundary = NA,
+    profile.message = NA_character_,
+    stringsAsFactors = FALSE
+  )
+  row.names(out) <- NULL
+  out
+}
+
+# Fixed-effect Wald targets for a Julia-engine fit. One row per fixed-effect
+# coefficient, keyed by the bridge covariance name (`"<dpar>_<term>"`) so the
+# variance can be read straight off `object$vcov`. `scale` / `transformation`
+# match the native fixed-effect rows (link scale, identity transform).
+drm_julia_wald_targets <- function(object) {
+  blocks <- object$coefficients
+  if (is.null(blocks) || length(blocks) == 0L) {
+    return(empty_profile_targets())
+  }
+  rows <- list()
+  for (dpar in names(blocks)) {
+    beta <- blocks[[dpar]]
+    if (length(beta) == 0L) {
+      next
+    }
+    terms <- names(beta)
+    for (i in seq_along(beta)) {
+      rows[[length(rows) + 1L]] <- new_profile_target_row(
+        parm = paste0("fixef:", dpar, ":", terms[[i]]),
+        target_class = "fixed-effect",
+        dpar = dpar,
+        term = terms[[i]],
+        tmb_parameter = paste0(dpar, "_", terms[[i]]),
+        index = i,
+        estimate = unname(beta[[i]]),
+        link_estimate = unname(beta[[i]]),
+        scale = "link",
+        transformation = "linear_predictor",
+        target_type = "direct",
+        profile_ready = FALSE,
+        profile_note = "missing_tmb_parameter"
+      )
+    }
+  }
+  if (length(rows) == 0L) {
+    return(empty_profile_targets())
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  validate_profile_targets(out)
 }
 
 drm_julia_validate_threads <- function(threads) {
@@ -1130,6 +1259,196 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
   }
   row.names(out) <- NULL
   out
+}
+
+#' Summarise a Julia-engine `drmTMB` fit
+#'
+#' Builds a fixed-effect coefficient table (estimate, standard error, z value,
+#' and two-sided p value, all on the linear-predictor / link scale) from the
+#' coefficients and fixed-effect covariance DRM.jl marshals back through the
+#' bridge. Standard errors are the square roots of the diagonal of
+#' `vcov(object)`; when DRM.jl did not return a finite covariance for a route
+#' the SE / z / p columns are `NA` and `uncertainty$status` records why. The
+#' random-effect SD block (e.g. a phylogenetic SD) is reported on its positive
+#' response scale.
+#'
+#' Set `conf.int = TRUE` to append Wald (default) or profile confidence-interval
+#' columns. Profile / bootstrap intervals are available only for the Gaussian
+#' phylogenetic SD target; see [confint.drmTMB_julia()].
+#'
+#' @param object A `drmTMB_julia` fit.
+#' @param conf.int Logical; append confidence-interval columns.
+#' @param level Confidence level for the interval columns.
+#' @param method `"wald"` (default) or `"profile"`; only used when
+#'   `conf.int = TRUE`.
+#' @param ... Unused.
+#'
+#' @return An object of class `summary.drmTMB_julia` with `coefficients`,
+#'   `random` (random-effect SDs), and fit-summary scalars.
+#' @export
+summary.drmTMB_julia <- function(
+  object,
+  conf.int = FALSE,
+  level = 0.95,
+  method = c("wald", "profile"),
+  ...
+) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "Additional arguments in {.arg ...} are not used by the Julia-engine summary yet."
+    )
+  }
+  if (!is.logical(conf.int) || length(conf.int) != 1L || is.na(conf.int)) {
+    cli::cli_abort("{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}.")
+  }
+  validate_profile_level(level)
+  method <- validate_interval_method(method, c("wald", "profile"), "summary()")
+
+  coefficients <- drm_julia_summary_coefficients(object)
+  if (conf.int && nrow(coefficients) > 0L) {
+    ci <- if (identical(method, "wald")) {
+      drm_julia_wald_confint(object, parm = NULL, level = level)
+    } else {
+      tryCatch(
+        confint.drmTMB_julia(object, parm = NULL, level = level, method = method),
+        error = function(e) NULL
+      )
+    }
+    coefficients <- drm_julia_summary_attach_ci(coefficients, ci, level)
+  }
+
+  out <- list(
+    call = object$call,
+    family = object$family,
+    engine = "julia",
+    coefficients = coefficients,
+    random = drm_julia_summary_random(object),
+    sigma = object$sigma,
+    logLik = object$logLik,
+    aic = object$aic,
+    bic = object$bic,
+    df = object$df,
+    nobs = object$nobs,
+    converged = isTRUE(object$opt$convergence == 0L),
+    uncertainty = object$uncertainty
+  )
+  class(out) <- "summary.drmTMB_julia"
+  out
+}
+
+# Fixed-effect coefficient table (link scale) for the Julia-engine summary.
+drm_julia_summary_coefficients <- function(object) {
+  beta <- object$coef_vector
+  if (is.null(beta) || length(beta) == 0L) {
+    return(data.frame(
+      dpar = character(),
+      term = character(),
+      estimate = numeric(),
+      std.error = numeric(),
+      statistic = numeric(),
+      p.value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  nm <- names(beta)
+  V <- object$vcov
+  se <- rep(NA_real_, length(beta))
+  if (is.matrix(V) && length(V) > 0L) {
+    pos <- match(nm, rownames(V))
+    in_cov <- !is.na(pos)
+    variances <- rep(NA_real_, length(beta))
+    variances[in_cov] <- V[cbind(pos[in_cov], pos[in_cov])]
+    se <- profile_wald_standard_errors(variances)
+  }
+  estimate <- unname(beta)
+  statistic <- estimate / se
+  p.value <- 2 * stats::pnorm(-abs(statistic))
+  data.frame(
+    dpar = sub("_.*$", "", nm),
+    term = sub("^[^_]+_", "", nm),
+    estimate = estimate,
+    std.error = se,
+    statistic = statistic,
+    p.value = p.value,
+    stringsAsFactors = FALSE
+  )
+}
+
+# Append lower / upper interval columns from a confint table onto the
+# coefficient table, matching on the `fixef:<dpar>:<term>` key.
+drm_julia_summary_attach_ci <- function(coefficients, ci, level) {
+  coefficients$conf.low <- NA_real_
+  coefficients$conf.high <- NA_real_
+  coefficients$conf.level <- level
+  if (is.null(ci) || nrow(ci) == 0L) {
+    return(coefficients)
+  }
+  key <- paste0("fixef:", coefficients$dpar, ":", coefficients$term)
+  idx <- match(key, ci$parm)
+  found <- !is.na(idx)
+  coefficients$conf.low[found] <- ci$lower[idx[found]]
+  coefficients$conf.high[found] <- ci$upper[idx[found]]
+  coefficients
+}
+
+# Random-effect SD block (response scale) for the Julia-engine summary.
+drm_julia_summary_random <- function(object) {
+  sdpars <- object$sdpars
+  if (is.null(sdpars)) {
+    return(data.frame(
+      dpar = character(),
+      term = character(),
+      sd = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- list()
+  for (dpar in names(sdpars)) {
+    values <- sdpars[[dpar]]
+    if (is.null(values) || length(values) == 0L) {
+      next
+    }
+    rows[[length(rows) + 1L]] <- data.frame(
+      dpar = dpar,
+      term = names(values),
+      sd = unname(values),
+      stringsAsFactors = FALSE
+    )
+  }
+  if (length(rows) == 0L) {
+    return(data.frame(
+      dpar = character(),
+      term = character(),
+      sd = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+#' @export
+print.summary.drmTMB_julia <- function(x, ...) {
+  cli::cli_text("<drmTMB Julia-engine fit summary>")
+  cli::cli_text("  observations: {x$nobs}")
+  cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  cli::cli_text(
+    "  convergence: {if (isTRUE(x$converged)) 'converged' else 'not converged'}"
+  )
+  if (!is.null(x$uncertainty) && !is.null(x$uncertainty$status)) {
+    cli::cli_text("  uncertainty: {x$uncertainty$status}")
+  }
+  cli::cli_text("")
+  cli::cli_text("Fixed effects (link scale):")
+  print(x$coefficients, row.names = FALSE)
+  if (!is.null(x$random) && nrow(x$random) > 0L) {
+    cli::cli_text("")
+    cli::cli_text("Random effects (SD, response scale):")
+    print(x$random, row.names = FALSE)
+  }
+  invisible(x)
 }
 
 #' @export
