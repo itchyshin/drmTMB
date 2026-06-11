@@ -391,8 +391,10 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
       data = dat,
       engine = "julia"
     ),
-    "only Gaussian"
+    "Gaussian one-/two-response"
   )
+  # NB2 without a phylo term stays TMB-only: the Julia route is the large-p
+  # phylogenetic count speed edge, not a general count GLM path.
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
@@ -400,6 +402,6 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
       data = dat,
       engine = "julia"
     ),
-    "only Gaussian"
+    "only with a .*phylo.* random intercept"
   )
 })

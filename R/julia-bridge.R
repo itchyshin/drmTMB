@@ -70,7 +70,8 @@ drmTMB_julia_bridge <- function(
   }
 
   family_type <- drm_family_type(family)
-  family_tag <- drm_julia_family_tag(family_type)
+  has_phylo <- drm_julia_has_phylo_term(formula)
+  family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,
     family_type = family_type,
@@ -106,14 +107,43 @@ drm_julia_default_control <- function(control) {
   is.null(control) || (is.list(control) && length(control) == 0L)
 }
 
-drm_julia_family_tag <- function(family_type) {
-  if (!family_type %in% c("gaussian", "biv_gaussian")) {
+# Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
+# Julia engine may route. Gaussian one-/two-response models route unconditionally
+# (the verified base lane). Count families (Poisson, NB2) route ONLY when the
+# model carries a phylogenetic random intercept: DRM.jl's sparse O(p) phylo
+# Laplace is the speed edge there (many tips), so a plain count GLM without a
+# phylo term stays on the native TMB path. Everything else is rejected.
+drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
+  if (family_type %in% c("gaussian", "biv_gaussian")) {
+    return(family_type)
+  }
+  if (isTRUE(has_phylo) && family_type %in% c("poisson", "nbinom2")) {
+    return(family_type)
+  }
+  if (family_type %in% c("poisson", "nbinom2")) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently supports only Gaussian one-response and two-response models.",
-      i = "Use {.code engine = \"tmb\"} for non-Gaussian drmTMB fits until the R bridge has coefficient-scale parity tests."
+      "{.code engine = \"julia\"} routes {.val {family_type}} models only with a {.fn phylo} random intercept.",
+      i = "DRM.jl's sparse all-node engine is the large-p phylogenetic speed edge; use {.code engine = \"tmb\"} for non-phylogenetic count models."
     ))
   }
-  family_type
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} currently supports Gaussian one-/two-response models and large-p phylogenetic Poisson or NB2 count models.",
+    i = "Use {.code engine = \"tmb\"} for other non-Gaussian drmTMB fits until the R bridge has coefficient-scale parity tests."
+  ))
+}
+
+# TRUE when any formula entry carries a phylo() structured term.
+drm_julia_has_phylo_term <- function(formula) {
+  phylo_terms <- unlist(
+    lapply(formula$entries, function(entry) {
+      Filter(
+        function(term) identical(term$type, "phylo"),
+        entry$structured
+      )
+    }),
+    recursive = FALSE
+  )
+  length(phylo_terms) > 0L
 }
 
 drm_julia_bridge_payload <- function(formula, family_type, data, env) {
@@ -288,10 +318,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   if (length(phylo_terms) == 0L) {
     return(NULL)
   }
-  if (!identical(family_type, "gaussian")) {
+  # Univariate Gaussian keeps the verified sparse all-node route. Poisson and NB2
+  # add the large-p phylogenetic COUNT route (DRM.jl's sparse O(p) Laplace), which
+  # marshals the same tree + group payload; only the response family tag differs.
+  if (!family_type %in% c("gaussian", "poisson", "nbinom2")) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian bridge fits in this slice.",
-      i = "Use native {.code engine = \"tmb\"} for bivariate or non-Gaussian phylogenetic fits until the bridge has parity tests."
+      "{.code engine = \"julia\"} can marshal {.fn phylo} only for univariate Gaussian, Poisson, or NB2 bridge fits in this slice.",
+      i = "Use native {.code engine = \"tmb\"} for bivariate or other non-Gaussian phylogenetic fits until the bridge has parity tests."
     ))
   }
   if (length(phylo_terms) != 1L) {
@@ -307,7 +340,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       !identical(term$coef_names, "(Intercept)")
   ) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the Gaussian {.code mu} formula.",
+      "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the {.code mu} formula.",
       i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes, residual-scale phylogenetic effects, or direct-SD formulas."
     ))
   }
