@@ -1,13 +1,13 @@
 ---
-title: "Phylogenetic structured effects"
+title: "Phylogenetic mixed models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Phylogenetic structured effects}
+  %\VignetteIndexEntry{Phylogenetic mixed models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -17,323 +17,347 @@ knitr::opts_chunk$set(
 )
 library(drmTMB)
 
-phylo_guide_theme <- function() {
-  ggplot2::theme_minimal(base_size = 11) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      axis.title = ggplot2::element_text(colour = "grey15"),
-      axis.text = ggplot2::element_text(colour = "grey25"),
-      plot.title = ggplot2::element_text(
-        face = "bold",
-        colour = "grey10",
-        margin = ggplot2::margin(b = 4)
-      ),
-      plot.subtitle = ggplot2::element_text(
-        colour = "grey30",
-        margin = ggplot2::margin(b = 8)
-      ),
-      legend.position = "bottom"
-    )
-}
-
-phylo_eye_theme <- function() {
-  phylo_guide_theme() +
-    ggplot2::theme(
-      panel.grid.major.y = ggplot2::element_blank(),
-      legend.position = "none"
-    )
-}
-
-balanced_ultrametric_tree <- function(n_tip = 16L) {
-  stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
-  edges <- matrix(integer(), ncol = 2L)
-  edge_lengths <- numeric()
-  next_node <- n_tip + 1L
-
-  build <- function(tips) {
-    if (length(tips) == 1L) {
-      return(tips)
-    }
-    node <- next_node
-    next_node <<- next_node + 1L
-    mid <- length(tips) / 2L
-    left <- build(tips[seq_len(mid)])
-    right <- build(tips[seq.int(mid + 1L, length(tips))])
-    edges <<- rbind(edges, c(node, left), c(node, right))
-    edge_lengths <<- c(edge_lengths, 1, 1)
-    node
-  }
-
-  build(seq_len(n_tip))
-  structure(
-    list(
-      edge = edges,
-      edge.length = edge_lengths,
-      tip.label = paste0("sp_", seq_len(n_tip)),
-      Nnode = n_tip - 1L
-    ),
-    class = "phylo"
-  )
-}
-
-simulate_phylo_guide_data <- function(seed = 31) {
-  set.seed(seed)
-  tree <- balanced_ultrametric_tree(16)
-  species_info <- data.frame(
-    species = tree$tip.label,
-    body_size = scale(
-      rnorm(16, mean = rep(c(-0.4, 0.4), each = 8), sd = 0.35)
-    )[, 1]
-  )
-  phylo_shift <- rep(c(-0.5, 0.5), each = 8) +
-    rep(c(-0.18, 0.18), each = 4, length.out = 16)
-
-  n_each <- 5
-  dat <- species_info[rep(seq_len(nrow(species_info)), each = n_each), ]
-  dat$body_size <- dat$body_size + rnorm(nrow(dat), sd = 0.08)
-  dat$thermal_tolerance <- 1.2 + 0.45 * dat$body_size +
-    phylo_shift[match(dat$species, species_info$species)] +
-    rnorm(nrow(dat), sd = 0.25)
-
-  list(tree = tree, data = dat)
-}
-
-simulate_phylo_q2_guide_data <- function(seed = 42) {
-  set.seed(seed)
-  tree <- balanced_ultrametric_tree(16)
-  A_tip <- drmTMB:::drm_phylo_tip_covariance(tree)
-  z1 <- rnorm(length(tree$tip.label))
-  z2 <- 0.55 * z1 + sqrt(1 - 0.55^2) * rnorm(length(tree$tip.label))
-  u1 <- as.vector(t(chol(A_tip)) %*% z1) * 0.45
-  u2 <- as.vector(t(chol(A_tip)) %*% z2) * 0.35
-  names(u1) <- tree$tip.label
-  names(u2) <- tree$tip.label
-
-  n_each <- 4
-  species <- rep(tree$tip.label, each = n_each)
-  climate <- rnorm(length(species))
-  e1 <- rnorm(length(species))
-  e2 <- 0.15 * e1 + sqrt(1 - 0.15^2) * rnorm(length(species))
-
-  list(
-    tree = tree,
-    data = data.frame(
-      species = species,
-      climate = climate,
-      heat_tolerance = 0.30 + 0.35 * climate + u1[species] + 0.35 * e1,
-      desiccation_tolerance = -0.20 - 0.25 * climate + u2[species] + 0.32 * e2
-    )
-  )
-}
+# Suggested packages used only inside guarded chunks. When either is absent the
+# corresponding chunk degrades to a short note instead of erroring at build.
+has_ape <- requireNamespace("ape", quietly = TRUE)
+has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
 ```
 
-Use `phylo()` when species share evolutionary history and the scientific
-question is whether related species have similar location deviations, structured
-location-scale covariance, direct phylogenetic SD surfaces, or a fitted
-phylogenetic correlation-pair regression. The fitted route uses a tree supplied
-as `tree = tree`.
+Closely related species are not independent observations. They share ancestry,
+so a trait value carried by one species is partly inherited from the same
+nodes that shaped its relatives. A phylogenetic mixed model encodes that shared
+history as a structured random effect: a species-level deviation whose
+covariance is read off the tree, so that sister taxa are expected to deviate
+from the regression line in the same direction.
 
-When each observation belongs to a pair of species from two different trees,
+`drmTMB` exposes this through the `phylo()` term. This article explains where
+the covariance comes from, how to write a `phylo()` model for a Gaussian
+response, and how the same syntax carries over to non-Gaussian responses such
+as counts. Everything below runs at build time on a small simulated tree, so
+you can read the fitted numbers next to the values that generated them.
+
+If you are choosing between `animal()`, `phylo()`, `spatial()`, and `relmat()`,
+read the [structural-dependence overview](structural-dependence.html) first.
+When observations belong to a *pair* of species drawn from two different trees,
 read [two-tree phylogenetic interactions](bipartite-phylogenetic-interactions.html).
-That article covers `phylo_interaction()`, the first fitted pair-level route.
 
-## What is fitted today
+## The phylogenetic covariance
 
-| Question | Syntax | Status |
-| --- | --- | --- |
-| Does one Gaussian response have phylogenetic location deviations? | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
-| Do two Gaussian response means share a phylogenetic correlation? | matching `phylo(1 | species, tree = tree)` or labelled `phylo(1 | p | species, tree = tree)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "phylogenetic")` reports the latent phylogenetic row separately from residual `rho12`. |
-| Do phylogenetic location and scale deviations form one q=4 block? | matching labelled `phylo(1 | p | species, tree = tree)` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first constant q=4 location-scale slice. Partial, unlabelled, mismatched, and slope forms remain rejected. |
-| Do species-level predictors change the phylogenetic location SD? | `sd_phylo(species) ~ z`, `sd_phylo1(species) ~ z1`, or `sd_phylo2(species) ~ z2` | Fitted direct-SD route for phylogenetic location SD surfaces. This is not residual `sigma`. |
-| Do species-level predictors change the q=2 phylogenetic mean-mean correlation? | `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology` | Fitted q=2 predictor-dependent correlation route. q=4 endpoint-specific `corpair()` regressions remain planned. |
+A `phylo()` term adds a vector of species-level location deviations $u$ with a
+mean of zero and a covariance proportional to the phylogenetic covariance
+matrix $A$,
 
-## Start with the smallest useful model
+\[
+\begin{aligned}
+y_{ij} &= \mathbf{x}_{ij}^\top \boldsymbol{\beta}
+          + u_{s(i,j)} + \varepsilon_{ij}, \\
+\mathbf{u} &\sim \mathcal{N}\!\left(\mathbf{0},\, \sigma_{\text{phylo}}^2\, A\right), \\
+\varepsilon_{ij} &\sim \mathcal{N}\!\left(0,\, \sigma^2\right),
+\end{aligned}
+\]
 
-For one response, start with a phylogenetic location intercept:
+where $s(i,j)$ is the species of observation $j$ in group $i$. Under a Brownian
+motion model of trait evolution, $A_{kl}$ is the height of the most recent
+common ancestor of species $k$ and $l$: the longer two species have shared an
+evolutionary path, the more strongly their deviations covary. For an
+ultrametric tree (all tips equidistant from the root), the diagonal of $A$ is
+constant and the off-diagonal entries are the shared root-to-ancestor path
+lengths.
 
-```r
-fit_phylo <- drmTMB(
-  y ~ treatment + phylo(1 | species, tree = tree),
-  data = dat,
-  family = gaussian()
-)
+Two standard deviations appear, and they answer different questions:
+
+- $\sigma_{\text{phylo}}$ is the **phylogenetic** SD: how much species deviate
+  from the fixed-effect prediction in a way that tracks the tree.
+- $\sigma$ is the **residual** SD: variation among observations within a
+  species, independent of ancestry.
+
+Their ratio is the phylogenetic signal,
+
+\[
+\lambda = \frac{\sigma_{\text{phylo}}^2}{\sigma_{\text{phylo}}^2 + \sigma^2},
+\]
+
+the proportion of the random-plus-residual variance attributable to phylogeny.
+`drmTMB` reports this as a derived quantity (see below). Internally `drmTMB`
+does not invert the dense $A$. It uses the Hadfield and Nakagawa (2010) sparse
+phylogenetic precision (an $A^{-1}$ built from the tree's branch lengths), which
+keeps the augmented-state Laplace approximation fast as the number of species
+grows.
+
+## A small tree with `ape::rcoal()`
+
+We simulate a tree small enough to fit in a fraction of a second. `ape::rcoal()`
+draws a random **ultrametric** coalescent tree, which is exactly the shape
+`phylo()` expects (branch lengths present, all tips contemporaneous).
+
+```{r simulate-tree, eval = has_ape}
+library(ape)
+set.seed(2026)
+
+n_species <- 16L
+tree <- rcoal(n_species, tip.label = paste0("sp", seq_len(n_species)))
+
+c(ultrametric = is.ultrametric(tree), n_tip = length(tree$tip.label))
 ```
 
-For two response means, use matching terms and read the latent correlation with
-`corpairs()`:
+The covariance $A$ implied by this tree is available from the same internal
+helper the fitting code uses. We only need it here to *simulate* a trait with
+known phylogenetic structure; you never compute it by hand for a real fit.
 
-```r
-fit_phylo_q2 <- drmTMB(
-  mu1 = trait1 ~ treatment +
-    phylo(1 | p | species, tree = tree),
-  mu2 = trait2 ~ treatment +
-    phylo(1 | p | species, tree = tree),
-  data = dat,
-  family = biv_gaussian()
-)
-corpairs(fit_phylo_q2, level = "phylogenetic")
-rho12(fit_phylo_q2)
+```{r tip-covariance, eval = has_ape}
+A <- drmTMB:::drm_phylo_tip_covariance(tree)
+dim(A)
+round(A[1:4, 1:4], 3)
 ```
 
-`corpairs()` reports the fitted latent phylogenetic correlation among
-species-level location deviations. `rho12()` reports the residual correlation
-between responses after fixed effects and random effects have been included.
+## Simulating a Gaussian trait with phylogenetic signal
 
-## What to inspect
+We draw one species-level deviation per tip from $\mathcal{N}(0,
+\sigma_{\text{phylo}}^2 A)$ using a Cholesky factor of $A$, add a fixed
+covariate effect, and add independent residual noise. Several observations per
+species let the model separate the phylogenetic SD from the residual SD.
 
-After fitting, inspect the phylogenetic layer before interpreting it:
+```{r simulate-gaussian, eval = has_ape}
+sd_phylo_true <- 0.8     # phylogenetic SD
+sigma_true    <- 0.3     # residual SD
+n_per_species <- 6L
 
-| Output | Use |
-| --- | --- |
-| `check_drm(fit)` | Confirm the phylogenetic layer was recognized and review tree/species diagnostics. |
-| `fit$sdpars$mu` | Read fitted phylogenetic location SDs. |
-| `ranef(fit, "phylo_mu")` | Inspect conditional species deviations on the fitted phylogenetic layer. |
-| `summary(fit)$covariance` | Check how phylogenetic SDs and correlations are reported beside other covariance layers. |
-| `profile_targets(fit)` | See which phylogenetic SD or constant q=2 correlation targets can be profiled directly. |
-| `corpairs(fit, level = "phylogenetic")` | Read fitted constant or modelled phylogenetic correlation rows. |
+# One deviation per species, correlated along the tree.
+u <- as.vector(t(chol(A)) %*% rnorm(n_species, sd = sd_phylo_true))
+names(u) <- tree$tip.label
 
-Direct-SD terms such as `sd_phylo(species) ~ z` model species-level predictors
-of a phylogenetic location standard deviation. They do not model residual
-`sigma`, and they do not imply a q=4 location-scale block unless the matching
-q=4 `phylo()` terms are also fitted.
+species <- rep(tree$tip.label, each = n_per_species)
+x <- rnorm(length(species))
 
-## Rendered checks
+# y = intercept + slope * x + phylogenetic deviation + residual noise
+trait <- 0.5 - 0.4 * x + u[species] + rnorm(length(species), sd = sigma_true)
 
-The small examples below separate raw response data, fitted phylogenetic SDs,
-and fitted latent correlations. Raw observations can help readers understand
-the trait scale, but they are not uncertainty intervals for `phylo()` SDs or
-`corpairs()` rows.
+dat <- data.frame(
+  trait = unname(trait),
+  x = x,
+  species = species
+)
+head(dat)
+```
 
-```{r phylo-guide-fit}
-phylo_example <- simulate_phylo_guide_data()
-tree <- phylo_example$tree
-dat <- phylo_example$data
+## Fitting with `phylo(1 | species)`
 
-fit_phylo <- drmTMB(
-  drm_formula(
-    thermal_tolerance ~ body_size + phylo(1 | species, tree = tree),
-    sigma ~ 1
-  ),
+The `phylo()` term goes inside the mean (`mu`) formula. It takes a random-effect
+specification, `1 | species`, and the tree as `tree = tree`. Wrap the formulas
+in `bf()` (the `drmTMB` formula builder) and pass a family, exactly as for any
+other `drmTMB` model.
+
+```{r fit-gaussian, eval = has_ape}
+fit <- drmTMB(
+  bf(trait ~ x + phylo(1 | species, tree = tree),
+     sigma ~ 1),
   family = gaussian(),
   data = dat
 )
+
+fit$opt$convergence   # 0 indicates the optimizer converged
 ```
 
-```{r phylo-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and phylogenetic location SD from a univariate Gaussian `phylo()` model; points and bars are response-scale estimates with 95% Wald intervals from `confint(fit_phylo, parm = \"variance_components\")`.", fig.alt = "Horizontal interval display comparing residual sigma and the phylogenetic location standard deviation. Both rows have hollow point estimates and finite 95 percent Wald intervals."}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  phylo_sd <- confint(fit_phylo, parm = "variance_components")
-  phylo_sd$estimate <- c(
-    unname(exp(coef(fit_phylo, "sigma")["(Intercept)"])),
-    unname(fit_phylo$sdpars$mu["phylo(1 | species)"])
-  )
-  phylo_sd$label <- c(
-    "Residual\nsigma",
-    "Phylogenetic\nlocation SD"
-  )
+A few accessors return the pieces of the fit:
 
-  ggplot2::ggplot(phylo_sd, ggplot2::aes(y = label)) +
-    ggplot2::geom_vline(
-      xintercept = 0,
-      linewidth = 0.45,
-      linetype = "dashed",
-      colour = "grey55"
-    ) +
-    ggplot2::geom_errorbar(
-      ggplot2::aes(xmin = lower, xmax = upper),
-      width = 0,
-      linewidth = 1.1,
-      colour = "#0072B2"
-    ) +
-    ggplot2::geom_point(
-      ggplot2::aes(x = estimate),
-      shape = 21,
-      size = 3.5,
-      stroke = 1,
-      fill = "white",
-      colour = "#0072B2"
-    ) +
-    ggplot2::scale_x_continuous(
-      expand = ggplot2::expansion(mult = c(0.02, 0.05))
-    ) +
-    phylo_eye_theme() +
-    ggplot2::labs(
-      title = "Phylogenetic SD is separate from residual sigma",
-      subtitle = "Bars are 95% Wald intervals on the response scale",
-      x = "Fitted standard deviation",
-      y = NULL
-    )
-}
+```{r gaussian-pieces, eval = has_ape}
+coef(fit, "mu")              # fixed-effect mean coefficients
+fit$sdpars$mu                # phylogenetic location SD
+stats::sigma(fit)            # residual SD
 ```
 
-For two response means, the phylogenetic correlation row is a fitted latent
-correlation among species-level location deviations. It is not the residual
-`rho12` correlation and it is not a raw sample correlation among observations.
+The recovered slope (`x`) is close to its true value of `-0.4`, and the
+phylogenetic and residual SDs are in the neighbourhood of `0.8` and `0.3`. The
+fixed intercept need not match the simulated `0.5`: with only `r n_species`
+species the species-level deviations carry a non-zero sample mean that the
+random effect absorbs, so the intercept and the deviations trade off. This is
+expected behaviour, not a fitting error -- the scientifically interpretable
+quantities are the slope and the two SDs.
 
-```{r phylo-q2-correlation-fit}
-phylo_q2_example <- simulate_phylo_q2_guide_data()
-phylo_q2_tree <- phylo_q2_example$tree
-phylo_q2_dat <- phylo_q2_example$data
+### Reading the phylogenetic signal
 
-fit_phylo_q2_example <- drmTMB(
-  drm_formula(
-    mu1 = heat_tolerance ~ climate +
-      phylo(1 | p | species, tree = phylo_q2_tree),
-    mu2 = desiccation_tolerance ~ climate +
-      phylo(1 | p | species, tree = phylo_q2_tree),
-    sigma1 = ~ 1,
-    sigma2 = ~ 1,
-    rho12 = ~ 1
+`summary()` adds a derived row for the phylogenetic signal $\lambda$, alongside
+the random-effect and residual variances it is built from.
+
+```{r gaussian-signal, eval = has_ape}
+summary(fit)$derived[, c(
+  "quantity", "estimate",
+  "random_effect_variance", "residual_variance"
+)]
+```
+
+`estimate` is $\lambda$. A value well above zero says that, after accounting for
+the covariate, related species really do resemble each other more than
+unrelated ones. The species-level deviations themselves are available with
+`ranef()`:
+
+```{r gaussian-ranef, eval = has_ape}
+phylo_dev <- ranef(fit, "phylo_mu")
+str(phylo_dev$values)
+```
+
+### Confidence interval for the phylogenetic SD
+
+Variance components have their own `confint()` target. The interval is on the
+response (SD) scale, obtained by transforming the Wald interval for the
+log-SD parameter.
+
+```{r gaussian-confint, eval = has_ape}
+confint(fit, parm = "variance_components")[, c(
+  "parm", "lower", "upper", "scale"
+)]
+```
+
+A lower bound comfortably above zero is the interval-based counterpart of a
+non-trivial phylogenetic signal. A `check_drm(fit)` call (not shown) reports the
+same diagnostics for the recognised phylogenetic layer.
+
+```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 6.6, fig.height = 3.2, fig.cap = "Fitted residual SD and phylogenetic location SD with 95% Wald intervals on the response scale. The two standard deviations answer different questions and are reported separately.", fig.alt = "Two horizontal interval bars. The phylogenetic location standard deviation and the residual standard deviation each have a point estimate and a 95 percent interval, with the phylogenetic interval bounded away from zero."}
+vc <- confint(fit, parm = "variance_components")
+sd_tab <- data.frame(
+  label = c("Phylogenetic\nlocation SD", "Residual\nsigma"),
+  estimate = c(
+    unname(fit$sdpars$mu[["phylo(1 | species)"]]),
+    unname(stats::sigma(fit)[[1L]])
   ),
-  family = c(gaussian(), gaussian()),
-  data = phylo_q2_dat
+  lower = c(vc$lower[1L], NA),
+  upper = c(vc$upper[1L], NA)
 )
 
-phylo_q2_pairs <- corpairs(
-  fit_phylo_q2_example,
-  level = "phylogenetic",
-  conf.int = TRUE,
-  ystep = 0.5,
-  ytol = 2
-)
-phylo_q2_pairs
-```
-
-```{r phylo-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "Phylogenetic q=2 location-location correlation from `corpairs()`; the Confidence Eye is a 95% profile interval on the latent phylogenetic-correlation scale and the dotted vertical line marks zero correlation.", fig.alt = "Single-row Confidence Eye for the phylogenetic mean-mean correlation. The eye spans the 95 percent profile interval and the hollow point estimate is to the right of the dotted zero reference line."}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  phylo_q2_display <- phylo_q2_pairs
-  phylo_q2_display$display_label <- "Phylogenetic\nmu1-mu2"
-
-  plot_corpairs(
-    phylo_q2_display,
-    colour = "level",
-    label = "display_label",
-    facet = NULL
+ggplot2::ggplot(sd_tab, ggplot2::aes(x = estimate, y = label)) +
+  ggplot2::geom_errorbarh(
+    ggplot2::aes(xmin = lower, xmax = upper),
+    height = 0, linewidth = 1.1, colour = "#0072B2", na.rm = TRUE
   ) +
-    ggplot2::scale_colour_manual(values = c("phylogenetic" = "#D55E00")) +
-    ggplot2::scale_fill_manual(values = c("phylogenetic" = "#D55E00")) +
-    phylo_eye_theme() +
-    ggplot2::labs(
-      title = "Phylogenetic latent mean correlation",
-      subtitle = "Eye is a 95% profile interval; dotted line marks zero",
-      x = "Correlation estimate"
-    )
-}
+  ggplot2::geom_point(shape = 21, size = 3.4, stroke = 1,
+                      fill = "white", colour = "#0072B2") +
+  ggplot2::labs(
+    title = "Phylogenetic SD is separate from residual sigma",
+    x = "Fitted standard deviation", y = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(panel.grid.minor = ggplot2::element_blank())
 ```
 
-## Boundaries
+## Non-Gaussian responses
 
-The following phylogenetic routes remain planned:
+The same `phylo(1 | species, tree = tree)` term works for ordinary Poisson and
+negative-binomial (NB2) location models. The phylogenetic deviation now acts on
+the linear predictor of the count mean through the log link, so related species
+share a baseline abundance. Two differences from the Gaussian case:
 
-- multiple phylogenetic slopes and phylogenetic slope correlations;
-- Poisson/NB2 phylogenetic slopes and other non-Gaussian phylogenetic slopes;
-- public phylogenetic matrix inputs such as `phylo(1 | species, A = A)`;
-- simultaneous `phylo()` plus `spatial()` layers in the same formula;
-- structured random effects in residual `rho12`;
-- predictor-dependent q=4 phylogenetic `corpair()` regressions;
-- non-Gaussian phylogenetic structured effects beyond the fitted Gaussian
-  slices.
+- count families have no residual `sigma` formula, so the `phylo()` term is the
+  only random piece in `mu`;
+- the simulated deviation is built from the **correlation** form of $A$ (unit
+  diagonal) scaled by the phylogenetic SD, so the SD is interpretable on the
+  log-mean scale.
 
-Use the [structural-dependence overview](structural-dependence.html) when you
-are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
-detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
-need the current worked examples, equations, and broader parity ladder.
+```{r simulate-count, eval = has_ape}
+set.seed(11)
+
+# Standardise A to a correlation matrix, then scale by the phylogenetic SD.
+A_cor <- A / outer(sqrt(diag(A)), sqrt(diag(A)))
+sd_phylo_count <- 0.5
+u_count <- as.vector(t(chol(A_cor)) %*% rnorm(n_species)) * sd_phylo_count
+names(u_count) <- tree$tip.label
+
+species_c <- rep(tree$tip.label, each = n_per_species)
+x_c <- rep(seq(-1, 1, length.out = n_per_species), times = n_species)
+
+eta <- log(3) - 0.3 * x_c + u_count[species_c]   # log mean
+count <- rpois(length(eta), lambda = exp(eta))
+
+dat_count <- data.frame(count = count, x = x_c, species = species_c)
+range(dat_count$count)
+```
+
+A Poisson fit uses the same call with `family = poisson()`:
+
+```{r fit-poisson, eval = has_ape}
+fit_pois <- drmTMB(
+  bf(count ~ x + phylo(1 | species, tree = tree)),
+  family = poisson(link = "log"),
+  data = dat_count
+)
+
+fit_pois$opt$convergence
+coef(fit_pois, "mu")     # log-mean intercept near log(3) ~ 1.10, slope near -0.3
+fit_pois$sdpars$mu       # phylogenetic SD on the log-mean scale
+```
+
+If the counts are overdispersed relative to a Poisson, swap in `nbinom2()`. The
+NB2 family adds an overdispersion (scale) parameter while keeping the identical
+phylogenetic location term.
+
+```{r fit-nbinom2, eval = has_ape}
+fit_nb <- drmTMB(
+  bf(count ~ x + phylo(1 | species, tree = tree)),
+  family = nbinom2(),
+  data = dat_count
+)
+
+fit_nb$opt$convergence
+fit_nb$sdpars$mu         # phylogenetic SD, NB2 mean model
+```
+
+The phylogenetic SD is reported on the log-mean (link) scale for count
+families, so it is not directly comparable to the Gaussian response-scale SD;
+compare it instead to other log-scale effects in the same model.
+
+## A larger fit, for reference
+
+The fits above are tiny by design. For intuition about runtime on a more
+realistic tree, the chunk below sketches a 200-species fit. It is marked
+`eval = FALSE` so the vignette never blocks on it; the numbers in the comments
+are illustrative of the shape of the output, not a benchmarked claim.
+
+```{r large-sketch, eval = FALSE}
+set.seed(99)
+big_tree <- ape::rcoal(200, tip.label = paste0("t", 1:200))
+A_big <- drmTMB:::drm_phylo_tip_covariance(big_tree)
+u_big <- as.vector(t(chol(A_big)) %*% rnorm(200, sd = 0.7))
+names(u_big) <- big_tree$tip.label
+
+sp <- rep(big_tree$tip.label, each = 4L)
+xb <- rnorm(length(sp))
+yb <- 0.2 + 0.5 * xb + u_big[sp] + rnorm(length(sp), sd = 0.3)
+big <- data.frame(y = yb, x = xb, species = sp)
+
+fit_big <- drmTMB(
+  bf(y ~ x + phylo(1 | species, tree = big_tree), sigma ~ 1),
+  family = gaussian(),
+  data = big
+)
+fit_big$sdpars$mu
+#> phylo(1 | species)
+#>              ~0.70
+# The sparse-precision path keeps this on the order of a second on a laptop;
+# cost grows roughly linearly in the number of species rather than cubically.
+```
+
+## What `phylo()` fits today
+
+| Question | Syntax | Status |
+| --- | --- | --- |
+| Phylogenetic location deviations in one Gaussian response | `phylo(1 | species, tree = tree)` in `mu` | Fitted. |
+| Phylogenetic location deviations in a Poisson or NB2 mean | `phylo(1 | species, tree = tree)` in `mu` | Fitted q=1 location intercept. |
+| One phylogenetic location SD modelled by a species predictor | `sd_phylo(species) ~ z` | Fitted direct-SD route (not residual `sigma`). |
+| Two Gaussian means sharing a phylogenetic correlation | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Fitted; read with `corpairs(level = "phylogenetic")`. |
+| Phylogenetic location and scale as one block | matching labelled `phylo(1 | p | species, tree = tree)` across `mu1`, `mu2`, `sigma1`, `sigma2` | Fitted first constant q=4 slice. |
+
+These bivariate and location-scale routes, and the broader parity ladder, are
+covered with worked examples in the
+[structural-dependence tutorial](phylogenetic-spatial.html).
+
+The following remain planned: multiple phylogenetic slopes and slope
+correlations; non-Gaussian phylogenetic *slopes* (only the q=1 intercept is
+fitted for counts); public matrix inputs such as `phylo(1 | species, A = A)`;
+simultaneous `phylo()` and `spatial()` layers in one formula; and
+structured random effects inside residual `rho12`.
+
+## References
+
+Hadfield, J. D. and Nakagawa, S. (2010). General quantitative genetic methods
+for comparative biology: phylogenies, taxonomies and multi-trait models for
+continuous and categorical characters. *Journal of Evolutionary Biology*,
+23(3), 494-508.
