@@ -1631,18 +1631,247 @@ sigma.drmTMB_julia <- function(object, ...) {
   object$sigma
 }
 
+# Raw residual rho12 vector as returned by the bridge (per-observation
+# `tanh(Xrho . beta_rho)`; constant when `rho12 ~ 1`). This backs `rho12()` and
+# `predict(dpar = "rho12")`; it is NOT the public `corpairs()` table. Returns a
+# zero-length numeric for fits with no residual correlation block.
+drm_julia_rho12_values <- function(object) {
+  rho <- object$corpairs
+  if (is.null(rho) || (is.list(rho) && length(rho) == 0L)) {
+    return(numeric())
+  }
+  as.numeric(rho)
+}
+
 #' @export
-corpairs.drmTMB_julia <- function(object, ...) {
-  object$corpairs
+corpairs.drmTMB_julia <- function(
+  object,
+  level = NULL,
+  group = NULL,
+  block = NULL,
+  class = NULL,
+  ...
+) {
+  rows <- list()
+
+  rho <- drm_julia_rho12_values(object)
+  if (length(rho) > 0L) {
+    rows[[length(rows) + 1L]] <- drm_julia_residual_rho12_corpair(object, rho)
+  }
+
+  phylo_rows <- drm_julia_phylo_corpairs(object)
+  if (length(phylo_rows) > 0L) {
+    rows <- c(rows, phylo_rows)
+  }
+
+  out <- if (length(rows) == 0L) {
+    empty_corpairs()
+  } else {
+    do.call(rbind, rows)
+  }
+
+  if (!is.null(level)) {
+    out <- out[out$level %in% level, , drop = FALSE]
+  }
+  if (!is.null(group)) {
+    out <- out[out$group %in% group, , drop = FALSE]
+  }
+  if (!is.null(block)) {
+    out <- out[out$block %in% block, , drop = FALSE]
+  }
+  if (!is.null(class)) {
+    class <- normalize_corpairs_class_filter(class)
+    out <- out[out$class %in% class, , drop = FALSE]
+  }
+  row.names(out) <- NULL
+  corpairs_add_default_interval_provenance(out)
+}
+
+# Response names (e.g. "y1" / "y2") carried by the bridge formula entries, used
+# to label corpairs rows. Falls back to "y1" / "y2" if an entry is missing.
+drm_julia_response_names <- function(object) {
+  responses <- stats::setNames(rep(NA_character_, 2L), c("mu1", "mu2"))
+  entries <- object$formula$entries
+  if (!is.null(entries)) {
+    for (entry in entries) {
+      if (!is.null(entry$dpar) && entry$dpar %in% names(responses) &&
+        is.character(entry$response) && length(entry$response) == 1L &&
+        !is.na(entry$response)) {
+        responses[[entry$dpar]] <- entry$response
+      }
+    }
+  }
+  if (is.na(responses[["mu1"]])) responses[["mu1"]] <- "y1"
+  if (is.na(responses[["mu2"]])) responses[["mu2"]] <- "y2"
+  responses
+}
+
+drm_julia_response_for_dpar <- function(responses, dpar) {
+  if (dpar %in% c("mu1", "sigma1")) {
+    return(unname(responses[["mu1"]]))
+  }
+  if (dpar %in% c("mu2", "sigma2")) {
+    return(unname(responses[["mu2"]]))
+  }
+  NA_character_
+}
+
+# Residual between-response correlation as a one-row corpairs table, mirroring
+# `residual_rho12_corpair()` on the native path but reading the raw per-row rho12
+# vector the bridge already returns.
+drm_julia_residual_rho12_corpair <- function(object, rho) {
+  responses <- drm_julia_response_names(object)
+  n_coef <- length(object$coefficients[["rho12"]])
+  eta <- atanh(pmax(pmin(rho, 1 - 1e-12), -1 + 1e-12))
+  new_corpair_row(
+    level = "residual",
+    group = NA_character_,
+    block = NA_character_,
+    from_dpar = "residual",
+    to_dpar = "residual",
+    from_coef = NA_character_,
+    to_coef = NA_character_,
+    from_response = unname(responses[["mu1"]]),
+    to_response = unname(responses[["mu2"]]),
+    class = "residual",
+    parameter = "rho12",
+    estimate = mean(rho),
+    min = min(rho),
+    max = max(rho),
+    n_values = length(rho),
+    link_estimate = mean(eta),
+    link_min = min(eta),
+    link_max = max(eta),
+    modelled = n_coef > 1L
+  )
+}
+
+# Among-axis phylogenetic correlations for a q=4 bivariate location-scale bridge
+# fit. The four shared-phylogenetic axes (mu1, mu2, sigma1, sigma2) carry a 4x4
+# group-level covariance Sigma_a, stored on the fit by the bridge as the 10
+# log-Cholesky entries `phylocov$"Sigma_a:Lij"` (diagonal on the log scale,
+# off-diagonals raw; Sigma_a = L L'). This reconstructs Sigma_a, converts it to
+# the among-axis correlation matrix, and emits one corpairs row per cross-axis
+# pair -- the interpretable coevolution correlations (mean1-mean2 etc.) that the
+# native `corpairs.drmTMB` surfaces via `phylo_mu_corpairs()`. The bridge never
+# populates `object$corpars`, so this rebuilds the rows directly from Sigma_a.
+# Returns an empty list for any non-q=4 / non-phylo fit.
+drm_julia_phylo_corpairs <- function(object) {
+  Sigma_a <- drm_julia_phylocov_matrix(object)
+  if (is.null(Sigma_a)) {
+    return(list())
+  }
+  info <- drm_julia_phylo_block_info(object)
+  if (is.null(info)) {
+    return(list())
+  }
+  axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  responses <- drm_julia_response_names(object)
+
+  d <- sqrt(diag(Sigma_a))
+  if (any(!is.finite(d)) || any(d <= 0)) {
+    return(list())
+  }
+  R <- Sigma_a / outer(d, d)
+
+  pair_index <- utils::combn(seq_along(axes), 2L)
+  lapply(seq_len(ncol(pair_index)), function(k) {
+    i <- pair_index[1L, k]
+    j <- pair_index[2L, k]
+    from_dpar <- axes[[i]]
+    to_dpar <- axes[[j]]
+    estimate <- R[i, j]
+    new_corpair_row(
+      level = "phylogenetic",
+      group = info$group,
+      block = info$block,
+      from_dpar = from_dpar,
+      to_dpar = to_dpar,
+      from_coef = "(Intercept)",
+      to_coef = "(Intercept)",
+      from_response = drm_julia_response_for_dpar(responses, from_dpar),
+      to_response = drm_julia_response_for_dpar(responses, to_dpar),
+      class = random_correlation_class(
+        from_dpar,
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = to_dpar
+      ),
+      parameter = format_cross_dpar_cor_label(
+        from_dpar,
+        to_dpar,
+        group = info$group,
+        covariance_label = info$block
+      ),
+      estimate = estimate,
+      min = estimate,
+      max = estimate,
+      n_values = 1L,
+      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_min = guarded_correlation_link(estimate, guard = 0.999999),
+      link_max = guarded_correlation_link(estimate, guard = 0.999999),
+      modelled = FALSE
+    )
+  })
+}
+
+# Reconstruct the 4x4 among-axis covariance Sigma_a from the bridge's stored
+# log-Cholesky factor, or NULL if this fit has no q=4 `phylocov` block. The 10
+# entries are named "Sigma_a:L11", "Sigma_a:L21", ... "Sigma_a:L44"; the diagonal
+# is exponentiated (working scale), off-diagonals are taken as-is.
+drm_julia_phylocov_matrix <- function(object) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  phylocov <- object$coefficients[["phylocov"]]
+  if (is.null(phylocov) || length(phylocov) != 10L) {
+    return(NULL)
+  }
+  L <- matrix(0, 4L, 4L)
+  for (col in seq_len(4L)) {
+    for (rw in col:4L) {
+      nm <- sprintf("Sigma_a:L%d%d", rw, col)
+      value <- phylocov[[nm]]
+      if (is.null(value) || !is.finite(value)) {
+        return(NULL)
+      }
+      L[rw, col] <- if (rw == col) exp(value) else value
+    }
+  }
+  L %*% t(L)
+}
+
+# Shared group and covariance-block labels for the q=4 phylo location-scale
+# block, read off the fit's phylo() formula terms. The bridge guard guarantees
+# all four axes share one grouping factor and tree, so the first phylo term is
+# representative. `block` is the explicit covariance label (e.g. "p"); NA when
+# the term was written without one. Returns NULL if no phylo term is present.
+drm_julia_phylo_block_info <- function(object) {
+  entries <- object$formula$entries
+  if (is.null(entries)) {
+    return(NULL)
+  }
+  for (entry in entries) {
+    for (term in entry$structured) {
+      if (identical(term$type, "phylo")) {
+        block <- term$covariance_label
+        if (is.null(block) || !nzchar(block)) {
+          block <- NA_character_
+        }
+        return(list(group = term$group, block = block))
+      }
+    }
+  }
+  NULL
 }
 
 #' @export
 rho12.drmTMB_julia <- function(object, ...) {
-  pairs <- corpairs.drmTMB_julia(object, ...)
-  if (is.list(pairs) && length(pairs) == 0L) {
+  rho <- drm_julia_rho12_values(object)
+  if (length(rho) == 0L) {
     cli::cli_abort("This Julia-engine fit has no residual {.code rho12}.")
   }
-  pairs
+  rho
 }
 
 #' @export
