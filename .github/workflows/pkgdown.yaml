@@ -50,6 +50,10 @@ jobs:
       - name: Fix reference example alt text
         run: Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
 
+      - name: Strip internal-only pages
+        continue-on-error: true
+        run: Rscript tools/strip-pkgdown-internal-pages.R pkgdown-site
+
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: pkgdown-site
