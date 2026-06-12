@@ -163,6 +163,13 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
+  - title: Julia engine
+    desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
+    contents:
+      - confint.drmTMB_julia
+      - predict.drmTMB_julia
+      - summary.drmTMB_julia
+      - rho_latent
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
@@ -206,6 +213,7 @@ articles:
       - convergence
       - large-data
       - julia-engine
+      - cross-family
       - figure-gallery
   - title: Simulation and Validation
     contents:
