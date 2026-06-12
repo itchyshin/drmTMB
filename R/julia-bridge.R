@@ -153,10 +153,28 @@ drm_julia_phylo_only_families <- function() {
   c("poisson", "nbinom2", "gamma", "beta", "binomial")
 }
 
+# Families that support the coupled location-scale phylo route (cluster ④):
+# a phylo(1|g) on the mean AND sigma, routed as a 2x2 group-level covariance
+# via DRM.jl's coupled `(1|tag|phylo(g))` syntax. NB2 and Gamma both support
+# this; Beta uses logit-scale sigma, which also works with _fit_locscale.
+drm_julia_locscale_phylo_families <- function() {
+  c("nbinom2", "gamma", "beta")
+}
+
+# Families that support the structured slope phylo route (cluster ③):
+# phylo(1+x|g) on the mean, routed to DRM.jl's _fit_corr_locscale via the
+# `_parse_structured_slope` path. NB2, Gamma, Beta, and Poisson support this.
+drm_julia_slope_phylo_families <- function() {
+  c("nbinom2", "gamma", "beta", "poisson")
+}
+
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
 # Julia engine may route. Gaussian one-/two-response models route unconditionally
 # (the verified base lane). The phylo-only families above route ONLY when the
-# model carries a phylogenetic random intercept. Everything else is rejected.
+# model carries a phylogenetic random intercept. Cluster ④ (locscale) and
+# cluster ③ (slope) are gated by their own family sets and route via a phylo
+# term as well; the tag is the same family string the bridge.jl family switch
+# expects.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
   if (family_type %in% c("gaussian", "biv_gaussian")) {
     return(family_type)
@@ -379,29 +397,81 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   # tree + group payload. The phylo-only set is shared with `drm_julia_family_tag`.
   phylo_families <- c("gaussian", drm_julia_phylo_only_families())
   if (family_type %in% phylo_families) {
-    if (length(phylo_terms) != 1L) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
-        i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
-      ))
+    mu_phylo_terms <- Filter(
+      function(term) identical(term$type, "phylo") && identical(term$dpar, "mu"),
+      phylo_terms
+    )
+    sigma_phylo_terms <- Filter(
+      function(term) identical(term$type, "phylo") && identical(term$dpar, "sigma"),
+      phylo_terms
+    )
+
+    # Cluster ④: location-scale phylo (phylo on mu + phylo on sigma sharing the
+    # same group and tree). This routes to DRM.jl's coupled `(1|tag|phylo(g))`
+    # engine for NB2/Gamma/Beta. Validated BEFORE the intercept-only guard below
+    # so the check on sigma phylo terms is bypassed for this sub-path.
+    if (
+      length(mu_phylo_terms) == 1L &&
+        length(sigma_phylo_terms) == 1L &&
+        family_type %in% drm_julia_locscale_phylo_families()
+    ) {
+      mu_term <- mu_phylo_terms[[1L]]
+      sigma_term <- sigma_phylo_terms[[1L]]
+      if (!identical(mu_term$coef_names, "(Intercept)") || !identical(sigma_term$coef_names, "(Intercept)")) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} location-scale phylo (cluster ④) supports only intercept phylo terms on mu and sigma.",
+          i = "Use {.code phylo(1 | group, tree = tree)} on both {.code mu} and {.code sigma}."
+        ))
+      }
+      if (!identical(mu_term$group, sigma_term$group) || !identical(mu_term$tree, sigma_term$tree)) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} location-scale phylo (cluster ④) requires the mu and sigma {.fn phylo} terms to share the same group and tree.",
+          i = "Use the same {.fn phylo} call in both {.code mu} and {.code sigma} formulas."
+        ))
+      }
+      rep_term <- mu_term
+      labels <- c(mu_term$label, sigma_term$label)
+      bivariate <- FALSE
+      locscale_mode <- "phylo_locscale"
+    } else {
+      # Standard intercept-only phylo on mu (mean-only or simple sigma ~ 1).
+      if (length(phylo_terms) != 1L) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
+          i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
+        ))
+      }
+      term <- phylo_terms[[1L]]
+
+      # Cluster ③: structured slope phylo(1+x|g) on mu for NB2/Gamma/Beta/Poisson.
+      # Allow multi-entry coef_names (intercept + slope) for the slope families.
+      slope_families <- drm_julia_slope_phylo_families()
+      is_slope <- identical(term$dpar, "mu") &&
+        length(term$coef_names) == 2L &&
+        identical(term$coef_names[[1L]], "(Intercept)") &&
+        family_type %in% slope_families
+      if (!identical(term$dpar, "mu") || (!identical(term$coef_names, "(Intercept)") && !is_slope)) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} currently supports {.code phylo(1 | group, tree = tree)} or {.code phylo(1+x | group, tree = tree)} in the {.code mu} formula.",
+          i = "Use native {.code engine = \"tmb\"} for residual-scale phylogenetic effects or direct-SD formulas."
+        ))
+      }
+      if (!is_slope) {
+        sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
+        if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
+          cli::cli_abort(c(
+            "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
+            i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
+          ))
+        }
+        locscale_mode <- "mean_only"
+      } else {
+        locscale_mode <- "phylo_slope"
+      }
+      rep_term <- term
+      labels <- term$label
+      bivariate <- FALSE
     }
-    term <- phylo_terms[[1L]]
-    if (!identical(term$dpar, "mu") || !identical(term$coef_names, "(Intercept)")) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the {.code mu} formula.",
-        i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes, residual-scale phylogenetic effects, or direct-SD formulas."
-      ))
-    }
-    sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
-    if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
-        i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
-      ))
-    }
-    rep_term <- term
-    labels <- term$label
-    bivariate <- FALSE
   } else if (identical(family_type, "biv_gaussian")) {
     allowed <- c("mu1", "mu2", "sigma1", "sigma2")
     dpars <- vapply(phylo_terms, `[[`, character(1L), "dpar")
