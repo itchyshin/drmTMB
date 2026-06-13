@@ -27,9 +27,12 @@ drmTMB_julia_bridge <- function(
   control,
   impute,
   missing,
+  REML = FALSE,
   call
 ) {
+  REML <- drm_control_flag(REML, "REML")
   if (drm_julia_is_cross_family(family)) {
+    drm_julia_warn_reml_unsupported(REML, "cross-family")
     return(drmTMB_julia_xfam_bridge(
       formula = formula,
       family = family,
@@ -43,6 +46,7 @@ drmTMB_julia_bridge <- function(
     ))
   }
   if (drm_julia_has_structured_term(formula)) {
+    drm_julia_warn_reml_unsupported(REML, "structured-effect")
     return(drmTMB_julia_structured_bridge(
       formula = formula,
       family = family,
@@ -85,11 +89,29 @@ drmTMB_julia_bridge <- function(
   family_type <- drm_julia_bridge_family_type(family)
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
+  # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
+  # Gaussian cells: the fixed-effect location-scale model, and the sigma-phylo
+  # location-scale model (phylo on mu AND sigma), which DRM.jl now fits by
+  # restricted maximum likelihood (Ayumi #2). The mean-only phylo Gaussian route
+  # (sigma ~ 1) and the phylo-only families still return ML on the DRM.jl side,
+  # so warn and fit ML rather than silently mislead. Bivariate q4 phylo is
+  # `biv_gaussian`, not `gaussian`, so it stays gated here too.
+  sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
+  reml_supported <- identical(family_type, "gaussian") &&
+    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))
+  if (isTRUE(REML) && !reml_supported) {
+    drm_julia_warn_reml_unsupported(REML, if (isTRUE(has_phylo)) {
+      "phylogenetic Gaussian"
+    } else {
+      paste0("non-Gaussian (", family_type, ")")
+    })
+  }
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,
     family_type = family_type,
     data = data,
-    env = env
+    env = env,
+    method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
   )
 
   result <- drm_julia_call_bridge(
@@ -153,10 +175,31 @@ drm_julia_phylo_only_families <- function() {
   c("poisson", "nbinom2", "gamma", "beta", "binomial")
 }
 
+# Families that support the coupled location-scale phylo route (cluster 4):
+# a phylo(1|g) on the mean AND sigma, routed as a 2x2 group-level covariance
+# via DRM.jl's coupled `(1|tag|phylo(g))` syntax. NB2 and Gamma both support
+# this; Beta uses logit-scale sigma, which also works with _fit_locscale.
+# Gaussian routes the both-phylo SHAPE (phylo on mean AND sigma) to DRM.jl's
+# Gaussian location-scale phylo Laplace engine (separate-block) -- the capability
+# the native TMB engine lacks (Ayumi #2).
+drm_julia_locscale_phylo_families <- function() {
+  c("gaussian", "nbinom2", "gamma", "beta")
+}
+
+# Families that support the structured slope phylo route (cluster 3):
+# phylo(1+x|g) on the mean, routed to DRM.jl's _fit_corr_locscale via the
+# `_parse_structured_slope` path. NB2, Gamma, Beta, and Poisson support this.
+drm_julia_slope_phylo_families <- function() {
+  c("nbinom2", "gamma", "beta", "poisson")
+}
+
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
 # Julia engine may route. Gaussian one-/two-response models route unconditionally
 # (the verified base lane). The phylo-only families above route ONLY when the
-# model carries a phylogenetic random intercept. Everything else is rejected.
+# model carries a phylogenetic random intercept. Cluster 4 (locscale) and
+# cluster 3 (slope) are gated by their own family sets and route via a phylo
+# term as well; the tag is the same family string the bridge.jl family switch
+# expects.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
   if (family_type %in% c("gaussian", "biv_gaussian")) {
     return(family_type)
@@ -191,7 +234,33 @@ drm_julia_has_phylo_term <- function(formula) {
   length(phylo_terms) > 0L
 }
 
-drm_julia_bridge_payload <- function(formula, family_type, data, env) {
+# TRUE when any formula entry carries a phylo() term on the `sigma` axis. This
+# marks the Gaussian location-scale phylo cell (phylo on mu AND sigma), the one
+# phylogenetic route DRM.jl now fits by restricted maximum likelihood
+# (`drm(...; method = :REML)`) -- the sigma-phylo capability the native TMB engine
+# lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and the phylo-only
+# families have no `sigma` phylo term, so REML stays gated for them.
+drm_julia_has_sigma_phylo_term <- function(formula) {
+  sigma_phylo_terms <- unlist(
+    lapply(formula$entries, function(entry) {
+      Filter(
+        function(term) identical(term$type, "phylo") &&
+          identical(term$dpar, "sigma"),
+        entry$structured
+      )
+    }),
+    recursive = FALSE
+  )
+  length(sigma_phylo_terms) > 0L
+}
+
+drm_julia_bridge_payload <- function(
+  formula,
+  family_type,
+  data,
+  env,
+  method = "ML"
+) {
   formula_spec <- drm_julia_formula_spec(formula)
   phylo_payload <- drm_julia_phylo_payload(
     formula = formula,
@@ -214,7 +283,7 @@ drm_julia_bridge_payload <- function(formula, family_type, data, env) {
     formula = formula_spec,
     data = data_out,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(phylo_payload),
+    options = drm_julia_bridge_options(phylo_payload, method = method),
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -248,8 +317,17 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
   data[, needed, drop = FALSE]
 }
 
-drm_julia_bridge_options <- function(phylo_payload) {
+drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
+  # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
+  # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
+  # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
+  # path (the caller gates both); the default "ML" leaves the non-REML payload
+  # byte-identical to the parity-tested baseline.
+  reml <- identical(method, "REML")
   if (is.null(phylo_payload)) {
+    if (reml) {
+      return(list(method = "REML"))
+    }
     return(list())
   }
   if (isTRUE(phylo_payload$bivariate)) {
@@ -261,8 +339,29 @@ drm_julia_bridge_options <- function(phylo_payload) {
   # The sparse all-node Gaussian phylo route is L-BFGS-based in DRM.jl's
   # current default. The direct AVONET/Hackett benchmark shows the exact-gradient
   # sparse route is insensitive to this tolerance over the bridge-smoke range,
-  # while keeping the R payload explicit and reproducible.
+  # while keeping the R payload explicit and reproducible. The sigma-phylo
+  # location-scale cell adds `method = "REML"` here when the caller forwards it.
+  if (reml) {
+    return(list(g_tol = 1e-4, method = "REML"))
+  }
   list(g_tol = 1e-4)
+}
+
+# Emit a single warning (and fall back to ML) when REML is requested for a
+# Julia-engine cell that DRM.jl does not yet fit by restricted maximum
+# likelihood. The supported cell is the fixed-effect univariate Gaussian
+# location-scale model; everything else (cross-family, structured / phylo,
+# non-Gaussian) currently ignores `method = :REML` on the DRM.jl side, so a
+# silent REML = TRUE would mislead the user into thinking they got an REML fit.
+drm_julia_warn_reml_unsupported <- function(REML, cell) {
+  if (!isTRUE(REML)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(c(
+    "{.code engine = \"julia\"} does not support {.code REML = TRUE} for {cell} models yet; fitting by maximum likelihood (ML) instead.",
+    i = "Use {.code engine = \"tmb\"} for an REML fit of this cell, or fit a fixed-effect Gaussian location-scale model on the Julia engine for REML."
+  ))
+  invisible(TRUE)
 }
 
 drm_julia_formula_spec <- function(formula) {
@@ -379,29 +478,81 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   # tree + group payload. The phylo-only set is shared with `drm_julia_family_tag`.
   phylo_families <- c("gaussian", drm_julia_phylo_only_families())
   if (family_type %in% phylo_families) {
-    if (length(phylo_terms) != 1L) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
-        i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
-      ))
+    mu_phylo_terms <- Filter(
+      function(term) identical(term$type, "phylo") && identical(term$dpar, "mu"),
+      phylo_terms
+    )
+    sigma_phylo_terms <- Filter(
+      function(term) identical(term$type, "phylo") && identical(term$dpar, "sigma"),
+      phylo_terms
+    )
+
+    # Cluster 4: location-scale phylo (phylo on mu + phylo on sigma sharing the
+    # same group and tree). This routes to DRM.jl's coupled `(1|tag|phylo(g))`
+    # engine for NB2/Gamma/Beta. Validated BEFORE the intercept-only guard below
+    # so the check on sigma phylo terms is bypassed for this sub-path.
+    if (
+      length(mu_phylo_terms) == 1L &&
+        length(sigma_phylo_terms) == 1L &&
+        family_type %in% drm_julia_locscale_phylo_families()
+    ) {
+      mu_term <- mu_phylo_terms[[1L]]
+      sigma_term <- sigma_phylo_terms[[1L]]
+      if (!identical(mu_term$coef_names, "(Intercept)") || !identical(sigma_term$coef_names, "(Intercept)")) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} location-scale phylo (cluster 4) supports only intercept phylo terms on mu and sigma.",
+          i = "Use {.code phylo(1 | group, tree = tree)} on both {.code mu} and {.code sigma}."
+        ))
+      }
+      if (!identical(mu_term$group, sigma_term$group) || !identical(mu_term$tree, sigma_term$tree)) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} location-scale phylo (cluster 4) requires the mu and sigma {.fn phylo} terms to share the same group and tree.",
+          i = "Use the same {.fn phylo} call in both {.code mu} and {.code sigma} formulas."
+        ))
+      }
+      rep_term <- mu_term
+      labels <- c(mu_term$label, sigma_term$label)
+      bivariate <- FALSE
+      locscale_mode <- "phylo_locscale"
+    } else {
+      # Standard intercept-only phylo on mu (mean-only or simple sigma ~ 1).
+      if (length(phylo_terms) != 1L) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} currently supports one {.fn phylo} term.",
+          i = "Use native {.code engine = \"tmb\"} for multiple phylogenetic terms."
+        ))
+      }
+      term <- phylo_terms[[1L]]
+
+      # Cluster 3: structured slope phylo(1+x|g) on mu for NB2/Gamma/Beta/Poisson.
+      # Allow multi-entry coef_names (intercept + slope) for the slope families.
+      slope_families <- drm_julia_slope_phylo_families()
+      is_slope <- identical(term$dpar, "mu") &&
+        length(term$coef_names) == 2L &&
+        identical(term$coef_names[[1L]], "(Intercept)") &&
+        family_type %in% slope_families
+      if (!identical(term$dpar, "mu") || (!identical(term$coef_names, "(Intercept)") && !is_slope)) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} currently supports {.code phylo(1 | group, tree = tree)} or {.code phylo(1+x | group, tree = tree)} in the {.code mu} formula.",
+          i = "Use native {.code engine = \"tmb\"} for residual-scale phylogenetic effects or direct-SD formulas."
+        ))
+      }
+      if (!is_slope) {
+        sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
+        if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
+          cli::cli_abort(c(
+            "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
+            i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
+          ))
+        }
+        locscale_mode <- "mean_only"
+      } else {
+        locscale_mode <- "phylo_slope"
+      }
+      rep_term <- term
+      labels <- term$label
+      bivariate <- FALSE
     }
-    term <- phylo_terms[[1L]]
-    if (!identical(term$dpar, "mu") || !identical(term$coef_names, "(Intercept)")) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} currently supports only {.code phylo(1 | group, tree = tree)} in the {.code mu} formula.",
-        i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes, residual-scale phylogenetic effects, or direct-SD formulas."
-      ))
-    }
-    sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
-    if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
-      cli::cli_abort(c(
-        "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
-        i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
-      ))
-    }
-    rep_term <- term
-    labels <- term$label
-    bivariate <- FALSE
   } else if (identical(family_type, "biv_gaussian")) {
     allowed <- c("mu1", "mu2", "sigma1", "sigma2")
     dpars <- vapply(phylo_terms, `[[`, character(1L), "dpar")
@@ -1561,18 +1712,247 @@ sigma.drmTMB_julia <- function(object, ...) {
   object$sigma
 }
 
+# Raw residual rho12 vector as returned by the bridge (per-observation
+# `tanh(Xrho . beta_rho)`; constant when `rho12 ~ 1`). This backs `rho12()` and
+# `predict(dpar = "rho12")`; it is NOT the public `corpairs()` table. Returns a
+# zero-length numeric for fits with no residual correlation block.
+drm_julia_rho12_values <- function(object) {
+  rho <- object$corpairs
+  if (is.null(rho) || (is.list(rho) && length(rho) == 0L)) {
+    return(numeric())
+  }
+  as.numeric(rho)
+}
+
 #' @export
-corpairs.drmTMB_julia <- function(object, ...) {
-  object$corpairs
+corpairs.drmTMB_julia <- function(
+  object,
+  level = NULL,
+  group = NULL,
+  block = NULL,
+  class = NULL,
+  ...
+) {
+  rows <- list()
+
+  rho <- drm_julia_rho12_values(object)
+  if (length(rho) > 0L) {
+    rows[[length(rows) + 1L]] <- drm_julia_residual_rho12_corpair(object, rho)
+  }
+
+  phylo_rows <- drm_julia_phylo_corpairs(object)
+  if (length(phylo_rows) > 0L) {
+    rows <- c(rows, phylo_rows)
+  }
+
+  out <- if (length(rows) == 0L) {
+    empty_corpairs()
+  } else {
+    do.call(rbind, rows)
+  }
+
+  if (!is.null(level)) {
+    out <- out[out$level %in% level, , drop = FALSE]
+  }
+  if (!is.null(group)) {
+    out <- out[out$group %in% group, , drop = FALSE]
+  }
+  if (!is.null(block)) {
+    out <- out[out$block %in% block, , drop = FALSE]
+  }
+  if (!is.null(class)) {
+    class <- normalize_corpairs_class_filter(class)
+    out <- out[out$class %in% class, , drop = FALSE]
+  }
+  row.names(out) <- NULL
+  corpairs_add_default_interval_provenance(out)
+}
+
+# Response names (e.g. "y1" / "y2") carried by the bridge formula entries, used
+# to label corpairs rows. Falls back to "y1" / "y2" if an entry is missing.
+drm_julia_response_names <- function(object) {
+  responses <- stats::setNames(rep(NA_character_, 2L), c("mu1", "mu2"))
+  entries <- object$formula$entries
+  if (!is.null(entries)) {
+    for (entry in entries) {
+      if (!is.null(entry$dpar) && entry$dpar %in% names(responses) &&
+        is.character(entry$response) && length(entry$response) == 1L &&
+        !is.na(entry$response)) {
+        responses[[entry$dpar]] <- entry$response
+      }
+    }
+  }
+  if (is.na(responses[["mu1"]])) responses[["mu1"]] <- "y1"
+  if (is.na(responses[["mu2"]])) responses[["mu2"]] <- "y2"
+  responses
+}
+
+drm_julia_response_for_dpar <- function(responses, dpar) {
+  if (dpar %in% c("mu1", "sigma1")) {
+    return(unname(responses[["mu1"]]))
+  }
+  if (dpar %in% c("mu2", "sigma2")) {
+    return(unname(responses[["mu2"]]))
+  }
+  NA_character_
+}
+
+# Residual between-response correlation as a one-row corpairs table, mirroring
+# `residual_rho12_corpair()` on the native path but reading the raw per-row rho12
+# vector the bridge already returns.
+drm_julia_residual_rho12_corpair <- function(object, rho) {
+  responses <- drm_julia_response_names(object)
+  n_coef <- length(object$coefficients[["rho12"]])
+  eta <- atanh(pmax(pmin(rho, 1 - 1e-12), -1 + 1e-12))
+  new_corpair_row(
+    level = "residual",
+    group = NA_character_,
+    block = NA_character_,
+    from_dpar = "residual",
+    to_dpar = "residual",
+    from_coef = NA_character_,
+    to_coef = NA_character_,
+    from_response = unname(responses[["mu1"]]),
+    to_response = unname(responses[["mu2"]]),
+    class = "residual",
+    parameter = "rho12",
+    estimate = mean(rho),
+    min = min(rho),
+    max = max(rho),
+    n_values = length(rho),
+    link_estimate = mean(eta),
+    link_min = min(eta),
+    link_max = max(eta),
+    modelled = n_coef > 1L
+  )
+}
+
+# Among-axis phylogenetic correlations for a q=4 bivariate location-scale bridge
+# fit. The four shared-phylogenetic axes (mu1, mu2, sigma1, sigma2) carry a 4x4
+# group-level covariance Sigma_a, stored on the fit by the bridge as the 10
+# log-Cholesky entries `phylocov$"Sigma_a:Lij"` (diagonal on the log scale,
+# off-diagonals raw; Sigma_a = L L'). This reconstructs Sigma_a, converts it to
+# the among-axis correlation matrix, and emits one corpairs row per cross-axis
+# pair -- the interpretable coevolution correlations (mean1-mean2 etc.) that the
+# native `corpairs.drmTMB` surfaces via `phylo_mu_corpairs()`. The bridge never
+# populates `object$corpars`, so this rebuilds the rows directly from Sigma_a.
+# Returns an empty list for any non-q=4 / non-phylo fit.
+drm_julia_phylo_corpairs <- function(object) {
+  Sigma_a <- drm_julia_phylocov_matrix(object)
+  if (is.null(Sigma_a)) {
+    return(list())
+  }
+  info <- drm_julia_phylo_block_info(object)
+  if (is.null(info)) {
+    return(list())
+  }
+  axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  responses <- drm_julia_response_names(object)
+
+  d <- sqrt(diag(Sigma_a))
+  if (any(!is.finite(d)) || any(d <= 0)) {
+    return(list())
+  }
+  R <- Sigma_a / outer(d, d)
+
+  pair_index <- utils::combn(seq_along(axes), 2L)
+  lapply(seq_len(ncol(pair_index)), function(k) {
+    i <- pair_index[1L, k]
+    j <- pair_index[2L, k]
+    from_dpar <- axes[[i]]
+    to_dpar <- axes[[j]]
+    estimate <- R[i, j]
+    new_corpair_row(
+      level = "phylogenetic",
+      group = info$group,
+      block = info$block,
+      from_dpar = from_dpar,
+      to_dpar = to_dpar,
+      from_coef = "(Intercept)",
+      to_coef = "(Intercept)",
+      from_response = drm_julia_response_for_dpar(responses, from_dpar),
+      to_response = drm_julia_response_for_dpar(responses, to_dpar),
+      class = random_correlation_class(
+        from_dpar,
+        "(Intercept)",
+        "(Intercept)",
+        to_dpar = to_dpar
+      ),
+      parameter = format_cross_dpar_cor_label(
+        from_dpar,
+        to_dpar,
+        group = info$group,
+        covariance_label = info$block
+      ),
+      estimate = estimate,
+      min = estimate,
+      max = estimate,
+      n_values = 1L,
+      link_estimate = guarded_correlation_link(estimate, guard = 0.999999),
+      link_min = guarded_correlation_link(estimate, guard = 0.999999),
+      link_max = guarded_correlation_link(estimate, guard = 0.999999),
+      modelled = FALSE
+    )
+  })
+}
+
+# Reconstruct the 4x4 among-axis covariance Sigma_a from the bridge's stored
+# log-Cholesky factor, or NULL if this fit has no q=4 `phylocov` block. The 10
+# entries are named "Sigma_a:L11", "Sigma_a:L21", ... "Sigma_a:L44"; the diagonal
+# is exponentiated (working scale), off-diagonals are taken as-is.
+drm_julia_phylocov_matrix <- function(object) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  phylocov <- object$coefficients[["phylocov"]]
+  if (is.null(phylocov) || length(phylocov) != 10L) {
+    return(NULL)
+  }
+  L <- matrix(0, 4L, 4L)
+  for (col in seq_len(4L)) {
+    for (rw in col:4L) {
+      nm <- sprintf("Sigma_a:L%d%d", rw, col)
+      value <- phylocov[[nm]]
+      if (is.null(value) || !is.finite(value)) {
+        return(NULL)
+      }
+      L[rw, col] <- if (rw == col) exp(value) else value
+    }
+  }
+  L %*% t(L)
+}
+
+# Shared group and covariance-block labels for the q=4 phylo location-scale
+# block, read off the fit's phylo() formula terms. The bridge guard guarantees
+# all four axes share one grouping factor and tree, so the first phylo term is
+# representative. `block` is the explicit covariance label (e.g. "p"); NA when
+# the term was written without one. Returns NULL if no phylo term is present.
+drm_julia_phylo_block_info <- function(object) {
+  entries <- object$formula$entries
+  if (is.null(entries)) {
+    return(NULL)
+  }
+  for (entry in entries) {
+    for (term in entry$structured) {
+      if (identical(term$type, "phylo")) {
+        block <- term$covariance_label
+        if (is.null(block) || !nzchar(block)) {
+          block <- NA_character_
+        }
+        return(list(group = term$group, block = block))
+      }
+    }
+  }
+  NULL
 }
 
 #' @export
 rho12.drmTMB_julia <- function(object, ...) {
-  pairs <- corpairs.drmTMB_julia(object, ...)
-  if (is.list(pairs) && length(pairs) == 0L) {
+  rho <- drm_julia_rho12_values(object)
+  if (length(rho) == 0L) {
     cli::cli_abort("This Julia-engine fit has no residual {.code rho12}.")
   }
-  pairs
+  rho
 }
 
 #' @export
@@ -2609,6 +2989,29 @@ is_converged.drmTMB_julia_xfam <- function(object, include_hessian = FALSE, ...)
 #' @param ... Unused.
 #' @return The latent / link-scale correlation between the two responses.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Requires the DRM.jl engine (engine = "julia").
+#' set.seed(20260610)
+#' n <- 150
+#' x <- rnorm(n)
+#' u <- rnorm(n)
+#' dat <- data.frame(
+#'   y1 = 0.5 + 0.8 * x + 0.7 * u + rnorm(n, sd = 0.5),
+#'   y2 = rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
+#'   x = x
+#' )
+#'
+#' fit <- drmTMB(
+#'   bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+#'   family = c(gaussian(), poisson()),
+#'   data = dat,
+#'   engine = "julia"
+#' )
+#'
+#' rho_latent(fit)
+#' }
 rho_latent <- function(object, ...) {
   UseMethod("rho_latent")
 }

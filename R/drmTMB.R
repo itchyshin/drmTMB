@@ -183,6 +183,7 @@ drmTMB <- function(
       control = control,
       impute = impute,
       missing = missing,
+      REML = drm_control_flag(REML, "REML"),
       call = match.call()
     ))
   }
@@ -5646,7 +5647,11 @@ validate_random_mu_covariance_label <- function(label) {
     "skew",
     "kurtosis",
     "shape",
-    "zi"
+    "zi",
+    "hu",
+    "zoi",
+    "coi",
+    "phi"
   )
   if (label %in% reserved) {
     cli::cli_abort(c(
