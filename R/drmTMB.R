@@ -183,6 +183,7 @@ drmTMB <- function(
       control = control,
       impute = impute,
       missing = missing,
+      REML = drm_control_flag(REML, "REML"),
       call = match.call()
     ))
   }
