@@ -1,6 +1,6 @@
 # engine = "julia" missing-response routing (Ayumi LS#2, point 3).
 #
-# DRM.jl fits the OBSERVED responses while keeping the full tree / design — the
+# DRM.jl fits the OBSERVED responses while keeping the full tree / design -- the
 # Gaussian observed-data likelihood (missing rows leave the likelihood but their
 # phylogenetic positions still inform the covariance). The bridge now allows
 # `missing = miss_control(response = "include")` for Gaussian (mirroring native
