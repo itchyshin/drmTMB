@@ -24,6 +24,16 @@ all-node sparse route. That phylogenetic cell now has narrow
 `confint()` support for the residual phylogenetic SD in the `mu` model with
 `method = "profile"` or `method = "bootstrap"`.
 
+It now also marshals the Gaussian **σ-phylo location-scale** cell — a `phylo()`
+random effect on *both* `mu` and `sigma` — as a **separate / uncorrelated** block,
+so the mean-scale phylogenetic correlation is not forced into a single block (the
+artefact that pins it at ±1 when a scale-axis variance collapses). It accepts
+`REML = TRUE` (restricted maximum likelihood, better conditioned near the variance
+boundary) and a boundary-aware `confint(method = "profile")` for the phylogenetic
+σ-SD that returns an honest `[0, Inf)` interval when the scale-phylogenetic signal
+is weak. The formula is `sigma ~ phylo(1 | species, tree = tree)` alongside
+`mu ~ ... + phylo(1 | species, tree = tree)`.
+
 It additionally routes the bivariate **q = 4 phylogenetic location-scale model**
 (the PLSM): intercept `phylo(1 | p | species)` on all four axes (`mu1`, `mu2`,
 `sigma1`, `sigma2`), sharing one tree and grouping factor, fit through DRM.jl's
@@ -35,7 +45,8 @@ effects on a seeded q = 4 fixture (verified locally; CI does not run Julia).
 
 The bridge does not yet support weights,
 missing-data routes, imputation, non-default control settings, non-Gaussian
-families, random-effect scale formulas, `corpair()` formula entries, `newdata`
+families, random-effect scale formulas beyond the σ-phylo location-scale block,
+`corpair()` formula entries, `newdata`
 prediction, simulation, or persistent Julia fit handles.
 
 For ordinary analyses, keep using the default native engine:
@@ -368,7 +379,8 @@ structure, then admit only cells with R-scale parity tests.
 | Fixed-effect Gaussian location-scale | direct Gaussian ML route | admitted |
 | Fixed-effect bivariate Gaussian | bivariate Gaussian ML route with `rho12` | admitted |
 | Gaussian `phylo(1 | species)` on `mu`, `sigma ~ 1` | sparse all-node Gaussian route | admitted for point estimates, fitted values, mean fixed-effect covariance, and profile/bootstrap intervals for the phylogenetic SD target |
-| Gaussian phylogenetic slopes, multiple structured effects, or predictor-dependent `sigma` | sparse all-node likelihood route | blocked in the R bridge |
+| Gaussian σ-phylo location-scale: `phylo()` on `mu` AND `sigma` (separate / uncorrelated block), optional `REML = TRUE` | sparse location-scale Gaussian route | admitted, with boundary-aware `confint(method = "profile")` for the σ-phylogenetic SD |
+| Gaussian phylogenetic slopes or multiple distinct structured random-effect blocks | sparse all-node likelihood route | blocked in the R bridge |
 | Non-Gaussian fixed-effect models | family-specific ML route after coefficient-scale parity tests | blocked in the R bridge |
 | Non-Gaussian phylogenetic models | future sparse all-node likelihood route | blocked in the R bridge |
 
