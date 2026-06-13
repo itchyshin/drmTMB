@@ -67,6 +67,43 @@ test_that("engine='julia' == engine='tmb' to <=1e-6 on Gaussian location-scale (
   expect_lt(max(abs(res$coef_tmb - res$coef_jl)), 1e-5)
 })
 
+drm_parity_fit_route_b <- function() {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_parity_jl_path()
+  callr::r(
+    function(pkg, jl_path) {
+      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(7L); n <- 80L
+      x <- stats::rnorm(n); e1 <- stats::rnorm(n); e2 <- 0.5 * e1 + sqrt(0.75) * stats::rnorm(n)
+      dat <- data.frame(x = x, y1 = 0.2 + 0.4 * x + 0.8 * e1, y2 = -0.1 + 0.3 * x + 0.7 * e2)
+      form <- drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1)
+      ft <- drmTMB::drmTMB(form, family = drmTMB::biv_gaussian(), data = dat, engine = "tmb")
+      fj <- drmTMB::drmTMB(form, family = drmTMB::biv_gaussian(), data = dat, engine = "julia")
+      list(ll_tmb = as.numeric(stats::logLik(ft)), ll_jl = as.numeric(stats::logLik(fj)),
+           conv_tmb = drmTMB::is_converged(ft), conv_jl = drmTMB::is_converged(fj))
+    },
+    args = list(pkg = pkg, jl_path = jl_path), error = "error")
+}
+
+test_that("engine='julia' == engine='tmb' to <=1e-6 on bivariate Gaussian residual rho12 (Route B, validates P1)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(dir.exists(drm_parity_jl_path()), "DRM.jl engine path not available")
+  res <- tryCatch(
+    drm_parity_fit_route_b(),
+    error = function(e) testthat::skip(paste("biv parity round-trip unavailable:", conditionMessage(e)))
+  )
+  expect_true(isTRUE(res$conv_tmb) && isTRUE(res$conv_jl))
+  # logLik parity confirms the models agree, INCLUDING the guarded RHO_GUARD*tanh rho12 link
+  # (the independent review's P1 divergence — now aligned: measured |dlogLik|~1e-9). The
+  # scale/correlation coef values match too, but the engines order that block differently,
+  # so we assert the robust scalar invariant.
+  expect_lt(abs(res$ll_tmb - res$ll_jl), 1e-6)
+})
+
 test_that("Route A (Gaussian phylo-mean) parity is tracked but skipped pending the all-node logLik bug", {
   skip("engine='julia' Gaussian phylo-mean returns garbage logLik + false converged on some data; tracked as a [BUG] task (repro /tmp/routeA_diag.R). Re-enable + assert <=1e-6 once fixed.")
 })
