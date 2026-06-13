@@ -90,7 +90,7 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
-  # Gaussian cells: the fixed-effect location-scale model, and the σ-phylo
+  # Gaussian cells: the fixed-effect location-scale model, and the sigma-phylo
   # location-scale model (phylo on mu AND sigma), which DRM.jl now fits by
   # restricted maximum likelihood (Ayumi #2). The mean-only phylo Gaussian route
   # (sigma ~ 1) and the phylo-only families still return ML on the DRM.jl side,
@@ -175,18 +175,18 @@ drm_julia_phylo_only_families <- function() {
   c("poisson", "nbinom2", "gamma", "beta", "binomial")
 }
 
-# Families that support the coupled location-scale phylo route (cluster ④):
+# Families that support the coupled location-scale phylo route (cluster 4):
 # a phylo(1|g) on the mean AND sigma, routed as a 2x2 group-level covariance
 # via DRM.jl's coupled `(1|tag|phylo(g))` syntax. NB2 and Gamma both support
 # this; Beta uses logit-scale sigma, which also works with _fit_locscale.
 # Gaussian routes the both-phylo SHAPE (phylo on mean AND sigma) to DRM.jl's
-# Gaussian location-scale phylo Laplace engine (separate-block) — the capability
+# Gaussian location-scale phylo Laplace engine (separate-block) -- the capability
 # the native TMB engine lacks (Ayumi #2).
 drm_julia_locscale_phylo_families <- function() {
   c("gaussian", "nbinom2", "gamma", "beta")
 }
 
-# Families that support the structured slope phylo route (cluster ③):
+# Families that support the structured slope phylo route (cluster 3):
 # phylo(1+x|g) on the mean, routed to DRM.jl's _fit_corr_locscale via the
 # `_parse_structured_slope` path. NB2, Gamma, Beta, and Poisson support this.
 drm_julia_slope_phylo_families <- function() {
@@ -196,8 +196,8 @@ drm_julia_slope_phylo_families <- function() {
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
 # Julia engine may route. Gaussian one-/two-response models route unconditionally
 # (the verified base lane). The phylo-only families above route ONLY when the
-# model carries a phylogenetic random intercept. Cluster ④ (locscale) and
-# cluster ③ (slope) are gated by their own family sets and route via a phylo
+# model carries a phylogenetic random intercept. Cluster 4 (locscale) and
+# cluster 3 (slope) are gated by their own family sets and route via a phylo
 # term as well; the tag is the same family string the bridge.jl family switch
 # expects.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
@@ -237,7 +237,7 @@ drm_julia_has_phylo_term <- function(formula) {
 # TRUE when any formula entry carries a phylo() term on the `sigma` axis. This
 # marks the Gaussian location-scale phylo cell (phylo on mu AND sigma), the one
 # phylogenetic route DRM.jl now fits by restricted maximum likelihood
-# (`drm(...; method = :REML)`) -- the σ-phylo capability the native TMB engine
+# (`drm(...; method = :REML)`) -- the sigma-phylo capability the native TMB engine
 # lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and the phylo-only
 # families have no `sigma` phylo term, so REML stays gated for them.
 drm_julia_has_sigma_phylo_term <- function(formula) {
@@ -320,7 +320,7 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
 drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
-  # on the non-phylo Gaussian path and on the Gaussian σ-phylo location-scale
+  # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
   # path (the caller gates both); the default "ML" leaves the non-REML payload
   # byte-identical to the parity-tested baseline.
   reml <- identical(method, "REML")
@@ -339,7 +339,7 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # The sparse all-node Gaussian phylo route is L-BFGS-based in DRM.jl's
   # current default. The direct AVONET/Hackett benchmark shows the exact-gradient
   # sparse route is insensitive to this tolerance over the bridge-smoke range,
-  # while keeping the R payload explicit and reproducible. The σ-phylo
+  # while keeping the R payload explicit and reproducible. The sigma-phylo
   # location-scale cell adds `method = "REML"` here when the caller forwards it.
   if (reml) {
     return(list(g_tol = 1e-4, method = "REML"))
@@ -487,7 +487,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       phylo_terms
     )
 
-    # Cluster ④: location-scale phylo (phylo on mu + phylo on sigma sharing the
+    # Cluster 4: location-scale phylo (phylo on mu + phylo on sigma sharing the
     # same group and tree). This routes to DRM.jl's coupled `(1|tag|phylo(g))`
     # engine for NB2/Gamma/Beta. Validated BEFORE the intercept-only guard below
     # so the check on sigma phylo terms is bypassed for this sub-path.
@@ -500,13 +500,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       sigma_term <- sigma_phylo_terms[[1L]]
       if (!identical(mu_term$coef_names, "(Intercept)") || !identical(sigma_term$coef_names, "(Intercept)")) {
         cli::cli_abort(c(
-          "{.code engine = \"julia\"} location-scale phylo (cluster ④) supports only intercept phylo terms on mu and sigma.",
+          "{.code engine = \"julia\"} location-scale phylo (cluster 4) supports only intercept phylo terms on mu and sigma.",
           i = "Use {.code phylo(1 | group, tree = tree)} on both {.code mu} and {.code sigma}."
         ))
       }
       if (!identical(mu_term$group, sigma_term$group) || !identical(mu_term$tree, sigma_term$tree)) {
         cli::cli_abort(c(
-          "{.code engine = \"julia\"} location-scale phylo (cluster ④) requires the mu and sigma {.fn phylo} terms to share the same group and tree.",
+          "{.code engine = \"julia\"} location-scale phylo (cluster 4) requires the mu and sigma {.fn phylo} terms to share the same group and tree.",
           i = "Use the same {.fn phylo} call in both {.code mu} and {.code sigma} formulas."
         ))
       }
@@ -524,7 +524,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       }
       term <- phylo_terms[[1L]]
 
-      # Cluster ③: structured slope phylo(1+x|g) on mu for NB2/Gamma/Beta/Poisson.
+      # Cluster 3: structured slope phylo(1+x|g) on mu for NB2/Gamma/Beta/Poisson.
       # Allow multi-entry coef_names (intercept + slope) for the slope families.
       slope_families <- drm_julia_slope_phylo_families()
       is_slope <- identical(term$dpar, "mu") &&
