@@ -3,6 +3,13 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest handover — start here (2026-06-14).** The Ayumi σ-phylo arc just closed
+> (DRM.jl#289 REML on all four among-axis axes; drmTMB#542/#543; reply posted to
+> `Ayumi-495/LS_ecogeographical-rules#2`). Rehydration anchor:
+> [`docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md`](docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md).
+> **Top open task: #544** (bridge-gate-drift audit + a gate-vs-engine CI guard; sister
+> mirror gllvmTMB#488). **No CRAN.** Decisions pending the maintainer: DRM.jl#280, #270.
+
 ## Core Scope
 
 - Support one-response and two-response models only.
