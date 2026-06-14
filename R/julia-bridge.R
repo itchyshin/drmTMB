@@ -100,11 +100,14 @@ drmTMB_julia_bridge <- function(
     (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
     (identical(family_type, "biv_gaussian") && isTRUE(has_phylo))
   if (isTRUE(REML) && !reml_supported) {
-    drm_julia_warn_reml_unsupported(REML, if (isTRUE(has_phylo)) {
-      "phylogenetic Gaussian"
-    } else {
-      paste0("non-Gaussian (", family_type, ")")
-    })
+    drm_julia_warn_reml_unsupported(
+      REML,
+      if (isTRUE(has_phylo)) {
+        "phylogenetic Gaussian"
+      } else {
+        paste0("non-Gaussian (", family_type, ")")
+      }
+    )
   }
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,
@@ -259,8 +262,10 @@ drm_julia_has_sigma_phylo_term <- function(formula) {
   sigma_phylo_terms <- unlist(
     lapply(formula$entries, function(entry) {
       Filter(
-        function(term) identical(term$type, "phylo") &&
-          identical(term$dpar, "sigma"),
+        function(term) {
+          identical(term$type, "phylo") &&
+            identical(term$dpar, "sigma")
+        },
         entry$structured
       )
     }),
@@ -305,7 +310,11 @@ drm_julia_bridge_payload <- function(
     } else {
       phylo_payload$structured_sd_scales
     },
-    bivariate = if (is.null(phylo_payload)) FALSE else isTRUE(phylo_payload$bivariate)
+    bivariate = if (is.null(phylo_payload)) {
+      FALSE
+    } else {
+      isTRUE(phylo_payload$bivariate)
+    }
   )
 }
 
@@ -337,8 +346,9 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
   # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
-  # path (the caller gates both); the default "ML" leaves the non-REML payload
-  # byte-identical to the parity-tested baseline.
+  # path and on the bivariate q4 phylogenetic route (the caller gates both);
+  # the default "ML" leaves the non-REML payload byte-identical to the
+  # parity-tested baseline.
   reml <- identical(method, "REML")
   if (is.null(phylo_payload)) {
     if (reml) {
@@ -347,8 +357,12 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
     return(list())
   }
   if (isTRUE(phylo_payload$bivariate)) {
-    # The q=4 PLSM route uses DRM.jl's own defaults (no g_tol override): the
-    # direct-fit parity check matched the bridge to 0 with defaults.
+    # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
+    # override): the direct-fit parity check matched the bridge to 0 with
+    # defaults. REML still has to be forwarded explicitly.
+    if (reml) {
+      return(list(method = "REML"))
+    }
     return(list())
   }
 
@@ -495,11 +509,15 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   phylo_families <- c("gaussian", drm_julia_phylo_only_families())
   if (family_type %in% phylo_families) {
     mu_phylo_terms <- Filter(
-      function(term) identical(term$type, "phylo") && identical(term$dpar, "mu"),
+      function(term) {
+        identical(term$type, "phylo") && identical(term$dpar, "mu")
+      },
       phylo_terms
     )
     sigma_phylo_terms <- Filter(
-      function(term) identical(term$type, "phylo") && identical(term$dpar, "sigma"),
+      function(term) {
+        identical(term$type, "phylo") && identical(term$dpar, "sigma")
+      },
       phylo_terms
     )
 
@@ -514,13 +532,19 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     ) {
       mu_term <- mu_phylo_terms[[1L]]
       sigma_term <- sigma_phylo_terms[[1L]]
-      if (!identical(mu_term$coef_names, "(Intercept)") || !identical(sigma_term$coef_names, "(Intercept)")) {
+      if (
+        !identical(mu_term$coef_names, "(Intercept)") ||
+          !identical(sigma_term$coef_names, "(Intercept)")
+      ) {
         cli::cli_abort(c(
           "{.code engine = \"julia\"} location-scale phylo (cluster 4) supports only intercept phylo terms on mu and sigma.",
           i = "Use {.code phylo(1 | group, tree = tree)} on both {.code mu} and {.code sigma}."
         ))
       }
-      if (!identical(mu_term$group, sigma_term$group) || !identical(mu_term$tree, sigma_term$tree)) {
+      if (
+        !identical(mu_term$group, sigma_term$group) ||
+          !identical(mu_term$tree, sigma_term$tree)
+      ) {
         cli::cli_abort(c(
           "{.code engine = \"julia\"} location-scale phylo (cluster 4) requires the mu and sigma {.fn phylo} terms to share the same group and tree.",
           i = "Use the same {.fn phylo} call in both {.code mu} and {.code sigma} formulas."
@@ -547,15 +571,28 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
         length(term$coef_names) == 2L &&
         identical(term$coef_names[[1L]], "(Intercept)") &&
         family_type %in% slope_families
-      if (!identical(term$dpar, "mu") || (!identical(term$coef_names, "(Intercept)") && !is_slope)) {
+      if (
+        !identical(term$dpar, "mu") ||
+          (!identical(term$coef_names, "(Intercept)") && !is_slope)
+      ) {
         cli::cli_abort(c(
           "{.code engine = \"julia\"} currently supports {.code phylo(1 | group, tree = tree)} or {.code phylo(1+x | group, tree = tree)} in the {.code mu} formula.",
           i = "Use native {.code engine = \"tmb\"} for residual-scale phylogenetic effects or direct-SD formulas."
         ))
       }
       if (!is_slope) {
-        sigma_entries <- Filter(function(entry) identical(entry$dpar, "sigma"), formula$entries)
-        if (length(sigma_entries) > 0L && !all(vapply(sigma_entries, function(entry) drm_julia_is_intercept_rhs(entry$rhs), logical(1L)))) {
+        sigma_entries <- Filter(
+          function(entry) identical(entry$dpar, "sigma"),
+          formula$entries
+        )
+        if (
+          length(sigma_entries) > 0L &&
+            !all(vapply(
+              sigma_entries,
+              function(entry) drm_julia_is_intercept_rhs(entry$rhs),
+              logical(1L)
+            ))
+        ) {
           cli::cli_abort(c(
             "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
             i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
@@ -586,7 +623,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
         i = "Use native {.code engine = \"tmb\"} for partial bivariate phylogenetic structure."
       ))
     }
-    if (!all(vapply(phylo_terms, function(t) identical(t$coef_names, "(Intercept)"), logical(1L)))) {
+    if (
+      !all(vapply(
+        phylo_terms,
+        function(t) identical(t$coef_names, "(Intercept)"),
+        logical(1L)
+      ))
+    ) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} currently supports only intercept {.code phylo(1 | group, tree = tree)} terms in the bivariate q=4 route.",
         i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes in the location-scale model."
@@ -768,8 +811,11 @@ drm_julia_collapse_phylo_block <- function(expr) {
       }
       bar <- parts[[i]]
       if (
-        is.call(bar) && identical(bar[[1L]], as.name("|")) && length(bar) == 3L &&
-          is.call(bar[[2L]]) && identical(bar[[2L]][[1L]], as.name("|")) &&
+        is.call(bar) &&
+          identical(bar[[1L]], as.name("|")) &&
+          length(bar) == 3L &&
+          is.call(bar[[2L]]) &&
+          identical(bar[[2L]][[1L]], as.name("|")) &&
           length(bar[[2L]]) == 3L
       ) {
         parts[[i]] <- call("|", bar[[2L]][[2L]], bar[[3L]])
@@ -1116,8 +1162,12 @@ drm_julia_profile_targets_biv <- function(object) {
   # parsed formula's phylo group, then bp$group, then a literal. This labels the
   # confint() parm rows with the real grouping variable instead of "group".
   scales <- object$structured_sd_scales
-  if (is.null(scales)) scales <- bp$structured_sd_scales
-  scale_label <- if (!is.null(scales) && length(scales) && !is.null(names(scales))) {
+  if (is.null(scales)) {
+    scales <- bp$structured_sd_scales
+  }
+  scale_label <- if (
+    !is.null(scales) && length(scales) && !is.null(names(scales))
+  ) {
     names(scales)[[1]]
   } else {
     NULL
@@ -1150,7 +1200,7 @@ drm_julia_profile_targets_biv <- function(object) {
       term = term,
       tmb_parameter = paste0("resd_", dpar),
       index = i,
-      estimate = 0.5,            # placeholder — DRM.jl returns the real estimate/CI
+      estimate = 0.5, # placeholder — DRM.jl returns the real estimate/CI
       link_estimate = log(0.5),
       scale = "response",
       transformation = "exp",
@@ -1642,8 +1692,12 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   # Scalar diagnostics (elapsed, thread counts) come from the top-level result.
   # NULL-safe scalars: the profile payload omits the bootstrap/threading fields, so
   # as.integer(NULL) would give a length-0 column and break data.frame() ("1, 0 rows").
-  .int1 <- function(v) if (is.null(v) || length(v) == 0L) NA_integer_ else as.integer(v)[[1L]]
-  .num1 <- function(v) if (is.null(v) || length(v) == 0L) NA_real_ else as.numeric(v)[[1L]]
+  .int1 <- function(v) {
+    if (is.null(v) || length(v) == 0L) NA_integer_ else as.integer(v)[[1L]]
+  }
+  .num1 <- function(v) {
+    if (is.null(v) || length(v) == 0L) NA_real_ else as.numeric(v)[[1L]]
+  }
   elapsed <- .num1(result$elapsed)
   threaded <- isTRUE(result$threaded)
   worker_threads <- .int1(result$worker_threads)
@@ -1672,12 +1726,30 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
     is_bounded <- isTRUE(julia_bounded[[ji]])
     # status/message are SCALAR for the whole call (one profile/bootstrap run), so
     # recycle them across axes rather than indexing per-axis.
-    status_i <- if (length(julia_status) >= ji) julia_status[[ji]] else if (length(julia_status) >= 1L) julia_status[[1L]] else NA_character_
-    message_i <- if (length(julia_message) >= ji) julia_message[[ji]] else if (length(julia_message) >= 1L) julia_message[[1L]] else ""
-    diagnostics <- if (all(is.finite(c(lo, hi)))) {
-      profile_interval_diagnostics(c(lo, hi), transformation = target$transformation[[1L]])
+    status_i <- if (length(julia_status) >= ji) {
+      julia_status[[ji]]
+    } else if (length(julia_status) >= 1L) {
+      julia_status[[1L]]
     } else {
-      list(boundary = TRUE, message = "upper bound unbounded (flat / collapsed axis)")
+      NA_character_
+    }
+    message_i <- if (length(julia_message) >= ji) {
+      julia_message[[ji]]
+    } else if (length(julia_message) >= 1L) {
+      julia_message[[1L]]
+    } else {
+      ""
+    }
+    diagnostics <- if (all(is.finite(c(lo, hi)))) {
+      profile_interval_diagnostics(
+        c(lo, hi),
+        transformation = target$transformation[[1L]]
+      )
+    } else {
+      list(
+        boundary = TRUE,
+        message = "upper bound unbounded (flat / collapsed axis)"
+      )
     }
     row_i <- data.frame(
       parm = target$parm,
@@ -1695,8 +1767,16 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
         NA_character_
       },
       conf.status = status_i,
-      profile.boundary = if (identical(method, "profile")) !is_bounded else diagnostics$boundary,
-      profile.message = if (nzchar(message_i)) message_i else diagnostics$message,
+      profile.boundary = if (identical(method, "profile")) {
+        !is_bounded
+      } else {
+        diagnostics$boundary
+      },
+      profile.message = if (nzchar(message_i)) {
+        message_i
+      } else {
+        diagnostics$message
+      },
       julia.threaded = threaded,
       julia.workers = worker_threads,
       julia.threads = julia_threads,
@@ -1756,7 +1836,9 @@ summary.drmTMB_julia <- function(
     )
   }
   if (!is.logical(conf.int) || length(conf.int) != 1L || is.na(conf.int)) {
-    cli::cli_abort("{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}.")
+    cli::cli_abort(
+      "{.arg conf.int} must be a single {.code TRUE} or {.code FALSE}."
+    )
   }
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
@@ -1767,7 +1849,12 @@ summary.drmTMB_julia <- function(
       drm_julia_wald_confint(object, parm = NULL, level = level)
     } else {
       tryCatch(
-        confint.drmTMB_julia(object, parm = NULL, level = level, method = method),
+        confint.drmTMB_julia(
+          object,
+          parm = NULL,
+          level = level,
+          method = method
+        ),
         error = function(e) NULL
       )
     }
@@ -2010,15 +2097,23 @@ drm_julia_response_names <- function(object) {
   entries <- object$formula$entries
   if (!is.null(entries)) {
     for (entry in entries) {
-      if (!is.null(entry$dpar) && entry$dpar %in% names(responses) &&
-        is.character(entry$response) && length(entry$response) == 1L &&
-        !is.na(entry$response)) {
+      if (
+        !is.null(entry$dpar) &&
+          entry$dpar %in% names(responses) &&
+          is.character(entry$response) &&
+          length(entry$response) == 1L &&
+          !is.na(entry$response)
+      ) {
         responses[[entry$dpar]] <- entry$response
       }
     }
   }
-  if (is.na(responses[["mu1"]])) responses[["mu1"]] <- "y1"
-  if (is.na(responses[["mu2"]])) responses[["mu2"]] <- "y2"
+  if (is.na(responses[["mu1"]])) {
+    responses[["mu1"]] <- "y1"
+  }
+  if (is.na(responses[["mu2"]])) {
+    responses[["mu2"]] <- "y2"
+  }
   responses
 }
 
@@ -2231,7 +2326,10 @@ drm_julia_predict_design <- function(object, entry, newdata) {
   train_terms <- stats::terms(
     stats::model.frame(fixed_formula, data = train)
   )
-  xlev <- stats::.getXlevels(train_terms, stats::model.frame(train_terms, train))
+  xlev <- stats::.getXlevels(
+    train_terms,
+    stats::model.frame(train_terms, train)
+  )
   newdata_frame <- stats::model.frame(
     train_terms,
     data = newdata,
@@ -2834,7 +2932,10 @@ drmTMB_julia_xfam_bridge <- function(
   composed <- drm_composed_families(family)
   tags <- vapply(composed, drm_julia_xfam_family_tag, character(1L))
   axes <- drm_julia_xfam_axes(
-    formula = formula, data = data, env = env, tags = tags
+    formula = formula,
+    data = data,
+    env = env,
+    tags = tags
   )
 
   result <- drm_julia_call_xfam(
@@ -2919,7 +3020,11 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
     } else {
       NULL
     },
-    mu = mu1, tag = tags[[1L]], data = data, env = env, dpar = "sigma1"
+    mu = mu1,
+    tag = tags[[1L]],
+    data = data,
+    env = env,
+    dpar = "sigma1"
   )
   sigma2 <- drm_julia_xfam_sigma(
     entry = if (any(dpars == "sigma2")) {
@@ -2927,7 +3032,11 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
     } else {
       NULL
     },
-    mu = mu2, tag = tags[[2L]], data = data, env = env, dpar = "sigma2"
+    mu = mu2,
+    tag = tags[[2L]],
+    data = data,
+    env = env,
+    dpar = "sigma2"
   )
 
   list(mu1 = mu1, mu2 = mu2, sigma1 = sigma1, sigma2 = sigma2)
@@ -3211,7 +3320,11 @@ nobs.drmTMB_julia_xfam <- function(object, ...) {
 }
 
 #' @export
-is_converged.drmTMB_julia_xfam <- function(object, include_hessian = FALSE, ...) {
+is_converged.drmTMB_julia_xfam <- function(
+  object,
+  include_hessian = FALSE,
+  ...
+) {
   isTRUE(object$opt$convergence == 0L)
 }
 

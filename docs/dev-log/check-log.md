@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Ayumi q4 Julia REML bridge forwarding
+
+Goal:
+
+- Fix the first `drmTMB#544` bridge-gate-drift finding exposed by Ayumi's
+  wall-time follow-up: `drmTMB(..., engine = "julia", REML = TRUE)` admitted
+  the bivariate Gaussian q = 4 phylogenetic location-scale route, but the
+  bivariate bridge options dropped `method = "REML"` before calling DRM.jl.
+
+Changes:
+
+- `drm_julia_bridge_options()` now forwards `list(method = "REML")` for the
+  bivariate q = 4 phylogenetic route while preserving the empty option payload
+  for ML, so default ML parity fixtures stay byte-identical.
+- Added focused bridge tests that build the q = 4 bivariate phylogenetic
+  payload and assert `options$method == "REML"` when the public top-level
+  `REML = TRUE` switch is routed through the bridge.
+- Updated the `drmTMB()` REML argument documentation, the generated Rd file,
+  the Julia-engine article, and NEWS so the public user instruction is
+  `drmTMB(..., REML = TRUE/FALSE)`, with DRM.jl `method = :REML` described only
+  as internal bridge plumbing.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R
+  tests/testthat/test-julia-sigma-phylo-reml.R vignettes/julia-engine.Rmd`
+  completed without errors.
+- `air format R/drmTMB.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::document()'` regenerated
+  `man/drmTMB.Rd`; unrelated RoxygenNote, link-target, author, and example
+  churn from the local roxygen version was manually pruned.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-bridge.R")'` returned 85
+  passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R")'`
+  returned 17 passes and one guarded live-DRM.jl skip:
+  "DRM.jl engine at this path predates sigma-phylo REML support".
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-biv-confint.R")'` returned
+  31 passes with no failures, warnings, or skips.
+- `git diff --check -- NEWS.md R/julia-bridge.R
+  tests/testthat/test-julia-bridge.R
+  tests/testthat/test-julia-sigma-phylo-reml.R vignettes/julia-engine.Rmd`
+  passed.
+- `git diff --check` passed after the final documentation softening pass.
+- `Rscript --vanilla -e 'tools::checkRd("man/drmTMB.Rd")'` passed.
+- `rg -n 'never forwards REML|bivariate q4.*never|q4.*REML.*blocked|biv.*REML.*blocked|missing-data routes stay TMB-native|missing-data routes, imputation|missing = miss_control\(\.\.\.\)|REML not yet wired|REML.*not.*wired' NEWS.md README.md ROADMAP.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'`
+  returned only the historical handover note and a scoped missing-data design
+  sentence, not current public Julia-bridge wording.
+
+Not run:
+
+- A full `devtools::test()`, pkgdown build, and live Ayumi-sized benchmark were
+  not run for this narrow bridge-forwarding slice. The heavy benchmark remains
+  a separate speed-and-inference task because the user's report combines one
+  point fit, profile/bootstrap refits, pairs, and trees.
+
 ## 2026-06-09 -- Experimental Julia engine bridge packaging
 
 Goal:

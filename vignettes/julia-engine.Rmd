@@ -42,12 +42,16 @@ covariance-block grammar `phylo(1 | p | species)` to DRM.jl's `phylo(1 | species
 (DRM.jl implies the 4x4 between-species covariance from the four shared axes).
 Round-trip parity against `engine = "tmb"` matches the log-likelihood and fixed
 effects on a seeded q = 4 fixture (verified locally; CI does not run Julia).
+Use the top-level `REML = TRUE` / `REML = FALSE` argument, as in native
+mixed-model workflows; the bridge converts that public switch to DRM.jl's
+internal `method = :REML` only for supported REML cells.
 
 The bridge does not yet support weights,
-missing-data routes, imputation, non-default control settings, non-Gaussian
-families, random-effect scale formulas beyond the σ-phylo location-scale block,
-`corpair()` formula entries, `newdata`
-prediction, simulation, or persistent Julia fit handles.
+imputation, non-default control settings, most missing-data routes,
+general fixed-effect non-Gaussian models, random-effect scale formulas beyond
+the σ-phylo location-scale block, `corpair()` formula entries, simulation, or
+persistent Julia fit handles. `missing = miss_control(response = "include")` is
+admitted only for Gaussian and bivariate Gaussian observed-response masks.
 
 For ordinary analyses, keep using the default native engine:
 
@@ -380,6 +384,7 @@ structure, then admit only cells with R-scale parity tests.
 | Fixed-effect bivariate Gaussian | bivariate Gaussian ML route with `rho12` | admitted |
 | Gaussian `phylo(1 | species)` on `mu`, `sigma ~ 1` | sparse all-node Gaussian route | admitted for point estimates, fitted values, mean fixed-effect covariance, and profile/bootstrap intervals for the phylogenetic SD target |
 | Gaussian σ-phylo location-scale: `phylo()` on `mu` AND `sigma` (separate / uncorrelated block), optional `REML = TRUE` | sparse location-scale Gaussian route | admitted, with boundary-aware `confint(method = "profile")` for the σ-phylogenetic SD |
+| Bivariate q = 4 phylogenetic location-scale: labelled `phylo()` on `mu1`, `mu2`, `sigma1`, and `sigma2`, optional `REML = TRUE` | exact-gradient sparse q = 4 route | admitted; `REML = TRUE` is forwarded when the DRM.jl build supports the q = 4 REML cell, with profile/bootstrap diagnostics for the four among-axis SDs |
 | Gaussian phylogenetic slopes or multiple distinct structured random-effect blocks | sparse all-node likelihood route | blocked in the R bridge |
 | Non-Gaussian fixed-effect models | family-specific ML route after coefficient-scale parity tests | blocked in the R bridge |
 | Non-Gaussian phylogenetic models | future sparse all-node likelihood route | blocked in the R bridge |
@@ -759,12 +764,13 @@ missing feature parity.
 | --- | --- | --- |
 | JuliaCall or DRM.jl is not found | the bridge is optional and does not install Julia-side dependencies | follow the setup steps above, or use native `engine = "tmb"` |
 | `weights = w` | likelihood weights are not marshalled through the bridge | native `engine = "tmb"` |
-| `missing = miss_control(...)` or `impute = ...` | missing-data likelihood routes stay TMB-native | native `engine = "tmb"` |
+| `impute = ...` or `missing = miss_control(predictor = "model")` | missing-predictor and imputation routes stay TMB-native | native `engine = "tmb"` |
+| `missing = miss_control(response = "include")` outside Gaussian or bivariate Gaussian | observed-response masks are admitted only for the Gaussian bridge cells | native `engine = "tmb"` |
 | non-default `control` | optimizer and storage controls do not yet map to DRM.jl | native `engine = "tmb"` |
 | non-Gaussian families | coefficient-scale parity is not yet tested | native `engine = "tmb"` |
-| `phylo()` outside Gaussian `mu` with `sigma ~ 1` | sparse all-node parity is not tested for that neighbouring syntax | native `engine = "tmb"` |
+| partial or mismatched bivariate `phylo()` axes | the q = 4 route requires matching labelled intercepts on `mu1`, `mu2`, `sigma1`, and `sigma2` | native `engine = "tmb"` |
 | Scale or variance-component Wald intervals from the Gaussian phylo route | the Julia route returns only the mean fixed-effect covariance block in this slice | Julia profile/bootstrap for the admitted phylogenetic SD target below, or native fit for other targets |
-| `predict(fit, newdata = ...)` | the current object stores in-sample values only | native fit or direct DRM.jl call |
+| `predict(fit, newdata = ..., dpar = "sigma")` | fresh-data Julia prediction is currently limited to location parameters | native fit or direct DRM.jl call |
 
 For example, this should fail before JuliaCall setup:
 
@@ -914,10 +920,10 @@ as a spuriously narrow Wald band.
 
 ```{r biv-phylo-fit-shape, eval = FALSE}
 bform_biv_phylo <- bf(
-  mu1 = leaf_area ~ soil_moisture + phylo(1 | species, tree = tree),
-  mu2 = root_mass ~ soil_moisture + phylo(1 | species, tree = tree),
-  sigma1 = ~ 1,
-  sigma2 = ~ 1,
+  mu1 = leaf_area ~ soil_moisture + phylo(1 | p | species, tree = tree),
+  mu2 = root_mass ~ soil_moisture + phylo(1 | p | species, tree = tree),
+  sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+  sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
   rho12 = ~ 1
 )
 
@@ -925,16 +931,17 @@ fit_biv_phylo_julia <- drmTMB(
   bform_biv_phylo,
   family = biv_gaussian(),
   data = plant_traits,
-  engine = "julia"
+  engine = "julia",
+  REML = TRUE
 )
 ```
 
-`REML = TRUE` is also admitted for this cell. The restricted correction now covers
-all four among-axis axes — the two means and the two log scales — giving the
-less-downward-biased among-species SDs; on every axis the REML SD comes back at or
-above its ML value. The boundary-honest interval below is taken from the profile
-likelihood and is the same whether the point fit is ML or REML, so it is the
-number to quote either way.
+`REML = TRUE` is the public restricted-likelihood switch for this cell when the
+installed DRM.jl build includes q = 4 REML support. The bridge forwards the
+REML request to Julia; it does not by itself validate the wall-time or coverage
+properties of a full 10k-tip, multi-tree workflow. For variance-component
+uncertainty, inspect the profile or bootstrap diagnostics returned below rather
+than treating Wald intervals as calibrated at the boundary.
 
 With no `parm`, `confint()` returns all four admitted among-axis SD targets as a
 multi-row table. `confint()` defaults to `method = "wald"`; for these variance
