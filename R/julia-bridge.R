@@ -77,12 +77,7 @@ drmTMB_julia_bridge <- function(
       i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} for other missing-data models."
     ))
   }
-  if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently accepts only default {.arg control}.",
-      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
-    ))
-  }
+  control_overrides <- drm_julia_translate_control(control)
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
@@ -108,7 +103,8 @@ drmTMB_julia_bridge <- function(
     family_type = family_type,
     data = data,
     env = env,
-    method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
+    method = if (isTRUE(REML) && reml_supported) "REML" else "ML",
+    control_overrides = control_overrides
   )
 
   result <- drm_julia_call_bridge(
@@ -131,12 +127,130 @@ drmTMB_julia_bridge <- function(
   )
 }
 
+# All-or-nothing control gate, still used by the cross-family and general-
+# covariance structured bridges, whose option payloads have no optimizer
+# passthrough yet. The main univariate / bivariate bridge uses
+# `drm_julia_translate_control()` instead.
 drm_julia_default_control <- function(control) {
   if (inherits(control, "drm_control")) {
     default <- drm_control()
     return(identical(control, default))
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
+}
+
+# Optimizer-solver names DRM.jl's `drm()` accepts on the bridge path. The Julia
+# bridge turns `options$algorithm` into a `Symbol` and `drm()` validates it
+# (src/gaussian_core.jl). Keeping the list here lets the R side reject an
+# unknown solver with a clear message before crossing the bridge.
+drm_julia_supported_algorithms <- function() {
+  c("auto", "gls", "lbfgs", "em", "sparse", "sparse_lbfgs")
+}
+
+# Translate a user `control` into the subset of optimizer settings the Julia
+# engine honours, instead of the old all-or-nothing gate. DRM.jl's bridge fit
+# (`_bridge_fit`) reads only `options$g_tol` (gradient tolerance) and
+# `options$algorithm` (solver) from `drm()`'s signature, so those are the two
+# knobs an `engine = "julia"` user can tune. They travel in the `optimizer`
+# named list of `drm_control(optimizer = list(g_tol = ..., algorithm = ...))`.
+#
+# Everything else `drm_control()` carries is TMB-only and has no effect on the
+# Julia path, so we abort (rather than silently drop) when a non-default value
+# is supplied: the storage flags (`se`, `keep_data`, `keep_model_frame`,
+# `keep_tmb_object`), the sparse / aggregate fixed-effect flags (`sparse_fixed`,
+# `aggregate_gaussian`), the `optimizer_preset` budgets, and any nlminb
+# iteration caps (`iter.max`, `eval.max`) -- DRM.jl's `drm()` exposes no
+# iteration-cap kwarg on the bridge path, so honouring one would mislead.
+#
+# Returns a (possibly empty) named list with `g_tol` and/or `algorithm`.
+drm_julia_translate_control <- function(control) {
+  if (is.null(control)) {
+    return(list())
+  }
+  if (!inherits(control, "drm_control")) {
+    if (!is.list(control)) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} expects {.arg control} to be a list or a {.cls drm_control} object."
+      )
+    }
+    if (length(control) == 0L) {
+      return(list())
+    }
+    # Bare optimizer list (e.g. `control = list(g_tol = 1e-6)`); reuse the
+    # drm_control() constructor so the same optimizer-list parsing applies.
+    control <- drm_control(optimizer = control)
+  }
+
+  default <- drm_control()
+  unsupported <- character()
+  for (field in c(
+    "se",
+    "keep_data",
+    "keep_model_frame",
+    "keep_tmb_object",
+    "sparse_fixed",
+    "aggregate_gaussian",
+    "optimizer_preset"
+  )) {
+    if (!identical(control[[field]], default[[field]])) {
+      unsupported <- c(unsupported, field)
+    }
+  }
+
+  optimizer <- control$optimizer
+  if (is.null(optimizer)) {
+    optimizer <- list()
+  }
+  overrides <- list()
+  for (name in names(optimizer)) {
+    value <- optimizer[[name]]
+    if (identical(name, "g_tol")) {
+      overrides$g_tol <- drm_julia_validate_g_tol(value)
+    } else if (identical(name, "algorithm")) {
+      overrides$algorithm <- drm_julia_validate_algorithm(value)
+    } else {
+      unsupported <- c(unsupported, name)
+    }
+  }
+
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
+      i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
+      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, or preset controls."
+    ))
+  }
+  overrides
+}
+
+drm_julia_validate_g_tol <- function(value) {
+  if (
+    !is.numeric(value) ||
+      length(value) != 1L ||
+      !is.finite(value) ||
+      value <= 0
+  ) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires {.code optimizer$g_tol} to be a single positive number."
+    )
+  }
+  as.numeric(value)
+}
+
+drm_julia_validate_algorithm <- function(value) {
+  supported <- drm_julia_supported_algorithms()
+  if (
+    !is.character(value) ||
+      length(value) != 1L ||
+      is.na(value) ||
+      !(value %in% supported)
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.code optimizer$algorithm} must be one of {.val {supported}}.",
+      x = "Got {.val {value}}."
+    ))
+  }
+  value
 }
 
 # Missing-data routes the Julia engine supports. `response = "drop"` is always
@@ -269,7 +383,8 @@ drm_julia_bridge_payload <- function(
   family_type,
   data,
   env,
-  method = "ML"
+  method = "ML",
+  control_overrides = list()
 ) {
   formula_spec <- drm_julia_formula_spec(formula)
   phylo_payload <- drm_julia_phylo_payload(
@@ -293,7 +408,11 @@ drm_julia_bridge_payload <- function(
     formula = formula_spec,
     data = data_out,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(phylo_payload, method = method),
+    options = drm_julia_bridge_options(
+      phylo_payload,
+      method = method,
+      control_overrides = control_overrides
+    ),
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -327,34 +446,55 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
   data[, needed, drop = FALSE]
 }
 
-drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
+drm_julia_bridge_options <- function(
+  phylo_payload,
+  method = "ML",
+  control_overrides = list()
+) {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
   # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
   # path (the caller gates both); the default "ML" leaves the non-REML payload
   # byte-identical to the parity-tested baseline.
+  #
+  # `control_overrides` carries the user's tuned `g_tol` / `algorithm` from
+  # `drm_control(optimizer = ...)` (see `drm_julia_translate_control()`); it is
+  # merged LAST so a user override wins over the route default, while an empty
+  # override list leaves every route's payload byte-identical to the baseline.
   reml <- identical(method, "REML")
-  if (is.null(phylo_payload)) {
-    if (reml) {
-      return(list(method = "REML"))
-    }
-    return(list())
-  }
-  if (isTRUE(phylo_payload$bivariate)) {
+  base <- if (is.null(phylo_payload)) {
+    # Fixed-effect Gaussian path: DRM.jl's own g_tol default (1e-8) unless the
+    # user tunes it.
+    list()
+  } else if (isTRUE(phylo_payload$bivariate)) {
     # The q=4 PLSM route uses DRM.jl's own defaults (no g_tol override): the
     # direct-fit parity check matched the bridge to 0 with defaults.
-    return(list())
+    list()
+  } else {
+    # The sparse all-node Gaussian phylo route is L-BFGS-based in DRM.jl's
+    # current default. The direct AVONET/Hackett benchmark shows the exact-
+    # gradient sparse route is insensitive to this tolerance over the bridge-
+    # smoke range, while keeping the R payload explicit and reproducible. This
+    # 1e-4 stays the default only when the user supplies no g_tol override.
+    list(g_tol = 1e-4)
   }
-
-  # The sparse all-node Gaussian phylo route is L-BFGS-based in DRM.jl's
-  # current default. The direct AVONET/Hackett benchmark shows the exact-gradient
-  # sparse route is insensitive to this tolerance over the bridge-smoke range,
-  # while keeping the R payload explicit and reproducible. The sigma-phylo
-  # location-scale cell adds `method = "REML"` here when the caller forwards it.
   if (reml) {
-    return(list(g_tol = 1e-4, method = "REML"))
+    base$method <- "REML"
   }
-  list(g_tol = 1e-4)
+  drm_julia_merge_options(base, control_overrides)
+}
+
+# Merge user optimizer overrides into a route's base options. User values win
+# over the route default (e.g. a tuned g_tol replaces the sparse-phylo 1e-4
+# default); an empty override list returns `base` unchanged.
+drm_julia_merge_options <- function(base, overrides) {
+  if (length(overrides) == 0L) {
+    return(base)
+  }
+  for (name in names(overrides)) {
+    base[[name]] <- overrides[[name]]
+  }
+  base
 }
 
 # Emit a single warning (and fall back to ML) when REML is requested for a
