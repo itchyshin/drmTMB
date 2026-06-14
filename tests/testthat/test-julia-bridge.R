@@ -472,6 +472,15 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   expect_true(all(c("y1", "y2", "x", "species") %in% names(payload$data)))
   expect_match(payload$tree, "^\\(\\(sp_1:1")
 
+  reml_payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = form,
+    family_type = "biv_gaussian",
+    data = dat,
+    env = environment(),
+    method = "REML"
+  )
+  expect_equal(reml_payload$options, list(method = "REML"))
+
   # rho12 may not carry phylo on the bridge route.
   expect_error(
     drmTMB:::drm_julia_phylo_payload(

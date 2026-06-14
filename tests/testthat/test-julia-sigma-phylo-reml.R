@@ -1,14 +1,14 @@
 # Gaussian σ-phylo location-scale REML via engine = "julia" (Ayumi #2).
 #
 # DRM.jl now fits the Gaussian location-scale phylo cell -- phylo(1 | g) on the
-# mean AND on sigma -- by restricted maximum likelihood (`drm(...; method =
-# :REML)`). This is a capability the native TMB engine lacks, so the bridge must
-# let `method = "REML"` through the REML gate for THIS cell while still rejecting
+# mean AND on sigma -- and the bivariate q4 phylogenetic location-scale model by
+# restricted maximum likelihood (`drm(...; method = :REML)`). These are
+# capabilities the native TMB engine lacks, so the bridge must let
+# `method = "REML"` through the REML gate for THESE cells while still rejecting
 # (warn + fall back to ML) the cells DRM.jl does not yet REML-fit:
 #   * mean-only phylo Gaussian (phylo on mu, sigma ~ 1)
 #   * the phylo-only families (Poisson / NB2 / Gamma / Beta / Binomial)
 #   * cross-family and general-covariance (relmat / animal / spatial) routes
-# and the native q4 bivariate phylo cell (`biv_gaussian`, never `gaussian`).
 #
 # The gate-logic tests below need no Julia and always run. The live REML
 # round-trip is guarded so it is SKIPPED -- never failed -- when JuliaCall,
@@ -62,10 +62,15 @@ test_that("bridge options forward method = REML only when REML is requested", {
     list(g_tol = 1e-4)
   )
 
-  # Bivariate q4 phylo uses DRM.jl defaults and never forwards REML.
+  # Bivariate q4 phylo uses DRM.jl optimizer defaults, but REML is still a real
+  # estimator choice and must be forwarded through the bridge.
   biv_payload <- list(bivariate = TRUE)
   expect_identical(
     drmTMB:::drm_julia_bridge_options(biv_payload, method = "REML"),
+    list(method = "REML")
+  )
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(biv_payload, method = "ML"),
     list()
   )
 })
@@ -95,13 +100,24 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
   # result new_drmTMB_julia() can wrap.
   captured <- new.env(parent = emptyenv())
   fake_result <- list(
-    coef_names = c("mu_(Intercept)", "mu_x", "sigma_(Intercept)",
-      "resd_phylo(1 | species)"),
+    coef_names = c(
+      "mu_(Intercept)",
+      "mu_x",
+      "sigma_(Intercept)",
+      "resd_phylo(1 | species)"
+    ),
     coefficients = c(0, 0, 0, 0),
     vcov = matrix(NA_real_, 4L, 4L),
-    loglik = -10, aic = 28, bic = 30, df = 4L, nobs = 8L,
-    fitted = rep(0, 8L), residuals = rep(0, 8L), sigma = rep(1, 8L),
-    corpairs = list(), converged = TRUE
+    loglik = -10,
+    aic = 28,
+    bic = 30,
+    df = 4L,
+    nobs = 8L,
+    fitted = rep(0, 8L),
+    residuals = rep(0, 8L),
+    sigma = rep(1, 8L),
+    corpairs = list(),
+    converged = TRUE
   )
   testthat::local_mocked_bindings(
     drm_julia_call_bridge = function(formula, family, data, tree, options) {
@@ -168,9 +184,16 @@ test_that("REML stays gated for the phylo-only count family cell", {
     coef_names = c("mu_(Intercept)", "mu_x", "resd_phylo(1 | species)"),
     coefficients = c(0, 0, 0),
     vcov = matrix(NA_real_, 3L, 3L),
-    loglik = -10, aic = 26, bic = 28, df = 3L, nobs = 8L,
-    fitted = rep(0, 8L), residuals = rep(0, 8L), sigma = rep(1, 8L),
-    corpairs = list(), converged = TRUE
+    loglik = -10,
+    aic = 26,
+    bic = 28,
+    df = 3L,
+    nobs = 8L,
+    fitted = rep(0, 8L),
+    residuals = rep(0, 8L),
+    sigma = rep(1, 8L),
+    corpairs = list(),
+    converged = TRUE
   )
   testthat::local_mocked_bindings(
     drm_julia_call_bridge = function(formula, family, data, tree, options) {
@@ -276,7 +299,9 @@ test_that("Gaussian sigma-phylo REML fit via engine = 'julia' is finite and sane
       # phylo cells; that is an engine-version gap, not an R-bridge failure, so
       # skip rather than fail. The R-side gate relax is covered by the unit tests
       # above (the bridge forwards method = "REML" for this exact cell).
-      if (grepl("method = :REML is currently implemented only", msg, fixed = TRUE)) {
+      if (
+        grepl("method = :REML is currently implemented only", msg, fixed = TRUE)
+      ) {
         testthat::skip(
           "DRM.jl engine at this path predates sigma-phylo REML support"
         )

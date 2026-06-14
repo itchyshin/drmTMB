@@ -124,16 +124,19 @@
 #' @param engine Computational engine. The default `"tmb"` uses the native
 #'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
 #'   through JuliaCall for the supported bridge slice.
-#' @param REML Logical; use restricted maximum likelihood for the first
-#'   univariate Gaussian mixed-model slice. The current REML route supports
-#'   ordinary dense `mu` fixed effects, ordinary `mu` random intercepts or
-#'   slopes, diagonal or dense known sampling covariance through [meta_V()],
-#'   non-unit likelihood `weights` (with diagonal or no known covariance),
-#'   intercept-only `sigma`, complete responses, and no aggregation,
-#'   structured effects, or direct `sd()` scale formulae. Use the default
-#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-Gaussian models, and currently
-#'   unsupported Gaussian extensions.
+#' @param REML Logical; use restricted maximum likelihood where the selected
+#'   engine supports it. Native `engine = "tmb"` currently supports the first
+#'   univariate Gaussian mixed-model slice: ordinary dense `mu` fixed effects,
+#'   ordinary `mu` random intercepts or slopes, diagonal or dense known sampling
+#'   covariance through [meta_V()], non-unit likelihood `weights` (with diagonal
+#'   or no known covariance), intercept-only `sigma`, complete responses, and no
+#'   aggregation, structured effects, or direct `sd()` scale formulae.
+#'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
+#'   Gaussian bridge cells, including fixed-effect location-scale models,
+#'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
+#'   phylogenetic location-scale route. Use the default `REML = FALSE` for
+#'   likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
+#'   formulas, non-Gaussian models, and currently unsupported extensions.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.

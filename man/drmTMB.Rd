@@ -98,16 +98,19 @@ zero-inflation, random, or structured response terms.}
 \code{drmTMB} TMB backend. The experimental \code{"julia"} route calls DRM.jl
 through JuliaCall for the supported bridge slice.}
 
-\item{REML}{Logical; use restricted maximum likelihood for the first
-univariate Gaussian mixed-model slice. The current REML route supports
-ordinary dense \code{mu} fixed effects, ordinary \code{mu} random intercepts or
-slopes, diagonal or dense known sampling covariance through \code{\link[=meta_V]{meta_V()}},
-non-unit likelihood \code{weights} (with diagonal or no known covariance),
-intercept-only \code{sigma}, complete responses, and no aggregation,
-structured effects, or direct \code{sd()} scale formulae. Use the default
-\code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
-different fixed-effect formulas, non-Gaussian models, and currently
-unsupported Gaussian extensions.}
+\item{REML}{Logical; use restricted maximum likelihood where the selected
+engine supports it. Native \code{engine = "tmb"} currently supports the first
+univariate Gaussian mixed-model slice: ordinary dense \code{mu} fixed effects,
+ordinary \code{mu} random intercepts or slopes, diagonal or dense known sampling
+covariance through \code{\link[=meta_V]{meta_V()}}, non-unit likelihood \code{weights} (with diagonal
+or no known covariance), intercept-only \code{sigma}, complete responses, and no
+aggregation, structured effects, or direct \code{sd()} scale formulae.
+Experimental \code{engine = "julia"} forwards \code{REML = TRUE} only for supported
+Gaussian bridge cells, including fixed-effect location-scale models,
+Gaussian \code{sigma}-phylo location-scale models, and the bivariate q = 4
+phylogenetic location-scale route. Use the default \code{REML = FALSE} for
+likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
+formulas, non-Gaussian models, and currently unsupported extensions.}
 
 \item{...}{Reserved for future model options.}
 }
