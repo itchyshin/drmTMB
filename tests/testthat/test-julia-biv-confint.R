@@ -114,14 +114,17 @@ drm_julia_biv_fake_result <- function(
   method = "profile"
 ) {
   # Mimics what DRM.jl returns as result$multi == TRUE.
+  # DRM.jl returns the among-axis SD bounds ALREADY on the SD (response) scale;
+  # drm_julia_inference_confint_multi uses them directly (no exp/scale). The bounds
+  # here are therefore on the SD scale, not the log scale.
   list(
     method = method,
     multi = TRUE,
     param = c("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"),
     estimate = c(1.2, 0.9, 0.6, 0.4),
     std_error = c(NaN, NaN, NaN, NaN),  # NaN for profile
-    lower = log(c(0.6, 0.4, 0.3, 0.2)),  # log scale; exp'd in confint_multi
-    upper = ifelse(is.infinite(uppers), Inf, log(uppers)),
+    lower = c(0.6, 0.4, 0.3, 0.2),  # SD scale; used directly in confint_multi
+    upper = ifelse(is.infinite(uppers), Inf, uppers),
     bounded = bounded,
     status = rep("ok", 4L),
     message = rep("", 4L),

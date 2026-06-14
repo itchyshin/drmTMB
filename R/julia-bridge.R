@@ -1109,25 +1109,37 @@ drm_julia_profile_targets_biv <- function(object) {
   # drm_bridge_inference re-derives the estimates/CIs from formula + data + tree. So
   # build the 4 rows from the shared phylo group, with placeholder estimates (the reader
   # uses the Julia SD-scale bounds directly, not these).
-  # Recover the actual grouping variable from the stored parsed formula's phylo
-  # terms (same extraction as drm_julia_phylo_payload). The bivariate q4 shares
-  # ONE group across the four axes, so the first phylo term's $group is it. This
-  # avoids the literal "group" fallback, which mislabels the confint() parm rows
-  # (bp$group is NULL on the live bivariate path).
-  phylo_terms <- unlist(
-    lapply(bp$formula$entries, function(entry) {
-      Filter(function(term) identical(term$type, "phylo"), entry$structured)
-    }),
-    recursive = FALSE
-  )
-  group <- if (length(phylo_terms) && !is.null(phylo_terms[[1]]$group)) {
-    phylo_terms[[1]]$group
-  } else if (!is.null(bp$group)) {
-    bp$group
+  # Term label for the four axis rows. The phylo term shares ONE group across the
+  # four axes; its rendered label ("phylo(1 | <group>)") is carried on the fit's
+  # structured_sd_scales names, which the bridge populates on BOTH the live fit and
+  # the synthetic fixtures — so use that as the primary source. Fall back to the
+  # parsed formula's phylo group, then bp$group, then a literal. This labels the
+  # confint() parm rows with the real grouping variable instead of "group".
+  scales <- object$structured_sd_scales
+  if (is.null(scales)) scales <- bp$structured_sd_scales
+  scale_label <- if (!is.null(scales) && length(scales) && !is.null(names(scales))) {
+    names(scales)[[1]]
   } else {
-    "group"
+    NULL
   }
-  term <- paste0("phylo(1 | ", group, ")")
+  term <- if (!is.null(scale_label) && nzchar(scale_label)) {
+    scale_label
+  } else {
+    phylo_terms <- unlist(
+      lapply(bp$formula$entries, function(entry) {
+        Filter(function(term) identical(term$type, "phylo"), entry$structured)
+      }),
+      recursive = FALSE
+    )
+    group <- if (length(phylo_terms) && !is.null(phylo_terms[[1]]$group)) {
+      phylo_terms[[1]]$group
+    } else if (!is.null(bp$group)) {
+      bp$group
+    } else {
+      "group"
+    }
+    paste0("phylo(1 | ", group, ")")
+  }
   rows <- vector("list", length(biv_dpars))
   for (i in seq_along(biv_dpars)) {
     dpar <- biv_dpars[[i]]
