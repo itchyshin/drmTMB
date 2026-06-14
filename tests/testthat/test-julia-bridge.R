@@ -471,7 +471,7 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
       control = list(eval.max = 10),
       engine = "julia"
     ),
-    "default .*control"
+    "does not support .*control"
   )
   # Beta-binomial remains outside the Workflow G FE Julia admission.
   expect_error(

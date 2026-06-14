@@ -132,6 +132,9 @@ automatic-differentiation object are expensive to retain.
 For optimizer-only settings, \code{control = list(eval.max = 1000)} remains
 valid. When using \code{drm_control()}, put optimizer arguments inside
 \code{optimizer = list(...)}; do not pass \code{eval.max} directly to \code{drm_control()}.
+For \code{engine = "julia"} base bridge fits, only \code{optimizer$g_tol} and
+\code{optimizer$algorithm} are forwarded to DRM.jl. TMB-specific optimizer
+budgets, presets and storage controls are rejected rather than ignored.
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.

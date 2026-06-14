@@ -11,6 +11,9 @@
 #' For optimizer-only settings, `control = list(eval.max = 1000)` remains
 #' valid. When using `drm_control()`, put optimizer arguments inside
 #' `optimizer = list(...)`; do not pass `eval.max` directly to `drm_control()`.
+#' For `engine = "julia"` base bridge fits, only `optimizer$g_tol` and
+#' `optimizer$algorithm` are forwarded to DRM.jl. TMB-specific optimizer
+#' budgets, presets and storage controls are rejected rather than ignored.
 #' Presets `"careful"` and `"robust"` expand to explicit `iter.max` and
 #' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
 #' the selected preset.

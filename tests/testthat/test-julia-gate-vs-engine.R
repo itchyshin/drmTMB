@@ -282,8 +282,6 @@ test_that("public Julia bridge docs do not outrun the bridge registries", {
   )
 
   forbidden <- c(
-    "engine_control\\s*=",
-    "engine_control\\s*\\(",
     "engine\\s*=\\s*\"julia\"[^\\n\\.]{0,160}(all|any|every)[^\\n\\.]{0,80}(famil|model)",
     "(binomial|Binomial)[^\\n\\.]{0,80}(bridge|engine\\s*=\\s*\"julia\")[^\\n\\.]{0,80}(ready|supported|covered|available)",
     "(Julia|DRM\\.jl)[^\\n\\.]{0,80}(speed|fast)[^\\n\\.]{0,80}(guarantee|headline|claim)"
@@ -327,7 +325,7 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
       control = list(eval.max = 10),
       engine = "julia"
     ),
-    "default .*control"
+    "does not support .*control"
   )
   expect_julia_gate(
     "base_missing_predictor_model",

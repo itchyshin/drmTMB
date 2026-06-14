@@ -314,3 +314,17 @@ model you intend to fit. In particular:
 
 If the bridge rejects a combination, use the native engine for that analysis
 and retain the warning or error when reporting the limitation.
+### Julia optimizer controls
+
+For the base Julia bridge, use the Julia-native controls through the existing
+`drm_control()` interface:
+
+```r
+control = drm_control(optimizer = list(g_tol = 1e-6, algorithm = "lbfgs"))
+```
+
+These settings control DRM.jl's gradient tolerance and solver choice. They do
+not make its optimizer equivalent to TMB's `nlminb()` presets or iteration
+budgets. TMB-only controls, including `iter.max`, `eval.max`, storage flags and
+`optimizer_preset`, are rejected before Julia starts; use `engine = "tmb"` for
+those controls.
