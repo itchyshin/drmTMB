@@ -69,14 +69,12 @@ drmTMB_julia_bridge <- function(
       "{.code engine = \"julia\"} does not support {.arg impute} yet."
     )
   }
+  family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
-  if (
-    !identical(missing_control$response, "drop") ||
-      !identical(missing_control$predictor, "fail")
-  ) {
+  if (!drm_julia_missing_supported(missing_control, family_type)) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} does not support {.arg missing} routes yet.",
-      i = "Use the native {.code engine = \"tmb\"} path for missing-data models."
+      "{.code engine = \"julia\"} does not support this {.arg missing} route yet.",
+      i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} for other missing-data models."
     ))
   }
   if (!drm_julia_default_control(control)) {
@@ -86,7 +84,6 @@ drmTMB_julia_bridge <- function(
     ))
   }
 
-  family_type <- drm_julia_bridge_family_type(family)
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
@@ -140,6 +137,19 @@ drm_julia_default_control <- function(control) {
     return(identical(control, default))
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
+}
+
+# Missing-data routes the Julia engine supports. `response = "drop"` is always
+# allowed. `response = "include"` is allowed for Gaussian responses: DRM.jl fits
+# the OBSERVED responses while keeping the full tree / design, i.e. the Gaussian
+# observed-data likelihood (the missing rows leave the likelihood but their
+# phylogenetic positions still inform the covariance). This mirrors native TMB's
+# Gaussian-only `response = "include"` scope. `predictor` must be "fail".
+drm_julia_missing_supported <- function(missing_control, family_type) {
+  identical(missing_control$predictor, "fail") &&
+    (identical(missing_control$response, "drop") ||
+      (identical(missing_control$response, "include") &&
+        identical(family_type, "gaussian")))
 }
 
 # Bridge-local family classifier. drmTMB's native `drm_family_type()` is the
@@ -2231,14 +2241,12 @@ drmTMB_julia_structured_bridge <- function(
       "{.code engine = \"julia\"} structured models do not support {.arg impute} yet."
     )
   }
+  family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
-  if (
-    !identical(missing_control$response, "drop") ||
-      !identical(missing_control$predictor, "fail")
-  ) {
+  if (!drm_julia_missing_supported(missing_control, family_type)) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} structured models do not support {.arg missing} routes yet.",
-      i = "Use the native {.code engine = \"tmb\"} path for missing-data structured models."
+      "{.code engine = \"julia\"} structured models do not support this {.arg missing} route yet.",
+      i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} otherwise."
     ))
   }
   if (!drm_julia_default_control(control)) {
@@ -2248,7 +2256,6 @@ drmTMB_julia_structured_bridge <- function(
     ))
   }
 
-  family_type <- drm_julia_bridge_family_type(family)
   family_tag <- drm_julia_structured_family_tag(family_type)
   payload <- drm_julia_structured_payload(
     formula = formula,
