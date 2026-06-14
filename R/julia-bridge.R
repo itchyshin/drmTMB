@@ -149,7 +149,9 @@ drm_julia_missing_supported <- function(missing_control, family_type) {
   identical(missing_control$predictor, "fail") &&
     (identical(missing_control$response, "drop") ||
       (identical(missing_control$response, "include") &&
-        identical(family_type, "gaussian")))
+        # response="include" works for univariate Gaussian AND the bivariate q=4
+        # phylo engine (per-cell observed mask threaded through the exact gradient).
+        family_type %in% c("gaussian", "biv_gaussian")))
 }
 
 # Bridge-local family classifier. drmTMB's native `drm_family_type()` is the
@@ -299,7 +301,8 @@ drm_julia_bridge_payload <- function(
       NULL
     } else {
       phylo_payload$structured_sd_scales
-    }
+    },
+    bivariate = if (is.null(phylo_payload)) FALSE else isTRUE(phylo_payload$bivariate)
   )
 }
 
@@ -1039,6 +1042,16 @@ new_drmTMB_julia <- function(
 }
 
 drm_julia_profile_targets <- function(object) {
+  # Bivariate biv_gaussian q=4 path: four axes mu1/mu2/sigma1/sigma2, each with
+  # a phylo SD stored in sdpars[[dpar]]. A biv_gaussian fit IS the bivariate case;
+  # drm_julia_profile_targets_biv returns empty targets if no phylo SD is present
+  # (e.g. a residual-only bivariate fit), so the gate is just model_type.
+  is_biv <- identical(object$model$model_type, "biv_gaussian")
+  if (is_biv) {
+    return(drm_julia_profile_targets_biv(object))
+  }
+
+  # Univariate path (original behaviour): single phylo SD on dpar == "mu".
   values <- object$sdpars$mu
   if (is.null(values) || length(values) == 0L) {
     return(empty_profile_targets())
@@ -1072,6 +1085,49 @@ drm_julia_profile_targets <- function(object) {
       "julia_bridge_payload_required"
     }
   )
+  row.names(out) <- NULL
+  validate_profile_targets(out)
+}
+
+# Bivariate profile targets: one row per axis (mu1, mu2, sigma1, sigma2).
+# Each axis has its phylo SD in sdpars[[dpar]], keyed by the axis's phylo term
+# label. The Julia `param` names are "sd_<dpar>" (e.g. "sd_mu1") and are used
+# later in drm_julia_inference_confint_row to join rows to the Julia result.
+drm_julia_profile_targets_biv <- function(object) {
+  biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
+  bp <- object$bridge_payload
+  # No phylo tree -> no among-axis SDs to profile (e.g. a residual-only bivariate fit);
+  # fall back so confint() reports the supported-targets message.
+  if (is.null(bp) || is.null(bp$tree)) {
+    return(empty_profile_targets())
+  }
+  # The bivariate q4 julia fit does NOT populate sdpars (the among-axis Sigma_a lives
+  # in the phylocov block); the targets only need to NAME the four axes — DRM.jl's
+  # drm_bridge_inference re-derives the estimates/CIs from formula + data + tree. So
+  # build the 4 rows from the shared phylo group, with placeholder estimates (the reader
+  # uses the Julia SD-scale bounds directly, not these).
+  group <- if (!is.null(bp$group)) bp$group else "group"
+  term <- paste0("phylo(1 | ", group, ")")
+  rows <- vector("list", length(biv_dpars))
+  for (i in seq_along(biv_dpars)) {
+    dpar <- biv_dpars[[i]]
+    rows[[i]] <- new_profile_target_row(
+      parm = paste0("sd:", dpar, ":", term),
+      target_class = "random-effect-sd",
+      dpar = dpar,
+      term = term,
+      tmb_parameter = paste0("resd_", dpar),
+      index = i,
+      estimate = 0.5,            # placeholder — DRM.jl returns the real estimate/CI
+      link_estimate = log(0.5),
+      scale = "response",
+      transformation = "exp",
+      target_type = "direct",
+      profile_ready = TRUE,
+      profile_note = "ready"
+    )
+  }
+  out <- do.call(rbind, rows)
   row.names(out) <- NULL
   validate_profile_targets(out)
 }
@@ -1274,7 +1330,6 @@ confint.drmTMB_julia <- function(
     fixed_only = FALSE
   )
   drm_julia_validate_inference_targets(targets)
-  target <- targets[1L, , drop = FALSE]
   result <- drm_julia_call_inference(
     object = object,
     method = method,
@@ -1283,8 +1338,21 @@ confint.drmTMB_julia <- function(
     seed = seed,
     threads = threads
   )
+  # Multi-row (bivariate) path: DRM.jl returns result$multi == TRUE with
+  # equal-length vectors for param/estimate/lower/upper/etc. Map each Julia
+  # param name ("sd_mu1", …) to the matching target row by dpar, then build
+  # one confint row per axis and rbind them.
+  if (isTRUE(as.logical(result$multi))) {
+    return(drm_julia_inference_confint_multi(
+      targets = targets,
+      result = result,
+      level = level,
+      method = method
+    ))
+  }
+  # Univariate path: single target row, scalar lower/upper.
   drm_julia_inference_confint_row(
-    target = target,
+    target = targets[1L, , drop = FALSE],
     result = result,
     level = level,
     method = method
@@ -1417,6 +1485,27 @@ drm_julia_validate_seed <- function(seed) {
 }
 
 drm_julia_validate_inference_targets <- function(targets) {
+  biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
+
+  # Bivariate case: exactly 4 rows, one per axis, all phylo RE-SDs.
+  is_biv_targets <- nrow(targets) == 4L &&
+    all(targets$target_class == "random-effect-sd") &&
+    identical(sort(targets$dpar), sort(biv_dpars)) &&
+    all(startsWith(targets$term, "phylo(")) &&
+    all(startsWith(targets$tmb_parameter, "resd_"))
+  if (is_biv_targets) {
+    not_ready <- !targets$profile_ready
+    if (any(not_ready)) {
+      first_bad <- which(not_ready)[[1L]]
+      cli::cli_abort(c(
+        "Julia-engine bivariate target {.val {targets$parm[[first_bad]]}} is not ready for profile or bootstrap intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[first_bad]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
+  # Univariate case: exactly 1 row, dpar == "mu", tmb_parameter == "resd".
   if (
     nrow(targets) != 1L ||
       !identical(targets$target_class[[1L]], "random-effect-sd") ||
@@ -1425,8 +1514,8 @@ drm_julia_validate_inference_targets <- function(targets) {
       !identical(targets$tmb_parameter[[1L]], "resd")
   ) {
     cli::cli_abort(c(
-      "Julia-engine profile and bootstrap intervals currently support exactly one Gaussian phylogenetic SD target.",
-      i = "Use {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted bridge slice, or refit with {.code engine = \"tmb\"}."
+      "Julia-engine profile and bootstrap intervals currently support exactly one Gaussian phylogenetic SD target (univariate) or all four axes (bivariate biv_gaussian).",
+      i = "Use {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate bridge slice, or refit with {.code engine = \"tmb\"}."
     ))
   }
   if (!isTRUE(targets$profile_ready[[1L]])) {
@@ -1488,6 +1577,110 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
     }
     out$bootstrap.workers <- as.integer(result$worker_threads)
   }
+  row.names(out) <- NULL
+  out
+}
+
+# Bivariate multi-row confint builder.
+#
+# DRM.jl returns a multi-row payload (result$multi == TRUE) with equal-length
+# vectors: param ("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"), lower, upper,
+# estimate, std_error (NaN for profile), bounded (profile only), status,
+# message, elapsed (scalar). We join by dpar: "sd_mu1" -> dpar "mu1", etc.
+# `upper` may be Inf on a flat/collapsed axis — left as-is, never coerced to NA.
+# `std_error` may be NaN for profile — ignored (only lower/upper matter).
+drm_julia_inference_confint_multi <- function(targets, result, level, method) {
+  result <- as.list(result)
+
+  # Julia returns param names like "sd_mu1"; strip leading "sd_" to get dpar.
+  julia_params <- as.character(unlist(result$param, use.names = FALSE))
+  julia_dpar <- sub("^sd_", "", julia_params)
+  julia_lower <- as.numeric(unlist(result$lower, use.names = FALSE))
+  julia_upper <- as.numeric(unlist(result$upper, use.names = FALSE))
+  julia_estimate <- as.numeric(unlist(result$estimate, use.names = FALSE))
+  julia_status <- as.character(unlist(result$status, use.names = FALSE))
+  julia_message <- as.character(unlist(result$message, use.names = FALSE))
+  # bounded is profile-only; may be absent for bootstrap.
+  julia_bounded <- if (!is.null(result$bounded)) {
+    as.logical(unlist(result$bounded, use.names = FALSE))
+  } else {
+    rep(TRUE, length(julia_params))
+  }
+
+  # Scalar diagnostics (elapsed, thread counts) come from the top-level result.
+  # NULL-safe scalars: the profile payload omits the bootstrap/threading fields, so
+  # as.integer(NULL) would give a length-0 column and break data.frame() ("1, 0 rows").
+  .int1 <- function(v) if (is.null(v) || length(v) == 0L) NA_integer_ else as.integer(v)[[1L]]
+  .num1 <- function(v) if (is.null(v) || length(v) == 0L) NA_real_ else as.numeric(v)[[1L]]
+  elapsed <- .num1(result$elapsed)
+  threaded <- isTRUE(result$threaded)
+  worker_threads <- .int1(result$worker_threads)
+  julia_threads <- .int1(result$julia_threads)
+  blas_threads <- .int1(result$blas_threads)
+  bootstrap_used <- .int1(result$used)
+  bootstrap_failed <- .int1(result$failed)
+
+  rows <- vector("list", nrow(targets))
+  for (i in seq_len(nrow(targets))) {
+    target <- targets[i, , drop = FALSE]
+    dpar_i <- target$dpar[[1L]]
+    # Match target dpar to Julia param ("mu1" -> "sd_mu1").
+    ji <- match(dpar_i, julia_dpar)
+    if (is.na(ji)) {
+      cli::cli_abort(c(
+        "Bivariate confint: DRM.jl result has no entry for axis {.val {dpar_i}}.",
+        i = "Julia returned params: {.val {julia_params}}."
+      ))
+    }
+    # DRM.jl returns the among-axis SD bounds ALREADY on the SD (response) scale —
+    # do NOT exp()/scale them (that is the univariate log-SD convention). `upper` may
+    # be Inf on a flat/collapsed axis; let it propagate (never coerce to NA).
+    lo <- julia_lower[[ji]]
+    hi <- julia_upper[[ji]]
+    is_bounded <- isTRUE(julia_bounded[[ji]])
+    # status/message are SCALAR for the whole call (one profile/bootstrap run), so
+    # recycle them across axes rather than indexing per-axis.
+    status_i <- if (length(julia_status) >= ji) julia_status[[ji]] else if (length(julia_status) >= 1L) julia_status[[1L]] else NA_character_
+    message_i <- if (length(julia_message) >= ji) julia_message[[ji]] else if (length(julia_message) >= 1L) julia_message[[1L]] else ""
+    diagnostics <- if (all(is.finite(c(lo, hi)))) {
+      profile_interval_diagnostics(c(lo, hi), transformation = target$transformation[[1L]])
+    } else {
+      list(boundary = TRUE, message = "upper bound unbounded (flat / collapsed axis)")
+    }
+    row_i <- data.frame(
+      parm = target$parm,
+      level = level,
+      lower = lo,
+      upper = hi,
+      scale = target$scale,
+      transformation = target$transformation,
+      tmb_parameter = target$tmb_parameter,
+      index = target$index,
+      method = method,
+      profile.engine = if (identical(method, "profile")) {
+        "julia_profile_result"
+      } else {
+        NA_character_
+      },
+      conf.status = status_i,
+      profile.boundary = if (identical(method, "profile")) !is_bounded else diagnostics$boundary,
+      profile.message = if (nzchar(message_i)) message_i else diagnostics$message,
+      julia.threaded = threaded,
+      julia.workers = worker_threads,
+      julia.threads = julia_threads,
+      julia.blas_threads = blas_threads,
+      julia.elapsed = elapsed,
+      stringsAsFactors = FALSE
+    )
+    if (identical(method, "bootstrap")) {
+      row_i$bootstrap.n <- bootstrap_used
+      row_i$bootstrap.failed <- bootstrap_failed
+      row_i$bootstrap.parallel <- if (threaded) "julia_threads" else "none"
+      row_i$bootstrap.workers <- worker_threads
+    }
+    rows[[i]] <- row_i
+  }
+  out <- do.call(rbind, rows)
   row.names(out) <- NULL
   out
 }
