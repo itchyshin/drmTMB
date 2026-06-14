@@ -91,11 +91,14 @@ drmTMB_julia_bridge <- function(
   # location-scale model (phylo on mu AND sigma), which DRM.jl now fits by
   # restricted maximum likelihood (Ayumi #2). The mean-only phylo Gaussian route
   # (sigma ~ 1) and the phylo-only families still return ML on the DRM.jl side,
-  # so warn and fit ML rather than silently mislead. Bivariate q4 phylo is
-  # `biv_gaussian`, not `gaussian`, so it stays gated here too.
+  # so warn and fit ML rather than silently mislead. Bivariate q4 phylo
+  # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
+  # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
+  # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
-  reml_supported <- identical(family_type, "gaussian") &&
-    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))
+  reml_supported <- (identical(family_type, "gaussian") &&
+    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
+    (identical(family_type, "biv_gaussian") && isTRUE(has_phylo))
   if (isTRUE(REML) && !reml_supported) {
     drm_julia_warn_reml_unsupported(REML, if (isTRUE(has_phylo)) {
       "phylogenetic Gaussian"
@@ -1106,7 +1109,24 @@ drm_julia_profile_targets_biv <- function(object) {
   # drm_bridge_inference re-derives the estimates/CIs from formula + data + tree. So
   # build the 4 rows from the shared phylo group, with placeholder estimates (the reader
   # uses the Julia SD-scale bounds directly, not these).
-  group <- if (!is.null(bp$group)) bp$group else "group"
+  # Recover the actual grouping variable from the stored parsed formula's phylo
+  # terms (same extraction as drm_julia_phylo_payload). The bivariate q4 shares
+  # ONE group across the four axes, so the first phylo term's $group is it. This
+  # avoids the literal "group" fallback, which mislabels the confint() parm rows
+  # (bp$group is NULL on the live bivariate path).
+  phylo_terms <- unlist(
+    lapply(bp$formula$entries, function(entry) {
+      Filter(function(term) identical(term$type, "phylo"), entry$structured)
+    }),
+    recursive = FALSE
+  )
+  group <- if (length(phylo_terms) && !is.null(phylo_terms[[1]]$group)) {
+    phylo_terms[[1]]$group
+  } else if (!is.null(bp$group)) {
+    bp$group
+  } else {
+    "group"
+  }
   term <- paste0("phylo(1 | ", group, ")")
   rows <- vector("list", length(biv_dpars))
   for (i in seq_along(biv_dpars)) {
