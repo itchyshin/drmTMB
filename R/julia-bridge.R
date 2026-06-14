@@ -15,6 +15,71 @@ julia_bridge_supported_dpars <- function() {
   )
 }
 
+drm_julia_intentional_gates <- function() {
+  data.frame(
+    gate_id = c(
+      "base_weights",
+      "base_impute",
+      "base_control",
+      "base_missing_predictor_model",
+      "base_missing_response_nongaussian",
+      "base_unsupported_family",
+      "base_nonphylo_count",
+      "biv_partial_phylo_q4",
+      "biv_rho12_phylo",
+      "structured_unsupported_family",
+      "structured_sigma_predictor",
+      "structured_precision_slot",
+      "xfam_missing_route",
+      "xfam_rho12_formula",
+      "xfam_dispersionless_sigma"
+    ),
+    route = c(
+      rep("base", 7),
+      rep("bivariate_phylo", 2),
+      rep("structured", 3),
+      rep("cross_family", 3)
+    ),
+    guard = c(
+      "weights",
+      "impute",
+      "control",
+      "missing predictor",
+      "missing response",
+      "family",
+      "non-phylo family",
+      "partial q4 phylo",
+      "rho12 phylo",
+      "structured family",
+      "structured sigma",
+      "structured matrix slot",
+      "cross-family missing",
+      "cross-family rho12",
+      "cross-family dispersion"
+    ),
+    action = "error",
+    evidence = c(
+      "DRM.jl bridge payload has no weights slot.",
+      "DRM.jl bridge payload has no imputation contract.",
+      "Julia optimizer controls need an explicit engine_control surface.",
+      "DRM.jl bridge receives complete predictor columns only.",
+      "Observed-response masks are admitted only for Gaussian bridge cells.",
+      "The R bridge has no coefficient-scale parity tests for this family.",
+      "The Julia speed edge for these families is the large-p phylo route.",
+      "DRM.jl q4 PLSM bridge expects phylo terms on mu1, mu2, sigma1, and sigma2.",
+      "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
+      "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
+      "DRM.jl general-covariance bridge currently requires sigma ~ 1.",
+      "DRM.jl bridge consumes covariance/relatedness matrices, not precision slots.",
+      "Cross-family bridge currently drops missing rows and requires complete axes.",
+      "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
+      "Poisson and Binomial cross-family axes have no dispersion sub-model."
+    ),
+    issue = "drmTMB#544",
+    stringsAsFactors = FALSE
+  )
+}
+
 drm_julia_setup_state <- new.env(parent = emptyenv())
 drm_julia_phylo_payload_cache <- new.env(parent = emptyenv())
 
