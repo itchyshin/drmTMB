@@ -894,14 +894,17 @@ ancestry is modelled.
 
 This is the cell where Wald intervals are not just imprecise but unavailable.
 An among-axis SD is a non-negative variance component, so its true value can sit
-on the boundary at zero. When one axis collapses, the fitted covariance is
-near-singular, the Hessian at the optimum stops being positive-definite
-(`pdHess = FALSE`), and the native engine cannot invert it to form a symmetric
-Wald interval. In that state, native `engine = "tmb"` fits the bivariate
-covariance blocks but reports `derived_interval_unavailable` for the
-random-effect SDs rather than returning a Wald interval that would be wrong. The
-Julia engine sits on top of that fit to supply profile and bootstrap intervals
-that the Wald route cannot.
+on the boundary at zero. Two distinct things are at work here. First, the
+among-axis SDs are *derived* quantities — functions of the fitted covariance
+blocks — and the native engine returns `derived_interval_unavailable` for them
+rather than a Wald band; that is the reported status for these RE-SD targets in
+its own right, not a consequence of any single fit being degenerate. Second, when
+one axis collapses the fitted covariance is near-singular and the Hessian at the
+optimum stops being positive-definite (`pdHess = FALSE`), so even a symmetric Wald
+band would be untrustworthy at the boundary. Either way the Wald route gives no
+usable interval here; native `engine = "tmb"` fits the bivariate covariance blocks
+and the Julia engine sits on top of that same fit to supply profile and bootstrap
+intervals it cannot.
 
 The division of labour is the same as for the univariate cell. Native
 `engine = "tmb"` fits the model. The Julia engine adds the boundary-honest
@@ -926,9 +929,16 @@ fit_biv_phylo_julia <- drmTMB(
 )
 ```
 
+`REML = TRUE` is also admitted for this cell. The restricted correction now covers
+all four among-axis axes — the two means and the two log scales — giving the
+less-downward-biased among-species SDs; on every axis the REML SD comes back at or
+above its ML value. The boundary-honest interval below is taken from the profile
+likelihood and is the same whether the point fit is ML or REML, so it is the
+number to quote either way.
+
 With no `parm`, `confint()` returns all four admitted among-axis SD targets as a
-multi-row table. Both `method = "profile"` (the default for variance components)
-and `method = "bootstrap"` are available:
+multi-row table. `confint()` defaults to `method = "wald"`; for these variance
+components pass `method = "profile"` (recommended) or `method = "bootstrap"`:
 
 ```{r biv-phylo-confint-example, eval = FALSE}
 confint(
@@ -949,19 +959,25 @@ confint(
 
 The profile rows are real profile likelihood, not a bootstrap fallback: the
 table reports `profile.engine = "julia_profile_result"` and a per-row
-`profile.boundary` flag. A row whose axis has collapsed to the boundary returns
-`lower = 0` with the upper end carried out as far as the profile remains flat,
-and `profile.boundary = TRUE`. This is the boundary-honest behaviour: the
-interval admits that the data place no positive lower bound on that axis, instead
-of reporting a symmetric Wald band that the non-invertible Hessian could not have
-produced.
+`profile.boundary` flag, and each row is reported according to *its own* axis —
+not all four axes collapse. An **identified** axis (positive among-axis signal)
+returns a strictly-positive lower bound and `profile.boundary = FALSE`: an
+ordinary two-sided profile interval. A **collapsed** axis returns `lower = 0`,
+with the upper end carried out as far as the profile remains flat, and
+`profile.boundary = TRUE`. The collapsed case is the boundary-honest behaviour:
+the interval admits that the data place no positive lower bound on that axis,
+instead of reporting a symmetric Wald band that the non-invertible Hessian could
+not have produced.
 
-| Among-axis SD | `parm` label | Reported when the axis collapses |
-| --- | --- | --- |
-| `sd_mu1` | `sd:mu1:phylo(1 | species)` | `lower = 0`, profile carried to flatness, `profile.boundary = TRUE` |
-| `sd_mu2` | `sd:mu2:phylo(1 | species)` | `lower = 0`, profile carried to flatness, `profile.boundary = TRUE` |
-| `sd_sigma1` | `sd:sigma1:phylo(1 | species)` | `lower = 0`, profile carried to flatness, `profile.boundary = TRUE` |
-| `sd_sigma2` | `sd:sigma2:phylo(1 | species)` | `lower = 0`, profile carried to flatness, `profile.boundary = TRUE` |
+The four targets carry the `parm` labels `sd:mu1:phylo(1 | species)`,
+`sd:mu2:phylo(1 | species)`, `sd:sigma1:phylo(1 | species)`, and
+`sd:sigma2:phylo(1 | species)` (the grouping variable is taken from your fitted
+formula). Each is reported by its own axis state:
+
+| Axis state | `lower` | `profile.boundary` | interpretation |
+| --- | --- | --- | --- |
+| identified (positive signal) | `> 0` | `FALSE` | ordinary two-sided profile interval |
+| collapsed to the boundary | `0` | `TRUE` | profile carried to flatness; no positive lower bound |
 
 ### With missing responses
 
@@ -994,12 +1010,12 @@ still error early.
 
 | Model cell | Native `engine = "tmb"` | Julia engine adds |
 | --- | --- | --- |
-| Bivariate Gaussian `phylo(1 | species)` among-axis SDs | fits the 4x4 covariance blocks; Wald SD intervals are `derived_interval_unavailable` when `pdHess = FALSE` | profile (default) and bootstrap intervals for the four among-axis SDs, with `lower = 0` at a collapsed axis |
+| Bivariate Gaussian `phylo(1 | species)` among-axis SDs | fits the 4x4 covariance blocks; the derived among-axis SD Wald intervals come back `derived_interval_unavailable` (and at a collapsed axis `pdHess = FALSE` makes a symmetric band untrustworthy regardless) | profile (recommended) and bootstrap intervals for the four among-axis SDs, with `lower = 0` at a collapsed axis |
 | Same cell with `missing = miss_control(response = "include")` | observed-data fit | same four boundary-honest among-axis SD intervals on the observed-data fit |
 
 The principle is the same one used for fixed effects elsewhere in this article.
 Wald is enough for fixed effects unless `pdHess = FALSE`; for random-effect
-variance components such as these among-axis SDs, use profile (default) or
+variance components such as these among-axis SDs, use profile (recommended) or
 bootstrap, and refuse Wald rather than report an interval the Hessian could not
 support. The bridge gives Wald for the fixed effects, profile or bootstrap for
 the SDs, and correctly declines Wald for the SDs.
