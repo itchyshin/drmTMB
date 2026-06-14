@@ -149,7 +149,9 @@ drm_julia_missing_supported <- function(missing_control, family_type) {
   identical(missing_control$predictor, "fail") &&
     (identical(missing_control$response, "drop") ||
       (identical(missing_control$response, "include") &&
-        identical(family_type, "gaussian")))
+        # response="include" works for univariate Gaussian AND the bivariate q=4
+        # phylo engine (per-cell observed mask threaded through the exact gradient).
+        family_type %in% c("gaussian", "biv_gaussian")))
 }
 
 # Bridge-local family classifier. drmTMB's native `drm_family_type()` is the
@@ -1041,10 +1043,10 @@ new_drmTMB_julia <- function(
 
 drm_julia_profile_targets <- function(object) {
   # Bivariate biv_gaussian q=4 path: four axes mu1/mu2/sigma1/sigma2, each with
-  # a phylo SD stored in sdpars[[dpar]]. Detect via model_type AND bivariate
-  # bridge payload flag (set in drm_julia_phylo_payload for biv_gaussian).
-  is_biv <- identical(object$model$model_type, "biv_gaussian") &&
-    isTRUE(object$bridge_payload$bivariate)
+  # a phylo SD stored in sdpars[[dpar]]. A biv_gaussian fit IS the bivariate case;
+  # drm_julia_profile_targets_biv returns empty targets if no phylo SD is present
+  # (e.g. a residual-only bivariate fit), so the gate is just model_type.
+  is_biv <- identical(object$model$model_type, "biv_gaussian")
   if (is_biv) {
     return(drm_julia_profile_targets_biv(object))
   }
@@ -1093,25 +1095,22 @@ drm_julia_profile_targets <- function(object) {
 # later in drm_julia_inference_confint_row to join rows to the Julia result.
 drm_julia_profile_targets_biv <- function(object) {
   biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
-  profile_ready <- !is.null(object$bridge_payload) &&
-    !is.null(object$bridge_payload$tree)
+  bp <- object$bridge_payload
+  # No phylo tree -> no among-axis SDs to profile (e.g. a residual-only bivariate fit);
+  # fall back so confint() reports the supported-targets message.
+  if (is.null(bp) || is.null(bp$tree)) {
+    return(empty_profile_targets())
+  }
+  # The bivariate q4 julia fit does NOT populate sdpars (the among-axis Sigma_a lives
+  # in the phylocov block); the targets only need to NAME the four axes — DRM.jl's
+  # drm_bridge_inference re-derives the estimates/CIs from formula + data + tree. So
+  # build the 4 rows from the shared phylo group, with placeholder estimates (the reader
+  # uses the Julia SD-scale bounds directly, not these).
+  group <- if (!is.null(bp$group)) bp$group else "group"
+  term <- paste0("phylo(1 | ", group, ")")
   rows <- vector("list", length(biv_dpars))
   for (i in seq_along(biv_dpars)) {
     dpar <- biv_dpars[[i]]
-    values <- object$sdpars[[dpar]]
-    if (is.null(values) || length(values) == 0L) {
-      # Axis has no structured SD — return empty so the validate step can catch
-      # it or the caller falls back to Wald.
-      return(empty_profile_targets())
-    }
-    keep <- startsWith(names(values), "phylo(")
-    if (!any(keep)) {
-      return(empty_profile_targets())
-    }
-    values_phylo <- values[keep]
-    term <- names(values_phylo)[[1L]]
-    est <- unname(values_phylo[[1L]])
-    scale <- drm_julia_structured_sd_scale(object, term)
     rows[[i]] <- new_profile_target_row(
       parm = paste0("sd:", dpar, ":", term),
       target_class = "random-effect-sd",
@@ -1119,13 +1118,13 @@ drm_julia_profile_targets_biv <- function(object) {
       term = term,
       tmb_parameter = paste0("resd_", dpar),
       index = i,
-      estimate = est,
-      link_estimate = log(est / scale),
+      estimate = 0.5,            # placeholder — DRM.jl returns the real estimate/CI
+      link_estimate = log(0.5),
       scale = "response",
       transformation = "exp",
       target_type = "direct",
-      profile_ready = profile_ready,
-      profile_note = if (profile_ready) "ready" else "julia_bridge_payload_required"
+      profile_ready = TRUE,
+      profile_note = "ready"
     )
   }
   out <- do.call(rbind, rows)
@@ -1609,13 +1608,17 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   }
 
   # Scalar diagnostics (elapsed, thread counts) come from the top-level result.
-  elapsed <- as.numeric(result$elapsed)
+  # NULL-safe scalars: the profile payload omits the bootstrap/threading fields, so
+  # as.integer(NULL) would give a length-0 column and break data.frame() ("1, 0 rows").
+  .int1 <- function(v) if (is.null(v) || length(v) == 0L) NA_integer_ else as.integer(v)[[1L]]
+  .num1 <- function(v) if (is.null(v) || length(v) == 0L) NA_real_ else as.numeric(v)[[1L]]
+  elapsed <- .num1(result$elapsed)
   threaded <- isTRUE(result$threaded)
-  worker_threads <- as.integer(result$worker_threads)
-  julia_threads <- as.integer(result$julia_threads)
-  blas_threads <- as.integer(result$blas_threads)
-  bootstrap_used <- as.integer(result$used)
-  bootstrap_failed <- as.integer(result$failed)
+  worker_threads <- .int1(result$worker_threads)
+  julia_threads <- .int1(result$julia_threads)
+  blas_threads <- .int1(result$blas_threads)
+  bootstrap_used <- .int1(result$used)
+  bootstrap_failed <- .int1(result$failed)
 
   rows <- vector("list", nrow(targets))
   for (i in seq_len(nrow(targets))) {
