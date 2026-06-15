@@ -75,6 +75,58 @@ test_that("bridge options forward method = REML only when REML is requested", {
   )
 })
 
+test_that("Julia REML support matrix is Gaussian-only and explicit", {
+  tree <- ape::rcoal(8)
+
+  fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
+  sigma_phylo <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ phylo(1 | species, tree = tree)
+  )
+  mean_only <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  )
+  q4 <- drmTMB::bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~1
+  )
+  count_phylo <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
+
+  expect_true(drmTMB:::drm_julia_reml_supported(fixed_locscale, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(sigma_phylo, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
+  expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
+  expect_false(drmTMB:::drm_julia_reml_supported(count_phylo, "poisson"))
+  expect_identical(
+    drmTMB:::drm_julia_reml_cell_label(count_phylo, "poisson"),
+    "non-Gaussian (poisson)"
+  )
+})
+
+test_that("unsupported Julia REML warning does not overclaim native TMB fallback", {
+  warnings <- character()
+  withCallingHandlers(
+    drmTMB:::drm_julia_warn_reml_unsupported(
+      TRUE,
+      "non-Gaussian (poisson)"
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  warning_text <- paste(warnings, collapse = "\n")
+
+  expect_match(warning_text, "non-Gaussian \\(poisson\\)")
+  expect_match(warning_text, "Gaussian-only")
+  expect_match(warning_text, "univariate Gaussian REML slice")
+  expect_false(grepl("for an REML fit of this cell", warning_text))
+})
+
 test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", {
   tree <- ape::rcoal(8)
   sp <- tree$tip.label
@@ -147,11 +199,15 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
   )
   expect_true("method" %in% names(captured$options))
   expect_identical(captured$options$method, "REML")
+  expect_equal(fit_reml$estimator, "REML")
+  expect_true(fit_reml$REML)
+  expect_true(fit_reml$requested_REML)
+  expect_true(fit_reml$effective_REML)
 
   # Mean-only phylo Gaussian REML: gate still rejects -> warns and forwards ML.
   captured$options <- NULL
   expect_warning(
-    drmTMB:::drmTMB_julia_bridge(
+    fit_ml <- drmTMB:::drmTMB_julia_bridge(
       formula = mean_only,
       family = stats::gaussian(),
       data = dat,
@@ -166,6 +222,65 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
     "does not support .*REML.*phylogenetic Gaussian"
   )
   expect_false("method" %in% names(captured$options))
+  expect_equal(fit_ml$estimator, "ML")
+  expect_true(fit_ml$requested_REML)
+  expect_false(fit_ml$effective_REML)
+})
+
+test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
+  tree <- ape::rcoal(8)
+  sp <- tree$tip.label
+  dat <- data.frame(
+    species = sp,
+    x = stats::rnorm(8),
+    y = stats::rpois(8, 3),
+    stringsAsFactors = FALSE
+  )
+  count_phylo <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
+
+  captured <- new.env(parent = emptyenv())
+  fake_result <- list(
+    coef_names = c("mu_(Intercept)", "mu_x", "resd_phylo(1 | species)"),
+    coefficients = c(0, 0, 0),
+    vcov = matrix(NA_real_, 3L, 3L),
+    loglik = -10,
+    aic = 26,
+    bic = 28,
+    df = 3L,
+    nobs = 8L,
+    fitted = rep(0, 8L),
+    residuals = rep(0, 8L),
+    sigma = rep(1, 8L),
+    corpairs = list(),
+    converged = TRUE
+  )
+  testthat::local_mocked_bindings(
+    drm_julia_call_bridge = function(formula, family, data, tree, options) {
+      captured$options <- options
+      fake_result
+    },
+    .package = "drmTMB"
+  )
+
+  expect_warning(
+    fit_ml <- drmTMB:::drmTMB_julia_bridge(
+      formula = count_phylo,
+      family = stats::poisson(),
+      data = dat,
+      env = environment(),
+      weights_missing = TRUE,
+      control = NULL,
+      impute = NULL,
+      missing = drmTMB::miss_control(),
+      REML = TRUE,
+      call = quote(drmTMB())
+    ),
+    "does not support .*REML.*non-Gaussian.*poisson"
+  )
+  expect_false("method" %in% names(captured$options))
+  expect_equal(fit_ml$estimator, "ML")
+  expect_true(fit_ml$requested_REML)
+  expect_false(fit_ml$effective_REML)
 })
 
 test_that("REML stays gated for the phylo-only count family cell", {
@@ -204,7 +319,7 @@ test_that("REML stays gated for the phylo-only count family cell", {
   )
 
   expect_warning(
-    drmTMB:::drmTMB_julia_bridge(
+    fit_ml <- drmTMB:::drmTMB_julia_bridge(
       formula = count_phylo,
       family = stats::poisson(),
       data = dat,
@@ -216,9 +331,12 @@ test_that("REML stays gated for the phylo-only count family cell", {
       REML = TRUE,
       call = quote(drmTMB())
     ),
-    "does not support .*REML.*phylogenetic Gaussian"
+    "does not support .*REML.*non-Gaussian.*poisson"
   )
   expect_false("method" %in% names(captured$options))
+  expect_equal(fit_ml$estimator, "ML")
+  expect_true(fit_ml$requested_REML)
+  expect_false(fit_ml$effective_REML)
 })
 
 # --- Live σ-phylo REML round-trip (guarded) ---------------------------------

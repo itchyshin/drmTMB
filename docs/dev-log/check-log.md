@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- R-first Julia REML status truth table
+
+Goal:
+
+- Harden the first `drmTMB#555` R-side fallback/status contract before doing
+  more Julia speed work: unsupported Julia REML requests should name the exact
+  cell, avoid overclaiming native-TMB REML fallback, and leave fitted objects
+  with explicit requested/effective estimator metadata.
+
+Changes:
+
+- Added `drm_julia_reml_supported()` and `drm_julia_reml_cell_label()` as the
+  single bridge-side REML admission and warning-label helpers.
+- `drmTMB_julia` objects now record `estimator`, `REML`, `requested_REML`, and
+  `effective_REML`; `print.drmTMB_julia()` displays the effective estimator.
+- Unsupported Julia REML cells now warn that the fit is ML and that native
+  `engine = "tmb"` is only an REML fallback for its documented univariate
+  Gaussian REML slice.
+- Added pure-R tests for Gaussian-only Julia REML support, non-Gaussian warning
+  labels, requested-versus-effective estimator state, and the bivariate q4
+  response-mask bridge path with `missing = miss_control(response = "include")`.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R tests/testthat/test-julia-sigma-phylo-reml.R`
+  completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R"); testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R"); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R")'`
+  passed locally: 97 bridge expectations, 42 REML expectations with one guarded
+  live sigma-phylo REML skip because the default local DRM.jl path predates that
+  engine support, and 55 gate-registry expectations.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-xfam-bridge.R"); testthat::test_file("tests/testthat/test-julia-structured.R")'`
+  passed locally: 38 cross-family expectations with three guarded live-Julia
+  skips, and 47 structured-bridge expectations.
+
+Known boundaries:
+
+- This slice does not make native `engine = "tmb"` a REML fallback for Ayumi's
+  bivariate q4 phylogenetic location-scale model.
+- This slice does not claim the 10k-tip q4 Julia route is fast. It only banks
+  the R-side status/gate metadata needed to report ML versus REML honestly.
+- Additional native-TMB REML rejection-branch tests and vignette wording cleanup
+  remain the next R-first hardening slices.
+
 ## 2026-06-14 -- Julia bridge gate-id coverage
 
 Goal:
