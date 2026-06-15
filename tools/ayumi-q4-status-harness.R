@@ -41,6 +41,19 @@ env_whole <- function(name, default = NA_integer_) {
   as.integer(value)
 }
 
+env_match <- function(name, choices, default) {
+  value <- env_chr(name, default)
+  if (!value %in% choices) {
+    stop(
+      name,
+      " must be one of: ",
+      paste(choices, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  value
+}
+
 split_csv <- function(value) {
   out <- trimws(strsplit(value, ",", fixed = TRUE)[[1L]])
   out[nzchar(out)]
@@ -62,6 +75,8 @@ usage <- function() {
       "  DRMTMB_AYUMI_Q4_BOOTSTRAP=0",
       "  DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=none|first_sigma|all_sigma|all_q4",
       "  DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=",
+      "  DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=default|careful|robust",
+      "  DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=default|careful|robust",
       "  DRMTMB_AYUMI_Q4_TIME_LIMIT=0",
       "  DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL=",
       "  DRMTMB_AYUMI_Q4_OUT=docs/dev-log/ayumi-q4-status/<run>",
@@ -480,6 +495,7 @@ run_bootstrap <- function(
   time_limit,
   bootstrap_replicates,
   bootstrap_seed,
+  bootstrap_refit_optimizer_preset,
   paths
 ) {
   if (!nrow(targets) || bootstrap_replicates < 1L) {
@@ -493,6 +509,13 @@ run_bootstrap <- function(
   )
   if (!is.null(bootstrap_seed)) {
     args$seed <- bootstrap_seed
+  }
+  if (!is.null(bootstrap_refit_optimizer_preset)) {
+    args$refit_control <- drm_control(
+      se = FALSE,
+      keep_tmb_object = FALSE,
+      optimizer_preset = bootstrap_refit_optimizer_preset
+    )
   }
   started <- Sys.time()
   captured <- capture_conditions(with_elapsed_limit(
@@ -515,6 +538,8 @@ run_bootstrap <- function(
         profile.message = conditionMessage(captured$value),
         bootstrap.n = bootstrap_replicates,
         bootstrap.failed = NA_integer_,
+        bootstrap.refit_optimizer_preset = bootstrap_refit_optimizer_preset %||%
+          NA_character_,
         stringsAsFactors = FALSE
       ),
       paths$intervals
@@ -527,6 +552,8 @@ run_bootstrap <- function(
       status = "ok",
       elapsed_sec = elapsed,
       ci,
+      bootstrap.refit_optimizer_preset = bootstrap_refit_optimizer_preset %||%
+        NA_character_,
       stringsAsFactors = FALSE
     )
     append_table(ci, paths$intervals)
@@ -540,6 +567,10 @@ run_bootstrap <- function(
   )
 }
 
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
 run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
   cell <- paste(size_label, engine, paste0("REML_", reml), sep = "|")
   formula <- make_ayumi_q4_formula(tree)
@@ -550,6 +581,11 @@ run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
     engine = engine,
     REML = reml
   )
+  tmb_optimizer_preset <- NA_character_
+  if (identical(engine, "tmb")) {
+    tmb_optimizer_preset <- config$tmb_optimizer_preset
+    args$control <- drm_control(optimizer_preset = tmb_optimizer_preset)
+  }
   if (isTRUE(config$missing_include)) {
     args$missing <- miss_control(response = "include")
   }
@@ -567,6 +603,12 @@ run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
     engine = engine,
     REML = reml,
     missing_response = if (config$missing_include) "include" else "default",
+    tmb_optimizer_preset = tmb_optimizer_preset,
+    tmb_bootstrap_refit_optimizer_preset = if (identical(engine, "tmb")) {
+      config$tmb_bootstrap_refit_optimizer_preset
+    } else {
+      NA_character_
+    },
     phase = "fit",
     elapsed_sec = elapsed,
     stringsAsFactors = FALSE
@@ -648,6 +690,11 @@ run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
     config$time_limit,
     config$bootstrap_replicates,
     config$bootstrap_seed,
+    if (identical(engine, "tmb")) {
+      config$tmb_bootstrap_refit_optimizer_preset
+    } else {
+      NULL
+    },
     paths
   )
   invisible(fit)
@@ -696,6 +743,11 @@ write_metadata <- function(paths, config, input_path) {
       } else {
         config$bootstrap_seed
       }
+    ),
+    paste0("- tmb_optimizer_preset: ", config$tmb_optimizer_preset),
+    paste0(
+      "- tmb_bootstrap_refit_optimizer_preset: ",
+      config$tmb_bootstrap_refit_optimizer_preset
     ),
     paste0(
       "- profile_endpoint_max_eval: ",
@@ -793,6 +845,16 @@ config <- list(
     c("none", "first_sigma", "all_sigma", "all_q4")
   ),
   bootstrap_seed = env_whole("DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED", NULL),
+  tmb_optimizer_preset = env_match(
+    "DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET",
+    c("default", "careful", "robust"),
+    "default"
+  ),
+  tmb_bootstrap_refit_optimizer_preset = env_match(
+    "DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET",
+    c("default", "careful", "robust"),
+    "default"
+  ),
   missing_include = env_flag("DRMTMB_AYUMI_Q4_MISSING_INCLUDE", TRUE)
 )
 if (config$bootstrap_replicates < 0L) {

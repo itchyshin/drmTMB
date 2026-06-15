@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-15 10:14 MDT",
+  "updated": "2026-06-15 14:19 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "DRM.jl #292 is merged green and verified through the drmTMB Ayumi harness: Julia q4 ML/REML point fits return at 30 tips and Julia ML bootstrap smoke works. Native TMB ML bootstrap is not yet a fallback claim; the 30-tip smoke returned bootstrap_unavailable after both refits failed."
+      "text": "drmTMB #565 and #566 are merged green. Julia 30-tip all-q4 bootstrap is positive plumbing evidence after the q4 phylocov target repair. Native TMB bootstrap is not yet a fallback claim: careful optimizer settings rescue the 30-tip smoke, but both careful and robust 100-tip smokes still return bootstrap_unavailable."
     }
   ]
 }

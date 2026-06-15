@@ -2,6 +2,72 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- Ayumi q4 native bootstrap optimizer controls
+
+Goal:
+
+- Make the Ayumi q4 harness expose native TMB optimizer presets for the source
+  fit and bootstrap refits, after default native ML bootstrap returned
+  `bootstrap_unavailable` because all bootstrap refits failed.
+
+Change:
+
+- Added `DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET` and
+  `DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET` to
+  `tools/ayumi-q4-status-harness.R`.
+- The first control is passed to native `engine = "tmb"` fits through
+  `drm_control(optimizer_preset = ...)`.
+- The second control is passed to native bootstrap refits through the existing
+  `confint(..., method = "bootstrap", refit_control = ...)` surface.
+- The harness records both presets in `metadata.md` and records the refit
+  preset in `intervals.csv`.
+
+Checks run:
+
+- `air format tools/ayumi-q4-status-harness.R docs/dev-log/check-log.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-evidence-refresh.md`
+- `Rscript --vanilla -e 'invisible(parse("tools/ayumi-q4-status-harness.R")); cat("parse ok\n")'`
+- GitHub Actions R-CMD-check run `27571496276` passed macOS and Ubuntu. The
+  Windows job reached `[ FAIL 0 | WARN 0 | SKIP 34 | PASS 10760 ]`, uploaded
+  snapshots, and was then canceled at the 30-minute job timeout during cleanup;
+  the workflow timeout was raised to 45 minutes so Windows can finish its
+  already-passing check path.
+- Native 30-tip careful smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-allq4-careful-abe8288a Rscript --vanilla tools/ayumi-q4-status-harness.R`
+- Native 100-tip careful smoke with the same settings and
+  `DRMTMB_AYUMI_Q4_SIZES=100`, writing
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-careful-abe8288a`.
+- Native 100-tip robust smoke with source-fit and bootstrap-refit
+  `optimizer_preset = "robust"`, writing
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-robust-8ba6d9b6`.
+
+Result:
+
+- The 30-tip careful source fit returned in 1.21 s with `convergence = 0`,
+  `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"`. Bootstrap
+  returned four q4 SD rows in 4.33 s with `conf.status = "bootstrap"`,
+  `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `profile.message = "2/2 successful refits"`.
+- The 100-tip careful source fit took 156.82 s and still returned
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  Bootstrap took 134.24 s and returned `bootstrap_unavailable`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2` for all four q4 SD rows.
+- The 100-tip robust source fit took 162.53 s and also returned
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  Bootstrap again returned `bootstrap_unavailable`, `bootstrap.n = 0`, and
+  `bootstrap.failed = 2` for all four q4 SD rows.
+
+Known boundaries:
+
+- The native q4 bootstrap target path is reachable when refits converge, but
+  neither `optimizer_preset = "careful"` nor `"robust"` is enough at 100 tips,
+  so this is not an Ayumi-scale fallback claim.
+- The next R-side slice should retain per-refit convergence/message diagnostics
+  and decide whether retry-on-convergence-failure belongs in the public
+  bootstrap path.
+
 ## 2026-06-15 -- Julia q4 phylo target estimates and bootstrap smoke
 
 Goal:
@@ -130,6 +196,24 @@ Known boundaries:
   q4 SD rows at 30 tips after DRM.jl #292. The two bootstrap paths should stay
   separate in user-facing replies until a native TMB q4 bootstrap cell has
   successful refit evidence.
+
+Follow-up from clean `origin/main` `abe8288a`:
+
+- `DRMTMB_AYUMI_Q4_SIZES=30`, `DRMTMB_AYUMI_Q4_ENGINES=tmb`,
+  `DRMTMB_AYUMI_Q4_REML=false`, `DRMTMB_AYUMI_Q4_BOOTSTRAP=2`,
+  and `DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4` wrote
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-allq4-abe8288a`.
+  The point fit returned in 1.17 s with `convergence = 1`, `pdHess = FALSE`,
+  and `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  The four q4 SD rows again reported `conf.status = "bootstrap_unavailable"`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2`.
+- The same check at `DRMTMB_AYUMI_Q4_SIZES=100` wrote
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-abe8288a`.
+  The point fit returned in 25.58 s with the same diagnostic status, and the
+  bootstrap phase returned the same `bootstrap_unavailable` rows after
+  76.10 s.
+- The internal issue ledger was updated at
+  `https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4711541040`.
 
 ## 2026-06-15 -- Endpoint profile budget status for Ayumi q4 native checks
 

@@ -1,13 +1,13 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-15 11:50 MDT",
+  "updated": "2026-06-15 14:19 MDT",
   "metrics": {
-    "verified": 17,
+    "verified": 18,
     "active": 3,
     "blocked": 0,
     "deferred": 1,
-    "total": 67
+    "total": 68
   },
   "phases": [
     {
@@ -125,9 +125,10 @@
         },
         {
           "name": "Repair Julia q4 profile-target estimates from the stored phylocov covariance instead of placeholder SDs",
-          "status": "verified",
+          "status": "banked",
           "issue": "drmTMB#555",
-          "evidence": "full devtools::test passed locally; 30-tip Ayumi Julia ML target table reports non-placeholder q4 SDs and all-q4 bootstrap B=2 returns 2/2 refits"
+          "url": "https://github.com/itchyshin/drmTMB/pull/565",
+          "evidence": "PR #565 merged green on macOS, Ubuntu, and Windows; 30-tip Ayumi Julia ML target table reports non-placeholder q4 SDs and all-q4 bootstrap B=2 returns 2/2 refits"
         },
         {
           "name": "Extend registry into generated gate-vs-engine CI guard",
@@ -150,7 +151,7 @@
       "name": "Native R/TMB point estimates and CI-status first",
       "owner": "Fisher + Noether + Curie",
       "status": "active",
-      "counts": "4/8",
+      "counts": "5/9",
       "slices": [
         {
           "name": "Bank native q4 ML profile-status fallback for sigma-phylo targets",
@@ -172,6 +173,13 @@
           "issue": "drmTMB#555",
           "url": "https://github.com/itchyshin/drmTMB/pull/559",
           "evidence": "PR #559 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Expose native TMB optimizer-preset controls for Ayumi q4 source fits and bootstrap refits",
+          "status": "verified",
+          "issue": "drmTMB#555",
+          "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-optimizer-controls.md",
+          "evidence": "30-tip careful native bootstrap B=2 returned 2/2 refits; 100-tip careful and robust native smokes still returned bootstrap_unavailable after both refits failed"
         },
         {
           "name": "Add endpoint profile evaluation budget and fit-diagnostic status rows for Ayumi q4 native checks",
@@ -786,7 +794,7 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Julia q4 target-estimate repair passed full devtools::test locally and the Ayumi 30-tip all-q4 bootstrap smoke is under /tmp/drmtmb-ayumi-evidence/julia-30-ml-bootstrap-allq4-phylocov-targets."
+      "text": "Julia q4 target-estimate repair is merged as #565 and the dashboard evidence-link copy fix is merged as #566; the live board is serving from /tmp/drm-dashboard on port 8765."
     },
     {
       "when": "now",
@@ -796,23 +804,44 @@
     {
       "when": "now",
       "who": "Curie",
-      "text": "Native TMB ML bootstrap is not yet a fallback claim: a 30-tip Ayumi smoke returned bootstrap_unavailable after both refits failed."
+      "text": "Native TMB ML bootstrap is not yet a fallback claim: careful optimizer settings give 2/2 refits at 30 tips, but 100-tip careful and robust smokes still return bootstrap_unavailable after both refits fail."
     }
     ],
     "activity": [
+    {
+      "when": "2026-06-15",
+      "who": "Codex",
+      "text": "Added native-TMB optimizer-preset controls to the Ayumi q4 harness; careful bootstrap succeeds at 30 tips, but both careful and robust 100-tip smokes still fail both refits.",
+      "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-optimizer-controls.md",
+      "link_label": "after-task"
+    },
         {
             "when": "2026-06-15",
-            "who": "Codex",
-            "text": "Repaired Julia q4 profile_targets() estimates from the stored phylocov covariance; 30-tip Ayumi Julia ML all-q4 bootstrap B=2 returned four rows with 2/2 refits.",
-            "url": "docs/dev-log/after-task/2026-06-15-julia-q4-phylocov-target-estimates.md",
-            "link_label": "after-task"
-        },
-        {
-            "when": "2026-06-15",
-            "who": "Codex",
-            "text": "Native TMB ML q4 bootstrap smoke completed on a 30-tip Ayumi subset but returned bootstrap_unavailable for all four phylogenetic SD rows; keep bootstrap fallback wording conservative.",
-            "url": "docs/dev-log/check-log.md",
-            "link_label": "check-log"
+      "who": "Codex",
+      "text": "drmTMB#565 banked the Julia q4 phylocov target-estimate repair; 30-tip Ayumi Julia ML all-q4 bootstrap B=2 returned four rows with 2/2 refits.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/565",
+      "link_label": "#565"
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Codex",
+      "text": "drmTMB#566 fixed served-dashboard evidence links by copying all after-task notes into /tmp/drm-dashboard.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/566",
+      "link_label": "#566"
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Codex",
+      "text": "Native TMB ML q4 bootstrap 30-tip and 100-tip Ayumi smokes returned bootstrap_unavailable for all four phylogenetic SD rows; keep native bootstrap fallback wording conservative.",
+      "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-evidence-refresh.md",
+      "link_label": "after-task"
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Codex",
+      "text": "Internal issue ledger updated with the Julia bootstrap plumbing success and native bootstrap negative evidence.",
+      "url": "https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4711541040",
+      "link_label": "drmTMB#555"
         },
         {
             "when": "2026-06-15",
@@ -912,20 +941,35 @@
             "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 remains the bridge-gate epic after the native status path is clear."
         },
         {
-            "when": "2026-06-15",
-            "who": "Status matrix",
-            "text": "Local Ayumi q4 Julia target inventory now reports fitted phylocov SDs, not placeholder 0.5 values; the admitted all-q4 bootstrap smoke returned 2/2 refits at 30 tips."
+      "when": "2026-06-15",
+      "who": "Status matrix",
+      "text": "Merged #565 makes Ayumi q4 Julia target inventory report fitted phylocov SDs, not placeholder 0.5 values; the admitted all-q4 bootstrap smoke returned 2/2 refits at 30 tips."
         },
         {
             "when": "2026-06-15",
             "who": "Status matrix",
             "text": "Merged DRM.jl main 9bdea65 verified through the drmTMB Ayumi harness: Julia ML and REML point fits return at 30 tips; ML bootstrap returns four q4 SD rows; REML bootstrap failure is now explicit and tracked."
         },
-        {
-            "when": "2026-06-15",
-            "who": "Status matrix",
-            "text": "Native TMB ML bootstrap smoke is negative evidence for fallback wording: the 30-tip Ayumi run returned bootstrap_unavailable after both bootstrap refits failed."
-        },
+    {
+      "when": "2026-06-15",
+      "who": "Status matrix",
+      "text": "Native TMB ML bootstrap smokes are negative evidence for fallback wording: 30-tip and 100-tip Ayumi runs returned bootstrap_unavailable after both bootstrap refits failed."
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Status matrix",
+      "text": "Native TMB careful optimizer settings rescue the 30-tip bootstrap smoke, but neither careful nor robust rescues the 100-tip smoke; the next claim needs per-refit diagnostics and retry evidence."
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Rose",
+      "text": "Current Ayumi reply boundary: Julia B=2 all-q4 bootstrap is plumbing evidence only; native bootstrap/profile intervals are not yet a usable q4 uncertainty fallback; no AI-REML or 10k speed claim."
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Jason",
+      "text": "HSquared scout confirms AI-REML wording belongs only to exact Gaussian LMM/MME cells; Ayumi's bivariate q4 sigma-phylo route still needs point/profile/bootstrap/speed evidence, not an AI-REML label."
+    },
         {
             "when": "2026-06-15",
             "who": "Status matrix",
