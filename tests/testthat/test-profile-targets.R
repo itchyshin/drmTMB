@@ -693,6 +693,32 @@ test_that("confint reports numeric profile failures by row", {
   expect_equal(row$profile.message, "NA/NaN gradient evaluation")
 })
 
+test_that("endpoint profile budget failures stay on endpoint status rows", {
+  set.seed(20260682)
+  n <- 60
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7),
+    x = x
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  ci <- stats::confint(
+    fit,
+    parm = "sigma",
+    level = 0.80,
+    method = "profile",
+    profile_endpoint_max_eval = 1
+  )
+
+  expect_equal(ci$parm, "sigma")
+  expect_equal(ci$profile.engine, "endpoint")
+  expect_equal(ci$conf.status, "profile_failed")
+  expect_true(is.na(ci$lower))
+  expect_true(is.na(ci$upper))
+  expect_match(ci$profile.message, "evaluation budget")
+})
+
 test_that("confint returns Wald intervals for direct random-effect targets", {
   dat <- new_profile_group_data(n_id = 14, n_each = 5, seed = 20260653)
   fit <- drmTMB(

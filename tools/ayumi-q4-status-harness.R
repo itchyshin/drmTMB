@@ -24,6 +24,23 @@ env_num <- function(name, default = NA_real_) {
   if (length(value) != 1L || is.na(value)) default else value
 }
 
+env_whole <- function(name, default = NA_integer_) {
+  raw <- env_chr(name, "")
+  if (!nzchar(raw)) {
+    return(default)
+  }
+  value <- suppressWarnings(as.numeric(raw))
+  if (
+    length(value) != 1L ||
+      is.na(value) ||
+      !is.finite(value) ||
+      value != as.integer(value)
+  ) {
+    stop("Invalid whole-number value in ", name, ": ", raw, call. = FALSE)
+  }
+  as.integer(value)
+}
+
 split_csv <- function(value) {
   out <- trimws(strsplit(value, ",", fixed = TRUE)[[1L]])
   out[nzchar(out)]
@@ -43,6 +60,7 @@ usage <- function() {
       "  DRMTMB_AYUMI_Q4_REML=false,true",
       "  DRMTMB_AYUMI_Q4_PROFILE=none|first_sigma|all_sigma",
       "  DRMTMB_AYUMI_Q4_TIME_LIMIT=0",
+      "  DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL=",
       "  DRMTMB_AYUMI_Q4_OUT=docs/dev-log/ayumi-q4-status/<run>",
       "",
       "Column controls:",
@@ -340,19 +358,38 @@ fit_summary <- function(fit) {
     }
     out[[1L]]
   }
+  convergence <- scalar(fit$opt$convergence, NA_integer_)
+  pd_hess <- scalar(fit$sdr$pdHess, NA)
   log_lik <- tryCatch(as.numeric(stats::logLik(fit)), error = function(e) {
     NA_real_
   })
   data.frame(
-    convergence = scalar(fit$opt$convergence, NA_integer_),
+    convergence = convergence,
     convergence_message = scalar(fit$opt$message, NA_character_),
-    pdHess = scalar(fit$sdr$pdHess, NA),
+    pdHess = pd_hess,
+    fit_diagnostic_status = fit_diagnostic_status(convergence, pd_hess),
     logLik = log_lik,
     AIC = scalar(stats::AIC(fit), NA_real_),
     nobs = scalar(stats::nobs(fit), NA_integer_),
     df = scalar(attr(stats::logLik(fit), "df"), NA_integer_),
     stringsAsFactors = FALSE
   )
+}
+
+fit_diagnostic_status <- function(convergence, pd_hess) {
+  convergence_ok <- !is.na(convergence) &&
+    identical(as.integer(convergence), 0L)
+  pd_hess_ok <- !is.na(pd_hess) && isTRUE(pd_hess)
+  if (convergence_ok && pd_hess_ok) {
+    return("fit_returned_converged_pdhess_true")
+  }
+  if (convergence_ok) {
+    return("fit_returned_converged_pdhess_false")
+  }
+  if (pd_hess_ok) {
+    return("fit_returned_nonconverged_pdhess_true")
+  }
+  "fit_returned_nonconverged_pdhess_false"
 }
 
 select_sigma_targets <- function(targets, mode) {
@@ -368,7 +405,14 @@ select_sigma_targets <- function(targets, mode) {
   selected
 }
 
-run_profile <- function(fit, targets, cell, time_limit, paths) {
+run_profile <- function(
+  fit,
+  targets,
+  cell,
+  time_limit,
+  profile_endpoint_max_eval,
+  paths
+) {
   if (!nrow(targets)) {
     return(invisible(NULL))
   }
@@ -377,7 +421,8 @@ run_profile <- function(fit, targets, cell, time_limit, paths) {
     stats::confint(
       fit,
       parm = targets$parm,
-      method = "profile"
+      method = "profile",
+      profile_endpoint_max_eval = profile_endpoint_max_eval
     ),
     time_limit
   ))
@@ -509,7 +554,14 @@ run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
   )
   append_table(targets, paths$targets)
   selected <- select_sigma_targets(targets, config$profile)
-  run_profile(fit, selected, cell, config$time_limit, paths)
+  run_profile(
+    fit,
+    selected,
+    cell,
+    config$time_limit,
+    config$profile_endpoint_max_eval,
+    paths
+  )
   invisible(fit)
 }
 
@@ -547,6 +599,14 @@ write_metadata <- function(paths, config, input_path) {
     paste0("- engines: ", paste(config$engines, collapse = ",")),
     paste0("- REML: ", paste(config$reml, collapse = ",")),
     paste0("- profile: ", config$profile),
+    paste0(
+      "- profile_endpoint_max_eval: ",
+      if (is.null(config$profile_endpoint_max_eval)) {
+        "NULL"
+      } else {
+        config$profile_endpoint_max_eval
+      }
+    ),
     paste0(
       "- missing_response: ",
       if (config$missing_include) "include" else "default"
@@ -618,6 +678,10 @@ config <- list(
     c("none", "first_sigma", "all_sigma")
   ),
   time_limit = env_num("DRMTMB_AYUMI_Q4_TIME_LIMIT", 0),
+  profile_endpoint_max_eval = env_whole(
+    "DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL",
+    NULL
+  ),
   missing_include = env_flag("DRMTMB_AYUMI_Q4_MISSING_INCLUDE", TRUE)
 )
 

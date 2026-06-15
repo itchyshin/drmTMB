@@ -1,13 +1,13 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-15 07:08 MDT",
+  "updated": "2026-06-15 07:44 MDT",
   "metrics": {
-    "verified": 14,
+    "verified": 15,
     "active": 3,
     "blocked": 0,
     "deferred": 1,
-    "total": 64
+    "total": 65
   },
   "phases": [
     {
@@ -137,7 +137,7 @@
       "name": "Native R/TMB point estimates and CI-status first",
       "owner": "Fisher + Noether + Curie",
       "status": "active",
-      "counts": "3/7",
+      "counts": "4/8",
       "slices": [
         {
           "name": "Bank native q4 ML profile-status fallback for sigma-phylo targets",
@@ -159,6 +159,12 @@
           "issue": "drmTMB#555",
           "url": "https://github.com/itchyshin/drmTMB/pull/559",
           "evidence": "PR #559 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Add endpoint profile evaluation budget and fit-diagnostic status rows for Ayumi q4 native checks",
+          "status": "verified",
+          "issue": "drmTMB#555",
+          "evidence": "local profile-target tests pass; branch codex/rfirst-profile-timeout-status"
         },
         {
           "name": "Standardize interval statuses across summary, confint, diagnostics, and bridge payloads",
@@ -764,16 +770,16 @@
             "who": "Ada",
             "text": "R-first pivot is active: native drmTMB status and support diagnostics are being hardened before broader Julia speed claims."
         },
-        {
-            "when": "now",
-            "who": "Grace",
-            "text": "Watching refreshed CI on #560 after #557, #558, and #559 merged."
-        },
-        {
-            "when": "now",
-            "who": "Fisher",
-            "text": "Ayumi real-bundle native TMB status run is in hand: full ML fit wrote status/timing rows and native REML rejection remains explicit."
-        }
+    {
+      "when": "now",
+      "who": "Grace",
+      "text": "#560 is merged green; watching the next R-first profile-status branch for focused local checks before PR."
+    },
+    {
+      "when": "now",
+      "who": "Fisher",
+      "text": "Ayumi real-bundle native TMB status is bounded: full ML fit wrote timing/status rows, native REML rejection remains explicit, and endpoint budget rows now separate diagnostic failure from non-returning profiles."
+    }
     ],
     "activity": [
         {

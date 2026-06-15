@@ -75,6 +75,12 @@
 #'   otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the scalar
 #'   endpoint solver, while `"tmbprofile"` preserves the previous full-profile
 #'   route for comparison and debugging.
+#' @param profile_endpoint_max_eval Optional positive whole number limiting
+#'   constrained endpoint evaluations per endpoint side when the scalar
+#'   endpoint engine is used. This is a diagnostic escape hatch for long
+#'   variance-component or correlation profiles; when the budget is reached the
+#'   row is returned with `conf.status = "profile_failed"` and missing
+#'   endpoints.
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
@@ -124,6 +130,7 @@ confint.drmTMB <- function(
   profile_precision = c("default", "fast"),
   profile_maxit = NULL,
   profile_engine = c("auto", "endpoint", "tmbprofile"),
+  profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -149,6 +156,9 @@ confint.drmTMB <- function(
     missing_arg = profile_precision_missing
   )
   profile_maxit <- validate_profile_maxit(profile_maxit)
+  profile_endpoint_max_eval <- validate_profile_endpoint_max_eval(
+    profile_endpoint_max_eval
+  )
   parallel <- resolve_bootstrap_parallel(
     parallel,
     missing_arg = parallel_missing
@@ -166,6 +176,11 @@ confint.drmTMB <- function(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
       )
     }
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(
+        "{.arg profile_endpoint_max_eval} is only used when {.code method = \"profile\"}."
+      )
+    }
     return(drm_wald_confint(object, parm = parm, level = level))
   }
 
@@ -179,6 +194,11 @@ confint.drmTMB <- function(
     if (length(profile_dots) > 0L) {
       cli::cli_abort(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
+      )
+    }
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(
+        "{.arg profile_endpoint_max_eval} is only used when {.code method = \"profile\"}."
       )
     }
     all_targets <- drm_profile_targets(object)
@@ -196,6 +216,12 @@ confint.drmTMB <- function(
   }
 
   if (!is.null(newdata)) {
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} is only available for direct fitted-object scalar targets.",
+        i = "Use explicit fitted-object target names such as {.val sigma} or {.val sd:mu:(1 | id)}."
+      ))
+    }
     if (identical(profile_engine, "endpoint")) {
       cli::cli_abort(c(
         "{.code profile_engine = \"endpoint\"} is only available for direct fitted-object scalar targets.",
@@ -250,6 +276,22 @@ confint.drmTMB <- function(
   if (identical(profile_engine, "auto") && tmbprofile_controls) {
     profile_engine <- "tmbprofile"
   }
+  if (!is.null(profile_endpoint_max_eval)) {
+    if (identical(profile_engine, "tmbprofile")) {
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} is only used by the scalar endpoint profile engine.",
+        i = "Use {.code profile_engine = \"auto\"} or {.code profile_engine = \"endpoint\"} without {.fun TMB::tmbprofile} controls."
+      ))
+    }
+    supported <- profile_endpoint_targets_supported(targets)
+    if (!all(supported)) {
+      unsupported <- paste(targets$parm[!supported], collapse = ", ")
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} can only be used with direct scalar scale, SD, and correlation profile targets.",
+        x = "Unsupported target(s): {unsupported}."
+      ))
+    }
+  }
   profile_args <- profile_precision_args(
     profile_precision,
     profile_dots,
@@ -265,7 +307,8 @@ confint.drmTMB <- function(
         trace = trace,
         parallel = parallel,
         workers = workers,
-        profile_engine = profile_engine
+        profile_engine = profile_engine,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ),
       profile_args
     )
@@ -939,6 +982,25 @@ validate_profile_maxit <- function(profile_maxit) {
   as.integer(profile_maxit)
 }
 
+validate_profile_endpoint_max_eval <- function(profile_endpoint_max_eval) {
+  if (is.null(profile_endpoint_max_eval)) {
+    return(NULL)
+  }
+  if (
+    !is.numeric(profile_endpoint_max_eval) ||
+      length(profile_endpoint_max_eval) != 1L ||
+      is.na(profile_endpoint_max_eval) ||
+      !is.finite(profile_endpoint_max_eval) ||
+      profile_endpoint_max_eval < 1L ||
+      profile_endpoint_max_eval != as.integer(profile_endpoint_max_eval)
+  ) {
+    cli::cli_abort(
+      "{.arg profile_endpoint_max_eval} must be a positive whole number or NULL."
+    )
+  }
+  as.integer(profile_endpoint_max_eval)
+}
+
 profile_tmbprofile_controls_requested <- function(
   profile_precision_missing,
   profile_maxit,
@@ -1270,6 +1332,7 @@ drm_profile_confint <- function(
   parallel = "none",
   workers = NULL,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
+  profile_endpoint_max_eval = NULL,
   ...
 ) {
   validate_profile_level(level)
@@ -1306,6 +1369,7 @@ drm_profile_confint <- function(
       trace = trace,
       profile_engine = profile_engine,
       endpoint_plan = endpoint_plan,
+      profile_endpoint_max_eval = profile_endpoint_max_eval,
       ...
     )
   }
@@ -1996,6 +2060,7 @@ drm_profile_target_confint <- function(
   trace,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
   endpoint_plan = profile_serial_plan(),
+  profile_endpoint_max_eval = NULL,
   ...
 ) {
   profile_engine <- match.arg(profile_engine)
@@ -2025,7 +2090,8 @@ drm_profile_target_confint <- function(
         object = object,
         target = target,
         level = level,
-        endpoint_plan = endpoint_plan
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ))
     }
     endpoint <- tryCatch(
@@ -2033,7 +2099,8 @@ drm_profile_target_confint <- function(
         object = object,
         target = target,
         level = level,
-        endpoint_plan = endpoint_plan
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ),
       error = function(err) err
     )
@@ -2057,12 +2124,21 @@ drm_profile_target_confint <- function(
         object = object,
         target = target,
         level = level,
-        endpoint_plan = endpoint_plan
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ),
       error = function(err) err
     )
     if (!inherits(endpoint, "error")) {
       return(endpoint)
+    }
+    if (!is.null(profile_endpoint_max_eval)) {
+      return(drm_profile_failed_confint_row(
+        target = target,
+        level = level,
+        profile_engine = "endpoint",
+        message = conditionMessage(endpoint)
+      ))
     }
   }
 
@@ -2159,13 +2235,15 @@ drm_profile_target_endpoint_confint <- function(
   object,
   target,
   level,
-  endpoint_plan = profile_serial_plan()
+  endpoint_plan = profile_serial_plan(),
+  profile_endpoint_max_eval = NULL
 ) {
   result <- drm_profile_endpoint_result(
     object = object,
     target = target,
     level = level,
-    endpoint_plan = endpoint_plan
+    endpoint_plan = endpoint_plan,
+    max_eval = profile_endpoint_max_eval
   )
   interval <- result$interval
   diagnostics <- profile_interval_diagnostics(
@@ -2205,7 +2283,8 @@ drm_profile_endpoint_result <- function(
   level,
   root_tol = 1e-4,
   max_bracket_steps = 40L,
-  endpoint_plan = profile_serial_plan()
+  endpoint_plan = profile_serial_plan(),
+  max_eval = NULL
 ) {
   if (!profile_endpoint_target_supported(target)) {
     cli::cli_abort(c(
@@ -2255,7 +2334,8 @@ drm_profile_endpoint_result <- function(
       root_tol = root_tol,
       max_bracket_steps = max_bracket_steps,
       target_name = target$parm,
-      curvature_se = curvature_se
+      curvature_se = curvature_se,
+      max_eval = max_eval
     )
   }
   crossings <- profile_lapply(c(-1L, 1L), endpoint_worker, endpoint_plan)
@@ -2298,6 +2378,14 @@ profile_endpoint_target_supported <- function(target) {
         "residual-correlation"
       ) &&
     target$transformation[[1L]] %in% c("exp", "tanh", "rho12_tanh")
+}
+
+profile_endpoint_targets_supported <- function(targets) {
+  vapply(
+    seq_len(nrow(targets)),
+    function(i) profile_endpoint_target_supported(targets[i, , drop = FALSE]),
+    logical(1L)
+  )
 }
 
 profile_endpoint_curvature_se <- function(object, position) {
@@ -2375,11 +2463,19 @@ profile_endpoint_crossing <- function(
   root_tol,
   max_bracket_steps,
   target_name,
-  curvature_se = NA_real_
+  curvature_se = NA_real_,
+  max_eval = NULL
 ) {
   n_eval <- 0L
   last_free <- evaluator$start_free
   eval_root <- function(theta) {
+    if (!is.null(max_eval) && n_eval >= max_eval) {
+      cli::cli_abort(c(
+        "Endpoint profile evaluation budget was reached for target {.val {target_name}}.",
+        i = "Budget: {max_eval} constrained endpoint evaluation(s) per side.",
+        i = "Increase {.arg profile_endpoint_max_eval} or retry without the endpoint budget if this profile needs more refits."
+      ))
+    }
     n_eval <<- n_eval + 1L
     out <- evaluator$evaluate(theta, last_free)
     last_free <<- out$par

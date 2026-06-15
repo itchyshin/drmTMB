@@ -14,6 +14,7 @@
   profile_precision = c("default", "fast"),
   profile_maxit = NULL,
   profile_engine = c("auto", "endpoint", "tmbprofile"),
+  profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -62,6 +63,13 @@ correlation targets when no \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} cont
 otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. \code{"endpoint"} requires the scalar
 endpoint solver, while \code{"tmbprofile"} preserves the previous full-profile
 route for comparison and debugging.}
+
+\item{profile_endpoint_max_eval}{Optional positive whole number limiting
+constrained endpoint evaluations per endpoint side when the scalar
+endpoint engine is used. This is a diagnostic escape hatch for long
+variance-component or correlation profiles; when the budget is reached the
+row is returned with \code{conf.status = "profile_failed"} and missing
+endpoints.}
 
 \item{R}{Number of parametric-bootstrap refits when
 \code{method = "bootstrap"}.}
