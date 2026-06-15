@@ -257,7 +257,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r3";
+const BUILD = "r4";
 const statusClass = (x) => String(x || "queued").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
 const text = (x) => String(x == null ? "" : x);
 const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({

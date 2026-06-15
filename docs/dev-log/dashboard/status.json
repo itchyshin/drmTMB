@@ -1,9 +1,9 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the Julia <-> R distributional-regression twin. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-14 17:35 MDT",
+  "updated": "2026-06-14 18:37 MDT",
   "metrics": {
-    "verified": 8,
+    "verified": 9,
     "active": 4,
     "blocked": 0,
     "deferred": 1,
@@ -20,7 +20,7 @@
         {
           "name": "Create clean dashboard worktree from current origin/main",
           "status": "verified",
-          "evidence": "worktree /tmp/drmtmb-dashboard-repair at 24b186eb"
+          "evidence": "worktree /tmp/drmtmb-dashboard-repair refreshed from origin/main"
         },
         {
           "name": "Build static mission-control dashboard source",
@@ -86,7 +86,7 @@
       "name": "Bridge-gate drift first",
       "owner": "Hopper + Boole + Emmy",
       "status": "active",
-      "counts": "1/5",
+      "counts": "2/5",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -96,14 +96,17 @@
           "evidence": "PR #547 merged green on macOS, Ubuntu, and Windows"
         },
         {
-          "name": "Audit every R-side Julia bridge rejection against DRM.jl capabilities",
+          "name": "Bank first intentional-gate registry for current R-side Julia rejections",
+          "status": "banked",
+          "issue": "drmTMB#544",
+          "url": "https://github.com/itchyshin/drmTMB/pull/549",
+          "evidence": "PR #549 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Extend registry into generated gate-vs-engine CI guard",
           "status": "active",
           "issue": "drmTMB#544",
           "url": "https://github.com/itchyshin/drmTMB/issues/544"
-        },
-        {
-          "name": "Add generated gate-vs-engine CI guard",
-          "status": "queued"
         },
         {
           "name": "Reserve engine_control targets and reject unsupported values early",
@@ -728,7 +731,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Mission-control repair is active on a clean worktree; next coding slice remains drmTMB#544 gate-vs-engine audit."
+      "text": "Mission control is merged; next coding slice extends the banked #549 registry into the generated gate-vs-engine guard."
     },
     {
       "when": "now",
@@ -742,6 +745,20 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-14",
+      "who": "GitHub",
+      "text": "drmTMB#549 merged the first intentional Julia bridge gate registry after macOS, Ubuntu, and Windows checks passed.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/549",
+      "link_label": "#549"
+    },
+    {
+      "when": "2026-06-14",
+      "who": "GitHub",
+      "text": "drmTMB#548 merged the mission-control dashboard and finish matrix after macOS, Ubuntu, and Windows checks passed.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/548",
+      "link_label": "#548"
+    },
     {
       "when": "2026-06-14",
       "who": "GitHub",
@@ -795,7 +812,7 @@
     {
       "when": "2026-06-14",
       "who": "Issue ledger",
-      "text": "drmTMB#544 is the active bridge-gate epic; #547 is the first banked slice."
+      "text": "drmTMB#544 is the active bridge-gate epic; #547 and #549 are banked slices."
     },
     {
       "when": "2026-06-14",
