@@ -59,6 +59,9 @@ usage <- function() {
       "  DRMTMB_AYUMI_Q4_ENGINES=tmb,julia",
       "  DRMTMB_AYUMI_Q4_REML=false,true",
       "  DRMTMB_AYUMI_Q4_PROFILE=none|first_sigma|all_sigma",
+      "  DRMTMB_AYUMI_Q4_BOOTSTRAP=0",
+      "  DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=none|first_sigma|all_sigma|all_q4",
+      "  DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=",
       "  DRMTMB_AYUMI_Q4_TIME_LIMIT=0",
       "  DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL=",
       "  DRMTMB_AYUMI_Q4_OUT=docs/dev-log/ayumi-q4-status/<run>",
@@ -392,13 +395,18 @@ fit_diagnostic_status <- function(convergence, pd_hess) {
   "fit_returned_nonconverged_pdhess_false"
 }
 
-select_sigma_targets <- function(targets, mode) {
+select_interval_targets <- function(targets, mode) {
   if (!nrow(targets) || identical(mode, "none")) {
     return(targets[0L, , drop = FALSE])
   }
-  is_sigma_phylo <- grepl("phylo", targets$parm, fixed = TRUE) &
-    grepl("sigma[12]", targets$parm)
-  selected <- targets[is_sigma_phylo, , drop = FALSE]
+  is_phylo_sd <- grepl("^sd:", targets$parm) &
+    grepl("phylo", targets$parm, fixed = TRUE)
+  selected <- targets[is_phylo_sd, , drop = FALSE]
+  if (identical(mode, "all_q4")) {
+    return(selected)
+  }
+  is_sigma_phylo <- grepl("sigma[12]", selected$parm)
+  selected <- selected[is_sigma_phylo, , drop = FALSE]
   if (identical(mode, "first_sigma") && nrow(selected) > 1L) {
     selected <- selected[1L, , drop = FALSE]
   }
@@ -460,6 +468,73 @@ run_profile <- function(
     bind_tables(list(
       condition_rows(cell, captured$warnings, "warning", "profile"),
       condition_rows(cell, captured$messages, "message", "profile")
+    )),
+    paths$conditions
+  )
+}
+
+run_bootstrap <- function(
+  fit,
+  targets,
+  cell,
+  time_limit,
+  bootstrap_replicates,
+  bootstrap_seed,
+  paths
+) {
+  if (!nrow(targets) || bootstrap_replicates < 1L) {
+    return(invisible(NULL))
+  }
+  args <- list(
+    object = fit,
+    parm = targets$parm,
+    method = "bootstrap",
+    R = bootstrap_replicates
+  )
+  if (!is.null(bootstrap_seed)) {
+    args$seed <- bootstrap_seed
+  }
+  started <- Sys.time()
+  captured <- capture_conditions(with_elapsed_limit(
+    do.call(stats::confint, args),
+    time_limit
+  ))
+  elapsed <- as.numeric(difftime(Sys.time(), started, units = "secs"))
+  if (inherits(captured$value, "error")) {
+    append_table(
+      data.frame(
+        cell = cell,
+        phase = "bootstrap",
+        status = "error",
+        elapsed_sec = elapsed,
+        parm = paste(targets$parm, collapse = ";"),
+        lower = NA_real_,
+        upper = NA_real_,
+        conf.status = NA_character_,
+        profile.boundary = NA,
+        profile.message = conditionMessage(captured$value),
+        bootstrap.n = bootstrap_replicates,
+        bootstrap.failed = NA_integer_,
+        stringsAsFactors = FALSE
+      ),
+      paths$intervals
+    )
+  } else {
+    ci <- safe_table(captured$value)
+    ci <- cbind(
+      cell = cell,
+      phase = "bootstrap",
+      status = "ok",
+      elapsed_sec = elapsed,
+      ci,
+      stringsAsFactors = FALSE
+    )
+    append_table(ci, paths$intervals)
+  }
+  append_table(
+    bind_tables(list(
+      condition_rows(cell, captured$warnings, "warning", "bootstrap"),
+      condition_rows(cell, captured$messages, "message", "bootstrap")
     )),
     paths$conditions
   )
@@ -553,13 +628,26 @@ run_fit_cell <- function(dat, tree, size_label, engine, reml, config, paths) {
     stringsAsFactors = FALSE
   )
   append_table(targets, paths$targets)
-  selected <- select_sigma_targets(targets, config$profile)
+  selected <- select_interval_targets(targets, config$profile)
   run_profile(
     fit,
     selected,
     cell,
     config$time_limit,
     config$profile_endpoint_max_eval,
+    paths
+  )
+  bootstrap_targets <- select_interval_targets(
+    targets,
+    config$bootstrap_targets
+  )
+  run_bootstrap(
+    fit,
+    bootstrap_targets,
+    cell,
+    config$time_limit,
+    config$bootstrap_replicates,
+    config$bootstrap_seed,
     paths
   )
   invisible(fit)
@@ -599,6 +687,16 @@ write_metadata <- function(paths, config, input_path) {
     paste0("- engines: ", paste(config$engines, collapse = ",")),
     paste0("- REML: ", paste(config$reml, collapse = ",")),
     paste0("- profile: ", config$profile),
+    paste0("- bootstrap_replicates: ", config$bootstrap_replicates),
+    paste0("- bootstrap_targets: ", config$bootstrap_targets),
+    paste0(
+      "- bootstrap_seed: ",
+      if (is.null(config$bootstrap_seed)) {
+        "NULL"
+      } else {
+        config$bootstrap_seed
+      }
+    ),
     paste0(
       "- profile_endpoint_max_eval: ",
       if (is.null(config$profile_endpoint_max_eval)) {
@@ -682,8 +780,24 @@ config <- list(
     "DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL",
     NULL
   ),
+  bootstrap_replicates = env_whole("DRMTMB_AYUMI_Q4_BOOTSTRAP", 0L),
+  bootstrap_targets = match.arg(
+    env_chr(
+      "DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS",
+      if (env_whole("DRMTMB_AYUMI_Q4_BOOTSTRAP", 0L) > 0L) {
+        "all_q4"
+      } else {
+        "none"
+      }
+    ),
+    c("none", "first_sigma", "all_sigma", "all_q4")
+  ),
+  bootstrap_seed = env_whole("DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED", NULL),
   missing_include = env_flag("DRMTMB_AYUMI_Q4_MISSING_INCLUDE", TRUE)
 )
+if (config$bootstrap_replicates < 0L) {
+  stop("DRMTMB_AYUMI_Q4_BOOTSTRAP must be non-negative.", call. = FALSE)
+}
 
 columns <- list(
   y1 = env_chr("DRMTMB_AYUMI_Q4_Y1", "Tarsus_Length_z"),

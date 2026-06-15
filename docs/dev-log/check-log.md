@@ -53946,3 +53946,45 @@ Known boundaries:
 - It does not speed up the 10k-tip Julia route.
 - It does not add a separate univariate `sigma`-phylo profile/bootstrap target
   to the R bridge.
+
+## 2026-06-15: Ayumi q4 Bootstrap Harness
+
+Scope:
+
+- Extended `tools/ayumi-q4-status-harness.R` with a bootstrap interval phase
+  controlled by `DRMTMB_AYUMI_Q4_BOOTSTRAP`,
+  `DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS`, and
+  `DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED`.
+- Added bootstrap target modes `none`, `first_sigma`, `all_sigma`, and
+  `all_q4`; when bootstrap replicates are requested without an explicit target
+  mode, the harness defaults to `all_q4`.
+- Wrote bootstrap rows to `intervals.csv` with the existing status, timing, and
+  condition-capture pattern.
+
+Checks run:
+
+```sh
+air format tools/ayumi-q4-status-harness.R
+Rscript --vanilla -e 'invisible(parse("tools/ayumi-q4-status-harness.R")); cat("parse ok\n")'
+git diff --check
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-biv-confint.R")'
+DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/DRM.jl" JULIA_HOME="/Users/z3437171/.juliaup/bin" JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=julia DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-q4-status/harness-bootstrap-30 Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- `test-julia-biv-confint.R` passed with 31 expectations.
+- The Ayumi-bundle smoke wrote one Julia ML fit row at 30 tips:
+  `status = "ok"`, `convergence = 0`, and
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"` with fit
+  elapsed time 36.19 s.
+- The bootstrap phase wrote four q4 SD rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `julia.elapsed = 1.13` s. Total R-side bootstrap phase elapsed time was
+  10.46 s.
+
+Known boundaries:
+
+- This proves bootstrap plumbing on a tiny real-data subset only.
+- It does not make the 10,440-tip Julia route fast.
+- It does not make native `engine = "tmb"` a bivariate q4 REML fallback.
