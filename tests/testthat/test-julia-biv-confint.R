@@ -14,23 +14,26 @@ drm_julia_biv_synthetic_fit <- function() {
   tree <- ape::rcoal(5)
   tree$tip.label <- paste0("sp", seq_len(5))
 
-  # Four axes: resd_<dpar>_<term> coefficient naming mirrors what DRM.jl
-  # returns for biv_gaussian.  The dpar labels in the formula terms are what
-  # drm_julia_structured_parameters uses.
   biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
   term_label <- "phylo(1 | species)"
   sd_vals <- c(mu1 = 1.2, mu2 = 0.9, sigma1 = 0.6, sigma2 = 0.4)
-  sd_scale <- sqrt(2)  # structured_sd_scales value for the shared phylo term
+  sd_scale <- sqrt(2) # structured_sd_scales value for the shared phylo term
 
-  resd_names <- paste0("resd_", biv_dpars, "_", term_label)
-  resd_coefs <- stats::setNames(
-    log(sd_vals / sd_scale),
-    paste0("resd_", term_label)  # name pattern used by drm_julia_structured_parameters
-  )
-  # Build names expected by drm_julia_structured_parameters: one resd_ entry
-  # per axis, named "resd_<term_label>". But structured_parameters keys by
-  # term_label; dpar comes from formula$entries. We bypass structured_parameters
-  # here and directly craft sdpars to match what new_drmTMB_julia would build.
+  # The q4 bridge stores the among-axis covariance Sigma_a as a log-Cholesky
+  # phylocov block, not as sdpars. Keep a known non-equal diagonal so the public
+  # profile_targets() estimate column cannot silently fall back to placeholders.
+  Sigma_a <- diag(unname(sd_vals)^2)
+  Lc <- t(chol(Sigma_a))
+  lc <- numeric()
+  for (col in seq_len(4L)) {
+    for (rw in col:4L) {
+      nm <- sprintf("Sigma_a:L%d%d", rw, col)
+      lc[[nm]] <- if (rw == col) log(Lc[rw, col]) else Lc[rw, col]
+    }
+  }
+
+  # Keep sdpars too, because older pure-R target tests used this shape and it
+  # remains representative for non-q4 Julia bridge rows.
   sdpars <- list(
     mu1 = stats::setNames(sd_vals[["mu1"]], term_label),
     mu2 = stats::setNames(sd_vals[["mu2"]], term_label),
@@ -41,7 +44,7 @@ drm_julia_biv_synthetic_fit <- function() {
   # Minimal bridge_payload with bivariate = TRUE and a non-NULL tree.
   bridge_payload <- list(
     bivariate = TRUE,
-    tree = "((sp1,sp2),(sp3,(sp4,sp5)));",  # newick placeholder
+    tree = "((sp1,sp2),(sp3,(sp4,sp5)));", # newick placeholder
     structured_sd_scales = stats::setNames(
       rep(sd_scale, length(biv_dpars)),
       rep(term_label, length(biv_dpars))
@@ -52,9 +55,11 @@ drm_julia_biv_synthetic_fit <- function() {
   structure(
     list(
       model = list(model_type = "biv_gaussian"),
+      coefficients = list(phylocov = lc),
       sdpars = sdpars,
       bridge_payload = bridge_payload,
-      structured_sd_scales = bridge_payload$structured_sd_scales
+      structured_sd_scales = bridge_payload$structured_sd_scales,
+      expected_axis_sd = sd_vals
     ),
     class = "drmTMB_julia"
   )
@@ -79,6 +84,16 @@ test_that("drm_julia_profile_targets returns 4 rows for biv_gaussian", {
   expect_true(all(targets$scale == "response"))
   # Estimates are on the positive response scale.
   expect_true(all(targets$estimate > 0))
+  expect_equal(
+    targets$estimate,
+    unname(fit$expected_axis_sd),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    targets$link_estimate,
+    log(unname(fit$expected_axis_sd)),
+    tolerance = 1e-10
+  )
   # parm names follow "sd:<dpar>:phylo(1 | species)" pattern.
   expect_true(all(startsWith(targets$parm, "sd:")))
 })
@@ -122,8 +137,8 @@ drm_julia_biv_fake_result <- function(
     multi = TRUE,
     param = c("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"),
     estimate = c(1.2, 0.9, 0.6, 0.4),
-    std_error = c(NaN, NaN, NaN, NaN),  # NaN for profile
-    lower = c(0.6, 0.4, 0.3, 0.2),  # SD scale; used directly in confint_multi
+    std_error = c(NaN, NaN, NaN, NaN), # NaN for profile
+    lower = c(0.6, 0.4, 0.3, 0.2), # SD scale; used directly in confint_multi
     upper = ifelse(is.infinite(uppers), Inf, uppers),
     bounded = bounded,
     status = rep("ok", 4L),
@@ -202,8 +217,8 @@ test_that("drm_julia_inference_confint_multi works for bootstrap (no bounded)", 
   fit <- drm_julia_biv_synthetic_fit()
   targets <- drmTMB:::drm_julia_profile_targets(fit)
   result <- drm_julia_biv_fake_result(method = "bootstrap")
-  result$bounded <- NULL  # bootstrap does not return bounded
-  result$std_error <- c(0.3, 0.2, 0.15, 0.1)  # finite for bootstrap
+  result$bounded <- NULL # bootstrap does not return bounded
+  result$std_error <- c(0.3, 0.2, 0.15, 0.1) # finite for bootstrap
   result$used <- 199L
   result$failed <- 0L
 
