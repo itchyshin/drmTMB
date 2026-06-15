@@ -2310,6 +2310,100 @@ test_that("profile target inventory covers bivariate q4 phylo sigma axes", {
   )
 })
 
+test_that("profile intervals report bivariate q4 phylo sigma-axis status", {
+  sim <- new_profile_biv_phylo_q4_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(optimizer_preset = "careful")
+    )
+  )
+  expect_false(isTRUE(fit$sdr$pdHess))
+  fit$sdr$pdHess <- FALSE
+  fit$sdreport <- fit$sdr
+
+  targets <- profile_targets(fit)
+  sigma_targets <- targets[grepl("sigma[12]:phylo", targets$term), ]
+  sigma_parms <- sigma_targets$parm
+  expect_equal(
+    sigma_parms,
+    c(
+      "sd:mu:sigma1:phylo(1 | p | species)",
+      "sd:mu:sigma2:phylo(1 | p | species)"
+    )
+  )
+  sigma_estimates <- stats::setNames(sigma_targets$estimate, sigma_parms)
+
+  endpoint_ci <- suppressWarnings(stats::confint(
+    fit,
+    parm = sigma_parms,
+    level = 0.80,
+    method = "profile",
+    profile_engine = "endpoint"
+  ))
+  expect_equal(endpoint_ci$parm, sigma_parms)
+  expect_equal(endpoint_ci$profile.engine, rep("endpoint", 2L))
+  expect_true(all(endpoint_ci$conf.status %in% c("profile", "profile_failed")))
+
+  profile_ci <- suppressWarnings(stats::confint(
+    fit,
+    parm = sigma_parms,
+    level = 0.80,
+    method = "profile",
+    ystep = 0.50,
+    maxit = 20,
+    trace = FALSE
+  ))
+  expect_equal(profile_ci$parm, sigma_parms)
+  expect_equal(profile_ci$profile.engine, rep("tmbprofile", 2L))
+  expect_true(all(profile_ci$conf.status %in% c("profile", "profile_failed")))
+
+  ok_rows <- profile_ci$conf.status == "profile"
+  if (any(ok_rows)) {
+    expect_true(all(is.finite(profile_ci$lower[ok_rows])))
+    expect_true(all(is.finite(profile_ci$upper[ok_rows])))
+    expect_true(all(profile_ci$lower[ok_rows] > 0))
+    expect_true(all(profile_ci$upper[ok_rows] > profile_ci$lower[ok_rows]))
+    expect_true(all(
+      profile_ci$lower[ok_rows] < sigma_estimates[profile_ci$parm[ok_rows]]
+    ))
+    expect_true(all(
+      profile_ci$upper[ok_rows] > sigma_estimates[profile_ci$parm[ok_rows]]
+    ))
+  }
+
+  failed_rows <- profile_ci$conf.status == "profile_failed"
+  if (any(failed_rows)) {
+    expect_true(any(
+      is.na(profile_ci$lower[failed_rows]) |
+        is.na(profile_ci$upper[failed_rows])
+    ))
+    expect_true(all(!is.na(profile_ci$profile.message[failed_rows])))
+    expect_false(any(profile_ci$profile.message[failed_rows] == "ok"))
+  }
+
+  dropped_obj <- fit
+  dropped_obj$obj <- NULL
+  expect_error(
+    stats::confint(
+      dropped_obj,
+      parm = sigma_parms[[1L]],
+      method = "profile"
+    ),
+    "TMB object retained"
+  )
+})
+
 test_that("profile target inventory covers bivariate sd_phylo coefficients", {
   sim <- new_profile_biv_phylo_data(n_tip = 8L, n_each = 5L)
   dat <- sim$data

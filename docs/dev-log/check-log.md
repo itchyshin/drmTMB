@@ -53642,3 +53642,43 @@ Known boundaries:
 - This does not speed up the direct Julia 10k-tip route.
 - This is a first status/target-inventory slice for #551, not closure of the
   whole native-TMB fallback issue.
+
+## 2026-06-14: q4 Sigma Profile Status
+
+Scope:
+
+- Added a focused weak-Hessian bivariate q=4 phylogenetic location-scale test
+  for the sigma-axis SD profile targets from issue #551.
+- Verified that the public `confint(method = "profile")` path returns
+  row-level status for the two sigma-axis SD targets under `pdHess = FALSE`.
+- Kept successful profile rows constrained to finite positive endpoints that
+  contain the fitted SD estimate, and failed rows constrained to missing
+  endpoints plus a non-`ok` diagnostic message.
+- Added a q4 retained-TMB-object guard by checking that dropping `fit$obj`
+  still errors before profiling.
+- Added a short target-selection note for Ayumi-style workflows in
+  `docs/dev-log/after-task/2026-06-14-q4-sigma-profile-status.md`.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-profile-targets.R
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile intervals report bivariate q4 phylo sigma-axis status')"
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused q=4 sigma-axis profile-status test passed with no warnings.
+- The full `profile-targets` test file passed.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is not native-TMB REML for the bivariate q4 model.
+- This does not make q4 phylogenetic correlations profile-ready.
+- This does not validate interval coverage or 10k-tip runtime.
+- CI showed that all requested `tmbprofile` rows can fail on macOS and Windows,
+  so the portable guard is row-level status fidelity, not guaranteed endpoint
+  success on every platform.
