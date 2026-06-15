@@ -53988,3 +53988,71 @@ Known boundaries:
 - This proves bootstrap plumbing on a tiny real-data subset only.
 - It does not make the 10,440-tip Julia route fast.
 - It does not make native `engine = "tmb"` a bivariate q4 REML fallback.
+
+## 2026-06-15: Ayumi q4 DRM.jl main bridge-vcov fix verified through drmTMB
+
+Scope:
+
+- Banked the sister-package fix that removes a false R-to-Julia q4 point-fit
+  blocker: DRM.jl #292 now defaults bivariate Gaussian phylo bridge fits to
+  `q4_vcov = false`, so a usable ML/REML fit is not killed afterward by the
+  auxiliary finite-difference Wald covariance/SVD path.
+- Preserved the claim boundary: this is not the 10,440-tip speed solution, not
+  a native TMB REML fallback, and not a complete REML-bootstrap fix.
+- Re-ran the drmTMB Ayumi q4 harness against merged DRM.jl main, not the local
+  feature branch.
+- Posted issue-led evidence comments to DRM.jl #291 and drmTMB #555.
+
+Checks run:
+
+```sh
+/Users/z3437171/.juliaup/bin/julia --project=/tmp/DRM-main-merged -e 'using Pkg; Pkg.instantiate(); using DRM; println("DRM main ready at ", pathof(DRM))'
+
+PATH=/Users/z3437171/.juliaup/bin:$PATH \
+JULIA_HOME=/Users/z3437171/.juliaup/bin \
+DRM_JL_PATH=/tmp/DRM-main-merged \
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=julia \
+DRMTMB_AYUMI_Q4_REML=false,true \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=900 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+VECLIB_MAXIMUM_THREADS=1 \
+Rscript tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- DRM.jl #292 merged green as `9bdea6564661e1d9eb454ed3c6d2d9398522f74f`.
+- The merged-main DRM.jl worktree loaded from
+  `/tmp/DRM-main-merged/src/DRM.jl`.
+- Harness output:
+  `/tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated`.
+- `30|julia|REML_FALSE`: fit returned with `convergence = 0`, elapsed time
+  34.71 s, and `fit_diagnostic_status =
+  "fit_returned_converged_pdhess_false"`.
+- ML bootstrap smoke returned all four q4 SD rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `profile.message = "2/2 successful refits"`.
+- `30|julia|REML_TRUE`: point fit returned with `convergence = 0`, elapsed time
+  9.70 s, and `fit_diagnostic_status =
+  "fit_returned_converged_pdhess_false"`.
+- REML bootstrap remains a follow-up: the Ayumi small-subset bootstrap refits
+  fail with the now-explicit first reason, `too few observed y1_ayumi/y2_ayumi
+  rows for the bivariate q=4 mean coefficients`.
+
+Known boundaries:
+
+- The original Julia q4 LAPACK/SVD summary is no longer the right point-fit
+  diagnosis after DRM.jl #292; that post-fit vcov path is avoided by default.
+- This does not make the full 10,440-tip across-tree Julia workflow fast enough.
+- This does not make native `engine = "tmb"` a full REML fallback for the
+  bivariate q4 sigma-phylo model.
+- ML bootstrap plumbing has smoke evidence; REML bootstrap needs the DRM.jl
+  #291 follow-up before it is presented as ready for Ayumi's protocol.
