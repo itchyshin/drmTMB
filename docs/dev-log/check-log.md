@@ -2,6 +2,31 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Dashboard status refresh after gate registry merge
+
+Goal:
+
+- Refresh the live mission-control status after `drmTMB#549` merged, so the
+  dashboard records the first intentional Julia bridge gate registry as banked
+  and moves the next `drmTMB#544` slice to the generated gate-vs-engine guard.
+
+Changes:
+
+- Bumped the dashboard build marker from `r3` to `r4`.
+- Updated `docs/dev-log/dashboard/status.json` from 8/60 to 9/60
+  banked-or-verified slices.
+- Marked the #549 gate-registry slice as banked and moved the active Phase 2
+  work to extending the registry into the generated guard.
+- Removed the stale Phase 0 base-SHA evidence string in favour of a
+  branch-independent worktree refresh note.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` returned
+  `mission_control_ok: 9/60 banked_or_verified, 4 active, 16 matrix rows`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+
 ## 2026-06-14 -- Julia bridge intentional gate registry
 
 Goal:
