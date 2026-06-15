@@ -1464,13 +1464,17 @@ vcov.drmTMB_julia <- function(object, ...) {
 #'   bridge (`vcov(object)`). This mirrors the native drmTMB Wald path, whose
 #'   fixed-effect rows are also reported on the link scale.
 #' * `method = "profile"` / `method = "bootstrap"` re-enter DRM.jl's inference
-#'   primitive for the Gaussian phylogenetic SD target only, transformed back to
-#'   the positive response scale.
+#'   primitive for supported phylogenetic SD targets, transformed back to the
+#'   positive response scale. The current R bridge exposes the univariate
+#'   Gaussian `sd:mu:phylo(1 | species)` target and the four bivariate q = 4
+#'   targets `sd:mu1:*`, `sd:mu2:*`, `sd:sigma1:*`, and `sd:sigma2:*`.
 #'
 #' @param object A `drmTMB_julia` fit.
 #' @param parm Optional target selection. For `"wald"`, compact coefficient
 #'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
-#'   `"bootstrap"`, the SD target name (`"sd:mu:phylo(1 | species)"`).
+#'   `"bootstrap"`, supported SD target names such as
+#'   `"sd:mu:phylo(1 | species)"` or, for q = 4 bivariate fits,
+#'   `"sd:sigma1:phylo(1 | species)"`.
 #' @param level Confidence level.
 #' @param method `"wald"` (default), `"profile"`, or `"bootstrap"`.
 #' @param R Bootstrap replicate count (used only when `method = "bootstrap"`).
@@ -1709,7 +1713,7 @@ drm_julia_validate_inference_targets <- function(targets) {
   ) {
     cli::cli_abort(c(
       "Julia-engine profile and bootstrap intervals currently support exactly one Gaussian phylogenetic SD target (univariate) or all four axes (bivariate biv_gaussian).",
-      i = "Use {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate bridge slice, or refit with {.code engine = \"tmb\"}."
+      i = "Use {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
     ))
   }
   if (!isTRUE(targets$profile_ready[[1L]])) {
