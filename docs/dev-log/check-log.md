@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- Native q4 ML bootstrap smoke status for Ayumi
+
+Goal:
+
+- Check whether native `engine = "tmb"` bootstrap intervals can be described
+  as a near-term fallback after the Ayumi q4 native profile rows returned
+  honest `profile_failed` statuses.
+
+Check run:
+
+```sh
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/tmb-30-ml-bootstrap-native-main-563 \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=tmb \
+DRMTMB_AYUMI_Q4_REML=false \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=900 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+VECLIB_MAXIMUM_THREADS=1 \
+Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Result:
+
+- The 30-tip native TMB ML point fit returned, but with `convergence = 1`,
+  `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+- Bootstrap completed its reporting phase, but all four q4 phylogenetic SD rows
+  returned `conf.status = "bootstrap_unavailable"`,
+  `profile.message = "fewer than two successful bootstrap refits"`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2`.
+
+Known boundaries:
+
+- This is useful negative evidence: native TMB bootstrap is not yet a proven
+  fallback for Ayumi's q4 sigma-phylo workflow.
+- It does not contradict the Julia ML bootstrap smoke, which did return four
+  q4 SD rows at 30 tips after DRM.jl #292. The two bootstrap paths should stay
+  separate in user-facing replies until a native TMB q4 bootstrap cell has
+  successful refit evidence.
+
 ## 2026-06-15 -- Endpoint profile budget status for Ayumi q4 native checks
 
 Goal:

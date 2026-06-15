@@ -786,9 +786,21 @@
       "when": "now",
       "who": "Fisher",
       "text": "Ayumi Julia q4 point-fit bridge blocker is fixed, ML bootstrap smoke works, and REML bootstrap remains a documented follow-up because refits hit the observed-row guard on Ayumi small subsets."
+    },
+    {
+      "when": "now",
+      "who": "Curie",
+      "text": "Native TMB ML bootstrap is not yet a fallback claim: a 30-tip Ayumi smoke returned bootstrap_unavailable after both refits failed."
     }
     ],
     "activity": [
+        {
+            "when": "2026-06-15",
+            "who": "Codex",
+            "text": "Native TMB ML q4 bootstrap smoke completed on a 30-tip Ayumi subset but returned bootstrap_unavailable for all four phylogenetic SD rows; keep bootstrap fallback wording conservative.",
+            "url": "docs/dev-log/check-log.md",
+            "link_label": "check-log"
+        },
         {
             "when": "2026-06-15",
             "who": "GitHub",
@@ -890,6 +902,11 @@
             "when": "2026-06-15",
             "who": "Status matrix",
             "text": "Merged DRM.jl main 9bdea65 verified through the drmTMB Ayumi harness: Julia ML and REML point fits return at 30 tips; ML bootstrap returns four q4 SD rows; REML bootstrap failure is now explicit and tracked."
+        },
+        {
+            "when": "2026-06-15",
+            "who": "Status matrix",
+            "text": "Native TMB ML bootstrap smoke is negative evidence for fallback wording: the 30-tip Ayumi run returned bootstrap_unavailable after both bootstrap refits failed."
         },
         {
             "when": "2026-06-15",
