@@ -53802,3 +53802,43 @@ Known boundaries:
 - It has not yet been run on Ayumi's 10,440-tip RDS in this branch.
 - `DRMTMB_AYUMI_Q4_TIME_LIMIT` uses R's elapsed-time limit and may not interrupt
   all compiled-code paths immediately.
+
+## 2026-06-15: Julia Confint Target Wording
+
+Scope:
+
+- Tightened the public Julia-engine article and `confint.drmTMB_julia()`
+  documentation so they no longer imply that univariate Gaussian sigma-phylo
+  profile/bootstrap extraction is already exposed by the R bridge.
+- Kept the fitted-model claim separate from the inference-extraction claim:
+  sigma-phylo Gaussian fits may be admitted and may forward `REML = TRUE` when
+  the installed `DRM.jl` build supports that cell, but the current univariate
+  profile/bootstrap bridge exposes the `mu` phylogenetic SD target.
+- Kept the bivariate q = 4 claim explicit: profile/bootstrap target selection
+  covers one among-axis SD target for each of `mu1`, `mu2`, `sigma1`, and
+  `sigma2`.
+- Updated the unsupported-target message in `drm_julia_validate_inference_targets()`
+  so it tells users the actual admitted univariate and q = 4 target families.
+- Regenerated `man/confint.drmTMB_julia.Rd` and removed unrelated roxygen churn
+  from the patch.
+
+Checks run:
+
+```sh
+air format R/julia-bridge.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-julia-biv-confint.R'); testthat::test_file('tests/testthat/test-julia-inference.R')"
+```
+
+Results:
+
+- `test-julia-biv-confint.R` passed with 31 expectations.
+- `test-julia-inference.R` passed with 44 expectations.
+
+Known boundaries:
+
+- This is a wording and target-selection slice only.
+- It does not make native `engine = "tmb"` a bivariate q4 REML fallback.
+- It does not speed up the 10k-tip Julia route.
+- It does not add a separate univariate `sigma`-phylo profile/bootstrap target
+  to the R bridge.
