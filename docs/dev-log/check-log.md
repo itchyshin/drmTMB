@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Julia bridge intentional gate registry
+
+Goal:
+
+- Start the `drmTMB#544` bridge-gate-drift audit with a focused CI guard:
+  every currently intentional `engine = "julia"` R-side rejection should have
+  a named registry row and a test that keeps the rejection conscious.
+
+Changes:
+
+- Added internal `drm_julia_intentional_gates()` registry rows for the current
+  base, bivariate phylo, structured-covariance, and cross-family Julia bridge
+  gates.
+- Added `tests/testthat/test-julia-gate-vs-engine.R` with representative
+  pre-JuliaCall error checks for weights, imputation, Julia optimizer control,
+  missing-predictor modelling, non-Gaussian missing-response masks,
+  unsupported family routes, non-phylo count-family routes, partial q4 phylo,
+  phylogenetic `rho12`, unsupported structured family/routes, precision-matrix
+  slots, cross-family missingness, cross-family `rho12`, and dispersionless
+  cross-family axes.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R`
+  completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'`
+  returned 54 passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R", reporter = "summary")'`
+  returned 85 passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R", reporter = "summary")'`
+  returned 17 passes and one guarded live-DRM.jl skip:
+  "DRM.jl engine at this path predates sigma-phylo REML support".
+- `git diff --check` passed.
+
+Known boundaries:
+
+- This is the first registry/test layer for `drmTMB#544`, not the full
+  generated comparison against a DRM.jl exported capability table.
+- The native `engine = "tmb"` route is still not a full REML fallback for
+  Ayumi's bivariate q4 phylogenetic location-scale model.
+
 ## 2026-06-14 -- Mission-Control Dashboard And Finish Matrix
 
 Goal:
