@@ -105,6 +105,9 @@
 #'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
 #'   profile rows use `"profile_failed"` with missing endpoints; profile rows
 #'   mark intervals that land near a lower SD boundary or correlation boundary.
+#'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
+#'   with one diagnostic row per refit and target, including refit convergence,
+#'   target availability, draw use, and the refit message.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -1654,13 +1657,32 @@ drm_bootstrap_confint <- function(
   rows <- bootstrap_lapply(seq_len(R), worker, plan)
   draws <- do.call(rbind, rows)
   row.names(draws) <- NULL
+  draws$bootstrap.requested <- R
+  draws$bootstrap.seed <- bootstrap_seed_label(seed)
+  draws$bootstrap.parallel <- plan$backend
+  draws$bootstrap.workers <- plan$workers
+  draws$refit.optimizer_preset <- refit_control$optimizer_preset
+  draws$refit.se <- refit_control$se
+  draws$refit.keep_tmb_object <- refit_control$keep_tmb_object
+  draws$target_requested_n <- as.integer(
+    ave(draws$target_available, draws$bootstrap, FUN = length)
+  )
+  draws$target_available_n <- as.integer(
+    ave(draws$target_available, draws$bootstrap, FUN = sum)
+  )
+  draws$draw_value <- NA_real_
+  draws$draw_used <- FALSE
 
   probs <- c((1 - level) / 2, (1 + level) / 2)
-  intervals <- lapply(seq_len(nrow(targets)), function(i) {
+  intervals <- vector("list", nrow(targets))
+  for (i in seq_len(nrow(targets))) {
     target <- targets[i, , drop = FALSE]
-    target_draws <- draws[draws$parm == target$parm, , drop = FALSE]
+    target_index <- draws$parm == target$parm
+    target_draws <- draws[target_index, , drop = FALSE]
     draw_values <- bootstrap_percentile_draws(target_draws, target)
     finite <- is.finite(draw_values) & target_draws$refit_ok
+    draws$draw_value[target_index] <- draw_values
+    draws$draw_used[target_index] <- finite
     n_ok <- sum(finite)
     failed <- nrow(target_draws) - n_ok
     if (n_ok < 2L) {
@@ -1679,7 +1701,7 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap"
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
     }
-    data.frame(
+    intervals[[i]] <- data.frame(
       parm = target$parm,
       level = level,
       lower = lower,
@@ -1699,9 +1721,10 @@ drm_bootstrap_confint <- function(
       bootstrap.workers = plan$workers,
       stringsAsFactors = FALSE
     )
-  })
+  }
   out <- do.call(rbind, intervals)
   row.names(out) <- NULL
+  attr(out, "bootstrap.diagnostics") <- draws
   out
 }
 
@@ -1717,6 +1740,13 @@ validate_bootstrap_replicates <- function(R) {
     cli::cli_abort("{.arg R} must be a positive whole number.")
   }
   as.integer(R)
+}
+
+bootstrap_seed_label <- function(seed) {
+  if (is.null(seed)) {
+    return(NA_character_)
+  }
+  paste(seed, collapse = ",")
 }
 
 bootstrap_parallel_plan <- function(R, parallel, workers) {
@@ -1823,6 +1853,7 @@ bootstrap_refit_one <- function(
     error = function(err) err
   )
   if (inherits(refit, "error")) {
+    out$refit_status <- "refit_error"
     out$refit_message <- conditionMessage(refit)
     return(out)
   }
@@ -1831,11 +1862,20 @@ bootstrap_refit_one <- function(
   matched <- match(target_names, refit_targets$parm)
   has_target <- !is.na(matched)
   out$refit_convergence <- refit$opt$convergence
+  out$refit_converged <- refit_ok
+  out$target_available <- has_target
   out$refit_ok <- refit_ok & has_target
   out$refit_message <- if (refit_ok) "ok" else refit$opt$message
+  out$refit_status <- ifelse(
+    !refit_ok,
+    "refit_nonconverged",
+    ifelse(has_target, "ok", "target_missing")
+  )
   out$estimate[has_target] <- refit_targets$estimate[matched[has_target]]
   out$link_estimate[has_target] <-
     refit_targets$link_estimate[matched[has_target]]
+  out$estimate_finite <- is.finite(out$estimate)
+  out$link_estimate_finite <- is.finite(out$link_estimate)
   out
 }
 
@@ -1847,6 +1887,11 @@ bootstrap_empty_draws <- function(index, target_names) {
     link_estimate = NA_real_,
     refit_ok = FALSE,
     refit_convergence = NA_integer_,
+    refit_converged = FALSE,
+    target_available = FALSE,
+    estimate_finite = FALSE,
+    link_estimate_finite = FALSE,
+    refit_status = "not_run",
     refit_message = "not run",
     stringsAsFactors = FALSE
   )

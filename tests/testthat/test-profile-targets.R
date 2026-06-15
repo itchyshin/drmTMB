@@ -820,10 +820,90 @@ test_that("confint returns bootstrap intervals for direct targets", {
   expect_true(all(ci$bootstrap.failed >= 0L))
   expect_equal(unique(ci$bootstrap.parallel), "none")
   expect_equal(unique(ci$bootstrap.workers), 1L)
+  diagnostics <- attr(ci, "bootstrap.diagnostics", exact = TRUE)
+  expect_s3_class(diagnostics, "data.frame")
+  expect_equal(
+    names(diagnostics),
+    c(
+      "bootstrap",
+      "parm",
+      "estimate",
+      "link_estimate",
+      "refit_ok",
+      "refit_convergence",
+      "refit_converged",
+      "target_available",
+      "estimate_finite",
+      "link_estimate_finite",
+      "refit_status",
+      "refit_message",
+      "bootstrap.requested",
+      "bootstrap.seed",
+      "bootstrap.parallel",
+      "bootstrap.workers",
+      "refit.optimizer_preset",
+      "refit.se",
+      "refit.keep_tmb_object",
+      "target_requested_n",
+      "target_available_n",
+      "draw_value",
+      "draw_used"
+    )
+  )
+  expect_equal(nrow(diagnostics), 3L * length(ci$parm))
+  expect_setequal(diagnostics$bootstrap, 1:3)
+  expect_setequal(diagnostics$parm, ci$parm)
+  expect_equal(unique(diagnostics$bootstrap.requested), 3L)
+  expect_equal(unique(diagnostics$bootstrap.seed), "20260655")
+  expect_equal(unique(diagnostics$bootstrap.parallel), "none")
+  expect_equal(unique(diagnostics$bootstrap.workers), 1L)
+  expect_equal(unique(diagnostics$refit.optimizer_preset), "default")
+  expect_equal(unique(diagnostics$refit.se), FALSE)
+  expect_equal(unique(diagnostics$refit.keep_tmb_object), FALSE)
+  expect_equal(unique(diagnostics$target_requested_n), length(ci$parm))
   if (all(ci$conf.status == "bootstrap")) {
     expect_true(all(ci$lower > 0))
     expect_true(all(ci$upper > 0))
+    expect_equal(diagnostics$draw_used, diagnostics$refit_ok)
   }
+})
+
+test_that("bootstrap refit diagnostics retain refit errors", {
+  dat <- new_profile_group_data(n_id = 4, n_each = 3, seed = 202606551)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+  simulations <- stats::simulate(fit, nsim = 1, seed = 202606552)
+  local_mocked_bindings(
+    drmTMB = function(...) {
+      stop("mock bootstrap refit failed", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+
+  draws <- drmTMB:::bootstrap_refit_one(
+    object = fit,
+    simulations = simulations,
+    index = 1L,
+    target_names = c("sigma", "sd:mu:(1 | ID)"),
+    refit_control = drm_control(se = FALSE)
+  )
+
+  expect_equal(draws$bootstrap, c(1L, 1L))
+  expect_equal(draws$parm, c("sigma", "sd:mu:(1 | ID)"))
+  expect_equal(draws$refit_ok, c(FALSE, FALSE))
+  expect_equal(draws$refit_converged, c(FALSE, FALSE))
+  expect_equal(draws$target_available, c(FALSE, FALSE))
+  expect_equal(draws$estimate_finite, c(FALSE, FALSE))
+  expect_equal(draws$link_estimate_finite, c(FALSE, FALSE))
+  expect_equal(draws$refit_status, c("refit_error", "refit_error"))
+  expect_true(all(is.na(draws$refit_convergence)))
+  expect_equal(
+    draws$refit_message,
+    rep("mock bootstrap refit failed", 2L)
+  )
 })
 
 test_that("bootstrap percentiles use link scale for positive targets", {

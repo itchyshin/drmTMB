@@ -101,6 +101,9 @@ A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}. Failed numeric
 profile rows use \code{"profile_failed"} with missing endpoints; profile rows
 mark intervals that land near a lower SD boundary or correlation boundary.
+Bootstrap interval results carry a \code{"bootstrap.diagnostics"} attribute
+with one diagnostic row per refit and target, including refit convergence,
+target availability, draw use, and the refit message.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald

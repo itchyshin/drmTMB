@@ -2,6 +2,50 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- Bootstrap refit diagnostics ledger
+
+Goal:
+
+- Make failed or partial bootstrap intervals inspectable at the refit-by-target
+  grain, so the Ayumi q4 harness can say which bootstrap refits converged,
+  which targets were available, and which draws actually entered each
+  percentile interval.
+
+Change:
+
+- `confint(method = "bootstrap")` now attaches a
+  `"bootstrap.diagnostics"` attribute to returned interval tables.
+- The diagnostics table records bootstrap id, target, estimate/link-estimate,
+  refit convergence, target availability, finite-estimate flags, row status,
+  refit message, requested replicate count, seed label, backend, worker count,
+  refit-control flags, per-refit target counts, draw value, and whether the
+  draw was used.
+- `tools/ayumi-q4-status-harness.R` writes the same diagnostics to
+  `bootstrap-diagnostics.csv` whenever bootstrap intervals return.
+- NEWS, ROADMAP, the model workflow article, and the profile-CI design note now
+  mention the diagnostics without changing the visible interval table shape.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-profile-targets.R")'`
+  passed with 797 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e 'devtools::test(filter = "profile-targets")'`
+  passed with 797 expectations, 0 failures, 0 warnings, and 0 skips in
+  59.3 s.
+- Tiny Ayumi native TMB ML bootstrap diagnostics smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=first_sigma DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-diagnostics-b3e3fc4a-152933 Rscript --vanilla tools/ayumi-q4-status-harness.R`
+  wrote `bootstrap-diagnostics.csv` with two diagnostic rows for
+  `sd:mu:sigma1:phylo(1 | p | species)`, both `refit_status = "ok"`,
+  `refit_converged = TRUE`, `target_available = TRUE`, and
+  `draw_used = TRUE`.
+
+Known boundaries:
+
+- This slice improves evidence and troubleshooting. It does not make native TMB
+  bootstrap a usable Ayumi-scale q4 fallback, does not add native TMB REML for
+  bivariate q4 sigma-phylo models, and does not make a coverage claim from
+  small bootstrap pilots.
+
 ## 2026-06-15 -- Ayumi q4 native bootstrap optimizer controls
 
 Goal:
