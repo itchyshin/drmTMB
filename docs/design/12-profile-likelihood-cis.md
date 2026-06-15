@@ -273,6 +273,9 @@ possible causes. `confint(method = "profile")` now forwards `parallel` and
 is the public per-target `TMB::tmbprofile()` step-budget guard. Bootstrap rows
 report `bootstrap.n`, `bootstrap.failed`, `bootstrap.parallel`, and
 `bootstrap.workers` so failed refits remain visible beside returned intervals.
+Returned bootstrap tables also carry a `"bootstrap.diagnostics"` attribute with
+one row per refit and target, recording refit convergence, target availability,
+finite draw use, refit messages, and seed/backend/refit-control provenance.
 
 Slice 175 centralizes the current interval vocabulary with internal helpers:
 

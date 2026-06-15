@@ -545,6 +545,11 @@ run_bootstrap <- function(
       paths$intervals
     )
   } else {
+    bootstrap_diagnostics <- attr(
+      captured$value,
+      "bootstrap.diagnostics",
+      exact = TRUE
+    )
     ci <- safe_table(captured$value)
     ci <- cbind(
       cell = cell,
@@ -557,6 +562,18 @@ run_bootstrap <- function(
       stringsAsFactors = FALSE
     )
     append_table(ci, paths$intervals)
+    if (!is.null(bootstrap_diagnostics)) {
+      bootstrap_diagnostics <- cbind(
+        cell = cell,
+        phase = "bootstrap_diagnostic",
+        elapsed_sec = elapsed,
+        safe_table(bootstrap_diagnostics),
+        bootstrap.refit_optimizer_preset = bootstrap_refit_optimizer_preset %||%
+          NA_character_,
+        stringsAsFactors = FALSE
+      )
+      append_table(bootstrap_diagnostics, paths$bootstrap_diagnostics)
+    }
   }
   append_table(
     bind_tables(list(
@@ -816,6 +833,7 @@ paths <- list(
   fits = file.path(out_dir, "fits.csv"),
   targets = file.path(out_dir, "profile-targets.csv"),
   intervals = file.path(out_dir, "intervals.csv"),
+  bootstrap_diagnostics = file.path(out_dir, "bootstrap-diagnostics.csv"),
   conditions = file.path(out_dir, "conditions.csv"),
   metadata = file.path(out_dir, "metadata.md")
 )
