@@ -31,8 +31,8 @@ evidence is reconciled.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Dashboard and issue ledger | covered | partial | covered | unsupported | unsupported | unsupported | covered | covered | unsupported | partial | Keep `status.json`, `sweep.json`, check-log, and after-task notes synchronized with issues. |
 | Master capability matrix | partial | partial | partial | partial | partial | partial | partial | planned | partial | partial | Wire README, ROADMAP, NEWS, pkgdown, Documenter, and dashboard claims to this matrix. |
-| R-Julia bridge gate | partial | experimental | partial | planned | partial | partial | partial | planned | partial | planned | Implement `drmTMB#544`: generated gate-vs-engine audit and CI guard. |
-| Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Promote only after native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity are recorded in one row. |
+| R-Julia bridge gate | partial | experimental | partial | planned | partial | partial | partial | planned | partial | planned | Keep `drmTMB#544` open, but finish the native R/TMB support-status harness first so the bridge is not the only usable path. |
+| Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Promote only after native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity are recorded in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
 | Non-Gaussian models | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. |
 | Bivariate residual correlation `rho12` | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Keep residual `rho12` separate from group, phylogenetic, spatial, kernel, and cross-family correlations. |
@@ -89,10 +89,15 @@ is served from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`.
 ## First Work Order
 
 1. Keep the dashboard live at `http://127.0.0.1:8765/`.
-2. Use `drmTMB#544` as the first active bridge-gate coding epic.
-3. Add the generated gate-vs-engine audit and CI guard.
-4. Add the shared CI-status vocabulary.
-5. Promote the Gaussian phylogenetic SD profile/bootstrap target only after all
+2. Finish the R-first Ayumi q4 support/status path in `drmTMB#555`: native TMB
+   ML fit status, native REML rejection status, profile-target inventory,
+   interval rows, warnings/messages/errors, and metadata.
+3. Keep native `engine = "tmb"` useful for supported point-estimate,
+   reduced-model, and ML profile-status checks before promising Julia speed.
+4. Keep `drmTMB#544` active as the bridge-gate epic, but run it after the
+   native R/TMB status path is visible and honest.
+5. Add the shared CI-status vocabulary.
+6. Promote the Gaussian phylogenetic SD profile/bootstrap target only after all
    point-estimate and interval-status evidence is in one matrix row.
-6. Start missing values with observed-response masks and complete-data
+7. Start missing values with observed-response masks and complete-data
    equivalence tests.

@@ -76,6 +76,49 @@ Known boundaries:
   supported q4 fits, but it is not a full REML fallback for the bivariate q4
   phylogenetic location-scale model.
 
+## 2026-06-15 -- R-first mission-control rerank
+
+Goal:
+
+- Update the local mission-control widget and finish matrix after the plan
+  pivot: complete the native `drmTMB` R/TMB support-status path first, then
+  treat Julia as the acceleration/parity lane.
+
+Changed:
+
+- Updated `docs/dev-log/dashboard/status.json` so Phase 2 records the merged
+  #556 R-side Julia REML status truth-table slice, while Phase 3 is now the
+  active native R/TMB point-estimate and CI-status lane.
+- Added the banked native q4 ML profile-status fallback (#552/#553) and banked
+  #557/#559 native REML/harness slices to the dashboard.
+- Updated `docs/dev-log/dashboard/sweep.json` so the live overlay points at the
+  current R-first work.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` first work
+  order so `drmTMB#555` comes before broader `drmTMB#544`/Julia speed work.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+sh -n tools/start-mission-control.sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/version.txt
+curl -fsS http://127.0.0.1:8765/status.json
+```
+
+Results:
+
+- `tools/validate-mission-control.py` returned `mission_control_ok: 14/64
+  banked_or_verified, 3 active, 16 matrix rows`.
+- Both dashboard JSON files parsed successfully.
+- `tools/start-mission-control.sh` passed shell syntax validation and confirmed
+  the dashboard already listening at `http://127.0.0.1:8765/`.
+- `curl` returned live served status with updated timestamp
+  `2026-06-15 07:08 MDT`, branch `codex/rfirst-dashboard-status`, and active
+  Ada/Grace/Fisher R-first work rows.
+
 ## 2026-06-14 -- Julia bridge gate-id coverage
 
 Goal:
