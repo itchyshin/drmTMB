@@ -53725,3 +53725,49 @@ Known boundaries:
 - CI showed that all requested `tmbprofile` rows can fail on macOS and Windows,
   so the portable guard is row-level status fidelity, not guaranteed endpoint
   success on every platform.
+
+## 2026-06-15: Ayumi q4 R-First Status Harness
+
+Scope:
+
+- Added `tools/ayumi-q4-status-harness.R`, a developer harness for Ayumi-style
+  bivariate q = 4 Gaussian phylogenetic location-scale fits.
+- The harness reads an RDS payload containing `data` and `tree`, standardizes
+  Ayumi's current tarsus/beak column names, prunes the tree to requested sizes,
+  and runs the exact q4 formula with configurable `engine`, `REML`, missing
+  response handling, and optional sigma-axis profile attempts.
+- It writes separate CSVs for fit rows, profile-target inventory, interval
+  attempts, warnings/messages/errors, and run metadata. This keeps native
+  TMB ML point-estimate checks, native REML rejection, Julia route timing, and
+  profile status separate.
+- The default engine is `tmb` so the next evidence pass prioritizes the
+  native R/TMB path before broader Julia speed work.
+
+Checks run:
+
+```sh
+air format tools/ayumi-q4-status-harness.R
+Rscript --vanilla tools/ayumi-q4-status-harness.R --help
+DRMTMB_AYUMI_Q4_RDS=<non-ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=8 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+DRMTMB_AYUMI_Q4_RDS=<ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=12 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false,true DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+DRMTMB_AYUMI_Q4_RDS=<ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=12 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=first_sigma DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- The help path printed the required inputs and environment controls.
+- The non-ultrametric smoke returned a recorded model-side tree error in
+  `fits.csv` and `conditions.csv`, rather than aborting the harness.
+- The ultrametric native TMB ML/REML smoke wrote an ML fit row and the expected
+  native REML early-rejection row.
+- The first-sigma profile smoke wrote an `intervals.csv` row with
+  `conf.status = "profile_failed"` and missing endpoints for a tiny hard fit,
+  plus warning rows in `conditions.csv`.
+
+Known boundaries:
+
+- This harness does not make native TMB REML support bivariate q4.
+- It does not make the Julia route faster.
+- It has not yet been run on Ayumi's 10,440-tip RDS in this branch.
+- `DRMTMB_AYUMI_Q4_TIME_LIMIT` uses R's elapsed-time limit and may not interrupt
+  all compiled-code paths immediately.
