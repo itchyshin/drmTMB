@@ -2,6 +2,38 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Julia bridge gate-id coverage
+
+Goal:
+
+- Harden the first `drmTMB#544` Julia bridge gate registry so future registry
+  row additions, removals, or renames cannot drift away from the representative
+  CI guard unnoticed.
+
+Changes:
+
+- Added the exact expected `gate_id` vector to
+  `tests/testthat/test-julia-gate-vs-engine.R`.
+- The registry test now asserts the 15 current intentional gate IDs, while the
+  existing tests still exercise representative pre-JuliaCall failures for base,
+  bivariate q4 phylo, structured-covariance, and cross-family routes.
+
+Checks run:
+
+- `air format tests/testthat/test-julia-gate-vs-engine.R` completed without
+  errors.
+- `Rscript -e "devtools::test(filter = 'julia-gate-vs-engine', reporter = 'summary')"`
+  passed locally.
+- `Rscript -e "devtools::test(filter = 'julia-bridge', reporter = 'summary')"`
+  passed locally.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is CI-guard hardening only. It does not relax any R bridge gate or close
+  the broader generated/audited DRM.jl capability comparison requested in
+  `drmTMB#544`.
+
 ## 2026-06-14 -- Dashboard status refresh after gate registry merge
 
 Goal:

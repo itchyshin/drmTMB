@@ -21,12 +21,30 @@ new_gate_tree <- function(n = 6) {
 
 test_that("Julia bridge intentional-gate registry is complete and unique", {
   gates <- drmTMB:::drm_julia_intentional_gates()
+  expected_gate_ids <- c(
+    "base_weights",
+    "base_impute",
+    "base_control",
+    "base_missing_predictor_model",
+    "base_missing_response_nongaussian",
+    "base_unsupported_family",
+    "base_nonphylo_count",
+    "biv_partial_phylo_q4",
+    "biv_rho12_phylo",
+    "structured_unsupported_family",
+    "structured_sigma_predictor",
+    "structured_precision_slot",
+    "xfam_missing_route",
+    "xfam_rho12_formula",
+    "xfam_dispersionless_sigma"
+  )
 
   expect_s3_class(gates, "data.frame")
   expect_named(
     gates,
     c("gate_id", "route", "guard", "action", "evidence", "issue")
   )
+  expect_setequal(gates$gate_id, expected_gate_ids)
   expect_equal(anyDuplicated(gates$gate_id), 0L)
   expect_true(all(nzchar(gates$gate_id)))
   expect_true(all(nzchar(gates$route)))
