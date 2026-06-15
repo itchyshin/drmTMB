@@ -14,7 +14,7 @@ mkdir -p "$DEST"
 mkdir -p "$DEST/docs/design" "$DEST/docs/dev-log/after-task"
 cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$DEST/"
 cp "$ROOT/docs/design/168-r-julia-finish-capability-matrix.md" "$DEST/docs/design/"
-cp "$ROOT/docs/dev-log/after-task/2026-06-14-mission-control-capability-matrix.md" "$DEST/docs/dev-log/after-task/"
+cp "$ROOT/docs/dev-log/after-task/"*.md "$DEST/docs/dev-log/after-task/"
 python3 - "$DEST/status.json" "$ROOT" <<'PY'
 import json
 import pathlib
