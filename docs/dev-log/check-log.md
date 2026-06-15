@@ -45,6 +45,37 @@ Known boundaries:
 - Additional native-TMB REML rejection-branch tests and vignette wording cleanup
   remain the next R-first hardening slices.
 
+## 2026-06-15 -- Native TMB REML rejection-branch coverage
+
+Goal:
+
+- Lock down the native `engine = "tmb"` `REML = TRUE` boundary for the R-first
+  plan, so unsupported neighbours fail with explicit messages before users
+  mistake them for fallback routes for Ayumi-style q4 models.
+
+Changes:
+
+- Expanded `tests/testthat/test-comparators.R` coverage for unsupported REML
+  first-slice neighbours.
+- Added compact rejection checks for explicit missing-data engines,
+  `sparse_fixed`, Gaussian aggregation, residual-scale random effects, q > 2
+  labelled covariance blocks, structured Gaussian phylo effects, and
+  rank-deficient dense `mu` designs.
+
+Checks run:
+
+- `air format tests/testthat/test-comparators.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-comparators.R")'`
+  passed locally with 123 expectations.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is test hardening only. It does not expand native TMB REML support.
+- Native TMB remains a useful ML point-estimate/profile diagnostic route for
+  supported q4 fits, but it is not a full REML fallback for the bivariate q4
+  phylogenetic location-scale model.
+
 ## 2026-06-14 -- Julia bridge gate-id coverage
 
 Goal:
