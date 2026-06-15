@@ -107,6 +107,7 @@ drmTMB_julia_bridge <- function(
       control = control,
       impute = impute,
       missing = missing,
+      REML = REML,
       call = call
     ))
   }
@@ -121,6 +122,7 @@ drmTMB_julia_bridge <- function(
       control = control,
       impute = impute,
       missing = missing,
+      REML = REML,
       call = call
     ))
   }
@@ -160,18 +162,17 @@ drmTMB_julia_bridge <- function(
   # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
-  sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
-  reml_supported <- (identical(family_type, "gaussian") &&
-    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
-    (identical(family_type, "biv_gaussian") && isTRUE(has_phylo))
+  reml_supported <- drm_julia_reml_supported(
+    formula = formula,
+    family_type = family_type
+  )
   if (isTRUE(REML) && !reml_supported) {
     drm_julia_warn_reml_unsupported(
       REML,
-      if (isTRUE(has_phylo)) {
-        "phylogenetic Gaussian"
-      } else {
-        paste0("non-Gaussian (", family_type, ")")
-      }
+      drm_julia_reml_cell_label(
+        formula = formula,
+        family_type = family_type
+      )
     )
   }
   bridge_payload <- drm_julia_bridge_payload(
@@ -198,7 +199,9 @@ drmTMB_julia_bridge <- function(
     data = data,
     family_type = family_type,
     structured_sd_scales = bridge_payload$structured_sd_scales,
-    bridge_payload = bridge_payload
+    bridge_payload = bridge_payload,
+    requested_REML = isTRUE(REML),
+    effective_REML = isTRUE(REML) && isTRUE(reml_supported)
   )
 }
 
@@ -339,6 +342,27 @@ drm_julia_has_sigma_phylo_term <- function(formula) {
   length(sigma_phylo_terms) > 0L
 }
 
+drm_julia_reml_supported <- function(formula, family_type) {
+  has_phylo <- drm_julia_has_phylo_term(formula)
+  sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
+  (identical(family_type, "gaussian") &&
+    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
+    (identical(family_type, "biv_gaussian") && isTRUE(has_phylo))
+}
+
+drm_julia_reml_cell_label <- function(formula, family_type) {
+  if (!family_type %in% c("gaussian", "biv_gaussian")) {
+    return(paste0("non-Gaussian (", family_type, ")"))
+  }
+  if (identical(family_type, "biv_gaussian")) {
+    return("bivariate Gaussian")
+  }
+  if (drm_julia_has_phylo_term(formula)) {
+    return("mean-only phylogenetic Gaussian")
+  }
+  "Gaussian"
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -444,17 +468,15 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
 
 # Emit a single warning (and fall back to ML) when REML is requested for a
 # Julia-engine cell that DRM.jl does not yet fit by restricted maximum
-# likelihood. The supported cell is the fixed-effect univariate Gaussian
-# location-scale model; everything else (cross-family, structured / phylo,
-# non-Gaussian) currently ignores `method = :REML` on the DRM.jl side, so a
-# silent REML = TRUE would mislead the user into thinking they got an REML fit.
+# likelihood. REML remains a Gaussian-only claim: unsupported cells fall back to
+# ML instead of implying that a nearby TMB or Julia path is a full REML fallback.
 drm_julia_warn_reml_unsupported <- function(REML, cell) {
   if (!isTRUE(REML)) {
     return(invisible(FALSE))
   }
   cli::cli_warn(c(
     "{.code engine = \"julia\"} does not support {.code REML = TRUE} for {cell} models yet; fitting by maximum likelihood (ML) instead.",
-    i = "Use {.code engine = \"tmb\"} for an REML fit of this cell, or fit a fixed-effect Gaussian location-scale model on the Julia engine for REML."
+    i = "REML is currently a Gaussian-only drmTMB/DRM.jl capability. Use {.code REML = FALSE} for this cell, or simplify to a documented Gaussian REML cell; native {.code engine = \"tmb\"} is only a fallback for its documented univariate Gaussian REML slice."
   ))
   invisible(TRUE)
 }
@@ -1065,7 +1087,9 @@ new_drmTMB_julia <- function(
   data,
   family_type,
   structured_sd_scales = NULL,
-  bridge_payload = NULL
+  bridge_payload = NULL,
+  requested_REML = NULL,
+  effective_REML = NULL
 ) {
   result <- as.list(result)
   coef_names <- as.character(result$coef_names)
@@ -1104,12 +1128,32 @@ new_drmTMB_julia <- function(
   } else {
     "unavailable"
   }
+  payload_method <- if (
+    is.list(bridge_payload) &&
+      is.list(bridge_payload$options) &&
+      identical(bridge_payload$options$method, "REML")
+  ) {
+    "REML"
+  } else {
+    "ML"
+  }
+  if (is.null(effective_REML)) {
+    effective_REML <- identical(payload_method, "REML")
+  }
+  if (is.null(requested_REML)) {
+    requested_REML <- isTRUE(effective_REML)
+  }
+  estimator <- if (isTRUE(effective_REML)) "REML" else "ML"
   out <- list(
     call = call,
     formula = formula,
     family = family,
     data = data,
     engine = "julia",
+    estimator = estimator,
+    REML = isTRUE(effective_REML),
+    requested_REML = isTRUE(requested_REML),
+    effective_REML = isTRUE(effective_REML),
     model = list(
       model_type = family_type,
       dpars = names(coefficient_blocks),
@@ -1383,6 +1427,9 @@ drm_julia_plain <- function(x) {
 print.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit>")
   cli::cli_text("  observations: {x$nobs}")
+  if (!is.null(x$estimator)) {
+    cli::cli_text("  estimator: {x$estimator}")
+  }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
   cli::cli_text("  convergence: {x$opt$convergence}")
   invisible(x)
@@ -2617,6 +2664,7 @@ drmTMB_julia_structured_bridge <- function(
   control,
   impute,
   missing,
+  REML = FALSE,
   call
 ) {
   if (!isTRUE(weights_missing)) {
@@ -2668,7 +2716,9 @@ drmTMB_julia_structured_bridge <- function(
     data = data,
     family_type = family_type,
     structured_sd_scales = payload$structured_sd_scales,
-    bridge_payload = NULL
+    bridge_payload = NULL,
+    requested_REML = isTRUE(REML),
+    effective_REML = FALSE
   )
 }
 
@@ -2965,6 +3015,7 @@ drmTMB_julia_xfam_bridge <- function(
   control,
   impute,
   missing,
+  REML = FALSE,
   call
 ) {
   if (!isTRUE(weights_missing)) {
@@ -3021,7 +3072,8 @@ drmTMB_julia_xfam_bridge <- function(
     family = family,
     families = tags,
     axes = axes,
-    data = data
+    data = data,
+    requested_REML = isTRUE(REML)
   )
 }
 
@@ -3266,7 +3318,8 @@ new_drmTMB_julia_xfam <- function(
   family,
   families,
   axes,
-  data
+  data,
+  requested_REML = FALSE
 ) {
   result <- as.list(result)
   scalar <- function(x) as.numeric(x)[[1L]]
@@ -3315,6 +3368,10 @@ new_drmTMB_julia_xfam <- function(
     families = families,
     data = data,
     engine = "julia",
+    estimator = "ML",
+    REML = FALSE,
+    requested_REML = isTRUE(requested_REML),
+    effective_REML = FALSE,
     model = list(
       model_type = "cross_family",
       families = families,

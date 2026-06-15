@@ -176,6 +176,10 @@ test_that("Julia bridge object exposes standard fitted-model methods", {
   )
 
   expect_s3_class(fit, "drmTMB_julia")
+  expect_equal(fit$estimator, "ML")
+  expect_false(fit$REML)
+  expect_false(fit$requested_REML)
+  expect_false(fit$effective_REML)
   expect_equal(coef(fit, "mu"), c("(Intercept)" = 0.1, x = 0.4))
   expect_equal(coef(fit, "sigma"), c("(Intercept)" = -0.2, x = 0.3))
   expect_equal(fixef(fit), coef(fit))
@@ -496,4 +500,90 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
       env = environment()
     )
   )
+})
+
+test_that("Julia q4 bridge admits bivariate response masks without R-side dropping", {
+  tree <- structure(
+    list(
+      edge = matrix(
+        c(7, 5, 7, 6, 5, 1, 5, 2, 6, 3, 6, 4),
+        ncol = 2,
+        byrow = TRUE
+      ),
+      edge.length = rep(1, 6),
+      tip.label = paste0("sp_", 1:4),
+      Nnode = 3L
+    ),
+    class = "phylo"
+  )
+  form <- bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~1
+  )
+  dat <- data.frame(
+    y1 = c(NA, 2, 3, 4, 5, 6, 7, 8),
+    y2 = c(1.5, 2.5, NA, 4.5, 5.5, 6.5, 7.5, 8.5),
+    x = seq(-1, 1, length.out = 8),
+    species = paste0("sp_", c(1, 1, 2, 2, 3, 3, 4, 4))
+  )
+  captured <- new.env(parent = emptyenv())
+  fake_result <- list(
+    coef_names = c(
+      "mu1_(Intercept)",
+      "mu1_x",
+      "mu2_(Intercept)",
+      "mu2_x",
+      "sigma1_(Intercept)",
+      "sigma2_(Intercept)",
+      "rho12_(Intercept)"
+    ),
+    coefficients = rep(0, 7),
+    vcov = diag(7),
+    loglik = -10,
+    aic = 34,
+    bic = 36,
+    df = 7L,
+    nobs = 8L,
+    converged = TRUE,
+    fitted = list(mu1 = rep(0, 8), mu2 = rep(0, 8)),
+    residuals = list(mu1 = rep(0, 8), mu2 = rep(0, 8)),
+    sigma = list(sigma1 = rep(1, 8), sigma2 = rep(1, 8)),
+    corpairs = list()
+  )
+  testthat::local_mocked_bindings(
+    drm_julia_call_bridge = function(formula, family, data, tree, options) {
+      captured$formula <- formula
+      captured$family <- family
+      captured$data <- data
+      captured$tree <- tree
+      captured$options <- options
+      fake_result
+    },
+    .package = "drmTMB"
+  )
+
+  fit <- drmTMB:::drmTMB_julia_bridge(
+    formula = form,
+    family = biv_gaussian(),
+    data = dat,
+    env = environment(),
+    weights_missing = TRUE,
+    control = NULL,
+    impute = NULL,
+    missing = miss_control(response = "include"),
+    REML = TRUE,
+    call = quote(drmTMB())
+  )
+
+  expect_equal(captured$family, "biv_gaussian")
+  expect_equal(nrow(captured$data), nrow(dat))
+  expect_true(anyNA(captured$data$y1))
+  expect_true(anyNA(captured$data$y2))
+  expect_equal(captured$options, list(method = "REML"))
+  expect_equal(fit$estimator, "REML")
+  expect_true(fit$requested_REML)
+  expect_true(fit$effective_REML)
 })
