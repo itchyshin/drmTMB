@@ -316,6 +316,11 @@
   or covariance among bounded-response distributional parameters, and current
   `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
   messages.
+- Plain Bernoulli/binomial response models are planned in `drmTMB#569`, but are
+  not yet a fitted primary response route. The current `family = binomial()`
+  vocabulary appears only inside missing-predictor models such as
+  `impute_model(..., family = binomial())`; do not treat that as support for
+  `drmTMB(..., family = binomial())`.
 - Phylogenetic random effects are implemented for univariate Gaussian `mu` and
   `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
   one numeric univariate Gaussian `mu` slope, matching bivariate Gaussian

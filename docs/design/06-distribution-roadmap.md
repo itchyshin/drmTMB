@@ -144,12 +144,18 @@ remain consistent with the rest of `drmTMB`.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented fixed-effect path for counts of successes out
   of trials with overdispersion.
-- `binomial()`: successes out of trials, with optional random effects.
+- `bernoulli()` / `binomial()`: planned in `drmTMB#569` for dispersionless
+  binary or successes-out-of-trials responses with `logit(mu)`. The first slice
+  should decide accepted response encodings and fit fixed-effect `mu` only;
+  optional random effects come after fixed-effect likelihood, intervals,
+  diagnostics, simulation, and documentation are stable.
 
 Recommended user guidance:
 
 - Use `beta_binomial()` for percentages derived from counts with known
-  denominators.
+  denominators when extra-binomial variation is part of the model.
+- Use the future `binomial()` / `bernoulli()` route for ordinary binary or
+  denominator-count responses without a modelled overdispersion parameter.
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use `zero_one_beta()` when continuous rates include structural exact 0 or 1
   values.

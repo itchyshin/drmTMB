@@ -54313,3 +54313,46 @@ Known boundaries:
   bivariate q4 sigma-phylo model.
 - ML bootstrap plumbing has smoke evidence; REML bootstrap needs the DRM.jl
   #291 follow-up before it is presented as ready for Ayumi's protocol.
+
+## 2026-06-15: Ayumi beak and binomial ledger split
+
+Scope:
+
+- Banked the post-#568 evidence split after Ayumi's latest wall-time and
+  univariate profile comments.
+- Updated `drmTMB#555` with exact evidence for the beak univariate native-TMB
+  failure and the Julia q4 point-fit size ladder.
+- Opened `drmTMB#569` for the missing plain Bernoulli/binomial response-family
+  first slice.
+- Opened `drmTMB#570` for the native optimizer/start rescue needed by the
+  10,440-tip beak sigma-phylo model.
+- Opened `DRM.jl#293` for the Julia q4 ML `-Inf` point-fit ladder after
+  100 tips.
+- Updated the family registry, distribution roadmap, finish matrix, and known
+  limitations so the package does not imply that `beta_binomial()` or missing-
+  predictor `family = binomial()` means fitted plain binomial responses.
+
+Evidence:
+
+- `drmTMB#555` update:
+  <https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4713176684>
+- Bernoulli/binomial issue: <https://github.com/itchyshin/drmTMB/issues/569>
+- Beak optimizer/start rescue issue:
+  <https://github.com/itchyshin/drmTMB/issues/570>
+- Julia q4 ML ladder issue: <https://github.com/itchyshin/DRM.jl/issues/293>
+- Beak ladder artifact:
+  `/tmp/drmtmb-ayumi-evidence/beak-pruned-size-ladder-20260615-164203/beak-pruned-size-ladder.csv`
+- Julia ladder artifact:
+  `/tmp/drmtmb-ayumi-evidence/julia-point-ladder-drm-main-20260615-164757`
+
+Interpretation:
+
+- Native `engine = "tmb"`, `REML = FALSE` is now a useful partial route for
+  univariate sigma-phylo profile checks, but the beak 10,440-tip full
+  sigma-phylo model has a starting-basin failure that needs a targeted rescue.
+- Julia REML point fits return through 1000 tips in the ladder, but the timings
+  are not yet an Ayumi-scale interval claim.
+- Julia ML returns `logLik = -Inf` after 100 tips in the same ladder, so that is
+  a separate DRM.jl issue before broader ML/profile/bootstrap claims.
+- Plain Bernoulli/binomial response support is planned, not fitted. The fitted
+  denominator-aware route today is `beta_binomial()`.

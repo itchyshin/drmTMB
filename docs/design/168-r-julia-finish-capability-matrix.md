@@ -35,10 +35,12 @@ evidence is reconciled.
 | Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Native R/TMB now has q4 target inventory and endpoint-budget status rows, but promotion still waits for native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
 | Non-Gaussian models | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. |
+| Bernoulli/binomial response | planned | planned | planned | planned | planned | planned | planned | planned | planned | planned | `beta_binomial()` is fitted for overdispersed success/failure counts, but plain dispersionless Bernoulli/binomial response models remain `drmTMB#569`: logit-`mu` fixed effects first, response-encoding decision second, random effects only after the fixed-effect route is tested. |
 | Bivariate residual correlation `rho12` | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Keep residual `rho12` separate from group, phylogenetic, spatial, kernel, and cross-family correlations. |
 | Mixed and cross-family correlation | planned | unsupported | planned | planned | planned | planned | planned | planned | planned | planned | Use `DRM.jl#280`-style recovery and bridge labels before user-facing promotion. |
 | High-q correlations | partial | planned | partial | planned | planned | planned | partial | planned | partial | planned | q4 first, q8 second; higher q requires transform, gradient, recovery, and CI-status evidence. |
 | Structural dependencies | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals. |
+| Native optimizer/start rescue | partial | unsupported | partial | partial | partial | partial | partial | planned | partial | planned | Use `drmTMB#570` as the first real convergence-rescue case: the 10,440-tip beak sigma-phylo model needs deterministic starts or rescue selection before profile/bootstrap claims. |
 | Julia speedups | experimental | experimental | planned | planned | planned | planned | partial | planned | planned | planned | No speed headline without point-estimate and CI/status evidence. Benchmark native TMB, R-Julia bridge, and direct DRM.jl separately. |
 | AI-REML-inspired algorithms | planned | unsupported | planned | planned | planned | planned | planned | unsupported | planned | planned | Borrow `hsquared` only as a design analogue for exact Gaussian MME cells; use observed-information, Fisher/natural-gradient, or AD-gradient methods for Laplace/non-Gaussian cells after derivation. |
 | Missing values | partial | planned | planned | planned | planned | planned | planned | planned | planned | planned | Use likelihood/FIML-style masks. Complete-data all-true masks must match current complete-data log-likelihood exactly. |
@@ -77,6 +79,9 @@ is served from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`.
 - Profile and bootstrap intervals are target-specific. Endpoint parity for one
   Gaussian phylogenetic SD target does not promote fixed effects, non-Gaussian
   families, scale formulas, multiple structured terms, or neighbouring syntax.
+- `beta_binomial()` support does not imply plain Bernoulli/binomial response
+  support. The response-family route in `drmTMB#569` needs its own likelihood,
+  response-encoding, tests, docs, and bridge row.
 - `drmTMB#547` fixes q4 Julia REML option forwarding only. Native
   `engine = "tmb"` is not a full REML fallback for Ayumi's bivariate q4
   phylogenetic location-scale model, and speed plus full q4 inference
@@ -97,8 +102,14 @@ is served from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`.
    reduced-model, and ML profile-status checks before promising Julia speed.
 4. Keep `drmTMB#544` active as the bridge-gate epic, but run it after the
    native R/TMB status path is visible and honest.
-5. Add the shared CI-status vocabulary.
-6. Promote the Gaussian phylogenetic SD profile/bootstrap target only after all
+5. Diagnose `drmTMB#570` before treating the beak univariate sigma-phylo row as
+   biologically interpretable.
+6. Keep `DRM.jl#293` on the Julia side of the ladder: ML q4 point fits return
+   `-Inf` after 100 tips while REML returns through 1000 tips.
+7. Add the shared CI-status vocabulary.
+8. Promote the Gaussian phylogenetic SD profile/bootstrap target only after all
    point-estimate and interval-status evidence is in one matrix row.
-7. Start missing values with observed-response masks and complete-data
+9. Start missing values with observed-response masks and complete-data
    equivalence tests.
+10. Add the Bernoulli/binomial first slice in `drmTMB#569` before answering
+    users that plain binary/binomial response models are fitted.
