@@ -1,13 +1,13 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
-  "subtitle": "Evidence-led mission control for the Julia <-> R distributional-regression twin. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-14 18:37 MDT",
+  "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
+  "updated": "2026-06-15 07:08 MDT",
   "metrics": {
-    "verified": 9,
-    "active": 4,
+    "verified": 14,
+    "active": 3,
     "blocked": 0,
     "deferred": 1,
-    "total": 60
+    "total": 64
   },
   "phases": [
     {
@@ -83,10 +83,10 @@
     },
     {
       "id": "Phase 2",
-      "name": "Bridge-gate drift first",
+      "name": "Bridge-gate drift and R bridge truth",
       "owner": "Hopper + Boole + Emmy",
       "status": "active",
-      "counts": "2/5",
+      "counts": "4/7",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -103,8 +103,22 @@
           "evidence": "PR #549 merged green on macOS, Ubuntu, and Windows"
         },
         {
+          "name": "Bank R-side Julia REML requested/effective estimator status truth table",
+          "status": "banked",
+          "issue": "drmTMB#555",
+          "url": "https://github.com/itchyshin/drmTMB/pull/556",
+          "evidence": "PR #556 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Clarify Julia confint target wording so docs match the real R bridge target inventory",
+          "status": "banked",
+          "issue": "drmTMB#555",
+          "url": "https://github.com/itchyshin/drmTMB/pull/558",
+          "evidence": "PR #558 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
           "name": "Extend registry into generated gate-vs-engine CI guard",
-          "status": "active",
+          "status": "queued",
           "issue": "drmTMB#544",
           "url": "https://github.com/itchyshin/drmTMB/issues/544"
         },
@@ -120,14 +134,31 @@
     },
     {
       "id": "Phase 3",
-      "name": "Robust point estimates and CIs",
+      "name": "Native R/TMB point estimates and CI-status first",
       "owner": "Fisher + Noether + Curie",
-      "status": "queued",
-      "counts": "0/5",
+      "status": "active",
+      "counts": "3/7",
       "slices": [
         {
-          "name": "Treat pdHess = FALSE as Wald-unsafe, not automatic fit failure",
-          "status": "queued"
+          "name": "Bank native q4 ML profile-status fallback for sigma-phylo targets",
+          "status": "banked",
+          "issue": "drmTMB#551",
+          "url": "https://github.com/itchyshin/drmTMB/pull/553",
+          "evidence": "PR #552/#553 merged row-level profile status for q4 sigma-axis SD targets"
+        },
+        {
+          "name": "Cover native TMB REML rejection neighbours so unsupported cells fail early and clearly",
+          "status": "banked",
+          "issue": "drmTMB#555",
+          "url": "https://github.com/itchyshin/drmTMB/pull/557",
+          "evidence": "PR #557 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Add Ayumi q4 support/status harness for native TMB ML/REML, profile targets, intervals, and conditions",
+          "status": "banked",
+          "issue": "drmTMB#555",
+          "url": "https://github.com/itchyshin/drmTMB/pull/559",
+          "evidence": "PR #559 merged green on macOS, Ubuntu, and Windows"
         },
         {
           "name": "Standardize interval statuses across summary, confint, diagnostics, and bridge payloads",
@@ -372,10 +403,10 @@
   "repos": [
     {
       "name": "drmTMB",
-      "branch": "codex/dashboard-repair",
+      "branch": "codex/rfirst-dashboard-status",
       "head": "serve-time",
-      "dirty": false,
-      "note": "The launcher refreshes this row in the live /tmp copy from git at serve time."
+      "dirty": true,
+      "note": "R-first mission-control source branch. Watches #557 native REML gates, #558 Julia target wording, and #559 Ayumi q4 status harness."
     },
     {
       "name": "DRM.jl",
@@ -727,27 +758,48 @@
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     }
   ],
-  "active_work": [
-    {
-      "when": "now",
-      "who": "Ada",
-      "text": "Mission control is merged; next coding slice extends the banked #549 registry into the generated gate-vs-engine guard."
-    },
-    {
-      "when": "now",
-      "who": "Rose",
-      "text": "Dashboard counts, matrix rows, canonical team names, and evidence links are now validator-gated."
-    },
-    {
-      "when": "now",
-      "who": "Hopper",
-      "text": "Bridge route is still labelled experimental default DRM.jl path; selectable Julia algorithms remain future engine_control work."
-    }
-  ],
-  "activity": [
-    {
-      "when": "2026-06-14",
-      "who": "GitHub",
+    "active_work": [
+        {
+            "when": "now",
+            "who": "Ada",
+            "text": "R-first pivot is active: native drmTMB status and support diagnostics are being hardened before broader Julia speed claims."
+        },
+        {
+            "when": "now",
+            "who": "Grace",
+            "text": "Watching refreshed CI on #560 after #557, #558, and #559 merged."
+        },
+        {
+            "when": "now",
+            "who": "Fisher",
+            "text": "Ayumi real-bundle native TMB status run is in hand: full ML fit wrote status/timing rows and native REML rejection remains explicit."
+        }
+    ],
+    "activity": [
+        {
+            "when": "2026-06-15",
+            "who": "GitHub",
+            "text": "drmTMB#556 merged the R-side Julia REML requested/effective estimator status truth table after macOS, Ubuntu, and Windows checks passed.",
+            "url": "https://github.com/itchyshin/drmTMB/pull/556",
+            "link_label": "#556"
+        },
+        {
+            "when": "2026-06-15",
+            "who": "GitHub",
+            "text": "drmTMB#557 banked native TMB REML rejection-neighbour coverage, drmTMB#558 banked Julia confint target wording, and drmTMB#559 banked the Ayumi q4 support/status harness.",
+            "url": "https://github.com/itchyshin/drmTMB/pull/559",
+            "link_label": "#557/#558/#559"
+        },
+        {
+            "when": "2026-06-14",
+            "who": "GitHub",
+            "text": "drmTMB#552/#553 banked native q4 ML profile row-status handling for sigma-axis phylogenetic SD targets.",
+            "url": "https://github.com/itchyshin/drmTMB/pull/553",
+            "link_label": "#553"
+        },
+        {
+            "when": "2026-06-14",
+            "who": "GitHub",
       "text": "drmTMB#549 merged the first intentional Julia bridge gate registry after macOS, Ubuntu, and Windows checks passed.",
       "url": "https://github.com/itchyshin/drmTMB/pull/549",
       "link_label": "#549"
@@ -786,15 +838,15 @@
       "link_label": "#544 comment"
     }
   ],
-  "blockers": [
-    {
-      "status": "guard",
-      "kind": "Claim boundary",
-      "item": "Current Julia route is the default DRM.jl fitting path only; no selectable Julia algorithm claim."
-    },
-    {
-      "status": "guard",
-      "kind": "Native TMB REML",
+    "blockers": [
+        {
+            "status": "guard",
+            "kind": "Claim boundary",
+            "item": "R-first pivot: do not make the Julia route the only usable path for Ayumi-style q4 workflows."
+        },
+        {
+            "status": "guard",
+            "kind": "Native TMB REML",
       "item": "engine = \"tmb\" is not yet a full REML fallback for Ayumi's bivariate q4 phylogenetic location-scale model."
     },
     {
@@ -809,14 +861,19 @@
       "who": "Dashboard",
       "text": "Source lives under docs/dev-log/dashboard, validates with tools/validate-mission-control.py, and serves from /tmp/drm-dashboard."
     },
-    {
-      "when": "2026-06-14",
-      "who": "Issue ledger",
-      "text": "drmTMB#544 is the active bridge-gate epic; #547 and #549 are banked slices."
-    },
-    {
-      "when": "2026-06-14",
-      "who": "Status matrix",
+        {
+            "when": "2026-06-14",
+            "who": "Issue ledger",
+            "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 remains the bridge-gate epic after the native status path is clear."
+        },
+        {
+            "when": "2026-06-15",
+            "who": "Status matrix",
+            "text": "Native R/TMB status rows now precede Julia speed work: #552/#553 banked q4 profile status, #557 banked REML rejection gates, and #559 banked the harness."
+        },
+        {
+            "when": "2026-06-14",
+            "who": "Status matrix",
       "text": "Rows separate engine, bridge, point estimate, Wald, profile, bootstrap, docs, visual, simulation, and release status."
     },
     {

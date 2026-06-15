@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-14 17:35 MDT",
+  "updated": "2026-06-15 07:08 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Mission-control dashboard repair is active: schema/count validator, live port 8765, and issue-led evidence are being verified before the next drmTMB#544 bridge guard slice."
+      "text": "R-first mission-control update is active: #557, #558, and #559 are merged, #560 is under refreshed CI, and Ayumi q4 native TMB profile evidence is being read."
     }
   ]
 }
