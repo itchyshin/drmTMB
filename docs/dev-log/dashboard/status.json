@@ -1,13 +1,13 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-15 10:14 MDT",
+  "updated": "2026-06-15 11:50 MDT",
   "metrics": {
-    "verified": 16,
+    "verified": 17,
     "active": 3,
     "blocked": 0,
     "deferred": 1,
-    "total": 66
+    "total": 67
   },
   "phases": [
     {
@@ -86,7 +86,7 @@
       "name": "Bridge-gate drift and R bridge truth",
       "owner": "Hopper + Boole + Emmy",
       "status": "active",
-      "counts": "5/8",
+      "counts": "6/9",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -122,6 +122,12 @@
           "issue": "DRM.jl#291",
           "url": "https://github.com/itchyshin/DRM.jl/pull/292",
           "evidence": "DRM.jl #292 merged green; drmTMB Ayumi harness verified merged DRM.jl main 9bdea65"
+        },
+        {
+          "name": "Repair Julia q4 profile-target estimates from the stored phylocov covariance instead of placeholder SDs",
+          "status": "verified",
+          "issue": "drmTMB#555",
+          "evidence": "full devtools::test passed locally; 30-tip Ayumi Julia ML target table reports non-placeholder q4 SDs and all-q4 bootstrap B=2 returns 2/2 refits"
         },
         {
           "name": "Extend registry into generated gate-vs-engine CI guard",
@@ -416,10 +422,10 @@
   "repos": [
     {
       "name": "drmTMB",
-      "branch": "codex/rfirst-dashboard-status",
+      "branch": "codex/ayumi-q4-point-ladder",
       "head": "serve-time",
       "dirty": true,
-      "note": "R-first mission-control source branch. Watches #557 native REML gates, #558 Julia target wording, and #559 Ayumi q4 status harness."
+      "note": "R-first Ayumi branch. Repairs Julia q4 target estimates from phylocov and banks a tiny all-q4 bootstrap smoke before any 10k claim."
     },
     {
       "name": "DRM.jl",
@@ -780,12 +786,12 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "DRM.jl #292 is merged green; merged-main Ayumi smoke evidence is banked under /tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated."
+      "text": "Julia q4 target-estimate repair passed full devtools::test locally and the Ayumi 30-tip all-q4 bootstrap smoke is under /tmp/drmtmb-ayumi-evidence/julia-30-ml-bootstrap-allq4-phylocov-targets."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Ayumi Julia q4 point-fit bridge blocker is fixed, ML bootstrap smoke works, and REML bootstrap remains a documented follow-up because refits hit the observed-row guard on Ayumi small subsets."
+      "text": "Ayumi Julia q4 point-fit bridge blocker is fixed, target estimates now come from Sigma_a, ML all-q4 bootstrap has a B=2 plumbing smoke, and 10k wall-time remains unclaimed."
     },
     {
       "when": "now",
@@ -794,6 +800,13 @@
     }
     ],
     "activity": [
+        {
+            "when": "2026-06-15",
+            "who": "Codex",
+            "text": "Repaired Julia q4 profile_targets() estimates from the stored phylocov covariance; 30-tip Ayumi Julia ML all-q4 bootstrap B=2 returned four rows with 2/2 refits.",
+            "url": "docs/dev-log/after-task/2026-06-15-julia-q4-phylocov-target-estimates.md",
+            "link_label": "after-task"
+        },
         {
             "when": "2026-06-15",
             "who": "Codex",
@@ -897,6 +910,11 @@
             "when": "2026-06-14",
             "who": "Issue ledger",
             "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 remains the bridge-gate epic after the native status path is clear."
+        },
+        {
+            "when": "2026-06-15",
+            "who": "Status matrix",
+            "text": "Local Ayumi q4 Julia target inventory now reports fitted phylocov SDs, not placeholder 0.5 values; the admitted all-q4 bootstrap smoke returned 2/2 refits at 30 tips."
         },
         {
             "when": "2026-06-15",

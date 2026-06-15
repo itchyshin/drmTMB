@@ -2,6 +2,89 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- Julia q4 phylo target estimates and bootstrap smoke
+
+Goal:
+
+- Fix the R-side Julia q4 profile-target inventory before any stronger
+  bootstrap/profile claim for Ayumi. The previous table named the four q4
+  phylogenetic SD targets but displayed hard-coded `0.5` estimates instead of
+  reconstructing the fitted axis SDs from the stored `phylocov` covariance.
+
+Change:
+
+- `drm_julia_profile_targets_biv()` now reconstructs `Sigma_a` with
+  `drm_julia_phylocov_matrix()` and reports
+  `sqrt(diag(Sigma_a))` for the `mu1`, `mu2`, `sigma1`, and `sigma2`
+  phylogenetic SD targets.
+- The pure-R bivariate Julia confint fixture now includes a known q4
+  `phylocov` log-Cholesky block, and asserts the target estimates are
+  `1.2`, `0.9`, `0.6`, and `0.4`, not placeholders.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-biv-confint.R"); testthat::test_file("tests/testthat/test-julia-phylo-q4-corpairs.R")'`
+  passed with 47 expectations and one CRAN-skip in the direct `test_file()`
+  mode.
+- `Rscript --vanilla -e 'devtools::test(filter = "julia-biv-confint|julia-phylo-q4-corpairs")'`
+  passed with 60 expectations.
+- `Rscript --vanilla -e 'devtools::test()'` passed with 10,946
+  expectations, 5 skips, 0 failures, and 0 warnings in 1319.4 s. The skips
+  were existing guarded Julia/cross-family availability or known-bug skips, not
+  this patch.
+- `air format R/julia-bridge.R tests/testthat/test-julia-biv-confint.R`
+  completed without changes requiring follow-up.
+- `git diff --check` passed.
+
+Ayumi-bundle smoke with Julia 1.12.6:
+
+```sh
+DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/DRM.jl" \
+JULIA_HOME="/Users/z3437171/.julia/juliaup/julia-1.12.6+0.aarch64.apple.darwin14/Julia-1.12.app/Contents/Resources/julia/bin" \
+JULIA_NUM_THREADS=4 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=julia \
+DRMTMB_AYUMI_Q4_REML=false \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=300 \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/julia-30-ml-bootstrap-allq4-phylocov-targets \
+Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Result:
+
+- The 30-tip Julia ML point fit returned with `convergence = 0`,
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"`,
+  `logLik = 30.979053`, and elapsed fit time 50.28 s.
+- The target table reported non-placeholder fitted q4 SD estimates:
+  `sd:mu1 = 0.015125`, `sd:mu2 = 1.046819`,
+  `sd:sigma1 = 4.372916`, and `sd:sigma2 = 1.448649`.
+- The admitted all-q4 bootstrap smoke returned four rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`,
+  `bootstrap.failed = 0`, `profile.message = "2/2 successful refits"`,
+  and bootstrap elapsed time 11.62 s after the point fit.
+- A deliberately single-target q4 bootstrap attempt
+  (`DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=first_sigma`) returned the intended
+  bridge error: bivariate q4 Julia profile/bootstrap intervals support all
+  four axes together, not one selected q4 axis.
+
+Known boundaries:
+
+- This is a target-inventory repair and a tiny bootstrap plumbing smoke, not a
+  calibrated interval result and not a 10,440-tip speed fix.
+- `B = 2` is deliberately too small for inference. It only proves that the
+  admitted all-q4 bootstrap route can return row-level results on a 30-tip
+  Ayumi subset.
+- Native `engine = "tmb"` remains useful for supported ML point and reduced
+  checks, but is not a full REML fallback for the bivariate q4 sigma-phylo
+  model.
+
 ## 2026-06-15 -- Native q4 ML bootstrap smoke status for Ayumi
 
 Goal:

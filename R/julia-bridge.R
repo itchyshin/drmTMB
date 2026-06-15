@@ -1259,11 +1259,25 @@ drm_julia_profile_targets_biv <- function(object) {
   if (is.null(bp) || is.null(bp$tree)) {
     return(empty_profile_targets())
   }
-  # The bivariate q4 julia fit does NOT populate sdpars (the among-axis Sigma_a lives
-  # in the phylocov block); the targets only need to NAME the four axes — DRM.jl's
-  # drm_bridge_inference re-derives the estimates/CIs from formula + data + tree. So
-  # build the 4 rows from the shared phylo group, with placeholder estimates (the reader
-  # uses the Julia SD-scale bounds directly, not these).
+  # The bivariate q4 julia fit does NOT populate sdpars (the among-axis Sigma_a
+  # lives in the phylocov block). Reconstruct the fitted axis SDs from that
+  # stored covariance so profile_targets() remains a truthful target inventory;
+  # DRM.jl's drm_bridge_inference later re-derives the interval bounds from the
+  # formula + data + tree.
+  Sigma_a <- drm_julia_phylocov_matrix(object)
+  if (is.null(Sigma_a)) {
+    return(empty_profile_targets())
+  }
+  axis_sd <- sqrt(diag(Sigma_a))
+  if (
+    length(axis_sd) != length(biv_dpars) ||
+      any(!is.finite(axis_sd)) ||
+      any(axis_sd <= 0)
+  ) {
+    return(empty_profile_targets())
+  }
+  names(axis_sd) <- biv_dpars
+
   # Term label for the four axis rows. The phylo term shares ONE group across the
   # four axes; its rendered label ("phylo(1 | <group>)") is carried on the fit's
   # structured_sd_scales names, which the bridge populates on BOTH the live fit and
@@ -1309,8 +1323,8 @@ drm_julia_profile_targets_biv <- function(object) {
       term = term,
       tmb_parameter = paste0("resd_", dpar),
       index = i,
-      estimate = 0.5, # placeholder — DRM.jl returns the real estimate/CI
-      link_estimate = log(0.5),
+      estimate = unname(axis_sd[[dpar]]),
+      link_estimate = log(unname(axis_sd[[dpar]])),
       scale = "response",
       transformation = "exp",
       target_type = "direct",
