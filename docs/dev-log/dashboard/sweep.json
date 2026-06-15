@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-15 07:08 MDT",
+  "updated": "2026-06-15 07:44 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "R-first mission-control update is active: #557, #558, and #559 are merged, #560 is under refreshed CI, and Ayumi q4 native TMB profile evidence is being read."
+      "text": "R-first mission-control update is banked: #560 merged green, and the active branch is now hardening Ayumi q4 native endpoint profile status with an explicit evaluation budget."
     }
   ]
 }

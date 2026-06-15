@@ -2,6 +2,67 @@
 
 Record meaningful development checks here.
 
+## 2026-06-15 -- Endpoint profile budget status for Ayumi q4 native checks
+
+Goal:
+
+- Continue the R-first pivot for `drmTMB#555` by making native endpoint-profile
+  diagnostics return explicit status rows before broader Julia speed work.
+  Long q4 variance-component profiles should be able to stop after a deliberate
+  endpoint-evaluation budget and report `profile_failed` rather than silently
+  falling through to a full-profile route or leaving users with no interval
+  row.
+
+Changes:
+
+- Added `profile_endpoint_max_eval` to `confint.drmTMB()` for direct scalar
+  endpoint profiles.
+- When that budget is supplied and the endpoint route exceeds it,
+  `confint()` returns an endpoint `conf.status = "profile_failed"` row with
+  missing endpoints and the budget message, instead of falling back to
+  `TMB::tmbprofile()`.
+- Added a focused profile-target regression test for the endpoint-budget row.
+- Extended `tools/ayumi-q4-status-harness.R` with
+  `DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL` and a
+  `fit_diagnostic_status` column that separates returned fits from
+  convergence/Hessian inference status.
+- Updated NEWS, `confint()` Rd, the finish matrix, and the mission-control JSON
+  source.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R tools/ayumi-q4-status-harness.R`
+  completed without errors.
+- `Rscript --vanilla -e "devtools::document()"` completed and regenerated the
+  intended `man/confint.drmTMB.Rd` argument entry.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); devtools::test(filter = "profile-targets")'`
+  passed locally with 773 expectations.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); set.seed(20260682); n <- 60; x <- stats::rnorm(n); dat <- data.frame(y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat); ci <- stats::confint(fit, parm = "sigma", level = 0.80, method = "profile", profile_endpoint_max_eval = 1); stopifnot(identical(ci$profile.engine, "endpoint"), identical(ci$conf.status, "profile_failed"), is.na(ci$lower), is.na(ci$upper), grepl("evaluation budget", ci$profile.message)); cat("endpoint budget status check passed\n")'`
+  passed locally.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json`, and
+  `python3 tools/validate-mission-control.py` passed; the validator reported
+  `mission_control_ok: 15/65 banked_or_verified, 3 active, 16 matrix rows`.
+- Ayumi-bundle smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=250 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=first_sigma DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL=1 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-q4-status/profile-budget-250 Rscript --vanilla tools/ayumi-q4-status-harness.R`
+  completed. The fit row recorded `status = "ok"`,
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`. The
+  interval row recorded `profile.engine = "endpoint"`,
+  `conf.status = "profile_failed"`, missing endpoints, and the endpoint
+  evaluation-budget message.
+
+Known boundaries:
+
+- This is status hardening, not a faster optimizer, native-TMB REML expansion,
+  profile coverage result, or 10,440-tip speed fix.
+- `setTimeLimit()` still cannot be treated as a reliable compiled-code
+  watchdog. A subprocess watchdog remains a later developer-harness slice if
+  full non-returning profile attempts need one row per target.
+- Native `engine = "tmb"` remains useful for supported ML point-estimate and
+  diagnostic checks, but it is not a full REML fallback for Ayumi's bivariate
+  q4 phylogenetic location-scale model.
+
 ## 2026-06-15 -- R-first Julia REML status truth table
 
 Goal:
