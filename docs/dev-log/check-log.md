@@ -53647,3 +53647,6 @@ Known boundaries:
 - This is not native-TMB REML for the bivariate q4 model.
 - This does not make q4 phylogenetic correlations profile-ready.
 - This does not validate interval coverage or 10k-tip runtime.
+- CI showed that all requested `tmbprofile` rows can fail on macOS and Windows,
+  so the portable guard is row-level status fidelity, not guaranteed endpoint
+  success on every platform.

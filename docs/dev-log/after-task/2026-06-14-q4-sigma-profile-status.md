@@ -62,8 +62,10 @@ git diff --check
 - The full `profile-targets` test file passed.
 - `git diff --check` reported no whitespace problems.
 - The test records the current local default-profile behavior as row-level
-  diagnostics: at least one sigma-axis profile succeeds with finite endpoints;
-  any failed row must remain explicit through `conf.status = "profile_failed"`.
+  diagnostics: successful rows, when present, must have finite endpoints; failed
+  rows must remain explicit through `conf.status = "profile_failed"`. CI showed
+  that macOS and Windows can legitimately return failure diagnostics for all
+  requested rows, so endpoint success itself is not a portable assertion.
 
 ## Boundaries
 

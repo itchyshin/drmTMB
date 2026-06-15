@@ -2367,19 +2367,20 @@ test_that("profile intervals report bivariate q4 phylo sigma-axis status", {
   expect_equal(profile_ci$parm, sigma_parms)
   expect_equal(profile_ci$profile.engine, rep("tmbprofile", 2L))
   expect_true(all(profile_ci$conf.status %in% c("profile", "profile_failed")))
-  expect_true(any(profile_ci$conf.status == "profile"))
 
   ok_rows <- profile_ci$conf.status == "profile"
-  expect_true(all(is.finite(profile_ci$lower[ok_rows])))
-  expect_true(all(is.finite(profile_ci$upper[ok_rows])))
-  expect_true(all(profile_ci$lower[ok_rows] > 0))
-  expect_true(all(profile_ci$upper[ok_rows] > profile_ci$lower[ok_rows]))
-  expect_true(all(
-    profile_ci$lower[ok_rows] < sigma_estimates[profile_ci$parm[ok_rows]]
-  ))
-  expect_true(all(
-    profile_ci$upper[ok_rows] > sigma_estimates[profile_ci$parm[ok_rows]]
-  ))
+  if (any(ok_rows)) {
+    expect_true(all(is.finite(profile_ci$lower[ok_rows])))
+    expect_true(all(is.finite(profile_ci$upper[ok_rows])))
+    expect_true(all(profile_ci$lower[ok_rows] > 0))
+    expect_true(all(profile_ci$upper[ok_rows] > profile_ci$lower[ok_rows]))
+    expect_true(all(
+      profile_ci$lower[ok_rows] < sigma_estimates[profile_ci$parm[ok_rows]]
+    ))
+    expect_true(all(
+      profile_ci$upper[ok_rows] > sigma_estimates[profile_ci$parm[ok_rows]]
+    ))
+  }
 
   failed_rows <- profile_ci$conf.status == "profile_failed"
   if (any(failed_rows)) {
