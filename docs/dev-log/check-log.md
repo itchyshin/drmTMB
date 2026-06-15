@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Mission-Control Dashboard And Finish Matrix
+
+Goal:
+
+- Add the live finish-plan dashboard, the first master capability matrix, and
+  issue-led evidence for the next `drmTMB#544` bridge-gate-drift slice without
+  changing model code.
+
+Changes:
+
+- Added `docs/dev-log/dashboard/` with a static dashboard, JSON status source,
+  live overlay, version file, and README.
+- Added `tools/start-mission-control.sh` to validate, sync, and serve the board
+  from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`, with the live
+  `drmTMB` Repo Truth row refreshed from `git` at serve time.
+- Added `tools/validate-mission-control.py` to guard dashboard counts,
+  canonical team names, evidence-field presence, version drift, and matrix
+  row-count drift against
+  `docs/design/168-r-julia-finish-capability-matrix.md`.
+- Added `docs/design/168-r-julia-finish-capability-matrix.md` as the initial
+  finish-plan claim registry.
+- Posted the mission-control start note to `drmTMB#544`:
+  <https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4703413781>.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` returned
+  `mission_control_ok: 8/60 banked_or_verified, 4 active, 16 matrix rows`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `sh tools/start-mission-control.sh --background` validated and served the
+  dashboard during its health check.
+- `curl -fsS http://127.0.0.1:8765/status.json | python3 -m json.tool`
+  returned the dashboard JSON.
+- `curl -fsS http://127.0.0.1:8765/docs/design/168-r-julia-finish-capability-matrix.md`
+  returned the linked evidence document.
+- In-app browser verification at `http://127.0.0.1:8765/` found the expected
+  H1, four metric cards, eleven roadmap phases, six repo cards, fourteen team
+  entries, and seventeen matrix rows including the header row. A Rose follow-up
+  then corrected the progress label from "verified rows" to "banked or verified
+  slices" and moved the `drmTMB` repo-truth HEAD/dirty state to serve-time git
+  refresh rather than a self-referential source-JSON hash.
+
+Known boundary:
+
+- This slice does not relax any bridge gate. `drmTMB#547` is recorded as the
+  first banked `drmTMB#544` slice, but the next coding task remains the
+  gate-vs-engine audit and CI guard.
+
 ## 2026-06-14 -- Ayumi q4 Julia REML bridge forwarding
 
 Goal:
