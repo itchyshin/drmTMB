@@ -1,13 +1,13 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-15 07:44 MDT",
+  "updated": "2026-06-15 10:14 MDT",
   "metrics": {
-    "verified": 15,
+    "verified": 16,
     "active": 3,
     "blocked": 0,
     "deferred": 1,
-    "total": 65
+    "total": 66
   },
   "phases": [
     {
@@ -86,7 +86,7 @@
       "name": "Bridge-gate drift and R bridge truth",
       "owner": "Hopper + Boole + Emmy",
       "status": "active",
-      "counts": "4/7",
+      "counts": "5/8",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -115,6 +115,13 @@
           "issue": "drmTMB#555",
           "url": "https://github.com/itchyshin/drmTMB/pull/558",
           "evidence": "PR #558 merged green on macOS, Ubuntu, and Windows"
+        },
+        {
+          "name": "Bank DRM.jl q4 bridge-vcov fix so R-to-Julia ML/REML point fits are not killed by the auxiliary FD Wald covariance path",
+          "status": "banked",
+          "issue": "DRM.jl#291",
+          "url": "https://github.com/itchyshin/DRM.jl/pull/292",
+          "evidence": "DRM.jl #292 merged green; drmTMB Ayumi harness verified merged DRM.jl main 9bdea65"
         },
         {
           "name": "Extend registry into generated gate-vs-engine CI guard",
@@ -416,10 +423,10 @@
     },
     {
       "name": "DRM.jl",
-      "branch": "shannon/ayumi-integration",
-      "head": "23d8f79",
-      "dirty": true,
-      "note": "Julia engine sister; current local checkout has Ayumi audit artifacts."
+      "branch": "main evidence worktree",
+      "head": "9bdea65",
+      "dirty": false,
+      "note": "DRM.jl #292 merged green; verified through /tmp/DRM-main-merged. The user's saved DRM.jl checkout may still be dirty."
     },
     {
       "name": "gllvmTMB",
@@ -773,15 +780,22 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "#560 is merged green; watching the next R-first profile-status branch for focused local checks before PR."
+      "text": "DRM.jl #292 is merged green; merged-main Ayumi smoke evidence is banked under /tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Ayumi real-bundle native TMB status is bounded: full ML fit wrote timing/status rows, native REML rejection remains explicit, and endpoint budget rows now separate diagnostic failure from non-returning profiles."
+      "text": "Ayumi Julia q4 point-fit bridge blocker is fixed, ML bootstrap smoke works, and REML bootstrap remains a documented follow-up because refits hit the observed-row guard on Ayumi small subsets."
     }
     ],
     "activity": [
+        {
+            "when": "2026-06-15",
+            "who": "GitHub",
+            "text": "DRM.jl#292 merged the q4 bridge-vcov fix after docs and Julia test jobs passed; drmTMB#555 and DRM.jl#291 now carry the merged-main smoke evidence.",
+            "url": "https://github.com/itchyshin/DRM.jl/pull/292",
+            "link_label": "DRM.jl#292"
+        },
         {
             "when": "2026-06-15",
             "who": "GitHub",
@@ -871,6 +885,11 @@
             "when": "2026-06-14",
             "who": "Issue ledger",
             "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 remains the bridge-gate epic after the native status path is clear."
+        },
+        {
+            "when": "2026-06-15",
+            "who": "Status matrix",
+            "text": "Merged DRM.jl main 9bdea65 verified through the drmTMB Ayumi harness: Julia ML and REML point fits return at 30 tips; ML bootstrap returns four q4 SD rows; REML bootstrap failure is now explicit and tracked."
         },
         {
             "when": "2026-06-15",
