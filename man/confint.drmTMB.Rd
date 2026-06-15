@@ -90,8 +90,9 @@ A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
 \code{profile.engine}, \code{conf.status}, \code{profile.boundary}, and
 \code{profile.message}. Successful rows currently use
-\code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}; profile rows mark
-intervals that land near a lower SD boundary or correlation boundary.
+\code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}. Failed numeric
+profile rows use \code{"profile_failed"} with missing endpoints; profile rows
+mark intervals that land near a lower SD boundary or correlation boundary.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald

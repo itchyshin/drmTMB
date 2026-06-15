@@ -53562,3 +53562,51 @@ Known remaining boundaries:
   whether to extend to random/structured/bivariate skew-family surfaces. This
   slice only makes fixed-effect skew-normal useful enough to rerun, inspect, and
   cite as a bounded artifact lane.
+
+## 2026-06-14: Native q4 Profile Failure Status
+
+Scope:
+
+- Opened the native-TMB fallback slice for Ayumi's q4 phylogenetic
+  location-scale model under issue #551.
+- Changed direct profile CI handling so endpoint and `TMB::tmbprofile()`
+  numeric failures return row-level `conf.status = "profile_failed"` with
+  missing endpoints and the failure message, rather than aborting the whole
+  interval request or labelling a non-finite interval as successful.
+- Added a focused bivariate q=4 phylogenetic location-scale regression test
+  showing that sigma-side phylogenetic SDs are direct native-TMB ML profile
+  targets through `log_sd_phylo` indices 3 and 4, while the six q4
+  phylogenetic correlations remain derived and not profile-ready.
+- Updated `NEWS.md`, `man/confint.drmTMB.Rd`, and the after-task note
+  `docs/dev-log/after-task/2026-06-14-native-q4-profile-failure-status.md`.
+
+Checks run:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'confint reports numeric profile failures by row')"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile target inventory covers bivariate q4 phylo sigma axes')"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'endpoint engine keeps unsupported targets on current profile paths'); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile confidence intervals reject unsupported targets clearly')"
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- Both new focused profile-target tests passed; the q4 target-inventory test
+  suppresses the expected tiny-fit `sdreport()` warning.
+- The endpoint unsupported-target and profile-validation compatibility tests
+  passed after tightening the catch boundary.
+- The full `profile-targets` test file passed.
+- `git diff --check` reported no whitespace problems.
+- `devtools::document()` updated `man/confint.drmTMB.Rd`; unrelated
+  roxygen-version churn was removed from the patch.
+
+Known boundaries:
+
+- This is not native-TMB REML for the bivariate q4 model.
+- This does not make q4 phylogenetic correlations profile-ready.
+- This does not speed up the direct Julia 10k-tip route.
+- This is a first status/target-inventory slice for #551, not closure of the
+  whole native-TMB fallback issue.

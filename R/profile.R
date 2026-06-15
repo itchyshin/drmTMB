@@ -96,8 +96,9 @@
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
 #'   `profile.engine`, `conf.status`, `profile.boundary`, and
 #'   `profile.message`. Successful rows currently use
-#'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`; profile rows mark
-#'   intervals that land near a lower SD boundary or correlation boundary.
+#'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
+#'   profile rows use `"profile_failed"` with missing endpoints; profile rows
+#'   mark intervals that land near a lower SD boundary or correlation boundary.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -277,9 +278,9 @@ confint.drmTMB <- function(
 #' [confint.drmTMB()]. The table also records whether each row is currently
 #' ready for direct profile-likelihood intervals. This helps users inspect the
 #' fitted object before starting an expensive profile. Full q4 unstructured
-#' correlation summaries are derived targets; block-diagonal phylogenetic q4
-#' fallback correlations are direct targets, but a direct target can still fail
-#' on a weak, boundary-limited, or one-sided profile.
+#' and phylogenetic correlation summaries are derived targets; direct SD and
+#' scale targets can still fail on a weak, boundary-limited, or one-sided
+#' profile.
 #'
 #' Use `ready_only = TRUE` for the fastest inspection path before calling
 #' `confint(..., method = "profile")`. Use the `target_class` column to filter
@@ -2019,12 +2020,32 @@ drm_profile_target_confint <- function(
   }
 
   if (identical(profile_engine, "endpoint")) {
-    return(drm_profile_target_endpoint_confint(
-      object = object,
-      target = target,
-      level = level,
-      endpoint_plan = endpoint_plan
-    ))
+    if (!profile_endpoint_target_supported(target)) {
+      return(drm_profile_target_endpoint_confint(
+        object = object,
+        target = target,
+        level = level,
+        endpoint_plan = endpoint_plan
+      ))
+    }
+    endpoint <- tryCatch(
+      drm_profile_target_endpoint_confint(
+        object = object,
+        target = target,
+        level = level,
+        endpoint_plan = endpoint_plan
+      ),
+      error = function(err) err
+    )
+    if (inherits(endpoint, "error")) {
+      return(drm_profile_failed_confint_row(
+        target = target,
+        level = level,
+        profile_engine = "endpoint",
+        message = conditionMessage(endpoint)
+      ))
+    }
+    return(endpoint)
   }
 
   if (
@@ -2045,12 +2066,48 @@ drm_profile_target_confint <- function(
     }
   }
 
-  drm_profile_target_tmbprofile_confint(
-    object = object,
-    target = target,
+  profiled <- tryCatch(
+    drm_profile_target_tmbprofile_confint(
+      object = object,
+      target = target,
+      level = level,
+      trace = trace,
+      ...
+    ),
+    error = function(err) err
+  )
+  if (inherits(profiled, "error")) {
+    return(drm_profile_failed_confint_row(
+      target = target,
+      level = level,
+      profile_engine = "tmbprofile",
+      message = conditionMessage(profiled)
+    ))
+  }
+  profiled
+}
+
+drm_profile_failed_confint_row <- function(
+  target,
+  level,
+  profile_engine,
+  message
+) {
+  data.frame(
+    parm = target$parm,
     level = level,
-    trace = trace,
-    ...
+    lower = NA_real_,
+    upper = NA_real_,
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    method = "profile",
+    profile.engine = profile_engine,
+    conf.status = "profile_failed",
+    profile.boundary = NA,
+    profile.message = message,
+    stringsAsFactors = FALSE
   )
 }
 
@@ -2078,6 +2135,7 @@ drm_profile_target_tmbprofile_confint <- function(
     interval,
     transformation = target$transformation
   )
+  conf_status <- profile_conf_status_from_diagnostics(diagnostics)
 
   data.frame(
     parm = target$parm,
@@ -2090,7 +2148,7 @@ drm_profile_target_tmbprofile_confint <- function(
     index = target$index,
     method = "profile",
     profile.engine = "tmbprofile",
-    conf.status = "profile",
+    conf.status = conf_status,
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
     stringsAsFactors = FALSE
@@ -2114,6 +2172,7 @@ drm_profile_target_endpoint_confint <- function(
     interval,
     transformation = target$transformation
   )
+  conf_status <- profile_conf_status_from_diagnostics(diagnostics)
 
   data.frame(
     parm = target$parm,
@@ -2126,11 +2185,18 @@ drm_profile_target_endpoint_confint <- function(
     index = target$index,
     method = "profile",
     profile.engine = "endpoint",
-    conf.status = "profile",
+    conf.status = conf_status,
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
     stringsAsFactors = FALSE
   )
+}
+
+profile_conf_status_from_diagnostics <- function(diagnostics) {
+  if (identical(diagnostics$message, "nonfinite_interval")) {
+    return("profile_failed")
+  }
+  "profile"
 }
 
 drm_profile_endpoint_result <- function(
