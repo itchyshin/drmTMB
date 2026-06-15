@@ -36,6 +36,9 @@ Checks run:
 - Native 100-tip careful smoke with the same settings and
   `DRMTMB_AYUMI_Q4_SIZES=100`, writing
   `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-careful-abe8288a`.
+- Native 100-tip robust smoke with source-fit and bootstrap-refit
+  `optimizer_preset = "robust"`, writing
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-robust-8ba6d9b6`.
 
 Result:
 
@@ -50,12 +53,17 @@ Result:
   `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
   Bootstrap took 134.24 s and returned `bootstrap_unavailable`,
   `bootstrap.n = 0`, and `bootstrap.failed = 2` for all four q4 SD rows.
+- The 100-tip robust source fit took 162.53 s and also returned
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  Bootstrap again returned `bootstrap_unavailable`, `bootstrap.n = 0`, and
+  `bootstrap.failed = 2` for all four q4 SD rows.
 
 Known boundaries:
 
 - The native q4 bootstrap target path is reachable when refits converge, but
-  `optimizer_preset = "careful"` is not enough at 100 tips and is not an
-  Ayumi-scale fallback claim.
+  neither `optimizer_preset = "careful"` nor `"robust"` is enough at 100 tips,
+  so this is not an Ayumi-scale fallback claim.
 - The next R-side slice should retain per-refit convergence/message diagnostics
   and decide whether retry-on-convergence-failure belongs in the public
   bootstrap path.

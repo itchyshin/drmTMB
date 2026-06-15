@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-15 13:35 MDT",
+  "updated": "2026-06-15 14:19 MDT",
   "metrics": {
     "verified": 18,
     "active": 3,
@@ -179,7 +179,7 @@
           "status": "verified",
           "issue": "drmTMB#555",
           "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-optimizer-controls.md",
-          "evidence": "30-tip careful native bootstrap B=2 returned 2/2 refits; 100-tip careful native bootstrap still returned bootstrap_unavailable after both refits failed"
+          "evidence": "30-tip careful native bootstrap B=2 returned 2/2 refits; 100-tip careful and robust native smokes still returned bootstrap_unavailable after both refits failed"
         },
         {
           "name": "Add endpoint profile evaluation budget and fit-diagnostic status rows for Ayumi q4 native checks",
@@ -804,14 +804,14 @@
     {
       "when": "now",
       "who": "Curie",
-      "text": "Native TMB ML bootstrap is not yet a fallback claim: careful optimizer settings give 2/2 refits at 30 tips, but the 100-tip careful smoke still returns bootstrap_unavailable after both refits fail."
+      "text": "Native TMB ML bootstrap is not yet a fallback claim: careful optimizer settings give 2/2 refits at 30 tips, but 100-tip careful and robust smokes still return bootstrap_unavailable after both refits fail."
     }
     ],
     "activity": [
     {
       "when": "2026-06-15",
       "who": "Codex",
-      "text": "Added native-TMB optimizer-preset controls to the Ayumi q4 harness; careful bootstrap succeeds at 30 tips but still fails both refits at 100 tips.",
+      "text": "Added native-TMB optimizer-preset controls to the Ayumi q4 harness; careful bootstrap succeeds at 30 tips, but both careful and robust 100-tip smokes still fail both refits.",
       "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-optimizer-controls.md",
       "link_label": "after-task"
     },
@@ -958,7 +958,7 @@
     {
       "when": "2026-06-15",
       "who": "Status matrix",
-      "text": "Native TMB careful optimizer settings rescue the 30-tip bootstrap smoke but not the 100-tip smoke; the next claim needs per-refit diagnostics and retry evidence."
+      "text": "Native TMB careful optimizer settings rescue the 30-tip bootstrap smoke, but neither careful nor robust rescues the 100-tip smoke; the next claim needs per-refit diagnostics and retry evidence."
     },
     {
       "when": "2026-06-15",

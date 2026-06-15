@@ -71,14 +71,25 @@ bootstrap phase took 134.24 s and again returned
 `conf.status = "bootstrap_unavailable"`, `bootstrap.n = 0`, and
 `bootstrap.failed = 2` for all four q4 SD rows.
 
+The 100-tip native TMB robust smoke used `optimizer_preset = "robust"` for both
+the source fit and bootstrap refits, writing
+`/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-robust-8ba6d9b6`.
+The point fit took 162.53 s and still returned `convergence = 1`,
+`pdHess = FALSE`, and
+`fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`. The
+bootstrap rows again returned `conf.status = "bootstrap_unavailable"`,
+`bootstrap.n = 0`, and `bootstrap.failed = 2`; recorded warnings included
+`NA/NaN function evaluation` and a non-positive/NA diagonal covariance warning.
+
 The internal issue ledger was updated at
 `drmTMB#555`: https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4711696348
 
 ## Interpretation
 
 The 30-tip result shows that native TMB q4 bootstrap targets are reachable when
-the refits converge. The 100-tip result shows that the careful preset alone is
-not enough to make native ML bootstrap an Ayumi-scale fallback.
+the refits converge. The 100-tip careful and robust results show that simply
+raising the optimizer budget is not enough to make native ML bootstrap an
+Ayumi-scale fallback.
 
 The next useful R-side slice is not a speed claim. It is a bootstrap-refit
 diagnostic/rescue slice: record per-refit convergence, messages, and target
