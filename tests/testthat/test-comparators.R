@@ -548,10 +548,54 @@ test_that("REML rejects unsupported first-slice neighbours", {
   dat <- data.frame(
     id = factor(rep(seq_len(n_id), each = n_each)),
     x = stats::rnorm(n),
+    z = stats::rnorm(n),
     vi = stats::runif(n, 0.02, 0.05)
   )
+  dat$x_dup <- dat$x
   dat$y <- stats::rnorm(n, 0.4 + 0.7 * dat$x, sd = 0.5)
   dat$count <- stats::rpois(n, exp(0.4 + 0.2 * dat$x))
+  tree <- structure(
+    list(
+      edge = matrix(
+        c(
+          15,
+          13,
+          15,
+          14,
+          13,
+          9,
+          13,
+          10,
+          9,
+          1,
+          9,
+          2,
+          10,
+          3,
+          10,
+          4,
+          14,
+          11,
+          14,
+          12,
+          11,
+          5,
+          11,
+          6,
+          12,
+          7,
+          12,
+          8
+        ),
+        ncol = 2,
+        byrow = TRUE
+      ),
+      edge.length = rep(1, 14),
+      tip.label = as.character(seq_len(n_id)),
+      Nnode = 7L
+    ),
+    class = "phylo"
+  )
 
   expect_error(
     drmTMB(
@@ -579,6 +623,72 @@ test_that("REML rejects unsupported first-slice neighbours", {
       REML = TRUE
     ),
     "direct random-effect scale"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x),
+      family = gaussian(),
+      data = dat,
+      missing = miss_control(response = "include"),
+      REML = TRUE
+    ),
+    "explicit missing-data"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x),
+      family = gaussian(),
+      data = dat,
+      control = drm_control(sparse_fixed = TRUE),
+      REML = TRUE
+    ),
+    "sparse fixed-effect"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x),
+      family = gaussian(),
+      data = dat,
+      control = drm_control(aggregate_gaussian = TRUE),
+      REML = TRUE
+    ),
+    "Gaussian row aggregation"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1 + (1 | id)),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "ordinary .*mu.* random effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x + z | p | id), sigma ~ 1),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "q > 2 labelled covariance"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | id, tree = tree), sigma ~ 1),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "structured Gaussian effects"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + x_dup, sigma ~ 1),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE
+    ),
+    "full-rank dense"
   )
 })
 
