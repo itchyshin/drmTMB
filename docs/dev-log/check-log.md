@@ -26,6 +26,11 @@ Checks run:
 
 - `air format tools/ayumi-q4-status-harness.R docs/dev-log/check-log.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-evidence-refresh.md`
 - `Rscript --vanilla -e 'invisible(parse("tools/ayumi-q4-status-harness.R")); cat("parse ok\n")'`
+- GitHub Actions R-CMD-check run `27571496276` passed macOS and Ubuntu. The
+  Windows job reached `[ FAIL 0 | WARN 0 | SKIP 34 | PASS 10760 ]`, uploaded
+  snapshots, and was then canceled at the 30-minute job timeout during cleanup;
+  the workflow timeout was raised to 45 minutes so Windows can finish its
+  already-passing check path.
 - Native 30-tip careful smoke:
   `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-allq4-careful-abe8288a Rscript --vanilla tools/ayumi-q4-status-harness.R`
 - Native 100-tip careful smoke with the same settings and
