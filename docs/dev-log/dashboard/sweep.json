@@ -4,7 +4,7 @@
     {
       "when": "now",
       "who": "Codex",
-      "text": "DRM.jl #292 is merged green and verified through the drmTMB Ayumi harness: Julia q4 ML/REML point fits return at 30 tips, ML bootstrap smoke works, and REML bootstrap remains the next explicit follow-up."
+      "text": "DRM.jl #292 is merged green and verified through the drmTMB Ayumi harness: Julia q4 ML/REML point fits return at 30 tips and Julia ML bootstrap smoke works. Native TMB ML bootstrap is not yet a fallback claim; the 30-tip smoke returned bootstrap_unavailable after both refits failed."
     }
   ]
 }
