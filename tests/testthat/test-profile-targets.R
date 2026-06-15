@@ -342,6 +342,31 @@ new_profile_biv_phylo_data <- function(
   )
 }
 
+new_profile_biv_phylo_q4_data <- function(
+  seed = 20260691,
+  n_tip = 4L,
+  n_each = 5L
+) {
+  set.seed(seed)
+  tree <- new_profile_balanced_tree(n_tip)
+  species <- rep(tree$tip.label, each = n_each)
+  id <- match(species, tree$tip.label)
+  n <- length(species)
+  x <- stats::rnorm(n)
+  z <- matrix(stats::rnorm(n_tip * 4L), ncol = 4L)
+  sd <- c(0.35, 0.40, 0.22, 0.26)
+  b <- sweep(z, 2L, sd, `*`)
+  rho12 <- 0.15
+  e1 <- stats::rnorm(n)
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
+
+  data <- data.frame(species = species, x = x)
+  data$y1 <- 0.1 + 0.2 * x + b[id, 1L] + exp(log(0.5) + b[id, 3L]) * e1
+  data$y2 <- -0.1 - 0.2 * x + b[id, 2L] + exp(log(0.6) + b[id, 4L]) * e2
+
+  list(data = data, tree = tree)
+}
+
 new_profile_hurdle_data <- function(n = 360, seed = 20260594) {
   set.seed(seed)
   dat <- data.frame(
@@ -634,6 +659,38 @@ test_that("confint marks non-positive Hessian Wald intervals unavailable", {
   expect_true(all(is.na(ci$lower)))
   expect_true(all(is.na(ci$upper)))
   expect_equal(ci$conf.status, rep("wald_unavailable", nrow(ci)))
+})
+
+test_that("confint reports numeric profile failures by row", {
+  target <- data.frame(
+    parm = "sd:mu:sigma1:phylo(1 | p | species)",
+    scale = "response",
+    transformation = "exp",
+    tmb_parameter = "log_sd_phylo",
+    index = 3L,
+    stringsAsFactors = FALSE
+  )
+
+  row <- drmTMB:::drm_profile_failed_confint_row(
+    target = target,
+    level = 0.95,
+    profile_engine = "endpoint",
+    message = "NA/NaN gradient evaluation"
+  )
+
+  expect_equal(row$parm, target$parm)
+  expect_equal(row$level, 0.95)
+  expect_true(is.na(row$lower))
+  expect_true(is.na(row$upper))
+  expect_equal(row$scale, "response")
+  expect_equal(row$transformation, "exp")
+  expect_equal(row$tmb_parameter, "log_sd_phylo")
+  expect_equal(row$index, 3L)
+  expect_equal(row$method, "profile")
+  expect_equal(row$profile.engine, "endpoint")
+  expect_equal(row$conf.status, "profile_failed")
+  expect_true(is.na(row$profile.boundary))
+  expect_equal(row$profile.message, "NA/NaN gradient evaluation")
 })
 
 test_that("confint returns Wald intervals for direct random-effect targets", {
@@ -2201,6 +2258,58 @@ test_that("profile target inventory covers bivariate phylogenetic covariance lab
   expect_false(any(rho12_targets$parm %in% phylo_parms))
 })
 
+test_that("profile target inventory covers bivariate q4 phylo sigma axes", {
+  sim <- new_profile_biv_phylo_q4_data()
+  dat <- sim$data
+  tree <- sim$tree
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+        sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+        sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(optimizer_preset = "careful")
+    )
+  )
+
+  targets <- profile_targets(fit)
+  sigma_parms <- c(
+    "sd:mu:sigma1:phylo(1 | p | species)",
+    "sd:mu:sigma2:phylo(1 | p | species)"
+  )
+  sigma_targets <- targets[match(sigma_parms, targets$parm), ]
+
+  expect_profile_target_contract(targets)
+  expect_equal(sigma_targets$parm, sigma_parms)
+  expect_equal(sigma_targets$dpar, rep("mu", 2L))
+  expect_equal(
+    sigma_targets$term,
+    c(
+      "sigma1:phylo(1 | p | species)",
+      "sigma2:phylo(1 | p | species)"
+    )
+  )
+  expect_equal(sigma_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+  expect_equal(sigma_targets$index, 3:4)
+  expect_equal(sigma_targets$target_type, rep("direct", 2L))
+  expect_true(all(sigma_targets$profile_ready))
+  expect_equal(sigma_targets$profile_note, rep("ready", 2L))
+
+  cor_targets <- targets[startsWith(targets$parm, "cor:phylo:"), ]
+  expect_equal(nrow(cor_targets), 6L)
+  expect_equal(cor_targets$target_type, rep("derived", 6L))
+  expect_false(any(cor_targets$profile_ready))
+  expect_equal(
+    cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 6L)
+  )
+})
+
 test_that("profile target inventory covers bivariate sd_phylo coefficients", {
   sim <- new_profile_biv_phylo_data(n_tip = 8L, n_each = 5L)
   dat <- sim$data
@@ -2489,16 +2598,18 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
     ),
     "supplied twice"
   )
-  expect_error(
-    stats::confint(
-      fit,
-      parm = "fixef:mu:x",
-      method = "profile",
-      trace = FALSE,
-      ystep = 0
-    ),
-    "boundary, one-sided, non-monotone"
+  failed_ci <- stats::confint(
+    fit,
+    parm = "fixef:mu:x",
+    method = "profile",
+    trace = FALSE,
+    ystep = 0
   )
+  expect_equal(failed_ci$parm, "fixef:mu:x")
+  expect_true(is.na(failed_ci$lower))
+  expect_true(is.na(failed_ci$upper))
+  expect_equal(failed_ci$conf.status, "profile_failed")
+  expect_match(failed_ci$profile.message, "Profile likelihood failed")
 })
 
 test_that("profile interval diagnostics flag boundary-like intervals", {

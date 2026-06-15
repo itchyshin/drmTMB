@@ -32,9 +32,9 @@ signal are listed as point-estimate targets with
 \code{\link[=confint.drmTMB]{confint.drmTMB()}}. The table also records whether each row is currently
 ready for direct profile-likelihood intervals. This helps users inspect the
 fitted object before starting an expensive profile. Full q4 unstructured
-correlation summaries are derived targets; block-diagonal phylogenetic q4
-fallback correlations are direct targets, but a direct target can still fail
-on a weak, boundary-limited, or one-sided profile.
+and phylogenetic correlation summaries are derived targets; direct SD and
+scale targets can still fail on a weak, boundary-limited, or one-sided
+profile.
 }
 \details{
 Use \code{ready_only = TRUE} for the fastest inspection path before calling
