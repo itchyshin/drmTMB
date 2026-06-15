@@ -109,13 +109,17 @@ family route. These are not user starts and they are not a public warm-start
 interface: they are ordinary family-builder defaults passed to
 `TMB::MakeADFun()` before `stats::nlminb()` starts.
 
-The Gaussian location-scale builder starts fixed-effect `mu` coefficients with
-`lm.fit()` when the fixed-effect design is dense. It then starts the `sigma`
-intercept from the residual standard deviation, subtracting the median known
-sampling variance when `meta_V(V = V)` is present and applying a small scale
-floor. Non-intercept `sigma` coefficients still start at zero; a closed-form
-heteroscedastic `sigma ~ x` regression would be a separate measured design
-slice, not current behaviour.
+The Gaussian location-scale builders start fixed-effect `mu` coefficients with
+`lm.fit()` when the fixed-effect design is dense. They then build fixed-effect
+`sigma` starts from the OLS residual scale for univariate Gaussian models and
+for bivariate Gaussian `sigma1` / `sigma2` formulas. Intercept-only `sigma`
+formulas keep the residual standard-deviation start, subtracting the median
+known sampling variance when `meta_V(V = V)` is present and applying a small
+scale floor. When `sigma` has predictors, the builders use a guarded residual
+log-scale regression of `log(|residual|) + log(sqrt(pi / 2))` on the `sigma`
+design matrix, falling back to the intercept-only start if the candidate is
+non-finite or extreme. This is a starting-value heuristic only; it is not a
+profile-out step and does not change the likelihood.
 
 The bivariate Gaussian builder runs separate OLS starts for `mu1` and `mu2`,
 starts `sigma1` and `sigma2` from the two residual standard deviations, and
