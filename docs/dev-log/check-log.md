@@ -54582,3 +54582,29 @@ Results:
 Boundary: this is a governance slice. The registry is richer and tested, but
 the generated table, documentation-drift guard, and DRM.jl capability comparison
 remain open `#544` work.
+
+## 2026-06-16: Penalized / MAP phylogenetic estimator (Phase 3, slice 1)
+
+Added an optional penalized / MAP estimator: `drmTMB(..., penalty =
+drm_phylo_penalty(sd_u, sd_alpha, cor_sd))`. A PC-prior (exponential-on-SD,
+Jacobian-correct) penalises each phylogenetic SD and an optional `N(0, cor_sd)`
+shrinks the live phylo correlation (`eta_cor_phylo` for q==2, `theta_phylo` for
+q>2). `penalize_phylo` gates the TMB penalty so plain ML stays bit-identical; the
+penalty is `REPORT`ed so `logLik()` returns the unpenalized data log-likelihood;
+the fit is labeled `MAP` with a `check_drm()` note. Design: doc 172; after-task
+`2026-06-16-phylo-penalized-map.md`.
+
+Results: `phylo-penalized-map` tests pass (the reported penalty matches the
+analytic PC-prior at the optimum; `penalty = NULL` stays `estimator = "ML"` with
+zero penalty; a penalty shrinks the phylo SD and labels the fit `MAP`). A first
+full-suite run surfaced 6 errors in direct-`MakeADFun` unit tests
+(`test-phylo-utils.R`, `test-covariance-block-registry.R`) that hand-build
+`tmb_data` and so lacked the new required `penalize_phylo` field; fixed by
+defaulting the three penalty DATA fields at the universal
+`add_covariance_block_tmb_data()` merge point and in the `phylo_prior_tmb_data()`
+test helper. `document()` regenerated NAMESPACE + man pages (pre-existing
+`man/rho_latent.Rd` drift reverted); `git diff --check` clean.
+
+Boundary: the penalty regularises a weakly-identified phylogenetic component; it
+does not manufacture identifiability. A MAP fit is not ML -- LRT/AIC across
+penalized fits are not standard, and a prior-sensitivity analysis is required.

@@ -34,6 +34,46 @@ void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
   }
 }
 
+// PC-prior penalty (negative log-prior) for an optional penalized/MAP fit: an
+// exponential prior on each phylogenetic SD = exp(log_sd_phylo) with the
+// log-Jacobian, plus an optional mean-zero normal on the live phylogenetic
+// correlation parameter (eta_cor_phylo for q == 2, theta_phylo for q > 2).
+// See docs/design/172-phylo-penalized-map.md.
+template<class Type>
+Type drm_phylo_penalty_value(const vector<Type>& log_sd_phylo,
+                             int q_phylo,
+                             Type eta_cor_phylo,
+                             const vector<Type>& theta_phylo,
+                             const vector<Type>& sd_penalty_rate,
+                             const vector<Type>& cor_penalty_sd) {
+  Type pen = Type(0.0);
+  for (int k = 0; k < q_phylo; ++k) {
+    if (k < sd_penalty_rate.size()) {
+      Type lam = sd_penalty_rate(k);
+      if (lam > Type(0.0)) {
+        Type sd_k = exp(log_sd_phylo(k));
+        pen += lam * sd_k - log_sd_phylo(k) - log(lam);
+      }
+    }
+  }
+  if (cor_penalty_sd.size() > 0) {
+    Type s = cor_penalty_sd(0);
+    if (s > Type(0.0)) {
+      Type half_log_2pi = Type(0.5) * log(Type(2.0) * M_PI);
+      if (q_phylo == 2) {
+        Type z = eta_cor_phylo / s;
+        pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+      } else if (q_phylo > 2) {
+        for (int t = 0; t < theta_phylo.size(); ++t) {
+          Type z = theta_phylo(t) / s;
+          pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+        }
+      }
+    }
+  }
+  return pen;
+}
+
 template<class Type>
 Type objective_function<Type>::operator()()
 {
@@ -127,6 +167,9 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(phylo_mu_n_blocks);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(penalize_phylo);
+  DATA_VECTOR(phylo_sd_penalty_rate);
+  DATA_VECTOR(phylo_cor_penalty_sd);
   DATA_INTEGER(n_re_cov_blocks);
   DATA_IVECTOR(re_cov_block_size);
   DATA_IVECTOR(re_cov_block_group_count);
@@ -187,6 +230,7 @@ Type objective_function<Type>::operator()()
   PARAMETER(eta_cor_phylo);
 
   Type nll = 0;
+  Type phylo_penalty = Type(0.0);
   (void)mi_observed;
   (void)n_re_cov_blocks;
   (void)re_cov_block_size;
@@ -778,6 +822,13 @@ Type objective_function<Type>::operator()()
         ADREPORT(log_sd_phylo);
         REPORT(sd_phylo);
         ADREPORT(sd_phylo);
+      }
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
       }
     }
 
@@ -3243,6 +3294,13 @@ Type objective_function<Type>::operator()()
       }
       ADREPORT(log_sd_phylo);
       ADREPORT(sd_phylo);
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
+      }
     }
 
     // Guard the bivariate Gaussian scales against runaway per-observation

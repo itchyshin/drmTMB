@@ -14,6 +14,7 @@ drmTMB(
   missing = miss_control(),
   engine = c("tmb", "julia"),
   REML = FALSE,
+  penalty = NULL,
   ...
 )
 }
@@ -111,6 +112,13 @@ Gaussian \code{sigma}-phylo location-scale models, and the bivariate q = 4
 phylogenetic location-scale route. Use the default \code{REML = FALSE} for
 likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
 formulas, non-Gaussian models, and currently unsupported extensions.}
+
+\item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
+\code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty
+switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
+regularises a weakly-identified phylogenetic standard deviation; the fit is
+labeled \code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
+Native \code{engine = "tmb"} only.}
 
 \item{...}{Reserved for future model options.}
 }
