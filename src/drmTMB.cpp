@@ -170,6 +170,8 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
+  DATA_INTEGER(use_logsigma_clamp);
+  DATA_VECTOR(logsigma_clamp);
   DATA_INTEGER(n_re_cov_blocks);
   DATA_IVECTOR(re_cov_block_size);
   DATA_IVECTOR(re_cov_block_group_count);
@@ -1950,7 +1952,10 @@ Type objective_function<Type>::operator()()
 
     // Guard the Gaussian scale against a runaway per-observation log-sigma.
     // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
-    drm_softclamp_log_sigma(log_sigma, Type(-12.0), Type(12.0), Type(3.0));
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
@@ -3306,8 +3311,12 @@ Type objective_function<Type>::operator()()
     // Guard the bivariate Gaussian scales against runaway per-observation
     // log-sigma (e.g. a scale-side phylogenetic field; Ayumi's q4 "Model E").
     // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
-    drm_softclamp_log_sigma(log_sigma1, Type(-12.0), Type(12.0), Type(3.0));
-    drm_softclamp_log_sigma(log_sigma2, Type(-12.0), Type(12.0), Type(3.0));
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma1, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+      drm_softclamp_log_sigma(
+        log_sigma2, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma1 = exp(log_sigma1);
     vector<Type> sigma2 = exp(log_sigma2);
 

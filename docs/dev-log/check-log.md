@@ -54699,3 +54699,17 @@ convergence.Rmd renders (RENDER_OK; the new chunks are eval=FALSE). Interval
 finding: on a penalized PD fit, Wald is instant, profile works with named
 targets, bootstrap works (slow); bootstrap fails only on the non-PD flat ridge.
 git diff --check clean.
+
+## 2026-06-16: log(sigma) clamp knob (Phase 4)
+
+drm_control() exposes the log(sigma) overflow guard (#576) as a knob:
+logsigma_clamp = c(lo, hi) (default c(-12, 12)), logsigma_clamp_margin (default
+3), logsigma_clamp = NULL to disable. C++ adds DATA_INTEGER(use_logsigma_clamp) +
+DATA_VECTOR(logsigma_clamp) and guards the three clamp sites; the universal
+add_covariance_block_tmb_data() merge point supplies defaults and drmTMB()
+overrides from control. Default bit-identical to the #576 fixed guard; the band
+is a numerical guard only and does not change identifiability. logsigma-clamp,
+phylo-utils, and covariance-block-registry tests pass; document() documents both
+new args (rho_latent.Rd drift reverted); git diff --check clean. After-task
+2026-06-16-logsigma-clamp-knob.md. The disable test asserts the deterministic
+use_logsigma_clamp plumbing, not the optimizer's platform-dependent NaN warning.
