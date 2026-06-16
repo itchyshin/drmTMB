@@ -4,6 +4,8 @@
 \alias{vcov.drmTMB}
 \alias{model-fit-extractors}
 \alias{logLik.drmTMB}
+\alias{AIC.drmTMB}
+\alias{BIC.drmTMB}
 \alias{nobs.drmTMB}
 \alias{df.residual.drmTMB}
 \alias{deviance.drmTMB}
@@ -12,6 +14,10 @@
 \method{vcov}{drmTMB}(object, ...)
 
 \method{logLik}{drmTMB}(object, ...)
+
+\method{AIC}{drmTMB}(object, ..., k = 2)
+
+\method{BIC}{drmTMB}(object, ...)
 
 \method{nobs}{drmTMB}(object, ...)
 
