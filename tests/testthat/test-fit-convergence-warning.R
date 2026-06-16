@@ -49,3 +49,15 @@ test_that("a clean Gaussian fit converges and emits no convergence warning", {
   )
   expect_equal(fit$opt$convergence, 0L)
 })
+
+test_that("drm_warn_if_nonfinite_objective is silent on a finite objective and warns otherwise", {
+  expect_no_warning(drm_warn_if_nonfinite_objective(list(objective = -123.4)))
+  expect_warning(
+    drm_warn_if_nonfinite_objective(list(objective = NaN)),
+    "not finite"
+  )
+  expect_warning(
+    drm_warn_if_nonfinite_objective(list(objective = Inf)),
+    "not finite"
+  )
+})
