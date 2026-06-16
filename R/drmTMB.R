@@ -12135,11 +12135,26 @@ gaussian_sigma_fixed_start <- function(
     return(beta_sigma)
   }
   eta_candidate <- as.vector(X_observed %*% candidate)
-  if (
-    !all(is.finite(eta_candidate)) ||
-      diff(range(eta_candidate)) > 8 ||
-      any(abs(candidate) > 5)
-  ) {
+  if (!all(is.finite(eta_candidate))) {
+    return(beta_sigma)
+  }
+  # Shrink an over-large scale-slope start toward zero rather than discarding all
+  # slopes: a legitimately strong scale-heterogeneity model keeps a usable,
+  # bounded slope start (direction preserved) instead of a flat intercept-only
+  # point. Only the slopes are shrunk; the intercept (baseline log-sigma) is kept.
+  slopes <- candidate[-1L]
+  eta_slopes <- as.vector(X_observed[, -1L, drop = FALSE] %*% slopes)
+  spread <- if (length(eta_slopes) > 0L) diff(range(eta_slopes)) else 0
+  max_slope <- if (length(slopes) > 0L) max(abs(slopes)) else 0
+  shrink <- 1
+  if (is.finite(spread) && spread > 8) {
+    shrink <- min(shrink, 8 / spread)
+  }
+  if (is.finite(max_slope) && max_slope > 5) {
+    shrink <- min(shrink, 5 / max_slope)
+  }
+  candidate[-1L] <- slopes * shrink
+  if (!all(is.finite(candidate))) {
     return(beta_sigma)
   }
   names(candidate) <- colnames(X_sigma)
