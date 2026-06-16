@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 11:22 MDT",
+  "updated": "2026-06-16 16:40 MDT",
   "metrics": {
     "verified": 19,
     "active": 4,
@@ -613,7 +613,7 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/544",
       "issue_label": "drmTMB#544",
       "lane": "Critical Path",
-      "status": "active",
+      "status": "partial",
       "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose", "Hopper"],
       "family": "engine = \"julia\" intentional gate registry",
       "response_encoding": ["R syntax cells", "DRM.jl evidence cells"],
@@ -625,12 +625,12 @@
       "profile": "partial",
       "bootstrap": "partial",
       "tests": "covered",
-      "docs": "active",
+      "docs": "covered",
       "visual": "covered",
       "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "docs/dev-log/dashboard/julia-capabilities.tsv",
-      "blocker": "Gate table is banked; this PR stages the public-docs drift guard and DRM.jl capability comparison without promoting binomial bridge support.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-16-julia-capability-comparison-doc-guard.md",
+      "blocker": "#587 is merged. The registry, generated capability comparison, drift guard, and dashboard heatmap are banked; bridge promotion still waits for per-cell parity evidence and an explicit decision on R-gated Julia-covered cells.",
       "last_verified": "2026-06-16"
     },
     {
@@ -639,7 +639,7 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/577",
       "issue_label": "drmTMB#577",
       "lane": "Issue Ledger",
-      "status": "active",
+      "status": "banked",
       "owners": ["Ada", "Emmy", "Grace", "Rose", "Florence"],
       "family": "row-oriented issue-led capability widget",
       "response_encoding": ["finish_board rows", "validator checks", "served dashboard"],
@@ -650,13 +650,13 @@
       "wald": "unsupported",
       "profile": "unsupported",
       "bootstrap": "unsupported",
-      "tests": "active",
-      "docs": "active",
-      "visual": "active",
+      "tests": "covered",
+      "docs": "covered",
+      "visual": "covered",
       "simulation": "unsupported",
       "release_gate": "partial",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/577",
-      "blocker": "Acceptance requires validator, served-browser check, evidence links, and issue/check-log/after-task synchronization.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-16-dashboard-truth-refresh.md",
+      "blocker": "The widget schema, validator, served dashboard, canonical team roster, issue-led rows, and evidence-link checks are maintained in docs/dev-log/dashboard; each new finish slice must keep these rows current.",
       "last_verified": "2026-06-16"
     },
     {
@@ -691,7 +691,7 @@
       "issue": "",
       "issue_label": "maintainer note",
       "lane": "Twin Claim Board",
-      "status": "active",
+      "status": "deferred",
       "owners": ["Ada", "Emmy", "Grace", "Rose"],
       "family": "direct DRM.jl Binomial documentation alignment",
       "response_encoding": ["claim alignment only", "no Codex DRM.jl code changes"],
@@ -708,7 +708,7 @@
       "simulation": "planned",
       "release_gate": "planned",
       "evidence_url": "",
-      "blocker": "Owner decides whether to open a DRM.jl issue or maintainer note; Codex does not modify DRM.jl code.",
+      "blocker": "Owner decides whether to open a DRM.jl issue or maintainer note. Codex does not modify DRM.jl code, and drmTMB makes no binomial Julia-bridge claim.",
       "last_verified": "2026-06-16"
     },
     {
@@ -769,24 +769,50 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/569",
       "issue_label": "drmTMB#569",
       "lane": "Evidence Gates",
-      "status": "active",
+      "status": "banked",
       "owners": ["Fisher", "Curie", "Grace", "Florence", "Rose"],
       "family": "glm parity first; MCSE-backed intervals later",
       "response_encoding": ["8-12 fast tests", "Phase 18 binomial_fixed_effect lane"],
       "dpars": ["mu"],
-      "engine_tmb": "active",
+      "engine_tmb": "covered",
       "engine_julia": "unsupported",
-      "point": "active",
-      "wald": "active",
+      "point": "covered",
+      "wald": "partial",
       "profile": "planned",
       "bootstrap": "unsupported",
-      "tests": "active",
-      "docs": "active",
+      "tests": "covered",
+      "docs": "covered",
       "visual": "planned",
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md",
-      "blocker": "Branch codex/binomial-evidence-lane stages the Phase 18 binomial_fixed_effect lane with replicate, aggregate, Wald, failure, manifest, and stats::glm parity artifacts. Beta-binomial evidence still does not count for plain binomial interval calibration, which needs MCSE, convergence, pdHess, boundary, warning, and failure summaries.",
+      "blocker": "#588 is merged. The Phase 18 binomial_fixed_effect lane writes replicate, aggregate, Wald, failure, manifest, and stats::glm parity artifacts; interval calibration remains planned until MCSE-backed promotion runs exist.",
+      "last_verified": "2026-06-16"
+    },
+    {
+      "id": "drmTMB-numerical-guard-sensitivity",
+      "package": "drmTMB",
+      "issue": "https://github.com/itchyshin/drmTMB/issues/59",
+      "issue_label": "drmTMB#59",
+      "lane": "Evidence Gates",
+      "status": "active",
+      "owners": ["Gauss", "Fisher", "Curie", "Grace", "Rose"],
+      "family": "numerical guard sensitivity audit",
+      "response_encoding": ["correlation open-interval guards", "finite-variance Student-t shape floor", "support floors", "Gaussian log(sigma) clamp"],
+      "dpars": ["sigma", "nu", "rho12"],
+      "engine_tmb": "partial",
+      "engine_julia": "unsupported",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "tests": "planned",
+      "docs": "covered",
+      "visual": "planned",
+      "simulation": "planned",
+      "release_gate": "planned",
+      "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
+      "blocker": "Hao Qin flagged that hard-coded numerical guards can alter inference if they bind. The design note is banked; big simulations must report guard activation, estimates, interval coverage, pdHess, warnings, failures, and sensitivity across guard settings before guard-dependent inference claims.",
       "last_verified": "2026-06-16"
     },
     {
@@ -855,12 +881,12 @@
       "wald": "planned",
       "profile": "partial",
       "bootstrap": "partial",
-      "docs": "partial",
-      "visual": "planned",
+      "docs": "covered",
+      "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "Merge the public-docs drift guard and DRM.jl capability comparison, then review any remaining R-gated Julia-covered cells before bridge promotion.",
-      "evidence_url": "docs/dev-log/dashboard/julia-capabilities.tsv"
+      "next": "#587 is merged. Review remaining R-gated Julia-covered cells before any bridge promotion; do not imply user-selectable Julia-side controls.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-16-julia-capability-comparison-doc-guard.md"
     },
     {
       "area": "Gaussian phylogenetic SD target",
@@ -919,7 +945,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "#585 is merged. Branch codex/binomial-evidence-lane stages the standalone Phase 18 binomial_fixed_effect artifact writer and stats::glm parity CSV; Julia bridge parity remains separate.",
+      "next": "#585, #588, and #589 are merged. Fixed-effect stats::binomial(logit) fits have stats::glm() parity evidence and clearer docs; interval calibration, random effects, structured effects, bivariate/mixed responses, and the Julia bridge remain planned or unsupported.",
       "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md"
     },
     {
@@ -1054,8 +1080,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Big simulations start only after smoke, parity, recovery, bridge, CI-status, and visual gates pass.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "Binomial fixed-effect glm parity is banked as the first executable comparator artifact; big simulations and guard-sensitivity promotion still wait for smoke, MCSE, failure, visual, and CI-status evidence.",
+      "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md"
     },
     {
       "area": "Release gate",
@@ -1074,33 +1100,42 @@
     }
   ],
     "active_work": [
-        {
-            "when": "now",
-            "who": "Ada",
-            "text": "R-first pivot is active: native drmTMB status and support diagnostics are being hardened before broader Julia speed claims."
-        },
     {
       "when": "now",
-      "who": "Codex",
-      "text": "Non-Ayumi finish path is active: drmTMB#585 has merged the native binomial first slice, #587 has merged the #544 capability comparison plus docs-drift guard, and codex/binomial-evidence-lane stages the Phase 18 binomial evidence/comparator artifacts."
-    },
-    {
-      "when": "now",
-      "who": "Grace",
-      "text": "Julia q4 target-estimate repair is merged as #565 and the dashboard evidence-link copy fix is merged as #566; the live board is serving from /tmp/drm-dashboard on port 8765."
+      "who": "Ada",
+      "text": "Non-Ayumi finish path is in ledger-refresh mode: #585, #587, #588, and #589 are merged; the next work is release/comparator readiness without touching Claude-owned Ayumi C++ seams."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Ayumi Julia q4 point-fit bridge blocker is fixed, target estimates now come from Sigma_a, ML all-q4 bootstrap has a B=2 plumbing smoke, and 10k wall-time remains unclaimed."
+      "text": "Binomial fixed-effect glm parity is banked, but interval calibration is not claimed until MCSE-backed simulation runs exist."
     },
     {
       "when": "now",
-      "who": "Curie",
-      "text": "Native TMB ML bootstrap is not yet a fallback claim: careful optimizer settings give 2/2 refits at 30 tips, but 100-tip careful and robust smokes still return bootstrap_unavailable after both refits fail."
+      "who": "Rose",
+      "text": "Numerical guards are now tracked as an explicit evidence gate: documentation is banked, sensitivity simulations are still planned."
+    },
+    {
+      "when": "now",
+      "who": "Grace",
+      "text": "Mission-control status must validate, serve from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
     }
-    ],
-    "activity": [
+  ],
+  "activity": [
+    {
+      "when": "2026-06-16",
+      "who": "Codex",
+      "text": "Refreshed the mission-control finish board after #588/#589: binomial evidence is merged, guard-sensitivity is an explicit Evidence Gates row, and release readiness remains planned.",
+      "url": "docs/dev-log/after-task/2026-06-16-dashboard-truth-refresh.md",
+      "link_label": "after-task"
+    },
+    {
+      "when": "2026-06-16",
+      "who": "Codex",
+      "text": "Recorded Hao Qin numerical-guard concern as a simulation audit gate rather than treating constants as automatically harmless.",
+      "url": "docs/design/176-numerical-guard-simulation-audit.md",
+      "link_label": "guard audit"
+    },
     {
       "when": "2026-06-16",
       "who": "Codex",
@@ -1234,23 +1269,38 @@
     }
   ],
     "blockers": [
-        {
-            "status": "guard",
-            "kind": "Claim boundary",
-            "item": "R-first pivot: do not make the Julia route the only usable path for Ayumi-style q4 workflows."
-        },
-        {
-            "status": "guard",
-            "kind": "Native TMB REML",
+    {
+      "status": "guard",
+      "kind": "Claim boundary",
+      "item": "R-first pivot: do not make the Julia route the only usable path for Ayumi-style q4 workflows."
+    },
+    {
+      "status": "guard",
+      "kind": "Native TMB REML",
       "item": "engine = \"tmb\" is not yet a full REML fallback for Ayumi's bivariate q4 phylogenetic location-scale model."
     },
     {
       "status": "guard",
       "kind": "Simulation boundary",
       "item": "Big ADEMP/power grids wait until smoke, parity, recovery, bridge, CI-status, and visual gates pass."
+    },
+    {
+      "status": "guard",
+      "kind": "Numerical guard sensitivity",
+      "item": "A numerical guard can prevent overflow or singular covariance evaluations, but it must not upgrade convergence or inference claims unless sensitivity simulations show negligible impact in the intended operating range."
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-16",
+      "who": "Dashboard",
+      "text": "Mission-control finish board now distinguishes merged binomial implementation/evidence/docs from planned binomial interval calibration and planned numerical-guard sensitivity simulations."
+    },
+    {
+      "when": "2026-06-16",
+      "who": "Status matrix",
+      "text": "The numerical-guard audit note lists correlation open-interval guards, finite-variance Student-t shape restriction, support floors, and the Gaussian log(sigma) clamp as separate simulation targets."
+    },
     {
       "when": "2026-06-16",
       "who": "Dashboard",

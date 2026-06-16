@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-16 11:22 MDT",
+  "updated": "2026-06-16 16:40 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is split cleanly: #585 has merged the native binomial first slice, #587 has merged the #544 DRM.jl capability comparison plus public-docs drift guard, and codex/binomial-evidence-lane stages the Phase 18 binomial evidence/comparator artifacts without promoting binomial bridge support."
+      "text": "Non-Ayumi finish path is split cleanly: #585, #587, #588, and #589 are merged; the dashboard now banks binomial glm parity evidence, keeps interval calibration planned, and adds numerical-guard sensitivity as an explicit Evidence Gates row."
     }
   ]
 }
