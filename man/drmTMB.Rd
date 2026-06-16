@@ -24,8 +24,8 @@ drmTMB(
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
-\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
-\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"},
+\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -135,6 +135,7 @@ beta mean-scale models for strict proportions,
 zero-one beta mean-scale-boundary models for continuous proportions with
 structural exact zeroes or ones,
 beta-binomial mean-overdispersion models for success counts,
+fixed-effect Bernoulli/binomial event-probability models,
 fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 zero-inflated negative-binomial mean-dispersion, zero-truncated
@@ -143,9 +144,10 @@ mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
 ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 zero-truncated negative-binomial \code{mu} formulas support ordinary unlabelled
 random intercepts and independent numeric slopes where
-documented. Poisson, ordinary negative-binomial, and zero-truncated
-negative-binomial \code{mu} formulas may include standard R \code{offset(log(exposure))}
-terms for exposure or effort,
+documented. Binomial \code{mu} formulas may include standard R \code{offset()} terms
+on the logit-event-probability scale. Poisson, ordinary negative-binomial,
+and zero-truncated negative-binomial \code{mu} formulas may include standard R
+\code{offset(log(exposure))} terms for exposure or effort,
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,

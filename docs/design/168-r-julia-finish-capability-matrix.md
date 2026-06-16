@@ -35,7 +35,7 @@ evidence is reconciled.
 | Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Native R/TMB now has q4 target inventory and endpoint-budget status rows, but promotion still waits for native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
 | Non-Gaussian models | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. |
-| Bernoulli/binomial response family | planned | unsupported | planned | planned | planned | unsupported | planned | planned | planned | planned | Implement `drmTMB#569` as fixed-effect `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, then prove `stats::glm()` parity before any bridge or interval-calibration claim. |
+| Bernoulli/binomial response family | partial | unsupported | partial | partial | planned | unsupported | partial | planned | planned | planned | Fixed-effect `stats::binomial(link = "logit")` now fits 0/1 and `cbind(successes, failures)` responses and has `stats::glm()` parity tests; bridge support, interval-calibration claims, random effects, structured effects, and bivariate or mixed responses remain unavailable. |
 | Bivariate residual correlation `rho12` | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Keep residual `rho12` separate from group, phylogenetic, spatial, kernel, and cross-family correlations. |
 | Mixed and cross-family correlation | planned | unsupported | planned | planned | planned | planned | planned | planned | planned | planned | Use `DRM.jl#280`-style recovery and bridge labels before user-facing promotion. |
 | High-q correlations | partial | planned | partial | planned | planned | planned | partial | planned | partial | planned | q4 first, q8 second; higher q requires transform, gradient, recovery, and CI-status evidence. |
@@ -144,13 +144,13 @@ weakly identified cells cannot collapse into one status word.
 1. Keep the dashboard live at `http://127.0.0.1:8765/`.
 2. Land the finish-board widget row schema, renderer, validator, issue rows,
    cross-package lessons, and acceptance gates.
-3. Record the `drmTMB#569` binomial response contract before code:
+3. Keep the `drmTMB#569` binomial response contract visible:
    `stats::binomial(link = "logit")`, 0/1 and `cbind(successes, failures)`,
    fixed-effect `mu` only, no weights-as-trials, no `sigma`, no structured or
    random effects, no bivariate route, and no Julia bridge claim.
-4. Implement `drmTMB#569` only after the contract is visible and the
-   Claude-owned `src/drmTMB.cpp` seam has cleared. The first public claim is
-   fixed-effect estimation and `stats::glm()` parity.
+4. Close the first `drmTMB#569` implementation slice only when focused source
+   tests, design docs, dashboard rows, after-task evidence, and CI agree. The
+   first public claim is fixed-effect estimation and `stats::glm()` parity.
 5. Keep `drmTMB#544` active as the bridge-gate epic: generate the gate table,
    add representative rejection tests, cross-link `gllvmTMB#488`, and fail CI
    when bridge claims outrun the registry.

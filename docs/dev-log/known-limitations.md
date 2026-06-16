@@ -333,7 +333,16 @@
   fixed-effect `zoi` and `coi` likelihoods should come before random effects
   or covariance among bounded-response distributional parameters, and current
   `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
-  messages.
+  messages. Beta-binomial evidence does not promote plain binomial interval
+  calibration.
+- Fixed-effect univariate Bernoulli/binomial logit models are implemented with
+  `family = stats::binomial(link = "logit")`. The first path supports explicit
+  0/1 event indicators and `cbind(successes, failures)` responses, stores
+  trial totals from row sums, includes the binomial normalizing constant for
+  `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
+  `sigma`. Non-logit links, factor response ordering, proportions plus
+  `weights`, `weights = trials`, random effects, structured effects,
+  bivariate or mixed responses, and `engine = "julia"` remain unsupported.
 - Phylogenetic random effects are implemented for univariate Gaussian `mu` and
   `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
   one numeric univariate Gaussian `mu` slope, matching bivariate Gaussian

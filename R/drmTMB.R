@@ -9,6 +9,7 @@
 #' zero-one beta mean-scale-boundary models for continuous proportions with
 #' structural exact zeroes or ones,
 #' beta-binomial mean-overdispersion models for success counts,
+#' fixed-effect Bernoulli/binomial event-probability models,
 #' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
@@ -17,9 +18,10 @@
 #' ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 #' zero-truncated negative-binomial `mu` formulas support ordinary unlabelled
 #' random intercepts and independent numeric slopes where
-#' documented. Poisson, ordinary negative-binomial, and zero-truncated
-#' negative-binomial `mu` formulas may include standard R `offset(log(exposure))`
-#' terms for exposure or effort,
+#' documented. Binomial `mu` formulas may include standard R `offset()` terms
+#' on the logit-event-probability scale. Poisson, ordinary negative-binomial,
+#' and zero-truncated negative-binomial `mu` formulas may include standard R
+#' `offset(log(exposure))` terms for exposure or effort,
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
@@ -52,8 +54,8 @@
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
 #'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
-#'   [beta_binomial()], [cumulative_logit()],
-#'   [stats::poisson()] with `link = "log"`, [nbinom2()],
+#'   [beta_binomial()], [stats::binomial()] with `link = "logit"`,
+#'   [cumulative_logit()], [stats::poisson()] with `link = "log"`, [nbinom2()],
 #'   [truncated_nbinom2()], or [biv_gaussian()]. Adding
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
 #'   zero-inflated count model. Adding `hu ~ predictors` to a
@@ -326,6 +328,12 @@ drmTMB <- function(
       weights = weights_full
     ),
     beta_binomial = drm_build_beta_binomial_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full
+    ),
+    binomial = drm_build_binomial_spec(
       formula,
       data,
       env = formula_env,
@@ -844,6 +852,16 @@ drm_family_type <- function(family) {
     }
     return("poisson")
   }
+  if (inherits(family, "family") && identical(family$family, "binomial")) {
+    if (!identical(family$link, "logit")) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} binomial models currently require {.code binomial(link = \"logit\")}.",
+        "x" = "Received binomial link {.val {family$link}}.",
+        "i" = "The first binomial-response contract is {.code logit(mu) = X_mu beta_mu}; use {.code cbind(successes, failures)} for trial denominators."
+      ))
+    }
+    return("binomial")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "nbinom2")) {
     return("nbinom2")
   }
@@ -908,7 +926,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -3099,6 +3117,156 @@ drm_build_beta_binomial_spec <- function(
     ),
     map = beta_binomial_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_binomial_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], "mu")
+  reject_planned_bounded_inflation(
+    entries = entries,
+    unsupported = unsupported,
+    family_label = "binomial()"
+  )
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "Binomial models currently support only the {.code mu} event-probability formula.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Use {.fn beta_binomial} for overdispersed success counts with a fitted {.code sigma} parameter."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for binomial models.",
+      "i" = "The first binomial-response slice is fixed-effect {.code mu} only."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort("A binomial model requires exactly one location formula.")
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a binomial response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "Binomial models currently support one response."
+    ))
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} is not implemented for binomial models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  if (length(mu_re$terms) > 0L) {
+    labels <- vapply(mu_re$terms, `[[`, character(1L), "label")
+    cli::cli_abort(c(
+      "Random effects are not implemented for binomial response models yet.",
+      "x" = "Unsupported random-effect term{?s}: {.val {labels}}.",
+      "i" = "Fit the first binomial slice as a fixed-effect model, or use a package with established binomial mixed-model support."
+    ))
+  }
+  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  vars <- all.vars(f_mu)
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  response <- prepare_binomial_response(
+    stats::model.response(mf_mu),
+    response = mu_entry$response,
+    has_weights = !is.null(weights)
+  )
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+
+  if (nrow(X_mu) != length(response$successes)) {
+    cli::cli_abort("Internal model-frame mismatch in binomial model.")
+  }
+
+  spec <- list(
+    model_type = "binomial",
+    y = as.numeric(response$successes),
+    trials = as.numeric(response$trials),
+    failures = as.numeric(response$failures),
+    weights = weights_model,
+    V_known = rep(0, length(response$successes)),
+    V_known_diag = rep(0, length(response$successes)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    offset = list(mu = offset_mu),
+    X = list(mu = X_mu),
+    terms = list(mu = stats::delete.response(stats::terms(mf_mu))),
+    model_frame = list(mu = mf_mu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(
+      mu = empty_sd_mu_structure(0L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    denominator = response[
+      c("success_name", "failure_name", "trials", "encoding")
+    ],
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = "mu",
+    start = binomial_start(
+      response$successes,
+      response$failures,
+      X_mu,
+      offset_mu
+    ),
+    map = binomial_map(),
+    random_names = NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -10654,6 +10822,102 @@ prepare_betabinomial_response <- function(y, response) {
   )
 }
 
+prepare_binomial_response <- function(y, response, has_weights = FALSE) {
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying binomial model missingness rules."
+    )
+  }
+  if (!is.null(dim(y))) {
+    if (ncol(y) != 2L) {
+      cli::cli_abort(c(
+        "Binomial count responses require exactly two columns.",
+        "i" = "Use {.code cbind(successes, failures)} on the left-hand side."
+      ))
+    }
+    if (!is.numeric(y) && !is.integer(y)) {
+      cli::cli_abort("Binomial response counts must be numeric or integer.")
+    }
+    tolerance <- sqrt(.Machine$double.eps)
+    if (
+      !all(is.finite(y)) ||
+        any(y < 0) ||
+        any(abs(y - round(y)) > tolerance)
+    ) {
+      cli::cli_abort(c(
+        "Binomial response counts must be finite non-negative integers.",
+        "x" = "Response {.val {response}} contains negative, non-integer, or non-finite counts."
+      ))
+    }
+    y_int <- round(y)
+    trials <- rowSums(y_int)
+    if (any(trials <= 0)) {
+      cli::cli_abort(c(
+        "Binomial trials must be positive for every modelled row.",
+        "x" = "Response {.val {response}} contains at least one row with zero total trials."
+      ))
+    }
+    response_names <- colnames(y_int)
+    if (is.null(response_names) || any(!nzchar(response_names))) {
+      response_names <- c("successes", "failures")
+    }
+    return(list(
+      successes = as.numeric(y_int[, 1L]),
+      failures = as.numeric(y_int[, 2L]),
+      trials = as.numeric(trials),
+      success_name = response_names[[1L]],
+      failure_name = response_names[[2L]],
+      encoding = "cbind(successes, failures)"
+    ))
+  }
+
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "Binomial response values must be explicit 0/1 data, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Convert the event indicator yourself so the event level is unambiguous."
+    ))
+  }
+  if (!is.numeric(y) && !is.integer(y) && !is.logical(y)) {
+    cli::cli_abort(c(
+      "Binomial response values must be logical or numeric 0/1 values.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}."
+    ))
+  }
+  y_num <- as.numeric(y)
+  tolerance <- sqrt(.Machine$double.eps)
+  if (!all(is.finite(y_num))) {
+    cli::cli_abort(c(
+      "Binomial response values must be finite.",
+      "x" = "Response {.val {response}} contains non-finite values after missing-row filtering."
+    ))
+  }
+  is_zero_one <- abs(y_num - 0) <= tolerance | abs(y_num - 1) <= tolerance
+  if (!all(is_zero_one)) {
+    if (isTRUE(has_weights) && all(y_num >= 0 & y_num <= 1)) {
+      cli::cli_abort(c(
+        "Proportion responses with {.arg weights} are not denominator syntax in {.pkg drmTMB}.",
+        "x" = "The response {.val {response}} contains values between 0 and 1 that are not explicit 0/1 events.",
+        "i" = "Use {.code cbind(successes, failures)} for binomial trial denominators; {.arg weights} remain row log-likelihood multipliers."
+      ))
+    }
+    cli::cli_abort(c(
+      "Single-column binomial responses must be 0/1 event indicators.",
+      "x" = "Response {.val {response}} contains values other than 0 or 1.",
+      "i" = "Use {.code cbind(successes, failures)} when each row summarizes multiple trials."
+    ))
+  }
+  successes <- round(y_num)
+  list(
+    successes = successes,
+    failures = 1 - successes,
+    trials = rep(1, length(successes)),
+    success_name = response,
+    failure_name = paste0("1 - ", response),
+    encoding = "0/1"
+  )
+}
+
 prepare_ordinal_response <- function(y, response) {
   if (is.ordered(y)) {
     y_int <- as.integer(y)
@@ -11225,6 +11489,66 @@ beta_binomial_map <- function(
   re_mu = empty_random_mu_structure(1L)
 ) {
   beta_ls_map(re_mu = re_mu)
+}
+
+binomial_start <- function(
+  successes,
+  failures,
+  X_mu,
+  offset_mu = rep(0, length(successes))
+) {
+  beta_mu <- tryCatch(
+    suppressWarnings(
+      stats::glm.fit(
+        X_mu,
+        cbind(successes, failures),
+        family = stats::binomial(link = "logit"),
+        offset = offset_mu
+      )$coefficients
+    ),
+    error = function(e) rep(0, ncol(X_mu))
+  )
+  if (length(beta_mu) != ncol(X_mu) || any(!is.finite(beta_mu))) {
+    trials <- successes + failures
+    prop <- (successes + 0.5) / (trials + 1)
+    beta_mu <- rep(0, ncol(X_mu))
+    beta_mu[[1L]] <-
+      stats::qlogis(min(max(mean(prop), 1e-4), 1 - 1e-4)) -
+      mean(offset_mu)
+  }
+  names(beta_mu) <- colnames(X_mu)
+  c(
+    list(beta_mu = beta_mu),
+    list(
+      beta_sigma = 0,
+      beta_nu = 0,
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      eta_cor_mu_sigma = 0,
+      eta_cor_sigma = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0,
+      eta_cor_phylo = 0
+    )
+  )
+}
+
+binomial_map <- function() {
+  poisson_map(
+    re_mu = empty_random_mu_structure(1L),
+    phylo_mu = empty_phylo_mu_structure()
+  )
 }
 
 zero_one_beta_start <- function(y, X_mu, X_sigma, X_zoi, X_coi) {
@@ -13099,6 +13423,62 @@ make_tmb_data <- function(spec) {
       log_det_Q_phylo = 0
     ))
   }
+  if (identical(spec$model_type, "binomial")) {
+    return(list(
+      model_type = 18L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_zi = dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_dpar = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "cumulative_logit")) {
     return(list(
       model_type = 13L,
@@ -13632,6 +14012,11 @@ split_tmb_parameters <- function(par, spec) {
       out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
     }
     return(out)
+  }
+  if (identical(spec$model_type, "binomial")) {
+    beta_mu <- unname(par$beta_mu)
+    names(beta_mu) <- colnames(spec$X$mu)
+    return(list(mu = beta_mu))
   }
   if (identical(spec$model_type, "zi_poisson")) {
     beta_mu <- unname(par$beta_mu)

@@ -36,9 +36,11 @@ implemented negative-binomial 2 family uses `log(mu)` and `log(sigma)`, with
 `sigma` interpreted as an overdispersion scale; its zero-inflated extension
 adds `logit(zi)` and the same fitted-response rule `(1 - zi) * mu`. Beta and
 beta-binomial models use `logit(mu)` and `log(sigma)`, with `sigma` mapped to
-internal precision through `phi = 1 / sigma^2`. The first cumulative-logit
-ordinal path uses an identity-link latent `mu`, ordered cutpoints, and
-`fitted()` returning the expected ordered-category score.
+internal precision through `phi = 1 / sigma^2`. The plain binomial first slice
+uses `logit(mu)` for a fixed-effect event probability and has no public
+`sigma`. The first cumulative-logit ordinal path uses an identity-link latent
+`mu`, ordered cutpoints, and `fitted()` returning the expected ordered-category
+score.
 
 The detailed contract is in `docs/design/19-family-link-contract.md`. Treat it
 as a prerequisite before implementing additional count, ordinal-scale,
@@ -63,7 +65,7 @@ and recovery evidence.
 | `tweedie()` | `mu` log; `sigma` log; `nu` logit12 | `nu = 1 + plogis(eta_nu)` is the Tweedie power; internal dispersion is `phi = sigma^2` | Fixed-effect univariate models only, with intercept-only `nu ~ 1`. Tweedie random effects, predictor-dependent `nu`, labelled covariance, `sd(group)`, `meta_V(V = V)`, structured effects, bivariate Tweedie, mixed-response models, zero-inflation aliases, and hurdle aliases remain planned. | `tests/testthat/test-tweedie-location-scale.R`; `tests/testthat/test-family-link-contract.R`; high-zero and low-zero recovery, support-boundary, fitted-response, simulation, and malformed-neighbour tests. |
 | `beta()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes for strict `(0, 1)` responses. Correlated beta slopes, labelled covariance, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; bounded-response boundary tests; fixed-effect Wald interval row checks; random-effect recovery tests. |
 | `zero_one_beta()` | `mu` logit; `sigma` log; `zoi` logit; `coi` logit | no public `nu`; interior precision is `phi = 1 / sigma^2`; `zoi`/`coi` describe exact-boundary mass | Fixed effects only for continuous `[0, 1]` responses with exact structural zeroes or ones. Zero-one random effects, labelled covariance, `sigma` random effects, structured effects, known covariance, denominator syntax, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-zero-one-beta.R`; `tests/testthat/test-family-link-contract.R`; `tests/testthat/test-phase18-zero-one-beta-fixed-effect.R`; independent mixture-likelihood, recovery, fitted-response, simulation, one-sided-boundary, malformed-neighbour, and Phase 18 artifact-helper tests. |
-| `stats::binomial(link = "logit")` | `mu` logit | no public `sigma`; no extra-binomial variation | Planned fixed-effect first slice for 0/1 Bernoulli responses and two-column `cbind(successes, failures)` binomial responses. Random effects, structured effects, bivariate responses, mixed responses, non-logit links, factor responses, proportions plus `weights`, and `weights = trials` remain unsupported. | Planned `drmTMB#569`: first evidence is `stats::glm()` parity for overlapping fixed-effect logit likelihoods; beta-binomial, beta, zero-one beta, and binary missing-predictor evidence cannot promote this row. |
+| `stats::binomial(link = "logit")` | `mu` logit | no public `sigma`; no extra-binomial variation | Fixed-effect first slice for 0/1 Bernoulli responses and two-column `cbind(successes, failures)` binomial responses. Random effects, structured effects, bivariate responses, mixed responses, non-logit links, factor responses, proportions plus `weights`, and `weights = trials` remain unsupported. | `tests/testthat/test-binomial-response.R`; first evidence is `stats::glm()` parity for overlapping fixed-effect logit likelihoods; beta-binomial, beta, zero-one beta, and binary missing-predictor evidence cannot promote this row. |
 | `beta_binomial()` | `mu` logit; `sigma` log | no public `nu`; internal precision is `phi = 1 / sigma^2` with row trials | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes for two-column `cbind(successes, failures)` responses. Correlated beta-binomial slopes, labelled covariance, `sigma` random effects, `zoi`/`coi`, structured effects, and bivariate or mixed bounded-response models remain planned. | `tests/testthat/test-beta-binomial.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale and bounded-response boundary tests; fixed-effect Wald interval row checks; random-effect recovery tests. |
 | `poisson(link = "log")` | `mu` log | none; no modelled `sigma` | Non-zero-inflated Poisson fits fixed effects plus ordinary unlabelled `mu` random intercepts, independent numeric `mu` slopes, and one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()`. Correlated slopes, labelled covariance, structured count slopes, simultaneous structured types, combinations with ordinary count random effects, and zero-inflated structured effects remain planned. | `tests/testthat/test-poisson-mean.R`; `tests/testthat/test-count-structured-mu.R`; `tests/testthat/test-nongaussian-structured-boundary.R`; `tests/testthat/test-phase18-poisson-mu-random-effect.R`; `tests/testthat/test-phase18-poisson-phylo-q1.R`; comparator, profile-target, extractor, diagnostic, and opt-in smoke-runner checks. |
 | `poisson(link = "log")` with `zi ~ ...` | `mu` log; `zi` logit | `zi` is structural-zero probability, not shape | Fixed-effect `mu` and fixed-effect `zi` only. Count-side and `zi` random effects are blocked for zero-inflated Poisson. | `tests/testthat/test-zi-poisson.R`; inflation-random-effect boundary tests. |
@@ -90,8 +92,8 @@ The plain binomial row is intentionally not `beta_binomial()`. Use
 probability with binomial sampling variation only. Use `beta_binomial()` when
 the data are success counts with extra-binomial variation. Use `beta()` or
 `zero_one_beta()` for continuous proportions. The binary `impute_model(...,
-family = binomial())` route belongs to missing-predictor integration and does
-not make binomial a primary response family.
+family = binomial())` route belongs to missing-predictor integration and is not
+the primary response-family path documented in this row.
 
 ## Distributional Parameter Naming
 

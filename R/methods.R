@@ -10,6 +10,7 @@ print.drmTMB <- function(x, ...) {
     beta = "Beta mean-scale",
     zero_one_beta = "zero-one beta mean-scale-boundary",
     beta_binomial = "Beta-binomial mean-overdispersion",
+    binomial = "Binomial event-probability",
     cumulative_logit = "cumulative-logit ordinal",
     poisson = "Poisson mean",
     zi_poisson = "zero-inflated Poisson mean",
@@ -2220,8 +2221,10 @@ predict.drmTMB <- function(
 #' boundary values from the fitted `zoi`/`coi` probabilities and interior
 #' values from the fitted beta component. For beta-binomial models, simulation
 #' draws latent success probabilities from the fitted beta distribution and then
-#' success counts from the stored trial denominators. For cumulative-logit ordinal
-#' models, simulation draws ordered categories from the fitted cumulative-logit
+#' success counts from the stored trial denominators. For binomial models,
+#' simulation draws success counts from the fitted event probability and stored
+#' trial denominators. For cumulative-logit ordinal models, simulation draws
+#' ordered categories from the fitted cumulative-logit
 #' probabilities. For Poisson models, simulation uses the fitted mean `mu`. For
 #' zero-inflated Poisson models, simulation uses
 #' fitted conditional mean `mu` and structural-zero probability `zi`. For
@@ -2387,6 +2390,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
       )
       stats::rbinom(length(mu), size = trials, prob = p)
     })
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "binomial")) {
+    mu <- predict(object, dpar = "mu")
+    trials <- object$model$trials
+    sims <- replicate(nsim, stats::rbinom(length(mu), size = trials, prob = mu))
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -2600,6 +2612,9 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' zero-one boundary mass. For beta-binomial models, response residuals are
 #' observed success proportions minus fitted `mu`, and Pearson residuals
 #' divide by the fitted beta-binomial proportion standard deviation. For
+#' binomial models, response residuals are observed success proportions minus
+#' fitted event probability, and Pearson residuals divide by
+#' `sqrt(mu * (1 - mu) / trials)`. For
 #' cumulative-logit ordinal models, response residuals are the observed
 #' ordered-category score minus the fitted expected score, and Pearson
 #' residuals divide by the fitted category-score standard deviation. For
@@ -2698,6 +2713,18 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
     }
     return(
       response / sqrt(beta_binomial_proportion_variance(mu, sigma, trials))
+    )
+  }
+  if (identical(object$model$model_type, "binomial")) {
+    mu <- predict(object, dpar = "mu")
+    trials <- object$model$trials
+    observed <- object$model$y / trials
+    response <- observed - mu
+    if (type == "response") {
+      return(response)
+    }
+    return(
+      response / sqrt(pmax(mu * (1 - mu) / trials, .Machine$double.eps))
     )
   }
   if (identical(object$model$model_type, "cumulative_logit")) {
@@ -2851,7 +2878,7 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' parameter where internal dispersion is `phi = sigma^2`. For beta,
 #' zero-one beta, and beta-binomial models this is the public scale parameter
 #' where internal precision is `phi = 1 / sigma^2`.
-#' Cumulative-logit ordinal, Poisson, and zero-inflated Poisson models have no
+#' Cumulative-logit ordinal, binomial, Poisson, and zero-inflated Poisson models have no
 #' fitted residual scale parameter and return a fixed unit dispersion vector
 #' for consistency with base-R `sigma()` conventions. For
 #' negative-binomial 2, zero-truncated negative-binomial 2, hurdle
@@ -2897,6 +2924,7 @@ sigma.drmTMB <- function(object, ...) {
   if (
     identical(object$model$model_type, "poisson") ||
       identical(object$model$model_type, "zi_poisson") ||
+      identical(object$model$model_type, "binomial") ||
       identical(object$model$model_type, "cumulative_logit")
   ) {
     return(rep(1, object$nobs))
@@ -4401,6 +4429,9 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "beta_binomial")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "binomial")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
   if (identical(object$model$model_type, "cumulative_logit")) {
     return(ordinal_expected_score(object))
   }
@@ -4478,6 +4509,7 @@ drm_dpar_link <- function(object, dpar) {
       coi = "logit"
     ),
     beta_binomial = c(mu = "logit", sigma = "log"),
+    binomial = c(mu = "logit"),
     cumulative_logit = c(mu = "identity"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),

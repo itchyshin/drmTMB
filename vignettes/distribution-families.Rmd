@@ -38,6 +38,7 @@ quantity each `sigma` formula models.
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
 | Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
+| Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | fixed effects only; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | fixed effects only |
 | Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts, independent slopes, and q=1 phylogenetic `mu` intercept implemented; `zi` random effects planned |
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts, independent slopes, grouped `sigma` random intercepts, and q=1 phylogenetic `mu` intercept implemented; `sigma` slopes/structured effects and `zi` random effects planned |
@@ -376,8 +377,10 @@ proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi = 1 / sigma^2`, so larger `sigma` means more
 variation around the mean. Responses equal to 0 or 1 use `zero_one_beta()`
 when those endpoints are structural outcomes.
-Percentages derived from counts should wait for `beta_binomial()` so the
-denominator remains part of the data. The tutorial
+Percentages derived from counts should keep their denominator. Use
+`stats::binomial(link = "logit")` for ordinary Bernoulli/binomial event
+probabilities with no extra-binomial variation, or `beta_binomial()` when
+success probabilities vary beyond binomial sampling. The tutorial
 [Proportions and success rates](proportion-beta-binomial.html) works through
 the bounded-response routes.
 
@@ -639,11 +642,45 @@ distribution.
 ## Bounded and ordered families
 
 Percentages derived from counts should keep their denominator. Use
-`beta_binomial()` when the response is a count of successes out of known trials
-rather than a continuous percentage. Write the response as
+`stats::binomial(link = "logit")` when the response is an event indicator or a
+count of successes out of known trials with ordinary binomial sampling
+variation. Write the response as `y01` for 0/1 data or
 `cbind(successes, failures)`, where
 `trials_i = successes_i + failures_i`; do not use
-`cbind(successes, trials)`.
+`weights = trials`, `successes / trials`, or `cbind(successes, trials)`.
+
+\[
+\begin{aligned}
+y_i \mid n_i, \mu_i
+  &\sim \operatorname{Binomial}(n_i, \mu_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+E[y_i / n_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i / n_i)
+  &= \mu_i(1 - \mu_i) / n_i.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat),
+  family = stats::binomial(link = "logit"),
+  data = dat
+)
+```
+
+For plain binomial models, `mu_i` is the fitted event probability. `fitted(fit)`
+returns probabilities; multiply by `successes_i + failures_i` when the
+scientific summary is the expected number of successes. The first slice is
+fixed-effect only and rejects factor responses, proportions with trial weights,
+random effects, structured effects, bivariate responses, and `engine =
+"julia"`.
+
+Use `beta_binomial()` when the response is still counted successes out of known
+trials but the data show extra-binomial variation. It uses the same
+`cbind(successes, failures)` denominator syntax and adds a modelled `sigma`
+parameter for among-row probability variation.
 
 \[
 \begin{aligned}

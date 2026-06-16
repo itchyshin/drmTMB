@@ -58,7 +58,7 @@ Read this first — it is the distinction most likely to be confused.
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
 | `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane; formal high-replicate operating characteristics remain future evidence |
-| Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | **Not-yet-fitted**; first accepted route is `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate |
+| Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. Random effects, structured effects, bivariate/mixed responses, interval-calibration claims, and the Julia bridge remain planned or unsupported. |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal random/structured/bivariate/known-covariance/latent-skew extensions; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
@@ -78,17 +78,19 @@ time.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
-1. **Plain Bernoulli/binomial fixed-effect response (`drmTMB#569`).**
+1. **Plain Bernoulli/binomial fixed-effect response evidence follow-up (`drmTMB#569`).**
    - Gate: `docs/design/168-r-julia-finish-capability-matrix.md`,
      `docs/design/19-family-link-contract.md`, and
      `docs/design/24-denominator-response-syntax.md`.
-   - Scope: `family = stats::binomial(link = "logit")`, 0/1 responses and
+   - Fitted scope: `family = stats::binomial(link = "logit")`, 0/1 responses and
      `cbind(successes, failures)`, fixed-effect `mu` only, no `sigma`, no
      `rho12`, no random or structured effects, no bivariate route, no
      proportions plus `weights`, and no Julia bridge claim.
-   - Evidence: first public claim is fixed-effect estimation and
+   - Evidence: focused source tests cover fixed-effect estimation and
      `stats::glm()` parity, including likelihood constants so `logLik`, AIC,
-     and BIC agree on overlapping likelihoods.
+     and BIC agree on overlapping likelihoods. The next useful work is the
+     optional Phase 18 `binomial_fixed_effect` artifact lane, not a broader
+     support claim.
 2. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
    route, diagnostic smoke/recovery artifacts, and a 2026-06-07 local
    two-cell audit exist, but low convergence, zero positive-Hessian rate, two
