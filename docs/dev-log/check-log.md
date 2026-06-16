@@ -54365,3 +54365,40 @@ CI follow-up:
   `0.318038` versus `0.318034`.
 - Widened only that `rho12` coefficient tolerance from `1e-5` to `5e-5`; the
   log-likelihood multiplier check remains at `1e-4`.
+
+## 2026-06-15: Scale-Side Phylo Identifiability Guidance (q4)
+
+Added an honest `check_drm()` note for a weakly identified scale-side
+phylogenetic field, plus design doc 171. No model/likelihood change.
+
+- `R/check.R`: `check_scale_phylo_identifiability()` (added to `check_drm()`):
+  NULL unless the model has a phylo field on `sigma`; `ok` row when
+  `pdHess = TRUE`; otherwise a `note` steering to Model A (phylo on the mean,
+  fixed-effect scale) / more observations per group / doc 171.
+- `docs/design/171-scale-side-phylo-identifiability-model-a.md`.
+- `tests/testthat/test-scale-phylo-identifiability.R`.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = 'scale-phylo-identifiability|check-drm', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+```
+
+Results:
+
+- `scale-phylo-identifiability` + `check-drm`: passed, output pristine.
+- `devtools::document()`: no Rd/NAMESPACE additions (internal function).
+- `git diff --check`: clean.
+
+Evidence (Curie q4 validation, pruned real beak n=300-600):
+
+- Off-diagonal `theta_phylo` does NOT help in R/TMB (`theta_phylo = 0` is the
+  identity correlation; no removable singularity). Dropped.
+- Model E and the separable Model D both fail for the full sigma spec: the
+  scale-side phylo SD hits its lower boundary. Model A (phylo on the mean,
+  fixed-effect scale) converges (`convergence = 0`, `pdHess = TRUE`).
+- `fit$corpars$phylo` is structural (from `theta_phylo`; identity at 0); the
+  "rho ~ -0.99" seen elsewhere is an empirical random-effect correlation, not the
+  structural parameter.

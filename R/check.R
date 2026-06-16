@@ -220,7 +220,8 @@ check_drm.drmTMB <- function(
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
-    check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary)
+    check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary),
+    check_scale_phylo_identifiability(object)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -251,6 +252,49 @@ check_row <- function(check, status, value, message) {
     message = as.character(message),
     stringsAsFactors = FALSE,
     check.names = FALSE
+  )
+}
+
+# Honest guidance for a weakly identified scale-side phylogenetic field.
+# Returns NULL unless the model places a phylogenetic field on the scale (sigma);
+# emits an "ok" row when the fit reached a positive-definite Hessian and a "note"
+# (not a warning -- the Hessian check already warns) steering the user to a
+# fixed-effect scale otherwise. See
+# docs/design/171-scale-side-phylo-identifiability-model-a.md.
+check_scale_phylo_identifiability <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (is.null(phylo_mu) || !isTRUE(phylo_mu$has)) {
+    return(NULL)
+  }
+  endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
+  has_scale_phylo <- any(sub("[0-9]+$", "", endpoints) == "sigma")
+  if (!has_scale_phylo) {
+    return(NULL)
+  }
+  pd_hess <- object$sdr$pdHess
+  if (is.null(pd_hess)) {
+    return(NULL)
+  }
+  if (isTRUE(pd_hess)) {
+    return(check_row(
+      "scale_phylo_identifiability",
+      "ok",
+      "scale-side phylogenetic field; pdHess = TRUE",
+      "A phylogenetic field on the scale converged with a positive-definite Hessian."
+    ))
+  }
+  check_row(
+    "scale_phylo_identifiability",
+    "note",
+    "scale-side phylogenetic field; pdHess not TRUE",
+    paste0(
+      "This fit places a phylogenetic field on the scale (sigma) but did not reach ",
+      "a positive-definite Hessian. A scale-side phylogenetic field is often weakly ",
+      "identified, especially with about one observation per group. Consider ",
+      "modelling the scale with fixed effects only while keeping phylogeny on the ",
+      "mean, or supplying more observations per group. See ",
+      "docs/design/171-scale-side-phylo-identifiability-model-a.md."
+    )
   )
 }
 
