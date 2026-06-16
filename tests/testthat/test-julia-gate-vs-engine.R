@@ -9,8 +9,13 @@
 expect_julia_gate <- function(gate_id, expr, regexp) {
   gates <- drmTMB:::drm_julia_intentional_gates()
   expect_true(gate_id %in% gates$gate_id)
-  expect_equal(gates$action[match(gate_id, gates$gate_id)], "error")
-  expect_error(force(expr), regexp = regexp)
+  gate <- gates[match(gate_id, gates$gate_id), ]
+  expect_equal(gate$action, "error")
+  expect_equal(gate$r_bridge_status, "intentional_error")
+  if (!missing(regexp)) {
+    expect_equal(regexp, gate$message_pattern)
+  }
+  expect_error(force(expr), regexp = gate$message_pattern)
 }
 
 new_gate_tree <- function(n = 6) {
@@ -42,14 +47,35 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
   expect_s3_class(gates, "data.frame")
   expect_named(
     gates,
-    c("gate_id", "route", "guard", "action", "evidence", "issue")
+    c(
+      "gate_id",
+      "route",
+      "guard",
+      "family_type",
+      "syntax",
+      "r_bridge_status",
+      "drmjl_status",
+      "message_pattern",
+      "review_due",
+      "evidence_url",
+      "action",
+      "evidence",
+      "issue"
+    )
   )
   expect_setequal(gates$gate_id, expected_gate_ids)
   expect_equal(anyDuplicated(gates$gate_id), 0L)
   expect_true(all(nzchar(gates$gate_id)))
   expect_true(all(nzchar(gates$route)))
   expect_true(all(nzchar(gates$guard)))
+  expect_true(all(nzchar(gates$family_type)))
+  expect_true(all(nzchar(gates$syntax)))
+  expect_true(all(nzchar(gates$drmjl_status)))
+  expect_true(all(nzchar(gates$message_pattern)))
+  expect_true(all(nzchar(gates$review_due)))
+  expect_true(all(grepl("^https://github.com/", gates$evidence_url)))
   expect_true(all(nzchar(gates$evidence)))
+  expect_setequal(gates$r_bridge_status, "intentional_error")
   expect_setequal(gates$action, "error")
   expect_setequal(gates$issue, "drmTMB#544")
 })
