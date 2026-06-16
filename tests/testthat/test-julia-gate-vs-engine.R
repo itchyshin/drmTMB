@@ -103,6 +103,113 @@ test_that("dashboard Julia gate artifact matches the registry", {
   }
 })
 
+test_that("Julia capability comparison artifact matches the registry", {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  capability_paths <- c(
+    file.path(pkg, "docs", "dev-log", "dashboard", "julia-capabilities.tsv"),
+    system.file("extdata", "julia-capabilities.tsv", package = "drmTMB")
+  )
+  capability_paths <- capability_paths[
+    nzchar(capability_paths) & file.exists(capability_paths)
+  ]
+  expect_true(length(capability_paths) >= 1L)
+  registry <- drmTMB:::drm_julia_capability_comparison()
+  registry[] <- lapply(registry, as.character)
+
+  expected_fields <- c(
+    "capability_id",
+    "route",
+    "syntax",
+    "r_bridge_status",
+    "drmjl_status",
+    "claim_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_action",
+    "issue"
+  )
+  expect_named(registry, expected_fields)
+  expect_equal(anyDuplicated(registry$capability_id), 0L)
+  expect_true(all(nzchar(registry$capability_id)))
+  expect_true(all(nzchar(registry$claim_boundary)))
+  expect_true(all(grepl("^https://github.com/", registry$evidence_url)))
+  expect_true(all(
+    registry$r_bridge_status %in%
+      c(
+        "supported",
+        "experimental",
+        "intentional_error",
+        "planned",
+        "unsupported"
+      )
+  ))
+  expect_true(all(
+    registry$claim_status %in%
+      c(
+        "covered",
+        "partial",
+        "experimental",
+        "planned",
+        "unsupported",
+        "blocked"
+      )
+  ))
+  expect_true("plain_binomial_nonphylo" %in% registry$capability_id)
+  binomial_row <- registry[
+    registry$capability_id == "plain_binomial_nonphylo",
+  ]
+  expect_equal(binomial_row$r_bridge_status, "intentional_error")
+  expect_match(binomial_row$claim_boundary, "#569")
+
+  for (capability_path in capability_paths) {
+    artifact <- utils::read.delim(
+      capability_path,
+      stringsAsFactors = FALSE,
+      check.names = FALSE,
+      quote = ""
+    )
+    artifact[] <- lapply(artifact, as.character)
+    expect_equal(artifact, registry, info = capability_path)
+  }
+})
+
+test_that("public Julia bridge docs do not outrun the bridge registries", {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  public_paths <- c(
+    file.path(pkg, "README.md"),
+    file.path(pkg, "NEWS.md"),
+    file.path(pkg, "vignettes", "julia-engine.Rmd"),
+    file.path(pkg, "vignettes", "cross-family.Rmd")
+  )
+  public_paths <- public_paths[file.exists(public_paths)]
+  skip_if(
+    length(public_paths) == 0L,
+    "public docs are not available in this installed-package context"
+  )
+  docs <- paste(
+    vapply(
+      public_paths,
+      function(path) readChar(path, file.info(path)$size, useBytes = TRUE),
+      character(1L)
+    ),
+    collapse = "\n"
+  )
+
+  forbidden <- c(
+    "engine_control\\s*=",
+    "engine_control\\s*\\(",
+    "engine\\s*=\\s*\"julia\"[^\\n\\.]{0,160}(all|any|every)[^\\n\\.]{0,80}(famil|model)",
+    "(binomial|Binomial)[^\\n\\.]{0,80}(bridge|engine\\s*=\\s*\"julia\")[^\\n\\.]{0,80}(ready|supported|covered|available)",
+    "(Julia|DRM\\.jl)[^\\n\\.]{0,80}(speed|fast)[^\\n\\.]{0,80}(guarantee|headline|claim)"
+  )
+  for (pattern in forbidden) {
+    expect_false(
+      grepl(pattern, docs, ignore.case = TRUE, perl = TRUE),
+      info = pattern
+    )
+  }
+})
+
 test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
   dat <- data.frame(y = 1:6, x = seq(-1, 1, length.out = 6))
 

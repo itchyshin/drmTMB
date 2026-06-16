@@ -38,6 +38,14 @@ Evidence Gates, and Release Readiness. Rows should separate native TMB support,
 R-to-Julia bridge status, and direct DRM.jl status rather than collapsing them
 into a single "supported" claim.
 
+The Julia bridge tables are generated artifacts, not hand-edited ledgers.
+Regenerate `julia-gates.tsv` from `drm_julia_intentional_gates()` with
+`Rscript tools/write-julia-gate-registry.R`, and regenerate
+`julia-capabilities.tsv` from `drm_julia_capability_comparison()` with
+`Rscript tools/write-julia-capability-comparison.R`. Both scripts write a
+dashboard copy and an `inst/extdata/` copy so tests can compare artifacts inside
+`R CMD check`, where `docs/` is not installed.
+
 Rows marked `verified`, `banked`, or `covered` need evidence. Local evidence
 files linked from the dashboard are copied into `/tmp/drm-dashboard` by the
 start script so the served page can resolve them.
@@ -48,5 +56,5 @@ source JSON keeps a placeholder because a committed file cannot truthfully
 contain its own final commit hash.
 
 Keep `version.txt` equal to the `BUILD` constant in `index.html`. Change both
-only when the HTML or JavaScript changes. JSON data updates do not need a
-version bump.
+only when the HTML or JavaScript changes. JSON and TSV data updates do not need
+a version bump.

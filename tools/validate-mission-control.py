@@ -17,6 +17,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "docs" / "dev-log" / "dashboard"
 DESIGN_MATRIX = ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md"
 GATE_REGISTRY = DASHBOARD / "julia-gates.tsv"
+CAPABILITY_REGISTRY = DASHBOARD / "julia-capabilities.tsv"
 
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
@@ -59,6 +60,20 @@ GATE_FIELDS = (
     "evidence",
     "issue",
 )
+CAPABILITY_FIELDS = (
+    "capability_id",
+    "route",
+    "syntax",
+    "r_bridge_status",
+    "drmjl_status",
+    "claim_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_action",
+    "issue",
+)
+R_BRIDGE_STATUSES = {"supported", "experimental", "intentional_error", "planned", "unsupported"}
+CAPABILITY_CLAIM_STATUSES = MATRIX_STATUSES | {"blocked"}
 EVIDENCE_STATUSES = {"verified", "banked", "covered"}
 STANDING_REVIEW_NAMES = {
     "Ada",
@@ -134,6 +149,7 @@ def main() -> int:
     status = read_json(DASHBOARD / "status.json")
     read_json(DASHBOARD / "sweep.json")
     gate_rows = read_tsv(GATE_REGISTRY)
+    capability_rows = read_tsv(CAPABILITY_REGISTRY)
 
     version = (DASHBOARD / "version.txt").read_text(encoding="utf-8").strip()
     index = (DASHBOARD / "index.html").read_text(encoding="utf-8")
@@ -285,6 +301,30 @@ def main() -> int:
         if not re.match(r"^https://github\.com/[^/]+/[^/]+/issues/[0-9]+", row.get("evidence_url", "")):
             errors.append(f"{row_id}: evidence_url is not a GitHub issue URL")
 
+    capability_ids: set[str] = set()
+    if not capability_rows:
+        errors.append("julia-capabilities.tsv has no capability rows")
+    for row in capability_rows:
+        row_id = row.get("capability_id", "<capability row>")
+        if set(row.keys()) != set(CAPABILITY_FIELDS):
+            errors.append(f"{row_id}: julia-capabilities.tsv fields do not match the comparison contract")
+        if not row.get("capability_id"):
+            errors.append("julia-capabilities.tsv row lacks capability_id")
+        elif row_id in capability_ids:
+            errors.append(f"duplicate Julia capability id: {row_id}")
+        capability_ids.add(row_id)
+        for field in CAPABILITY_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row.get("r_bridge_status") not in R_BRIDGE_STATUSES:
+            errors.append(f"{row_id}: invalid r_bridge_status {row.get('r_bridge_status')!r}")
+        if row.get("claim_status") not in CAPABILITY_CLAIM_STATUSES:
+            errors.append(f"{row_id}: invalid claim_status {row.get('claim_status')!r}")
+        if not re.match(r"^https://github\.com/[^/]+/[^/]+/issues/[0-9]+", row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url is not a GitHub issue URL")
+        if not re.match(r"^[A-Za-z0-9]+#[0-9]+$", row.get("issue", "")):
+            errors.append(f"{row_id}: issue is not a compact issue label")
+
     if errors:
         for error in errors:
             print(f"mission-control validation error: {error}", file=sys.stderr)
@@ -296,7 +336,8 @@ def main() -> int:
         f"{expected_metrics['active']} active, "
         f"{len(matrix)} matrix rows, "
         f"{len(finish_board)} finish rows, "
-        f"{len(gate_rows)} Julia gate rows"
+        f"{len(gate_rows)} Julia gate rows, "
+        f"{len(capability_rows)} Julia capability rows"
     )
     return 0
 

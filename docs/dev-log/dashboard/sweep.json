@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-16 08:05 MDT",
+  "updated": "2026-06-16 11:22 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is split cleanly: #578 merged the finish-board widget and binomial response contract; #580 merged the enriched bridge-gate registry; this slice renders the generated #544 gate table. #569 engine work remains held until the Claude-owned #581 src/drmTMB.cpp seam clears."
+      "text": "Non-Ayumi finish path is split cleanly: #585 has merged the native binomial first slice, and draft #587 stages the #544 DRM.jl capability comparison plus public-docs drift guard without promoting binomial bridge support."
     }
   ]
 }

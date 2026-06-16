@@ -328,12 +328,15 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   <h2>Bridge gate registry</h2>
   <section class="gate-table" id="julia-gates"></section>
 
+  <h2>Julia capability comparison</h2>
+  <section class="gate-table" id="julia-capabilities"></section>
+
   <h2>Evidence bank</h2>
   <section class="panel" id="evidence"></section>
 </main>
 
 <script>
-const BUILD = "r6";
+const BUILD = "r7";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -527,7 +530,23 @@ function renderGates(gates) {
     `<article class="gate-row gate-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${rows}`;
 }
 
-function render(data, gates) {
+function renderCapabilities(capabilities) {
+  const head = ["Capability", "Route", "Syntax", "R bridge", "DRM.jl status", "Boundary"];
+  const rows = (capabilities || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.capability_id)}</strong><div class="note">${link(row.evidence_url, row.issue || "evidence")}</div></div>
+      <div class="cell">${esc(row.route)}</div>
+      <div class="cell"><code>${esc(row.syntax)}</code></div>
+      <div class="cell">${pill(row.r_bridge_status)}<div class="note">${pill(row.claim_status)}</div></div>
+      <div class="cell">${esc(row.drmjl_status)}</div>
+      <div class="cell">${esc(row.claim_boundary)}<div class="note">${esc(row.next_action || "")}</div></div>
+    </article>`
+  ).join("");
+  document.getElementById("julia-capabilities").innerHTML =
+    `<article class="gate-row gate-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${rows}`;
+}
+
+function render(data, gates, capabilities) {
   document.getElementById("title").textContent = data.title || "drmTMB mission control";
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
@@ -538,6 +557,7 @@ function render(data, gates) {
   renderTeam(data);
   renderMatrix(data);
   renderGates(gates);
+  renderCapabilities(capabilities);
   document.getElementById("active-work").innerHTML = itemList(data.active_work, "No active slice recorded.");
   document.getElementById("activity").innerHTML = itemList(data.activity, "No activity recorded.");
   document.getElementById("blockers").innerHTML = itemList(data.blockers, "No blockers recorded.");
@@ -554,7 +574,8 @@ async function tick() {
     let overlay = {};
     try { overlay = await readJson("sweep.json"); } catch (err) {}
     const gates = parseTsv(await readText("julia-gates.tsv"));
-    render(mergeStatus(base, overlay), gates);
+    const capabilities = parseTsv(await readText("julia-capabilities.tsv"));
+    render(mergeStatus(base, overlay), gates, capabilities);
   } catch (err) {
     document.getElementById("subtitle").textContent = "Dashboard data did not load. Check status.json and sweep.json.";
   }
