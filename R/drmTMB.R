@@ -10760,8 +10760,13 @@ gaussian_ls_start <- function(
     sigma0 <- 1
   }
 
-  beta_sigma <- numeric(ncol(X_sigma))
-  beta_sigma[1L] <- log(sigma0)
+  beta_sigma <- gaussian_sigma_fixed_start(
+    resid = resid,
+    X_sigma = X_sigma,
+    sigma0 = sigma0,
+    sigma_floor = sigma_floor,
+    observed_y = observed_y
+  )
 
   mu_re_start <- gaussian_mu_re_start(resid, re_mu, y_scale)
   sigma_re_start <- gaussian_sigma_re_start(re_sigma)
@@ -10791,6 +10796,47 @@ gaussian_ls_start <- function(
     log_sd_re_cov = re_cov_start$log_sd_re_cov,
     theta_re_cov = re_cov_start$theta_re_cov
   )
+}
+
+gaussian_sigma_fixed_start <- function(
+  resid,
+  X_sigma,
+  sigma0,
+  sigma_floor,
+  observed_y
+) {
+  beta_sigma <- numeric(ncol(X_sigma))
+  names(beta_sigma) <- colnames(X_sigma)
+  beta_sigma[[1L]] <- log(sigma0)
+  if (ncol(X_sigma) <= 1L || sum(observed_y) <= ncol(X_sigma)) {
+    return(beta_sigma)
+  }
+
+  resid_observed <- resid[observed_y]
+  X_observed <- as.matrix(X_sigma[observed_y, , drop = FALSE])
+  eta_sigma <- log(pmax(abs(resid_observed), sigma_floor)) +
+    0.5 * log(pi / 2)
+  candidate <- tryCatch(
+    stats::lm.fit(x = X_observed, y = eta_sigma)$coefficients,
+    error = function(e) NULL
+  )
+  if (is.null(candidate) || length(candidate) != ncol(X_sigma)) {
+    return(beta_sigma)
+  }
+  candidate[is.na(candidate)] <- 0
+  if (!all(is.finite(candidate))) {
+    return(beta_sigma)
+  }
+  eta_candidate <- as.vector(X_observed %*% candidate)
+  if (
+    !all(is.finite(eta_candidate)) ||
+      diff(range(eta_candidate)) > 8 ||
+      any(abs(candidate) > 5)
+  ) {
+    return(beta_sigma)
+  }
+  names(candidate) <- colnames(X_sigma)
+  candidate
 }
 
 gaussian_ls_dummy_start <- function(
@@ -11934,11 +11980,21 @@ biv_gaussian_start <- function(
   }
   rho <- max(min(rho, 0.8), -0.8)
 
-  beta_sigma1 <- numeric(ncol(X_sigma1))
-  beta_sigma2 <- numeric(ncol(X_sigma2))
   beta_rho12 <- numeric(ncol(X_rho12))
-  beta_sigma1[1L] <- log(sigma1)
-  beta_sigma2[1L] <- log(sigma2)
+  beta_sigma1 <- gaussian_sigma_fixed_start(
+    resid = resid1,
+    X_sigma = X_sigma1,
+    sigma0 = sigma1,
+    sigma_floor = sigma_floor,
+    observed_y = observed_y1
+  )
+  beta_sigma2 <- gaussian_sigma_fixed_start(
+    resid = resid2,
+    X_sigma = X_sigma2,
+    sigma0 = sigma2,
+    sigma_floor = sigma_floor,
+    observed_y = observed_y2
+  )
   beta_rho12[1L] <- atanh(rho)
 
   y1_scale <- stats::sd(resid1[observed_y1])

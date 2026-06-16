@@ -201,12 +201,37 @@ test_that("Gaussian fixed-effect starts use OLS mean and residual scale", {
   y_scale <- stats::sd(dat$y)
   sigma_floor <- max(1e-4, 0.05 * y_scale)
   expected_sigma0 <- sqrt(max(stats::var(resid), sigma_floor^2))
-  expected_sigma <- numeric(ncol(X_sigma))
-  expected_sigma[[1L]] <- log(expected_sigma0)
+  expected_sigma <- drmTMB:::gaussian_sigma_fixed_start(
+    resid = resid,
+    X_sigma = X_sigma,
+    sigma0 = expected_sigma0,
+    sigma_floor = sigma_floor,
+    observed_y = rep(TRUE, nrow(dat))
+  )
 
   expect_equal(unname(fit$model$start$beta_mu), unname(expected_mu))
   expect_equal(unname(fit$model$start$beta_sigma), unname(expected_sigma))
   expect_equal(fit$uncertainty$status, "skipped")
+})
+
+test_that("Gaussian fixed-effect sigma starts use residual scale slopes", {
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 80),
+    z = rep(seq(-1, 1, length.out = 8), length.out = 80)
+  )
+  mu <- 0.2 + 0.5 * dat$x
+  sigma <- exp(-0.7 + 0.6 * dat$z)
+  eps <- rep(c(-1.4, -0.6, 0.2, 1.1, -0.9, 0.7, 1.5, -0.3), 10)
+  dat$y <- mu + sigma * eps
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit$uncertainty$status, "skipped")
+  expect_gt(abs(unname(fit$model$start$beta_sigma[["z"]])), 0.05)
 })
 
 test_that("bivariate Gaussian starts use response-specific OLS and Fisher-z rho12", {
@@ -274,6 +299,39 @@ test_that("bivariate Gaussian starts use response-specific OLS and Fisher-z rho1
   expect_equal(unname(fit$model$start$beta_sigma2), log(expected_sigma2))
   expect_equal(unname(fit$model$start$beta_rho12), atanh(expected_rho))
   expect_equal(fit$uncertainty$status, "skipped")
+})
+
+test_that("bivariate Gaussian sigma starts use residual scale slopes", {
+  dat <- data.frame(
+    x = seq(-1, 1, length.out = 80),
+    z1 = rep(seq(-1, 1, length.out = 8), length.out = 80),
+    z2 = rep(seq(1, -1, length.out = 8), length.out = 80)
+  )
+  mu1 <- 0.2 + 0.4 * dat$x
+  mu2 <- -0.1 + 0.3 * dat$x
+  sigma1 <- exp(-0.8 + 0.55 * dat$z1)
+  sigma2 <- exp(-0.6 - 0.45 * dat$z2)
+  eps1 <- rep(c(-1.4, -0.6, 0.2, 1.1, -0.9, 0.7, 1.5, -0.3), 10)
+  eps2 <- rep(c(0.4, -1.2, 0.8, -0.5, 1.3, -0.1, -0.7, 1.0), 10)
+  dat$y1 <- mu1 + sigma1 * eps1
+  dat$y2 <- mu2 + sigma2 * eps2
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x,
+      mu2 = y2 ~ x,
+      sigma1 = ~z1,
+      sigma2 = ~z2,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit$uncertainty$status, "skipped")
+  expect_gt(abs(unname(fit$model$start$beta_sigma1[["z1"]])), 0.05)
+  expect_gt(abs(unname(fit$model$start$beta_sigma2[["z2"]])), 0.05)
 })
 
 test_that("Gaussian constant sigma remains an optimized parameter", {

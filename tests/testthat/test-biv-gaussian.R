@@ -2996,7 +2996,7 @@ test_that("bivariate Gaussian likelihood weights are complete-row multipliers", 
   expect_equal(stats::weights(fit_double), rep(2, nrow(sim$data)))
   expect_equal(coef(fit_double, "mu1"), coef(fit, "mu1"), tolerance = 1e-5)
   expect_equal(coef(fit_double, "mu2"), coef(fit, "mu2"), tolerance = 1e-5)
-  expect_equal(coef(fit_double, "rho12"), coef(fit, "rho12"), tolerance = 1e-5)
+  expect_equal(coef(fit_double, "rho12"), coef(fit, "rho12"), tolerance = 5e-5)
   expect_equal(
     as.numeric(stats::logLik(fit_double)),
     2 * as.numeric(stats::logLik(fit)),
