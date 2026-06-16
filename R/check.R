@@ -221,7 +221,8 @@ check_drm.drmTMB <- function(
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
     check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary),
-    check_scale_phylo_identifiability(object)
+    check_scale_phylo_identifiability(object),
+    check_penalized_fit(object)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -294,6 +295,24 @@ check_scale_phylo_identifiability <- function(object) {
       "modelling the scale with fixed effects only while keeping phylogeny on the ",
       "mean, or supplying more observations per group. See ",
       "docs/design/171-scale-side-phylo-identifiability-model-a.md."
+    )
+  )
+}
+
+check_penalized_fit <- function(object) {
+  if (is.null(object$penalty)) {
+    return(NULL)
+  }
+  check_row(
+    "penalized_map",
+    "note",
+    "penalized / MAP estimator (prior on the phylogenetic SD)",
+    paste0(
+      "This fit uses a penalized / maximum-a-posteriori estimator: a prior ",
+      "regularises the phylogenetic SD. Standard errors are ",
+      "credible-interval-shaped, and likelihood-ratio tests or AIC across ",
+      "penalized fits are not standard. logLik() returns the unpenalized data ",
+      "log-likelihood; the penalty contribution is stored as fit$phylo_penalty."
     )
   )
 }

@@ -25,6 +25,11 @@ print.drmTMB <- function(x, ...) {
   if (!is.null(x$estimator)) {
     cli::cli_text("  estimator: {x$estimator}")
   }
+  if (!is.null(x$penalty)) {
+    cli::cli_text(
+      "  penalty: phylogenetic PC-prior (MAP); logLik shown is unpenalized"
+    )
+  }
   if (has_mu_random_effects(x)) {
     cli::cli_text("  mu random-effect terms: {n_mu_random_effect_terms(x)}")
   }

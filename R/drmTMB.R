@@ -137,6 +137,12 @@
 #'   phylogenetic location-scale route. Use the default `REML = FALSE` for
 #'   likelihood-ratio tests, AIC/BIC comparisons across different fixed-effect
 #'   formulas, non-Gaussian models, and currently unsupported extensions.
+#' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
+#'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
+#'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
+#'   regularises a weakly-identified phylogenetic standard deviation; the fit is
+#'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
+#'   Native `engine = "tmb"` only.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -160,6 +166,7 @@ drmTMB <- function(
   missing = miss_control(),
   engine = c("tmb", "julia"),
   REML = FALSE,
+  penalty = NULL,
   ...
 ) {
   if (!inherits(formula, "drm_formula")) {
@@ -177,6 +184,11 @@ drmTMB <- function(
   engine <- match.arg(engine)
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia")) {
+    if (!is.null(penalty)) {
+      cli::cli_abort(
+        "{.arg penalty} is not supported with {.code engine = \"julia\"} yet."
+      )
+    }
     return(drmTMB_julia_bridge(
       formula = formula,
       family = family,
@@ -193,6 +205,7 @@ drmTMB <- function(
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
   REML <- drm_control_flag(REML, "REML")
+  penalty <- drm_parse_phylo_penalty(penalty)
 
   weights_expr <- if (base::missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
@@ -356,6 +369,7 @@ drmTMB <- function(
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
   spec <- drm_apply_estimator_spec(spec, REML = REML)
+  spec <- drm_apply_phylo_penalty_spec(spec, penalty)
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
@@ -377,6 +391,13 @@ drmTMB <- function(
   par <- split_tmb_parameters(par_list, spec)
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
+  phylo_penalty_report <- obj$report()$phylo_penalty
+  phylo_penalty_value <- if (is.null(phylo_penalty_report)) {
+    0
+  } else {
+    as.numeric(phylo_penalty_report)
+  }
+
   fit <- list(
     call = match.call(),
     formula = formula,
@@ -396,10 +417,12 @@ drmTMB <- function(
     random_effects = split_tmb_random_effects(par_list, spec),
     ordinal = ordinal_fit_info(par_list, spec),
     missing_data = missing_data,
-    logLik = -opt$objective,
+    logLik = -opt$objective + phylo_penalty_value,
     df = drm_fit_df(spec, opt),
     nobs = spec$nobs,
     estimator = spec$estimator,
+    penalty = spec$penalty,
+    phylo_penalty = phylo_penalty_value,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts
@@ -12272,7 +12295,12 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     drm_tmb_missing_predictor_data(spec),
-    cov_tmb_data
+    cov_tmb_data,
+    list(
+      penalize_phylo = 0L,
+      phylo_sd_penalty_rate = numeric(0),
+      phylo_cor_penalty_sd = numeric(0)
+    )
   )
 }
 
