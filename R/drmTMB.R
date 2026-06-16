@@ -428,6 +428,7 @@ drm_fit_spec <- function(
   opt <- optimizer$opt
   drm_warn_if_not_converged(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
+  drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
   uncertainty <- drm_compute_uncertainty(obj, opt, control)
@@ -1684,6 +1685,64 @@ drm_warn_if_not_converged <- function(opt) {
       "i" = "Treat the estimates and standard errors with caution; run {.fn check_drm} to diagnose, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
     ),
     class = "drmTMB_convergence_warning"
+  )
+  invisible(TRUE)
+}
+
+# Detect whether the log(sigma) soft-clamp is active at the optimum, i.e. the
+# fitted log_sigma reached or passed the identity band [lo, hi] and the clamp
+# bent it. Returns NULL when the clamp is disabled or the scale is well inside
+# the band, otherwise a list with the extreme |log_sigma| and the band. Reads
+# every reported `log_sigma*` field so univariate and bivariate scales are
+# covered.
+drm_logsigma_clamp_active <- function(report, tmb_data) {
+  enabled <- tmb_data$use_logsigma_clamp
+  if (length(enabled) != 1L || !identical(as.integer(enabled), 1L)) {
+    return(NULL)
+  }
+  band <- tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(NULL)
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  fields <- report[grepl("^log_sigma", names(report))]
+  values <- unlist(fields, use.names = FALSE)
+  values <- values[is.finite(values)]
+  # Only the upper bound flags artificial convergence from a runaway scale
+  # (sigma -> Inf / overflow). The lower bound (sigma -> 0) is the variance-zero
+  # boundary, which is often a legitimate result (e.g. meta-analysis tau = 0) and
+  # is handled by the random-effect SD / scale checks in check_drm().
+  if (length(values) == 0L || !any(values > hi)) {
+    return(NULL)
+  }
+  list(value = max(values), lo = lo, hi = hi)
+}
+
+# Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
+# keeps a runaway scale finite, but a fit that settles on it may have converged
+# artificially (flat saturated tail), so estimates and SEs there are unreliable.
+drm_warn_if_clamp_active <- function(obj, spec) {
+  # The clamp is applied in C++ only for the Gaussian and bivariate-Gaussian
+  # likelihoods; use_logsigma_clamp is a data default on every model, so gate on
+  # the model type to avoid false positives where the clamp is never applied.
+  if (!isTRUE(spec$model_type %in% c("gaussian", "biv_gaussian"))) {
+    return(invisible(FALSE))
+  }
+  report <- tryCatch(obj$report(), error = function(e) NULL)
+  if (is.null(report)) {
+    return(invisible(FALSE))
+  }
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  if (is.null(info)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the {.code log(sigma)} clamp is active at the optimum (the fitted {.code log(sigma)} reached {.val {round(info$value, 1)}}, above the band upper bound {.val {info$hi}}).",
+      "i" = "The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with {.code drm_control(logsigma_clamp = )}, add within-group replication, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
+    ),
+    class = "drmTMB_clamp_active_warning"
   )
   invisible(TRUE)
 }
