@@ -16,6 +16,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "docs" / "dev-log" / "dashboard"
 DESIGN_MATRIX = ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md"
+GATE_REGISTRY = DASHBOARD / "julia-gates.tsv"
 
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
@@ -42,6 +43,21 @@ FINISH_STATUS_FIELDS = (
     "visual",
     "simulation",
     "release_gate",
+)
+GATE_FIELDS = (
+    "gate_id",
+    "route",
+    "guard",
+    "family_type",
+    "syntax",
+    "r_bridge_status",
+    "drmjl_status",
+    "message_pattern",
+    "review_due",
+    "evidence_url",
+    "action",
+    "evidence",
+    "issue",
 )
 EVIDENCE_STATUSES = {"verified", "banked", "covered"}
 STANDING_REVIEW_NAMES = {
@@ -88,6 +104,13 @@ def read_json(path: pathlib.Path) -> dict:
         return json.load(handle)
 
 
+def read_tsv(path: pathlib.Path) -> list[dict[str, str]]:
+    import csv
+
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t", quoting=csv.QUOTE_NONE))
+
+
 def matrix_row_count_from_design(path: pathlib.Path) -> int:
     text = path.read_text(encoding="utf-8")
     match = re.search(r"## Finish Matrix\n(?P<table>.*?)\n## Issue-Led", text, re.S)
@@ -110,6 +133,7 @@ def main() -> int:
     errors: list[str] = []
     status = read_json(DASHBOARD / "status.json")
     read_json(DASHBOARD / "sweep.json")
+    gate_rows = read_tsv(GATE_REGISTRY)
 
     version = (DASHBOARD / "version.txt").read_text(encoding="utf-8").strip()
     index = (DASHBOARD / "index.html").read_text(encoding="utf-8")
@@ -237,6 +261,30 @@ def main() -> int:
     if missing_lanes:
         errors.append(f"finish_board missing lanes: {', '.join(missing_lanes)}")
 
+    gate_ids: set[str] = set()
+    if not gate_rows:
+        errors.append("julia-gates.tsv has no gate rows")
+    for row in gate_rows:
+        row_id = row.get("gate_id", "<gate row>")
+        if set(row.keys()) != set(GATE_FIELDS):
+            errors.append(f"{row_id}: julia-gates.tsv fields do not match the registry contract")
+        if not row.get("gate_id"):
+            errors.append("julia-gates.tsv row lacks gate_id")
+        elif row_id in gate_ids:
+            errors.append(f"duplicate Julia gate id: {row_id}")
+        gate_ids.add(row_id)
+        for field in GATE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row.get("r_bridge_status") != "intentional_error":
+            errors.append(f"{row_id}: r_bridge_status is not intentional_error")
+        if row.get("action") != "error":
+            errors.append(f"{row_id}: action is not error")
+        if row.get("issue") != "drmTMB#544":
+            errors.append(f"{row_id}: issue is not drmTMB#544")
+        if not re.match(r"^https://github\.com/[^/]+/[^/]+/issues/[0-9]+", row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url is not a GitHub issue URL")
+
     if errors:
         for error in errors:
             print(f"mission-control validation error: {error}", file=sys.stderr)
@@ -247,7 +295,8 @@ def main() -> int:
         f"{expected_metrics['verified']}/{expected_metrics['total']} banked_or_verified, "
         f"{expected_metrics['active']} active, "
         f"{len(matrix)} matrix rows, "
-        f"{len(finish_board)} finish rows"
+        f"{len(finish_board)} finish rows, "
+        f"{len(gate_rows)} Julia gate rows"
     )
     return 0
 

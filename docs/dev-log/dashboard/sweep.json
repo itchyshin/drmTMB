@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-15 14:19 MDT",
+  "updated": "2026-06-16 08:05 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "drmTMB #565 and #566 are merged green. Julia 30-tip all-q4 bootstrap is positive plumbing evidence after the q4 phylocov target repair. Native TMB bootstrap is not yet a fallback claim: careful optimizer settings rescue the 30-tip smoke, but both careful and robust 100-tip smokes still return bootstrap_unavailable."
+      "text": "Non-Ayumi finish path is split cleanly: #578 merged the finish-board widget and binomial response contract; #580 merged the enriched bridge-gate registry; this slice renders the generated #544 gate table. #569 engine work remains held until the Claude-owned #581 src/drmTMB.cpp seam clears."
     }
   ]
 }

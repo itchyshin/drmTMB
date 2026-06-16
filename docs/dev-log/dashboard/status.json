@@ -1,9 +1,9 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 09:30 MDT",
+  "updated": "2026-06-16 08:00 MDT",
   "metrics": {
-    "verified": 18,
+    "verified": 19,
     "active": 3,
     "blocked": 0,
     "deferred": 1,
@@ -86,7 +86,7 @@
       "name": "Bridge-gate drift and R bridge truth",
       "owner": "Hopper + Boole + Emmy",
       "status": "active",
-      "counts": "6/9",
+      "counts": "7/9",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -132,9 +132,10 @@
         },
         {
           "name": "Extend registry into generated gate-vs-engine CI guard",
-          "status": "queued",
+          "status": "banked",
           "issue": "drmTMB#544",
-          "url": "https://github.com/itchyshin/drmTMB/issues/544"
+          "url": "docs/dev-log/dashboard/julia-gates.tsv",
+          "evidence": "Generated dashboard artifact from drm_julia_intentional_gates(); validator and test guard compare the artifact with the internal registry."
         },
         {
           "name": "Reserve engine_control targets and reject unsupported values early",
@@ -609,7 +610,7 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/544",
       "issue_label": "drmTMB#544",
       "lane": "Critical Path",
-      "status": "planned",
+      "status": "active",
       "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose", "Hopper"],
       "family": "engine = \"julia\" intentional gate registry",
       "response_encoding": ["R syntax cells", "DRM.jl evidence cells"],
@@ -620,13 +621,13 @@
       "wald": "planned",
       "profile": "partial",
       "bootstrap": "partial",
-      "tests": "planned",
+      "tests": "covered",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4718667677",
-      "blocker": "Next slice generates a bridge gate table and CI guard without promoting binomial bridge support.",
+      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4719565999",
+      "blocker": "Generated table is present; remaining #544 work is docs-drift guard and DRM.jl capability comparison without promoting binomial bridge support.",
       "last_verified": "2026-06-16"
     },
     {
@@ -1247,6 +1248,11 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-16",
+      "who": "Dashboard",
+      "text": "Bridge gate registry renders from docs/dev-log/dashboard/julia-gates.tsv; tools/write-julia-gate-registry.R regenerates it from drm_julia_intentional_gates()."
+    },
     {
       "when": "2026-06-16",
       "who": "Issue ledger",
