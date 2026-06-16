@@ -54666,3 +54666,25 @@ Boundary: no bridge gate was relaxed, no `engine_control` surface was added, no
 binomial bridge support was promoted, and no DRM.jl code was changed. Remaining
 `#544` work is the public-docs drift guard and DRM.jl capability-evidence
 comparison.
+
+## 2026-06-16: Coupled-q4 penalty recovery sim (Phase 5)
+
+Added `inst/sim/run/phylo_penalty_q4_recovery.R`: a known-truth coupled-q4
+("Model E") recovery experiment fitting penalize-off vs penalize-on across a
+`cor_sd` grid at 1 and 3 observations per tip. Design + tables: doc 173;
+after-task `2026-06-16-phylo-penalty-recovery-sim.md`. Evidence/sim slice on the
+merged penalized/MAP estimator (#581); no package `R/`/`src/` code changed.
+
+Results: controlled sim (n=300) -- penalize-off at 1 obs/tip pins all six
+correlations at +/-1 (`pdHess=FALSE`); every `cor_sd` gives a clean PD
+off-boundary fit; magnitudes are prior-sensitive (strong true 0.60 -> 0.54 at
+`cor_sd=0.5`, over-shrunk at 0.25); at 3 obs/tip plain ML already reaches
+`pdHess=TRUE` -- replication is the clean fix. Real data (10,440 tips): penalty
+converges (`cor_sd=0.5`, grad 0.11) with a stable beak mean-dispersion
+`cor(mu2,sigma2)~0.5` but does not reach a PD Hessian at any `cor_sd` tried
+(0.25/0.5/1.0). A DGP bug (formula `tree` captured before the trees existed) was
+caught at the n=100 validation checkpoint and fixed.
+
+Boundary: "fittable" is not "identified." A penalized Model E is a MAP estimate
+reported with the sensitivity sweep; the clean path to the full coupled model is
+intraspecific replication.
