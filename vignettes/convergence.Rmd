@@ -538,6 +538,75 @@ which parameters were copied, which targets were skipped or jittered, which
 optimizer result was selected, and whether inference is tied to that selected
 optimum.
 
+## Penalized / MAP estimation for weakly-identified phylogenetic components
+
+When `pdHess` is false because a phylogenetic SD sits near zero or a
+phylogenetic correlation pins at `+/-1`, and a simpler model is not the answer
+you want, you can regularize the weakly-identified component with an optional
+penalty (a weakly-informative prior). This can turn a boundary-pinned,
+non-positive-definite fit into a finite, positive-definite one:
+
+```{r, purl=FALSE}
+fit_map <- drmTMB(
+  bf(
+    mu1    = y1 ~ x + phylo(1 | p | id, tree = tree),
+    mu2    = y2 ~ x + phylo(1 | p | id, tree = tree),
+    sigma1 = ~ x + phylo(1 | p | id, tree = tree),
+    sigma2 = ~ x + phylo(1 | p | id, tree = tree),
+    rho12  = ~ 1
+  ),
+  data = dat,
+  family = biv_gaussian(),
+  penalty = drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = 0.5)
+)
+```
+
+`drm_phylo_penalty()` puts a penalised-complexity prior on each phylogenetic SD
+(`sd_u`, `sd_alpha`: a priori `P(sd > sd_u) = sd_alpha`) and, when `cor_sd` is
+set, a mean-zero normal `N(0, cor_sd)` on the phylogenetic correlation. The
+correlation penalty is the part that pulls a coupled correlation off the `+/-1`
+boundary.
+
+This switches the estimator from maximum likelihood to **penalized /
+maximum-a-posteriori (MAP)**, and that distinction matters:
+
+- The fit is labeled `estimator = "MAP"` and `check_drm()` adds a
+  `penalized_map` note. It is a regularized point estimate, not an ML fit.
+- `logLik()` returns the **unpenalized** data log-likelihood (the penalty is
+  stored in `fit$phylo_penalty`), so it stays comparable on the data scale --
+  but likelihood-ratio tests and AIC *across penalized fits* are not standard.
+- The penalty makes a model *fittable*; it does not make a weakly-identified
+  component *identified*. Where the data are nearly uninformative, the estimate
+  reflects the prior.
+
+Because of that last point, **there is no universal penalty strength**: a
+`cor_sd` that is right for one dataset is wrong for another, because it trades
+off against the unknown true correlation magnitude. Always run a
+prior-sensitivity sweep and interpret only the quantities that are stable
+across it:
+
+```{r, purl=FALSE}
+sweep <- lapply(c(0.25, 0.5, 1.0), function(s) {
+  f <- drmTMB(
+    form,
+    data = dat, family = biv_gaussian(),
+    penalty = drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = s)
+  )
+  f$corpars$phylo
+})
+```
+
+If a correlation barely moves as you tighten the prior, it is data-informed; if
+it tracks the prior, it is prior-dominated and should be reported as such (or
+not interpreted). For a definitive, prior-free result on a coupled phylogenetic
+location-scale model, the clean route is within-group replication (more than
+one observation per species), which identifies the full model from the data
+itself.
+
+Treat the penalty as a complement to -- not a replacement for -- simplifying
+the model, collecting replicated data, or fitting the same model in a Bayesian
+framework where the prior is explicit.
+
 ## Separate optimization from uncertainty
 
 For very large or opt-in-control fits, it can be useful to separate "can the
