@@ -54550,3 +54550,35 @@ Boundaries:
 - The bridge registry is planned but not implemented here; binomial bridge
   support remains unsupported/planned until #544 and separate parity tests
   promote it.
+
+## 2026-06-16: Julia bridge gate registry schema (#544)
+
+Extended the existing `drm_julia_intentional_gates()` registry with the
+row-oriented fields needed for the `#544` bridge-gate ledger:
+`family_type`, `syntax`, `r_bridge_status`, `drmjl_status`,
+`message_pattern`, `review_due`, and `evidence_url`. The representative
+`engine = "julia"` gate tests now assert that their regex comes from the
+registry. No bridge gate was relaxed and no DRM.jl code was changed. See
+after-task `2026-06-16-julia-gate-registry-schema.md`.
+
+Checks run:
+
+```sh
+air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R", reporter = "summary")'
+git diff --check
+rg "non-identified|nonidentified|flat/unbounded|Bayesian only reads back the prior|REML on scale" R tests docs README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- `test-julia-gate-vs-engine.R`: all tests passed.
+- `test-julia-bridge.R`: all tests passed.
+- `git diff --check`: clean.
+- Forbidden-framing scan: only existing Ayumi reframe notes were found; this
+  slice added no new forbidden scale-phylo wording.
+
+Boundary: this is a governance slice. The registry is richer and tested, but
+the generated table, documentation-drift guard, and DRM.jl capability comparison
+remain open `#544` work.
