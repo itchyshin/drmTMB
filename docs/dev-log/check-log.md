@@ -54438,3 +54438,39 @@ Results:
 Boundary: this is a numerical guard, not an identifiability fix. The q4-side
 recommendation (Model A: phylo on the mean, fixed-effect scale) is in doc 171 /
 PR #575.
+
+## 2026-06-16: Bank Ayumi Model A+ evidence + persist the reframe (Phase 2)
+
+Made the headline mean-phylo claim reproducible and persisted the "weakly
+identified, not non-identified" scale-side framing. Added a re-runnable banking
+script that fits Model A+ (`phylo(1 | p | tree_tip)` on both means + cross-trait
+phylo correlation, fixed-effect `sigma ~ climate`, constant `rho12`) and the
+no-phylo null on the real 10,440-tip data, computing the mean-side LRT from
+banked logLiks. Ledger rows added to `known-limitations.md` and `docs/design/34`.
+See after-task `2026-06-16-ayumi-model-a-plus-evidence.md`.
+
+Checks run:
+
+```sh
+DRMTMB_AYUMI_DATA=.../birds_tarsus_beak_10440.rds \
+  Rscript inst/sim/run/ayumi_model_a_plus_evidence.R   # real-data fits
+Rscript -e "devtools::document()"
+git diff --check
+```
+
+Results:
+
+- Model A+: `convergence = 0`, `pdHess = TRUE`, `logLik = 10358.44` (199 s).
+  Null (no mean-phylo): `convergence = 0`, `pdHess = TRUE`,
+  `logLik = -7933.22` (9.5 s). Mean-side LRT `LR = 36583.32`, `df = 3`,
+  `p ~ 0` (boundary-conservative). The earlier asserted `~36,572` is confirmed
+  (banked value 36583.32).
+- Identified estimates: phylo location SDs 0.347 / 0.464 (SE 0.005 / 0.006);
+  mean-mean phylo correlation 0.219 (SE 0.017); residual `rho12 ~ 0.51`;
+  `sigma ~ climate` active (`log_mass_z` coefficient ~1.25 on log-`sigma`).
+- No package `R/`/`src/` changed, so the CI-green state at `d37496f2` carries;
+  `document()` produced only the pre-existing `man/rho_latent.Rd` drift, reverted.
+- `git diff --check`: clean.
+
+Scope: this banks the identified core (Model A+) and the reframe. It does not add
+or claim a scale-side phylogenetic result.
