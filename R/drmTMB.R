@@ -125,12 +125,14 @@
 #'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
 #'   through JuliaCall for the supported bridge slice.
 #' @param REML Logical; use restricted maximum likelihood where the selected
-#'   engine supports it. Native `engine = "tmb"` currently supports the first
+#'   engine supports it. Native `engine = "tmb"` currently supports the
 #'   univariate Gaussian mixed-model slice: ordinary dense `mu` fixed effects,
-#'   ordinary `mu` random intercepts or slopes, diagonal or dense known sampling
-#'   covariance through [meta_V()], non-unit likelihood `weights` (with diagonal
-#'   or no known covariance), intercept-only `sigma`, complete responses, and no
-#'   aggregation, structured effects, or direct `sd()` scale formulae.
+#'   ordinary `mu` random intercepts or slopes, a mean-side phylogenetic
+#'   [phylo()] effect, diagonal or dense known sampling covariance through
+#'   [meta_V()], non-unit likelihood `weights` (with diagonal or no known
+#'   covariance), intercept-only `sigma`, complete responses, and no aggregation,
+#'   scale-side or non-phylogenetic structured effects, or direct `sd()` scale
+#'   formulae.
 #'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
 #'   Gaussian bridge cells, including fixed-effect location-scale models,
 #'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
@@ -648,11 +650,21 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use ordinary location random effects such as {.code (1 | id)}, or set {.code REML = FALSE}."
     ))
   }
-  if (isTRUE(spec$structured$phylo_mu$has)) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented for structured Gaussian effects yet.",
-      "i" = "Use ordinary grouped random effects or set {.code REML = FALSE}."
-    ))
+  phylo_mu <- spec$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+      cli::cli_abort(c(
+        "{.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
+        "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+      ))
+    }
+    endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
+    if (any(sub("[0-9]+$", "", endpoints) == "sigma")) {
+      cli::cli_abort(c(
+        "{.arg REML} is not implemented for scale-side structured effects.",
+        "i" = "REML restricts the likelihood for the location: keep {.code phylo()} on the mean with an intercept-only {.code sigma}, or set {.code REML = FALSE}."
+      ))
+    }
   }
   if (qr(as.matrix(spec$X$mu))$rank < ncol(spec$X$mu)) {
     cli::cli_abort(c(
