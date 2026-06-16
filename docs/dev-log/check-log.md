@@ -54365,3 +54365,45 @@ CI follow-up:
   `0.318038` versus `0.318034`.
 - Widened only that `rho12` coefficient tolerance from `1e-5` to `5e-5`; the
   log-likelihood multiplier check remains at `1e-4`.
+
+## 2026-06-15: Start-Candidate Rescue Ladder (#570 slice 1)
+
+Added an internal, deterministic start-candidate ladder for `drmTMB#570` (the
+Ayumi beak `sigma`-phylo native start/basin failure). No default-fit or public
+API change. New internal functions in `R/drmTMB.R`:
+`drm_log_sd_start_candidates()`, `drm_run_start_ladder()`,
+`drm_attempt_max_gradient()`. Seven tests added to
+`tests/testthat/test-optimizer-contract.R`. Design in
+`docs/design/169-phase-18-start-candidate-rescue-ladder.md`.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = 'optimizer-contract', reporter = 'summary')"
+Rscript -e "devtools::document()"
+Rscript -e "devtools::test(reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- `optimizer-contract`: 136 passed, 0 failed (102 prior plus 7 new start-ladder
+  tests; existing snapshot tests run under `devtools::test`).
+- `devtools::document()`: regenerated only pre-existing `man/rho_latent.Rd`
+  drift, which was reverted; the new internal functions add no Rd/NAMESPACE.
+- Full `devtools::test()`: 0 testthat failures across all files. A pre-existing
+  Julia-bridge stacktrace (`fit_mixed_family` `Xsigma1`/`Xsigma2` keyword
+  mismatch vs the local `DRM.jl` checkout) printed but did not fail its test and
+  is unrelated to this native-TMB slice.
+- `git diff --check`: clean.
+
+Interpretation:
+
+- The ladder is the mechanism `#570` needs: it varies the start and escalates on
+  a bad-but-non-erroring basin, unlike `drm_optimize_with_preset_retry()`, which
+  only escalates the budget preset on a hard error. Selection follows
+  `docs/design/35-optimizer-start-map-multistart.md`: lowest objective among
+  converged, deterministic tie to the cold start, best-attempt fallback flagged
+  when none converge.
+- This slice proves the mechanism on small fixtures. The real 10,440-tip beak
+  rescue remains a follow-up `inst/sim` runner (issue slices 1 and 5).

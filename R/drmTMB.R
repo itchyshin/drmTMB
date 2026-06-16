@@ -551,6 +551,189 @@ drm_optimizer_selected_record <- function(row) {
   )
 }
 
+# --- #570 start-candidate rescue ladder (internal, deterministic) ------------
+# An internal diagnostic harness that fits one objective from several starting
+# candidates, records every attempt, and selects the converged attempt with the
+# lowest objective. It does not change the default fit path and exposes no public
+# control (see docs/design/169-phase-18-start-candidate-rescue-ladder.md and the
+# multi-start contract in docs/design/35-optimizer-start-map-multistart.md).
+
+drm_log_sd_start_candidates <- function(
+  par,
+  which = c("log_sd_phylo", "log_sd_sigma", "log_sd_mu"),
+  factors = c(0.25, 0.5, 2, 4)
+) {
+  candidates <- list(list(label = "cold", par = par))
+  targets <- names(par) %in% which
+  if (!any(targets)) {
+    return(candidates)
+  }
+  for (scale_factor in factors) {
+    shifted <- par
+    shifted[targets] <- shifted[targets] + log(scale_factor)
+    candidates[[length(candidates) + 1L]] <- list(
+      label = sprintf("log_sd x%g", scale_factor),
+      par = shifted
+    )
+  }
+  candidates
+}
+
+drm_attempt_max_gradient <- function(gradient_fn, par) {
+  if (is.null(gradient_fn) || is.null(par)) {
+    return(NA_real_)
+  }
+  gradient <- tryCatch(gradient_fn(par), error = function(e) NA_real_)
+  if (length(gradient) == 0L || !any(is.finite(gradient))) {
+    return(NA_real_)
+  }
+  max(abs(gradient[is.finite(gradient)]))
+}
+
+drm_run_start_ladder <- function(
+  obj,
+  control,
+  candidates,
+  optimizer = stats::nlminb,
+  gradient_fn = NULL,
+  warn = TRUE
+) {
+  if (length(candidates) == 0L) {
+    cli::cli_abort(
+      "{.fn drm_run_start_ladder} needs at least one start candidate."
+    )
+  }
+  if (is.null(gradient_fn)) {
+    gradient_fn <- obj$gr
+  }
+  optimizer_control <- control$optimizer
+  if (is.null(optimizer_control)) {
+    optimizer_control <- list()
+  }
+  preset <- if (is.null(control$optimizer_preset)) {
+    NA_character_
+  } else {
+    as.character(control$optimizer_preset)
+  }
+
+  rows <- vector("list", length(candidates))
+  results <- vector("list", length(candidates))
+
+  for (i in seq_along(candidates)) {
+    candidate <- candidates[[i]]
+    label <- if (is.null(candidate$label)) as.character(i) else candidate$label
+    elapsed_start <- proc.time()[["elapsed"]]
+    attempt <- tryCatch(
+      list(
+        ok = TRUE,
+        value = optimizer(
+          start = candidate$par,
+          objective = obj$fn,
+          gradient = obj$gr,
+          control = optimizer_control
+        )
+      ),
+      error = function(e) list(ok = FALSE, value = e)
+    )
+    elapsed <- proc.time()[["elapsed"]] - elapsed_start
+
+    if (isTRUE(attempt$ok)) {
+      opt <- attempt$value
+      results[[i]] <- opt
+      objective <- if (is.numeric(opt$objective)) {
+        as.numeric(opt$objective)
+      } else {
+        NA_real_
+      }
+      convergence <- if (is.null(opt$convergence)) {
+        NA_integer_
+      } else {
+        as.integer(opt$convergence)
+      }
+      message <- if (is.null(opt$message)) {
+        NA_character_
+      } else {
+        as.character(opt$message)
+      }
+      rows[[i]] <- data.frame(
+        attempt = i,
+        start_label = label,
+        optimizer = "nlminb",
+        optimizer_preset = preset,
+        status = "ok",
+        convergence = convergence,
+        message = message,
+        objective = objective,
+        max_gradient = drm_attempt_max_gradient(gradient_fn, opt$par),
+        elapsed_sec = elapsed,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      rows[[i]] <- data.frame(
+        attempt = i,
+        start_label = label,
+        optimizer = "nlminb",
+        optimizer_preset = preset,
+        status = "error",
+        convergence = NA_integer_,
+        message = conditionMessage(attempt$value),
+        objective = NA_real_,
+        max_gradient = NA_real_,
+        elapsed_sec = elapsed,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  attempts <- do.call(rbind, rows)
+  rownames(attempts) <- NULL
+  attempts$eligible <- attempts$status == "ok" &
+    !is.na(attempts$convergence) &
+    attempts$convergence == 0L &
+    is.finite(attempts$objective)
+
+  selected_converged <- any(attempts$eligible)
+  pool <- if (selected_converged) {
+    which(attempts$eligible)
+  } else {
+    which(attempts$status == "ok" & is.finite(attempts$objective))
+  }
+  attempts$selected <- FALSE
+  if (length(pool) == 0L) {
+    cli::cli_abort(c(
+      "{.fn drm_run_start_ladder} found no usable start candidate.",
+      "i" = "Every candidate errored or returned a non-finite objective."
+    ))
+  }
+  best <- pool[order(attempts$objective[pool], attempts$attempt[pool])][1L]
+  attempts$selected[best] <- TRUE
+
+  if (isTRUE(warn) && !selected_converged) {
+    cli::cli_warn(c(
+      "{.fn drmTMB} start-candidate ladder did not reach a converged optimum.",
+      "i" = "Inspect the returned {.code attempts} table before interpreting the fit.",
+      "i" = "False convergence or {.code pdHess = FALSE} keeps Wald inference unsafe."
+    ))
+  }
+
+  list(
+    opt = results[[best]],
+    selected = list(
+      start_label = attempts$start_label[best],
+      attempt = attempts$attempt[best],
+      optimizer = attempts$optimizer[best],
+      optimizer_preset = attempts$optimizer_preset[best],
+      convergence = attempts$convergence[best],
+      message = attempts$message[best],
+      objective = attempts$objective[best],
+      max_gradient = attempts$max_gradient[best],
+      converged = isTRUE(selected_converged)
+    ),
+    attempts = attempts,
+    selected_converged = isTRUE(selected_converged)
+  )
+}
+
 drm_apply_estimator_spec <- function(spec, REML = FALSE) {
   if (!isTRUE(REML)) {
     spec$estimator <- "ML"

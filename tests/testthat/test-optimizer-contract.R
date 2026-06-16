@@ -482,3 +482,244 @@ test_that("pinning preserves random-effect slots in the TMB object", {
   )
   expect_true(all(is.finite(ranef(fit)$mu$values)))
 })
+
+# --- #570 start-candidate rescue ladder -------------------------------------
+
+test_that("start ladder records every candidate and selects the lowest converged objective", {
+  obj <- list(
+    par = c(theta = 0),
+    fn = function(par) (par[["theta"]] - 3)^2,
+    gr = function(par) 2 * (par[["theta"]] - 3)
+  )
+  optimizer <- function(start, objective, gradient, control) {
+    list(
+      par = start,
+      objective = objective(start),
+      convergence = 0L,
+      message = "relative convergence (4)",
+      iterations = 1L,
+      evaluations = c("function" = 1L, "gradient" = 1L)
+    )
+  }
+  candidates <- list(
+    list(label = "cold", par = c(theta = 0)),
+    list(label = "warm", par = c(theta = 3))
+  )
+
+  result <- drmTMB:::drm_run_start_ladder(
+    obj,
+    drm_control(se = FALSE),
+    candidates,
+    optimizer = optimizer
+  )
+
+  expect_equal(result$attempts$start_label, c("cold", "warm"))
+  expect_equal(result$attempts$status, c("ok", "ok"))
+  expect_equal(result$attempts$objective, c(9, 0))
+  expect_equal(result$attempts$eligible, c(TRUE, TRUE))
+  expect_equal(result$attempts$selected, c(FALSE, TRUE))
+  expect_true(result$selected_converged)
+  expect_equal(result$selected$start_label, "warm")
+  expect_equal(unname(result$opt$par[["theta"]]), 3)
+  expect_equal(result$opt$objective, 0)
+  expect_true(all(is.finite(result$attempts$max_gradient)))
+})
+
+test_that("start ladder prefers a converged attempt over a lower non-converged objective", {
+  obj <- list(
+    par = c(theta = 0),
+    fn = function(par) par[["theta"]],
+    gr = function(par) 1
+  )
+  optimizer <- function(start, objective, gradient, control) {
+    conv <- if (start[["theta"]] < 0) 1L else 0L
+    list(
+      par = start,
+      objective = objective(start),
+      convergence = conv,
+      message = "m",
+      iterations = 1L,
+      evaluations = c("function" = 1L, "gradient" = 1L)
+    )
+  }
+  candidates <- list(
+    list(label = "converged_high", par = c(theta = 5)),
+    list(label = "unconverged_low", par = c(theta = -2))
+  )
+
+  result <- drmTMB:::drm_run_start_ladder(
+    obj,
+    drm_control(se = FALSE),
+    candidates,
+    optimizer = optimizer
+  )
+
+  expect_equal(result$attempts$convergence, c(0L, 1L))
+  expect_equal(result$attempts$eligible, c(TRUE, FALSE))
+  expect_equal(result$selected$start_label, "converged_high")
+  expect_true(result$selected_converged)
+})
+
+test_that("start ladder returns the best attempt and flags failure when none converge", {
+  obj <- list(
+    par = c(theta = 0),
+    fn = function(par) par[["theta"]]^2,
+    gr = function(par) 2 * par[["theta"]]
+  )
+  optimizer <- function(start, objective, gradient, control) {
+    list(
+      par = start,
+      objective = objective(start),
+      convergence = 1L,
+      message = "false convergence (8)",
+      iterations = 1L,
+      evaluations = c("function" = 1L, "gradient" = 1L)
+    )
+  }
+  candidates <- list(
+    list(label = "cold", par = c(theta = 4)),
+    list(label = "warm", par = c(theta = 1))
+  )
+
+  expect_warning(
+    result <- drmTMB:::drm_run_start_ladder(
+      obj,
+      drm_control(se = FALSE),
+      candidates,
+      optimizer = optimizer
+    ),
+    "did not reach a converged optimum"
+  )
+
+  expect_false(result$selected_converged)
+  expect_equal(result$selected$start_label, "warm")
+  expect_equal(result$opt$objective, 1)
+  expect_true(all(result$attempts$convergence == 1L))
+  expect_false(any(result$attempts$eligible))
+})
+
+test_that("start ladder records an errored candidate without selecting it", {
+  obj <- list(
+    par = c(theta = 0),
+    fn = function(par) par[["theta"]]^2,
+    gr = function(par) 2 * par[["theta"]]
+  )
+  optimizer <- function(start, objective, gradient, control) {
+    if (start[["theta"]] == 99) {
+      stop("NA/NaN function evaluation")
+    }
+    list(
+      par = start,
+      objective = objective(start),
+      convergence = 0L,
+      message = "ok",
+      iterations = 1L,
+      evaluations = c("function" = 1L, "gradient" = 1L)
+    )
+  }
+  candidates <- list(
+    list(label = "cold", par = c(theta = 2)),
+    list(label = "broken", par = c(theta = 99))
+  )
+
+  result <- drmTMB:::drm_run_start_ladder(
+    obj,
+    drm_control(se = FALSE),
+    candidates,
+    optimizer = optimizer
+  )
+
+  expect_equal(result$attempts$status, c("ok", "error"))
+  expect_equal(result$attempts$start_label, c("cold", "broken"))
+  expect_true(is.na(result$attempts$objective[[2L]]))
+  expect_true(is.na(result$attempts$max_gradient[[2L]]))
+  expect_false(result$attempts$selected[[2L]])
+  expect_equal(result$selected$start_label, "cold")
+})
+
+test_that("log-SD start candidates scale targeted entries and keep the cold start first", {
+  par <- c(
+    beta_mu = 0.5,
+    log_sd_phylo = log(0.2),
+    log_sd_phylo = log(0.25),
+    beta_sigma = -0.7
+  )
+
+  candidates <- drmTMB:::drm_log_sd_start_candidates(
+    par,
+    which = "log_sd_phylo",
+    factors = c(0.5, 2)
+  )
+
+  expect_equal(
+    vapply(candidates, `[[`, character(1), "label"),
+    c("cold", "log_sd x0.5", "log_sd x2")
+  )
+  expect_equal(candidates[[1L]]$par, par)
+  expect_equal(
+    unname(candidates[[3L]]$par[names(par) == "log_sd_phylo"]),
+    unname(par[names(par) == "log_sd_phylo"] + log(2))
+  )
+  expect_equal(
+    unname(candidates[[3L]]$par[names(par) == "beta_mu"]),
+    unname(par[["beta_mu"]])
+  )
+  expect_equal(
+    unname(candidates[[3L]]$par[names(par) == "beta_sigma"]),
+    unname(par[["beta_sigma"]])
+  )
+})
+
+test_that("log-SD start candidates return only the cold start when no targets are present", {
+  par <- c(beta_mu = 0.5, beta_sigma = -0.7)
+
+  candidates <- drmTMB:::drm_log_sd_start_candidates(
+    par,
+    which = "log_sd_phylo",
+    factors = c(0.5, 2)
+  )
+
+  expect_length(candidates, 1L)
+  expect_equal(candidates[[1L]]$label, "cold")
+  expect_equal(candidates[[1L]]$par, par)
+})
+
+test_that("start ladder on a real fit never selects a worse objective than the cold start", {
+  set.seed(20260616)
+  id <- factor(rep(seq_len(8), each = 6))
+  x <- rep(seq(-1, 1, length.out = 6), times = 8)
+  u <- stats::rnorm(8, sd = 0.5)
+  dat <- data.frame(
+    y = 0.3 + 0.6 * x + u[id] + stats::rnorm(length(id), sd = 0.4),
+    x = x,
+    id = id
+  )
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ 1),
+    data = dat,
+    control = drm_control(se = FALSE)
+  )
+  obj <- fit$obj
+  candidates <- drmTMB:::drm_log_sd_start_candidates(
+    obj$par,
+    which = c("log_sd_mu", "log_sd_phylo", "log_sd_sigma")
+  )
+
+  expect_gt(length(candidates), 1L)
+
+  result <- drmTMB:::drm_run_start_ladder(
+    obj,
+    drm_control(se = FALSE),
+    candidates
+  )
+
+  cold_objective <- result$attempts$objective[
+    result$attempts$start_label == "cold"
+  ]
+  expect_lte(result$opt$objective, cold_objective + 1e-6)
+  expect_true(result$selected_converged)
+  expect_true(all(is.finite(
+    result$attempts$max_gradient[result$attempts$status == "ok"]
+  )))
+})
