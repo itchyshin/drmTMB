@@ -54313,3 +54313,33 @@ Known boundaries:
   bivariate q4 sigma-phylo model.
 - ML bootstrap plumbing has smoke evidence; REML bootstrap needs the DRM.jl
   #291 follow-up before it is presented as ready for Ayumi's protocol.
+
+## 2026-06-15: Claude/Codex project-state handover
+
+Scope:
+
+- Added root `PROJECT_STATE.md` as the first-read handover for the next Claude
+  or Codex session.
+- Captured the live mission-control dashboard address, source directory, and
+  refresh command.
+- Summarised the Ayumi q4 state, Santi/binomial state, open PRs/issues, current
+  claim boundaries, and next work order.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+git diff --check
+```
+
+Results:
+
+- Mission-control validator: `mission_control_ok: 18/68 banked_or_verified, 3
+  active, 16 matrix rows`.
+- Dashboard reachable at `http://127.0.0.1:8765/`, version `r4`.
+
+Boundary:
+
+- This handover is not a feature claim and does not close the Ayumi q4
+  blocker. It points the next agent to the active evidence and open issues.
