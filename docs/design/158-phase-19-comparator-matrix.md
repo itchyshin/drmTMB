@@ -72,14 +72,39 @@ Internal-to-comparator conversions:
 | `animal()` / `relmat()` | `MCMCglmm`, `ASReml`, `brms` | additive-genetic variance, heritability | ASReml is licensed; MCMCglmm/brms are Bayesian |
 | `skew_normal()` fixed-effect | `gamlss` (SN1/SN2), `sn` package | response mean, response SD, residual slant | `drmTMB` uses public moment parameters, so comparators must map native location/scale/skewness to `mu = E[y]`, `sigma = SD[y]`, and `nu` before comparing estimates |
 
+## Executed Comparator Artifacts
+
+The first banked Phase 19 artifact is the plain binomial fixed-effect
+`stats::glm()` parity bundle:
+
+```text
+docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/
+```
+
+It uses the Phase 18 `binomial_fixed_effect` writer with both supported
+response encodings, `n = 320`, `n_rep = 3`, and seed `20260616`. The artifact
+contains aggregate, replicate, manifest, failure-ledger, Wald-interval,
+Wald-coverage, and `stats::glm()` parity CSV tables plus a README with SHA,
+R/package versions, platform, seed, and interpretation label. In that parity
+bundle, the largest absolute `drmTMB` versus `stats::glm()` coefficient
+difference is `1.894251e-11`; the largest standard-error difference is
+`6.393821e-08`; the largest absolute `logLik` difference is `2.728484e-12`;
+and the largest absolute AIC/BIC difference is `5.456968e-12`.
+
+This is a parity artifact only. It does not support interval-calibration,
+speed, random-effect, structured-effect, bivariate, mixed-response, or Julia
+bridge claims.
+
 ## Definition Of Done For Phase 19
 
 Per #60: a comparator matrix (this note), one-off shared datasets, model fits on
 matched scales, timing summaries with full provenance, and a clear statement of
 where a comparator cannot fit the same distributional parameter, covariance
 structure, or known-covariance route. The matrix above fixes the mapping and the
-conversions; the remaining work is to run the fits on a machine with the
-comparator packages and record the results in a Phase 19 article or design note.
+conversions. The plain binomial GLM parity row is now banked; the remaining
+work is to run and audit the other comparator fits on a machine with the
+required comparator packages and record those results in a Phase 19 article or
+design note.
 
 The first executable comparator artifact for plain binomial is the Phase 18
 `binomial_fixed_effect` lane. It writes a `binomial-fe-glm-parity.csv` table

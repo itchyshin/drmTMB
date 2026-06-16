@@ -11,10 +11,13 @@ URL="http://$HOST:$PORT/"
 python3 "$ROOT/tools/validate-mission-control.py"
 
 mkdir -p "$DEST"
-mkdir -p "$DEST/docs/design" "$DEST/docs/dev-log/after-task"
+mkdir -p "$DEST/docs/design" "$DEST/docs/dev-log/after-task" "$DEST/docs/dev-log/comparator-results"
 cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$SRC/julia-gates.tsv" "$SRC/julia-capabilities.tsv" "$DEST/"
 cp "$ROOT/docs/design/168-r-julia-finish-capability-matrix.md" "$DEST/docs/design/"
 cp "$ROOT/docs/dev-log/after-task/"*.md "$DEST/docs/dev-log/after-task/"
+if [ -d "$ROOT/docs/dev-log/comparator-results" ]; then
+  cp -R "$ROOT/docs/dev-log/comparator-results/." "$DEST/docs/dev-log/comparator-results/"
+fi
 python3 - "$DEST/status.json" "$ROOT" <<'PY'
 import json
 import pathlib

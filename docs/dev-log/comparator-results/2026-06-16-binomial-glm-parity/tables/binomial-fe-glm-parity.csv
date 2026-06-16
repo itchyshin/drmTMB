@@ -1,0 +1,5 @@
+"surface","encoding","cell_id","parameter","n_replicate","artifact_grain","comparator","max_abs_coef_diff","mean_abs_coef_diff","max_abs_se_diff","max_abs_logLik_diff","max_abs_AIC_diff","max_abs_BIC_diff"
+"binomial_fixed_effect","binary","binomial_fixed_effect_001","mu:(Intercept)",3,"aggregate","stats::glm",5.31819033255942e-12,1.77273011085314e-12,2.37095674204824e-08,1.4210854715202e-13,2.8421709430404e-13,2.8421709430404e-13
+"binomial_fixed_effect","binary","binomial_fixed_effect_001","mu:x",3,"aggregate","stats::glm",1.8942514223852e-11,6.31417140795065e-12,6.39382087552764e-08,1.4210854715202e-13,2.8421709430404e-13,2.8421709430404e-13
+"binomial_fixed_effect","cbind","binomial_fixed_effect_002","mu:(Intercept)",3,"aggregate","stats::glm",0,0,1.20396307853876e-09,2.72848410531878e-12,5.45696821063757e-12,5.45696821063757e-12
+"binomial_fixed_effect","cbind","binomial_fixed_effect_002","mu:x",3,"aggregate","stats::glm",0,0,1.32536382563275e-09,2.72848410531878e-12,5.45696821063757e-12,5.45696821063757e-12

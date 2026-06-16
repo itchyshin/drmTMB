@@ -17,9 +17,11 @@ Per Grace's and Rose's gates in `ROADMAP.md`, release preparation should not
 *start* until the implemented surface, Phase 18 simulation evidence, and Phase 19
 comparator evidence agree with the documentation. The capability worklist
 (`docs/design/157-capability-completion-worklist.md`) shows Tier A–E slices are
-still pending local implementation, and Phase 18 recovery/coverage and Phase 19
-comparator runs are not yet executed. This checklist is the *preparation index*,
-not the trigger. It records what is ready now and what each remaining gate needs.
+still pending local implementation. Phase 18 recovery/coverage and the broad
+Phase 19 comparator programme are not complete. The fixed-effect binomial
+`stats::glm()` parity artifact is banked, but it is only one comparator row.
+This checklist is the *preparation index*, not the trigger. It records what is
+ready now and what each remaining gate needs.
 
 ## First-Release CRAN Hygiene (#342)
 
@@ -38,6 +40,7 @@ not the trigger. It records what is ready now and what each remaining gate needs
 | --- | --- | --- |
 | Reconcile any dirty worktree / parked artifact lanes | pending | Decide which pending capability slices belong in 0.2.0 vs a later minor |
 | Every included feature has NEWS, tests, docs, examples, check-log, after-task | mostly done | Maintained per slice; final audit needed at freeze |
+| First executable Phase 19 comparator artifact | partial | Fixed-effect `stats::binomial(link = "logit")` GLM parity bundle is banked at `docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/`; other comparator rows remain pending |
 | `devtools::document()` after roxygen settles | local-R only | |
 | Focused tests for recently changed lanes | local-R only | Phase 18 recovery lanes run on Actions; full local run still needed |
 | `devtools::test()` | local-R only | |
@@ -81,8 +84,11 @@ steps (`use_github_release()`, `use_dev_version()`, announcement).
 ## What Is Genuinely Ready Now
 
 DESCRIPTION metadata, README install path, NEWS discipline, and the
-documentation boundary (docs 46/157/158) are in good shape. The release is
-gated on (1) completing the pending capability slices the owner wants in 0.2.0,
-(2) running the Phase 18 recovery/coverage and Phase 19 comparator evidence, and
-(3) the local CRAN-check sequence and the profile-likelihood demonstration
-article — all of which need a local-R machine.
+documentation boundary (docs 46/157/158) are in good shape. The first
+executable comparator artifact now exists for the fixed-effect binomial GLM
+parity row. The release is still gated on (1) completing the pending capability
+slices the owner wants in 0.2.0, (2) running the broader Phase 18
+recovery/coverage and Phase 19 comparator evidence, (3) resolving the
+pkgdown/navigation gate, and (4) the local CRAN-check sequence and the
+profile-likelihood demonstration article — all of which need a local-R machine
+or an explicit owner decision.
