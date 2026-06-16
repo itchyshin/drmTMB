@@ -69,7 +69,12 @@ phase18_run_replicate <- function(
       }
     ),
     warning = function(w) {
-      warnings <<- c(warnings, conditionMessage(w))
+      # The drmTMB convergence warning is informational: the simulation summary
+      # already tracks per-fit convergence and pdHess, so capturing it here would
+      # double-count it as a ledger failure. Record every other warning.
+      if (!inherits(w, "drmTMB_convergence_warning")) {
+        warnings <<- c(warnings, conditionMessage(w))
+      }
       invokeRestart("muffleWarning")
     }
   )
@@ -527,9 +532,7 @@ phase18_write_simple_grid_tables <- function(summary, paths) {
 }
 
 phase18_grid_artifact_manifest <- function(surface, paths) {
-  if (
-    !is.character(surface) || length(surface) != 1L || !nzchar(surface)
-  ) {
+  if (!is.character(surface) || length(surface) != 1L || !nzchar(surface)) {
     stop("`surface` must be one non-empty character string.", call. = FALSE)
   }
   if (!is.list(paths) || length(paths) == 0L || is.null(names(paths))) {
@@ -564,7 +567,11 @@ phase18_grid_artifact_manifest <- function(surface, paths) {
 
 phase18_bind_grid_artifact_manifests <- function(...) {
   pieces <- list(...)
-  if (length(pieces) == 1L && is.list(pieces[[1L]]) && !is.data.frame(pieces[[1L]])) {
+  if (
+    length(pieces) == 1L &&
+      is.list(pieces[[1L]]) &&
+      !is.data.frame(pieces[[1L]])
+  ) {
     pieces <- pieces[[1L]]
   }
   pieces <- lapply(pieces, phase18_extract_grid_artifact_manifest)

@@ -44,7 +44,13 @@ print.drmTMB <- function(x, ...) {
     )
   }
   cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
-  cli::cli_text("  convergence: {x$opt$convergence}")
+  if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
+    cli::cli_text("  convergence: {x$opt$convergence}")
+  } else {
+    cli::cli_text(
+      "  convergence: {x$opt$convergence} (not converged; see {.fn check_drm})"
+    )
+  }
   invisible(x)
 }
 
