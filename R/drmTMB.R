@@ -370,6 +370,17 @@ drmTMB <- function(
   spec <- add_covariance_probe_parameter(spec)
   spec <- drm_apply_estimator_spec(spec, REML = REML)
   spec <- drm_apply_phylo_penalty_spec(spec, penalty)
+  if (is.null(control$logsigma_clamp)) {
+    spec$tmb_data$use_logsigma_clamp <- 0L
+    spec$tmb_data$logsigma_clamp <- c(-12, 12, 3)
+  } else {
+    spec$tmb_data$use_logsigma_clamp <- 1L
+    spec$tmb_data$logsigma_clamp <- c(
+      control$logsigma_clamp[[1L]],
+      control$logsigma_clamp[[2L]],
+      control$logsigma_clamp_margin
+    )
+  }
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
@@ -12299,7 +12310,9 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     list(
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
-      phylo_cor_penalty_sd = numeric(0)
+      phylo_cor_penalty_sd = numeric(0),
+      use_logsigma_clamp = 1L,
+      logsigma_clamp = c(-12, 12, 3)
     )
   )
 }

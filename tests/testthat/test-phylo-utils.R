@@ -125,7 +125,9 @@ phylo_prior_tmb_data <- function(precision) {
       log_det_Q_phylo = precision$log_det_precision,
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
-      phylo_cor_penalty_sd = numeric(0)
+      phylo_cor_penalty_sd = numeric(0),
+      use_logsigma_clamp = 1L,
+      logsigma_clamp = c(-12, 12, 3)
     ),
     drmTMB:::empty_labelled_covariance_block_tmb_data()
   )

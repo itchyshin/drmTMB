@@ -12,6 +12,8 @@ drm_control(
   keep_tmb_object = TRUE,
   sparse_fixed = FALSE,
   aggregate_gaussian = FALSE,
+  logsigma_clamp = c(-12, 12),
+  logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust")
 )
 }
@@ -52,6 +54,18 @@ statistic row aggregation in univariate Gaussian fixed-effect models. The
 first fitted path rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
 likelihood weights, and combined sparse fixed-effect matrices.}
+
+\item{logsigma_clamp}{Numeric \code{c(lo, hi)} band, or \code{NULL}. Bounds the
+per-observation Gaussian \code{log(sigma)} with an identity-in-band soft-clamp,
+a numerical guard against scale overflow on near-degenerate per-group scale
+models. The default \code{c(-12, 12)} is identity for any standardized response;
+widen it for legitimately huge-variance unstandardized data, or set \code{NULL}
+to disable the guard entirely. It is a numerical guard only and does not
+change identifiability.}
+
+\item{logsigma_clamp_margin}{Positive number; the soft-clamp saturation
+margin beyond \code{logsigma_clamp} (default \code{3}, saturating to \verb{[-15, 15]} for
+the default band). Ignored when \code{logsigma_clamp = NULL}.}
 
 \item{optimizer_preset}{Optimizer-budget preset. \code{"default"} adds no
 optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
