@@ -35,6 +35,7 @@ evidence is reconciled.
 | Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Native R/TMB now has q4 target inventory and endpoint-budget status rows, but promotion still waits for native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
 | Non-Gaussian models | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. |
+| Bernoulli/binomial response family | planned | unsupported | planned | planned | planned | unsupported | planned | planned | planned | planned | Implement `drmTMB#569` as fixed-effect `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, then prove `stats::glm()` parity before any bridge or interval-calibration claim. |
 | Bivariate residual correlation `rho12` | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Keep residual `rho12` separate from group, phylogenetic, spatial, kernel, and cross-family correlations. |
 | Mixed and cross-family correlation | planned | unsupported | planned | planned | planned | planned | planned | planned | planned | planned | Use `DRM.jl#280`-style recovery and bridge labels before user-facing promotion. |
 | High-q correlations | partial | planned | partial | planned | planned | planned | partial | planned | partial | planned | q4 first, q8 second; higher q requires transform, gradient, recovery, and CI-status evidence. |
@@ -58,6 +59,34 @@ evidence is reconciled.
 5. A closed issue must name the check-log entry, after-task report, and next
    issue if a neighbouring row remains planned.
 
+## Bridge Gate Registry Contract
+
+`drmTMB#544` owns the generated bridge-gate registry. Each intentional
+`engine = "julia"` rejection should have a row with these fields:
+
+```text
+gate_id
+family_type
+syntax
+r_bridge_status
+drmjl_status
+message_pattern
+review_due
+evidence_url
+```
+
+The CI guard should fail when an R-side Julia rejection lacks a registry row,
+when a registry row lacks a representative test, when a DRM.jl-covered cell
+remains R-gated without an intentional reason, or when public docs claim more
+than the registry supports. The registry should cross-link `gllvmTMB#488` for
+the mirror drift pattern, but it should not borrow `gllvmTMB`'s higher
+dimensional model scope.
+
+For `drmTMB#569`, the bridge registry may acknowledge DRM.jl Binomial support
+where it exists, but the first public binomial response family claim remains
+native TMB only until R-side response parsing, likelihood parity, method tests,
+and separate bridge parity evidence exist.
+
 ## Dashboard Contract
 
 The live dashboard is an operating surface, not a release claim. It should show
@@ -68,37 +97,56 @@ without an evidence entry.
 The durable dashboard source lives in `docs/dev-log/dashboard/`. The live copy
 is served from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`.
 
+The issue-led finish board is row-oriented. It separates the critical path,
+issue ledger, twin claim board, cross-package lessons, evidence gates, and
+release readiness so that fitted, planned, unsupported, experimental, and
+weakly identified cells cannot collapse into one status word.
+
 ## Claim Guards
 
 - Current `engine = "julia"` examples use the default `DRM.jl` fitting path.
   They are not evidence that users can choose Julia-side algorithms from R.
+- The lead `drmTMB` novelty is predictor-dependent residual `rho12`, not speed
+  and not scale-side phylogenetic effects.
+- Scale-side phylogenetic fields with about one observation per tip should be
+  described as weakly identified, confounding-prone, or prior-sensitive. Do not
+  promote them with stronger language, and do not cite the Ayumi Model A
+  likelihood-ratio result until Claude banks that number reproducibly.
 - `pdHess = FALSE` blocks Wald promotion, but it does not automatically discard
   a useful point estimate.
 - Profile and bootstrap intervals are target-specific. Endpoint parity for one
   Gaussian phylogenetic SD target does not promote fixed effects, non-Gaussian
   families, scale formulas, multiple structured terms, or neighbouring syntax.
-- `drmTMB#547` fixes q4 Julia REML option forwarding only. Native
-  `engine = "tmb"` is not a full REML fallback for Ayumi's bivariate q4
-  phylogenetic location-scale model, and speed plus full q4 inference
-  validation remain separate evidence slices.
+- `drmTMB#547` fixes q4 Julia REML option forwarding only. The native TMB path
+  does not currently provide a general REML estimator; do not add a phantom
+  scale-side REML gap row unless a real estimator design exists. Speed
+  and full q4 inference validation remain separate evidence slices.
 - AI-REML wording belongs only to exact Gaussian REML/MME derivations. For
   Laplace and non-Gaussian distributional models, use the actual method name.
 - Speed claims require point estimate, objective/log-likelihood, CI/status,
   convergence, failure count, thread, memory, version, and dirty-state evidence.
+- Plain Bernoulli/binomial support means event-probability `mu` only. It is not
+  beta-binomial overdispersion, beta/zero-one beta continuous-proportion
+  modelling, binary missing-predictor imputation, random-effect binomial, or a
+  Julia bridge claim.
 
 ## First Work Order
 
 1. Keep the dashboard live at `http://127.0.0.1:8765/`.
-2. Finish the R-first Ayumi q4 support/status path in `drmTMB#555`: native TMB
-   ML fit status, native REML rejection status, profile-target inventory,
-   interval rows, endpoint-budget status rows, warnings/messages/errors, and
-   metadata.
-3. Keep native `engine = "tmb"` useful for supported point-estimate,
-   reduced-model, and ML profile-status checks before promising Julia speed.
-4. Keep `drmTMB#544` active as the bridge-gate epic, but run it after the
-   native R/TMB status path is visible and honest.
-5. Add the shared CI-status vocabulary.
-6. Promote the Gaussian phylogenetic SD profile/bootstrap target only after all
-   point-estimate and interval-status evidence is in one matrix row.
-7. Start missing values with observed-response masks and complete-data
-   equivalence tests.
+2. Land the finish-board widget row schema, renderer, validator, issue rows,
+   cross-package lessons, and acceptance gates.
+3. Record the `drmTMB#569` binomial response contract before code:
+   `stats::binomial(link = "logit")`, 0/1 and `cbind(successes, failures)`,
+   fixed-effect `mu` only, no weights-as-trials, no `sigma`, no structured or
+   random effects, no bivariate route, and no Julia bridge claim.
+4. Implement `drmTMB#569` only after the contract is visible and the
+   Claude-owned `src/drmTMB.cpp` seam has cleared. The first public claim is
+   fixed-effect estimation and `stats::glm()` parity.
+5. Keep `drmTMB#544` active as the bridge-gate epic: generate the gate table,
+   add representative rejection tests, cross-link `gllvmTMB#488`, and fail CI
+   when bridge claims outrun the registry.
+6. Start optional Phase 18 `binomial_fixed_effect` evidence only after the API
+   stabilizes; report MCSE, convergence, `pdHess`, boundary, warning, failure,
+   version, SHA, and elapsed-time fields.
+7. Leave release, comparator, and CRAN readiness planned until implementation,
+   evidence, pkgdown, issue comments, dashboard rows, and 3-OS CI agree.

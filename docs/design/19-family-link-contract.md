@@ -56,6 +56,41 @@ The implemented families use these parameter meanings:
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
 
+## Planned Next Contract: Plain Binomial Response
+
+The next planned primary response family is ordinary Bernoulli/binomial logit,
+owned by `drmTMB#569`. The public route is deliberately the base R family:
+
+```r
+drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
+drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
+```
+
+The first slice has one distributional parameter:
+
+| Family | Parameter | Link | Response-scale meaning |
+|---|---|---|---|
+| Binomial | `mu` | logit | event probability; `fitted()` returns `mu` |
+
+The statistical contract is:
+
+```text
+Y_i ~ Binomial(n_i, mu_i)
+logit(mu_i) = eta_i = X_mu[i, ] beta_mu
+```
+
+For a 0/1 response, `n_i = 1` and `Y_i` is the event indicator. For
+`cbind(successes, failures)`, `Y_i = successes_i` and
+`n_i = successes_i + failures_i`. The first implementation should include the
+binomial normalizing constant so `logLik()`, AIC, and BIC match
+`stats::glm()` on overlapping fixed-effect logit models.
+
+The first slice must reject non-logit links, factor-response ordering,
+proportions plus `weights`, `weights = trials`, `successes / trials`, `sigma`,
+`nu`, `zi`, `zoi`, `coi`, random effects, structured effects, bivariate or
+mixed responses, and `engine = "julia"`. Top-level `weights` remain likelihood
+weights, not trial totals.
+
 For lognormal fits:
 
 ```text

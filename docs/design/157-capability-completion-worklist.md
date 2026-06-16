@@ -58,6 +58,7 @@ Read this first — it is the distinction most likely to be confused.
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
 | `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane; formal high-replicate operating characteristics remain future evidence |
+| Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | **Not-yet-fitted**; first accepted route is `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal random/structured/bivariate/known-covariance/latent-skew extensions; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
@@ -77,26 +78,37 @@ time.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
-1. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
+1. **Plain Bernoulli/binomial fixed-effect response (`drmTMB#569`).**
+   - Gate: `docs/design/168-r-julia-finish-capability-matrix.md`,
+     `docs/design/19-family-link-contract.md`, and
+     `docs/design/24-denominator-response-syntax.md`.
+   - Scope: `family = stats::binomial(link = "logit")`, 0/1 responses and
+     `cbind(successes, failures)`, fixed-effect `mu` only, no `sigma`, no
+     `rho12`, no random or structured effects, no bivariate route, no
+     proportions plus `weights`, and no Julia bridge claim.
+   - Evidence: first public claim is fixed-effect estimation and
+     `stats::glm()` parity, including likelihood constants so `logLik`, AIC,
+     and BIC agree on overlapping likelihoods.
+2. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
    route, diagnostic smoke/recovery artifacts, and a 2026-06-07 local
    two-cell audit exist, but low convergence, zero positive-Hessian rate, two
    leading-minor optimization errors, and unavailable intervals mean they do
    not support individual-difference power claims.
-2. *(parallel)* `skew_normal()` fixed-effect artifact depth — Tier C follow-up;
+3. *(parallel)* `skew_normal()` fixed-effect artifact depth — Tier C follow-up;
    the first fitted slice exists, and the remaining useful work is a larger
    formal operating-characteristic run plus any external comparator that can
    match the public moment parameterization honestly.
-3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
+4. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic
    covariance).
-4. Correlated non-Gaussian slopes and labelled non-Gaussian covariance —
+5. Correlated non-Gaussian slopes and labelled non-Gaussian covariance —
    currently `blocked`; needs a likelihood-design gate before code.
-5. Random effects in `rho12` — Tier D; needs its own gate first.
-6. *(parallel)* Large-data: sparse fixed effects, sufficient-statistic
+6. Random effects in `rho12` — Tier D; needs its own gate first.
+7. *(parallel)* Large-data: sparse fixed effects, sufficient-statistic
    aggregation, 1M-row benchmarks — Tier E.
-7. Mixed-response bivariate — Tier F; research-scoped, **defer** (not needed for
+8. Mixed-response bivariate — Tier F; research-scoped, **defer** (not needed for
    the first power simulation).
-8. *(parallel, inference engine — not a model surface)* Gaussian variational
+9. *(parallel, inference engine — not a model surface)* Gaussian variational
     approximation (GVA), an accuracy-oriented alternative to Laplace for
     non-Gaussian random-intercept models — Tier G; independent of Tiers A–F.
 
@@ -128,9 +140,10 @@ then the 0.2.0 release checklist (`docs/design/159-...`) including the
 profile-likelihood demonstration article.
 
 **Then:** the big power simulation, covering whichever Phase A surfaces have
-passed Phase B recovery/coverage. Q8 coverage/power, a stronger same-response q2
-interval/convergence lane, and the parallel skew-normal first slice are the
-highest-value additions for power claims.
+passed Phase B recovery/coverage. The immediate product-facing addition is the
+plain binomial response family; q8 coverage/power, a stronger same-response q2
+interval/convergence lane, and the parallel skew-normal evidence follow-up are
+the highest-value additions for later power claims.
 
 ## Readiness Snapshot
 

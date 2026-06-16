@@ -77,7 +77,7 @@ h1 { margin: 0; font-size: clamp(24px, 3vw, 36px); letter-spacing: 0; }
   gap: 12px;
   margin: 24px 0 14px;
 }
-.card, .panel, .phase, .agent, .matrix-row, .repo {
+.card, .panel, .phase, .agent, .matrix-row, .repo, .finish-section, .finish-card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -100,6 +100,48 @@ h1 { margin: 0; font-size: clamp(24px, 3vw, 36px); letter-spacing: 0; }
 .repo.dirty { border-color: var(--rose); background: var(--rose-bg); }
 .repo-name { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-weight: 700; }
 .repo-meta { margin-top: 5px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.finish-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+.finish-section { padding: 14px; }
+.finish-section h3 { margin: 0 0 10px; font-size: 15px; }
+.finish-stack { display: grid; gap: 10px; }
+.finish-card { padding: 12px; background: var(--bg); }
+.finish-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: start;
+}
+.finish-title { font-weight: 700; overflow-wrap: anywhere; }
+.finish-meta { margin-top: 5px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.owners { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.owner {
+  display: inline-flex;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  background: var(--panel);
+}
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.status-cell {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.status-cell .label { display: block; margin-bottom: 4px; }
 .two-col { display: grid; grid-template-columns: 1.06fr .94fr; gap: 16px; margin-top: 18px; }
 h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .phase { margin-bottom: 10px; overflow: hidden; }
@@ -194,8 +236,10 @@ a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: 2
 code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size: .92em; }
 @media (max-width: 900px) {
   .top, .two-col, .grid { grid-template-columns: 1fr; }
+  .finish-board { grid-template-columns: 1fr; }
   .repo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .phase-head { grid-template-columns: 72px 1fr; }
   .phase-owner, .phase-head .pill { justify-self: start; }
   .slices { padding-left: 14px; }
@@ -205,6 +249,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 @media (max-width: 560px) {
   .repo-grid { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr; }
+  .status-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -220,6 +265,9 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 
   <section class="grid" id="metrics"></section>
   <section id="progress"></section>
+
+  <h2>Finish Board</h2>
+  <section class="finish-board" id="finish-board"></section>
 
   <h2>Repo Truth</h2>
   <section class="repo-grid" id="repos"></section>
@@ -257,7 +305,28 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r4";
+const BUILD = "r5";
+const FINISH_SECTIONS = [
+  "Critical Path",
+  "Issue Ledger",
+  "Twin Claim Board",
+  "Cross-Package Lessons",
+  "Evidence Gates",
+  "Release Readiness"
+];
+const FINISH_FIELDS = [
+  ["engine_tmb", "TMB"],
+  ["engine_julia", "Julia"],
+  ["point", "Point"],
+  ["wald", "Wald"],
+  ["profile", "Profile"],
+  ["bootstrap", "Boot"],
+  ["tests", "Tests"],
+  ["docs", "Docs"],
+  ["visual", "Visual"],
+  ["simulation", "Sim"],
+  ["release_gate", "Release"]
+];
 const statusClass = (x) => String(x || "queued").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
 const text = (x) => String(x == null ? "" : x);
 const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({
@@ -265,6 +334,7 @@ const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({
 })[m]);
 const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(x)}</span>`;
 const link = (x, label) => x ? `<a href="${esc(x)}">${esc(label || x)}</a>` : "";
+const values = (x) => Array.isArray(x) ? x : (x ? [x] : []);
 const itemList = (items, empty) => (items && items.length)
   ? items.map((x) => `<div class="activity"><div class="stamp">${esc(x.when || x.status || "")}</div><div><span class="who">${esc(x.who || x.kind || "")}</span> ${esc(x.text || x.item || "")} ${link(x.url, x.link_label)}</div></div>`).join("")
   : `<div class="activity"><div class="stamp">idle</div><div>${esc(empty)}</div></div>`;
@@ -330,6 +400,45 @@ function renderRepos(data) {
   ).join("");
 }
 
+function renderFinishBoard(data) {
+  const rows = data.finish_board || [];
+  const sections = FINISH_SECTIONS.map((section) => {
+    const sectionRows = rows.filter((row) => row.lane === section);
+    if (!sectionRows.length) return "";
+    const cards = sectionRows.map((row) => {
+      const ownerList = values(row.owners).map((owner) => `<span class="owner">${esc(owner)}</span>`).join("");
+      const statusCells = FINISH_FIELDS.map(([field, label]) =>
+        `<div class="status-cell"><span class="label">${esc(label)}</span>${pill(row[field] || "planned")}</div>`
+      ).join("");
+      const encodings = values(row.response_encoding).length
+        ? `<div class="finish-meta">encoding: ${values(row.response_encoding).map(esc).join(", ")}</div>`
+        : "";
+      const dpars = values(row.dpars).length
+        ? `<div class="finish-meta">dpars: ${values(row.dpars).map(esc).join(", ")}</div>`
+        : "";
+      const evidence = row.evidence_url ? `<div class="note">${link(row.evidence_url, "evidence")}</div>` : "";
+      return `<article class="finish-card">
+        <div class="finish-top">
+          <div>
+            <div class="finish-title">${esc(row.id)}</div>
+            <div class="finish-meta">${esc(row.package || "")} ${link(row.issue, row.issue_label || "issue")}</div>
+          </div>
+          ${pill(row.status || row.release_gate || "planned")}
+        </div>
+        <div class="finish-meta">${esc(row.family || row.syntax || "")}</div>
+        ${encodings}
+        ${dpars}
+        <div class="owners">${ownerList}</div>
+        <div class="status-grid">${statusCells}</div>
+        <div class="note">${esc(row.blocker || row.next_action || "")}</div>
+        ${evidence}
+      </article>`;
+    }).join("");
+    return `<article class="finish-section"><h3>${esc(section)}</h3><div class="finish-stack">${cards}</div></article>`;
+  }).join("");
+  document.getElementById("finish-board").innerHTML = sections || "<article class=\"panel\">No finish-board rows recorded.</article>";
+}
+
 function renderTeam(data) {
   document.getElementById("team").innerHTML = (data.agents || []).map((agent) =>
     `<article class="agent"><div class="agent-top"><span class="agent-name">${esc(agent.name)}</span>${pill(agent.status)}</div><div class="agent-role">${esc(agent.role)}</div></article>`
@@ -363,6 +472,7 @@ function render(data) {
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
   renderMetrics(data);
+  renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
   renderTeam(data);
