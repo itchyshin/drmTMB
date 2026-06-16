@@ -836,6 +836,28 @@ drm_warn_if_not_converged <- function(opt) {
 # the band, otherwise a list with the extreme |log_sigma| and the band. Reads
 # every reported `log_sigma*` field so univariate and bivariate scales are
 # covered.
+# Model types whose main-likelihood scale is wrapped by the log(sigma) soft-clamp
+# (Wave 2). Count families without a scale (poisson, zi_poisson, cumulative_logit)
+# are excluded. Keep in sync with the clamp call sites in src/drmTMB.cpp.
+drm_clamped_scale_families <- function() {
+  c(
+    "gaussian",
+    "biv_gaussian",
+    "student",
+    "skew_normal",
+    "lognormal",
+    "gamma",
+    "tweedie",
+    "beta",
+    "zero_one_beta",
+    "beta_binomial",
+    "nbinom2",
+    "truncated_nbinom2",
+    "hurdle_nbinom2",
+    "zi_nbinom2"
+  )
+}
+
 drm_logsigma_clamp_active <- function(report, tmb_data) {
   enabled <- tmb_data$use_logsigma_clamp
   if (length(enabled) != 1L || !identical(as.integer(enabled), 1L)) {
@@ -847,7 +869,12 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   }
   lo <- band[[1L]]
   hi <- band[[2L]]
-  fields <- report[grepl("^log_sigma", names(report))]
+  # Only the main-likelihood scales are soft-clamped; match their exact REPORT
+  # names so the unclamped missing-predictor imputation scales (log_sigma_*_mi)
+  # never trip the detector.
+  fields <- report[
+    names(report) %in% c("log_sigma", "log_sigma1", "log_sigma2")
+  ]
   values <- unlist(fields, use.names = FALSE)
   values <- values[is.finite(values)]
   # Only the upper bound flags artificial convergence from a runaway scale
@@ -864,10 +891,11 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
 # keeps a runaway scale finite, but a fit that settles on it may have converged
 # artificially (flat saturated tail), so estimates and SEs there are unreliable.
 drm_warn_if_clamp_active <- function(obj, spec) {
-  # The clamp is applied in C++ only for the Gaussian and bivariate-Gaussian
-  # likelihoods; use_logsigma_clamp is a data default on every model, so gate on
-  # the model type to avoid false positives where the clamp is never applied.
-  if (!isTRUE(spec$model_type %in% c("gaussian", "biv_gaussian"))) {
+  # The clamp is applied in C++ for every scale-bearing family (Wave 2); gate on
+  # those model types because use_logsigma_clamp is a data default on every model
+  # (including count families without a scale), so checking it alone would flag
+  # models where the clamp is never applied.
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
     return(invisible(FALSE))
   }
   report <- tryCatch(obj$report(), error = function(e) NULL)
