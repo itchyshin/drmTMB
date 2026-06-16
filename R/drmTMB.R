@@ -427,6 +427,7 @@ drm_fit_spec <- function(
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
   drm_warn_if_not_converged(opt)
+  drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
   drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
@@ -1685,6 +1686,26 @@ drm_warn_if_not_converged <- function(opt) {
       "i" = "Treat the estimates and standard errors with caution; run {.fn check_drm} to diagnose, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
     ),
     class = "drmTMB_convergence_warning"
+  )
+  invisible(TRUE)
+}
+
+# Warn at fit time when the optimized objective is not finite. TMB normally
+# returns a finite objective at the reported optimum, so this is a defensive
+# guard: a non-finite objective means the fit never reached a usable optimum and
+# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
+# thrown an error.
+drm_warn_if_nonfinite_objective <- function(opt) {
+  objective <- opt$objective
+  if (length(objective) == 1L && is.finite(objective)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the optimized objective is not finite.",
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+    ),
+    class = "drmTMB_nonfinite_objective_warning"
   )
   invisible(TRUE)
 }

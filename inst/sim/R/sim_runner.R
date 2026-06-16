@@ -73,7 +73,11 @@ phase18_run_replicate <- function(
       # simulation summary already tracks per-fit convergence, pdHess, and scale
       # state, so capturing them here would double-count them as ledger failures.
       # Record every other warning.
-      own <- c("drmTMB_convergence_warning", "drmTMB_clamp_active_warning")
+      own <- c(
+        "drmTMB_convergence_warning",
+        "drmTMB_clamp_active_warning",
+        "drmTMB_nonfinite_objective_warning"
+      )
       if (!inherits(w, own)) {
         warnings <<- c(warnings, conditionMessage(w))
       }
