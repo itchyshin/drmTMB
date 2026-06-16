@@ -54688,3 +54688,14 @@ caught at the n=100 validation checkpoint and fixed.
 Boundary: "fittable" is not "identified." A penalized Model E is a MAP estimate
 reported with the sensitivity sweep; the clean path to the full coupled model is
 intraspecific replication.
+
+## 2026-06-16: Controls + convergence documentation (Phase 6 docs slice)
+
+New docs/design/174-controls-and-convergence.md (control catalog, the
+generalization-via-controls principle, interval-method findings, the
+data-vs-prior cor_sd rule), a penalized/MAP section in vignettes/convergence.Rmd,
+and a NEWS bullet for the penalty estimator. Docs only; no package R/src change.
+convergence.Rmd renders (RENDER_OK; the new chunks are eval=FALSE). Interval
+finding: on a penalized PD fit, Wald is instant, profile works with named
+targets, bootstrap works (slow); bootstrap fails only on the non-PD flat ridge.
+git diff --check clean.
