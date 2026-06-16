@@ -40,6 +40,16 @@ test_that("drm_logsigma_clamp_active is robust to missing fields and non-finite 
   expect_null(drm_logsigma_clamp_active(list(log_sigma = c(NA_real_, 0.2)), on))
 })
 
+test_that("drm_logsigma_clamp_active ignores unclamped _mi imputation scales", {
+  on <- list(use_logsigma_clamp = 1L, logsigma_clamp = c(-12, 12, 3))
+  # The missing-predictor imputation scale is not clamped, so an out-of-band
+  # log_sigma_mi must not be read as a clamp-active main scale.
+  expect_null(drm_logsigma_clamp_active(list(log_sigma_mi = 14), on))
+  expect_false(is.null(
+    drm_logsigma_clamp_active(list(log_sigma = 14, log_sigma_mi = 14), on)
+  ))
+})
+
 test_that("a fit with the clamp active at the optimum warns", {
   set.seed(1)
   n <- 60
@@ -68,5 +78,28 @@ test_that("a clean fit does not emit a clamp-active warning", {
   dat <- data.frame(y = 1 + 0.5 * x + stats::rnorm(n, 0, 0.6), x = x)
   expect_no_warning(
     drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  )
+})
+
+test_that("the clamp-active warning now covers non-Gaussian scale families", {
+  # Wave 2 extended the clamp to all scale families, so the detector must flag a
+  # non-Gaussian (gamma) scale that runs to the upper clamp.
+  set.seed(2)
+  n <- 120
+  x <- stats::rnorm(n)
+  dat <- data.frame(
+    y = stats::rgamma(n, shape = 3, rate = 3 / exp(0.4 + 0.3 * x)),
+    x = x
+  )
+  expect_warning(
+    allow_nonconvergence(
+      drmTMB(
+        bf(y ~ x, sigma ~ 1),
+        family = stats::Gamma(link = "log"),
+        data = dat,
+        control = drm_control(logsigma_clamp = c(-3, -0.8))
+      )
+    ),
+    class = "drmTMB_clamp_active_warning"
   )
 })
