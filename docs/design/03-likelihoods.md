@@ -105,6 +105,47 @@ against the R algebra helpers. The C++ modularization source map in
 `docs/design/36-cpp-modularization-source-map.md` records how to keep those
 hidden probes separate during future file-splitting work.
 
+## Planned Bernoulli/Binomial Response Branch
+
+`drmTMB#569` will add the first primary Bernoulli/binomial response route after
+the response contract and the Claude-owned `src/drmTMB.cpp` seam are clear. The
+intended public syntax is:
+
+```r
+drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
+drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
+```
+
+The first TMB branch should be a fixed-effect `mu` model only:
+
+```text
+Y_i ~ Binomial(n_i, mu_i)
+eta_i = X_mu[i, ] beta_mu
+mu_i = logistic(eta_i)
+```
+
+For 0/1 responses, `n_i = 1`. For two-column responses, `n_i` is
+`successes_i + failures_i`. The negative log likelihood should include the
+binomial normalizing constant:
+
+```text
+nll_i = -log choose(n_i, Y_i)
+        - Y_i log(mu_i)
+        - (n_i - Y_i) log(1 - mu_i)
+```
+
+using stable log-probability calculations near 0 and 1. Including the constant
+is required so `logLik()`, AIC, and BIC match `stats::glm()` for overlapping
+fixed-effect logit fits.
+
+The first slice deliberately has no public `sigma`, no `rho12`, no random
+effects, no structured effects, no bivariate route, no mixed-response route,
+no non-logit link, and no `engine = "julia"` claim. Proportions plus
+`weights`, `weights = trials`, and `successes / trials` are rejected because
+top-level `weights` remain likelihood weights, not denominators. Extra-binomial
+variation remains the job of `beta_binomial()`, while continuous proportions
+belong to `beta()` or `zero_one_beta()`.
+
 ## Gaussian Aggregation Branch
 
 When `drm_control(aggregate_gaussian = TRUE)` is used for the first supported

@@ -54474,3 +54474,79 @@ Results:
 
 Scope: this banks the identified core (Model A+) and the reframe. It does not add
 or claim a scale-side phylogenetic result.
+
+## 2026-06-16: Finish-board widget and binomial response contract
+
+Implemented the first non-Ayumi slice from the combined twin finish plan in a
+clean worktree at `/private/tmp/drmtmb-finish-board`, based on
+`origin/main` commit `d37496f2` after the Gaussian log-sigma clamp merge, then
+rebased onto `db161d64` after the Ayumi Model A+ evidence/reframing merge.
+
+Scope:
+
+- Added a row-oriented `finish_board` to
+  `docs/dev-log/dashboard/status.json`, grouped into Critical Path, Issue
+  Ledger, Twin Claim Board, Cross-Package Lessons, Evidence Gates, and Release
+  Readiness.
+- Updated `docs/dev-log/dashboard/index.html` to render the board and bumped
+  the dashboard build from `r4` to `r5`.
+- Extended `tools/validate-mission-control.py` to check finish-board lanes,
+  owner names, issue URLs, status vocabulary, evidence discipline, standing
+  review names, and matrix/design row-count synchronization.
+- Added `drmTMB#569` as a dedicated Bernoulli/binomial response row in
+  `docs/design/168-r-julia-finish-capability-matrix.md` and updated
+  `docs/design/157-capability-completion-worklist.md` so #569 appears before
+  older q8/skew/structured implementation work.
+- Recorded the planned `stats::binomial(link = "logit")` response contract in
+  docs 01, 02, 03, 06, 19, and 24: 0/1 and
+  `cbind(successes, failures)`, fixed-effect `mu` only, no
+  weights-as-trials, no `sigma`, no random/structured/bivariate route, no
+  Julia bridge claim, and `stats::glm()` parity first.
+- Added the `drmTMB#544` bridge-gate registry field list and CI-fail
+  conditions to doc 168.
+
+Issue ledger:
+
+- Created `drmTMB#577` for the finish-board widget.
+- Posted the #569 consensus comment:
+  <https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4718667648>
+- Posted the #544 registry contract comment:
+  <https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4718667677>
+- Posted the #491 queue-order update:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4718667645>
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check.out
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-finish-board-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-finish-board-mobile.png
+curl -fsS http://127.0.0.1:8765/status.json | python3 -c 'import json,sys; status=json.load(sys.stdin); sections={"Critical Path","Issue Ledger","Twin Claim Board","Cross-Package Lessons","Evidence Gates","Release Readiness"}; lanes={row["lane"] for row in status["finish_board"]}; ids={row["id"] for row in status["finish_board"]}; print("finish_rows", len(status["finish_board"])); print("missing_lanes", sorted(sections-lanes)); print("has_binomial", "drmTMB-569-binomial-fixed" in ids); print("matrix_rows", len(status["matrix"])); assert not sections-lanes; assert "drmTMB-569-binomial-fixed" in ids; assert len(status["finish_board"]) == 10; assert len(status["matrix"]) == 17'
+```
+
+Result:
+
+```text
+mission_control_ok: 18/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows
+dashboard already listening at http://127.0.0.1:8765/
+finish_rows 10
+missing_lanes []
+has_binomial True
+matrix_rows 17
+```
+
+Rendered screenshots were captured at
+`/tmp/drmtmb-finish-board-desktop.png` and
+`/tmp/drmtmb-finish-board-mobile.png`.
+
+Boundaries:
+
+- No `src/drmTMB.cpp` edit, no Gaussian density/penalty/MAP/profile/check path
+  edit, and no DRM.jl code edit.
+- The binomial likelihood and tests are intentionally left for the separate
+  #569 implementation PR after the Claude-owned engine seam clears.
+- The bridge registry is planned but not implemented here; binomial bridge
+  support remains unsupported/planned until #544 and separate parity tests
+  promote it.

@@ -18,7 +18,8 @@ python3 tools/validate-mission-control.py
 
 The validator checks that `version.txt` matches the HTML build constant, phase
 counts match slice statuses, metrics match the phase slices, canonical team
-names are used, and the dashboard matrix has the same number of rows as
+names are used, the finish-board rows have valid issue, owner, status, and
+evidence fields, and the dashboard matrix has the same number of rows as
 `docs/design/168-r-julia-finish-capability-matrix.md`.
 
 Then open:
@@ -30,6 +31,12 @@ http://127.0.0.1:8765/
 The page reads `status.json` and `sweep.json` every eight seconds. Update those
 JSON files as slices move from `queued` to `active`, `blocked`, `verified`,
 `banked`, or `deferred`.
+
+The `finish_board` rows are the issue-led twin ledger. Keep the six lanes
+present: Critical Path, Issue Ledger, Twin Claim Board, Cross-Package Lessons,
+Evidence Gates, and Release Readiness. Rows should separate native TMB support,
+R-to-Julia bridge status, and direct DRM.jl status rather than collapsing them
+into a single "supported" claim.
 
 Rows marked `verified`, `banked`, or `covered` need evidence. Local evidence
 files linked from the dashboard are copied into `/tmp/drm-dashboard` by the

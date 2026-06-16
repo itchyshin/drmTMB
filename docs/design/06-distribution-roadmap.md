@@ -144,12 +144,16 @@ remain consistent with the rest of `drmTMB`.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented fixed-effect path for counts of successes out
   of trials with overdispersion.
-- `binomial()`: successes out of trials, with optional random effects.
+- `stats::binomial(link = "logit")`: planned `drmTMB#569` first slice for 0/1
+  event data and `cbind(successes, failures)` counts, fixed-effect `mu` only,
+  no `sigma`, no random effects, and no Julia bridge claim.
 
 Recommended user guidance:
 
-- Use `beta_binomial()` for percentages derived from counts with known
-  denominators.
+- Use the planned `stats::binomial()` route for event probabilities with
+  ordinary binomial sampling variation.
+- Use `beta_binomial()` for success counts with known denominators and
+  extra-binomial variation.
 - Use `beta()` for continuous rates strictly between 0 and 1.
 - Use `zero_one_beta()` when continuous rates include structural exact 0 or 1
   values.

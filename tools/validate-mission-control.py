@@ -20,6 +20,45 @@ DESIGN_MATRIX = ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
 MATRIX_STATUSES = {"covered", "partial", "experimental", "planned", "unsupported"}
+FINISH_STATUSES = SLICE_STATUSES | MATRIX_STATUSES | {"active", "blocked", "guard"}
+FINISH_LANES = {
+    "Critical Path",
+    "Issue Ledger",
+    "Twin Claim Board",
+    "Cross-Package Lessons",
+    "Evidence Gates",
+    "Release Readiness",
+}
+FINISH_STATUS_FIELDS = (
+    "status",
+    "engine_tmb",
+    "engine_julia",
+    "point",
+    "wald",
+    "profile",
+    "bootstrap",
+    "tests",
+    "docs",
+    "visual",
+    "simulation",
+    "release_gate",
+)
+EVIDENCE_STATUSES = {"verified", "banked", "covered"}
+STANDING_REVIEW_NAMES = {
+    "Ada",
+    "Boole",
+    "Gauss",
+    "Noether",
+    "Darwin",
+    "Florence",
+    "Fisher",
+    "Pat",
+    "Jason",
+    "Curie",
+    "Emmy",
+    "Grace",
+    "Rose",
+}
 CANONICAL_AGENTS = {
     "Ada",
     "Boole",
@@ -122,6 +161,10 @@ def main() -> int:
         name = agent.get("name")
         if name not in CANONICAL_AGENTS:
             errors.append(f"non-canonical agent name in team list: {name!r}")
+    agent_names = {agent.get("name") for agent in status.get("agents", [])}
+    missing_standing = sorted(STANDING_REVIEW_NAMES - agent_names)
+    if missing_standing:
+        errors.append(f"team list missing standing review names: {', '.join(missing_standing)}")
 
     for section in ("active_work", "activity", "blockers", "evidence"):
         for item in status.get(section, []):
@@ -156,6 +199,44 @@ def main() -> int:
         if has_covered and not (row.get("evidence") or row.get("evidence_url")):
             errors.append(f"{row_name}: covered row lacks evidence")
 
+    finish_board = status.get("finish_board", [])
+    lanes_seen: set[str] = set()
+    row_ids: set[str] = set()
+    for row in finish_board:
+        row_id = row.get("id", "<finish row>")
+        if not row.get("id"):
+            errors.append("finish_board row lacks id")
+        elif row_id in row_ids:
+            errors.append(f"duplicate finish_board id: {row_id}")
+        row_ids.add(row_id)
+        lane = row.get("lane")
+        if lane not in FINISH_LANES:
+            errors.append(f"{row_id}: invalid finish-board lane {lane!r}")
+        else:
+            lanes_seen.add(lane)
+        issue = row.get("issue")
+        if issue and not re.match(r"^https://github\.com/[^/]+/[^/]+/(issues|pull)/[0-9]+", issue):
+            errors.append(f"{row_id}: issue is not a GitHub issue/PR URL: {issue!r}")
+        owners = row.get("owners", [])
+        if not owners:
+            errors.append(f"{row_id}: finish-board row has no owners")
+        for owner in owners:
+            if owner not in CANONICAL_AGENTS:
+                errors.append(f"{row_id}: non-canonical owner {owner!r}")
+        has_evidence_status = False
+        for field in FINISH_STATUS_FIELDS:
+            value = row.get(field)
+            if value not in FINISH_STATUSES:
+                errors.append(f"{row_id}: {field} has invalid status {value!r}")
+            has_evidence_status = has_evidence_status or value in EVIDENCE_STATUSES
+        if has_evidence_status and not (row.get("evidence_url") or row.get("evidence")):
+            errors.append(f"{row_id}: verified/banked/covered finish row lacks evidence")
+        if not row.get("last_verified"):
+            errors.append(f"{row_id}: finish-board row lacks last_verified")
+    missing_lanes = sorted(FINISH_LANES - lanes_seen)
+    if missing_lanes:
+        errors.append(f"finish_board missing lanes: {', '.join(missing_lanes)}")
+
     if errors:
         for error in errors:
             print(f"mission-control validation error: {error}", file=sys.stderr)
@@ -165,7 +246,8 @@ def main() -> int:
         "mission_control_ok: "
         f"{expected_metrics['verified']}/{expected_metrics['total']} banked_or_verified, "
         f"{expected_metrics['active']} active, "
-        f"{len(matrix)} matrix rows"
+        f"{len(matrix)} matrix rows, "
+        f"{len(finish_board)} finish rows"
     )
     return 0
 
