@@ -2076,6 +2076,68 @@ logLik.drmTMB <- function(object, ...) {
   out
 }
 
+# Warn when an information criterion is requested for a fit where it is not a
+# valid comparison. `stats::AIC()`/`BIC()` default methods read the logLik value
+# and ignore the estimator, so the guard lives in the drmTMB methods below.
+drm_warn_information_criterion <- function(fits, what) {
+  estimators <- vapply(
+    fits,
+    function(o) if (is.null(o$estimator)) "ML" else o$estimator,
+    character(1L)
+  )
+  if (any(estimators == "MAP")) {
+    cli::cli_warn(
+      c(
+        "{what} is not a standard information criterion for a penalized (MAP) fit.",
+        "i" = "{.fn logLik} returns the unpenalized data log-likelihood and a penalized parameter does not contribute a full degree of freedom."
+      ),
+      class = "drmTMB_ic_map_warning"
+    )
+  }
+  if (any(estimators == "REML")) {
+    cli::cli_warn(
+      c(
+        "{what} from a REML fit is comparable only across models with identical fixed effects.",
+        "i" = "Never compare ML with REML, or different mean structures, by {what}; refit with {.code REML = FALSE} for fixed-effect model selection."
+      ),
+      class = "drmTMB_ic_reml_warning"
+    )
+  }
+  invisible(NULL)
+}
+
+drm_information_criterion <- function(fits, penalty, what) {
+  drm_warn_information_criterion(fits, what)
+  values <- vapply(
+    fits,
+    function(o) -2 * as.numeric(o$logLik) + penalty(o) * as.numeric(o$df),
+    numeric(1L)
+  )
+  if (length(fits) == 1L) {
+    return(values[[1L]])
+  }
+  data.frame(
+    df = vapply(fits, function(o) as.numeric(o$df), numeric(1L)),
+    stats::setNames(list(values), what)
+  )
+}
+
+#' @rdname model-fit-extractors
+#' @export
+AIC.drmTMB <- function(object, ..., k = 2) {
+  fits <- c(list(object), list(...))
+  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
+  drm_information_criterion(fits, function(o) k, "AIC")
+}
+
+#' @rdname model-fit-extractors
+#' @export
+BIC.drmTMB <- function(object, ...) {
+  fits <- c(list(object), list(...))
+  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
+  drm_information_criterion(fits, function(o) log(as.numeric(o$nobs)), "BIC")
+}
+
 #' @rdname model-fit-extractors
 #' @export
 nobs.drmTMB <- function(object, ...) {
