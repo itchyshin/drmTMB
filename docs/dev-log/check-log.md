@@ -54608,3 +54608,61 @@ test helper. `document()` regenerated NAMESPACE + man pages (pre-existing
 Boundary: the penalty regularises a weakly-identified phylogenetic component; it
 does not manufacture identifiability. A MAP fit is not ML -- LRT/AIC across
 penalized fits are not standard, and a prior-sensitivity analysis is required.
+
+## 2026-06-16: Generated Julia bridge gate table (#544)
+
+Added a static dashboard artifact for the intentional `engine = "julia"` gate
+registry. `tools/write-julia-gate-registry.R` now writes
+`docs/dev-log/dashboard/julia-gates.tsv` and
+`inst/extdata/julia-gates.tsv` from `drm_julia_intentional_gates()`; the
+mission-control dashboard renders the table, the validator checks its schema
+and evidence fields, and `test-julia-gate-vs-engine.R` compares available TSV
+artifacts to the internal registry. The dashboard build is bumped to `r6`. See
+after-task
+`2026-06-16-julia-gate-generated-table.md`.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-gate-registry.R
+air format tools/write-julia-gate-registry.R tests/testthat/test-julia-gate-vs-engine.R
+cmp -s docs/dev-log/dashboard/julia-gates.tsv inst/extdata/julia-gates.tsv
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check-gates.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-check-gates.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+tmpdir=$(mktemp -d /tmp/drmtmb-build-check-XXXXXX); cd "$tmpdir" && R CMD build --no-manual --no-build-vignettes /private/tmp/drmtmb-julia-gate-table >/tmp/drmtmb-build-check.log 2>&1 && tarball=$(ls drmTMB_*.tar.gz | head -n 1) && tar -tzf "$tarball" | grep '^drmTMB/inst/extdata/julia-gates.tsv$'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-mobile.png
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs R tests tools inst
+```
+
+Results:
+
+- Generated `docs/dev-log/dashboard/julia-gates.tsv` and
+  `inst/extdata/julia-gates.tsv` with 15 gate rows.
+- Generated artifacts are byte-identical.
+- `status.json` and `sweep.json` parse.
+- Validator: `mission_control_ok: 19/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows`.
+- `test-julia-gate-vs-engine.R`: all tests passed, including the new
+  artifact-vs-registry comparison. The installed copy keeps this guard active
+  during R CMD check, where `docs/` is not available inside `*.Rcheck`.
+- Build check: the source tarball includes
+  `drmTMB/inst/extdata/julia-gates.tsv`.
+- Dashboard serve: live at `http://127.0.0.1:8765/`; live copy includes
+  `julia-gates.tsv`.
+- Browser verification: bridge-gate heading present, 15 rows rendered, quoted
+  syntax preserved, #544 card active/covered, and mobile document width matches
+  viewport.
+- Screenshots captured:
+  `/tmp/drmtmb-julia-gates-desktop.png` and
+  `/tmp/drmtmb-julia-gates-mobile.png`.
+- `git diff --check`: clean.
+- Conflict marker scan: clean.
+
+Boundary: no bridge gate was relaxed, no `engine_control` surface was added, no
+binomial bridge support was promoted, and no DRM.jl code was changed. Remaining
+`#544` work is the public-docs drift guard and DRM.jl capability-evidence
+comparison.

@@ -80,6 +80,29 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
   expect_setequal(gates$issue, "drmTMB#544")
 })
 
+test_that("dashboard Julia gate artifact matches the registry", {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  gate_paths <- c(
+    file.path(pkg, "docs", "dev-log", "dashboard", "julia-gates.tsv"),
+    system.file("extdata", "julia-gates.tsv", package = "drmTMB")
+  )
+  gate_paths <- gate_paths[nzchar(gate_paths) & file.exists(gate_paths)]
+  expect_true(length(gate_paths) >= 1L)
+  registry <- drmTMB:::drm_julia_intentional_gates()
+  registry[] <- lapply(registry, as.character)
+
+  for (gate_path in gate_paths) {
+    artifact <- utils::read.delim(
+      gate_path,
+      stringsAsFactors = FALSE,
+      check.names = FALSE,
+      quote = ""
+    )
+    artifact[] <- lapply(artifact, as.character)
+    expect_equal(artifact, registry, info = gate_path)
+  }
+})
+
 test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
   dat <- data.frame(y = 1:6, x = seq(-1, 1, length.out = 6))
 

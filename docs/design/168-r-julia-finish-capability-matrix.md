@@ -82,6 +82,15 @@ than the registry supports. The registry should cross-link `gllvmTMB#488` for
 the mirror drift pattern, but it should not borrow `gllvmTMB`'s higher
 dimensional model scope.
 
+The generated dashboard artifact is
+`docs/dev-log/dashboard/julia-gates.tsv`; the same generator also writes
+`inst/extdata/julia-gates.tsv` so the synchronization test can run inside R CMD
+check, where `docs/` is not installed. Regenerate both copies with:
+
+```sh
+Rscript tools/write-julia-gate-registry.R
+```
+
 For `drmTMB#569`, the bridge registry may acknowledge DRM.jl Binomial support
 where it exists, but the first public binomial response family claim remains
 native TMB only until R-side response parsing, likelihood parity, method tests,
