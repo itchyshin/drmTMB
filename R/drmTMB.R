@@ -426,6 +426,7 @@ drm_fit_spec <- function(
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
+  drm_warn_if_not_converged(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
@@ -1643,6 +1644,47 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
     last_par_best[fixed] <- opt$par
     obj$env$last.par.best <- last_par_best
   }
+  invisible(TRUE)
+}
+
+# Interpret an nlminb convergence code. Returns NULL when the optimizer reported
+# convergence (code 0) and a short human label otherwise, surfacing the PORT
+# message (for example "false convergence (8)").
+drm_convergence_label <- function(convergence, message = NULL) {
+  if (length(convergence) != 1L || is.na(convergence)) {
+    return(NULL)
+  }
+  if (identical(as.integer(convergence), 0L)) {
+    return(NULL)
+  }
+  has_message <- length(message) == 1L &&
+    !is.na(message) &&
+    nzchar(message)
+  if (has_message) {
+    sprintf(
+      "optimizer reported non-convergence (code %s: %s)",
+      convergence,
+      message
+    )
+  } else {
+    sprintf("optimizer reported non-convergence (code %s)", convergence)
+  }
+}
+
+# Warn at fit time when the optimizer did not converge, so a non-converged fit
+# is never returned looking fine. Suppressible like any warning.
+drm_warn_if_not_converged <- function(opt) {
+  label <- drm_convergence_label(opt$convergence, opt$message)
+  if (is.null(label)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: {label}.",
+      "i" = "Treat the estimates and standard errors with caution; run {.fn check_drm} to diagnose, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+    ),
+    class = "drmTMB_convergence_warning"
+  )
   invisible(TRUE)
 }
 

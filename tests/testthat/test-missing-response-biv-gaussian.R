@@ -233,7 +233,7 @@ test_that("bivariate response masks warn when rho12 has too few complete pairs",
   dat$y2[-c(1L, 2L, 19:34)] <- NA_real_
 
   expect_warning(
-    fit <- fit_missing_response_biv_gaussian(dat),
+    fit <- allow_nonconvergence(fit_missing_response_biv_gaussian(dat)),
     "rho12"
   )
   expect_s3_class(fit, "drmTMB")
