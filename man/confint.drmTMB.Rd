@@ -20,6 +20,8 @@
   parallel = c("none", "multicore"),
   workers = NULL,
   refit_control = NULL,
+  sd_boundary = 1e-04,
+  rho_boundary = 0.98,
   ...
 )
 }
@@ -87,6 +89,13 @@ Multicore execution is capped at the number of jobs and at 10 workers.}
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because
 bootstrap intervals use refit point estimates.}
+
+\item{sd_boundary, rho_boundary}{Boundary thresholds used by
+\code{method = "wald"} to flag intervals where the symmetric Wald interval is
+unreliable: a variance-component standard deviation within \code{sd_boundary} of
+zero, or a correlation within \code{rho_boundary} of \verb{+/-1}, is returned with
+\code{conf.status = "wald_at_boundary"} and a warning pointing to
+\code{method = "profile"}. Defaults match \code{\link[=check_drm]{check_drm()}} (\code{1e-4}, \code{0.98}).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
