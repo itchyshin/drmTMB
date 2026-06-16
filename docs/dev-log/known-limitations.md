@@ -157,6 +157,24 @@
   multiple animal/`relmat()` slopes, residual-scale structured slopes, slope
   correlations, predictor-dependent structured `corpair()` regressions, and
   generic direct-SD grammar remain planned.
+- A phylogenetic random field on the **scale** (the `sigma1` / `sigma2`
+  log-scale endpoints, and therefore the scale-scale and mean-scale q=4
+  phylogenetic correlations) is **weakly identified, not non-identified**, at
+  approximately one observation per tip. A per-species dispersion has no
+  within-species replication to separate it from residual noise, so the
+  likelihood is nearly flat in that direction; plain ML can diverge or sit on a
+  near-flat ridge (`convergence = 1`, `pdHess = FALSE`, and the tiny-endpoint-SD
+  note in `check_drm()`). A prior or penalty is what makes the component
+  estimable, which is why a Bayesian fit returns a bounded but prior-sensitive
+  estimate (de Villemereuil & Nakagawa 2014; Nakagawa et al. 2025). The
+  supported analysis at one record per species is the mean-side phylogenetic
+  model with a fixed-effect `sigma ~ predictors` scale (two location SDs, the
+  mean-mean phylogenetic correlation, and residual `rho12`). The scale-side
+  phylogenetic block needs either within-species replication (about five to ten
+  records per species) or an explicit penalty/prior (the planned
+  `estimator = "penalized"` path, or a Bayesian fit with a prior-sensitivity
+  analysis). `pdHess = FALSE` here is a Wald-inference warning, not a reason to
+  discard the point fit.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
