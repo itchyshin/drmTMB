@@ -4,6 +4,7 @@ phase18_actions_task_choices <- function() {
     "interval_heavy_summary",
     "truncated_nbinom2_mu_random_intercept",
     "proportion_fixed_effect",
+    "binomial_fixed_effect",
     "bounded_response_mu_random_intercept",
     "positive_continuous_fixed_effect",
     "tweedie_fixed_effect",
@@ -187,6 +188,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
     )
   } else if (identical(task, "proportion_fixed_effect")) {
     out <- phase18_write_proportion_fe_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "binomial_fixed_effect")) {
+    out <- phase18_write_binomial_fe_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -598,9 +608,7 @@ phase18_actions_source_dependencies <- function(task) {
     "sim/R/sim_runner.R",
     "sim/R/sim_aggregate.R",
     "sim/R/sim_uncertainty.R",
-    if (
-      task %in% c("interval_heavy_summary", "skew_normal_fixed_effect")
-    ) {
+    if (task %in% c("interval_heavy_summary", "skew_normal_fixed_effect")) {
       "sim/R/sim_bootstrap.R"
     },
     phase18_actions_task_paths(task)
@@ -745,6 +753,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_proportion_fixed_effect_smoke.R",
       "sim/run/sim_summary_proportion_fixed_effect_smoke.R",
       "sim/run/sim_write_proportion_fixed_effect_grid.R"
+    ))
+  }
+  if (identical(task, "binomial_fixed_effect")) {
+    return(c(
+      "sim/dgp/sim_dgp_binomial_fixed_effect.R",
+      "sim/fit/sim_summarise_binomial_fixed_effect.R",
+      "sim/run/sim_run_binomial_fixed_effect_smoke.R",
+      "sim/run/sim_summary_binomial_fixed_effect_smoke.R",
+      "sim/run/sim_write_binomial_fixed_effect_grid.R"
     ))
   }
   if (identical(task, "bounded_response_mu_random_intercept")) {

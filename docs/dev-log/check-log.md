@@ -54821,3 +54821,57 @@ DRM.jl code was changed, no binomial bridge support was promoted, and no
 phantom "REML on scale is missing" row was added. Ordinary
 `stats::binomial()` remains native TMB #569 until a separate bridge parity
 slice exists.
+
+## 2026-06-16: Binomial fixed-effect Phase 18 evidence/comparator lane (#59/#60/#569 follow-up)
+
+Added the standalone `binomial_fixed_effect` Phase 18 family-surface task for
+the native TMB plain binomial first slice. The lane simulates both supported
+response encodings, 0/1 rows and `cbind(success, failure)` rows, fits
+`drmTMB(..., family = stats::binomial())` and the matched `stats::glm()`
+comparator, and writes aggregate, replicate, manifest, failure-ledger,
+Wald-interval, Wald-coverage, and `binomial-fe-glm-parity.csv` artifacts.
+The Actions workflow accepts `binomial_fixed_effect` as a manual task; the
+structured workflow registry records it as a ready-grid bounded-binary-like
+family surface. Design note:
+`docs/design/175-phase-18-binomial-fixed-effect-artifacts.md`; after-task:
+`docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md`.
+
+Checks run:
+
+```sh
+air format inst/sim/dgp/sim_dgp_binomial_fixed_effect.R inst/sim/fit/sim_summarise_binomial_fixed_effect.R inst/sim/run/sim_run_binomial_fixed_effect_smoke.R inst/sim/run/sim_summary_binomial_fixed_effect_smoke.R inst/sim/run/sim_write_binomial_fixed_effect_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-binomial-fixed-effect.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drmtmb-status-json-ok
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drmtmb-sweep-json-ok
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-binomial-fixed-effect.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-actions-runner.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-structured-workflow-registry.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' README.md ROADMAP.md NEWS.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+```
+
+Results: focused binomial, Actions-runner, and structured-registry tests
+passed; dashboard validator passed with
+`19/68 banked_or_verified, 4 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+The tiny local writer smoke wrote seven tables under
+`/private/tmp/drmtmb-binomial-fe-grid-smoke`, with rows
+`4/4/2/0/4/4/4` for aggregate, replicate, manifest, failures, Wald intervals,
+Wald coverage, and comparator parity. The largest absolute `drmTMB` versus
+`stats::glm()` coefficient difference was `5.742073e-13`; the largest
+standard-error difference was `4.357602e-09`; the largest absolute `logLik`
+difference was `4.774847e-12`; the largest absolute AIC/BIC difference was
+`9.549694e-12`. Full `devtools::test()` passed with `0` failures, `8` known
+log-sigma-clamp warnings, `5` existing Julia bridge/sigma-phylo skips, and
+`11174` passes. `devtools::check(error_on = "never", document = FALSE)` finished
+with `0 errors | 0 warnings | 0 notes`. `pkgdown::check_pkgdown()` remains
+blocked by the Claude-owned penalty/MAP docs seam: `_pkgdown.yml` is missing
+`drm_phylo_penalty`.
+
+Boundary: no new likelihood branch, no `src/drmTMB.cpp` edits, no random-effect
+binomial, no structured binomial, no bivariate or mixed-response binomial, no
+weights-as-trials support, no `bernoulli()` alias, no Julia bridge promotion,
+no DRM.jl code changes, no speed claim, and no interval-calibration claim.

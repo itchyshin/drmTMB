@@ -691,7 +691,7 @@
       "issue": "",
       "issue_label": "maintainer note",
       "lane": "Twin Claim Board",
-      "status": "planned",
+      "status": "active",
       "owners": ["Ada", "Emmy", "Grace", "Rose"],
       "family": "direct DRM.jl Binomial documentation alignment",
       "response_encoding": ["claim alignment only", "no Codex DRM.jl code changes"],
@@ -769,10 +769,10 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/569",
       "issue_label": "drmTMB#569",
       "lane": "Evidence Gates",
-      "status": "planned",
+      "status": "active",
       "owners": ["Fisher", "Curie", "Grace", "Florence", "Rose"],
       "family": "glm parity first; MCSE-backed intervals later",
-      "response_encoding": ["8-12 fast tests", "optional Phase 18 binomial_fixed_effect lane"],
+      "response_encoding": ["8-12 fast tests", "Phase 18 binomial_fixed_effect lane"],
       "dpars": ["mu"],
       "engine_tmb": "active",
       "engine_julia": "unsupported",
@@ -783,10 +783,10 @@
       "tests": "active",
       "docs": "active",
       "visual": "planned",
-      "simulation": "active",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "tests/testthat/test-binomial-response.R",
-      "blocker": "Focused deterministic glm-parity and method-surface tests exist; beta-binomial evidence still does not count for plain binomial interval calibration, which needs MCSE, convergence, pdHess, boundary, warning, and failure summaries.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md",
+      "blocker": "Branch codex/binomial-evidence-lane stages the Phase 18 binomial_fixed_effect lane with replicate, aggregate, Wald, failure, manifest, and stats::glm parity artifacts. Beta-binomial evidence still does not count for plain binomial interval calibration, which needs MCSE, convergence, pdHess, boundary, warning, and failure summaries.",
       "last_verified": "2026-06-16"
     },
     {
@@ -917,10 +917,10 @@
       "bootstrap": "unsupported",
       "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
-      "next": "#585 is merged. Keep the first public claim to fixed-effect stats::binomial(link = \"logit\") glm parity; Phase 18 binomial evidence and any Julia bridge parity remain separate future slices.",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/pull/585"
+      "next": "#585 is merged. Branch codex/binomial-evidence-lane stages the standalone Phase 18 binomial_fixed_effect artifact writer and stats::glm parity CSV; Julia bridge parity remains separate.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md"
     },
     {
       "area": "Bivariate residual correlation rho12",
@@ -1082,7 +1082,7 @@
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is active: drmTMB#585 has merged the native binomial first slice, and draft #587 stages the #544 capability comparison plus docs-drift guard."
+      "text": "Non-Ayumi finish path is active: drmTMB#585 has merged the native binomial first slice, #587 has merged the #544 capability comparison plus docs-drift guard, and codex/binomial-evidence-lane stages the Phase 18 binomial evidence/comparator artifacts."
     },
     {
       "when": "now",

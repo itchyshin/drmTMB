@@ -12,6 +12,7 @@ on:
           - interval_heavy_summary
           - truncated_nbinom2_mu_random_intercept
           - proportion_fixed_effect
+          - binomial_fixed_effect
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
           - tweedie_fixed_effect
@@ -157,6 +158,9 @@ jobs:
             include_in_all: false
           - task: proportion_fixed_effect
             seed: 20260533
+            include_in_all: false
+          - task: binomial_fixed_effect
+            seed: 20260617
             include_in_all: false
           - task: bounded_response_mu_random_intercept
             seed: 20260538
