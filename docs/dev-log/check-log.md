@@ -54724,7 +54724,7 @@ therefore matches `stats::glm()` for coefficients, `logLik()`, AIC, and BIC on
 overlapping logit likelihoods. Methods now cover `predict()`, `fitted()`,
 `simulate()`, `residuals()`, `sigma()`, `summary()`, `vcov()`, and fixed-effect
 Wald `confint()`. See after-task
-`docs/dev-log/after-task/2026-06-16-binomial-response-family.md` and draft PR
+`docs/dev-log/after-task/2026-06-16-binomial-response-family.md` and PR
 `#585`.
 
 Checks run:
@@ -54757,9 +54757,67 @@ and eight expected log-sigma-clamp warnings; `devtools::check(error_on =
 `stats::ave`; `git diff --check` and the conflict-marker scan were clean.
 `pkgdown::check_pkgdown()` is blocked by the Claude-owned penalty/MAP lane:
 `_pkgdown.yml` is missing the exported `drm_phylo_penalty` topic, so this branch
-did not edit it.
+did not edit it. PR #585 merged after macOS, Ubuntu, and Windows R-CMD-check
+passed on the rebased head.
 
 Boundary: no `bernoulli()` alias, no weights-as-trials route, no non-logit link,
 no `sigma`, no random effects, no structured effects, no bivariate or
 mixed-response binomial, no Julia bridge promotion, no DRM.jl code change, and
 no interval-calibration or speed claim.
+
+## 2026-06-16: Julia capability comparison + public-docs drift guard (#544)
+
+Added a second generated bridge-governance artifact:
+`docs/dev-log/dashboard/julia-capabilities.tsv`, mirrored to
+`inst/extdata/julia-capabilities.tsv`, from the internal
+`drm_julia_capability_comparison()` registry. The mission-control dashboard now
+renders a Julia capability comparison beside the generated gate table; the
+validator checks schema, row identifiers, statuses, evidence links, issue
+labels, and nonempty claim boundaries. `test-julia-gate-vs-engine.R` now checks
+the generated dashboard/installed artifacts against the internal registry and
+scans public bridge docs for broad `engine_control`, all-family Julia bridge,
+ordinary binomial bridge, or speed-headline overclaims. Dashboard build bumped
+to `r7`; after-task:
+`2026-06-16-julia-capability-comparison-doc-guard.md`.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-gate-registry.R
+Rscript tools/write-julia-capability-comparison.R
+air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R tools/write-julia-capability-comparison.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-544-docguard.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-544-docguard.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --wait-for-timeout=3000 --viewport-size=1440,1200 'http://127.0.0.1:8765/?v=544-docguard-1122b' /tmp/drmtmb-julia-capabilities-desktop.png
+npx playwright screenshot --wait-for-timeout=3000 --viewport-size=390,1400 'http://127.0.0.1:8765/?v=544-docguard-1122b' /tmp/drmtmb-julia-capabilities-mobile.png
+tmpdir=$(mktemp -d /tmp/drmtmb-build-check-XXXXXX); cd "$tmpdir" && R CMD build --no-manual --no-build-vignettes /private/tmp/drmtmb-julia-docs-drift >/tmp/drmtmb-build-check-capabilities.log 2>&1 && tarball=$(ls drmTMB_*.tar.gz | head -n 1) && tar -tzf "$tarball" | grep '^drmTMB/inst/extdata/julia-capabilities.tsv$'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n "non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+```
+
+Results: generator wrote 9 capability rows; validator passed with
+`19/68 banked_or_verified, 4 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows, 9 Julia capability rows`;
+focused #544 guard tests passed; browser DOM verification found the new
+capability section, gate section, #544 finish-board row, binomial bridge
+boundary row, and active worktree state; desktop/mobile screenshots saved under
+`/tmp/drmtmb-julia-capabilities-*.png`; source tarball includes
+`drmTMB/inst/extdata/julia-capabilities.tsv`; full `devtools::test()` passed
+with 0 failures, 8 known log-sigma-clamp warnings, 5 known Julia
+bridge/sigma-phylo skips, and 11061 passes. `pkgdown::check_pkgdown()` remains
+blocked by the Claude-owned penalty/MAP docs seam:
+`_pkgdown.yml` is missing `drm_phylo_penalty`. Before #585 merged,
+`devtools::check(error_on = "never")` completed with 0 errors, 0 warnings, and
+2 notes: future timestamp verification plus the then-current `stats::ave`
+import note.
+
+Boundary: no bridge gate was relaxed, no `engine_control` API was added, no
+DRM.jl code was changed, no binomial bridge support was promoted, and no
+phantom "REML on scale is missing" row was added. Ordinary
+`stats::binomial()` remains native TMB #569 until a separate bridge parity
+slice exists.

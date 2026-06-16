@@ -1,10 +1,10 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 08:00 MDT",
+  "updated": "2026-06-16 11:22 MDT",
   "metrics": {
     "verified": 19,
-    "active": 3,
+    "active": 4,
     "blocked": 0,
     "deferred": 1,
     "total": 68
@@ -143,7 +143,10 @@
         },
         {
           "name": "Document intentional rejections so the R wrapper is never accidentally stricter than Julia",
-          "status": "queued"
+          "status": "active",
+          "issue": "drmTMB#544",
+          "url": "docs/dev-log/dashboard/julia-capabilities.tsv",
+          "evidence": "Capability comparison artifact is staged in codex/julia-docs-drift-guard; it keeps direct DRM.jl, R-to-Julia bridge, and native TMB claims separate."
         }
       ]
     },
@@ -438,10 +441,10 @@
     },
     {
       "name": "drmTMB finish-board worktree",
-      "branch": "codex/finish-board-widget",
-      "head": "rebased-on-db161d64",
+      "branch": "codex/julia-docs-drift-guard",
+      "head": "pr-pending",
       "dirty": false,
-      "note": "Clean Codex worktree for the non-Ayumi finish board, binomial response contract, and bridge-gate planning. This slice does not edit src/drmTMB.cpp."
+      "note": "Clean Codex PR worktree for the non-Ayumi bridge-gate docs-drift guard and DRM.jl capability comparison. This slice does not edit src/drmTMB.cpp."
     },
     {
       "name": "DRM.jl",
@@ -558,24 +561,24 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/569",
       "issue_label": "drmTMB#569",
       "lane": "Critical Path",
-      "status": "active",
+      "status": "banked",
       "owners": ["Ada", "Boole", "Gauss", "Noether", "Fisher", "Curie", "Pat", "Darwin"],
       "family": "stats::binomial(link = \"logit\")",
       "response_encoding": ["0/1", "cbind(successes, failures)"],
       "dpars": ["mu"],
-      "engine_tmb": "active",
+      "engine_tmb": "covered",
       "engine_julia": "unsupported",
-      "point": "active",
-      "wald": "active",
+      "point": "covered",
+      "wald": "covered",
       "profile": "planned",
       "bootstrap": "unsupported",
-      "tests": "active",
-      "docs": "active",
+      "tests": "covered",
+      "docs": "covered",
       "visual": "planned",
-      "simulation": "active",
+      "simulation": "planned",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-response-family.md",
-      "blocker": "Implementation is in branch with focused glm-parity tests; PR CI/merge, optional Phase 18 evidence, profile calibration, and release gates are still pending.",
+      "blocker": "#585 is merged. First claim remains fixed-effect glm parity only; Julia bridge, random effects, simulation evidence, and interval-calibration claims stay unsupported or planned.",
       "last_verified": "2026-06-16"
     },
     {
@@ -584,24 +587,24 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/569",
       "issue_label": "drmTMB#569",
       "lane": "Issue Ledger",
-      "status": "active",
+      "status": "banked",
       "owners": ["Boole", "Noether", "Fisher", "Curie", "Pat", "Rose"],
       "family": "Y_i ~ Binomial(n_i, mu_i); logit(mu_i) = eta_i",
       "response_encoding": ["0/1 vector", "two-column cbind(successes, failures)", "no weights-as-trials"],
       "dpars": ["mu"],
-      "engine_tmb": "active",
+      "engine_tmb": "covered",
       "engine_julia": "unsupported",
-      "point": "active",
-      "wald": "active",
+      "point": "covered",
+      "wald": "covered",
       "profile": "planned",
       "bootstrap": "unsupported",
-      "tests": "active",
-      "docs": "active",
+      "tests": "covered",
+      "docs": "covered",
       "visual": "planned",
-      "simulation": "active",
+      "simulation": "planned",
       "release_gate": "planned",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4718667648",
-      "blocker": "Contract and first native implementation agree: no sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge claim.",
+      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4721271792",
+      "blocker": "Contract and merged #585 implementation agree: no sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge claim.",
       "last_verified": "2026-06-16"
     },
     {
@@ -622,12 +625,12 @@
       "profile": "partial",
       "bootstrap": "partial",
       "tests": "covered",
-      "docs": "partial",
+      "docs": "active",
       "visual": "covered",
       "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4719565999",
-      "blocker": "Generated table is present; remaining #544 work is docs-drift guard and DRM.jl capability comparison without promoting binomial bridge support.",
+      "evidence_url": "docs/dev-log/dashboard/julia-capabilities.tsv",
+      "blocker": "Gate table is banked; this PR stages the public-docs drift guard and DRM.jl capability comparison without promoting binomial bridge support.",
       "last_verified": "2026-06-16"
     },
     {
@@ -856,8 +859,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Implement drmTMB#544 generated gate-vs-engine audit and CI guard.",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/544"
+      "next": "Merge the public-docs drift guard and DRM.jl capability comparison, then review any remaining R-gated Julia-covered cells before bridge promotion.",
+      "evidence_url": "docs/dev-log/dashboard/julia-capabilities.tsv"
     },
     {
       "area": "Gaussian phylogenetic SD target",
@@ -906,18 +909,18 @@
     },
     {
       "area": "Bernoulli/binomial response family",
-      "engine": "planned",
+      "engine": "partial",
       "bridge": "unsupported",
-      "point": "planned",
-      "wald": "planned",
+      "point": "partial",
+      "wald": "partial",
       "profile": "planned",
       "bootstrap": "unsupported",
-      "docs": "planned",
+      "docs": "partial",
       "visual": "planned",
       "simulation": "planned",
       "release": "planned",
-      "next": "Implement drmTMB#569 as fixed-effect stats::binomial(link = \"logit\") with 0/1 and cbind(successes, failures), then prove stats::glm() parity before any bridge or interval-calibration claim.",
-      "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569"
+      "next": "#585 is merged. Keep the first public claim to fixed-effect stats::binomial(link = \"logit\") glm parity; Phase 18 binomial evidence and any Julia bridge parity remain separate future slices.",
+      "evidence_url": "https://github.com/itchyshin/drmTMB/pull/585"
     },
     {
       "area": "Bivariate residual correlation rho12",
@@ -1079,7 +1082,7 @@
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is active: finish-board widget, drmTMB#569 binomial response contract, and drmTMB#544 bridge-gate registry planning."
+      "text": "Non-Ayumi finish path is active: drmTMB#585 has merged the native binomial first slice, and draft #587 stages the #544 capability comparison plus docs-drift guard."
     },
     {
       "when": "now",
@@ -1248,6 +1251,11 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-16",
+      "who": "Dashboard",
+      "text": "Julia capability comparison renders from docs/dev-log/dashboard/julia-capabilities.tsv and mirrors to inst/extdata/julia-capabilities.tsv for R CMD check visibility."
+    },
     {
       "when": "2026-06-16",
       "who": "Dashboard",

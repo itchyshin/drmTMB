@@ -12,7 +12,7 @@ python3 "$ROOT/tools/validate-mission-control.py"
 
 mkdir -p "$DEST"
 mkdir -p "$DEST/docs/design" "$DEST/docs/dev-log/after-task"
-cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$SRC/julia-gates.tsv" "$DEST/"
+cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$SRC/julia-gates.tsv" "$SRC/julia-capabilities.tsv" "$DEST/"
 cp "$ROOT/docs/design/168-r-julia-finish-capability-matrix.md" "$DEST/docs/design/"
 cp "$ROOT/docs/dev-log/after-task/"*.md "$DEST/docs/dev-log/after-task/"
 python3 - "$DEST/status.json" "$ROOT" <<'PY'

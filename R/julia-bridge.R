@@ -154,6 +154,110 @@ drm_julia_intentional_gates <- function() {
   )
 }
 
+drm_julia_capability_comparison <- function() {
+  data.frame(
+    capability_id = c(
+      "base_gaussian_location_scale",
+      "gaussian_response_mask",
+      "biv_q4_phylo_reml",
+      "phylo_count_large_p",
+      "phylo_gamma_beta_binomial",
+      "general_covariance_structured",
+      "cross_family_latent",
+      "engine_control_surface",
+      "plain_binomial_nonphylo"
+    ),
+    route = c(
+      "base",
+      "base",
+      "bivariate_phylo",
+      "phylo",
+      "phylo",
+      "structured",
+      "cross_family",
+      "base",
+      "base"
+    ),
+    syntax = c(
+      "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
+      "missing = miss_control(response = \"include\") for Gaussian cells",
+      "biv_gaussian() q4 phylo on mu1, mu2, sigma1, sigma2 with REML = TRUE",
+      "poisson()/nbinom2() with phylo(1 | group, tree = tree)",
+      "Gamma()/beta()/stats::binomial() with phylo(1 | group, tree = tree)",
+      "relmat(1 | group, K = K) for supported one-response families",
+      "c(gaussian(), poisson()) cross-family latent-rho route",
+      "engine_control = ... or non-default Julia optimizer controls",
+      "stats::binomial() without phylo() through engine = \"julia\""
+    ),
+    r_bridge_status = c(
+      "supported",
+      "supported",
+      "experimental",
+      "experimental",
+      "experimental",
+      "experimental",
+      "experimental",
+      "unsupported",
+      "intentional_error"
+    ),
+    drmjl_status = c(
+      "default DRM.jl Gaussian location-scale path",
+      "Gaussian observed-response mask path",
+      "q4 PLSM REML path when installed DRM.jl supports it",
+      "large-p sparse phylo path",
+      "guarded non-Gaussian phylo path",
+      "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
+      "latent-rho mixed-family path; API drift is tracked in tests",
+      "no R surface by design",
+      "direct Binomial evidence is not an R non-phylo bridge claim"
+    ),
+    claim_status = c(
+      "partial",
+      "partial",
+      "partial",
+      "experimental",
+      "experimental",
+      "experimental",
+      "experimental",
+      "unsupported",
+      "planned"
+    ),
+    evidence_url = c(
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 6),
+      "https://github.com/itchyshin/gllvmTMB/issues/488",
+      "https://github.com/itchyshin/drmTMB/issues/544",
+      "https://github.com/itchyshin/drmTMB/issues/569"
+    ),
+    claim_boundary = c(
+      "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
+      "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
+      "Requires the full four-axis phylogenetic location-scale grammar; do not infer native TMB restricted-likelihood support for scale-side structured effects.",
+      "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
+      "Finite-and-sane bridge smoke evidence only; no native TMB parity or non-phylo binomial bridge promotion.",
+      "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
+      "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
+      "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
+      "Native TMB #569 owns ordinary binomial support; Julia bridge binomial remains separate evidence."
+    ),
+    next_action = c(
+      "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
+      "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
+      "Bank fit-specific CI/status parity before release language.",
+      "Keep non-phylo count bridge errors in the gate registry.",
+      "Add comparator or parity evidence before promoting beyond experimental.",
+      "Compare current DRM.jl accepted families with the R gate before widening.",
+      "Resolve the mixed-family API mismatch before any public promotion.",
+      "Design engine_control explicitly before relaxing the gate.",
+      "Wait for #569 native parity plus a separate bridge parity PR."
+    ),
+    issue = c(
+      rep("drmTMB#544", 8),
+      "drmTMB#569"
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 drm_julia_setup_state <- new.env(parent = emptyenv())
 drm_julia_phylo_payload_cache <- new.env(parent = emptyenv())
 
