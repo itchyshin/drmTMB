@@ -54937,3 +54937,45 @@ clamp or penalty/MAP edits, no Ayumi path changes, no DRM.jl code changes, no
 binomial random effects, no structured binomial, no bivariate or mixed-response
 binomial, no `bernoulli()` alias, no Julia bridge promotion, no speed claim,
 and no interval-calibration claim.
+
+## 2026-06-16: Dashboard truth refresh after binomial evidence (#577/#569/#59 follow-up)
+
+Refreshed the mission-control dashboard after the non-Ayumi merge stack landed
+on `origin/main` through `37407279` (`#589`). The finish board now records the
+binomial fixed-effect evidence lane as merged (`#588`), points the bridge-gate
+row at the merged `#587` capability-comparison / docs-drift-guard evidence,
+keeps DRM.jl binomial claim alignment deferred to the owner, and adds a new
+Evidence Gates row for numerical-guard sensitivity. The guard row deliberately
+marks documentation as covered and simulation as planned: Hao Qin's concern is
+visible in the live board, but no guard-sensitivity simulation is claimed.
+After-task:
+`docs/dev-log/after-task/2026-06-16-dashboard-truth-refresh.md`.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+node -e 'JSON.parse(require("fs").readFileSync("docs/dev-log/dashboard/status.json","utf8")); JSON.parse(require("fs").readFileSync("docs/dev-log/dashboard/sweep.json","utf8")); console.log("json_ok")'
+sh tools/start-mission-control.sh --background
+browser check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
+git diff --check
+```
+
+Results: mission-control validation passed with 19/68 banked-or-verified
+slices, 4 active slices, 17 matrix rows, 11 finish rows, 15 Julia gate rows,
+and 9 Julia capability rows. The served dashboard showed all six finish-board
+sections, 11 finish cards, the numerical-guard sensitivity row, merged
+binomial-evidence text, release-readiness text, and dirty/detached repo truth.
+At 390 by 844 mobile width, the board still showed the required sections and
+guard row with no horizontal overflow.
+
+Issue breadcrumbs posted:
+`#577` https://github.com/itchyshin/drmTMB/issues/577#issuecomment-4724259204,
+`#59` https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4724259200,
+and `#569`
+https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4724259211.
+
+Boundary: no R package code, no likelihood code, no `src/drmTMB.cpp`, no
+Gaussian clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code
+change, no Julia bridge promotion, no release promotion, no binomial interval
+calibration claim, and no guard-sensitivity simulation claim.
