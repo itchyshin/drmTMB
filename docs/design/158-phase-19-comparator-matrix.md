@@ -44,6 +44,7 @@ Internal-to-comparator conversions:
 | `tweedie()` | `sigma`, `nu` | `phi = sigma^2`, `nu = 1 + plogis(eta_nu)` power | `glmmTMB::tweedie` (dispersion, power) | `phi = sigma^2`; power matches `nu` (see doc 126 for weights/offset boundary) |
 | `beta()` | `sigma` | precision `phi = 1 / sigma^2` | `betareg`/`glmmTMB` beta precision `phi` | `phi = 1/sigma^2` |
 | `beta_binomial()` | `sigma` | precision `phi = 1/sigma^2`, row trials | `glmmTMB` betabinomial | match precision; align trials column |
+| `stats::binomial()` | event probability `mu` | logit-mean only; row trials from 0/1 or `cbind(success, failure)` | base `stats::glm()` binomial | compare coefficients, standard errors, `logLik`, AIC, and BIC directly |
 | `nbinom2()` | `sigma` | size `= 1 / sigma^2` | `glmmTMB::nbinom2` / `MASS::glm.nb` theta | `theta (size) = 1/sigma^2` |
 | `meta_V(V=V)` | fixed/random means, heterogeneity | known `V` added to residual | `metafor::rma.mv` with `V` | `V` is input data in both; compare heterogeneity `tau^2` notation explicitly |
 
@@ -62,6 +63,7 @@ Internal-to-comparator conversions:
 | Zero-inflated/hurdle counts | `glmmTMB` (ziformula) | ZI/hurdle probability | — |
 | `beta()` | `betareg`, `glmmTMB` | mean, precision (`phi=1/sigma^2`) | `betareg` has no RE; use `glmmTMB` for RE |
 | `beta_binomial()` | `glmmTMB` (betabinomial) | mean, precision, trials | — |
+| `stats::binomial()` fixed-effect | `stats::glm()` | event probability, fixed logit coefficients, likelihood constants | no random effects, no modelled scale, no Julia bridge promotion in the first slice |
 | `lognormal()` / `Gamma(link="log")` | `glmmTMB`, base `glm` | mean, dispersion | compare lognormal on the log scale |
 | `tweedie()` | `glmmTMB::tweedie` | mean, power, dispersion | weights/offsets out of first pass (doc 126) |
 | `cumulative_logit()` | `ordinal::clm`, `MASS::polr`, `brms` | cutpoints, location | scale/discrimination not modelled here |
@@ -78,3 +80,10 @@ where a comparator cannot fit the same distributional parameter, covariance
 structure, or known-covariance route. The matrix above fixes the mapping and the
 conversions; the remaining work is to run the fits on a machine with the
 comparator packages and record the results in a Phase 19 article or design note.
+
+The first executable comparator artifact for plain binomial is the Phase 18
+`binomial_fixed_effect` lane. It writes a `binomial-fe-glm-parity.csv` table
+with maximum absolute coefficient, standard-error, `logLik`, AIC, and BIC
+differences between `drmTMB` and `stats::glm()` for the two supported response
+encodings. That table is a parity artifact, not a speed benchmark or interval
+calibration claim.

@@ -1423,6 +1423,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "interval_heavy_summary",
     "truncated_nbinom2_mu_random_intercept",
     "proportion_fixed_effect",
+    "binomial_fixed_effect",
     "bounded_response_mu_random_intercept",
     "positive_continuous_fixed_effect",
     "tweedie_fixed_effect",

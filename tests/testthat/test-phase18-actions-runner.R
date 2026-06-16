@@ -77,6 +77,29 @@ test_that("Phase 18 Actions runner accepts proportion fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts binomial fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-binomial-fe-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=binomial_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=binomial_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner accepts truncated NB2 mu random-intercept task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-truncated-nb2-mu-ri-dry-run-")
@@ -221,6 +244,24 @@ test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   expect_equal(
     env$phase18_actions_task_paths("tweedie_fixed_effect"),
     tweedie_paths
+  )
+})
+
+test_that("Phase 18 Actions runner sources binomial task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  binomial_paths <- c(
+    "sim/dgp/sim_dgp_binomial_fixed_effect.R",
+    "sim/fit/sim_summarise_binomial_fixed_effect.R",
+    "sim/run/sim_run_binomial_fixed_effect_smoke.R",
+    "sim/run/sim_summary_binomial_fixed_effect_smoke.R",
+    "sim/run/sim_write_binomial_fixed_effect_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("binomial_fixed_effect"),
+    binomial_paths
   )
 })
 

@@ -4,7 +4,7 @@
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is split cleanly: #585 has merged the native binomial first slice, and draft #587 stages the #544 DRM.jl capability comparison plus public-docs drift guard without promoting binomial bridge support."
+      "text": "Non-Ayumi finish path is split cleanly: #585 has merged the native binomial first slice, #587 has merged the #544 DRM.jl capability comparison plus public-docs drift guard, and codex/binomial-evidence-lane stages the Phase 18 binomial evidence/comparator artifacts without promoting binomial bridge support."
     }
   ]
 }
