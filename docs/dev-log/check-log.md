@@ -54402,3 +54402,39 @@ Evidence (Curie q4 validation, pruned real beak n=300-600):
 - `fit$corpars$phylo` is structural (from `theta_phylo`; identity at 0); the
   "rho ~ -0.99" seen elsewhere is an empirical random-effect correlation, not the
   structural parameter.
+
+## 2026-06-15: Gaussian log-sigma Soft-Clamp (numerical guard)
+
+Added an identity-in-band soft-clamp on the Gaussian per-observation log-sigma
+before exponentiation, at the univariate and bivariate Gaussian density sites in
+`src/drmTMB.cpp`. Guards the catastrophic overflow when a scale-side phylogenetic
+field is fit on ~one observation per group. Design: doc 170; documented in
+doc 03. See after-task `2026-06-15-logsigma-softclamp.md`.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(reporter = 'summary')"   # full suite, no-regression gate
+Rscript /tmp/drmtmb-clamp-validate.R                # compile + smoke + real beak
+git diff --check
+```
+
+Results:
+
+- Full suite: 0 failures (identity-in-band). NOTE: a FIRST attempt with a pure
+  softplus clamp failed 10 tests because it leaked ~1e-4 into the central band
+  (aggregate-vs-per-obs, julia-tmb parity, manual-vs-fitted mi logLik, biv
+  check-drm); the adopted identity-in-band form (exact identity in [-12,12],
+  tanh saturation only beyond, to [-15,15]) is bitwise identity for well-posed
+  fits, and the re-run suite is clean.
+- `logsigma-clamp` tests pass; well-posed smoke fit unchanged.
+- Real beak (10,440 tips, univariate sigma-phylo): `logLik -499,839 -> -12,673`
+  (finite; `max|grad| 881,785 -> 1,587`). The catastrophic overflow/NaN is
+  removed and the fit is assessable, but still `convergence = 1` with the lower
+  clamp bound binding (`log_sigma -> -14.96`) -- the scale-side field is weakly
+  identified (honest signal), per Gauss's necessary-but-not-sufficient finding.
+- `git diff --check`: clean.
+
+Boundary: this is a numerical guard, not an identifiability fix. The q4-side
+recommendation (Model A: phylo on the mean, fixed-effect scale) is in doc 171 /
+PR #575.

@@ -1076,6 +1076,35 @@ mu_i = eta_mu_i
 sigma_i = exp(eta_sigma_i)
 ```
 
+### Numerical guard on the scale linear predictor
+
+The Gaussian density applies a smooth soft-clamp to the per-observation
+log-scale `eta_sigma` before exponentiation. The clamp is **exactly the
+identity** inside the band `[-12, 12]` and saturates C1-smoothly (via a `tanh`
+margin) only beyond each bound, with overall range `[-15, 15]` (so `sigma` is
+bounded to roughly `[3e-7, 3.3e6]`):
+
+```text
+eta_sigma_guarded_i = softclamp(eta_sigma_i, lo = -12, hi = 12, margin = 3)
+sigma_i = exp(eta_sigma_guarded_i)
+```
+
+Because it is exactly the identity inside the band, any fit whose fitted
+`log(sigma)` stays within `[-12, 12]` -- that is, every well-posed Gaussian fit
+-- is unchanged to the bit; the clamp acts only on a runaway scale. (An earlier
+pure-softplus form was rejected because it leaked a small bias into the central
+band and broke exact-equality and cross-path tests.) Its purpose is purely
+numerical: a per-observation
+scale random effect -- for example a phylogenetic field on `sigma` with one
+observation per group -- can otherwise drive `eta_sigma` to extreme values,
+overflow the Gaussian density, and break the inner Laplace solve. For any
+well-posed fit the clamp is inactive and does not change the result. It is a
+guard, not a model feature: it does not make a per-group scale field
+identifiable from a single observation per group, so a fit that relies on the
+clamp will still report non-convergence or a non-positive-definite Hessian (see
+`docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md`). The same
+guard applies to `sigma1` and `sigma2` in the bivariate Gaussian density.
+
 Matching R syntax:
 
 ```r

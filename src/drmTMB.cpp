@@ -14,6 +14,26 @@
 #include <TMB.hpp>
 #include "drm_count_kernels.h"
 
+// Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
+// [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
+// to the bit), and saturating C1-smoothly within a margin beyond each bound
+// (overall range (lo - margin, hi + margin)). A runaway per-observation scale --
+// e.g. a per-group scale random effect estimated from one observation per group
+// -- is therefore bounded and cannot overflow the Gaussian density or break the
+// inner Laplace solve, while ordinary fits see no change at all.
+// See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+template<class Type>
+void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
+  for (int i = 0; i < v.size(); ++i) {
+    Type x = v(i);
+    Type above = hi + margin * tanh((x - hi) / margin); // used only when x > hi
+    Type below = lo - margin * tanh((lo - x) / margin); // used only when x < lo
+    Type y = CppAD::CondExpGt(x, hi, above, x);
+    y = CppAD::CondExpLt(x, lo, below, y);
+    v(i) = y;
+  }
+}
+
 template<class Type>
 Type objective_function<Type>::operator()()
 {
@@ -1877,6 +1897,9 @@ Type objective_function<Type>::operator()()
       ADREPORT(sigma_tweedie_mi);
     }
 
+    // Guard the Gaussian scale against a runaway per-observation log-sigma.
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    drm_softclamp_log_sigma(log_sigma, Type(-12.0), Type(12.0), Type(3.0));
     vector<Type> sigma = exp(log_sigma);
     vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
@@ -3222,6 +3245,11 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_phylo);
     }
 
+    // Guard the bivariate Gaussian scales against runaway per-observation
+    // log-sigma (e.g. a scale-side phylogenetic field; Ayumi's q4 "Model E").
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    drm_softclamp_log_sigma(log_sigma1, Type(-12.0), Type(12.0), Type(3.0));
+    drm_softclamp_log_sigma(log_sigma2, Type(-12.0), Type(12.0), Type(3.0));
     vector<Type> sigma1 = exp(log_sigma1);
     vector<Type> sigma2 = exp(log_sigma2);
 
