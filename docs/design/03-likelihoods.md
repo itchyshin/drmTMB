@@ -88,6 +88,7 @@ is the current routing contract:
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
+| `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate fixed-effect Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
@@ -105,18 +106,17 @@ against the R algebra helpers. The C++ modularization source map in
 `docs/design/36-cpp-modularization-source-map.md` records how to keep those
 hidden probes separate during future file-splitting work.
 
-## Planned Bernoulli/Binomial Response Branch
+## Implemented Bernoulli/Binomial Response Branch
 
-`drmTMB#569` will add the first primary Bernoulli/binomial response route after
-the response contract and the Claude-owned `src/drmTMB.cpp` seam are clear. The
-intended public syntax is:
+`drmTMB#569` adds the first primary Bernoulli/binomial response route. The
+public syntax is:
 
 ```r
 drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
 drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
 ```
 
-The first TMB branch should be a fixed-effect `mu` model only:
+The first TMB branch is a fixed-effect `mu` model only:
 
 ```text
 Y_i ~ Binomial(n_i, mu_i)
@@ -125,7 +125,7 @@ mu_i = logistic(eta_i)
 ```
 
 For 0/1 responses, `n_i = 1`. For two-column responses, `n_i` is
-`successes_i + failures_i`. The negative log likelihood should include the
+`successes_i + failures_i`. The negative log likelihood includes the
 binomial normalizing constant:
 
 ```text
@@ -135,7 +135,7 @@ nll_i = -log choose(n_i, Y_i)
 ```
 
 using stable log-probability calculations near 0 and 1. Including the constant
-is required so `logLik()`, AIC, and BIC match `stats::glm()` for overlapping
+keeps `logLik()`, AIC, and BIC aligned with `stats::glm()` for overlapping
 fixed-effect logit fits.
 
 The first slice deliberately has no public `sigma`, no `rho12`, no random

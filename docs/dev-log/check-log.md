@@ -54713,3 +54713,53 @@ phylo-utils, and covariance-block-registry tests pass; document() documents both
 new args (rho_latent.Rd drift reverted); git diff --check clean. After-task
 2026-06-16-logsigma-clamp-knob.md. The disable test asserts the deterministic
 use_logsigma_clamp plumbing, not the optimizer's platform-dependent NaN warning.
+
+## 2026-06-16: Bernoulli/binomial response family first slice (#569)
+
+Implemented the first primary Bernoulli/binomial response route:
+`family = stats::binomial(link = "logit")` for explicit 0/1 event indicators
+and `cbind(successes, failures)` responses, fixed-effect `mu` only. The TMB
+branch uses `model_type == 18`, includes the binomial normalizing constant, and
+therefore matches `stats::glm()` for coefficients, `logLik()`, AIC, and BIC on
+overlapping logit likelihoods. Methods now cover `predict()`, `fitted()`,
+`simulate()`, `residuals()`, `sigma()`, `summary()`, `vcov()`, and fixed-effect
+Wald `confint()`. See after-task
+`docs/dev-log/after-task/2026-06-16-binomial-response-family.md` and draft PR
+`#585`.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R R/methods.R tests/testthat/test-binomial-response.R
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-binomial-response.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-family-link-contract.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check-binomial.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-mobile.png
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'planned `stats::binomial|planned plain|Planned Plain Binomial|Use the planned `stats::binomial|binomial response family \| planned|Not-yet-fitted.*binomial' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+```
+
+Results: the focused binomial, family-link-contract, and Julia gate tests
+passed; the mission-control validator passed with
+`19/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows`;
+full `devtools::test()` passed with five existing Julia bridge/sigma-phylo skips
+and eight expected log-sigma-clamp warnings; `devtools::check(error_on =
+"never")` finished with `0 errors | 0 warnings | 0 notes` after importing
+`stats::ave`; `git diff --check` and the conflict-marker scan were clean.
+`pkgdown::check_pkgdown()` is blocked by the Claude-owned penalty/MAP lane:
+`_pkgdown.yml` is missing the exported `drm_phylo_penalty` topic, so this branch
+did not edit it.
+
+Boundary: no `bernoulli()` alias, no weights-as-trials route, no non-logit link,
+no `sigma`, no random effects, no structured effects, no bivariate or
+mixed-response binomial, no Julia bridge promotion, no DRM.jl code change, and
+no interval-calibration or speed claim.

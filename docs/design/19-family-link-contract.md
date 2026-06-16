@@ -41,6 +41,7 @@ The implemented families use these parameter meanings:
 | Zero-one beta | `coi` | logit | probability of an exact 1 conditional on an exact-boundary response |
 | Beta-binomial | `mu` | logit | success probability for counted successes out of known trials |
 | Beta-binomial | `sigma` | log | extra-binomial variation scale; internal precision is `phi = 1 / sigma^2` |
+| Binomial | `mu` | logit | event probability for 0/1 responses or counted successes out of known trials |
 | Cumulative logit | `mu` | identity | latent ordinal location; `fitted()` returns expected category score |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
 | Zero-inflated Poisson | `mu` | log | conditional Poisson mean |
@@ -56,10 +57,11 @@ The implemented families use these parameter meanings:
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
 
-## Planned Next Contract: Plain Binomial Response
+## Implemented Plain Binomial Response Contract
 
-The next planned primary response family is ordinary Bernoulli/binomial logit,
-owned by `drmTMB#569`. The public route is deliberately the base R family:
+The first primary Bernoulli/binomial response family is ordinary logit
+binomial, owned by `drmTMB#569`. The public route is deliberately the base R
+family:
 
 ```r
 drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
@@ -81,11 +83,11 @@ logit(mu_i) = eta_i = X_mu[i, ] beta_mu
 
 For a 0/1 response, `n_i = 1` and `Y_i` is the event indicator. For
 `cbind(successes, failures)`, `Y_i = successes_i` and
-`n_i = successes_i + failures_i`. The first implementation should include the
+`n_i = successes_i + failures_i`. The implementation includes the
 binomial normalizing constant so `logLik()`, AIC, and BIC match
 `stats::glm()` on overlapping fixed-effect logit models.
 
-The first slice must reject non-logit links, factor-response ordering,
+The first slice rejects non-logit links, factor-response ordering,
 proportions plus `weights`, `weights = trials`, `successes / trials`, `sigma`,
 `nu`, `zi`, `zoi`, `coi`, random effects, structured effects, bivariate or
 mixed responses, and `engine = "julia"`. Top-level `weights` remain likelihood

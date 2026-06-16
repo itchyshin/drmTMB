@@ -12,8 +12,8 @@ Description: Fast distributional regression models for univariate and
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous,
     Tweedie semicontinuous, strict-proportion, zero-one bounded, and
-    denominator-aware proportion
-    families, and
+    denominator-aware proportion families, fixed-effect Bernoulli/binomial
+    event-probability models, and
     fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
     hurdle count, and ordinal cumulative-logit models.
     Skewness and additional response-family models are staged for later

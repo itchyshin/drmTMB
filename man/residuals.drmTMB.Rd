@@ -38,6 +38,9 @@ are observed proportions minus the unconditional fitted mean, including exact
 zero-one boundary mass. For beta-binomial models, response residuals are
 observed success proportions minus fitted \code{mu}, and Pearson residuals
 divide by the fitted beta-binomial proportion standard deviation. For
+binomial models, response residuals are observed success proportions minus
+fitted event probability, and Pearson residuals divide by
+\code{sqrt(mu * (1 - mu) / trials)}. For
 cumulative-logit ordinal models, response residuals are the observed
 ordered-category score minus the fitted expected score, and Pearson
 residuals divide by the fitted category-score standard deviation. For

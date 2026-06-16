@@ -2,7 +2,7 @@
 
 This note keeps denominator-aware response syntax explicit until the package has
 reviewed shorthand for counted successes out of known trial totals. It covers
-the implemented `beta_binomial()` overdispersion route and the planned plain
+the implemented `beta_binomial()` overdispersion route and the implemented plain
 `stats::binomial()` response route in `drmTMB#569`.
 
 ## Implemented Contract
@@ -27,9 +27,9 @@ n_i = successes_i + failures_i
 This mirrors the `glm(..., family = binomial())` convention and avoids a silent
 successes/trials ambiguity.
 
-## Planned Plain Binomial Contract
+## Plain Binomial Contract
 
-The planned first primary Bernoulli/binomial response route reuses the same
+The first primary Bernoulli/binomial response route reuses the same
 base-R response encoding but removes the extra-binomial scale:
 
 ```r
@@ -71,7 +71,7 @@ ordinary model-frame handling.
 Continuous proportions created as `successes / trials` are still valid data for
 `beta()`, but they no longer carry the binomial denominator. Use
 `beta_binomial()` when the number of trials is part of the sampling process.
-Use the planned `stats::binomial()` response route only when ordinary binomial
+Use `stats::binomial()` only when ordinary binomial
 sampling variation is the intended model; use `beta_binomial()` when the data
 need extra-binomial variation.
 

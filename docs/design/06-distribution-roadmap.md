@@ -144,13 +144,13 @@ remain consistent with the rest of `drmTMB`.
 - `ordbeta()`: continuous bounded responses including exact 0 and 1.
 - `beta_binomial()`: implemented fixed-effect path for counts of successes out
   of trials with overdispersion.
-- `stats::binomial(link = "logit")`: planned `drmTMB#569` first slice for 0/1
-  event data and `cbind(successes, failures)` counts, fixed-effect `mu` only,
-  no `sigma`, no random effects, and no Julia bridge claim.
+- `stats::binomial(link = "logit")`: implemented `drmTMB#569` first slice for
+  0/1 event data and `cbind(successes, failures)` counts, fixed-effect `mu`
+  only, no `sigma`, no random effects, and no Julia bridge claim.
 
 Recommended user guidance:
 
-- Use the planned `stats::binomial()` route for event probabilities with
+- Use `stats::binomial()` for event probabilities with
   ordinary binomial sampling variation.
 - Use `beta_binomial()` for success counts with known denominators and
   extra-binomial variation.

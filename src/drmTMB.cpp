@@ -2406,6 +2406,24 @@ Type objective_function<Type>::operator()()
     REPORT(beta_shape);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 18) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> mu(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
+      Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
+      Type failures = trials(i) - y(i);
+      Type log_choose =
+        lgamma(trials(i) + Type(1.0)) -
+        lgamma(y(i) + Type(1.0)) -
+        lgamma(failures + Type(1.0));
+      nll -= weights(i) *
+        (log_choose + y(i) * log_p1 + failures * log_p0);
+      mu(i) = exp(log_p1);
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    ADREPORT(beta_mu);
   } else if (model_type == 13) {
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> cutpoints(theta_ord.size());
