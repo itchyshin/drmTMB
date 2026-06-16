@@ -1895,7 +1895,8 @@ such as `(0 + habitat_score | plot)` enter the logit-`mu` predictor.
 Correlated slopes, labelled covariance blocks, `sigma` random effects, exact
 0/1 boundary mass through `zero_one_beta()`, known sampling covariance,
 structured terms, and bivariate or mixed beta models are later phases. Use
-`beta_binomial()` for counted successes out of known trials.
+`stats::binomial()` for ordinary event probabilities and `beta_binomial()` for
+overdispersed counted successes out of known trials.
 
 ## Implemented Zero-One Beta Mean-Scale-Boundary
 

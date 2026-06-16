@@ -54875,3 +54875,65 @@ Boundary: no new likelihood branch, no `src/drmTMB.cpp` edits, no random-effect
 binomial, no structured binomial, no bivariate or mixed-response binomial, no
 weights-as-trials support, no `bernoulli()` alias, no Julia bridge promotion,
 no DRM.jl code changes, no speed claim, and no interval-calibration claim.
+
+## 2026-06-16: Binomial docs accessibility plus numerical-guard simulation note (#569/#60 follow-up)
+
+Updated the bounded-response reader path after the native TMB plain binomial
+first slice. `vignettes/proportion-beta-binomial.Rmd` now teaches four
+bounded-response choices: ordinary event probabilities and ordinary successes
+out of known trials use `stats::binomial(link = "logit")`; overdispersed
+success counts use `beta_binomial()`; strict continuous proportions use
+`beta()`; and structural exact-boundary continuous proportions use
+`zero_one_beta()`. The tutorial adds a small fixed-effect event-probability
+example and warns against `weights = trials`, `successes / trials`, and
+`cbind(successes, trials)` denominator shortcuts. The model map, family guide,
+worked-example inventory, likelihood note, and supported-non-Gaussian evidence
+map were synchronized.
+
+Also added `docs/design/176-numerical-guard-simulation-audit.md` and a
+`docs/dev-log/team-improvements.md` entry after Hao Qin raised the concern that
+C++ AD constants can look like hard-coded truncations. The note classifies
+domain transforms, model-defining restrictions, starting-value safeguards,
+density-domain floors, tail log floors, and likelihood-altering guards. It
+records the future big-simulation requirement: compare guard configurations
+when possible and report guard activation, convergence, `pdHess`, bias, RMSE,
+interval coverage, MCSE, warnings, failures, and elapsed time before using a
+guard-dependent route for promotion claims. After-task:
+`docs/dev-log/after-task/2026-06-16-binomial-docs-accessibility-and-guard-note.md`.
+
+Checks run:
+
+```sh
+air format vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); out <- tempfile("proportion-binomial-", fileext = ".html"); rmarkdown::render("vignettes/proportion-beta-binomial.Rmd", output_file = out, quiet = TRUE); cat(out, "\n")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-binomial-response.R", reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg hard-framing terms over the touched current docs and vignette files
+rg -n '^successes out of known trials -> beta_binomial\(\)|Counted successes out of trials \|.*`beta_binomial\(\)`' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd docs/design/37-worked-example-inventory.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md docs/design/79-supported-nongaussian-evidence-goal.md
+rg -n 'Numerical Guard Simulation Audit|Hao Qin|likelihood-altering|logsigma_clamp|guard_sensitivity' docs/design/176-numerical-guard-simulation-audit.md docs/dev-log/team-improvements.md
+```
+
+Results: the updated proportion tutorial rendered to a temporary HTML file;
+focused `test-binomial-response.R` passed; full `devtools::test()` passed with
+0 failures, 8 known log-sigma-clamp warnings, 5 existing Julia
+bridge/sigma-phylo skips, and 11174 passes; `devtools::check(error_on =
+"never", document = FALSE)` finished with 0 errors, 0 warnings, and 0 notes.
+The package check had already built its source tarball before the numerical
+guard Markdown note was added, so the guard note is covered by the later
+Markdown/grep/diff scans rather than by that package-check tarball.
+`pkgdown::check_pkgdown()` remains blocked by the pre-existing Claude-owned
+penalty/MAP docs seam: `_pkgdown.yml` is missing `drm_phylo_penalty`.
+Issue breadcrumbs posted:
+`#569` https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4723968820,
+`#60` https://github.com/itchyshin/drmTMB/issues/60#issuecomment-4723968828,
+and `#59` https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4723968812.
+
+Boundary: no new likelihood branch, no `src/drmTMB.cpp` edits, no Gaussian
+clamp or penalty/MAP edits, no Ayumi path changes, no DRM.jl code changes, no
+binomial random effects, no structured binomial, no bivariate or mixed-response
+binomial, no `bernoulli()` alias, no Julia bridge promotion, no speed claim,
+and no interval-calibration claim.
