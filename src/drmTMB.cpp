@@ -518,6 +518,10 @@ Type objective_function<Type>::operator()()
     if (use_gaussian_aggregation == 1) {
       vector<Type> mu = offset_mu_agg + X_mu_agg * beta_mu;
       vector<Type> log_sigma = offset_sigma_agg + X_sigma_agg * beta_sigma;
+      if (use_logsigma_clamp == 1) {
+        drm_softclamp_log_sigma(
+          log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+      }
       vector<Type> sigma = exp(log_sigma);
       for (int g = 0; g < n_agg; ++g) {
         Type variance = sigma(g) * sigma(g);
@@ -2066,6 +2070,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_mu);
       ADREPORT(sd_mu_re);
     }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> nu = Type(2.0) + exp(eta_nu);
     for (int i = 0; i < y.size(); ++i) {
@@ -2091,6 +2099,10 @@ Type objective_function<Type>::operator()()
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> nu = eta_nu;
     vector<Type> xi(y.size());
@@ -2144,6 +2156,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_mu);
       ADREPORT(sd_mu_re);
     }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
       Type log_y = log(y(i));
@@ -2176,6 +2192,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_mu_re);
     }
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
       Type variance_multiplier = sigma(i) * sigma(i);
@@ -2199,6 +2219,10 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> nu(y.size());
@@ -2244,6 +2268,10 @@ Type objective_function<Type>::operator()()
       Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
       mu(i) = beta_mu_eps +
         (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
     }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
@@ -2294,6 +2322,10 @@ Type objective_function<Type>::operator()()
       Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
       mu(i) = beta_mu_eps +
         (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
+    }
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
     }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> zoi = Type(1.0) / (Type(1.0) + exp(-eta_zoi));
@@ -2376,6 +2408,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_mu_re);
     }
     vector<Type> mu = Type(1.0) / (Type(1.0) + exp(-eta_mu));
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> alpha(y.size());
@@ -2726,6 +2762,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_sigma_re);
     }
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
       Type log_density = drm_nbinom2_log_density(y(i), eta_mu(i), log_sigma(i));
@@ -2759,6 +2799,10 @@ Type objective_function<Type>::operator()()
       ADREPORT(sd_mu_re);
     }
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> trunc_prob(y.size());
     vector<Type> positive_mean(y.size());
@@ -2783,6 +2827,10 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_hu = X_zi * beta_zi;
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> hu = Type(1.0) / (Type(1.0) + exp(-eta_hu));
     vector<Type> trunc_prob(y.size());
@@ -2821,6 +2869,10 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_zi = X_zi * beta_zi;
     vector<Type> mu = exp(eta_mu);
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
     for (int i = 0; i < y.size(); ++i) {

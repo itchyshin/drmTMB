@@ -63,6 +63,17 @@ Apply a smooth, two-sided soft-clamp to `log_sigma` (and `log_sigma1`,
 `log_sigma2`) immediately before exponentiation in the Gaussian density, scoped to
 the Gaussian likelihood branches:
 
+> **Update (2026-06-16, Wave 2 ML robustness).** The same guard now wraps every
+> scale-bearing family branch (Student, skew-normal, lognormal, gamma, Tweedie,
+> beta, zero-one-beta, beta-binomial, and the negative-binomial family: NB2,
+> truncated, hurdle, zero-inflated) plus the Gaussian row-aggregation path,
+> gated by the same `use_logsigma_clamp` switch. It stays bit-identical in band
+> for every family (verified per family in `test-clamp-extension.R`), so the
+> only behavioural change is on a runaway scale, where it converts an overflow
+> into an assessable, clamp-flagged fit (see the clamp-active warning, Wave 1
+> Guard 4). The missing-predictor imputation sub-models (`*_mi`) and the
+> covariance-block prelude (`model_type == 96`) are not yet wrapped.
+
 ```cpp
 // EXACTLY identity inside [lo, hi]; C1-smooth tanh saturation within a margin
 // beyond each bound (overall range (lo - margin, hi + margin)).
