@@ -719,8 +719,8 @@ describes extra-binomial variation, not residual standard deviation.
 `fitted(fit)` returns probabilities; multiply by
 `successes_i + failures_i` when the scientific summary is the expected number
 of successes. The tutorial
-[Proportions and success rates](proportion-beta-binomial.html) gives a
-denominator-aware seed-germination example.
+[Proportions and success rates](proportion-beta-binomial.html) gives a plain
+event-probability example and a denominator-aware seed-germination example.
 
 Ordinal models are implemented first as fixed-effect univariate models with
 ordered cutpoints and a fixed latent logistic scale:

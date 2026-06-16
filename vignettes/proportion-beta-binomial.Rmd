@@ -22,7 +22,10 @@ cover, or the fraction of time an animal spends foraging.
 This article stays inside the currently implemented `drmTMB` bounded-response
 surface:
 
-- use `beta_binomial()` for counted successes out of known trials;
+- use `stats::binomial(link = "logit")` for ordinary 0/1 events or counted
+  successes out of known trials with binomial sampling variation only;
+- use `beta_binomial()` for counted successes out of known trials when
+  extra-binomial variation is part of the scientific question;
 - use `beta()` for continuous proportions strictly inside `(0, 1)`;
 - use `zero_one_beta()` for continuous proportions on `[0, 1]` when exact 0 or
   1 values are structural outcomes rather than trial-count outcomes.
@@ -41,7 +44,9 @@ Start from how the response was measured:
 
 | Response | Example | First `drmTMB` family | Boundary status |
 |---|---|---|---|
-| Counted successes out of trials | germinated seeds out of planted seeds | `beta_binomial()` | successes can be 0 or all trials through the binomial count process |
+| 0/1 event indicator | early NDVI onset, host infected or not, quadrat occupied or not | `stats::binomial(link = "logit")` | rows are ordinary Bernoulli trials; no modelled `sigma` |
+| Counted successes out of trials with ordinary binomial variation | germinated seeds out of planted seeds | `stats::binomial(link = "logit")` | successes can be 0 or all trials through the binomial count process |
+| Counted successes out of trials with extra-binomial variation | germinated seeds out of planted seeds, with tray-to-tray probability scatter | `beta_binomial()` | adds modelled `sigma` for variation beyond binomial sampling |
 | Continuous proportion strictly inside `(0, 1)` | leaf-area damage, vegetation cover, foraging time fraction | `beta()` | exact 0 or 1 is not supported by the strict beta likelihood |
 | Continuous proportion with structural 0 or 1 values | 0% disease, 100% cover, complete absence or saturation | `zero_one_beta()` | `zoi` models exact boundary mass; `coi` models exact ones among boundary observations |
 
@@ -49,10 +54,106 @@ The distinction is not cosmetic. A denominator-aware model knows that 3
 successes out of 6 trials and 30 successes out of 60 trials carry different
 sampling information. A strict beta model assumes the observation is already a
 continuous rate and that the boundaries are not part of the observed support.
+For denominator-aware responses, write `cbind(successes, failures)`. Do not
+write `weights = trials`, `successes / trials`, or
+`cbind(successes, trials)`: top-level weights are likelihood weights, and the
+second column of a two-column binomial response is failures, not trial totals.
+
+## Plain Binomial Equation And Syntax
+
+Use `stats::binomial(link = "logit")` when the response is an event
+probability and ordinary binomial sampling variation is enough:
+
+\[
+\begin{aligned}
+Y_i \mid n_i, \mu_i
+  &\sim \operatorname{Binomial}(n_i, \mu_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{canopy}_i + \beta_2 \text{NDVI}_i,\\
+E[Y_i / n_i]
+  &= \mu_i,\\
+\operatorname{Var}(Y_i / n_i)
+  &= \mu_i(1 - \mu_i) / n_i.
+\end{aligned}
+\]
+
+For a 0/1 response, \(n_i = 1\):
+
+```r
+drmTMB(
+  bf(early_onset ~ canopy + ndvi),
+  family = stats::binomial(link = "logit"),
+  data = onset_data
+)
+```
+
+For success counts, keep both the successes and failures:
+
+```r
+drmTMB(
+  bf(cbind(germinated, failed) ~ treatment + moisture),
+  family = stats::binomial(link = "logit"),
+  data = seed_trials
+)
+```
+
+The fitted `mu` is the event probability. `fitted(fit)` and
+`predict(fit, dpar = "mu")` return probabilities; multiply by
+`successes_i + failures_i` only when the target summary is the expected number
+of successes.
+
+Here is a small 0/1 event example. Suppose each site is scored for whether a
+vegetation index crosses an early-season threshold. The model asks how canopy
+condition and spring NDVI change that event probability:
+
+```{r}
+set.seed(196)
+n_onset <- 240
+onset_data <- data.frame(
+  canopy = factor(
+    rep(c("open", "closed"), each = n_onset / 2),
+    levels = c("open", "closed")
+  ),
+  ndvi = as.numeric(scale(runif(n_onset, 0.15, 0.85)))
+)
+
+closed <- as.numeric(onset_data$canopy == "closed")
+mu_onset <- plogis(-0.85 - 0.35 * closed + 1.10 * onset_data$ndvi)
+onset_data$early_onset <- rbinom(n_onset, size = 1, prob = mu_onset)
+
+fit_onset <- drmTMB(
+  bf(early_onset ~ canopy + ndvi),
+  family = stats::binomial(link = "logit"),
+  data = onset_data
+)
+
+coef(fit_onset, "mu")
+```
+
+Predicted probabilities are already on the response scale:
+
+```{r}
+new_onset <- data.frame(
+  canopy = factor(c("open", "closed"), levels = levels(onset_data$canopy)),
+  ndvi = c(0, 0)
+)
+
+data.frame(
+  canopy = new_onset$canopy,
+  ndvi = new_onset$ndvi,
+  early_onset_probability = predict(fit_onset, newdata = new_onset, dpar = "mu")
+)
+```
+
+This first plain-binomial slice is fixed-effect only. It rejects non-logit
+links, factor responses, proportions with trial weights, random effects,
+structured effects, bivariate or mixed responses, and `engine = "julia"`.
 
 ## Beta-Binomial Equation And Syntax
 
-For successes out of known trials, `beta_binomial()` uses
+Use `beta_binomial()` when the response is still successes out of known trials
+but the probability varies more than ordinary binomial sampling can explain.
+The model uses
 
 \[
 \begin{aligned}
@@ -417,12 +518,13 @@ applied reader expects.
 
 ## Current Boundary
 
-The implemented bounded-response path is univariate. Use `beta_binomial()` for
-counted successes and failures, `beta()` for a single continuous proportion
-strictly between 0 and 1, and `zero_one_beta()` for a single continuous
-proportion with structural exact 0 or 1 values. `beta()` and
-`beta_binomial()` support ordinary unlabelled `mu` random intercepts and
-independent numeric slopes as first mixed-model slices:
+The implemented bounded-response path is univariate. Use
+`stats::binomial(link = "logit")` for ordinary fixed-effect event probability
+models, `beta_binomial()` for overdispersed counted successes and failures,
+`beta()` for a single continuous proportion strictly between 0 and 1, and
+`zero_one_beta()` for a single continuous proportion with structural exact 0 or
+1 values. `beta()` and `beta_binomial()` support ordinary unlabelled `mu`
+random intercepts and independent numeric slopes as first mixed-model slices:
 
 ```r
 drmTMB(
@@ -454,7 +556,8 @@ Do not teach the following as fitted proportion examples yet:
 - bivariate or mixed-response bounded models such as
   `family = c(beta(), gaussian())`;
 - ordered beta or beta-binomial zero-inflation;
-- denominator shorthand such as `successes / trials` as a replacement for
+- denominator shorthand such as `successes / trials`, `weights = trials`, or
+  `cbind(successes, trials)` as a replacement for
   `cbind(successes, failures)`.
 
 Those are useful future routes, but each needs likelihood code, simulation

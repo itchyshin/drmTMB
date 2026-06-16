@@ -539,3 +539,21 @@ and the literature/methods curator (`literature-curator` in both directories) no
 longer claims the Curie name. The literature-curator role stays nameless because
 the standing-roles table assigns it no canonical name (landscape/source-map
 scouting belongs to Jason).
+
+## 2026-06-16 - Numerical Guards Need Simulation Sensitivity Evidence
+
+- Improvement implemented: record numerical guards as explicit model-audit
+  objects before the big simulation programme. Classify each constant or floor
+  as a domain transform, model-defining restriction, starting-value safeguard,
+  density-domain floor, tail log floor, or likelihood-altering guard.
+- Improvement implemented: likelihood-altering guards, especially the
+  Gaussian `log(sigma)` soft-clamp, must not turn a guarded fit into a support
+  claim. Big simulations should compare disabled/default/wider/tighter guard
+  settings when possible and report guard activation, convergence, `pdHess`,
+  bias, RMSE, interval coverage, MCSE, warnings, failures, and elapsed time.
+- Trigger: Hao Qin raised the concern that hard-coded constants in the C++ AD
+  path might force convergence without theoretical justification. The right
+  response is not to dismiss the concern, but to test whether the guards have
+  negligible impact in the intended operating range and to tell users honestly
+  when a guard can affect inference. Design note:
+  `docs/design/176-numerical-guard-simulation-audit.md`.
