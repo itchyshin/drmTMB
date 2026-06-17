@@ -29,6 +29,8 @@
 \item{object}{A \code{drmTMB} fit.}
 
 \item{...}{Reserved for future extractor options.}
+
+\item{k}{Numeric penalty per parameter for \code{AIC()}; the default is \code{2}.}
 }
 \value{
 \code{logLik()} returns an object of class \code{"logLik"}. \code{vcov()} returns a

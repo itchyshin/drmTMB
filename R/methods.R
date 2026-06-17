@@ -2035,6 +2035,7 @@ drm_standard_error_status <- function(object) {
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
+#' @param k Numeric penalty per parameter for `AIC()`; the default is `2`.
 #'
 #' @return `logLik()` returns an object of class `"logLik"`. `vcov()` returns a
 #'   numeric covariance matrix. `nobs()`, `df.residual()`, and `deviance()`
