@@ -93,6 +93,12 @@
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
+#' @param sd_boundary,rho_boundary Boundary thresholds used by
+#'   `method = "wald"` to flag intervals where the symmetric Wald interval is
+#'   unreliable: a variance-component standard deviation within `sd_boundary` of
+#'   zero, or a correlation within `rho_boundary` of `+/-1`, is returned with
+#'   `conf.status = "wald_at_boundary"` and a warning pointing to
+#'   `method = "profile"`. Defaults match [check_drm()] (`1e-4`, `0.98`).
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -139,6 +145,8 @@ confint.drmTMB <- function(
   parallel = c("none", "multicore"),
   workers = NULL,
   refit_control = NULL,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98,
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
@@ -184,7 +192,13 @@ confint.drmTMB <- function(
         "{.arg profile_endpoint_max_eval} is only used when {.code method = \"profile\"}."
       )
     }
-    return(drm_wald_confint(object, parm = parm, level = level))
+    return(drm_wald_confint(
+      object,
+      parm = parm,
+      level = level,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary
+    ))
   }
 
   if (identical(method, "bootstrap")) {
@@ -1549,7 +1563,13 @@ warn_skew_normal_slant_wald <- function(object, targets) {
   invisible(NULL)
 }
 
-drm_wald_confint <- function(object, parm, level) {
+drm_wald_confint <- function(
+  object,
+  parm,
+  level,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
+) {
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
@@ -1615,8 +1635,52 @@ drm_wald_confint <- function(object, parm, level) {
     profile.message = NA_character_,
     stringsAsFactors = FALSE
   )
+
+  # A Wald interval on a variance component near zero or a correlation near +/-1
+  # is unreliable (boundary / chi-square-mixture inference). Keep the interval --
+  # a boundary is a warning, not an auto-discard -- but flag it and point to the
+  # profile method. Residual/distributional scale is regular and not flagged.
+  at_boundary <- interval_ready &
+    wald_boundary_targets(
+      targets,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary
+    )
+  out$conf.status[at_boundary] <- "wald_at_boundary"
+  if (any(at_boundary)) {
+    n_boundary <- sum(at_boundary)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
+      ),
+      class = "drmTMB_wald_boundary_warning"
+    )
+  }
+
   row.names(out) <- NULL
   out
+}
+
+# Identify confint targets whose Wald interval sits at a variance-component or
+# correlation boundary, where the symmetric Wald interval is unreliable. Scoped
+# by `target_class`: random-effect / structured SDs near zero and any correlation
+# near +/-1, but NOT the residual or distributional scale (regular asymptotics).
+wald_boundary_targets <- function(
+  targets,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
+) {
+  if (nrow(targets) == 0L) {
+    return(logical(0))
+  }
+  target_class <- targets$target_class
+  estimate <- targets$estimate
+  is_sd <- grepl("-sd$", target_class)
+  is_correlation <- grepl("correlation", target_class)
+  finite <- is.finite(estimate)
+  (is_sd & finite & estimate < sd_boundary) |
+    (is_correlation & finite & abs(estimate) > rho_boundary)
 }
 
 drm_bootstrap_confint <- function(
@@ -2254,9 +2318,13 @@ drm_profile_target_tmbprofile_confint <- function(
   )
   diagnostics <- profile_interval_diagnostics(
     interval,
-    transformation = target$transformation
+    transformation = target$transformation,
+    estimate = target$estimate
   )
   conf_status <- profile_conf_status_from_diagnostics(diagnostics)
+  if (identical(conf_status, "profile_failed")) {
+    interval <- c(NA_real_, NA_real_)
+  }
 
   data.frame(
     parm = target$parm,
@@ -2293,9 +2361,13 @@ drm_profile_target_endpoint_confint <- function(
   interval <- result$interval
   diagnostics <- profile_interval_diagnostics(
     interval,
-    transformation = target$transformation
+    transformation = target$transformation,
+    estimate = target$estimate
   )
   conf_status <- profile_conf_status_from_diagnostics(diagnostics)
+  if (identical(conf_status, "profile_failed")) {
+    interval <- c(NA_real_, NA_real_)
+  }
 
   data.frame(
     parm = target$parm,
@@ -2316,7 +2388,10 @@ drm_profile_target_endpoint_confint <- function(
 }
 
 profile_conf_status_from_diagnostics <- function(diagnostics) {
-  if (identical(diagnostics$message, "nonfinite_interval")) {
+  if (
+    identical(diagnostics$message, "nonfinite_interval") ||
+      identical(diagnostics$message, "point_estimate_outside_interval")
+  ) {
     return("profile_failed")
   }
   "profile"
@@ -2692,12 +2767,20 @@ drm_tmbprofile_confint <- function(profile, target_name, level) {
 profile_interval_diagnostics <- function(
   interval,
   transformation,
+  estimate = NULL,
   sd_boundary = sqrt(.Machine$double.eps),
   correlation_boundary = 0.98
 ) {
   interval <- as.numeric(interval)
   if (length(interval) != 2L || any(!is.finite(interval))) {
     return(list(boundary = TRUE, message = "nonfinite_interval"))
+  }
+  if (
+    length(estimate) == 1L &&
+      is.finite(estimate) &&
+      (interval[[1L]] >= estimate || interval[[2L]] <= estimate)
+  ) {
+    return(list(boundary = TRUE, message = "point_estimate_outside_interval"))
   }
   if (
     transformation %in%

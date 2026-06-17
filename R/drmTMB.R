@@ -127,12 +127,16 @@
 #'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
 #'   through JuliaCall for the supported bridge slice.
 #' @param REML Logical; use restricted maximum likelihood where the selected
-#'   engine supports it. Native `engine = "tmb"` currently supports the first
-#'   univariate Gaussian mixed-model slice: ordinary dense `mu` fixed effects,
-#'   ordinary `mu` random intercepts or slopes, diagonal or dense known sampling
-#'   covariance through [meta_V()], non-unit likelihood `weights` (with diagonal
-#'   or no known covariance), intercept-only `sigma`, complete responses, and no
-#'   aggregation, structured effects, or direct `sd()` scale formulae.
+#'   engine supports it. Native `engine = "tmb"` supports: univariate Gaussian
+#'   mixed models with ordinary dense `mu` fixed effects, ordinary `mu` random
+#'   intercepts or slopes, a mean-side phylogenetic [phylo()] effect, diagonal or
+#'   dense known sampling covariance through [meta_V()], non-unit likelihood
+#'   `weights` (with diagonal or no known covariance), and a fixed-effect
+#'   `sigma ~ predictors` (heteroscedastic) or intercept-only `sigma`; and
+#'   bivariate Gaussian *fixed-effect* location models (`mu1`/`mu2`). It does not
+#'   yet support aggregation, scale-side or non-phylogenetic structured effects,
+#'   direct `sd()` scale formulae, scale random effects, or bivariate random or
+#'   structured means.
 #'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
 #'   Gaussian bridge cells, including fixed-effect location-scale models,
 #'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
@@ -217,10 +221,10 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
-  if (isTRUE(REML) && !identical(family_type, "gaussian")) {
+  if (isTRUE(REML) && !family_type %in% c("gaussian", "biv_gaussian")) {
     cli::cli_abort(c(
-      "{.arg REML} is implemented only for the first univariate Gaussian mixed-model slice.",
-      "i" = "Use {.code family = gaussian()} or set {.code REML = FALSE}."
+      "{.arg REML} is implemented only for univariate and bivariate Gaussian models.",
+      "i" = "Use {.code family = gaussian()} or {.code family = biv_gaussian()}, or set {.code REML = FALSE}."
     ))
   }
   if (
@@ -231,6 +235,13 @@ drmTMB <- function(
     cli::cli_abort(c(
       "{.arg REML} is not implemented with explicit missing-data engines yet.",
       "i" = "Use the default {.code missing = miss_control()} or set {.code REML = FALSE}."
+    ))
+  }
+  if (isTRUE(REML) && !is.null(penalty)) {
+    cli::cli_abort(c(
+      "{.arg REML} and {.arg penalty} cannot be combined.",
+      "i" = "A penalized fit is a maximum-a-posteriori (MAP) estimator and REML is a restricted-likelihood estimator; they are different estimators of the variance components.",
+      "i" = "Use one of {.code REML = TRUE} or {.code penalty = drm_phylo_penalty(...)}, not both."
     ))
   }
   if (
@@ -426,7 +437,10 @@ drm_fit_spec <- function(
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
+  drm_warn_if_not_converged(opt)
+  drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
+  drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
   uncertainty <- drm_compute_uncertainty(obj, opt, control)
@@ -475,14 +489,86 @@ drm_fit_spec <- function(
   drm_apply_storage_control(fit, control)
 }
 
+# Build the starting points for a multi-start fit: the principled start
+# (unperturbed) followed by `n_start - 1` reproducibly perturbed starts. A fixed
+# seed keeps fits reproducible; the global RNG state is saved and restored so a
+# multi-start fit does not perturb the caller's random stream.
+drm_perturbed_starts <- function(par, n_start) {
+  if (n_start <= 1L || length(par) == 0L) {
+    return(list(par))
+  }
+  out <- vector("list", n_start)
+  out[[1L]] <- par
+  saved <- if (exists(".Random.seed", envir = globalenv())) {
+    get(".Random.seed", envir = globalenv())
+  } else {
+    NULL
+  }
+  on.exit(
+    {
+      if (is.null(saved)) {
+        suppressWarnings(rm(".Random.seed", envir = globalenv()))
+      } else {
+        assign(".Random.seed", saved, envir = globalenv())
+      }
+    },
+    add = TRUE
+  )
+  set.seed(20260616L)
+  for (k in 2:n_start) {
+    out[[k]] <- par + stats::rnorm(length(par), mean = 0, sd = 0.5)
+  }
+  out
+}
+
+# Run a single optimizer preset from `n_start` starting points and return the
+# result with the lowest finite objective. With n_start == 1 this is exactly the
+# single-start call, so the default fit is unchanged. If every start errors, the
+# last error is re-raised for the caller's tryCatch to record.
+drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
+  starts <- drm_perturbed_starts(obj$par, n_start)
+  best <- NULL
+  last_error <- NULL
+  for (start in starts) {
+    res <- tryCatch(
+      optimizer(
+        start = start,
+        objective = obj$fn,
+        gradient = obj$gr,
+        control = control_opt
+      ),
+      error = function(e) e
+    )
+    if (inherits(res, "error")) {
+      last_error <- res
+      next
+    }
+    obj_value <- if (length(res$objective) == 1L && is.finite(res$objective)) {
+      res$objective
+    } else {
+      Inf
+    }
+    if (is.null(best) || obj_value < best$value) {
+      best <- list(opt = res, value = obj_value)
+    }
+  }
+  if (is.null(best)) {
+    stop(last_error)
+  }
+  best$opt
+}
+
 drm_optimize_with_preset_retry <- function(
   obj,
   control,
   optimizer = stats::nlminb,
+  fallback_fn = stats::optim,
   warn = TRUE
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
+  n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
   rows <- vector("list", length(attempt_specs))
+  opts <- vector("list", length(attempt_specs))
   last_error <- NULL
 
   for (i in seq_along(attempt_specs)) {
@@ -491,11 +577,11 @@ drm_optimize_with_preset_retry <- function(
     result <- tryCatch(
       list(
         ok = TRUE,
-        value = optimizer(
-          start = obj$par,
-          objective = obj$fn,
-          gradient = obj$gr,
-          control = spec$control
+        value = drm_optimize_multistart(
+          obj,
+          optimizer,
+          spec$control,
+          n_start
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -504,6 +590,10 @@ drm_optimize_with_preset_retry <- function(
 
     if (isTRUE(result$ok)) {
       opt <- result$value
+      opts[[i]] <- opt
+      converged <- identical(as.integer(opt$convergence), 0L) &&
+        length(opt$objective) == 1L &&
+        is.finite(opt$objective)
       rows[[i]] <- drm_optimizer_attempt_row(
         attempt = i,
         preset = spec$preset,
@@ -513,18 +603,23 @@ drm_optimize_with_preset_retry <- function(
         message = opt$message,
         objective = opt$objective,
         elapsed_sec = elapsed,
-        selected = TRUE
+        selected = converged
       )
-      attempts <- drm_optimizer_attempts_frame(rows[seq_len(i)])
-      selected <- drm_optimizer_selected_record(attempts[i, , drop = FALSE])
-      if (isTRUE(warn) && i > 1L) {
-        cli::cli_warn(c(
-          "{.fn drmTMB} retried {.fn stats::nlminb} after an optimizer error.",
-          "i" = "The selected optimizer preset is {.val {spec$preset}}.",
-          "i" = "Inspect {.code fit$optimizer_attempts} before interpreting the fit."
-        ))
+      if (converged) {
+        attempts <- drm_optimizer_attempts_frame(rows[seq_len(i)])
+        selected <- drm_optimizer_selected_record(attempts[i, , drop = FALSE])
+        if (isTRUE(warn) && i > 1L) {
+          cli::cli_warn(c(
+            "{.fn drmTMB} escalated {.fn stats::nlminb} to the {.val {spec$preset}} optimizer preset to reach convergence.",
+            "i" = "An earlier preset errored or did not converge; inspect {.code fit$optimizer_attempts}."
+          ))
+        }
+        return(list(opt = opt, selected = selected, attempts = attempts))
       }
-      return(list(opt = opt, selected = selected, attempts = attempts))
+      # A non-converged result (false convergence or non-finite objective) is not
+      # accepted: escalate to the next preset in the ladder, keeping this attempt
+      # as a candidate in case no preset converges cleanly.
+      next
     }
 
     last_error <- result$value
@@ -539,6 +634,107 @@ drm_optimize_with_preset_retry <- function(
       elapsed_sec = elapsed,
       selected = FALSE
     )
+  }
+
+  # C3: optional fallback optimizer (for example optim BFGS) when no nlminb
+  # preset converged. A different algorithm can succeed on a numerically awkward
+  # but identified problem; opt-in via drm_control(fallback_optimizer = ).
+  fallback <- control$fallback_optimizer
+  if (!is.null(fallback)) {
+    fb_attempt <- length(attempt_specs) + 1L
+    fb_control <- list(maxit = 1000L)
+    fb_start <- proc.time()[["elapsed"]]
+    fb_res <- tryCatch(
+      fallback_fn(
+        par = obj$par,
+        fn = obj$fn,
+        gr = obj$gr,
+        method = fallback,
+        control = fb_control
+      ),
+      error = function(e) e
+    )
+    fb_elapsed <- proc.time()[["elapsed"]] - fb_start
+    if (inherits(fb_res, "error")) {
+      last_error <- fb_res
+      rows[[fb_attempt]] <- drm_optimizer_attempt_row(
+        attempt = fb_attempt,
+        preset = paste0("fallback:", fallback),
+        control = fb_control,
+        status = "error",
+        convergence = NA_integer_,
+        message = conditionMessage(fb_res),
+        objective = NA_real_,
+        elapsed_sec = fb_elapsed,
+        selected = FALSE
+      )
+    } else {
+      fb_message <- if (is.null(fb_res$message)) {
+        NA_character_
+      } else {
+        fb_res$message
+      }
+      fb_opt <- list(
+        par = fb_res$par,
+        objective = fb_res$value,
+        convergence = fb_res$convergence,
+        message = fb_message
+      )
+      opts[[fb_attempt]] <- fb_opt
+      fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
+        length(fb_opt$objective) == 1L &&
+        is.finite(fb_opt$objective)
+      rows[[fb_attempt]] <- drm_optimizer_attempt_row(
+        attempt = fb_attempt,
+        preset = paste0("fallback:", fallback),
+        control = fb_control,
+        status = "ok",
+        convergence = fb_opt$convergence,
+        message = fb_message,
+        objective = fb_opt$objective,
+        elapsed_sec = fb_elapsed,
+        selected = fb_converged
+      )
+      if (fb_converged) {
+        attempts <- drm_optimizer_attempts_frame(rows)
+        selected <- drm_optimizer_selected_record(
+          attempts[attempts$attempt == fb_attempt, , drop = FALSE]
+        )
+        if (isTRUE(warn)) {
+          cli::cli_warn(c(
+            "{.fn drmTMB} converged with the {.val {fallback}} fallback optimizer after the {.fn stats::nlminb} presets did not.",
+            "i" = "Inspect {.code fit$optimizer_attempts}."
+          ))
+        }
+        return(list(opt = fb_opt, selected = selected, attempts = attempts))
+      }
+    }
+  }
+
+  # No preset converged cleanly. If any attempt produced a result, return the
+  # best of them (lowest finite objective) so the user gets the most-converged
+  # fit; the fit-time convergence warning then flags it. Only abort if every
+  # attempt errored.
+  ok_idx <- which(!vapply(opts, is.null, logical(1L)))
+  if (length(ok_idx) > 0L) {
+    objectives <- vapply(
+      ok_idx,
+      function(i) {
+        value <- opts[[i]]$objective
+        if (length(value) == 1L && is.finite(value)) value else Inf
+      },
+      numeric(1L)
+    )
+    best_i <- ok_idx[[which.min(objectives)]]
+    for (j in seq_along(rows)) {
+      if (!is.null(rows[[j]])) {
+        rows[[j]]$selected <- j == best_i
+      }
+    }
+    attempts <- drm_optimizer_attempts_frame(rows)
+    selected_row <- attempts[attempts$attempt == best_i, , drop = FALSE]
+    selected <- drm_optimizer_selected_record(selected_row)
+    return(list(opt = opts[[best_i]], selected = selected, attempts = attempts))
   }
 
   attempts <- drm_optimizer_attempts_frame(rows)
@@ -627,7 +823,12 @@ drm_apply_estimator_spec <- function(spec, REML = FALSE) {
 
   drm_validate_reml_spec(spec)
   spec$estimator <- "REML"
-  spec$tmb_random_names <- c(spec$random_names, "beta_mu")
+  mean_fixed <- if (identical(spec$model_type, "biv_gaussian")) {
+    c("beta_mu1", "beta_mu2")
+  } else {
+    "beta_mu"
+  }
+  spec$tmb_random_names <- c(spec$random_names, mean_fixed)
   spec
 }
 
@@ -1466,9 +1667,12 @@ drm_start_override_scalar <- function(x, default) {
 }
 
 drm_validate_reml_spec <- function(spec) {
+  if (identical(spec$model_type, "biv_gaussian")) {
+    return(drm_validate_reml_spec_biv(spec))
+  }
   if (!identical(spec$model_type, "gaussian")) {
     cli::cli_abort(
-      "{.arg REML} is implemented only for univariate Gaussian models."
+      "{.arg REML} is implemented only for univariate and bivariate Gaussian models."
     )
   }
   if (isTRUE(spec$sparse_fixed$mu)) {
@@ -1488,12 +1692,11 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
     ))
   }
-  if (ncol(spec$X$sigma) != 1L) {
-    cli::cli_abort(c(
-      "{.arg REML} currently requires an intercept-only {.code sigma} formula.",
-      "i" = "Use {.code sigma ~ 1} or set {.code REML = FALSE}."
-    ))
-  }
+  # A fixed-effect `sigma ~ predictors` model is allowed under REML: REML
+  # restricts the likelihood for the mean fixed effects regardless of the scale
+  # model, and the restricted likelihood with a heteroscedastic residual
+  # (V = diag(sigma_i^2) + random-effect covariance) is exact for a Gaussian.
+  # Scale-side random effects remain rejected below.
   if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
     cli::cli_abort(c(
       "{.arg REML} currently supports ordinary {.code mu} random effects only.",
@@ -1515,11 +1718,21 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use ordinary location random effects such as {.code (1 | id)}, or set {.code REML = FALSE}."
     ))
   }
-  if (isTRUE(spec$structured$phylo_mu$has)) {
-    cli::cli_abort(c(
-      "{.arg REML} is not implemented for structured Gaussian effects yet.",
-      "i" = "Use ordinary grouped random effects or set {.code REML = FALSE}."
-    ))
+  phylo_mu <- spec$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+      cli::cli_abort(c(
+        "{.arg REML} currently supports only phylogenetic ({.fn phylo}) mean-side structured effects.",
+        "i" = "Spatial, animal, and relatedness structured effects under REML are not validated yet; set {.code REML = FALSE}."
+      ))
+    }
+    endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
+    if (any(sub("[0-9]+$", "", endpoints) == "sigma")) {
+      cli::cli_abort(c(
+        "{.arg REML} is not implemented for scale-side structured effects.",
+        "i" = "REML restricts the likelihood for the location: keep {.code phylo()} on the mean with an intercept-only {.code sigma}, or set {.code REML = FALSE}."
+      ))
+    }
   }
   if (qr(as.matrix(spec$X$mu))$rank < ncol(spec$X$mu)) {
     cli::cli_abort(c(
@@ -1530,10 +1743,40 @@ drm_validate_reml_spec <- function(spec) {
   invisible(TRUE)
 }
 
+# REML validation for the bivariate Gaussian model. The first bivariate slice
+# restricts the likelihood for fixed-effect mean models (mu1, mu2): TMB
+# marginalises beta_mu1 and beta_mu2, giving an unbiased residual covariance.
+# Bivariate random effects and structured (phylo) means under REML are a later
+# slice -- they need a bivariate restricted-likelihood reference to validate --
+# so they are rejected here.
+drm_validate_reml_spec_biv <- function(spec) {
+  if (length(spec$random_names) > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} for bivariate Gaussian models currently supports fixed-effect mean models only.",
+      "i" = "Remove the random or structured ({.fn phylo}) mean effects, or set {.code REML = FALSE}."
+    ))
+  }
+  if (
+    qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||
+      qr(as.matrix(spec$X$mu2))$rank < ncol(spec$X$mu2)
+  ) {
+    cli::cli_abort(c(
+      "{.arg REML} requires full-rank dense {.code mu1} and {.code mu2} fixed-effect designs.",
+      "i" = "Remove aliased fixed-effect columns or set {.code REML = FALSE}."
+    ))
+  }
+  invisible(TRUE)
+}
+
 drm_fit_df <- function(spec, opt) {
   df <- length(opt$par)
   if (identical(spec$estimator, "REML")) {
-    df <- df + ncol(spec$X$mu)
+    df <- df +
+      if (identical(spec$model_type, "biv_gaussian")) {
+        ncol(spec$X$mu1) + ncol(spec$X$mu2)
+      } else {
+        ncol(spec$X$mu)
+      }
   }
   df
 }
@@ -1643,6 +1886,153 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
     last_par_best[fixed] <- opt$par
     obj$env$last.par.best <- last_par_best
   }
+  invisible(TRUE)
+}
+
+# Interpret an nlminb convergence code. Returns NULL when the optimizer reported
+# convergence (code 0) and a short human label otherwise, surfacing the PORT
+# message (for example "false convergence (8)").
+drm_convergence_label <- function(convergence, message = NULL) {
+  if (length(convergence) != 1L || is.na(convergence)) {
+    return(NULL)
+  }
+  if (identical(as.integer(convergence), 0L)) {
+    return(NULL)
+  }
+  has_message <- length(message) == 1L &&
+    !is.na(message) &&
+    nzchar(message)
+  if (has_message) {
+    sprintf(
+      "optimizer reported non-convergence (code %s: %s)",
+      convergence,
+      message
+    )
+  } else {
+    sprintf("optimizer reported non-convergence (code %s)", convergence)
+  }
+}
+
+# Warn at fit time when the optimizer did not converge, so a non-converged fit
+# is never returned looking fine. Suppressible like any warning.
+drm_warn_if_not_converged <- function(opt) {
+  label <- drm_convergence_label(opt$convergence, opt$message)
+  if (is.null(label)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: {label}.",
+      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
+    ),
+    class = "drmTMB_convergence_warning"
+  )
+  invisible(TRUE)
+}
+
+# Warn at fit time when the optimized objective is not finite. TMB normally
+# returns a finite objective at the reported optimum, so this is a defensive
+# guard: a non-finite objective means the fit never reached a usable optimum and
+# its log-likelihood, estimates, and SEs are meaningless, but nlminb may not have
+# thrown an error.
+drm_warn_if_nonfinite_objective <- function(opt) {
+  objective <- opt$objective
+  if (length(objective) == 1L && is.finite(objective)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the optimized objective is not finite.",
+      "i" = "The fit did not reach a usable optimum; its log-likelihood, estimates, and standard errors are unreliable. Inspect with {.fn check_drm}, rescale or simplify the model, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+    ),
+    class = "drmTMB_nonfinite_objective_warning"
+  )
+  invisible(TRUE)
+}
+
+# Detect whether the log(sigma) soft-clamp is active at the optimum, i.e. the
+# fitted log_sigma reached or passed the identity band [lo, hi] and the clamp
+# bent it. Returns NULL when the clamp is disabled or the scale is well inside
+# the band, otherwise a list with the extreme |log_sigma| and the band. Reads
+# every reported `log_sigma*` field so univariate and bivariate scales are
+# covered.
+# Model types whose main-likelihood scale is wrapped by the log(sigma) soft-clamp
+# (Wave 2). Count families without a scale (poisson, zi_poisson, cumulative_logit)
+# are excluded. Keep in sync with the clamp call sites in src/drmTMB.cpp.
+drm_clamped_scale_families <- function() {
+  c(
+    "gaussian",
+    "biv_gaussian",
+    "student",
+    "skew_normal",
+    "lognormal",
+    "gamma",
+    "tweedie",
+    "beta",
+    "zero_one_beta",
+    "beta_binomial",
+    "nbinom2",
+    "truncated_nbinom2",
+    "hurdle_nbinom2",
+    "zi_nbinom2"
+  )
+}
+
+drm_logsigma_clamp_active <- function(report, tmb_data) {
+  enabled <- tmb_data$use_logsigma_clamp
+  if (length(enabled) != 1L || !identical(as.integer(enabled), 1L)) {
+    return(NULL)
+  }
+  band <- tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(NULL)
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  # Only the main-likelihood scales are soft-clamped; match their exact REPORT
+  # names so the unclamped missing-predictor imputation scales (log_sigma_*_mi)
+  # never trip the detector.
+  fields <- report[
+    names(report) %in% c("log_sigma", "log_sigma1", "log_sigma2")
+  ]
+  values <- unlist(fields, use.names = FALSE)
+  values <- values[is.finite(values)]
+  # Only the upper bound flags artificial convergence from a runaway scale
+  # (sigma -> Inf / overflow). The lower bound (sigma -> 0) is the variance-zero
+  # boundary, which is often a legitimate result (e.g. meta-analysis tau = 0) and
+  # is handled by the random-effect SD / scale checks in check_drm().
+  if (length(values) == 0L || !any(values > hi)) {
+    return(NULL)
+  }
+  list(value = max(values), lo = lo, hi = hi)
+}
+
+# Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
+# keeps a runaway scale finite, but a fit that settles on it may have converged
+# artificially (flat saturated tail), so estimates and SEs there are unreliable.
+drm_warn_if_clamp_active <- function(obj, spec) {
+  # The clamp is applied in C++ for every scale-bearing family (Wave 2); gate on
+  # those model types because use_logsigma_clamp is a data default on every model
+  # (including count families without a scale), so checking it alone would flag
+  # models where the clamp is never applied.
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    return(invisible(FALSE))
+  }
+  report <- tryCatch(obj$report(), error = function(e) NULL)
+  if (is.null(report)) {
+    return(invisible(FALSE))
+  }
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  if (is.null(info)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: the {.code log(sigma)} clamp is active at the optimum (the fitted {.code log(sigma)} reached {.val {round(info$value, 1)}}, above the band upper bound {.val {info$hi}}).",
+      "i" = "The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with {.code drm_control(logsigma_clamp = )}, add within-group replication, or use a penalized/MAP fit; {.fn check_drm} reports the fit state."
+    ),
+    class = "drmTMB_clamp_active_warning"
+  )
   invisible(TRUE)
 }
 
@@ -11985,11 +12375,26 @@ gaussian_sigma_fixed_start <- function(
     return(beta_sigma)
   }
   eta_candidate <- as.vector(X_observed %*% candidate)
-  if (
-    !all(is.finite(eta_candidate)) ||
-      diff(range(eta_candidate)) > 8 ||
-      any(abs(candidate) > 5)
-  ) {
+  if (!all(is.finite(eta_candidate))) {
+    return(beta_sigma)
+  }
+  # Shrink an over-large scale-slope start toward zero rather than discarding all
+  # slopes: a legitimately strong scale-heterogeneity model keeps a usable,
+  # bounded slope start (direction preserved) instead of a flat intercept-only
+  # point. Only the slopes are shrunk; the intercept (baseline log-sigma) is kept.
+  slopes <- candidate[-1L]
+  eta_slopes <- as.vector(X_observed[, -1L, drop = FALSE] %*% slopes)
+  spread <- if (length(eta_slopes) > 0L) diff(range(eta_slopes)) else 0
+  max_slope <- if (length(slopes) > 0L) max(abs(slopes)) else 0
+  shrink <- 1
+  if (is.finite(spread) && spread > 8) {
+    shrink <- min(shrink, 8 / spread)
+  }
+  if (is.finite(max_slope) && max_slope > 5) {
+    shrink <- min(shrink, 5 / max_slope)
+  }
+  candidate[-1L] <- slopes * shrink
+  if (!all(is.finite(candidate))) {
     return(beta_sigma)
   }
   names(candidate) <- colnames(X_sigma)

@@ -242,7 +242,7 @@ test_that("predict_parameters() reports shape and residual-correlation component
   expect_equal(rho_ci$estimate, rho12(fit_biv, newdata = grid))
   expect_equal(
     rho_ci$std.error,
-    unname(0.99999999 * (1 - tanh(rho_basis$eta)^2) * se_rho)
+    unname(0.999999 * (1 - tanh(rho_basis$eta)^2) * se_rho)
   )
   expect_equal(
     rho_ci$conf.low,

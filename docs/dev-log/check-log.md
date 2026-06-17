@@ -55699,3 +55699,89 @@ Boundary: dashboard/status/design truth refresh only. No R runtime code,
 likelihood, C++, Julia bridge gate, DRM.jl, Ayumi/Model A, q8
 recovery/coverage/power, interval, speed, public warm-start, or release
 promotion claim.
+
+## 2026-06-17: honesty-guards CI packaging fix
+
+After opening PR #606 from the rebased `codex/honesty-guards` branch, the
+first GitHub R-CMD-check run failed on Ubuntu, macOS, and Windows before the
+testthat results could act as the merge gate. The package tests themselves did
+not fail (`FAIL 0` on the completed logs), but R CMD check reported namespace
+and documentation warnings:
+
+- `S3method(BIC, drmTMB)` registered the `BIC` generic without importing it
+  from `stats`, so clean namespace loading with stated dependencies failed.
+- `AIC.drmTMB(..., k = 2)` exposed `k` in the usage section without documenting
+  the argument in the shared model-fit extractor Rd file.
+
+The fix imports `AIC` and `BIC` from `stats` in the package roxygen block and
+`NAMESPACE`, and documents `k` in `R/methods.R` plus
+`man/model-fit-extractors.Rd`.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'pkgload::load_all(".", reset = TRUE, compile = TRUE); cat("load_all_compile_ok\n")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer|multi-start|check-drm|reml|clamp|family-link-contract|predict-parameters|reference-grid-link-scale-contract|covariance-block-registry", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'devtools::check(args = c("--no-tests"), error_on = "never")'
+git diff --check
+```
+
+Results: compile/load passed. The targeted handover suite passed with no
+failures/errors, one pre-existing Julia sigma-phylo REML skip, and expected
+guard warnings. Full local `devtools::test()` passed with no failures/errors,
+5 skips, and 26 expected guard/local-Julia warnings or skips. The no-tests R
+CMD check passed in 4m 29.5s with 0 errors, 0 warnings, and 0 notes, including
+OK namespace loading with stated dependencies, OK dependencies in R code, and
+OK Rd usage sections. `git diff --check` passed before the fix and should be
+rerun after this log entry before pushing.
+
+Boundary: packaging/namespace/documentation fix for the already-open
+honesty-guards PR only. No likelihood, optimizer behavior, penalty semantics,
+simulation gate, Julia bridge promotion, release-readiness, or public support
+claim changed in this follow-up.
+
+Follow-up: the first rerun passed macOS but failed Ubuntu in
+`test-profile-targets.R` for the bivariate q4 phylo sigma-axis profile status
+case. The failing Linux row was marked `conf.status = "profile"` even though
+the finite profile interval did not bracket the fitted SD estimate. That is a
+status-reporting problem: the interval should not be labelled as a successful
+profile interval when the point estimate is outside the reported bounds.
+
+The profile interval diagnostics now treat non-bracketing finite intervals as
+`point_estimate_outside_interval`, downgrade the row to
+`conf.status = "profile_failed"`, and replace the endpoints with missing
+values. This keeps the public interval table conservative on platform-specific
+weak-profile cases rather than presenting an apparently successful interval.
+
+Additional check run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "profile-targets", reporter = "summary")'
+git diff --check
+```
+
+Result: focused `profile-targets` tests passed locally with the one expected
+structured-bootstrap non-convergence warning. `git diff --check` passed after
+this log update.
+
+Second follow-up: the next rerun passed macOS and Ubuntu, then failed Windows
+in `test-animal-relmat-gaussian.R` for the bivariate q4 known-matrix block. The
+fixture hit `NA/NaN gradient evaluation` on the first custom `nlminb` optimizer
+call before returning a fit. The model surface is deliberately a hard q4
+location-scale covariance fixture, so the test now opts into the new
+hard-fit controls for that fixture only: `multi_start = 3L` and
+`fallback_optimizer = "BFGS"` on both the `relmat()` and `animal()` versions.
+This preserves the model contract and uses the explicit rescue controls rather
+than weakening the q4 checks or claiming the default path is universally stable
+on every platform.
+
+Additional check run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "animal-relmat-gaussian", reporter = "summary")'
+git diff --check
+```
+
+Result: focused `animal-relmat-gaussian` tests passed locally. `git diff
+--check` passed after this log update.

@@ -50,7 +50,9 @@ test_that("log-sigma clamp keeps a pathological scale-phylo fit finite instead o
     y ~ x + phylo(1 | species, tree = tree),
     sigma ~ x + phylo(1 | species, tree = tree)
   )
-  fit <- drmTMB(form, data = d, control = drm_control(se = FALSE))
+  fit <- allow_nonconvergence(
+    drmTMB(form, data = d, control = drm_control(se = FALSE))
+  )
 
   expect_true(is.finite(fit$opt$objective))
   expect_false(is.nan(fit$opt$objective))
@@ -68,7 +70,11 @@ test_that("the default log-sigma clamp band is unchanged (-12, 12, margin 3)", {
   x <- stats::rnorm(n)
   y <- stats::rnorm(n, 0.3 + 0.5 * x, exp(-0.2 + 0.3 * x))
   d <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ x), data = d, control = drm_control(se = FALSE))
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x),
+    data = d,
+    control = drm_control(se = FALSE)
+  )
   expect_equal(fit$model$tmb_data$use_logsigma_clamp, 1L)
   expect_equal(fit$model$tmb_data$logsigma_clamp, c(-12, 12, 3))
 })
@@ -137,5 +143,8 @@ test_that("drm_control() validates the log-sigma clamp arguments", {
   expect_error(drm_control(logsigma_clamp = c(1, 2, 3)), "logsigma_clamp")
   expect_error(drm_control(logsigma_clamp = "x"), "logsigma_clamp")
   expect_error(drm_control(logsigma_clamp_margin = -1), "logsigma_clamp_margin")
-  expect_error(drm_control(logsigma_clamp_margin = c(1, 2)), "logsigma_clamp_margin")
+  expect_error(
+    drm_control(logsigma_clamp_margin = c(1, 2)),
+    "logsigma_clamp_margin"
+  )
 })

@@ -4,7 +4,7 @@
 #' for both locations, both residual standard deviations, and residual
 #' correlation `rho12`. The residual-correlation link is recorded as
 #' `"atanh_guarded"` because fitted response-scale correlations use
-#' `rho12 = 0.99999999 * tanh(eta_rho12)`.
+#' `rho12 = 0.999999 * tanh(eta_rho12)`.
 #'
 #' @return A `drm_family` object.
 #' @export
@@ -37,7 +37,14 @@ biv_gaussian <- function() {
 #'
 #' The `nu` parameter uses a log link with a lower bound of 2:
 #' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
-#' finite-variance region while still allowing heavy tails.
+#' finite-variance region while still allowing heavy tails. The lower bound is a
+#' deliberate consequence of the `sigma = SD[y]` contract: the Student-t variance
+#' is finite only for `nu > 2`, so a public standard-deviation `sigma` is only
+#' defined there. The model therefore **cannot** represent the very heavy tails
+#' of `nu <= 2` (for example a Cauchy-like `nu = 1`); data that genuinely need
+#' `nu <= 2` would require a scale (not SD) parameterization, which is not
+#' implemented. `check_drm()` warns when the fitted `nu` approaches the boundary
+#' at 2, where the slant of the likelihood in `nu` is weakly identified.
 #' Ordinary `mu` random intercepts and independent numeric slopes such as
 #' `(1 | id)` and `(0 + x | id)` are supported in the first Student-t
 #' mixed-model slice; correlated slopes, `sigma` random effects, and `nu`

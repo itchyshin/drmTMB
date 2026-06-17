@@ -141,6 +141,8 @@ reference:
       - starts_with("drmTMB")
       - drm_control
       - miss_control
+      - drm_phylo_penalty
+      - drm_phylo_penalty_sweep
       - check_drm
       - is_converged
       - confint.drmTMB
