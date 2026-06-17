@@ -2,6 +2,36 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Final takeover PR queue closure after #574
+
+Goal:
+
+- Close the last visible takeover-queue PR after the user chose the
+  close-as-superseded path for the stale start-candidate ladder.
+
+Changes:
+
+- Closed draft PR #574 as superseded and deleted its remote branch.
+- Left issue #570 open for the real Ayumi beak sigma-phylo evidence gates.
+- Added PR and issue comments recording that later #575/#576 evidence showed
+  the catastrophic full-data beak sigma-phylo failure is not a start-basin
+  problem, so #574 was a stale diagnostic harness rather than the rescue path.
+- Refreshed mission-control dashboard text so the takeover PR queue no longer
+  lists #574 as an open decision.
+
+Checks run:
+
+- `gh pr close 574 --repo itchyshin/drmTMB --delete-branch --comment ...`
+- `gh issue comment 570 --repo itchyshin/drmTMB --body ...`
+- `gh pr list --repo itchyshin/drmTMB --state open --json number,title,isDraft,mergeStateStatus,mergeable,headRefName,baseRefName --limit 30`
+- `gh run list --repo itchyshin/drmTMB --branch main --workflow R-CMD-check --limit 1 --json databaseId,status,conclusion,headSha,displayTitle,url`
+
+Boundaries:
+
+- Status/dashboard slice only. No R model code, TMB code, formula grammar,
+  likelihood, optimizer behavior, Julia bridge implementation,
+  mission-control metric promotion, or release-readiness claim changed.
+
 ## 2026-06-17 -- Takeover queue dashboard refresh after PRs #475 and #473
 
 Goal:

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 11:16 MDT",
+  "updated": "2026-06-17 14:46 MDT",
   "metrics": {
     "verified": 21,
     "active": 3,
@@ -1099,7 +1099,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Takeover merge queue is banked through PR #473: PRs #474, #605, #606, #607, #475, and #473 merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, and #573 were closed as unsupported or superseded; the only open PR is draft #574, held for the close-versus-rework decision because later beak evidence says the full-data sigma-phylo failure is not a start-basin problem."
+      "text": "Takeover merge queue is closed: PRs #474, #605, #606, #607, #475, #473, and #608 merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, #573, and #574 were closed as unsupported or superseded. Issue #570 remains open for the real beak evidence gates because later evidence says the full-data sigma-phylo failure is not a start-basin problem."
     },
     {
       "when": "now",
