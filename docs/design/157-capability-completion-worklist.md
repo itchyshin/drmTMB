@@ -54,12 +54,12 @@ Read this first — it is the distinction most likely to be confused.
 | Capability | Category |
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
-| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
+| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery/staged-diagnostic writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
 | `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane and a 2026-06-17 six-cell x 25-replicate diagnostic pilot. The pilot had 150/150 ok fits, convergence and `pdHess` rates of 1.000, zero warnings, and slant-term 70% Wald coverage from 0.64 to 0.96 with large pilot MCSE; formal high-replicate operating characteristics remain future evidence. |
 | Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. The Phase 18 `binomial_fixed_effect` lane, the first Phase 19 `stats::glm()` parity artifact, and a 500-replicate fixed-effect Wald interval-calibration artifact are banked. Random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage language, and the Julia bridge remain planned or unsupported. |
-| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
+| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery/staged-diagnostic tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal random/structured/bivariate/known-covariance/latent-skew extensions; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
@@ -193,12 +193,15 @@ plasticity, residual variability, and its change. Finish it in order.
      evidence.
 2. **q8 all-endpoint block.**
    - Gate: `docs/design/67-sdstar-p8-poisson-q1.md`; registry rows
-     `bivariate_gaussian_q8_endpoint` and
-     `bivariate_gaussian_q8_endpoint_recovery`.
+     `bivariate_gaussian_q8_endpoint`,
+     `bivariate_gaussian_q8_endpoint_recovery`, and
+     `bivariate_gaussian_q8_endpoint_staged_diagnostic`.
    - The first ordinary Gaussian fitting slice exists for matching all-four
-     `(1 + x | p | id)` endpoint terms, with smoke and recovery artifact
-   writers. Treat these as diagnostic before power: the recovery lane records
-   bias, RMSE, MCSE, and interval unavailability, not coverage. The
+     `(1 + x | p | id)` endpoint terms, with smoke, recovery, and
+     cold-versus-staged artifact writers. Treat these as diagnostic before
+     power: the recovery lane records bias, RMSE, MCSE, and interval
+     unavailability, while the staged lane records optimizer-start metrics,
+     deltas, and provenance, not coverage. The
    2026-06-07 audit confirms the hold: 38/40 requested fits completed, model
    convergence was 0.263 and 0.158 across the two cells, positive-Hessian
    rates were 0, two replicates failed with non-positive leading minors, and

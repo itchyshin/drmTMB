@@ -104,8 +104,8 @@ Current pilot files:
 - `phase18_random_slope_registry_preflight()` in
   `run/sim_phase18_structured_workflow_registry.R` prints the random-slope
   registry rows and their gate fields before any pilot is dispatched. It now
-  shows the q8 endpoint smoke and recovery rows as opt-in `ready_grid` tasks
-  while keeping their promotion boundary explicit.
+  shows the q8 endpoint smoke, recovery, and staged-diagnostic rows as opt-in
+  `ready_grid` tasks while keeping their promotion boundary explicit.
 - `phase18_biv_gaussian_q8_endpoint_precode_gate()` names the eight q8
   all-endpoint labels, records the 28 implied pairwise correlations, and checks
   that the smoke row is artifact-ready before any recovery, coverage, or power
@@ -273,9 +273,11 @@ Current pilot files:
   targets, the 28 endpoint correlations are derived group-level summaries, and
   residual `rho12` stays separate. `run/sim_summary_biv_gaussian_q8_endpoint_smoke.R`,
   `run/sim_write_biv_gaussian_q8_endpoint_grid.R`,
-  `run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`, and
-  `run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R` provide diagnostic
-  smoke/recovery artifacts. The 2026-06-07 local recovery audit is recorded in
+  `run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`,
+  `run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R`, and
+  `run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R` provide
+  diagnostic smoke/recovery/staged-start artifacts. The 2026-06-07 local
+  recovery audit is recorded in
   `docs/design/161-phase-18-bivariate-q8-recovery-audit.md` and keeps the lane
   at `hold_diagnostic`, not coverage or power evidence.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson

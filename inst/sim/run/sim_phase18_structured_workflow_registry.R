@@ -1035,6 +1035,7 @@ phase18_pre_power_simulation_role <- function(lane_id, admission_status) {
     "bivariate_gaussian_q6_location_recovery",
     "bivariate_gaussian_q8_endpoint",
     "bivariate_gaussian_q8_endpoint_recovery",
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic",
     "structured_gaussian_q4"
   )
   role[lane_id %in% diagnostic_exceptions] <- "diagnostic"
@@ -1095,6 +1096,7 @@ phase18_pre_power_simulation_boundary <- function(
       "bivariate_gaussian_q6_location_recovery",
       "bivariate_gaussian_q8_endpoint",
       "bivariate_gaussian_q8_endpoint_recovery",
+      "bivariate_gaussian_q8_endpoint_staged_diagnostic",
       "structured_gaussian_q4"
     )
   boundary[weak_q4_q6_q8] <- paste(
@@ -1443,6 +1445,7 @@ phase18_structured_workflow_actions_tasks <- function() {
     "biv_gaussian_q6_location_recovery",
     "biv_gaussian_q8_endpoint",
     "biv_gaussian_q8_endpoint_recovery",
+    "biv_gaussian_q8_endpoint_staged_diagnostic",
     "biv_gaussian_q2_scale",
     "biv_gaussian_q2_scale_recovery",
     "biv_gaussian_q2_scale_slope",
@@ -1679,6 +1682,12 @@ phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
     "SDs, 28 derived endpoint correlations, and residual rho12;",
     "intervals recorded unavailable because the runner uses se=FALSE"
   )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint_staged_diagnostic"] <-
+    paste(
+      "q8 cold-versus-staged optimizer-start diagnostics for the same",
+      "target specification; fit metrics, objective/logLik/elapsed deltas,",
+      "and start provenance recorded as diagnostic-only evidence"
+    )
   estimands[
     lane_id %in%
       c(
