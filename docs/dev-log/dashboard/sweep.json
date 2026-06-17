@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 06:00 MDT",
+  "updated": "2026-06-17 09:25 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Takeover queue update: PR #474 is merged after fresh 3-OS CI; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 are closed as superseded by current main; #540 is closed as an unsupported failed optimizer-control slice; #473, #475, #571, #573, and #574 remain paused drafts."
+      "text": "Takeover queue update: PRs #474, #605, and #606 are merged after fresh 3-OS R-CMD-check; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 are closed as superseded by current main; #540 is closed as an unsupported failed optimizer-control slice; #571 and #573 are closed as superseded drafts; #574, #475, and #473 remain paused draft PRs that need separate current-main refresh decisions."
     }
   ]
 }

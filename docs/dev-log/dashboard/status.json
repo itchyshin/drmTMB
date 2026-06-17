@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 06:00 MDT",
+  "updated": "2026-06-17 09:25 MDT",
   "metrics": {
     "verified": 21,
     "active": 3,
@@ -1099,7 +1099,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Takeover queue cleanup is banked: PR #474 merged after fresh 3-OS R-CMD-check, stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main, and the remaining open PRs are five paused drafts requiring separate refresh decisions."
+      "text": "Takeover queue cleanup is banked: PRs #474, #605, and #606 merged after fresh 3-OS R-CMD-check; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, and #573 were closed as unsupported or superseded; the remaining open PRs are #574, #475, and #473, each requiring a separate current-main refresh decision."
     },
     {
       "when": "now",
@@ -1114,10 +1114,15 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Mission-control status validates at 21/68 banked or verified, 3 active, 0 blocked, and 1 deferred. The live browser copy at 127.0.0.1:8765 must be refreshed from the durable source after this status slice merges."
+      "text": "Mission-control status remains at 21/68 banked or verified, 3 active, 0 blocked, and 1 deferred because this slice records PR-queue state rather than promoting a specific matrix row. The live browser copy at 127.0.0.1:8765 must be refreshed from the durable source after this status slice merges."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Merged PR #606 after fresh current-main R-CMD-check on Ubuntu, macOS, and Windows; closed #571 and #573 as superseded drafts; remote branch codex/honesty-guards was deleted after merge."
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",

@@ -55785,3 +55785,38 @@ git diff --check
 
 Result: focused `animal-relmat-gaussian` tests passed locally. `git diff
 --check` passed after this log update.
+
+## 2026-06-17: takeover queue refresh after honesty-guards merge
+
+PR #606 (`codex/honesty-guards`) was marked ready and squash-merged after a
+fresh 3-OS R-CMD-check run passed on macOS, Ubuntu, and Windows. The merged
+commit is `1788c8f0`. The remote `codex/honesty-guards` branch was deleted
+after the local `gh pr merge --delete-branch` cleanup step hit an unrelated
+local worktree conflict (`main` is checked out by another local worktree).
+
+Queue state after the merge:
+
+- merged in this takeover run: #474, #605, #606;
+- closed as superseded/stale bridge or control wrappers: #520, #522, #523,
+  #527, #528, #530, #532, #534, #540;
+- closed as superseded drafts: #571, #573;
+- still open as paused drafts needing separate current-main refresh decisions:
+  #574, #475, #473.
+
+The dashboard source files now reflect this queue state without changing the
+`21/68` verified metric, because this refresh records PR-queue status rather
+than promoting a specific mission-control matrix row.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+git diff --check
+```
+
+Result: mission-control validation passed with `21/68 banked_or_verified`,
+`3 active`, `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and
+`9 Julia capability rows`. Both dashboard JSON files parsed cleanly.
+`git diff --check` passed.
