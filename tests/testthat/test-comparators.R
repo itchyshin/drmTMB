@@ -672,14 +672,16 @@ test_that("REML rejects unsupported first-slice neighbours", {
     ),
     "q > 2 labelled covariance"
   )
+  # Mean-side phylo() under REML is supported (validated in
+  # test-reml-phylo-location.R); the rejected neighbour is scale-side phylo.
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 | id, tree = tree), sigma ~ 1),
+      bf(y ~ x, sigma ~ 1 + phylo(1 | id, tree = tree)),
       family = gaussian(),
       data = dat,
       REML = TRUE
     ),
-    "structured Gaussian effects"
+    "scale-side"
   )
   expect_error(
     drmTMB(
