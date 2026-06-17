@@ -43,6 +43,7 @@ now and what each remaining gate needs.
 | Every included feature has NEWS, tests, docs, examples, check-log, after-task | mostly done | Maintained per slice; final audit needed at freeze |
 | First executable Phase 19 comparator artifact | partial | Fixed-effect `stats::binomial(link = "logit")` GLM parity bundle is banked at `docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/`; other comparator rows remain pending |
 | First fixed-effect binomial interval-calibration artifact | partial | A 500-replicate fixed-effect Wald artifact is banked at `docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/`; random-effect, structured, profile/bootstrap, Julia bridge, and headline coverage claims remain pending |
+| First numerical-guard sensitivity pilot | partial | Fixed-effect Gaussian `log(sigma)` clamp sensitivity is banked at `docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/`; broader guard classes, scale-side phylogeny, interval consequences, and release-promotion language remain pending |
 | `devtools::document()` after roxygen settles | local-R only | |
 | Focused tests for recently changed lanes | local-R only | Phase 18 recovery lanes run on Actions; full local run still needed |
 | `devtools::test()` | local-R only | |

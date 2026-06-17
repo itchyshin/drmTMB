@@ -1,0 +1,5 @@
+"condition_id","description","beta_mu_intercept","beta_mu_x","beta_sigma_intercept","beta_sigma_x"
+"ordinary_scale","ordinary standardized scale; expected clamp inactive",0.2,0.5,-0.2,0.3
+"near_default_upper_band","large but still inside default identity band",0.2,0.5,11,0.25
+"above_default_upper_band","legitimate huge unstandardized scale above default band",0.2,0.5,16,0.25
+"below_default_lower_band","legitimate tiny unstandardized scale below default band",0.2,0.5,-16,0.25

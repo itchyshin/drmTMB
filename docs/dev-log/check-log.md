@@ -55137,3 +55137,64 @@ Julia bridge promotion, no speed claim, no release promotion, no binomial
 random effects, no structured binomial, no bivariate or mixed-response
 binomial, no profile/bootstrap interval claim, and no numerical-guard
 sensitivity simulation claim.
+
+## 2026-06-17: First log(sigma) clamp sensitivity pilot (#59/#342 follow-up)
+
+Banked the first executable numerical-guard sensitivity pilot for the Gaussian
+`log(sigma)` soft-clamp:
+`docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/`.
+The artifact is fixed-effect only (`bf(y ~ x, sigma ~ x)`) and compares three
+guard configurations -- `logsigma_clamp = NULL`, the default `c(-12, 12)` with
+margin 3, and a wide `c(-25, 25)` with margin 3 -- across ordinary scale, large
+scale still inside the default identity band, huge scale above the default band,
+and tiny scale below the default band. The runner, CSV tables, session info,
+README, and diagnostic PNG are committed beside the artifact.
+
+Results: 300/300 fits returned `ok`, with zero error rows and no captured
+warnings. In inactive cells, the maximum default-vs-off `logLik` difference was
+`2.046363e-11`, and the maximum default-vs-off `sigma` intercept difference was
+`1.168681e-08`. The wide band matched the unclamped reference exactly across all
+four cells in this pilot. In binding cells, the default band changed the fit:
+maximum default-vs-off `logLik` difference `526.8952`, and maximum
+default-vs-off `sigma` intercept difference `32.38647`. This is the intended
+honest signal: the guard is negligible when inactive in these audited cells, but
+it can materially change legitimate out-of-band unstandardized-scale fits, so
+users need the exposed `drm_control(logsigma_clamp = ...)` knob and active-guard
+diagnostics before broader claims.
+
+Updated `docs/design/176-numerical-guard-simulation-audit.md`,
+`docs/design/168-r-julia-finish-capability-matrix.md`,
+`docs/design/157-capability-completion-worklist.md`,
+`docs/design/159-drmtmb-0-2-0-release-readiness.md`,
+`docs/dev-log/dashboard/status.json`, and
+`docs/dev-log/dashboard/sweep.json` so the first pilot is visible while the
+broader numerical-guard programme remains active/partial.
+
+Checks run:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-guard-pilot.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-guard-pilot.out
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
+curl -fsS -o /tmp/logsigma-clamp-sensitivity-served.png http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/figures/logsigma-clamp-sensitivity.png
+browser DOM check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
+```
+
+Results: mission-control validation passed with
+`20/68 banked_or_verified, 4 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+The served README and PNG resolved from `/tmp/drm-dashboard`. Browser checks at
+1280x900 and 390x844 found the numerical-guard row, pilot text, artifact link,
+dirty/worktree truth, and no horizontal overflow.
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no Gaussian
+clamp implementation edit, no penalty/MAP edit, no Ayumi path change, no DRM.jl
+code change, no Julia bridge promotion, no speed claim, no release promotion, no
+scale-side phylogenetic simulation claim, no bivariate scale claim, no
+support-floor claim, and no interval coverage claim. This is a fixed-effect
+`log(sigma)` guard-sensitivity pilot only.

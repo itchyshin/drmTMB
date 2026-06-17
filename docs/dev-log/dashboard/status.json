@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 18:48 MDT",
+  "updated": "2026-06-17 02:20 MDT",
   "metrics": {
     "verified": 20,
     "active": 4,
@@ -797,24 +797,24 @@
       "issue_label": "drmTMB#59",
       "lane": "Evidence Gates",
       "status": "active",
-      "owners": ["Gauss", "Fisher", "Curie", "Grace", "Rose"],
+      "owners": ["Gauss", "Fisher", "Curie", "Grace", "Rose", "Florence", "Pat"],
       "family": "numerical guard sensitivity audit",
       "response_encoding": ["correlation open-interval guards", "finite-variance Student-t shape floor", "support floors", "Gaussian log(sigma) clamp"],
       "dpars": ["sigma", "nu", "rho12"],
       "engine_tmb": "partial",
       "engine_julia": "unsupported",
-      "point": "planned",
+      "point": "partial",
       "wald": "planned",
       "profile": "planned",
       "bootstrap": "planned",
-      "tests": "planned",
+      "tests": "partial",
       "docs": "covered",
-      "visual": "planned",
-      "simulation": "planned",
+      "visual": "partial",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
-      "blocker": "Hao Qin flagged that hard-coded numerical guards can alter inference if they bind. The design note is banked; big simulations must report guard activation, estimates, interval coverage, pdHess, warnings, failures, and sensitivity across guard settings before guard-dependent inference claims.",
-      "last_verified": "2026-06-16"
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md",
+      "blocker": "The first fixed-effect Gaussian log(sigma) clamp pilot is banked: 300/300 fits ok, default-vs-off differences are negligible when inactive (max logLik diff 2.046363e-11), the wide band matches the unclamped reference across all cells, and the default band materially changes out-of-band huge/tiny scale fits. Broader guard classes, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "last_verified": "2026-06-17"
     },
     {
       "id": "drmTMB-release-readiness-ledger",
@@ -1078,11 +1078,11 @@
       "profile": "planned",
       "bootstrap": "planned",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity and the 500-replicate fixed-effect Wald interval artifact are banked; numerical-guard sensitivity, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, and the first log(sigma) clamp sensitivity pilot are banked; broader guard classes, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md"
     },
     {
       "area": "Release gate",
@@ -1104,25 +1104,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Non-Ayumi finish path is in comparator-readiness mode: the first binomial GLM parity artifact is banked, and the next work remains broader Phase 19 evidence without touching Claude-owned Ayumi C++ seams."
+      "text": "Non-Ayumi finish path is in evidence-readiness mode: binomial GLM parity, fixed-effect Wald calibration, and the first log(sigma) guard-sensitivity pilot are banked without touching Claude-owned Ayumi C++ seams."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Binomial fixed-effect glm parity is banked with a CSV artifact and README; interval calibration is not claimed until MCSE-backed simulation runs exist."
+      "text": "Binomial fixed-effect interval calibration is bounded to audited Wald cells, and the log(sigma) clamp pilot is bounded to fixed-effect guard sensitivity; neither supports broader random-effect, profile/bootstrap, or guard-promotion claims."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "Numerical guards remain an explicit evidence gate: documentation is banked, sensitivity simulations are still planned."
+      "text": "Numerical guards remain an explicit evidence gate: the first log(sigma) clamp pilot is banked, but broader guard classes and interval consequences remain active work."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Mission-control status must validate, serve the comparator artifact from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
+      "text": "Mission-control status must validate, serve comparator and simulation artifacts from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Banked the first numerical-guard sensitivity pilot for the Gaussian log(sigma) clamp: fixed-effect default/wide/off comparisons across ordinary, near-band, and out-of-band scale cells.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md",
+      "link_label": "guard pilot"
+    },
     {
       "when": "2026-06-16",
       "who": "Codex",
@@ -1299,6 +1306,11 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-17",
+      "who": "Status matrix",
+      "text": "The log(sigma) clamp sensitivity pilot has 300/300 ok fits: default-vs-off max logLik difference is 2.046363e-11 when inactive, the wide band matches the unclamped reference across all cells, and the default band changes out-of-band scale fits by up to 526.8952 logLik units and 32.38647 on the sigma intercept."
+    },
     {
       "when": "2026-06-16",
       "who": "Status matrix",

@@ -81,12 +81,18 @@ bridge-gate audit (#544), native fixed-effect binomial route (#569), Phase 18
 `binomial_fixed_effect` lane, bounded-response docs, numerical-guard audit
 note, first Phase 19 binomial `stats::glm()` parity artifact, and the first
 500-replicate fixed-effect Wald interval-calibration artifact are all on
-`main` or in the current merge slice. The plain binomial route is now a fitted,
-parity-banked, and fixed-effect-interval-audited first slice, not the next
-implementation blocker. The next binomial-specific work is broader evidence
-depth: larger operating-characteristic grids, profile/bootstrap interval
-studies if needed, and any future Julia bridge parity issue. Those are optional
-promotion slices, not prerequisites for resuming the older capability queue.
+`main` or in the current merge slice. The current guard-sensitivity slice also
+banks the first fixed-effect Gaussian `log(sigma)` clamp pilot; it shows
+negligible default-vs-off differences when the clamp is inactive and material
+differences when the default band binds. The plain binomial route is now a
+fitted, parity-banked, and fixed-effect-interval-audited first slice, not the
+next implementation blocker. The next binomial-specific work is broader
+evidence depth: larger operating-characteristic grids, profile/bootstrap
+interval studies if needed, and any future Julia bridge parity issue. Those are
+optional promotion slices, not prerequisites for resuming the older capability
+queue. The broader numerical-guard programme remains active for scale-side
+phylogeny, bivariate scale routes, support floors, Student-t shape restrictions,
+correlation guards, and interval consequences.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 

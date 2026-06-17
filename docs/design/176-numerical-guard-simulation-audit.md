@@ -64,6 +64,61 @@ guard frequently changes estimates, interval coverage, or model status, the
 corresponding feature must stay diagnostic or experimental until the likelihood,
 parameterization, or diagnostic workflow is redesigned.
 
+## First Pilot: Fixed-Effect `log(sigma)` Clamp
+
+The first executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/`.
+It follows the ADEMP discipline from Morris, White & Crowther (2019) and the
+transparent simulation-reporting checklist from Williams et al. (2024), but it is
+a **diagnostic pilot**, not a promotion grid.
+
+**Aim.** Test whether the configurable Gaussian `log(sigma)` clamp changes
+fixed-effect location-scale fits when the default guard is inactive, and show
+what happens when legitimate unstandardized scales live outside the default
+band.
+
+**Data-generating mechanisms.** Four Gaussian fixed-effect cells use
+`mu_i = 0.2 + 0.5 x_i` and `log(sigma_i) = gamma_0 + gamma_1 x_i`, with
+ordinary scale, large scale inside the default identity band, huge scale above
+the default band, and tiny scale below the default band.
+
+**Estimands.** The pilot tracks fixed-effect `mu` and `sigma` coefficients,
+standard errors, log likelihood, AIC/BIC, optimizer convergence, `pdHess`, guard
+activation, warning/error rows, and elapsed time.
+
+**Methods.** Each replicate is fit with `logsigma_clamp = NULL`, the default
+`c(-12, 12)` band with margin 3, and a wide `c(-25, 25)` band with margin 3.
+Differences are computed against the unclamped fit from the same condition and
+replicate.
+
+**Performance measures.** The committed summaries report convergence and
+`pdHess` rates, clamp activation rates, maximum absolute coefficient
+differences, and maximum absolute log-likelihood/AIC/BIC differences. Coverage
+is intentionally absent from this pilot; interval calibration remains a future
+guard-sensitivity task.
+
+Results from 25 replicates per condition:
+
+| Cell | Default active rate | Default convergence rate | Default `pdHess` rate | Max default-vs-off `logLik` diff | Max default-vs-off `sigma` intercept diff | Max wide-vs-off `logLik` diff |
+|---|---:|---:|---:|---:|---:|---:|
+| Ordinary scale | 0.00 | 1.00 | 1.00 | 0 | 0 | 0 |
+| Near default upper band | 0.00 | 1.00 | 1.00 | 2.046363e-11 | 1.168681e-08 | 0 |
+| Above default upper band | 1.00 | 1.00 | 1.00 | 526.8952 | 32.38647 | 0 |
+| Below default lower band | 1.00 | 0.00 | 1.00 | 118.9206 | 4.205839 | 0 |
+
+This is exactly the honest pattern the project needs to show. In the audited
+fixed-effect cells, the default guard is negligible when inactive. When the
+default band binds, it can materially change estimates and log likelihood even
+when a fit returns with an apparently useful status field. The wide band matches
+the unclamped reference in all four cells, which supports the exposed
+`drm_control(logsigma_clamp = ...)` knob for legitimately huge unstandardized
+scales.
+
+This pilot does **not** settle scale-side phylogenetic fields, bivariate
+Gaussian scale routes, support floors, Student-t finite-variance restrictions,
+correlation open-interval guards, profile/bootstrap intervals, or release
+readiness.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

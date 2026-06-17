@@ -1,0 +1,4 @@
+"config_id","logsigma_clamp_lo","logsigma_clamp_hi","logsigma_clamp_margin","interpretation"
+"off",NA,NA,NA,"unclamped reference"
+"default",-12,12,3,"default drmTMB overflow guard"
+"wide",-25,25,3,"widened guard for huge unstandardized scales"
