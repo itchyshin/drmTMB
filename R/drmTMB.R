@@ -217,10 +217,10 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
-  if (isTRUE(REML) && !identical(family_type, "gaussian")) {
+  if (isTRUE(REML) && !family_type %in% c("gaussian", "biv_gaussian")) {
     cli::cli_abort(c(
-      "{.arg REML} is implemented only for the first univariate Gaussian mixed-model slice.",
-      "i" = "Use {.code family = gaussian()} or set {.code REML = FALSE}."
+      "{.arg REML} is implemented only for univariate and bivariate Gaussian models.",
+      "i" = "Use {.code family = gaussian()} or {.code family = biv_gaussian()}, or set {.code REML = FALSE}."
     ))
   }
   if (
@@ -787,14 +787,22 @@ drm_apply_estimator_spec <- function(spec, REML = FALSE) {
 
   drm_validate_reml_spec(spec)
   spec$estimator <- "REML"
-  spec$tmb_random_names <- c(spec$random_names, "beta_mu")
+  mean_fixed <- if (identical(spec$model_type, "biv_gaussian")) {
+    c("beta_mu1", "beta_mu2")
+  } else {
+    "beta_mu"
+  }
+  spec$tmb_random_names <- c(spec$random_names, mean_fixed)
   spec
 }
 
 drm_validate_reml_spec <- function(spec) {
+  if (identical(spec$model_type, "biv_gaussian")) {
+    return(drm_validate_reml_spec_biv(spec))
+  }
   if (!identical(spec$model_type, "gaussian")) {
     cli::cli_abort(
-      "{.arg REML} is implemented only for univariate Gaussian models."
+      "{.arg REML} is implemented only for univariate and bivariate Gaussian models."
     )
   }
   if (isTRUE(spec$sparse_fixed$mu)) {
@@ -865,10 +873,40 @@ drm_validate_reml_spec <- function(spec) {
   invisible(TRUE)
 }
 
+# REML validation for the bivariate Gaussian model. The first bivariate slice
+# restricts the likelihood for fixed-effect mean models (mu1, mu2): TMB
+# marginalises beta_mu1 and beta_mu2, giving an unbiased residual covariance.
+# Bivariate random effects and structured (phylo) means under REML are a later
+# slice -- they need a bivariate restricted-likelihood reference to validate --
+# so they are rejected here.
+drm_validate_reml_spec_biv <- function(spec) {
+  if (length(spec$random_names) > 0L) {
+    cli::cli_abort(c(
+      "{.arg REML} for bivariate Gaussian models currently supports fixed-effect mean models only.",
+      "i" = "Remove the random or structured ({.fn phylo}) mean effects, or set {.code REML = FALSE}."
+    ))
+  }
+  if (
+    qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||
+      qr(as.matrix(spec$X$mu2))$rank < ncol(spec$X$mu2)
+  ) {
+    cli::cli_abort(c(
+      "{.arg REML} requires full-rank dense {.code mu1} and {.code mu2} fixed-effect designs.",
+      "i" = "Remove aliased fixed-effect columns or set {.code REML = FALSE}."
+    ))
+  }
+  invisible(TRUE)
+}
+
 drm_fit_df <- function(spec, opt) {
   df <- length(opt$par)
   if (identical(spec$estimator, "REML")) {
-    df <- df + ncol(spec$X$mu)
+    df <- df +
+      if (identical(spec$model_type, "biv_gaussian")) {
+        ncol(spec$X$mu1) + ncol(spec$X$mu2)
+      } else {
+        ncol(spec$X$mu)
+      }
   }
   df
 }
