@@ -84,7 +84,7 @@
     {
       "id": "Phase 2",
       "name": "Bridge-gate drift and R bridge truth",
-      "owner": "Hopper + Boole + Emmy",
+      "owner": "Boole + Emmy + Grace",
       "status": "active",
       "counts": "7/9",
       "slices": [
@@ -282,7 +282,7 @@
     {
       "id": "Phase 6",
       "name": "Missing values",
-      "owner": "Curie + Fisher + Hopper",
+      "owner": "Curie + Fisher + Rose",
       "status": "queued",
       "counts": "0/6",
       "slices": [
@@ -336,7 +336,7 @@
           "status": "queued"
         },
         {
-          "name": "Florence, Fisher, Hopper, Grace, and Rose review before done language",
+          "name": "Florence, Fisher, Pat, Grace, and Rose review before done language",
           "status": "queued"
         }
       ]
@@ -500,11 +500,6 @@
       "status": "active"
     },
     {
-      "name": "Hopper",
-      "role": "R-Julia bridge",
-      "status": "active"
-    },
-    {
       "name": "Boole",
       "role": "formula grammar",
       "status": "active"
@@ -615,7 +610,7 @@
       "issue_label": "drmTMB#544",
       "lane": "Critical Path",
       "status": "partial",
-      "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose", "Hopper"],
+      "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose"],
       "family": "engine = \"julia\" intentional gate registry",
       "response_encoding": ["R syntax cells", "DRM.jl evidence cells"],
       "dpars": ["mu", "sigma", "nu", "rho12", "zi", "zoi", "coi"],

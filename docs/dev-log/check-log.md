@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Mission-control standing-team validator refresh
+
+Goal:
+
+- Keep the finish-board widget aligned with the repo's canonical standing
+  review names, so dashboard team rows and owner fields do not drift into
+  non-canonical labels.
+
+Changes:
+
+- Removed `Hopper` from the mission-control team roster and bridge/missing-data
+  owner fields.
+- Reassigned the bridge-gate owner line to `Boole + Emmy + Grace`, the
+  missing-values owner line to `Curie + Fisher + Rose`, and the docs review
+  checklist to `Florence, Fisher, Pat, Grace, and Rose`.
+- Tightened `tools/validate-mission-control.py` so the Team section, phase
+  owners, and finish-board owners must use the 13 standing review names. System
+  actors such as `Codex`, `GitHub`, `Dashboard`, `Issue ledger`, and
+  `Status matrix` remain valid for activity/evidence rows only.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` passed with
+  `mission_control_ok: 20/68 banked_or_verified, 4 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `rg -n 'Hopper|Karpinski' docs/dev-log/dashboard/status.json tools/validate-mission-control.py docs/dev-log/dashboard/README.md docs/design/168-r-julia-finish-capability-matrix.md || true`
+  returned no hits.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `sh tools/start-mission-control.sh --background` passed and served the
+  dashboard at `http://127.0.0.1:8765/`.
+- In-app browser DOM verification passed at 1280 px width: 11 finish cards,
+  13 standing team names, 16 bridge-gate rows including the header, 10 Julia
+  capability rows including the header, #569/#544 rows visible, no
+  `Hopper`/`Karpinski` text, and no horizontal overflow.
+- In-app browser DOM verification passed at 390 px width: 11 finish cards,
+  13 team names, #569/#544 rows visible, no `Hopper`/`Karpinski` text, and no
+  horizontal overflow.
+- Screenshot capture from the in-app browser timed out, and standalone
+  Playwright was not installed in this worktree; no screenshot artifact is
+  claimed for this slice.
+
+Boundaries:
+
+- This is a dashboard governance refresh only. It does not change R package
+  code, likelihoods, Julia bridge gates, `src/drmTMB.cpp`, Ayumi/Model A work,
+  DRM.jl code, or any release/readiness claim.
+
 ## 2026-06-15 -- Bootstrap refit diagnostics ledger
 
 Goal:
