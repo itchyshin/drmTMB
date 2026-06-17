@@ -55020,7 +55020,7 @@ sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md
 git diff --check
 rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
-rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' README.md ROADMAP.md NEWS.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
 Results: mission-control validation passed with `20/68` banked-or-verified
@@ -55039,3 +55039,43 @@ clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code change, no
 Julia bridge promotion, no release promotion, no speed claim, no binomial
 interval-calibration claim, and no numerical-guard sensitivity simulation
 claim.
+
+## 2026-06-17: Local-R queue refresh after binomial comparator artifact (#491/#569/#60 follow-up)
+
+Refreshed the local-R work queue after #591 merged on `main` at `496e664a`.
+`docs/design/157-capability-completion-worklist.md` now treats the issue-led
+widget (#577), bridge-gate audit (#544), native fixed-effect binomial route
+(#569), Phase 18 `binomial_fixed_effect` lane (#588), bounded-response docs and
+guard note (#589), dashboard truth refresh (#590), and first Phase 19
+binomial `stats::glm()` parity artifact (#591) as closed checkpoints rather
+than the next implementation blocker.
+
+The recommended implementation order now resumes with q8 coverage/power,
+parallel skew-normal evidence depth, structured `mu` slopes, correlated
+non-Gaussian slopes, random effects in `rho12`, large-data controls, and other
+older local-R queue items. The binomial path remains fitted and parity-banked
+only for fixed-effect `stats::binomial(link = "logit")`; its next work, if
+wanted, is MCSE-backed interval calibration or separate Julia bridge parity,
+not broader support by implication.
+
+`docs/design/46-pre-simulation-readiness-matrix.md` now says the same thing in
+the "Next Surface Decisions" section: fixed-effect binomial can be promoted
+only by a separate MCSE-backed promotion grid, while random effects,
+structured effects, bivariate/mixed responses, and the Julia bridge stay out
+of scope.
+
+Also corrected the #591 check-log command block so it records the scoped
+hard-framing scan that was actually used for that slice.
+
+Checks run:
+
+```sh
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-local-queue-refresh-after-binomial.md
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md
+```
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no
+dashboard schema change, no Julia bridge promotion, no release promotion, no
+binomial interval-calibration claim, and no numerical-guard sensitivity
+simulation claim.
