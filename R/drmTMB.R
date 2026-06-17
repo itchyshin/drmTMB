@@ -453,6 +453,75 @@ drmTMB <- function(
   drm_apply_storage_control(fit, control)
 }
 
+# Build the starting points for a multi-start fit: the principled start
+# (unperturbed) followed by `n_start - 1` reproducibly perturbed starts. A fixed
+# seed keeps fits reproducible; the global RNG state is saved and restored so a
+# multi-start fit does not perturb the caller's random stream.
+drm_perturbed_starts <- function(par, n_start) {
+  if (n_start <= 1L || length(par) == 0L) {
+    return(list(par))
+  }
+  out <- vector("list", n_start)
+  out[[1L]] <- par
+  saved <- if (exists(".Random.seed", envir = globalenv())) {
+    get(".Random.seed", envir = globalenv())
+  } else {
+    NULL
+  }
+  on.exit(
+    {
+      if (is.null(saved)) {
+        suppressWarnings(rm(".Random.seed", envir = globalenv()))
+      } else {
+        assign(".Random.seed", saved, envir = globalenv())
+      }
+    },
+    add = TRUE
+  )
+  set.seed(20260616L)
+  for (k in 2:n_start) {
+    out[[k]] <- par + stats::rnorm(length(par), mean = 0, sd = 0.5)
+  }
+  out
+}
+
+# Run a single optimizer preset from `n_start` starting points and return the
+# result with the lowest finite objective. With n_start == 1 this is exactly the
+# single-start call, so the default fit is unchanged. If every start errors, the
+# last error is re-raised for the caller's tryCatch to record.
+drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
+  starts <- drm_perturbed_starts(obj$par, n_start)
+  best <- NULL
+  last_error <- NULL
+  for (start in starts) {
+    res <- tryCatch(
+      optimizer(
+        start = start,
+        objective = obj$fn,
+        gradient = obj$gr,
+        control = control_opt
+      ),
+      error = function(e) e
+    )
+    if (inherits(res, "error")) {
+      last_error <- res
+      next
+    }
+    obj_value <- if (length(res$objective) == 1L && is.finite(res$objective)) {
+      res$objective
+    } else {
+      Inf
+    }
+    if (is.null(best) || obj_value < best$value) {
+      best <- list(opt = res, value = obj_value)
+    }
+  }
+  if (is.null(best)) {
+    stop(last_error)
+  }
+  best$opt
+}
+
 drm_optimize_with_preset_retry <- function(
   obj,
   control,
@@ -460,6 +529,7 @@ drm_optimize_with_preset_retry <- function(
   warn = TRUE
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
+  n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
   rows <- vector("list", length(attempt_specs))
   opts <- vector("list", length(attempt_specs))
   last_error <- NULL
@@ -470,11 +540,11 @@ drm_optimize_with_preset_retry <- function(
     result <- tryCatch(
       list(
         ok = TRUE,
-        value = optimizer(
-          start = obj$par,
-          objective = obj$fn,
-          gradient = obj$gr,
-          control = spec$control
+        value = drm_optimize_multistart(
+          obj,
+          optimizer,
+          spec$control,
+          n_start
         )
       ),
       error = function(e) list(ok = FALSE, value = e)

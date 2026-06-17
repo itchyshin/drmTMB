@@ -14,7 +14,8 @@ drm_control(
   aggregate_gaussian = FALSE,
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
-  optimizer_preset = c("default", "careful", "robust")
+  optimizer_preset = c("default", "careful", "robust"),
+  multi_start = 1L
 )
 }
 \arguments{
@@ -70,7 +71,14 @@ the default band). Ignored when \code{logsigma_clamp = NULL}.}
 \item{optimizer_preset}{Optimizer-budget preset. \code{"default"} adds no
 optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
 \code{eval.max = 1000}, and \code{"robust"} sets \code{iter.max = 5000} and
-\code{eval.max = 5000}.}
+\code{eval.max = 5000}. The optimizer escalates this ladder automatically when a
+preset does not converge.}
+
+\item{multi_start}{Whole number \verb{>= 1} (default \code{1}). With \code{multi_start > 1},
+each optimizer preset is run from \code{multi_start} starting points -- the
+principled start plus reproducibly perturbed starts -- and the lowest-
+objective result is kept. Opt-in robustness for weakly identified models;
+\code{multi_start = 1} is the single-start fit and is unchanged.}
 }
 \value{
 A \code{drm_control} object.

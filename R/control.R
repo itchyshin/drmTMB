@@ -66,7 +66,13 @@
 #' @param optimizer_preset Optimizer-budget preset. `"default"` adds no
 #'   optimizer controls, `"careful"` sets `iter.max = 1000` and
 #'   `eval.max = 1000`, and `"robust"` sets `iter.max = 5000` and
-#'   `eval.max = 5000`.
+#'   `eval.max = 5000`. The optimizer escalates this ladder automatically when a
+#'   preset does not converge.
+#' @param multi_start Whole number `>= 1` (default `1`). With `multi_start > 1`,
+#'   each optimizer preset is run from `multi_start` starting points -- the
+#'   principled start plus reproducibly perturbed starts -- and the lowest-
+#'   objective result is kept. Opt-in robustness for weakly identified models;
+#'   `multi_start = 1` is the single-start fit and is unchanged.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -94,7 +100,8 @@ drm_control <- function(
   aggregate_gaussian = FALSE,
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
-  optimizer_preset = c("default", "careful", "robust")
+  optimizer_preset = c("default", "careful", "robust"),
+  multi_start = 1L
 ) {
   optimizer_preset <- match.arg(optimizer_preset)
   if (
@@ -112,7 +119,7 @@ drm_control <- function(
     cli::cli_abort(c(
       "{.arg optimizer} contains reserved {.pkg drmTMB} control name{?s}: {.arg {optimizer_reserved}}.",
       "i" = "Use {.arg optimizer} only for {.fn stats::nlminb} control settings.",
-      "i" = "Future start, warm-start, map, fixed-parameter, fallback-optimizer, and multi-start controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
+      "i" = "Use {.arg multi_start} for multi-start; future start, warm-start, map, fixed-parameter, and fallback-optimizer controls will use explicit {.pkg drmTMB} arguments after their contract is implemented."
     ))
   }
   optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
@@ -127,7 +134,8 @@ drm_control <- function(
   )
   if (!is.null(logsigma_clamp)) {
     if (
-      !is.numeric(logsigma_clamp) || length(logsigma_clamp) != 2L ||
+      !is.numeric(logsigma_clamp) ||
+        length(logsigma_clamp) != 2L ||
         any(!is.finite(logsigma_clamp)) ||
         logsigma_clamp[[1L]] >= logsigma_clamp[[2L]]
     ) {
@@ -146,6 +154,16 @@ drm_control <- function(
       "{.arg logsigma_clamp_margin} must be a single positive number."
     )
   }
+  if (
+    !is.numeric(multi_start) ||
+      length(multi_start) != 1L ||
+      !is.finite(multi_start) ||
+      multi_start < 1 ||
+      multi_start != as.integer(multi_start)
+  ) {
+    cli::cli_abort("{.arg multi_start} must be a single whole number >= 1.")
+  }
+  multi_start <- as.integer(multi_start)
   structure(
     list(
       optimizer = optimizer,
@@ -157,7 +175,8 @@ drm_control <- function(
       aggregate_gaussian = aggregate_gaussian,
       logsigma_clamp = logsigma_clamp,
       logsigma_clamp_margin = logsigma_clamp_margin,
-      optimizer_preset = optimizer_preset
+      optimizer_preset = optimizer_preset,
+      multi_start = multi_start
     ),
     class = "drm_control"
   )
@@ -203,9 +222,7 @@ drm_control_reserved_names <- function() {
     "fallback_optimizer",
     "fallback_optimizers",
     "optimizer_fallback",
-    "optimizer_fallbacks",
-    "multi_start",
-    "multistart"
+    "optimizer_fallbacks"
   ))
 }
 
