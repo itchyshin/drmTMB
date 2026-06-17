@@ -148,7 +148,7 @@ test_that("internal inverse links match the documented parameter scales", {
   )
   expect_equal(
     drmTMB:::drm_inverse_link(fake_biv, "rho12", eta),
-    0.99999999 * tanh(eta)
+    0.999999 * tanh(eta)
   )
 })
 

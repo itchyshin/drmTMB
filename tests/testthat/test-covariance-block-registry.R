@@ -773,7 +773,7 @@ test_that("hidden q=4 registry bridge feeds bivariate Gaussian likelihood", {
     contribution[, 3L]
   log_sigma2 <- as.vector(tmb_data$X_sigma2 %*% parameters$beta_sigma2) +
     contribution[, 4L]
-  rho12 <- 0.99999999 *
+  rho12 <- 0.999999 *
     tanh(
       as.vector(tmb_data$X_rho12 %*% parameters$beta_rho12)
     )
