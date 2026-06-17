@@ -55541,3 +55541,41 @@ Boundary: opt-in Phase 18 artifact wrapper only. No public `start`,
 TMB density, penalty/MAP, Gaussian clamp, Julia bridge, DRM.jl, Ayumi/Model A,
 q8 recovery, q8 coverage, q8 power, interval calibration, speed, or release
 promotion claim.
+
+## 2026-06-17: post-#602 dashboard truth refresh
+
+Refreshed the mission-control dashboard and capability matrix after PR #602
+merged the q8 staged diagnostic artifact. The matrix now treats `drmTMB#544`
+as a closed bridge-gate guard/checkpoint rather than an active/open epic, and
+the post-#602 work order names the banked widget, native binomial first slice,
+bridge-gate guard, binomial comparator, binomial Wald interval artifact, guard
+pilot, skew-normal pilot, and q8 staged diagnostic artifact without promoting
+q8 coverage, q8 power, Julia bridge support, or release readiness.
+
+The dashboard status JSON now marks the generated Julia capability comparison
+as banked via #587, updates the banked/active metrics, adds #602 to the
+activity feed, and points the ADEMP/comparator row to the q8 staged diagnostic
+after-task note. The sweep summary now includes the q8 staged diagnostic
+artifact and keeps broader guard classes, q8 coverage/power, same-response
+hardening, Julia bridge promotion, and release readiness partial or planned.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+rg -n '#544 remains|drmTMB#544 remains|staged in codex|Keep `drmTMB#544` open|Keep `drmTMB#544` active|Implement drmTMB#544|Start optional Phase 18|First Work Order' docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/design/168-r-julia-finish-capability-matrix.md || true
+git diff --check
+```
+
+Results: mission-control validation passed with
+`21/68 banked_or_verified`, `3 active`, `17 matrix rows`, `11 finish rows`,
+`15 Julia gate rows`, and `9 Julia capability rows`. Both JSON files parsed
+cleanly. The stale-string scan found no remaining stale #544/#569 first-work
+order phrases. `git diff --check` passed.
+
+Boundary: dashboard/status/design truth refresh only. No R runtime code,
+likelihood, C++, Julia bridge gate, DRM.jl, Ayumi/Model A, q8
+recovery/coverage/power, interval, speed, public warm-start, or release
+promotion claim.

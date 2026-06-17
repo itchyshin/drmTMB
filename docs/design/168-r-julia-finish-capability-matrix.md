@@ -31,7 +31,7 @@ evidence is reconciled.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Dashboard and issue ledger | covered | partial | covered | unsupported | unsupported | unsupported | covered | covered | unsupported | partial | Keep `status.json`, `sweep.json`, check-log, and after-task notes synchronized with issues. |
 | Master capability matrix | partial | partial | partial | partial | partial | partial | partial | planned | partial | partial | Wire README, ROADMAP, NEWS, pkgdown, Documenter, and dashboard claims to this matrix. |
-| R-Julia bridge gate | partial | experimental | partial | planned | partial | partial | partial | planned | partial | planned | Keep `drmTMB#544` open, but finish the native R/TMB support-status harness first so the bridge is not the only usable path. |
+| R-Julia bridge gate | partial | experimental | partial | planned | partial | partial | covered | covered | partial | planned | `drmTMB#544` is closed after the generated gate registry, capability comparison, docs-drift guard, and dashboard rendering landed. Future bridge work should open follow-on registry/parity issues before promoting any R-gated Julia-covered cell. |
 | Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Native R/TMB now has q4 target inventory and endpoint-budget status rows, but promotion still waits for native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
 | Non-Gaussian models | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. |
@@ -44,7 +44,7 @@ evidence is reconciled.
 | AI-REML-inspired algorithms | planned | unsupported | planned | planned | planned | planned | planned | unsupported | planned | planned | Borrow `hsquared` only as a design analogue for exact Gaussian MME cells; use observed-information, Fisher/natural-gradient, or AD-gradient methods for Laplace/non-Gaussian cells after derivation. |
 | Missing values | partial | planned | planned | planned | planned | planned | planned | planned | planned | planned | Use likelihood/FIML-style masks. Complete-data all-true masks must match current complete-data log-likelihood exactly. |
 | Visuals and articles | partial | partial | partial | partial | partial | partial | partial | planned | partial | planned | Every major capability needs a real visual: capability heatmap, profile curve, parity plot, missingness heatmap, structural visual, and runtime-plus-CI plot where relevant. |
-| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, and the first fixed-effect `log(sigma)` clamp sensitivity pilot are banked; broader guard classes, q8/same-response diagnostics, bridge parity, and release-readiness evidence remain partial or planned. |
+| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, the first fixed-effect `log(sigma)` clamp sensitivity pilot, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked; broader guard classes, q8 coverage/power, same-response hardening, bridge parity, and release-readiness evidence remain partial or planned. |
 | Release gate | planned | planned | planned | planned | planned | planned | planned | planned | planned | planned | Release notes must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision. |
 
 ## Issue-Led Slice Rules
@@ -61,8 +61,9 @@ evidence is reconciled.
 
 ## Bridge Gate Registry Contract
 
-`drmTMB#544` owns the generated bridge-gate registry. Each intentional
-`engine = "julia"` rejection should have a row with these fields:
+`drmTMB#544` closed the first generated bridge-gate registry slice. Each
+intentional `engine = "julia"` rejection should still have a row with these
+fields:
 
 ```text
 gate_id
@@ -139,23 +140,28 @@ weakly identified cells cannot collapse into one status word.
   modelling, binary missing-predictor imputation, random-effect binomial, or a
   Julia bridge claim.
 
-## First Work Order
+## Post-#602 Work Order
 
 1. Keep the dashboard live at `http://127.0.0.1:8765/`.
-2. Land the finish-board widget row schema, renderer, validator, issue rows,
-   cross-package lessons, and acceptance gates.
-3. Keep the `drmTMB#569` binomial response contract visible:
+2. Keep the finish-board widget, generated Julia gate tables, and issue-led
+   evidence rows synchronized with merged PRs. The widget, `#569` native
+   binomial slice, `#544` bridge-gate guard, `#591` comparator artifact,
+   `#593` binomial Wald interval artifact, and `#602` q8 staged diagnostic
+   artifact are banked.
+3. Preserve the `drmTMB#569` binomial response boundary:
    `stats::binomial(link = "logit")`, 0/1 and `cbind(successes, failures)`,
    fixed-effect `mu` only, no weights-as-trials, no `sigma`, no structured or
    random effects, no bivariate route, and no Julia bridge claim.
-4. Close the first `drmTMB#569` implementation slice only when focused source
-   tests, design docs, dashboard rows, after-task evidence, and CI agree. The
-   first public claim is fixed-effect estimation and `stats::glm()` parity.
-5. Keep `drmTMB#544` active as the bridge-gate epic: generate the gate table,
-   add representative rejection tests, cross-link `gllvmTMB#488`, and fail CI
-   when bridge claims outrun the registry.
-6. Start optional Phase 18 `binomial_fixed_effect` evidence only after the API
-   stabilizes; report MCSE, convergence, `pdHess`, boundary, warning, failure,
-   version, SHA, and elapsed-time fields.
+4. Treat q8 as diagnostic-only until deliberately sized recovery, coverage,
+   and power evidence exists. `#602` provides a cold-vs-staged artifact route;
+   it does not promote q8 intervals, speed, release readiness, or public
+   warm-start support.
+5. Open follow-on bridge issues before relaxing any R-side Julia gate. The
+   current registry and capability comparison are banked; bridge promotion
+   still needs per-cell parity evidence and explicit owner review.
+6. Continue the broader numerical-guard programme beyond the fixed-effect
+   `log(sigma)` pilot: scale-side phylogeny, bivariate scale routes, support
+   floors, Student-t shape restrictions, correlation guards, and interval
+   consequences still need sensitivity evidence.
 7. Leave release, comparator, and CRAN readiness planned until implementation,
    evidence, pkgdown, issue comments, dashboard rows, and 3-OS CI agree.
