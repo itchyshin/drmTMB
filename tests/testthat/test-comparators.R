@@ -606,15 +606,9 @@ test_that("REML rejects unsupported first-slice neighbours", {
     ),
     "univariate Gaussian"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ x),
-      family = gaussian(),
-      data = dat,
-      REML = TRUE
-    ),
-    "intercept-only"
-  )
+  # A fixed-effect sigma ~ x is now supported under REML (validated in
+  # test-reml-heteroscedastic.R); the rejected scale-side neighbour is a scale
+  # random effect.
   expect_error(
     drmTMB(
       bf(y ~ x + (1 | id), sigma ~ 1, sd(id) ~ 1),
