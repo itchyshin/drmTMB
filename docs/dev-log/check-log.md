@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Takeover PR queue cleanup after spelling merge
+
+Goal:
+
+- Turn the visible open-PR pile into an honest queue before starting the next
+  work slice: merge only PRs with fresh current-main 3-OS CI, close stale stack
+  wrappers that are already represented on `origin/main`, and keep unsupported
+  control-surface work out of public status.
+
+Changes:
+
+- Squash-merged PR #474 after fresh Ubuntu, macOS, and Windows R-CMD-check
+  passed for commit `d26b193f`.
+- Closed stale bridge-stack wrappers #520, #522, #523, #527, #528, #530, #532,
+  and #534 after `git cherry -v origin/main origin/<head>` showed no remaining
+  unmerged patch commits, except #520's ASCII-escape commit which was already
+  patch-equivalent to current `origin/main`.
+- Closed #540 rather than merging it. It still had one real unmerged commit,
+  but the PR was conflicting, failed all three prior R-CMD-check jobs, and
+  exposed an `engine_control`-style public surface that remains unsupported
+  until it has a separate design, gate, test, documentation, dashboard, and
+  fresh-CI slice.
+- Left draft/conflicting PRs #473, #475, #571, #573, and #574 paused for
+  separate refresh decisions.
+- Refreshed the durable mission-control dashboard text to reflect the queue
+  cleanup while keeping the matrix metrics at `21/68` banked or verified,
+  `3` active, `0` blocked, and `1` deferred.
+
+Checks run:
+
+- `gh pr view 474 --json statusCheckRollup,mergeable,mergeStateStatus`
+- `gh pr merge 474 --squash --delete-branch`
+- `git cherry -v origin/main origin/shannon/xfam-bridge`
+- `git cherry -v origin/main origin/shannon/xfam-bridge2`
+- `git cherry -v origin/main origin/shannon/s2-largep`
+- `git cherry -v origin/main origin/shannon/bridge-sigma`
+- `git cherry -v origin/main origin/shannon/bridge-breadth`
+- `git cherry -v origin/main origin/shannon/bridge-structured`
+- `git cherry -v origin/main origin/shannon/bridge-inference`
+- `git cherry -v origin/main origin/shannon/bridge-predict`
+- `python /Users/z3437171/.codex/plugins/cache/openai-curated-remote/github/0.1.2/skills/gh-fix-ci/scripts/inspect_pr_checks.py --repo /Users/z3437171/Dropbox/Github\ Local/drmTMB --pr 540 --json`
+- `gh pr list --state open --json number,title,isDraft,headRefName,baseRefName,mergeStateStatus`
+- `python3 tools/validate-mission-control.py`
+
+Boundaries:
+
+- Queue/status slice only. No R model code, TMB code, formula grammar,
+  likelihood, Julia bridge implementation, dashboard metric promotion, or
+  release-readiness claim changed.
+
 ## 2026-06-17 -- Takeover refresh for spelling infrastructure PR #474
 
 Goal:

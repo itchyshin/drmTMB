@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 05:04 MDT",
+  "updated": "2026-06-17 06:00 MDT",
   "metrics": {
     "verified": 21,
     "active": 3,
@@ -1099,25 +1099,30 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Non-Ayumi finish path is in evidence-readiness mode: binomial GLM parity, fixed-effect Wald calibration, the first log(sigma) guard-sensitivity pilot, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked without touching Claude-owned Ayumi C++ seams."
+      "text": "Takeover queue cleanup is banked: PR #474 merged after fresh 3-OS R-CMD-check, stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main, and the remaining open PRs are five paused drafts requiring separate refresh decisions."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Binomial fixed-effect interval calibration is bounded to audited Wald cells, and the log(sigma) clamp pilot is bounded to fixed-effect guard sensitivity. The numerical-guard ADEMP plan is a design contract, not new simulation evidence."
+      "text": "Closed bridge wrappers do not promote new inference claims. Cross-family, interval, variance/correlation, q8, and numerical-guard claims still need the mission-control evidence gates, not old stack titles."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "Numerical guards and q8 remain explicit evidence gates: the first log(sigma) clamp pilot, q8 staged diagnostic artifact, and guard-sensitivity ADEMP design are banked, but broader guard-class simulations, q8 coverage/power, and interval consequences remain active work."
+      "text": "PR #540 was closed rather than merged: it had one real unmerged optimizer-control commit, failed prior 3-OS CI, conflicted with current main, and exposed an unsupported control surface that needs a separate design slice."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Mission-control status must validate, serve comparator and simulation artifacts from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
+      "text": "Mission-control status validates at 21/68 banked or verified, 3 active, 0 blocked, and 1 deferred. The live browser copy at 127.0.0.1:8765 must be refreshed from the durable source after this status slice merges."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Merged PR #474 after fresh current-main R-CMD-check on Ubuntu, macOS, and Windows; closed stale bridge-stack wrappers #520, #522, #523, #527, #528, #530, #532, and #534 as already represented on main; closed #540 as an unsupported failed optimizer-control slice."
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",

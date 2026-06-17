@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 05:04 MDT",
+  "updated": "2026-06-17 06:00 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path update: fixed-effect binomial GLM parity, a 500-replicate Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the numerical-guard ADEMP design, the skew-normal diagnostic pilot, and the q8 staged diagnostic artifact are banked; broader guard-class simulations, q8 coverage/power, same-response hardening, Julia bridge promotion, and release readiness remain partial or planned."
+      "text": "Takeover queue update: PR #474 is merged after fresh 3-OS CI; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 are closed as superseded by current main; #540 is closed as an unsupported failed optimizer-control slice; #473, #475, #571, #573, and #574 remain paused drafts."
     }
   ]
 }
