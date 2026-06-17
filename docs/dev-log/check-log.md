@@ -55198,3 +55198,29 @@ code change, no Julia bridge promotion, no speed claim, no release promotion, no
 scale-side phylogenetic simulation claim, no bivariate scale claim, no
 support-floor claim, and no interval coverage claim. This is a fixed-effect
 `log(sigma)` guard-sensitivity pilot only.
+
+## 2026-06-17: log(sigma) control doc truth refresh
+
+Refreshed `docs/design/174-controls-and-convergence.md` after the
+`log(sigma)` clamp knob and the first fixed-effect guard-sensitivity pilot landed.
+The design note no longer calls the clamp band planned; it names
+`drm_control(logsigma_clamp = ..., logsigma_clamp_margin = ...)`, the default
+`c(-12, 12)` identity band with margin 3, `logsigma_clamp = NULL` as the disable
+route, and the first pilot's result: negligible impact when inactive in audited
+fixed-effect cells, material impact when the default band binds, and explicit
+active-at-optimum diagnostics still future work. Added cross-reference to
+`docs/design/176-numerical-guard-simulation-audit.md`.
+
+Checks run:
+
+```sh
+git diff --check
+rg -n 'planned.*logsigma|logsigma.*planned|planned.*log\(sigma\)|planned knob|expose the band as a control' docs/design/174-controls-and-convergence.md
+# forbidden-framing scan over touched prose: no hits
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/174-controls-and-convergence.md docs/dev-log/after-task/2026-06-17-logsigma-control-doc-truth-refresh.md docs/dev-log/check-log.md
+```
+
+Boundary: docs only; no package code, no `src/drmTMB.cpp`, no `R/control.R`, no
+Gaussian clamp implementation change, no Ayumi path change, no DRM.jl code
+change, no new simulation, no Julia bridge promotion, and no release-promotion
+claim.

@@ -20,9 +20,10 @@ case in the fitting path. Concretely:
 - The Ayumi data lives only in throwaway experiment scripts (under `/tmp` and
   `inst/sim/run/`), never in package `R/` or `src/`. The package has no
   bird-data constants.
-- Every knob added for that work — `drm_phylo_penalty()`, the (planned)
-  `log(sigma)` clamp band, `optimizer_preset` — is a general control with a
-  default that reproduces the prior behavior, so existing fits are unchanged.
+- Every knob added for that work — `drm_phylo_penalty()`,
+  `drm_control(logsigma_clamp = ...)`, `optimizer_preset` — is a general
+  control with a default that reproduces the prior behavior, so existing fits
+  are unchanged.
 - A tuning value that worked for one dataset is **not** promoted to a default.
   The clearest example is the penalty's `cor_sd`: the value that best recovered
   the simulated/real correlation (around 0.5) is **data-specific** — it tracks
@@ -40,10 +41,10 @@ a generic default, validation, docs, and a row in the catalog below.
 | `optimizer_preset` | `drm_control()` | `"default"` (no extra `nlminb` limits) | `"careful"` = iter/eval 1000; `"robust"` = 5000. Larger deterministic budget for stiff models; the fit records the selected preset and the attempt table. |
 | `optimizer = list(...)` | `drm_control()` | `nlminb` defaults | Explicit `iter.max`/`eval.max` etc.; explicit controls are respected over the preset ladder. |
 | `penalty = drm_phylo_penalty(sd_u, sd_alpha, cor_sd)` | `drmTMB()` | `NULL` (plain ML) | Optional penalized/MAP estimator: PC prior on each phylogenetic SD; optional `N(0, cor_sd)` on the phylo correlation. ML stays bit-identical when `NULL`. A penalized fit is labeled `MAP`; `logLik()` returns the **unpenalized** data value; `check_drm()` flags it; LRT/AIC across penalized fits are not standard. `cor_sd` has no universal value — sweep it. |
-| `log(sigma)` clamp | `src/drmTMB.cpp` (guard); planned `drm_control(logsigma_clamp = ...)` | identity in `[-12, 12]`, saturating to `[-15, 15]` | Numerical guard so a scale-side phylogenetic field cannot overflow `log(sigma)`; bit-identical inside the band. Planned: expose the band as a control + warn when active at the optimum (doc 170). |
+| `log(sigma)` clamp | `src/drmTMB.cpp` guard; `drm_control(logsigma_clamp = ..., logsigma_clamp_margin = ...)` | `c(-12, 12)` with margin 3: identity in `[-12, 12]`, saturating to `[-15, 15]`; `NULL` disables | Numerical guard so a runaway Gaussian scale predictor cannot overflow `log(sigma)`; bit-identical inside the band. Widen or disable for legitimately huge unstandardized scales. The first fixed-effect sensitivity pilot shows negligible impact when inactive and material impact when the default band binds; an explicit active-at-optimum diagnostic remains future work (docs 170, 176). |
 | `se` | `drm_control()` | `TRUE` | `FALSE` skips `sdreport()` (no Wald SE/`vcov`/Wald CI); point estimates, prediction, simulation, profiles remain. |
 | `missing = miss_control(...)` | `drmTMB()` | drop responses, fail on missing predictors | Missing-data policy; `response = "include"` (Gaussian), `predictor = "model"` (Gaussian/Poisson). |
-| `REML` | `drmTMB()` | `FALSE` | Restricted ML for the first univariate Gaussian mixed slice (intercept-only `sigma`); not a defined estimator for scale models generally. |
+| `REML` | `drmTMB()` | `FALSE` | Restricted ML for the documented first univariate Gaussian mixed slice; not a general estimator for neighbouring Gaussian or non-Gaussian routes. |
 
 ## Convergence diagnostics (read as a table, not one flag)
 
@@ -99,6 +100,9 @@ Honest use (recorded so it cannot be misused):
 - `docs/design/173-phylo-penalty-model-e-rescue.md` — the recovery evidence
   (penalty rescues to PD; prior-sensitive at 1 obs/tip; replication is the clean
   fix).
+- `docs/design/176-numerical-guard-simulation-audit.md` — the numerical-guard
+  simulation contract and first fixed-effect `log(sigma)` clamp sensitivity
+  pilot.
 - `vignettes/convergence.Rmd` — the user-facing how-to that this note backs.
 
 ## References
