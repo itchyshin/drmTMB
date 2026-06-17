@@ -2318,9 +2318,13 @@ drm_profile_target_tmbprofile_confint <- function(
   )
   diagnostics <- profile_interval_diagnostics(
     interval,
-    transformation = target$transformation
+    transformation = target$transformation,
+    estimate = target$estimate
   )
   conf_status <- profile_conf_status_from_diagnostics(diagnostics)
+  if (identical(conf_status, "profile_failed")) {
+    interval <- c(NA_real_, NA_real_)
+  }
 
   data.frame(
     parm = target$parm,
@@ -2357,9 +2361,13 @@ drm_profile_target_endpoint_confint <- function(
   interval <- result$interval
   diagnostics <- profile_interval_diagnostics(
     interval,
-    transformation = target$transformation
+    transformation = target$transformation,
+    estimate = target$estimate
   )
   conf_status <- profile_conf_status_from_diagnostics(diagnostics)
+  if (identical(conf_status, "profile_failed")) {
+    interval <- c(NA_real_, NA_real_)
+  }
 
   data.frame(
     parm = target$parm,
@@ -2380,7 +2388,10 @@ drm_profile_target_endpoint_confint <- function(
 }
 
 profile_conf_status_from_diagnostics <- function(diagnostics) {
-  if (identical(diagnostics$message, "nonfinite_interval")) {
+  if (
+    identical(diagnostics$message, "nonfinite_interval") ||
+      identical(diagnostics$message, "point_estimate_outside_interval")
+  ) {
     return("profile_failed")
   }
   "profile"
@@ -2756,12 +2767,20 @@ drm_tmbprofile_confint <- function(profile, target_name, level) {
 profile_interval_diagnostics <- function(
   interval,
   transformation,
+  estimate = NULL,
   sd_boundary = sqrt(.Machine$double.eps),
   correlation_boundary = 0.98
 ) {
   interval <- as.numeric(interval)
   if (length(interval) != 2L || any(!is.finite(interval))) {
     return(list(boundary = TRUE, message = "nonfinite_interval"))
+  }
+  if (
+    length(estimate) == 1L &&
+      is.finite(estimate) &&
+      (interval[[1L]] >= estimate || interval[[2L]] <= estimate)
+  ) {
+    return(list(boundary = TRUE, message = "point_estimate_outside_interval"))
   }
   if (
     transformation %in%

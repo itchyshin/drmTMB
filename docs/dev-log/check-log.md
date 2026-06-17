@@ -55740,3 +55740,27 @@ Boundary: packaging/namespace/documentation fix for the already-open
 honesty-guards PR only. No likelihood, optimizer behavior, penalty semantics,
 simulation gate, Julia bridge promotion, release-readiness, or public support
 claim changed in this follow-up.
+
+Follow-up: the first rerun passed macOS but failed Ubuntu in
+`test-profile-targets.R` for the bivariate q4 phylo sigma-axis profile status
+case. The failing Linux row was marked `conf.status = "profile"` even though
+the finite profile interval did not bracket the fitted SD estimate. That is a
+status-reporting problem: the interval should not be labelled as a successful
+profile interval when the point estimate is outside the reported bounds.
+
+The profile interval diagnostics now treat non-bracketing finite intervals as
+`point_estimate_outside_interval`, downgrade the row to
+`conf.status = "profile_failed"`, and replace the endpoints with missing
+values. This keeps the public interval table conservative on platform-specific
+weak-profile cases rather than presenting an apparently successful interval.
+
+Additional check run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "profile-targets", reporter = "summary")'
+git diff --check
+```
+
+Result: focused `profile-targets` tests passed locally with the one expected
+structured-bootstrap non-convergence warning. `git diff --check` passed after
+this log update.
