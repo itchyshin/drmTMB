@@ -55263,3 +55263,42 @@ Boundary: no package code, no TMB likelihood code, no Julia bridge change, no
 new family surface, no random/structured/bivariate skew-normal support, no
 profile/bootstrap interval calibration, no speed claim, and no release-promotion
 claim.
+
+## 2026-06-17: q8 private start-override foundation
+
+Re-banked the private start-override hook on current `origin/main` for the q8
+start/Hessian rescue path. `drmTMB()` now applies
+`drm_apply_start_override()` immediately before `TMB::MakeADFun()`. The hook is
+a no-op unless an internal builder sets `spec$start_override`, validates named
+finite numeric vectors against existing `spec$start` components, reorders named
+overrides to target names, preserves slots fixed by `spec$map`, and records
+`spec$start_override_applied`.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' R/drmTMB.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task
+forbidden-framing scan over touched prose and code
+```
+
+Results: `optimizer-contract` passed. The broad `biv-gaussian` test filter
+passed, including q8 endpoint and q8 endpoint recovery files.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote churn was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here. `devtools::check(error_on =
+"never")` passed with 0 errors, 0 warnings, and 0 notes in 10m 57.4s. Static
+diff, conflict-marker, and forbidden-framing scans passed.
+
+Boundary: private start plumbing only. No public `start`, `start_from`,
+`warm_start`, or `map` API; no q4-to-q8 mapper; no prepared-spec fit tail; no
+likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
+dashboard, simulation, q8 recovery, q8 power, interval, speed, or release
+promotion claim.

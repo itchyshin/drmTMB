@@ -389,6 +389,7 @@ drmTMB <- function(
       control$logsigma_clamp_margin
     )
   }
+  spec <- drm_apply_start_override(spec)
 
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
@@ -604,6 +605,165 @@ drm_apply_estimator_spec <- function(spec, REML = FALSE) {
   spec$estimator <- "REML"
   spec$tmb_random_names <- c(spec$random_names, "beta_mu")
   spec
+}
+
+drm_start_override_empty_record <- function() {
+  data.frame(
+    parameter = character(),
+    n_value = integer(),
+    n_applied = integer(),
+    n_mapped = integer(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_apply_start_override <- function(spec) {
+  override <- spec[["start_override"]]
+  if (is.null(override)) {
+    spec$start_override <- NULL
+    spec$start_override_applied <- drm_start_override_empty_record()
+    return(spec)
+  }
+
+  drm_validate_start_override(spec, override)
+
+  applied <- vector("list", length(override))
+  override_names <- names(override)
+  for (i in seq_along(override)) {
+    parameter <- override_names[[i]]
+    target <- spec$start[[parameter]]
+    value <- override[[i]]
+    value <- drm_align_start_override_value(
+      value = value,
+      target = target,
+      parameter = parameter
+    )
+
+    map <- if (is.null(spec$map)) {
+      NULL
+    } else {
+      spec$map[[parameter]]
+    }
+    mapped <- drm_start_override_mapped_slots(
+      map = map,
+      n = length(target),
+      parameter = parameter
+    )
+    candidate <- target
+    candidate[!mapped] <- value[!mapped]
+    spec$start[[parameter]] <- candidate
+
+    applied[[i]] <- data.frame(
+      parameter = parameter,
+      n_value = length(value),
+      n_applied = sum(!mapped),
+      n_mapped = sum(mapped),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  spec$start_override_applied <- do.call(rbind, applied)
+  rownames(spec$start_override_applied) <- NULL
+  spec
+}
+
+drm_validate_start_override <- function(spec, override) {
+  if (!is.list(override) || is.data.frame(override)) {
+    cli::cli_abort(
+      "Internal start overrides must be a named list."
+    )
+  }
+
+  override_names <- names(override)
+  if (
+    is.null(override_names) ||
+      length(override_names) != length(override) ||
+      anyNA(override_names) ||
+      any(override_names == "")
+  ) {
+    cli::cli_abort(
+      "Internal start overrides must name every TMB start component."
+    )
+  }
+  duplicated_names <- unique(override_names[duplicated(override_names)])
+  if (length(duplicated_names) > 0L) {
+    cli::cli_abort(c(
+      "Internal start overrides must not duplicate component names.",
+      "x" = "Duplicated component{?s}: {.val {duplicated_names}}."
+    ))
+  }
+
+  unknown <- setdiff(override_names, names(spec$start))
+  if (length(unknown) > 0L) {
+    cli::cli_abort(c(
+      "Internal start overrides can only target existing TMB start components.",
+      "x" = "Unknown component{?s}: {.val {unknown}}."
+    ))
+  }
+
+  for (parameter in override_names) {
+    value <- override[[parameter]]
+    target <- spec$start[[parameter]]
+    if (!is.atomic(value) || !is.numeric(value) || !is.null(dim(value))) {
+      cli::cli_abort(c(
+        "Internal start override values must be numeric vectors.",
+        "x" = "Component {.val {parameter}} is not a numeric vector."
+      ))
+    }
+    if (length(value) != length(target)) {
+      cli::cli_abort(c(
+        "Internal start override values must match existing start lengths.",
+        "x" = "Component {.val {parameter}} has length {length(value)}; expected {length(target)}."
+      ))
+    }
+    if (!all(is.finite(value))) {
+      cli::cli_abort(c(
+        "Internal start override values must be finite.",
+        "x" = "Component {.val {parameter}} contains non-finite values."
+      ))
+    }
+  }
+
+  invisible(TRUE)
+}
+
+drm_align_start_override_value <- function(value, target, parameter) {
+  target_names <- names(target)
+  value_names <- names(value)
+  if (!is.null(target_names) && !is.null(value_names)) {
+    if (
+      anyNA(value_names) ||
+        any(value_names == "") ||
+        any(duplicated(value_names)) ||
+        !identical(sort(value_names), sort(target_names))
+    ) {
+      cli::cli_abort(c(
+        "Named internal start overrides must match existing parameter names.",
+        "x" = "Component {.val {parameter}} has names that do not match its target."
+      ))
+    }
+    value <- value[target_names]
+  }
+  if (!is.null(target_names)) {
+    names(value) <- target_names
+  }
+  value
+}
+
+drm_start_override_mapped_slots <- function(map, n, parameter) {
+  if (is.null(map)) {
+    return(rep(FALSE, n))
+  }
+  if (length(map) == 1L && is.na(map[[1L]])) {
+    return(rep(TRUE, n))
+  }
+  if (length(map) != n) {
+    cli::cli_abort(c(
+      "Internal start override map length does not match the start vector.",
+      "x" = "Component {.val {parameter}} has map length {length(map)}; expected {n}."
+    ))
+  }
+  is.na(map)
 }
 
 drm_validate_reml_spec <- function(spec) {
