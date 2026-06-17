@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Supersede takeover queue after-task report after #609
+
+Goal:
+
+- Add a final after-task report for the takeover PR queue after #609 merged,
+  so the earlier takeover report's paused-draft inventory is clearly
+  superseded rather than mistaken for current state.
+
+Changes:
+
+- Added `docs/dev-log/after-task/2026-06-17-final-takeover-pr-queue-closure.md`.
+- Recorded that PR #609 merged after fresh current-main Ubuntu, macOS, and
+  Windows PR R-CMD-check, and that post-merge `main` R-CMD-check plus pkgdown
+  both passed at `15ba6bc7`.
+- Recorded that the open PR queue is empty and issue #570 remains open for the
+  real beak evidence gates.
+
+Checks run:
+
+- `/opt/homebrew/bin/gh pr view 609 --repo itchyshin/drmTMB --json number,state,mergedAt,mergeCommit,url,headRefName,baseRefName`
+- `/opt/homebrew/bin/gh run watch 27721190820 --repo itchyshin/drmTMB --interval 60 --exit-status`
+- `/opt/homebrew/bin/gh run watch 27722565276 --repo itchyshin/drmTMB --interval 60 --exit-status`
+- `/opt/homebrew/bin/gh pr list --repo itchyshin/drmTMB --state open --json number,title,isDraft,mergeStateStatus,mergeable,headRefName,baseRefName,url --limit 50`
+- `python3 tools/validate-mission-control.py`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- live dashboard `status.json` fetch from `http://127.0.0.1:8765/status.json`
+
+Boundaries:
+
+- Reporting/protocol slice only. No package code, TMB code, formula grammar,
+  likelihood, optimizer behavior, Julia bridge implementation, dashboard
+  metric promotion, or release-readiness claim changed.
+
 ## 2026-06-17 -- Final takeover PR queue closure after #574
 
 Goal:
