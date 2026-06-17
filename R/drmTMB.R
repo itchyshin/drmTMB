@@ -861,6 +861,200 @@ drm_qgt2_staged_start_override <- function(
   )
 }
 
+drm_qgt2_staged_fit_diagnostic <- function(
+  source_fit,
+  target_spec,
+  formula,
+  family,
+  control,
+  REML = FALSE,
+  penalty = NULL,
+  copy_theta_re_cov = FALSE,
+  theta_re_cov_shrink = 0.85,
+  fit_spec = drm_fit_spec
+) {
+  if (!is.function(fit_spec)) {
+    cli::cli_abort(
+      "Internal q>2 staged fit diagnostics require a fit-spec function."
+    )
+  }
+
+  mapped <- drm_qgt2_staged_start_override(
+    source_fit = source_fit,
+    target_spec = target_spec,
+    copy_theta_re_cov = copy_theta_re_cov,
+    theta_re_cov_shrink = theta_re_cov_shrink
+  )
+
+  cold <- drm_qgt2_capture_staged_fit(
+    label = "cold",
+    spec = target_spec,
+    formula = formula,
+    family = family,
+    control = control,
+    REML = REML,
+    penalty = penalty,
+    fit_spec = fit_spec
+  )
+
+  staged_spec <- target_spec
+  staged_spec$start_override <- mapped$override
+  staged <- drm_qgt2_capture_staged_fit(
+    label = "staged",
+    spec = staged_spec,
+    formula = formula,
+    family = family,
+    control = control,
+    REML = REML,
+    penalty = penalty,
+    fit_spec = fit_spec
+  )
+
+  list(
+    strategy = "qgt2-staged-fit-diagnostic",
+    provenance = mapped$provenance,
+    fits = list(cold = cold, staged = staged),
+    comparison = drm_qgt2_staged_fit_comparison(cold, staged)
+  )
+}
+
+drm_qgt2_capture_staged_fit <- function(
+  label,
+  spec,
+  formula,
+  family,
+  control,
+  REML,
+  penalty,
+  fit_spec
+) {
+  captured_warnings <- character()
+  elapsed_start <- proc.time()[["elapsed"]]
+  fit <- tryCatch(
+    withCallingHandlers(
+      fit_spec(
+        spec = spec,
+        formula = formula,
+        family = family,
+        control = control,
+        REML = REML,
+        penalty = penalty,
+        fit_call = substitute(
+          drm_qgt2_staged_fit_diagnostic(label = value),
+          list(value = label)
+        )
+      ),
+      warning = function(w) {
+        captured_warnings <<- c(captured_warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    ),
+    error = function(e) e
+  )
+  elapsed <- proc.time()[["elapsed"]] - elapsed_start
+
+  if (inherits(fit, "error")) {
+    return(list(
+      label = label,
+      ok = FALSE,
+      fit = NULL,
+      metrics = drm_qgt2_staged_fit_metrics(
+        fit = NULL,
+        label = label,
+        ok = FALSE,
+        elapsed = elapsed,
+        warnings = captured_warnings,
+        error = conditionMessage(fit)
+      )
+    ))
+  }
+
+  list(
+    label = label,
+    ok = TRUE,
+    fit = fit,
+    metrics = drm_qgt2_staged_fit_metrics(
+      fit = fit,
+      label = label,
+      ok = TRUE,
+      elapsed = elapsed,
+      warnings = captured_warnings,
+      error = NA_character_
+    )
+  )
+}
+
+drm_qgt2_staged_fit_metrics <- function(
+  fit,
+  label,
+  ok,
+  elapsed,
+  warnings,
+  error
+) {
+  convergence <- NA_integer_
+  pdHess <- NA
+  objective <- NA_real_
+  logLik <- NA_real_
+  df <- NA_real_
+  nobs <- NA_real_
+  optimizer_preset <- NA_character_
+
+  if (isTRUE(ok)) {
+    convergence <- as.integer(fit$opt$convergence)
+    if (!is.null(fit$sdr) && !is.null(fit$sdr$pdHess)) {
+      pdHess <- isTRUE(fit$sdr$pdHess)
+    }
+    objective <- as.numeric(fit$opt$objective)
+    logLik <- tryCatch(
+      as.numeric(stats::logLik(fit)),
+      error = function(e) NA_real_
+    )
+    df <- as.numeric(fit$df)
+    nobs <- as.numeric(fit$nobs)
+    if (!is.null(fit$optimizer_used$optimizer_preset)) {
+      optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
+    }
+  }
+
+  data.frame(
+    label = label,
+    ok = isTRUE(ok),
+    convergence = convergence,
+    pdHess = pdHess,
+    objective = objective,
+    logLik = logLik,
+    df = df,
+    nobs = nobs,
+    elapsed_sec = as.numeric(elapsed),
+    optimizer_preset = optimizer_preset,
+    warning_count = length(warnings),
+    warnings = paste(warnings, collapse = " | "),
+    error = error,
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_qgt2_staged_fit_comparison <- function(cold, staged) {
+  metrics <- rbind(cold$metrics, staged$metrics)
+  numeric_metrics <- c("objective", "logLik", "elapsed_sec")
+  deltas <- lapply(numeric_metrics, function(metric) {
+    cold_value <- cold$metrics[[metric]]
+    staged_value <- staged$metrics[[metric]]
+    data.frame(
+      metric = metric,
+      cold = cold_value,
+      staged = staged_value,
+      staged_minus_cold = staged_value - cold_value,
+      stringsAsFactors = FALSE
+    )
+  })
+  list(
+    metrics = metrics,
+    deltas = do.call(rbind, deltas)
+  )
+}
+
 drm_qgt2_fixed_effect_start_override <- function(source_fit, target_spec) {
   dpar_parameter <- c(
     mu1 = "beta_mu1",

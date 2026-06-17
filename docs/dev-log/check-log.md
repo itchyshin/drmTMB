@@ -55393,3 +55393,51 @@ Boundary: private fit-tail refactor only. No public `start`, `start_from`,
 diagnostic run; no likelihood, C++, TMB density, penalty/MAP, Gaussian clamp,
 Julia bridge, dashboard, q8 recovery, q8 power, interval, speed, or release
 promotion claim.
+
+## 2026-06-17: q8 staged-fit diagnostic runner
+
+Added private `drm_qgt2_staged_fit_diagnostic()` as the tiny internal runner
+that fits the same q > 2 target specification cold and with the staged-start
+override from `drm_qgt2_staged_start_override()`. Both fits go through
+`drm_fit_spec()`. The returned diagnostics record staged-start provenance, fit
+success/error state, optimizer convergence, `pdHess` when available, objective,
+log-likelihood, elapsed seconds, optimizer preset, warning count/text, and a
+small cold-versus-staged delta table for objective, log-likelihood, and elapsed
+time.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over added diff lines
+```
+
+Results: focused optimizer-contract tests passed. The combined
+optimizer-contract plus q8 endpoint/recovery Phase 18 subset passed.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed with 0 errors, 0 warnings, and 1
+environment note: future-file timestamp checking could not verify the current
+time. Full `devtools::test()` passed with exit 0; it reported five existing
+Julia/cross-family skips and eight expected log-sigma clamp warnings from the
+pathological clamp test. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+The new test uses an injected fake fit tail so the diagnostic runner's
+cold/staged bookkeeping and start-override application are covered without
+adding a slow q8 numerical fit to the CRAN-safe unit suite.
+
+Boundary: private diagnostic runner only. No public `start`, `start_from`,
+`warm_start`, prepared-spec, or `map` API; no new Phase 18 artifact yet; no
+likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
+dashboard, q8 recovery, q8 power, interval, speed, or release promotion claim.
