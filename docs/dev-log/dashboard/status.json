@@ -1,10 +1,10 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 03:10Z",
+  "updated": "2026-06-17 04:23 MDT",
   "metrics": {
-    "verified": 20,
-    "active": 4,
+    "verified": 21,
+    "active": 3,
     "blocked": 0,
     "deferred": 1,
     "total": 68
@@ -86,7 +86,7 @@
       "name": "Bridge-gate drift and R bridge truth",
       "owner": "Boole + Emmy + Grace",
       "status": "active",
-      "counts": "7/9",
+      "counts": "8/9",
       "slices": [
         {
           "name": "Fix q4 Julia REML option forwarding exposed by Ayumi",
@@ -143,10 +143,10 @@
         },
         {
           "name": "Document intentional rejections so the R wrapper is never accidentally stricter than Julia",
-          "status": "active",
+          "status": "banked",
           "issue": "drmTMB#544",
           "url": "docs/dev-log/dashboard/julia-capabilities.tsv",
-          "evidence": "Capability comparison artifact is staged in codex/julia-docs-drift-guard; it keeps direct DRM.jl, R-to-Julia bridge, and native TMB claims separate."
+          "evidence": "PR #587 merged the generated capability comparison, docs-drift guard, and dashboard table while keeping direct DRM.jl, R-to-Julia bridge, and native TMB claims separate."
         }
       ]
     },
@@ -627,7 +627,7 @@
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/after-task/2026-06-16-julia-capability-comparison-doc-guard.md",
       "blocker": "#587 is merged. The registry, generated capability comparison, drift guard, and dashboard heatmap are banked; bridge promotion still waits for per-cell parity evidence and an explicit decision on R-gated Julia-covered cells.",
-      "last_verified": "2026-06-16"
+      "last_verified": "2026-06-17"
     },
     {
       "id": "drmTMB-finish-board-widget",
@@ -1076,8 +1076,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, and the first fixed-effect skew-normal diagnostic pilot are banked; broader guard classes, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/README.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the first fixed-effect skew-normal diagnostic pilot, and the q8 staged diagnostic artifact are banked; broader guard classes, q8 coverage/power, same-response hardening, visual artifacts, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-17-q8-staged-diagnostic-artifact.md"
     },
     {
       "area": "Release gate",
@@ -1099,7 +1099,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Non-Ayumi finish path is in evidence-readiness mode: binomial GLM parity, fixed-effect Wald calibration, and the first log(sigma) guard-sensitivity pilot are banked without touching Claude-owned Ayumi C++ seams."
+      "text": "Non-Ayumi finish path is in evidence-readiness mode: binomial GLM parity, fixed-effect Wald calibration, the first log(sigma) guard-sensitivity pilot, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked without touching Claude-owned Ayumi C++ seams."
     },
     {
       "when": "now",
@@ -1109,7 +1109,7 @@
     {
       "when": "now",
       "who": "Rose",
-      "text": "Numerical guards remain an explicit evidence gate: the first log(sigma) clamp pilot is banked, but broader guard classes and interval consequences remain active work."
+      "text": "Numerical guards and q8 remain explicit evidence gates: the first log(sigma) clamp pilot and q8 staged diagnostic artifact are banked, but broader guard classes, q8 coverage/power, and interval consequences remain active work."
     },
     {
       "when": "now",
@@ -1118,6 +1118,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Merged PR #602: q8 cold-vs-staged diagnostic artifacts are now opt-in Phase 18 evidence, with green macOS, Ubuntu, and Windows R-CMD-check. This is diagnostic-only and does not promote q8 recovery, coverage, power, speed, interval, or release claims.",
+      "url": "docs/dev-log/after-task/2026-06-17-q8-staged-diagnostic-artifact.md",
+      "link_label": "q8 staged artifact"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
@@ -1356,7 +1363,7 @@
         {
             "when": "2026-06-14",
             "who": "Issue ledger",
-            "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 remains the bridge-gate epic after the native status path is clear."
+            "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 is closed after the first bridge-gate registry/capability guard, with follow-on bridge promotion handled by new parity issues."
         },
         {
       "when": "2026-06-15",
