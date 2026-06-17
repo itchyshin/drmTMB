@@ -398,7 +398,7 @@ Type objective_function<Type>::operator()()
       vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
       vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
       vector<Type> eta_rho12 = X_rho12 * beta_rho12;
-      vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
+      vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
       for (int i = 0; i < y1.size(); ++i) {
         if (i < re_cov_probe_contribution.rows()) {
           for (int m = 0; m < re_cov_probe_contribution.cols(); ++m) {
@@ -2901,7 +2901,7 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
-    vector<Type> rho12 = Type(0.99999999) * tanh(eta_rho12);
+    vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
 
     if (n_re_cov_blocks > 0) {
       int n_re_cov_qgt2_blocks = 0;

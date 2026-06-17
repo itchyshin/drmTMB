@@ -4,7 +4,7 @@
 #' for both locations, both residual standard deviations, and residual
 #' correlation `rho12`. The residual-correlation link is recorded as
 #' `"atanh_guarded"` because fitted response-scale correlations use
-#' `rho12 = 0.99999999 * tanh(eta_rho12)`.
+#' `rho12 = 0.999999 * tanh(eta_rho12)`.
 #'
 #' @return A `drm_family` object.
 #' @export

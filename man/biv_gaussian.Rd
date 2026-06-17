@@ -14,7 +14,7 @@ A \code{drm_family} object.
 for both locations, both residual standard deviations, and residual
 correlation \code{rho12}. The residual-correlation link is recorded as
 \code{"atanh_guarded"} because fitted response-scale correlations use
-\code{rho12 = 0.99999999 * tanh(eta_rho12)}.
+\code{rho12 = 0.999999 * tanh(eta_rho12)}.
 }
 \examples{
 biv_gaussian()

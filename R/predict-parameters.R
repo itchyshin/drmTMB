@@ -341,7 +341,7 @@ predict_parameters_inverse_link_derivative <- function(object, dpar, eta) {
       p <- stats::plogis(eta)
       p * (1 - p)
     },
-    atanh_guarded = 0.99999999 * (1 - tanh(eta)^2),
+    atanh_guarded = 0.999999 * (1 - tanh(eta)^2),
     atanh_re_guarded = 0.999999 * (1 - tanh(eta)^2),
     cli::cli_abort(
       "Internal error: unknown inverse-link derivative {.val {link}}."
