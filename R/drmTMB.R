@@ -237,6 +237,13 @@ drmTMB <- function(
       "i" = "Use the default {.code missing = miss_control()} or set {.code REML = FALSE}."
     ))
   }
+  if (isTRUE(REML) && !is.null(penalty)) {
+    cli::cli_abort(c(
+      "{.arg REML} and {.arg penalty} cannot be combined.",
+      "i" = "A penalized fit is a maximum-a-posteriori (MAP) estimator and REML is a restricted-likelihood estimator; they are different estimators of the variance components.",
+      "i" = "Use one of {.code REML = TRUE} or {.code penalty = drm_phylo_penalty(...)}, not both."
+    ))
+  }
   if (
     identical(missing_control$response, "include") &&
       !family_type %in% c("gaussian", "biv_gaussian")

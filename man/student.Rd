@@ -16,7 +16,14 @@ location \code{mu}, residual scale \code{sigma}, and degrees of freedom \code{nu
 \details{
 The \code{nu} parameter uses a log link with a lower bound of 2:
 \code{nu = 2 + exp(eta_nu)}. This keeps the fitted distribution in the
-finite-variance region while still allowing heavy tails.
+finite-variance region while still allowing heavy tails. The lower bound is a
+deliberate consequence of the \code{sigma = SD[y]} contract: the Student-t variance
+is finite only for \code{nu > 2}, so a public standard-deviation \code{sigma} is only
+defined there. The model therefore \strong{cannot} represent the very heavy tails
+of \code{nu <= 2} (for example a Cauchy-like \code{nu = 1}); data that genuinely need
+\code{nu <= 2} would require a scale (not SD) parameterization, which is not
+implemented. \code{check_drm()} warns when the fitted \code{nu} approaches the boundary
+at 2, where the slant of the likelihood in \code{nu} is weakly identified.
 Ordinary \code{mu} random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} are supported in the first Student-t
 mixed-model slice; correlated slopes, \code{sigma} random effects, and \code{nu}
