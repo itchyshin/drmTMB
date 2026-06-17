@@ -178,6 +178,108 @@ test_that("future optimizer contract names are reserved in plain control lists",
   )
 })
 
+test_that("internal start override hook is a no-op unless configured", {
+  spec <- list(
+    start = list(beta_mu = c(a = 1, b = 2), beta_sigma = c("(Intercept)" = 0)),
+    map = list()
+  )
+
+  out <- drmTMB:::drm_apply_start_override(spec)
+
+  expect_null(out[["start_override"]])
+  expect_equal(out$start, spec$start)
+  expect_named(
+    out$start_override_applied,
+    c("parameter", "n_value", "n_applied", "n_mapped")
+  )
+  expect_equal(nrow(out$start_override_applied), 0L)
+})
+
+test_that("internal start overrides align names and respect mapped slots", {
+  spec <- list(
+    start = list(
+      beta_mu = c(a = 1, b = 2, c = 3),
+      beta_sigma = c("(Intercept)" = 0)
+    ),
+    map = list(beta_mu = factor(c(1, NA, 2))),
+    start_override = list(beta_mu = c(c = 30, a = 10, b = 20))
+  )
+
+  out <- drmTMB:::drm_apply_start_override(spec)
+
+  expect_equal(out$start$beta_mu, c(a = 10, b = 2, c = 30))
+  expect_equal(
+    out$start_override_applied,
+    data.frame(
+      parameter = "beta_mu",
+      n_value = 3L,
+      n_applied = 2L,
+      n_mapped = 1L,
+      stringsAsFactors = FALSE
+    )
+  )
+})
+
+test_that("internal start overrides preserve fully mapped components", {
+  spec <- list(
+    start = list(beta_mu = c(a = 1, b = 2)),
+    map = list(beta_mu = factor(NA)),
+    start_override = list(beta_mu = c(a = 10, b = 20))
+  )
+
+  out <- drmTMB:::drm_apply_start_override(spec)
+
+  expect_equal(out$start$beta_mu, spec$start$beta_mu)
+  expect_equal(out$start_override_applied$n_applied, 0L)
+  expect_equal(out$start_override_applied$n_mapped, 2L)
+})
+
+test_that("internal start overrides reject malformed values", {
+  spec <- list(
+    start = list(beta_mu = c(a = 1, b = 2)),
+    map = list()
+  )
+
+  spec$start_override <- list(beta_sigma = c(1, 2))
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "Unknown component"
+  )
+
+  spec$start_override <- structure(
+    list(c(a = 1, b = 2), c(a = 3, b = 4)),
+    names = c("beta_mu", "beta_mu")
+  )
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "duplicate component"
+  )
+
+  spec$start_override <- list(beta_mu = c(a = 1))
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "length 1; expected 2"
+  )
+
+  spec$start_override <- list(beta_mu = c(a = 1, b = Inf))
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "non-finite"
+  )
+
+  spec$start_override <- list(beta_mu = matrix(c(1, 2), ncol = 1))
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "numeric vector"
+  )
+
+  spec$start_override <- list(beta_mu = c(a = 1, c = 2))
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec),
+    "names that do not match"
+  )
+})
+
 test_that("Gaussian fixed-effect starts use OLS mean and residual scale", {
   dat <- data.frame(
     x = seq(-1.5, 1.5, length.out = 10),

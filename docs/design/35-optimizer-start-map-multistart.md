@@ -158,6 +158,34 @@ variance through `meta_V(V = V)`, sufficient-statistic aggregation, and random
 or structured contributions to `log(sigma)` behave when the residual scale
 coefficient is removed from the optimized vector.
 
+## Current Private Start Override Hook
+
+`drmTMB()` now has a private start-override hook that runs after family-specific
+specification builders and before `TMB::MakeADFun()`. The hook is dormant for
+ordinary fits: unless an internal builder sets `spec$start_override`, it leaves
+`spec$start` unchanged and records an empty `spec$start_override_applied`
+table.
+
+The hook is intentionally not a public start API. `drm_control(start = ...)`,
+`drm_control(start_from = ...)`, and warm-start control names remain reserved
+and unavailable to users. The purpose of the private hook is narrower: future
+diagnostic builders, such as a q4-to-q8 staged-start mapper, can replace
+selected internal TMB start components without bypassing the existing map,
+likelihood, optimizer, or reporting paths.
+
+Internal overrides must be named lists of finite numeric vectors that exactly
+match existing `spec$start` component lengths. Unknown components, duplicated
+component names, non-finite values, matrices, and mismatched named vectors error
+before TMB sees the start list. When both the target vector and override vector
+are named, the override is reordered to the target names. Slots fixed by
+`spec$map`, including fully mapped components such as `factor(NA)`, are
+preserved rather than overwritten.
+
+Each applied override records `parameter`, `n_value`, `n_applied`, and
+`n_mapped` in `spec$start_override_applied`. That record is diagnostic metadata;
+it does not change fitted degrees of freedom, likelihood evaluation, or
+inference labels.
+
 ## Future Start Contract
 
 User starts should not be a free-form replacement of the entire TMB parameter
