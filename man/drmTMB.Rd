@@ -100,12 +100,16 @@ zero-inflation, random, or structured response terms.}
 through JuliaCall for the supported bridge slice.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
-engine supports it. Native \code{engine = "tmb"} currently supports the first
-univariate Gaussian mixed-model slice: ordinary dense \code{mu} fixed effects,
-ordinary \code{mu} random intercepts or slopes, diagonal or dense known sampling
-covariance through \code{\link[=meta_V]{meta_V()}}, non-unit likelihood \code{weights} (with diagonal
-or no known covariance), intercept-only \code{sigma}, complete responses, and no
-aggregation, structured effects, or direct \code{sd()} scale formulae.
+engine supports it. Native \code{engine = "tmb"} supports: univariate Gaussian
+mixed models with ordinary dense \code{mu} fixed effects, ordinary \code{mu} random
+intercepts or slopes, a mean-side phylogenetic \code{\link[=phylo]{phylo()}} effect, diagonal or
+dense known sampling covariance through \code{\link[=meta_V]{meta_V()}}, non-unit likelihood
+\code{weights} (with diagonal or no known covariance), and a fixed-effect
+\code{sigma ~ predictors} (heteroscedastic) or intercept-only \code{sigma}; and
+bivariate Gaussian \emph{fixed-effect} location models (\code{mu1}/\code{mu2}). It does not
+yet support aggregation, scale-side or non-phylogenetic structured effects,
+direct \code{sd()} scale formulae, scale random effects, or bivariate random or
+structured means.
 Experimental \code{engine = "julia"} forwards \code{REML = TRUE} only for supported
 Gaussian bridge cells, including fixed-effect location-scale models,
 Gaussian \code{sigma}-phylo location-scale models, and the bivariate q = 4
