@@ -90,21 +90,7 @@ STANDING_REVIEW_NAMES = {
     "Grace",
     "Rose",
 }
-CANONICAL_AGENTS = {
-    "Ada",
-    "Boole",
-    "Gauss",
-    "Noether",
-    "Darwin",
-    "Florence",
-    "Fisher",
-    "Pat",
-    "Jason",
-    "Curie",
-    "Emmy",
-    "Grace",
-    "Rose",
-    "Hopper",
+SYSTEM_ACTORS = {
     "Codex",
     "GitHub",
     "Ayumi",
@@ -112,6 +98,14 @@ CANONICAL_AGENTS = {
     "Issue ledger",
     "Status matrix",
 }
+CANONICAL_ACTORS = STANDING_REVIEW_NAMES | SYSTEM_ACTORS
+
+
+def owner_names(owner: str | None) -> list[str]:
+    if not owner:
+        return []
+    normalized = owner.replace(",", "+")
+    return [part.strip() for part in normalized.split("+") if part.strip()]
 
 
 def read_json(path: pathlib.Path) -> dict:
@@ -165,6 +159,9 @@ def main() -> int:
         phase_status = phase.get("status")
         if phase_status not in PHASE_STATUSES:
             errors.append(f"{phase.get('id', '<phase>')} has invalid status {phase_status!r}")
+        for owner in owner_names(phase.get("owner")):
+            if owner not in STANDING_REVIEW_NAMES:
+                errors.append(f"{phase.get('id', '<phase>')} has non-standing owner {owner!r}")
         slices = phase.get("slices", [])
         total_slices += len(slices)
         done = 0
@@ -199,17 +196,20 @@ def main() -> int:
 
     for agent in status.get("agents", []):
         name = agent.get("name")
-        if name not in CANONICAL_AGENTS:
-            errors.append(f"non-canonical agent name in team list: {name!r}")
+        if name not in STANDING_REVIEW_NAMES:
+            errors.append(f"non-standing review name in team list: {name!r}")
     agent_names = {agent.get("name") for agent in status.get("agents", [])}
     missing_standing = sorted(STANDING_REVIEW_NAMES - agent_names)
     if missing_standing:
         errors.append(f"team list missing standing review names: {', '.join(missing_standing)}")
+    extra_team = sorted(agent_names - STANDING_REVIEW_NAMES)
+    if extra_team:
+        errors.append(f"team list has non-standing names: {', '.join(extra_team)}")
 
     for section in ("active_work", "activity", "blockers", "evidence"):
         for item in status.get(section, []):
             who = item.get("who") or item.get("kind")
-            if who and who not in CANONICAL_AGENTS and section != "blockers":
+            if who and who not in CANONICAL_ACTORS and section != "blockers":
                 errors.append(f"non-canonical name in {section}: {who!r}")
 
     matrix = status.get("matrix", [])
@@ -261,8 +261,8 @@ def main() -> int:
         if not owners:
             errors.append(f"{row_id}: finish-board row has no owners")
         for owner in owners:
-            if owner not in CANONICAL_AGENTS:
-                errors.append(f"{row_id}: non-canonical owner {owner!r}")
+            if owner not in STANDING_REVIEW_NAMES:
+                errors.append(f"{row_id}: non-standing owner {owner!r}")
         has_evidence_status = False
         for field in FINISH_STATUS_FIELDS:
             value = row.get(field)
