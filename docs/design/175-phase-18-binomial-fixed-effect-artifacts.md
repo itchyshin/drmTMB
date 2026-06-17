@@ -10,8 +10,8 @@ effect likelihood has already landed.
 Check that `drmTMB` recovers fixed-effect binomial logit coefficients for the
 two public response encodings and matches `stats::glm()` on the overlapping
 likelihood. This lane is not evidence for random effects, structured effects,
-bivariate binomial models, Julia bridge support, speed, or calibrated interval
-claims.
+bivariate binomial models, Julia bridge support, speed, or broad calibrated
+interval claims.
 
 ## Data-Generating Mechanism
 
@@ -66,6 +66,33 @@ between `drmTMB` and `stats::glm()`.
 Pilot artifacts should use 25-100 replicates per condition and be labelled as
 pilot evidence. Promotion artifacts need enough replicates to report MCSE for
 coverage and failure rates before public interval-calibration language is used.
+
+## Executed Artifacts
+
+The first MCSE-backed interval-calibration artifact is:
+
+```text
+docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/
+```
+
+It uses six cells, 500 replicates per cell, master seed `20260617`, and the two
+public response encodings. The run attempted 3,000 fits and produced 6,000
+coefficient rows. All 3,000 fits returned `ok`, the failure table is
+header-only, the minimum convergence rate was 1.000, the minimum `pdHess` rate
+was 1.000, and the maximum warning rate was 0.000.
+
+Wald coverage across the 12 cell-by-parameter summaries ranged from 0.946 to
+0.964, each with 500 intervals. The maximum coverage MCSE was 0.01010782. The
+same run kept `stats::glm()` parity tight: maximum absolute coefficient
+difference `1.502857e-08`, maximum absolute standard-error difference
+`1.545213e-05`, maximum absolute `logLik` difference `1.750777e-11`, and
+maximum absolute AIC/BIC difference `3.501555e-11`.
+
+This artifact is a promotion-candidate evidence bundle for fixed-effect Wald
+intervals in these audited cells. It is not evidence for random-effect
+binomial models, structured binomial models, bivariate or mixed-response
+binomial models, profile/bootstrap intervals, Julia bridge support, speed, or
+release readiness.
 
 ## Boundaries
 

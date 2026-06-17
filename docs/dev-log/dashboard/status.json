@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 17:25 MDT",
+  "updated": "2026-06-16 18:48 MDT",
   "metrics": {
     "verified": 20,
     "active": 4,
@@ -576,11 +576,11 @@
       "tests": "covered",
       "docs": "covered",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-response-family.md",
-      "blocker": "#585 is merged. First claim remains fixed-effect glm parity only; Julia bridge, random effects, simulation evidence, and interval-calibration claims stay unsupported or planned.",
-      "last_verified": "2026-06-16"
+      "evidence_url": "docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md",
+      "blocker": "#585, #588, #591, and the 500-replicate interval artifact are banked. Scope remains fixed-effect native TMB only; Julia bridge, random effects, structured effects, profile/bootstrap intervals, headline coverage, and release readiness stay unsupported or planned.",
+      "last_verified": "2026-06-17"
     },
     {
       "id": "drmTMB-569-response-contract",
@@ -602,11 +602,11 @@
       "tests": "covered",
       "docs": "covered",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4721271792",
-      "blocker": "Contract and merged #585 implementation agree: no sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge claim.",
-      "last_verified": "2026-06-16"
+      "blocker": "Contract and merged implementation still agree: fixed-effect mu only. The 500-replicate interval artifact audits Wald intervals for the supported fixed-effect cells, not sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge routes.",
+      "last_verified": "2026-06-17"
     },
     {
       "id": "drmTMB-544-bridge-gate-registry",
@@ -772,23 +772,23 @@
       "lane": "Evidence Gates",
       "status": "banked",
       "owners": ["Fisher", "Curie", "Grace", "Florence", "Rose"],
-      "family": "glm parity first; MCSE-backed intervals later",
-      "response_encoding": ["8-12 fast tests", "Phase 18 binomial_fixed_effect lane"],
+      "family": "glm parity plus MCSE-backed fixed-effect Wald intervals",
+      "response_encoding": ["Phase 18 binomial_fixed_effect lane", "500 reps x 6 fixed-effect cells"],
       "dpars": ["mu"],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
-      "wald": "partial",
+      "wald": "covered",
       "profile": "planned",
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
       "visual": "planned",
-      "simulation": "partial",
+      "simulation": "covered",
       "release_gate": "planned",
-      "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md",
-      "blocker": "#588 is merged. The Phase 18 binomial_fixed_effect lane writes replicate, aggregate, Wald, failure, manifest, and stats::glm parity artifacts; interval calibration remains planned until MCSE-backed promotion runs exist.",
-      "last_verified": "2026-06-16"
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md",
+      "blocker": "The 500-replicate fixed-effect Wald interval artifact is banked: 3,000/3,000 fits ok, pdHess rate 1.000, zero failures, coverage 0.946-0.964 with max MCSE 0.01010782. Broader headline coverage, profile/bootstrap intervals, random/structured/bivariate routes, and Julia bridge support remain planned or unsupported.",
+      "last_verified": "2026-06-17"
     },
     {
       "id": "drmTMB-numerical-guard-sensitivity",
@@ -839,8 +839,8 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md",
-      "blocker": "The fixed-effect binomial GLM parity artifact is banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
-      "last_verified": "2026-06-16"
+      "blocker": "The fixed-effect binomial GLM parity artifact and fixed-effect Wald interval artifact are banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
+      "last_verified": "2026-06-17"
     }
   ],
   "matrix": [
@@ -939,15 +939,15 @@
       "engine": "partial",
       "bridge": "unsupported",
       "point": "partial",
-      "wald": "partial",
+      "wald": "covered",
       "profile": "planned",
       "bootstrap": "unsupported",
       "docs": "partial",
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "#585, #588, and #589 are merged. Fixed-effect stats::binomial(logit) fits have stats::glm() parity evidence and clearer docs; interval calibration, random effects, structured effects, bivariate/mixed responses, and the Julia bridge remain planned or unsupported.",
-      "evidence_url": "docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md"
+      "next": "#585, #588, #589, #591, and the 500-replicate fixed-effect Wald interval artifact are banked. Fixed-effect stats::binomial(logit) fits have stats::glm() parity, clearer docs, and MCSE-backed Wald interval evidence for six audited cells; random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage, and the Julia bridge remain planned or unsupported.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md"
     },
     {
       "area": "Bivariate residual correlation rho12",
@@ -1081,7 +1081,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity is banked as the first executable comparator artifact; big simulations and guard-sensitivity promotion still wait for smoke, MCSE, failure, visual, and CI-status evidence.",
+      "next": "Binomial fixed-effect glm parity and the 500-replicate fixed-effect Wald interval artifact are banked; numerical-guard sensitivity, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
       "evidence_url": "docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md"
     },
     {
@@ -1096,7 +1096,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "The first binomial comparator artifact is banked, but release notes still must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
+      "next": "The first binomial comparator and fixed-effect Wald interval artifacts are banked, but release notes still must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md"
     }
   ],

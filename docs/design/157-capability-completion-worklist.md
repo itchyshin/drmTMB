@@ -58,7 +58,7 @@ Read this first — it is the distinction most likely to be confused.
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
 | `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane; formal high-replicate operating characteristics remain future evidence |
-| Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. The Phase 18 `binomial_fixed_effect` lane and the first Phase 19 `stats::glm()` parity artifact are banked through #588 and #591. Random effects, structured effects, bivariate/mixed responses, interval-calibration claims, and the Julia bridge remain planned or unsupported. |
+| Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. The Phase 18 `binomial_fixed_effect` lane, the first Phase 19 `stats::glm()` parity artifact, and a 500-replicate fixed-effect Wald interval-calibration artifact are banked. Random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage language, and the Julia bridge remain planned or unsupported. |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
 | skew-normal random/structured/bivariate/known-covariance/latent-skew extensions; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
@@ -79,12 +79,14 @@ time.
 **Current non-Ayumi checkpoint (2026-06-17):** the issue-led widget (#577),
 bridge-gate audit (#544), native fixed-effect binomial route (#569), Phase 18
 `binomial_fixed_effect` lane, bounded-response docs, numerical-guard audit
-note, and first Phase 19 binomial `stats::glm()` parity artifact are all on
-`main`. The plain binomial route is now a fitted and parity-banked first slice,
-not the next implementation blocker. The next binomial-specific work is
-evidence depth: MCSE-backed interval calibration, larger operating-characteristic
-grids, and any future Julia bridge parity issue. Those are optional promotion
-slices, not prerequisites for resuming the older capability queue.
+note, first Phase 19 binomial `stats::glm()` parity artifact, and the first
+500-replicate fixed-effect Wald interval-calibration artifact are all on
+`main` or in the current merge slice. The plain binomial route is now a fitted,
+parity-banked, and fixed-effect-interval-audited first slice, not the next
+implementation blocker. The next binomial-specific work is broader evidence
+depth: larger operating-characteristic grids, profile/bootstrap interval
+studies if needed, and any future Julia bridge parity issue. Those are optional
+promotion slices, not prerequisites for resuming the older capability queue.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
@@ -140,10 +142,11 @@ profile-likelihood demonstration article.
 
 **Then:** the big power simulation, covering whichever Phase A surfaces have
 passed Phase B recovery/coverage. The immediate product-facing addition was the
-plain binomial response family; after #591, the highest-value additions for
-later power claims are q8 coverage/power, a stronger same-response q2
-interval/convergence lane, MCSE-backed binomial interval calibration if the
-team wants interval language, and the parallel skew-normal evidence follow-up.
+plain binomial response family; after the binomial parity and interval artifacts,
+the highest-value additions for later power claims are q8 coverage/power, a
+stronger same-response q2 interval/convergence lane, broader binomial
+operating-characteristic grids only if the team needs headline interval
+language, and the parallel skew-normal evidence follow-up.
 
 ## Readiness Snapshot
 
