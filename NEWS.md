@@ -1,5 +1,7 @@
 # drmTMB 0.1.4
 
+* `drm_phylo_penalty_sweep()` runs a penalized (MAP) phylogenetic fit across a range of `cor_sd` correlation-penalty values and returns a tidy sensitivity summary (`convergence`, `pdHess`, `logLik` per `cor_sd`) plus the fitted objects for extracting the couplings. This turns the mandatory prior-sensitivity sweep -- the check of whether a weakly identified coupling is data-informed (stable across `cor_sd`) or prior-shaped (tracks `cor_sd`) -- into a single call; there is no universal `cor_sd`. (`drm_phylo_penalty()` and the new sweep are now both in the pkgdown reference.)
+
 * `check_drm()` now reports a `logsigma_clamp_active` row that flags when the `log(sigma)` clamp is active at the optimum -- the diagnostic-surface complement to the fit-time clamp-active warning -- so a clamp-bound fit is visible in the standard diagnostic table (a `note` when the TMB object was dropped, an `ok` otherwise).
 * `drmTMB()` now rejects combining `REML = TRUE` with `penalty =` (a penalized / MAP fit): a restricted-likelihood estimator and a maximum-a-posteriori estimator are different estimators of the variance components, so the combination is undefined.
 * The Student-t `nu` documentation now states explicitly that the `nu > 2` (finite-variance) bound, required by the `sigma = SD` contract, means the family cannot represent the very heavy tails of `nu <= 2` (e.g. Cauchy); `check_drm()` warns as `nu` approaches the boundary.
