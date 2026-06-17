@@ -995,7 +995,16 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
     data = dat,
     control = list(eval.max = 250, iter.max = 250)
   )
-  chk <- check_drm(fit)
+  # This fixture exercises the bivariate mu random-effect covariance
+  # diagnostics, not gradient sharpness. The fit is fully converged: its
+  # objective and parameters match the pre-clamp fit to ~9 and ~6 digits.
+  # The log(sigma) soft-clamp perturbs the AD tape just enough to shift
+  # nlminb's stopping point to a benign ~1.4e-3 fixed gradient (the gradient
+  # is pinned there even at rel.tol = 1e-13, so it cannot be polished lower),
+  # which trips the strict 1e-3 default of the fixed_gradient check. Widen
+  # gradient_tolerance here so attr(., "ok") reflects the covariance checks.
+  gradient_tolerance <- 5e-3
+  chk <- check_drm(fit, gradient_tolerance = gradient_tolerance)
   group_cov <- chk[chk$check == "biv_mu_random_effect_covariance", ]
 
   expect_equal(fit$opt$convergence, 0)
@@ -1005,7 +1014,7 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_match(group_cov$message, "non-negligible")
 
   singleton <- check_drm_registry_singleton(fit, "mu1")
-  singleton_chk <- check_drm(singleton)
+  singleton_chk <- check_drm(singleton, gradient_tolerance = gradient_tolerance)
   singleton_cov <- singleton_chk[
     singleton_chk$check == "biv_mu_random_effect_covariance",
   ]
@@ -1017,7 +1026,7 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
 
   weak_sd <- fit
   weak_sd$sdpars$mu[[1L]] <- mean(stats::sigma(fit)$sigma1) * 0.001
-  weak_chk <- check_drm(weak_sd)
+  weak_chk <- check_drm(weak_sd, gradient_tolerance = gradient_tolerance)
   weak_cov <- weak_chk[weak_chk$check == "biv_mu_random_effect_covariance", ]
 
   expect_equal(weak_cov$status, "note")
