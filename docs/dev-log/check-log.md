@@ -55764,3 +55764,24 @@ git diff --check
 Result: focused `profile-targets` tests passed locally with the one expected
 structured-bootstrap non-convergence warning. `git diff --check` passed after
 this log update.
+
+Second follow-up: the next rerun passed macOS and Ubuntu, then failed Windows
+in `test-animal-relmat-gaussian.R` for the bivariate q4 known-matrix block. The
+fixture hit `NA/NaN gradient evaluation` on the first custom `nlminb` optimizer
+call before returning a fit. The model surface is deliberately a hard q4
+location-scale covariance fixture, so the test now opts into the new
+hard-fit controls for that fixture only: `multi_start = 3L` and
+`fallback_optimizer = "BFGS"` on both the `relmat()` and `animal()` versions.
+This preserves the model contract and uses the explicit rescue controls rather
+than weakening the q4 checks or claiming the default path is universally stable
+on every platform.
+
+Additional check run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "animal-relmat-gaussian", reporter = "summary")'
+git diff --check
+```
+
+Result: focused `animal-relmat-gaussian` tests passed locally. `git diff
+--check` passed after this log update.

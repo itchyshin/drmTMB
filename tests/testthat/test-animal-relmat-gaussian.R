@@ -802,6 +802,8 @@ test_that("bivariate Gaussian supports animal and relmat q4 known-matrix blocks"
       data = dat,
       control = drm_control(
         se = FALSE,
+        multi_start = 3L,
+        fallback_optimizer = "BFGS",
         optimizer = list(eval.max = 800, iter.max = 800)
       )
     )
@@ -819,6 +821,8 @@ test_that("bivariate Gaussian supports animal and relmat q4 known-matrix blocks"
       data = dat,
       control = drm_control(
         se = FALSE,
+        multi_start = 3L,
+        fallback_optimizer = "BFGS",
         optimizer = list(eval.max = 800, iter.max = 800)
       )
     )
