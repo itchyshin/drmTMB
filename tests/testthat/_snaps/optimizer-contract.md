@@ -5,9 +5,8 @@
       optimizer = optimizer)
     Condition
       Warning:
-      `drmTMB()` retried `stats::nlminb()` after an optimizer error.
-      i The selected optimizer preset is "careful".
-      i Inspect `fit$optimizer_attempts` before interpreting the fit.
+      `drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence.
+      i An earlier preset errored or did not converge; inspect `fit$optimizer_attempts`.
 
 # custom optimizer controls do not enter the preset retry ladder
 

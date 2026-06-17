@@ -461,6 +461,7 @@ drm_optimize_with_preset_retry <- function(
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
   rows <- vector("list", length(attempt_specs))
+  opts <- vector("list", length(attempt_specs))
   last_error <- NULL
 
   for (i in seq_along(attempt_specs)) {
@@ -482,6 +483,10 @@ drm_optimize_with_preset_retry <- function(
 
     if (isTRUE(result$ok)) {
       opt <- result$value
+      opts[[i]] <- opt
+      converged <- identical(as.integer(opt$convergence), 0L) &&
+        length(opt$objective) == 1L &&
+        is.finite(opt$objective)
       rows[[i]] <- drm_optimizer_attempt_row(
         attempt = i,
         preset = spec$preset,
@@ -491,18 +496,23 @@ drm_optimize_with_preset_retry <- function(
         message = opt$message,
         objective = opt$objective,
         elapsed_sec = elapsed,
-        selected = TRUE
+        selected = converged
       )
-      attempts <- drm_optimizer_attempts_frame(rows[seq_len(i)])
-      selected <- drm_optimizer_selected_record(attempts[i, , drop = FALSE])
-      if (isTRUE(warn) && i > 1L) {
-        cli::cli_warn(c(
-          "{.fn drmTMB} retried {.fn stats::nlminb} after an optimizer error.",
-          "i" = "The selected optimizer preset is {.val {spec$preset}}.",
-          "i" = "Inspect {.code fit$optimizer_attempts} before interpreting the fit."
-        ))
+      if (converged) {
+        attempts <- drm_optimizer_attempts_frame(rows[seq_len(i)])
+        selected <- drm_optimizer_selected_record(attempts[i, , drop = FALSE])
+        if (isTRUE(warn) && i > 1L) {
+          cli::cli_warn(c(
+            "{.fn drmTMB} escalated {.fn stats::nlminb} to the {.val {spec$preset}} optimizer preset to reach convergence.",
+            "i" = "An earlier preset errored or did not converge; inspect {.code fit$optimizer_attempts}."
+          ))
+        }
+        return(list(opt = opt, selected = selected, attempts = attempts))
       }
-      return(list(opt = opt, selected = selected, attempts = attempts))
+      # A non-converged result (false convergence or non-finite objective) is not
+      # accepted: escalate to the next preset in the ladder, keeping this attempt
+      # as a candidate in case no preset converges cleanly.
+      next
     }
 
     last_error <- result$value
@@ -517,6 +527,32 @@ drm_optimize_with_preset_retry <- function(
       elapsed_sec = elapsed,
       selected = FALSE
     )
+  }
+
+  # No preset converged cleanly. If any attempt produced a result, return the
+  # best of them (lowest finite objective) so the user gets the most-converged
+  # fit; the fit-time convergence warning then flags it. Only abort if every
+  # attempt errored.
+  ok_idx <- which(!vapply(opts, is.null, logical(1L)))
+  if (length(ok_idx) > 0L) {
+    objectives <- vapply(
+      ok_idx,
+      function(i) {
+        value <- opts[[i]]$objective
+        if (length(value) == 1L && is.finite(value)) value else Inf
+      },
+      numeric(1L)
+    )
+    best_i <- ok_idx[[which.min(objectives)]]
+    for (j in seq_along(rows)) {
+      if (!is.null(rows[[j]])) {
+        rows[[j]]$selected <- j == best_i
+      }
+    }
+    attempts <- drm_optimizer_attempts_frame(rows)
+    selected_row <- attempts[attempts$attempt == best_i, , drop = FALSE]
+    selected <- drm_optimizer_selected_record(selected_row)
+    return(list(opt = opts[[best_i]], selected = selected, attempts = attempts))
   }
 
   attempts <- drm_optimizer_attempts_frame(rows)
@@ -824,7 +860,7 @@ drm_warn_if_not_converged <- function(opt) {
   cli::cli_warn(
     c(
       "{.fn drmTMB}: {label}.",
-      "i" = "Treat the estimates and standard errors with caution; run {.fn check_drm} to diagnose, or refit with {.code control = drm_control(optimizer_preset = \"robust\")}."
+      "i" = "Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect {.code fit$optimizer_attempts} and run {.fn check_drm} to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit."
     ),
     class = "drmTMB_convergence_warning"
   )
