@@ -1,5 +1,9 @@
 # Phase 18 Skew-Normal First-Test Contract, Slices 1673-1702
 
+Superseded status: the fixed-effect `skew_normal()` first slice now exists, and
+the `skew_normal_fixed_effect` Phase 18 artifact lane adds repeatable
+smoke/grid evidence. This note remains as historical test-contract context.
+
 This note is Team B's design-only gate after the skew-normal
 parameterization decision. It does not implement `skew_normal()`, add a
 constructor, or admit any C++ likelihood branch. Its reader is the contributor
@@ -8,7 +12,7 @@ who will write the first tests before fitting support is exposed.
 The contract keeps the first lane univariate and fixed-effect:
 
 ```r
-# Planned, not fitted yet:
+# Historical gate example:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),
@@ -103,18 +107,17 @@ mean-model misspecification must not be reported as evidence that
 
 ## No-C++ Admission Criteria
 
-This design-only slice is admissible without C++ only if all of these remain
-true:
+This design-only no-C++ gate is now superseded by the fitted first slice. At
+the time, it was admissible only while all of these remained true:
 
-- no `skew_normal()` constructor is added;
+- the constructor was not part of that slice;
 - no file under `src/` changes and no TMB family enum, switch branch, or
-  density helper is added;
-- no `R/`, `tests/`, or `NAMESPACE` change exposes or exercises skew-normal
-  support in this slice;
+  density helper was added;
+- no `R/`, `tests/`, or `NAMESPACE` change exposed or exercised skew-normal
+  support in that slice;
 - shared `ROADMAP.md` and `docs/dev-log/check-log.md` changes may record the
   design status only, not fitted support;
-- every code block using `skew_normal()` is labelled planned or future, not
-  runnable;
+- every code block using the family was labelled non-runnable;
 - the note keeps `mu`, `sigma`, and `nu` as the only first-lane
   distributional parameters and keeps `rho12` out;
 - the first implementation PR is still required to add density tests,
@@ -149,5 +152,5 @@ Student-t sensitivity models until skew-normal support is actually admitted.
 | 1685 | Done | `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md` records finite continuous response support and model-frame filtering before support validation. |
 | 1686 | Done | The same note records that rank-deficiency handling should use shared fixed-effect infrastructure unless density tests reveal a skew-normal-specific failure. |
 | 1687 | Done | `tests/testthat/test-skew-normal-boundary.R` now reads this first-test contract as part of the no-fit boundary scan. |
-| 1688 | Done | The boundary test still requires `skew_normal()` to be absent from the namespace. |
+| 1688 | Superseded | The old absence boundary is replaced by constructor/export checks plus unsupported-neighbour rejection. |
 | 1689-1702 | Planned | The next implementation slice should turn this contract into source-level density tests, malformed-neighbour tests, extractor checks, and documentation before exposing `skew_normal()`. |

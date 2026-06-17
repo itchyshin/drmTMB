@@ -37,12 +37,12 @@ and operating-characteristic evidence justify a broader claim.
 | --- | --- | --- | --- | --- |
 | `fixed_one_response` | Fixed-effect one-response families | covered | low for listed fixed-effect paths; moderate for family expansion | Add one family at a time with likelihood tests, methods tests, docs, and family-specific diagnostics. |
 | `supported_nongaussian_evidence_goal` | Supported non-Gaussian distribution evidence | partial/covered by row | moderate if readers infer broad parity | `docs/design/79-supported-nongaussian-evidence-goal.md` closes the goal-level audit for supported fixed-effect families and first count mixed-model lanes while keeping blocked neighbours out. |
-| `gaussian_ordinary_re` | Gaussian ordinary random effects | covered | low for listed Gaussian ordinary paths; moderate for residual-scale correlated slopes | Keep residual-scale correlation and coefficient-specific SD slopes blocked until direct tests and diagnostics exist. |
+| `gaussian_ordinary_re` | Gaussian ordinary random effects | covered | low for listed Gaussian ordinary paths; moderate for univariate `sigma` slope correlations | Keep univariate `sigma` slope correlations and coefficient-specific SD slopes blocked until direct tests and diagnostics exist. |
 | `re_scale_sd_group` | Random-effect scale models | partial | moderate | Add coefficient-specific random-slope scale likelihood, recovery tests, and diagnostics before widening `sd()` syntax. |
 | `known_sampling_covariance` | Known sampling covariance | covered/partial | moderate for dense scalability | Keep dense full `V` labelled small-to-moderate until sparse/block-sparse storage has implementation, diagnostics, and benchmark evidence. |
 | `biv_residual_rho12` | Bivariate Gaussian residual `rho12` | covered | low for residual `rho12`; high if confused with latent covariance | Keep residual `rho12` separate from group, phylogenetic, and spatial correlations. |
-| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only and source-tested q=4/q=6 `mu1`/`mu2` location covariance are fitted; keep residual-scale slope, same-response location-scale slope covariance, p8/q8 endpoint, and predictor-dependent slope-correlation routes blocked until recovery evidence and interval policy are explicit. |
-| `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Gaussian `mu`/`sigma` intercepts, one numeric `mu` slope, matching univariate `mu`/`sigma` correlation, and bivariate/q4 slices are fitted; ordinary Poisson/NB2 q=1 rows are tracked separately; keep multiple slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and broader non-Gaussian phylogenetic effects in the debt ledger. |
+| `ordinary_biv_corpairs` | Ordinary bivariate covariance and `corpairs()` | partial | moderate | Matching slope-only `mu1`/`mu2`, matching q2 same-response `mu`/`sigma` slope, matching q2 `sigma1`/`sigma2` scale-slope, q=4/q=6 `mu1`/`mu2` location covariance, and the first q8 all-endpoint ordinary Gaussian block are fitted, with smoke artifact routing for q4/q6 location blocks and diagnostic smoke/recovery/staged-start routing for q8. The same-response q2 500-replicate audit and robust-refit follow-up are diagnostic, not power evidence: 130 weak fits were not rescued, while two clean fits showed endpoint-profile feasibility. The 2026-06-07 q8 two-cell audit is also diagnostic hold evidence: 38/40 manifests completed, convergence rates were 0.263 and 0.158, positive-Hessian rates were 0, two fits errored with non-positive leading minors, and no Wald intervals were usable. Keep q8 coverage, q8 power, and predictor-dependent slope-correlation routes blocked until deliberately sized evidence and interval policy are explicit. |
+| `phylo_structured_effects` | Phylogenetic structured effects | partial | moderate | Gaussian `mu`/`sigma` intercepts, one numeric `mu` slope, matching univariate `mu`/`sigma` correlation, and bivariate/q4 slices are fitted; ordinary Poisson/NB2 q=1 rows are tracked separately; keep multiple slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and broader non-Gaussian phylogenetic effects in the debt ledger. The q=4 scale-side endpoints (phylogenetic `sigma1`/`sigma2` SDs and the scale-scale and mean-scale correlations) are **weakly identified at about one observation per tip**, not non-identified: report the mean-side model with fixed-effect `sigma ~ predictors` as the supported one-record-per-species analysis, and gate any scale-side phylogenetic estimate behind within-species replication or the planned `estimator = "penalized"` prior path (see `docs/dev-log/known-limitations.md` and de Villemereuil & Nakagawa 2014; Nakagawa et al. 2025). |
 | `poisson_phylo_q1_mu` | Ordinary Poisson q=1 phylogenetic `mu` intercept | partial | moderate to high until recovery grids exist | The first phylogenetic count route is fitted for `phylo(1 | species, tree = tree)` in ordinary Poisson `mu`; the opt-in smoke runner, repeatable CSV artifact writer, optional direct `log_sd_phylo` profile-interval artifacts, formal-grid spec, read-back QA, promotion decision, and manual Actions task now exist, but formal recovery grids remain the next evidence gate. The same source path now also admits q=1 `spatial()`, `animal()`, and `relmat()` count `mu` intercepts with focused tests. Keep count structured slopes, labels, simultaneous structured types, zero-inflation, and cross-parameter covariance blocked until separate evidence lands. |
 | `nbinom2_phylo_q1_mu` | Ordinary NB2 q=1 structured `mu` intercept | partial | high after the 500-replicate phylogenetic shard audit | The ordinary non-zero-inflated NB2 route fits one q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` term in `mu` with fixed-effect `sigma`, direct `log_sd_phylo` profile-target exposure, marker-specific `ranef()` blocks, focused tests, and structured diagnostics. The phylogenetic lane also has an overdispersion-aware DGP/grid writer, optional profile artifacts, a formal-grid QA wrapper, a manual Actions task, and an ordinary grouped species-intercept comparator row. Slices 541-555 add a local 288-cell one-replicate sentinel and a 24-cell x 5-replicate representative audit; those artifacts pass read-back QA but keep the promotion decision at `hold_smoke_only` because the formal recovery gate remains unmet. Slices 561-575 cancelled a singleton 500-replicate Actions dispatch after manifest timings implied about 27-31 optimistic 10-worker hours, then added sharded formal-grid dispatch and shard metadata so partial artifacts cannot become coverage claims. The later 16-shard, 500-replicate formal artifact set has all 288 condition cells and 144,000 `ok` manifest rows, but the merged audit keeps the route on hold because direct `log_sd_phylo` profile intervals fail frequently at the true-zero boundary and low-count, low-overdispersion cells retain fixed-`sigma` instability. Keep NB2 structured slopes, structured `sigma`, zero-inflated structure, simultaneous structured types, and labelled count covariance blocked until separate recovery and diagnostic evidence lands. |
 | `spatial_mu_coord` | Coordinate spatial univariate Gaussian `mu`/`sigma` plus count q=1 `mu` | partial | moderate | Gaussian location and residual-scale intercepts plus one numeric `mu` slope are fitted with direct SD targets and smoke evidence; ordinary Poisson/NB2 q=1 spatial `mu` intercepts now reuse the structured count gate. Keep mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, direct-SD surfaces, count spatial slopes, and zero-inflated spatial effects in debt. |
@@ -272,10 +272,11 @@ and operating-characteristic evidence justify a broader claim.
   boundary.
 - Diagnostics and intervals: no shape random-effect diagnostics or intervals
   exist because no shape random-effect likelihood is fitted yet.
-- Debt: fixed-effect skew-normal and skew-t recovery, normal or Student-t limit
-  checks, separation of `sigma ~ x` from `nu ~ x`, then simulation evidence
-  before adding `nu`/`tau` random effects or latent ID-level skewness such as
-  future `skew(id) ~ x`.
+- Debt: formal high-replicate skew-normal operating-characteristic grids,
+  external comparators on the public moment scale, skew-t recovery and normal
+  or Student-t limit checks, separation of `sigma ~ x` from `nu ~ x` in larger
+  designs, then simulation evidence before adding `nu`/`tau` random effects or
+  latent ID-level skewness such as future `skew(id) ~ x`.
 
 ### Gaussian ordinary random effects
 
@@ -386,12 +387,15 @@ and operating-characteristic evidence justify a broader claim.
 - Check-log evidence: `docs/dev-log/check-log.md` records the labelled
   covariance block assembler, q=4 scaffold, `corpairs()` output, and profile
   target namespace slices.
-- Debt: full cross-parameter slope covariance, residual-scale slope covariance,
-  same-response location-scale slope covariance, and predictor-dependent slope
-  correlations remain blocked. The matching slope-only and source-tested
-  q=4/q=6 `mu1`/`mu2` location covariance routes are fitted, but
-  coefficient-aware `corpair()` regression, p8/q8 endpoint covariance, and
-  q > 2 simulation recovery still need likelihood or artifact evidence.
+- Debt: full all-endpoint slope covariance and predictor-dependent slope
+  correlations remain blocked. The matching slope-only `mu1`/`mu2`, matching
+  same-response `mu`/`sigma`, matching slope-only `sigma1`/`sigma2`, and q4/q6
+  `mu1`/`mu2` location covariance routes are fitted, and q4/q6 location now have
+  smoke artifact routing. The same-response q2 `mu`/`sigma` formal audit and
+  hardening pass are diagnostic because 130 weak fits stayed false-converged
+  under robust refits. Coefficient-aware `corpair()` regression, p8/q8 endpoint
+  covariance, and formal q > 2 simulation recovery still need likelihood or
+  recovery-grid evidence.
 
 ### Phylogenetic structured effects
 
@@ -557,10 +561,11 @@ and operating-characteristic evidence justify a broader claim.
   and large-data check-log entries named above.
 - Debt: coefficient-specific `sd()` slopes, random effects in `rho12`, multiple
   structured slopes, structured slope correlations, mesh/SPDE, spatial
-  `corpair()`, residual-scale bivariate random slopes, q6 bivariate location
-  artifacts, mixed composed families, and other reserved neighbours need implementation, recovery tests, diagnostics,
-  documentation, NEWS, check-log evidence, and an after-task report before
-  moving out of blocked status.
+  `corpair()`, residual-scale bivariate random slopes, formal q > 2 bivariate
+  location recovery grids, mixed composed families, and other reserved
+  neighbours need implementation, recovery tests, diagnostics, documentation,
+  NEWS, check-log evidence, and an after-task report before moving out of
+  blocked status.
 
 ## Slice 201 non-Gaussian pre-simulation failure ledger
 
@@ -607,7 +612,7 @@ failure-ledger rows until their own implementation and recovery evidence exists.
 | D78-04 | q=4 derived intervals | direct nonlinear interval method or fix-and-refit profile path, plus boundary and convergence status columns |
 | D78-05 | Spatial expansion | mesh/SPDE schema, projection path, precision construction, provenance, recovery tests, and diagnostics |
 | D78-06 | Phylogenetic slopes | one-slope likelihood, storage order, recovery tests, direct SD targets, and `check_drm()` rows |
-| D78-07 | Broader bivariate random slopes | coefficient-aware covariance registry beyond the matching slope-only and q=4/q=6 `mu1`/`mu2` location slices, `corpairs()` rows, profile target policy, and recovery evidence |
+| D78-07 | Broader endpoint bivariate random slopes | coefficient-aware covariance registry beyond the matching slope-only `mu1`/`mu2`, q2 `sigma1`/`sigma2` scale-slope, and q=4/q=6 `mu1`/`mu2` location slices, `corpairs()` rows, profile target policy, and recovery evidence |
 | D78-08 | Large-data claims | non-CRAN benchmarks and compatibility tests for random effects, structured effects, known covariance, bivariate models, and non-Gaussian families |
 | D78-09 | Failed or skipped uncertainty | Slice 79 contract for `sdreport()` failures, `se = FALSE` behaviour, and summary/profile status reporting |
 

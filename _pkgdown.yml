@@ -15,7 +15,7 @@ template:
       alt: "drmTMB hex logo"
 
 development:
-  mode: release
+  mode: default
 
 navbar:
   structure:
@@ -31,6 +31,8 @@ navbar:
           href: articles/which-scale.html
         - text: Choosing response families
           href: articles/distribution-families.html
+        - text: Model selection with AIC and BIC
+          href: articles/model-selection.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
         - text: Handling missing data
@@ -39,6 +41,8 @@ navbar:
           href: articles/convergence.html
         - text: Working with large data
           href: articles/large-data.html
+        - text: Running models with the Julia engine
+          href: articles/julia-engine.html
     tutorials:
       text: Tutorials
       menu:
@@ -110,6 +114,7 @@ reference:
       - cumulative_logit
       - categorical
       - student
+      - skew_normal
       - lognormal
       - tweedie
       - nbinom2
@@ -158,6 +163,13 @@ reference:
       - structured_effects
       - summary.drmTMB
       - weights.drmTMB
+  - title: Julia engine
+    desc: Experimental Julia-engine methods and extractors for cross-family bivariate fits.
+    contents:
+      - confint.drmTMB_julia
+      - predict.drmTMB_julia
+      - summary.drmTMB_julia
+      - rho_latent
   - title: Visualization
     desc: Optional plotting helpers for post-fit tables. Exported plotting functions appear here.
     contents:
@@ -178,6 +190,7 @@ articles:
     contents:
       - which-scale
       - distribution-families
+      - model-selection
       - location-scale
       - bivariate-coscale
       - meta-analysis
@@ -199,6 +212,8 @@ articles:
     contents:
       - convergence
       - large-data
+      - julia-engine
+      - cross-family
       - figure-gallery
   - title: Simulation and Validation
     contents:

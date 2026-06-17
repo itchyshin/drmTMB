@@ -45,8 +45,9 @@ The inventory labels below are deliberately conservative:
 | `vignettes/phylogenetic-spatial.Rmd` | Structural-dependence tutorial | split pressure, routed | Has a three-step phylogeny, spatial, and planned phylogeny-plus-spatial route, current-status table, model ladder, phylogenetic examples, q=4 covariance rows, predictor-dependent q=2 phylogenetic `corpair()`, profile-target discussion, coordinate spatial one-slope, q=2 bivariate, constant q=4 spatial status, and diagnostics. | Keep the route stable. Do not add runnable simultaneous `phylo()` plus `spatial()` syntax until the fitter supports multiple structural `mu` layers with identifiability checks. |
 | `vignettes/robust-student.Rmd` | Robust continuous-response tutorial | ready enough for a secondary tutorial | Has Student-t equation and syntax, seedling example, `check_drm()`, coefficient interpretation, Gaussian comparison, and boundary text. | Keep as a secondary tutorial; future visualization work can add a residual or tail-weight display. |
 | `vignettes/count-nbinom2.Rmd` | Count tutorial | needs random-effect follow-up example after Slice 245 | Has NB2 and zero-inflated NB2 equations, soil-invertebrate simulation, fitted `nbinom2()` and `zi ~ surface` models, `check_drm()`, `AIC()`, response-scale prediction tables, `sigma`/`theta` conversion, and updated boundary text that ordinary NB2 `mu` random effects, the first NB2 phylogenetic q=1 `mu` route, and the first ordinary NB2 log-`sigma` random intercept are now fitted. | Add biological NB2 `mu` and log-`sigma` random-intercept examples once smoke-runner and interval-coverage surfaces are in place; keep NB2 `sigma` slopes or structured effects, `zi` random effects, count paths beyond the ordinary Poisson/NB2 phylogenetic q=1 `mu` routes, and mixed-response models planned. |
-| `vignettes/proportion-beta-binomial.Rmd` | Proportion tutorial | ready enough, Slice 1349-1358 synchronized | Has beta-binomial, strict beta, and zero-one beta equations; seed-germination and vegetation-cover simulations; fitted `beta_binomial()` and `beta()` models; `check_drm()`; response-scale prediction tables; `sigma`/`phi` conversion; and boundary text for exact 0/1 values. It now names ordinary `mu` random intercepts and independent numeric slopes as fitted first slices for both beta and beta-binomial, names fixed-effect `zero_one_beta()` for structural exact-boundary continuous proportions, and is linked from getting-started, model-map, pkgdown, and source-map routes. | Add a fuller reader-facing mixed-model worked example before broad bounded-response random-effect grids; beta-binomial zero inflation, phylogenetic/spatial bounded responses, and mixed-response models still need implementation and recovery evidence. |
+| `vignettes/proportion-beta-binomial.Rmd` | Proportion tutorial | ready enough, #569 docs synchronized | Has plain binomial, beta-binomial, strict beta, and zero-one beta equations; a fixed-effect `stats::binomial(link = "logit")` event-probability example; seed-germination and vegetation-cover simulations; fitted `stats::binomial()`, `beta_binomial()`, and `beta()` models; `check_drm()`; response-scale prediction tables; `sigma`/`phi` conversion; and boundary text for exact 0/1 values. It names ordinary `mu` random intercepts and independent numeric slopes as fitted first slices for both beta and beta-binomial, names fixed-effect `zero_one_beta()` for structural exact-boundary continuous proportions, and is linked from getting-started, model-map, pkgdown, and source-map routes. | Add a fuller reader-facing mixed-model worked example before broad bounded-response random-effect grids; plain-binomial random effects, Julia bridge parity, beta-binomial zero inflation, phylogenetic/spatial bounded responses, and mixed-response models still need implementation and recovery evidence. |
 | `vignettes/distribution-families.Rmd` | Family-choice guide | guide, not tutorial | Maps response types to families and explains family-specific public `sigma` meanings. | Keep as a guide. Future count/proportion tutorials should be separate worked examples, not appended here. |
+| `vignettes/model-selection.Rmd` | AIC/BIC model-selection guide with article-support simulation evidence | guide, not tutorial | Shows Gaussian versus Student-t, NB2 versus ZINB2, and `sigma ~ 1` versus `sigma ~ x` candidate comparisons; reads the 200-replicate model-selection article summary from `inst/sim/reports/model-selection-article-summary.csv`; keeps MCSEs, convergence, Hessian, and warning rates beside AIC/BIC target-selection rates. | Keep as a guide until a larger formal model-selection simulation grid is designed; do not describe the 200-replicate article table as calibrated power or full operating-characteristic evidence. |
 | `vignettes/large-data.Rmd` | Large-data guide | guide, not tutorial | Explains implemented storage controls, `check_drm()` expectations, aggregation boundaries, and benchmark discipline. | Keep as a guide until Phase 14 adds benchmark-backed examples. |
 | `vignettes/testing-likelihoods.Rmd` | Developer testing guide | guide, not tutorial | Explains comparator checks, simulation recovery, independent likelihood checks, and boundary tests. | Keep under Developer Notes; do not mix with applied tutorials. |
 
@@ -59,11 +60,11 @@ slices. The status is:
 | --- | --- | --- |
 | Animal and `relmat()` known matrices | The focused animal and `relmat()` articles now have runnable examples for univariate `animal(Ainv = Ainv)` / `relmat(Q = Q)` in `mu` and/or `sigma`, one-slope Gaussian `mu` routes, bivariate q=2 location covariance, and constant q=4 location-scale covariance, with `check_drm()`, `corpairs()`, and profile-target status in the reader path. Pedigree construction at scale, multiple slopes, residual-scale structured slopes, slope correlations, predictor-dependent `corpair()`, non-Gaussian relatedness effects, and direct-SD grammar remain planned. | Use the focused structural-dependence articles for precomputed relatedness-matrix examples; next add an ADEMP q=4 addendum before admitting broad animal/`relmat()` q=4 grids. |
 | Student-t | `vignettes/robust-student.Rmd` is a worked secondary tutorial with model equation, fitted seedling example, `check_drm()`, coefficient interpretation, and Gaussian comparison. | Link users there for robust fixed-effect continuous responses with `mu`, `sigma`, and fixed-effect `nu`. |
-| Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap show planned syntax and boundaries, but no fitted skew-family likelihood exists. | Keep skew examples as design-only until fixed-effect skew-normal likelihood, normal-limit checks, positive/negative skew recovery, interval evidence, and false-positive heteroscedasticity tests pass. |
+| Skew-normal and skew-t | `vignettes/robust-student.Rmd`, `vignettes/model-map.Rmd`, and the distribution roadmap now show fixed-effect `skew_normal()` as a fitted residual-asymmetry route with source tests and a Phase 18 smoke/grid artifact lane. Skew-t, skew-normal random effects, known covariance, structured effects, bivariate skew-normal models, residual `rho12`, and latent `skew(id)` remain planned. | Use fixed-effect `skew_normal()` examples only for residual asymmetry; keep skew-t and richer skew-normal examples as design-only until their likelihood, recovery, diagnostic, interval, and comparator evidence exists. |
 
-This is intentionally conservative. A planned marker example is useful because
-it teaches the intended grammar and the nearest fitted alternative, but it must
-not be written like a model a reader can run today.
+This is intentionally conservative. A planned marker example is useful when it
+teaches future grammar and the nearest fitted alternative, but it must not be
+written like a model a reader can run today.
 
 ## Slice 90 Status: Flagship Location-Scale Tutorial
 
@@ -197,10 +198,11 @@ zero-inflated NB2 route, with ordinary Poisson/NB2 `mu` random effects, NB2
 log-`sigma` random intercepts, and ordinary Poisson/NB2 q=1 phylogenetic
 `mu` routes named as fitted or first-slice neighbours rather than silently
 inserted into the worked example. The proportion tutorial now carries the
-three bounded-response choices in one place:
+bounded-response choices in one place:
 
 ```text
-successes out of known trials -> beta_binomial()
+0/1 event or ordinary successes out of known trials -> stats::binomial()
+overdispersed successes out of known trials -> beta_binomial()
 continuous proportions strictly inside (0, 1) -> beta()
 continuous proportions on [0, 1] with structural exact boundaries -> zero_one_beta()
 ```
@@ -244,8 +246,9 @@ The individual-difference section now teaches:
 
 The example stays inside the implemented ordinary bivariate Gaussian
 random-intercept surface. It does not teach the separate matching slope-only
-`mu1`/`mu2` route, the matching q=4 location route, multiple-slope or
-residual-scale bivariate slopes, random effects in `rho12`, bivariate
+`mu1`/`mu2` route, the matching q=2 `sigma1`/`sigma2` scale-slope route, the
+matching q=4 location route, multiple-slope or p8/q8 endpoint bivariate
+slopes, random effects in `rho12`, bivariate
 `meta_V()` plus random effects, mixed-response families, or ordinary spatial
 group-level covariance as fitted syntax.
 

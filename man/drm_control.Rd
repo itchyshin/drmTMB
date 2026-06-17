@@ -12,6 +12,8 @@ drm_control(
   keep_tmb_object = TRUE,
   sparse_fixed = FALSE,
   aggregate_gaussian = FALSE,
+  logsigma_clamp = c(-12, 12),
+  logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust")
 )
 }
@@ -53,6 +55,18 @@ first fitted path rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
 likelihood weights, and combined sparse fixed-effect matrices.}
 
+\item{logsigma_clamp}{Numeric \code{c(lo, hi)} band, or \code{NULL}. Bounds the
+per-observation Gaussian \code{log(sigma)} with an identity-in-band soft-clamp,
+a numerical guard against scale overflow on near-degenerate per-group scale
+models. The default \code{c(-12, 12)} is identity for any standardized response;
+widen it for legitimately huge-variance unstandardized data, or set \code{NULL}
+to disable the guard entirely. It is a numerical guard only and does not
+change identifiability.}
+
+\item{logsigma_clamp_margin}{Positive number; the soft-clamp saturation
+margin beyond \code{logsigma_clamp} (default \code{3}, saturating to \verb{[-15, 15]} for
+the default band). Ignored when \code{logsigma_clamp = NULL}.}
+
 \item{optimizer_preset}{Optimizer-budget preset. \code{"default"} adds no
 optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
 \code{eval.max = 1000}, and \code{"robust"} sets \code{iter.max = 5000} and
@@ -77,6 +91,14 @@ valid. When using \code{drm_control()}, put optimizer arguments inside
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.
+
+When the selected preset uses the standard \code{nlminb()} budget and no explicit
+optimizer controls, \code{drmTMB()} retries with the next larger deterministic
+preset if the optimizer raises an error such as a non-finite gradient
+evaluation. A successful retry warns and records the selected preset in
+\code{fit$optimizer_used} and every attempted preset in \code{fit$optimizer_attempts}.
+Fits with nonzero convergence codes still return for diagnostic inspection;
+they are not silently retried.
 }
 \examples{
 dat <- data.frame(y = rnorm(20), x = rnorm(20))

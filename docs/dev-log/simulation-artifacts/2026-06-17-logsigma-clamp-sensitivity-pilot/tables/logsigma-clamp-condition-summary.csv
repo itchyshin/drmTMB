@@ -1,0 +1,5 @@
+"condition_id","n_rep","default_clamp_active_rate","default_convergence_rate","default_pdHess_rate","default_max_abs_sigma_intercept_diff_vs_off","default_max_abs_logLik_diff_vs_off","wide_clamp_active_rate","wide_max_abs_sigma_intercept_diff_vs_off","wide_max_abs_logLik_diff_vs_off"
+"above_default_upper_band",25,1,1,1,32.3864717004535,526.895209761843,0,0,0
+"below_default_lower_band",25,1,0,1,4.20583863510715,118.92056732435,0,0,0
+"near_default_upper_band",25,0,1,1,1.1686809742173e-08,2.04636307898909e-11,0,0,0
+"ordinary_scale",25,0,1,1,0,0,0,0,0

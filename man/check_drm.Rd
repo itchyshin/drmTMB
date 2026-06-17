@@ -48,7 +48,8 @@ gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
-Student-t \code{nu} boundary behaviour, known sampling covariance summaries,
+Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a
 univariate Gaussian fit includes one or more matched labelled

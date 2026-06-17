@@ -16,6 +16,43 @@ skew_normal_public_to_native <- function(mu, sigma, nu) {
   )
 }
 
+skew_normal_comparator_scale_map <- function(mu, sigma, nu) {
+  native <- skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu)
+
+  list(
+    public_moment = data.frame(
+      mu = mu,
+      sigma = sigma,
+      alpha = nu
+    ),
+    native_azzalini = data.frame(
+      xi = native$xi,
+      omega = native$omega,
+      alpha = native$alpha
+    ),
+    comparators = data.frame(
+      comparator = c(
+        "sn::dsn",
+        "RTMBdist::dskewnorm",
+        "RTMBdist::dskewnorm2",
+        "brms::skew_normal",
+        "glmmTMB::skewnormal",
+        "gamlss.dist::SN2"
+      ),
+      parameter_scale = c(
+        "native_azzalini",
+        "native_azzalini",
+        "public_moment",
+        "public_moment",
+        "public_moment",
+        "two_piece_not_azzalini"
+      ),
+      comparable_density = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 skew_normal_log_density_reference <- function(y, mu, sigma, nu) {
   native <- skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu)
   z <- (y - native$xi) / native$omega
@@ -24,6 +61,16 @@ skew_normal_log_density_reference <- function(y, mu, sigma, nu) {
     log(native$omega) +
     dnorm(z, log = TRUE) +
     pnorm(native$alpha * z, log.p = TRUE)
+}
+
+skew_normal_log_density_tmb_floor_reference <- function(y, mu, sigma, nu) {
+  native <- skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu)
+  z <- (y - native$xi) / native$omega
+
+  log(2) -
+    log(native$omega) +
+    dnorm(z, log = TRUE) +
+    log(pnorm(native$alpha * z) + 1e-300)
 }
 
 skew_normal_third_central_moment_reference <- function(sigma, nu) {

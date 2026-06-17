@@ -1,5 +1,10 @@
 # Phase 18 Skew-Normal Implementation Gate, Slices 1689-1702
 
+Superseded status: the fixed-effect `skew_normal()` first slice now exists, and
+the `skew_normal_fixed_effect` Phase 18 artifact lane adds repeatable
+smoke/grid evidence. This note remains as historical implementation-gate
+context.
+
 This note is a design-only gate for the first skew-normal implementation
 slice. It does not implement `skew_normal()`, add a family constructor, expose
 reference documentation, or add a C++ likelihood branch. Its reader is the R
@@ -9,7 +14,7 @@ source-level tests before user-facing support is opened.
 The planned first lane is still univariate and fixed-effect:
 
 ```r
-# Planned, not fitted yet:
+# Historical gate example:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),
@@ -140,9 +145,11 @@ names.
 ## Documentation And Provenance
 
 The first implementation PR must add roxygen2 documentation for
-`skew_normal()` before exporting support. Examples must be runnable only after
-the constructor, likelihood branch, methods, and tests exist. Until then, every
-code example with `family = skew_normal()` must be labelled planned or future.
+`skew_normal()` before exporting support. That first slice now exists, so code
+examples with `family = skew_normal()` may be runnable when they stay inside
+the fixed-effect univariate boundary. Examples that use random effects,
+structured effects, known covariance, bivariate responses, `rho12`, aliases,
+or latent `skew(id)` syntax must still be labelled planned or unsupported.
 
 The package can use `sn`, `RTMBdist`, `brms`, and `glmmTMB` as comparators or
 semantic precedents, but not as unrecorded code sources. If any likelihood or
@@ -162,7 +169,8 @@ say planned, not fitted. A safe no-fit scan checks:
 
 - no `skew_normal()` object exists in `asNamespace("drmTMB")`;
 - no `R/`, `src/`, `NAMESPACE`, or exported reference page exposes support;
-- design examples are labelled "Planned, not fitted yet" or equivalent;
+- historical design examples are labelled as gate examples rather than current
+  status;
 - `rho12`, bivariate skew-normal, latent `skew(id)`, and random-effect shape
   syntax remain closed.
 

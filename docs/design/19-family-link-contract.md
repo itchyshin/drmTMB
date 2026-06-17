@@ -23,6 +23,9 @@ The implemented families use these parameter meanings:
 | Student-t | `mu` | identity | location parameter and mean when `nu > 1` |
 | Student-t | `sigma` | log | Student-t scale parameter |
 | Student-t | `nu` | `logm2` | degrees of freedom, `nu = 2 + exp(eta_nu)` |
+| Skew-normal | `mu` | identity | arithmetic mean of `y` |
+| Skew-normal | `sigma` | log | response standard deviation of `y` |
+| Skew-normal | `nu` | identity | residual slant/asymmetry; positive values indicate right skew |
 | Lognormal | `mu` | identity | mean of `log(y)`, not mean of `y` |
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
@@ -38,6 +41,7 @@ The implemented families use these parameter meanings:
 | Zero-one beta | `coi` | logit | probability of an exact 1 conditional on an exact-boundary response |
 | Beta-binomial | `mu` | logit | success probability for counted successes out of known trials |
 | Beta-binomial | `sigma` | log | extra-binomial variation scale; internal precision is `phi = 1 / sigma^2` |
+| Binomial | `mu` | logit | event probability for 0/1 responses or counted successes out of known trials |
 | Cumulative logit | `mu` | identity | latent ordinal location; `fitted()` returns expected category score |
 | Poisson | `mu` | log | arithmetic mean and variance of the count response |
 | Zero-inflated Poisson | `mu` | log | conditional Poisson mean |
@@ -52,6 +56,42 @@ The implemented families use these parameter meanings:
 | Bivariate Gaussian | `mu1`, `mu2` | identity | arithmetic means of `y1` and `y2` |
 | Bivariate Gaussian | `sigma1`, `sigma2` | log | residual standard deviations |
 | Bivariate Gaussian | `rho12` | guarded atanh | residual response-response correlation |
+
+## Implemented Plain Binomial Response Contract
+
+The first primary Bernoulli/binomial response family is ordinary logit
+binomial, owned by `drmTMB#569`. The public route is deliberately the base R
+family:
+
+```r
+drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
+drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
+```
+
+The first slice has one distributional parameter:
+
+| Family | Parameter | Link | Response-scale meaning |
+|---|---|---|---|
+| Binomial | `mu` | logit | event probability; `fitted()` returns `mu` |
+
+The statistical contract is:
+
+```text
+Y_i ~ Binomial(n_i, mu_i)
+logit(mu_i) = eta_i = X_mu[i, ] beta_mu
+```
+
+For a 0/1 response, `n_i = 1` and `Y_i` is the event indicator. For
+`cbind(successes, failures)`, `Y_i = successes_i` and
+`n_i = successes_i + failures_i`. The implementation includes the
+binomial normalizing constant so `logLik()`, AIC, and BIC match
+`stats::glm()` on overlapping fixed-effect logit models.
+
+The first slice rejects non-logit links, factor-response ordering,
+proportions plus `weights`, `weights = trials`, `successes / trials`, `sigma`,
+`nu`, `zi`, `zoi`, `coi`, random effects, structured effects, bivariate or
+mixed responses, and `engine = "julia"`. Top-level `weights` remain likelihood
+weights, not trial totals.
 
 For lognormal fits:
 
@@ -84,6 +124,7 @@ Examples:
 ```text
 Gaussian:   predict(mu) = E[y] = fitted()
 Student-t:  predict(mu) = location; fitted() currently returns mu
+Skew-normal: predict(mu) = E[y] = fitted(); predict(nu) = residual slant
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
 Beta:       predict(mu) = E[y] = fitted()
@@ -180,6 +221,41 @@ exact-zero mass, and `sigma(fit)` returns public `sigma`. The first slice keeps
 `nu ~ 1` intercept-only; predictor-dependent power models, random effects,
 structured effects, bivariate Tweedie models, zero-inflation aliases, and
 hurdle aliases remain separate gates.
+
+## Implemented Skew-Normal Continuous Contract
+
+For `skew_normal()`, the first implementation is a univariate fixed-effect
+moment-parameterized skew-normal model:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ SkewNormalMoment(mu_i, sigma_i, nu_i)
+eta_mu_i = X_mu[i, ] beta_mu
+eta_sigma_i = X_sigma[i, ] beta_sigma
+eta_nu_i = X_nu[i, ] beta_nu
+mu_i = eta_mu_i
+sigma_i = exp(eta_sigma_i)
+nu_i = eta_nu_i
+delta_i = nu_i / sqrt(1 + nu_i^2)
+omega_i = sigma_i / sqrt(1 - 2 * delta_i^2 / pi)
+xi_i = mu_i - omega_i * delta_i * sqrt(2 / pi)
+z_i = (y_i - xi_i) / omega_i
+log f(y_i) = log(2) - log(omega_i) + log phi(z_i) + log Phi(nu_i z_i)
+```
+
+Here `mu` is the arithmetic response mean and `sigma` is the response standard
+deviation by construction. The native density scale is `xi`, `omega`, and
+`alpha = nu`, but those are implementation details rather than user-facing
+distributional parameters. `fitted()` returns `mu`, `sigma(fit)` returns public
+`sigma`, and `predict(fit, dpar = "nu")` returns the residual slant on the
+identity scale. Positive `nu` indicates right-skewed residuals, negative `nu`
+indicates left-skewed residuals, and `nu = 0` reduces to the Gaussian
+location-scale likelihood.
+
+The first route rejects random effects, structured effects, known sampling
+covariance, bivariate responses, residual `rho12`, aliases such as `skew ~ x`,
+and latent `skew(id)` syntax. Those neighbours need their own likelihood,
+diagnostic, interval, and recovery evidence before they can share this
+contract.
 
 ## Implemented Poisson Count Contract
 

@@ -1,0 +1,7 @@
+"cell_id","cell_code","n","nu_intercept","nu_slope","sigma_slope","rho_xw","n_replicate","convergence_rate","pdHess_rate","warning_rate","mean_elapsed"
+"skew_normal_fixed_effect_001","C1",720,-1.2,0,0.15,0.2,25,1,1,0,0.13596
+"skew_normal_fixed_effect_002","C2",720,0,0,0.15,0.2,25,1,1,0,0.11828
+"skew_normal_fixed_effect_003","C3",720,1.2,0,0.15,0.2,25,1,1,0,0.11636
+"skew_normal_fixed_effect_004","C4",720,-1.2,0.35,0.15,0.2,25,1,1,0,0.11168
+"skew_normal_fixed_effect_005","C5",720,0,0.35,0.15,0.2,25,1,1,0,0.11652
+"skew_normal_fixed_effect_006","C6",720,1.2,0.35,0.15,0.2,25,1,1,0,0.11268

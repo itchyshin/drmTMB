@@ -148,8 +148,11 @@ regression. `engine = "mcmc"`, priors, posterior draws, and credible intervals
 are out of scope for this lane.
 
 Estimator choice should stay separate from missing-data engine choice. ML is the
-default estimator. REML can be considered later only where the fitted likelihood
-and extractors already support a clear Gaussian mixed-model interpretation.
+default estimator. The first ordinary Gaussian mixed-model REML route lives on
+the top-level `drmTMB(..., REML = TRUE)` estimator switch, not in
+`miss_control()`. REML for explicit missing-response or missing-predictor routes
+remains a later slice because those likelihoods need their own extractor and
+comparator checks.
 
 ## Response-Missingness Contract
 
@@ -617,8 +620,9 @@ After MD1, the public claim can be:
 ```text
 drmTMB can retain missing response rows for univariate Gaussian models with
 complete predictors through miss_control(response = "include"). Missing
-predictors, bivariate partial response pairs, EM/REML engines, imputation
-summaries, and measurement-error models remain future work.
+predictors, bivariate partial response pairs, EM engines, REML support for
+missing-data routes, imputation summaries, and measurement-error models remain
+future work.
 ```
 
 After MD1 and MD2, the claim can become:
@@ -789,9 +793,9 @@ fixed-effect binary mi() predictor and a Bernoulli/logit impute_model().
 Multiple missing predictors, grouped or structured non-Gaussian predictor
 models, transformed or interacted mi() terms, non-binary missing predictors in
 non-Gaussian response models, missing non-Gaussian responses, hurdle count
-predictors, EM/profile/REML engines, simulated imputation summaries, response
-imputation, measurement-error models, and pigauto interoperability remain
-separate future lanes.
+predictors, EM/profile engines, REML for explicit missing-data routes,
+simulated imputation summaries, response imputation, measurement-error models,
+and pigauto interoperability remain separate future lanes.
 ```
 
 For the preview release, treat the missing-data surface as done only in this

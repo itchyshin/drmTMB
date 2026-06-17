@@ -10,7 +10,8 @@ correlation.
 The audit is source and schema evidence only. It does not run a new grid, does
 not estimate coverage or power, and does not promote the now source-tested q4
 location block, p8/q8, random effects in `rho12`, mixed-response bivariate
-models, or residual-scale slope covariance.
+models, the same-response q2 smoke/recovery lane, or the separate
+`sigma1`/`sigma2` scale-slope lane.
 
 ## Schema Check
 

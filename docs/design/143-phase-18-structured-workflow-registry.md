@@ -25,7 +25,7 @@ covariance `V`.
 | Family surface | Ordinary random slope status | `phylo()` | `spatial()` | `animal()` | `relmat()` | q=2 / `corpairs()` | q=4 / `corpairs()` | Workflow state |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Gaussian location-scale | Ready for ordinary `mu` q > 2 and independent `sigma` slopes | Ready for Gaussian `mu` one-slope and intercept/direct-SD subsets | Ready for Gaussian `mu` one-slope, `mu`/`sigma` intercepts, and q=2 spatial location covariance | Ready for dense-pedigree Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for known-matrix Gaussian `mu` and `sigma` intercepts plus one `mu` slope | Ready for selected ordinary and structured q=2 rows; direct intervals only where profile targets exist | Fitted for selected ordinary and structured constant blocks, but many q=4 correlations are derived-unavailable | Use the random-slope workflow plan and existing task routes for admitted random-slope rows; maintain structured-dependence wrappers by status |
-| Bivariate Gaussian and residual `rho12` | Ready for matching slope-only `mu1`/`mu2`; q4 location blocks have smoke artifact routing; q6 location blocks are source-tested, while p8/q8 stays closed | Ready for selected `mu1`/`mu2` and location-scale subsets; hard real-data q2/q4 cases remain diagnostic | Ready for constant q=2 location and constant q=4 location-scale smoke/artifact subsets | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for residual `rho12`, selected group/structured q=2 `corpairs()` rows, slope-only `mu1`/`mu2`, and q4 location smoke; q6 location blocks need their own artifact lane before operating-characteristic claims | q > 2 rows are visible point estimates with explicit interval limits unless direct targets exist | Use `correlation_block_status` to artifact the residual, q=2, and q=4 status boundary without promoting q=4 intervals |
+| Bivariate Gaussian and residual `rho12` | Ready for matching slope-only `mu1`/`mu2`; q4 and q6 location blocks have smoke artifact routing; q8 all-endpoint ordinary Gaussian has diagnostic smoke/recovery/staged-start routing | Ready for selected `mu1`/`mu2` and location-scale subsets; hard real-data q2/q4 cases remain diagnostic | Ready for constant q=2 location and constant q=4 location-scale smoke/artifact subsets | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for q=2 smoke artifacts and q=4 point-estimate smoke artifacts | Ready for residual `rho12`, selected group/structured q=2 `corpairs()` rows, slope-only `mu1`/`mu2`, q4/q6 location smoke, and q8 diagnostic smoke/recovery/staged-start; the q2 scale-intercept and q2 scale-slope blocks now have recovery lanes reporting bias, MCSE, and fixed-effect Wald coverage, while broader coverage and power still need deliberately sized pilots | q > 2 rows are visible point estimates with explicit interval limits unless direct targets exist | Use `correlation_block_status` to artifact the residual, q=2, and q=4 status boundary without promoting q=4 intervals; keep q8 coverage and power out until deliberately sized pilots support them |
 | Counts: Poisson and NB2 | Ready for ordinary non-zero-inflated `mu` independent slopes; NB2 `sigma` has only an ordinary intercept gate | Smoke/formal-admission only for q=1 `mu` intercepts; no count slopes or labelled covariance | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Source-tested and artifacted for q=1 `mu` intercepts via `count_structured_q1`; no count slopes or labels | Blocked for labelled count q=2 covariance | Blocked for labelled count q=4 covariance | Keep using `poisson_phylo_q1_formal`, `nbinom2_phylo_q1_formal`, and `count_structured_q1`; add a count-admission audit wrapper before any promotion |
 | Zero-inflated and hurdle counts | Fixed-effect `zi` or `hu` routes only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Failure-ledger rows only until a new likelihood design opens random effects |
 | Bounded and binary-like responses: `beta()`, `beta_binomial()`, `zero_one_beta()` | `beta()` and `beta_binomial()` have ordinary `mu` intercept artifacts and focused independent-slope tests; `zero_one_beta()` is fixed-effect only | Blocked | Blocked | Blocked | Blocked | Blocked | Blocked | Existing fixed and ordinary `mu` lanes can be audited; structured bounded-response work needs design |
@@ -99,12 +99,12 @@ dependence layer, block class, admission status, dispatch status, Actions task
 when one exists, wrapper helper, audit focus, next autonomous action, and
 supervision boundary.
 
-The current random-slope plan has nine admitted rows:
+The current random-slope plan has eleven admitted rows:
 
-- five `ready_grid` rows already routed through existing Actions tasks:
+- seven `ready_grid` rows already routed through existing Actions tasks:
   Gaussian ordinary `mu` slopes, Gaussian independent `sigma` slopes, Poisson
-  `mu` random effects, NB2 `mu` random effects, and the bivariate Gaussian
-  slope-only row;
+  `mu` random effects, NB2 `mu` random effects, the bivariate Gaussian
+  slope-only row, and the q4/q6 bivariate Gaussian location rows;
 - four `ready_source_test` rows for bounded responses, positive-continuous
   responses, Student-t, and zero-truncated NB2 `mu` random effects.
 
@@ -113,9 +113,22 @@ The bivariate Gaussian slope-only row now names the manual
 `ready_existing_task` or `source_test_audit`; source-tested rows must gain an
 artifact lane before any recovery or coverage claim. The wrapper excludes
 blocked, design-only, and diagnostic-only rows from the plan.
-Only five random-slope rows are grid-ready slope surfaces, including
-`biv_gaussian_mu_slope`; four source-test audit rows route through existing
-family artifact tasks.
+Nine random-slope rows are grid-ready slope surfaces, including
+`biv_gaussian_mu_slope`, `biv_gaussian_q4_location`,
+`biv_gaussian_q6_location`, `biv_gaussian_q8_endpoint`, and
+`biv_gaussian_q8_endpoint_recovery`; four source-test audit rows route through
+existing family artifact tasks. The preflight keeps the q8 smoke and recovery
+rows visible as diagnostic `ready_grid` tasks, so q8 endpoint covariance can
+produce artifacts without becoming coverage or power evidence by adjacency to
+q4/q6 location support.
+
+`phase18_biv_gaussian_q8_endpoint_precode_gate()` is the executable companion
+for that status boundary. It returns the eight endpoint labels
+`mu1:(Intercept)`, `mu1:x`, `mu2:(Intercept)`, `mu2:x`,
+`sigma1:(Intercept)`, `sigma1:x`, `sigma2:(Intercept)`, and `sigma2:x`,
+records the 28 pairwise correlations implied by a full q8 block, and checks
+that the registry row is `ready_grid` with `existing_actions_task` equal to
+`biv_gaussian_q8_endpoint`.
 
 ## Slice 1817 Structured-Dependence Workflow Plan
 
@@ -402,8 +415,8 @@ blocked/design-only/diagnostic rows out, and labels each row with the existing
 Actions task, accuracy status, coverage status, power status, minimum
 estimands, and boundary note.
 
-The current table has ten rows by default: six grid/admitted rows and four
-source-test rows. `include_source_test = FALSE` returns the six rows that
+The current table has eleven rows by default: seven grid/admitted rows and four
+source-test rows. `include_source_test = FALSE` returns the seven rows that
 already have grid or smoke artifact routes. Every coverage and power cell is
 `planned_not_estimated`, and accuracy cells say whether an artifact/smoke lane
 already exists or whether a source-tested row still needs an artifact lane.

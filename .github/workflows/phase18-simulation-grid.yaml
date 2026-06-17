@@ -12,17 +12,34 @@ on:
           - interval_heavy_summary
           - truncated_nbinom2_mu_random_intercept
           - proportion_fixed_effect
+          - binomial_fixed_effect
           - bounded_response_mu_random_intercept
           - positive_continuous_fixed_effect
           - tweedie_fixed_effect
+          - skew_normal_fixed_effect
           - count_structured_q1
+          - poisson_mu_re_recovery
+          - nbinom2_mu_re_recovery
           - positive_continuous_mu_random_intercept
           - student_mu_random_intercept
           - ordinal_fixed_effect
           - zero_one_beta_fixed_effect
           - correlation_block_status
           - biv_gaussian_mu_slope
+          - biv_gaussian_mu_slope_recovery
           - biv_gaussian_q4_location
+          - biv_gaussian_q4_location_recovery
+          - biv_gaussian_q6_location
+          - biv_gaussian_q6_location_recovery
+          - biv_gaussian_q8_endpoint
+          - biv_gaussian_q8_endpoint_recovery
+          - biv_gaussian_q8_endpoint_staged_diagnostic
+          - biv_gaussian_q2_scale
+          - biv_gaussian_q2_scale_recovery
+          - biv_gaussian_q2_scale_slope
+          - biv_gaussian_q2_scale_slope_recovery
+          - biv_gaussian_mu_sigma_slope
+          - biv_gaussian_mu_sigma_slope_recovery
           - spatial_mu_slope
           - phylo_mu_slope
           - animal_mu_slope
@@ -48,7 +65,7 @@ on:
           - none
           - multicore
       bootstrap_nsim:
-        description: "Bootstrap draws for interval-heavy task; 0 disables"
+        description: "Bootstrap draws for interval-capable tasks; 0 disables"
         required: true
         default: "0"
         type: number
@@ -143,6 +160,9 @@ jobs:
           - task: proportion_fixed_effect
             seed: 20260533
             include_in_all: false
+          - task: binomial_fixed_effect
+            seed: 20260617
+            include_in_all: false
           - task: bounded_response_mu_random_intercept
             seed: 20260538
             include_in_all: false
@@ -151,6 +171,9 @@ jobs:
             include_in_all: false
           - task: tweedie_fixed_effect
             seed: 20260542
+            include_in_all: false
+          - task: skew_normal_fixed_effect
+            seed: 20260618
             include_in_all: false
           - task: count_structured_q1
             seed: 20260543
@@ -173,8 +196,53 @@ jobs:
           - task: biv_gaussian_mu_slope
             seed: 20260603
             include_in_all: false
+          - task: biv_gaussian_mu_slope_recovery
+            seed: 20260631
+            include_in_all: false
           - task: biv_gaussian_q4_location
             seed: 20260609
+            include_in_all: false
+          - task: biv_gaussian_q4_location_recovery
+            seed: 20260629
+            include_in_all: false
+          - task: biv_gaussian_q6_location
+            seed: 20260624
+            include_in_all: false
+          - task: biv_gaussian_q6_location_recovery
+            seed: 20260630
+            include_in_all: false
+          - task: biv_gaussian_q8_endpoint
+            seed: 20260634
+            include_in_all: false
+          - task: biv_gaussian_q8_endpoint_recovery
+            seed: 20260635
+            include_in_all: false
+          - task: biv_gaussian_q8_endpoint_staged_diagnostic
+            seed: 20260636
+            include_in_all: false
+          - task: biv_gaussian_q2_scale
+            seed: 20260625
+            include_in_all: false
+          - task: biv_gaussian_q2_scale_recovery
+            seed: 20260626
+            include_in_all: false
+          - task: poisson_mu_re_recovery
+            seed: 20260632
+            include_in_all: false
+          - task: nbinom2_mu_re_recovery
+            seed: 20260633
+            include_in_all: false
+          - task: biv_gaussian_q2_scale_slope
+            seed: 20260627
+            include_in_all: false
+          - task: biv_gaussian_q2_scale_slope_recovery
+            seed: 20260628
+            include_in_all: false
+          - task: biv_gaussian_mu_sigma_slope
+            seed: 20260629
+            include_in_all: false
+          - task: biv_gaussian_mu_sigma_slope_recovery
+            seed: 20260630
             include_in_all: false
           - task: spatial_mu_slope
             seed: 20260604

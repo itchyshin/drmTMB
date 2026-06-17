@@ -18,7 +18,8 @@ implemented source map when they need code, tests, and design evidence.
 The proportion decision table is:
 
 ```text
-successes out of known trials -> beta_binomial()
+0/1 event or ordinary successes out of known trials -> stats::binomial()
+overdispersed successes out of known trials -> beta_binomial()
 continuous proportions strictly inside (0, 1) -> beta()
 continuous proportions on [0, 1] with structural exact boundaries -> zero_one_beta()
 ```

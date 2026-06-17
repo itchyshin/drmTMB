@@ -4,11 +4,13 @@ print.drmTMB <- function(x, ...) {
     x$model$model_type,
     gaussian = "Gaussian location-scale",
     student = "Student-t location-scale-shape",
+    skew_normal = "skew-normal location-scale-shape",
     lognormal = "Lognormal location-scale",
     gamma = "Gamma mean-CV",
     beta = "Beta mean-scale",
     zero_one_beta = "zero-one beta mean-scale-boundary",
     beta_binomial = "Beta-binomial mean-overdispersion",
+    binomial = "Binomial event-probability",
     cumulative_logit = "cumulative-logit ordinal",
     poisson = "Poisson mean",
     zi_poisson = "zero-inflated Poisson mean",
@@ -21,6 +23,14 @@ print.drmTMB <- function(x, ...) {
   )
   cli::cli_text("<drmTMB {label} fit>")
   cli::cli_text("  observations: {x$nobs}")
+  if (!is.null(x$estimator)) {
+    cli::cli_text("  estimator: {x$estimator}")
+  }
+  if (!is.null(x$penalty)) {
+    cli::cli_text(
+      "  penalty: phylogenetic PC-prior (MAP); logLik shown is unpenalized"
+    )
+  }
   if (has_mu_random_effects(x)) {
     cli::cli_text("  mu random-effect terms: {n_mu_random_effect_terms(x)}")
   }
@@ -405,9 +415,9 @@ rho12.drmTMB <- function(
 #' `drmTMB` model. The current implementation reports correlations that are
 #' already fitted elsewhere: residual bivariate `rho12`, ordinary univariate
 #' group-level `mu` random-effect correlations, matched univariate and
-#' same-response bivariate `mu`/`sigma` random-intercept covariance blocks,
-#' matched bivariate `mu1`/`mu2` random-intercept and slope-only covariance
-#' blocks, and matched bivariate `sigma1`/`sigma2` random-intercept covariance
+#' same-response bivariate `mu`/`sigma` covariance blocks, matched bivariate
+#' `mu1`/`mu2` random-intercept and slope-only covariance blocks, and matched
+#' bivariate `sigma1`/`sigma2` random-intercept and slope-only covariance
 #' blocks from `corpars`, plus fitted bivariate phylogenetic,
 #' coordinate-spatial, animal-model, and `relmat()` correlation rows. Full q4
 #' phylogenetic, coordinate-spatial, animal-model, and `relmat()` blocks report
@@ -1710,6 +1720,9 @@ random_correlation_class <- function(dpar, from_coef, to_coef, to_dpar = dpar) {
     return("mean-slope")
   }
   if (identical(from_family, "sigma") && identical(to_family, "sigma")) {
+    if (!identical(dpar, to_dpar)) {
+      return("scale-scale")
+    }
     if (from_intercept && to_intercept) {
       return("scale-scale")
     }
@@ -1830,13 +1843,13 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  cov_fixed <- drm_sdreport_cov_fixed(object)
+  cov_fixed <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
   positions <- rep(NA_integer_, length(labels))
-  opt_names <- names(object$opt$par)
+  opt_names <- drm_sdreport_coefficient_parameter_names(object)
   for (i in seq_along(labels)) {
     row <- matched[[i]]
     if (is.na(row)) {
@@ -1867,6 +1880,31 @@ drm_sdreport_cov_fixed <- function(object) {
     ))
   }
   object$sdr$cov.fixed
+}
+
+drm_sdreport_cov_coefficients <- function(object) {
+  if (!drm_has_sdreport_covariance(object)) {
+    cli::cli_abort(c(
+      drm_sdreport_unavailable_message(object),
+      "i" = "Refit with {.code control = drm_control(se = TRUE)} for {.fn vcov}, Wald standard errors, or Wald confidence intervals."
+    ))
+  }
+  if (isTRUE(object$REML)) {
+    if (!is.matrix(object$sdr$cov)) {
+      cli::cli_abort(
+        "Fixed-effect covariance is unavailable because the REML sdreport does not contain a full covariance matrix."
+      )
+    }
+    return(object$sdr$cov)
+  }
+  object$sdr$cov.fixed
+}
+
+drm_sdreport_coefficient_parameter_names <- function(object) {
+  if (isTRUE(object$REML)) {
+    return(names(object$sdr$value))
+  }
+  names(object$opt$par)
 }
 
 drm_has_sdreport_covariance <- function(object) {
@@ -2022,6 +2060,12 @@ logLik.drmTMB <- function(object, ...) {
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
+  if (!is.null(object$estimator)) {
+    attr(out, "estimator") <- object$estimator
+  }
+  if (isTRUE(object$REML)) {
+    attr(out, "REML") <- TRUE
+  }
   class(out) <- "logLik"
   out
 }
@@ -2177,8 +2221,10 @@ predict.drmTMB <- function(
 #' boundary values from the fitted `zoi`/`coi` probabilities and interior
 #' values from the fitted beta component. For beta-binomial models, simulation
 #' draws latent success probabilities from the fitted beta distribution and then
-#' success counts from the stored trial denominators. For cumulative-logit ordinal
-#' models, simulation draws ordered categories from the fitted cumulative-logit
+#' success counts from the stored trial denominators. For binomial models,
+#' simulation draws success counts from the fitted event probability and stored
+#' trial denominators. For cumulative-logit ordinal models, simulation draws
+#' ordered categories from the fitted cumulative-logit
 #' probabilities. For Poisson models, simulation uses the fitted mean `mu`. For
 #' zero-inflated Poisson models, simulation uses
 #' fitted conditional mean `mu` and structural-zero probability `zi`. For
@@ -2236,6 +2282,19 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
     sigma <- predict(object, dpar = "sigma")
     nu <- predict(object, dpar = "nu")
     sims <- replicate(nsim, mu + sigma * stats::rt(length(mu), df = nu))
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "skew_normal")) {
+    mu <- predict(object, dpar = "mu")
+    sigma <- predict(object, dpar = "sigma")
+    nu <- predict(object, dpar = "nu")
+    sims <- replicate(
+      nsim,
+      rskew_normal_public(length(mu), mu = mu, sigma = sigma, nu = nu)
+    )
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -2331,6 +2390,15 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
       )
       stats::rbinom(length(mu), size = trials, prob = p)
     })
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    return(sims)
+  }
+
+  if (identical(object$model$model_type, "binomial")) {
+    mu <- predict(object, dpar = "mu")
+    trials <- object$model$trials
+    sims <- replicate(nsim, stats::rbinom(length(mu), size = trials, prob = mu))
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     return(sims)
@@ -2493,6 +2561,18 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, ...) {
   as.data.frame(out)
 }
 
+rskew_normal_public <- function(n, mu, sigma, nu) {
+  mu <- rep(mu, length.out = n)
+  sigma <- rep(sigma, length.out = n)
+  nu <- rep(nu, length.out = n)
+  delta <- nu / sqrt(1 + nu^2)
+  mean_shift <- delta * sqrt(2 / pi)
+  omega <- sigma / sqrt(1 - mean_shift^2)
+  xi <- mu - omega * mean_shift
+  xi +
+    omega * (delta * abs(stats::rnorm(n)) + sqrt(1 - delta^2) * stats::rnorm(n))
+}
+
 rtweedie_compound <- function(n, mu, phi, power) {
   mu <- rep(mu, length.out = n)
   phi <- rep(phi, length.out = n)
@@ -2532,6 +2612,9 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' zero-one boundary mass. For beta-binomial models, response residuals are
 #' observed success proportions minus fitted `mu`, and Pearson residuals
 #' divide by the fitted beta-binomial proportion standard deviation. For
+#' binomial models, response residuals are observed success proportions minus
+#' fitted event probability, and Pearson residuals divide by
+#' `sqrt(mu * (1 - mu) / trials)`. For
 #' cumulative-logit ordinal models, response residuals are the observed
 #' ordered-category score minus the fitted expected score, and Pearson
 #' residuals divide by the fitted category-score standard deviation. For
@@ -2632,6 +2715,18 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
       response / sqrt(beta_binomial_proportion_variance(mu, sigma, trials))
     )
   }
+  if (identical(object$model$model_type, "binomial")) {
+    mu <- predict(object, dpar = "mu")
+    trials <- object$model$trials
+    observed <- object$model$y / trials
+    response <- observed - mu
+    if (type == "response") {
+      return(response)
+    }
+    return(
+      response / sqrt(pmax(mu * (1 - mu) / trials, .Machine$double.eps))
+    )
+  }
   if (identical(object$model$model_type, "cumulative_logit")) {
     expected <- ordinal_expected_score(object)
     response <- object$model$y - expected
@@ -2705,7 +2800,8 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
   }
   if (
     identical(object$model$model_type, "gaussian") ||
-      identical(object$model$model_type, "student")
+      identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal")
   ) {
     response <- object$model$y - predict(object, dpar = "mu")
     if (type == "response") {
@@ -2774,13 +2870,15 @@ residuals.drmTMB <- function(object, type = c("response", "pearson"), ...) {
 #' univariate Gaussian location-scale models this is the fitted residual
 #' `sigma_i` vector on the response scale. For Student-t models this is the
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
-#' `sigma * sqrt(nu / (nu - 2))`. For lognormal models this is the fitted
+#' `sigma * sqrt(nu / (nu - 2))`. For skew-normal models this is the response
+#' standard deviation under the public moment parameterization, not the native
+#' Azzalini scale `omega`. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
 #' coefficient of variation. For Tweedie models this is the public scale
 #' parameter where internal dispersion is `phi = sigma^2`. For beta,
 #' zero-one beta, and beta-binomial models this is the public scale parameter
 #' where internal precision is `phi = 1 / sigma^2`.
-#' Cumulative-logit ordinal, Poisson, and zero-inflated Poisson models have no
+#' Cumulative-logit ordinal, binomial, Poisson, and zero-inflated Poisson models have no
 #' fitted residual scale parameter and return a fixed unit dispersion vector
 #' for consistency with base-R `sigma()` conventions. For
 #' negative-binomial 2, zero-truncated negative-binomial 2, hurdle
@@ -2809,6 +2907,7 @@ sigma.drmTMB <- function(object, ...) {
   if (
     identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal") ||
       identical(object$model$model_type, "lognormal") ||
       identical(object$model$model_type, "gamma") ||
       identical(object$model$model_type, "tweedie") ||
@@ -2825,6 +2924,7 @@ sigma.drmTMB <- function(object, ...) {
   if (
     identical(object$model$model_type, "poisson") ||
       identical(object$model$model_type, "zi_poisson") ||
+      identical(object$model$model_type, "binomial") ||
       identical(object$model$model_type, "cumulative_logit")
   ) {
     return(rep(1, object$nobs))
@@ -3045,6 +3145,7 @@ summary.drmTMB <- function(
     ordinal = object$ordinal,
     uncertainty = object$uncertainty,
     logLik = stats::logLik(object),
+    estimator = object$estimator,
     convergence = object$opt$convergence,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
@@ -3058,6 +3159,9 @@ summary.drmTMB <- function(
 #' @export
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
+  if (!is.null(x$estimator)) {
+    cli::cli_text("estimator: {x$estimator}")
+  }
   if (isTRUE(x$conf.int)) {
     cli::cli_text(
       "confidence intervals: {x$conf.method}, level = {format(x$conf.level)}"
@@ -4325,6 +4429,9 @@ drm_fitted_response <- function(object) {
   if (identical(object$model$model_type, "beta_binomial")) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
+  if (identical(object$model$model_type, "binomial")) {
+    return(predict.drmTMB(object, dpar = "mu"))
+  }
   if (identical(object$model$model_type, "cumulative_logit")) {
     return(ordinal_expected_score(object))
   }
@@ -4357,7 +4464,8 @@ drm_fitted_response <- function(object) {
   }
   if (
     identical(object$model$model_type, "gaussian") ||
-      identical(object$model$model_type, "student")
+      identical(object$model$model_type, "student") ||
+      identical(object$model$model_type, "skew_normal")
   ) {
     return(predict.drmTMB(object, dpar = "mu"))
   }
@@ -4389,6 +4497,7 @@ drm_dpar_link <- function(object, dpar) {
     object$model$model_type,
     gaussian = c(mu = "identity", sigma = "log"),
     student = c(mu = "identity", sigma = "log", nu = "logm2"),
+    skew_normal = c(mu = "identity", sigma = "log", nu = "identity"),
     lognormal = c(mu = "identity", sigma = "log"),
     gamma = c(mu = "log", sigma = "log"),
     tweedie = c(mu = "log", sigma = "log", nu = "logit12"),
@@ -4400,6 +4509,7 @@ drm_dpar_link <- function(object, dpar) {
       coi = "logit"
     ),
     beta_binomial = c(mu = "logit", sigma = "log"),
+    binomial = c(mu = "logit"),
     cumulative_logit = c(mu = "identity"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),

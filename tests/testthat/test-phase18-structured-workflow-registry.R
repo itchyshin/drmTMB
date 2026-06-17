@@ -76,6 +76,21 @@ phase18_actions_runner_script_for_registry <- function() {
   normalizePath(candidates[[1]], winslash = "/", mustWork = TRUE)
 }
 
+phase18_registry_expected_count <- function(
+  registry,
+  workflow_lane = NULL,
+  admission_status = NULL
+) {
+  keep <- rep(TRUE, nrow(registry))
+  if (!is.null(workflow_lane)) {
+    keep <- keep & registry$workflow_lane %in% workflow_lane
+  }
+  if (!is.null(admission_status)) {
+    keep <- keep & registry$admission_status %in% admission_status
+  }
+  sum(keep)
+}
+
 test_that("Phase 18 structured workflow registry validates current rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -83,12 +98,16 @@ test_that("Phase 18 structured workflow registry validates current rows", {
   registry <- env$phase18_read_structured_workflow_registry(
     path = phase18_structured_workflow_registry_csv()
   )
-  status_counts <- table(registry$admission_status)
+  summary <- env$phase18_structured_workflow_registry_summary(registry)
 
-  expect_equal(nrow(registry), 35L)
-  expect_equal(unname(status_counts[["ready_grid"]]), 19L)
-  expect_equal(unname(status_counts[["blocked"]]), 4L)
-  expect_equal(unname(status_counts[["design_only"]]), 1L)
+  expect_equal(sum(summary$n), nrow(registry))
+  expect_setequal(
+    unique(registry$admission_status),
+    env$phase18_structured_workflow_statuses()
+  )
+  expect_true(all(
+    env$phase18_structured_workflow_lanes() %in% registry$workflow_lane
+  ))
   expect_equal(anyDuplicated(registry$lane_id), 0L)
 })
 
@@ -199,8 +218,13 @@ test_that("Phase 18 random-slope workflow plan returns admitted rows", {
     path = phase18_structured_workflow_registry_csv()
   )
   plan <- env$phase18_random_slope_workflow_plan(registry)
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "random_slopes",
+    admission_status = c("ready_grid", "ready_source_test")
+  )
 
-  expect_equal(nrow(plan), 10L)
+  expect_equal(nrow(plan), expected)
   expect_true(all(
     plan$admission_status %in%
       c(
@@ -238,6 +262,18 @@ test_that("Phase 18 random-slope workflow plan dispatches the bivariate slope ta
     plan$dispatch_status[!bivariate] %in%
       c("ready_existing_task", "source_test_audit")
   ))
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
+  expect_true(any(q8))
+  expect_equal(plan$dispatch_status[q8], "ready_existing_task")
+  expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_true(any(q8_staged))
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
   expect_false(any(is.na(plan$actions_task)))
 })
 
@@ -262,6 +298,27 @@ test_that("Phase 18 random-slope workflow plan dispatches the q4 location task",
   )
 })
 
+test_that("Phase 18 random-slope workflow plan dispatches the q6 location task", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+  q6 <- plan$lane_id == "bivariate_gaussian_q6_location"
+
+  expect_true(any(q6))
+  expect_equal(plan$dispatch_status[q6], "ready_existing_task")
+  expect_equal(plan$workflow_helper[q6], "phase18_actions_main")
+  expect_equal(plan$actions_task[q6], "biv_gaussian_q6_location")
+  expect_match(
+    plan$supervision_boundary[q6],
+    "p8/q8",
+    fixed = TRUE
+  )
+})
+
 test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -273,10 +330,37 @@ test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
     registry,
     include_needed = FALSE
   )
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "random_slopes",
+    admission_status = c("ready_grid", "ready_source_test")
+  )
 
-  expect_equal(nrow(plan), 10L)
+  expect_equal(nrow(plan), expected)
   expect_true("bivariate_gaussian_slope_only" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q4_location" %in% plan$lane_id)
+  expect_true("bivariate_gaussian_q6_location" %in% plan$lane_id)
+  expect_true("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
+  expect_true("bivariate_gaussian_q8_endpoint_recovery" %in% plan$lane_id)
+  expect_true(
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic" %in% plan$lane_id
+  )
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_recovery <- plan$lane_id == "bivariate_gaussian_q8_endpoint_recovery"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
+  expect_equal(plan$dispatch_status[q8], "ready_existing_task")
+  expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_equal(plan$dispatch_status[q8_recovery], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_recovery],
+    "biv_gaussian_q8_endpoint_recovery"
+  )
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
   expect_false(any(is.na(plan$actions_task)))
 })
 
@@ -307,9 +391,14 @@ test_that("Phase 18 random-slope workflow plan excludes blocked rows", {
   registry <- rbind(registry, blocked)
 
   plan <- env$phase18_random_slope_workflow_plan(registry)
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "random_slopes",
+    admission_status = c("ready_grid", "ready_source_test")
+  )
 
   expect_false("mock_blocked_random_slope" %in% plan$lane_id)
-  expect_equal(nrow(plan), 10L)
+  expect_equal(nrow(plan), expected)
 })
 
 test_that("Phase 18 random-slope operating-characteristic plan is a planning table", {
@@ -320,6 +409,7 @@ test_that("Phase 18 random-slope operating-characteristic plan is a planning tab
     path = phase18_structured_workflow_registry_csv()
   )
   plan <- env$phase18_random_slope_operating_characteristic_plan(registry)
+  expected <- nrow(env$phase18_random_slope_workflow_plan(registry))
   required <- c(
     "lane_id",
     "family_group",
@@ -335,7 +425,7 @@ test_that("Phase 18 random-slope operating-characteristic plan is a planning tab
     "boundary_note"
   )
 
-  expect_equal(nrow(plan), 10L)
+  expect_equal(nrow(plan), expected)
   expect_true(all(required %in% names(plan)))
   expect_false(any(
     plan$admission_status %in%
@@ -355,6 +445,13 @@ test_that("Phase 18 random-slope operating-characteristic plan is a planning tab
     "four direct q4 location SDs",
     fixed = TRUE
   )
+  expect_match(
+    plan$minimum_estimands[
+      plan$lane_id == "bivariate_gaussian_q6_location"
+    ],
+    "six direct q6 location SDs",
+    fixed = TRUE
+  )
   expect_true(all(nzchar(plan$boundary_note)))
 })
 
@@ -369,8 +466,13 @@ test_that("Phase 18 random-slope operating-characteristic plan can omit source-t
     registry,
     include_source_test = FALSE
   )
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "random_slopes",
+    admission_status = "ready_grid"
+  )
 
-  expect_equal(nrow(plan), 6L)
+  expect_equal(nrow(plan), expected)
   expect_false(any(plan$admission_status == "ready_source_test"))
   expect_true(all(
     plan$accuracy_status != "source_tests_exist_artifact_lane_needed"
@@ -385,8 +487,12 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
     path = phase18_structured_workflow_registry_csv()
   )
   preflight <- env$phase18_random_slope_registry_preflight(registry)
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "random_slopes"
+  )
 
-  expect_equal(nrow(preflight$rows), 10L)
+  expect_equal(nrow(preflight$rows), expected)
   expect_setequal(
     preflight$checks$check,
     c(
@@ -409,7 +515,82 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
     "bivariate_gaussian_slope_only",
     fixed = TRUE
   )
+  q8 <- preflight$rows$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_staged <- preflight$rows$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
+  expect_true(any(q8))
+  expect_true(any(q8_staged))
+  expect_equal(preflight$rows$admission_status[q8], "ready_grid")
+  expect_equal(preflight$rows$dispatch_status[q8], "ready_existing_task")
+  expect_equal(preflight$rows$workflow_helper[q8], "phase18_actions_main")
+  expect_equal(preflight$rows$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_equal(preflight$rows$admission_status[q8_staged], "ready_grid")
+  expect_equal(
+    preflight$rows$dispatch_status[q8_staged],
+    "ready_existing_task"
+  )
+  expect_equal(
+    preflight$rows$workflow_helper[q8_staged],
+    "phase18_actions_main"
+  )
+  expect_equal(
+    preflight$rows$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
   expect_equal(sum(!nzchar(preflight$rows$supervision_boundary)), 0L)
+})
+
+test_that("Phase 18 q8 endpoint gate is artifact-ready but diagnostic before power", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  gate <- env$phase18_biv_gaussian_q8_endpoint_precode_gate(registry)
+  plan <- env$phase18_random_slope_workflow_plan(registry)
+
+  expect_equal(gate$row$lane_id, "bivariate_gaussian_q8_endpoint")
+  expect_equal(gate$row$admission_status, "ready_grid")
+  expect_equal(gate$row$existing_actions_task, "biv_gaussian_q8_endpoint")
+  expect_equal(nrow(gate$endpoints), 8L)
+  expect_equal(
+    gate$endpoints$endpoint,
+    c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1:(Intercept)",
+      "sigma1:x",
+      "sigma2:(Intercept)",
+      "sigma2:x"
+    )
+  )
+  expect_equal(
+    gate$checks$value[gate$checks$check == "correlation_count"],
+    "28"
+  )
+  expect_true(all(gate$checks$status == "pass"))
+  q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_recovery <- plan$lane_id == "bivariate_gaussian_q8_endpoint_recovery"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
+  expect_true(any(q8))
+  expect_true(any(q8_recovery))
+  expect_true(any(q8_staged))
+  expect_equal(plan$dispatch_status[q8], "ready_existing_task")
+  expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_equal(plan$dispatch_status[q8_recovery], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_recovery],
+    "biv_gaussian_q8_endpoint_recovery"
+  )
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
 })
 
 test_that("Phase 18 random-slope registry preflight fails closed", {
@@ -446,6 +627,14 @@ test_that("Phase 18 random-slope registry preflight formats dry-run output", {
   )
   expect_match(text, "No simulations, GitHub Actions jobs", fixed = TRUE)
   expect_match(text, "bivariate_gaussian_slope_only", fixed = TRUE)
+  expect_match(text, "bivariate_gaussian_q8_endpoint", fixed = TRUE)
+  expect_match(text, "bivariate_gaussian_q8_endpoint_recovery", fixed = TRUE)
+  expect_match(
+    text,
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic",
+    fixed = TRUE
+  )
+  expect_match(text, "ready_existing_task", fixed = TRUE)
   expect_match(text, "source_test_audit", fixed = TRUE)
 })
 
@@ -457,8 +646,18 @@ test_that("Phase 18 structured-dependence workflow plan returns audit rows", {
     path = phase18_structured_workflow_registry_csv()
   )
   plan <- env$phase18_structured_dependence_workflow_plan(registry)
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "structured_dependence",
+    admission_status = c(
+      "ready_grid",
+      "diagnostic_only",
+      "hold_smoke_only",
+      "smoke_formal_admission"
+    )
+  )
 
-  expect_equal(nrow(plan), 7L)
+  expect_equal(nrow(plan), expected)
   expect_equal(sum(plan$admission_status == "ready_grid"), 4L)
   expect_equal(sum(plan$admission_status == "smoke_formal_admission"), 1L)
   expect_equal(sum(plan$admission_status == "hold_smoke_only"), 1L)
@@ -515,8 +714,13 @@ test_that("Phase 18 structured-dependence plan can omit held rows", {
     registry,
     include_held = FALSE
   )
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "structured_dependence",
+    admission_status = c("ready_grid", "smoke_formal_admission")
+  )
 
-  expect_equal(nrow(plan), 5L)
+  expect_equal(nrow(plan), expected)
   expect_false(any(
     plan$admission_status %in%
       c(
@@ -540,9 +744,19 @@ test_that("Phase 18 structured-dependence plan excludes blocked rows", {
   registry <- rbind(registry, blocked)
 
   plan <- env$phase18_structured_dependence_workflow_plan(registry)
+  expected <- phase18_registry_expected_count(
+    registry,
+    workflow_lane = "structured_dependence",
+    admission_status = c(
+      "ready_grid",
+      "diagnostic_only",
+      "hold_smoke_only",
+      "smoke_formal_admission"
+    )
+  )
 
   expect_false("mock_blocked_structured_dependence" %in% plan$lane_id)
-  expect_equal(nrow(plan), 7L)
+  expect_equal(nrow(plan), expected)
 })
 
 test_that("Phase 18 correlation-block workflow plan separates interval states", {
@@ -554,8 +768,8 @@ test_that("Phase 18 correlation-block workflow plan separates interval states", 
   )
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
-  expect_equal(nrow(plan), 6L)
-  expect_equal(sum(plan$admission_status == "ready_grid"), 3L)
+  expect_equal(nrow(plan), 12L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 9L)
   expect_equal(sum(plan$admission_status == "ready_or_smoke"), 1L)
   expect_equal(sum(plan$admission_status == "diagnostic_only"), 2L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
@@ -615,6 +829,60 @@ test_that("Phase 18 correlation-block plan routes q2 status artifacts", {
   expect_equal(plan$actions_task[structured_q2], "correlation_block_status")
 })
 
+test_that("Phase 18 correlation-block plan dispatches the q2 scale task", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_correlation_block_workflow_plan(registry)
+  scale_q2 <- plan$lane_id == "bivariate_gaussian_scale_q2"
+
+  expect_true(any(scale_q2))
+  expect_equal(plan$dispatch_status[scale_q2], "ready_existing_task")
+  expect_equal(plan$workflow_helper[scale_q2], "phase18_actions_main")
+  expect_equal(plan$actions_task[scale_q2], "biv_gaussian_q2_scale")
+  expect_equal(
+    plan$interval_policy[scale_q2],
+    "direct_or_layer_specific_q2"
+  )
+  expect_true(nzchar(plan$audit_focus[scale_q2]))
+})
+
+test_that("Phase 18 correlation-block plan dispatches the q2 scale-slope tasks", {
+  env <- new.env(parent = globalenv())
+  source(phase18_structured_workflow_registry_script(), local = env)
+
+  registry <- env$phase18_read_structured_workflow_registry(
+    path = phase18_structured_workflow_registry_csv()
+  )
+  plan <- env$phase18_correlation_block_workflow_plan(registry)
+  scale_slope_q2 <- plan$lane_id == "bivariate_gaussian_scale_slope_q2"
+  scale_slope_recovery_q2 <-
+    plan$lane_id == "bivariate_gaussian_scale_slope_q2_recovery"
+
+  expect_true(any(scale_slope_q2))
+  expect_true(any(scale_slope_recovery_q2))
+  expect_equal(plan$dispatch_status[scale_slope_q2], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[scale_slope_q2],
+    "biv_gaussian_q2_scale_slope"
+  )
+  expect_equal(
+    plan$dispatch_status[scale_slope_recovery_q2],
+    "ready_existing_task"
+  )
+  expect_equal(
+    plan$actions_task[scale_slope_recovery_q2],
+    "biv_gaussian_q2_scale_slope_recovery"
+  )
+  expect_equal(
+    plan$interval_policy[scale_slope_recovery_q2],
+    "direct_or_layer_specific_q2"
+  )
+})
+
 test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
   env <- new.env(parent = globalenv())
   source(phase18_structured_workflow_registry_script(), local = env)
@@ -627,7 +895,7 @@ test_that("Phase 18 correlation-block plan can omit diagnostic rows", {
     include_diagnostic = FALSE
   )
 
-  expect_equal(nrow(plan), 4L)
+  expect_equal(nrow(plan), 10L)
   expect_false(any(plan$admission_status == "diagnostic_only"))
   expect_false(any(grepl("q4", plan$block_q, fixed = TRUE)))
 })
@@ -642,7 +910,7 @@ test_that("Phase 18 correlation-block plan excludes blocked rows", {
   plan <- env$phase18_correlation_block_workflow_plan(registry)
 
   expect_false("count_labelled_q2_q4" %in% plan$lane_id)
-  expect_equal(nrow(plan), 6L)
+  expect_equal(nrow(plan), 12L)
 })
 
 test_that("Phase 18 correlation-block wrapper target plan is read-only", {
@@ -763,8 +1031,8 @@ test_that("Phase 18 family-surface workflow plan keeps blocked rows visible", {
   )
   plan <- env$phase18_family_surface_workflow_plan(registry)
 
-  expect_equal(nrow(plan), 11L)
-  expect_equal(sum(plan$admission_status == "ready_grid"), 6L)
+  expect_equal(nrow(plan), 13L)
+  expect_equal(sum(plan$admission_status == "ready_grid"), 8L)
   expect_equal(sum(plan$admission_status == "ready_smoke"), 1L)
   expect_equal(sum(plan$admission_status == "blocked"), 3L)
   expect_equal(sum(plan$admission_status == "design_only"), 1L)
@@ -822,7 +1090,7 @@ test_that("Phase 18 family-surface plan can omit blocked rows", {
     include_blocked = FALSE
   )
 
-  expect_equal(nrow(plan), 7L)
+  expect_equal(nrow(plan), 9L)
   expect_false(any(plan$admission_status %in% c("blocked", "design_only")))
 })
 
@@ -843,7 +1111,7 @@ test_that("Phase 18 family-surface status tables summarize registry statuses", {
       "distribution_summary"
     )
   )
-  expect_equal(nrow(tables$row_summary), 11L)
+  expect_equal(nrow(tables$row_summary), 13L)
   expect_true(all(tables$row_summary$status_scope == "registry_status_only"))
   expect_equal(sum(tables$category_summary$n), nrow(tables$row_summary))
   expect_equal(sum(tables$distribution_summary$n), nrow(tables$row_summary))
@@ -857,7 +1125,7 @@ test_that("Phase 18 family-surface status tables summarize registry statuses", {
   category <- tables$category_summary
   expect_equal(
     unname(category$n[category$admission_category == "admitted"]),
-    6L
+    8L
   )
   expect_equal(
     unname(category$n[category$admission_category == "smoke_only"]),
@@ -896,7 +1164,7 @@ test_that("Phase 18 family-surface status tables can omit blocked rows", {
     include_blocked = FALSE
   )
 
-  expect_equal(nrow(tables$row_summary), 7L)
+  expect_equal(nrow(tables$row_summary), 9L)
   expect_false(any(
     tables$row_summary$admission_status %in% c("blocked", "design_only")
   ))
@@ -904,7 +1172,7 @@ test_that("Phase 18 family-surface status tables can omit blocked rows", {
     tables$category_summary$admission_category %in%
       c("blocked", "design_only")
   ))
-  expect_equal(sum(tables$distribution_summary$n), 7L)
+  expect_equal(sum(tables$distribution_summary$n), 9L)
 })
 
 test_that("Phase 18 family-surface status tables are empty-shaped", {
@@ -949,7 +1217,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("random_slopes", bundle$plan_counts$workflow_plan)
     ],
-    10L
+    19L
   )
   expect_equal(
     bundle$plan_counts$n[
@@ -961,13 +1229,13 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("correlation_blocks", bundle$plan_counts$workflow_plan)
     ],
-    6L
+    12L
   )
   expect_equal(
     bundle$plan_counts$n[
       match("family_surface", bundle$plan_counts$workflow_plan)
     ],
-    11L
+    13L
   )
 })
 
@@ -984,14 +1252,15 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   structured <- counts$workflow_plan == "structured_dependence"
   correlation <- counts$workflow_plan == "correlation_blocks"
 
-  expect_equal(counts$existing_actions_tasks[family], 7L)
+  expect_equal(counts$existing_actions_tasks[family], 9L)
   expect_equal(counts$blocked[family], 3L)
   expect_equal(counts$design_only[family], 1L)
-  expect_equal(counts$existing_actions_tasks[random], 10L)
+  expect_equal(counts$existing_actions_tasks[random], 19L)
   expect_equal(counts$wrapper_targets[random], 0L)
+  expect_equal(counts$design_only[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)
   expect_equal(counts$wrapper_targets[structured], 0L)
-  expect_equal(counts$existing_actions_tasks[correlation], 6L)
+  expect_equal(counts$existing_actions_tasks[correlation], 12L)
   expect_equal(counts$wrapper_targets[correlation], 0L)
   expect_equal(counts$ready_or_smoke[correlation], 1L)
   expect_equal(counts$diagnostic_only[correlation], 2L)

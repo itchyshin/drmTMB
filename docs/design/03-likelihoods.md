@@ -36,6 +36,7 @@ Current examples:
 | `beta_binomial()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means more extra-binomial variation |
 | `nbinom2()` | `sigma` | NB2 size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
 | `student()` | `sigma`, `nu` | scale plus degrees of freedom | larger `sigma` means wider core scale; larger `nu` means lighter tails |
+| `skew_normal()` | `sigma`, `nu` | public response SD plus residual slant | larger `sigma` means larger residual SD; positive `nu` means right-skewed residuals |
 
 Names that are not scale slots should stay specific. For example, ordinal
 `theta` values are cutpoints, not a precision or variability parameter, and
@@ -60,7 +61,7 @@ The corresponding R density call uses standard deviation, as in
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,
-`"student"`, `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
+`"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
 `"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
 `"hurdle_nbinom2"`, `"zi_nbinom2"`, and `"biv_gaussian"`. Before calling
 the TMB template, `make_tmb_data()` turns
@@ -71,8 +72,9 @@ is the current routing contract:
 | TMB `model_type` | User-facing route | R builder | TMB branch purpose |
 |---:|---|---|---|
 | `1` | `family = gaussian()` | `drm_build_gaussian_ls_spec()` | Univariate Gaussian location-scale models, including ordinary `mu` random effects, residual-scale `sigma` random effects, `sd(group) ~ ...` random-effect scale models, `meta_V(V = V)` with deprecated `meta_known_V(V = V)` as a compatibility alias, fitted intercept-only `phylo()`, `spatial()`, `animal()`, and `relmat()` effects in `mu` and/or `sigma`, one-slope structured `mu` effects, one q=1 `phylo_interaction()` pair field in `mu`, the first opt-in fixed-effect Gaussian aggregation path, the MD1 observed-response mask for missing Gaussian responses with complete predictors, MD3a/MD3b/MD4 `mi()` missing-predictor routes with fixed-effect, grouped, or explicit intercept-only structured Gaussian covariate models, the MD6a fixed-effect Bernoulli/logit route for one binary missing predictor, the MD6b fixed-effect cumulative-logit route for one ordered categorical missing predictor, the MD6c fixed-effect baseline-category softmax route for one unordered categorical missing predictor, the MD7a fixed-effect beta/quadrature route for one strict proportion missing predictor, the MD7b fixed-effect Poisson finite-sum route for one count missing predictor, the MD7c fixed-effect NB2 finite-sum route for one overdispersed count missing predictor, the MD7d fixed-effect zero-one beta route for one boundary-proportion missing predictor, the MD7e fixed-effect zero-truncated NB2 route for one positive-count missing predictor, the MD7f fixed-effect beta-binomial finite-sum route for one denominator-aware proportion missing predictor, the MD8a fixed-effect lognormal quadrature route for one positive continuous missing predictor, the MD8b fixed-effect Gamma quadrature route for one positive continuous missing predictor, and the MD8c fixed-effect Tweedie route for one non-negative semi-continuous missing predictor with exact zeros in a Gaussian location model. |
-| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching source-tested q=4 and q=6 `mu1`/`mu2` location covariance blocks, one same-response `mu`/`sigma` random-intercept covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
+| `2` | `family = biv_gaussian()`, `family = c(gaussian(), gaussian())`, or `family = list(gaussian(), gaussian())` | `drm_build_biv_gaussian_spec()` | Bivariate Gaussian location-scale-coscale models with `mu1`, `mu2`, `sigma1`, `sigma2`, and residual `rho12`, including complete-row dense known sampling covariance, independent-observation partial-response masks without dense known `V`, matching labelled `mu1`/`mu2` and `sigma1`/`sigma2` random-intercept covariance blocks, matching slope-only ordinary `mu1`/`mu2` covariance blocks, matching slope-only `sigma1`/`sigma2` scale covariance blocks, matching q=4 and q=6 `mu1`/`mu2` location covariance blocks with smoke artifact routing, one same-response `mu`/`sigma` random-intercept or matching slope-only covariance pair, intercept-only ordinary q=4 covariance blocks across all four bivariate distributional parameters, bivariate location random-effect SD formulas `sd1(group)` / `sd2(group)`, matching intercept-only phylogenetic random intercepts in `mu1` and `mu2`, and constant all-four phylogenetic location-scale blocks in either full q=4 or block-diagonal two-q2 form. |
 | `3` | `family = student()` | `drm_build_student_ls_spec()` | Univariate Student-t location-scale-shape models with `mu`, `sigma`, `nu = 2 + exp(eta_nu)`, and ordinary `mu` random intercepts or independent numeric slopes. |
+| `17` | `family = skew_normal()` | `drm_build_skew_normal_ls_spec()` | Univariate fixed-effect skew-normal location-scale-shape models with public `mu = E[y]`, public `sigma = SD[y]`, and residual slant `nu`; random effects, known covariance, structured terms, bivariate responses, `rho12`, and latent `skew(id)` syntax are rejected. |
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
@@ -86,6 +88,7 @@ is the current routing contract:
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate fixed-effect hurdle negative-binomial 2 models, with `hu` as the hurdle-zero probability and nonzero counts drawn from the zero-truncated NB2 component. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate fixed-effect cumulative-logit ordinal location models, with ordered cutpoints and fixed latent logistic scale. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
+| `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate fixed-effect Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`. |
 | `93` | no public route | direct test construction only | Hidden q=4 phylogenetic precision-prior parity branch using `theta_phylo` and `log_sd_phylo`. |
 | `94` | no public route | direct test construction only | Hidden q=4 correlated phylogenetic precision-prior parity branch used to test the matrix-normal sparse augmented A-inverse objective in isolation. |
 | `95` | no public route | direct test construction only | Hidden q=4 bivariate Gaussian likelihood probe for labelled covariance-block contributions. |
@@ -102,6 +105,46 @@ covariance-block contribution maps, and non-centred covariance transforms
 against the R algebra helpers. The C++ modularization source map in
 `docs/design/36-cpp-modularization-source-map.md` records how to keep those
 hidden probes separate during future file-splitting work.
+
+## Implemented Bernoulli/Binomial Response Branch
+
+`drmTMB#569` adds the first primary Bernoulli/binomial response route. The
+public syntax is:
+
+```r
+drmTMB(bf(y01 ~ x), family = stats::binomial(), data = dat)
+drmTMB(bf(cbind(successes, failures) ~ x), family = stats::binomial(), data = dat)
+```
+
+The first TMB branch is a fixed-effect `mu` model only:
+
+```text
+Y_i ~ Binomial(n_i, mu_i)
+eta_i = X_mu[i, ] beta_mu
+mu_i = logistic(eta_i)
+```
+
+For 0/1 responses, `n_i = 1`. For two-column responses, `n_i` is
+`successes_i + failures_i`. The negative log likelihood includes the
+binomial normalizing constant:
+
+```text
+nll_i = -log choose(n_i, Y_i)
+        - Y_i log(mu_i)
+        - (n_i - Y_i) log(1 - mu_i)
+```
+
+using stable log-probability calculations near 0 and 1. Including the constant
+keeps `logLik()`, AIC, and BIC aligned with `stats::glm()` for overlapping
+fixed-effect logit fits.
+
+The first slice deliberately has no public `sigma`, no `rho12`, no random
+effects, no structured effects, no bivariate route, no mixed-response route,
+no non-logit link, and no `engine = "julia"` claim. Proportions plus
+`weights`, `weights = trials`, and `successes / trials` are rejected because
+top-level `weights` remain likelihood weights, not denominators. Extra-binomial
+variation remains the job of `beta_binomial()`, while continuous proportions
+belong to `beta()` or `zero_one_beta()`.
 
 ## Gaussian Aggregation Branch
 
@@ -1074,6 +1117,35 @@ mu_i = eta_mu_i
 sigma_i = exp(eta_sigma_i)
 ```
 
+### Numerical guard on the scale linear predictor
+
+The Gaussian density applies a smooth soft-clamp to the per-observation
+log-scale `eta_sigma` before exponentiation. The clamp is **exactly the
+identity** inside the band `[-12, 12]` and saturates C1-smoothly (via a `tanh`
+margin) only beyond each bound, with overall range `[-15, 15]` (so `sigma` is
+bounded to roughly `[3e-7, 3.3e6]`):
+
+```text
+eta_sigma_guarded_i = softclamp(eta_sigma_i, lo = -12, hi = 12, margin = 3)
+sigma_i = exp(eta_sigma_guarded_i)
+```
+
+Because it is exactly the identity inside the band, any fit whose fitted
+`log(sigma)` stays within `[-12, 12]` -- that is, every well-posed Gaussian fit
+-- is unchanged to the bit; the clamp acts only on a runaway scale. (An earlier
+pure-softplus form was rejected because it leaked a small bias into the central
+band and broke exact-equality and cross-path tests.) Its purpose is purely
+numerical: a per-observation
+scale random effect -- for example a phylogenetic field on `sigma` with one
+observation per group -- can otherwise drive `eta_sigma` to extreme values,
+overflow the Gaussian density, and break the inner Laplace solve. For any
+well-posed fit the clamp is inactive and does not change the result. It is a
+guard, not a model feature: it does not make a per-group scale field
+identifiable from a single observation per group, so a fit that relies on the
+clamp will still report non-convergence or a non-positive-definite Hessian (see
+`docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md`). The same
+guard applies to `sigma1` and `sigma2` in the bivariate Gaussian density.
+
 Matching R syntax:
 
 ```r
@@ -1397,11 +1469,56 @@ Implementation notes:
   `tests/testthat/test-gaussian-random-intercepts.R`.
 - Random-effect scale recovery tests live in
   `tests/testthat/test-gaussian-random-effect-scale.R`.
-- Comparator tests against `lme4` for overlapping Gaussian ML random-effect
-  models live in `tests/testthat/test-comparators.R`.
+- Comparator tests against `lme4` for overlapping Gaussian ML and first-slice
+  REML random-effect models live in `tests/testthat/test-comparators.R`.
+  Known-`V` REML tests in the same file compare estimates against `metafor`
+  and the restricted log likelihood against an independent full Gaussian REML
+  calculation.
 - The univariate likelihood supports optional known sampling covariance via
   `meta_V(V = V)`, with deprecated `meta_known_V(V = V)` as a compatibility
   alias. It has no residual correlation parameter.
+
+### First-Slice Gaussian REML
+
+`drmTMB(..., REML = TRUE)` uses restricted maximum likelihood for the first
+ordinary univariate Gaussian mixed-model and known-`V` meta-analysis slices.
+The implemented route keeps the same Gaussian joint likelihood in
+`src/drmTMB.cpp`, but asks `TMB::MakeADFun()` to integrate the `beta_mu`
+fixed-effect vector together with the ordinary latent `mu` random effects. This
+gives the restricted likelihood for the Gaussian mean structure while retaining
+conditional modes for `beta_mu`, the ordinary random effects, and the variance
+parameters.
+
+The current REML surface is intentionally narrower than the ML Gaussian surface.
+It supports dense full-rank `mu` fixed-effect designs, ordinary `mu` random
+intercepts or numeric slopes, diagonal or dense known sampling covariance
+through `meta_V(V = V)`, intercept-only `sigma`, complete responses, and unit
+likelihood weights. It rejects bivariate Gaussian models, non-Gaussian models,
+missing-data routes, Gaussian row aggregation, sparse fixed-effect matrices,
+structured `phylo()`/`spatial()`/`animal()`/`relmat()` effects, direct `sd()`
+or `sd_phylo()` scale formulae, `sigma` random effects, predictor-dependent
+`sigma`, and q > 2 labelled covariance blocks until each neighbour has its own
+comparator or simulation evidence.
+
+For diagonal or dense `meta_V(V = V)`, `drmTMB` reports the full restricted
+Gaussian log likelihood:
+
+```text
+-0.5 * ((n - p) log(2 pi) + log|Sigma| +
+        log|X' Sigma^{-1} X| + r' Sigma^{-1} r)
+```
+
+where `Sigma` is the total fitted observation covariance after known sampling
+covariance and fitted heterogeneity have been added. `metafor` reports the
+same REML estimates under a log-likelihood convention shifted by
+`0.5 * log|X'X|`; comparator tests record this expected fixed-design determinant
+shift.
+
+For model selection, REML is not the default. AIC/BIC comparisons across
+different fixed-effect formulas should use ML (`REML = FALSE`) because REML
+integrates over the fitted fixed-effect design. REML is the Gaussian
+mixed-model option for variance-component estimation within a fixed mean
+structure.
 
 ## Implemented Meta-Analytic Gaussian Regression
 
@@ -1490,18 +1607,16 @@ and recovery evidence exists.
 For applied examples, the runnable Student-t question is a sensitivity question:
 do conclusions about the location `mu` and scale `sigma` change when the
 likelihood estimates the tail-shape parameter `nu` rather than assuming
-Gaussian residual tails? The fitted fallback for planned skew-normal models is
-this Student-t comparison plus the Gaussian location-scale model; it is not
-evidence for residual asymmetry.
+Gaussian residual tails? This is complementary to `skew_normal()`, which targets
+residual asymmetry rather than heavy tails.
 
-## Planned Skew-Normal Location-Scale-Shape Gate
+## Implemented Skew-Normal Location-Scale-Shape
 
-The future skew-normal path is for continuous responses where residual
-asymmetry is part of the scientific question. It is not implemented yet. The
-candidate first implementation uses public moment parameters and may transform
-internally to an Azzalini-style skew-normal density. Public `mu` is the
-response mean, public `sigma` is the response standard deviation, and `nu` is
-the slant or shape parameter:
+The first skew-normal path is for continuous responses where residual asymmetry
+is part of the scientific question. It uses public moment parameters and
+transforms internally to an Azzalini-style skew-normal density. Public `mu` is
+the response mean, public `sigma` is the response standard deviation, and `nu`
+is the slant or shape parameter:
 
 ```text
 eta_mu_i = X_mu[i, ] beta_mu
@@ -1518,20 +1633,22 @@ log f(y_i) = log(2) - log(omega_i) + log phi(z_i) + log Phi(nu_i z_i)
 ```
 
 Here `phi()` and `Phi()` are the standard normal density and distribution
-function. The sign convention is part of the proposed public contract:
-`nu_i = 0` gives the Gaussian location-scale likelihood, `nu_i > 0` gives
-right-skewed residuals, and `nu_i < 0` gives left-skewed residuals. This sign
-mapping must be checked against the trusted comparator before implementation.
+function. The TMB branch evaluates the last term as
+`log(Phi(nu_i z_i) + 1e-300)` to avoid `log(0)` in extreme tails. The sign
+convention is part of the public contract: `nu_i = 0` gives the Gaussian
+location-scale likelihood, `nu_i > 0` gives right-skewed residuals, and
+`nu_i < 0` gives left-skewed residuals. Source tests check this orientation
+through the third central moment and deterministic recovery cases.
 
 The transform makes `mu_i = E[y_i]` and `sigma_i = SD[y_i]` by construction.
 That keeps `fitted()` and `sigma()` aligned with the public response-scale
-semantics used by the other fixed-effect families. It also makes
-`brms::skew_normal()`, `glmmTMB::skewnormal()`, and
-`RTMBdist::dskewnorm2()` the natural fitted-model or density comparators for
-the first implementation, while `sn::dsn()` remains useful after transforming
-to native `xi`, `omega`, and `alpha`.
+semantics used by the other fixed-effect families. Source density-contract
+tests record the scale map: `RTMBdist::dskewnorm2()` and similar moment-scale
+APIs are natural public-scale comparators, while `sn::dsn()` and
+`RTMBdist::dskewnorm()` remain useful after transforming to native `xi`,
+`omega`, and `alpha`.
 
-Matching future R syntax:
+Matching R syntax:
 
 ```r
 drmTMB(
@@ -1541,30 +1658,19 @@ drmTMB(
 )
 ```
 
-The first implementation should be fixed-effect and univariate. It should
-start with intercept-only or simple fixed-effect `nu` formulas, reject random
-effects in `sigma` or `nu`, and reject bivariate, `rho12`,
-`meta_V(V = V)`, deprecated `meta_known_V(V = V)`, `phylo()`, and `spatial()`
-paths until
-separate recovery, normal-limit, false-positive heteroscedasticity, and
-comparator tests exist. Treat this section as an implementation gate for issue
-#3, not as evidence that `skew_normal()` is available.
-
-Until that gate is complete, user examples should use only planned syntax:
-
-```r
-# Planned, not fitted yet:
-drmTMB(
-  bf(y ~ x1, sigma ~ x2, nu ~ x3),
-  family = skew_normal(),
-  data = dat
-)
-```
-
-The next fitted action is to run Gaussian and Student-t sensitivity models,
-then state that skewness remains unmodelled. Do not present `nu ~ x` under
-`skew_normal()` as runnable until the density branch, prediction contract,
-profile targets, diagnostics, and recovery tests exist.
+The first implementation is fixed-effect and univariate. It supports
+intercept-only and ordinary fixed-effect `nu` formulas and rejects random
+effects in `mu`, `sigma`, or `nu`; `sd(group)` scale models; bivariate
+responses; `rho12`; `meta_V(V = V)`; deprecated `meta_known_V(V = V)`;
+`phylo()`, `spatial()`, `animal()`, and `relmat()` structured terms; aliases
+such as `skew ~ x`; and latent `skew(id)` syntax. Focused tests cover the
+density normalization, native-density comparison, normal limit, positive and
+negative skew recovery, weak-skew recovery, predictor-dependent `nu`, Gaussian
+false-positive behaviour, simulation output, residuals, fixed-effect interval
+visibility, `check_drm()` diagnostics, and malformed neighbours. Formal
+multi-replicate operating-characteristic grids and external fitted-model
+comparators remain future evidence, so this route should be described as a
+first slice rather than a mature general-purpose family.
 
 ## Planned Skew-T Shape Gate
 
@@ -1789,7 +1895,8 @@ such as `(0 + habitat_score | plot)` enter the logit-`mu` predictor.
 Correlated slopes, labelled covariance blocks, `sigma` random effects, exact
 0/1 boundary mass through `zero_one_beta()`, known sampling covariance,
 structured terms, and bivariate or mixed beta models are later phases. Use
-`beta_binomial()` for counted successes out of known trials.
+`stats::binomial()` for ordinary event probabilities and `beta_binomial()` for
+overdispersed counted successes out of known trials.
 
 ## Implemented Zero-One Beta Mean-Scale-Boundary
 
@@ -2536,9 +2643,9 @@ location random effects. They are not residual `rho12`. The four SDs are direct
 correlations are derived rows in `corpars$re_cov`, `corpairs()`, and
 `summary(fit)$covariance` with unavailable direct intervals.
 
-The same location-only machinery also supports matching source-tested q=6
-blocks when the two response formulas contain the same intercept plus two
-numeric location coefficients:
+The same location-only machinery also supports matching q=6 blocks with smoke
+artifact routing when the two response formulas contain the same intercept plus
+two numeric location coefficients:
 
 ```r
 drmTMB(
@@ -2559,8 +2666,8 @@ correlations. The q=6 SDs are direct `log_sd_re_cov` profile targets, and the
 15 correlations are derived-unavailable interval rows in `corpars$re_cov`,
 `corpairs()`, and `summary(fit)$covariance`.
 
-Broader planned double-hierarchical bivariate syntax with random slopes and
-scale random effects:
+Broader planned double-hierarchical bivariate syntax with simultaneous
+location and scale random slopes:
 
 ```r
 drmTMB(
@@ -2577,9 +2684,9 @@ drmTMB(
 ```
 
 This all-four one-slope endpoint would have eight latent effects per group and
-therefore 8 SDs and 28 correlations. It remains planned until residual-scale
-slope blocks, endpoint naming, diagnostics, recovery tests, and interval-status
-rules exist.
+therefore 8 SDs and 28 correlations. It remains planned until endpoint naming,
+all-four block assembly, diagnostics, recovery tests, and interval-status rules
+exist.
 
 Implementation notes:
 
@@ -2599,12 +2706,15 @@ Implementation notes:
 - Matching labelled random intercepts in `mu1`/`mu2` and `sigma1`/`sigma2` are
   implemented as same-parameter group-level covariance blocks. They cannot yet
   be combined with `meta_V(V = V)`.
-- Matching slope-only, q=4 one-slope, and source-tested q=6 two-slope labelled
+- Matching slope-only, q=4 one-slope, and q=6 two-slope labelled
   blocks in `mu1`/`mu2` are implemented as ordinary group-level location
-  covariance blocks. They cannot yet be combined with `meta_V(V = V)`,
-  residual-scale slopes, or same-response location-scale slope covariance.
-- One same-response `mu`/`sigma` random-intercept covariance pair is implemented
-  for `mu1` with `sigma1` or `mu2` with `sigma2`.
+  covariance blocks with smoke artifact routing for the q=4 and q=6 location
+  routes. They cannot yet be combined with `meta_V(V = V)`, residual-scale
+  slopes, or same-response location-scale slope covariance inside one larger
+  block.
+- One same-response `mu`/`sigma` covariance pair is implemented for `mu1` with
+  `sigma1` or `mu2` with `sigma2`; the fitted q2 cases are matching random
+  intercepts or matching slope-only terms such as `(0 + x | p | id)`.
 - Reusing the same label in all four `mu1`, `mu2`, `sigma1`, and `sigma2`
   random-intercept formulas fits one ordinary q=4 latent covariance block:
 
@@ -2637,14 +2747,14 @@ Implementation notes:
   `Cov(a1_l, a2_m) = rho_phylo tau1_l A_lm tau2_m`. These formulas replace
   endpoint location SD parameters only; they do not target residual `sigma1`,
   residual `sigma2`, q=4 location-scale endpoint SDs, or residual `rho12`.
-- Residual-scale bivariate slopes, same-response location-scale slope
-  covariance, all-four location-scale slope endpoints, `rho12` random effects,
-  phylogenetic random slopes, and predictor-dependent q=4 phylogenetic or
-  spatial correlations remain planned. The first ordinary matching slope-only
-  and source-tested q=4/q=6 location `mu1`/`mu2` blocks are implemented, as are
-  the first constant intercept-only bivariate phylogenetic/spatial q=4 blocks for
-  matching labelled terms in `mu1`, `mu2`, `sigma1`, and `sigma2`. The
-  structured q=4 path supports the full one-label block and the two-label
+- Residual-scale bivariate slope covariance, all-four location-scale slope
+  endpoints, `rho12` random effects, phylogenetic random slopes, and
+  predictor-dependent q=4 phylogenetic or spatial correlations remain planned.
+  The first ordinary matching slope-only, same-response q2 slope, and
+  smoke-artifact-routed q=4/q=6 location `mu1`/`mu2` blocks are implemented, as
+  are the first constant intercept-only bivariate phylogenetic/spatial q=4
+  blocks for matching labelled terms in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+  The structured q=4 path supports the full one-label block and the two-label
   block-diagonal fallback where admitted by the structured layer.
 - The selected q=2 predictor-dependent phylogenetic `corpair()` contract uses
   two independent unit tree fields and species-specific loadings. For each

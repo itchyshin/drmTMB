@@ -32,18 +32,20 @@ quantity each `sigma` formula models.
 | --- | --- | --- | --- | --- |
 | Continuous, symmetric residuals | `gaussian()` | `mu`, `sigma` | residual standard deviation | most mature path; non-Gaussian extensions are separate |
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | fixed effects only |
+| Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` is residual slant | fixed effects only |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | fixed effects only |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | fixed effects only |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
 | Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | exact 0/1 boundary values use `zero_one_beta()` |
 | Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | fixed effects only |
+| Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | fixed effects only; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | fixed effects only |
 | Count baseline or rate with exposure | `poisson(link = "log")` | `mu`, optional `zi` | no modelled `sigma` | ordinary non-zero-inflated `mu` random intercepts, independent slopes, and q=1 phylogenetic `mu` intercept implemented; `zi` random effects planned |
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary non-zero-inflated `mu` random intercepts, independent slopes, grouped `sigma` random intercepts, and q=1 phylogenetic `mu` intercept implemented; `sigma` slopes/structured effects and `zi` random effects planned |
 | Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | fixed effects only |
 | Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | fixed effects only; `hu` random effects planned |
 | Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | location-only; ordinal random effects and scale/discrimination planned |
-| Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and one same-response `mu`/`sigma` random-intercept pair implemented; richer covariance planned |
+| Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response `mu`/`sigma` intercept or slope-only covariance pairs implemented; richer covariance planned |
 
 The source-level family map in `docs/design/02-family-registry.md` records the
 links, shape or coscale slots, random-effect allowance, and test evidence
@@ -63,9 +65,11 @@ and ordinary NB2 also have q=1 structured `mu` intercept routes using one of
 Ordinary NB2 also
 has a first grouped overdispersion route, `sigma ~ z + (1 | id)`, on the
 log-`sigma` scale. Tweedie is currently fixed-effect only, with intercept-only
-`nu ~ 1`. Other non-Gaussian random-effect requests are still boundary checks:
-Tweedie random effects or predictor-dependent power, NB2 `sigma` slopes or
-structured effects, Student-t `nu` random effects, zero-inflation or hurdle random effects,
+`nu ~ 1`; skew-normal is currently fixed-effect only, with `nu` modelling
+residual slant. Other non-Gaussian random-effect requests are still boundary
+checks: Tweedie random effects or predictor-dependent power, skew-normal random
+effects or structured effects, NB2 `sigma` slopes or structured effects,
+Student-t `nu` random effects, zero-inflation or hurdle random effects,
 ordinal mixed models, non-count spatial/animal/`relmat()` structured effects,
 count structured slopes, simultaneous structured count effects, and correlated
 or labelled count random-slope blocks need their own likelihood and recovery
@@ -104,6 +108,7 @@ or comparator quantities:
 | `beta_binomial()` | extra-binomial scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means more among-trial probability variation |
 | `nbinom2()` | overdispersion scale `sigma` | size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
 | `student()` | scale `sigma`; shape `nu` | degrees of freedom `nu` | larger `sigma` widens the core scale; larger `nu` lightens tails |
+| `skew_normal()` | response SD `sigma`; slant `nu` | native skew-normal scale `omega` after moment transform | larger `sigma` widens residuals; positive `nu` gives right skew |
 
 So a `sigma` coefficient answers a variability question in the same direction
 across implemented mean-scale families. If a paper, package, or diagnostic
@@ -120,6 +125,7 @@ then transform those fitted quantities for the scale your reader needs.
 | --- | --- |
 | `gaussian()` | residual SD is `sigma`; residual variance is `sigma^2` |
 | `student()` | model scale is `sigma`; residual variance is `sigma^2 * nu / (nu - 2)` when `nu > 2` |
+| `skew_normal()` | response residual SD is `sigma`; `nu` controls residual asymmetry |
 | `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
 | `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
 | `tweedie()` | mean is `mu`; variance is `sigma^2 * mu^nu`, with `1 < nu < 2` |
@@ -192,6 +198,38 @@ effects, meta-analytic known covariance, phylogenetic terms, and bivariate
 Student-t models are planned later. The tutorial "Robust continuous responses"
 shows the equation, syntax, diagnostics, and a Gaussian comparison for this
 family.
+
+Skew-normal location-scale-shape models add `nu` for residual asymmetry:
+
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim \operatorname{SkewNormalMoment}(\mu_i, \sigma_i, \nu_i),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\nu_i
+  &= \delta_0 + \delta_1 \text{habitat}_i.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(y ~ temperature, sigma ~ treatment, nu ~ habitat),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+Use this first skew-normal path when the residual distribution is asymmetric
+after modelling the mean and residual scale. Here `mu` is the arithmetic
+response mean, `sigma` is the response standard deviation, and `nu` is the
+residual slant: positive values indicate right-skewed residuals, negative
+values indicate left-skewed residuals, and `nu = 0` reduces to the Gaussian
+location-scale likelihood. Random effects, `sd(group)`, known sampling
+covariance, phylogenetic or spatial terms, bivariate responses, residual
+`rho12`, and latent `skew(id)` syntax are planned later.
 
 Lognormal location-scale models are implemented for positive continuous
 responses such as biomass, body mass, concentration, time, and area:
@@ -339,8 +377,10 @@ proportion. `sigma(fit)` returns the public scale parameter, not beta
 precision; internally `phi = 1 / sigma^2`, so larger `sigma` means more
 variation around the mean. Responses equal to 0 or 1 use `zero_one_beta()`
 when those endpoints are structural outcomes.
-Percentages derived from counts should wait for `beta_binomial()` so the
-denominator remains part of the data. The tutorial
+Percentages derived from counts should keep their denominator. Use
+`stats::binomial(link = "logit")` for ordinary Bernoulli/binomial event
+probabilities with no extra-binomial variation, or `beta_binomial()` when
+success probabilities vary beyond binomial sampling. The tutorial
 [Proportions and success rates](proportion-beta-binomial.html) works through
 the bounded-response routes.
 
@@ -602,11 +642,45 @@ distribution.
 ## Bounded and ordered families
 
 Percentages derived from counts should keep their denominator. Use
-`beta_binomial()` when the response is a count of successes out of known trials
-rather than a continuous percentage. Write the response as
+`stats::binomial(link = "logit")` when the response is an event indicator or a
+count of successes out of known trials with ordinary binomial sampling
+variation. Write the response as `y01` for 0/1 data or
 `cbind(successes, failures)`, where
 `trials_i = successes_i + failures_i`; do not use
-`cbind(successes, trials)`.
+`weights = trials`, `successes / trials`, or `cbind(successes, trials)`.
+
+\[
+\begin{aligned}
+y_i \mid n_i, \mu_i
+  &\sim \operatorname{Binomial}(n_i, \mu_i),\\
+\operatorname{logit}(\mu_i)
+  &= \beta_0 + \beta_1 \text{habitat}_i,\\
+E[y_i / n_i]
+  &= \mu_i,\\
+\operatorname{Var}(y_i / n_i)
+  &= \mu_i(1 - \mu_i) / n_i.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(cbind(successes, failures) ~ habitat),
+  family = stats::binomial(link = "logit"),
+  data = dat
+)
+```
+
+For plain binomial models, `mu_i` is the fitted event probability. `fitted(fit)`
+returns probabilities; multiply by `successes_i + failures_i` when the
+scientific summary is the expected number of successes. The first slice is
+fixed-effect only and rejects factor responses, proportions with trial weights,
+random effects, structured effects, bivariate responses, and `engine =
+"julia"`.
+
+Use `beta_binomial()` when the response is still counted successes out of known
+trials but the data show extra-binomial variation. It uses the same
+`cbind(successes, failures)` denominator syntax and adds a modelled `sigma`
+parameter for among-row probability variation.
 
 \[
 \begin{aligned}
@@ -645,8 +719,8 @@ describes extra-binomial variation, not residual standard deviation.
 `fitted(fit)` returns probabilities; multiply by
 `successes_i + failures_i` when the scientific summary is the expected number
 of successes. The tutorial
-[Proportions and success rates](proportion-beta-binomial.html) gives a
-denominator-aware seed-germination example.
+[Proportions and success rates](proportion-beta-binomial.html) gives a plain
+event-probability example and a denominator-aware seed-germination example.
 
 Ordinal models are implemented first as fixed-effect univariate models with
 ordered cutpoints and a fixed latent logistic scale:

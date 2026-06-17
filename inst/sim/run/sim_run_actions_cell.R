@@ -4,17 +4,34 @@ phase18_actions_task_choices <- function() {
     "interval_heavy_summary",
     "truncated_nbinom2_mu_random_intercept",
     "proportion_fixed_effect",
+    "binomial_fixed_effect",
     "bounded_response_mu_random_intercept",
     "positive_continuous_fixed_effect",
     "tweedie_fixed_effect",
+    "skew_normal_fixed_effect",
     "count_structured_q1",
+    "poisson_mu_re_recovery",
+    "nbinom2_mu_re_recovery",
     "positive_continuous_mu_random_intercept",
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
     "correlation_block_status",
     "biv_gaussian_mu_slope",
+    "biv_gaussian_mu_slope_recovery",
     "biv_gaussian_q4_location",
+    "biv_gaussian_q4_location_recovery",
+    "biv_gaussian_q6_location",
+    "biv_gaussian_q6_location_recovery",
+    "biv_gaussian_q8_endpoint",
+    "biv_gaussian_q8_endpoint_recovery",
+    "biv_gaussian_q8_endpoint_staged_diagnostic",
+    "biv_gaussian_q2_scale",
+    "biv_gaussian_q2_scale_recovery",
+    "biv_gaussian_q2_scale_slope",
+    "biv_gaussian_q2_scale_slope_recovery",
+    "biv_gaussian_mu_sigma_slope",
+    "biv_gaussian_mu_sigma_slope_recovery",
     "spatial_mu_slope",
     "phylo_mu_slope",
     "animal_mu_slope",
@@ -179,6 +196,15 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend
     )
+  } else if (identical(task, "binomial_fixed_effect")) {
+    out <- phase18_write_binomial_fe_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
   } else if (identical(task, "bounded_response_mu_random_intercept")) {
     out <- phase18_write_bounded_response_mu_ri_grid_outputs(
       output_dir = output_dir,
@@ -206,6 +232,20 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend
     )
+  } else if (identical(task, "skew_normal_fixed_effect")) {
+    out <- phase18_write_skew_normal_fe_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      profile_parameters = profile_parameters,
+      profile_level = profile_level,
+      bootstrap_nsim = bootstrap_nsim,
+      bootstrap_cores = bootstrap_cores,
+      bootstrap_backend = bootstrap_backend,
+      cores = cores,
+      backend = backend
+    )
   } else if (identical(task, "count_structured_q1")) {
     conditions <- phase18_count_structured_q1_followup_conditions(
       condition_set = condition_set
@@ -218,6 +258,24 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       overwrite = overwrite,
       profile_parameters = profile_parameters,
       profile_level = profile_level,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "poisson_mu_re_recovery")) {
+    out <- phase18_write_poisson_mu_re_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "nbinom2_mu_re_recovery")) {
+    out <- phase18_write_nbinom2_mu_re_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
       cores = cores,
       backend = backend
     )
@@ -271,8 +329,125 @@ phase18_actions_main <- function(args = commandArgs(trailingOnly = TRUE)) {
       cores = cores,
       backend = backend
     )
+  } else if (identical(task, "biv_gaussian_mu_slope_recovery")) {
+    out <- phase18_write_biv_gaussian_mu_slope_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
   } else if (identical(task, "biv_gaussian_q4_location")) {
     out <- phase18_write_biv_gaussian_q4_location_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q4_location_recovery")) {
+    out <- phase18_write_biv_gaussian_q4_location_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q6_location")) {
+    out <- phase18_write_biv_gaussian_q6_location_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q6_location_recovery")) {
+    out <- phase18_write_biv_gaussian_q6_location_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q8_endpoint")) {
+    out <- phase18_write_biv_gaussian_q8_endpoint_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q8_endpoint_recovery")) {
+    out <- phase18_write_biv_gaussian_q8_endpoint_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q8_endpoint_staged_diagnostic")) {
+    out <- phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q2_scale")) {
+    out <- phase18_write_biv_gaussian_q2_scale_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q2_scale_recovery")) {
+    out <- phase18_write_biv_gaussian_q2_scale_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q2_scale_slope")) {
+    out <- phase18_write_biv_gaussian_q2_scale_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_q2_scale_slope_recovery")) {
+    out <- phase18_write_biv_gaussian_q2_scale_slope_recovery_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_mu_sigma_slope")) {
+    out <- phase18_write_biv_gaussian_mu_sigma_slope_grid_outputs(
+      output_dir = output_dir,
+      n_rep = n_rep,
+      master_seed = master_seed,
+      overwrite = overwrite,
+      cores = cores,
+      backend = backend
+    )
+  } else if (identical(task, "biv_gaussian_mu_sigma_slope_recovery")) {
+    out <- phase18_write_biv_gaussian_mu_sigma_slope_recovery_grid_outputs(
       output_dir = output_dir,
       n_rep = n_rep,
       master_seed = master_seed,
@@ -443,7 +618,9 @@ phase18_actions_source_dependencies <- function(task) {
     "sim/R/sim_runner.R",
     "sim/R/sim_aggregate.R",
     "sim/R/sim_uncertainty.R",
-    if (identical(task, "interval_heavy_summary")) "sim/R/sim_bootstrap.R",
+    if (task %in% c("interval_heavy_summary", "skew_normal_fixed_effect")) {
+      "sim/R/sim_bootstrap.R"
+    },
     phase18_actions_task_paths(task)
   ))
   for (path in paths) {
@@ -588,6 +765,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_proportion_fixed_effect_grid.R"
     ))
   }
+  if (identical(task, "binomial_fixed_effect")) {
+    return(c(
+      "sim/dgp/sim_dgp_binomial_fixed_effect.R",
+      "sim/fit/sim_summarise_binomial_fixed_effect.R",
+      "sim/run/sim_run_binomial_fixed_effect_smoke.R",
+      "sim/run/sim_summary_binomial_fixed_effect_smoke.R",
+      "sim/run/sim_write_binomial_fixed_effect_grid.R"
+    ))
+  }
   if (identical(task, "bounded_response_mu_random_intercept")) {
     return(c(
       "sim/dgp/sim_dgp_proportion_fixed_effect.R",
@@ -616,6 +802,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_tweedie_fixed_effect_grid.R"
     ))
   }
+  if (identical(task, "skew_normal_fixed_effect")) {
+    return(c(
+      "sim/dgp/sim_dgp_skew_normal_fixed_effect.R",
+      "sim/fit/sim_summarise_skew_normal_fixed_effect.R",
+      "sim/run/sim_run_skew_normal_fixed_effect_smoke.R",
+      "sim/run/sim_summary_skew_normal_fixed_effect_smoke.R",
+      "sim/run/sim_write_skew_normal_fixed_effect_grid.R"
+    ))
+  }
   if (identical(task, "count_structured_q1")) {
     return(c(
       "sim/dgp/sim_dgp_count_structured_q1.R",
@@ -623,6 +818,24 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_count_structured_q1_smoke.R",
       "sim/run/sim_summary_count_structured_q1_smoke.R",
       "sim/run/sim_write_count_structured_q1_grid.R"
+    ))
+  }
+  if (identical(task, "poisson_mu_re_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_poisson_mu_random_effect.R",
+      "sim/fit/sim_summarise_poisson_mu_random_effect.R",
+      "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
+      "sim/run/sim_summary_poisson_mu_random_effect_smoke.R",
+      "sim/run/sim_write_poisson_mu_re_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "nbinom2_mu_re_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_nbinom2_mu_random_effect.R",
+      "sim/fit/sim_summarise_nbinom2_mu_random_effect.R",
+      "sim/run/sim_run_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_summary_nbinom2_mu_random_effect_smoke.R",
+      "sim/run/sim_write_nbinom2_mu_re_recovery_grid.R"
     ))
   }
   if (identical(task, "positive_continuous_mu_random_intercept")) {
@@ -677,6 +890,15 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_write_biv_gaussian_mu_slope_grid.R"
     ))
   }
+  if (identical(task, "biv_gaussian_mu_slope_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_mu_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_mu_slope.R",
+      "sim/run/sim_run_biv_gaussian_mu_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_mu_slope_recovery.R",
+      "sim/run/sim_write_biv_gaussian_mu_slope_recovery_grid.R"
+    ))
+  }
   if (identical(task, "biv_gaussian_q4_location")) {
     return(c(
       "sim/dgp/sim_dgp_biv_gaussian_q4_location.R",
@@ -684,6 +906,112 @@ phase18_actions_task_paths <- function(task) {
       "sim/run/sim_run_biv_gaussian_q4_location_smoke.R",
       "sim/run/sim_summary_biv_gaussian_q4_location_smoke.R",
       "sim/run/sim_write_biv_gaussian_q4_location_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q4_location_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q4_location.R",
+      "sim/fit/sim_summarise_biv_gaussian_q4_location.R",
+      "sim/run/sim_run_biv_gaussian_q4_location_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q4_location_recovery.R",
+      "sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q6_location")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q6_location.R",
+      "sim/fit/sim_summarise_biv_gaussian_q6_location.R",
+      "sim/run/sim_run_biv_gaussian_q6_location_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q6_location_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q6_location_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q6_location_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q6_location.R",
+      "sim/fit/sim_summarise_biv_gaussian_q6_location.R",
+      "sim/run/sim_run_biv_gaussian_q6_location_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q6_location_recovery.R",
+      "sim/run/sim_write_biv_gaussian_q6_location_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q8_endpoint")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+      "sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R",
+      "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q8_endpoint_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+      "sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R",
+      "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R",
+      "sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q8_endpoint_staged_diagnostic")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+      "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q2_scale")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q2_scale.R",
+      "sim/fit/sim_summarise_biv_gaussian_q2_scale.R",
+      "sim/run/sim_run_biv_gaussian_q2_scale_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q2_scale_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q2_scale_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q2_scale_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q2_scale.R",
+      "sim/fit/sim_summarise_biv_gaussian_q2_scale.R",
+      "sim/run/sim_run_biv_gaussian_q2_scale_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q2_scale_recovery.R",
+      "sim/run/sim_write_biv_gaussian_q2_scale_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q2_scale_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R",
+      "sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R",
+      "sim/run/sim_write_biv_gaussian_q2_scale_slope_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_q2_scale_slope_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R",
+      "sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R",
+      "sim/run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_mu_sigma_slope")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_mu_sigma_slope.R",
+      "sim/run/sim_run_biv_gaussian_mu_sigma_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R",
+      "sim/run/sim_write_biv_gaussian_mu_sigma_slope_grid.R"
+    ))
+  }
+  if (identical(task, "biv_gaussian_mu_sigma_slope_recovery")) {
+    return(c(
+      "sim/dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R",
+      "sim/fit/sim_summarise_biv_gaussian_mu_sigma_slope.R",
+      "sim/run/sim_run_biv_gaussian_mu_sigma_slope_smoke.R",
+      "sim/run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R",
+      "sim/run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R"
     ))
   }
   if (identical(task, "spatial_mu_slope")) {

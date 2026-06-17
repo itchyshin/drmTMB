@@ -1,0 +1,10 @@
+{
+  "updated": "2026-06-17 05:04 MDT",
+  "active_work": [
+    {
+      "when": "now",
+      "who": "Codex",
+      "text": "Non-Ayumi finish path update: fixed-effect binomial GLM parity, a 500-replicate Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the numerical-guard ADEMP design, the skew-normal diagnostic pilot, and the q8 staged diagnostic artifact are banked; broader guard-class simulations, q8 coverage/power, same-response hardening, Julia bridge promotion, and release readiness remain partial or planned."
+    }
+  ]
+}

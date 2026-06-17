@@ -10,8 +10,8 @@
 - Residual-scale random intercepts and independent numeric random slopes are
   implemented on log-`sigma` in the `sigma` formula as
   `sigma ~ x + (1 | id)` and `sigma ~ x + (0 + w | id)`. Correlated
-  residual-scale slope blocks and labelled residual-scale slope covariance
-  remain planned.
+  univariate residual-scale slope blocks and labelled univariate
+  residual-scale slope covariance remain planned.
 - The first univariate Gaussian cross-formula covariance block is implemented
   for matching labelled `mu` and `sigma` random intercepts, such as
   `y ~ x + (1 | p | id)` with `sigma ~ z + (1 | p | id)`.
@@ -75,9 +75,9 @@
   complete count responses. Multiple missing predictors, missing non-Gaussian
   responses, non-binary missing predictors in non-Gaussian response models,
   grouped or structured non-Gaussian predictor models, transformed or
-  interacted `mi()` terms, EM/profile/REML engines, simulation-based imputation
-  summaries, response imputation, measurement-error models, and pigauto
-  interoperability remain planned.
+  interacted `mi()` terms, EM/profile engines, REML for explicit missing-data
+  routes, simulation-based imputation summaries, response imputation,
+  measurement-error models, and pigauto interoperability remain planned.
 - Bivariate Gaussian location-scale-coscale models are implemented with `mu1`,
   `mu2`, `sigma1`, `sigma2`, and `rho12` formulas. The first group-level
   bivariate covariance slices are implemented for matching labelled
@@ -88,10 +88,31 @@
   one ordinary q=4 location-scale covariance block with all six latent
   correlations. `check_drm()` reports a first q4 diagnostic for group
   replication, tiny component SDs, and near-boundary latent correlations.
-  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted as
-  source-tested first slices. Residual-scale slope blocks, same-response
-  location-scale slope covariance, random effects in `rho12`, and
-  predictor-dependent q=4 phylogenetic or spatial correlations are still
+  Matching q=4 and q=6 location blocks in `mu1` and `mu2` are also fitted with
+  smoke artifact routing. The matching residual-scale q=2 intercept block,
+  `sigma1 = ~ 1 + (1 | p | id)` with `sigma2 = ~ 1 + (1 | p | id)`, has smoke
+  and recovery artifact routing (`biv_gaussian_q2_scale`). The matching
+  residual-scale q=2 slope-only block,
+  `sigma1 = ~ x + (0 + x | p | id)` with
+  `sigma2 = ~ x + (0 + x | p | id)`, has smoke and recovery artifact routing
+  (`biv_gaussian_q2_scale_slope`). These two scale blocks report direct scale
+  SDs in `sdpars$sigma`; the scale-scale correlations are group-level
+  `corpars$sigma` rows and are separate from residual `rho12`. Matching
+  same-response q=2 location-scale slope-only blocks, such as
+  `mu1 = y1 ~ x + (0 + x | p | id)` with
+  `sigma1 = ~ x + (0 + x | p | id)`, are also fitted with smoke and recovery
+  artifact routing (`biv_gaussian_mu_sigma_slope`). The 2026-06-06 local
+  500-replicate formal audit for that route is diagnostic rather than
+  promotion evidence because convergence/positive-Hessian rates were 0.856 and
+  0.884 and all-replicate fixed-effect Wald coverage was 0.796-0.850. A
+  follow-up hardening audit refit the 130 weak replicates with stronger
+  controls and did not rescue any of them; all remained false-convergence,
+  `pdHess = FALSE` fits. The already-converged interval-available fits had
+  fixed-effect Wald coverage of 0.930-0.972, and endpoint profiles worked on
+  two clean representative fits for `rho12`, both slope SDs, and the
+  same-response correlation, but broad profile/bootstrap coverage remains
+  unrun. Random effects in `rho12`
+  and predictor-dependent q=4 phylogenetic or spatial correlations are still
   planned; residual `rho12` should not be interpreted as a phylogenetic,
   spatial, or group-level covariance parameter.
 - Phylogenetic, coordinate-spatial, animal-model, and `relmat()` random slopes
@@ -136,6 +157,24 @@
   multiple animal/`relmat()` slopes, residual-scale structured slopes, slope
   correlations, predictor-dependent structured `corpair()` regressions, and
   generic direct-SD grammar remain planned.
+- A phylogenetic random field on the **scale** (the `sigma1` / `sigma2`
+  log-scale endpoints, and therefore the scale-scale and mean-scale q=4
+  phylogenetic correlations) is **weakly identified, not non-identified**, at
+  approximately one observation per tip. A per-species dispersion has no
+  within-species replication to separate it from residual noise, so the
+  likelihood is nearly flat in that direction; plain ML can diverge or sit on a
+  near-flat ridge (`convergence = 1`, `pdHess = FALSE`, and the tiny-endpoint-SD
+  note in `check_drm()`). A prior or penalty is what makes the component
+  estimable, which is why a Bayesian fit returns a bounded but prior-sensitive
+  estimate (de Villemereuil & Nakagawa 2014; Nakagawa et al. 2025). The
+  supported analysis at one record per species is the mean-side phylogenetic
+  model with a fixed-effect `sigma ~ predictors` scale (two location SDs, the
+  mean-mean phylogenetic correlation, and residual `rho12`). The scale-side
+  phylogenetic block needs either within-species replication (about five to ten
+  records per species) or an explicit penalty/prior (the planned
+  `estimator = "penalized"` path, or a Bayesian fit with a prior-sensitivity
+  analysis). `pdHess = FALSE` here is a Wald-inference warning, not a reason to
+  discard the point fit.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`
@@ -211,9 +250,19 @@
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
   slopes. Student-t `nu` is a fixed-effect tail-shape parameter; random effects
-  in `sigma` or `nu`, future skew-normal or skew-t shape random effects,
-  correlated Student-t slopes, and latent ID-level skewness syntax such as
-  `skew(id) ~ x` are not yet implemented.
+  in `sigma` or `nu`, skew-t shape random effects, correlated Student-t slopes,
+  and latent ID-level skewness syntax such as `skew(id) ~ x` are not yet
+  implemented.
+- Univariate skew-normal location-scale-shape models are implemented as a
+  fixed-effect first slice for residual asymmetry with `family = skew_normal()`.
+  Public `mu` is the response mean, public `sigma` is the response standard
+  deviation, and `nu` is residual slant on the identity scale. Random effects in
+  `mu`, `sigma`, or `nu`, `sd(group)` scale formulae, known sampling covariance,
+  structured effects, bivariate skew-normal models, residual `rho12`, latent
+  `skew(id)` syntax, and `skew` aliases are not yet implemented. The current
+  evidence is focused source tests plus a repeatable Phase 18 smoke/grid
+  artifact lane; it is not a formal 500- or 1000-replicate operating
+  characteristics result.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts
@@ -284,7 +333,16 @@
   fixed-effect `zoi` and `coi` likelihoods should come before random effects
   or covariance among bounded-response distributional parameters, and current
   `zoi`/`coi` formulas error with fixed-effect-first or random-effect boundary
-  messages.
+  messages. Beta-binomial evidence does not promote plain binomial interval
+  calibration.
+- Fixed-effect univariate Bernoulli/binomial logit models are implemented with
+  `family = stats::binomial(link = "logit")`. The first path supports explicit
+  0/1 event indicators and `cbind(successes, failures)` responses, stores
+  trial totals from row sums, includes the binomial normalizing constant for
+  `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
+  `sigma`. Non-logit links, factor response ordering, proportions plus
+  `weights`, `weights = trials`, random effects, structured effects,
+  bivariate or mixed responses, and `engine = "julia"` remain unsupported.
 - Phylogenetic random effects are implemented for univariate Gaussian `mu` and
   `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
   one numeric univariate Gaussian `mu` slope, matching bivariate Gaussian
@@ -350,9 +408,11 @@
   intercepts, one-slope structured `mu` paths, q=2 and q=4 structured
   covariance slices, first-slice known-relatedness Gaussian intercepts,
   plus one or more unlabelled Gaussian `mu` random-intercept scale formulae
-  through `sd(group) ~ x_group`, matched labelled bivariate Gaussian `mu1`/`mu2`,
-  `sigma1`/`sigma2`, and response-specific `mu`/`sigma` random-intercept
-  covariance blocks, and univariate Student-t models with fixed-effect `mu`,
+  through `sd(group) ~ x_group`, matched labelled bivariate Gaussian
+  `mu1`/`mu2` intercept and slope-only covariance blocks, matched labelled
+  bivariate Gaussian `sigma1`/`sigma2` intercept and slope-only covariance
+  blocks, response-specific `mu`/`sigma` random-intercept covariance blocks, and
+  univariate Student-t models with fixed-effect `mu`,
   `sigma`, and `nu` plus ordinary unlabelled `mu` random intercepts and
   independent numeric slopes.
   It also supports univariate lognormal models with `mu` and `sigma` on the
@@ -371,8 +431,9 @@
   intercept-only `mu`/`sigma` blocks, the first same-parameter bivariate
   intercept blocks, same-response bivariate `mu`/`sigma` pairs, and the ordinary
   all-four bivariate q4 intercept block plus the matching q4 and q6 bivariate
-  location blocks, correlated residual-scale random-slope blocks, labelled
-  `mu`/`sigma` random-slope covariance, slope-specific
+  location blocks, matching q2 bivariate `sigma1`/`sigma2` slope-only block,
+  and matching same-response bivariate `mu`/`sigma` random-slope covariance,
+  univariate correlated residual-scale random-slope blocks, slope-specific
   random-effect scale targets, labelled-block random-effect
   scale targets, bivariate random-effect scale targets, correlated Student-t
   random slopes, Student-t `sigma` or `nu` random effects, Student-t known-covariance
@@ -385,9 +446,10 @@
   zero-inflation with random effects or structured effects, non-Gaussian
   structured routes beyond the ordinary Poisson/NB2 q=1 `mu` intercept slices
   for `phylo()`, `spatial()`, `animal()`, and `relmat()`,
-  and additional non-Gaussian families beyond the first Student-t, lognormal,
-  Gamma, beta, beta-binomial, Poisson, negative-binomial, zero-inflated,
-  zero-truncated, and hurdle paths are planned but not yet implemented.
+  and additional non-Gaussian families beyond the first Student-t, skew-normal,
+  lognormal, Gamma, beta, beta-binomial, Poisson, negative-binomial,
+  zero-inflated, zero-truncated, and hurdle paths are planned but not yet
+  implemented.
 - Users should not substitute `sigma ~ x + (1 | id)` for `sd(id) ~ x_group`
   unless their scientific question is residual variability rather than
   among-group variation in the mean model.
@@ -401,7 +463,8 @@
   covariance remains `meta_V(V = V)`, not `weights`. Full dense
   `meta_V(V = V)` covariance paths currently reject non-unit weights because
   they are joint MVN likelihood blocks; deprecated `meta_known_V(V = V)` remains
-  a compatibility alias.
+  a compatibility alias. `REML = TRUE` is available for univariate Gaussian
+  known-`V` fits only inside the current intercept-only `sigma` REML boundary.
 - The first large-data storage controls are implemented through
   `drm_control(keep_data = FALSE, keep_model_frame = FALSE, keep_tmb_object = FALSE)`,
   including nested model-frame caches for direct-SD and fitted q=2

@@ -80,6 +80,9 @@ Current pilot files:
   sheet for the bivariate Gaussian residual `rho12` lane.
 - `docs/design/53-phase-18-student-shape-ademp.md` is the one-page ADEMP
   sheet for the fixed-effect Student-t shape `nu` lane.
+- `docs/design/167-model-selection-aic-bic-simulation-design.md` is the
+  article-support ADEMP sheet for AIC/BIC candidate-selection comparisons
+  across continuous-tail, count-zero, and scale-formula examples.
 - `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
   one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
   matching q=2 bivariate location-covariance lanes.
@@ -99,9 +102,14 @@ Current pilot files:
   run order, allowed claims, required artifact tables, MCSE targets, execution
   limits, and stop rules before larger power grids are dispatched.
 - `phase18_random_slope_registry_preflight()` in
-  `run/sim_phase18_structured_workflow_registry.R` prints the admitted
-  random-slope registry rows and their gate fields before any pilot is
-  dispatched.
+  `run/sim_phase18_structured_workflow_registry.R` prints the random-slope
+  registry rows and their gate fields before any pilot is dispatched. It now
+  shows the q8 endpoint smoke, recovery, and staged-diagnostic rows as opt-in
+  `ready_grid` tasks while keeping their promotion boundary explicit.
+- `phase18_biv_gaussian_q8_endpoint_precode_gate()` names the eight q8
+  all-endpoint labels, records the 28 implied pairwise correlations, and checks
+  that the smoke row is artifact-ready before any recovery, coverage, or power
+  claim.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.
@@ -183,11 +191,109 @@ Current pilot files:
 - `dgp/sim_dgp_biv_gaussian_mu_slope.R` generates bivariate Gaussian
   `mu1`/`mu2` data with matching ordinary slope-only random-effect blocks,
   `(0 + x | p | id)`, and residual `rho12` kept as a separate layer.
+- `run/sim_summary_biv_gaussian_mu_slope_recovery.R` and
+  `run/sim_write_biv_gaussian_mu_slope_recovery_grid.R` promote that slope-only
+  `mu1`/`mu2` lane from a single-replicate smoke check to a multi-replicate
+  recovery lane over its 10 estimands: bias, RMSE, MCSE, and fixed-effect Wald
+  coverage, with the two slope SDs and the derived slope-slope correlation kept
+  `derived_interval_unavailable`. It dispatches through the opt-in
+  `biv_gaussian_mu_slope_recovery` Actions task.
+- `dgp/sim_dgp_biv_gaussian_q6_location.R` generates bivariate Gaussian
+  `mu1`/`mu2` data with matching ordinary q=6 location random-effect blocks,
+  `(1 + x + z | p | id)`, and residual `rho12` kept as a separate layer.
+- `run/sim_summary_biv_gaussian_q4_location_recovery.R` and
+  `run/sim_write_biv_gaussian_q4_location_recovery_grid.R` promote the q4
+  `mu1`/`mu2` location lane (`(1 + x | p | id)` in both location formulas) from
+  a single-replicate smoke check to a multi-replicate recovery lane. They reuse
+  the smoke DGP, fit, and runner, run at recovery-scale `n_rep`, and add bias,
+  RMSE, MCSE, and Wald interval coverage. Wald coverage is reported only for the
+  fixed `mu1`/`mu2` endpoints; the four location SDs and six derived
+  location-location correlations stay `derived_interval_unavailable`. The lane
+  dispatches through the opt-in `biv_gaussian_q4_location_recovery` Actions task;
+  its evidence design follows the bivariate-slope ADEMP
+  `docs/design/145-phase6c-bivariate-slope-ademp.md` and the recovery-lane
+  pattern in `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
+- `run/sim_summary_biv_gaussian_q6_location_recovery.R` and
+  `run/sim_write_biv_gaussian_q6_location_recovery_grid.R` give the q6
+  `mu1`/`mu2` location lane (`(1 + x + z | p | id)` in both location formulas)
+  the same recovery treatment over its 30 estimands: bias, RMSE, MCSE, and
+  fixed-effect Wald coverage, with the six location SDs and fifteen derived
+  location-location correlations kept `derived_interval_unavailable`. It
+  dispatches through the opt-in `biv_gaussian_q6_location_recovery` Actions task.
+- `dgp/sim_dgp_biv_gaussian_q2_scale.R` generates bivariate Gaussian data with
+  a matching residual-scale random-intercept covariance block,
+  `sigma1 = ~ 1 + (1 | p | id)` and `sigma2 = ~ 1 + (1 | p | id)`, so the two
+  log-`sigma` intercepts share a q=2 scale-scale block while residual `rho12`
+  stays a separate layer. This is the fittable scale-covariance prerequisite
+  for the q8 endpoint gate.
+- `run/sim_summary_biv_gaussian_q2_scale_recovery.R` and
+  `run/sim_write_biv_gaussian_q2_scale_recovery_grid.R` promote that same
+  q2 scale-intercept lane from a single-replicate smoke check to a
+  multi-replicate recovery lane. They reuse the smoke DGP, fit, and runner, run
+  at recovery-scale `n_rep`, and add bias, RMSE, MCSE, and Wald interval
+  coverage. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints;
+  the random-effect SD and derived scale-scale correlation rows stay
+  `derived_interval_unavailable`. The lane dispatches through the opt-in
+  `biv_gaussian_q2_scale_recovery` Actions task; its design sheet is
+  `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
+- `dgp/sim_dgp_biv_gaussian_q2_scale_slope.R` generates bivariate Gaussian data
+  with a matching residual-scale slope-only covariance block,
+  `sigma1 = ~ x + (0 + x | p | id)` and
+  `sigma2 = ~ x + (0 + x | p | id)`. The two log-`sigma` slopes share a q=2
+  scale-scale block while residual `rho12` stays a separate row-level
+  correlation. `run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R`,
+  `run/sim_write_biv_gaussian_q2_scale_slope_grid.R`,
+  `run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R`, and
+  `run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R` provide smoke and
+  recovery artifacts for the two scale-slope SDs, their group-level
+  correlation, fixed scale slopes, and residual `rho12`. Wald coverage is
+  reported only for fixed-effect endpoints that carry standard errors.
+- `dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R` generates bivariate Gaussian data
+  with a same-response location-scale slope covariance block,
+  `mu1 = y1 ~ x + (0 + x | p | id)` and
+  `sigma1 = ~ x + (0 + x | p | id)`. The `mu1` slope and log-`sigma1` slope
+  share a q=2 group-level block while response 2 and residual `rho12` stay
+  separate. `run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R`,
+  `run/sim_write_biv_gaussian_mu_sigma_slope_grid.R`,
+  `run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R`, and
+  `run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R` provide smoke and
+  recovery artifacts for the fixed endpoints, the two same-response slope SDs,
+  their derived `mu_sigma` correlation, and residual `rho12`. Wald coverage is
+  reported only for fixed-effect endpoints that carry standard errors.
+  `run/sim_audit_biv_gaussian_mu_sigma_slope_hardening.R` reads those recovery
+  artifacts, rebuilds the weak-replicate table, optionally robust-refits weak
+  seeds, recomputes fixed-effect Wald coverage after replacement, and optionally
+  profiles clean direct q2 targets for local promotion audits.
+- `dgp/sim_dgp_biv_gaussian_q8_endpoint.R` generates bivariate Gaussian data
+  with matching all-four endpoint blocks,
+  `mu1 = y1 ~ x + (1 + x | p | id)`,
+  `mu2 = y2 ~ x + (1 + x | p | id)`,
+  `sigma1 = ~ x + (1 + x | p | id)`, and
+  `sigma2 = ~ x + (1 + x | p | id)`. The eight endpoint SDs are direct
+  targets, the 28 endpoint correlations are derived group-level summaries, and
+  residual `rho12` stays separate. `run/sim_summary_biv_gaussian_q8_endpoint_smoke.R`,
+  `run/sim_write_biv_gaussian_q8_endpoint_grid.R`,
+  `run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`,
+  `run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R`, and
+  `run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R` provide
+  diagnostic smoke/recovery/staged-start artifacts. The 2026-06-07 local
+  recovery audit is recorded in
+  `docs/design/161-phase-18-bivariate-q8-recovery-audit.md` and keeps the lane
+  at `hold_diagnostic`, not coverage or power evidence.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
   count data with ordinary log-mean random intercepts and independent numeric
   slopes, `(1 | id) + (0 + x | id)`, and its condition helper can cross
   group count, observations per group, fixed effects, and true random-effect
   SDs.
+- `run/sim_write_poisson_mu_re_recovery_grid.R` gives the ordinary Poisson `mu`
+  random-effect surface its own standalone, dispatchable recovery artifact set.
+  The recovery contract (bias, RMSE, MCSE, Wald coverage for the fixed mean
+  coefficients, and profile coverage for the random-effect SD) is already
+  computed by `phase18_summarise_poisson_mu_re_smoke()`; this writer runs that
+  summary at recovery-scale `n_rep` and emits isolated CSV artifacts through the
+  opt-in `poisson_mu_re_recovery` Actions task, instead of only riding the
+  combined `first_wave_summary`. This is the first standalone non-Gaussian
+  recovery artifact lane.
 - `dgp/sim_dgp_poisson_phylo_q1.R` generates non-zero-inflated Poisson count
   data with one q=1 phylogenetic log-mean intercept,
   `phylo(1 | species, tree = tree)`, and its condition helper can cross
@@ -198,6 +304,17 @@ Current pilot files:
   slopes, `(1 | id) + (0 + x | id)`, plus fixed-effect overdispersion
   `sigma ~ z`; its condition helper can also cross true overdispersion
   settings.
+- `run/sim_write_nbinom2_mu_re_recovery_grid.R` gives the ordinary NB2 `mu`
+  random-effect surface its own standalone recovery artifact set, the same way
+  the Poisson lane does: it runs the already-recovery-capable
+  `phase18_summarise_nbinom2_mu_re_smoke()` at recovery-scale `n_rep` through the
+  opt-in `nbinom2_mu_re_recovery` Actions task and writes isolated bias/RMSE/MCSE,
+  Wald-coverage, and profile-coverage CSVs instead of only riding
+  `first_wave_summary`. (The truncated-NB2 `mu` random-intercept surface already
+  has an equivalent standalone coverage-emitting lane through its existing
+  `truncated_nbinom2_mu_random_intercept` task and
+  `run/sim_write_truncated_nbinom2_mu_random_intercept_grid.R` writer, so it
+  needs no separate recovery writer.)
 - `dgp/sim_dgp_nbinom2_sigma_random_effect.R` generates non-zero-inflated NB2
   count data with fixed-effect log-mean `mu` and an ordinary grouped
   log-`sigma` random intercept, `sigma ~ z + (1 | id)`. Its condition helper
@@ -248,6 +365,16 @@ Current pilot files:
 - `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
   `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
   transform and optional mean-shape predictor correlation.
+- `dgp/sim_dgp_skew_normal_fixed_effect.R` generates skew-normal responses
+  with fixed-effect `mu ~ x`, `sigma ~ z`, and `nu ~ w`. It uses the public
+  moment contract, then transforms to native skew-normal `xi`, `omega`, and
+  `alpha = nu` for simulation so `mu` remains the response mean and `sigma`
+  remains the response standard deviation.
+- `dgp/sim_dgp_model_selection.R` generates paired model-selection cells for
+  Gaussian versus Student-t tails, NB2 versus ZINB2 structural zeros, and
+  constant versus predictor-dependent Gaussian `sigma` formulas. It records a
+  `selection_target` for each cell so AIC/BIC truth-selection summaries can be
+  computed without treating the article-support run as a formal power grid.
 - `dgp/sim_dgp_animal_relmat_q2.R` generates bivariate Gaussian data with a
   known animal or lower-level relatedness matrix, matching q=2 `mu1`/`mu2`
   structured effects, and residual `rho12` kept as a separate layer.
@@ -333,10 +460,25 @@ Current pilot files:
 - `fit/sim_summarise_biv_gaussian_mu_slope.R` summarises bivariate Gaussian
   fixed `mu1`/`mu2` coefficients, public residual scales, residual `rho12`,
   ordinary slope-only SDs, and the slope-slope `corpairs()` correlation.
+- `fit/sim_summarise_biv_gaussian_q6_location.R` summarises bivariate
+  Gaussian fixed `mu1`/`mu2` coefficients, public residual scales, residual
+  `rho12`, six direct q=6 location SDs, and 15 derived q=6 location
+  correlations.
+- `fit/sim_summarise_biv_gaussian_q2_scale.R` summarises bivariate Gaussian
+  fixed `mu1`/`mu2` coefficients, public residual-scale intercepts, residual
+  `rho12`, the two direct q=2 scale SDs from `sdpars$sigma`, and the single
+  derived scale-scale correlation from `corpars$sigma`.
 - `fit/sim_summarise_student_shape.R` summarises fixed Student-t `mu`,
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
   named response-scale truth grids.
+- `fit/sim_summarise_skew_normal_fixed_effect.R` summarises fixed
+  skew-normal `mu`, `sigma`, and `nu` coefficients on their formula scales,
+  adds optional profile and parametric-bootstrap interval columns, and includes
+  a helper for named public-moment truth grids.
+- `fit/sim_summarise_model_selection.R` summarises candidate-level AIC, BIC,
+  log likelihood, degrees of freedom, convergence, Hessian status, warnings,
+  errors, and target-selection indicators for the model-selection lane.
 - `fit/sim_summarise_animal_relmat_q2.R` summarises fixed `mu1`/`mu2`
   coefficients, public residual scales, structured SDs, structured
   correlations, and residual `rho12` for known-matrix animal/`relmat()` q=2
@@ -429,8 +571,19 @@ Current pilot files:
   residual-correlation surface.
 - `run/sim_run_biv_gaussian_mu_slope_smoke.R` does the same for the matching
   bivariate Gaussian `mu1`/`mu2` slope-only surface.
+- `run/sim_run_biv_gaussian_q6_location_smoke.R` does the same for the
+  matching bivariate Gaussian q=6 `mu1`/`mu2` location surface.
+- `run/sim_run_biv_gaussian_q2_scale_smoke.R` does the same for the matching
+  bivariate Gaussian q=2 residual-scale intercept covariance surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
+- `run/sim_run_skew_normal_fixed_effect_smoke.R` does the same for the
+  fixed-effect skew-normal residual-slant surface, using moderate default
+  sample sizes because stochastic skewness recovery is sample-size dependent.
+- `run/sim_run_model_selection_smoke.R` does the same for the article-support
+  AIC/BIC model-selection surface, writing one candidate row per replicate and
+  preserving warning-bearing candidates. The file name keeps the Phase 18 smoke
+  runner convention, but the article table is generated at 200 replicates.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
   animal/`relmat()` q=2 bivariate location-covariance surface.
 - `run/sim_run_animal_relmat_q4_smoke.R` does the same for the constant
@@ -578,6 +731,16 @@ Current pilot files:
   convergence, `pdHess`, and failure-ledger results, but the lane remains
   opt-in and excluded from `task = "all"` until a deliberately sized recovery
   or coverage grid is designed.
+- `run/sim_write_biv_gaussian_q6_location_grid.R` writes the same simple
+  artifact set for the matching bivariate Gaussian q=6 `mu1`/`mu2` location
+  lane. The manual `biv_gaussian_q6_location` Actions task can run it. The
+  lane remains opt-in and excluded from `task = "all"` until a deliberately
+  sized recovery or coverage grid is designed.
+- `run/sim_write_biv_gaussian_q2_scale_grid.R` writes the same simple artifact
+  set for the bivariate Gaussian q=2 residual-scale intercept covariance lane.
+  The manual `biv_gaussian_q2_scale` Actions task can run it. The lane remains
+  opt-in and excluded from `task = "all"` until a deliberately sized recovery
+  or coverage grid is designed.
 - `run/sim_write_biv_rho12_grid.R` writes the same artifact set for the
   bivariate Gaussian residual `rho12` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
@@ -595,6 +758,17 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   for the same reason as the bivariate `rho12` grid, with the same nested-
   parallel guard.
+- `run/sim_write_skew_normal_fixed_effect_grid.R` writes the same artifact set
+  for the fixed-effect skew-normal `nu` grid, with optional profile,
+  parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
+  interval-failure CSVs. The default grid uses `n = 720` and `1440`; larger
+  formal operating-characteristic runs remain a separate evidence step.
+- `run/sim_write_model_selection_smoke.R` writes model-selection candidate,
+  selection-summary, manifest, and failure CSVs. The 200-replicate
+  article-support artifact lives at
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`, and the
+  compact vignette table is copied to
+  `inst/sim/reports/model-selection-article-summary.csv`.
 - `run/sim_write_first_wave_artifact_status.R` writes bound
   artifact-manifest and surface-status CSVs from multiple grid-writer outputs,
   giving report templates a small preflight table before they read individual
@@ -625,11 +799,13 @@ Current pilot files:
   long-run Phase 18 dispatch. It can run the first-wave summary task, the
   interval-heavy task, standalone zero-truncated NB2 `mu` random-intercept,
   fixed-effect proportion, bounded-response `mu` random-intercept,
-  positive-continuous fixed-effect, fixed-effect Tweedie, count structured
-  q=1, positive-continuous `mu` random-intercept, Student-t `mu`
-  random-intercept, ordinal, zero-one beta, and bivariate Gaussian `mu1`/`mu2`
-  slope-only tasks, or the opt-in Poisson and NB2 phylogenetic q=1 formal-grid
-  tasks. It writes an RDS result beside the task artifact tables and caps
+  positive-continuous fixed-effect, fixed-effect Tweedie, fixed-effect
+  skew-normal, count structured q=1, positive-continuous `mu` random-intercept,
+  Student-t `mu`
+  random-intercept, ordinal, zero-one beta, and bivariate Gaussian ordinary
+  covariance tasks for `mu1`/`mu2` and `sigma1`/`sigma2`, or the opt-in Poisson
+  and NB2 phylogenetic q=1 formal-grid tasks. It writes an RDS result beside the
+  task artifact tables and caps
   requested replicate or bootstrap workers at 10 before dispatch. The workflow
   never uses both replicate-layer multicore and bootstrap-layer multicore at
   the same time. Standalone random-slope tasks outside the first-wave summary,
@@ -738,10 +914,20 @@ Current pilot files:
 - `run/sim_summary_biv_gaussian_mu_slope_smoke.R` reduces the matching
   bivariate Gaussian `mu1`/`mu2` slope-only smoke run into aggregate,
   replicate, manifest, and failure-ledger tables.
+- `run/sim_summary_biv_gaussian_q6_location_smoke.R` reduces the matching
+  bivariate Gaussian q=6 `mu1`/`mu2` location smoke run into aggregate,
+  replicate, manifest, and failure-ledger tables.
+- `run/sim_summary_biv_gaussian_q2_scale_smoke.R` reduces the matching
+  bivariate Gaussian q=2 residual-scale intercept covariance smoke run into
+  aggregate, replicate, manifest, and failure-ledger tables.
 - `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence,
   coverage outputs, and interval-failure ledgers.
+- `run/sim_summary_skew_normal_fixed_effect_smoke.R` does the same for the
+  fixed-effect skew-normal residual-slant smoke grid, including
+  formula-coefficient Wald intervals, optional profile and parametric-bootstrap
+  interval evidence, coverage outputs, and interval-failure ledgers.
 - `run/sim_interval_coverage_smoke.R` adds synthetic interval columns to
   parameter summaries so coverage-table plumbing can be tested before real
   interval methods are attached.

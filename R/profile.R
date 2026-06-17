@@ -75,6 +75,12 @@
 #'   otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the scalar
 #'   endpoint solver, while `"tmbprofile"` preserves the previous full-profile
 #'   route for comparison and debugging.
+#' @param profile_endpoint_max_eval Optional positive whole number limiting
+#'   constrained endpoint evaluations per endpoint side when the scalar
+#'   endpoint engine is used. This is a diagnostic escape hatch for long
+#'   variance-component or correlation profiles; when the budget is reached the
+#'   row is returned with `conf.status = "profile_failed"` and missing
+#'   endpoints.
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
@@ -96,8 +102,12 @@
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
 #'   `profile.engine`, `conf.status`, `profile.boundary`, and
 #'   `profile.message`. Successful rows currently use
-#'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`; profile rows mark
-#'   intervals that land near a lower SD boundary or correlation boundary.
+#'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
+#'   profile rows use `"profile_failed"` with missing endpoints; profile rows
+#'   mark intervals that land near a lower SD boundary or correlation boundary.
+#'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
+#'   with one diagnostic row per refit and target, including refit convergence,
+#'   target availability, draw use, and the refit message.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -123,6 +133,7 @@ confint.drmTMB <- function(
   profile_precision = c("default", "fast"),
   profile_maxit = NULL,
   profile_engine = c("auto", "endpoint", "tmbprofile"),
+  profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
   parallel = c("none", "multicore"),
@@ -148,6 +159,9 @@ confint.drmTMB <- function(
     missing_arg = profile_precision_missing
   )
   profile_maxit <- validate_profile_maxit(profile_maxit)
+  profile_endpoint_max_eval <- validate_profile_endpoint_max_eval(
+    profile_endpoint_max_eval
+  )
   parallel <- resolve_bootstrap_parallel(
     parallel,
     missing_arg = parallel_missing
@@ -165,6 +179,11 @@ confint.drmTMB <- function(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
       )
     }
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(
+        "{.arg profile_endpoint_max_eval} is only used when {.code method = \"profile\"}."
+      )
+    }
     return(drm_wald_confint(object, parm = parm, level = level))
   }
 
@@ -178,6 +197,11 @@ confint.drmTMB <- function(
     if (length(profile_dots) > 0L) {
       cli::cli_abort(
         "Additional arguments in {.arg ...} are only used when {.code method = \"profile\"}."
+      )
+    }
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(
+        "{.arg profile_endpoint_max_eval} is only used when {.code method = \"profile\"}."
       )
     }
     all_targets <- drm_profile_targets(object)
@@ -195,6 +219,12 @@ confint.drmTMB <- function(
   }
 
   if (!is.null(newdata)) {
+    if (!is.null(profile_endpoint_max_eval)) {
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} is only available for direct fitted-object scalar targets.",
+        i = "Use explicit fitted-object target names such as {.val sigma} or {.val sd:mu:(1 | id)}."
+      ))
+    }
     if (identical(profile_engine, "endpoint")) {
       cli::cli_abort(c(
         "{.code profile_engine = \"endpoint\"} is only available for direct fitted-object scalar targets.",
@@ -249,6 +279,22 @@ confint.drmTMB <- function(
   if (identical(profile_engine, "auto") && tmbprofile_controls) {
     profile_engine <- "tmbprofile"
   }
+  if (!is.null(profile_endpoint_max_eval)) {
+    if (identical(profile_engine, "tmbprofile")) {
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} is only used by the scalar endpoint profile engine.",
+        i = "Use {.code profile_engine = \"auto\"} or {.code profile_engine = \"endpoint\"} without {.fun TMB::tmbprofile} controls."
+      ))
+    }
+    supported <- profile_endpoint_targets_supported(targets)
+    if (!all(supported)) {
+      unsupported <- paste(targets$parm[!supported], collapse = ", ")
+      cli::cli_abort(c(
+        "{.arg profile_endpoint_max_eval} can only be used with direct scalar scale, SD, and correlation profile targets.",
+        x = "Unsupported target(s): {unsupported}."
+      ))
+    }
+  }
   profile_args <- profile_precision_args(
     profile_precision,
     profile_dots,
@@ -264,7 +310,8 @@ confint.drmTMB <- function(
         trace = trace,
         parallel = parallel,
         workers = workers,
-        profile_engine = profile_engine
+        profile_engine = profile_engine,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ),
       profile_args
     )
@@ -277,9 +324,9 @@ confint.drmTMB <- function(
 #' [confint.drmTMB()]. The table also records whether each row is currently
 #' ready for direct profile-likelihood intervals. This helps users inspect the
 #' fitted object before starting an expensive profile. Full q4 unstructured
-#' correlation summaries are derived targets; block-diagonal phylogenetic q4
-#' fallback correlations are direct targets, but a direct target can still fail
-#' on a weak, boundary-limited, or one-sided profile.
+#' and phylogenetic correlation summaries are derived targets; direct SD and
+#' scale targets can still fail on a weak, boundary-limited, or one-sided
+#' profile.
 #'
 #' Use `ready_only = TRUE` for the fastest inspection path before calling
 #' `confint(..., method = "profile")`. Use the `target_class` column to filter
@@ -311,7 +358,7 @@ confint.drmTMB <- function(
 #' profile_targets(fit, ready_only = TRUE)
 #' @export
 profile_targets <- function(object, ready_only = FALSE) {
-  if (!inherits(object, "drmTMB")) {
+  if (!inherits(object, "drmTMB") && !inherits(object, "drmTMB_julia")) {
     cli::cli_abort("{.arg object} must be a {.cls drmTMB} fit.")
   }
   if (
@@ -938,6 +985,25 @@ validate_profile_maxit <- function(profile_maxit) {
   as.integer(profile_maxit)
 }
 
+validate_profile_endpoint_max_eval <- function(profile_endpoint_max_eval) {
+  if (is.null(profile_endpoint_max_eval)) {
+    return(NULL)
+  }
+  if (
+    !is.numeric(profile_endpoint_max_eval) ||
+      length(profile_endpoint_max_eval) != 1L ||
+      is.na(profile_endpoint_max_eval) ||
+      !is.finite(profile_endpoint_max_eval) ||
+      profile_endpoint_max_eval < 1L ||
+      profile_endpoint_max_eval != as.integer(profile_endpoint_max_eval)
+  ) {
+    cli::cli_abort(
+      "{.arg profile_endpoint_max_eval} must be a positive whole number or NULL."
+    )
+  }
+  as.integer(profile_endpoint_max_eval)
+}
+
 profile_tmbprofile_controls_requested <- function(
   profile_precision_missing,
   profile_maxit,
@@ -997,6 +1063,10 @@ interval_source_levels <- function() {
 }
 
 drm_profile_targets <- function(object) {
+  if (inherits(object, "drmTMB_julia")) {
+    return(drm_julia_profile_targets(object))
+  }
+
   rows <- list()
   counters <- new.env(parent = emptyenv())
 
@@ -1265,6 +1335,7 @@ drm_profile_confint <- function(
   parallel = "none",
   workers = NULL,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
+  profile_endpoint_max_eval = NULL,
   ...
 ) {
   validate_profile_level(level)
@@ -1301,6 +1372,7 @@ drm_profile_confint <- function(
       trace = trace,
       profile_engine = profile_engine,
       endpoint_plan = endpoint_plan,
+      profile_endpoint_max_eval = profile_endpoint_max_eval,
       ...
     )
   }
@@ -1458,6 +1530,25 @@ drm_profile_response_newdata_confint <- function(
   out
 }
 
+skew_normal_slant_targets <- function(object, targets) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(character())
+  }
+  targets$parm[targets$dpar == "nu"]
+}
+
+warn_skew_normal_slant_wald <- function(object, targets) {
+  slant <- skew_normal_slant_targets(object, targets)
+  if (length(slant) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_warn(c(
+    "!" = "{cli::qty(slant)}Wald confidence interval{?s} for the skew-normal slant ({.val {slant}}) {?is/are} miscalibrated near {.code nu = 0}, where the Azzalini information is near-singular.",
+    "i" = "{cli::qty(slant)}Use {.code method = \"profile\"} (or {.code method = \"bootstrap\"}) for the slant interval{?s} instead."
+  ))
+  invisible(NULL)
+}
+
 drm_wald_confint <- function(object, parm, level) {
   targets <- drm_profile_targets(object)
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
@@ -1469,6 +1560,7 @@ drm_wald_confint <- function(object, parm, level) {
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "wald"))
   }
+  warn_skew_normal_slant_wald(object, targets)
 
   z <- stats::qnorm((1 + level) / 2)
   variances <- rep(NA_real_, nrow(targets))
@@ -1565,13 +1657,32 @@ drm_bootstrap_confint <- function(
   rows <- bootstrap_lapply(seq_len(R), worker, plan)
   draws <- do.call(rbind, rows)
   row.names(draws) <- NULL
+  draws$bootstrap.requested <- R
+  draws$bootstrap.seed <- bootstrap_seed_label(seed)
+  draws$bootstrap.parallel <- plan$backend
+  draws$bootstrap.workers <- plan$workers
+  draws$refit.optimizer_preset <- refit_control$optimizer_preset
+  draws$refit.se <- refit_control$se
+  draws$refit.keep_tmb_object <- refit_control$keep_tmb_object
+  draws$target_requested_n <- as.integer(
+    ave(draws$target_available, draws$bootstrap, FUN = length)
+  )
+  draws$target_available_n <- as.integer(
+    ave(draws$target_available, draws$bootstrap, FUN = sum)
+  )
+  draws$draw_value <- NA_real_
+  draws$draw_used <- FALSE
 
   probs <- c((1 - level) / 2, (1 + level) / 2)
-  intervals <- lapply(seq_len(nrow(targets)), function(i) {
+  intervals <- vector("list", nrow(targets))
+  for (i in seq_len(nrow(targets))) {
     target <- targets[i, , drop = FALSE]
-    target_draws <- draws[draws$parm == target$parm, , drop = FALSE]
+    target_index <- draws$parm == target$parm
+    target_draws <- draws[target_index, , drop = FALSE]
     draw_values <- bootstrap_percentile_draws(target_draws, target)
     finite <- is.finite(draw_values) & target_draws$refit_ok
+    draws$draw_value[target_index] <- draw_values
+    draws$draw_used[target_index] <- finite
     n_ok <- sum(finite)
     failed <- nrow(target_draws) - n_ok
     if (n_ok < 2L) {
@@ -1590,7 +1701,7 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap"
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
     }
-    data.frame(
+    intervals[[i]] <- data.frame(
       parm = target$parm,
       level = level,
       lower = lower,
@@ -1610,9 +1721,10 @@ drm_bootstrap_confint <- function(
       bootstrap.workers = plan$workers,
       stringsAsFactors = FALSE
     )
-  })
+  }
   out <- do.call(rbind, intervals)
   row.names(out) <- NULL
+  attr(out, "bootstrap.diagnostics") <- draws
   out
 }
 
@@ -1628,6 +1740,13 @@ validate_bootstrap_replicates <- function(R) {
     cli::cli_abort("{.arg R} must be a positive whole number.")
   }
   as.integer(R)
+}
+
+bootstrap_seed_label <- function(seed) {
+  if (is.null(seed)) {
+    return(NA_character_)
+  }
+  paste(seed, collapse = ",")
 }
 
 bootstrap_parallel_plan <- function(R, parallel, workers) {
@@ -1734,6 +1853,7 @@ bootstrap_refit_one <- function(
     error = function(err) err
   )
   if (inherits(refit, "error")) {
+    out$refit_status <- "refit_error"
     out$refit_message <- conditionMessage(refit)
     return(out)
   }
@@ -1742,11 +1862,20 @@ bootstrap_refit_one <- function(
   matched <- match(target_names, refit_targets$parm)
   has_target <- !is.na(matched)
   out$refit_convergence <- refit$opt$convergence
+  out$refit_converged <- refit_ok
+  out$target_available <- has_target
   out$refit_ok <- refit_ok & has_target
   out$refit_message <- if (refit_ok) "ok" else refit$opt$message
+  out$refit_status <- ifelse(
+    !refit_ok,
+    "refit_nonconverged",
+    ifelse(has_target, "ok", "target_missing")
+  )
   out$estimate[has_target] <- refit_targets$estimate[matched[has_target]]
   out$link_estimate[has_target] <-
     refit_targets$link_estimate[matched[has_target]]
+  out$estimate_finite <- is.finite(out$estimate)
+  out$link_estimate_finite <- is.finite(out$link_estimate)
   out
 }
 
@@ -1758,6 +1887,11 @@ bootstrap_empty_draws <- function(index, target_names) {
     link_estimate = NA_real_,
     refit_ok = FALSE,
     refit_convergence = NA_integer_,
+    refit_converged = FALSE,
+    target_available = FALSE,
+    estimate_finite = FALSE,
+    link_estimate_finite = FALSE,
+    refit_status = "not_run",
     refit_message = "not run",
     stringsAsFactors = FALSE
   )
@@ -1971,6 +2105,7 @@ drm_profile_target_confint <- function(
   trace,
   profile_engine = c("tmbprofile", "auto", "endpoint"),
   endpoint_plan = profile_serial_plan(),
+  profile_endpoint_max_eval = NULL,
   ...
 ) {
   profile_engine <- match.arg(profile_engine)
@@ -1995,12 +2130,34 @@ drm_profile_target_confint <- function(
   }
 
   if (identical(profile_engine, "endpoint")) {
-    return(drm_profile_target_endpoint_confint(
-      object = object,
-      target = target,
-      level = level,
-      endpoint_plan = endpoint_plan
-    ))
+    if (!profile_endpoint_target_supported(target)) {
+      return(drm_profile_target_endpoint_confint(
+        object = object,
+        target = target,
+        level = level,
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
+      ))
+    }
+    endpoint <- tryCatch(
+      drm_profile_target_endpoint_confint(
+        object = object,
+        target = target,
+        level = level,
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
+      ),
+      error = function(err) err
+    )
+    if (inherits(endpoint, "error")) {
+      return(drm_profile_failed_confint_row(
+        target = target,
+        level = level,
+        profile_engine = "endpoint",
+        message = conditionMessage(endpoint)
+      ))
+    }
+    return(endpoint)
   }
 
   if (
@@ -2012,21 +2169,66 @@ drm_profile_target_confint <- function(
         object = object,
         target = target,
         level = level,
-        endpoint_plan = endpoint_plan
+        endpoint_plan = endpoint_plan,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
       ),
       error = function(err) err
     )
     if (!inherits(endpoint, "error")) {
       return(endpoint)
     }
+    if (!is.null(profile_endpoint_max_eval)) {
+      return(drm_profile_failed_confint_row(
+        target = target,
+        level = level,
+        profile_engine = "endpoint",
+        message = conditionMessage(endpoint)
+      ))
+    }
   }
 
-  drm_profile_target_tmbprofile_confint(
-    object = object,
-    target = target,
+  profiled <- tryCatch(
+    drm_profile_target_tmbprofile_confint(
+      object = object,
+      target = target,
+      level = level,
+      trace = trace,
+      ...
+    ),
+    error = function(err) err
+  )
+  if (inherits(profiled, "error")) {
+    return(drm_profile_failed_confint_row(
+      target = target,
+      level = level,
+      profile_engine = "tmbprofile",
+      message = conditionMessage(profiled)
+    ))
+  }
+  profiled
+}
+
+drm_profile_failed_confint_row <- function(
+  target,
+  level,
+  profile_engine,
+  message
+) {
+  data.frame(
+    parm = target$parm,
     level = level,
-    trace = trace,
-    ...
+    lower = NA_real_,
+    upper = NA_real_,
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    method = "profile",
+    profile.engine = profile_engine,
+    conf.status = "profile_failed",
+    profile.boundary = NA,
+    profile.message = message,
+    stringsAsFactors = FALSE
   )
 }
 
@@ -2054,6 +2256,7 @@ drm_profile_target_tmbprofile_confint <- function(
     interval,
     transformation = target$transformation
   )
+  conf_status <- profile_conf_status_from_diagnostics(diagnostics)
 
   data.frame(
     parm = target$parm,
@@ -2066,7 +2269,7 @@ drm_profile_target_tmbprofile_confint <- function(
     index = target$index,
     method = "profile",
     profile.engine = "tmbprofile",
-    conf.status = "profile",
+    conf.status = conf_status,
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
     stringsAsFactors = FALSE
@@ -2077,19 +2280,22 @@ drm_profile_target_endpoint_confint <- function(
   object,
   target,
   level,
-  endpoint_plan = profile_serial_plan()
+  endpoint_plan = profile_serial_plan(),
+  profile_endpoint_max_eval = NULL
 ) {
   result <- drm_profile_endpoint_result(
     object = object,
     target = target,
     level = level,
-    endpoint_plan = endpoint_plan
+    endpoint_plan = endpoint_plan,
+    max_eval = profile_endpoint_max_eval
   )
   interval <- result$interval
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation
   )
+  conf_status <- profile_conf_status_from_diagnostics(diagnostics)
 
   data.frame(
     parm = target$parm,
@@ -2102,11 +2308,18 @@ drm_profile_target_endpoint_confint <- function(
     index = target$index,
     method = "profile",
     profile.engine = "endpoint",
-    conf.status = "profile",
+    conf.status = conf_status,
     profile.boundary = diagnostics$boundary,
     profile.message = diagnostics$message,
     stringsAsFactors = FALSE
   )
+}
+
+profile_conf_status_from_diagnostics <- function(diagnostics) {
+  if (identical(diagnostics$message, "nonfinite_interval")) {
+    return("profile_failed")
+  }
+  "profile"
 }
 
 drm_profile_endpoint_result <- function(
@@ -2115,7 +2328,8 @@ drm_profile_endpoint_result <- function(
   level,
   root_tol = 1e-4,
   max_bracket_steps = 40L,
-  endpoint_plan = profile_serial_plan()
+  endpoint_plan = profile_serial_plan(),
+  max_eval = NULL
 ) {
   if (!profile_endpoint_target_supported(target)) {
     cli::cli_abort(c(
@@ -2165,7 +2379,8 @@ drm_profile_endpoint_result <- function(
       root_tol = root_tol,
       max_bracket_steps = max_bracket_steps,
       target_name = target$parm,
-      curvature_se = curvature_se
+      curvature_se = curvature_se,
+      max_eval = max_eval
     )
   }
   crossings <- profile_lapply(c(-1L, 1L), endpoint_worker, endpoint_plan)
@@ -2208,6 +2423,14 @@ profile_endpoint_target_supported <- function(target) {
         "residual-correlation"
       ) &&
     target$transformation[[1L]] %in% c("exp", "tanh", "rho12_tanh")
+}
+
+profile_endpoint_targets_supported <- function(targets) {
+  vapply(
+    seq_len(nrow(targets)),
+    function(i) profile_endpoint_target_supported(targets[i, , drop = FALSE]),
+    logical(1L)
+  )
 }
 
 profile_endpoint_curvature_se <- function(object, position) {
@@ -2285,11 +2508,19 @@ profile_endpoint_crossing <- function(
   root_tol,
   max_bracket_steps,
   target_name,
-  curvature_se = NA_real_
+  curvature_se = NA_real_,
+  max_eval = NULL
 ) {
   n_eval <- 0L
   last_free <- evaluator$start_free
   eval_root <- function(theta) {
+    if (!is.null(max_eval) && n_eval >= max_eval) {
+      cli::cli_abort(c(
+        "Endpoint profile evaluation budget was reached for target {.val {target_name}}.",
+        i = "Budget: {max_eval} constrained endpoint evaluation(s) per side.",
+        i = "Increase {.arg profile_endpoint_max_eval} or retry without the endpoint budget if this profile needs more refits."
+      ))
+    }
     n_eval <<- n_eval + 1L
     out <- evaluator$evaluate(theta, last_free)
     last_free <<- out$par
@@ -2660,6 +2891,7 @@ validate_profile_targets <- function(targets) {
   allowed_notes <- c(
     "ready",
     "tmb_object_required",
+    "julia_bridge_payload_required",
     "missing_tmb_parameter",
     "derived_target",
     "derived_unstructured_correlation"

@@ -12,7 +12,8 @@
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, known sampling covariance summaries,
+#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
 #' univariate Gaussian fit includes one or more matched labelled
@@ -197,6 +198,7 @@ check_drm.drmTMB <- function(
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_skew_normal_nu(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -218,7 +220,9 @@ check_drm.drmTMB <- function(
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
-    check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary)
+    check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary),
+    check_scale_phylo_identifiability(object),
+    check_penalized_fit(object)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -249,6 +253,67 @@ check_row <- function(check, status, value, message) {
     message = as.character(message),
     stringsAsFactors = FALSE,
     check.names = FALSE
+  )
+}
+
+# Honest guidance for a weakly identified scale-side phylogenetic field.
+# Returns NULL unless the model places a phylogenetic field on the scale (sigma);
+# emits an "ok" row when the fit reached a positive-definite Hessian and a "note"
+# (not a warning -- the Hessian check already warns) steering the user to a
+# fixed-effect scale otherwise. See
+# docs/design/171-scale-side-phylo-identifiability-model-a.md.
+check_scale_phylo_identifiability <- function(object) {
+  phylo_mu <- object$model$structured$phylo_mu
+  if (is.null(phylo_mu) || !isTRUE(phylo_mu$has)) {
+    return(NULL)
+  }
+  endpoints <- phylo_mu_endpoint_dpars(phylo_mu)
+  has_scale_phylo <- any(sub("[0-9]+$", "", endpoints) == "sigma")
+  if (!has_scale_phylo) {
+    return(NULL)
+  }
+  pd_hess <- object$sdr$pdHess
+  if (is.null(pd_hess)) {
+    return(NULL)
+  }
+  if (isTRUE(pd_hess)) {
+    return(check_row(
+      "scale_phylo_identifiability",
+      "ok",
+      "scale-side phylogenetic field; pdHess = TRUE",
+      "A phylogenetic field on the scale converged with a positive-definite Hessian."
+    ))
+  }
+  check_row(
+    "scale_phylo_identifiability",
+    "note",
+    "scale-side phylogenetic field; pdHess not TRUE",
+    paste0(
+      "This fit places a phylogenetic field on the scale (sigma) but did not reach ",
+      "a positive-definite Hessian. A scale-side phylogenetic field is often weakly ",
+      "identified, especially with about one observation per group. Consider ",
+      "modelling the scale with fixed effects only while keeping phylogeny on the ",
+      "mean, or supplying more observations per group. See ",
+      "docs/design/171-scale-side-phylo-identifiability-model-a.md."
+    )
+  )
+}
+
+check_penalized_fit <- function(object) {
+  if (is.null(object$penalty)) {
+    return(NULL)
+  }
+  check_row(
+    "penalized_map",
+    "note",
+    "penalized / MAP estimator (prior on the phylogenetic SD)",
+    paste0(
+      "This fit uses a penalized / maximum-a-posteriori estimator: a prior ",
+      "regularises the phylogenetic SD. Standard errors are ",
+      "credible-interval-shaped, and likelihood-ratio tests or AIC across ",
+      "penalized fits are not standard. logLik() returns the unpenalized data ",
+      "log-likelihood; the penalty contribution is stored as fit$phylo_penalty."
+    )
   )
 }
 
@@ -776,6 +841,46 @@ check_student_nu <- function(object) {
     "ok",
     value,
     "All fitted Student-t nu values are finite and above the boundary at 2."
+  )
+}
+
+check_skew_normal_nu <- function(object) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) e)
+  if (inherits(nu, "error")) {
+    return(check_row(
+      "skew_normal_nu",
+      "warning",
+      NA_character_,
+      paste("Could not extract skew-normal nu values:", conditionMessage(nu))
+    ))
+  }
+  if (!all(is.finite(nu))) {
+    return(check_row(
+      "skew_normal_nu",
+      "error",
+      NA_character_,
+      "At least one fitted skew-normal nu value is non-finite."
+    ))
+  }
+
+  max_abs <- max(abs(nu), 0)
+  value <- paste0("max_abs=", format_check_number(max_abs))
+  if (max_abs > 10) {
+    return(check_row(
+      "skew_normal_nu",
+      "note",
+      value,
+      "At least one fitted skew-normal slant value is large; inspect the profile target, residual shape, and Gaussian or Student-t sensitivity models before interpreting skewness."
+    ))
+  }
+  check_row(
+    "skew_normal_nu",
+    "ok",
+    value,
+    "All fitted skew-normal nu values are finite."
   )
 }
 

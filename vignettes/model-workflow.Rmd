@@ -322,7 +322,10 @@ confint(
 ```
 
 Bootstrap rows record successful and failed refits in `bootstrap.n` and
-`bootstrap.failed`. On Unix-like systems, `parallel = "multicore"` and
+`bootstrap.failed`. The returned interval table also carries a
+`"bootstrap.diagnostics"` attribute with one row per refit and target, so
+failed or missing draws can be inspected without changing the printed interval
+table. On Unix-like systems, `parallel = "multicore"` and
 `workers = ...` can run refits in parallel; `drmTMB` caps bootstrap workers at
 10 to avoid accidental oversubscription.
 
@@ -460,12 +463,12 @@ Read `conf.status` as an action column:
 | --- | --- | --- |
 | `wald` | A Wald interval was returned for a fixed-effect or direct parameter row. | Use it for routine summaries and as the fastest screen for large models, while remembering it is asymptotic. |
 | `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
-| `bootstrap` | A simulate/refit percentile interval was returned by `confint()`. | Check `bootstrap.n` and `bootstrap.failed`; increase `R` only after a small runtime pilot works. |
+| `bootstrap` | A simulate/refit percentile interval was returned by `confint()`. | Check `bootstrap.n`, `bootstrap.failed`, and `attr(ci, "bootstrap.diagnostics")`; increase `R` only after a small runtime pilot works. |
 | `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
 | `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
 | `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
 | `wald_unavailable` | Wald uncertainty is not available for this row, or `sdreport()` was skipped or failed. | Use a profile-ready target when one exists; otherwise report the missing interval explicitly. |
-| `bootstrap_unavailable` | Fewer than two bootstrap refits produced a finite estimate for the requested target. | Treat the interval as unavailable; inspect model convergence, refit controls, and the bootstrap failure count before increasing `R`. |
+| `bootstrap_unavailable` | Fewer than two bootstrap refits produced a finite estimate for the requested target. | Treat the interval as unavailable; inspect model convergence, refit controls, and `attr(ci, "bootstrap.diagnostics")` before increasing `R`. |
 | `target_unavailable` or `profile_unavailable` | The row is descriptive or has no current direct interval target. | Treat the interval as unsupported and check `profile_targets(fit)` before trying another route. |
 | `not_requested` | The table is reporting a point estimate without an interval request. | Refit is not needed; request intervals only for the rows you plan to interpret. |
 

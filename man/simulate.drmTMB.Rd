@@ -36,8 +36,10 @@ For zero-one beta models, simulation draws exact
 boundary values from the fitted \code{zoi}/\code{coi} probabilities and interior
 values from the fitted beta component. For beta-binomial models, simulation
 draws latent success probabilities from the fitted beta distribution and then
-success counts from the stored trial denominators. For cumulative-logit ordinal
-models, simulation draws ordered categories from the fitted cumulative-logit
+success counts from the stored trial denominators. For binomial models,
+simulation draws success counts from the fitted event probability and stored
+trial denominators. For cumulative-logit ordinal models, simulation draws
+ordered categories from the fitted cumulative-logit
 probabilities. For Poisson models, simulation uses the fitted mean \code{mu}. For
 zero-inflated Poisson models, simulation uses
 fitted conditional mean \code{mu} and structural-zero probability \code{zi}. For

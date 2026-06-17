@@ -14,6 +14,66 @@
 #include <TMB.hpp>
 #include "drm_count_kernels.h"
 
+// Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
+// [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
+// to the bit), and saturating C1-smoothly within a margin beyond each bound
+// (overall range (lo - margin, hi + margin)). A runaway per-observation scale --
+// e.g. a per-group scale random effect estimated from one observation per group
+// -- is therefore bounded and cannot overflow the Gaussian density or break the
+// inner Laplace solve, while ordinary fits see no change at all.
+// See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+template<class Type>
+void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
+  for (int i = 0; i < v.size(); ++i) {
+    Type x = v(i);
+    Type above = hi + margin * tanh((x - hi) / margin); // used only when x > hi
+    Type below = lo - margin * tanh((lo - x) / margin); // used only when x < lo
+    Type y = CppAD::CondExpGt(x, hi, above, x);
+    y = CppAD::CondExpLt(x, lo, below, y);
+    v(i) = y;
+  }
+}
+
+// PC-prior penalty (negative log-prior) for an optional penalized/MAP fit: an
+// exponential prior on each phylogenetic SD = exp(log_sd_phylo) with the
+// log-Jacobian, plus an optional mean-zero normal on the live phylogenetic
+// correlation parameter (eta_cor_phylo for q == 2, theta_phylo for q > 2).
+// See docs/design/172-phylo-penalized-map.md.
+template<class Type>
+Type drm_phylo_penalty_value(const vector<Type>& log_sd_phylo,
+                             int q_phylo,
+                             Type eta_cor_phylo,
+                             const vector<Type>& theta_phylo,
+                             const vector<Type>& sd_penalty_rate,
+                             const vector<Type>& cor_penalty_sd) {
+  Type pen = Type(0.0);
+  for (int k = 0; k < q_phylo; ++k) {
+    if (k < sd_penalty_rate.size()) {
+      Type lam = sd_penalty_rate(k);
+      if (lam > Type(0.0)) {
+        Type sd_k = exp(log_sd_phylo(k));
+        pen += lam * sd_k - log_sd_phylo(k) - log(lam);
+      }
+    }
+  }
+  if (cor_penalty_sd.size() > 0) {
+    Type s = cor_penalty_sd(0);
+    if (s > Type(0.0)) {
+      Type half_log_2pi = Type(0.5) * log(Type(2.0) * M_PI);
+      if (q_phylo == 2) {
+        Type z = eta_cor_phylo / s;
+        pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+      } else if (q_phylo > 2) {
+        for (int t = 0; t < theta_phylo.size(); ++t) {
+          Type z = theta_phylo(t) / s;
+          pen += Type(0.5) * z * z + log(s) + half_log_2pi;
+        }
+      }
+    }
+  }
+  return pen;
+}
+
 template<class Type>
 Type objective_function<Type>::operator()()
 {
@@ -107,6 +167,11 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(phylo_mu_n_blocks);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(penalize_phylo);
+  DATA_VECTOR(phylo_sd_penalty_rate);
+  DATA_VECTOR(phylo_cor_penalty_sd);
+  DATA_INTEGER(use_logsigma_clamp);
+  DATA_VECTOR(logsigma_clamp);
   DATA_INTEGER(n_re_cov_blocks);
   DATA_IVECTOR(re_cov_block_size);
   DATA_IVECTOR(re_cov_block_group_count);
@@ -167,6 +232,7 @@ Type objective_function<Type>::operator()()
   PARAMETER(eta_cor_phylo);
 
   Type nll = 0;
+  Type phylo_penalty = Type(0.0);
   (void)mi_observed;
   (void)n_re_cov_blocks;
   (void)re_cov_block_size;
@@ -758,6 +824,13 @@ Type objective_function<Type>::operator()()
         ADREPORT(log_sd_phylo);
         REPORT(sd_phylo);
         ADREPORT(sd_phylo);
+      }
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
       }
     }
 
@@ -1877,6 +1950,12 @@ Type objective_function<Type>::operator()()
       ADREPORT(sigma_tweedie_mi);
     }
 
+    // Guard the Gaussian scale against a runaway per-observation log-sigma.
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> obs_sigma = sqrt(V_known + sigma * sigma);
 
@@ -2005,6 +2084,42 @@ Type objective_function<Type>::operator()()
     REPORT(sigma);
     REPORT(eta_nu);
     REPORT(nu);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_sigma);
+    ADREPORT(beta_nu);
+  } else if (model_type == 17) {
+    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> log_sigma = X_sigma * beta_sigma;
+    vector<Type> eta_nu = X_nu * beta_nu;
+    vector<Type> sigma = exp(log_sigma);
+    vector<Type> nu = eta_nu;
+    vector<Type> xi(y.size());
+    vector<Type> omega(y.size());
+    Type log_two = log(Type(2.0));
+    Type sqrt_two_over_pi = sqrt(Type(2.0) / Type(M_PI));
+    for (int i = 0; i < y.size(); ++i) {
+      Type alpha = eta_nu(i);
+      Type delta = alpha / sqrt(Type(1.0) + alpha * alpha);
+      Type mean_shift = delta * sqrt_two_over_pi;
+      Type variance_factor = Type(1.0) - mean_shift * mean_shift;
+      omega(i) = sigma(i) / sqrt(variance_factor);
+      xi(i) = mu(i) - omega(i) * mean_shift;
+      Type z = (y(i) - xi(i)) / omega(i);
+      Type skew_cdf = pnorm(alpha * z, Type(0.0), Type(1.0));
+      Type log_density =
+        log_two -
+        log(omega(i)) +
+        dnorm(z, Type(0.0), Type(1.0), true) +
+        log(skew_cdf + Type(1e-300));
+      nll -= weights(i) * log_density;
+    }
+    REPORT(mu);
+    REPORT(log_sigma);
+    REPORT(sigma);
+    REPORT(eta_nu);
+    REPORT(nu);
+    REPORT(xi);
+    REPORT(omega);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
@@ -2291,6 +2406,24 @@ Type objective_function<Type>::operator()()
     REPORT(beta_shape);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
+  } else if (model_type == 18) {
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
+    vector<Type> mu(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
+      Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
+      Type failures = trials(i) - y(i);
+      Type log_choose =
+        lgamma(trials(i) + Type(1.0)) -
+        lgamma(y(i) + Type(1.0)) -
+        lgamma(failures + Type(1.0));
+      nll -= weights(i) *
+        (log_choose + y(i) * log_p1 + failures * log_p0);
+      mu(i) = exp(log_p1);
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    ADREPORT(beta_mu);
   } else if (model_type == 13) {
     vector<Type> mu = X_mu * beta_mu;
     vector<Type> cutpoints(theta_ord.size());
@@ -3184,8 +3317,24 @@ Type objective_function<Type>::operator()()
       }
       ADREPORT(log_sd_phylo);
       ADREPORT(sd_phylo);
+      if (penalize_phylo == 1) {
+        phylo_penalty = drm_phylo_penalty_value(
+          log_sd_phylo, q_phylo, eta_cor_phylo, theta_phylo,
+          phylo_sd_penalty_rate, phylo_cor_penalty_sd);
+        nll += phylo_penalty;
+        REPORT(phylo_penalty);
+      }
     }
 
+    // Guard the bivariate Gaussian scales against runaway per-observation
+    // log-sigma (e.g. a scale-side phylogenetic field; Ayumi's q4 "Model E").
+    // See docs/design/170-sigma-phylo-conditioning-and-logsigma-clamp.md.
+    if (use_logsigma_clamp == 1) {
+      drm_softclamp_log_sigma(
+        log_sigma1, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+      drm_softclamp_log_sigma(
+        log_sigma2, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
+    }
     vector<Type> sigma1 = exp(log_sigma1);
     vector<Type> sigma2 = exp(log_sigma2);
 

@@ -221,20 +221,29 @@ phase18_random_slope_workflow_plan <- function(
     needs_target,
     "needs_wrapper_target",
     ifelse(
-      plan$admission_status == "ready_source_test",
-      "source_test_audit",
-      "ready_existing_task"
+      plan$existing_actions_task == "none" &
+        plan$admission_status == "ready_source_test",
+      "source_test_no_dispatch",
+      ifelse(
+        plan$admission_status == "ready_source_test",
+        "source_test_audit",
+        "ready_existing_task"
+      )
     )
   )
   plan$actions_task <- ifelse(
-    needs_target,
+    needs_target | plan$existing_actions_task == "none",
     NA_character_,
     plan$existing_actions_task
   )
   plan$workflow_helper <- ifelse(
     needs_target,
     sub("^needed:", "", plan$existing_actions_task),
-    "phase18_actions_main"
+    ifelse(
+      plan$existing_actions_task == "none",
+      "held_no_dispatch",
+      "phase18_actions_main"
+    )
   )
   plan$audit_focus <- phase18_random_slope_audit_focus(
     plan$admission_status
@@ -372,6 +381,7 @@ phase18_random_slope_registry_preflight <- function(
   rows$actions_task <- NA_character_
   rows$workflow_helper <- "held_no_dispatch"
   rows$audit_focus <- "blocked_design_required"
+  rows$audit_focus[rows$admission_status == "design_only"] <- "design_required"
   matched <- !is.na(plan_row)
   rows$dispatch_status[matched] <- plan$dispatch_status[plan_row[matched]]
   rows$actions_task[matched] <- plan$actions_task[plan_row[matched]]
@@ -400,6 +410,81 @@ phase18_random_slope_registry_preflight <- function(
   list(
     checks = phase18_random_slope_preflight_checks(rows),
     rows = rows
+  )
+}
+
+phase18_biv_gaussian_q8_endpoint_precode_gate <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  phase18_validate_structured_workflow_registry(registry)
+  row <- registry[
+    registry$lane_id == "bivariate_gaussian_q8_endpoint",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(row) != 1L) {
+    stop(
+      "Expected exactly one `bivariate_gaussian_q8_endpoint` registry row.",
+      call. = FALSE
+    )
+  }
+
+  endpoints <- phase18_biv_gaussian_q8_endpoint_taxonomy()
+  n_endpoint <- nrow(endpoints)
+  n_correlation <- n_endpoint * (n_endpoint - 1L) / 2L
+  checks <- data.frame(
+    check = c(
+      "registry_row_artifact_ready",
+      "actions_task",
+      "endpoint_count",
+      "correlation_count",
+      "supervision_boundary"
+    ),
+    value = c(
+      row$admission_status,
+      row$existing_actions_task,
+      as.character(n_endpoint),
+      as.character(n_correlation),
+      row$supervision_boundary
+    ),
+    status = c(
+      ifelse(row$admission_status == "ready_grid", "pass", "fail"),
+      ifelse(
+        row$existing_actions_task == "biv_gaussian_q8_endpoint",
+        "pass",
+        "fail"
+      ),
+      ifelse(n_endpoint == 8L, "pass", "fail"),
+      ifelse(n_correlation == 28L, "pass", "fail"),
+      ifelse(nzchar(row$supervision_boundary), "pass", "fail")
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  list(
+    row = row,
+    endpoints = endpoints,
+    checks = checks
+  )
+}
+
+phase18_biv_gaussian_q8_endpoint_taxonomy <- function() {
+  data.frame(
+    endpoint_index = seq_len(8L),
+    endpoint = c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1:(Intercept)",
+      "sigma1:x",
+      "sigma2:(Intercept)",
+      "sigma2:x"
+    ),
+    dpar = rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L),
+    coefficient = rep(c("(Intercept)", "x"), 4L),
+    endpoint_role = rep(c("intercept", "slope"), 4L),
+    stringsAsFactors = FALSE
   )
 }
 
@@ -873,6 +958,243 @@ phase18_structured_workflow_plan_counts <- function(plans) {
   do.call(rbind, out)
 }
 
+phase18_pre_power_simulation_contract <- function(
+  registry = phase18_read_structured_workflow_registry()
+) {
+  phase18_validate_structured_workflow_registry(registry)
+  rows <- registry[c(
+    "lane_id",
+    "workflow_lane",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "existing_actions_task",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  rows$pre_power_role <- phase18_pre_power_simulation_role(
+    lane_id = rows$lane_id,
+    admission_status = rows$admission_status
+  )
+  rows$pre_power_boundary <- phase18_pre_power_simulation_boundary(
+    lane_id = rows$lane_id,
+    pre_power_role = rows$pre_power_role,
+    admission_status = rows$admission_status
+  )
+  rows <- rows[c(
+    "lane_id",
+    "workflow_lane",
+    "family_group",
+    "family_route",
+    "dpar",
+    "dependence",
+    "block_q",
+    "admission_status",
+    "pre_power_role",
+    "existing_actions_task",
+    "pre_power_boundary",
+    "next_autonomous_action",
+    "supervision_boundary"
+  )]
+  row.names(rows) <- NULL
+
+  list(
+    rows = rows,
+    role_counts = phase18_pre_power_role_counts(rows),
+    workflow_role_counts = phase18_pre_power_role_counts(
+      rows,
+      by = c("workflow_lane", "pre_power_role")
+    ),
+    mcse_replicates = phase18_mcse_replicate_plan()
+  )
+}
+
+phase18_pre_power_simulation_role <- function(lane_id, admission_status) {
+  if (length(lane_id) != length(admission_status)) {
+    stop(
+      "`lane_id` and `admission_status` must have the same length.",
+      call. = FALSE
+    )
+  }
+
+  role <- rep("diagnostic", length(admission_status))
+  role[admission_status == "ready_grid"] <- "ready_grid"
+  role[admission_status == "blocked"] <- "blocked"
+  role[admission_status == "design_only"] <- "design_only"
+
+  diagnostic_exceptions <- c(
+    "bivariate_gaussian_group_q4",
+    "bivariate_gaussian_mu_sigma_slope_q2",
+    "bivariate_gaussian_mu_sigma_slope_q2_recovery",
+    "bivariate_gaussian_q4_location",
+    "bivariate_gaussian_q4_location_recovery",
+    "bivariate_gaussian_q6_location",
+    "bivariate_gaussian_q6_location_recovery",
+    "bivariate_gaussian_q8_endpoint",
+    "bivariate_gaussian_q8_endpoint_recovery",
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic",
+    "structured_gaussian_q4"
+  )
+  role[lane_id %in% diagnostic_exceptions] <- "diagnostic"
+
+  unknown <- !admission_status %in% phase18_structured_workflow_statuses()
+  if (any(unknown)) {
+    stop(
+      "`admission_status` contains unknown values: ",
+      paste(unique(admission_status[unknown]), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  role
+}
+
+phase18_pre_power_simulation_boundary <- function(
+  lane_id,
+  pre_power_role,
+  admission_status
+) {
+  boundary <- rep(
+    "Admit only after the lane has an ADEMP condition table and dry-run plan.",
+    length(pre_power_role)
+  )
+  boundary[pre_power_role == "ready_grid"] <- paste(
+    "Candidate for the big power simulation after a lane-specific ADEMP",
+    "condition table sets replicate count, estimands, and failure handling."
+  )
+  boundary[pre_power_role == "diagnostic"] <- paste(
+    "Keep in diagnostic, smoke, formal-admission, or source-test reports;",
+    "do not include in broad power grids."
+  )
+  boundary[pre_power_role == "blocked"] <- paste(
+    "Keep in the failure ledger until likelihood, parser, extractor,",
+    "diagnostic, and simulation evidence exist."
+  )
+  boundary[pre_power_role == "design_only"] <- paste(
+    "Keep as a design gate with no Actions task until the design is accepted."
+  )
+
+  same_response <- lane_id %in%
+    c(
+      "bivariate_gaussian_mu_sigma_slope_q2",
+      "bivariate_gaussian_mu_sigma_slope_q2_recovery"
+    )
+  boundary[same_response] <- paste(
+    "Diagnostic only before power: the 2026-06-06 formal and hardening audits",
+    "did not rescue weak fits or support broad interval calibration."
+  )
+
+  weak_q4_q6_q8 <- lane_id %in%
+    c(
+      "bivariate_gaussian_group_q4",
+      "bivariate_gaussian_q4_location",
+      "bivariate_gaussian_q4_location_recovery",
+      "bivariate_gaussian_q6_location",
+      "bivariate_gaussian_q6_location_recovery",
+      "bivariate_gaussian_q8_endpoint",
+      "bivariate_gaussian_q8_endpoint_recovery",
+      "bivariate_gaussian_q8_endpoint_staged_diagnostic",
+      "structured_gaussian_q4"
+    )
+  boundary[weak_q4_q6_q8] <- paste(
+    "Diagnostic only before power: q4/q6/q8 correlation intervals are derived",
+    "or unavailable, and formal artifacts remain weak promotion evidence."
+  )
+
+  source_test <- admission_status == "ready_source_test"
+  boundary[source_test] <- paste(
+    "Source-test evidence only before power; add an artifact lane or explicit",
+    "source-test audit before broad operating-characteristic claims."
+  )
+  boundary
+}
+
+phase18_pre_power_role_counts <- function(
+  rows,
+  by = "pre_power_role"
+) {
+  if (!is.data.frame(rows)) {
+    stop("`rows` must be a data frame.", call. = FALSE)
+  }
+  missing <- setdiff(by, names(rows))
+  if (length(missing) > 0L) {
+    stop(
+      "`by` contains unknown columns: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  if (nrow(rows) == 0L) {
+    out <- as.data.frame(
+      stats::setNames(
+        replicate(length(by), character(), simplify = FALSE),
+        by
+      ),
+      stringsAsFactors = FALSE
+    )
+    out$n <- integer()
+    return(out)
+  }
+  rows$.n <- 1L
+  out <- aggregate(rows[".n"], rows[by], sum)
+  names(out)[names(out) == ".n"] <- "n"
+  row.names(out) <- NULL
+  out[do.call(order, out[by]), , drop = FALSE]
+}
+
+phase18_mcse_replicate_plan <- function() {
+  plan <- data.frame(
+    metric = c(
+      "coverage",
+      "coverage",
+      "coverage",
+      "type1_error",
+      "power",
+      "power"
+    ),
+    target_probability = c(0.95, 0.95, 0.95, 0.05, 0.8, 0.8),
+    mcse_target = c(0.015, 0.01, 0.007, 0.01, 0.015, 0.01),
+    use = c(
+      "diagnostic or pilot coverage cells",
+      "standard 95 percent coverage cells",
+      "headline 95 percent coverage cells",
+      "standard Type I error cells",
+      "pilot power cells",
+      "headline power cells"
+    ),
+    stringsAsFactors = FALSE
+  )
+  plan$n_min <- ceiling(
+    plan$target_probability *
+      (1 - plan$target_probability) /
+      plan$mcse_target^2
+  )
+  plan$n_recommended <- phase18_round_replicates_up(plan$n_min)
+  plan
+}
+
+phase18_round_replicates_up <- function(n_min) {
+  if (any(is.na(n_min) | n_min <= 0)) {
+    stop("`n_min` must contain positive finite values.", call. = FALSE)
+  }
+  cut <- c(250L, 500L, 1000L, 2000L)
+  vapply(
+    n_min,
+    function(n) {
+      hit <- cut[cut >= n]
+      if (length(hit) > 0L) {
+        return(hit[[1L]])
+      }
+      as.integer(ceiling(n / 500) * 500)
+    },
+    integer(1L)
+  )
+}
+
 phase18_format_structured_workflow_bundle_dry_run <- function(
   bundle = phase18_structured_workflow_plan_bundle()
 ) {
@@ -1103,17 +1425,34 @@ phase18_structured_workflow_actions_tasks <- function() {
     "interval_heavy_summary",
     "truncated_nbinom2_mu_random_intercept",
     "proportion_fixed_effect",
+    "binomial_fixed_effect",
     "bounded_response_mu_random_intercept",
     "positive_continuous_fixed_effect",
     "tweedie_fixed_effect",
     "count_structured_q1",
+    "poisson_mu_re_recovery",
+    "nbinom2_mu_re_recovery",
     "positive_continuous_mu_random_intercept",
     "student_mu_random_intercept",
     "ordinal_fixed_effect",
     "zero_one_beta_fixed_effect",
     "correlation_block_status",
     "biv_gaussian_mu_slope",
+    "biv_gaussian_mu_slope_recovery",
     "biv_gaussian_q4_location",
+    "biv_gaussian_q4_location_recovery",
+    "biv_gaussian_q6_location",
+    "biv_gaussian_q6_location_recovery",
+    "biv_gaussian_q8_endpoint",
+    "biv_gaussian_q8_endpoint_recovery",
+    "biv_gaussian_q8_endpoint_staged_diagnostic",
+    "biv_gaussian_q2_scale",
+    "biv_gaussian_q2_scale_recovery",
+    "biv_gaussian_q2_scale_slope",
+    "biv_gaussian_q2_scale_slope_recovery",
+    "biv_gaussian_mu_sigma_slope",
+    "biv_gaussian_mu_sigma_slope_recovery",
+    "skew_normal_fixed_effect",
     "spatial_mu_slope",
     "phylo_mu_slope",
     "animal_mu_slope",
@@ -1328,6 +1667,27 @@ phase18_random_slope_oc_minimum_estimands <- function(lane_id, dpar) {
     "six derived q4 location correlations kept point/status-only;",
     "residual rho12 kept separate; diagnostics"
   )
+  estimands[lane_id == "bivariate_gaussian_q6_location"] <- paste(
+    "mu1 and mu2 fixed effects; six direct q6 location SDs;",
+    "15 derived q6 location correlations kept point/status-only;",
+    "residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint"] <- paste(
+    "mu1, mu2, sigma1, and sigma2 fixed effects; eight direct q8",
+    "endpoint SDs; 28 derived q8 endpoint correlations kept",
+    "point/status-only; residual rho12 kept separate; diagnostics"
+  )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint_recovery"] <- paste(
+    "q8 endpoint bias, RMSE, and MCSE for fixed endpoints, eight direct",
+    "SDs, 28 derived endpoint correlations, and residual rho12;",
+    "intervals recorded unavailable because the runner uses se=FALSE"
+  )
+  estimands[lane_id == "bivariate_gaussian_q8_endpoint_staged_diagnostic"] <-
+    paste(
+      "q8 cold-versus-staged optimizer-start diagnostics for the same",
+      "target specification; fit metrics, objective/logLik/elapsed deltas,",
+      "and start provenance recorded as diagnostic-only evidence"
+    )
   estimands[
     lane_id %in%
       c(

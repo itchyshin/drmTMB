@@ -500,7 +500,7 @@ targets an unlabelled random intercept; coefficient-specific syntax such as
 random-slope SD regression has likelihood code and simulation tests.
 For residual-scale random slopes, keep the same boundary in mind here:
 independent `sigma` slopes fit on `log(sigma)`, while correlated or labelled
-residual-scale slope covariance remains planned.
+univariate residual-scale slope covariance remains planned.
 
 ### Name the biological response before the symbol
 
@@ -1046,9 +1046,10 @@ y \mid \mu, \sigma, V
 - `sd(group)` random-effect scale formulae are implemented for one or more
   distinct unlabelled Gaussian `mu` random intercepts, with group-level
   predictors that are constant within the named grouping variable.
-- Correlated residual-scale slope blocks, slope-specific `sd()` targets,
-  labelled-block `sd()` targets, cross-formula labelled covariance sharing
-  beyond the first random-intercept slice, multiple phylogenetic slopes,
+- Correlated univariate residual-scale slope blocks, slope-specific `sd()`
+  targets, labelled-block `sd()` targets, same-response labelled
+  location-scale slope covariance beyond the first random-intercept slice,
+  multiple phylogenetic slopes,
   phylogenetic slope correlations, standalone or partial phylogenetic scale
   terms, mesh/SPDE spatial fields, multiple spatial slopes, spatial slope
   correlations, spatial `corpair()` regression, and non-Gaussian random

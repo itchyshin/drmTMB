@@ -128,8 +128,12 @@ label:
 
 ## Boundary
 
-This sheet does not admit correlated residual-scale slope blocks, labelled
-residual-scale slope covariance, bivariate residual-scale or multiple-slope
-location covariance, or non-Gaussian random-slope recovery. Those surfaces stay
-in their own child issues or in the failure ledger until fitted evidence and
+This sheet does not itself admit correlated univariate residual-scale slope
+blocks, labelled univariate residual-scale slope covariance, bivariate
+scale-slope covariance, multiple-slope location covariance, or non-Gaussian
+random-slope recovery. Those surfaces stay in their own child issues or in the
+failure ledger until fitted evidence and
 operating-characteristic designs exist.
+Issue #483 now supplies that separate evidence for the matching
+`sigma1`/`sigma2` q2 scale-slope slice; this ADEMP remains the ordinary
+Gaussian source gate.

@@ -1,6 +1,6 @@
 Package: drmTMB
 Title: Distributional Regression Models Using Template Model Builder
-Version: 0.1.3.9000
+Version: 0.1.4
 Authors@R: c(
     person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
            role = c("aut", "cre", "cph"),
@@ -12,8 +12,8 @@ Description: Fast distributional regression models for univariate and
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous,
     Tweedie semicontinuous, strict-proportion, zero-one bounded, and
-    denominator-aware proportion
-    families, and
+    denominator-aware proportion families, fixed-effect Bernoulli/binomial
+    event-probability models, and
     fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
     hurdle count, and ordinal cumulative-logit models.
     Skewness and additional response-family models are staged for later
@@ -37,13 +37,17 @@ LinkingTo:
     RcppEigen,
     TMB
 Suggests:
+    ape,
+    callr,
     emmeans,
     glmmTMB,
     ggplot2,
+    JuliaCall,
     knitr,
     lme4,
     MASS,
     metafor,
+    pkgload,
     rmarkdown,
     spelling,
     testthat (>= 3.0.0),

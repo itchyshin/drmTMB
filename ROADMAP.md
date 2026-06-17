@@ -3,6 +3,12 @@
 `drmTMB` is a focused R package for fast univariate and bivariate
 distributional regression models using TMB.
 
+For the dependency-ordered list of remaining capability implementation slices
+between today's fitted surface and the full planned capability set, see
+`docs/design/157-capability-completion-worklist.md`. The fitted-versus-planned
+boundary itself is maintained in
+`docs/design/46-pre-simulation-readiness-matrix.md`.
+
 ## Version 0.1.3 Preview Release
 
 - Current preview version: `0.1.3`.
@@ -21,7 +27,9 @@ distributional regression models using TMB.
   17 return block, especially meta-analysis hardening, is complete. A narrow
   Poisson random-effect pilot simulation may start earlier as a scoped
   operating-characteristics grid. Phase 19 is the one-off comparator
-  demonstration layer; Phase 20 is CRAN and paper preparation. Broad
+  demonstration layer (its comparator-to-`drmTMB` mapping and scale conversions
+  are in `docs/design/158-phase-19-comparator-matrix.md`); Phase 20 is CRAN and
+  paper preparation. Broad
   random-slope operating characteristics, residual-scale structured slopes,
   multiple structured slopes, structured slope correlations, structured
   residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
@@ -166,8 +174,9 @@ distributional regression models using TMB.
   `mu2`-`sigma2`), and one `sigma1`-`sigma2` row. This is still
   random-intercept support, not bivariate random slopes or the full
   double-hierarchical endpoint.
-- Bivariate random slopes beyond the matching `mu1`/`mu2` slope-only and
-  source-tested q=4/q=6 location blocks, random effects in `rho12`, bivariate known-`V`
+- Bivariate random slopes beyond the matching `mu1`/`mu2` slope-only,
+  same-response q2 `mu`/`sigma`, matching q2 `sigma1`/`sigma2` scale-slope,
+  and smoke-artifact-routed q=4/q=6 location blocks, random effects in `rho12`, bivariate known-`V`
   plus random effects, multi-term cross-parameter bivariate covariance, and
   structured bivariate covariance beyond the fitted q=2 phylogenetic, spatial,
   animal, and `relmat()` location slices remain future work and are rejected
@@ -188,7 +197,9 @@ distributional regression models using TMB.
   The bivariate Gaussian path now fits matched labelled `mu1`/`mu2`,
   `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` random-intercept
   covariance blocks, matching slope-only `mu1`/`mu2` blocks, and
-  source-tested matching q=4/q=6 `mu1`/`mu2` location blocks.
+  matching same-response q2 `mu`/`sigma` and q2 `sigma1`/`sigma2` scale-slope
+  blocks, plus smoke-artifact-routed matching q=4/q=6 `mu1`/`mu2` location
+  blocks.
 - The R-side labelled covariance block registry now records the implemented
   two-member `mu`, `sigma`, and `mu`/`sigma` bridges without changing accepted
   syntax or fitted behaviour. It also carries a dormant TMB-shaped block data
@@ -223,14 +234,15 @@ distributional regression models using TMB.
   `mu2`-`sigma2`), and one `sigma1`-`sigma2` row. `profile_targets()` can
   format the matching six endpoint correlation targets, while q=4 intervals
   remain direct-correlation or derived-row work rather than a closed
-  double-hierarchical endpoint. Dormant q=3 scaffolds, q > 4 blocks, and q=6 or
-  q=8 random-slope endpoint blocks remain invisible to ordinary
+  double-hierarchical endpoint. Dormant q=3 scaffolds and q=8 random-slope
+  endpoint blocks remain invisible to ordinary
   extractor/profile output. The corresponding constant phylogenetic q=4 state
   is now fitted for matching labelled all-four `phylo()` terms, including the
   two-label block-diagonal fallback that separates `mu1`/`mu2` and
   `sigma1`/`sigma2` tree blocks. The next phylogenetic work is recovery
-  evidence, diagnostics, and tutorial hardening. q=6 and q=8 random-slope
-  endpoint blocks can wait.
+  evidence, diagnostics, and tutorial hardening. The ordinary bivariate q=6
+  location block now has an opt-in smoke artifact route, while q=8
+  random-slope endpoint blocks can wait.
 - Use `docs/design/18-random-effect-scale-models.md` as the design contract:
   the implemented MVP targets one or more distinct unlabelled univariate
   Gaussian `mu` random intercepts, with group-level predictors, simulation
@@ -697,10 +709,14 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   multi-slope `mu` blocks, residual-scale random intercepts and independent
   residual-scale slopes, matching labelled `mu`/`sigma` random-intercept
   covariance, and direct `sd(group)` models for unlabelled Gaussian `mu`
-  random intercepts. The first coordinate-spatial, phylogenetic, animal-model,
-  and `relmat()` one-slope Gaussian `mu` paths are fitted; multiple structured
-  slopes, structured slope correlations, residual-scale structured slopes, and
-  broader bivariate slope blocks remain later work for Phases 10 and 12.
+  random intercepts. Bivariate Gaussian now also has the matching
+  `sigma1`/`sigma2` q2 scale-slope block as a fitted first slice. The first
+  coordinate-spatial, phylogenetic, animal-model, and `relmat()` one-slope
+  Gaussian `mu` paths are fitted; the same-response q2 bivariate
+  location-scale slope route is fitted and has a Phase 18 smoke/recovery lane.
+  Multiple structured slopes, structured slope correlations, residual-scale
+  structured slopes, and p8/q8 endpoint blocks remain later work for Phases 10
+  and 12.
 - Closure boundary: Phase 6c now includes the ordinary grouped q > 2 Gaussian
   `mu` block path, with q=3 recovery, q=4 output-contract checks, and
   extractor coverage in `sdpars$mu`, `corpars$re_cov`, `corpairs()`,
@@ -708,8 +724,16 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
   remain advanced, sample-size hungry fits; q > 2 SDs are direct profile
   targets, but q > 2 correlations remain derived-unavailable for direct profile
   intervals. Gaussian `sigma` random intercepts and independent numeric slopes
-  are fitted on log-`sigma`; correlated residual-scale slope blocks and
-  labelled residual-scale slope covariance remain planned. The structured
+  are fitted on log-`sigma`; matching bivariate Gaussian `sigma1`/`sigma2`
+  slope-only covariance is fitted as the first q2 scale-slope slice, and
+  matching same-response bivariate `mu`/`sigma` slope-only covariance has its
+  own q2 smoke/recovery lane. The first ordinary q8 endpoint route now has
+  smoke/recovery diagnostic artifacts, and the 2026-06-07 local two-cell audit
+  keeps q8 at `hold_diagnostic` after 38/40 completed manifests, convergence
+  rates of 0.263 and 0.158, zero positive-Hessian fits, two leading-minor
+  optimization errors, and no usable Wald intervals. Q8 coverage, q8 power,
+  and richer q8 variants remain planned. Univariate correlated residual-scale slope blocks
+  also remain planned. The structured
   one-slope Gaussian `mu` handoff is also current: `spatial(1 + x | site,
   coords = coords)`, `phylo(1 + x | species, tree = tree)`,
   `animal(1 + x | id, ...)`, and `relmat(1 + x | id, ...)` fit independent
@@ -780,7 +804,7 @@ Phase 6b should turn the implemented surfaces into a coherent reader path:
 | 74 | Slope-correlation advanced gate | Design two-slope models, intercept-slope correlations, and bivariate slope1-slope2 correlations without advertising them as routine. | Done for the ordinary core: the source map names the required coefficient-aware `corpair()` syntax, `corpairs()` rows, direct-target interval status, and recovery evidence before bivariate slope correlations are fitted or taught. |
 | 75 | Biological examples | Add tutorial examples for reaction norms and bivariate plasticity-syndrome questions, including how to read slope SDs, slope correlations, and interval/status columns. | Done for the ordinary core: the location-scale tutorial now gives a thermal reaction-norm example with fixed slope, random-intercept SD, random-slope SD, group-level intercept-slope correlation, and `profile_targets()` interpretation. Full structured-slope examples wait until Phases 10-13 settle. |
 | 76 | Phase 6c gate | Run focused tests, pkgdown checks, after-phase audit, PR, and GitHub Actions. | Done locally for the Phase 6c core: focused tests, pkgdown build/check, stale-claim scans, check-log entry, and after-phase report are complete. GitHub Actions remains the PR-side gate. |
-| 77 | Random-effect slope capacity closeout | Close #128 by tying the current location, scale, bivariate, structured, and non-Gaussian random-slope boundaries to the support matrix, known-limitations ledger, tests, and Phase 18 simulation handoff. | Done locally: `docs/design/59-structural-slope-and-non-gaussian-map.md`, README stable-core rows, `docs/dev-log/known-limitations.md`, and current tests now provide the issue-linked capacity table. Unsupported residual-scale structured slopes, slope-specific `sd()` models, p8/q8 endpoint covariance, and broad non-Gaussian structured slopes remain planned follow-ups. |
+| 77 | Random-effect slope capacity closeout | Close #128 by tying the current location, scale, bivariate, structured, and non-Gaussian random-slope boundaries to the support matrix, known-limitations ledger, tests, and Phase 18 simulation handoff. | Done locally: `docs/design/59-structural-slope-and-non-gaussian-map.md`, README stable-core rows, `docs/dev-log/known-limitations.md`, and current tests now provide the issue-linked capacity table. Unsupported residual-scale structured slopes, slope-specific `sd()` models, q8 coverage/power evidence, richer q8 variants, and broad non-Gaussian structured slopes remain planned follow-ups. |
 | 78 | Random-slope tutorial and release ledger | Close #444 by tying the reader-facing random-slope course path to model-map status, location-scale equations and diagnostics, bivariate slope-slope guidance, reference-index discoverability, and a finished-versus-planned release ledger. | Done locally: `vignettes/location-scale.Rmd`, `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`, and `docs/design/151-phase6c-random-slope-tutorial-ledger.md` now record the ordinary, residual-scale, bivariate, non-Gaussian, structured, `sd(group)`, `rho12`, `corpair()`, and `corpairs()` teaching boundaries. Unsupported cells remain explicit planned neighbours rather than runnable tutorial syntax. |
 | 79 | Twin/sister exchange closeout | Close #437 by making the daily exchange protocol, first scout cards, provenance corrections, and transfer-of-evidence boundary repo-visible on `main`. | Done locally: `docs/dev-log/twin-sister-exchange.md` records the accepted planning lessons from `DRM.jl`, `GLLVM.jl`, and `gllvmTMB`, locks the `GLLVM.jl` and `meta_V(V = V)` naming corrections, and states that no sibling speed, coverage, recovery, or code claim transfers to `drmTMB` without local validation. |
 | 80 | Sprint parent closeout | Close #436 by reconciling child issue state, evidence handles, transfer-of-evidence boundaries, and remaining open follow-up issues. | Done locally: `docs/design/152-phase6c-random-slope-sprint-closeout.md` records that #437-#444 and #446 are closed, keeps fitted/source-tested/artifact-ready/planned/unsupported cells separate, and routes remaining broad work to #33, #59, #60, #147, #342, #61, and #5. |
@@ -879,7 +903,9 @@ Phase 6d should be closed as small hardening slices:
   slopes. Student-t also has ordinary unlabelled `mu` random intercept and
   independent numeric slope first slices with fixed-effect `sigma` and `nu`.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
-  negative-binomial models before adding skew-normal and skew-t families.
+  negative-binomial models beside the fitted skew-normal fixed-effect first
+  slice. Skew-normal formal operating-characteristic grids and skew-t remain
+  later evidence gates.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
@@ -921,6 +947,9 @@ Phase 6d should be closed as small hardening slices:
   conditional positive-count mean. Adding `hu ~ predictors` to the same family
   route fits the implemented fixed-effect hurdle NB2 model. `beta()` is
   implemented for strict continuous proportions with public `sigma`.
+  `stats::binomial(link = "logit")` is implemented for fixed-effect
+  Bernoulli/binomial event probabilities with explicit 0/1 or
+  `cbind(successes, failures)` responses and no public `sigma`.
   `beta_binomial()` is implemented for counted successes out of known trial
   totals with public extra-binomial `sigma`. `zero_one_beta()` is implemented
   for fixed-effect continuous proportions on `[0, 1]` with structural exact 0
@@ -954,9 +983,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 - Status: partially implemented. The location-only `cumulative_logit()` MVP is
   implemented for one ordered response, fixed effects, ordered cutpoints, and
-  fixed latent logistic scale. The first `beta_binomial()` path is implemented
-  for `cbind(successes, failures)` responses, fixed effects, known trial
-  totals, and extra-binomial `sigma`.
+  fixed latent logistic scale. The first plain binomial path is implemented for
+  0/1 and `cbind(successes, failures)` responses with fixed-effect `mu` and no
+  public `sigma`. The first `beta_binomial()` path is implemented for
+  `cbind(successes, failures)` responses, fixed effects, known trial totals,
+  and extra-binomial `sigma`.
 - Historical `0.1.0` release decision: Phase 9 closed at this MVP boundary.
   Ordinal scale or discrimination formulae, denominator aliases beyond
   `cbind(successes, failures)`, ordered beta, and zero-one beta random effects
@@ -968,8 +999,10 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   direction of interpretation must be unambiguous. The current design note
   prefers `sigma ~ ...` with discrimination reported as derived
   `zeta = 1 / sigma`.
-- Keep `cbind(successes, failures)` as the canonical beta-binomial response
-  until the denominator-helper design note is implemented with tests.
+- Keep `cbind(successes, failures)` as the canonical denominator response for
+  plain binomial and beta-binomial models until the denominator-helper design
+  note is implemented with tests. Do not use `weights = trials` as denominator
+  syntax.
 - Add ordered beta or richer zero-one beta mixed-model/covariance routes for
   continuous bounded responses with exact 0 or 1 values.
 - Keep these models univariate until their parameter recovery, boundary
@@ -1147,16 +1180,20 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 
 ## Phase 16: Shape and Asymmetry Models
 
-- Status: planned.
-- Add skew-normal and skew-t only after Student-t, Gaussian phylogenetic
-  location-scale, and the core family-link contract are stable. The first
-  asymmetry slice should be fixed-effect and univariate, not a random-effect or
-  structured-dependence endpoint.
+- Status: first skew-normal fixed-effect slice implemented; skew-t and richer
+  asymmetry models remain planned.
+- Add skew-t only after Student-t, the first skew-normal slice, Gaussian
+  phylogenetic location-scale, and the core family-link contract are stable.
+  The first asymmetry slice is fixed-effect and univariate, not a random-effect
+  or structured-dependence endpoint. A standalone Phase 18
+  `skew_normal_fixed_effect` artifact lane now supplies repeatable smoke/grid
+  evidence for the fitted fixed-effect surface, but it is not a formal 500- or
+  1000-replicate operating-characteristic result.
 - Use GAMLSS-style names: `nu` for the first shape parameter and `tau` for the
   second when needed. For `skew_normal()`, `nu` should be the asymmetry or
-  skewness parameter. The first fitted lane should use public moment
-  parameters, with `mu = E[y]`, `sigma = SD[y]`, and an explicit transform to
-  native skew-normal `xi`, `omega`, and `alpha` before implementation. For
+  skewness parameter. The first fitted lane uses public moment parameters, with
+  `mu = E[y]`, `sigma = SD[y]`, and an explicit transform to native skew-normal
+  `xi`, `omega`, and `alpha = nu` inside the TMB likelihood. For
   `skew_t()`, `nu` should remain the asymmetry parameter and `tau` should
   control tail thickness or degrees of freedom, so the Student-t `nu`
   convention does not silently change meaning.
@@ -1508,7 +1545,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 169 | Derived intervals | Done: q4 derived correlation and covariance-product rows remain explicit `derived_interval_unavailable` targets until a reparameterized or fix-and-refit derived interval method exists. |
 | 170 | Bootstrap intervals | Superseded by the fast-CI slice and closed for #265's first boundary: the audit requirements now exist for selected direct `confint()` targets through a deterministic simulate/refit route, direct target extractor, failure counts, and runtime controls. |
 | 171 | Bootstrap intervals | Done for the first public #265 boundary: `confint(..., method = "bootstrap")` now returns percentile intervals for selected direct targets; `summary()`, `corpairs()`, prediction tables, q4 derived rows, repeatability, and phylogenetic signal remain separate work. |
-| 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata. Unsupported non-direct routes still stop before interval work. |
+| 172 | Bootstrap intervals | Done for direct `confint()` targets: bootstrap interval rows now carry `bootstrap`, `bootstrap_unavailable`, success counts, failure counts, backend, and worker metadata, and returned bootstrap tables carry a `"bootstrap.diagnostics"` attribute with one row per refit and target. Unsupported non-direct routes still stop before interval work. |
 | 173 | Interval evidence | Done: focused tests now cover unsupported-bootstrap errors, q4 derived-unavailable boundaries, direct profile paths, and shared interval-status/source vocabulary. |
 | 174 | Interval diagnostics | Done: profile diagnostics remain `profile.boundary`/`profile.message`; direct bootstrap rows report refit success/failure metadata, while unsupported bootstrap surfaces still give explicit unavailable errors. |
 | 175 | Interval harmonization | Done: internal status/source vocabulary helpers now align `summary()`, `confint()`, `corpairs()`, and prediction-table interval outputs. |
@@ -1521,7 +1558,7 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 | 182 | Scale random slopes | Done: multiple independent residual-scale Gaussian `sigma` terms are tested as separate log-`sigma` SDs with correlations fixed at zero; correlated and labelled residual-scale slope covariance blocks remain planned. |
 | 183 | Location-scale covariance | Done: two independent matched univariate `mu`/`sigma` random-intercept covariance blocks can be fitted and reported through `corpars$mu_sigma`, `corpairs()`, `summary()`, and `profile_targets()`. |
 | 184 | Location-scale covariance | Done: `check_drm()` now reports each independent univariate `mu`/`sigma` block separately, and profile tests cover the second `eta_cor_mu_sigma` interval target. |
-| 185 | Bivariate slope route | Superseded by Slice 83 and the 2026-06-02 location source gates: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)` and matching q=4/q=6 location blocks such as `(1 + x | p | id)` and `(1 + x + z | p | id)` are now fitted, while residual-scale, same-response location-scale, and all-four p8/q8 location-scale slope blocks remain closed. |
+| 185 | Bivariate slope route | Superseded by Slice 83, the q4/q6 location smoke routes, the q2 scale-slope route, the same-response q2 location-scale slope route, and the q8 endpoint diagnostic artifact route: matching slope-only `mu1`/`mu2` blocks such as `(0 + x | p | id)`, matching q=4/q=6 location blocks such as `(1 + x | p | id)` and `(1 + x + z | p | id)`, matching q=2 `sigma1`/`sigma2` scale-slope blocks, matching same-response `mu1`/`sigma1` or `mu2`/`sigma2` slope-only blocks, and matching all-four `(1 + x | p | id)` q8 endpoint blocks are now fitted. Q8 coverage and power remain closed. |
 | 186 | Phylogenetic random slopes | Superseded by Slices 39-82: this audit originally recorded the pre-parity gap, but `phylo(1 + x | species, tree = tree)` now fits the first univariate Gaussian one-slope `mu` path; multiple phylogenetic slopes, residual-scale structured slopes, and slope correlations remain planned. |
 | 187 | Spatial random slopes | Done: coordinate-spatial one-slope support now has a direct profile-interval test for the slope-field SD plus explicit boundary tests for multiple slopes, residual-scale structured slopes, and bivariate spatial slope syntax. |
 | 188 | Random-effect gate | Done: the one-slope-per-layer status table and remaining Gaussian double-hierarchical limits are published below before the non-Gaussian revisit. |
@@ -1529,9 +1566,11 @@ remain blocked by future covariance or non-Gaussian random-effect work.
 - Slice 189 is done: the double-hierarchical endpoint map now reflects the
   current Gaussian boundary after Slices 177-188, including q > 2 ordinary
   `mu`, multiple univariate mean-scale intercept blocks, coordinate-spatial
-  one-slope support, matching bivariate q=4/q=6 location source gates, and the
-  still-closed residual-scale bivariate slope, p8/q8 location-scale, and spatial
-  q=4 endpoints.
+  one-slope support, matching bivariate q=4/q=6 location smoke routes, the
+  matching bivariate q2 scale-slope route, the first same-response q2
+  `mu`/`sigma` slope route, the q8 location-scale endpoint diagnostic
+  smoke/recovery lane, and the still-closed q8 coverage/power and spatial q=4
+  endpoint evidence.
 - Slices 190-202 are the pre-simulation non-Gaussian gate. The purpose is not
   to implement every attractive family feature before Phase 18. It is to decide
   which non-Gaussian, scale, shape, zero-inflation, hurdle, ordinal, structured,
@@ -1547,12 +1586,12 @@ This is the current random-effect status before the non-Gaussian revisit:
 | Layer | One-Slope Status | Inference and Diagnostics | Remaining Gaussian DH Limit |
 | --- | --- | --- | --- |
 | Ordinary Gaussian `mu` | Fitted for independent slopes, one-slope correlated blocks, and ordinary q > 2 numeric location blocks. | q=3 recovery, `sdpars$mu`, `corpars$re_cov`, `corpairs()`, `summary()`, `profile_targets()`, and direct SD profiles are covered. | Larger q blocks are advanced and sample-size hungry; q > 2 correlations remain derived-unavailable for direct profile intervals. |
-| Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated residual-scale slope blocks and labelled residual-scale slope covariance are planned. |
+| Gaussian `sigma` | Fitted for random intercepts and multiple independent numeric slopes on `log(sigma)`. | `sdpars$sigma`, prediction contributions, direct `log_sd_sigma` profile targets, and tests cover the independent-slope boundary. | Correlated univariate residual-scale slope blocks and labelled univariate residual-scale slope covariance are planned. |
 | Univariate `mu`/`sigma` covariance | Fitted for one or more matched labelled random-intercept blocks. | `corpars$mu_sigma`, `corpairs(class = "mean-scale")`, `summary()`, `check_drm()`, and second-block profile tests are covered. | Slope-level mean-scale covariance is planned. |
-| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` blocks, and source-tested matching q=4 and q=6 `mu1`/`mu2` location blocks. | Constant q=2 correlation targets and the slope-slope `mu1`/`mu2` target are profile-ready; same-response mean-scale blocks report one row per response-specific label/group pair; q > 2 location-block SDs are direct targets, while q > 2 correlations are derived-only with explicit unavailable interval status. | Residual-scale slope blocks, same-response location-scale slope covariance, p8/q8 all-four slope endpoints, and q > 2 simulation recovery remain closed. |
+| Bivariate ordinary covariance | Fitted for matching labelled random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one or more same-response `mu`/`sigma` intercept or slope-only blocks, all-four q=4 intercept blocks, matching slope-only `mu1`/`mu2` and `sigma1`/`sigma2` blocks, matching q=4 and q=6 `mu1`/`mu2` location blocks with smoke artifact routing, and the first q8 all-endpoint ordinary Gaussian block with diagnostic smoke/recovery/staged-start routing. | Constant q=2 correlation targets, the slope-slope `mu1`/`mu2` target, the scale-slope `sigma1`/`sigma2` target, and same-response q2 `mu`/`sigma` targets are profile-ready; q2 same-response, q2 scale-slope, and q8 rows now have smoke/recovery/staged-diagnostic grid writers; q > 2 location-block SDs and q8 endpoint SDs are direct targets, while q > 2 and q8 correlations are derived-only with explicit unavailable interval status. | Q8 coverage, q8 power, and formal q > 2 simulation recovery remain closed; the 2026-06-06 same-response q2 formal audit is diagnostic only because convergence/positive-Hessian rates were 0.856 and 0.884 and fixed-effect Wald coverage was 0.796-0.850; the 2026-06-07 q8 local audit is also diagnostic only because 38/40 manifests completed, convergence rates were 0.263 and 0.158, positive-Hessian rates were 0, two fits had leading-minor optimization errors, and no Wald intervals were usable. |
 | Phylogenetic structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one-slope `mu`, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths are fitted. | Direct phylogenetic SDs and q=2 correlations have profile targets; full q=4 correlations are derived-only, while block-diagonal q=4 fallback correlations are direct targets that still need fit-specific profile diagnostics. | Multiple phylogenetic slopes, residual-scale structured slopes, slope correlations, direct-SD formulas combined with structured `sigma`, structured `rho12`, and non-Gaussian phylogenetic effects remain planned. |
 | Coordinate spatial structured effects | Fitted for univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate Gaussian `mu1`/`mu2` q=2 location covariance, constant q=4 location-scale covariance, and ordinary Poisson/NB2 q=1 `mu` intercepts. | `sdpars$mu`, `sdpars$sigma`, marker-specific `ranef()` blocks, `profile_targets()`, `check_drm()`, `corpairs(level = "spatial")`, `summary()$covariance`, a slope-field profile interval, the q=2 dense covariance comparator, q=4 extractor/diagnostic tests, and count structured tests are covered. | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD, spatial `corpair()`, count spatial slopes or labels, and zero-inflated spatial effects remain planned. |
-| Non-Gaussian families | Fixed-effect likelihoods are fitted; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` is fitted for ordinary Poisson/NB2; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random intercepts have Phase 18 artifact lanes and independent numeric `mu` slopes have focused source tests; ordinary NB2 has the first log-`sigma` random-intercept gate. | Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; Student-t, zero-truncated NB2, bounded-response, and positive-continuous artifact lanes record fixed-effect Wald rows and direct-SD profile rows for ordinary `(1 | id)` in `mu`; `tests/testthat/test-nongaussian-mu-random-slopes.R` records CRAN-safe slope recovery, prediction, extractor, profile-target, and diagnostic checks; NB2 `sigma` random-intercept SDs appear in `sdpars$sigma`, `random_effects$sigma`, and direct `log_sd_sigma` profile-target rows; family-specific fixed-effect summaries, structured count diagnostics, and intervals exist where already implemented. | Zero-inflation, hurdle, ordinal, structured slopes, simultaneous structured count types, labelled count covariance, cross-parameter covariance, NB2 `sigma` slopes or structured effects, correlated Student-t/zero-truncated NB2/positive-continuous/bounded-response random slopes, non-Gaussian `sigma` random effects, Student-t `nu` random effects, exact 0/1 boundary mass, other non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
+| Non-Gaussian families | Fixed-effect likelihoods are fitted; plain binomial is fitted for fixed-effect 0/1 and `cbind(successes, failures)` logit models; ordinary Poisson and NB2 `mu` random intercepts plus independent numeric slopes are fitted for non-zero-inflated count models; one q=1 structured `mu` intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` is fitted for ordinary Poisson/NB2; ordinary Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random intercepts have Phase 18 artifact lanes and independent numeric `mu` slopes have focused source tests; ordinary NB2 has the first log-`sigma` random-intercept gate. | Binomial fixed-effect coefficients use the Wald fixed-effect interval path and focused `stats::glm()` parity tests; Poisson, NB2, Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial `mu` random-effect SDs appear in `sdpars$mu`, random effects, and direct `profile_targets()` rows; Student-t, zero-truncated NB2, bounded-response, and positive-continuous artifact lanes record fixed-effect Wald rows and direct-SD profile rows for ordinary `(1 | id)` in `mu`; `tests/testthat/test-nongaussian-mu-random-slopes.R` records CRAN-safe slope recovery, prediction, extractor, profile-target, and diagnostic checks; NB2 `sigma` random-intercept SDs appear in `sdpars$sigma`, `random_effects$sigma`, and direct `log_sd_sigma` profile-target rows; family-specific fixed-effect summaries, structured count diagnostics, and intervals exist where already implemented. | Binomial random effects, binomial structured effects, zero-inflation, hurdle, ordinal, structured slopes, simultaneous structured count types, labelled count covariance, cross-parameter covariance, NB2 `sigma` slopes or structured effects, correlated Student-t/zero-truncated NB2/positive-continuous/bounded-response random slopes, non-Gaussian `sigma` random effects, Student-t `nu` random effects, exact 0/1 boundary mass, other non-Gaussian scale random effects, and shape random effects still need separate implementation evidence before broad simulation. |
 
 | Slice | Lane | Target Before Phase 18 |
 | --- | --- | --- |
@@ -1982,19 +2021,19 @@ Use this order unless Slice 191 evidence overturns it:
 | 1399-1408 | Parallel Phase 18 lane protocol | Done locally as process design: `docs/design/121-phase-18-parallel-lane-protocol-slices-1399-1408.md` records how two independent distribution lanes can be built on separate branches while shared helpers, formula grammar, likelihood contracts, exported APIs, global status files, and merge decisions remain serial integration gates. |
 | 1409-1418 | First two-team Phase 18 pilot | Done locally: Team A added `docs/design/122-tweedie-scale-preflight.md` to lock the proposed first Tweedie lane to univariate fixed-effect `mu`, `sigma`, and intercept-only `nu` with public `sigma = sqrt(phi)` before implementation; Team B added zero-truncated NB2 `mu` random-intercept tests for factor/missing-row handling and malformed-neighbour rejection, without opening Tweedie support or broadening the fitted count surface. |
 | 1419-1518 | Tweedie fixed-effect admission | Done locally: `tweedie()` now fits the first univariate fixed-effect semicontinuous route with `mu`, public `sigma = sqrt(phi)`, and intercept-only `nu ~ 1`; focused tests cover high-zero and low-zero recovery, fitted response semantics, simulation, support-boundary filtering, and malformed neighbours. Tweedie random effects, predictor-dependent `nu`, structured effects, bivariate or mixed-response routes, zero-inflation aliases, and hurdle aliases remain planned. |
-| 1519-1538 | Skew-normal source map | Done locally as design-only evidence: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests without adding `skew_normal()` or changing formula grammar. |
+| 1519-1538 | Skew-normal source map | Done locally as design-only evidence, later superseded by the fitted first slice: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests before the constructor and likelihood branch landed. |
 | 1619-1668 | Next Team A Tweedie hardening lane | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide the PR boundary, add or design the `glmmTMB::tweedie()` comparator contract, keep public `sigma^2` versus comparator `phi` explicit, harden `fitted()`, `sigma()`, `predict(dpar = "nu")`, simulation, stale-claim, and rendered-site checks, and stop before `nu ~ x`, random effects, structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases. |
-| 1669-1718 | Next Team B skew-normal decision gate | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide native versus moment parameterization, record consequences for `fitted()`, `sigma()`, and `predict(dpar = "nu")`, name the first density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and runtime tests, and keep `skew_normal()` absent until that contract is accepted. |
+| 1669-1718 | Next Team B skew-normal decision gate | Superseded by the fitted first slice: `docs/design/125-phase-18-next-two-team-slices-1619-1718.md` framed the native-versus-moment decision, and the implementation now uses public moment parameters with source tests for density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and malformed-neighbour behaviour. A fixed-effect Phase 18 artifact lane now exists; formal high-replicate operating-characteristic grids and external fitted-model comparators remain planned. |
 | 1619-1628 | Tweedie comparator contract | Done locally: `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md` and the optional `glmmTMB` comparator test compare `mu` coefficients, `2 * sigma` coefficients to log-dispersion `phi`, intercept-only power, and log-likelihood on low-zero and high-zero overlapping fixed-effect models without widening Tweedie support. |
-| 1669-1672 | Skew-normal parameterization decision | Done locally as design-only evidence: `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md` chooses the moment contract for the first fitted lane, with public `mu = E[y]`, public `sigma = SD[y]`, `nu` as slant/shape, and internal transform to native `xi`, `omega`, and `alpha`; no constructor or TMB branch was added. |
-| 1673-1702 | Skew-normal first-test contract | Done locally as design-only evidence: `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md` records the density normalization, Gaussian normal-limit, sign-orientation, false-positive, and no-C++ admission gates that must become tests before `skew_normal()` is exposed. |
-| 1629-1630 and 1687-1688 | Tweedie semantic and skew-normal boundary tests | Done locally: `docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md` records that Tweedie zero-regime comparator cells now reassert `fitted()` as unconditional `mu` and response-scale `nu` in `(1, 2)`, while the skew-normal boundary test reads the first-test contract and keeps `skew_normal()` absent. |
-| 1631-1632 and 1685-1686 | Comparator and support-boundary decisions | Done locally as design evidence: `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md` keeps Tweedie weights as top-level row likelihood multipliers, keeps Tweedie offsets out of the first comparator pass, and records finite-response, missingness, and rank-deficiency decisions for the future skew-normal lane. |
+| 1669-1672 | Skew-normal parameterization decision | Done locally and now implemented: `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md` chose the moment contract for the first fitted lane, with public `mu = E[y]`, public `sigma = SD[y]`, `nu` as slant/shape, and internal transform to native `xi`, `omega`, and `alpha = nu`. |
+| 1673-1702 | Skew-normal first-test contract | Done locally and now source-tested: `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md` recorded the density normalization, Gaussian normal-limit, sign-orientation, false-positive, and admission gates that the fitted first slice now covers in focused tests. |
+| 1629-1630 and 1687-1688 | Tweedie semantic and skew-normal boundary tests | Done locally: `docs/design/129-phase-18-semantic-boundary-tests-slices-1629-1630-1687-1688.md` records that Tweedie zero-regime comparator cells now reassert `fitted()` as unconditional `mu` and response-scale `nu` in `(1, 2)`, while the skew-normal boundary tests moved from constructor absence to explicit malformed-neighbour rejection for unsupported random, structured, bivariate, covariance, and alias syntax. |
+| 1631-1632 and 1685-1686 | Comparator and support-boundary decisions | Done locally as design evidence: `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md` keeps Tweedie weights as top-level row likelihood multipliers, keeps Tweedie offsets out of the first comparator pass, and records finite-response, missingness, and rank-deficiency decisions used by the skew-normal first slice. |
 | 1631 addendum | Tweedie row-weight invariant | Done locally: `docs/design/131-phase-18-tweedie-weight-invariant-slice-1631-addendum.md` and `tests/testthat/test-tweedie-location-scale.R` check that constant Tweedie row weights double the log-likelihood without moving `mu`, `sigma`, or intercept-only `nu`, and that integer row weights match explicit row duplication. The weighted external `glmmTMB` comparator remains postponed. |
 | 1639, 1641, and 1642 | Tweedie simulation shape and seed hardening | Done locally: `tests/testthat/test-tweedie-location-scale.R` now checks `simulate()` data-frame shape, column names, fitted-row count after missing-row filtering, finite non-negative draws with exact zeros, and repeated-seed reproducibility for the fitted fixed-effect Tweedie lane. |
 | 1644-1646 | Tweedie fixed-effect artifact preflight | Done locally as design-only evidence: `docs/design/133-phase-18-tweedie-fixed-effect-artifact-preflight-slices-1644-1646.md` names the future `tweedie_fixed_effect` DGP, estimands, summary columns, manifest, failure-ledger, Wald interval, and coverage fields before runner code. It keeps the lane univariate, fixed-effect, unweighted, and intercept-only for `nu`; Tweedie offsets, random effects, structured effects, bivariate routes, zero-inflation aliases, and hurdle aliases remain excluded. |
-| 1689-1702 | Skew-normal implementation gate | Done locally as design-only evidence: `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md` keeps `skew_normal()` absent while naming the required density, normal-limit, sign-orientation, malformed-neighbour, method, documentation, provenance, no-fit, recovery, false-positive, interval-status, diagnostic, runtime, DGP, and summary gates for the first implementation PR. |
-| 1703 | Skew-normal density contract fixture | Done locally as test-only evidence: `tests/testthat/helper-skew-normal-density.R` and `tests/testthat/test-skew-normal-density-contract.R` check the public-moment to native-density transform, integration to one, the `nu = 0` Gaussian limit, and the third-moment sign orientation. No `skew_normal()` constructor, TMB branch, formula-grammar change, exported docs, or user-facing example is added. |
+| 1689-1702 | Skew-normal implementation gate | Done locally and now fitted as the first source slice: `docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md` named the density, normal-limit, sign-orientation, malformed-neighbour, method, documentation, provenance, recovery, false-positive, interval-status, diagnostic, runtime, DGP, and summary gates for the first implementation PR. |
+| 1703 | Skew-normal density contract fixture | Done locally and now paired with the fitted constructor: `tests/testthat/helper-skew-normal-density.R` and `tests/testthat/test-skew-normal-density-contract.R` check the public-moment to native-density transform, integration to one, native-density comparison, the `nu = 0` Gaussian limit, and the third-moment sign orientation. |
 | 1704 | Tweedie density fixture | Done locally as test-only evidence: `tests/testthat/helper-tweedie-density.R` and `tests/testthat/test-tweedie-location-scale.R` compare an intercept-only fitted Tweedie log likelihood with an independent compound Poisson-Gamma density fixture for exact-zero mass and positive observations. No Tweedie DGP, runner, grid writer, coverage table, predictor-dependent `nu`, random effects, structured effects, bivariate route, zero-inflation alias, or hurdle alias is added. |
 | 1705-1708 | Tweedie fixed-effect smoke artifacts | Done locally: `inst/sim/dgp/sim_dgp_tweedie_fixed_effect.R`, `inst/sim/fit/sim_summarise_tweedie_fixed_effect.R`, `inst/sim/run/sim_run_tweedie_fixed_effect_smoke.R`, and `inst/sim/run/sim_summary_tweedie_fixed_effect_smoke.R` add the first low/high-zero DGP, fit summariser, smoke runner, resume check, aggregate/replicate/manifest/failure-ledger outputs, and formula-coefficient Wald artifacts for the fitted univariate fixed-effect `tweedie()` route. No grid writer, Actions task, predictor-dependent `nu`, random effects, structured effects, bivariate route, offset/exposure route, zero-inflation alias, or hurdle alias is added. |
 | 1709-1712 | Tweedie fixed-effect grid writer | Done locally: `inst/sim/run/sim_write_tweedie_fixed_effect_grid.R` writes repeatable aggregate, replicate, manifest, failure-ledger, Wald interval, and Wald coverage CSV artifacts for `tweedie_fixed_effect`, with overwrite protection, artifact-manifest checks, and focused tests. No manual Actions task, predictor-dependent `nu`, random effects, structured effects, bivariate route, offset/exposure route, zero-inflation alias, or hurdle alias is added. |
@@ -2060,6 +2099,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1831 | Count-gallery grain gate | Done locally: the count-pilot gallery bias panel now treats replicate CSVs as cloud-ready only when `artifact_grain = "replicate"`, and the rendered template test covers an aggregate-grain CSV with error columns so aggregate-shaped inputs cannot create fake replicate-error clouds. |
 | 1832 | Artifact-grain closeout | Done locally: `docs/design/150-phase-18-artifact-grain-closeout.md` records the #255 current guarantee, and the first-wave table-bundle test now covers `gaussian_ls_grid`, `meta_v_grid`, `count_mu_random_effect_grid`, `proportion_fixed_effect_grid`, and `biv_rho12_grid` so aggregate-only rows stay out of replicate-cloud displays. Future gallery hygiene is tracked in #461. |
 | 1833 | Future-gallery grain helper | Done locally: `inst/sim/R/sim_gallery_grain.R` provides the reusable Phase 18 gate for cloud-style gallery geometry. The count-pilot gallery now uses it, and tests cover replicate-grain, aggregate-grain, derived-gate, conflicting-gate, and missing-column inputs before future galleries reuse the contract. |
+| 1840 | Bivariate q8 endpoint diagnostic artifact gate | Done locally and updated by the artifact-lane slices: the structured workflow registry now has `ready_grid` `bivariate_gaussian_q8_endpoint`, `bivariate_gaussian_q8_endpoint_recovery`, and `bivariate_gaussian_q8_endpoint_staged_diagnostic` rows with opt-in Actions tasks. `phase18_biv_gaussian_q8_endpoint_precode_gate()` names the eight all-endpoint labels, records the 28 implied correlations, and keeps q8 coverage and power held until deliberately sized evidence is accepted. |
 | 1834 | Spatial one-slope Actions task | Done locally: `spatial_mu_slope` is a manual-only Phase 18 Actions task that calls the existing coordinate-spatial Gaussian `mu` one-slope grid writer, and the structured workflow registry maps `gaussian_spatial_mu_one_slope` to that task. No recovery or coverage claim is made. |
 | 1835-1836 | Animal and relmat one-slope artifact writers | Done locally: `phase18_write_relmat_mu_slope_grid_outputs()` and `phase18_write_animal_mu_slope_grid_outputs()` write local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `relmat()` and dense-pedigree `animal()` Gaussian `mu` one-slope lanes. The writer slices themselves did not add Actions dispatch; the manual task slice wires them while still excluding `task = "all"`, sparse large-pedigree speed claims, recovery, coverage, power, multiple structured slopes, slope correlations, and residual-scale structured slopes. |
 | 1837 | Phylo one-slope artifact writer | Done locally: `phase18_write_phylo_mu_slope_grid_outputs()` writes local aggregate, replicate-level, manifest, and failure-ledger artifacts for the `phylo()` Gaussian `mu` one-slope lane. The writer slice itself did not add Actions dispatch; the manual task slice wires it while still excluding `task = "all"` inclusion, recovery, coverage, power, multiple phylogenetic slopes, slope correlations, residual-scale structured slopes, and non-Gaussian structured slopes. |
@@ -2155,8 +2195,8 @@ as the whole comprehensive simulation programme.
 | 270 | Random slopes | Scale random effects | Done locally: a cross-group Gaussian `sigma` test now confirms two independent residual-scale slope terms, direct `log_sd_sigma` targets, and no residual-scale correlation rows, while docs keep correlated residual-scale slope blocks planned. |
 | 271 | Random slopes | Shape and inflation random effects | Done locally by audit and later updated by the fixed-effect zero-one beta source slice: random-slope requests in Student-t `nu`, zero-inflation `zi`, hurdle `hu`, `zoi`, and `coi` stay blocked with component-specific tests; no random-effect likelihood path was opened. |
 | 272 | Random slopes | Structured random slopes | Superseded by Slices 39-82: one-slope univariate Gaussian `phylo()`, `animal()`, and `relmat()` `mu` paths are now fitted with extractor, profile-target, diagnostic, and recovery-test evidence. Multiple structured slopes, slope correlations, residual-scale structured slopes, structured `rho12`, and non-Gaussian structured effects remain planned. |
-| 273 | Bivariate | Bivariate random-slope combinations | Superseded by Slice 83 for matching slope-only `mu1`/`mu2` and by the 2026-06-02 source gates for matching q=4 and q=6 `mu1`/`mu2` location blocks. Those routes are fitted with extractor, profile-target, and diagnostic coverage, while residual-scale slope pairs, same-response location-scale slope combinations, all-four p8/q8-style slope requests, and formal q > 2 location recovery grids remain boundary-tested before Phase 18 treats those grids as simulation evidence. |
-| 274 | Convergence | Control presets and defaults | Done locally: `drm_control(optimizer_preset = "careful")` and `"robust"` now expand to explicit recorded `nlminb()` `iter.max`/`eval.max` budgets, user optimizer values can override a preset, and the convergence guide documents when to use the presets without changing ordinary defaults. |
+| 273 | Bivariate | Bivariate random-slope combinations | Superseded by Slice 83 for matching slope-only `mu1`/`mu2`, by the q2 scale-slope route for matching `sigma1`/`sigma2`, by the same-response q2 `mu`/`sigma` slope route, by the q4/q6 smoke routes for matching q=4 and q=6 `mu1`/`mu2` location blocks, and by the first q8 diagnostic artifact lane for matching all-four ordinary endpoint blocks. Those routes are fitted with extractor, profile-target, diagnostic, and source or artifact coverage, while broader p8/q8-style slope requests and formal q > 2 recovery grids remain boundary-tested before Phase 18 treats those grids as simulation evidence. |
+| 274 | Convergence | Control presets and defaults | Done locally: `drm_control(optimizer_preset = "careful")` and `"robust"` now expand to explicit recorded `nlminb()` `iter.max`/`eval.max` budgets, user optimizer values can override a preset, and the convergence guide documents when to use the presets without changing ordinary defaults. Issue #506 adds a narrow automatic retry for optimizer-call errors from the default no-custom-control path, recording `fit$optimizer_used` and `fit$optimizer_attempts` while keeping alternative optimizers and nonzero-convergence reruns out of the automatic path. |
 | 275 | Convergence | Warm starts from simpler models | Done locally by design boundary: warm-start names such as `start_from`, `warm_start`, `warm_starts`, and `warm_start_from` are now reserved, the simpler-fit ladder and provenance contract are documented, and no source-fit start is copied before target namespaces, row handling, diagnostics, and selected-optimum provenance are implemented. |
 | 276 | Convergence | Multi-optimizer fallback | Done locally by design boundary: fallback-control names such as `fallback_optimizer`, `fallback_optimizers`, `optimizer_fallback`, and `optimizer_fallbacks` are now reserved, the future `nlminb`/BFGS/L-BFGS-B comparison and selected-optimizer provenance contract is documented, and fallback refits remain planned rather than automatic. |
 | 277 | Convergence | Hessian and boundary diagnostics | Done locally: `check_drm()` now reports the largest fixed-gradient component in the `fixed_gradient` row, preserving the existing gradient/Hessian boundary status while making non-converged fits easier to triage before Wald or Hessian-based inference. |
@@ -2167,8 +2207,8 @@ as the whole comprehensive simulation programme.
 | 282 | Structural dependence | Sparse precision path | Done locally by documentation hardening: ASReml efficiency notes and user docs now separate dense covariance inputs (`A`, `K`) from sparse precision or inverse-relatedness inputs (`Ainv`, `Q`), keep `meta_V(V = V)` as observation-level sampling covariance, and block large-pedigree or large-matrix speed claims until sparse-precision recovery and benchmark evidence exists. |
 | 283 | Non-Gaussian audit | Family and parameter map | Done locally by documentation audit: `docs/design/02-family-registry.md` now lists each public family route, distributional-parameter links, shape or coscale slots, fitted random-effect allowance, and test evidence state, while correcting stale beta-binomial, Poisson, NB2, bivariate, and `meta_V()` wording. |
 | 284 | Counts | Count-model hardening | Done locally: Poisson, NB2, zero-truncated NB2, zero-inflated Poisson, zero-inflated NB2, and hurdle NB2 tests now assert fixed-effect Wald interval rows for the fitted count dpars (`mu`, `sigma`, `zi`, and `hu` where relevant), while existing Poisson/NB2 `mu` random-effect tests and Phase 18 smoke surfaces remain the fitted mixed-count evidence; the count tutorial now states that boundary explicitly. |
-| 285 | Proportions | Beta, binomial, and one-inflation hardening | Done locally and later extended: fixed-effect beta and beta-binomial `mu`/`sigma` coefficients have Wald interval row tests, fixed-effect `zero_one_beta()` now fits `zoi`/`coi`, and the proportion tutorial keeps richer bounded-response random effects, structured effects, beta-binomial zero-inflation, and bounded-response `meta_V(V = V)` routes planned or blocked. |
-| 286 | Continuous shape | Heavy-tail and skewness design | Done locally by design hardening: `docs/design/02-family-registry.md` now separates fitted fixed-effect Student-t `nu`, planned fixed-effect skew-normal `nu`, planned skew-t `nu`/future `tau`, and design-only latent-effect `skew(id) ~ ...`; likelihood, tutorial, readiness, NEWS, and formula-grammar text keep shape/skewness random effects out of Phase 18 until fixed-effect density, recovery, false-positive, diagnostic, and interval evidence exists. |
+| 285 | Proportions | Beta, binomial, and one-inflation hardening | Done locally and later extended: fixed-effect beta and beta-binomial `mu`/`sigma` coefficients have Wald interval row tests, fixed-effect plain binomial now fits 0/1 and `cbind(successes, failures)` responses with `stats::glm()` parity tests, fixed-effect `zero_one_beta()` now fits `zoi`/`coi`, and the proportion tutorial keeps richer bounded-response random effects, structured effects, binomial random effects, beta-binomial zero-inflation, and bounded-response `meta_V(V = V)` routes planned or blocked. |
+| 286 | Continuous shape | Heavy-tail and skewness design | Done locally by design hardening and extended by the fitted skew-normal first slice: `docs/design/02-family-registry.md` now separates fitted fixed-effect Student-t `nu`, fitted fixed-effect skew-normal `nu`, planned skew-t `nu`/future `tau`, and design-only latent-effect `skew(id) ~ ...`; likelihood, tutorial, readiness, NEWS, and formula-grammar text keep shape/skewness random effects out of Phase 18 until family-specific recovery, false-positive, diagnostic, interval, and comparator evidence exists. |
 | 287 | Ordinal | Ordinal readiness | Done locally: `docs/design/25-ordinal-scale-discrimination.md` now records the fixed-effect `cumulative_logit()` evidence ledger for likelihood, cutpoints, prediction, expected-score summaries, simulation, fixed-effect Wald intervals, internal cutpoint profile targets, malformed inputs, and unsupported random-effect boundaries; README, the family registry, the distribution-family tutorial, and the pre-simulation matrix keep ordinal random effects, scale/discrimination formulas, structured ordinal effects, bivariate ordinal, and mixed-response ordinal models planned or unsupported. |
 | 288 | Bivariate mixed families | Mixed-response combinations | Done locally by boundary hardening: mixed-response combinations such as Gaussian-count, Gaussian-proportion, count-proportion, ordinal mixed, and other two-response families remain planned, tests now cover mixed-family errors for both `c()` and `list()` spellings plus reversed Gaussian-Poisson order, and the family registry, distribution-family tutorial, NEWS, and pre-simulation matrix require a joint likelihood or copula/latent-variable contract, prediction, simulation, extractors, intervals, examples, and comparator checks before any mixed-response route is fitted. |
 | 289 | Extractors | Prediction and plotting contracts | Done locally: `corpairs()` now returns `conf.status` and `interval_source` by default, `corpairs(conf.int = TRUE)` marks profiled rows with `interval_source = "profile"`, `plot_corpairs()` draws finite bounds only when status and source mark a real interval, and the readiness matrix records how this shared provenance rule relates to `predict_parameters()`, `vcov()`, the narrow `emmeans()` bridge, and plotting helpers. |
@@ -2264,12 +2304,12 @@ as the whole comprehensive simulation programme.
 - Slices 1279-1388 add the core-family completion map, fixed-effect
   proportion, positive-continuous, ordinal, and zero-one beta artifact lanes,
   plus ordinary `mu` random-intercept artifact lanes for beta/beta-binomial and
-  lognormal/Gamma/Student-t. These lanes add DGP, summariser, smoke,
-  repeatable grid-output, first-wave summary, manual Actions-dispatch, and
-  focused-test evidence for already fitted one-response families; they do not
-  open random slopes, structured, mixed-response, skew-normal, Tweedie, or
-  generalized
-  Gamma likelihoods.
+  lognormal/Gamma/Student-t. Later slices add the fitted skew-normal
+  fixed-effect artifact lane and the Tweedie fixed-effect artifact lane. These
+  lanes add DGP, summariser, smoke, repeatable grid-output, manual
+  Actions-dispatch, and focused-test evidence for already fitted one-response
+  families; they do not open random slopes, structured, mixed-response,
+  skew-normal random-effect, skew-t, or generalized Gamma likelihoods.
 - First three implementation slices after the blueprint: the `inst/sim/`
   skeleton and seed/cell registry are done locally in Slice 210; the Gaussian
   location-scale DGP and pilot summariser are done locally in Slice 211; the
@@ -2311,7 +2351,8 @@ as the whole comprehensive simulation programme.
   and failure-ledger path before larger grids are allowed. A Gaussian `sigma`
   independent one-slope smoke surface is done locally in Slice 238, giving the
   fitted residual-scale `(0 + w | id)` path the same Phase 18 bookkeeping while
-  leaving correlated scale-slope covariance outside Wave A. Slice 239 records
+  leaving correlated univariate scale-slope covariance outside Wave A at that
+  time. Slice 239 records
   the structured-slope parity gate as it stood then: coordinate spatial had one
   fitted Gaussian `mu` slope, while phylogenetic, animal, and `relmat()`
   one-slope paths were not yet fitted. Later slices superseded that

@@ -83,8 +83,9 @@ bf(y ~ x1, sigma ~ x2, nu ~ x3)
 ```
 
 Here `nu ~ x3` changes the conditional residual or response distribution for
-each observation. In a future skew-normal family, that would mean the fitted
-residual density is asymmetric after accounting for `mu` and `sigma`.
+each observation. In the fixed-effect `skew_normal()` first slice, that means
+the fitted residual density is asymmetric after accounting for `mu` and
+`sigma`; phylogenetic skew-normal shape models remain future work.
 
 A different question is whether the distribution of a latent group effect is
 asymmetric. A possible future spelling is:

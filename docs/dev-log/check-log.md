@@ -2,6 +2,1207 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Numerical-guard ADEMP design refresh
+
+Goal:
+
+- Turn the numerical-guard concern into a simulation design contract for the
+  big simulations, so constants and guards are audited by estimand, likelihood
+  impact, Hessian/interval status, and Monte Carlo error rather than treated as
+  automatically harmless or automatically invalid.
+
+Changes:
+
+- Expanded `docs/design/176-numerical-guard-simulation-audit.md` with an
+  ADEMP plan following Morris, White & Crowther (2019) and Williams et al.
+  (2024): aims, guard-class DGP lanes, estimands, methods, performance
+  measures, MCSE tiers, and a Williams 11-item self-audit.
+- Added a constant-classification rule separating mathematical constants,
+  legal parameter-space transforms, support floors, tail floors, likelihood
+  guards, and starting-value floors.
+- Refreshed `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` so the mission-control widget says the
+  guard-sensitivity design is banked while broader guard-class simulations and
+  interval consequences remain planned.
+- Created
+  `docs/dev-log/after-task/2026-06-17-numerical-guard-ademp-design.md`.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json`
+- Added-line scan for the project forbidden-framing phrases passed over the
+  touched files.
+- `git diff --check`
+
+Boundaries:
+
+- Design/dashboard/check-log slice only. No simulation runner, no new
+  numerical result, no C++ change, no likelihood change, no Gaussian clamp
+  change, no Ayumi/Model A work, no DRM.jl work, no release/readiness claim,
+  and no promotion of guard-dependent inference.
+
+## 2026-06-17 -- Mission-control standing-team validator refresh
+
+Goal:
+
+- Keep the finish-board widget aligned with the repo's canonical standing
+  review names, so dashboard team rows and owner fields do not drift into
+  non-canonical labels.
+
+Changes:
+
+- Removed `Hopper` from the mission-control team roster and bridge/missing-data
+  owner fields.
+- Reassigned the bridge-gate owner line to `Boole + Emmy + Grace`, the
+  missing-values owner line to `Curie + Fisher + Rose`, and the docs review
+  checklist to `Florence, Fisher, Pat, Grace, and Rose`.
+- Tightened `tools/validate-mission-control.py` so the Team section, phase
+  owners, and finish-board owners must use the 13 standing review names. System
+  actors such as `Codex`, `GitHub`, `Dashboard`, `Issue ledger`, and
+  `Status matrix` remain valid for activity/evidence rows only.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` passed with
+  `mission_control_ok: 20/68 banked_or_verified, 4 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `rg -n 'Hopper|Karpinski' docs/dev-log/dashboard/status.json tools/validate-mission-control.py docs/dev-log/dashboard/README.md docs/design/168-r-julia-finish-capability-matrix.md || true`
+  returned no hits.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `sh tools/start-mission-control.sh --background` passed and served the
+  dashboard at `http://127.0.0.1:8765/`.
+- In-app browser DOM verification passed at 1280 px width: 11 finish cards,
+  13 standing team names, 16 bridge-gate rows including the header, 10 Julia
+  capability rows including the header, #569/#544 rows visible, no
+  `Hopper`/`Karpinski` text, and no horizontal overflow.
+- In-app browser DOM verification passed at 390 px width: 11 finish cards,
+  13 team names, #569/#544 rows visible, no `Hopper`/`Karpinski` text, and no
+  horizontal overflow.
+- Screenshot capture from the in-app browser timed out, and standalone
+  Playwright was not installed in this worktree; no screenshot artifact is
+  claimed for this slice.
+
+Boundaries:
+
+- This is a dashboard governance refresh only. It does not change R package
+  code, likelihoods, Julia bridge gates, `src/drmTMB.cpp`, Ayumi/Model A work,
+  DRM.jl code, or any release/readiness claim.
+
+## 2026-06-15 -- Bootstrap refit diagnostics ledger
+
+Goal:
+
+- Make failed or partial bootstrap intervals inspectable at the refit-by-target
+  grain, so the Ayumi q4 harness can say which bootstrap refits converged,
+  which targets were available, and which draws actually entered each
+  percentile interval.
+
+Change:
+
+- `confint(method = "bootstrap")` now attaches a
+  `"bootstrap.diagnostics"` attribute to returned interval tables.
+- The diagnostics table records bootstrap id, target, estimate/link-estimate,
+  refit convergence, target availability, finite-estimate flags, row status,
+  refit message, requested replicate count, seed label, backend, worker count,
+  refit-control flags, per-refit target counts, draw value, and whether the
+  draw was used.
+- `tools/ayumi-q4-status-harness.R` writes the same diagnostics to
+  `bootstrap-diagnostics.csv` whenever bootstrap intervals return.
+- NEWS, ROADMAP, the model workflow article, and the profile-CI design note now
+  mention the diagnostics without changing the visible interval table shape.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-profile-targets.R")'`
+  passed with 797 expectations, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e 'devtools::test(filter = "profile-targets")'`
+  passed with 797 expectations, 0 failures, 0 warnings, and 0 skips in
+  59.3 s.
+- Tiny Ayumi native TMB ML bootstrap diagnostics smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=first_sigma DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-diagnostics-b3e3fc4a-152933 Rscript --vanilla tools/ayumi-q4-status-harness.R`
+  wrote `bootstrap-diagnostics.csv` with two diagnostic rows for
+  `sd:mu:sigma1:phylo(1 | p | species)`, both `refit_status = "ok"`,
+  `refit_converged = TRUE`, `target_available = TRUE`, and
+  `draw_used = TRUE`.
+
+Known boundaries:
+
+- This slice improves evidence and troubleshooting. It does not make native TMB
+  bootstrap a usable Ayumi-scale q4 fallback, does not add native TMB REML for
+  bivariate q4 sigma-phylo models, and does not make a coverage claim from
+  small bootstrap pilots.
+
+## 2026-06-15 -- Ayumi q4 native bootstrap optimizer controls
+
+Goal:
+
+- Make the Ayumi q4 harness expose native TMB optimizer presets for the source
+  fit and bootstrap refits, after default native ML bootstrap returned
+  `bootstrap_unavailable` because all bootstrap refits failed.
+
+Change:
+
+- Added `DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET` and
+  `DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET` to
+  `tools/ayumi-q4-status-harness.R`.
+- The first control is passed to native `engine = "tmb"` fits through
+  `drm_control(optimizer_preset = ...)`.
+- The second control is passed to native bootstrap refits through the existing
+  `confint(..., method = "bootstrap", refit_control = ...)` surface.
+- The harness records both presets in `metadata.md` and records the refit
+  preset in `intervals.csv`.
+
+Checks run:
+
+- `air format tools/ayumi-q4-status-harness.R docs/dev-log/check-log.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-evidence-refresh.md`
+- `Rscript --vanilla -e 'invisible(parse("tools/ayumi-q4-status-harness.R")); cat("parse ok\n")'`
+- GitHub Actions R-CMD-check run `27571496276` passed macOS and Ubuntu. The
+  Windows job reached `[ FAIL 0 | WARN 0 | SKIP 34 | PASS 10760 ]`, uploaded
+  snapshots, and was then canceled at the 30-minute job timeout during cleanup;
+  the workflow timeout was raised to 45 minutes so Windows can finish its
+  already-passing check path.
+- Native 30-tip careful smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TMB_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TMB_BOOTSTRAP_REFIT_OPTIMIZER_PRESET=careful DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-allq4-careful-abe8288a Rscript --vanilla tools/ayumi-q4-status-harness.R`
+- Native 100-tip careful smoke with the same settings and
+  `DRMTMB_AYUMI_Q4_SIZES=100`, writing
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-careful-abe8288a`.
+- Native 100-tip robust smoke with source-fit and bootstrap-refit
+  `optimizer_preset = "robust"`, writing
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-robust-8ba6d9b6`.
+
+Result:
+
+- The 30-tip careful source fit returned in 1.21 s with `convergence = 0`,
+  `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"`. Bootstrap
+  returned four q4 SD rows in 4.33 s with `conf.status = "bootstrap"`,
+  `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `profile.message = "2/2 successful refits"`.
+- The 100-tip careful source fit took 156.82 s and still returned
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  Bootstrap took 134.24 s and returned `bootstrap_unavailable`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2` for all four q4 SD rows.
+- The 100-tip robust source fit took 162.53 s and also returned
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  Bootstrap again returned `bootstrap_unavailable`, `bootstrap.n = 0`, and
+  `bootstrap.failed = 2` for all four q4 SD rows.
+
+Known boundaries:
+
+- The native q4 bootstrap target path is reachable when refits converge, but
+  neither `optimizer_preset = "careful"` nor `"robust"` is enough at 100 tips,
+  so this is not an Ayumi-scale fallback claim.
+- The next R-side slice should retain per-refit convergence/message diagnostics
+  and decide whether retry-on-convergence-failure belongs in the public
+  bootstrap path.
+
+## 2026-06-15 -- Julia q4 phylo target estimates and bootstrap smoke
+
+Goal:
+
+- Fix the R-side Julia q4 profile-target inventory before any stronger
+  bootstrap/profile claim for Ayumi. The previous table named the four q4
+  phylogenetic SD targets but displayed hard-coded `0.5` estimates instead of
+  reconstructing the fitted axis SDs from the stored `phylocov` covariance.
+
+Change:
+
+- `drm_julia_profile_targets_biv()` now reconstructs `Sigma_a` with
+  `drm_julia_phylocov_matrix()` and reports
+  `sqrt(diag(Sigma_a))` for the `mu1`, `mu2`, `sigma1`, and `sigma2`
+  phylogenetic SD targets.
+- The pure-R bivariate Julia confint fixture now includes a known q4
+  `phylocov` log-Cholesky block, and asserts the target estimates are
+  `1.2`, `0.9`, `0.6`, and `0.4`, not placeholders.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-biv-confint.R"); testthat::test_file("tests/testthat/test-julia-phylo-q4-corpairs.R")'`
+  passed with 47 expectations and one CRAN-skip in the direct `test_file()`
+  mode.
+- `Rscript --vanilla -e 'devtools::test(filter = "julia-biv-confint|julia-phylo-q4-corpairs")'`
+  passed with 60 expectations.
+- `Rscript --vanilla -e 'devtools::test()'` passed with 10,946
+  expectations, 5 skips, 0 failures, and 0 warnings in 1319.4 s. The skips
+  were existing guarded Julia/cross-family availability or known-bug skips, not
+  this patch.
+- `air format R/julia-bridge.R tests/testthat/test-julia-biv-confint.R`
+  completed without changes requiring follow-up.
+- `git diff --check` passed.
+
+Ayumi-bundle smoke with Julia 1.12.6:
+
+```sh
+DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/DRM.jl" \
+JULIA_HOME="/Users/z3437171/.julia/juliaup/julia-1.12.6+0.aarch64.apple.darwin14/Julia-1.12.app/Contents/Resources/julia/bin" \
+JULIA_NUM_THREADS=4 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=julia \
+DRMTMB_AYUMI_Q4_REML=false \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=300 \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/julia-30-ml-bootstrap-allq4-phylocov-targets \
+Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Result:
+
+- The 30-tip Julia ML point fit returned with `convergence = 0`,
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"`,
+  `logLik = 30.979053`, and elapsed fit time 50.28 s.
+- The target table reported non-placeholder fitted q4 SD estimates:
+  `sd:mu1 = 0.015125`, `sd:mu2 = 1.046819`,
+  `sd:sigma1 = 4.372916`, and `sd:sigma2 = 1.448649`.
+- The admitted all-q4 bootstrap smoke returned four rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`,
+  `bootstrap.failed = 0`, `profile.message = "2/2 successful refits"`,
+  and bootstrap elapsed time 11.62 s after the point fit.
+- A deliberately single-target q4 bootstrap attempt
+  (`DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=first_sigma`) returned the intended
+  bridge error: bivariate q4 Julia profile/bootstrap intervals support all
+  four axes together, not one selected q4 axis.
+
+Known boundaries:
+
+- This is a target-inventory repair and a tiny bootstrap plumbing smoke, not a
+  calibrated interval result and not a 10,440-tip speed fix.
+- `B = 2` is deliberately too small for inference. It only proves that the
+  admitted all-q4 bootstrap route can return row-level results on a 30-tip
+  Ayumi subset.
+- Native `engine = "tmb"` remains useful for supported ML point and reduced
+  checks, but is not a full REML fallback for the bivariate q4 sigma-phylo
+  model.
+
+## 2026-06-15 -- Native q4 ML bootstrap smoke status for Ayumi
+
+Goal:
+
+- Check whether native `engine = "tmb"` bootstrap intervals can be described
+  as a near-term fallback after the Ayumi q4 native profile rows returned
+  honest `profile_failed` statuses.
+
+Check run:
+
+```sh
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/tmb-30-ml-bootstrap-native-main-563 \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=tmb \
+DRMTMB_AYUMI_Q4_REML=false \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=900 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+VECLIB_MAXIMUM_THREADS=1 \
+Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Result:
+
+- The 30-tip native TMB ML point fit returned, but with `convergence = 1`,
+  `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+- Bootstrap completed its reporting phase, but all four q4 phylogenetic SD rows
+  returned `conf.status = "bootstrap_unavailable"`,
+  `profile.message = "fewer than two successful bootstrap refits"`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2`.
+
+Known boundaries:
+
+- This is useful negative evidence: native TMB bootstrap is not yet a proven
+  fallback for Ayumi's q4 sigma-phylo workflow.
+- It does not contradict the Julia ML bootstrap smoke, which did return four
+  q4 SD rows at 30 tips after DRM.jl #292. The two bootstrap paths should stay
+  separate in user-facing replies until a native TMB q4 bootstrap cell has
+  successful refit evidence.
+
+Follow-up from clean `origin/main` `abe8288a`:
+
+- `DRMTMB_AYUMI_Q4_SIZES=30`, `DRMTMB_AYUMI_Q4_ENGINES=tmb`,
+  `DRMTMB_AYUMI_Q4_REML=false`, `DRMTMB_AYUMI_Q4_BOOTSTRAP=2`,
+  and `DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4` wrote
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-30-ml-bootstrap-allq4-abe8288a`.
+  The point fit returned in 1.17 s with `convergence = 1`, `pdHess = FALSE`,
+  and `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`.
+  The four q4 SD rows again reported `conf.status = "bootstrap_unavailable"`,
+  `bootstrap.n = 0`, and `bootstrap.failed = 2`.
+- The same check at `DRMTMB_AYUMI_Q4_SIZES=100` wrote
+  `/tmp/drmtmb-ayumi-evidence/native-tmb-100-ml-bootstrap-allq4-abe8288a`.
+  The point fit returned in 25.58 s with the same diagnostic status, and the
+  bootstrap phase returned the same `bootstrap_unavailable` rows after
+  76.10 s.
+- The internal issue ledger was updated at
+  `https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4711541040`.
+
+## 2026-06-15 -- Endpoint profile budget status for Ayumi q4 native checks
+
+Goal:
+
+- Continue the R-first pivot for `drmTMB#555` by making native endpoint-profile
+  diagnostics return explicit status rows before broader Julia speed work.
+  Long q4 variance-component profiles should be able to stop after a deliberate
+  endpoint-evaluation budget and report `profile_failed` rather than silently
+  falling through to a full-profile route or leaving users with no interval
+  row.
+
+Changes:
+
+- Added `profile_endpoint_max_eval` to `confint.drmTMB()` for direct scalar
+  endpoint profiles.
+- When that budget is supplied and the endpoint route exceeds it,
+  `confint()` returns an endpoint `conf.status = "profile_failed"` row with
+  missing endpoints and the budget message, instead of falling back to
+  `TMB::tmbprofile()`.
+- Added a focused profile-target regression test for the endpoint-budget row.
+- Extended `tools/ayumi-q4-status-harness.R` with
+  `DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL` and a
+  `fit_diagnostic_status` column that separates returned fits from
+  convergence/Hessian inference status.
+- Updated NEWS, `confint()` Rd, the finish matrix, and the mission-control JSON
+  source.
+
+Checks run:
+
+- `air format R/profile.R tests/testthat/test-profile-targets.R tools/ayumi-q4-status-harness.R`
+  completed without errors.
+- `Rscript --vanilla -e "devtools::document()"` completed and regenerated the
+  intended `man/confint.drmTMB.Rd` argument entry.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); devtools::test(filter = "profile-targets")'`
+  passed locally with 773 expectations.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); set.seed(20260682); n <- 60; x <- stats::rnorm(n); dat <- data.frame(y = 0.2 + 0.5 * x + stats::rnorm(n, sd = 0.7), x = x); fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat); ci <- stats::confint(fit, parm = "sigma", level = 0.80, method = "profile", profile_endpoint_max_eval = 1); stopifnot(identical(ci$profile.engine, "endpoint"), identical(ci$conf.status, "profile_failed"), is.na(ci$lower), is.na(ci$upper), grepl("evaluation budget", ci$profile.message)); cat("endpoint budget status check passed\n")'`
+  passed locally.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json`, and
+  `python3 tools/validate-mission-control.py` passed; the validator reported
+  `mission_control_ok: 15/65 banked_or_verified, 3 active, 16 matrix rows`.
+- Ayumi-bundle smoke:
+  `DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=250 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=first_sigma DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL=1 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-q4-status/profile-budget-250 Rscript --vanilla tools/ayumi-q4-status-harness.R`
+  completed. The fit row recorded `status = "ok"`,
+  `convergence = 1`, `pdHess = FALSE`, and
+  `fit_diagnostic_status = "fit_returned_nonconverged_pdhess_false"`. The
+  interval row recorded `profile.engine = "endpoint"`,
+  `conf.status = "profile_failed"`, missing endpoints, and the endpoint
+  evaluation-budget message.
+
+Known boundaries:
+
+- This is status hardening, not a faster optimizer, native-TMB REML expansion,
+  profile coverage result, or 10,440-tip speed fix.
+- `setTimeLimit()` still cannot be treated as a reliable compiled-code
+  watchdog. A subprocess watchdog remains a later developer-harness slice if
+  full non-returning profile attempts need one row per target.
+- Native `engine = "tmb"` remains useful for supported ML point-estimate and
+  diagnostic checks, but it is not a full REML fallback for Ayumi's bivariate
+  q4 phylogenetic location-scale model.
+
+## 2026-06-15 -- R-first Julia REML status truth table
+
+Goal:
+
+- Harden the first `drmTMB#555` R-side fallback/status contract before doing
+  more Julia speed work: unsupported Julia REML requests should name the exact
+  cell, avoid overclaiming native-TMB REML fallback, and leave fitted objects
+  with explicit requested/effective estimator metadata.
+
+Changes:
+
+- Added `drm_julia_reml_supported()` and `drm_julia_reml_cell_label()` as the
+  single bridge-side REML admission and warning-label helpers.
+- `drmTMB_julia` objects now record `estimator`, `REML`, `requested_REML`, and
+  `effective_REML`; `print.drmTMB_julia()` displays the effective estimator.
+- Unsupported Julia REML cells now warn that the fit is ML and that native
+  `engine = "tmb"` is only an REML fallback for its documented univariate
+  Gaussian REML slice.
+- Added pure-R tests for Gaussian-only Julia REML support, non-Gaussian warning
+  labels, requested-versus-effective estimator state, and the bivariate q4
+  response-mask bridge path with `missing = miss_control(response = "include")`.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R tests/testthat/test-julia-sigma-phylo-reml.R`
+  completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R"); testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R"); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R")'`
+  passed locally: 97 bridge expectations, 42 REML expectations with one guarded
+  live sigma-phylo REML skip because the default local DRM.jl path predates that
+  engine support, and 55 gate-registry expectations.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-xfam-bridge.R"); testthat::test_file("tests/testthat/test-julia-structured.R")'`
+  passed locally: 38 cross-family expectations with three guarded live-Julia
+  skips, and 47 structured-bridge expectations.
+
+Known boundaries:
+
+- This slice does not make native `engine = "tmb"` a REML fallback for Ayumi's
+  bivariate q4 phylogenetic location-scale model.
+- This slice does not claim the 10k-tip q4 Julia route is fast. It only banks
+  the R-side status/gate metadata needed to report ML versus REML honestly.
+- Additional native-TMB REML rejection-branch tests and vignette wording cleanup
+  remain the next R-first hardening slices.
+
+## 2026-06-15 -- Native TMB REML rejection-branch coverage
+
+Goal:
+
+- Lock down the native `engine = "tmb"` `REML = TRUE` boundary for the R-first
+  plan, so unsupported neighbours fail with explicit messages before users
+  mistake them for fallback routes for Ayumi-style q4 models.
+
+Changes:
+
+- Expanded `tests/testthat/test-comparators.R` coverage for unsupported REML
+  first-slice neighbours.
+- Added compact rejection checks for explicit missing-data engines,
+  `sparse_fixed`, Gaussian aggregation, residual-scale random effects, q > 2
+  labelled covariance blocks, structured Gaussian phylo effects, and
+  rank-deficient dense `mu` designs.
+
+Checks run:
+
+- `air format tests/testthat/test-comparators.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-comparators.R")'`
+  passed locally with 123 expectations.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is test hardening only. It does not expand native TMB REML support.
+- Native TMB remains a useful ML point-estimate/profile diagnostic route for
+  supported q4 fits, but it is not a full REML fallback for the bivariate q4
+  phylogenetic location-scale model.
+
+## 2026-06-15 -- R-first mission-control rerank
+
+Goal:
+
+- Update the local mission-control widget and finish matrix after the plan
+  pivot: complete the native `drmTMB` R/TMB support-status path first, then
+  treat Julia as the acceleration/parity lane.
+
+Changed:
+
+- Updated `docs/dev-log/dashboard/status.json` so Phase 2 records the merged
+  #556 R-side Julia REML status truth-table slice, while Phase 3 is now the
+  active native R/TMB point-estimate and CI-status lane.
+- Added the banked native q4 ML profile-status fallback (#552/#553) and banked
+  #557/#559 native REML/harness slices to the dashboard.
+- Updated `docs/dev-log/dashboard/sweep.json` so the live overlay points at the
+  current R-first work.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` first work
+  order so `drmTMB#555` comes before broader `drmTMB#544`/Julia speed work.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+sh -n tools/start-mission-control.sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/version.txt
+curl -fsS http://127.0.0.1:8765/status.json
+```
+
+Results:
+
+- `tools/validate-mission-control.py` returned `mission_control_ok: 14/64
+  banked_or_verified, 3 active, 16 matrix rows`.
+- Both dashboard JSON files parsed successfully.
+- `tools/start-mission-control.sh` passed shell syntax validation and confirmed
+  the dashboard already listening at `http://127.0.0.1:8765/`.
+- `curl` returned live served status with updated timestamp
+  `2026-06-15 07:08 MDT`, branch `codex/rfirst-dashboard-status`, and active
+  Ada/Grace/Fisher R-first work rows.
+
+## 2026-06-14 -- Julia bridge gate-id coverage
+
+Goal:
+
+- Harden the first `drmTMB#544` Julia bridge gate registry so future registry
+  row additions, removals, or renames cannot drift away from the representative
+  CI guard unnoticed.
+
+Changes:
+
+- Added the exact expected `gate_id` vector to
+  `tests/testthat/test-julia-gate-vs-engine.R`.
+- The registry test now asserts the 15 current intentional gate IDs, while the
+  existing tests still exercise representative pre-JuliaCall failures for base,
+  bivariate q4 phylo, structured-covariance, and cross-family routes.
+
+Checks run:
+
+- `air format tests/testthat/test-julia-gate-vs-engine.R` completed without
+  errors.
+- `Rscript -e "devtools::test(filter = 'julia-gate-vs-engine', reporter = 'summary')"`
+  passed locally.
+- `Rscript -e "devtools::test(filter = 'julia-bridge', reporter = 'summary')"`
+  passed locally.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is CI-guard hardening only. It does not relax any R bridge gate or close
+  the broader generated/audited DRM.jl capability comparison requested in
+  `drmTMB#544`.
+
+## 2026-06-14 -- Dashboard status refresh after gate registry merge
+
+Goal:
+
+- Refresh the live mission-control status after `drmTMB#549` merged, so the
+  dashboard records the first intentional Julia bridge gate registry as banked
+  and moves the next `drmTMB#544` slice to the generated gate-vs-engine guard.
+
+Changes:
+
+- Bumped the dashboard build marker from `r3` to `r4`.
+- Updated `docs/dev-log/dashboard/status.json` from 8/60 to 9/60
+  banked-or-verified slices.
+- Marked the #549 gate-registry slice as banked and moved the active Phase 2
+  work to extending the registry into the generated guard.
+- Removed the stale Phase 0 base-SHA evidence string in favour of a
+  branch-independent worktree refresh note.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` returned
+  `mission_control_ok: 9/60 banked_or_verified, 4 active, 16 matrix rows`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+
+## 2026-06-14 -- Julia bridge intentional gate registry
+
+Goal:
+
+- Start the `drmTMB#544` bridge-gate-drift audit with a focused CI guard:
+  every currently intentional `engine = "julia"` R-side rejection should have
+  a named registry row and a test that keeps the rejection conscious.
+
+Changes:
+
+- Added internal `drm_julia_intentional_gates()` registry rows for the current
+  base, bivariate phylo, structured-covariance, and cross-family Julia bridge
+  gates.
+- Added `tests/testthat/test-julia-gate-vs-engine.R` with representative
+  pre-JuliaCall error checks for weights, imputation, Julia optimizer control,
+  missing-predictor modelling, non-Gaussian missing-response masks,
+  unsupported family routes, non-phylo count-family routes, partial q4 phylo,
+  phylogenetic `rho12`, unsupported structured family/routes, precision-matrix
+  slots, cross-family missingness, cross-family `rho12`, and dispersionless
+  cross-family axes.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R`
+  completed without errors.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'`
+  returned 54 passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R", reporter = "summary")'`
+  returned 85 passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R", reporter = "summary")'`
+  returned 17 passes and one guarded live-DRM.jl skip:
+  "DRM.jl engine at this path predates sigma-phylo REML support".
+- `git diff --check` passed.
+
+Known boundaries:
+
+- This is the first registry/test layer for `drmTMB#544`, not the full
+  generated comparison against a DRM.jl exported capability table.
+- The native `engine = "tmb"` route is still not a full REML fallback for
+  Ayumi's bivariate q4 phylogenetic location-scale model.
+
+## 2026-06-14 -- Mission-Control Dashboard And Finish Matrix
+
+Goal:
+
+- Add the live finish-plan dashboard, the first master capability matrix, and
+  issue-led evidence for the next `drmTMB#544` bridge-gate-drift slice without
+  changing model code.
+
+Changes:
+
+- Added `docs/dev-log/dashboard/` with a static dashboard, JSON status source,
+  live overlay, version file, and README.
+- Added `tools/start-mission-control.sh` to validate, sync, and serve the board
+  from `/tmp/drm-dashboard` at `http://127.0.0.1:8765/`, with the live
+  `drmTMB` Repo Truth row refreshed from `git` at serve time.
+- Added `tools/validate-mission-control.py` to guard dashboard counts,
+  canonical team names, evidence-field presence, version drift, and matrix
+  row-count drift against
+  `docs/design/168-r-julia-finish-capability-matrix.md`.
+- Added `docs/design/168-r-julia-finish-capability-matrix.md` as the initial
+  finish-plan claim registry.
+- Posted the mission-control start note to `drmTMB#544`:
+  <https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4703413781>.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py` returned
+  `mission_control_ok: 8/60 banked_or_verified, 4 active, 16 matrix rows`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `sh tools/start-mission-control.sh --background` validated and served the
+  dashboard during its health check.
+- `curl -fsS http://127.0.0.1:8765/status.json | python3 -m json.tool`
+  returned the dashboard JSON.
+- `curl -fsS http://127.0.0.1:8765/docs/design/168-r-julia-finish-capability-matrix.md`
+  returned the linked evidence document.
+- In-app browser verification at `http://127.0.0.1:8765/` found the expected
+  H1, four metric cards, eleven roadmap phases, six repo cards, fourteen team
+  entries, and seventeen matrix rows including the header row. A Rose follow-up
+  then corrected the progress label from "verified rows" to "banked or verified
+  slices" and moved the `drmTMB` repo-truth HEAD/dirty state to serve-time git
+  refresh rather than a self-referential source-JSON hash.
+
+Known boundary:
+
+- This slice does not relax any bridge gate. `drmTMB#547` is recorded as the
+  first banked `drmTMB#544` slice, but the next coding task remains the
+  gate-vs-engine audit and CI guard.
+
+## 2026-06-14 -- Ayumi q4 Julia REML bridge forwarding
+
+Goal:
+
+- Fix the first `drmTMB#544` bridge-gate-drift finding exposed by Ayumi's
+  wall-time follow-up: `drmTMB(..., engine = "julia", REML = TRUE)` admitted
+  the bivariate Gaussian q = 4 phylogenetic location-scale route, but the
+  bivariate bridge options dropped `method = "REML"` before calling DRM.jl.
+
+Changes:
+
+- `drm_julia_bridge_options()` now forwards `list(method = "REML")` for the
+  bivariate q = 4 phylogenetic route while preserving the empty option payload
+  for ML, so default ML parity fixtures stay byte-identical.
+- Added focused bridge tests that build the q = 4 bivariate phylogenetic
+  payload and assert `options$method == "REML"` when the public top-level
+  `REML = TRUE` switch is routed through the bridge.
+- Updated the `drmTMB()` REML argument documentation, the generated Rd file,
+  the Julia-engine article, and NEWS so the public user instruction is
+  `drmTMB(..., REML = TRUE/FALSE)`, with DRM.jl `method = :REML` described only
+  as internal bridge plumbing.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R
+  tests/testthat/test-julia-sigma-phylo-reml.R vignettes/julia-engine.Rmd`
+  completed without errors.
+- `air format R/drmTMB.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::document()'` regenerated
+  `man/drmTMB.Rd`; unrelated RoxygenNote, link-target, author, and example
+  churn from the local roxygen version was manually pruned.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-bridge.R")'` returned 85
+  passes with no failures, warnings, or skips.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R")'`
+  returned 17 passes and one guarded live-DRM.jl skip:
+  "DRM.jl engine at this path predates sigma-phylo REML support".
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-biv-confint.R")'` returned
+  31 passes with no failures, warnings, or skips.
+- `git diff --check -- NEWS.md R/julia-bridge.R
+  tests/testthat/test-julia-bridge.R
+  tests/testthat/test-julia-sigma-phylo-reml.R vignettes/julia-engine.Rmd`
+  passed.
+- `git diff --check` passed after the final documentation softening pass.
+- `Rscript --vanilla -e 'tools::checkRd("man/drmTMB.Rd")'` passed.
+- `rg -n 'never forwards REML|bivariate q4.*never|q4.*REML.*blocked|biv.*REML.*blocked|missing-data routes stay TMB-native|missing-data routes, imputation|missing = miss_control\(\.\.\.\)|REML not yet wired|REML.*not.*wired' NEWS.md README.md ROADMAP.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'`
+  returned only the historical handover note and a scoped missing-data design
+  sentence, not current public Julia-bridge wording.
+
+Not run:
+
+- A full `devtools::test()`, pkgdown build, and live Ayumi-sized benchmark were
+  not run for this narrow bridge-forwarding slice. The heavy benchmark remains
+  a separate speed-and-inference task because the user's report combines one
+  point fit, profile/bootstrap refits, pairs, and trees.
+
+## 2026-06-09 -- Experimental Julia engine bridge packaging
+
+Goal:
+
+- Package the experimental R-to-DRM.jl bridge and reader-facing article as a
+  focused branch, without mixing in concurrent skew-normal, q8, or release
+  readiness changes from the detached working tree.
+
+Changes:
+
+- Added explicit `drmTMB(..., engine = "julia")` dispatch while preserving
+  native `engine = "tmb"` as the default.
+- Added `R/julia-bridge.R` with Gaussian fixed-effect and one Gaussian
+  phylogenetic mean-intercept bridge marshalling, `drmTMB_julia` methods,
+  profile-target inventory, and narrow Julia-side profile/bootstrap confidence
+  interval conversion for the phylogenetic SD target.
+- Added `tests/testthat/test-julia-bridge.R`, benchmark scripts, benchmark
+  records, and the `vignettes/julia-engine.Rmd` pkgdown article.
+- Added the article to the Developer Notes navigation and kept unsupported
+  bridge routes explicit.
+
+Checks run:
+
+- `air format R/drmTMB.R R/julia-bridge.R R/profile.R
+  tests/testthat/test-julia-bridge.R tools/benchmark-julia-engines.R
+  tools/benchmark-r-julia-bootstrap-refits.R` completed without errors.
+- `Rscript --vanilla -e 'devtools::document()'` completed; generated changes
+  were kept to `NAMESPACE` and `man/drmTMB.Rd` after reverting unrelated
+  roxygen link/author rewrites.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE);
+  testthat::test_file("tests/testthat/test-julia-bridge.R")'` returned 71
+  passes with no failures, warnings, or skips.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::build_article("julia-engine");
+  cat("pkgdown article ok\n")'` completed and wrote
+  `pkgdown-site/articles/julia-engine.html`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown check ok\n")'`
+  returned "No problems found."
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64
+  Rscript --vanilla -e 'pkgdown::build_site(); cat("pkgdown site ok\n")'`
+  completed.
+- `git diff --check` passed.
+- `rg -n 'engine = "julia"|drmTMB_julia|JuliaCall|DRM\.jl|profile_unavailable|skew_normal\(' README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/julia-engine.Rmd _pkgdown.yml R tests/testthat man --glob '!docs/dev-log/check-log.md'`
+  returned expected current bridge/article/code hits, historical roadmap
+  skew-normal planning rows, and existing native `profile_unavailable` method
+  code.
+- `rg -n '68\.405|4\.710|partial: mu|This is the beauty|cannot read thsi|wokr|eengines|guassian|Jula |spare matrix' vignettes/julia-engine.Rmd pkgdown-site/articles/julia-engine.html docs/dev-log/after-task docs/dev-log/benchmarks NEWS.md`
+  returned only benchmark artifact/history rows, not the rendered article.
+- `rg -n "Working with the Julia engine|Developer Notes|Julia-engine profile|Native R profile|B=10 timing smoke|What works now|What does not work yet|Next parity steps" pkgdown-site/articles/julia-engine.html pkgdown-site/articles/index.html pkgdown-site/sitemap.xml`
+  confirmed the generated article and Developer Notes navigation.
+- `gh issue list --repo itchyshin/drmTMB --state open --search "Julia OR JuliaCall OR DRM.jl OR engine=julia OR engine \"julia\"" --limit 20 --json number,title,state,url,labels`
+  found issue #499 as the matching open tracker.
+
+Not run:
+
+- Full `devtools::test()` and `devtools::check()` were not run for this
+  focused branch packaging slice. Two direct `tools::checkRd()` directory-style
+  attempts failed because this R version expects an explicit Rd file; an
+  internal `tools:::tidy_validate_package_Rd_files_from_dir(".", verbose =
+  FALSE)` call exited 0 but prints broad pre-existing tidy diagnostics, so
+  `pkgdown::check_pkgdown()` and the full pkgdown build are the useful Rd/site
+  gates recorded here.
+
+## 2026-06-05 -- Same-response bivariate mean-scale slope covariance
+
+Goal:
+
+- Implement the first bivariate Gaussian same-response `mu`/`sigma` random-slope
+  covariance slice after the formal recovery artifact audit cleared the
+  prerequisite q2 lanes.
+
+Changes:
+
+- Opened one matching same-response slope-only labelled pair under
+  `biv_gaussian()`, such as
+  `mu1 = y1 ~ x + (0 + x | p | id)` with
+  `sigma1 = ~ x + (0 + x | p | id)`.
+- Kept cross-response `mu1`/`sigma2` or `mu2`/`sigma1` pairs, mismatched
+  coefficients, univariate labelled `sigma` slopes, multiple same-response
+  slope pairs, and all-four p8/q8 endpoint blocks closed.
+- Added deterministic source-recovery coverage in
+  `tests/testthat/test-biv-gaussian.R`, including TMB-data routing,
+  R-side conditional latent-transform reconstruction, fitted SD/correlation
+  recovery, `corpairs(class = "mean-scale-slope")`, `profile_targets()`, and
+  `check_drm()` assertions.
+- Regenerated `man/corpairs.Rd` and updated README, NEWS, ROADMAP,
+  formula-grammar, likelihood, readiness, worklist, validation-debt,
+  simulation-programme, and implementation-map status surfaces so this route is
+  listed as source-tested but not formal Actions recovery evidence.
+- Added
+  `docs/dev-log/after-task/2026-06-05-same-response-mu-sigma-slope-covariance.md`.
+- Posted the progress update to issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4636646218>.
+
+Checks run:
+
+- `air format R/drmTMB.R R/methods.R tests/testthat/test-biv-gaussian.R`
+  completed without errors.
+- `Rscript -e "devtools::document()"` completed and wrote `man/corpairs.Rd`.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,312
+  passes, no failures, warnings, or skips in 180.2s.
+- `git diff --check` passed.
+- `rg -n 'same-response location-scale slope covariance.*(remain|planned|closed|unsupported)|same-response.*mu.*/.*sigma.*(remain planned|closed|unsupported)|same-response.*mu.*sigma.*(remain planned|closed|unsupported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned only intended current-status or boundary rows.
+- `rg -n 'p8/q8.*(fitted|implemented|supported|ready_grid|ready_existing_task)|q8.*(fitted|implemented|supported|ready_grid|ready_existing_task)|all-four p8/q8.*(fitted|implemented|supported)|all-four.*endpoint.*(fitted|implemented|supported)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned only intended planning or blocked-boundary rows.
+- `rg -n 'same-response q2|same-response.*source-tested|same-response.*formal Actions|mean-scale-slope|cor\\(mu1:x,sigma1:x' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man`
+  returned the expected source, test, docs, and boundary-status rows.
+
+Not run:
+
+- Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` were not rerun for this focused source/doc slice.
+
+## 2026-06-05 -- Formal recovery artifacts for seven capability lanes
+
+Goal:
+
+- Run and audit the seven newly dispatchable formal recovery lanes before
+  starting same-response location-scale slope covariance work.
+
+Actions runs:
+
+- `biv_gaussian_q2_scale_recovery`: run 27007018574, success.
+- `biv_gaussian_q2_scale_slope_recovery`: run 27007018442, success.
+- `biv_gaussian_mu_slope_recovery`: run 27007018453, success.
+- `biv_gaussian_q4_location_recovery`: run 27007018436, success at the
+  workflow level but weak as recovery evidence.
+- `biv_gaussian_q6_location_recovery`: run 27007018475, success at the
+  workflow level but weak as recovery evidence.
+- `poisson_mu_re_recovery`: run 27007018434, success.
+- `nbinom2_mu_re_recovery`: run 27007018459, success.
+
+Findings:
+
+- q2 scale, q2 scale-slope, and slope-only `mu1`/`mu2` bivariate Gaussian
+  lanes each completed 500/500 replicates per cell, with zero failure rows and
+  aggregate convergence / `pdHess` / warning rates of 1 / 1 / 0. Fixed-effect
+  Wald coverage was in the expected Monte Carlo range for the fitted formula
+  coefficients; random-effect SDs, group-level correlations, residual `rho12`,
+  and residual-scale rows remain non-Wald endpoints when `std.error` is absent.
+- Poisson `mu` random effects completed 500/500 replicates per cell with
+  aggregate convergence / `pdHess` / warning rates of 1 / 1 / 0. Fixed `mu`
+  Wald coverage ranged from 0.938 to 0.958; profile coverage for random-effect
+  SDs was weak (0.669 to 0.831).
+- NB2 `mu` random effects completed 500/500 replicates per cell. Aggregate
+  convergence was 0.998 and 1.000 with `pdHess` 1.000, but the profile warning
+  ledger recorded 366 `collapsing to unique 'x' values` warnings. Fixed `mu`
+  and `sigma` Wald coverage ranged from 0.930 to 0.982; profile coverage for
+  random-effect SDs was weak (0.647 to 0.822), and the first cell's fixed
+  overdispersion recovery was poor.
+- q4 location completed 500/500 manifest rows per cell, but it is not a
+  recovery pass: cell-level convergence was 0.59 and 0.83, `pdHess` was 0.624
+  and 0.856, warning rates were 0.370 and 0.144, and fixed-effect Wald coverage
+  was well below nominal.
+- q6 location is weaker: 6 and 4 replicate errors by cell, convergence was
+  0.075 and 0.109, `pdHess` was 0.091 and 0.117, warning rates were 0.919 and
+  0.871, and the failure ledger included Cholesky positive-definiteness errors,
+  `NaNs produced`, and `NA/NaN function evaluation`.
+
+Changes:
+
+- Updated README and doc 46/157 status text so q4/q6 formal artifacts are
+  visible as weak diagnostic evidence rather than support-promotion evidence.
+- Added `docs/dev-log/after-task/2026-06-05-formal-recovery-artifact-audit.md`.
+- Posted the formal recovery summary to issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4630620506>.
+
+Checks run:
+
+- Downloaded all seven Actions artifacts under `/tmp/drmtmb-phase18-formal-runs/`
+  and audited the aggregate, manifest, failure, Wald-coverage, and profile
+  coverage CSVs with base R.
+- `rg -n "wired but not yet run|ready to run now|not yet run at formal scale|run at scale in Phase B|q4/q6.*ready|q4/q6.*promotion|formal artifacts are weak|not promotion evidence" README.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-05-formal-recovery-artifact-audit.md`
+  returned only the intended q4/q6 weak-evidence wording.
+- `git diff --check` passed.
+- No package tests were rerun because this slice changed only documentation and
+  audited external Actions artifacts.
+
+## 2026-06-04 -- Gaussian Variational Approximation Pre-Code Gate
+
+Goal:
+
+- Record the pre-code design gate for a Gaussian variational approximation
+  (GVA) as an accuracy-oriented alternative to Laplace for non-Gaussian
+  random-intercept models (the regime where Laplace is biased).
+
+Changes:
+
+- Added `docs/design/160-gaussian-variational-approximation-gate.md` (motivation,
+  ELBO objective with closed-form Gaussian-prior expectation + entropy + GH
+  data-term quadrature, where it plugs into the TMB template via an
+  `inference_method` flag, S parameterization, `drm_control(inference = "gva")`
+  API, first-slice scope, ADEMP validation against a gold standard, standing
+  review).
+- Added Tier G to `docs/design/157-capability-completion-worklist.md` and a
+  parallel working-order item.
+
+Checks run:
+
+- Design-only; no inference code, engine switch, or fitted GVA support added.
+  Laplace remains the only implemented path. Implementation is local-R/TMB work
+  (the sandbox cannot compile TMB).
+
+## 2026-06-04 -- Fix: recovery lanes were undispatchable in the workflow
+
+Goal:
+
+- The six `*_recovery` Actions tasks were added to the workflow matrix and the
+  runner task choices but NOT to the `workflow_dispatch` `task` choice
+  `options:` list, and they are `include_in_all: false`. The job only runs a
+  matrix entry when `inputs.task == matrix.task || (inputs.task == 'all' &&
+  include_in_all)`, so the recovery lanes could not be dispatched at all. No
+  test cross-checked the options list against the runner choices, so CI stayed
+  green.
+
+Changes:
+
+- Added the six recovery tasks to the `task` choice `options:` list in
+  `.github/workflows/phase18-simulation-grid.yaml`.
+- Added a regression-guard test in `tests/testthat/test-phase18-actions-runner.R`
+  asserting the dispatch options (minus `all`) are set-equal to
+  `phase18_actions_task_choices()`.
+
+Checks run:
+
+- Validated in base R (no package deps needed) against the edited workflow: 30
+  task options parsed; all six recovery tasks present; options-minus-`all` is
+  set-equal to `phase18_actions_task_choices()`. Test file parses. The test uses
+  the established `skip_if_not(file.exists(workflow))` pattern, so it runs in the
+  dev checkout and skips during installed-package R CMD check.
+
+Note:
+
+- This also corrects an earlier framing: running the recovery lanes (Phase B
+  evidence) does NOT require local R — the GitHub Actions runners build the
+  package and run R, so the lanes can now be dispatched from the cloud once this
+  fix lands.
+
+## 2026-06-04 -- Capability Status Classification and Ordered Working Plan
+
+Goal:
+
+- Furnish, for the local-R (Codex) session, an unambiguous classification of
+  implemented vs simulation-evidence vs not-yet-fitted capabilities, and a single
+  flat ordered working plan toward the power simulation.
+
+Changes:
+
+- Added "Capability Status: Three Distinct Categories" (with a table) and
+  "Recommended Working Order" (flat Phase A implement / Phase B run evidence /
+  Phase C comparator+release sequence) to
+  `docs/design/157-capability-completion-worklist.md`.
+- Pointed `docs/design/46-pre-simulation-readiness-matrix.md` at that
+  classification, stressing that a recovery/coverage lane is evidence, not a new
+  capability.
+- Updated the handoff issue #491 to embed the ordered plan.
+
+Checks run:
+
+- Documentation only; no R code, tests, or fitted status changed.
+
+## 2026-06-04 -- NB2 mu Random-Effect Standalone Recovery Lane (truncated already covered)
+
+Goal:
+
+- Give the ordinary NB2 `mu` random-effect surface its own standalone recovery
+  artifact lane (parallel to the Poisson one), and handle truncated NB2.
+
+Finding:
+
+- NB2 `mu` RE only rode `first_wave_summary` (genuine gap), but its smoke
+  summary already computes the full recovery contract. Truncated NB2 already has
+  a standalone, coverage-emitting artifact lane via its existing
+  `truncated_nbinom2_mu_random_intercept` task and grid writer, so a separate
+  recovery writer would be redundant; it is documented as already covered.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_nbinom2_mu_re_recovery_grid.R` (reuses
+  `phase18_summarise_nbinom2_mu_re_smoke()` at recovery-scale `n_rep`), the
+  opt-in `nbinom2_mu_re_recovery` Actions task, registry row
+  `nbinom2_mu_random_effects_recovery` (`ready_grid`, `random_slopes`), the test,
+  and README/NEWS notes.
+
+Checks run:
+
+- Model-fitting test relies on GitHub Actions `R-CMD-check`. Registry plan logic
+  executed in base R against the updated CSV (stacked on the Poisson lane): registry
+  44, `ready_grid` 27, random-slope plan 16, operating-characteristic 16
+  (12 without source-test rows), preflight rows 17, bundle random_slopes 16, task
+  lists setequal, new row dispatches cleanly. All R files parse.
+
+## 2026-06-04 -- Poisson mu Random-Effect Standalone Recovery Lane
+
+Goal:
+
+- Give the ordinary Poisson `mu` random-effect surface its own dispatchable
+  recovery artifact lane (it previously only rode `first_wave_summary`).
+
+Finding:
+
+- The non-Gaussian `mu` random-effect smoke summaries (Poisson, NB2,
+  truncated NB2) already compute the full recovery contract: aggregate
+  bias/RMSE/MCSE, Wald intervals and coverage, and profile intervals and
+  coverage for the random-effect SD. So no new estimator was needed; the gap
+  was only a standalone, artifact-producing dispatch lane.
+
+Changes:
+
+- Added `inst/sim/run/sim_write_poisson_mu_re_recovery_grid.R` (reuses
+  `phase18_summarise_poisson_mu_re_smoke()` at recovery-scale `n_rep` and writes
+  aggregate, replicate, manifest, failure, Wald-interval/coverage, and
+  profile-interval/coverage CSVs), the opt-in `poisson_mu_re_recovery` Actions
+  task, registry row `poisson_mu_random_effects_recovery` (`ready_grid`,
+  `random_slopes`), the test, and README/NEWS notes.
+
+Checks run:
+
+- The model-fitting test relies on GitHub Actions `R-CMD-check`. The registry
+  plan logic was executed in base R against the updated CSV to set every count
+  empirically: registry 42 -> 43; `ready_grid` 25 -> 26; random-slope plan
+  14 -> 15; operating-characteristic 14 -> 15 (10 -> 11 without source-test rows);
+  preflight rows 15 -> 16; bundle random_slopes 14 -> 15; task lists setequal; new
+  row dispatches cleanly with non-empty operating-characteristic fields. All R
+  files parse.
+
+## 2026-06-04 -- Bivariate Gaussian Slope-Only Recovery Lane
+
+Goal:
+
+- Promote the lightest bivariate Gaussian recovery candidate, the slope-only
+  `mu1`/`mu2` lane, from smoke to a multi-replicate recovery lane.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_mu_slope_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_mu_slope_recovery_grid.R`, the opt-in
+  `biv_gaussian_mu_slope_recovery` Actions task, registry row
+  `bivariate_gaussian_slope_only_recovery` (`ready_grid`, `random_slopes`), the
+  recovery test, and README/NEWS notes.
+
+Checks run:
+
+- Local R has no dependencies here; the model-fitting recovery test relies on
+  GitHub Actions `R-CMD-check`. Following the q6 lesson, the test asserts the
+  coverage machinery (columns, derived-NA) rather than finite Wald intervals,
+  which are a convergence property.
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically: registry 41 -> 42; `ready_grid` 24 -> 25; random-slope
+  plan 13 -> 14; operating-characteristic 13 -> 14 (9 -> 10 without source-test
+  rows); preflight rows 14 -> 15; bundle random_slopes 13 -> 14; task lists
+  setequal; new row dispatches as `ready_existing_task`. All R files parse.
+
+## 2026-06-04 -- Bivariate Gaussian q6 Location Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q6 `mu1`/`mu2` location covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reusing the
+  proven q2-scale / q4-location recovery pattern.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q6_location_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_q6_location_recovery_grid.R` (reuse the
+  smoke DGP/fit/runner; add Wald intervals and interval coverage, keeping the
+  six location SDs and fifteen derived location correlations Wald-unavailable).
+- Wired the opt-in `biv_gaussian_q6_location_recovery` Actions task (choices,
+  dispatcher branch, `phase18_actions_task_paths`, workflow matrix), added
+  registry row `bivariate_gaussian_q6_location_recovery` (`ready_grid`,
+  `random_slopes`), the recovery test, and README/NEWS notes.
+
+Checks run:
+
+- Local R has no package dependencies here, so the model-fitting recovery test
+  relies on GitHub Actions `R-CMD-check`.
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically: registry 40 -> 41; `ready_grid` 23 -> 24; random-slope
+  plan 12 -> 13; operating-characteristic 12 -> 13 (and 8 -> 9 without source-test
+  rows); preflight rows 13 -> 14; bundle random_slopes 12 -> 13; task lists
+  setequal; new row dispatches as `ready_existing_task`. All new/edited R files
+  parse cleanly.
+
+## 2026-06-04 -- Bivariate Gaussian q2 Scale-Intercept Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q2 scale-intercept covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reporting
+  bias, RMSE, MCSE, and fixed-effect Wald interval coverage.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q2_scale_recovery.R` (reuses the
+  smoke DGP/fit/runner; adds Wald intervals and interval coverage, keeping SD
+  and the derived scale-scale correlation Wald-unavailable) and
+  `inst/sim/run/sim_write_biv_gaussian_q2_scale_recovery_grid.R`.
+- Wired the opt-in `biv_gaussian_q2_scale_recovery` Actions task: task choices
+  (runner and registry generator), dispatcher branch, `phase18_actions_task_paths`,
+  and a `.github/workflows/phase18-simulation-grid.yaml` matrix entry
+  (`include_in_all: false`).
+- Added registry row `bivariate_gaussian_scale_q2_recovery` (`ready_grid`,
+  `correlation_blocks`) and the registry count assertions, plus the missed
+  `test-phase18-correlation-block-status.R` plan/dispatch counts (7 -> 8).
+- Added test `tests/testthat/test-phase18-biv-gaussian-q2-scale-recovery.R`,
+  design sheet `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`,
+  README and registry-doc notes, and a NEWS bullet.
+
+Checks run:
+
+- Local R has no package dependencies in this environment (the package
+  repositories are blocked by the network policy), so the model-fitting recovery
+  test relies on GitHub Actions `R-CMD-check`.
+- Rebased onto the q4 location recovery lane, so the registry plan logic was
+  re-executed in pure base R against the merged CSV to set every count
+  empirically: registry 40, `ready_grid` 23, correlation-block plan 8 (5
+  `ready_grid`, 6 without diagnostics), `plan_counts` correlation_blocks 8,
+  correlation-block status plan/dispatch 8, task lists setequal; the new row
+  dispatches as `ready_existing_task`. All new/edited R files parse cleanly.
+
+## 2026-06-04 -- Bivariate Gaussian q4 Location Recovery Lane
+
+Goal:
+
+- Promote the bivariate Gaussian q4 `mu1`/`mu2` location covariance lane from a
+  single-replicate smoke check to a multi-replicate recovery lane reusing the
+  q2-scale recovery pattern.
+
+Changes:
+
+- Added `inst/sim/run/sim_summary_biv_gaussian_q4_location_recovery.R` and
+  `inst/sim/run/sim_write_biv_gaussian_q4_location_recovery_grid.R`, the opt-in
+  `biv_gaussian_q4_location_recovery` Actions task, registry row
+  `bivariate_gaussian_q4_location_recovery` (`ready_grid`, `random_slopes`), the
+  recovery test, and README/NEWS notes.
+
+Checks run:
+
+- The registry plan logic was executed in base R against the updated CSV to set
+  every count empirically (random-slope plan 11 -> 12, operating-characteristic
+  11 -> 12 and 7 -> 8 without source-test rows, preflight rows 12 -> 13, bundle
+  random_slopes 11 -> 12). All new/edited R files parse cleanly.
+
+## 2026-06-03 -- Bivariate Residual-Scale Random-Slope Pre-Code Gate
+
+Goal:
+
+- Record the pre-code design gate for bivariate residual-scale random slopes
+  (the "q2 scale slope" prerequisite for the q8 endpoint), with the target
+  model, parameterization plan, extractor/diagnostic contract, identifiability
+  risk, and ADEMP simulation/test plan.
+
+Changes:
+
+- Added `docs/design/155-bivariate-residual-scale-random-slope-gate.md`.
+- Pointed the "q2 scale slope" row in
+  `docs/design/67-sdstar-p8-poisson-q1.md` at the new gate.
+
+Checks run:
+
+- Design-only slice: no R code, tests, roxygen, or registry status changed, so
+  `devtools::test()`, `devtools::check()`, `pkgdown::*`, and
+  `devtools::document()` were not run. (Local R is unavailable in this
+  environment; the package repos are blocked by the network policy.)
+- Confirmed the gate stays honest: it adds no fitted support and does not
+  promote any `q8`/`p8` or scale-slope status. The rejection site cited
+  (`R/drmTMB.R:4963-4969`) and the boundary tests
+  (`tests/testthat/test-biv-gaussian.R:2837-2864`) are unchanged.
+
 ## 2026-05-31 -- `is_converged()` Accessor
 
 Goal:
@@ -51607,6 +52808,36 @@ gate with the later q4 smoke/artifact lane and q6 source-tested status.
     1.9.17 while the current TMB was 1.9.21.
 - Not run: `devtools::document()`, because no roxygen comments changed.
 
+## 2026-06-03 - Bivariate q6 location GitHub closeout (branch codex/q6-location-smoke-lane)
+
+Task: finish the issue and PR maintenance for the q6 bivariate Gaussian
+location smoke/artifact lane without expanding the simulation claim.
+
+- The first follow-up PR #477 was opened from the previous sprint branch after
+  PR #445 had already been merged. That compared as the old full-branch diff,
+  so #477 was closed and replaced.
+- Cherry-picked the q6 lane onto clean branch `codex/q6-location-smoke-lane`,
+  based on current `main`, and pushed commits `5ca5a092` and `c6fad83c`.
+- Opened replacement PR #478:
+  <https://github.com/itchyshin/drmTMB/pull/478>.
+- Posted the Phase 6c q6 status comment on #33:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611028757>.
+- Posted the Phase 18 q6 smoke/artifact-routing comment on #59:
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611028987>.
+- Posted the original PR verification and boundary comment on #477, now
+  superseded:
+  <https://github.com/itchyshin/drmTMB/pull/477#issuecomment-4611029250>.
+- Posted correction comments pointing to clean PR #478:
+  <https://github.com/itchyshin/drmTMB/issues/33#issuecomment-4611071761>
+  and
+  <https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4611071774>.
+- Posted the clean PR #478 replacement/boundary comment:
+  <https://github.com/itchyshin/drmTMB/pull/478#issuecomment-4611071781>.
+- Left #33 and #59 open. Remaining work is formal recovery, coverage, power,
+  q6 derived-correlation intervals, residual-scale bivariate slope covariance,
+  same-response location-scale slope covariance, random effects in `rho12`, and
+  all-four p8/q8 endpoint covariance.
+
 ## 2026-06-03 - Bivariate q4 location GitHub closeout (branch codex/phase6c-twin-exchange)
 
 Task: finish the issue and PR maintenance for the q4 bivariate Gaussian
@@ -51630,3 +52861,2762 @@ location smoke/artifact lane without expanding the simulation claim.
   - `gh pr view 445 --json isDraft,state,headRefOid,statusCheckRollup,url`
     confirmed PR #445 is no longer draft, remains open, and has successful
     checks at head `1442abae83cddfa523e84c7d4ece9e800e5703e5`.
+
+## 2026-06-03 - Bivariate q6 location smoke artifact lane (branch codex/q6-location-smoke-lane)
+
+Task: add the Phase 18 smoke/artifact lane for the matching q6 bivariate
+Gaussian location block `(1 + x + z | p | id)` in both `mu1` and `mu2`, while
+keeping formal recovery, coverage, power, residual-scale slopes,
+same-response location-scale slope covariance, random `rho12`, and p8/q8
+endpoint covariance outside the claim.
+
+- Added the seeded q6 DGP, fit summariser, smoke runner, summary helper, and
+  repeatable grid writer for `biv_gaussian_q6_location`.
+- Wired `biv_gaussian_q6_location` into the structured workflow registry, the
+  manual Phase 18 Actions dispatcher, and
+  `.github/workflows/phase18-simulation-grid.yaml` as an opt-in task with seed
+  `20260624`.
+- Added focused q6 smoke/artifact tests and updated runner/registry tests for
+  the new 36-row registry and 11-row random-slope plan.
+- Updated README, NEWS, ROADMAP, known limitations, design ledgers, simulation
+  README, and the rendered-vignette sources so q4/q6 location blocks have smoke
+  artifact routing and q8 remains design-only.
+- Checks run:
+  - `air format inst/sim/dgp/sim_dgp_biv_gaussian_q6_location.R inst/sim/fit/sim_summarise_biv_gaussian_q6_location.R inst/sim/run/sim_run_biv_gaussian_q6_location_smoke.R inst/sim/run/sim_summary_biv_gaussian_q6_location_smoke.R inst/sim/run/sim_write_biv_gaussian_q6_location_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-q6-location.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q6-location')"`
+    returned 45 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 477 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 956
+    passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test()"` returned 9,385 passes, no failures,
+    warnings, or skips in 626.4s.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the local-library warning that `glmmTMB` was built with TMB
+    1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned no problems found.
+  - `Rscript -e "devtools::check(error_on = 'never')"` completed in 8m37.2s
+    with 0 errors, 0 warnings, and 1 NOTE: unable to verify current time.
+  - `rg -n 'q6 location remains source|q6 artifact routing|source-only boundary|q6 source-only|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|source-tested.*q=6|q=6.*source-tested|source-tested matching q=4/q=6|source-tested q=4/q=6|source gates for matching q=4 and q=6|q=4 and q=6.*source-tested|q6 bivariate location artifacts' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat .github/workflows vignettes -g '!docs/dev-log/after-task/**'`
+    returned no current-source matches.
+  - `rg -n 'q6 location remains source|q6 artifact routing|source-only boundary|q6 source-only|q4 location.*no Phase 18 artifact lane|q4.*source-tested but.*no artifact|source-tested.*q=6|q=6.*source-tested|source-tested matching q=4/q=6|source-tested q=4/q=6|source gates for matching q=4 and q=6|q=4 and q=6.*source-tested|q6 bivariate location artifacts' pkgdown-site -g '!search.json'`
+    returned no generated-site matches.
+  - `rg -n 'p8/q8.*(is|are) (fitted|implemented|supported)|random effects in `rho12` (are )?(fitted|implemented)|residual-scale bivariate slope.*(is|are )?(fitted|implemented)|same-response location-scale slope covariance.*(is|are )?(fitted|implemented)|recovery, coverage, and power.*(are )?(supported|ready|implemented)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat -g '!docs/dev-log/after-task/**'`
+    returned only planned-boundary rows in the readiness matrix.
+  - The same unsupported-claim scan over `pkgdown-site -g '!search.json'`
+    returned no generated-site matches.
+  - `git diff --check` passed.
+- Not run: `devtools::document()`, because no roxygen comments changed.
+
+## 2026-06-03 - Bivariate q8 endpoint pre-code gate (branch codex/q8-endpoint-precode-gate)
+
+Task: keep the next bivariate endpoint slice moving without opening q8
+likelihood support or disturbing the green q6 smoke/artifact PR.
+
+- Added a design-only `bivariate_gaussian_q8_endpoint` row to the Phase 18
+  structured workflow registry. The row has `existing_actions_task = "none"`,
+  so it cannot dispatch through Actions or enter admitted random-slope plans.
+- Added `phase18_biv_gaussian_q8_endpoint_precode_gate()` and
+  `phase18_biv_gaussian_q8_endpoint_taxonomy()` to name the future q8 endpoint
+  vector, record the eight endpoints and 28 implied correlations, and check
+  that the registry row remains design-only with no Actions task.
+- Updated the random-slope preflight so design-only rows are visible as
+  `held_no_dispatch` with `audit_focus = "design_required"`, while q2/q4/q6
+  admitted bivariate location rows keep their own dispatch statuses.
+- Updated the structured-workflow registry note, p8/q8 endpoint plan,
+  implementation-map slice note, simulation README, and roadmap slice 1840.
+- Checks run:
+  - `air format inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry')"`
+    returned 300 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 496 passes, no failures, warnings, or skips.
+  - `rg -n 'q8.*(ready_grid|ready_existing_task|ready_existing|ready task)|p8.*(ready_grid|ready_existing_task|ready_existing|ready task)|q8 (is|are|now) (fitted|implemented|supported)|p8 (is|are|now) (fitted|implemented|supported)|q8.*existing_actions_task.*(biv|first_wave|summary)|bivariate_gaussian_q8_endpoint.*ready' README.md ROADMAP.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat -g '!docs/dev-log/after-task/**'`
+    returned no unsupported q8/p8 fitted or dispatch-promotion claims.
+  - `git diff --check` passed.
+- Not run: `devtools::document()`, because no roxygen comments changed. Full
+  `devtools::test()`, `pkgdown::build_site()`, `pkgdown::check_pkgdown()`, and
+  `devtools::check()` were not rerun for this source/test/design-only
+  preflight slice.
+
+## 2026-06-04 - Bivariate q2 scale-slope implementation and recovery lane (branch codex/local-r-q2-scale-slope)
+
+Task: implement the first bivariate Gaussian residual-scale random-slope
+covariance slice for matching labelled q=2 `sigma1`/`sigma2` slope-only
+blocks, wire the Phase 18 smoke/recovery lane, and keep same-response
+location-scale slope covariance plus p8/q8 endpoint covariance closed.
+
+- Opened the ordinary bivariate parser/builder path for matched
+  `sigma1 = ~ x + (0 + x | p | id)` and
+  `sigma2 = ~ x + (0 + x | p | id)` blocks under `biv_gaussian()`.
+- Kept residual `rho12` as a row-level bivariate Gaussian correlation and
+  exposed the new group-level scale-slope correlation as a separate
+  `corpars$sigma` / `corpairs(class = "scale-scale")` row.
+- Added source tests for extractor, summary, profile-target, diagnostic,
+  malformed-input, and contribution/prediction boundaries in
+  `tests/testthat/test-biv-gaussian.R`.
+- Added the Phase 18 DGP, fit summariser, smoke runner, recovery summary,
+  grid writers, registry rows, manual Actions task, and focused source tests
+  for `biv_gaussian_q2_scale_slope` and
+  `biv_gaussian_q2_scale_slope_recovery`.
+- Updated README, NEWS, ROADMAP, known limitations, formula grammar,
+  bivariate scale-slope gate, simulation registry docs, simulation README,
+  implementation/model/location-scale/bivariate-coscale vignettes, and
+  related status inventories so fitted, planned, and historical boundaries
+  stay separate.
+- Checks run:
+  - `air format R/drmTMB.R R/methods.R inst/sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R inst/sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R inst/sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R inst/sim/run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_grid.R inst/sim/run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-biv-gaussian-q2-scale-slope-recovery.R tests/testthat/test-phase18-biv-gaussian-q2-scale-slope.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without errors.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q2-scale-slope|phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 616 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,272
+    passes, no failures, warnings, or skips.
+  - A first `Rscript -e "devtools::test()"` run returned 9,817 passes,
+    0 warnings, 0 skips, and 3 failures from stale expectations in
+    `test-gaussian-random-intercepts.R` and
+    `test-phase18-correlation-block-status.R`; both expectations were updated
+    to the new boundary and registry counts.
+  - `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-correlation-block-status')"`
+    returned 444 passes, no failures, warnings, or skips.
+  - Final `Rscript -e "devtools::test()"` returned 9,827 passes, no failures,
+    warnings, or skips in 722.3s.
+  - `Rscript -e "devtools::document()"` completed; no extra generated-file
+    drift appeared in `git status`.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+    after the final source-doc wording pass.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote the ignored
+    `pkgdown-site`; it emitted one local-library warning that `glmmTMB` was
+    built with TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "devtools::check(error_on = 'never')"` completed in 8m 29s
+    with 0 errors, 0 warnings, and 0 notes.
+  - `git diff --check` passed.
+  - `rg -n "bivariate residual-scale random slopes remain closed|residual-scale bivariate slope|residual-scale correlated slopes|bivariate random slopes remain planned|bivariate random effects remain planned|Broader bivariate random slopes" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'`
+    returned no current-source matches.
+  - `rg -n "bivariate residual-scale random slopes remain closed|residual-scale bivariate slope|residual-scale correlated slopes|bivariate random slopes remain planned|bivariate random effects remain planned|Broader bivariate random slopes" pkgdown-site --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+    returned no generated-site matches.
+  - `rg -n "q=2.*sigma1.*sigma2.*scale-slope|q2.*scale-slope|scale-slope.*sigma1.*sigma2" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/news/index.html --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+    returned rendered q2 scale-slope support rows in the homepage, ROADMAP,
+    NEWS, and edited articles.
+- GitHub issue maintenance: inspected issue #483 and posted the implementation
+  plus verification comment:
+  <https://github.com/itchyshin/drmTMB/issues/483#issuecomment-4627127721>.
+  The issue remains open pending PR/review closure.
+
+## 2026-06-05 - Same-response q2 mu/sigma slope recovery lane (branch codex/formal-recovery-evidence)
+
+Task: promote the fitted same-response bivariate Gaussian q2 `mu`/`sigma`
+slope covariance slice from source-only evidence to a Phase 18 smoke/recovery
+artifact lane, without opening p8/q8 endpoint covariance or broad power claims.
+
+- Added the Phase 18 DGP, fit summariser, smoke runner, smoke grid writer,
+  recovery summary, and recovery grid writer for
+  `biv_gaussian_mu_sigma_slope` and
+  `biv_gaussian_mu_sigma_slope_recovery`.
+- The lane fits matching same-response slope-only blocks, currently
+  `mu1 = y1 ~ x + (0 + x | p | id)` and
+  `sigma1 = ~ x + (0 + x | p | id)`, while response 2 and residual `rho12`
+  stay fixed-effect layers.
+- The summary records 12 estimands: fixed `mu1`/`mu2`, fixed
+  `sigma1`/`sigma2`, one `sd:mu` slope, one `sd:sigma` slope, one derived
+  `cor:mu_sigma` row, and residual `rho12`.
+- Wired the two new tasks into `phase18_actions_task_choices()`,
+  `.github/workflows/phase18-simulation-grid.yaml`, the structured workflow
+  registry CSV, and the registry fallback task list.
+- Added focused tests for seeded DGP output, smoke summary shape, grid writer
+  artifacts and overwrite guard, malformed DGP/cell inputs, recovery bias/MCSE
+  output, fixed-effect Wald coverage tables, and derived SD/correlation
+  Wald-unavailable rows.
+- Updated current status docs and rendered articles so this route is no longer
+  described as source-only. p8/q8 all-endpoint slope covariance, random effects
+  in `rho12`, cross-response/mismatched coefficient pairs, and same-response q2
+  power-grid claims remain gated.
+- Checks run:
+  - `air format inst/sim/dgp/sim_dgp_biv_gaussian_mu_sigma_slope.R inst/sim/fit/sim_summarise_biv_gaussian_mu_sigma_slope.R inst/sim/run/sim_run_biv_gaussian_mu_sigma_slope_smoke.R inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_smoke.R inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_grid.R inst/sim/run/sim_summary_biv_gaussian_mu_sigma_slope_recovery.R inst/sim/run/sim_write_biv_gaussian_mu_sigma_slope_recovery_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-mu-sigma-slope.R tests/testthat/test-phase18-biv-gaussian-mu-sigma-slope-recovery.R tests/testthat/test-phase18-structured-workflow-registry.R`
+    completed without output.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope')"`
+    returned 77 passes, no failures, warnings, or skips before the registry
+    wiring tests were updated.
+  - `Rscript inst/sim/run/sim_run_actions_cell.R --task biv_gaussian_mu_sigma_slope --dry-run true --n-reps 1 --backend none --cores 1 --master-seed 20260629`
+    printed the expected dry-run plan.
+  - `Rscript inst/sim/run/sim_run_actions_cell.R --task biv_gaussian_mu_sigma_slope_recovery --dry-run true --n-reps 1 --backend none --cores 1 --master-seed 20260630`
+    printed the expected dry-run plan.
+  - A first `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 534 passes and 8 failures from stale fixed row/count
+    expectations after adding two `ready_grid` correlation-block rows. The
+    expectations were updated from 46/29/10/8 to 48/31/12/10 where appropriate.
+  - Final `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 542 passes, no failures, warnings, or skips.
+  - Final `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope|phase18-actions-runner|phase18-structured-workflow-registry')"`
+    returned 619 passes, no failures, warnings, or skips.
+  - `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,389
+    passes, no failures, warnings, or skips in 175.3s.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local-library warning that `glmmTMB` was built with
+    TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n 'same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended p8/q8 boundary text and selected non-Gaussian
+    source-test wording, not stale same-response q2 status.
+  - The same stale-current scan over `pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only intended p8/q8 boundary text in rendered NEWS.
+  - `rg -n 'biv_gaussian_mu_sigma_slope|same-response q2.*smoke/recovery|same-response q2.*recovery' pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html pkgdown-site/articles/formula-grammar.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/distribution-families.html --glob '!search.json'`
+    returned rendered support rows in ROADMAP and NEWS.
+  - `git diff --check` passed.
+- Not run: full `devtools::test()`, `devtools::check()`, or
+  `devtools::document()`. No roxygen comments changed in this recovery-lane
+  slice.
+- GitHub issue maintenance: inspected overlapping open issues #491, #33, #59,
+  and #5 through `gh issue list` searches, then updated the active local-R work
+  queue issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4637589854>.
+  The issue remains open because the 500-replicate formal artifact audit and
+  p8/q8 follow-up are still gated.
+
+## 2026-06-06 - Same-response q2 mu/sigma slope formal audit (branch codex/formal-recovery-evidence)
+
+Task: run the new `biv_gaussian_mu_sigma_slope_recovery` lane at formal
+replicate count and decide whether it supports same-response q2 power-grid use.
+
+- Ran the local Phase 18 Actions dispatcher after `devtools::load_all()` so the
+  audit used the dirty checkout rather than the last installed package:
+  `Rscript -e 'devtools::load_all(quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(...)'`
+  with `--task biv_gaussian_mu_sigma_slope_recovery`, `--n-reps 500`,
+  `--cores 8`, `--backend multicore`, `--master-seed 20260630`,
+  `--overwrite true`, and `--require-complete true`.
+- The runner exited 0 and wrote local git-ignored artifacts under
+  `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`.
+- Artifact audit:
+  - manifest rows: 1,000; status counts: 1,000 `ok`;
+  - replicate-parameter rows: 12,000;
+  - aggregate rows: 24, covering 12 estimands in each of two cells;
+  - failure-ledger rows: 170 warnings, no skipped or error manifest rows;
+  - warning messages: 92 `NA/NaN function evaluation` and 78 `NaNs produced`.
+- Unique fit diagnostics:
+  - `biv_gaussian_mu_sigma_slope_001`: 428/500 converged with `pdHess = TRUE`
+    and 72/500 had both `converged = FALSE` and `pdHess = FALSE`;
+  - `biv_gaussian_mu_sigma_slope_002`: 442/500 converged with `pdHess = TRUE`
+    and 58/500 had both `converged = FALSE` and `pdHess = FALSE`.
+- Recovery summary:
+  - derived same-response correlation bias was -0.0298 and -0.0352 across the
+    two cells;
+  - `sd:mu` slope bias was -0.0041 and -0.0012;
+  - `sd:sigma` slope bias was 0.0302 and 0.0323;
+  - residual `rho12` bias was -0.0008 and -0.0001.
+- Fixed-effect Wald coverage among interval-available fits ranged from 0.796
+  to 0.850, below the nominal 0.95 target; the two slope SDs, residual `rho12`,
+  and derived `mu_sigma` correlation had zero finite Wald endpoints as intended.
+- Decision: this is completed formal diagnostic evidence, not promotion or
+  power-grid support. Same-response q2 power claims remain gated pending
+  convergence/interval hardening, likely through warning-replicate triage plus
+  profile or bootstrap interval evidence.
+- Updated status wording in NEWS, README, ROADMAP, doc 46, doc 67, doc 157,
+  known limitations, and the new after-task report:
+  `docs/dev-log/after-task/2026-06-06-same-response-mu-sigma-slope-formal-audit.md`.
+- Post-update checks:
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    returned 27 passes, no failures, warnings, or skips.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local `glmmTMB`/`TMB` version mismatch warning.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n "completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power|same-response q2.*not a completed|same-response q2.*still needs|same-response.*power-grid use" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md docs/dev-log/check-log.md --glob '!docs/dev-log/after-task/2026-06-05-same-response-mu-sigma-slope-recovery-lane.md'`
+    returned only the earlier check-log command and the new task sentence that
+    states the audit tested whether power-grid use is supported.
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned one intended NEWS match where cross-response and all-four p8/q8
+    neighbours remain closed.
+  - `rg -n "same-response q2.*(diagnostic audit|formal audit|500-replicate)|0\\.856|0\\.884|0\\.796-0\\.850|power-grid support" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new diagnostic wording on the homepage, NEWS, and ROADMAP.
+  - `git diff --check` passed.
+- GitHub issue maintenance: posted the formal-audit hold decision to #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4638089487>.
+
+## 2026-06-06 - Same-response q2 mu/sigma slope hardening audit (branch codex/formal-recovery-evidence)
+
+Task: follow up the local 500-replicate same-response q2 `mu`/`sigma` slope
+formal-audit hold by auditing weak replicates, trying stronger refits, checking
+whether the promotion decision changes, and adding endpoint-profile evidence
+before any power-grid claim.
+
+- Audited the 130 weak replicates from
+  `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`: 72 from
+  `biv_gaussian_mu_sigma_slope_001` and 58 from
+  `biv_gaussian_mu_sigma_slope_002`, all with `converged = FALSE` and
+  `pdHess = FALSE`.
+- Regenerated those data sets from their recorded seeds and refit them with
+  stronger optimizer controls. The resulting
+  `refit-audit-20260606/robust-refit-status.csv` table has 130 rows, zero
+  refit errors, zero rescued fits, and 130 `false convergence (8)` outcomes
+  with `pdHess = FALSE`. The robust estimates were unchanged from the original
+  weak-fit estimates.
+- Recomputed fixed-effect coverage from the combined original-plus-refit
+  evidence. All-replicate fixed-effect Wald coverage remains 0.796-0.850
+  because the weak fits still have no valid interval rows. Among the
+  interval-available converged fits, fixed-effect Wald coverage is
+  0.929906542056075-0.97196261682243.
+- Checked endpoint-profile feasibility on two clean representative fits,
+  one from each default recovery cell. Endpoint profiles succeeded for
+  `rho12`, `sd:mu:mu1:(0 + x | p | id)`,
+  `sd:sigma:sigma1:(0 + x | p | id)`, and
+  `cor:mu_sigma:cor(mu1:x,sigma1:x | p | id)` in both cells, producing eight
+  `conf.status = "profile"` rows with no profile boundary flags.
+- Decision: the same-response q2 route remains fitted smoke/recovery plus
+  diagnostic evidence, not power-grid support. Stronger default optimizer
+  controls did not rescue the weak fits; two clean endpoint-profile
+  demonstrations show feasibility, not broad interval calibration.
+- Added `inst/sim/run/sim_audit_biv_gaussian_mu_sigma_slope_hardening.R` so
+  the interactive hardening pass can be regenerated from a formal recovery
+  artifact. The script reads the recovery tables or saved RDS results, rebuilds
+  the weak-replicate table, optionally robust-refits weak seeds, recomputes
+  fixed-effect Wald coverage after replacement, and optionally profiles clean
+  direct q2 targets. The CRAN-safe test covers the table-reading/no-refit path
+  and overwrite guard rather than rerunning the expensive 130-refit audit.
+- Verified the hardening-audit script against the real saved formal artifact
+  in cheap readback mode:
+  `phase18_audit_biv_gaussian_mu_sigma_slope_hardening(artifact_dir = "inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery", output_dir = tempfile("mu-sigma-hardening-readback-"), run_refits = FALSE, profile_replicates_per_cell = 0L, overwrite = FALSE)`
+  returned 130 weak rows, 16 fixed-effect coverage rows, zero refit-status
+  rows, and zero profile-status rows. This checks that the reproducibility
+  script can recover the existing audit substrate without rerunning the
+  expensive refit/profile phases.
+- Updated status wording in NEWS, README, ROADMAP, doc 34, doc 46, doc 67,
+  doc 157, known limitations, the simulation README, and the new after-task
+  report:
+  `docs/dev-log/after-task/2026-06-06-same-response-mu-sigma-slope-hardening-audit.md`.
+- Checks run:
+  - Artifact summary `Rscript - <<'EOF' ... EOF` over
+    `refit-audit-20260606/robust-refit-status.csv`,
+    `robust-combined-fixed-wald-coverage.csv`, and
+    `profile-feasibility-intervals.csv` reported 130 weak rows, zero refit
+    errors, zero rescued fits, 130 false-convergence outcomes, all-replicate
+    fixed-effect Wald coverage 0.796-0.850, interval-available fixed-effect
+    Wald coverage 0.929906542056075-0.97196261682243, eight profile interval
+    rows, `conf.status = "profile"`, and no profile boundary flags.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    returned 27 passes, no failures, warnings, or skips.
+  - After adding the reproducibility script,
+    `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope-recovery')"`
+    first found an empty-table alignment bug in the no-refit audit path; after
+    fixing that helper, the same command returned 36 passes, no failures,
+    warnings, or skips.
+  - Real-artifact no-refit readback:
+    `Rscript - <<'EOF' ... EOF` loaded the package and audit helpers, then ran
+    `phase18_audit_biv_gaussian_mu_sigma_slope_hardening(..., run_refits = FALSE, profile_replicates_per_cell = 0L)`
+    against `inst/sim/results/actions/biv_gaussian_mu_sigma_slope_recovery`.
+    It returned `weak=130`, `coverage_rows=16`, `refit_rows=0`, and
+    `profile_rows=0`.
+  - `Rscript tools/codex-checkpoint.R --goal "same-response q2 mu/sigma slope hardening audit reproducibility" --next "Review the hardening-audit script/docs diff, then choose whether to run full package checks or open/review the PR."`
+    wrote
+    `docs/dev-log/recovery-checkpoints/2026-06-06-074853-codex-checkpoint.md`.
+  - `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-mu-sigma-slope')"`
+    returned 86 passes, no failures, warnings, or skips across the
+    same-response smoke and recovery/audit tests.
+  - `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`;
+    it emitted the known local-library warning that `glmmTMB` was built with
+    TMB 1.9.17 while the current TMB was 1.9.21.
+  - `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|same-response q2.*power-grid support|same-response q2.*power ready|same-response q2.*power readiness|q8.*fitted|p8.*fitted" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended planning and hold-language matches.
+  - `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only the intended NEWS sentence that all-four p8/q8 slope endpoints
+    remain closed.
+  - `rg -n "same-response q2.*(diagnostic audit|hardening audit|robust-refit|500-replicate)|0\\.930-0\\.972|130 weak|no rescue|power-grid use|endpoint profiles" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new hardening wording in rendered NEWS and the homepage.
+  - `git diff --check` passed before and after the status patch.
+- Not run: full `devtools::test()`, `devtools::document()`, or
+  `devtools::check()`. No roxygen comments or package code changed in this
+  hardening-status slice.
+- GitHub issue maintenance: the GitHub connector returned 403 when posting to
+  #491, but the local `gh` CLI succeeded:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4638712135>.
+
+## 2026-06-06 - Same-response q2 branch package validation cleanup (branch codex/formal-recovery-evidence)
+
+Task: clean up the accumulated same-response q2 branch after the hardening
+audit, run the broad package gates, and patch stale tests exposed by the full
+suite.
+
+- Ran `air format` over the touched R, simulation, and test files; it completed
+  without output.
+- Ran `Rscript -e "devtools::document()"`; it completed after loading
+  `drmTMB`.
+- First full `Rscript -e "devtools::test()"` ran for 969.7s and reported
+  9,985 passes, zero warnings, zero skips, and four failures:
+  - two stale `test-gaussian-random-intercepts.R` error-message expectations
+    after the same-response q2 implementation started producing the new
+    labelled `mu`/`sigma` and covariance-label guidance;
+  - two stale `test-phase18-correlation-block-status.R` fixed-count
+    expectations that still expected 10 plan/dispatch rows instead of the 12
+    rows created after adding the same-response q2 smoke and recovery tasks.
+- Patched only those stale tests:
+  - `tests/testthat/test-gaussian-random-intercepts.R` now expects the larger
+    labelled `mu`/`sigma` covariance-block message and the covariance-block
+    label requirement for the unlabelled bivariate `sigma1` slope case;
+  - `tests/testthat/test-phase18-correlation-block-status.R` now expects 12
+    plan and dispatch rows.
+- `Rscript -e "devtools::test(filter = 'gaussian-random-intercepts|phase18-correlation-block-status')"`
+  returned 444 passes, no failures, warnings, or skips.
+- Final `Rscript -e "devtools::test()"` ran for 956.6s and returned 9,995
+  passes, no failures, warnings, or skips.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned "No problems found."
+- `Rscript -e "pkgdown::build_site()"` completed and wrote `pkgdown-site`; it
+  emitted the known local-library warning that `glmmTMB` was built with TMB
+  1.9.17 while the current TMB was 1.9.21.
+- `Rscript -e "devtools::check()"` returned `Status: OK` in 8m 55.1s with
+  0 errors, 0 warnings, and 0 notes. During `R CMD build`, the local Git
+  fsmonitor socket produced `cp: drmTMB/.git/fsmonitor--daemon.ipc is a socket
+  (not copied).`, then the build and check continued successfully.
+- Stale/evidence scans:
+  - Source scan for stale same-response q2 source-only/power-ready wording:
+    `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|same-response q2.*power-grid support|same-response q2.*power ready|same-response q2.*power readiness|q8.*fitted|p8.*fitted" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim tests/testthat vignettes .github/workflows --glob '!docs/dev-log/after-task/**'`
+    returned only intended planning, hold-language, and p8/q8 boundary rows.
+  - Rendered stale scan:
+    `rg -n "same-response.*(source-tested only|source-tested and still|no formal Actions|formal Actions artifacts still needed|formal artifacts still needed|source-test level|source tests but no formal)|same-response location-scale slope covariance.*(planned|closed|blocked|unsupported)|same-response q2.*source-test|same-response q2.*source recovery|same-response slope covariance.*still needs formal|mu/sigma.*formal Actions artifacts still needed|completed formal artifact audit still needed|still needs a completed formal artifact audit|still needs larger-grid evidence before power" pkgdown-site --glob '!search.json' --glob '!deps/**'`
+    returned only the intended NEWS row that all-four p8/q8 slope endpoints
+    remain closed.
+  - Rendered evidence scan:
+    `rg -n "same-response q2.*(diagnostic audit|hardening audit|robust-refit|500-replicate)|0\\.930-0\\.972|130 weak|no rescue|power-grid use|endpoint profiles" pkgdown-site/index.html pkgdown-site/ROADMAP.html pkgdown-site/news/index.html pkgdown-site/articles/implementation-map.html pkgdown-site/articles/model-map.html pkgdown-site/articles/formula-grammar.html --glob '!search.json'`
+    returned the new hardening wording in rendered NEWS and the homepage.
+  - Narrow stale-test scan
+    `rg -n "nrow\\(out\\$(plan|dispatch)\\), 10L\\)|\\\"intercept-only\\\"\\s*\\)" tests/testthat/test-phase18-correlation-block-status.R tests/testthat/test-gaussian-random-intercepts.R`
+    returned no matches.
+- `git diff --check` passed after the package-validation cleanup.
+- GitHub issue maintenance: posted the package-validation cleanup result to
+  issue #491:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4639932209>.
+- `Rscript tools/codex-checkpoint.R --goal "same-response q2 branch package validation cleanup" --next "Review the broad validation diff and decide whether to open PR review or continue another roadmap/status cleanup slice."`
+  wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-06-120943-codex-checkpoint.md`.
+
+## 2026-06-06 - Same-response q2 resume scope audit
+
+Task: resume from the package-validation checkpoint, audit the broad branch diff,
+and keep the branch scoped to the intended same-response q2 `mu`/`sigma` slope
+route before PR review.
+
+- Rehydrated from
+  `docs/dev-log/recovery-checkpoints/2026-06-06-120943-codex-checkpoint.md`,
+  `git status --short --branch`, `git diff --stat`, and the latest check-log
+  entries.
+- The audit found an accidental fitted q8 all-endpoint path: `R/drmTMB.R`
+  allowed all-four `(1 + x | p | id)` location-scale endpoint blocks, and
+  `tests/testthat/test-biv-gaussian.R` had a success fixture/test for that q8
+  route even though README, ROADMAP, NEWS, design docs, and the Phase 18
+  registry still correctly held q8 as design-only.
+- Patched the scope leak by restoring all-four ordinary location-scale
+  covariance detection to intercept-only q4 blocks, removing the
+  `is_biv_sigma_qgt2_block` fitted path, restoring the unsupported-label-reuse
+  guidance to q4-only support, removing the q8 success fixture/test, and
+  asserting that q8-style all-four slope requests still fail with the
+  intercept-only boundary message.
+- Kept the intended same-response q2 route unchanged: matching one-coefficient
+  `mu1`/`sigma1` or `mu2`/`sigma2` slope-only labels remain fitted and covered.
+
+Checks run:
+
+- `air format R/drmTMB.R tests/testthat/test-biv-gaussian.R` completed without
+  output.
+- `Rscript -e "devtools::test(filter = 'biv-gaussian')"` returned 1,398 passes,
+  no failures, warnings, or skips in 180.0s.
+- `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry|phase18-correlation-block-status')"`
+  returned 331 passes, no failures, warnings, or skips.
+- `rg -n "supports q8|new_biv_gaussian_q8|q=8 endpoint|q8 endpoint form|q8.*(now|is|are).*fitted|first matching q8|location-scale covariance blocks support either" R tests/testthat docs README.md ROADMAP.md NEWS.md --glob '!docs/dev-log/**'`
+  returned no fitted-q8 support code or success tests; remaining hits were
+  design-only, planned-boundary, or historical strings.
+- `git diff --check` passed after the resume scope audit.
+- `gh issue view 491 --json number,title,state,url,updatedAt` confirmed issue
+  #491 is still open:
+  <https://github.com/itchyshin/drmTMB/issues/491>.
+- `Rscript tools/codex-checkpoint.R --goal "same-response q2 resume scope audit" --next "Review the corrected branch diff, commit the same-response q2 package changes, and open PR review if no further scope issues are found."`
+  wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-06-164805-codex-checkpoint.md`.
+
+Not run:
+
+- Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` were not rerun after this scope-audit patch; they
+  passed earlier in the same branch package-validation cleanup.
+
+## 2026-06-06 - Bivariate q8 all-endpoint source-test retry
+
+Task: retry the ordinary bivariate Gaussian q8 all-endpoint route as its own
+source-tested slice, after the same-response q2 scope audit had correctly
+removed it from the prior branch.
+
+- Rehydrated from `git status --short --branch`, the recent same-response q2
+  check-log entries, `docs/dev-log/after-task/2026-06-06-same-response-q2-resume-scope-audit.md`,
+  and open issues #5, #33, and #491.
+- Implemented the first narrow q8 fit path for matching all-four ordinary
+  bivariate Gaussian endpoint terms:
+  `mu1`, `mu2`, `sigma1`, and `sigma2` must all use the same labelled one-slope
+  term such as `(1 + x | p | id)`.
+- The fitted route reports eight endpoint SDs across `sdpars$mu` and
+  `sdpars$sigma`, 28 derived group-level correlations in `corpars$re_cov`,
+  `corpairs(level = "group", block = "p")`, `summary()$covariance`,
+  `profile_targets()`, and `check_drm()`, while residual `rho12` stays a
+  separate row-level correlation.
+- Kept malformed q8 neighbours closed: mismatched all-four coefficient sets,
+  slope-only all-four endpoint terms, cross-response same-response labels,
+  random `rho12`, structured q8, non-Gaussian q8, and predictor-dependent q8
+  `corpair()` regressions remain unsupported or planned.
+- Moved the Phase 18 `bivariate_gaussian_q8_endpoint` registry row from
+  `design_only` to `ready_source_test` with `existing_actions_task = "none"`;
+  the random-slope workflow reports `source_test_no_dispatch` and keeps q8 out
+  of Actions dispatch until a dedicated smoke/recovery artifact lane exists.
+- Synchronized current status in README, NEWS, ROADMAP, formula grammar,
+  double-hierarchical endpoint notes, readiness matrix, validation debt,
+  cross-dpar gate, q8 gate, structured workflow registry docs, simulation docs,
+  and the Phase 6c tutorial ledger.
+
+Checks run:
+
+- `air format R/drmTMB.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-structured-workflow-registry.R`
+  completed without output.
+- `Rscript -e "devtools::test(filter = '^biv-gaussian$')"` returned 935
+  passes, no failures, warnings, or skips in 55.3s.
+- `Rscript -e "devtools::test(filter = 'phase18-structured-workflow-registry')"`
+  returned 322 passes, no failures, warnings, or skips in 2.4s.
+- `Rscript -e "devtools::test()"` returned 10,033 passes, no failures,
+  warnings, or skips in 951.0s.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned `No problems found`.
+- `Rscript -e "pkgdown::build_site()"` completed successfully and rebuilt
+  `pkgdown-site`; it emitted the local environment warning that `glmmTMB` was
+  built against TMB 1.9.17 while the current TMB is 1.9.21.
+- `Rscript -e "devtools::check()"` returned `Status: OK` with 0 errors,
+  0 warnings, and 0 notes in 8m 58.3s.
+- An earlier combined focused run
+  `Rscript -e "devtools::test(filter = 'biv-gaussian|phase18-structured-workflow-registry')"`
+  returned all bivariate Gaussian contexts green but failed one stale fixed
+  registry count because the admitted random-slope plan grew from 16 to 17
+  rows. The count was patched and the registry context passed on rerun.
+- `git diff --check` passed.
+- Stale-scope scan:
+  `rg -n "q8.*(design-only|design_only|not-yet-fitted|Not-yet-fitted|no likelihood code|q8 is design-only)|p8/q8.*(remain closed|remains closed|closed|not-yet-fitted|design-only)|all-four.*p8/q8.*(remain closed|closed|planned follow-up)|all-four.*q8.*(remain closed|closed)|future all-endpoint location-scale slope covariance" README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry tests/testthat R --glob '!docs/dev-log/after-task/**'`
+  returned only intended boundary rows saying q8 artifact lanes, recovery,
+  coverage, power, or non-Gaussian q8 remain closed, plus the non-Gaussian
+  not-yet-fitted row.
+- GitHub issue maintenance: posted the q8 source-test/no-dispatch result to
+  issue #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4641128537>.
+
+Not run:
+
+- `devtools::document()` was not run because no roxygen comments changed.
+
+## 2026-06-07 - Bivariate q8 endpoint smoke/recovery artifact lane
+
+Task: promote the ordinary bivariate Gaussian q8 all-endpoint route from
+source-test/no-dispatch status to opt-in Phase 18 smoke and diagnostic recovery
+artifact dispatch, without turning q8 into a coverage or power claim.
+
+- Rehydrated from `git status --short --branch`, the 2026-06-06 q8 source-test
+  check-log entry, `docs/dev-log/after-task/2026-06-06-biv-q8-endpoint-source-test.md`,
+  and open issues #5, #33, and #491.
+- Added the q8 endpoint simulation artifact stack:
+  `inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R`,
+  `inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R`,
+  `inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R`,
+  `inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R`,
+  `inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`,
+  `inst/sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R`, and
+  `inst/sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R`.
+- Updated `phase18-simulation-grid.yaml`, `sim_run_actions_cell.R`, and the
+  Phase 18 structured workflow registry so `biv_gaussian_q8_endpoint` and
+  `biv_gaussian_q8_endpoint_recovery` are opt-in Actions task choices.
+- Promoted the registry row `bivariate_gaussian_q8_endpoint` from
+  `ready_source_test` / no Actions task to `ready_grid` /
+  `biv_gaussian_q8_endpoint`, and added
+  `bivariate_gaussian_q8_endpoint_recovery` as a second `ready_grid` row.
+- Kept the q8 evidence boundary explicit: the recovery lane reports bias, RMSE,
+  MCSE, and Wald/profile/bootstrap interval unavailability because the runner
+  uses `se = FALSE`; it does not report coverage or power.
+- Updated current status surfaces in README, NEWS, ROADMAP, formula grammar,
+  double-hierarchical endpoint notes, validation debt, readiness matrix,
+  cross-dpar gate, q8 gate, structured workflow registry docs, simulation
+  programme docs, structural slope map, capability worklist, and `inst/sim`
+  README. The prose pass used the project-local `prose-style-review` skill.
+- The after-task audit found stale q8 boundary wording in public vignettes and
+  older design notes. Updated `vignettes/formula-grammar.Rmd`,
+  `vignettes/bivariate-coscale.Rmd`, `vignettes/model-map.Rmd`,
+  `vignettes/implementation-map.Rmd`, ROADMAP, NEWS, and design notes 17, 61,
+  145, 148, 155, 59, and 67 so the first q8 diagnostic artifact lane is
+  separate from broader p8/q8 variants that remain planned.
+- Fixed stale registry test expectations after the random-slope plan grew from
+  17 to 18 rows and the q8 task count grew from 16 to 18 existing Actions
+  tasks.
+- Replaced an underpowered q8 recovery unit-test fixture (`n_id = 24`,
+  `n_each = 6`) with the lane default (`n_id = 48`, `n_each = 10`) after one of
+  two tiny replicates failed with `the leading minor of order 8 is not
+  positive`. The default fixture produced two `ok` replicates and finite MCSE in
+  a direct probe.
+
+Checks run:
+
+- `air format inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R inst/sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R inst/sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R inst/sim/run/sim_phase18_structured_workflow_registry.R inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint-recovery.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R`
+  completed without output.
+- `git diff --check` passed.
+- `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q8-endpoint')"`
+  returned 75 passes, no failures, warnings, or skips in 50.4s.
+- `Rscript -e "devtools::test(filter = 'phase18-actions-runner|phase18-structured-workflow-registry')"`
+  returned 578 passes, no failures, warnings, or skips in 19.7s.
+- `Rscript -e "devtools::test()"` returned 10,139 passes, no failures,
+  warnings, or skips in 1107.2s.
+- `Rscript -e "pkgdown::check_pkgdown()"` passed with no problems found.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"` completed successfully
+  and rebuilt `pkgdown-site/`. During article rendering it emitted the local
+  TMB/glmmTMB version-mismatch warning:
+  `glmmTMB was built with TMB package version 1.9.17; current TMB package
+  version is 1.9.21`.
+- `Rscript -e "devtools::check()"` passed in 9m 37.3s with 0 errors, 0
+  warnings, and 0 notes.
+- Stale no-dispatch scan:
+  `rg -n "q8.*(no Actions task|no Phase 18 dispatch|no artifact|no-dispatch|no dispatch|artifact/recovery evidence remains|source tests but no|source-tested but|ready_source_test|held_no_dispatch|no Actions|no artifact lane)|bivariate_gaussian_q8_endpoint.*(ready_source_test|held_no_dispatch|no Actions task|existing_actions_task.*none)" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned no matches.
+- Stale q8 status scan:
+  `rg -n "q8 artifact/recovery|q8 recovery/coverage|q8 source-tested|source-tested q8|q8 all-endpoint route is source|q8 currently" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned no matches.
+- Broad p8/q8 boundary scan:
+  `rg -n "all-four p8/q8|p8/q8 endpoint covariance|p8/q8 all-endpoint|q8 endpoint slopes remain planned|all-four q8 endpoint slopes remain planned|future all-endpoint location-scale slope structures, not a fitted|but no artifact or recovery lane" README.md NEWS.md ROADMAP.md docs inst/sim tests R .github vignettes pkgdown-site --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/search.json' --glob '!pkgdown-site/deps/**'`
+  returned only intended current-boundary lines in
+  `vignettes/implementation-map.Rmd`, its rendered pkgdown article, and
+  `docs/design/67-sdstar-p8-poisson-q1.md`.
+- `gh issue view 5 --json number,title,state,url,updatedAt`,
+  `gh issue view 33 --json number,title,state,url,updatedAt`, and
+  `gh issue view 491 --json number,title,state,url,updatedAt` confirmed all
+  three issues are open.
+- GitHub issue maintenance: the GitHub connector could not write to the issue
+  (`403 Resource not accessible by integration`), so `gh issue comment 5
+  --body-file -` posted the local q8 artifact-lane status to #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4642141391>.
+
+Not run:
+
+- `devtools::document()` was not run because no roxygen comments changed.
+
+## 2026-06-07 - Bivariate q8 endpoint recovery audit
+
+Goal: run the newly merged q8 endpoint recovery writer at a small local audit
+scale and record whether the lane can support coverage or power claims.
+
+Command:
+
+```sh
+/usr/bin/time -p Rscript -e 'devtools::load_all(".", quiet = TRUE); source("inst/sim/run/sim_run_actions_cell.R"); phase18_actions_main(c("--task=biv_gaussian_q8_endpoint_recovery", "--output-dir=inst/sim/results/actions/biv_gaussian_q8_endpoint_recovery_audit_20260607", "--n-reps=20", "--master-seed=20260635", "--cores=4", "--backend=multicore", "--overwrite=true"))'
+```
+
+Result:
+
+- Completed in 106.57 seconds with `backend=multicore` and `cores=4`.
+- Wrote ignored local artifacts under
+  `inst/sim/results/actions/biv_gaussian_q8_endpoint_recovery_audit_20260607/`.
+- Manifest table: 40 requested replicate slots, 38 `ok`, 2 `error`.
+- Cell `biv_gaussian_q8_endpoint_001`: 19/20 manifest rows `ok`,
+  convergence rate 0.263, positive-Hessian rate 0, mean elapsed 7.64 seconds.
+- Cell `biv_gaussian_q8_endpoint_002`: 19/20 manifest rows `ok`,
+  convergence rate 0.158, positive-Hessian rate 0, mean elapsed 11.40 seconds.
+- Error replicates: cell 001 replicate 15 failed with
+  `the leading minor of order 7 is not positive`; cell 002 replicate 4 failed
+  with `the leading minor of order 8 is not positive`. Both recorded
+  `NA/NaN function evaluation`.
+- Wald interval rows were all unusable because the q8 runner uses `se = FALSE`.
+
+Decision: `hold_diagnostic`. The q8 route remains fitted and
+artifact-ready, but the audit does not support q8 coverage, power, or
+interval claims. The committed audit note is
+`docs/design/161-phase-18-bivariate-q8-recovery-audit.md`.
+
+Checks run after documenting the audit:
+
+- `git diff --check` passed.
+- `Rscript -e "devtools::test(filter = 'phase18-biv-gaussian-q8-endpoint')"`
+  returned 75 passes, no failures, warnings, or skips in 49.4 seconds.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned `No problems found`.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"` completed successfully
+  and rebuilt `pkgdown-site/`. During article rendering it emitted the known
+  local TMB/glmmTMB version-mismatch warning:
+  `glmmTMB was built with TMB package version 1.9.17; current TMB package
+  version is 1.9.21`.
+- Overclaim scan:
+  `rg -n "q8.*(ready for coverage|ready for power|supports coverage|supports power|coverage-ready|power-ready|coverage result.*0\\.[0-9]|power result)" README.md NEWS.md ROADMAP.md docs inst/sim vignettes pkgdown-site --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!pkgdown-site/deps/**' --glob '!pkgdown-site/search.json'`
+  returned no matches.
+- Rendered-site audit scan:
+  `rg -n "hold_diagnostic|38/40|0\\.263|0\\.158|q8 diagnostic hold audit|161-phase-18-bivariate-q8-recovery-audit" README.md NEWS.md ROADMAP.md docs/design inst/sim/README.md pkgdown-site/index.html pkgdown-site/news/index.html pkgdown-site/ROADMAP.html`
+  found the intended q8 audit wording in source docs and rendered home, NEWS,
+  and ROADMAP pages.
+- GitHub issue maintenance: opened PR #503 for the audit and posted the
+  `hold_diagnostic` summary to issue #5:
+  <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4644265017>.
+
+## 2026-06-09 - model-selection article and AIC/BIC n200 support run
+
+Goal:
+
+- Add a reader-facing model-selection article that compares AIC and BIC across
+  small, explicit `drmTMB` candidate sets, with simulation evidence kept
+  honest about sample size and diagnostics.
+
+Implemented:
+
+- Added `vignettes/model-selection.Rmd` and routed it through `_pkgdown.yml`
+  under Model Guides and the "Choose Your Model" article section.
+- Added the article-support ADEMP sheet
+  `docs/design/167-model-selection-aic-bic-simulation-design.md`.
+- Added the Phase 18 model-selection DGP, candidate fitter, smoke runner,
+  writer, compact summary table, and focused tests:
+  `inst/sim/dgp/sim_dgp_model_selection.R`,
+  `inst/sim/fit/sim_summarise_model_selection.R`,
+  `inst/sim/run/sim_run_model_selection_smoke.R`,
+  `inst/sim/run/sim_write_model_selection_smoke.R`,
+  `inst/sim/reports/model-selection-article-summary.csv`, and
+  `tests/testthat/test-phase18-model-selection-smoke.R`.
+- Wrote local 200-replicate article-support artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`.
+- Synchronized NEWS, the worked-example inventory, and the Phase 18 simulation
+  README.
+
+Evidence:
+
+- The article-support run used six paired cells and 200 replicates per cell:
+  Gaussian versus Student-t, NB2 versus ZINB2, and `sigma ~ 1` versus
+  `sigma ~ x`.
+- AIC target-selection rates were 0.825 for `constant_sigma`, 0.920 for
+  `extra_zeros`, 0.840 for `heavy_tail`, 0.935 for `nb2_counts`, 0.945 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- BIC target-selection rates were 0.975 for `constant_sigma`, 0.730 for
+  `extra_zeros`, 0.665 for `heavy_tail`, 0.990 for `nb2_counts`, 0.980 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- The 200-replicate result makes the intended tradeoff visible: AIC is more
+  willing to keep the extra Student-t or zero-inflation parameter, while BIC
+  more often prefers the simpler candidate under this sample size. The
+  `normal_tail` row still shows that unnecessary Student-t candidates can carry
+  warning or weak-Hessian status.
+- The table is documentation evidence only. It is not a calibrated power,
+  false-positive, or full operating-characteristic grid.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'parse(file="inst/sim/dgp/sim_dgp_model_selection.R"); parse(file="inst/sim/fit/sim_summarise_model_selection.R"); parse(file="inst/sim/run/sim_run_model_selection_smoke.R"); parse(file="inst/sim/run/sim_write_model_selection_smoke.R"); parse(file="tests/testthat/test-phase18-model-selection-smoke.R"); cat("parse ok\n")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phase18-model-selection-smoke", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'styler::style_file(c("inst/sim/dgp/sim_dgp_model_selection.R", "inst/sim/fit/sim_summarise_model_selection.R", "inst/sim/run/sim_run_model_selection_smoke.R", "inst/sim/run/sim_write_model_selection_smoke.R", "tests/testthat/test-phase18-model-selection-smoke.R"))'
+/usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); # sourced sim helpers; phase18_write_model_selection_smoke_outputs(output_dir = "docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200", n_rep = 200L, master_seed = 20260609L, overwrite = TRUE, cores = 6L, backend = "multicore", save_results = FALSE)'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = TRUE); cat("render ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::build_article("model-selection", quiet = TRUE)'
+rg -n "best model|AIC.*proves|BIC.*proves|formal.*model-selection|formal.*AIC|formal.*BIC|calibrated.*model-selection|operating-characteristic|power grid|same data|same analysis rows|same response" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md NEWS.md docs/design/37-worked-example-inventory.md inst/sim/README.md
+rg -n "model-selection|model selection|AIC|BIC" README.md ROADMAP.md NEWS.md docs vignettes inst/sim --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
+rg -n "[[:blank:]]$|^<<<<<<<|^=======$|^>>>>>>>" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md inst/sim/dgp/sim_dgp_model_selection.R inst/sim/fit/sim_summarise_model_selection.R inst/sim/run/sim_run_model_selection_smoke.R inst/sim/run/sim_write_model_selection_smoke.R tests/testthat/test-phase18-model-selection-smoke.R inst/sim/reports/model-selection-article-summary.csv
+git diff --check -- NEWS.md _pkgdown.yml docs/design/37-worked-example-inventory.md inst/sim/README.md
+```
+
+Result: focused tests passed before the n200 follow-up; the n200 follow-up
+finished in about 24 seconds with `backend = "multicore"` and
+`save_results = FALSE`, writing 2,400 candidate rows, 1,200 manifest rows, six
+selection-summary rows, and an empty failure ledger. Direct vignette render
+passed after pointing `RSTUDIO_PANDOC` at RStudio's bundled Pandoc.
+`pkgdown::check_pkgdown()` reported no problems, and
+`pkgdown::build_article("model-selection")` wrote
+`articles/model-selection.html`. The first pkgdown article render exposed a
+fragile `is_converged()` helper in the vignette; replacing it with a local
+`fit$opt$convergence == 0` helper fixed the article. The stale wording scans
+kept the article-support/formal-grid boundary visible. GitHub issue searches for
+`model selection AIC BIC` and `AIC BIC logLik model-fit extractors` found no
+overlapping open issue.
+
+## 2026-06-09: Gaussian REML First Slice
+
+Scope:
+
+- Added top-level `drmTMB(..., REML = TRUE)` for the first univariate Gaussian
+  mixed-model slice: dense full-rank `mu` fixed effects, ordinary `mu` random
+  intercepts or slopes, intercept-only `sigma`, complete responses, unit
+  likelihood weights, and no known sampling covariance, row aggregation,
+  structured effects, direct `sd()` scale formulae, `sigma` random effects, or
+  q > 2 labelled covariance blocks.
+- Implemented REML by adding `beta_mu` to the `TMB::MakeADFun(random = ...)`
+  integration set when `REML = TRUE`; the TMB likelihood template itself did
+  not need a new branch.
+- Added fit metadata (`estimator`, `REML`, `tmb_random_names`) and kept
+  `logLik()` df aligned with `lme4::logLik()` by counting the integrated
+  `beta_mu` coefficients.
+- Updated `vcov.drmTMB()` so REML coefficient covariance uses the full
+  `sdreport` covariance matrix, because integrated `beta_mu` coefficients are
+  not in `sdr$cov.fixed`.
+- Synchronized `NEWS.md`, `README.md`, `docs/design/01-formula-grammar.md`,
+  `docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`,
+  `docs/design/149-missing-data-design.md`,
+  `docs/design/168-gaussian-reml-first-slice.md`,
+  `docs/dev-log/known-limitations.md`, `vignettes/model-selection.Rmd`, and
+  generated `man/drmTMB.Rd`.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+set.seed(20260512)
+n_id <- 30; n_each <- 8; n <- n_id * n_each
+dat <- data.frame(id = factor(rep(seq_len(n_id), each = n_each)), x = rnorm(n))
+u <- rnorm(n_id, sd = .6)
+dat$y <- rnorm(n, .4 + .7 * dat$x + u[dat$id], .5)
+fit <- drmTMB(bf(y ~ x + (1 | id)), data = dat, REML = TRUE)
+fit_lme4 <- lme4::lmer(y ~ x + (1 | id), data = dat, REML = TRUE)
+stopifnot(abs(as.numeric(logLik(fit)) - as.numeric(logLik(fit_lme4))) < 1e-8)
+cat("reml_probe_ok\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators|control|gaussian-location-scale|gaussian-random-intercepts")'
+air format .
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+set.seed(20260612)
+dat <- data.frame(id = factor(rep(1:10, each = 5)), x = rnorm(50))
+dat$y <- rnorm(50, 0.2 + 0.4 * dat$x + rnorm(10, 0, 0.5)[dat$id], 0.6)
+fit <- drmTMB(bf(y ~ x + (1 | id)), data = dat, REML = TRUE)
+ll <- logLik(fit)
+stopifnot(fit$REML, identical(fit$estimator, "REML"))
+stopifnot(identical(attr(ll, "estimator"), "REML"), isTRUE(attr(ll, "REML")))
+stopifnot(attr(ll, "df") == 4L, nrow(vcov(fit)) == 3L)
+stopifnot(all(is.finite(diag(vcov(fit))[c("mu:(Intercept)", "mu:x")])))
+err <- tryCatch(drmTMB(bf(y ~ x, sigma ~ x), data = dat, REML = TRUE), error = conditionMessage)
+stopifnot(grepl("intercept-only", err))
+cat("reml_api_probe_ok\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test()'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+files <- list.files("man", pattern = "\\.Rd$", full.names = TRUE)
+problems <- list()
+for (f in files) {
+  res <- tryCatch(
+    utils::capture.output(tools::checkRd(f)),
+    error = function(e) paste("ERROR:", conditionMessage(e))
+  )
+  res <- res[nzchar(trimws(res))]
+  if (length(res) > 0L) problems[[f]] <- res
+}
+if (length(problems) > 0L) {
+  print(problems)
+  quit(status = 1L)
+}
+cat("checkRd_ok", length(files), "files\n")
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = TRUE); cat("model_selection_render_ok\n")'
+rg -n "REML can be considered later|EM/profile/REML|EM/REML|REML engines|REML.*planned|REML" README.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes/model-selection.Rmd man/drmTMB.Rd --glob '!docs/dev-log/check-log.md'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search 'REML OR restricted maximum likelihood OR Gaussian mixed model' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- The direct TMB probe matched `lme4::lmer(..., REML = TRUE)` for the
+  restricted log-likelihood to less than `1e-8`.
+- Focused comparator tests passed with 84 expectations, no failures, warnings,
+  or skips.
+- Adjacent comparator/control/Gaussian tests passed with 729 expectations, no
+  failures, warnings, or skips.
+- Full `devtools::test()` passed with 10,189 expectations, no failures,
+  warnings, or skips.
+- `tools::checkRd()` passed for 54 Rd files.
+- `pkgdown::check_pkgdown()` reported no problems.
+- Direct render of `vignettes/model-selection.Rmd` completed with
+  `model_selection_render_ok`.
+- `git diff --check` reported no whitespace problems.
+- The REML stale-wording scan left implemented REML claims, explicit
+  missing-data-route REML limitations, and planned unsupported Gaussian
+  neighbours only.
+- GitHub issue search found broad open issues #60 and #491, but no dedicated
+  open REML issue; no issue comment was added in this implementation branch.
+
+## 2026-06-09: Gaussian REML Article Example and Check Gate
+
+Scope:
+
+- Added a reader-facing `model-selection` article section that compares
+  Gaussian mixed-model fixed-effect formulas under ML, then refits the selected
+  mean structure with `REML = TRUE` for variance-component estimation.
+- The example reports the restricted log-likelihood, df, residual `sigma`, and
+  group-level random-intercept SD, and conditionally compares the restricted
+  log-likelihood to `lme4::lmer(..., REML = TRUE)` when `lme4` is installed.
+- Ran the heavier merge-readiness package check after the article edit.
+
+Checks run:
+
+```sh
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = FALSE); cat("model_selection_render_ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'res <- devtools::check(document = FALSE, args = c("--as-cran"), error_on = "never"); print(res); if (length(res$errors) || length(res$warnings)) quit(status = 1L); quit(status = 0L)'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgdown::check_pkgdown(); pkgdown::build_article("model-selection", quiet = TRUE); cat("pkgdown_article_ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::build_article("model-selection", new_process = FALSE, quiet = TRUE); cat("pkgdown_article_ok\n")'
+```
+
+Results:
+
+- Direct render of `vignettes/model-selection.Rmd` completed with
+  `model_selection_render_ok`.
+- `devtools::check(document = FALSE, args = c("--as-cran"))` completed in
+  12m 46.7s with 0 errors, 0 warnings, and 1 note. The note was
+  `unable to verify current time`.
+- `pkgdown::check_pkgdown()` reported no problems.
+- A first `pkgdown::build_article("model-selection")` attempt failed because
+  the new process rendered against an older installed `drmTMB` where `REML`
+  fell through to `...`. The source vignette was not the problem: rerunning
+  after `devtools::load_all(quiet = TRUE)` with `new_process = FALSE` wrote
+  `pkgdown-site/articles/model-selection.html` and printed
+  `pkgdown_article_ok`.
+
+## 2026-06-09: Gaussian REML Known-V Slice
+
+Scope:
+
+- Extended `REML = TRUE` from the ordinary Gaussian lme4-overlap slice to
+  univariate Gaussian known sampling covariance models through diagonal
+  `meta_V(V = vi)` and dense `meta_V(V = V)`, still inside the intercept-only
+  `sigma`, complete-response, unit-weight REML boundary.
+- Added comparator tests that match `metafor` REML fixed effects and
+  heterogeneity variance, while checking `drmTMB`'s reported restricted log
+  likelihood against an independent full Gaussian REML calculation.
+- Synchronized `README.md`, `NEWS.md`, likelihood/testing design docs,
+  known limitations, roxygen/Rd help, and the meta-analysis article.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "comparators")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "meta-known-v")'
+air format .
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::document()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/meta-analysis.Rmd", output_dir = tempdir(), quiet = TRUE); cat("meta_analysis_render_ok\n")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+files <- list.files("man", pattern = "\\.Rd$", full.names = TRUE)
+problems <- list()
+for (f in files) {
+  res <- tryCatch(
+    utils::capture.output(tools::checkRd(f)),
+    error = function(e) paste("ERROR:", conditionMessage(e))
+  )
+  res <- res[nzchar(trimws(res))]
+  if (length(res) > 0L) problems[[f]] <- res
+}
+if (length(problems) > 0L) {
+  print(problems)
+  quit(status = 1L)
+}
+cat("checkRd_ok", length(files), "files\n")
+EOF
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown(); pkgdown::build_article("meta-analysis", new_process = FALSE, quiet = TRUE); cat("pkgdown_meta_article_ok\n")'
+rg -n "REML.*known sampling covariance.*planned|known sampling covariance.*REML.*planned|REML.*meta_V.*planned|meta_V\\(V = V\\).*REML.*planned|no known sampling covariance|known Gaussian sampling covariance" README.md NEWS.md R/drmTMB.R docs/design docs/dev-log/known-limitations.md vignettes man tests/testthat/test-comparators.R --glob '!docs/dev-log/check-log.md'
+git diff --check
+gh issue list --repo itchyshin/drmTMB --state open --search 'REML meta_V OR known sampling covariance OR restricted maximum likelihood metafor' --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `devtools::test(filter = "comparators")` passed with 101 expectations, no
+  failures, warnings, or skips.
+- `devtools::test(filter = "meta-known-v")` passed with 75 expectations, no
+  failures, warnings, or skips.
+- Direct rendering of `vignettes/meta-analysis.Rmd` completed with
+  `meta_analysis_render_ok`.
+- `tools::checkRd()` passed for 54 Rd files.
+- `pkgdown::check_pkgdown()` reported no problems and
+  `pkgdown::build_article("meta-analysis", new_process = FALSE)` wrote
+  `pkgdown-site/articles/meta-analysis.html` with `pkgdown_meta_article_ok`.
+- The stale-wording scan found implemented known-`V` REML wording and the
+  separate planned REML limitation for missing-data routes only.
+- `git diff --check` reported no whitespace problems.
+- GitHub issue search found broad open issues only, not a dedicated overlapping
+  known-`V` REML issue; no issue comment was added.
+
+## 2026-06-09: Namespaced Formula Marker Parser Fix
+
+Scope:
+
+- Fixed issue #504 by normalizing formula call names before marker comparisons,
+  so `drmTMB::phylo(...)` and other namespace-qualified exported markers are
+  treated like their unqualified equivalents.
+- Hardened `meta_V()` detection, recursive formula call searches, structured
+  marker recognition, random-effect scale left-hand sides, and `corpair()`
+  left-hand sides against namespaced call heads.
+- Added a bivariate Gaussian phylogenetic regression test for the reported
+  `drmTMB::phylo(1 | p | species, tree = tree)` formula pattern.
+
+Checks run:
+
+```sh
+/Library/Frameworks/R.framework/Resources/bin/Rscript - <<'EOF'
+devtools::load_all(quiet = TRUE)
+# Pinned issue #504 reproducer with drmTMB::phylo(...) in both bivariate location formulas.
+# Printed issue_504_reproducer_ok and the expected phylo SD names.
+EOF
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "phylo-gaussian")'
+/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'devtools::test(filter = "meta-known-v|package-skeleton")'
+air format R/drmTMB.R R/parse-formula.R tests/testthat/test-phylo-gaussian.R
+```
+
+Results:
+
+- The pinned issue #504 reproducer now fits and prints
+  `issue_504_reproducer_ok`; `fit$sdpars$mu` contains
+  `mu1:phylo(1 | p | species)` and `mu2:phylo(1 | p | species)`.
+- `devtools::test(filter = "phylo-gaussian")` passed with 213 expectations, no
+  failures, warnings, or skips.
+- `devtools::test(filter = "meta-known-v|package-skeleton")` passed with 175
+  expectations, no failures, warnings, or skips.
+- Issue #505 was verified as already fixed on current `main`, commented with
+  `drm_control(se = TRUE)` and targeted-test evidence, and closed as completed.
+
+## 2026-06-09: Optimizer Preset Error Retry
+
+Scope:
+
+- Implemented issue #506 as a narrow deterministic `nlminb()` preset retry:
+  default no-custom-control optimizer-call errors retry `"careful"` and then
+  `"robust"` before failing.
+- Added `fit$optimizer_used` for the selected optimizer preset and
+  `fit$optimizer_attempts` for every attempted preset.
+- Kept nonzero convergence-code fits as returned diagnostic objects rather than
+  silently rerunning them, and kept alternative optimizers such as BFGS or
+  L-BFGS-B in the planned fallback-optimizer contract.
+- Updated `?drm_control`, the convergence vignette, NEWS, ROADMAP, and the
+  optimizer/start/map design note.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript -e 'devtools::test(filter = "control|optimizer-contract", reporter = "summary")'
+Rscript -e 'devtools::document()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/convergence.Rmd", output_dir = tempfile("convergence-render-"), quiet = TRUE); cat("convergence_render_ok\n")'
+Rscript - <<'EOF'
+res <- utils::capture.output(tools::checkRd("man/drm_control.Rd"))
+res <- res[nzchar(trimws(res))]
+if (length(res)) {
+  cat(res, sep = "\n")
+  quit(status = 1L)
+}
+cat("drm_control_checkRd_ok\n")
+EOF
+rg -n 'fallback optimizer.*automatic|fallback optimizers.*automatic|fallback refits.*automatic|BFGS.*automatic|L-BFGS-B.*automatic|optimizer_attempts|optimizer_used|optimizer preset retry|non-finite gradient|NA/NaN gradient' NEWS.md R/control.R R/drmTMB.R ROADMAP.md docs/design/35-optimizer-start-map-multistart.md vignettes/convergence.Rmd man/drm_control.Rd tests/testthat/test-optimizer-contract.R
+git diff --check
+Rscript -e 'devtools::test(reporter = "summary")'
+Rscript -e 'devtools::load_all(quiet = TRUE); pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+```
+
+Results:
+
+- Focused optimizer tests passed after adding snapshots for the retry warning,
+  explicit-control error, and all-presets-fail error.
+- Combined `control|optimizer-contract` tests passed, including existing
+  missing-data control checks.
+- `devtools::document()` regenerated `man/drm_control.Rd`.
+- The convergence vignette rendered with `convergence_render_ok`.
+- `tools::checkRd("man/drm_control.Rd")` printed
+  `drm_control_checkRd_ok`.
+- The stale-wording scan found the new `fit$optimizer_used` /
+  `fit$optimizer_attempts` wording and retained planned alternative-optimizer
+  fallback wording only where the text distinguishes it from preset retry.
+- `git diff --check` reported no whitespace problems.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+
+## 2026-06-09: Julia Engine Article Navigation
+
+Scope:
+
+- Promoted the Julia-engine article from the developer-only navbar path to the
+  user-facing Model Guides menu.
+- Moved `julia-engine` from the Developer Notes article-index group to the
+  Inference, Diagnostics, and Figures group beside the large-data guide.
+
+Checks run:
+
+```sh
+Rscript -e 'pkgdown::build_site()'
+Rscript -e 'pkgdown::check_pkgdown()'
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_site()` completed and regenerated the site. The local build
+  printed the known local `glmmTMB`/`TMB` version-mismatch warning while
+  rendering `convergence.Rmd`, but the site build finished.
+- Rendered navbar checks found `Running models with the Julia engine` under
+  `Model Guides` in `pkgdown-site/articles/drmTMB.html`,
+  `pkgdown-site/articles/index.html`, and
+  `pkgdown-site/articles/julia-engine.html`.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `git diff --check` reported no whitespace problems.
+
+## 2026-06-09: Skew-Normal Fixed-Effect First Slice
+
+Scope:
+
+- Added exported `skew_normal()` as a univariate fixed-effect
+  location-scale-shape family with public `mu = E[y]`, public `sigma = SD[y]`,
+  and residual slant `nu` on the identity scale.
+- Added the R builder, TMB `model_type = 17` branch, simulation, residuals,
+  `sigma()`, `fitted()`, `predict()`, `summary()`, `profile_targets()`,
+  fixed-effect interval visibility, and `check_drm()` finite/large-slant
+  diagnostics for the first slice.
+- Kept random effects in `mu`, `sigma`, or `nu`, `sd(group)`, structured
+  effects, known sampling covariance, bivariate skew-normal models, residual
+  `rho12`, latent `skew(id)`, and `skew` aliases rejected with explicit
+  boundary messages.
+- Updated README, NEWS, ROADMAP, `_pkgdown.yml`, family registry, likelihood
+  notes, family-link contract, known limitations, distribution-family tutorial,
+  generated Rd, and historical Phase 18 skew-normal design notes so they no
+  longer describe the constructor as absent.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal|family-link-contract|student-location-scale", reporter = "summary")'
+Rscript --vanilla -e 'invisible(lapply(c("man/skew_normal.Rd", "man/drmTMB.Rd", "man/sigma.drmTMB.Rd", "man/check_drm.Rd", "man/model-fit-extractors.Rd", "man/beta.Rd"), tools::checkRd)); cat("checkRd_ok\n")'
+rg -n 'skew_normal\(\).*(not implemented|not fitted|absent|planned, not fitted|future)|Planned Skew-Normal|skew-normal.*not implemented|no `skew_normal\(\)` constructor|skew_normal.*future work|without adding `skew_normal\(\)`|keep `skew_normal\(\)` absent|No `skew_normal\(\)` constructor|future skew-normal' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests man --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n 'important to note|in order to|various factors|significant improvements|leverages|stable broad|formal power|coverage claim' README.md NEWS.md docs/design/02-family-registry.md docs/design/03-likelihoods.md docs/design/19-family-link-contract.md docs/dev-log/known-limitations.md vignettes/distribution-families.Rmd R/family.R R/drmTMB.R
+git diff --check
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+Rscript --vanilla -e 'devtools::check(document = FALSE, manual = FALSE, error_on = "never")'
+```
+
+Results:
+
+- `devtools::document()` created `man/skew_normal.Rd` and updated the relevant
+  family, fitting, extractor, and diagnostic Rd topics; unrelated roxygen
+  metadata/link churn was removed from the diff.
+- Focused skew-normal, family-link, and Student-t shape-boundary tests passed.
+- `tools::checkRd()` printed `checkRd_ok`.
+- The stale constructor-absence scan returned no matches after the historical
+  design notes were marked as superseded.
+- The prose-style scan found one stale NEWS sentence that called fixed-effect
+  skew-normal planned; it was corrected to fitted fixed-effect skew-normal.
+- `git diff --check` reported no whitespace problems.
+- Full `devtools::test()` passed.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `devtools::check(document = FALSE, manual = FALSE, error_on = "never")`
+  finished in 12m 18s with 0 errors, 0 warnings, and 0 notes.
+- After rebasing onto `origin/main` at `feec1049`, the only conflict was the
+  check-log append. The rebased branch passed `git diff --check`, conflict
+  marker scan, the same stale constructor-absence scan, the same Rd check,
+  focused `skew-normal|family-link-contract|student-location-scale` tests, and
+  `pkgdown::check_pkgdown()`.
+
+Known remaining boundaries:
+
+- Issue #3 should stay open after this first slice. Formal multi-replicate
+  operating-characteristic grids, external fitted-model comparators, random
+  effects, structured effects, known covariance, bivariate skew-normal models,
+  residual `rho12`, latent `skew(id)`, and `skew` aliases remain future work.
+
+## 2026-06-09: Julia Engine Article Title
+
+Scope:
+
+- Aligned the Julia-engine article title and vignette index entry with the
+  user-facing navbar label: "Running models with the Julia engine".
+
+Checks run:
+
+```sh
+Rscript -e 'pkgdown::build_article("julia-engine")'
+Rscript -e 'pkgdown::build_site()'
+Rscript -e 'pkgdown::check_pkgdown()'
+rg -n "Running models with the Julia engine|Working with the Julia engine" vignettes/julia-engine.Rmd pkgdown-site/articles/julia-engine.html pkgdown-site/articles/index.html
+git diff --check
+```
+
+Results:
+
+- `pkgdown::build_article("julia-engine")` completed.
+- `pkgdown::build_site()` completed. The local build again printed the known
+  local `glmmTMB`/`TMB` version-mismatch warning while rendering
+  `convergence.Rmd`, but the site build finished.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- Rendered scans found `Running models with the Julia engine` in the vignette
+  source, article page title, article page heading, navbar entry, and article
+  index entry. No rendered `Working with the Julia engine` hit remained in the
+  checked article/index files.
+- `git diff --check` reported no whitespace problems.
+
+## 2026-06-09: Skew-Normal Fixed-Effect Artifact Lane
+
+Scope:
+
+- Added a Phase 18 standalone artifact lane for fixed-effect `skew_normal()`
+  models with `mu`, `sigma`, and `nu` predictors. The lane is intentionally
+  fixed-effect only; random effects, structured effects, bivariate residual
+  correlation, known covariance, latent skew syntax, and skew-t remain separate
+  future surfaces.
+- Added the DGP, fit runner, summariser, grid writer, Actions dispatch task,
+  registry row, and source tests needed to rerun a small smoke/grid artifact
+  lane. The DGP uses moderate default sample sizes (`n = 720` and `n = 1440`)
+  because skew-normal shape recovery is sample-size dependent and tiny smoke
+  cells are too noisy to support capability claims.
+- Kept inference claims bounded to a repeatable artifact lane. This is not yet
+  a formal 500/1000-replicate operating-characteristic result and does not close
+  issue #3.
+- Updated NEWS, ROADMAP, family registry, simulation programme notes, readiness
+  matrices, worked-example inventory, validation debt, known limitations,
+  simulation README, `model-map`, `robust-student`, and historical skew-normal
+  design notes so fitted fixed-effect skew-normal support is separated from
+  richer planned skew-family work.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal|phase18-skew-normal-fixed-effect|phase18-actions-runner", reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::build_article("robust-student"); pkgdown::build_article("model-map"); cat("articles_ok\n")'
+rg -n 'separate fitted fixed-effect family|residual asymmetry rather than heavy tails|Phase 18 smoke/grid artifact|skew_normal\(\)' pkgdown-site/articles/robust-student.html
+rg -n 'skew-normal residual asymmetry|Phase 18 artifact tests|fixed-effect `skew_normal\(\)`' pkgdown-site/articles/robust-student.html pkgdown-site/articles/model-map.html
+Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
+git diff --check
+rg -n 'Planned, not fitted yet|Use this planned syntax|not a fitted option today|skew-family likelihood exists|skew-normal.*not yet fitted|skew-normal.*not implemented|skew-normal.*remain design|skew_normal\(\) \(planned\)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim .github --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n '^(<<<<<<<|=======|>>>>>>>)' .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/dev-log/after-task/2026-06-09-skew-normal-fixed-effect-artifact-lane.md inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R tests/testthat/test-phase18-skew-normal-fixed-effect.R
+Rscript --vanilla -e 'devtools::test(filter = "phase18-structured-workflow-registry", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
+```
+
+Results:
+
+- The focused skew-normal Phase 18 source tests passed after tightening helper
+  scoping and treating profile warnings as warning-severity ledger rows rather
+  than hard errors.
+- The Actions-runner dry-run tests passed for the new
+  `skew_normal_fixed_effect` task with profile/bootstrap arguments.
+- The combined focused test filter passed for the new artifact lane plus the
+  existing skew-normal density/location-scale tests.
+- The two touched articles rendered, and rendered HTML scans found the updated
+  fixed-effect skew-normal wording in `robust-student` and `model-map`.
+- `pkgdown::check_pkgdown()` reported no problems and printed
+  `pkgdown_check_ok`.
+- `git diff --check` reported no whitespace problems.
+- The stale skew-normal planned/unsupported wording scan returned only unrelated
+  phylogenetic-spatial planned-example wording, not fixed-effect skew-normal
+  contradictions.
+- The touched-file conflict-marker scan returned no merge-conflict markers.
+- PR #517 initially failed the macOS `R-CMD-check` because the structured
+  workflow registry validator's fallback Actions-task list did not include
+  `skew_normal_fixed_effect`. Adding the task there and updating the
+  family-surface count fixtures fixed the failure locally.
+- The focused structured-workflow-registry and Actions-runner tests passed after
+  that CI follow-up patch, and `git diff --check` remained clean.
+
+Known remaining boundaries:
+
+- Next skew-normal capability depth should run formal higher-replicate grids,
+  add fitted-model comparator checks on the public moment scale, and then decide
+  whether to extend to random/structured/bivariate skew-family surfaces. This
+  slice only makes fixed-effect skew-normal useful enough to rerun, inspect, and
+  cite as a bounded artifact lane.
+
+## 2026-06-14: Native q4 Profile Failure Status
+
+Scope:
+
+- Opened the native-TMB fallback slice for Ayumi's q4 phylogenetic
+  location-scale model under issue #551.
+- Changed direct profile CI handling so endpoint and `TMB::tmbprofile()`
+  numeric failures return row-level `conf.status = "profile_failed"` with
+  missing endpoints and the failure message, rather than aborting the whole
+  interval request or labelling a non-finite interval as successful.
+- Added a focused bivariate q=4 phylogenetic location-scale regression test
+  showing that sigma-side phylogenetic SDs are direct native-TMB ML profile
+  targets through `log_sd_phylo` indices 3 and 4, while the six q4
+  phylogenetic correlations remain derived and not profile-ready.
+- Updated `NEWS.md`, `man/confint.drmTMB.Rd`, and the after-task note
+  `docs/dev-log/after-task/2026-06-14-native-q4-profile-failure-status.md`.
+
+Checks run:
+
+```sh
+air format R/profile.R tests/testthat/test-profile-targets.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'confint reports numeric profile failures by row')"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile target inventory covers bivariate q4 phylo sigma axes')"
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'endpoint engine keeps unsupported targets on current profile paths'); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile confidence intervals reject unsupported targets clearly')"
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- Both new focused profile-target tests passed; the q4 target-inventory test
+  suppresses the expected tiny-fit `sdreport()` warning.
+- The endpoint unsupported-target and profile-validation compatibility tests
+  passed after tightening the catch boundary.
+- The full `profile-targets` test file passed.
+- `git diff --check` reported no whitespace problems.
+- `devtools::document()` updated `man/confint.drmTMB.Rd`; unrelated
+  roxygen-version churn was removed from the patch.
+
+Known boundaries:
+
+- This is not native-TMB REML for the bivariate q4 model.
+- This does not make q4 phylogenetic correlations profile-ready.
+- This does not speed up the direct Julia 10k-tip route.
+- This is a first status/target-inventory slice for #551, not closure of the
+  whole native-TMB fallback issue.
+
+## 2026-06-14: q4 Sigma Profile Status
+
+Scope:
+
+- Added a focused weak-Hessian bivariate q=4 phylogenetic location-scale test
+  for the sigma-axis SD profile targets from issue #551.
+- Verified that the public `confint(method = "profile")` path returns
+  row-level status for the two sigma-axis SD targets under `pdHess = FALSE`.
+- Kept successful profile rows constrained to finite positive endpoints that
+  contain the fitted SD estimate, and failed rows constrained to missing
+  endpoints plus a non-`ok` diagnostic message.
+- Added a q4 retained-TMB-object guard by checking that dropping `fit$obj`
+  still errors before profiling.
+- Added a short target-selection note for Ayumi-style workflows in
+  `docs/dev-log/after-task/2026-06-14-q4-sigma-profile-status.md`.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-profile-targets.R
+Rscript --vanilla -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-profile-targets.R', desc = 'profile intervals report bivariate q4 phylo sigma-axis status')"
+Rscript --vanilla -e "devtools::test(filter = 'profile-targets', reporter = 'summary')"
+git diff --check
+```
+
+Results:
+
+- The focused q=4 sigma-axis profile-status test passed with no warnings.
+- The full `profile-targets` test file passed.
+- `git diff --check` reported no whitespace problems.
+
+Known boundaries:
+
+- This is not native-TMB REML for the bivariate q4 model.
+- This does not make q4 phylogenetic correlations profile-ready.
+- This does not validate interval coverage or 10k-tip runtime.
+- CI showed that all requested `tmbprofile` rows can fail on macOS and Windows,
+  so the portable guard is row-level status fidelity, not guaranteed endpoint
+  success on every platform.
+
+## 2026-06-15: Ayumi q4 R-First Status Harness
+
+Scope:
+
+- Added `tools/ayumi-q4-status-harness.R`, a developer harness for Ayumi-style
+  bivariate q = 4 Gaussian phylogenetic location-scale fits.
+- The harness reads an RDS payload containing `data` and `tree`, standardizes
+  Ayumi's current tarsus/beak column names, prunes the tree to requested sizes,
+  and runs the exact q4 formula with configurable `engine`, `REML`, missing
+  response handling, and optional sigma-axis profile attempts.
+- It writes separate CSVs for fit rows, profile-target inventory, interval
+  attempts, warnings/messages/errors, and run metadata. This keeps native
+  TMB ML point-estimate checks, native REML rejection, Julia route timing, and
+  profile status separate.
+- The default engine is `tmb` so the next evidence pass prioritizes the
+  native R/TMB path before broader Julia speed work.
+
+Checks run:
+
+```sh
+air format tools/ayumi-q4-status-harness.R
+Rscript --vanilla tools/ayumi-q4-status-harness.R --help
+DRMTMB_AYUMI_Q4_RDS=<non-ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=8 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+DRMTMB_AYUMI_Q4_RDS=<ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=12 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false,true DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+DRMTMB_AYUMI_Q4_RDS=<ultrametric smoke RDS> DRMTMB_AYUMI_Q4_OUT=<tmp> DRMTMB_AYUMI_Q4_SIZES=12 DRMTMB_AYUMI_Q4_ENGINES=tmb DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=first_sigma DRMTMB_AYUMI_Q4_TIME_LIMIT=90 Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- The help path printed the required inputs and environment controls.
+- The non-ultrametric smoke returned a recorded model-side tree error in
+  `fits.csv` and `conditions.csv`, rather than aborting the harness.
+- The ultrametric native TMB ML/REML smoke wrote an ML fit row and the expected
+  native REML early-rejection row.
+- The first-sigma profile smoke wrote an `intervals.csv` row with
+  `conf.status = "profile_failed"` and missing endpoints for a tiny hard fit,
+  plus warning rows in `conditions.csv`.
+
+Known boundaries:
+
+- This harness does not make native TMB REML support bivariate q4.
+- It does not make the Julia route faster.
+- It has not yet been run on Ayumi's 10,440-tip RDS in this branch.
+- `DRMTMB_AYUMI_Q4_TIME_LIMIT` uses R's elapsed-time limit and may not interrupt
+  all compiled-code paths immediately.
+
+## 2026-06-15: Julia Confint Target Wording
+
+Scope:
+
+- Tightened the public Julia-engine article and `confint.drmTMB_julia()`
+  documentation so they no longer imply that univariate Gaussian sigma-phylo
+  profile/bootstrap extraction is already exposed by the R bridge.
+- Kept the fitted-model claim separate from the inference-extraction claim:
+  sigma-phylo Gaussian fits may be admitted and may forward `REML = TRUE` when
+  the installed `DRM.jl` build supports that cell, but the current univariate
+  profile/bootstrap bridge exposes the `mu` phylogenetic SD target.
+- Kept the bivariate q = 4 claim explicit: profile/bootstrap target selection
+  covers one among-axis SD target for each of `mu1`, `mu2`, `sigma1`, and
+  `sigma2`.
+- Updated the unsupported-target message in `drm_julia_validate_inference_targets()`
+  so it tells users the actual admitted univariate and q = 4 target families.
+- Regenerated `man/confint.drmTMB_julia.Rd` and removed unrelated roxygen churn
+  from the patch.
+
+Checks run:
+
+```sh
+air format R/julia-bridge.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); testthat::test_file('tests/testthat/test-julia-biv-confint.R'); testthat::test_file('tests/testthat/test-julia-inference.R')"
+```
+
+Results:
+
+- `test-julia-biv-confint.R` passed with 31 expectations.
+- `test-julia-inference.R` passed with 44 expectations.
+
+Known boundaries:
+
+- This is a wording and target-selection slice only.
+- It does not make native `engine = "tmb"` a bivariate q4 REML fallback.
+- It does not speed up the 10k-tip Julia route.
+- It does not add a separate univariate `sigma`-phylo profile/bootstrap target
+  to the R bridge.
+
+## 2026-06-15: Ayumi q4 Bootstrap Harness
+
+Scope:
+
+- Extended `tools/ayumi-q4-status-harness.R` with a bootstrap interval phase
+  controlled by `DRMTMB_AYUMI_Q4_BOOTSTRAP`,
+  `DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS`, and
+  `DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED`.
+- Added bootstrap target modes `none`, `first_sigma`, `all_sigma`, and
+  `all_q4`; when bootstrap replicates are requested without an explicit target
+  mode, the harness defaults to `all_q4`.
+- Wrote bootstrap rows to `intervals.csv` with the existing status, timing, and
+  condition-capture pattern.
+
+Checks run:
+
+```sh
+air format tools/ayumi-q4-status-harness.R
+Rscript --vanilla -e 'invisible(parse("tools/ayumi-q4-status-harness.R")); cat("parse ok\n")'
+git diff --check
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-biv-confint.R")'
+DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/DRM.jl" JULIA_HOME="/Users/z3437171/.juliaup/bin" JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds DRMTMB_AYUMI_Q4_SIZES=30 DRMTMB_AYUMI_Q4_ENGINES=julia DRMTMB_AYUMI_Q4_REML=false DRMTMB_AYUMI_Q4_PROFILE=none DRMTMB_AYUMI_Q4_BOOTSTRAP=2 DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 DRMTMB_AYUMI_Q4_TIME_LIMIT=300 DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-q4-status/harness-bootstrap-30 Rscript --vanilla tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- `test-julia-biv-confint.R` passed with 31 expectations.
+- The Ayumi-bundle smoke wrote one Julia ML fit row at 30 tips:
+  `status = "ok"`, `convergence = 0`, and
+  `fit_diagnostic_status = "fit_returned_converged_pdhess_false"` with fit
+  elapsed time 36.19 s.
+- The bootstrap phase wrote four q4 SD rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `julia.elapsed = 1.13` s. Total R-side bootstrap phase elapsed time was
+  10.46 s.
+
+Known boundaries:
+
+- This proves bootstrap plumbing on a tiny real-data subset only.
+- It does not make the 10,440-tip Julia route fast.
+- It does not make native `engine = "tmb"` a bivariate q4 REML fallback.
+
+## 2026-06-15: Ayumi q4 DRM.jl main bridge-vcov fix verified through drmTMB
+
+Scope:
+
+- Banked the sister-package fix that removes a false R-to-Julia q4 point-fit
+  blocker: DRM.jl #292 now defaults bivariate Gaussian phylo bridge fits to
+  `q4_vcov = false`, so a usable ML/REML fit is not killed afterward by the
+  auxiliary finite-difference Wald covariance/SVD path.
+- Preserved the claim boundary: this is not the 10,440-tip speed solution, not
+  a native TMB REML fallback, and not a complete REML-bootstrap fix.
+- Re-ran the drmTMB Ayumi q4 harness against merged DRM.jl main, not the local
+  feature branch.
+- Posted issue-led evidence comments to DRM.jl #291 and drmTMB #555.
+
+Checks run:
+
+```sh
+/Users/z3437171/.juliaup/bin/julia --project=/tmp/DRM-main-merged -e 'using Pkg; Pkg.instantiate(); using DRM; println("DRM main ready at ", pathof(DRM))'
+
+PATH=/Users/z3437171/.juliaup/bin:$PATH \
+JULIA_HOME=/Users/z3437171/.juliaup/bin \
+DRM_JL_PATH=/tmp/DRM-main-merged \
+DRMTMB_AYUMI_Q4_RDS=/tmp/ayumi-ls-ecogeo/for_test/birds_tarsus_beak_10440.rds \
+DRMTMB_AYUMI_Q4_OUT=/tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated \
+DRMTMB_AYUMI_Q4_SIZES=30 \
+DRMTMB_AYUMI_Q4_ENGINES=julia \
+DRMTMB_AYUMI_Q4_REML=false,true \
+DRMTMB_AYUMI_Q4_PROFILE=none \
+DRMTMB_AYUMI_Q4_BOOTSTRAP=2 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_TARGETS=all_q4 \
+DRMTMB_AYUMI_Q4_BOOTSTRAP_SEED=20260615 \
+DRMTMB_AYUMI_Q4_TIME_LIMIT=900 \
+OPENBLAS_NUM_THREADS=1 \
+OMP_NUM_THREADS=1 \
+VECLIB_MAXIMUM_THREADS=1 \
+Rscript tools/ayumi-q4-status-harness.R
+```
+
+Results:
+
+- DRM.jl #292 merged green as `9bdea6564661e1d9eb454ed3c6d2d9398522f74f`.
+- The merged-main DRM.jl worktree loaded from
+  `/tmp/DRM-main-merged/src/DRM.jl`.
+- Harness output:
+  `/tmp/drmtmb-ayumi-evidence/julia-30-ml-reml-bootstrap-drm-main-292-instantiated`.
+- `30|julia|REML_FALSE`: fit returned with `convergence = 0`, elapsed time
+  34.71 s, and `fit_diagnostic_status =
+  "fit_returned_converged_pdhess_false"`.
+- ML bootstrap smoke returned all four q4 SD rows with
+  `conf.status = "bootstrap"`, `bootstrap.n = 2`, `bootstrap.failed = 0`, and
+  `profile.message = "2/2 successful refits"`.
+- `30|julia|REML_TRUE`: point fit returned with `convergence = 0`, elapsed time
+  9.70 s, and `fit_diagnostic_status =
+  "fit_returned_converged_pdhess_false"`.
+- REML bootstrap remains a follow-up: the Ayumi small-subset bootstrap refits
+  fail with the now-explicit first reason, `too few observed y1_ayumi/y2_ayumi
+  rows for the bivariate q=4 mean coefficients`.
+
+Known boundaries:
+
+- The original Julia q4 LAPACK/SVD summary is no longer the right point-fit
+  diagnosis after DRM.jl #292; that post-fit vcov path is avoided by default.
+- This does not make the full 10,440-tip across-tree Julia workflow fast enough.
+- This does not make native `engine = "tmb"` a full REML fallback for the
+  bivariate q4 sigma-phylo model.
+- ML bootstrap plumbing has smoke evidence; REML bootstrap needs the DRM.jl
+  #291 follow-up before it is presented as ready for Ayumi's protocol.
+
+## 2026-06-15: Gaussian sigma fixed-effect start hardening
+
+Scope:
+
+- Added a guarded residual log-scale start for Gaussian fixed-effect `sigma`
+  predictors, covering univariate Gaussian `sigma` and bivariate Gaussian
+  `sigma1` / `sigma2`.
+- Preserved the old residual-scale start for intercept-only `sigma` formulas.
+- Posted the Ayumi beak real-data result to `drmTMB#570`, including the
+  important negative finding that this start hardening does not rescue the
+  full 10,440-tip beak sigma-phylo basin.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = 'optimizer-contract')"
+Rscript -e "devtools::test(filter = 'gaussian-location-scale')"
+git diff --check
+```
+
+Results:
+
+- `optimizer-contract`: 102 passed, 0 failed.
+- `gaussian-location-scale`: 80 passed, 0 failed.
+- `git diff --check`: no whitespace errors.
+
+Evidence:
+
+- `drmTMB#570` comment:
+  <https://github.com/itchyshin/drmTMB/issues/570#issuecomment-4713358135>
+- Patched beak artifact:
+  `/tmp/drmtmb-ayumi-evidence/beak-patched-sigma-start-20260615/patched-default.csv`
+
+Interpretation:
+
+- The patched full beak start moved `sigma` starts from all-zero slopes to
+  nonzero residual-scale starts, but the all-tip fit still returned false
+  convergence, `logLik = -499839.4`, `sd_mu_phylo = 0.25`, and
+  `sd_sigma_phylo = 0.2`.
+- This is useful internal start hardening, not the Ayumi fix. The next `#570`
+  slice still needs a candidate-start/selection ladder that rejects
+  starting-like basins.
+
+CI follow-up:
+
+- PR #572 initially failed on macOS because the pre-existing bivariate
+  likelihood-weight equivalence test compared `rho12` coefficients with a
+  relative tolerance that was too tight for cross-platform optimizer jitter:
+  `0.318038` versus `0.318034`.
+- Widened only that `rho12` coefficient tolerance from `1e-5` to `5e-5`; the
+  log-likelihood multiplier check remains at `1e-4`.
+
+## 2026-06-15: Scale-Side Phylo Identifiability Guidance (q4)
+
+Added an honest `check_drm()` note for a weakly identified scale-side
+phylogenetic field, plus design doc 171. No model/likelihood change.
+
+- `R/check.R`: `check_scale_phylo_identifiability()` (added to `check_drm()`):
+  NULL unless the model has a phylo field on `sigma`; `ok` row when
+  `pdHess = TRUE`; otherwise a `note` steering to Model A (phylo on the mean,
+  fixed-effect scale) / more observations per group / doc 171.
+- `docs/design/171-scale-side-phylo-identifiability-model-a.md`.
+- `tests/testthat/test-scale-phylo-identifiability.R`.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(filter = 'scale-phylo-identifiability|check-drm', reporter = 'summary')"
+Rscript -e "devtools::document()"
+git diff --check
+```
+
+Results:
+
+- `scale-phylo-identifiability` + `check-drm`: passed, output pristine.
+- `devtools::document()`: no Rd/NAMESPACE additions (internal function).
+- `git diff --check`: clean.
+
+Evidence (Curie q4 validation, pruned real beak n=300-600):
+
+- Off-diagonal `theta_phylo` does NOT help in R/TMB (`theta_phylo = 0` is the
+  identity correlation; no removable singularity). Dropped.
+- Model E and the separable Model D both fail for the full sigma spec: the
+  scale-side phylo SD hits its lower boundary. Model A (phylo on the mean,
+  fixed-effect scale) converges (`convergence = 0`, `pdHess = TRUE`).
+- `fit$corpars$phylo` is structural (from `theta_phylo`; identity at 0); the
+  "rho ~ -0.99" seen elsewhere is an empirical random-effect correlation, not the
+  structural parameter.
+
+## 2026-06-15: Gaussian log-sigma Soft-Clamp (numerical guard)
+
+Added an identity-in-band soft-clamp on the Gaussian per-observation log-sigma
+before exponentiation, at the univariate and bivariate Gaussian density sites in
+`src/drmTMB.cpp`. Guards the catastrophic overflow when a scale-side phylogenetic
+field is fit on ~one observation per group. Design: doc 170; documented in
+doc 03. See after-task `2026-06-15-logsigma-softclamp.md`.
+
+Checks run:
+
+```sh
+Rscript -e "devtools::test(reporter = 'summary')"   # full suite, no-regression gate
+Rscript /tmp/drmtmb-clamp-validate.R                # compile + smoke + real beak
+git diff --check
+```
+
+Results:
+
+- Full suite: 0 failures (identity-in-band). NOTE: a FIRST attempt with a pure
+  softplus clamp failed 10 tests because it leaked ~1e-4 into the central band
+  (aggregate-vs-per-obs, julia-tmb parity, manual-vs-fitted mi logLik, biv
+  check-drm); the adopted identity-in-band form (exact identity in [-12,12],
+  tanh saturation only beyond, to [-15,15]) is bitwise identity for well-posed
+  fits, and the re-run suite is clean.
+- `logsigma-clamp` tests pass; well-posed smoke fit unchanged.
+- Real beak (10,440 tips, univariate sigma-phylo): `logLik -499,839 -> -12,673`
+  (finite; `max|grad| 881,785 -> 1,587`). The catastrophic overflow/NaN is
+  removed and the fit is assessable, but still `convergence = 1` with the lower
+  clamp bound binding (`log_sigma -> -14.96`) -- the scale-side field is weakly
+  identified (honest signal), per Gauss's necessary-but-not-sufficient finding.
+- `git diff --check`: clean.
+
+Boundary: this is a numerical guard, not an identifiability fix. The q4-side
+recommendation (Model A: phylo on the mean, fixed-effect scale) is in doc 171 /
+PR #575.
+
+## 2026-06-16: Bank Ayumi Model A+ evidence + persist the reframe (Phase 2)
+
+Made the headline mean-phylo claim reproducible and persisted the "weakly
+identified, not non-identified" scale-side framing. Added a re-runnable banking
+script that fits Model A+ (`phylo(1 | p | tree_tip)` on both means + cross-trait
+phylo correlation, fixed-effect `sigma ~ climate`, constant `rho12`) and the
+no-phylo null on the real 10,440-tip data, computing the mean-side LRT from
+banked logLiks. Ledger rows added to `known-limitations.md` and `docs/design/34`.
+See after-task `2026-06-16-ayumi-model-a-plus-evidence.md`.
+
+Checks run:
+
+```sh
+DRMTMB_AYUMI_DATA=.../birds_tarsus_beak_10440.rds \
+  Rscript inst/sim/run/ayumi_model_a_plus_evidence.R   # real-data fits
+Rscript -e "devtools::document()"
+git diff --check
+```
+
+Results:
+
+- Model A+: `convergence = 0`, `pdHess = TRUE`, `logLik = 10358.44` (199 s).
+  Null (no mean-phylo): `convergence = 0`, `pdHess = TRUE`,
+  `logLik = -7933.22` (9.5 s). Mean-side LRT `LR = 36583.32`, `df = 3`,
+  `p ~ 0` (boundary-conservative). The earlier asserted `~36,572` is confirmed
+  (banked value 36583.32).
+- Identified estimates: phylo location SDs 0.347 / 0.464 (SE 0.005 / 0.006);
+  mean-mean phylo correlation 0.219 (SE 0.017); residual `rho12 ~ 0.51`;
+  `sigma ~ climate` active (`log_mass_z` coefficient ~1.25 on log-`sigma`).
+- No package `R/`/`src/` changed, so the CI-green state at `d37496f2` carries;
+  `document()` produced only the pre-existing `man/rho_latent.Rd` drift, reverted.
+- `git diff --check`: clean.
+
+Scope: this banks the identified core (Model A+) and the reframe. It does not add
+or claim a scale-side phylogenetic result.
+
+## 2026-06-16: Finish-board widget and binomial response contract
+
+Implemented the first non-Ayumi slice from the combined twin finish plan in a
+clean worktree at `/private/tmp/drmtmb-finish-board`, based on
+`origin/main` commit `d37496f2` after the Gaussian log-sigma clamp merge, then
+rebased onto `db161d64` after the Ayumi Model A+ evidence/reframing merge.
+
+Scope:
+
+- Added a row-oriented `finish_board` to
+  `docs/dev-log/dashboard/status.json`, grouped into Critical Path, Issue
+  Ledger, Twin Claim Board, Cross-Package Lessons, Evidence Gates, and Release
+  Readiness.
+- Updated `docs/dev-log/dashboard/index.html` to render the board and bumped
+  the dashboard build from `r4` to `r5`.
+- Extended `tools/validate-mission-control.py` to check finish-board lanes,
+  owner names, issue URLs, status vocabulary, evidence discipline, standing
+  review names, and matrix/design row-count synchronization.
+- Added `drmTMB#569` as a dedicated Bernoulli/binomial response row in
+  `docs/design/168-r-julia-finish-capability-matrix.md` and updated
+  `docs/design/157-capability-completion-worklist.md` so #569 appears before
+  older q8/skew/structured implementation work.
+- Recorded the planned `stats::binomial(link = "logit")` response contract in
+  docs 01, 02, 03, 06, 19, and 24: 0/1 and
+  `cbind(successes, failures)`, fixed-effect `mu` only, no
+  weights-as-trials, no `sigma`, no random/structured/bivariate route, no
+  Julia bridge claim, and `stats::glm()` parity first.
+- Added the `drmTMB#544` bridge-gate registry field list and CI-fail
+  conditions to doc 168.
+
+Issue ledger:
+
+- Created `drmTMB#577` for the finish-board widget.
+- Posted the #569 consensus comment:
+  <https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4718667648>
+- Posted the #544 registry contract comment:
+  <https://github.com/itchyshin/drmTMB/issues/544#issuecomment-4718667677>
+- Posted the #491 queue-order update:
+  <https://github.com/itchyshin/drmTMB/issues/491#issuecomment-4718667645>
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check.out
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-finish-board-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-finish-board-mobile.png
+curl -fsS http://127.0.0.1:8765/status.json | python3 -c 'import json,sys; status=json.load(sys.stdin); sections={"Critical Path","Issue Ledger","Twin Claim Board","Cross-Package Lessons","Evidence Gates","Release Readiness"}; lanes={row["lane"] for row in status["finish_board"]}; ids={row["id"] for row in status["finish_board"]}; print("finish_rows", len(status["finish_board"])); print("missing_lanes", sorted(sections-lanes)); print("has_binomial", "drmTMB-569-binomial-fixed" in ids); print("matrix_rows", len(status["matrix"])); assert not sections-lanes; assert "drmTMB-569-binomial-fixed" in ids; assert len(status["finish_board"]) == 10; assert len(status["matrix"]) == 17'
+```
+
+Result:
+
+```text
+mission_control_ok: 18/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows
+dashboard already listening at http://127.0.0.1:8765/
+finish_rows 10
+missing_lanes []
+has_binomial True
+matrix_rows 17
+```
+
+Rendered screenshots were captured at
+`/tmp/drmtmb-finish-board-desktop.png` and
+`/tmp/drmtmb-finish-board-mobile.png`.
+
+Boundaries:
+
+- No `src/drmTMB.cpp` edit, no Gaussian density/penalty/MAP/profile/check path
+  edit, and no DRM.jl code edit.
+- The binomial likelihood and tests are intentionally left for the separate
+  #569 implementation PR after the Claude-owned engine seam clears.
+- The bridge registry is planned but not implemented here; binomial bridge
+  support remains unsupported/planned until #544 and separate parity tests
+  promote it.
+
+## 2026-06-16: Julia bridge gate registry schema (#544)
+
+Extended the existing `drm_julia_intentional_gates()` registry with the
+row-oriented fields needed for the `#544` bridge-gate ledger:
+`family_type`, `syntax`, `r_bridge_status`, `drmjl_status`,
+`message_pattern`, `review_due`, and `evidence_url`. The representative
+`engine = "julia"` gate tests now assert that their regex comes from the
+registry. No bridge gate was relaxed and no DRM.jl code was changed. See
+after-task `2026-06-16-julia-gate-registry-schema.md`.
+
+Checks run:
+
+```sh
+air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R", reporter = "summary")'
+git diff --check
+rg "non-identified|nonidentified|flat/unbounded|Bayesian only reads back the prior|REML on scale" R tests docs README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- `test-julia-gate-vs-engine.R`: all tests passed.
+- `test-julia-bridge.R`: all tests passed.
+- `git diff --check`: clean.
+- Forbidden-framing scan: only existing Ayumi reframe notes were found; this
+  slice added no new forbidden scale-phylo wording.
+
+Boundary: this is a governance slice. The registry is richer and tested, but
+the generated table, documentation-drift guard, and DRM.jl capability comparison
+remain open `#544` work.
+
+## 2026-06-16: Penalized / MAP phylogenetic estimator (Phase 3, slice 1)
+
+Added an optional penalized / MAP estimator: `drmTMB(..., penalty =
+drm_phylo_penalty(sd_u, sd_alpha, cor_sd))`. A PC-prior (exponential-on-SD,
+Jacobian-correct) penalises each phylogenetic SD and an optional `N(0, cor_sd)`
+shrinks the live phylo correlation (`eta_cor_phylo` for q==2, `theta_phylo` for
+q>2). `penalize_phylo` gates the TMB penalty so plain ML stays bit-identical; the
+penalty is `REPORT`ed so `logLik()` returns the unpenalized data log-likelihood;
+the fit is labeled `MAP` with a `check_drm()` note. Design: doc 172; after-task
+`2026-06-16-phylo-penalized-map.md`.
+
+Results: `phylo-penalized-map` tests pass (the reported penalty matches the
+analytic PC-prior at the optimum; `penalty = NULL` stays `estimator = "ML"` with
+zero penalty; a penalty shrinks the phylo SD and labels the fit `MAP`). A first
+full-suite run surfaced 6 errors in direct-`MakeADFun` unit tests
+(`test-phylo-utils.R`, `test-covariance-block-registry.R`) that hand-build
+`tmb_data` and so lacked the new required `penalize_phylo` field; fixed by
+defaulting the three penalty DATA fields at the universal
+`add_covariance_block_tmb_data()` merge point and in the `phylo_prior_tmb_data()`
+test helper. `document()` regenerated NAMESPACE + man pages (pre-existing
+`man/rho_latent.Rd` drift reverted); `git diff --check` clean.
+
+Boundary: the penalty regularises a weakly-identified phylogenetic component; it
+does not manufacture identifiability. A MAP fit is not ML -- LRT/AIC across
+penalized fits are not standard, and a prior-sensitivity analysis is required.
+
+## 2026-06-16: Generated Julia bridge gate table (#544)
+
+Added a static dashboard artifact for the intentional `engine = "julia"` gate
+registry. `tools/write-julia-gate-registry.R` now writes
+`docs/dev-log/dashboard/julia-gates.tsv` and
+`inst/extdata/julia-gates.tsv` from `drm_julia_intentional_gates()`; the
+mission-control dashboard renders the table, the validator checks its schema
+and evidence fields, and `test-julia-gate-vs-engine.R` compares available TSV
+artifacts to the internal registry. The dashboard build is bumped to `r6`. See
+after-task
+`2026-06-16-julia-gate-generated-table.md`.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-gate-registry.R
+air format tools/write-julia-gate-registry.R tests/testthat/test-julia-gate-vs-engine.R
+cmp -s docs/dev-log/dashboard/julia-gates.tsv inst/extdata/julia-gates.tsv
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check-gates.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-check-gates.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+tmpdir=$(mktemp -d /tmp/drmtmb-build-check-XXXXXX); cd "$tmpdir" && R CMD build --no-manual --no-build-vignettes /private/tmp/drmtmb-julia-gate-table >/tmp/drmtmb-build-check.log 2>&1 && tarball=$(ls drmTMB_*.tar.gz | head -n 1) && tar -tzf "$tarball" | grep '^drmTMB/inst/extdata/julia-gates.tsv$'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-mobile.png
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs R tests tools inst
+```
+
+Results:
+
+- Generated `docs/dev-log/dashboard/julia-gates.tsv` and
+  `inst/extdata/julia-gates.tsv` with 15 gate rows.
+- Generated artifacts are byte-identical.
+- `status.json` and `sweep.json` parse.
+- Validator: `mission_control_ok: 19/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows`.
+- `test-julia-gate-vs-engine.R`: all tests passed, including the new
+  artifact-vs-registry comparison. The installed copy keeps this guard active
+  during R CMD check, where `docs/` is not available inside `*.Rcheck`.
+- Build check: the source tarball includes
+  `drmTMB/inst/extdata/julia-gates.tsv`.
+- Dashboard serve: live at `http://127.0.0.1:8765/`; live copy includes
+  `julia-gates.tsv`.
+- Browser verification: bridge-gate heading present, 15 rows rendered, quoted
+  syntax preserved, #544 card active/covered, and mobile document width matches
+  viewport.
+- Screenshots captured:
+  `/tmp/drmtmb-julia-gates-desktop.png` and
+  `/tmp/drmtmb-julia-gates-mobile.png`.
+- `git diff --check`: clean.
+- Conflict marker scan: clean.
+
+Boundary: no bridge gate was relaxed, no `engine_control` surface was added, no
+binomial bridge support was promoted, and no DRM.jl code was changed. Remaining
+`#544` work is the public-docs drift guard and DRM.jl capability-evidence
+comparison.
+
+## 2026-06-16: Coupled-q4 penalty recovery sim (Phase 5)
+
+Added `inst/sim/run/phylo_penalty_q4_recovery.R`: a known-truth coupled-q4
+("Model E") recovery experiment fitting penalize-off vs penalize-on across a
+`cor_sd` grid at 1 and 3 observations per tip. Design + tables: doc 173;
+after-task `2026-06-16-phylo-penalty-recovery-sim.md`. Evidence/sim slice on the
+merged penalized/MAP estimator (#581); no package `R/`/`src/` code changed.
+
+Results: controlled sim (n=300) -- penalize-off at 1 obs/tip pins all six
+correlations at +/-1 (`pdHess=FALSE`); every `cor_sd` gives a clean PD
+off-boundary fit; magnitudes are prior-sensitive (strong true 0.60 -> 0.54 at
+`cor_sd=0.5`, over-shrunk at 0.25); at 3 obs/tip plain ML already reaches
+`pdHess=TRUE` -- replication is the clean fix. Real data (10,440 tips): penalty
+converges (`cor_sd=0.5`, grad 0.11) with a stable beak mean-dispersion
+`cor(mu2,sigma2)~0.5` but does not reach a PD Hessian at any `cor_sd` tried
+(0.25/0.5/1.0). A DGP bug (formula `tree` captured before the trees existed) was
+caught at the n=100 validation checkpoint and fixed.
+
+Boundary: "fittable" is not "identified." A penalized Model E is a MAP estimate
+reported with the sensitivity sweep; the clean path to the full coupled model is
+intraspecific replication.
+
+## 2026-06-16: Controls + convergence documentation (Phase 6 docs slice)
+
+New docs/design/174-controls-and-convergence.md (control catalog, the
+generalization-via-controls principle, interval-method findings, the
+data-vs-prior cor_sd rule), a penalized/MAP section in vignettes/convergence.Rmd,
+and a NEWS bullet for the penalty estimator. Docs only; no package R/src change.
+convergence.Rmd renders (RENDER_OK; the new chunks are eval=FALSE). Interval
+finding: on a penalized PD fit, Wald is instant, profile works with named
+targets, bootstrap works (slow); bootstrap fails only on the non-PD flat ridge.
+git diff --check clean.
+
+## 2026-06-16: log(sigma) clamp knob (Phase 4)
+
+drm_control() exposes the log(sigma) overflow guard (#576) as a knob:
+logsigma_clamp = c(lo, hi) (default c(-12, 12)), logsigma_clamp_margin (default
+3), logsigma_clamp = NULL to disable. C++ adds DATA_INTEGER(use_logsigma_clamp) +
+DATA_VECTOR(logsigma_clamp) and guards the three clamp sites; the universal
+add_covariance_block_tmb_data() merge point supplies defaults and drmTMB()
+overrides from control. Default bit-identical to the #576 fixed guard; the band
+is a numerical guard only and does not change identifiability. logsigma-clamp,
+phylo-utils, and covariance-block-registry tests pass; document() documents both
+new args (rho_latent.Rd drift reverted); git diff --check clean. After-task
+2026-06-16-logsigma-clamp-knob.md. The disable test asserts the deterministic
+use_logsigma_clamp plumbing, not the optimizer's platform-dependent NaN warning.
+
+## 2026-06-16: Bernoulli/binomial response family first slice (#569)
+
+Implemented the first primary Bernoulli/binomial response route:
+`family = stats::binomial(link = "logit")` for explicit 0/1 event indicators
+and `cbind(successes, failures)` responses, fixed-effect `mu` only. The TMB
+branch uses `model_type == 18`, includes the binomial normalizing constant, and
+therefore matches `stats::glm()` for coefficients, `logLik()`, AIC, and BIC on
+overlapping logit likelihoods. Methods now cover `predict()`, `fitted()`,
+`simulate()`, `residuals()`, `sigma()`, `summary()`, `vcov()`, and fixed-effect
+Wald `confint()`. See after-task
+`docs/dev-log/after-task/2026-06-16-binomial-response-family.md` and PR
+`#585`.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R R/methods.R tests/testthat/test-binomial-response.R
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-binomial-response.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-family-link-contract.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-check-binomial.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-desktop.png
+npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-mobile.png
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'planned `stats::binomial|planned plain|Planned Plain Binomial|Use the planned `stats::binomial|binomial response family \| planned|Not-yet-fitted.*binomial' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+```
+
+Results: the focused binomial, family-link-contract, and Julia gate tests
+passed; the mission-control validator passed with
+`19/68 banked_or_verified, 3 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows`;
+full `devtools::test()` passed with five existing Julia bridge/sigma-phylo skips
+and eight expected log-sigma-clamp warnings; `devtools::check(error_on =
+"never")` finished with `0 errors | 0 warnings | 0 notes` after importing
+`stats::ave`; `git diff --check` and the conflict-marker scan were clean.
+`pkgdown::check_pkgdown()` is blocked by the Claude-owned penalty/MAP lane:
+`_pkgdown.yml` is missing the exported `drm_phylo_penalty` topic, so this branch
+did not edit it. PR #585 merged after macOS, Ubuntu, and Windows R-CMD-check
+passed on the rebased head.
+
+Boundary: no `bernoulli()` alias, no weights-as-trials route, no non-logit link,
+no `sigma`, no random effects, no structured effects, no bivariate or
+mixed-response binomial, no Julia bridge promotion, no DRM.jl code change, and
+no interval-calibration or speed claim.
+
+## 2026-06-16: Julia capability comparison + public-docs drift guard (#544)
+
+Added a second generated bridge-governance artifact:
+`docs/dev-log/dashboard/julia-capabilities.tsv`, mirrored to
+`inst/extdata/julia-capabilities.tsv`, from the internal
+`drm_julia_capability_comparison()` registry. The mission-control dashboard now
+renders a Julia capability comparison beside the generated gate table; the
+validator checks schema, row identifiers, statuses, evidence links, issue
+labels, and nonempty claim boundaries. `test-julia-gate-vs-engine.R` now checks
+the generated dashboard/installed artifacts against the internal registry and
+scans public bridge docs for broad `engine_control`, all-family Julia bridge,
+ordinary binomial bridge, or speed-headline overclaims. Dashboard build bumped
+to `r7`; after-task:
+`2026-06-16-julia-capability-comparison-doc-guard.md`.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-gate-registry.R
+Rscript tools/write-julia-capability-comparison.R
+air format R/julia-bridge.R tests/testthat/test-julia-gate-vs-engine.R tools/write-julia-capability-comparison.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-544-docguard.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-544-docguard.out
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R", reporter = "summary")'
+sh tools/start-mission-control.sh --background
+npx playwright screenshot --wait-for-timeout=3000 --viewport-size=1440,1200 'http://127.0.0.1:8765/?v=544-docguard-1122b' /tmp/drmtmb-julia-capabilities-desktop.png
+npx playwright screenshot --wait-for-timeout=3000 --viewport-size=390,1400 'http://127.0.0.1:8765/?v=544-docguard-1122b' /tmp/drmtmb-julia-capabilities-mobile.png
+tmpdir=$(mktemp -d /tmp/drmtmb-build-check-XXXXXX); cd "$tmpdir" && R CMD build --no-manual --no-build-vignettes /private/tmp/drmtmb-julia-docs-drift >/tmp/drmtmb-build-check-capabilities.log 2>&1 && tarball=$(ls drmTMB_*.tar.gz | head -n 1) && tar -tzf "$tarball" | grep '^drmTMB/inst/extdata/julia-capabilities.tsv$'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n "non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+```
+
+Results: generator wrote 9 capability rows; validator passed with
+`19/68 banked_or_verified, 4 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows, 9 Julia capability rows`;
+focused #544 guard tests passed; browser DOM verification found the new
+capability section, gate section, #544 finish-board row, binomial bridge
+boundary row, and active worktree state; desktop/mobile screenshots saved under
+`/tmp/drmtmb-julia-capabilities-*.png`; source tarball includes
+`drmTMB/inst/extdata/julia-capabilities.tsv`; full `devtools::test()` passed
+with 0 failures, 8 known log-sigma-clamp warnings, 5 known Julia
+bridge/sigma-phylo skips, and 11061 passes. `pkgdown::check_pkgdown()` remains
+blocked by the Claude-owned penalty/MAP docs seam:
+`_pkgdown.yml` is missing `drm_phylo_penalty`. Before #585 merged,
+`devtools::check(error_on = "never")` completed with 0 errors, 0 warnings, and
+2 notes: future timestamp verification plus the then-current `stats::ave`
+import note.
+
+Boundary: no bridge gate was relaxed, no `engine_control` API was added, no
+DRM.jl code was changed, no binomial bridge support was promoted, and no
+phantom "REML on scale is missing" row was added. Ordinary
+`stats::binomial()` remains native TMB #569 until a separate bridge parity
+slice exists.
+
+## 2026-06-16: Binomial fixed-effect Phase 18 evidence/comparator lane (#59/#60/#569 follow-up)
+
+Added the standalone `binomial_fixed_effect` Phase 18 family-surface task for
+the native TMB plain binomial first slice. The lane simulates both supported
+response encodings, 0/1 rows and `cbind(success, failure)` rows, fits
+`drmTMB(..., family = stats::binomial())` and the matched `stats::glm()`
+comparator, and writes aggregate, replicate, manifest, failure-ledger,
+Wald-interval, Wald-coverage, and `binomial-fe-glm-parity.csv` artifacts.
+The Actions workflow accepts `binomial_fixed_effect` as a manual task; the
+structured workflow registry records it as a ready-grid bounded-binary-like
+family surface. Design note:
+`docs/design/175-phase-18-binomial-fixed-effect-artifacts.md`; after-task:
+`docs/dev-log/after-task/2026-06-16-binomial-fixed-effect-evidence-lane.md`.
+
+Checks run:
+
+```sh
+air format inst/sim/dgp/sim_dgp_binomial_fixed_effect.R inst/sim/fit/sim_summarise_binomial_fixed_effect.R inst/sim/run/sim_run_binomial_fixed_effect_smoke.R inst/sim/run/sim_summary_binomial_fixed_effect_smoke.R inst/sim/run/sim_write_binomial_fixed_effect_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-binomial-fixed-effect.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drmtmb-status-json-ok
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drmtmb-sweep-json-ok
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-binomial-fixed-effect.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-actions-runner.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-phase18-structured-workflow-registry.R", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
+```
+
+Results: focused binomial, Actions-runner, and structured-registry tests
+passed; dashboard validator passed with
+`19/68 banked_or_verified, 4 active, 17 matrix rows, 10 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+The tiny local writer smoke wrote seven tables under
+`/private/tmp/drmtmb-binomial-fe-grid-smoke`, with rows
+`4/4/2/0/4/4/4` for aggregate, replicate, manifest, failures, Wald intervals,
+Wald coverage, and comparator parity. The largest absolute `drmTMB` versus
+`stats::glm()` coefficient difference was `5.742073e-13`; the largest
+standard-error difference was `4.357602e-09`; the largest absolute `logLik`
+difference was `4.774847e-12`; the largest absolute AIC/BIC difference was
+`9.549694e-12`. Full `devtools::test()` passed with `0` failures, `8` known
+log-sigma-clamp warnings, `5` existing Julia bridge/sigma-phylo skips, and
+`11174` passes. `devtools::check(error_on = "never", document = FALSE)` finished
+with `0 errors | 0 warnings | 0 notes`. `pkgdown::check_pkgdown()` remains
+blocked by the Claude-owned penalty/MAP docs seam: `_pkgdown.yml` is missing
+`drm_phylo_penalty`.
+
+Boundary: no new likelihood branch, no `src/drmTMB.cpp` edits, no random-effect
+binomial, no structured binomial, no bivariate or mixed-response binomial, no
+weights-as-trials support, no `bernoulli()` alias, no Julia bridge promotion,
+no DRM.jl code changes, no speed claim, and no interval-calibration claim.
+
+## 2026-06-16: Binomial docs accessibility plus numerical-guard simulation note (#569/#60 follow-up)
+
+Updated the bounded-response reader path after the native TMB plain binomial
+first slice. `vignettes/proportion-beta-binomial.Rmd` now teaches four
+bounded-response choices: ordinary event probabilities and ordinary successes
+out of known trials use `stats::binomial(link = "logit")`; overdispersed
+success counts use `beta_binomial()`; strict continuous proportions use
+`beta()`; and structural exact-boundary continuous proportions use
+`zero_one_beta()`. The tutorial adds a small fixed-effect event-probability
+example and warns against `weights = trials`, `successes / trials`, and
+`cbind(successes, trials)` denominator shortcuts. The model map, family guide,
+worked-example inventory, likelihood note, and supported-non-Gaussian evidence
+map were synchronized.
+
+Also added `docs/design/176-numerical-guard-simulation-audit.md` and a
+`docs/dev-log/team-improvements.md` entry after Hao Qin raised the concern that
+C++ AD constants can look like hard-coded truncations. The note classifies
+domain transforms, model-defining restrictions, starting-value safeguards,
+density-domain floors, tail log floors, and likelihood-altering guards. It
+records the future big-simulation requirement: compare guard configurations
+when possible and report guard activation, convergence, `pdHess`, bias, RMSE,
+interval coverage, MCSE, warnings, failures, and elapsed time before using a
+guard-dependent route for promotion claims. After-task:
+`docs/dev-log/after-task/2026-06-16-binomial-docs-accessibility-and-guard-note.md`.
+
+Checks run:
+
+```sh
+air format vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); out <- tempfile("proportion-binomial-", fileext = ".html"); rmarkdown::render("vignettes/proportion-beta-binomial.Rmd", output_file = out, quiet = TRUE); cat(out, "\n")'
+Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-binomial-response.R", reporter = "summary")'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::test()'
+Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg hard-framing terms over the touched current docs and vignette files
+rg -n '^successes out of known trials -> beta_binomial\(\)|Counted successes out of trials \|.*`beta_binomial\(\)`' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd docs/design/37-worked-example-inventory.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md docs/design/79-supported-nongaussian-evidence-goal.md
+rg -n 'Numerical Guard Simulation Audit|Hao Qin|likelihood-altering|logsigma_clamp|guard_sensitivity' docs/design/176-numerical-guard-simulation-audit.md docs/dev-log/team-improvements.md
+```
+
+Results: the updated proportion tutorial rendered to a temporary HTML file;
+focused `test-binomial-response.R` passed; full `devtools::test()` passed with
+0 failures, 8 known log-sigma-clamp warnings, 5 existing Julia
+bridge/sigma-phylo skips, and 11174 passes; `devtools::check(error_on =
+"never", document = FALSE)` finished with 0 errors, 0 warnings, and 0 notes.
+The package check had already built its source tarball before the numerical
+guard Markdown note was added, so the guard note is covered by the later
+Markdown/grep/diff scans rather than by that package-check tarball.
+`pkgdown::check_pkgdown()` remains blocked by the pre-existing Claude-owned
+penalty/MAP docs seam: `_pkgdown.yml` is missing `drm_phylo_penalty`.
+Issue breadcrumbs posted:
+`#569` https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4723968820,
+`#60` https://github.com/itchyshin/drmTMB/issues/60#issuecomment-4723968828,
+and `#59` https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4723968812.
+
+Boundary: no new likelihood branch, no `src/drmTMB.cpp` edits, no Gaussian
+clamp or penalty/MAP edits, no Ayumi path changes, no DRM.jl code changes, no
+binomial random effects, no structured binomial, no bivariate or mixed-response
+binomial, no `bernoulli()` alias, no Julia bridge promotion, no speed claim,
+and no interval-calibration claim.
+
+## 2026-06-16: Dashboard truth refresh after binomial evidence (#577/#569/#59 follow-up)
+
+Refreshed the mission-control dashboard after the non-Ayumi merge stack landed
+on `origin/main` through `37407279` (`#589`). The finish board now records the
+binomial fixed-effect evidence lane as merged (`#588`), points the bridge-gate
+row at the merged `#587` capability-comparison / docs-drift-guard evidence,
+keeps DRM.jl binomial claim alignment deferred to the owner, and adds a new
+Evidence Gates row for numerical-guard sensitivity. The guard row deliberately
+marks documentation as covered and simulation as planned: Hao Qin's concern is
+visible in the live board, but no guard-sensitivity simulation is claimed.
+After-task:
+`docs/dev-log/after-task/2026-06-16-dashboard-truth-refresh.md`.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+node -e 'JSON.parse(require("fs").readFileSync("docs/dev-log/dashboard/status.json","utf8")); JSON.parse(require("fs").readFileSync("docs/dev-log/dashboard/sweep.json","utf8")); console.log("json_ok")'
+sh tools/start-mission-control.sh --background
+browser check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
+git diff --check
+```
+
+Results: mission-control validation passed with 19/68 banked-or-verified
+slices, 4 active slices, 17 matrix rows, 11 finish rows, 15 Julia gate rows,
+and 9 Julia capability rows. The served dashboard showed all six finish-board
+sections, 11 finish cards, the numerical-guard sensitivity row, merged
+binomial-evidence text, release-readiness text, and dirty/detached repo truth.
+At 390 by 844 mobile width, the board still showed the required sections and
+guard row with no horizontal overflow.
+
+Issue breadcrumbs posted:
+`#577` https://github.com/itchyshin/drmTMB/issues/577#issuecomment-4724259204,
+`#59` https://github.com/itchyshin/drmTMB/issues/59#issuecomment-4724259200,
+and `#569`
+https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4724259211.
+
+Boundary: no R package code, no likelihood code, no `src/drmTMB.cpp`, no
+Gaussian clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code
+change, no Julia bridge promotion, no release promotion, no binomial interval
+calibration claim, and no guard-sensitivity simulation claim.
+
+## 2026-06-16: First binomial GLM parity comparator artifact (#60/#342/#569 follow-up)
+
+Banked the first executable Phase 19 comparator artifact for the plain
+fixed-effect Bernoulli/binomial response family:
+`docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/`. The artifact
+uses the Phase 18 `binomial_fixed_effect` writer with both supported response
+encodings, 0/1 rows and `cbind(successes, failures)` rows, `n = 320`,
+`n_rep = 3`, seed `20260616`, and one core. It commits CSV tables for
+aggregate summaries, replicate-level summaries, manifest rows, failures, Wald
+intervals, diagnostic Wald coverage, and `stats::glm()` parity, plus a README
+with SHA, dirty state, R/package versions, row counts, and interpretation label
+`parity`.
+
+The largest absolute `drmTMB` versus `stats::glm()` coefficient difference in
+the artifact is `1.894251e-11`; the largest standard-error difference is
+`6.393821e-08`; the largest absolute `logLik` difference is `2.728484e-12`;
+and the largest absolute AIC/BIC difference is `5.456968e-12`. All six target
+fits returned `ok`, all six reported `pdHess = TRUE`, and the failure table is
+header-only.
+
+Updated `docs/design/158-phase-19-comparator-matrix.md`,
+`docs/design/159-drmtmb-0-2-0-release-readiness.md`,
+`docs/dev-log/dashboard/status.json`, and
+`docs/dev-log/dashboard/sweep.json` so the comparator artifact is visible while
+release readiness remains partial and broader comparator/simulation gates
+remain unfinished. `tools/start-mission-control.sh` now mirrors
+`docs/dev-log/comparator-results/` into `/tmp/drm-dashboard` so served evidence
+links resolve. After-task:
+`docs/dev-log/after-task/2026-06-16-binomial-glm-parity-comparator-artifact.md`.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-ok
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-ok
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
+```
+
+Results: mission-control validation passed with `20/68` banked-or-verified
+slices, `4` active slices, `17` matrix rows, `11` finish rows, `15` Julia gate
+rows, and `9` Julia capability rows. The served dashboard copied the comparator
+artifact, and the README was reachable through
+`http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md`.
+The scoped hard-framing scan over this slice's changed current files returned
+no matches. A broader repository scan still finds pre-existing Ayumi/REML
+wording outside this slice's ownership; this PR does not edit Claude-owned
+analysis notes, but it does remove two dashboard phrases that framed the q4
+route as a native-TMB restricted-likelihood fallback.
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no Gaussian
+clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code change, no
+Julia bridge promotion, no release promotion, no speed claim, no binomial
+interval-calibration claim, and no numerical-guard sensitivity simulation
+claim.
+
+## 2026-06-17: Local-R queue refresh after binomial comparator artifact (#491/#569/#60 follow-up)
+
+Refreshed the local-R work queue after #591 merged on `main` at `496e664a`.
+`docs/design/157-capability-completion-worklist.md` now treats the issue-led
+widget (#577), bridge-gate audit (#544), native fixed-effect binomial route
+(#569), Phase 18 `binomial_fixed_effect` lane (#588), bounded-response docs and
+guard note (#589), dashboard truth refresh (#590), and first Phase 19
+binomial `stats::glm()` parity artifact (#591) as closed checkpoints rather
+than the next implementation blocker.
+
+The recommended implementation order now resumes with q8 coverage/power,
+parallel skew-normal evidence depth, structured `mu` slopes, correlated
+non-Gaussian slopes, random effects in `rho12`, large-data controls, and other
+older local-R queue items. The binomial path remains fitted and parity-banked
+only for fixed-effect `stats::binomial(link = "logit")`; its next work, if
+wanted, is MCSE-backed interval calibration or separate Julia bridge parity,
+not broader support by implication.
+
+`docs/design/46-pre-simulation-readiness-matrix.md` now says the same thing in
+the "Next Surface Decisions" section: fixed-effect binomial can be promoted
+only by a separate MCSE-backed promotion grid, while random effects,
+structured effects, bivariate/mixed responses, and the Julia bridge stay out
+of scope.
+
+Also corrected the #591 check-log command block so it records the scoped
+hard-framing scan that was actually used for that slice.
+
+Checks run:
+
+```sh
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-local-queue-refresh-after-binomial.md
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md
+```
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no
+dashboard schema change, no Julia bridge promotion, no release promotion, no
+binomial interval-calibration claim, and no numerical-guard sensitivity
+simulation claim.
+
+## 2026-06-17: Binomial fixed-effect interval-calibration artifact (#59/#569/#342 follow-up)
+
+Banked the first MCSE-backed fixed-effect Wald interval-calibration artifact
+for the plain binomial first slice:
+`docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/`.
+The artifact uses the existing Phase 18 `binomial_fixed_effect` writer with 6
+cells, 500 replicates per cell, master seed `20260617`, and both public
+response encodings: 0/1 Bernoulli rows and `cbind(successes, failures)` rows.
+
+The run attempted 3,000 fits and produced 6,000 coefficient rows. All 3,000
+manifest rows returned `ok`; the failure table is header-only; minimum
+convergence rate was 1.000; minimum `pdHess` rate was 1.000; and maximum
+warning rate was 0.000. Wald coverage across the 12 cell-by-parameter rows
+ranged from 0.946 to 0.964, each with 500 intervals, and maximum coverage MCSE
+was 0.01010782. The same artifact kept `stats::glm()` parity tight: maximum
+absolute coefficient difference `1.502857e-08`, maximum absolute SE difference
+`1.545213e-05`, maximum absolute `logLik` difference `1.750777e-11`, and
+maximum absolute AIC/BIC difference `3.501555e-11`.
+
+Updated `docs/design/175-phase-18-binomial-fixed-effect-artifacts.md`,
+`docs/design/168-r-julia-finish-capability-matrix.md`,
+`docs/design/157-capability-completion-worklist.md`,
+`docs/design/46-pre-simulation-readiness-matrix.md`,
+`docs/design/159-drmtmb-0-2-0-release-readiness.md`,
+`docs/dev-log/dashboard/status.json`, and
+`docs/dev-log/dashboard/sweep.json` so the fixed-effect interval evidence is
+visible while broader claims remain out of scope. Also updated
+`tools/start-mission-control.sh` so served dashboard copies include
+`docs/dev-log/simulation-artifacts/` links. After-task:
+`docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md`.
+
+Checks run:
+
+```sh
+Rscript --vanilla - <<'RSCRIPT'
+devtools::load_all('.', quiet = TRUE)
+# source Phase 18 helpers, then call phase18_write_binomial_fe_grid_outputs()
+# with n_rep = 500L, master_seed = 20260617L, cores = 10L,
+# backend = "multicore"
+RSCRIPT
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-binomial-interval.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-binomial-interval.out
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md
+browser DOM check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration tools/start-mission-control.sh
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md tools/start-mission-control.sh
+```
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no Gaussian
+clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code change, no
+Julia bridge promotion, no speed claim, no release promotion, no binomial
+random effects, no structured binomial, no bivariate or mixed-response
+binomial, no profile/bootstrap interval claim, and no numerical-guard
+sensitivity simulation claim.
+
+## 2026-06-17: First log(sigma) clamp sensitivity pilot (#59/#342 follow-up)
+
+Banked the first executable numerical-guard sensitivity pilot for the Gaussian
+`log(sigma)` soft-clamp:
+`docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/`.
+The artifact is fixed-effect only (`bf(y ~ x, sigma ~ x)`) and compares three
+guard configurations -- `logsigma_clamp = NULL`, the default `c(-12, 12)` with
+margin 3, and a wide `c(-25, 25)` with margin 3 -- across ordinary scale, large
+scale still inside the default identity band, huge scale above the default band,
+and tiny scale below the default band. The runner, CSV tables, session info,
+README, and diagnostic PNG are committed beside the artifact.
+
+Results: 300/300 fits returned `ok`, with zero error rows and no captured
+warnings. In inactive cells, the maximum default-vs-off `logLik` difference was
+`2.046363e-11`, and the maximum default-vs-off `sigma` intercept difference was
+`1.168681e-08`. The wide band matched the unclamped reference exactly across all
+four cells in this pilot. In binding cells, the default band changed the fit:
+maximum default-vs-off `logLik` difference `526.8952`, and maximum
+default-vs-off `sigma` intercept difference `32.38647`. This is the intended
+honest signal: the guard is negligible when inactive in these audited cells, but
+it can materially change legitimate out-of-band unstandardized-scale fits, so
+users need the exposed `drm_control(logsigma_clamp = ...)` knob and active-guard
+diagnostics before broader claims.
+
+Updated `docs/design/176-numerical-guard-simulation-audit.md`,
+`docs/design/168-r-julia-finish-capability-matrix.md`,
+`docs/design/157-capability-completion-worklist.md`,
+`docs/design/159-drmtmb-0-2-0-release-readiness.md`,
+`docs/dev-log/dashboard/status.json`, and
+`docs/dev-log/dashboard/sweep.json` so the first pilot is visible while the
+broader numerical-guard programme remains active/partial.
+
+Checks run:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-guard-pilot.out
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-guard-pilot.out
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
+curl -fsS -o /tmp/logsigma-clamp-sensitivity-served.png http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/figures/logsigma-clamp-sensitivity.png
+browser DOM check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
+```
+
+Results: mission-control validation passed with
+`20/68 banked_or_verified, 4 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+The served README and PNG resolved from `/tmp/drm-dashboard`. Browser checks at
+1280x900 and 390x844 found the numerical-guard row, pilot text, artifact link,
+dirty/worktree truth, and no horizontal overflow.
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no Gaussian
+clamp implementation edit, no penalty/MAP edit, no Ayumi path change, no DRM.jl
+code change, no Julia bridge promotion, no speed claim, no release promotion, no
+scale-side phylogenetic simulation claim, no bivariate scale claim, no
+support-floor claim, and no interval coverage claim. This is a fixed-effect
+`log(sigma)` guard-sensitivity pilot only.
+
+## 2026-06-17: log(sigma) control doc truth refresh
+
+Refreshed `docs/design/174-controls-and-convergence.md` after the
+`log(sigma)` clamp knob and the first fixed-effect guard-sensitivity pilot landed.
+The design note no longer calls the clamp band planned; it names
+`drm_control(logsigma_clamp = ..., logsigma_clamp_margin = ...)`, the default
+`c(-12, 12)` identity band with margin 3, `logsigma_clamp = NULL` as the disable
+route, and the first pilot's result: negligible impact when inactive in audited
+fixed-effect cells, material impact when the default band binds, and explicit
+active-at-optimum diagnostics still future work. Added cross-reference to
+`docs/design/176-numerical-guard-simulation-audit.md`.
+
+Checks run:
+
+```sh
+git diff --check
+rg -n 'planned.*logsigma|logsigma.*planned|planned.*log\(sigma\)|planned knob|expose the band as a control' docs/design/174-controls-and-convergence.md
+# forbidden-framing scan over touched prose: no hits
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/174-controls-and-convergence.md docs/dev-log/after-task/2026-06-17-logsigma-control-doc-truth-refresh.md docs/dev-log/check-log.md
+```
+
+Boundary: docs only; no package code, no `src/drmTMB.cpp`, no `R/control.R`, no
+Gaussian clamp implementation change, no Ayumi path change, no DRM.jl code
+change, no new simulation, no Julia bridge promotion, and no release-promotion
+claim.
+
+## 2026-06-17: fixed-effect skew-normal diagnostic pilot
+
+Banked
+`docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/`
+as the first modest operating-characteristic pilot for the implemented
+fixed-effect `skew_normal()` first slice.
+
+Design: six fixed-effect cells, `n = 720`, `nu` intercepts `-1.20`, `0`, and
+`1.20` crossed with `nu` slopes `0` and `0.35`, `sigma ~ z` slope `0.15`,
+`rho(x, w) = 0.20`, 25 replicates per cell, and
+`drm_control(optimizer_preset = "careful")`.
+
+Results: 150/150 fits returned `ok`; no skipped fits, errors, or captured
+warnings; every cell had convergence rate 1.000 and `pdHess` rate 1.000.
+Maximum absolute slant-term bias was 0.3067476 on the formula scale. Slant-term
+70% Wald coverage ranged from 0.64 to 0.96, with MCSE up to 0.096 at 25
+replicates per cell.
+
+Interpretation: diagnostic pilot evidence only. This supports a larger formal
+fixed-effect skew-normal grid, not calibrated interval language, random effects,
+structured effects, bivariate skew-normal, external comparator parity, speed, or
+release promotion.
+
+Checks run:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|skew-normal-density-contract", reporter = "summary")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/after-task/2026-06-17-skew-normal-fixed-effect-pilot.md docs/dev-log/check-log.md docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot
+```
+
+Boundary: no package code, no TMB likelihood code, no Julia bridge change, no
+new family surface, no random/structured/bivariate skew-normal support, no
+profile/bootstrap interval calibration, no speed claim, and no release-promotion
+claim.
+
+## 2026-06-17: q8 private start-override foundation
+
+Re-banked the private start-override hook on current `origin/main` for the q8
+start/Hessian rescue path. `drmTMB()` now applies
+`drm_apply_start_override()` immediately before `TMB::MakeADFun()`. The hook is
+a no-op unless an internal builder sets `spec$start_override`, validates named
+finite numeric vectors against existing `spec$start` components, reorders named
+overrides to target names, preserves slots fixed by `spec$map`, and records
+`spec$start_override_applied`.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "biv-gaussian", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' R/drmTMB.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task
+forbidden-framing scan over touched prose and code
+```
+
+Results: `optimizer-contract` passed. The broad `biv-gaussian` test filter
+passed, including q8 endpoint and q8 endpoint recovery files.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote churn was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here. `devtools::check(error_on =
+"never")` passed with 0 errors, 0 warnings, and 0 notes in 10m 57.4s. Static
+diff, conflict-marker, and forbidden-framing scans passed.
+
+Boundary: private start plumbing only. No public `start`, `start_from`,
+`warm_start`, or `map` API; no q4-to-q8 mapper; no prepared-spec fit tail; no
+likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
+dashboard, simulation, q8 recovery, q8 power, interval, speed, or release
+promotion claim.
+
+## 2026-06-17: q8 staged-start mapper source tests
+
+Added private `drm_qgt2_staged_start_override()` as the q > 2 staged-start
+mapper construction step on current `origin/main`. The helper returns a named
+internal `override` list plus diagnostic `provenance`; ordinary user fits do
+not call it. It copies fixed effects by distributional parameter and
+model-matrix column name, copies q > 2 endpoint standard deviations by
+covariance-member key, and optionally copies `theta_re_cov` by pair key with
+shrinkage, boundary guarding, positive-definite regularization, packing onto
+TMB's unstructured-correlation theta scale, and an unpacking check.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over touched prose and code
+```
+
+Results: focused optimizer-contract tests passed before and after formatting.
+The combined optimizer-contract plus q8 endpoint/recovery phase18 subset
+passed. The first run exposed a real alignment issue: internal
+`log_sd_re_cov` start vectors have duplicated names. The helper now accepts
+duplicated target names only when the override has the identical name sequence.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here. `devtools::check(error_on =
+"never")` passed with 0 errors, 0 warnings, and 0 notes in 10m 42.4s. Static
+diff, conflict-marker, and forbidden-framing scans passed.
+
+Boundary: private mapper construction only. No public `start`, `start_from`,
+`warm_start`, or `map` API; no prepared-spec fit tail; no paired
+cold-versus-staged q8 diagnostic run; no likelihood, C++, TMB density,
+penalty/MAP, Gaussian clamp, Julia bridge, dashboard, q8 recovery, q8 power,
+interval, speed, or release promotion claim.
+
+## 2026-06-17: q8 prepared-spec fit tail
+
+Refactored the current `drmTMB()` post-builder fit path into private
+`drm_fit_spec()`. `drmTMB()` now builds a family specification and then calls
+the same helper used by future internal diagnostic runners. The helper applies
+the estimator and phylogenetic-penalty spec, log-sigma clamp data, private
+start override, `TMB::MakeADFun()`, optimizer preset retry ladder,
+selected-optimum pinning, uncertainty state, missing-data finalization,
+parameter splitting, fit degrees of freedom, and storage control before
+returning an ordinary `"drmTMB"` object.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over added diff lines
+```
+
+Results: focused optimizer-contract tests passed. The combined
+optimizer-contract plus q8 endpoint/recovery Phase 18 subset passed.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed with 0 errors, 0 warnings, and 0
+notes in 11m 11s. Full `devtools::test()` passed with exit 0; it reported five
+existing Julia/cross-family skips and eight expected log-sigma clamp warnings
+from the pathological clamp test. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+The new prepared-spec helper test fits the same Gaussian location-scale model
+through the public path and through a built spec, then compares the fitted
+object surfaces used by future diagnostic code.
+
+Boundary: private fit-tail refactor only. No public `start`, `start_from`,
+`warm_start`, prepared-spec, or `map` API; no paired cold-versus-staged q8
+diagnostic run; no likelihood, C++, TMB density, penalty/MAP, Gaussian clamp,
+Julia bridge, dashboard, q8 recovery, q8 power, interval, speed, or release
+promotion claim.
+
+## 2026-06-17: q8 staged-fit diagnostic runner
+
+Added private `drm_qgt2_staged_fit_diagnostic()` as the tiny internal runner
+that fits the same q > 2 target specification cold and with the staged-start
+override from `drm_qgt2_staged_start_override()`. Both fits go through
+`drm_fit_spec()`. The returned diagnostics record staged-start provenance, fit
+success/error state, optimizer convergence, `pdHess` when available, objective,
+log-likelihood, elapsed seconds, optimizer preset, warning count/text, and a
+small cold-versus-staged delta table for objective, log-likelihood, and elapsed
+time.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over added diff lines
+```
+
+Results: focused optimizer-contract tests passed. The combined
+optimizer-contract plus q8 endpoint/recovery Phase 18 subset passed.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed with 0 errors, 0 warnings, and 1
+environment note: future-file timestamp checking could not verify the current
+time. Full `devtools::test()` passed with exit 0; it reported five existing
+Julia/cross-family skips and eight expected log-sigma clamp warnings from the
+pathological clamp test. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+The new test uses an injected fake fit tail so the diagnostic runner's
+cold/staged bookkeeping and start-override application are covered without
+adding a slow q8 numerical fit to the CRAN-safe unit suite.
+
+Boundary: private diagnostic runner only. No public `start`, `start_from`,
+`warm_start`, prepared-spec, or `map` API; no new Phase 18 artifact yet; no
+likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
+dashboard, q8 recovery, q8 power, interval, speed, or release promotion claim.
+
+## 2026-06-17: q8 staged diagnostic artifact
+
+Added the opt-in Phase 18
+`biv_gaussian_q8_endpoint_staged_diagnostic` task. The new writer
+`phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs()`
+wraps the private q8 staged-fit diagnostic runner and writes split CSV tables
+for cold/staged fit metrics, objective/log-likelihood/elapsed deltas,
+start-provenance counts, scope, manifest, and failures. The scope table states
+that the artifact is diagnostic only and does not support q8 recovery,
+coverage, power, speed, interval, release-readiness, or public warm-start API
+claims. It also points numerical-guard questions back to the separate
+guard-sensitivity simulation lane.
+
+The structured workflow registry now has a `ready_grid`
+`bivariate_gaussian_q8_endpoint_staged_diagnostic` row, excluded from the
+workflow's `task = all` matrix like the other expensive q8 routes. The Actions
+runner, workflow dispatch list, dependency paths, random-slope workflow plan,
+Phase 18 README, formula grammar, simulation-programme map, readiness matrix,
+capability worklist, validation-debt register, implementation map, roadmap,
+and q8 optimizer design note were updated so q8 is discoverable as
+smoke/recovery/staged-diagnostic artifact-ready while coverage and power remain
+closed.
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-q8-staged-diagnostic.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R
+Rscript --vanilla -e 'devtools::test(filter = "phase18-biv-gaussian-q8-staged-diagnostic|phase18-actions-runner|phase18-structured-workflow-registry", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+conflict-marker scan outside check-log/after-task history
+forbidden-framing scan over added diff lines
+```
+
+Results: focused tests passed after formatting. `devtools::document()`
+completed; unrelated generated Rd/RoxygenNote drift was reverted because this
+slice does not change exported documentation. `pkgdown::check_pkgdown()` failed
+on the pre-existing `drm_phylo_penalty` topic missing from `_pkgdown.yml`,
+which belongs to the Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed in 10m 51.7s with 0 errors, 0
+warnings, and 1 environment note: future-file timestamp checking could not
+verify the current time. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+Boundary: opt-in Phase 18 artifact wrapper only. No public `start`,
+`start_from`, `warm_start`, prepared-spec, or `map` API; no likelihood, C++,
+TMB density, penalty/MAP, Gaussian clamp, Julia bridge, DRM.jl, Ayumi/Model A,
+q8 recovery, q8 coverage, q8 power, interval calibration, speed, or release
+promotion claim.
+
+## 2026-06-17: post-#602 dashboard truth refresh
+
+Refreshed the mission-control dashboard and capability matrix after PR #602
+merged the q8 staged diagnostic artifact. The matrix now treats `drmTMB#544`
+as a closed bridge-gate guard/checkpoint rather than an active/open epic, and
+the post-#602 work order names the banked widget, native binomial first slice,
+bridge-gate guard, binomial comparator, binomial Wald interval artifact, guard
+pilot, skew-normal pilot, and q8 staged diagnostic artifact without promoting
+q8 coverage, q8 power, Julia bridge support, or release readiness.
+
+The dashboard status JSON now marks the generated Julia capability comparison
+as banked via #587, updates the banked/active metrics, adds #602 to the
+activity feed, and points the ADEMP/comparator row to the q8 staged diagnostic
+after-task note. The sweep summary now includes the q8 staged diagnostic
+artifact and keeps broader guard classes, q8 coverage/power, same-response
+hardening, Julia bridge promotion, and release readiness partial or planned.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+rg -n '#544 remains|drmTMB#544 remains|staged in codex|Keep `drmTMB#544` open|Keep `drmTMB#544` active|Implement drmTMB#544|Start optional Phase 18|First Work Order' docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/design/168-r-julia-finish-capability-matrix.md || true
+git diff --check
+```
+
+Results: mission-control validation passed with
+`21/68 banked_or_verified`, `3 active`, `17 matrix rows`, `11 finish rows`,
+`15 Julia gate rows`, and `9 Julia capability rows`. Both JSON files parsed
+cleanly. The stale-string scan found no remaining stale #544/#569 first-work
+order phrases. `git diff --check` passed.
+
+Boundary: dashboard/status/design truth refresh only. No R runtime code,
+likelihood, C++, Julia bridge gate, DRM.jl, Ayumi/Model A, q8
+recovery/coverage/power, interval, speed, public warm-start, or release
+promotion claim.

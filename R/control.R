@@ -15,6 +15,14 @@
 #' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
 #' the selected preset.
 #'
+#' When the selected preset uses the standard `nlminb()` budget and no explicit
+#' optimizer controls, `drmTMB()` retries with the next larger deterministic
+#' preset if the optimizer raises an error such as a non-finite gradient
+#' evaluation. A successful retry warns and records the selected preset in
+#' `fit$optimizer_used` and every attempted preset in `fit$optimizer_attempts`.
+#' Fits with nonzero convergence codes still return for diagnostic inspection;
+#' they are not silently retried.
+#'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
 #' @param se Logical; compute standard errors and fixed-effect covariance with
@@ -45,6 +53,16 @@
 #'   first fitted path rejects random effects, structured effects, known
 #'   sampling covariance, bivariate models, non-Gaussian families, non-unit
 #'   likelihood weights, and combined sparse fixed-effect matrices.
+#' @param logsigma_clamp Numeric `c(lo, hi)` band, or `NULL`. Bounds the
+#'   per-observation Gaussian `log(sigma)` with an identity-in-band soft-clamp,
+#'   a numerical guard against scale overflow on near-degenerate per-group scale
+#'   models. The default `c(-12, 12)` is identity for any standardized response;
+#'   widen it for legitimately huge-variance unstandardized data, or set `NULL`
+#'   to disable the guard entirely. It is a numerical guard only and does not
+#'   change identifiability.
+#' @param logsigma_clamp_margin Positive number; the soft-clamp saturation
+#'   margin beyond `logsigma_clamp` (default `3`, saturating to `[-15, 15]` for
+#'   the default band). Ignored when `logsigma_clamp = NULL`.
 #' @param optimizer_preset Optimizer-budget preset. `"default"` adds no
 #'   optimizer controls, `"careful"` sets `iter.max = 1000` and
 #'   `eval.max = 1000`, and `"robust"` sets `iter.max = 5000` and
@@ -74,6 +92,8 @@ drm_control <- function(
   keep_tmb_object = TRUE,
   sparse_fixed = FALSE,
   aggregate_gaussian = FALSE,
+  logsigma_clamp = c(-12, 12),
+  logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust")
 ) {
   optimizer_preset <- match.arg(optimizer_preset)
@@ -105,6 +125,27 @@ drm_control <- function(
     aggregate_gaussian,
     "aggregate_gaussian"
   )
+  if (!is.null(logsigma_clamp)) {
+    if (
+      !is.numeric(logsigma_clamp) || length(logsigma_clamp) != 2L ||
+        any(!is.finite(logsigma_clamp)) ||
+        logsigma_clamp[[1L]] >= logsigma_clamp[[2L]]
+    ) {
+      cli::cli_abort(
+        "{.arg logsigma_clamp} must be NULL or a length-2 numeric {.code c(lo, hi)} with {.code lo < hi}."
+      )
+    }
+  }
+  if (
+    !is.numeric(logsigma_clamp_margin) ||
+      length(logsigma_clamp_margin) != 1L ||
+      !is.finite(logsigma_clamp_margin) ||
+      logsigma_clamp_margin <= 0
+  ) {
+    cli::cli_abort(
+      "{.arg logsigma_clamp_margin} must be a single positive number."
+    )
+  }
   structure(
     list(
       optimizer = optimizer,
@@ -114,6 +155,8 @@ drm_control <- function(
       keep_tmb_object = keep_tmb_object,
       sparse_fixed = sparse_fixed,
       aggregate_gaussian = aggregate_gaussian,
+      logsigma_clamp = logsigma_clamp,
+      logsigma_clamp_margin = logsigma_clamp_margin,
       optimizer_preset = optimizer_preset
     ),
     class = "drm_control"

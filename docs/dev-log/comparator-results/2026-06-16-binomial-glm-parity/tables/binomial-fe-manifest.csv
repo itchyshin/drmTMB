@@ -1,0 +1,7 @@
+"cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"binomial_fixed_effect_001",1,1024116744,"ok",FALSE,0,NA,0.197000000000003
+"binomial_fixed_effect_001",2,1316661954,"ok",FALSE,0,NA,0.949999999999996
+"binomial_fixed_effect_001",3,211755610,"ok",FALSE,0,NA,0.0330000000000013
+"binomial_fixed_effect_002",1,1937559996,"ok",FALSE,0,NA,0.0410000000000039
+"binomial_fixed_effect_002",2,1929186136,"ok",FALSE,0,NA,0.0450000000000017
+"binomial_fixed_effect_002",3,368414225,"ok",FALSE,0,NA,0.0400000000000063

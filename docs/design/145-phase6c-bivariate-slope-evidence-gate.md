@@ -5,9 +5,9 @@ surface before the larger #446 power, accuracy, and coverage plan. The reader is
 a future `drmTMB` developer deciding whether the matching `mu1`/`mu2` slope-only
 row is ready for broad simulation.
 
-Supersession note: as of 2026-06-02, matching q=4 and q=6 `mu1`/`mu2`
-location blocks are source-tested in `tests/testthat/test-biv-gaussian.R`.
-This note remains the artifact gate for the narrower #440 slope-only lane.
+Supersession note: matching q=4 and q=6 `mu1`/`mu2` location blocks now have
+their own smoke artifact routes. This note remains the artifact gate for the
+narrower #440 slope-only lane.
 
 ## Gate Result
 
@@ -28,8 +28,9 @@ bf(
 
 This estimates two ordinary group-level slope SDs and one ordinary group-level
 slope-slope correlation between the two response-specific slopes. It does not
-describe the later q4 location source gate, a residual-scale slope block, a
-random effect in residual `rho12`, or an all-four p8/q8 location-scale endpoint.
+describe the later q4/q6 location smoke routes, a residual-scale slope block, a
+random effect in residual `rho12`, or the first q8 diagnostic all-endpoint
+artifact lane.
 
 ## Evidence Table
 
@@ -48,10 +49,12 @@ The gate does not promote neighbouring endpoints. These remain planned or
 unsupported until separate code, tests, and evidence exist:
 
 - q > 2 bivariate location recovery and coverage claims;
-- same-response location-scale slope covariance;
-- residual-scale slope blocks in `sigma1` or `sigma2`;
+- broader same-response location-scale slope covariance beyond the named q2
+  source-tested slice;
+- residual-scale slope blocks in `sigma1` or `sigma2` beyond the named q2
+  scale-scale slice;
 - random effects or latent covariance in residual `rho12`;
-- all-four p8/q8 location-scale slope endpoints;
+- p8 endpoint blocks and q8 variants beyond the first ordinary diagnostic lane;
 - predictor-dependent slope `corpair()` regressions;
 - mixed-response bivariate random-slope models.
 

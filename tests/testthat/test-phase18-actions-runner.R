@@ -77,6 +77,29 @@ test_that("Phase 18 Actions runner accepts proportion fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts binomial fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-binomial-fe-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=binomial_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=binomial_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner accepts truncated NB2 mu random-intercept task", {
   script <- phase18_actions_runner_script()
   output_dir <- tempfile("phase18-actions-truncated-nb2-mu-ri-dry-run-")
@@ -173,6 +196,33 @@ test_that("Phase 18 Actions runner accepts Tweedie fixed-effect task", {
   expect_match(out, "n_rep=2", fixed = TRUE)
 })
 
+test_that("Phase 18 Actions runner accepts skew-normal fixed-effect task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-skew-normal-fe-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=skew_normal_fixed_effect",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--profile-parameters=nu:w",
+      "--bootstrap-nsim=2",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=skew_normal_fixed_effect", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+  expect_match(out, "profile_parameters=nu:w", fixed = TRUE)
+  expect_match(out, "bootstrap_nsim=2", fixed = TRUE)
+})
+
 test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   script <- phase18_actions_runner_script()
   env <- new.env(parent = globalenv())
@@ -194,6 +244,42 @@ test_that("Phase 18 Actions runner sources Tweedie task dependencies", {
   expect_equal(
     env$phase18_actions_task_paths("tweedie_fixed_effect"),
     tweedie_paths
+  )
+})
+
+test_that("Phase 18 Actions runner sources binomial task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  binomial_paths <- c(
+    "sim/dgp/sim_dgp_binomial_fixed_effect.R",
+    "sim/fit/sim_summarise_binomial_fixed_effect.R",
+    "sim/run/sim_run_binomial_fixed_effect_smoke.R",
+    "sim/run/sim_summary_binomial_fixed_effect_smoke.R",
+    "sim/run/sim_write_binomial_fixed_effect_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("binomial_fixed_effect"),
+    binomial_paths
+  )
+})
+
+test_that("Phase 18 Actions runner sources skew-normal task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  skew_normal_paths <- c(
+    "sim/dgp/sim_dgp_skew_normal_fixed_effect.R",
+    "sim/fit/sim_summarise_skew_normal_fixed_effect.R",
+    "sim/run/sim_run_skew_normal_fixed_effect_smoke.R",
+    "sim/run/sim_summary_skew_normal_fixed_effect_smoke.R",
+    "sim/run/sim_write_skew_normal_fixed_effect_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("skew_normal_fixed_effect"),
+    skew_normal_paths
   )
 })
 
@@ -555,6 +641,378 @@ test_that("Phase 18 Actions runner dispatches bivariate Gaussian q4 location tas
   expect_true(result$ok)
   expect_equal(result$n_rep, 1L)
   expect_equal(result$master_seed, 239L)
+  expect_equal(result$backend, "none")
+  expect_equal(result$cores, 1L)
+})
+
+test_that("Phase 18 Actions runner accepts bivariate Gaussian q6 location task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-biv-gaussian-q6-location-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=biv_gaussian_q6_location",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=biv_gaussian_q6_location", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources bivariate Gaussian q6 location task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q6_location.R",
+    "sim/fit/sim_summarise_biv_gaussian_q6_location.R",
+    "sim/run/sim_run_biv_gaussian_q6_location_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q6_location_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q6_location_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q6_location"),
+    paths
+  )
+})
+
+test_that("Phase 18 Actions runner dispatches bivariate Gaussian q6 location task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_write_biv_gaussian_q6_location_grid_outputs <- function(...) {
+    args <- list(...)
+    list(
+      ok = TRUE,
+      output_dir = args$output_dir,
+      n_rep = args$n_rep,
+      master_seed = args$master_seed,
+      backend = args$backend,
+      cores = args$cores
+    )
+  }
+
+  output_dir <- tempfile("phase18-actions-biv-gaussian-q6-location-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=biv_gaussian_q6_location",
+        paste0("--output-dir=", output_dir),
+        "--n-reps=1",
+        "--master-seed=241",
+        "--backend=none",
+        "--cores=1"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+  result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+  expect_match(out, "task=biv_gaussian_q6_location", fixed = TRUE)
+  expect_true(result$ok)
+  expect_equal(result$n_rep, 1L)
+  expect_equal(result$master_seed, 241L)
+  expect_equal(result$backend, "none")
+  expect_equal(result$cores, 1L)
+})
+
+test_that("Phase 18 Actions runner accepts bivariate Gaussian q8 endpoint tasks", {
+  script <- phase18_actions_runner_script()
+  tasks <- c(
+    "biv_gaussian_q8_endpoint",
+    "biv_gaussian_q8_endpoint_recovery",
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
+
+  for (task in tasks) {
+    output_dir <- tempfile(paste0("phase18-actions-", task, "-dry-run-"))
+    out <- system2(
+      file.path(R.home("bin"), "Rscript"),
+      c(
+        "--vanilla",
+        shQuote(script),
+        paste0("--task=", task),
+        paste0("--output-dir=", output_dir),
+        "--n-reps=2",
+        "--master-seed=123",
+        "--dry-run=true"
+      ),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+    out <- paste(out, collapse = "\n")
+
+    expect_match(out, paste0("task=", task), fixed = TRUE)
+    expect_match(out, "n_rep=2", fixed = TRUE)
+  }
+})
+
+test_that("Phase 18 Actions runner sources bivariate Gaussian q8 endpoint tasks", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  smoke_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+    "sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R",
+    "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q8_endpoint_grid.R"
+  )
+  recovery_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+    "sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R",
+    "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R",
+    "sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R"
+  )
+  staged_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+    "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q8_endpoint"),
+    smoke_paths
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q8_endpoint_recovery"),
+    recovery_paths
+  )
+  expect_equal(
+    env$phase18_actions_task_paths(
+      "biv_gaussian_q8_endpoint_staged_diagnostic"
+    ),
+    staged_paths
+  )
+})
+
+test_that("Phase 18 Actions runner dispatches bivariate Gaussian q8 endpoint tasks", {
+  script <- phase18_actions_runner_script()
+  writers <- c(
+    biv_gaussian_q8_endpoint = "phase18_write_biv_gaussian_q8_endpoint_grid_outputs",
+    biv_gaussian_q8_endpoint_recovery = "phase18_write_biv_gaussian_q8_endpoint_recovery_grid_outputs",
+    biv_gaussian_q8_endpoint_staged_diagnostic = "phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs"
+  )
+
+  for (task in names(writers)) {
+    env <- new.env(parent = globalenv())
+    source(script, local = env)
+    env$phase18_actions_load_package <- function() {
+      invisible(TRUE)
+    }
+    env$phase18_actions_source_dependencies <- function(task) {
+      invisible(task)
+    }
+    env[[writers[[task]]]] <- function(...) {
+      args <- list(...)
+      list(
+        ok = TRUE,
+        task = task,
+        output_dir = args$output_dir,
+        n_rep = args$n_rep,
+        master_seed = args$master_seed,
+        backend = args$backend,
+        cores = args$cores
+      )
+    }
+
+    output_dir <- tempfile(paste0("phase18-actions-", task, "-run-"))
+    out <- capture.output(
+      env$phase18_actions_main(
+        c(
+          paste0("--task=", task),
+          paste0("--output-dir=", output_dir),
+          "--n-reps=1",
+          "--master-seed=243",
+          "--backend=none",
+          "--cores=1"
+        )
+      )
+    )
+    out <- paste(out, collapse = "\n")
+    result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+    expect_match(out, paste0("task=", task), fixed = TRUE)
+    expect_true(result$ok)
+    expect_equal(result$task, task)
+    expect_equal(result$n_rep, 1L)
+    expect_equal(result$master_seed, 243L)
+    expect_equal(result$backend, "none")
+    expect_equal(result$cores, 1L)
+  }
+})
+
+test_that("Phase 18 Actions runner accepts bivariate Gaussian q2 scale task", {
+  script <- phase18_actions_runner_script()
+  output_dir <- tempfile("phase18-actions-biv-gaussian-q2-scale-dry-run-")
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla",
+      shQuote(script),
+      "--task=biv_gaussian_q2_scale",
+      paste0("--output-dir=", output_dir),
+      "--n-reps=2",
+      "--master-seed=123",
+      "--dry-run=true"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  )
+  out <- paste(out, collapse = "\n")
+
+  expect_match(out, "task=biv_gaussian_q2_scale", fixed = TRUE)
+  expect_match(out, "n_rep=2", fixed = TRUE)
+})
+
+test_that("Phase 18 Actions runner sources bivariate Gaussian q2 scale task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q2_scale.R",
+    "sim/fit/sim_summarise_biv_gaussian_q2_scale.R",
+    "sim/run/sim_run_biv_gaussian_q2_scale_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q2_scale_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q2_scale_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q2_scale"),
+    paths
+  )
+  slope_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R",
+    "sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R",
+    "sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q2_scale_slope_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q2_scale_slope_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q2_scale_slope"),
+    slope_paths
+  )
+  slope_recovery_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q2_scale_slope.R",
+    "sim/fit/sim_summarise_biv_gaussian_q2_scale_slope.R",
+    "sim/run/sim_run_biv_gaussian_q2_scale_slope_smoke.R",
+    "sim/run/sim_summary_biv_gaussian_q2_scale_slope_recovery.R",
+    "sim/run/sim_write_biv_gaussian_q2_scale_slope_recovery_grid.R"
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("biv_gaussian_q2_scale_slope_recovery"),
+    slope_recovery_paths
+  )
+})
+
+test_that("Phase 18 Actions runner dispatches bivariate Gaussian q2 scale task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_write_biv_gaussian_q2_scale_grid_outputs <- function(...) {
+    args <- list(...)
+    list(
+      ok = TRUE,
+      output_dir = args$output_dir,
+      n_rep = args$n_rep,
+      master_seed = args$master_seed,
+      backend = args$backend,
+      cores = args$cores
+    )
+  }
+
+  output_dir <- tempfile("phase18-actions-biv-gaussian-q2-scale-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=biv_gaussian_q2_scale",
+        paste0("--output-dir=", output_dir),
+        "--n-reps=1",
+        "--master-seed=241",
+        "--backend=none",
+        "--cores=1"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+  result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+  expect_match(out, "task=biv_gaussian_q2_scale", fixed = TRUE)
+  expect_true(result$ok)
+  expect_equal(result$n_rep, 1L)
+  expect_equal(result$master_seed, 241L)
+  expect_equal(result$backend, "none")
+  expect_equal(result$cores, 1L)
+})
+
+test_that("Phase 18 Actions runner dispatches bivariate Gaussian q2 scale-slope task", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  env$phase18_actions_load_package <- function() {
+    invisible(TRUE)
+  }
+  env$phase18_actions_source_dependencies <- function(task) {
+    invisible(task)
+  }
+  env$phase18_write_biv_gaussian_q2_scale_slope_grid_outputs <- function(...) {
+    args <- list(...)
+    list(
+      ok = TRUE,
+      output_dir = args$output_dir,
+      n_rep = args$n_rep,
+      master_seed = args$master_seed,
+      backend = args$backend,
+      cores = args$cores
+    )
+  }
+
+  output_dir <- tempfile("phase18-actions-biv-gaussian-q2-scale-slope-run-")
+  out <- capture.output(
+    env$phase18_actions_main(
+      c(
+        "--task=biv_gaussian_q2_scale_slope",
+        paste0("--output-dir=", output_dir),
+        "--n-reps=1",
+        "--master-seed=242",
+        "--backend=none",
+        "--cores=1"
+      )
+    )
+  )
+  out <- paste(out, collapse = "\n")
+  result <- readRDS(file.path(output_dir, "phase18-actions-result.rds"))
+
+  expect_match(out, "task=biv_gaussian_q2_scale_slope", fixed = TRUE)
+  expect_true(result$ok)
+  expect_equal(result$n_rep, 1L)
+  expect_equal(result$master_seed, 242L)
   expect_equal(result$backend, "none")
   expect_equal(result$cores, 1L)
 })
@@ -1048,6 +1506,68 @@ test_that("Phase 18 workflow exposes bivariate Gaussian q4 location task", {
   )
 })
 
+test_that("Phase 18 workflow exposes bivariate Gaussian q6 location task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "biv_gaussian_q6_location", fixed = TRUE)
+  expect_match(text, "20260624", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: biv_gaussian_q6_location",
+      "seed: 20260624",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
+})
+
+test_that("Phase 18 workflow exposes bivariate Gaussian q2 scale task", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  text <- paste(readLines(workflow, warn = FALSE), collapse = "\n")
+
+  expect_match(text, "biv_gaussian_q2_scale", fixed = TRUE)
+  expect_match(text, "20260625", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: biv_gaussian_q2_scale",
+      "seed: 20260625",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
+  expect_match(text, "biv_gaussian_q2_scale_slope", fixed = TRUE)
+  expect_match(text, "20260627", fixed = TRUE)
+  expect_match(
+    text,
+    paste(
+      "task: biv_gaussian_q2_scale_slope",
+      "seed: 20260627",
+      "include_in_all: false",
+      sep = "\n            "
+    ),
+    fixed = TRUE
+  )
+})
+
 test_that("Phase 18 workflow exposes spatial mu-slope task", {
   workflow <- testthat::test_path(
     "..",
@@ -1156,4 +1676,37 @@ test_that("Phase 18 Actions runner rejects nested parallel requests", {
     paste(out, collapse = "\n"),
     "either the replicate layer or the bootstrap layer"
   )
+})
+
+test_that("Phase 18 workflow dispatch options match the runner task choices", {
+  workflow <- testthat::test_path(
+    "..",
+    "..",
+    ".github",
+    "workflows",
+    "phase18-simulation-grid.yaml"
+  )
+  testthat::skip_if_not(file.exists(workflow))
+  lines <- readLines(workflow, warn = FALSE)
+
+  # Extract the `task:` choice input's options block (the indented list items
+  # immediately under the first `options:` after the `task:` input key).
+  task_line <- grep("^      task:\\s*$", lines)[[1L]]
+  options_lines <- grep("^        options:\\s*$", lines)
+  options_start <- options_lines[options_lines > task_line][[1L]]
+  i <- options_start + 1L
+  opts <- character()
+  while (i <= length(lines) && grepl("^          - ", lines[[i]])) {
+    opts <- c(opts, trimws(sub("^          - ", "", lines[[i]])))
+    i <- i + 1L
+  }
+
+  env <- new.env(parent = globalenv())
+  source(phase18_actions_runner_script(), local = env)
+
+  # Every dispatchable task (other than the aggregate "all") must be a
+  # selectable workflow_dispatch option, and vice versa. This guards against a
+  # task being added to the runner/matrix but left unselectable in the workflow
+  # (which is exactly how the recovery lanes were briefly undispatchable).
+  expect_setequal(setdiff(opts, "all"), env$phase18_actions_task_choices())
 })

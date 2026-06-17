@@ -13,12 +13,14 @@
 ^AGENTS\.md$
 ^CONTRIBUTING\.md$
 ^ROADMAP\.md$
+^tools$
 ^LICENSE$
 ^inst/extdata/\.gitkeep$
 ^inst/sim/results($|/)
 ^src/\.gitkeep$
 ^README\.Rmd$
 ^CLAUDE\.md$
+^cran-comments\.md$
 ^REFERENCES\.bib$
 ^.*\.Rproj$
 ^\.Rproj\.user$

@@ -40,6 +40,15 @@ and are stored on the fitted object as ordinary optimizer settings. User-supplie
 `optimizer = list(...)` values override the selected preset when a fit needs a
 specific budget.
 
+Issue #506 adds a narrow deterministic preset retry inside the same `nlminb()`
+contract. When a fit starts from `optimizer_preset = "default"` and no explicit
+optimizer controls, `drmTMB()` catches optimizer-call errors, then retries the
+same objective with `"careful"` and `"robust"` budgets. The retry path is not a
+fallback optimizer search: it does not run BFGS, L-BFGS-B, stochastic
+multi-start, or model simplification. A successful retry warns and records the
+selected preset in `fit$optimizer_used`; every attempted preset is recorded in
+`fit$optimizer_attempts`.
+
 For backward compatibility, plain lists remain optimizer-only controls:
 
 ```r
@@ -100,13 +109,17 @@ family route. These are not user starts and they are not a public warm-start
 interface: they are ordinary family-builder defaults passed to
 `TMB::MakeADFun()` before `stats::nlminb()` starts.
 
-The Gaussian location-scale builder starts fixed-effect `mu` coefficients with
-`lm.fit()` when the fixed-effect design is dense. It then starts the `sigma`
-intercept from the residual standard deviation, subtracting the median known
-sampling variance when `meta_V(V = V)` is present and applying a small scale
-floor. Non-intercept `sigma` coefficients still start at zero; a closed-form
-heteroscedastic `sigma ~ x` regression would be a separate measured design
-slice, not current behaviour.
+The Gaussian location-scale builders start fixed-effect `mu` coefficients with
+`lm.fit()` when the fixed-effect design is dense. They then build fixed-effect
+`sigma` starts from the OLS residual scale for univariate Gaussian models and
+for bivariate Gaussian `sigma1` / `sigma2` formulas. Intercept-only `sigma`
+formulas keep the residual standard-deviation start, subtracting the median
+known sampling variance when `meta_V(V = V)` is present and applying a small
+scale floor. When `sigma` has predictors, the builders use a guarded residual
+log-scale regression of `log(|residual|) + log(sqrt(pi / 2))` on the `sigma`
+design matrix, falling back to the intercept-only start if the candidate is
+non-finite or extreme. This is a starting-value heuristic only; it is not a
+profile-out step and does not change the likelihood.
 
 The bivariate Gaussian builder runs separate OLS starts for `mu1` and `mu2`,
 starts `sigma1` and `sigma2` from the two residual standard deviations, and
@@ -144,6 +157,106 @@ freedom, `sdreport()` / `vcov()`, direct profile targets, known sampling
 variance through `meta_V(V = V)`, sufficient-statistic aggregation, and random
 or structured contributions to `log(sigma)` behave when the residual scale
 coefficient is removed from the optimized vector.
+
+## Current Private Start Override Hook
+
+`drmTMB()` now has a private start-override hook that runs after family-specific
+specification builders and before `TMB::MakeADFun()`. The hook is dormant for
+ordinary fits: unless an internal builder sets `spec$start_override`, it leaves
+`spec$start` unchanged and records an empty `spec$start_override_applied`
+table.
+
+The hook is intentionally not a public start API. `drm_control(start = ...)`,
+`drm_control(start_from = ...)`, and warm-start control names remain reserved
+and unavailable to users. The purpose of the private hook is narrower: future
+diagnostic builders, such as a q4-to-q8 staged-start mapper, can replace
+selected internal TMB start components without bypassing the existing map,
+likelihood, optimizer, or reporting paths.
+
+Internal overrides must be named lists of finite numeric vectors that exactly
+match existing `spec$start` component lengths. Unknown components, duplicated
+component names, non-finite values, matrices, and mismatched named vectors error
+before TMB sees the start list. When both the target vector and override vector
+are named, the override is reordered to the target names. Slots fixed by
+`spec$map`, including fully mapped components such as `factor(NA)`, are
+preserved rather than overwritten.
+
+Each applied override records `parameter`, `n_value`, `n_applied`, and
+`n_mapped` in `spec$start_override_applied`. That record is diagnostic metadata;
+it does not change fitted degrees of freedom, likelihood evaluation, or
+inference labels.
+
+## Current Private Q8 Staged-Start Mapper
+
+The first private q8 staged-start mapper is now source-tested as
+`drm_qgt2_staged_start_override()`. It takes a fitted q > 2 source object and a
+target q > 2 bivariate Gaussian specification, then returns a named
+`override` list plus diagnostic `provenance`. The ordinary user path does not
+call the mapper, and no public `start`, `start_from`, or warm-start control is
+available.
+
+The mapper copies only auditable targets:
+
+- fixed effects for `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` by
+  distributional parameter and model-matrix column name;
+- q > 2 endpoint standard-deviation starts by covariance-member key, including
+  group, block label, distributional parameter, and coefficient name;
+- optional `theta_re_cov` starts only when `copy_theta_re_cov = TRUE`, by
+  pair key rather than raw packed-vector position.
+
+The `theta_re_cov` path is deliberately diagnostic. Source correlations are
+shrunk, guarded away from the boundary, assembled into each target block's
+correlation matrix, regularized to a positive-definite start if needed, packed
+onto TMB's unstructured-correlation theta scale, and unpacked again to verify
+the requested target matrix. The default keeps `theta_re_cov` at the target
+neutral start.
+
+## Current Private Prepared-Spec Fit Tail
+
+`drm_fit_spec()` is now the private fit tail used by `drmTMB()` after a family
+builder has returned a model specification. It takes a built `spec`, applies
+the same estimator, phylogenetic-penalty, log-sigma clamp, private
+start-override, TMB construction, optimizer retry, selected-optimum pinning,
+uncertainty, missing-data finalization, and storage-control steps as the public
+fit path, then returns an ordinary `"drmTMB"` object.
+
+The helper is intentionally internal. It does not add a public `start`,
+`start_from`, `warm_start`, or prepared-spec API. Its purpose is to let later
+diagnostic code fit a target specification after setting `spec$start_override`
+without duplicating the current optimizer and reporting tail.
+
+The q8 staged-start mapper plus `drm_fit_spec()` still do not provide paired
+cold-versus-staged diagnostic evidence. They provide the source mapping and
+fit-tail plumbing needed for that next diagnostic runner, not evidence that q8
+coverage, power, or intervals are ready.
+
+## Current Private Q8 Staged-Fit Diagnostic Runner
+
+`drm_qgt2_staged_fit_diagnostic()` now provides the small internal runner that
+fits the same q > 2 target specification twice: once cold and once after
+applying `drm_qgt2_staged_start_override()`. Each fit goes through
+`drm_fit_spec()`, so the diagnostic uses the ordinary estimator, penalty,
+log-sigma clamp, optimizer retry, selected-optimum, uncertainty, missing-data,
+and storage-control tail rather than a duplicate fitting path.
+
+The runner records only diagnostic metadata: whether each fit returned, the
+optimizer convergence code, `pdHess` when available, objective, log-likelihood,
+elapsed seconds, optimizer preset, warning count, warning text, and error text.
+It also returns the staged-start provenance from the mapper and a small delta
+table comparing cold and staged objective, log-likelihood, and elapsed time.
+
+This runner is not called by ordinary user fits and is not a public warm-start
+API. It does not establish that q8 is reliable; it merely makes the
+cold-versus-staged q8 smoke artifact auditable.
+
+`phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs()` is
+the first opt-in Phase 18 artifact wrapper around that runner. It writes split
+tables for cold/staged fit metrics, objective/log-likelihood/elapsed deltas,
+start provenance, scope, manifest, and failures. The scope table explicitly
+labels the output as diagnostic only: no q8 recovery, coverage, power, speed,
+interval, release-readiness, or public warm-start API claim follows from this
+artifact. Numerical guards remain a separate sensitivity-simulation question
+under `docs/design/176-numerical-guard-simulation-audit.md`.
 
 ## Future Start Contract
 

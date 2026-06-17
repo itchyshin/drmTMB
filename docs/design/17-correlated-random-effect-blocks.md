@@ -227,19 +227,20 @@ parameterization.
 The current bivariate Gaussian foundation supports matching labelled
 random-intercept blocks for `mu1`/`mu2`, `sigma1`/`sigma2`, one same-response
 `mu`/`sigma` pair, matching slope-only `mu1`/`mu2` blocks such as
-`(0 + x | p | id)` in both location formulas, source-tested matching q=4 and
-q=6 location blocks such as `(1 + x | p | id)` and
-`(1 + x + z | p | id)` in both location formulas, and the
-intercept-only all-four q=4 block across `mu1`, `mu2`, `sigma1`, and `sigma2`.
-These bivariate blocks report `corpairs()` rows for fitted group-level
-correlations and keep residual `rho12` separate.
+`(0 + x | p | id)` in both location formulas, matching q=4 and q=6 location
+blocks with smoke artifact routing such as `(1 + x | p | id)` and
+`(1 + x + z | p | id)` in both location formulas, matching slope-only
+`sigma1`/`sigma2` blocks such as `(0 + x | p | id)` in both scale formulas, and
+the intercept-only all-four q=4 block across `mu1`, `mu2`, `sigma1`, and
+`sigma2`. These bivariate blocks report `corpairs()` rows for fitted
+group-level correlations and keep residual `rho12` separate.
 
 Still deferred:
 
 - factor or multi-column random slopes;
-- residual-scale slope blocks, same-response location-scale slope covariance,
-  all-four p8/q8 location-scale slope endpoints, and broader cross-parameter
-  slope covariance beyond the intercept-only q=4 foundation;
+- p8 endpoint blocks, q8 variants beyond the first ordinary diagnostic lane,
+  and broader cross-parameter slope covariance beyond the intercept-only q=4
+  foundation and named q2 same-response and scale-scale slices;
 - phylogenetic and spatial correlated slope blocks.
 
 ## Comparator Tests
