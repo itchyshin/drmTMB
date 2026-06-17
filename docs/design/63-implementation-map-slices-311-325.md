@@ -72,7 +72,7 @@ should distinguish:
 | q2 slope-only | Two response-specific location slopes, such as `mu1:x` and `mu2:x` | Fitted for ordinary bivariate Gaussian `mu1`/`mu2` |
 | q4 location slope | Intercepts and slopes for `mu1` and `mu2` | Source-tested ordinary group route with the `biv_gaussian_q4_location` smoke artifact lane |
 | q6 partial location-scale | Selected location and scale slope endpoints, excluding some weakly identified pairs | Design-only |
-| q8 all-endpoint slope | Intercepts and slopes across `mu1`, `mu2`, `sigma1`, and `sigma2` | First ordinary Gaussian slice is fitted with diagnostic smoke/recovery artifacts; coverage, power, and interval calibration remain high-risk follow-up |
+| q8 all-endpoint slope | Intercepts and slopes across `mu1`, `mu2`, `sigma1`, and `sigma2` | First ordinary Gaussian slice is fitted with diagnostic smoke/recovery/staged-start artifacts; coverage, power, and interval calibration remain high-risk follow-up |
 
 A full q8 unstructured block has eight SDs and 28 correlations. That can be
 biologically interesting, but it is unlikely to be the first useful public

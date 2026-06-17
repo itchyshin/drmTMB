@@ -55489,3 +55489,55 @@ Boundary: private diagnostic runner only. No public `start`, `start_from`,
 `warm_start`, prepared-spec, or `map` API; no new Phase 18 artifact yet; no
 likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
 dashboard, q8 recovery, q8 power, interval, speed, or release promotion claim.
+
+## 2026-06-17: q8 staged diagnostic artifact
+
+Added the opt-in Phase 18
+`biv_gaussian_q8_endpoint_staged_diagnostic` task. The new writer
+`phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs()`
+wraps the private q8 staged-fit diagnostic runner and writes split CSV tables
+for cold/staged fit metrics, objective/log-likelihood/elapsed deltas,
+start-provenance counts, scope, manifest, and failures. The scope table states
+that the artifact is diagnostic only and does not support q8 recovery,
+coverage, power, speed, interval, release-readiness, or public warm-start API
+claims. It also points numerical-guard questions back to the separate
+guard-sensitivity simulation lane.
+
+The structured workflow registry now has a `ready_grid`
+`bivariate_gaussian_q8_endpoint_staged_diagnostic` row, excluded from the
+workflow's `task = all` matrix like the other expensive q8 routes. The Actions
+runner, workflow dispatch list, dependency paths, random-slope workflow plan,
+Phase 18 README, formula grammar, simulation-programme map, readiness matrix,
+capability worklist, validation-debt register, implementation map, roadmap,
+and q8 optimizer design note were updated so q8 is discoverable as
+smoke/recovery/staged-diagnostic artifact-ready while coverage and power remain
+closed.
+
+Checks run:
+
+```sh
+air format inst/sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-biv-gaussian-q8-staged-diagnostic.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-structured-workflow-registry.R
+Rscript --vanilla -e 'devtools::test(filter = "phase18-biv-gaussian-q8-staged-diagnostic|phase18-actions-runner|phase18-structured-workflow-registry", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+conflict-marker scan outside check-log/after-task history
+forbidden-framing scan over added diff lines
+```
+
+Results: focused tests passed after formatting. `devtools::document()`
+completed; unrelated generated Rd/RoxygenNote drift was reverted because this
+slice does not change exported documentation. `pkgdown::check_pkgdown()` failed
+on the pre-existing `drm_phylo_penalty` topic missing from `_pkgdown.yml`,
+which belongs to the Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed in 10m 51.7s with 0 errors, 0
+warnings, and 1 environment note: future-file timestamp checking could not
+verify the current time. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+Boundary: opt-in Phase 18 artifact wrapper only. No public `start`,
+`start_from`, `warm_start`, prepared-spec, or `map` API; no likelihood, C++,
+TMB density, penalty/MAP, Gaussian clamp, Julia bridge, DRM.jl, Ayumi/Model A,
+q8 recovery, q8 coverage, q8 power, interval calibration, speed, or release
+promotion claim.

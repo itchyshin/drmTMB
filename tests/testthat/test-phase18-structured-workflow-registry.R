@@ -263,9 +263,17 @@ test_that("Phase 18 random-slope workflow plan dispatches the bivariate slope ta
       c("ready_existing_task", "source_test_audit")
   ))
   q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
   expect_true(any(q8))
   expect_equal(plan$dispatch_status[q8], "ready_existing_task")
   expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_true(any(q8_staged))
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
   expect_false(any(is.na(plan$actions_task)))
 })
 
@@ -334,14 +342,24 @@ test_that("Phase 18 random-slope workflow plan no longer has needed targets", {
   expect_true("bivariate_gaussian_q6_location" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q8_endpoint" %in% plan$lane_id)
   expect_true("bivariate_gaussian_q8_endpoint_recovery" %in% plan$lane_id)
+  expect_true(
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic" %in% plan$lane_id
+  )
   q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
   q8_recovery <- plan$lane_id == "bivariate_gaussian_q8_endpoint_recovery"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
   expect_equal(plan$dispatch_status[q8], "ready_existing_task")
   expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
   expect_equal(plan$dispatch_status[q8_recovery], "ready_existing_task")
   expect_equal(
     plan$actions_task[q8_recovery],
     "biv_gaussian_q8_endpoint_recovery"
+  )
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
   )
   expect_false(any(is.na(plan$actions_task)))
 })
@@ -498,11 +516,27 @@ test_that("Phase 18 random-slope registry preflight reports gated rows", {
     fixed = TRUE
   )
   q8 <- preflight$rows$lane_id == "bivariate_gaussian_q8_endpoint"
+  q8_staged <- preflight$rows$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
   expect_true(any(q8))
+  expect_true(any(q8_staged))
   expect_equal(preflight$rows$admission_status[q8], "ready_grid")
   expect_equal(preflight$rows$dispatch_status[q8], "ready_existing_task")
   expect_equal(preflight$rows$workflow_helper[q8], "phase18_actions_main")
   expect_equal(preflight$rows$actions_task[q8], "biv_gaussian_q8_endpoint")
+  expect_equal(preflight$rows$admission_status[q8_staged], "ready_grid")
+  expect_equal(
+    preflight$rows$dispatch_status[q8_staged],
+    "ready_existing_task"
+  )
+  expect_equal(
+    preflight$rows$workflow_helper[q8_staged],
+    "phase18_actions_main"
+  )
+  expect_equal(
+    preflight$rows$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
   expect_equal(sum(!nzchar(preflight$rows$supervision_boundary)), 0L)
 })
 
@@ -540,14 +574,22 @@ test_that("Phase 18 q8 endpoint gate is artifact-ready but diagnostic before pow
   expect_true(all(gate$checks$status == "pass"))
   q8 <- plan$lane_id == "bivariate_gaussian_q8_endpoint"
   q8_recovery <- plan$lane_id == "bivariate_gaussian_q8_endpoint_recovery"
+  q8_staged <- plan$lane_id ==
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic"
   expect_true(any(q8))
   expect_true(any(q8_recovery))
+  expect_true(any(q8_staged))
   expect_equal(plan$dispatch_status[q8], "ready_existing_task")
   expect_equal(plan$actions_task[q8], "biv_gaussian_q8_endpoint")
   expect_equal(plan$dispatch_status[q8_recovery], "ready_existing_task")
   expect_equal(
     plan$actions_task[q8_recovery],
     "biv_gaussian_q8_endpoint_recovery"
+  )
+  expect_equal(plan$dispatch_status[q8_staged], "ready_existing_task")
+  expect_equal(
+    plan$actions_task[q8_staged],
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
   )
 })
 
@@ -587,6 +629,11 @@ test_that("Phase 18 random-slope registry preflight formats dry-run output", {
   expect_match(text, "bivariate_gaussian_slope_only", fixed = TRUE)
   expect_match(text, "bivariate_gaussian_q8_endpoint", fixed = TRUE)
   expect_match(text, "bivariate_gaussian_q8_endpoint_recovery", fixed = TRUE)
+  expect_match(
+    text,
+    "bivariate_gaussian_q8_endpoint_staged_diagnostic",
+    fixed = TRUE
+  )
   expect_match(text, "ready_existing_task", fixed = TRUE)
   expect_match(text, "source_test_audit", fixed = TRUE)
 })
@@ -1170,7 +1217,7 @@ test_that("Phase 18 structured workflow bundle returns all plan tables", {
     bundle$plan_counts$n[
       match("random_slopes", bundle$plan_counts$workflow_plan)
     ],
-    18L
+    19L
   )
   expect_equal(
     bundle$plan_counts$n[
@@ -1208,7 +1255,7 @@ test_that("Phase 18 structured workflow bundle counts dispatch states", {
   expect_equal(counts$existing_actions_tasks[family], 9L)
   expect_equal(counts$blocked[family], 3L)
   expect_equal(counts$design_only[family], 1L)
-  expect_equal(counts$existing_actions_tasks[random], 18L)
+  expect_equal(counts$existing_actions_tasks[random], 19L)
   expect_equal(counts$wrapper_targets[random], 0L)
   expect_equal(counts$design_only[random], 0L)
   expect_equal(counts$existing_actions_tasks[structured], 7L)

@@ -246,8 +246,17 @@ It also returns the staged-start provenance from the mapper and a small delta
 table comparing cold and staged objective, log-likelihood, and elapsed time.
 
 This runner is not called by ordinary user fits and is not a public warm-start
-API. It does not establish that q8 is reliable; it merely makes the next
+API. It does not establish that q8 is reliable; it merely makes the
 cold-versus-staged q8 smoke artifact auditable.
+
+`phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs()` is
+the first opt-in Phase 18 artifact wrapper around that runner. It writes split
+tables for cold/staged fit metrics, objective/log-likelihood/elapsed deltas,
+start provenance, scope, manifest, and failures. The scope table explicitly
+labels the output as diagnostic only: no q8 recovery, coverage, power, speed,
+interval, release-readiness, or public warm-start API claim follows from this
+artifact. Numerical guards remain a separate sensitivity-simulation question
+under `docs/design/176-numerical-guard-simulation-audit.md`.
 
 ## Future Start Contract
 

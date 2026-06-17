@@ -735,7 +735,11 @@ test_that("Phase 18 Actions runner dispatches bivariate Gaussian q6 location tas
 
 test_that("Phase 18 Actions runner accepts bivariate Gaussian q8 endpoint tasks", {
   script <- phase18_actions_runner_script()
-  tasks <- c("biv_gaussian_q8_endpoint", "biv_gaussian_q8_endpoint_recovery")
+  tasks <- c(
+    "biv_gaussian_q8_endpoint",
+    "biv_gaussian_q8_endpoint_recovery",
+    "biv_gaussian_q8_endpoint_staged_diagnostic"
+  )
 
   for (task in tasks) {
     output_dir <- tempfile(paste0("phase18-actions-", task, "-dry-run-"))
@@ -779,6 +783,11 @@ test_that("Phase 18 Actions runner sources bivariate Gaussian q8 endpoint tasks"
     "sim/run/sim_summary_biv_gaussian_q8_endpoint_recovery.R",
     "sim/run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R"
   )
+  staged_paths <- c(
+    "sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R",
+    "sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R",
+    "sim/run/sim_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid.R"
+  )
   expect_equal(
     env$phase18_actions_task_paths("biv_gaussian_q8_endpoint"),
     smoke_paths
@@ -787,13 +796,20 @@ test_that("Phase 18 Actions runner sources bivariate Gaussian q8 endpoint tasks"
     env$phase18_actions_task_paths("biv_gaussian_q8_endpoint_recovery"),
     recovery_paths
   )
+  expect_equal(
+    env$phase18_actions_task_paths(
+      "biv_gaussian_q8_endpoint_staged_diagnostic"
+    ),
+    staged_paths
+  )
 })
 
 test_that("Phase 18 Actions runner dispatches bivariate Gaussian q8 endpoint tasks", {
   script <- phase18_actions_runner_script()
   writers <- c(
     biv_gaussian_q8_endpoint = "phase18_write_biv_gaussian_q8_endpoint_grid_outputs",
-    biv_gaussian_q8_endpoint_recovery = "phase18_write_biv_gaussian_q8_endpoint_recovery_grid_outputs"
+    biv_gaussian_q8_endpoint_recovery = "phase18_write_biv_gaussian_q8_endpoint_recovery_grid_outputs",
+    biv_gaussian_q8_endpoint_staged_diagnostic = "phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs"
   )
 
   for (task in names(writers)) {
