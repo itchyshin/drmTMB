@@ -1,5 +1,7 @@
 # drmTMB 0.1.4
 
+* The residual `rho12` correlation now uses the same `0.999999` (six-nines) `tanh` guard as every other latent correlation in the package, instead of an inconsistent `0.99999999` (eight-nines) bound (flagged in review). The guard is far from any realistic correlation, so fitted `rho12` values are unchanged to about seven decimal places; this is a numerical-consistency fix, not a behaviour change for interior fits.
+
 * `drm_phylo_penalty_sweep()` runs a penalized (MAP) phylogenetic fit across a range of `cor_sd` correlation-penalty values and returns a tidy sensitivity summary (`convergence`, `pdHess`, `logLik` per `cor_sd`) plus the fitted objects for extracting the couplings. This turns the mandatory prior-sensitivity sweep -- the check of whether a weakly identified coupling is data-informed (stable across `cor_sd`) or prior-shaped (tracks `cor_sd`) -- into a single call; there is no universal `cor_sd`. (`drm_phylo_penalty()` and the new sweep are now both in the pkgdown reference.)
 
 * `check_drm()` now reports a `logsigma_clamp_active` row that flags when the `log(sigma)` clamp is active at the optimum -- the diagnostic-surface complement to the fit-time clamp-active warning -- so a clamp-bound fit is visible in the standard diagnostic table (a `note` when the TMB object was dropped, an `ok` otherwise).

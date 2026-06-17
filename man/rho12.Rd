@@ -27,7 +27,7 @@ predictors when \code{type = "link"}.
 \code{rho12()} returns the residual response-response correlation from a
 bivariate Gaussian \code{drmTMB} fit. By default it returns the response-scale
 correlation. Use \code{type = "link"} for the Fisher-z-like linear predictor
-whose response transform is \code{0.99999999 * tanh(eta)}.
+whose response transform is \code{0.999999 * tanh(eta)}.
 }
 \examples{
 set.seed(20260525)

@@ -364,7 +364,7 @@ weights.drmTMB <- function(object, ...) {
 #' `rho12()` returns the residual response-response correlation from a
 #' bivariate Gaussian `drmTMB` fit. By default it returns the response-scale
 #' correlation. Use `type = "link"` for the Fisher-z-like linear predictor
-#' whose response transform is `0.99999999 * tanh(eta)`.
+#' whose response transform is `0.999999 * tanh(eta)`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction.
@@ -3704,7 +3704,7 @@ summary_parameter_delta_derivative <- function(target) {
     linear_predictor = 1,
     exp = exp(eta),
     tanh = 0.999999 * (1 - tanh(eta)^2),
-    rho12_tanh = 0.99999999 * (1 - tanh(eta)^2),
+    rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
   )
 }
@@ -4607,7 +4607,7 @@ drm_dpar_link <- function(object, dpar) {
   unname(links[[dpar]])
 }
 
-rho_response <- function(eta, guard = 0.99999999) {
+rho_response <- function(eta, guard = 0.999999) {
   guard * tanh(eta)
 }
 
