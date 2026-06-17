@@ -814,12 +814,11 @@ drm_validate_reml_spec <- function(spec) {
       "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} or set {.code REML = FALSE}."
     ))
   }
-  if (ncol(spec$X$sigma) != 1L) {
-    cli::cli_abort(c(
-      "{.arg REML} currently requires an intercept-only {.code sigma} formula.",
-      "i" = "Use {.code sigma ~ 1} or set {.code REML = FALSE}."
-    ))
-  }
+  # A fixed-effect `sigma ~ predictors` model is allowed under REML: REML
+  # restricts the likelihood for the mean fixed effects regardless of the scale
+  # model, and the restricted likelihood with a heteroscedastic residual
+  # (V = diag(sigma_i^2) + random-effect covariance) is exact for a Gaussian.
+  # Scale-side random effects remain rejected below.
   if (spec$random$sigma$n_re > 0L || spec$random$mu_sigma$n_cors > 0L) {
     cli::cli_abort(c(
       "{.arg REML} currently supports ordinary {.code mu} random effects only.",
