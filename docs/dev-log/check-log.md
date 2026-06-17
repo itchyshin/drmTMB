@@ -2,6 +2,47 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Numerical-guard ADEMP design refresh
+
+Goal:
+
+- Turn the numerical-guard concern into a simulation design contract for the
+  big simulations, so constants and guards are audited by estimand, likelihood
+  impact, Hessian/interval status, and Monte Carlo error rather than treated as
+  automatically harmless or automatically invalid.
+
+Changes:
+
+- Expanded `docs/design/176-numerical-guard-simulation-audit.md` with an
+  ADEMP plan following Morris, White & Crowther (2019) and Williams et al.
+  (2024): aims, guard-class DGP lanes, estimands, methods, performance
+  measures, MCSE tiers, and a Williams 11-item self-audit.
+- Added a constant-classification rule separating mathematical constants,
+  legal parameter-space transforms, support floors, tail floors, likelihood
+  guards, and starting-value floors.
+- Refreshed `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` so the mission-control widget says the
+  guard-sensitivity design is banked while broader guard-class simulations and
+  interval consequences remain planned.
+- Created
+  `docs/dev-log/after-task/2026-06-17-numerical-guard-ademp-design.md`.
+
+Checks run:
+
+- `python3 tools/validate-mission-control.py`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json`
+- Added-line scan for the project forbidden-framing phrases passed over the
+  touched files.
+- `git diff --check`
+
+Boundaries:
+
+- Design/dashboard/check-log slice only. No simulation runner, no new
+  numerical result, no C++ change, no likelihood change, no Gaussian clamp
+  change, no Ayumi/Model A work, no DRM.jl work, no release/readiness claim,
+  and no promotion of guard-dependent inference.
+
 ## 2026-06-17 -- Mission-control standing-team validator refresh
 
 Goal:

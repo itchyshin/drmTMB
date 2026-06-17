@@ -64,6 +64,131 @@ guard frequently changes estimates, interval coverage, or model status, the
 corresponding feature must stay diagnostic or experimental until the likelihood,
 parameterization, or diagnostic workflow is redesigned.
 
+## Formal ADEMP Design For The Next Guard Slice
+
+The next slice should be a design-first simulation study, not a code-first
+reaction to a list of constants. Use the ADEMP framework from Morris, White &
+Crowther (2019) and the transparent simulation-reporting items from Williams et
+al. (2024). The purpose is to decide whether each guard is a harmless numerical
+safeguard in its intended operating range, a model-defining restriction that
+needs clearer wording, or an inference-changing intervention that must keep the
+feature diagnostic.
+
+### A -- Aims
+
+Primary aim: quantify whether each numerical guard changes point estimates,
+log likelihood, Hessian status, intervals, or scientific conclusions in
+well-posed cells where the fitted model is meant to be used.
+
+Secondary aim 1: quantify what happens in edge cells where the guard is
+expected to activate, so documentation can tell users whether an active guard is
+a harmless warning, a diagnostic-only result, or a reason to refit after
+rescaling or redesigning the model.
+
+Secondary aim 2: distinguish legal parameter-space transforms from
+likelihood-altering guards and starting-value floors, so the project does not
+treat every numerical constant as the same kind of statistical decision.
+
+### D -- Data-Generating Mechanisms
+
+Each guard class gets its own DGP because the estimand and failure mode differ.
+Do not mix them into one pooled "guard worked" conclusion.
+
+| Guard lane | Ordinary cell | Edge cell | Stress cell | Notes |
+|---|---|---|---|---|
+| Correlation open-interval guard | `rho12` or random-effect correlation near 0 and 0.4 | true correlation near 0.9 | true correlation near 0.98 with small `n` | Check covariance conditioning, interval status, and boundary diagnostics. |
+| Student-t finite-variance shape | `nu` around 8 | `nu` around 3 | data generated with `nu <= 2` as a misspecification stress | The fitted model is `nu > 2`; low-tail stress is a model-boundary check, not a promotion cell. |
+| Support floors | beta, zero-one beta, or missing-predictor beta cells away from 0/1 | observations near open-support boundaries | malformed or boundary-heavy responses routed through validation | Pair every density floor with response-validation evidence. |
+| Tail log floor | skew-normal with mild slant | strong slant plus moderate outliers | strong slant plus extreme outliers | Track whether the tail floor changes slant sign, scale, or fit status. |
+| `log(sigma)` guard | ordinary and standardized scale cells | legitimate huge/tiny unstandardized scales | weakly identified or confounding-prone scale cells | Compare disabled/default/wide/tight settings only where the control exists. |
+| Starting-value floors | well-posed fixed-effect cells | poor starts near parameter boundaries | multiple-start local-minimum stress | These should alter the path, not the target likelihood. |
+
+The first formal grid should use a pilot tier before promotion language:
+
+| Tier | Replicates per cell | Intended MCSE target | Allowed conclusion |
+|---|---:|---|---|
+| Smoke | 10--25 | none; code-path check only | artifact works or fails |
+| Diagnostic pilot | 50--100 | detects large guard effects only | prioritize cells and warnings |
+| Calibration pilot | 500 | coverage MCSE about 1 percentage point at 0.95 | cautious interval language for audited cells |
+| Promotion grid | 1000 | coverage MCSE below 0.7 percentage points at 0.95 | headline claims only if failures and guard effects are also acceptable |
+
+### E -- Estimands And Targets
+
+For each replicate and guard setting, store the true value and estimate for:
+
+- fixed-effect coefficients on their link and response scales;
+- dispersion, shape, or correlation parameters affected by the guard;
+- log likelihood, objective, AIC, and BIC when constants make those comparable;
+- Hessian status, convergence code, gradient diagnostics, warnings, elapsed
+  time, and whether the guard was active at the optimum when detectable;
+- interval limits and target-specific interval status for Wald, profile, or
+  bootstrap intervals when that interval method is part of the audited claim.
+
+The headline comparison is not "did the optimizer converge?" The headline
+comparison is whether guarded and reference configurations give the same
+estimand, uncertainty, and decision within Monte Carlo error in cells where the
+guard is meant to be inactive or practically irrelevant.
+
+### M -- Methods
+
+Fit the default `drmTMB` route and one reference route per guard class. A
+reference route can be a disabled or wider guard when the public control exists,
+a high-precision or better-scaled fit, or a comparator package only when the
+comparator uses the same likelihood and parameterization. Do not use a
+comparator to promote a route with different support, different constants, or a
+different residual model.
+
+Every fitted method row should record the package SHA, dirty state, operating
+system, R version, package versions, seed, optimizer settings, number of
+threads, and interpretation label: `smoke`, `diagnostic`,
+`guard_sensitivity`, `calibration`, or `promotion`.
+
+### P -- Performance Measures
+
+For each condition and method, report:
+
+- bias: `mean(theta_hat - theta_true)`;
+- RMSE: `sqrt(mean((theta_hat - theta_true)^2))`;
+- coverage: `mean(ci_lo <= theta_true & theta_true <= ci_hi)`;
+- guard activation rate: `mean(guard_active)`;
+- fit-success rate: `mean(converged & pdHess & finite_estimate)`, plus the
+  separate convergence, `pdHess`, warning, and failure rates;
+- guard-effect summaries: maximum and mean absolute differences in estimates,
+  standard errors, log likelihood, AIC/BIC, interval limits, and decision
+  labels between the default and reference fits;
+- MCSE for every mean, bias, and coverage estimate.
+
+The release threshold is intentionally conservative. A guard can be documented
+as practically inactive only for a named cell when the guard activation rate is
+near zero or scientifically expected, default-vs-reference differences are
+small relative to MCSE and the inferential scale, and failure/warning rates do
+not hide the problematic replicates.
+
+## Williams 11-Item Self-Audit
+
+| Item | Covered by this design? | Evidence to require before promotion |
+|---|---|---|
+| 1. Aims | Yes | Aim text in the artifact README and dashboard row. |
+| 2. DGP | Partial | One DGP file and math block per guard lane. |
+| 3. Estimands | Yes | Per-replicate truth columns for every audited target. |
+| 4. Methods | Partial | Default and reference guard routes listed with exact controls. |
+| 5. Performance measures | Yes | Bias, RMSE, coverage, MCSE, guard activation, and status rates. |
+| 6. Software details | Required | SHA, dirty state, OS, R/package versions, seeds, and threads. |
+| 7. Code availability | Required | `inst/sim/` runner plus artifact README. |
+| 8. Data availability | Required | Per-cell CSV/RDS artifacts or explicit storage reason. |
+| 9. Applied example | Planned | A small worked model showing how a user sees an active guard. |
+| 10. Results reporting | Required | Include failures and warning rows; never drop failed fits silently. |
+| 11. MCSE | Required | Every aggregate mean or coverage estimate reports MCSE. |
+
+## Constant Classification Rule
+
+The audit should classify constants by function before judging them. Constants
+such as `0.5`, `2`, or `2 * pi` in standard density formulae are mathematical
+constants, not numerical guards. Constants such as `0.99999999` in correlation
+links, `1e-300` in tail log floors, `1e-12` support epsilons, and `1e-8` shape
+floors are guard candidates. Each candidate needs an owner, an intended legal
+range, a detectability plan, and a simulation decision rule.
+
 ## First Pilot: Fixed-Effect `log(sigma)` Clamp
 
 The first executable slice is banked at

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 04:23 MDT",
+  "updated": "2026-06-17 05:04 MDT",
   "metrics": {
     "verified": 21,
     "active": 3,
@@ -808,7 +808,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md",
-      "blocker": "The first fixed-effect Gaussian log(sigma) clamp pilot is banked: 300/300 fits ok, default-vs-off differences are negligible when inactive (max logLik diff 2.046363e-11), the wide band matches the unclamped reference across all cells, and the default band materially changes out-of-band huge/tiny scale fits. Broader guard classes, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "blocker": "The first fixed-effect Gaussian log(sigma) clamp pilot and the ADEMP/Williams guard-sensitivity design are banked. The pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. Broader guard classes, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
       "last_verified": "2026-06-17"
     },
     {
@@ -1104,12 +1104,12 @@
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Binomial fixed-effect interval calibration is bounded to audited Wald cells, and the log(sigma) clamp pilot is bounded to fixed-effect guard sensitivity; neither supports broader random-effect, profile/bootstrap, or guard-promotion claims."
+      "text": "Binomial fixed-effect interval calibration is bounded to audited Wald cells, and the log(sigma) clamp pilot is bounded to fixed-effect guard sensitivity. The numerical-guard ADEMP plan is a design contract, not new simulation evidence."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "Numerical guards and q8 remain explicit evidence gates: the first log(sigma) clamp pilot and q8 staged diagnostic artifact are banked, but broader guard classes, q8 coverage/power, and interval consequences remain active work."
+      "text": "Numerical guards and q8 remain explicit evidence gates: the first log(sigma) clamp pilot, q8 staged diagnostic artifact, and guard-sensitivity ADEMP design are banked, but broader guard-class simulations, q8 coverage/power, and interval consequences remain active work."
     },
     {
       "when": "now",
@@ -1118,6 +1118,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Tightened the numerical-guard audit into an ADEMP/Williams simulation contract: guard classes now have aims, DGP lanes, estimands, methods, performance measures, MCSE tiers, and a constant-classification rule.",
+      "url": "docs/design/176-numerical-guard-simulation-audit.md",
+      "link_label": "guard ADEMP"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
@@ -1311,10 +1318,15 @@
     {
       "status": "guard",
       "kind": "Numerical guard sensitivity",
-      "item": "A numerical guard can prevent overflow or singular covariance evaluations, but it must not upgrade convergence or inference claims unless sensitivity simulations show negligible impact in the intended operating range."
+      "item": "A numerical guard can prevent overflow or singular covariance evaluations, but it must not upgrade convergence or inference claims unless sensitivity simulations show negligible impact in the intended operating range. The ADEMP design is banked; broader guard-class simulations are still planned."
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-17",
+      "who": "Status matrix",
+      "text": "The numerical-guard audit now has an ADEMP/Williams simulation contract with guard-class DGP lanes, estimands, methods, performance measures, MCSE tiers, a Williams 11-item self-audit, and a constant-classification rule. This banks the design for the next big simulations, not new guard-performance evidence."
+    },
     {
       "when": "2026-06-17",
       "who": "Status matrix",
