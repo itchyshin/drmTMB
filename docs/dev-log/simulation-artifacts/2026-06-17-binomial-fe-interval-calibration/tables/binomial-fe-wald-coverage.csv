@@ -1,0 +1,13 @@
+"surface","encoding","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"binomial_fixed_effect","binary","binomial_fixed_effect_001","mu:(Intercept)",500,500,474,0.948,0.00992935043192656,0.533042779746325,0.00047651911348054
+"binomial_fixed_effect","binary","binomial_fixed_effect_001","mu:x",500,500,480,0.96,0.00876356092008266,0.576060145282768,0.00155351505184218
+"binomial_fixed_effect","binary","binomial_fixed_effect_002","mu:(Intercept)",500,500,474,0.948,0.00992935043192656,0.375697575600099,0.000233213413819174
+"binomial_fixed_effect","binary","binomial_fixed_effect_002","mu:x",500,500,479,0.958,0.00897061870775924,0.406884820716102,0.000799022438819311
+"binomial_fixed_effect","cbind","binomial_fixed_effect_003","mu:(Intercept)",500,500,480,0.96,0.00876356092008266,0.141877862892805,5.98069913798202e-05
+"binomial_fixed_effect","cbind","binomial_fixed_effect_003","mu:x",500,500,474,0.948,0.00992935043192656,0.153371305311556,0.000286657673691911
+"binomial_fixed_effect","cbind","binomial_fixed_effect_004","mu:(Intercept)",500,500,475,0.95,0.00974679434480897,0.100152821003542,2.72985797487728e-05
+"binomial_fixed_effect","cbind","binomial_fixed_effect_004","mu:x",500,500,480,0.96,0.00876356092008266,0.108066371407552,0.000142347703889427
+"binomial_fixed_effect","cbind","binomial_fixed_effect_005","mu:(Intercept)",500,500,479,0.958,0.00897061870775924,0.106137132106797,3.58639375949484e-05
+"binomial_fixed_effect","cbind","binomial_fixed_effect_005","mu:x",500,500,476,0.952,0.00955991631762538,0.114824016895277,0.000210366491596945
+"binomial_fixed_effect","cbind","binomial_fixed_effect_006","mu:(Intercept)",500,500,473,0.946,0.0101078187557949,0.0749774205321819,1.59836413063413e-05
+"binomial_fixed_effect","cbind","binomial_fixed_effect_006","mu:x",500,500,482,0.964,0.0083311463797007,0.080958235685548,0.000105609945053133
