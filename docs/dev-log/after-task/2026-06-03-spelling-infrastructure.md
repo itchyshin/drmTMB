@@ -11,7 +11,7 @@ risking a red build while the wordlist is still incomplete.
 
 ## Files created or changed
 
-- `DESCRIPTION`: added `Language: en-US` and `spelling` to `Suggests`.
+- `DESCRIPTION`: added `Language: en-GB` and `spelling` to `Suggests`.
 - `tests/spelling.R` (new): the CRAN-standard idiom, guarded by
   `requireNamespace("spelling")`, calling
   `spelling::spell_check_test(vignettes = TRUE, error = FALSE,

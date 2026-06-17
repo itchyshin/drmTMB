@@ -2,6 +2,35 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Takeover refresh for spelling infrastructure PR #474
+
+Goal:
+
+- Promote the report-only spelling infrastructure PR from draft only after
+  refreshing it against current `origin/main`, preserving the maintainer
+  decision to use British English and keeping the check report-only.
+
+Changes:
+
+- Merged current `origin/main` into `claude/spelling-infra` in a clean takeover
+  worktree.
+- Kept `Language: en-GB`, `spelling` in `Suggests`, `inst/WORDLIST`, and
+  `tests/spelling.R` with `error = FALSE`.
+- Fixed stale wording in the spelling test comment and after-task note so both
+  describe the already-selected `en-GB` dictionary rather than an earlier
+  `en-US` or future-consideration state.
+
+Checks run:
+
+- `git diff --name-only origin/main...HEAD`
+- `grep -n "Language:\|spelling" DESCRIPTION`
+
+Boundaries:
+
+- Infrastructure/logging slice only. No R model code, TMB code, formula
+  grammar, likelihood, Julia bridge, dashboard promotion, or release-readiness
+  claim changed.
+
 ## 2026-06-17 -- Numerical-guard ADEMP design refresh
 
 Goal:
