@@ -44,14 +44,19 @@ drm_phylo_penalty <- function(sd_u = 1, sd_alpha = 0.05, cor_sd = NULL) {
     cli::cli_abort("{.arg sd_u} must be a single positive number.")
   }
   if (
-    !is.numeric(sd_alpha) || length(sd_alpha) != 1L || !is.finite(sd_alpha) ||
-      sd_alpha <= 0 || sd_alpha >= 1
+    !is.numeric(sd_alpha) ||
+      length(sd_alpha) != 1L ||
+      !is.finite(sd_alpha) ||
+      sd_alpha <= 0 ||
+      sd_alpha >= 1
   ) {
     cli::cli_abort("{.arg sd_alpha} must be a single number in (0, 1).")
   }
   if (!is.null(cor_sd)) {
     if (
-      !is.numeric(cor_sd) || length(cor_sd) != 1L || !is.finite(cor_sd) ||
+      !is.numeric(cor_sd) ||
+        length(cor_sd) != 1L ||
+        !is.finite(cor_sd) ||
         cor_sd <= 0
     ) {
       cli::cli_abort("{.arg cor_sd} must be a single positive number or NULL.")
@@ -119,4 +124,92 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
   spec$estimator <- "MAP"
   spec$penalty <- penalty
   spec
+}
+
+#' Prior-sensitivity sweep for the phylogenetic correlation penalty
+#'
+#' Refits a penalized (MAP) phylogenetic model across a range of `cor_sd` values
+#' so you can see whether a weakly identified coupling is data-informed or
+#' prior-shaped. There is no universal `cor_sd`: a coupling that is stable across
+#' the sweep is data-informed, while one that tracks `cor_sd` is prior-shaped.
+#' This is the sweep the penalized/MAP workflow asks you to run; it is most
+#' informative for coupled location-scale or bivariate phylogenetic models that
+#' actually estimate a phylogenetic correlation.
+#'
+#' @param formula,data,family,control Passed to [drmTMB()].
+#' @param cor_sd Numeric vector of positive correlation-penalty SDs to sweep.
+#' @param sd_u,sd_alpha Penalty SD-prior parameters; see [drm_phylo_penalty()].
+#' @param ... Further arguments passed to [drmTMB()].
+#'
+#' @return A list with `$summary` -- a data frame with one row per `cor_sd`
+#'   giving `convergence`, `pdHess`, `logLik`, and any fit `error` -- and `$fits`
+#'   -- the fitted objects, named by `cor_sd`, for extracting `corpars()`,
+#'   `coef()`, and other couplings.
+#' @export
+drm_phylo_penalty_sweep <- function(
+  formula,
+  data,
+  family = gaussian(),
+  cor_sd = c(0.25, 0.5, 1),
+  sd_u = 1,
+  sd_alpha = 0.05,
+  control = drm_control(),
+  ...
+) {
+  if (
+    !is.numeric(cor_sd) ||
+      length(cor_sd) == 0L ||
+      any(!is.finite(cor_sd)) ||
+      any(cor_sd <= 0)
+  ) {
+    cli::cli_abort("{.arg cor_sd} must be a vector of positive numbers.")
+  }
+  fits <- lapply(cor_sd, function(cs) {
+    tryCatch(
+      drmTMB(
+        formula,
+        data = data,
+        family = family,
+        penalty = drm_phylo_penalty(
+          sd_u = sd_u,
+          sd_alpha = sd_alpha,
+          cor_sd = cs
+        ),
+        control = control,
+        ...
+      ),
+      error = function(e) e
+    )
+  })
+  summary <- do.call(
+    rbind,
+    Map(
+      function(cs, fit) {
+        if (inherits(fit, "error")) {
+          data.frame(
+            cor_sd = cs,
+            convergence = NA_integer_,
+            pdHess = NA,
+            logLik = NA_real_,
+            error = conditionMessage(fit),
+            stringsAsFactors = FALSE
+          )
+        } else {
+          data.frame(
+            cor_sd = cs,
+            convergence = fit$opt$convergence,
+            pdHess = isTRUE(fit$sdr$pdHess),
+            logLik = as.numeric(fit$logLik),
+            error = NA_character_,
+            stringsAsFactors = FALSE
+          )
+        }
+      },
+      cor_sd,
+      fits
+    )
+  )
+  row.names(summary) <- NULL
+  names(fits) <- paste0("cor_sd=", cor_sd)
+  list(summary = summary, fits = fits)
 }
