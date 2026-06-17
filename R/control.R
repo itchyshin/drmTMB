@@ -16,12 +16,14 @@
 #' the selected preset.
 #'
 #' When the selected preset uses the standard `nlminb()` budget and no explicit
-#' optimizer controls, `drmTMB()` retries with the next larger deterministic
-#' preset if the optimizer raises an error such as a non-finite gradient
-#' evaluation. A successful retry warns and records the selected preset in
-#' `fit$optimizer_used` and every attempted preset in `fit$optimizer_attempts`.
-#' Fits with nonzero convergence codes still return for diagnostic inspection;
-#' they are not silently retried.
+#' optimizer controls, `drmTMB()` escalates the preset ladder
+#' (`"default"` -> `"careful"` -> `"robust"`) when an attempt either raises an
+#' error (such as a non-finite gradient) or does not converge cleanly (a nonzero
+#' convergence code or a non-finite objective). The first cleanly-converged
+#' attempt is returned; if no preset converges, the best (lowest-objective)
+#' attempt is returned and the fit-time convergence warning flags it. Every
+#' attempted preset is recorded in `fit$optimizer_attempts` and the selected one
+#' in `fit$optimizer_used`.
 #'
 #' @param optimizer Named list passed to the `control` argument of
 #'   [stats::nlminb()].
@@ -73,6 +75,11 @@
 #'   principled start plus reproducibly perturbed starts -- and the lowest-
 #'   objective result is kept. Opt-in robustness for weakly identified models;
 #'   `multi_start = 1` is the single-start fit and is unchanged.
+#' @param fallback_optimizer `NULL` (default) or one [stats::optim()] method
+#'   (`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, `"CG"`). When set, and no
+#'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final
+#'   attempt; a different algorithm can succeed on a numerically awkward but
+#'   identified problem. Opt-in; `NULL` keeps the `nlminb()`-only ladder.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -101,7 +108,8 @@ drm_control <- function(
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
-  multi_start = 1L
+  multi_start = 1L,
+  fallback_optimizer = NULL
 ) {
   optimizer_preset <- match.arg(optimizer_preset)
   if (
@@ -164,6 +172,19 @@ drm_control <- function(
     cli::cli_abort("{.arg multi_start} must be a single whole number >= 1.")
   }
   multi_start <- as.integer(multi_start)
+  if (!is.null(fallback_optimizer)) {
+    valid_fallback <- c("BFGS", "L-BFGS-B", "Nelder-Mead", "CG")
+    if (
+      !is.character(fallback_optimizer) ||
+        length(fallback_optimizer) != 1L ||
+        !fallback_optimizer %in% valid_fallback
+    ) {
+      cli::cli_abort(c(
+        "{.arg fallback_optimizer} must be NULL or one {.fn stats::optim} method.",
+        "i" = "Valid methods: {.val {valid_fallback}}."
+      ))
+    }
+  }
   structure(
     list(
       optimizer = optimizer,
@@ -176,7 +197,8 @@ drm_control <- function(
       logsigma_clamp = logsigma_clamp,
       logsigma_clamp_margin = logsigma_clamp_margin,
       optimizer_preset = optimizer_preset,
-      multi_start = multi_start
+      multi_start = multi_start,
+      fallback_optimizer = fallback_optimizer
     ),
     class = "drm_control"
   )

@@ -526,6 +526,7 @@ drm_optimize_with_preset_retry <- function(
   obj,
   control,
   optimizer = stats::nlminb,
+  fallback_fn = stats::optim,
   warn = TRUE
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
@@ -597,6 +598,81 @@ drm_optimize_with_preset_retry <- function(
       elapsed_sec = elapsed,
       selected = FALSE
     )
+  }
+
+  # C3: optional fallback optimizer (for example optim BFGS) when no nlminb
+  # preset converged. A different algorithm can succeed on a numerically awkward
+  # but identified problem; opt-in via drm_control(fallback_optimizer = ).
+  fallback <- control$fallback_optimizer
+  if (!is.null(fallback)) {
+    fb_attempt <- length(attempt_specs) + 1L
+    fb_control <- list(maxit = 1000L)
+    fb_start <- proc.time()[["elapsed"]]
+    fb_res <- tryCatch(
+      fallback_fn(
+        par = obj$par,
+        fn = obj$fn,
+        gr = obj$gr,
+        method = fallback,
+        control = fb_control
+      ),
+      error = function(e) e
+    )
+    fb_elapsed <- proc.time()[["elapsed"]] - fb_start
+    if (inherits(fb_res, "error")) {
+      last_error <- fb_res
+      rows[[fb_attempt]] <- drm_optimizer_attempt_row(
+        attempt = fb_attempt,
+        preset = paste0("fallback:", fallback),
+        control = fb_control,
+        status = "error",
+        convergence = NA_integer_,
+        message = conditionMessage(fb_res),
+        objective = NA_real_,
+        elapsed_sec = fb_elapsed,
+        selected = FALSE
+      )
+    } else {
+      fb_message <- if (is.null(fb_res$message)) {
+        NA_character_
+      } else {
+        fb_res$message
+      }
+      fb_opt <- list(
+        par = fb_res$par,
+        objective = fb_res$value,
+        convergence = fb_res$convergence,
+        message = fb_message
+      )
+      opts[[fb_attempt]] <- fb_opt
+      fb_converged <- identical(as.integer(fb_opt$convergence), 0L) &&
+        length(fb_opt$objective) == 1L &&
+        is.finite(fb_opt$objective)
+      rows[[fb_attempt]] <- drm_optimizer_attempt_row(
+        attempt = fb_attempt,
+        preset = paste0("fallback:", fallback),
+        control = fb_control,
+        status = "ok",
+        convergence = fb_opt$convergence,
+        message = fb_message,
+        objective = fb_opt$objective,
+        elapsed_sec = fb_elapsed,
+        selected = fb_converged
+      )
+      if (fb_converged) {
+        attempts <- drm_optimizer_attempts_frame(rows)
+        selected <- drm_optimizer_selected_record(
+          attempts[attempts$attempt == fb_attempt, , drop = FALSE]
+        )
+        if (isTRUE(warn)) {
+          cli::cli_warn(c(
+            "{.fn drmTMB} converged with the {.val {fallback}} fallback optimizer after the {.fn stats::nlminb} presets did not.",
+            "i" = "Inspect {.code fit$optimizer_attempts}."
+          ))
+        }
+        return(list(opt = fb_opt, selected = selected, attempts = attempts))
+      }
+    }
   }
 
   # No preset converged cleanly. If any attempt produced a result, return the

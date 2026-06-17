@@ -15,7 +15,8 @@ drm_control(
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
-  multi_start = 1L
+  multi_start = 1L,
+  fallback_optimizer = NULL
 )
 }
 \arguments{
@@ -79,6 +80,12 @@ each optimizer preset is run from \code{multi_start} starting points -- the
 principled start plus reproducibly perturbed starts -- and the lowest-
 objective result is kept. Opt-in robustness for weakly identified models;
 \code{multi_start = 1} is the single-start fit and is unchanged.}
+
+\item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
+(\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, \code{"CG"}). When set, and no
+\code{nlminb()} preset converges, \code{drmTMB()} tries this optimizer as a final
+attempt; a different algorithm can succeed on a numerically awkward but
+identified problem. Opt-in; \code{NULL} keeps the \code{nlminb()}-only ladder.}
 }
 \value{
 A \code{drm_control} object.
@@ -101,12 +108,14 @@ Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} 
 the selected preset.
 
 When the selected preset uses the standard \code{nlminb()} budget and no explicit
-optimizer controls, \code{drmTMB()} retries with the next larger deterministic
-preset if the optimizer raises an error such as a non-finite gradient
-evaluation. A successful retry warns and records the selected preset in
-\code{fit$optimizer_used} and every attempted preset in \code{fit$optimizer_attempts}.
-Fits with nonzero convergence codes still return for diagnostic inspection;
-they are not silently retried.
+optimizer controls, \code{drmTMB()} escalates the preset ladder
+(\code{"default"} -> \code{"careful"} -> \code{"robust"}) when an attempt either raises an
+error (such as a non-finite gradient) or does not converge cleanly (a nonzero
+convergence code or a non-finite objective). The first cleanly-converged
+attempt is returned; if no preset converges, the best (lowest-objective)
+attempt is returned and the fit-time convergence warning flags it. Every
+attempted preset is recorded in \code{fit$optimizer_attempts} and the selected one
+in \code{fit$optimizer_used}.
 }
 \examples{
 dat <- data.frame(y = rnorm(20), x = rnorm(20))
