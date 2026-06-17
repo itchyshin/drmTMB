@@ -1,10 +1,10 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 14:46 MDT",
+  "updated": "2026-06-17 17:28 MDT",
   "metrics": {
-    "verified": 21,
-    "active": 3,
+    "verified": 24,
+    "active": 2,
     "blocked": 0,
     "deferred": 1,
     "total": 68
@@ -55,7 +55,7 @@
       "name": "Master capability matrix",
       "owner": "Rose + Fisher + Grace",
       "status": "active",
-      "counts": "1/5",
+      "counts": "4/5",
       "slices": [
         {
           "name": "Create canonical finish matrix with engine, bridge, inference, docs, visual, simulation, and release columns",
@@ -64,16 +64,18 @@
         },
         {
           "name": "Keep dashboard matrix row count synchronized with the design matrix",
-          "status": "active",
+          "status": "verified",
           "evidence": "tools/validate-mission-control.py"
         },
         {
           "name": "Wire README, ROADMAP, NEWS, pkgdown, and Documenter claims to the matrix",
-          "status": "queued"
+          "status": "verified",
+          "evidence": "README.md, ROADMAP.md, NEWS.md, _pkgdown.yml, docs/dev-log/dashboard/README.md, and local Documenter source check in tools/validate-mission-control.py"
         },
         {
           "name": "Add broader claim lint so public docs cannot drift from the matrix",
-          "status": "queued"
+          "status": "verified",
+          "evidence": "tools/validate-mission-control.py public claim lint"
         },
         {
           "name": "Rose signoff on fitted, planned, missing, and unsupported rows",

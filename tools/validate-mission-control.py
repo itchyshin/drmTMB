@@ -18,6 +18,22 @@ DASHBOARD = ROOT / "docs" / "dev-log" / "dashboard"
 DESIGN_MATRIX = ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md"
 GATE_REGISTRY = DASHBOARD / "julia-gates.tsv"
 CAPABILITY_REGISTRY = DASHBOARD / "julia-capabilities.tsv"
+CLAIM_MATRIX_REF = "docs/design/168-r-julia-finish-capability-matrix.md"
+PUBLIC_CLAIM_REFERENCE_FILES = (
+    ROOT / "README.md",
+    ROOT / "ROADMAP.md",
+    ROOT / "NEWS.md",
+    ROOT / "_pkgdown.yml",
+    ROOT / "docs" / "dev-log" / "dashboard" / "README.md",
+)
+PUBLIC_CLAIM_SCAN_FILES = PUBLIC_CLAIM_REFERENCE_FILES + (
+    ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md",
+)
+RELEASE_READY_PATTERN = re.compile(
+    r"\b(release[- ]ready|ready (?:for|to) release|CRAN[- ]ready)\b",
+    re.I,
+)
+RESERVED_PUBLIC_CONTROL_PATTERN = re.compile(r"\bengine_control\b")
 
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
@@ -120,6 +136,35 @@ def read_tsv(path: pathlib.Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle, delimiter="\t", quoting=csv.QUOTE_NONE))
 
 
+def rel_path(path: pathlib.Path) -> str:
+    return path.relative_to(ROOT).as_posix()
+
+
+def text_line_number(text: str, index: int) -> int:
+    return text.count("\n", 0, index) + 1
+
+
+def local_documenter_claim_paths() -> list[pathlib.Path]:
+    """Return local Documenter.jl claim files if this repo ever grows them."""
+
+    paths: list[pathlib.Path] = []
+    docs_src = ROOT / "docs" / "src"
+    if docs_src.exists():
+        paths.extend(path for path in docs_src.rglob("*") if path.is_file())
+    for name in ("make.jl", "Documenter.toml", "Project.toml"):
+        path = ROOT / "docs" / name
+        if path.exists():
+            paths.append(path)
+    return sorted(set(paths))
+
+
+def public_claim_scan_paths() -> list[pathlib.Path]:
+    paths = list(PUBLIC_CLAIM_SCAN_FILES)
+    paths.extend(sorted((ROOT / "vignettes").glob("*.Rmd")))
+    paths.extend(local_documenter_claim_paths())
+    return [path for path in sorted(set(paths)) if path.exists()]
+
+
 def matrix_row_count_from_design(path: pathlib.Path) -> int:
     text = path.read_text(encoding="utf-8")
     match = re.search(r"## Finish Matrix\n(?P<table>.*?)\n## Issue-Led", text, re.S)
@@ -144,6 +189,7 @@ def main() -> int:
     read_json(DASHBOARD / "sweep.json")
     gate_rows = read_tsv(GATE_REGISTRY)
     capability_rows = read_tsv(CAPABILITY_REGISTRY)
+    documenter_paths = local_documenter_claim_paths()
 
     version = (DASHBOARD / "version.txt").read_text(encoding="utf-8").strip()
     index = (DASHBOARD / "index.html").read_text(encoding="utf-8")
@@ -324,6 +370,31 @@ def main() -> int:
             errors.append(f"{row_id}: evidence_url is not a GitHub issue URL")
         if not re.match(r"^[A-Za-z0-9]+#[0-9]+$", row.get("issue", "")):
             errors.append(f"{row_id}: issue is not a compact issue label")
+
+    for path in PUBLIC_CLAIM_REFERENCE_FILES:
+        if not path.exists():
+            errors.append(f"public claim reference file is missing: {rel_path(path)}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if CLAIM_MATRIX_REF not in text:
+            errors.append(f"{rel_path(path)} does not link the finish capability matrix")
+    for path in documenter_paths:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if CLAIM_MATRIX_REF not in text:
+            errors.append(f"{rel_path(path)} local Documenter claim file does not link the finish capability matrix")
+
+    for path in public_claim_scan_paths():
+        if path == DESIGN_MATRIX:
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for match in RELEASE_READY_PATTERN.finditer(text):
+            line = text_line_number(text, match.start())
+            errors.append(
+                f"{rel_path(path)}:{line} uses release-ready language outside the release gate"
+            )
+        for match in RESERVED_PUBLIC_CONTROL_PATTERN.finditer(text):
+            line = text_line_number(text, match.start())
+            errors.append(f"{rel_path(path)}:{line} exposes reserved engine_control language")
 
     if errors:
         for error in errors:

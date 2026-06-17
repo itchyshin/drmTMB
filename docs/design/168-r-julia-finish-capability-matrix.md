@@ -167,3 +167,13 @@ weakly identified cells cannot collapse into one status word.
    evidence.
 7. Leave release, comparator, and CRAN readiness planned until implementation,
    evidence, pkgdown, issue comments, dashboard rows, and 3-OS CI agree.
+
+## Public Claim Lint
+
+`tools/validate-mission-control.py` is the local guard for this matrix. It
+checks dashboard status counts and registry schemas, then checks that README,
+ROADMAP, NEWS, pkgdown navigation, the dashboard README, and any local
+Documenter.jl source files link back to this claim registry. It also rejects
+public-facing "release-ready" wording outside the release-gate row and rejects
+reserved `engine_control` language until a supported public control surface has
+design, tests, documentation, dashboard evidence, and review.
