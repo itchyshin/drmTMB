@@ -55302,3 +55302,46 @@ Boundary: private start plumbing only. No public `start`, `start_from`,
 likelihood, C++, TMB density, penalty/MAP, Gaussian clamp, Julia bridge,
 dashboard, simulation, q8 recovery, q8 power, interval, speed, or release
 promotion claim.
+
+## 2026-06-17: q8 staged-start mapper source tests
+
+Added private `drm_qgt2_staged_start_override()` as the q > 2 staged-start
+mapper construction step on current `origin/main`. The helper returns a named
+internal `override` list plus diagnostic `provenance`; ordinary user fits do
+not call it. It copies fixed effects by distributional parameter and
+model-matrix column name, copies q > 2 endpoint standard deviations by
+covariance-member key, and optionally copies `theta_re_cov` by pair key with
+shrinkage, boundary guarding, positive-definite regularization, packing onto
+TMB's unstructured-correlation theta scale, and an unpacking check.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over touched prose and code
+```
+
+Results: focused optimizer-contract tests passed before and after formatting.
+The combined optimizer-contract plus q8 endpoint/recovery phase18 subset
+passed. The first run exposed a real alignment issue: internal
+`log_sd_re_cov` start vectors have duplicated names. The helper now accepts
+duplicated target names only when the override has the identical name sequence.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here. `devtools::check(error_on =
+"never")` passed with 0 errors, 0 warnings, and 0 notes in 10m 42.4s. Static
+diff, conflict-marker, and forbidden-framing scans passed.
+
+Boundary: private mapper construction only. No public `start`, `start_from`,
+`warm_start`, or `map` API; no prepared-spec fit tail; no paired
+cold-versus-staged q8 diagnostic run; no likelihood, C++, TMB density,
+penalty/MAP, Gaussian clamp, Julia bridge, dashboard, q8 recovery, q8 power,
+interval, speed, or release promotion claim.

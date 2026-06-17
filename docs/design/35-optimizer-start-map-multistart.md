@@ -186,6 +186,36 @@ Each applied override records `parameter`, `n_value`, `n_applied`, and
 it does not change fitted degrees of freedom, likelihood evaluation, or
 inference labels.
 
+## Current Private Q8 Staged-Start Mapper
+
+The first private q8 staged-start mapper is now source-tested as
+`drm_qgt2_staged_start_override()`. It takes a fitted q > 2 source object and a
+target q > 2 bivariate Gaussian specification, then returns a named
+`override` list plus diagnostic `provenance`. The ordinary user path does not
+call the mapper, and no public `start`, `start_from`, or warm-start control is
+available.
+
+The mapper copies only auditable targets:
+
+- fixed effects for `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12` by
+  distributional parameter and model-matrix column name;
+- q > 2 endpoint standard-deviation starts by covariance-member key, including
+  group, block label, distributional parameter, and coefficient name;
+- optional `theta_re_cov` starts only when `copy_theta_re_cov = TRUE`, by
+  pair key rather than raw packed-vector position.
+
+The `theta_re_cov` path is deliberately diagnostic. Source correlations are
+shrunk, guarded away from the boundary, assembled into each target block's
+correlation matrix, regularized to a positive-definite start if needed, packed
+onto TMB's unstructured-correlation theta scale, and unpacked again to verify
+the requested target matrix. The default keeps `theta_re_cov` at the target
+neutral start.
+
+This mapper does not yet add the prepared-spec fit tail needed for paired
+cold-versus-staged fitting from a built target specification. It is the source
+and math contract for that later diagnostic runner, not evidence that q8
+coverage, power, or intervals are ready.
+
 ## Future Start Contract
 
 User starts should not be a free-form replacement of the entire TMB parameter

@@ -734,15 +734,20 @@ drm_align_start_override_value <- function(value, target, parameter) {
     if (
       anyNA(value_names) ||
         any(value_names == "") ||
-        any(duplicated(value_names)) ||
-        !identical(sort(value_names), sort(target_names))
+        ((any(duplicated(target_names)) || any(duplicated(value_names))) &&
+          !identical(value_names, target_names)) ||
+        (!any(duplicated(target_names)) &&
+          !any(duplicated(value_names)) &&
+          !identical(sort(value_names), sort(target_names)))
     ) {
       cli::cli_abort(c(
         "Named internal start overrides must match existing parameter names.",
         "x" = "Component {.val {parameter}} has names that do not match its target."
       ))
     }
-    value <- value[target_names]
+    if (!any(duplicated(target_names)) && !any(duplicated(value_names))) {
+      value <- value[target_names]
+    }
   }
   if (!is.null(target_names)) {
     names(value) <- target_names
@@ -764,6 +769,482 @@ drm_start_override_mapped_slots <- function(map, n, parameter) {
     ))
   }
   is.na(map)
+}
+
+drm_qgt2_staged_start_override <- function(
+  source_fit,
+  target_spec,
+  copy_theta_re_cov = FALSE,
+  theta_re_cov_shrink = 0.85,
+  strategy = "qgt2-staged-start"
+) {
+  if (isTRUE(copy_theta_re_cov)) {
+    theta_re_cov_shrink <- drm_qgt2_validate_theta_shrink(
+      theta_re_cov_shrink
+    )
+  }
+  if (!is.list(source_fit) || !is.list(source_fit$model)) {
+    cli::cli_abort(
+      "Internal q>2 staged starts require a fitted source {.cls drmTMB} object."
+    )
+  }
+  if (!is.list(target_spec) || !is.list(target_spec$start)) {
+    cli::cli_abort(
+      "Internal q>2 staged starts require a target model specification."
+    )
+  }
+
+  fixed <- drm_qgt2_fixed_effect_start_override(source_fit, target_spec)
+  sd <- drm_qgt2_log_sd_start_override(source_fit, target_spec)
+  theta <- if (isTRUE(copy_theta_re_cov)) {
+    drm_qgt2_theta_start_override(
+      source_fit,
+      target_spec,
+      shrink = theta_re_cov_shrink
+    )
+  } else {
+    list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "not_requested"
+    )
+  }
+  override <- c(fixed$override, sd$override, theta$override)
+  override <- override[lengths(override) > 0L]
+
+  list(
+    override = override,
+    provenance = list(
+      strategy = strategy,
+      source_model_type = drm_start_override_scalar(
+        source_fit$model$model_type,
+        NA_character_
+      ),
+      target_model_type = drm_start_override_scalar(
+        target_spec$model_type,
+        NA_character_
+      ),
+      fixed_effect_matches = fixed$matches,
+      qgt2_sd_matches = sd$matches,
+      qgt2_theta_matches = theta$matches,
+      theta_re_cov = theta$status,
+      theta_re_cov_shrink = if (isTRUE(copy_theta_re_cov)) {
+        theta_re_cov_shrink
+      } else {
+        NA_real_
+      }
+    )
+  )
+}
+
+drm_qgt2_fixed_effect_start_override <- function(source_fit, target_spec) {
+  dpar_parameter <- c(
+    mu1 = "beta_mu1",
+    mu2 = "beta_mu2",
+    sigma1 = "beta_sigma1",
+    sigma2 = "beta_sigma2",
+    rho12 = "beta_rho12"
+  )
+  override <- list()
+  match_rows <- list()
+  for (dpar in names(dpar_parameter)) {
+    parameter <- dpar_parameter[[dpar]]
+    current <- target_spec$start[[parameter]]
+    source <- source_fit$coefficients[[dpar]]
+    if (is.null(current) || is.null(source)) {
+      next
+    }
+    target_names <- names(current)
+    if (is.null(target_names)) {
+      target_names <- colnames(target_spec$X[[dpar]])
+    }
+    if (is.null(target_names)) {
+      next
+    }
+    source_names <- names(source)
+    if (is.null(source_names)) {
+      source_names <- target_names[seq_len(min(
+        length(target_names),
+        length(source)
+      ))]
+      names(source) <- source_names
+    }
+    common <- intersect(target_names, source_names)
+    proposed <- current
+    if (length(common) > 0L) {
+      proposed[match(common, target_names)] <- source[common]
+    }
+    names(proposed) <- names(current)
+    override[[parameter]] <- proposed
+    match_rows[[length(match_rows) + 1L]] <- data.frame(
+      dpar = dpar,
+      parameter = parameter,
+      n_target = length(current),
+      n_source = length(source),
+      n_matched = length(common),
+      matched = paste(common, collapse = ","),
+      stringsAsFactors = FALSE
+    )
+  }
+  list(
+    override = override,
+    matches = drm_rbind_or_empty(
+      match_rows,
+      c("dpar", "parameter", "n_target", "n_source", "n_matched", "matched")
+    )
+  )
+}
+
+drm_qgt2_log_sd_start_override <- function(source_fit, target_spec) {
+  target_registry <- target_spec$random$covariance_blocks
+  target_members <- qgt2_covariance_members(target_registry)
+  if (nrow(target_members) == 0L || is.null(target_spec$start$log_sd_re_cov)) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_sd_match_table()
+    ))
+  }
+
+  source_sd <- drm_qgt2_source_log_sd_by_key(source_fit)
+  target_keys <- drm_qgt2_member_start_keys(target_members)
+  proposed <- target_spec$start$log_sd_re_cov
+  common <- intersect(target_keys, names(source_sd))
+  if (length(common) > 0L) {
+    proposed[match(common, target_keys)] <- source_sd[common]
+  }
+  names(proposed) <- names(target_spec$start$log_sd_re_cov)
+
+  matches <- data.frame(
+    key = target_keys,
+    dpar = target_members$dpar,
+    coef = target_members$coef,
+    source_matched = target_keys %in% names(source_sd),
+    stringsAsFactors = FALSE
+  )
+  list(
+    override = list(log_sd_re_cov = proposed),
+    matches = matches
+  )
+}
+
+drm_qgt2_source_log_sd_by_key <- function(source_fit) {
+  registry <- source_fit$model$random$covariance_blocks
+  members <- qgt2_covariance_members(registry)
+  if (nrow(members) == 0L) {
+    return(stats::setNames(numeric(), character()))
+  }
+  keys <- drm_qgt2_member_start_keys(members)
+  out <- rep(NA_real_, length(keys))
+  for (i in seq_len(nrow(members))) {
+    sd_value <- covariance_registry_member_sd(
+      source_fit,
+      members[i, , drop = FALSE]
+    )
+    if (is.finite(sd_value) && sd_value > 0) {
+      out[[i]] <- log(sd_value)
+    }
+  }
+  ok <- is.finite(out)
+  stats::setNames(out[ok], keys[ok])
+}
+
+drm_qgt2_theta_start_override <- function(
+  source_fit,
+  target_spec,
+  shrink = 0.85
+) {
+  shrink <- drm_qgt2_validate_theta_shrink(shrink)
+  target_registry <- target_spec$random$covariance_blocks
+  target_blocks <- qgt2_covariance_blocks(target_registry)
+  if (
+    nrow(target_blocks) == 0L ||
+      is.null(target_spec$start$theta_re_cov) ||
+      length(target_spec$start$theta_re_cov) == 0L
+  ) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "no_target_theta_re_cov"
+    ))
+  }
+
+  source_cor <- drm_qgt2_source_cor_by_pair(source_fit)
+  if (length(source_cor) == 0L) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "no_source_correlations"
+    ))
+  }
+
+  proposed <- target_spec$start$theta_re_cov
+  target_pairs <- qgt2_covariance_pairs(target_registry)
+  target_members <- qgt2_covariance_members(target_registry)
+  match_rows <- list()
+  theta_offset <- 0L
+  for (block_i in seq_len(nrow(target_blocks))) {
+    block <- target_blocks[block_i, , drop = FALSE]
+    q <- block$n_members[[1L]]
+    n_theta <- choose(q, 2L)
+    block_members <- target_members[
+      target_members$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    block_pairs <- target_pairs[
+      target_pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    block_corr <- diag(q)
+    copied <- block_pairs$parameter %in% names(source_cor)
+    if (any(copied)) {
+      copied_values <- shrink * source_cor[block_pairs$parameter[copied]]
+      copied_values <- drm_qgt2_guard_theta_correlations(copied_values)
+      for (j in which(copied)) {
+        from <- block_pairs$from_member_id0[[j]] + 1L
+        to <- block_pairs$to_member_id0[[j]] + 1L
+        block_corr[from, to] <- copied_values[[block_pairs$parameter[[j]]]]
+        block_corr[to, from] <- block_corr[from, to]
+      }
+      regularized <- drm_qgt2_regularize_correlation_start(block_corr)
+      theta <- correlation_matrix_to_tmb_unstructured_theta(
+        regularized$corr
+      )
+      proposed[seq.int(theta_offset + 1L, length.out = n_theta)] <- theta
+      reconstructed <- tmb_unstructured_corr_matrix(theta)
+    } else {
+      regularized <- list(corr = block_corr, shrink_factor = 1, min_eigen = 1)
+      reconstructed <- block_corr
+    }
+
+    block_rows <- lapply(seq_len(nrow(block_pairs)), function(j) {
+      from <- block_pairs$from_member_id0[[j]] + 1L
+      to <- block_pairs$to_member_id0[[j]] + 1L
+      parameter <- block_pairs$parameter[[j]]
+      data.frame(
+        parameter = parameter,
+        from_key = drm_qgt2_member_start_keys(block_members[
+          from,
+          ,
+          drop = FALSE
+        ]),
+        to_key = drm_qgt2_member_start_keys(block_members[to, , drop = FALSE]),
+        source_matched = copied[[j]],
+        source_correlation = if (copied[[j]]) {
+          source_cor[[parameter]]
+        } else {
+          NA_real_
+        },
+        copied_correlation = block_corr[from, to],
+        reconstructed_correlation = reconstructed[from, to],
+        block_shrink_factor = regularized$shrink_factor,
+        block_min_eigen = regularized$min_eigen,
+        stringsAsFactors = FALSE
+      )
+    })
+    match_rows <- c(match_rows, block_rows)
+    theta_offset <- theta_offset + n_theta
+  }
+
+  names(proposed) <- names(target_spec$start$theta_re_cov)
+  matches <- drm_rbind_or_empty(
+    match_rows,
+    c(
+      "parameter",
+      "from_key",
+      "to_key",
+      "source_matched",
+      "source_correlation",
+      "copied_correlation",
+      "reconstructed_correlation",
+      "block_shrink_factor",
+      "block_min_eigen"
+    )
+  )
+  if (!any(matches$source_matched)) {
+    return(list(
+      override = list(),
+      matches = matches,
+      status = "no_matching_pair_keys"
+    ))
+  }
+  list(
+    override = list(theta_re_cov = proposed),
+    matches = matches,
+    status = "copied_by_pair_key"
+  )
+}
+
+drm_qgt2_source_cor_by_pair <- function(source_fit) {
+  if (!is.list(source_fit$corpars)) {
+    return(stats::setNames(numeric(), character()))
+  }
+  source_cor <- source_fit$corpars$re_cov
+  if (is.null(source_cor) || length(source_cor) == 0L) {
+    return(stats::setNames(numeric(), character()))
+  }
+  if (is.null(names(source_cor))) {
+    source_pairs <- qgt2_covariance_pairs(
+      source_fit$model$random$covariance_blocks
+    )
+    names(source_cor) <- source_pairs$parameter[seq_along(source_cor)]
+  }
+  ok <- is.finite(source_cor) &
+    !is.na(names(source_cor)) &
+    nzchar(names(source_cor))
+  source_cor[ok]
+}
+
+drm_qgt2_validate_theta_shrink <- function(shrink) {
+  if (
+    !is.numeric(shrink) ||
+      length(shrink) != 1L ||
+      !is.finite(shrink) ||
+      shrink <= 0 ||
+      shrink > 1
+  ) {
+    cli::cli_abort(
+      "{.arg theta_re_cov_shrink} must be one finite number in (0, 1]."
+    )
+  }
+  shrink
+}
+
+drm_qgt2_guard_theta_correlations <- function(x, guard = 0.98) {
+  pmax(pmin(x, guard), -guard)
+}
+
+drm_qgt2_regularize_correlation_start <- function(
+  corr,
+  min_eigen = 1e-6,
+  shrink_step = 0.75,
+  max_iter = 12L
+) {
+  offdiag <- corr
+  diag(offdiag) <- 0
+  for (i in seq_len(max_iter + 1L)) {
+    factor <- shrink_step^(i - 1L)
+    candidate <- diag(nrow(corr)) + factor * offdiag
+    eigenvalues <- tryCatch(
+      eigen(candidate, symmetric = TRUE, only.values = TRUE)$values,
+      error = function(e) NA_real_
+    )
+    min_value <- min(eigenvalues)
+    if (is.finite(min_value) && min_value > min_eigen) {
+      return(list(
+        corr = candidate,
+        shrink_factor = factor,
+        min_eigen = min_value
+      ))
+    }
+  }
+  list(
+    corr = diag(nrow(corr)),
+    shrink_factor = 0,
+    min_eigen = 1
+  )
+}
+
+correlation_matrix_to_tmb_unstructured_theta <- function(corr) {
+  if (
+    !is.matrix(corr) ||
+      nrow(corr) != ncol(corr) ||
+      any(!is.finite(corr))
+  ) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires a finite square matrix."
+    )
+  }
+  if (!isTRUE(all.equal(diag(corr), rep(1, nrow(corr))))) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires unit diagonal."
+    )
+  }
+  lower_chol <- tryCatch(
+    t(chol(corr)),
+    error = function(e) e
+  )
+  if (inherits(lower_chol, "error")) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires a positive-definite matrix."
+    )
+  }
+  diagonal <- diag(lower_chol)
+  if (any(!is.finite(diagonal)) || any(diagonal <= 0)) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta Cholesky factor has invalid diagonal."
+    )
+  }
+  lower_unit <- sweep(lower_chol, 1L, diagonal, "/")
+  lower <- which(lower.tri(lower_unit), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  theta <- lower_unit[lower]
+  reconstructed <- tmb_unstructured_corr_matrix(theta)
+  if (max(abs(reconstructed - corr)) > 1e-8) {
+    cli::cli_abort(
+      "Internal error: packed theta did not reconstruct the requested correlation matrix."
+    )
+  }
+  theta
+}
+
+drm_qgt2_member_start_keys <- function(members) {
+  if (!is.data.frame(members) || nrow(members) == 0L) {
+    return(character())
+  }
+  paste0(
+    "group=",
+    members$group,
+    ";block=",
+    members$block_label,
+    ";dpar=",
+    members$dpar,
+    ";coef=",
+    members$coef
+  )
+}
+
+drm_empty_qgt2_sd_match_table <- function() {
+  data.frame(
+    key = character(),
+    dpar = character(),
+    coef = character(),
+    source_matched = logical(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_empty_qgt2_theta_match_table <- function() {
+  data.frame(
+    parameter = character(),
+    from_key = character(),
+    to_key = character(),
+    source_matched = logical(),
+    source_correlation = numeric(),
+    copied_correlation = numeric(),
+    reconstructed_correlation = numeric(),
+    block_shrink_factor = numeric(),
+    block_min_eigen = numeric(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_rbind_or_empty <- function(rows, columns) {
+  if (length(rows) == 0L) {
+    return(stats::setNames(
+      data.frame(matrix(ncol = length(columns), nrow = 0L)),
+      columns
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+drm_start_override_scalar <- function(x, default) {
+  if (length(x) == 1L && !is.null(x)) {
+    return(x)
+  }
+  default
 }
 
 drm_validate_reml_spec <- function(spec) {
