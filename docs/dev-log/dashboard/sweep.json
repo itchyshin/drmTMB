@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 11:16 MDT",
+  "updated": "2026-06-17 14:46 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Takeover queue update: PRs #474, #605, #606, #607, #475, and #473 are merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 are closed as superseded by current main; #540 is closed as an unsupported failed optimizer-control slice; #571 and #573 are closed as superseded drafts; only draft PR #574 remains open, held for the close-versus-rework decision because later evidence says the full-data beak sigma-phylo failure is not a start-basin problem."
+      "text": "Takeover queue update: PRs #474, #605, #606, #607, #475, #473, and #608 are merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 are closed as superseded by current main; #540 is closed as an unsupported failed optimizer-control slice; #571, #573, and #574 are closed as superseded drafts. Issue #570 remains open for the real beak evidence gates because later evidence says the full-data beak sigma-phylo failure is not a start-basin problem."
     }
   ]
 }
