@@ -241,10 +241,10 @@ drm_control_reserved_names <- function() {
     "warm_start_from",
     "map",
     "fixed",
-    "fallback_optimizer",
     "fallback_optimizers",
     "optimizer_fallback",
-    "optimizer_fallbacks"
+    "optimizer_fallbacks",
+    "multistart"
   ))
 }
 
