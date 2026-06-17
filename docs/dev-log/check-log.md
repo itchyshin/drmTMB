@@ -2,6 +2,37 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Power-grid execution refresh for PR #473
+
+Goal:
+
+- Refresh the stale power-grid execution draft against current `main` while
+  preserving newer Phase 18 Actions task choices and dispatch invariants.
+
+Changes:
+
+- Replayed the generic power-grid runner, artifact writer, three power task
+  wrappers, and Actions workflow/runner wiring for `gaussian_ls_power`,
+  `meta_v_power`, and `poisson_mu_re_power`.
+- Resolved the only conflict in `tests/testthat/test-phase18-actions-runner.R`
+  by keeping current-main's workflow-dispatch invariant and adding the power
+  dry-run/dependency tests below it.
+- Ran `air format` on the new/changed power-grid R and test files.
+- Added a fresh after-task note for the current-main refresh.
+
+Checks run:
+
+- `git cherry-pick 069cd53e 8d453d94 444f82a5`
+- `air format inst/sim/R/sim_power.R inst/sim/run/sim_run_actions_cell.R inst/sim/run/sim_run_gaussian_ls_power_smoke.R inst/sim/run/sim_run_meta_v_power_smoke.R inst/sim/run/sim_run_poisson_mu_re_power_smoke.R inst/sim/run/sim_run_power_grid.R inst/sim/run/sim_write_power_grid.R tests/testthat/test-phase18-actions-runner.R tests/testthat/test-phase18-gaussian-ls-power-runner.R tests/testthat/test-phase18-power-grid-engine.R tests/testthat/test-phase18-power.R`
+- `Rscript --vanilla -e 'devtools::test(filter = "phase18-(actions-runner|power-grid-engine|gaussian-ls-power-runner|power)", reporter = "summary")'`
+- `git diff --check`
+
+Boundaries:
+
+- Simulation execution-layer refresh only. No package model behavior, formula
+  grammar, likelihood, TMB code, public power claim, dashboard metric promotion,
+  or release-readiness claim changed.
+
 ## 2026-06-17 -- Release-hygiene refresh for PR #475
 
 Goal:

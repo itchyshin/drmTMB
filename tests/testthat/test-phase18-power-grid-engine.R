@@ -8,7 +8,10 @@ phase18_source_power_engine <- function(envir = parent.frame()) {
     "sim/run/sim_run_power_grid.R",
     "sim/run/sim_write_power_grid.R"
   )) {
-    source(system.file(path, package = "drmTMB", mustWork = TRUE), local = envir)
+    source(
+      system.file(path, package = "drmTMB", mustWork = TRUE),
+      local = envir
+    )
   }
 }
 
@@ -23,17 +26,32 @@ phase18_power_mock_dgp <- function(cell, seed, cell_id, replicate) {
 }
 phase18_power_mock_fit <- function(data, cell) list(ok = TRUE)
 phase18_power_mock_summarise <- function(
-  fit, truth, cell_id, replicate, elapsed = NA_real_, warnings = character()
+  fit,
+  truth,
+  cell_id,
+  replicate,
+  elapsed = NA_real_,
+  warnings = character()
 ) {
   tr <- attr(truth, "truth")
   set.seed(replicate * 7L + as.integer(tr$n))
   est <- tr$effect_size + stats::rnorm(1L, 0, 0.05)
   data.frame(
-    surface = "mock", cell_id = cell_id, replicate = replicate,
-    parameter = "mu:x", truth = tr$effect_size, estimate = est,
-    std.error = 0.08, error = est - tr$effect_size, converged = TRUE,
-    pdHess = TRUE, nobs = tr$n, elapsed = elapsed, warning_count = 0L,
-    warnings = "", stringsAsFactors = FALSE
+    surface = "mock",
+    cell_id = cell_id,
+    replicate = replicate,
+    parameter = "mu:x",
+    truth = tr$effect_size,
+    estimate = est,
+    std.error = 0.08,
+    error = est - tr$effect_size,
+    converged = TRUE,
+    pdHess = TRUE,
+    nobs = tr$n,
+    elapsed = elapsed,
+    warning_count = 0L,
+    warnings = "",
+    stringsAsFactors = FALSE
   )
 }
 
@@ -113,25 +131,43 @@ test_that("power grid writer persists CSV artifacts and a manifest", {
   result <- list(
     surface = "mock_power",
     power = data.frame(
-      surface = "mock_power", cell_id = c("c1", "c2"), parameter = "mu:x",
-      effect_size = c(0, 0.4), n = c(120L, 120L), power = c(0.04, 0.8),
-      power_mcse = c(0.02, 0.04), inference = c("type_i_error", "power"),
+      surface = "mock_power",
+      cell_id = c("c1", "c2"),
+      parameter = "mu:x",
+      effect_size = c(0, 0.4),
+      n = c(120L, 120L),
+      power = c(0.04, 0.8),
+      power_mcse = c(0.02, 0.04),
+      inference = c("type_i_error", "power"),
       stringsAsFactors = FALSE
     ),
     curve = data.frame(
-      effect_size = c(0, 0.4), n = c(120L, 120L), power = c(0.04, 0.8),
-      power_low = c(0, 0.72), power_high = c(0.08, 0.88), stringsAsFactors = FALSE
-    ),
-    sample_size = data.frame(
-      effect_size = 0.4, n_target = 120, status = "achieved_at_min",
+      effect_size = c(0, 0.4),
+      n = c(120L, 120L),
+      power = c(0.04, 0.8),
+      power_low = c(0, 0.72),
+      power_high = c(0.08, 0.88),
       stringsAsFactors = FALSE
     ),
-    registry = list(cells = data.frame(
-      cell_id = c("c1", "c2"), surface = "mock_power",
-      effect_size = c(0, 0.4), n = c(120L, 120L), stringsAsFactors = FALSE
-    )),
+    sample_size = data.frame(
+      effect_size = 0.4,
+      n_target = 120,
+      status = "achieved_at_min",
+      stringsAsFactors = FALSE
+    ),
+    registry = list(
+      cells = data.frame(
+        cell_id = c("c1", "c2"),
+        surface = "mock_power",
+        effect_size = c(0, 0.4),
+        n = c(120L, 120L),
+        stringsAsFactors = FALSE
+      )
+    ),
     summary = data.frame(
-      cell_id = c("c1", "c2"), parameter = "mu:x", estimate = c(0.01, 0.4),
+      cell_id = c("c1", "c2"),
+      parameter = "mu:x",
+      estimate = c(0.01, 0.4),
       stringsAsFactors = FALSE
     )
   )
@@ -139,7 +175,9 @@ test_that("power grid writer persists CSV artifacts and a manifest", {
   output_dir <- tempfile("phase18-power-write-")
   withr::defer(unlink(output_dir, recursive = TRUE))
   written <- phase18_write_power_grid_tables(
-    result, output_dir = output_dir, prefix = "mock-power"
+    result,
+    output_dir = output_dir,
+    prefix = "mock-power"
   )
 
   expect_true(file.exists(written$paths$power_csv))
@@ -154,7 +192,9 @@ test_that("power grid writer persists CSV artifacts and a manifest", {
   # Refuses to clobber without overwrite.
   expect_error(
     phase18_write_power_grid_tables(
-      result, output_dir = output_dir, prefix = "mock-power"
+      result,
+      output_dir = output_dir,
+      prefix = "mock-power"
     ),
     "already exists"
   )
@@ -169,14 +209,18 @@ test_that("run-and-write composes a runner with the writer", {
       power = data.frame(power = 0.5, stringsAsFactors = FALSE),
       curve = data.frame(n = 1L, power = 0.5, stringsAsFactors = FALSE),
       sample_size = data.frame(status = "no_data", stringsAsFactors = FALSE),
-      registry = list(cells = data.frame(cell_id = "c1", stringsAsFactors = FALSE)),
+      registry = list(
+        cells = data.frame(cell_id = "c1", stringsAsFactors = FALSE)
+      ),
       summary = data.frame(cell_id = "c1", stringsAsFactors = FALSE)
     )
   }
   output_dir <- tempfile("phase18-power-run-write-")
   withr::defer(unlink(output_dir, recursive = TRUE))
   written <- phase18_run_and_write_power_grid(
-    run_fun = fake_run, output_dir = output_dir, prefix = "fake-power",
+    run_fun = fake_run,
+    output_dir = output_dir,
+    prefix = "fake-power",
     n_rep = 2L
   )
   expect_identical(written$surface, "fake")
@@ -186,10 +230,15 @@ test_that("run-and-write composes a runner with the writer", {
 test_that("meta-analysis power runner composes end to end", {
   skip_on_cran()
   for (path in c(
-    "sim/R/sim_registry.R", "sim/R/sim_utils.R", "sim/R/sim_runner.R",
-    "sim/R/sim_uncertainty.R", "sim/R/sim_power.R",
-    "sim/dgp/sim_dgp_meta_v.R", "sim/fit/sim_summarise_meta_v.R",
-    "sim/run/sim_run_meta_v_smoke.R", "sim/run/sim_run_power_grid.R",
+    "sim/R/sim_registry.R",
+    "sim/R/sim_utils.R",
+    "sim/R/sim_runner.R",
+    "sim/R/sim_uncertainty.R",
+    "sim/R/sim_power.R",
+    "sim/dgp/sim_dgp_meta_v.R",
+    "sim/fit/sim_summarise_meta_v.R",
+    "sim/run/sim_run_meta_v_smoke.R",
+    "sim/run/sim_run_power_grid.R",
     "sim/run/sim_run_meta_v_power_smoke.R"
   )) {
     source(system.file(path, package = "drmTMB", mustWork = TRUE), local = TRUE)
@@ -197,8 +246,11 @@ test_that("meta-analysis power runner composes end to end", {
 
   result <- phase18_run_meta_v_power(
     base_conditions = phase18_meta_v_conditions(
-      n_study = 40L, known_v_type = "vector", sigma = 0.25,
-      sampling_sd = 0.14, sampling_rho = 0
+      n_study = 40L,
+      known_v_type = "vector",
+      sigma = 0.25,
+      sampling_sd = 0.14,
+      sampling_rho = 0
     ),
     effect_values = c(0, 0.5),
     n_rep = 1L,
@@ -215,8 +267,11 @@ test_that("meta-analysis power runner composes end to end", {
 test_that("Poisson mu random-effect power runner composes end to end", {
   skip_on_cran()
   for (path in c(
-    "sim/R/sim_registry.R", "sim/R/sim_utils.R", "sim/R/sim_runner.R",
-    "sim/R/sim_uncertainty.R", "sim/R/sim_power.R",
+    "sim/R/sim_registry.R",
+    "sim/R/sim_utils.R",
+    "sim/R/sim_runner.R",
+    "sim/R/sim_uncertainty.R",
+    "sim/R/sim_power.R",
     "sim/dgp/sim_dgp_poisson_mu_random_effect.R",
     "sim/fit/sim_summarise_poisson_mu_random_effect.R",
     "sim/run/sim_run_poisson_mu_random_effect_smoke.R",
@@ -228,7 +283,8 @@ test_that("Poisson mu random-effect power runner composes end to end", {
 
   result <- phase18_run_poisson_mu_re_power(
     base_conditions = phase18_poisson_mu_re_conditions(
-      n_group = 30L, n_per_group = 8L
+      n_group = 30L,
+      n_per_group = 8L
     ),
     effect_values = c(0, 0.5),
     n_rep = 1L,

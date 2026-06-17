@@ -47,7 +47,14 @@ phase18_write_power_grid_tables <- function(
   prefix = "power",
   overwrite = FALSE
 ) {
-  required <- c("surface", "power", "curve", "sample_size", "registry", "summary")
+  required <- c(
+    "surface",
+    "power",
+    "curve",
+    "sample_size",
+    "registry",
+    "summary"
+  )
   if (!is.list(result) || !all(required %in% names(result))) {
     stop(
       "`result` must be a power-grid runner result list with ",
@@ -61,9 +68,7 @@ phase18_write_power_grid_tables <- function(
   ) {
     stop("`output_dir` must be one non-empty path string.", call. = FALSE)
   }
-  if (
-    !is.character(prefix) || length(prefix) != 1L || !nzchar(prefix)
-  ) {
+  if (!is.character(prefix) || length(prefix) != 1L || !nzchar(prefix)) {
     stop("`prefix` must be one non-empty string.", call. = FALSE)
   }
   if (!isTRUE(overwrite) && !identical(overwrite, FALSE)) {
@@ -90,7 +95,11 @@ phase18_write_power_grid_tables <- function(
   utils::write.csv(result$power, paths$power_csv, row.names = FALSE)
   utils::write.csv(result$curve, paths$curve_csv, row.names = FALSE)
   utils::write.csv(result$sample_size, paths$sample_size_csv, row.names = FALSE)
-  utils::write.csv(result$registry$cells, paths$conditions_csv, row.names = FALSE)
+  utils::write.csv(
+    result$registry$cells,
+    paths$conditions_csv,
+    row.names = FALSE
+  )
   utils::write.csv(result$summary, paths$replicate_csv, row.names = FALSE)
 
   manifest <- phase18_power_grid_manifest(result$surface, paths)

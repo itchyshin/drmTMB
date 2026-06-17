@@ -220,7 +220,12 @@ test_that("power helpers reject malformed inputs", {
     "non-empty finite numeric"
   )
   expect_error(
-    phase18_power_grid_conditions(base, "beta_mu_x", c(0, 0.3), null_value = NA),
+    phase18_power_grid_conditions(
+      base,
+      "beta_mu_x",
+      c(0, 0.3),
+      null_value = NA
+    ),
     "one finite number"
   )
 

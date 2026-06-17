@@ -81,7 +81,9 @@ phase18_summarise_power <- function(
     function(x, null) {
       lower_value <- as.numeric(x[[lower]])
       upper_value <- as.numeric(x[[upper]])
-      usable <- is.finite(lower_value) & is.finite(upper_value) & is.finite(null)
+      usable <- is.finite(lower_value) &
+        is.finite(upper_value) &
+        is.finite(null)
       if ("interval_status" %in% names(x)) {
         usable <- usable & as.character(x$interval_status) == "ok"
       }
