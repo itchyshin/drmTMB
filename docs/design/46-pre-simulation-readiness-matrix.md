@@ -208,15 +208,21 @@ tables until their own focused gates close.
 
 ## Next Surface Decisions
 
-The next implementation choices are therefore narrow:
+The next implementation choices are therefore narrow. The fixed-effect
+plain-binomial first slice is fitted and has a banked `stats::glm()` parity
+artifact, so its next work is evidence depth, not broader support.
 
-1. Run tiny optional grids for Poisson and NB2 `mu` random effects, varying
+1. If the team wants binomial interval language, run an MCSE-backed
+   `binomial_fixed_effect` promotion grid and keep random effects, structured
+   effects, bivariate/mixed responses, and the Julia bridge out of scope.
+2. Run tiny optional grids for Poisson and NB2 `mu` random effects, varying
    group count, repeats, true SD, and mean/overdispersion.
-2. Return to a blocked model class such as ordinal random intercepts, the
+3. Return to a blocked model class such as ordinal random intercepts, the
    first non-Gaussian `sigma` random-effect likelihood beyond the ordinary NB2
    intercept gate, or a separate zero-truncated NB2 random-slope design.
-3. Build reader-facing examples for the ready surfaces, especially NB2 counts,
-   meta-analysis with known `V`, and coordinate spatial Gaussian `mu`.
+4. Build reader-facing examples for the ready surfaces, especially NB2 counts,
+   meta-analysis with known `V`, coordinate spatial Gaussian `mu`, and
+   fixed-effect binomial event-probability models.
 
 The simulation programme can start now for ready surfaces, but the package
 should not claim "comprehensive non-Gaussian simulation" until the blocked rows
