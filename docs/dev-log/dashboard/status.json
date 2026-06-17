@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 09:25 MDT",
+  "updated": "2026-06-17 11:16 MDT",
   "metrics": {
     "verified": 21,
     "active": 3,
@@ -1099,7 +1099,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Takeover queue cleanup is banked: PRs #474, #605, and #606 merged after fresh 3-OS R-CMD-check; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, and #573 were closed as unsupported or superseded; the remaining open PRs are #574, #475, and #473, each requiring a separate current-main refresh decision."
+      "text": "Takeover merge queue is banked through PR #473: PRs #474, #605, #606, #607, #475, and #473 merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, and #573 were closed as unsupported or superseded; the only open PR is draft #574, held for the close-versus-rework decision because later beak evidence says the full-data sigma-phylo failure is not a start-basin problem."
     },
     {
       "when": "now",
@@ -1118,6 +1118,20 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Merged PR #473 after refreshing the power-grid execution layer against the post-#475 main branch and waiting for fresh Ubuntu, macOS, and Windows PR R-CMD-check. This adds execution plumbing and artifacts only; it does not promote power, coverage, speed, release, model, formula, or likelihood claims.",
+      "url": "docs/dev-log/after-task/2026-06-17-power-grid-refresh.md",
+      "link_label": "power-grid refresh"
+    },
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Merged PR #475 after refreshing release-hygiene citation/profile-example work against current main and waiting for fresh Ubuntu, macOS, and Windows PR R-CMD-check. This adds package release artifacts only; it is not a CRAN-ready claim.",
+      "url": "docs/dev-log/after-task/2026-06-17-release-hygiene-refresh.md",
+      "link_label": "release-hygiene refresh"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",

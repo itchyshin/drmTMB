@@ -2,6 +2,39 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Takeover queue dashboard refresh after PRs #475 and #473
+
+Goal:
+
+- Bring mission-control and the check log back into line after the refreshed
+  release-hygiene and power-grid draft PRs merged.
+
+Changes:
+
+- Recorded that PR #475 was refreshed against current `main`, passed fresh
+  Ubuntu, macOS, and Windows PR R-CMD-check, and merged as release-hygiene
+  infrastructure rather than a CRAN-ready claim.
+- Recorded that PR #473 was refreshed against the post-#475 `main`, passed
+  fresh Ubuntu, macOS, and Windows PR R-CMD-check, and merged as simulation
+  execution plumbing rather than a power, coverage, speed, model, formula, or
+  likelihood claim.
+- Updated mission-control active-work text so #473 and #475 no longer appear as
+  open decisions.
+- Kept draft PR #574 as the only open PR and an explicit decision point:
+  close the stale start-ladder diagnostic as superseded, or rework it into the
+  newer optimizer-control surface after #606.
+
+Checks run:
+
+- `gh pr list --repo itchyshin/drmTMB --state open --json number,title,isDraft,headRefName,baseRefName,mergeStateStatus,statusCheckRollup,updatedAt --limit 30`
+- `gh run list --repo itchyshin/drmTMB --limit 12 --json databaseId,displayTitle,workflowName,status,conclusion,headBranch,event,createdAt,updatedAt,url`
+
+Boundaries:
+
+- Status/dashboard slice only. No R model code, TMB code, formula grammar,
+  likelihood, Julia bridge implementation, mission-control metric promotion, or
+  release-readiness claim changed.
+
 ## 2026-06-17 -- Power-grid execution refresh for PR #473
 
 Goal:
