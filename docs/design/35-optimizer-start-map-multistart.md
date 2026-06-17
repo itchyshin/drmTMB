@@ -211,9 +211,23 @@ onto TMB's unstructured-correlation theta scale, and unpacked again to verify
 the requested target matrix. The default keeps `theta_re_cov` at the target
 neutral start.
 
-This mapper does not yet add the prepared-spec fit tail needed for paired
-cold-versus-staged fitting from a built target specification. It is the source
-and math contract for that later diagnostic runner, not evidence that q8
+## Current Private Prepared-Spec Fit Tail
+
+`drm_fit_spec()` is now the private fit tail used by `drmTMB()` after a family
+builder has returned a model specification. It takes a built `spec`, applies
+the same estimator, phylogenetic-penalty, log-sigma clamp, private
+start-override, TMB construction, optimizer retry, selected-optimum pinning,
+uncertainty, missing-data finalization, and storage-control steps as the public
+fit path, then returns an ordinary `"drmTMB"` object.
+
+The helper is intentionally internal. It does not add a public `start`,
+`start_from`, `warm_start`, or prepared-spec API. Its purpose is to let later
+diagnostic code fit a target specification after setting `spec$start_override`
+without duplicating the current optimizer and reporting tail.
+
+The q8 staged-start mapper plus `drm_fit_spec()` still do not provide paired
+cold-versus-staged diagnostic evidence. They provide the source mapping and
+fit-tail plumbing needed for that next diagnostic runner, not evidence that q8
 coverage, power, or intervals are ready.
 
 ## Future Start Contract

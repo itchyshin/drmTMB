@@ -55345,3 +55345,51 @@ Boundary: private mapper construction only. No public `start`, `start_from`,
 cold-versus-staged q8 diagnostic run; no likelihood, C++, TMB density,
 penalty/MAP, Gaussian clamp, Julia bridge, dashboard, q8 recovery, q8 power,
 interval, speed, or release promotion claim.
+
+## 2026-06-17: q8 prepared-spec fit tail
+
+Refactored the current `drmTMB()` post-builder fit path into private
+`drm_fit_spec()`. `drmTMB()` now builds a family specification and then calls
+the same helper used by future internal diagnostic runners. The helper applies
+the estimator and phylogenetic-penalty spec, log-sigma clamp data, private
+start override, `TMB::MakeADFun()`, optimizer preset retry ladder,
+selected-optimum pinning, uncertainty state, missing-data finalization,
+parameter splitting, fit degrees of freedom, and storage control before
+returning an ordinary `"drmTMB"` object.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+Rscript --vanilla -e 'devtools::check(error_on = "never")'
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+git diff --check
+conflict-marker scan over touched files
+forbidden-framing scan over added diff lines
+```
+
+Results: focused optimizer-contract tests passed. The combined
+optimizer-contract plus q8 endpoint/recovery Phase 18 subset passed.
+`devtools::document()` completed; unrelated generated Rd/RoxygenNote drift was
+removed from the PR. `pkgdown::check_pkgdown()` failed on the pre-existing
+`drm_phylo_penalty` topic missing from `_pkgdown.yml`, which belongs to the
+Claude penalty/Ayumi lane and was not changed here.
+`devtools::check(error_on = "never")` passed with 0 errors, 0 warnings, and 0
+notes in 11m 11s. Full `devtools::test()` passed with exit 0; it reported five
+existing Julia/cross-family skips and eight expected log-sigma clamp warnings
+from the pathological clamp test. Static diff, conflict-marker, and added-line
+forbidden-framing scans passed.
+
+The new prepared-spec helper test fits the same Gaussian location-scale model
+through the public path and through a built spec, then compares the fitted
+object surfaces used by future diagnostic code.
+
+Boundary: private fit-tail refactor only. No public `start`, `start_from`,
+`warm_start`, prepared-spec, or `map` API; no paired cold-versus-staged q8
+diagnostic run; no likelihood, C++, TMB density, penalty/MAP, Gaussian clamp,
+Julia bridge, dashboard, q8 recovery, q8 power, interval, speed, or release
+promotion claim.
