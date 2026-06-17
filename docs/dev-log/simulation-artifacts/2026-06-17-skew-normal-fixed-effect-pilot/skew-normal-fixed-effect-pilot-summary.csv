@@ -1,0 +1,2 @@
+"surface","label","n_cells","n_rep","n_fits","n_ok","n_error","n_skipped","min_convergence_rate","min_pdHess_rate","max_warning_rate","mean_elapsed_seconds","started","finished","elapsed_seconds","cores","backend"
+"skew_normal_fixed_effect","pilot",6,25,150,150,0,0,1,1,0,0.11858,"2026-06-16 21:01:35 MDT","2026-06-16 21:01:40 MDT",5.77381587028503,4,"multicore"

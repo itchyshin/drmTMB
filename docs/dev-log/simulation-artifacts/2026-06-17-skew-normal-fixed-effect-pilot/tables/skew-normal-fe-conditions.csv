@@ -1,0 +1,7 @@
+"cell_id","surface","n","nu_intercept","nu_slope","sigma_slope","rho_xw","beta_mu_intercept","beta_mu_x","beta_sigma_intercept","cell_code"
+"skew_normal_fixed_effect_001","skew_normal_fixed_effect",720,-1.2,0,0.15,0.2,0.2,0.4,-0.356674943938732,"C1"
+"skew_normal_fixed_effect_002","skew_normal_fixed_effect",720,0,0,0.15,0.2,0.2,0.4,-0.356674943938732,"C2"
+"skew_normal_fixed_effect_003","skew_normal_fixed_effect",720,1.2,0,0.15,0.2,0.2,0.4,-0.356674943938732,"C3"
+"skew_normal_fixed_effect_004","skew_normal_fixed_effect",720,-1.2,0.35,0.15,0.2,0.2,0.4,-0.356674943938732,"C4"
+"skew_normal_fixed_effect_005","skew_normal_fixed_effect",720,0,0.35,0.15,0.2,0.2,0.4,-0.356674943938732,"C5"
+"skew_normal_fixed_effect_006","skew_normal_fixed_effect",720,1.2,0.35,0.15,0.2,0.2,0.4,-0.356674943938732,"C6"

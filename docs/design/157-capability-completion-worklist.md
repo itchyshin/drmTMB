@@ -57,7 +57,7 @@ Read this first — it is the distinction most likely to be confused.
 | Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane; formal high-replicate operating characteristics remain future evidence |
+| `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane and a 2026-06-17 six-cell x 25-replicate diagnostic pilot. The pilot had 150/150 ok fits, convergence and `pdHess` rates of 1.000, zero warnings, and slant-term 70% Wald coverage from 0.64 to 0.96 with large pilot MCSE; formal high-replicate operating characteristics remain future evidence. |
 | Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. The Phase 18 `binomial_fixed_effect` lane, the first Phase 19 `stats::glm()` parity artifact, and a 500-replicate fixed-effect Wald interval-calibration artifact are banked. Random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage language, and the Julia bridge remain planned or unsupported. |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
@@ -92,7 +92,9 @@ interval studies if needed, and any future Julia bridge parity issue. Those are
 optional promotion slices, not prerequisites for resuming the older capability
 queue. The broader numerical-guard programme remains active for scale-side
 phylogeny, bivariate scale routes, support floors, Student-t shape restrictions,
-correlation guards, and interval consequences.
+correlation guards, and interval consequences. The 2026-06-17 fixed-effect
+skew-normal pilot is also banked as diagnostic evidence: it supports further
+formal grid work, but not calibrated interval or release language.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
@@ -102,9 +104,10 @@ correlation guards, and interval consequences.
    leading-minor optimization errors, and unavailable intervals mean they do
    not support individual-difference power claims.
 2. *(parallel)* `skew_normal()` fixed-effect artifact depth — Tier C follow-up;
-   the first fitted slice exists, and the remaining useful work is a larger
-   formal operating-characteristic run plus any external comparator that can
-   match the public moment parameterization honestly.
+   the first fitted slice exists, and a 2026-06-17 six-cell diagnostic pilot is
+   banked. The remaining useful work is a larger formal operating-characteristic
+   run plus any external comparator that can match the public moment
+   parameterization honestly.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic
    covariance).
@@ -221,10 +224,13 @@ plasticity, residual variability, and its change. Finish it in order.
      `128-...test-contract`, `132-...implementation-gate`,
      `123-...source-map`. The parameterization, source tests, and fixed-effect
      likelihood are implemented; `test-phase18-skew-normal-fixed-effect.R`
-     adds the repeatable smoke/grid artifact lane.
+     adds the repeatable smoke/grid artifact lane, and
+     `docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/`
+     banks the first six-cell diagnostic pilot.
    - Scope: univariate fixed-effect `mu`/`sigma`/`nu` only; no random or
      structured effects in the first slice. Formal high-replicate operating
-     characteristics and honest external comparators remain future evidence.
+     characteristics, calibrated interval language, and honest external
+     comparators remain future evidence.
 
 ## Tier D — Random Effects in `rho12` (#5 boundary)
 
