@@ -44,6 +44,7 @@ now and what each remaining gate needs.
 | First executable Phase 19 comparator artifact | partial | Fixed-effect `stats::binomial(link = "logit")` GLM parity bundle is banked at `docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/`; other comparator rows remain pending |
 | First fixed-effect binomial interval-calibration artifact | partial | A 500-replicate fixed-effect Wald artifact is banked at `docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/`; random-effect, structured, profile/bootstrap, Julia bridge, and headline coverage claims remain pending |
 | First numerical-guard sensitivity pilot | partial | Fixed-effect Gaussian `log(sigma)` clamp sensitivity is banked at `docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/`; broader guard classes, scale-side phylogeny, interval consequences, and release-promotion language remain pending |
+| First fixed-effect skew-normal diagnostic pilot | partial | A six-cell x 25-replicate fixed-effect `skew_normal()` pilot is banked at `docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/`; it supports further formal grid work but not calibrated interval, comparator, random/structured, bivariate, or release-promotion claims |
 | `devtools::document()` after roxygen settles | local-R only | |
 | Focused tests for recently changed lanes | local-R only | Phase 18 recovery lanes run on Actions; full local run still needed |
 | `devtools::test()` | local-R only | |
@@ -90,9 +91,10 @@ DESCRIPTION metadata, README install path, NEWS discipline, and the
 documentation boundary (docs 46/157/158) are in good shape. The first
 executable comparator artifact now exists for the fixed-effect binomial GLM
 parity row, and a bounded 500-replicate fixed-effect Wald interval-calibration
-artifact now exists for the same plain-binomial slice. The release is still
-gated on (1) completing the pending capability slices the owner wants in 0.2.0,
-(2) running the broader Phase 18 recovery/coverage and Phase 19 comparator
-evidence, (3) resolving the pkgdown/navigation gate, and (4) the local
-CRAN-check sequence and the profile-likelihood demonstration article — all of
-which need a local-R machine or an explicit owner decision.
+artifact now exists for the same plain-binomial slice. The first fixed-effect
+skew-normal diagnostic pilot is also banked, but it is pilot evidence only. The
+release is still gated on (1) completing the pending capability slices the owner
+wants in 0.2.0, (2) running the broader Phase 18 recovery/coverage and Phase 19
+comparator evidence, (3) resolving the pkgdown/navigation gate, and (4) the
+local CRAN-check sequence and the profile-likelihood demonstration article —
+all of which need a local-R machine or an explicit owner decision.

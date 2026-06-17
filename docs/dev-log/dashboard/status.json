@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 02:20 MDT",
+  "updated": "2026-06-17 03:10Z",
   "metrics": {
     "verified": 20,
     "active": 4,
@@ -839,7 +839,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md",
-      "blocker": "The fixed-effect binomial GLM parity artifact and fixed-effect Wald interval artifact are banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
+      "blocker": "The fixed-effect binomial GLM parity artifact, fixed-effect Wald interval artifact, log(sigma) guard pilot, and fixed-effect skew-normal diagnostic pilot are banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
       "last_verified": "2026-06-17"
     }
   ],
@@ -931,8 +931,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Coefficient parity first; variance, correlation, and CI claims require their own recovery rows.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. Fixed-effect skew-normal now has a six-cell diagnostic pilot, but formal calibration and comparator evidence remain planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/README.md"
     },
     {
       "area": "Bernoulli/binomial response family",
@@ -1081,8 +1081,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, and the first log(sigma) clamp sensitivity pilot are banked; broader guard classes, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, and the first fixed-effect skew-normal diagnostic pilot are banked; broader guard classes, broader comparators, q8/same-response diagnostics, visual artifacts, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/README.md"
     },
     {
       "area": "Release gate",
@@ -1096,7 +1096,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "The first binomial comparator and fixed-effect Wald interval artifacts are banked, but release notes still must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
+      "next": "The first binomial comparator, fixed-effect Wald interval artifact, log(sigma) guard pilot, and skew-normal diagnostic pilot are banked, but release notes still must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md"
     }
   ],
@@ -1123,6 +1123,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Banked the first fixed-effect skew-normal diagnostic pilot: six cells, 25 replicates per cell, 150/150 ok fits, pdHess rate 1.000, and slant-term Wald coverage kept as pilot evidence.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/README.md",
+      "link_label": "skew-normal pilot"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
@@ -1306,6 +1313,11 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-17",
+      "who": "Status matrix",
+      "text": "The fixed-effect skew-normal pilot has 150/150 ok fits, convergence and pdHess rates of 1.000 in all six cells, zero warnings, maximum slant-term absolute bias 0.3067476, and 70% slant Wald coverage from 0.64 to 0.96 with MCSE up to 0.096, so it supports further formal grid work but not calibrated interval promotion."
+    },
     {
       "when": "2026-06-17",
       "who": "Status matrix",

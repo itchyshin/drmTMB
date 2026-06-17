@@ -55224,3 +55224,42 @@ Boundary: docs only; no package code, no `src/drmTMB.cpp`, no `R/control.R`, no
 Gaussian clamp implementation change, no Ayumi path change, no DRM.jl code
 change, no new simulation, no Julia bridge promotion, and no release-promotion
 claim.
+
+## 2026-06-17: fixed-effect skew-normal diagnostic pilot
+
+Banked
+`docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/`
+as the first modest operating-characteristic pilot for the implemented
+fixed-effect `skew_normal()` first slice.
+
+Design: six fixed-effect cells, `n = 720`, `nu` intercepts `-1.20`, `0`, and
+`1.20` crossed with `nu` slopes `0` and `0.35`, `sigma ~ z` slope `0.15`,
+`rho(x, w) = 0.20`, 25 replicates per cell, and
+`drm_control(optimizer_preset = "careful")`.
+
+Results: 150/150 fits returned `ok`; no skipped fits, errors, or captured
+warnings; every cell had convergence rate 1.000 and `pdHess` rate 1.000.
+Maximum absolute slant-term bias was 0.3067476 on the formula scale. Slant-term
+70% Wald coverage ranged from 0.64 to 0.96, with MCSE up to 0.096 at 25
+replicates per cell.
+
+Interpretation: diagnostic pilot evidence only. This supports a larger formal
+fixed-effect skew-normal grid, not calibrated interval language, random effects,
+structured effects, bivariate skew-normal, external comparator parity, speed, or
+release promotion.
+
+Checks run:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|skew-normal-density-contract", reporter = "summary")'
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/after-task/2026-06-17-skew-normal-fixed-effect-pilot.md docs/dev-log/check-log.md docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot
+```
+
+Boundary: no package code, no TMB likelihood code, no Julia bridge change, no
+new family surface, no random/structured/bivariate skew-normal support, no
+profile/bootstrap interval calibration, no speed claim, and no release-promotion
+claim.
