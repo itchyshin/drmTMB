@@ -127,12 +127,16 @@
 #'   `drmTMB` TMB backend. The experimental `"julia"` route calls DRM.jl
 #'   through JuliaCall for the supported bridge slice.
 #' @param REML Logical; use restricted maximum likelihood where the selected
-#'   engine supports it. Native `engine = "tmb"` currently supports the first
-#'   univariate Gaussian mixed-model slice: ordinary dense `mu` fixed effects,
-#'   ordinary `mu` random intercepts or slopes, diagonal or dense known sampling
-#'   covariance through [meta_V()], non-unit likelihood `weights` (with diagonal
-#'   or no known covariance), intercept-only `sigma`, complete responses, and no
-#'   aggregation, structured effects, or direct `sd()` scale formulae.
+#'   engine supports it. Native `engine = "tmb"` supports: univariate Gaussian
+#'   mixed models with ordinary dense `mu` fixed effects, ordinary `mu` random
+#'   intercepts or slopes, a mean-side phylogenetic [phylo()] effect, diagonal or
+#'   dense known sampling covariance through [meta_V()], non-unit likelihood
+#'   `weights` (with diagonal or no known covariance), and a fixed-effect
+#'   `sigma ~ predictors` (heteroscedastic) or intercept-only `sigma`; and
+#'   bivariate Gaussian *fixed-effect* location models (`mu1`/`mu2`). It does not
+#'   yet support aggregation, scale-side or non-phylogenetic structured effects,
+#'   direct `sd()` scale formulae, scale random effects, or bivariate random or
+#'   structured means.
 #'   Experimental `engine = "julia"` forwards `REML = TRUE` only for supported
 #'   Gaussian bridge cells, including fixed-effect location-scale models,
 #'   Gaussian `sigma`-phylo location-scale models, and the bivariate q = 4
