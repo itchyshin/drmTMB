@@ -2,6 +2,42 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Release-hygiene refresh for PR #475
+
+Goal:
+
+- Refresh the stale release-hygiene draft against current `main` without
+  overwriting newer `DESCRIPTION`, `cran-comments.md`, or agent-hook state.
+
+Changes:
+
+- Added `inst/CITATION` with a curated package citation and maintainer ORCID.
+- Added a runnable example block to `plot.profile.drmTMB()` and regenerated the
+  corresponding manual page.
+- Left the old #475 `DESCRIPTION`, `cran-comments.md`, and
+  `.claude/hooks/session-start.sh` changes out of the refresh because current
+  `main` already has newer package-facing release wording and the hook change is
+  not part of the R package release surface.
+- Added an after-task note for the refreshed release-hygiene slice.
+
+Checks run:
+
+- `git cherry-pick 2e0db8c7 4e5d67cc f8c75f87` (aborted after conflicts
+  confirmed stale package metadata)
+- `Rscript --vanilla -e 'devtools::document()'`
+- `Rscript --vanilla -e 'tools::parse_Rd("man/plot.profile.drmTMB.Rd")'`
+- `Rscript --vanilla -e 'utils::readCitationFile("inst/CITATION", meta = list(Version = "0.1.4"))'`
+- `Rscript --vanilla -e 'devtools::test(filter = "profile", reporter = "summary")'`
+  -- no failures or errors; one existing structured-dependency bootstrap refit
+  warning
+- `git diff --check`
+
+Boundaries:
+
+- Release-hygiene infrastructure only. No R model behavior, formula grammar,
+  likelihood, TMB code, optimizer behavior, mission-control metric promotion, or
+  CRAN-ready claim changed.
+
 ## 2026-06-17 -- Takeover PR queue cleanup after spelling merge
 
 Goal:

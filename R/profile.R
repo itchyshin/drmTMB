@@ -567,6 +567,13 @@ profile.drmTMB <- function(
 #' @param ... Reserved for future options.
 #'
 #' @return A `ggplot` object.
+#' @examples
+#' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' prof <- profile(fit, parm = "sigma", profile_precision = "fast")
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   plot(prof)
+#' }
 #' @export
 plot.profile.drmTMB <- function(x, interval = TRUE, ...) {
   dots <- list(...)
