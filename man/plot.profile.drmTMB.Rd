@@ -26,3 +26,11 @@ interval endpoints when they were extracted successfully. When the profile
 object contains coarse and dense passes, colour and line type separate the
 passes and the caption reports elapsed time for each.
 }
+\examples{
+dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
+fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+prof <- profile(fit, parm = "sigma", profile_precision = "fast")
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot(prof)
+}
+}
