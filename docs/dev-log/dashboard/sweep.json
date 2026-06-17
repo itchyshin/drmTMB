@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-16 18:48 MDT",
+  "updated": "2026-06-17 02:20 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path update: fixed-effect binomial GLM parity and a 500-replicate Wald interval artifact are banked; numerical-guard sensitivity, q8/same-response diagnostics, broader comparators, Julia bridge promotion, and release readiness remain partial or planned."
+      "text": "Non-Ayumi finish path update: fixed-effect binomial GLM parity, a 500-replicate Wald interval artifact, and the first log(sigma) clamp sensitivity pilot are banked; broader guard classes, q8/same-response diagnostics, broader comparators, Julia bridge promotion, and release readiness remain partial or planned."
     }
   ]
 }
