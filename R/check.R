@@ -189,6 +189,7 @@ check_drm.drmTMB <- function(
     check_optimizer_convergence(object),
     check_optimizer_budget(object),
     check_finite_objective(object),
+    check_logsigma_clamp_active(object),
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_sdreport_status(object),
     check_hessian(object),
@@ -442,6 +443,49 @@ check_finite_objective <- function(object) {
     } else {
       "Objective or log-likelihood is not finite."
     }
+  )
+}
+
+# Diagnostic-surface complement to the fit-time clamp-active warning: flag when
+# the log(sigma) soft-clamp is active at the optimum, where the fit may have
+# converged artificially on the flat saturated tail.
+check_logsigma_clamp_active <- function(object) {
+  spec <- object$model
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "ok",
+      NA,
+      "The log(sigma) clamp does not apply to this family."
+    ))
+  }
+  report <- tryCatch(object$obj$report(), error = function(e) NULL)
+  if (is.null(report)) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "note",
+      NA,
+      "Cannot check the log(sigma) clamp without the TMB object (keep_tmb_object = FALSE)."
+    ))
+  }
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  if (is.null(info)) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "ok",
+      NA,
+      "The log(sigma) clamp is not active at the optimum."
+    ))
+  }
+  check_row(
+    "logsigma_clamp_active",
+    "warning",
+    format_check_number(info$value),
+    sprintf(
+      "The fitted log(sigma) reached %.2f, above the clamp band upper bound %g; the scale ran to the clamp and the fit may have converged artificially (estimates and SEs near the clamp are unreliable).",
+      info$value,
+      info$hi
+    )
   )
 }
 

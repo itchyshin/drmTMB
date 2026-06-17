@@ -103,3 +103,26 @@ test_that("the clamp-active warning now covers non-Gaussian scale families", {
     class = "drmTMB_clamp_active_warning"
   )
 })
+
+test_that("check_drm() reports a clamp-active row (warning when active, ok when not)", {
+  set.seed(1)
+  n <- 60
+  x <- stats::rnorm(n)
+  dat <- data.frame(y = 1 + 0.5 * x + stats::rnorm(n, 0, 0.6), x = x)
+
+  clean <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  chk_clean <- check_drm(clean)
+  row_clean <- chk_clean[chk_clean$check == "logsigma_clamp_active", ]
+  expect_equal(nrow(row_clean), 1L)
+  expect_equal(row_clean$status, "ok")
+
+  active <- allow_nonconvergence(drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(logsigma_clamp = c(-3, -0.8))
+  ))
+  chk_active <- check_drm(active)
+  row_active <- chk_active[chk_active$check == "logsigma_clamp_active", ]
+  expect_equal(row_active$status, "warning")
+})
