@@ -54851,7 +54851,7 @@ Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 git diff --check
 rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
-rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' README.md ROADMAP.md NEWS.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
 Results: focused binomial, Actions-runner, and structured-registry tests
@@ -54979,3 +54979,63 @@ Boundary: no R package code, no likelihood code, no `src/drmTMB.cpp`, no
 Gaussian clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code
 change, no Julia bridge promotion, no release promotion, no binomial interval
 calibration claim, and no guard-sensitivity simulation claim.
+
+## 2026-06-16: First binomial GLM parity comparator artifact (#60/#342/#569 follow-up)
+
+Banked the first executable Phase 19 comparator artifact for the plain
+fixed-effect Bernoulli/binomial response family:
+`docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/`. The artifact
+uses the Phase 18 `binomial_fixed_effect` writer with both supported response
+encodings, 0/1 rows and `cbind(successes, failures)` rows, `n = 320`,
+`n_rep = 3`, seed `20260616`, and one core. It commits CSV tables for
+aggregate summaries, replicate-level summaries, manifest rows, failures, Wald
+intervals, diagnostic Wald coverage, and `stats::glm()` parity, plus a README
+with SHA, dirty state, R/package versions, row counts, and interpretation label
+`parity`.
+
+The largest absolute `drmTMB` versus `stats::glm()` coefficient difference in
+the artifact is `1.894251e-11`; the largest standard-error difference is
+`6.393821e-08`; the largest absolute `logLik` difference is `2.728484e-12`;
+and the largest absolute AIC/BIC difference is `5.456968e-12`. All six target
+fits returned `ok`, all six reported `pdHess = TRUE`, and the failure table is
+header-only.
+
+Updated `docs/design/158-phase-19-comparator-matrix.md`,
+`docs/design/159-drmtmb-0-2-0-release-readiness.md`,
+`docs/dev-log/dashboard/status.json`, and
+`docs/dev-log/dashboard/sweep.json` so the comparator artifact is visible while
+release readiness remains partial and broader comparator/simulation gates
+remain unfinished. `tools/start-mission-control.sh` now mirrors
+`docs/dev-log/comparator-results/` into `/tmp/drm-dashboard` so served evidence
+links resolve. After-task:
+`docs/dev-log/after-task/2026-06-16-binomial-glm-parity-comparator-artifact.md`.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-ok
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-ok
+python3 tools/validate-mission-control.py
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md
+git diff --check
+rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' README.md ROADMAP.md NEWS.md docs vignettes R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
+```
+
+Results: mission-control validation passed with `20/68` banked-or-verified
+slices, `4` active slices, `17` matrix rows, `11` finish rows, `15` Julia gate
+rows, and `9` Julia capability rows. The served dashboard copied the comparator
+artifact, and the README was reachable through
+`http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md`.
+The scoped hard-framing scan over this slice's changed current files returned
+no matches. A broader repository scan still finds pre-existing Ayumi/REML
+wording outside this slice's ownership; this PR does not edit Claude-owned
+analysis notes, but it does remove two dashboard phrases that framed the q4
+route as a native-TMB restricted-likelihood fallback.
+
+Boundary: no package code, no likelihood code, no `src/drmTMB.cpp`, no Gaussian
+clamp or penalty/MAP edit, no Ayumi path change, no DRM.jl code change, no
+Julia bridge promotion, no release promotion, no speed claim, no binomial
+interval-calibration claim, and no numerical-guard sensitivity simulation
+claim.

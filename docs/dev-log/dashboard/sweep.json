@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-16 16:40 MDT",
+  "updated": "2026-06-16 17:25 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Codex",
-      "text": "Non-Ayumi finish path is split cleanly: #585, #587, #588, and #589 are merged; the dashboard now banks binomial glm parity evidence, keeps interval calibration planned, and adds numerical-guard sensitivity as an explicit Evidence Gates row."
+      "text": "Non-Ayumi finish path is split cleanly: the first Phase 19 binomial GLM parity artifact is banked and served through the dashboard, while interval calibration, numerical-guard sensitivity, broader comparators, and release readiness remain planned or partial."
     }
   ]
 }

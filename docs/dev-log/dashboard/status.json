@@ -1,9 +1,9 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-16 16:40 MDT",
+  "updated": "2026-06-16 17:25 MDT",
   "metrics": {
-    "verified": 19,
+    "verified": 20,
     "active": 4,
     "blocked": 0,
     "deferred": 1,
@@ -371,8 +371,8 @@
       "id": "Phase 9",
       "name": "ADEMP, power, and comparator program",
       "owner": "Curie + Fisher + Grace",
-      "status": "queued",
-      "counts": "0/5",
+      "status": "active",
+      "counts": "1/5",
       "slices": [
         {
           "name": "Start big simulations only after smoke, parity, recovery, bridge, CI-status, and visual gates pass",
@@ -388,7 +388,8 @@
         },
         {
           "name": "Comparator checks use same-estimand targets and record unavailable comparators honestly",
-          "status": "queued"
+          "status": "banked",
+          "evidence": "docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/"
         },
         {
           "name": "Simulation outputs feed articles, visuals, dashboard, and issue evidence",
@@ -821,24 +822,24 @@
       "issue": "https://github.com/itchyshin/drmTMB/issues/342",
       "issue_label": "drmTMB#342",
       "lane": "Release Readiness",
-      "status": "planned",
+      "status": "partial",
       "owners": ["Ada", "Grace", "Rose", "Pat"],
       "family": "release gate separated from local package health",
       "response_encoding": ["local checks", "3-OS CI", "pkgdown", "issue ledger", "owner decision"],
       "dpars": [],
       "engine_tmb": "planned",
       "engine_julia": "planned",
-      "point": "planned",
-      "wald": "planned",
+      "point": "partial",
+      "wald": "partial",
       "profile": "planned",
       "bootstrap": "planned",
-      "tests": "planned",
-      "docs": "planned",
+      "tests": "partial",
+      "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "",
-      "blocker": "Release gates remain deferred until evidence, pkgdown, comparator, widget, and issue ledgers agree.",
+      "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md",
+      "blocker": "The fixed-effect binomial GLM parity artifact is banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
       "last_verified": "2026-06-16"
     }
   ],
@@ -1081,47 +1082,54 @@
       "simulation": "partial",
       "release": "planned",
       "next": "Binomial fixed-effect glm parity is banked as the first executable comparator artifact; big simulations and guard-sensitivity promotion still wait for smoke, MCSE, failure, visual, and CI-status evidence.",
-      "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md"
+      "evidence_url": "docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md"
     },
     {
       "area": "Release gate",
       "engine": "planned",
       "bridge": "planned",
-      "point": "planned",
-      "wald": "planned",
+      "point": "partial",
+      "wald": "partial",
       "profile": "planned",
       "bootstrap": "planned",
-      "docs": "planned",
+      "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
-      "next": "Release notes must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "The first binomial comparator artifact is banked, but release notes still must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision.",
+      "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md"
     }
   ],
     "active_work": [
     {
       "when": "now",
       "who": "Ada",
-      "text": "Non-Ayumi finish path is in ledger-refresh mode: #585, #587, #588, and #589 are merged; the next work is release/comparator readiness without touching Claude-owned Ayumi C++ seams."
+      "text": "Non-Ayumi finish path is in comparator-readiness mode: the first binomial GLM parity artifact is banked, and the next work remains broader Phase 19 evidence without touching Claude-owned Ayumi C++ seams."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "Binomial fixed-effect glm parity is banked, but interval calibration is not claimed until MCSE-backed simulation runs exist."
+      "text": "Binomial fixed-effect glm parity is banked with a CSV artifact and README; interval calibration is not claimed until MCSE-backed simulation runs exist."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "Numerical guards are now tracked as an explicit evidence gate: documentation is banked, sensitivity simulations are still planned."
+      "text": "Numerical guards remain an explicit evidence gate: documentation is banked, sensitivity simulations are still planned."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Mission-control status must validate, serve from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
+      "text": "Mission-control status must validate, serve the comparator artifact from /tmp/drm-dashboard, and keep dirty/detached checkout truth visible at launch time."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-16",
+      "who": "Codex",
+      "text": "Banked the first executable Phase 19 comparator artifact: fixed-effect stats::binomial(logit) glm parity for binary and cbind responses.",
+      "url": "docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md",
+      "link_label": "comparator artifact"
+    },
     {
       "when": "2026-06-16",
       "who": "Codex",
@@ -1251,7 +1259,7 @@
     {
       "when": "2026-06-14",
       "who": "Ayumi",
-      "text": "Follow-up reply posted: public R API is REML = TRUE/FALSE; native TMB is not yet a full REML fallback for the q4 phylogenetic location-scale model.",
+      "text": "Follow-up reply posted: the public R API switch forwards to supported Julia bridge cells; native TMB evidence for the q4 phylogenetic location-scale route is tracked separately by estimator and evidence cell.",
       "url": "https://github.com/Ayumi-495/LS_ecogeographical-rules/issues/2#issuecomment-4703317729",
       "link_label": "issue comment"
     },
@@ -1276,8 +1284,8 @@
     },
     {
       "status": "guard",
-      "kind": "Native TMB REML",
-      "item": "engine = \"tmb\" is not yet a full REML fallback for Ayumi's bivariate q4 phylogenetic location-scale model."
+      "kind": "Estimator boundary",
+      "item": "Do not frame Ayumi's q4 route as a native-TMB restricted-likelihood gap; describe the supported estimator and evidence cells explicitly."
     },
     {
       "status": "guard",
@@ -1291,6 +1299,11 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-16",
+      "who": "Status matrix",
+      "text": "The binomial GLM parity artifact has 6/6 converged fits, 6/6 pdHess TRUE fits, zero failures, maximum coefficient difference 1.894251e-11, maximum SE difference 6.393821e-08, maximum logLik difference 2.728484e-12, and maximum AIC/BIC difference 5.456968e-12."
+    },
     {
       "when": "2026-06-16",
       "who": "Dashboard",
