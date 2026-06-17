@@ -230,6 +230,25 @@ cold-versus-staged diagnostic evidence. They provide the source mapping and
 fit-tail plumbing needed for that next diagnostic runner, not evidence that q8
 coverage, power, or intervals are ready.
 
+## Current Private Q8 Staged-Fit Diagnostic Runner
+
+`drm_qgt2_staged_fit_diagnostic()` now provides the small internal runner that
+fits the same q > 2 target specification twice: once cold and once after
+applying `drm_qgt2_staged_start_override()`. Each fit goes through
+`drm_fit_spec()`, so the diagnostic uses the ordinary estimator, penalty,
+log-sigma clamp, optimizer retry, selected-optimum, uncertainty, missing-data,
+and storage-control tail rather than a duplicate fitting path.
+
+The runner records only diagnostic metadata: whether each fit returned, the
+optimizer convergence code, `pdHess` when available, objective, log-likelihood,
+elapsed seconds, optimizer preset, warning count, warning text, and error text.
+It also returns the staged-start provenance from the mapper and a small delta
+table comparing cold and staged objective, log-likelihood, and elapsed time.
+
+This runner is not called by ordinary user fits and is not a public warm-start
+API. It does not establish that q8 is reliable; it merely makes the next
+cold-versus-staged q8 smoke artifact auditable.
+
 ## Future Start Contract
 
 User starts should not be a free-form replacement of the entire TMB parameter

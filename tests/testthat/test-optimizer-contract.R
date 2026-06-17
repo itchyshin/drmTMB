@@ -544,6 +544,127 @@ test_that("q>2 staged start override validates theta shrink", {
   )
 })
 
+test_that("q>2 staged fit diagnostic compares cold and staged target fits", {
+  dat <- data.frame(
+    id = factor(rep(seq_len(8L), each = 4L)),
+    x = rep(seq(-1, 1, length.out = 4L), times = 8L)
+  )
+  dat$y1 <- 0.2 + 0.4 * dat$x + rep(seq(-0.2, 0.2, length.out = 8L), each = 4L)
+  dat$y2 <- -0.1 -
+    0.3 * dat$x +
+    rep(seq(0.15, -0.15, length.out = 8L), each = 4L)
+  source_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ x + (1 | p | id),
+      sigma2 = ~ x + (1 | p | id),
+      rho12 = ~1
+    ),
+    data = dat
+  )
+  target_formula <- bf(
+    mu1 = y1 ~ x + (1 + x | p | id),
+    mu2 = y2 ~ x + (1 + x | p | id),
+    sigma1 = ~ x + (1 + x | p | id),
+    sigma2 = ~ x + (1 + x | p | id),
+    rho12 = ~1
+  )
+  target_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    target_formula,
+    data = dat
+  )
+  source_members <- drmTMB:::qgt2_covariance_members(
+    source_spec$random$covariance_blocks
+  )
+  source_sd <- stats::setNames(
+    c(0.31, 0.35, 0.18, 0.22),
+    source_members$label
+  )
+  source_fit <- list(
+    model = source_spec,
+    coefficients = list(
+      mu1 = c(`(Intercept)` = 0.11, x = 0.41),
+      mu2 = c(`(Intercept)` = -0.12, x = -0.31),
+      sigma1 = c(`(Intercept)` = -0.71),
+      sigma2 = c(`(Intercept)` = -0.62),
+      rho12 = c(`(Intercept)` = 0.08)
+    ),
+    sdpars = list(
+      mu = source_sd[source_members$component == "mu"],
+      sigma = source_sd[source_members$component == "sigma"]
+    ),
+    corpars = list()
+  )
+  fake_fit_spec <- function(
+    spec,
+    formula,
+    family,
+    control,
+    REML,
+    penalty,
+    fit_call
+  ) {
+    spec <- drmTMB:::drm_apply_start_override(spec)
+    is_staged <- nrow(spec$start_override_applied) > 0L
+    objective <- if (is_staged) 8 else 10
+    fit <- list(
+      call = fit_call,
+      formula = formula,
+      family = family,
+      model = spec,
+      opt = list(convergence = 0L, objective = objective, par = numeric()),
+      sdr = list(pdHess = TRUE),
+      logLik = -objective,
+      df = 3L,
+      nobs = spec$nobs,
+      optimizer_used = list(optimizer_preset = "fake"),
+      optimizer_attempts = data.frame(
+        optimizer_preset = "fake",
+        stringsAsFactors = FALSE
+      )
+    )
+    class(fit) <- "drmTMB"
+    fit
+  }
+
+  out <- drmTMB:::drm_qgt2_staged_fit_diagnostic(
+    source_fit = source_fit,
+    target_spec = target_spec,
+    formula = target_formula,
+    family = biv_gaussian(),
+    control = drm_control(se = FALSE),
+    fit_spec = fake_fit_spec
+  )
+
+  expect_identical(out$strategy, "qgt2-staged-fit-diagnostic")
+  expect_true(out$fits$cold$ok)
+  expect_true(out$fits$staged$ok)
+  expect_equal(out$comparison$metrics$label, c("cold", "staged"))
+  expect_equal(
+    out$comparison$deltas$staged_minus_cold[
+      out$comparison$deltas$metric == "objective"
+    ],
+    -2
+  )
+  expect_equal(nrow(out$fits$cold$fit$model$start_override_applied), 0L)
+  expect_gt(nrow(out$fits$staged$fit$model$start_override_applied), 0L)
+  expect_equal(out$provenance$theta_re_cov, "not_requested")
+  expect_equal(out$fits$staged$metrics$optimizer_preset, "fake")
+
+  expect_error(
+    drmTMB:::drm_qgt2_staged_fit_diagnostic(
+      source_fit = source_fit,
+      target_spec = target_spec,
+      formula = target_formula,
+      family = biv_gaussian(),
+      control = drm_control(se = FALSE),
+      fit_spec = NULL
+    ),
+    "fit-spec function"
+  )
+})
+
 test_that("unstructured correlation theta inverse reconstructs target matrices", {
   corr <- matrix(
     c(
