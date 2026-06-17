@@ -195,6 +195,71 @@ test_that("internal start override hook is a no-op unless configured", {
   expect_equal(nrow(out$start_override_applied), 0L)
 })
 
+test_that("internal prepared-spec fit helper matches ordinary Gaussian fit tail", {
+  dat <- data.frame(
+    x = seq(-1.5, 1.5, length.out = 12),
+    z = rep(c(-0.4, 0.2, 0.5), length.out = 12)
+  )
+  dat$y <- 0.35 +
+    0.55 * dat$x +
+    exp(-0.6 + 0.25 * dat$z) *
+      c(-0.8, -0.2, 0.4, 0.9, -0.5, 0.2, 0.7, -0.3, 0.1, -0.6, 0.5, -0.1)
+  formula <- bf(y ~ x, sigma ~ z)
+  control <- drm_control(se = FALSE)
+  family <- stats::gaussian()
+
+  ordinary <- drmTMB(
+    formula,
+    family = family,
+    data = dat,
+    control = control
+  )
+  spec <- drmTMB:::drm_build_gaussian_ls_spec(
+    formula = formula,
+    data = dat,
+    env = environment(),
+    weights = NULL,
+    control = control,
+    impute = NULL
+  )
+  via_spec <- drmTMB:::drm_fit_spec(
+    spec = spec,
+    formula = formula,
+    family = family,
+    control = control,
+    REML = FALSE,
+    penalty = NULL,
+    fit_call = quote(drm_fit_spec(formula))
+  )
+
+  expect_s3_class(via_spec, "drmTMB")
+  expect_equal(via_spec$call, quote(drm_fit_spec(formula)))
+  expect_equal(via_spec$formula, ordinary$formula)
+  expect_equal(via_spec$family$family, ordinary$family$family)
+  expect_equal(via_spec$model$start, ordinary$model$start)
+  expect_equal(
+    via_spec$model$start_override_applied,
+    ordinary$model$start_override_applied
+  )
+  expect_equal(via_spec$coefficients, ordinary$coefficients, tolerance = 1e-8)
+  expect_equal(via_spec$sdpars, ordinary$sdpars, tolerance = 1e-8)
+  expect_equal(via_spec$corpars, ordinary$corpars, tolerance = 1e-8)
+  expect_equal(via_spec$random_effects, ordinary$random_effects)
+  expect_equal(via_spec$missing_data, ordinary$missing_data)
+  expect_equal(as.numeric(logLik(via_spec)), as.numeric(logLik(ordinary)))
+  expect_equal(via_spec$df, ordinary$df)
+  expect_equal(via_spec$nobs, ordinary$nobs)
+  expect_equal(via_spec$estimator, ordinary$estimator)
+  expect_equal(via_spec$penalty, ordinary$penalty)
+  expect_equal(via_spec$phylo_penalty, ordinary$phylo_penalty)
+  expect_equal(via_spec$optimizer_used, ordinary$optimizer_used)
+  expect_equal(
+    via_spec$optimizer_attempts$optimizer_preset,
+    ordinary$optimizer_attempts$optimizer_preset
+  )
+  expect_equal(via_spec$uncertainty$status, "skipped")
+})
+
 test_that("internal start overrides align names and respect mapped slots", {
   spec <- list(
     start = list(

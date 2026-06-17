@@ -374,6 +374,30 @@ drmTMB <- function(
     )
   )
 
+  drm_fit_spec(
+    spec = spec,
+    formula = formula,
+    family = family,
+    control = control,
+    REML = REML,
+    penalty = penalty,
+    fit_call = match.call()
+  )
+}
+
+drm_fit_spec <- function(
+  spec,
+  formula,
+  family,
+  control,
+  REML = FALSE,
+  penalty = NULL,
+  fit_call = NULL
+) {
+  if (is.null(fit_call)) {
+    fit_call <- match.call()
+  }
+
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
   spec <- drm_apply_estimator_spec(spec, REML = REML)
@@ -419,7 +443,7 @@ drmTMB <- function(
   }
 
   fit <- list(
-    call = match.call(),
+    call = fit_call,
     formula = formula,
     family = family,
     data = spec$data,
