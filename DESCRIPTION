@@ -22,6 +22,7 @@ License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues
 Encoding: UTF-8
+Language: en-GB
 Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.1.0)
@@ -48,6 +49,7 @@ Suggests:
     metafor,
     pkgload,
     rmarkdown,
+    spelling,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
