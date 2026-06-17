@@ -46,6 +46,9 @@ on:
           - relmat_mu_slope
           - poisson_phylo_q1_formal
           - nbinom2_phylo_q1_formal
+          - gaussian_ls_power
+          - meta_v_power
+          - poisson_mu_re_power
       n_reps:
         description: "Replicates per cell"
         required: true
@@ -261,6 +264,15 @@ jobs:
             include_in_all: false
           - task: nbinom2_phylo_q1_formal
             seed: 20260602
+            include_in_all: false
+          - task: gaussian_ls_power
+            seed: 20260610
+            include_in_all: false
+          - task: meta_v_power
+            seed: 20260611
+            include_in_all: false
+          - task: poisson_mu_re_power
+            seed: 20260612
             include_in_all: false
 
     env:

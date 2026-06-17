@@ -81,7 +81,9 @@ phase18_summarise_power <- function(
     function(x, null) {
       lower_value <- as.numeric(x[[lower]])
       upper_value <- as.numeric(x[[upper]])
-      usable <- is.finite(lower_value) & is.finite(upper_value) & is.finite(null)
+      usable <- is.finite(lower_value) &
+        is.finite(upper_value) &
+        is.finite(null)
       if ("interval_status" %in% names(x)) {
         usable <- usable & as.character(x$interval_status) == "ok"
       }
@@ -279,6 +281,65 @@ phase18_power_curve_data <- function(
     order(out[[sample_size]])
   }
   out <- out[ord, , drop = FALSE]
+  row.names(out) <- NULL
+  out
+}
+
+# Audit the Type I error rate against a nominal level. Filters a power table to
+# its null cells (where the swept effect equals the null), reports the observed
+# rejection rate as `type_i_rate`, and flags whether it sits within
+# `tolerance_mcse` Monte Carlo standard errors of `alpha`. Doc 154 requires this
+# calibration check to pass before reporting a power number for a surface.
+phase18_summarise_type_i_error <- function(
+  power_table,
+  alpha = 0.05,
+  tolerance_mcse = 2
+) {
+  phase18_assert_summary_columns(power_table, "power")
+  if (
+    !is.numeric(alpha) ||
+      length(alpha) != 1L ||
+      !is.finite(alpha) ||
+      alpha <= 0 ||
+      alpha >= 1
+  ) {
+    stop("`alpha` must be one number between 0 and 1.", call. = FALSE)
+  }
+  if (
+    !is.numeric(tolerance_mcse) ||
+      length(tolerance_mcse) != 1L ||
+      !is.finite(tolerance_mcse) ||
+      tolerance_mcse < 0
+  ) {
+    stop("`tolerance_mcse` must be one non-negative number.", call. = FALSE)
+  }
+
+  if ("inference" %in% names(power_table)) {
+    keep <- !is.na(power_table$inference) &
+      power_table$inference == "type_i_error"
+  } else if ("is_null" %in% names(power_table)) {
+    keep <- as.logical(power_table$is_null) %in% TRUE
+  } else {
+    stop(
+      "`power_table` must contain an `inference` or `is_null` column to identify null cells.",
+      call. = FALSE
+    )
+  }
+  null_rows <- power_table[keep, , drop = FALSE]
+  if (nrow(null_rows) == 0L) {
+    stop("`power_table` has no null (Type I error) cells.", call. = FALSE)
+  }
+
+  mcse <- if ("power_mcse" %in% names(null_rows)) {
+    as.numeric(null_rows$power_mcse)
+  } else {
+    rep(NA_real_, nrow(null_rows))
+  }
+  out <- null_rows
+  out$type_i_rate <- as.numeric(null_rows$power)
+  out$nominal_alpha <- alpha
+  out$within_tolerance <- is.finite(mcse) &
+    abs(out$type_i_rate - alpha) <= tolerance_mcse * mcse
   row.names(out) <- NULL
   out
 }

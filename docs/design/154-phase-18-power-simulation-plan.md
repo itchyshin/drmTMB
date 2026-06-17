@@ -105,6 +105,12 @@ for this interval-based pass.
 | Power / Type I error | `mean(ci_excludes_null)` over usable intervals | binomial MCSE `sqrt(p(1-p)/n_sim)` |
 | Target sample size | interpolated `n` where the simulated power curve crosses the target | grid min/max and a status flag |
 
+Before reporting a power number for a surface, audit the null cell with
+`phase18_summarise_type_i_error()`: the observed rejection rate at `delta = 0`
+should sit within a couple of Monte Carlo standard errors of the nominal `alpha`.
+A miscalibrated Type I error rate means the power numbers from the same intervals
+are not trustworthy.
+
 This matches the Power row already specified in
 `docs/design/41-phase-18-simulation-programme.md`. Plan the replicate budget from
 the MCSE before any large run: a power near 0.8 has binomial MCSE about 1.8
@@ -159,6 +165,37 @@ returns `$power`, `$curve`, and `$sample_size` alongside the registry and raw
 results. The orchestration was validated end to end against the real
 `phase18_run_replicates()` and `phase18_result_summaries()` with the model fit
 stubbed; the real `drmTMB` fit runs under `skip_on_cran` in CI.
+
+## Executing a power grid
+
+The orchestration is now generic and wired for dispatch:
+
+- `phase18_run_power_grid()` (in `inst/sim/run/sim_run_power_grid.R`) is the
+  surface-agnostic engine. It takes any DGP / fit / summarise adapter set, an
+  effect name, and a target parameter, then returns `$power`, `$curve`, and
+  `$sample_size`. The per-surface runners are thin wrappers:
+  `phase18_run_gaussian_ls_power()`, `phase18_run_meta_v_power()` (moderator
+  `mu:x`), and `phase18_run_poisson_mu_re_power()` (population slope `mu:x` with
+  random intercepts and slopes in the model). Each wrapper sets the engine's
+  `sample_size` argument to the column that names the sample-size axis for that
+  surface (`n` for Gaussian, `n_study` for meta-analysis, `n_group` for the
+  Poisson groups), so the power curve and target-sample-size read use the right
+  axis.
+- `phase18_write_power_grid_tables()` (in `inst/sim/run/sim_write_power_grid.R`)
+  persists a runner result to CSV — power table, curve, target-sample-size,
+  condition registry, and per-replicate summary — plus a manifest. The
+  `phase18_write_*_power_grid_outputs()` wrappers run and persist in one call.
+- Three Actions tasks dispatch these through
+  `.github/workflows/phase18-simulation-grid.yaml`: `gaussian_ls_power`,
+  `meta_v_power`, and `poisson_mu_re_power`. They are excluded from the `all`
+  batch (`include_in_all: false`); select one explicitly and set `n_reps` from
+  the MCSE budget above. A real grid run writes its artifacts under
+  `inst/sim/results/actions/<task>/tables/`.
+
+The engine, writer, and dispatch wiring were validated offline against the real
+`phase18_run_replicates()`/`phase18_result_summaries()` with the model fit
+stubbed; the real `drmTMB` fits for the Gaussian, meta-analysis, and Poisson
+surfaces run under `skip_on_cran` in CI.
 
 ## What to try next
 

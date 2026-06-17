@@ -36,6 +36,14 @@ test_that("Gaussian location-scale power runner returns power, curve, and target
     ),
     local = TRUE
   )
+  source(
+    system.file(
+      "sim/run/sim_run_power_grid.R",
+      package = "drmTMB",
+      mustWork = TRUE
+    ),
+    local = TRUE
+  )
   # Reuse the DGP/fit cell adapters defined by the recovery smoke runner.
   source(
     system.file(
@@ -71,13 +79,17 @@ test_that("Gaussian location-scale power runner returns power, curve, and target
   expect_identical(result$surface, "gaussian_ls_power")
   expect_identical(result$target_parameter, "mu:x")
   expect_equal(nrow(result$registry$cells), 2L)
-  expect_true(all(c("effect_size", "is_null") %in% names(result$registry$cells)))
+  expect_true(all(
+    c("effect_size", "is_null") %in% names(result$registry$cells)
+  ))
 
   power <- result$power
   target <- power[power$parameter == "mu:x", ]
   target <- target[order(target$effect_size), ]
   expect_equal(nrow(target), 2L)
-  expect_true(all(c("power", "power_mcse", "effect_size", "n") %in% names(target)))
+  expect_true(all(
+    c("power", "power_mcse", "effect_size", "n") %in% names(target)
+  ))
   # The inference label comes from the truth/null, not the fit, so it is stable.
   expect_identical(target$inference, c("type_i_error", "power"))
   expect_true(all(target$n == 200L))

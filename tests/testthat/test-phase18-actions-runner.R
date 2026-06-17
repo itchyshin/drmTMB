@@ -1710,3 +1710,62 @@ test_that("Phase 18 workflow dispatch options match the runner task choices", {
   # (which is exactly how the recovery lanes were briefly undispatchable).
   expect_setequal(setdiff(opts, "all"), env$phase18_actions_task_choices())
 })
+
+test_that("Phase 18 Actions runner accepts the power tasks via dry-run", {
+  script <- phase18_actions_runner_script()
+  for (task in c("gaussian_ls_power", "meta_v_power", "poisson_mu_re_power")) {
+    output_dir <- tempfile(paste0("phase18-actions-", task, "-dry-run-"))
+    out <- system2(
+      file.path(R.home("bin"), "Rscript"),
+      c(
+        "--vanilla",
+        shQuote(script),
+        paste0("--task=", task),
+        paste0("--output-dir=", output_dir),
+        "--n-reps=5",
+        "--master-seed=20260610",
+        "--dry-run=true"
+      ),
+      stdout = TRUE,
+      stderr = TRUE
+    )
+    out <- paste(out, collapse = "\n")
+    expect_match(out, paste0("task=", task), fixed = TRUE)
+    expect_match(out, "n_rep=5", fixed = TRUE)
+  }
+})
+
+test_that("Phase 18 Actions runner sources power task dependencies", {
+  script <- phase18_actions_runner_script()
+  env <- new.env(parent = globalenv())
+  source(script, local = env)
+
+  expect_true(all(
+    c("gaussian_ls_power", "meta_v_power", "poisson_mu_re_power") %in%
+      env$phase18_actions_task_choices()
+  ))
+  expect_equal(
+    env$phase18_actions_task_paths("gaussian_ls_power"),
+    c(
+      "sim/R/sim_power.R",
+      "sim/dgp/sim_dgp_gaussian_ls.R",
+      "sim/fit/sim_summarise_gaussian_ls.R",
+      "sim/run/sim_run_gaussian_ls_smoke.R",
+      "sim/run/sim_run_power_grid.R",
+      "sim/run/sim_run_gaussian_ls_power_smoke.R",
+      "sim/run/sim_write_power_grid.R"
+    )
+  )
+  expect_equal(
+    env$phase18_actions_task_paths("meta_v_power"),
+    c(
+      "sim/R/sim_power.R",
+      "sim/dgp/sim_dgp_meta_v.R",
+      "sim/fit/sim_summarise_meta_v.R",
+      "sim/run/sim_run_meta_v_smoke.R",
+      "sim/run/sim_run_power_grid.R",
+      "sim/run/sim_run_meta_v_power_smoke.R",
+      "sim/run/sim_write_power_grid.R"
+    )
+  )
+})
