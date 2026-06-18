@@ -936,6 +936,19 @@ test_that("check_drm() reports univariate mu/sigma covariance diagnostics", {
   expect_equal(weak_cov$status, "note")
   expect_match(weak_cov$message, "tiny")
   expect_true(attr(weak_chk, "ok"))
+
+  near_boundary <- fit
+  near_boundary$corpars$mu_sigma[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_cov <- near_boundary_chk[
+    near_boundary_chk$check == "mu_sigma_random_effect_covariance",
+  ]
+
+  expect_equal(near_boundary_cov$status, "warning")
+  expect_match(near_boundary_cov$value, "rho_abs=0.9950")
+  expect_match(near_boundary_cov$value, "boundary=0.9800")
+  expect_match(near_boundary_cov$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
 })
 
 test_that("check_drm() reports each univariate mu/sigma covariance block", {
@@ -1032,6 +1045,23 @@ test_that("check_drm() reports bivariate mu random-effect covariance diagnostics
   expect_equal(weak_cov$status, "note")
   expect_match(weak_cov$message, "tiny relative")
   expect_true(attr(weak_chk, "ok"))
+
+  near_boundary <- fit
+  near_boundary$corpars$mu[] <- 0.995
+  near_boundary_chk <- check_drm(
+    near_boundary,
+    gradient_tolerance = gradient_tolerance,
+    rho_boundary = 0.98
+  )
+  near_boundary_cov <- near_boundary_chk[
+    near_boundary_chk$check == "biv_mu_random_effect_covariance",
+  ]
+
+  expect_equal(near_boundary_cov$status, "warning")
+  expect_match(near_boundary_cov$value, "rho_abs=0.9950")
+  expect_match(near_boundary_cov$value, "boundary=0.9800")
+  expect_match(near_boundary_cov$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
 })
 
 test_that("check_drm() reports ordinary q4 bivariate covariance diagnostics", {

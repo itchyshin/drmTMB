@@ -47,6 +47,80 @@ Boundaries:
   correlation guards, interval calibration, coverage, power, release, CRAN, and
   Julia bridge parity remain future work.
 
+## 2026-06-18 -- q2 covariance boundary guard diagnostic
+
+Goal:
+
+- Make q2 random-effect covariance correlations near the open-interval guard
+  visible in `check_drm()` and bank a diagnostic-only fitted q2 `mu`/`sigma`
+  covariance stress artifact for `drmTMB#59`.
+
+Changes:
+
+- Updated `check_drm()` q2 covariance rows so univariate `mu`/`sigma`,
+  bivariate `mu1`/`mu2`, bivariate `sigma1`/`sigma2`, and bivariate
+  same-response `mu`/`sigma` covariance diagnostics report `rho_abs`,
+  `rho_boundary`, and a warning when the fitted correlation is close to
+  `+/-1`.
+- Added focused tests that mutate already-fitted q2 covariance objects to
+  near-boundary correlations and require a `warning` plus `attr(chk, "ok") =
+  FALSE`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-q2-covariance-boundary-guard/`
+  with a reproducible runner, source transform grid, fitted diagnostics,
+  exposure table, per-cell denominator table, full `check_drm()` rows, failure
+  table, session info, run summary, and README.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md`,
+  `docs/design/168-r-julia-finish-capability-matrix.md`,
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/dev-log/dashboard/status.json`,
+  `docs/dev-log/dashboard/sweep.json`, `NEWS.md`, and the after-task report
+  while leaving mission-control metrics at 25/68 banked or verified, 1 active,
+  0 blocked, and 1 deferred.
+
+Checks run:
+
+- `/usr/local/bin/Rscript --vanilla /tmp/drmtmb-re-correlation-probe.R`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^check-drm$', reporter = 'summary')"`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^(check-drm|biv-gaussian)$', reporter = 'summary')"`
+- `/opt/homebrew/bin/air format R/check.R tests/testthat/test-check-drm.R tests/testthat/test-biv-gaussian.R`
+- `/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-q2-covariance-boundary-guard/run-pilot.R`
+- `cd /tmp && /usr/local/bin/Rscript --vanilla /Users/z3437171/.codex/worktrees/1d33/drmTMB/docs/dev-log/simulation-artifacts/2026-06-18-q2-covariance-boundary-guard/run-pilot.R`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `git diff --check`
+
+Results:
+
+- The pre-fix probe showed the risk Hao warned about: a default fitted
+  univariate Gaussian `mu`/`sigma` q2 covariance cell at true `rho = 0.98`
+  estimated `rho = 0.999999` with convergence and `pdHess = TRUE`, while the
+  old `check_drm()` row still reported `ok`.
+- Focused tests now pass and lock q2 covariance boundary warnings for
+  univariate `mu`/`sigma`, bivariate `mu1`/`mu2`, bivariate `sigma1`/`sigma2`,
+  and bivariate same-response `mu`/`sigma` rows.
+- The artifact source grid has 4 rows for target correlations 0, 0.4, 0.9,
+  and 0.98. With the matching guarded inverse link, the guarded response value
+  equals the target; the unguarded `tanh(eta)` value is larger by about
+  `rho * 1e-6`.
+- The fitted diagnostic has 4 requested cells and 4 attempted fits. All 4
+  converged with `pdHess = TRUE`, had fixed gradients below the default
+  threshold, and had no fit errors or R warnings.
+- The boundary cell estimated `rho = 0.999999` for true `rho = 0.98`; the
+  `mu_sigma_random_effect_covariance` row now reports `warning`,
+  `rho_abs=1.000`, and `boundary=0.9800`.
+- The runner also passed when launched from `/tmp`, confirming that it
+  resolves the package root from the runner path rather than the caller's
+  working directory.
+
+Boundaries:
+
+- This is diagnostic evidence for q2 `mu`/`sigma` covariance boundary
+  visibility only. It does not promote q2 recovery accuracy, interval
+  coverage, power, bivariate q2 breadth, q4/q8 covariance intervals,
+  structured correlations, random effects in `rho12`, Julia bridge parity,
+  release readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
+
 ## 2026-06-18 -- residual rho12 open-interval guard diagnostic
 
 Goal:

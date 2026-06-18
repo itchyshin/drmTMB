@@ -1,0 +1,5 @@
+"cell_id","n_id","n_each","rho_true","seed"
+"q2_mu_sigma_zero",34,8,0,20260619
+"q2_mu_sigma_moderate",34,8,0.4,20260620
+"q2_mu_sigma_high",34,8,0.9,20260621
+"q2_mu_sigma_boundary",34,8,0.98,20260622

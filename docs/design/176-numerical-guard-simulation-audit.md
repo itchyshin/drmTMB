@@ -480,6 +480,54 @@ settle interval coverage, power, random effects in `rho12`, structured
 correlations, missing-response bivariate behavior, Julia bridge parity,
 release readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
 
+## Seventh Diagnostic: Q2 Random-Effect Covariance Boundary Guard
+
+The seventh executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-q2-covariance-boundary-guard/`.
+It is a fitted univariate Gaussian q2 location-scale covariance diagnostic,
+not a broad random-effect correlation grid.
+
+**Aim.** Check whether a named fitted `mu`/`sigma` group-level covariance
+stress set makes the six-nines open-interval guard, fitted correlation
+magnitude, boundary distance, Hessian status, fixed-gradient status, and
+`check_drm()` `mu_sigma_random_effect_covariance` warning visible.
+
+**Data-generating mechanisms.** Four complete-data Gaussian location-scale
+cells use matching `(1 | p | id)` random-intercept terms in `mu` and `sigma`,
+with true latent correlations 0, 0.4, 0.9, and 0.98. The diagnostic keeps
+bivariate q2 covariance, q4/q8 covariance, structured covariance, random
+effects in `rho12`, non-Gaussian covariance, and interval calibration out of
+scope.
+
+**Estimands.** The diagnostic tracks the true and fitted `mu`/`sigma`
+correlation, the guarded link-equivalent target, fitted SDs, `1 - rho^2`,
+boundary distance, fixed gradients, convergence, `pdHess`, `sdreport_status`,
+log likelihood, AIC/BIC, warnings, and all `check_drm()` rows.
+
+**Methods.** Each cell uses the default optimizer path with no retries,
+multi-start, fallback optimizer, profile interval, bootstrap interval, or
+manual convergence rescue. The runner records warnings and failures as data.
+
+**Performance measures.** The committed summaries report source-grid guard
+distances, per-cell fit diagnostics, per-cell exposure counts, per-cell
+denominators for requested/attempted/error/warning/converged/`pdHess`/gradient
+ok/`check_drm` warning-or-error rows, and a compact run summary. There is no
+coverage, power, or calibrated interval estimate in this slice.
+
+The diagnostic ran 4 requested fits with no fit errors or R warnings. All 4
+fits converged with `pdHess = TRUE`, and all 4 had fixed gradients below the
+default threshold. That clean status is not the claim. The boundary cell fit
+the q2 `mu`/`sigma` correlation at `rho = 0.999999` for true `rho = 0.98`;
+`check_drm()` now reports a `mu_sigma_random_effect_covariance` warning with
+`rho_abs=1.000` and `boundary=0.9800`. The minimum fitted boundary distance was
+`1.0040018e-06`, and the largest fixed gradient was `0.0003361651`.
+
+This is diagnostic evidence for q2 `mu`/`sigma` covariance boundary
+visibility only. It does not settle q2 recovery accuracy, interval coverage,
+power, bivariate q2 covariance, q4/q8 covariance intervals, structured
+correlations, random effects in `rho12`, Julia bridge parity, release
+readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

@@ -207,10 +207,22 @@ check_drm.drmTMB <- function(
     check_random_effect_replication(object, "sigma"),
     check_random_effect_design(object, "mu"),
     check_random_effect_design(object, "sigma"),
-    check_mu_sigma_random_effect_covariance(object),
-    check_biv_mu_sigma_random_effect_covariance(object),
-    check_biv_mu_random_effect_covariance(object),
-    check_biv_sigma_random_effect_covariance(object),
+    check_mu_sigma_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
+    check_biv_mu_sigma_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
+    check_biv_mu_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
+    check_biv_sigma_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
     check_biv_q4_random_effect_covariance(
       object,
       rho_boundary = rho_boundary
@@ -1334,7 +1346,21 @@ registry_member_group_counts <- function(member, n_groups) {
   tabulate((index %% n_groups) + 1L, nbins = n_groups)
 }
 
-check_mu_sigma_random_effect_covariance <- function(object) {
+registry_covariance_pair_rho_abs <- function(object, info) {
+  cor_key <- covariance_block_corpars_key(info$pair$tmb_parameter[[1L]])
+  cor_values <- object$corpars[[cor_key]]
+  if (is.null(cor_values) || length(cor_values) == 0L) {
+    return(NA_real_)
+  }
+  rho <- unname(cor_values[match(info$pair$parameter[[1L]], names(cor_values))])
+  max_abs_finite_or_na(rho)
+}
+
+random_effect_covariance_near_boundary <- function(rho_abs, rho_boundary) {
+  !is.finite(rho_abs) || rho_abs > rho_boundary
+}
+
+check_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
   if (!identical(object$model$model_type, "gaussian")) {
     return(NULL)
   }
@@ -1344,7 +1370,11 @@ check_mu_sigma_random_effect_covariance <- function(object) {
       !is.null(re_mu_sigma$n_cors) &&
       re_mu_sigma$n_cors > 1L
   ) {
-    return(check_mu_sigma_random_effect_covariance_rows(object, re_mu_sigma))
+    return(check_mu_sigma_random_effect_covariance_rows(
+      object,
+      re_mu_sigma,
+      rho_boundary = rho_boundary
+    ))
   }
 
   registry_pair <- registry_covariance_pair(
@@ -1384,13 +1414,28 @@ check_mu_sigma_random_effect_covariance <- function(object) {
       !is.finite(sd_sigma) ||
       mu_sd_ratio < 0.05 ||
       sd_sigma < 0.05
+    rho_abs <- registry_covariance_pair_rho_abs(object, registry_pair)
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     return(check_row(
       "mu_sigma_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
         "term=",
         sigma_member$label[[1L]],
+        "; rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
         "; n_groups=",
         registry_pair$block$n_groups[[1L]],
         "; min_group_n=",
@@ -1402,17 +1447,29 @@ check_mu_sigma_random_effect_covariance <- function(object) {
         "; sigma_log_sd=",
         format_check_number(sd_sigma)
       ),
-      mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+      mu_sigma_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     ))
   }
 
   if (is.null(re_mu_sigma) || re_mu_sigma$n_cors == 0L) {
     return(NULL)
   }
-  check_mu_sigma_random_effect_covariance_rows(object, re_mu_sigma)
+  check_mu_sigma_random_effect_covariance_rows(
+    object,
+    re_mu_sigma,
+    rho_boundary = rho_boundary
+  )
 }
 
-check_mu_sigma_random_effect_covariance_rows <- function(object, re_mu_sigma) {
+check_mu_sigma_random_effect_covariance_rows <- function(
+  object,
+  re_mu_sigma,
+  rho_boundary
+) {
   re_mu <- object$model$random$mu
   re_sigma <- object$model$random$sigma
   rows <- lapply(seq_len(re_mu_sigma$n_cors), function(cor_id) {
@@ -1451,13 +1508,28 @@ check_mu_sigma_random_effect_covariance_rows <- function(object, re_mu_sigma) {
       !is.finite(sd_sigma) ||
       mu_sd_ratio < 0.05 ||
       sd_sigma < 0.05
+    rho_abs <- max_abs_finite_or_na(object$corpars$mu_sigma[[cor_id]])
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     check_row(
       "mu_sigma_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
         "term=",
         re_sigma$labels[[sigma_term]],
+        "; rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
         "; n_groups=",
         length(sigma_rows),
         "; min_group_n=",
@@ -1469,7 +1541,11 @@ check_mu_sigma_random_effect_covariance_rows <- function(object, re_mu_sigma) {
         "; sigma_log_sd=",
         format_check_number(sd_sigma)
       ),
-      mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+      mu_sigma_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     )
   })
   rows <- Filter(Negate(is.null), rows)
@@ -1479,7 +1555,17 @@ check_mu_sigma_random_effect_covariance_rows <- function(object, re_mu_sigma) {
   do.call(rbind, rows)
 }
 
-mu_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
+mu_sigma_re_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_replication,
+  weak_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "The fitted mu/sigma group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting the covariance."
+    ))
+  }
   if (weak_replication && weak_sd) {
     return(paste(
       "At least one group has fewer than two fitted observations and one",
@@ -1501,7 +1587,7 @@ mu_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
   "Mu/sigma group-level covariance has replicated groups and non-negligible fitted component SDs."
 }
 
-check_biv_mu_random_effect_covariance <- function(object) {
+check_biv_mu_random_effect_covariance <- function(object, rho_boundary) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
@@ -1550,13 +1636,28 @@ check_biv_mu_random_effect_covariance <- function(object) {
     weak_sd <- any(finite_sd_ratios < 0.05)
     weak_replication <- min_count < 2L
     pair_class <- registry_pair$pair$class[[1L]]
+    rho_abs <- registry_covariance_pair_rho_abs(object, registry_pair)
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     return(check_row(
       "biv_mu_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
         "class=",
         pair_class,
+        "; rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
         "; n_groups=",
         n_group,
         "; min_group_n=",
@@ -1566,7 +1667,11 @@ check_biv_mu_random_effect_covariance <- function(object) {
         "; min_sd_ratio=",
         format_check_number(min_sd_ratio)
       ),
-      bivariate_mu_re_diagnostic_message(weak_replication, weak_sd)
+      bivariate_mu_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     ))
   }
 
@@ -1591,11 +1696,27 @@ check_biv_mu_random_effect_covariance <- function(object) {
   }
   weak_sd <- any(finite_sd_ratios < 0.05)
   weak_replication <- min_count < 2L
+  rho_abs <- max_abs_finite_or_na(object$corpars$mu)
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    rho_abs,
+    rho_boundary
+  )
 
   check_row(
     "biv_mu_random_effect_covariance",
-    if (weak_replication || weak_sd) "note" else "ok",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
     paste0(
+      "rho_abs=",
+      format_check_number(rho_abs),
+      "; boundary=",
+      format_check_number(rho_boundary),
+      "; ",
       "n_groups=",
       n_group,
       "; min_group_n=",
@@ -1605,7 +1726,11 @@ check_biv_mu_random_effect_covariance <- function(object) {
       "; min_sd_ratio=",
       format_check_number(min_sd_ratio)
     ),
-    bivariate_mu_re_diagnostic_message(weak_replication, weak_sd)
+    bivariate_mu_re_diagnostic_message(
+      near_rho_boundary,
+      weak_replication,
+      weak_sd
+    )
   )
 }
 
@@ -1643,7 +1768,17 @@ bivariate_mu_re_sd_ratios <- function(object, re) {
   sd_values / residual_scale[re$dpars]
 }
 
-bivariate_mu_re_diagnostic_message <- function(weak_replication, weak_sd) {
+bivariate_mu_re_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_replication,
+  weak_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "At least one bivariate group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting the covariance."
+    ))
+  }
   if (weak_replication && weak_sd) {
     return(paste(
       "At least one group has fewer than two fitted observations and at least",
@@ -1666,7 +1801,7 @@ bivariate_mu_re_diagnostic_message <- function(weak_replication, weak_sd) {
   "Bivariate group-level covariance has replicated groups and non-negligible fitted SDs relative to residual scales."
 }
 
-check_biv_mu_sigma_random_effect_covariance <- function(object) {
+check_biv_mu_sigma_random_effect_covariance <- function(object, rho_boundary) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
@@ -1712,13 +1847,28 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
       !is.finite(sd_sigma) ||
       mu_sd_ratio < 0.05 ||
       sd_sigma < 0.05
+    rho_abs <- registry_covariance_pair_rho_abs(object, registry_pair)
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     return(check_row(
       "biv_mu_sigma_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
         "term=",
         sigma_member$label[[1L]],
+        "; rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
         "; n_groups=",
         registry_pair$block$n_groups[[1L]],
         "; min_group_n=",
@@ -1730,7 +1880,11 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
         "; sigma_log_sd=",
         format_check_number(sd_sigma)
       ),
-      bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+      bivariate_mu_sigma_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     ))
   }
 
@@ -1791,13 +1945,28 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
       !is.finite(sd_sigma) ||
       mu_sd_ratio < 0.05 ||
       sd_sigma < 0.05
+    rho_abs <- max_abs_finite_or_na(object$corpars$mu_sigma[[cor_id]])
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     check_row(
       "biv_mu_sigma_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
         "term=",
         re_sigma$labels[[sigma_term]],
+        "; rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
         "; n_groups=",
         length(sigma_rows),
         "; min_group_n=",
@@ -1809,7 +1978,11 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
         "; sigma_log_sd=",
         format_check_number(sd_sigma)
       ),
-      bivariate_mu_sigma_re_diagnostic_message(weak_replication, weak_sd)
+      bivariate_mu_sigma_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     )
   })
   rows <- Filter(Negate(is.null), rows)
@@ -1820,9 +1993,16 @@ check_biv_mu_sigma_random_effect_covariance <- function(object) {
 }
 
 bivariate_mu_sigma_re_diagnostic_message <- function(
+  near_rho_boundary,
   weak_replication,
   weak_sd
 ) {
+  if (near_rho_boundary) {
+    return(paste(
+      "The fitted bivariate mu/sigma group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting the covariance."
+    ))
+  }
   if (weak_replication && weak_sd) {
     return(paste(
       "At least one group has fewer than two fitted observations and one",
@@ -1845,7 +2025,7 @@ bivariate_mu_sigma_re_diagnostic_message <- function(
   "Bivariate mu/sigma group-level covariance has replicated groups and non-negligible fitted SDs."
 }
 
-check_biv_sigma_random_effect_covariance <- function(object) {
+check_biv_sigma_random_effect_covariance <- function(object, rho_boundary) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
@@ -1886,11 +2066,27 @@ check_biv_sigma_random_effect_covariance <- function(object) {
     }
     weak_sd <- any(finite_sd_values < 0.05)
     weak_replication <- min_count < 2L
+    rho_abs <- registry_covariance_pair_rho_abs(object, registry_pair)
+    near_rho_boundary <- random_effect_covariance_near_boundary(
+      rho_abs,
+      rho_boundary
+    )
 
     return(check_row(
       "biv_sigma_random_effect_covariance",
-      if (weak_replication || weak_sd) "note" else "ok",
+      if (near_rho_boundary) {
+        "warning"
+      } else if (weak_replication || weak_sd) {
+        "note"
+      } else {
+        "ok"
+      },
       paste0(
+        "rho_abs=",
+        format_check_number(rho_abs),
+        "; boundary=",
+        format_check_number(rho_boundary),
+        "; ",
         "n_groups=",
         n_group,
         "; min_group_n=",
@@ -1900,7 +2096,11 @@ check_biv_sigma_random_effect_covariance <- function(object) {
         "; min_log_sigma_sd=",
         format_check_number(min_sd)
       ),
-      bivariate_sigma_re_diagnostic_message(weak_replication, weak_sd)
+      bivariate_sigma_re_diagnostic_message(
+        near_rho_boundary,
+        weak_replication,
+        weak_sd
+      )
     ))
   }
 
@@ -1926,11 +2126,27 @@ check_biv_sigma_random_effect_covariance <- function(object) {
   }
   weak_sd <- any(finite_sd_values < 0.05)
   weak_replication <- min_count < 2L
+  rho_abs <- max_abs_finite_or_na(object$corpars$sigma)
+  near_rho_boundary <- random_effect_covariance_near_boundary(
+    rho_abs,
+    rho_boundary
+  )
 
   check_row(
     "biv_sigma_random_effect_covariance",
-    if (weak_replication || weak_sd) "note" else "ok",
+    if (near_rho_boundary) {
+      "warning"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
     paste0(
+      "rho_abs=",
+      format_check_number(rho_abs),
+      "; boundary=",
+      format_check_number(rho_boundary),
+      "; ",
       "n_groups=",
       n_group,
       "; min_group_n=",
@@ -1940,11 +2156,25 @@ check_biv_sigma_random_effect_covariance <- function(object) {
       "; min_log_sigma_sd=",
       format_check_number(min_sd)
     ),
-    bivariate_sigma_re_diagnostic_message(weak_replication, weak_sd)
+    bivariate_sigma_re_diagnostic_message(
+      near_rho_boundary,
+      weak_replication,
+      weak_sd
+    )
   )
 }
 
-bivariate_sigma_re_diagnostic_message <- function(weak_replication, weak_sd) {
+bivariate_sigma_re_diagnostic_message <- function(
+  near_rho_boundary,
+  weak_replication,
+  weak_sd
+) {
+  if (near_rho_boundary) {
+    return(paste(
+      "At least one bivariate scale-scale group-level correlation is close to +/-1;",
+      "profile, simulate, or simplify before interpreting the covariance."
+    ))
+  }
   if (weak_replication && weak_sd) {
     return(paste(
       "At least one group has fewer than two fitted observations and at least",
