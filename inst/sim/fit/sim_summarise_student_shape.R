@@ -66,7 +66,7 @@ phase18_summarise_student_shape_fit <- function(
       profile_args = profile_args
     )
   }
-  phase18_bootstrap_interval_columns(
+  out <- phase18_bootstrap_interval_columns(
     out,
     fit = fit,
     statistic_fun = phase18_student_shape_bootstrap_statistic,
@@ -78,6 +78,7 @@ phase18_summarise_student_shape_fit <- function(
     cores = bootstrap_cores,
     backend = bootstrap_backend
   )
+  phase18_student_shape_attach_status(out, fit)
 }
 
 phase18_student_shape_bootstrap_statistic <- function(fit) {
@@ -124,6 +125,102 @@ phase18_student_shape_fixed_effect_se <- function(fit, parameter) {
   ok <- !is.na(matched)
   out[ok] <- coefficients$std_error[matched[ok]]
   out
+}
+
+phase18_student_shape_attach_status <- function(summary, fit) {
+  diagnostics <- tryCatch(
+    check_drm(fit),
+    error = function(e) NULL
+  )
+
+  summary$fit_diagnostic_status <- "unavailable"
+  summary$fit_diagnostic_message <- NA_character_
+  summary$student_nu_status <- "unavailable"
+  summary$student_nu_value <- NA_character_
+  summary$student_nu_message <- NA_character_
+
+  if (
+    is.data.frame(diagnostics) &&
+      all(c("check", "status", "message") %in% names(diagnostics))
+  ) {
+    nu <- phase18_student_shape_diagnostic_row(diagnostics, "student_nu")
+    fit_rows <- diagnostics[
+      diagnostics$check %in%
+        c(
+          "hessian_positive_definite",
+          "standard_errors_finite",
+          "positive_scale",
+          "student_nu"
+        ),
+      ,
+      drop = FALSE
+    ]
+
+    summary$student_nu_status <- nu$status
+    summary$student_nu_value <- nu$value
+    summary$student_nu_message <- nu$message
+    summary$fit_diagnostic_status <-
+      phase18_student_shape_diagnostic_rollup(fit_rows$status)
+    summary$fit_diagnostic_message <-
+      phase18_student_shape_diagnostic_message(fit_rows)
+  }
+
+  summary
+}
+
+phase18_student_shape_diagnostic_row <- function(diagnostics, check) {
+  row <- diagnostics[diagnostics$check == check, , drop = FALSE]
+  if (nrow(row) == 0L) {
+    return(list(
+      status = "missing",
+      value = NA_character_,
+      message = paste(check, "row missing")
+    ))
+  }
+  value <- if ("value" %in% names(row)) as.character(row$value[[1L]]) else NA_character_
+  list(
+    status = row$status[[1L]],
+    value = value,
+    message = row$message[[1L]]
+  )
+}
+
+phase18_student_shape_diagnostic_rollup <- function(status) {
+  status <- as.character(status)
+  if (length(status) == 0L) {
+    return("unavailable")
+  }
+  if (any(status == "error", na.rm = TRUE)) {
+    return("error")
+  }
+  if (any(status == "warning", na.rm = TRUE)) {
+    return("warning")
+  }
+  if (any(status == "note", na.rm = TRUE)) {
+    return("note")
+  }
+  if (all(status == "ok", na.rm = TRUE)) {
+    return("ok")
+  }
+  "unavailable"
+}
+
+phase18_student_shape_diagnostic_message <- function(diagnostics) {
+  if (nrow(diagnostics) == 0L) {
+    return("Selected fit-level diagnostics are unavailable.")
+  }
+  flagged <- diagnostics[
+    diagnostics$status %in% c("error", "warning", "note"),
+    ,
+    drop = FALSE
+  ]
+  if (nrow(flagged) == 0L) {
+    return("Selected fit-level diagnostics are ok.")
+  }
+  paste(
+    paste(flagged$check, flagged$message, sep = ": "),
+    collapse = " | "
+  )
 }
 
 phase18_student_shape_grid_truth <- function(truth, grid) {

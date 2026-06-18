@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 19:55 MDT",
+  "updated": "2026-06-17 21:05 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Phase 1 Rose signoff is merged through #612 and current main is green at 6386eb8. Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred; the active finish-board row is drmTMB#59 numerical-guard sensitivity."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; this slice makes Student-t `nu` boundary diagnostics visible in the existing shape simulation summaries."
     }
   ]
 }

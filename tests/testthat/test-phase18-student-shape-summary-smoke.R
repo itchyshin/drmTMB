@@ -92,6 +92,16 @@ test_that("Phase 18 Student-t shape summary smoke returns interval artifacts", {
   expect_equal(nrow(summary$interval_failures), 0L)
   expect_equal(summary$replicates$artifact_grain, rep("replicate", 12L))
   expect_equal(summary$aggregate$artifact_grain, rep("aggregate", 6L))
+  expect_true(all(
+    c(
+      "fit_diagnostic_status",
+      "fit_diagnostic_message",
+      "student_nu_status",
+      "student_nu_value",
+      "student_nu_message"
+    ) %in% names(summary$replicates)
+  ))
+  expect_true(all(summary$replicates$student_nu_status == "ok"))
   expect_equal(
     unique(summary$wald_intervals$interval_scale),
     "formula_coefficient"
@@ -151,4 +161,40 @@ test_that("Phase 18 Student-t shape summary can request profile and bootstrap ev
     all(summary$interval_diagnostics$artifact_grain == "interval_diagnostics")
   )
   expect_true(nrow(summary$interval_evidence) >= 14L)
+})
+
+test_that("Phase 18 Student-t shape summaries expose nu boundary diagnostics", {
+  source_phase18_student_shape_summary()
+  dat <- phase18_dgp_student_shape(
+    n = 60L,
+    beta_nu = c("(Intercept)" = log(6), w = 0),
+    seed = 20260618L,
+    cell_id = "student_shape_boundary",
+    replicate = 1L
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ z, nu ~ w),
+    family = student(),
+    data = dat
+  )
+  fit$coefficients$nu[[1L]] <- log(0.01)
+
+  summary <- phase18_summarise_student_shape_fit(
+    fit,
+    dat,
+    cell_id = "student_shape_boundary",
+    replicate = 1L
+  )
+
+  expect_equal(unique(summary$student_nu_status), "warning")
+  expect_match(
+    unique(summary$student_nu_message),
+    "finite-variance boundary"
+  )
+  expect_match(unique(summary$student_nu_value), "range=")
+  expect_equal(unique(summary$fit_diagnostic_status), "warning")
+  expect_match(
+    unique(summary$fit_diagnostic_message),
+    "student_nu"
+  )
 })
