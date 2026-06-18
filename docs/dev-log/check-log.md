@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Phase 1 Rose signoff and stale-claim guard
+
+Goal:
+
+- Close the Phase 1 Rose audit for fitted, planned, missing, and unsupported
+  rows after the public-claim lint landed on `main`.
+
+Changes:
+
+- Reworded `docs/dev-log/known-limitations.md` so missing data is a bounded
+  current-preview surface rather than a release-ready surface.
+- Added `docs/dev-log/known-limitations.md` to
+  `tools/validate-mission-control.py` public claim reference and scan paths.
+- Corrected stale dashboard active-work text that still reported `21/68`
+  verified and `3 active` after the dashboard metrics had moved to `24/68` and
+  `2 active`.
+- Marked Phase 1 verified in the dashboard: `25/68` verified, `1 active`, `0`
+  blocked, and `1` deferred.
+- Added `docs/dev-log/after-task/2026-06-17-phase1-rose-signoff.md`.
+
+Checks run:
+
+- `/opt/homebrew/bin/gh run watch 27727624030 --repo itchyshin/drmTMB --interval 60 --exit-status`
+- `/opt/homebrew/bin/gh run watch 27728675894 --repo itchyshin/drmTMB --interval 30 --exit-status`
+- `python3 -m py_compile tools/validate-mission-control.py`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n 'AI-REML|10k|10,000|GPU|speedup|faster|release-ready|release ready|ready for release|ready to release|CRAN-ready|CRAN ready|engine_control|scale-side phylo|scale-side phylogenetic' README.md ROADMAP.md NEWS.md _pkgdown.yml docs/dev-log/known-limitations.md docs/dev-log/dashboard/README.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md vignettes/model-map.Rmd vignettes/implementation-map.Rmd`
+- `rg -n 'Missing data|missing data|missing-data|miss_control|mi\(|impute_model|complete-case|general missing|REML for explicit missing' README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md vignettes/model-map.Rmd vignettes/implementation-map.Rmd`
+
+External evidence:
+
+- Post-#611 `main` R-CMD-check for `21fa8893` passed on macOS, Ubuntu, and
+  Windows in GitHub Actions run `27727624030`.
+- Post-#611 pkgdown for `21fa8893` built and deployed successfully in GitHub
+  Actions run `27728675894`.
+
+Boundaries:
+
+- Documentation, dashboard, and validation-governance slice only. No R runtime
+  code, TMB likelihood, formula grammar, estimator, Julia bridge behavior,
+  simulation evidence, release promotion, or CRAN-readiness decision changed.
+
 ## 2026-06-17 -- Phase 1 public-claim lint and matrix wiring
 
 Goal:

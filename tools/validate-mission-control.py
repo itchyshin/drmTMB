@@ -25,6 +25,7 @@ PUBLIC_CLAIM_REFERENCE_FILES = (
     ROOT / "NEWS.md",
     ROOT / "_pkgdown.yml",
     ROOT / "docs" / "dev-log" / "dashboard" / "README.md",
+    ROOT / "docs" / "dev-log" / "known-limitations.md",
 )
 PUBLIC_CLAIM_SCAN_FILES = PUBLIC_CLAIM_REFERENCE_FILES + (
     ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md",

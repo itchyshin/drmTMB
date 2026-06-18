@@ -1,5 +1,9 @@
 # Known Limitations
 
+Read this ledger together with
+`docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
+differs, the stricter fitted, planned, or unsupported row governs public claims.
+
 - Gaussian location-scale models are implemented with fixed effects and
   ordinary `mu` random effects: random intercepts, independent random slopes,
   one-slope correlated random intercept-slope blocks such as `(1 + x | id)` or
@@ -63,10 +67,11 @@
   fixed-effect matrices remain out of scope. Fitted-row predictions and
   residuals still use stored original-row model matrices and response vectors;
   no cell-level residual method is exposed yet.
-- Missing-data support is release-ready for the implemented surface, not for
-  every missing-data analysis. `miss_control(response = "include")` is fitted
-  for univariate Gaussian response masks and independent-observation bivariate
-  Gaussian partial-response rows without dense known sampling covariance.
+- Missing-data support is a bounded current-preview surface, not a general
+  missing-data analysis framework. `miss_control(response = "include")` is
+  fitted for univariate Gaussian response masks and independent-observation
+  bivariate Gaussian partial-response rows without dense known sampling
+  covariance.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
