@@ -2,6 +2,48 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Post-#612 dashboard active-row refresh
+
+Goal:
+
+- Reconcile mission-control current-state text after PR #612 merged, so the
+  dashboard points to the actual active finish-board row and the current
+  post-merge evidence.
+
+Changes:
+
+- Updated `docs/dev-log/dashboard/status.json` from `18:42 MDT` to
+  `19:55 MDT`.
+- Replaced stale active-work wording that still referenced post-#611 evidence
+  and an unnamed cross-team/Phase 2 choice.
+- Named `drmTMB#59` numerical-guard sensitivity as the one active finish-board
+  row while leaving the Phase 2 `engine_control` slice queued.
+- Updated `docs/dev-log/dashboard/sweep.json` with the same post-#612 current
+  state.
+- Added `docs/dev-log/after-task/2026-06-17-post612-dashboard-active-row-refresh.md`.
+
+Checks run:
+
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `sh tools/start-mission-control.sh --background`
+- `curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work}'`
+
+External evidence:
+
+- Post-#612 `main` R-CMD-check for `6386eb8` passed on macOS, Ubuntu, and
+  Windows in GitHub Actions run `27730172006`.
+- Post-#612 pkgdown for `6386eb8` built and deployed successfully in GitHub
+  Actions run `27731175739`.
+
+Boundaries:
+
+- Dashboard and ledger refresh only. No R runtime code, TMB likelihood, formula
+  grammar, estimator, simulation result, Julia bridge behavior, release
+  promotion, or CRAN-readiness decision changed.
+
 ## 2026-06-17 -- Phase 1 Rose signoff and stale-claim guard
 
 Goal:

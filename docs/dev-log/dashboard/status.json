@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 18:42 MDT",
+  "updated": "2026-06-17 19:55 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1102,25 +1102,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Phase 1 matrix truth is closed: the public-claim lint is on main, the Rose row now verifies fitted/planned/missing/unsupported consistency for the current public status surfaces, and the next mission-control work should stay on the remaining active cross-team visit or a new narrow Phase 2 bridge slice."
+      "text": "Current main is post-#612 at 6386eb8. Phase 1 is closed, and the one active finish-board row is drmTMB#59 numerical-guard sensitivity; the Phase 2 engine_control row remains queued until a deliberately scoped bridge-control slice starts."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "The signoff corrected two stale current-state leaks: known-limitations no longer calls missing-data support release-ready, and dashboard active-work text no longer reports the old 21/68, 3-active state. Historical after-task reports remain historical evidence, not current status."
+      "text": "This refresh removes stale current-state pointers to older post-merge evidence and unnamed cross-team work. Historical after-task reports remain evidence snapshots, not the live queue."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#611 main evidence is green at 21fa8893: R-CMD-check passed on macOS, Ubuntu, and Windows, and pkgdown built and deployed. Mission-control status is now 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#612 main evidence is green at 6386eb8: R-CMD-check run 27730172006 passed on macOS, Ubuntu, and Windows; pkgdown run 27731175739 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "This is a governance and wording signoff only. It does not promote q8, speed, scale-side phylogeny, missing-data generality, Julia bridge controls, profile/bootstrap coverage, release readiness, or CRAN readiness."
+      "text": "This is a dashboard and ledger refresh only. It does not add guard-class simulation evidence, q8 coverage or power, speed, scale-side phylogeny promotion, missing-data generality, Julia bridge controls, profile/bootstrap coverage, release readiness, or CRAN readiness."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Refreshed mission-control current-state text after PR #612 merged: the dashboard now names drmTMB#59 numerical-guard sensitivity as the one active finish-board row and records post-#612 main R-CMD-check plus pkgdown evidence at 6386eb8.",
+      "url": "docs/dev-log/after-task/2026-06-17-post612-dashboard-active-row-refresh.md",
+      "link_label": "post-#612 dashboard refresh"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
