@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-18 14:22 MDT",
+  "updated": "2026-06-18 16:30 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1112,7 +1112,7 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#622 main gates are green at d3ad54f4: R-CMD-check run 27780664419 passed on macOS, Ubuntu, and Windows; manual pkgdown/Pages run 27784599161 passed with pkgdown in 20m15s and deploy in 9s after the workflow-run attempt stalled in setup-r. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 19:57:57 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#624 main gates are green at 6bd81b0d: R-CMD-check run 27790909354 passed on macOS, Ubuntu, and Windows; pkgdown/Pages run 27792296045 passed with pkgdown in 22m21s and deploy in 8s. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 22:29:51 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
@@ -1121,6 +1121,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-18",
+      "who": "Codex",
+      "text": "Refreshed mission-control current-state evidence after PR #624 merged: the dashboard now records post-#624 R-CMD-check and pkgdown/Pages evidence for 6bd81b0d while keeping drmTMB#59 active and metrics unchanged.",
+      "url": "docs/dev-log/after-task/2026-06-18-post624-dashboard-evidence-refresh.md",
+      "link_label": "post-#624 dashboard evidence"
+    },
     {
       "when": "2026-06-18",
       "who": "Codex",
