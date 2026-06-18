@@ -757,7 +757,9 @@ Current pilot files:
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   for the same reason as the bivariate `rho12` grid, with the same nested-
-  parallel guard.
+  parallel guard. Replicate rows also carry the `check_drm()` `student_nu`
+  status, value, and message so finite-variance-boundary warning rates can be
+  audited in future guard-sensitivity pilots.
 - `run/sim_write_skew_normal_fixed_effect_grid.R` writes the same artifact set
   for the fixed-effect skew-normal `nu` grid, with optional profile,
   parametric-bootstrap, combined interval-evidence, interval-diagnostics, and
@@ -923,7 +925,8 @@ Current pilot files:
 - `run/sim_summary_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` smoke grid, including formula-coefficient Wald
   intervals, optional profile and parametric-bootstrap interval evidence,
-  coverage outputs, and interval-failure ledgers.
+  coverage outputs, interval-failure ledgers, and `student_nu` diagnostic
+  status from `check_drm()`.
 - `run/sim_summary_skew_normal_fixed_effect_smoke.R` does the same for the
   fixed-effect skew-normal residual-slant smoke grid, including
   formula-coefficient Wald intervals, optional profile and parametric-bootstrap
