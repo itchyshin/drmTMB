@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 18:42 MDT",
+  "updated": "2026-06-17 19:55 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Phase 1 Rose signoff is verified: known-limitations missing-data wording now says bounded current preview, the known-limitations ledger is included in the public-claim validator, and stale dashboard active-work text was refreshed. Mission-control metrics are 25/68 verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Phase 1 Rose signoff is merged through #612 and current main is green at 6386eb8. Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred; the active finish-board row is drmTMB#59 numerical-guard sensitivity."
     }
   ]
 }
