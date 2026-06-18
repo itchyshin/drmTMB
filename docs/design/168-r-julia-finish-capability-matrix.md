@@ -44,7 +44,7 @@ evidence is reconciled.
 | AI-REML-inspired algorithms | planned | unsupported | planned | planned | planned | planned | planned | unsupported | planned | planned | Borrow `hsquared` only as a design analogue for exact Gaussian MME cells; use observed-information, Fisher/natural-gradient, or AD-gradient methods for Laplace/non-Gaussian cells after derivation. |
 | Missing values | partial | planned | planned | planned | planned | planned | planned | planned | planned | planned | Use likelihood/FIML-style masks. Complete-data all-true masks must match current complete-data log-likelihood exactly. |
 | Visuals and articles | partial | partial | partial | partial | partial | partial | partial | planned | partial | planned | Every major capability needs a real visual: capability heatmap, profile curve, parity plot, missingness heatmap, structural visual, and runtime-plus-CI plot where relevant. |
-| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, the first fixed-effect `log(sigma)` clamp sensitivity pilot, the first Student-t finite-variance diagnostic pilot, the skew-normal tail-floor source diagnostic, the numerical-guard ADEMP design, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked; broader fit-level guard-class simulations, q8 coverage/power, same-response hardening, bridge parity, and release-readiness evidence remain partial or planned. |
+| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, the first fixed-effect `log(sigma)` clamp sensitivity pilot, the first Student-t finite-variance diagnostic pilot, the skew-normal tail-floor source and fit-stress diagnostics, the numerical-guard ADEMP design, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked; broader guard-class simulations, q8 coverage/power, same-response hardening, bridge parity, and release-readiness evidence remain partial or planned. |
 | Release gate | planned | planned | planned | planned | planned | planned | planned | planned | planned | planned | Release notes must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision. |
 
 ## Issue-Led Slice Rules
@@ -161,11 +161,11 @@ weakly identified cells cannot collapse into one status word.
    still needs per-cell parity evidence and explicit owner review.
 6. Continue the broader numerical-guard programme beyond the fixed-effect
    `log(sigma)` pilot, the Student-t finite-variance diagnostic pilot, the
-   skew-normal tail-floor source diagnostic, and the ADEMP design in
+   skew-normal tail-floor source and fit-stress diagnostics, and the ADEMP design in
    `docs/design/176-numerical-guard-simulation-audit.md`: scale-side phylogeny,
-   bivariate scale routes, support floors, fit-level skew-normal tail-floor
-   stress, Student-t calibration, correlation guards, and broader interval
-   consequences still need sensitivity evidence.
+   bivariate scale routes, support floors, larger skew-normal guard grids,
+   Student-t calibration, correlation guards, and broader interval consequences
+   still need sensitivity evidence.
 7. Leave release, comparator, and CRAN readiness planned until implementation,
    evidence, pkgdown, issue comments, dashboard rows, and 3-OS CI agree.
 

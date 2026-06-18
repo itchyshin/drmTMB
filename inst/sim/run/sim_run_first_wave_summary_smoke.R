@@ -186,6 +186,21 @@ phase18_run_first_wave_summary_smoke <- function(
     cores = cores,
     backend = backend
   )
+  student_shape <- phase18_write_student_shape_grid_outputs(
+    output_dir = file.path(output_dir, "student-shape"),
+    conditions = phase18_student_shape_conditions(
+      n = 240L,
+      nu_intercept = log(6),
+      nu_slope = 0.20,
+      sigma_slope = 0.20,
+      rho_xw = 0.1
+    ),
+    n_rep = as.integer(n_rep),
+    master_seed = as.integer(master_seed) + 16L,
+    overwrite = overwrite,
+    cores = cores,
+    backend = backend
+  )
   ordinal <- phase18_write_ordinal_fe_grid_outputs(
     output_dir = file.path(output_dir, "ordinal-fe"),
     conditions = phase18_ordinal_fe_conditions(
@@ -268,6 +283,7 @@ phase18_run_first_wave_summary_smoke <- function(
       tweedie_fixed_effect,
       positive_continuous_mu_random_intercept,
       student_mu_random_intercept,
+      student_shape,
       ordinal,
       zero_one_beta,
       gaussian_mu_random_slope,
@@ -290,6 +306,7 @@ phase18_run_first_wave_summary_smoke <- function(
     tweedie_fixed_effect = tweedie_fixed_effect,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
     student_mu_random_intercept = student_mu_random_intercept,
+    student_shape = student_shape,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
@@ -322,6 +339,7 @@ phase18_run_first_wave_summary_smoke <- function(
     tweedie_fixed_effect = tweedie_fixed_effect,
     positive_continuous_mu_random_intercept = positive_continuous_mu_random_intercept,
     student_mu_random_intercept = student_mu_random_intercept,
+    student_shape = student_shape,
     ordinal = ordinal,
     zero_one_beta = zero_one_beta,
     gaussian_mu_random_slope = gaussian_mu_random_slope,
@@ -380,6 +398,7 @@ phase18_first_wave_parallel_summary <- function(
   tweedie_fixed_effect,
   positive_continuous_mu_random_intercept,
   student_mu_random_intercept,
+  student_shape,
   ordinal,
   zero_one_beta,
   gaussian_mu_random_slope,
@@ -429,6 +448,10 @@ phase18_first_wave_parallel_summary <- function(
       phase18_parallel_summary_row(
         "student_mu_random_intercept_grid",
         student_mu_random_intercept$summary$run$parallel
+      ),
+      phase18_parallel_summary_row(
+        "student_shape_grid",
+        student_shape$summary$run$parallel
       ),
       phase18_parallel_summary_row(
         "ordinal_fixed_effect_grid",

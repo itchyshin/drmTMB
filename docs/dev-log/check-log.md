@@ -2,6 +2,108 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- skew-normal tail-floor fit-stress diagnostic
+
+Goal:
+
+- Add a narrow fit-level diagnostic artifact for the skew-normal
+  `log(Phi(alpha * z) + 1e-300)` tail floor in the `drmTMB#59`
+  numerical-guard sensitivity lane.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-fit-stress/`
+  with a reproducible runner, diagnostic CSVs, session info, and README.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` with a fourth
+  diagnostic section for fixed-effect skew-normal fit stress.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` and
+  `docs/design/157-capability-completion-worklist.md` so the fit-stress
+  diagnostic is banked without promoting stability, intervals, coverage, power,
+  release readiness, CRAN readiness, or Julia bridge parity.
+- Refreshed `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` to `2026-06-18 06:00 MDT` while leaving
+  metrics unchanged: 25/68 banked or verified, 1 active, 0 blocked, and 1
+  deferred.
+- Added
+  `docs/dev-log/after-task/2026-06-18-skew-normal-tail-floor-fit-stress.md`.
+- After PR #620 opened, Ubuntu R-CMD-check exposed a pre-existing strict
+  Phase 18 first-wave report fixture gap: the smoke runner required complete
+  first-wave artifact status but did not stage `student_shape_grid`. Added the
+  existing Student-t shape grid writer to
+  `inst/sim/run/sim_run_first_wave_summary_smoke.R` and the matching test
+  source list/row-count assertions to
+  `tests/testthat/test-phase18-first-wave-summary-smoke-runner.R`.
+
+Checks run:
+
+- `/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-fit-stress/run-pilot.R`
+- `/usr/local/bin/Rscript -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-skew-normal-density-contract.R')"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|fitted.*stability|Julia bridge parity" docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-18-skew-normal-tail-floor-fit-stress.md docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-fit-stress/README.md`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^phase18-first-wave-summary-smoke-runner$', reporter = 'summary')"`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^(phase18-first-wave-summary-smoke-runner|phase18-student-shape-grid-writer|phase18-interval-heavy-summary-smoke-runner)$', reporter = 'summary')"`
+- `/usr/local/bin/Rscript --vanilla -e "files <- c('inst/sim/run/sim_run_first_wave_summary_smoke.R','tests/testthat/test-phase18-first-wave-summary-smoke-runner.R'); invisible(lapply(files, parse)); cat('parse ok\n')"`
+
+Results:
+
+- The artifact runner wrote the conditions, fit diagnostics, coefficient
+  tables, tail-exposure tables, failures table, run summary, and session info.
+- The pilot ran 9 requested fixed-effect skew-normal fits across ordinary,
+  near-floor injected, and floor-dominated injected cells.
+- No fit errored. The injected cells created generating-scale floor exposure:
+  4 observations per replicate at `alpha * z = -38` and 4 observations per
+  replicate at `alpha * z = -45`.
+- The fitted models did not evaluate any observation in the floor-dominated
+  regime. The maximum fitted-scale absolute log-CDF lift was `4.440892e-16`,
+  the maximum fitted floor-dominated count was `0`, and the minimum fitted
+  `alpha * z` was `-2.701865`.
+- The ordinary reference cell retained one non-converged, non-positive-Hessian
+  replicate with a large fixed-gradient warning and a very large
+  `skew_normal_nu` diagnostic (`max_abs=103384102`). This is evidence for
+  reporting guard and fit diagnostics, not evidence for fitted stability.
+- The skew-normal density contract passed with 22 expectations, 0 failures, 0
+  warnings, and 0 skips.
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- The first `pkgdown::check_pkgdown()` call failed because Pandoc was not on
+  the R process path. Rerunning with `RSTUDIO_PANDOC=/opt/homebrew/bin` found
+  no problems.
+- The boundary scan found only intentional or pre-existing boundary wording:
+  the new no-stability/no-Julia-bridge notes, pre-existing power/calibration
+  boundaries in the worklist, reserved `engine_control`, Gaussian-only
+  AI-REML rows, and release-ready guard text. No new release-readiness,
+  CRAN-readiness, coverage, power, calibrated-interval, Julia-bridge-control,
+  or non-Gaussian AI-REML claim was added.
+- Draft PR #620 R-CMD-check run `27758547367` passed on macOS in 14m17s and
+  Windows in 28m56s, but Ubuntu failed in 45m5s while rendering the Phase 18
+  first-wave reports because `student_shape_grid` was missing from the strict
+  artifact status. The failure log pointed to
+  `phase18-first-wave-status-report.Rmd` and
+  `phase18-first-wave-summary-report.Rmd` setup errors.
+- The repaired first-wave smoke-runner test passed after adding
+  `student_shape_grid`; the related bundle
+  `phase18-first-wave-summary-smoke-runner`,
+  `phase18-student-shape-grid-writer`, and
+  `phase18-interval-heavy-summary-smoke-runner` also passed.
+
+Boundaries:
+
+- Diagnostic artifact only. No R runtime API, TMB likelihood, formula grammar,
+  warning threshold, fitted-stability claim, interval calibration, coverage
+  claim, power claim, release-readiness claim, CRAN-readiness claim, or Julia
+  bridge behavior changed.
+- The CI repair stages an already existing Student-t shape artifact in a strict
+  first-wave smoke runner. It does not add a new family, formula grammar,
+  likelihood parameterization, interval-calibration claim, coverage claim, or
+  power claim.
+
 ## 2026-06-18 -- skew-normal tail-floor diagnostic
 
 Goal:

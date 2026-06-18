@@ -1,0 +1,2 @@
+"surface","label","n_cells","n_rep","n_fit","n_failed","floor_threshold_alpha_z","max_generating_abs_log_lift","max_fitted_abs_log_lift","max_fitted_floor_dominated","all_converged","all_pdHess"
+"skew_normal_tail_floor_fit_stress","fit_level_diagnostic_pilot",3,3,9,0,-37.0470997435354,326.450566343739,4.44089209850063e-16,0,FALSE,FALSE

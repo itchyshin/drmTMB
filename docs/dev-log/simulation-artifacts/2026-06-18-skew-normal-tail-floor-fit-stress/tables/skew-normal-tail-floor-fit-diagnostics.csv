@@ -1,0 +1,15 @@
+"cell_id","replicate","seed","n","n_injected","target_alpha_z","floor_threshold_alpha_z","converged","pdHess","max_abs_gradient","objective","logLik","AIC","BIC","elapsed","warning_count","warnings","skew_normal_nu_status","skew_normal_nu_value","fixed_gradient_status","fixed_gradient_value"
+"ordinary_reference",1,2118249895,120,0,NA,-37.0470997435354,TRUE,TRUE,9.36529172155254e-05,96.8256613297874,-96.8256613297874,205.651322659575,222.376273116267,0.0759999999999996,0,"","note","max_abs=37.03","ok","max=0.00009365; component=beta_mu[1]"
+"ordinary_reference",2,360640703,120,0,NA,-37.0470997435354,FALSE,FALSE,77.7357206728339,107.552857540554,-107.552857540554,227.105715081108,243.830665537801,1,2,"`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence
+(7)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit. | NaNs produced","note","max_abs=103384102.","warning","max=77.74; component=beta_mu[1]"
+"ordinary_reference",3,827725907,120,0,NA,-37.0470997435354,TRUE,TRUE,6.15231849172199e-05,115.344350484358,-115.344350484358,242.688700968716,259.413651425408,0.032,0,"","ok","max_abs=5.565","ok","max=0.00006152; component=beta_sigma[2]"
+"near_floor_injected",1,1311474900,120,4,-38,-37.0470997435354,TRUE,TRUE,1.71957026697811e-05,195.85131642291,-195.85131642291,403.70263284582,420.427583302512,0.0249999999999999,0,"","ok","max_abs=6.650","ok","max=0.00001720; component=beta_sigma[1]"
+"near_floor_injected",2,901751280,120,4,-38,-37.0470997435354,TRUE,TRUE,3.75548325304858e-06,201.302074564771,-201.302074564771,414.604149129542,431.329099586234,0.0259999999999998,0,"","ok","max_abs=4.715","ok","max=0.000003755; component=beta_sigma[2]"
+"near_floor_injected",3,1413858815,120,4,-38,-37.0470997435354,TRUE,TRUE,0.000350784021326047,195.113999936518,-195.113999936518,402.227999873037,418.952950329729,0.0250000000000004,0,"","ok","max_abs=4.157","ok","max=0.0003508; component=beta_sigma[2]"
+"floor_dominated_injected",1,1117003871,120,4,-45,-37.0470997435354,TRUE,TRUE,1.74884584096852e-05,210.49443286004,-210.49443286004,432.98886572008,449.713816176773,0.0310000000000001,0,"","ok","max_abs=9.426","ok","max=0.00001749; component=beta_sigma[2]"
+"floor_dominated_injected",2,1001702674,120,4,-45,-37.0470997435354,TRUE,TRUE,5.97690595403665e-06,199.195833862237,-199.195833862237,410.391667724474,427.116618181166,0.0260000000000007,0,"","note","max_abs=10.83","ok","max=0.000005977; component=beta_mu[2]"
+"floor_dominated_injected",3,2131953334,120,4,-45,-37.0470997435354,TRUE,TRUE,1.98257434256277e-05,206.620900373389,-206.620900373389,425.241800746777,441.96675120347,0.0250000000000004,0,"","ok","max_abs=5.622","ok","max=0.00001983; component=beta_sigma[1]"

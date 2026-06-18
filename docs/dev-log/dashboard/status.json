@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-18 02:58 MDT",
+  "updated": "2026-06-18 06:00 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -811,7 +811,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
-      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, and skew-normal tail-floor source diagnostic are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal tail-floor diagnostic shows ordinary alpha*z source-level values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). Broader support floors, fit-level skew-normal tail-floor stress, correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, and skew-normal tail-floor source and fit-stress diagnostics are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. Broader support floors, correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
       "last_verified": "2026-06-18"
     },
     {
@@ -1102,25 +1102,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a skew-normal tail-floor source diagnostic beside the log(sigma) and Student-t guard artifacts; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a skew-normal tail-floor fit-stress diagnostic beside the source-level, log(sigma), and Student-t guard artifacts; metrics remain unchanged."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "The new tail-floor artifact is source-level evidence only: it measures log-CDF lift from log(Phi(alpha*z) + 1e-300), not fitted skew-normal estimates, intervals, coverage, power, or release readiness."
+      "text": "The new fit-stress artifact is diagnostic evidence only: generating-scale floor observations did not become fitted-scale floor-dominated observations, but one ordinary-reference fit had non-convergence, pdHess = FALSE, a large fixed-gradient warning, and a very large slant diagnostic."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#618 main evidence is green at 5c019fd6: R-CMD-check run 27746395391 passed on macOS, Ubuntu, and Windows; pkgdown run 27747933180 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#619 main evidence is green at 01c7f5c1: R-CMD-check run 27750245501 passed on macOS, Ubuntu, and Windows; pkgdown/Pages run 27751789902 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "The skew-normal tail-floor diagnostic reports a source-level threshold near alpha*z = -37.0471 and ordinary-tail max log-CDF lift of 4.434133e-17. Fit-level tail-floor stress, support floors, correlation guards, interval coverage, and release claims remain future evidence."
+      "text": "The skew-normal fit-stress diagnostic reports a threshold near alpha*z = -37.0471, max fitted-scale absolute log-CDF lift of 4.440892e-16, zero fitted floor-dominated observations, and an explicit non-converged ordinary-reference row. Support floors, correlation guards, interval coverage, and release claims remain future evidence."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-18",
+      "who": "Codex",
+      "text": "Banked a skew-normal tail-floor fit-stress diagnostic for the numerical-guard ledger: 9 fixed-effect fits, generating-scale floor exposure in injected cells, zero fitted floor-dominated observations, and one retained ordinary-reference non-converged row with a large slant diagnostic.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-fit-stress/README.md",
+      "link_label": "skew-normal tail-floor fit stress"
+    },
     {
       "when": "2026-06-18",
       "who": "Codex",
