@@ -13,7 +13,7 @@ new_corpairs_biv_data <- function(
   sigma1 <- exp(-0.25 + 0.2 * z1)
   sigma2 <- exp(0.05 - 0.15 * z2)
   eta_rho12 <- beta_rho12[[1L]] + beta_rho12[[2L]] * w
-  rho12 <- 0.99999999 * tanh(eta_rho12)
+  rho12 <- 0.999999 * tanh(eta_rho12)
   e1 <- stats::rnorm(n)
   e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)
   data.frame(

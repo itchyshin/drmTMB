@@ -1,0 +1,5 @@
+"cell_id","n","rho_true","seed"
+"rho12_zero",160,0,20260619
+"rho12_moderate",160,0.4,20260620
+"rho12_high",160,0.9,20260621
+"rho12_default_boundary",160,0.98,20260622

@@ -176,7 +176,7 @@ phase18_biv_rho12_grid_truth <- function(truth, grid) {
     truth$beta_sigma2[["(Intercept)"]] +
       truth$beta_sigma2[["z2"]] * grid$z2
   ))
-  rho12 <- 0.99999999 *
+  rho12 <- 0.999999 *
     tanh(unname(
       truth$beta_rho12[["(Intercept)"]] +
         truth$beta_rho12[["w"]] * grid$w

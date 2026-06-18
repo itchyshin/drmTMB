@@ -147,7 +147,7 @@ effect on the inner solve:
 2. **It is formally a likelihood change** (a smooth truncation of the scale in the
    extreme tails), so `docs/design/03-likelihoods.md` is updated and a simulation
    test is added. It is consistent with existing numerical guards in the package
-   (the beta/zero-one-beta `shape_floor = 1e-8` clamps and the `0.99999999`
+   (the beta/zero-one-beta `shape_floor = 1e-8` clamps and the `0.999999`
    correlation bounds).
 3. **It is necessary but not sufficient.** The clamp removes the numerical
    blow-up so the fit is assessable instead of returning -499,839/NaN; it does

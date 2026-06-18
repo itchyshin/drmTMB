@@ -7,7 +7,7 @@ Likelihoods are implemented in TMB templates and called from R wrappers.
 - Positive parameters use log links.
 - Unit-interval parameters use logit links.
 - Residual correlations use a Fisher-z-like linear predictor and a guarded
-  `0.99999999 * tanh()` response transform.
+  `0.999999 * tanh()` response transform.
 - Shape parameters use family-specific stable links.
 
 ## Variability Orientation
@@ -48,7 +48,7 @@ ordinary group-level, phylogenetic, or spatial correlations.
 
 The guard on residual correlations is purely numerical. In teaching material,
 describe the model as the standard transform `rho = tanh(eta)`, then note that
-the implementation multiplies by `0.99999999` so covariance matrices stay
+the implementation multiplies by `0.999999` so covariance matrices stay
 strictly positive definite in floating-point arithmetic near `rho = -1` or
 `rho = 1`.
 
@@ -2694,7 +2694,7 @@ Implementation notes:
 - R builder: `R/drmTMB.R`.
 - Positive `sigma1` and `sigma2` use log links.
 - `rho12` uses `eta_rho12 = X_rho12 beta_rho12` and a bounded tanh transform
-  `rho12 = 0.99999999 * tanh(eta_rho12)` on the response scale so the
+  `rho12 = 0.999999 * tanh(eta_rho12)` on the response scale so the
   covariance matrix stays positive definite even for extreme linear predictors.
 - Simulation recovery tests live in `tests/testthat/test-biv-gaussian.R`.
 - `mvbind(y1, y2) ~ x` is implemented as a formula shorthand that creates

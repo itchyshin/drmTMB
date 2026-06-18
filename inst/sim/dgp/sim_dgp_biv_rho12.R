@@ -91,7 +91,7 @@ phase18_dgp_biv_rho12 <- function(
     eta_rho12 <- unname(
       beta_rho12[["(Intercept)"]] + beta_rho12[["w"]] * w
     )
-    rho12 <- 0.99999999 * tanh(eta_rho12)
+    rho12 <- 0.999999 * tanh(eta_rho12)
 
     e1 <- stats::rnorm(n)
     e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(n)

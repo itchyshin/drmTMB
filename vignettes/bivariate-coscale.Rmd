@@ -117,7 +117,7 @@ Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
 ```
 
 Implementation note: `drmTMB` internally evaluates residual correlations as
-`0.99999999 * tanh(eta_rho12_i)`. The tiny multiplier keeps covariance
+`0.999999 * tanh(eta_rho12_i)`. The tiny multiplier keeps covariance
 matrices strictly positive definite near the boundaries. It is not a
 biological scaling factor, and it should not change how users interpret the
 model.

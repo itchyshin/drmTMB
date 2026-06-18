@@ -45,7 +45,7 @@ Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
 ```
 
 The TMB implementation uses a tiny guarded transform for numerical stability,
-`rho12_i = 0.99999999 * tanh(eta_rho12_i)`. A first formal grid should add an
+`rho12_i = 0.999999 * tanh(eta_rho12_i)`. A first formal grid should add an
 explicit bivariate `rho12` DGP helper under `inst/sim/` before broad runs,
 rather than borrowing test fixtures from `tests/testthat/test-biv-gaussian.R`.
 
@@ -122,6 +122,26 @@ Report metrics by condition cell and estimand:
 Every aggregate metric should carry an MCSE. Failed, warning-bearing, boundary,
 and interval-failed fits remain in the manifest, warning/error ledger, and
 interval status tables.
+
+## Guard-Diagnostic Checkpoint
+
+The residual `rho12` open-interval guard diagnostic is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/`.
+It is a four-cell fitted stress artifact for true residual correlations 0,
+0.4, 0.9, and 0.98 under fixed `rho12 ~ 1`.
+
+The artifact records the six-nines guard multiplier, default starting-value
+clamp, fitted `rho12`, boundary distance, `1 - rho12^2`, convergence,
+`pdHess`, fixed-gradient rows, and the full `check_drm()` table. All 4 fits
+converged with `pdHess = TRUE`, but 2/4 cells used the default R-side
+starting-value clamp, 2/4 had `fixed_gradient` warnings, and the
+`rho_true = 0.98` cell triggered the default `rho12_boundary` warning with
+fitted `rho12 = 0.9813`.
+
+This checkpoint supports guard-visibility wording only. It does not promote
+the Phase 18 residual `rho12` lane to calibrated coverage, power, profile,
+bootstrap, Julia bridge, random-effect `rho12`, structured-correlation,
+release, or CRAN readiness.
 
 ## Williams-Style Self-Audit
 

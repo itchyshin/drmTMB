@@ -52,7 +52,7 @@ Omega_i[1,2] = rho12_i * sigma1_i * sigma2_i
 log(sigma1_i) = W1[i, ] gamma1
 log(sigma2_i) = W2[i, ] gamma2
 eta_rho12_i = R[i, ] delta
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = 0.999999 * tanh(eta_rho12_i)
 ```
 
 The third equation is the distinctive `drmTMB` idea. It asks whether the

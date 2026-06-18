@@ -121,7 +121,7 @@ Internal numerical guards should not dominate teaching tables. For example,
 residual correlation is implemented as:
 
 ```text
-rho12_i = 0.99999999 * tanh(eta_rho12_i)
+rho12_i = 0.999999 * tanh(eta_rho12_i)
 ```
 
 Tutorial prose should usually describe this as:

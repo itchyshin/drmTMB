@@ -25,7 +25,7 @@ diagnostic when it is active.
 
 | Class | Examples | Interpretation | Simulation question |
 |---|---|---|---|
-| Domain transform | `rho12 = 0.99999999 * tanh(eta_rho12)` and random-effect correlation guards | Correlations must stay inside `(-1, 1)` so covariance matrices remain positive definite. The multiplier is a numerical guard near singularity. | Do estimates, intervals, and boundary diagnostics behave correctly for true correlations near 0, moderate values, and high `|rho|`? |
+| Domain transform | `rho12 = 0.999999 * tanh(eta_rho12)` and random-effect correlation guards | Correlations must stay inside `(-1, 1)` so covariance matrices remain positive definite. The multiplier is a numerical guard near singularity. | Do estimates, intervals, and boundary diagnostics behave correctly for true correlations near 0, moderate values, and high `|rho|`? |
 | Model-defining restriction | Student-t `nu = 2 + exp(eta_nu)` | The fitted Student-t route is a finite-variance model with `nu > 2`. It deliberately excludes infinite-variance tails. | How often do low-`nu` data push estimates to the boundary, and do diagnostics prevent overconfident interval claims? |
 | Density-domain floor | beta and zero-one beta mean/shape epsilons, missing-data beta shape floors | These avoid evaluating beta densities exactly at illegal open-support boundaries. They are acceptable only when paired with response validation and boundary wording. | Are estimates unchanged away from support boundaries, and are boundary-near failures/warnings visible? |
 | Tail log floor | skew-normal `log(Phi(nu * z) + 1e-300)` | Prevents `log(0)` in extreme tails while leaving ordinary likelihood values effectively unchanged. | Does the floor matter in strong-skew or outlier scenarios, and does it change sign or scale conclusions? |
@@ -184,7 +184,7 @@ not hide the problematic replicates.
 
 The audit should classify constants by function before judging them. Constants
 such as `0.5`, `2`, or `2 * pi` in standard density formulae are mathematical
-constants, not numerical guards. Constants such as `0.99999999` in correlation
+constants, not numerical guards. Constants such as `0.999999` in correlation
 links, `1e-300` in tail log floors, `1e-12` support epsilons, and `1e-8` shape
 floors are guard candidates. Each candidate needs an owner, an intended legal
 range, a detectability plan, and a simulation decision rule.
@@ -433,6 +433,52 @@ zero-one beta interval coverage. It also does not promote random effects,
 structured effects, bivariate bounded responses, missing-data breadth, Julia
 bridge parity, release readiness, CRAN readiness, or non-Gaussian
 REML/AI-REML claims.
+
+## Sixth Diagnostic: Residual `rho12` Open-Interval Guard
+
+The sixth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/`.
+It is a fixed bivariate Gaussian residual-correlation diagnostic, not a
+coverage or power grid.
+
+**Aim.** Check whether named residual `rho12` stress cells make the
+six-nines open-interval guard, starting-value clamp, fixed-gradient status,
+Hessian status, and `check_drm()` `rho12_boundary` row visible.
+
+**Data-generating mechanisms.** Four complete-row bivariate Gaussian cells use
+`rho12 ~ 1` with true residual correlations 0, 0.4, 0.9, and 0.98. The
+diagnostic keeps group-level, phylogenetic, spatial, structured, mixed-family,
+and random effects in `rho12` out of scope.
+
+**Estimands.** The diagnostic tracks the true and fitted residual correlation,
+the guarded link-equivalent target, the fitted link value, response-scale
+error, default start correlation and whether it was clamped to 0.8,
+`1 - rho12^2`, boundary distance, fixed gradients, convergence, `pdHess`,
+`sdreport_status`, log likelihood, AIC/BIC, warnings, and all `check_drm()`
+rows.
+
+**Methods.** Each cell uses the default optimizer path with no retries,
+multi-start, fallback optimizer, profile interval, bootstrap interval, or
+manual convergence rescue. The runner records warnings and failures as data.
+
+**Performance measures.** The committed summaries report source-grid guard
+distances, per-cell fit diagnostics, per-cell exposure counts, per-cell
+denominators for requested/attempted/error/warning/converged/`pdHess`/gradient
+ok/`check_drm` warning-or-error rows, and a compact run summary. There is no
+coverage, power, or calibrated interval estimate in this slice.
+
+The diagnostic ran 4 requested fits with no fit errors or R warnings. All 4
+fits converged with `pdHess = TRUE`, but that is not sufficient for promotion:
+2/4 cells used the default R-side starting-value clamp, 2/4 cells had
+`fixed_gradient` warnings, and the `rho_true = 0.98` cell triggered the default
+`rho12_boundary` warning with fitted `rho12 = 0.9813`. The minimum fitted
+boundary distance was `0.01867593`, and the largest fixed gradient was
+`0.001554683`.
+
+This is diagnostic evidence for residual `rho12` visibility only. It does not
+settle interval coverage, power, random effects in `rho12`, structured
+correlations, missing-response bivariate behavior, Julia bridge parity,
+release readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
 
 ## User-Facing Rule
 

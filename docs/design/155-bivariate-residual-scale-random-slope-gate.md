@@ -74,7 +74,7 @@ between how each response's residual variability changes with `x`. It is not
 `rho12`, which stays a separate row-level residual term:
 
 ```text
-rho12_ij = 0.99999999 * tanh(X_rho12[ij, ] beta_rho12)
+rho12_ij = 0.999999 * tanh(X_rho12[ij, ] beta_rho12)
 ```
 
 This is the q2 (intercept-free, slope-only) analogue of the implemented q2
