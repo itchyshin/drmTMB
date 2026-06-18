@@ -244,6 +244,49 @@ Gaussian scale routes, support floors, Student-t finite-variance restrictions,
 correlation open-interval guards, profile/bootstrap intervals, or release
 readiness.
 
+## Second Pilot: Student-t Finite-Variance Boundary
+
+The second executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/`.
+It uses the same guard-audit discipline, but answers a different question: the
+Student-t route is intentionally a finite-variance model with `nu > 2`, so the
+diagnostic needs to show when fitted tail shape is close enough to the boundary
+that ordinary interpretation should slow down.
+
+**Aim.** Check whether the `student_nu` diagnostic reports ordinary,
+near-boundary, and failed Student-t shape fits visibly enough for Phase 18
+simulation summaries and applied tutorials.
+
+**Data-generating mechanisms.** Two fixed-effect Student-t shape cells use
+`n = 180`, `sigma_slope = 0.20`, `rho_xw = 0.2`, and 25 replicates per cell.
+The ordinary cell has `nu(w = 0) = 8.0`; the low-tail cell has
+`nu(w = 0) = 2.8`, close to the finite-variance boundary but still inside the
+fitted model.
+
+**Estimands.** The pilot tracks fitted `nu`, `student_nu` status/message,
+convergence, `pdHess`, warning/error rows, coefficient bias, RMSE, MCSE, and
+elapsed time.
+
+**Methods.** Each replicate is fit with the default fixed-effect Student-t
+shape path. There is no alternative infinite-variance reference route in this
+pilot, because the public model is explicitly `nu > 2`.
+
+**Performance measures.** The committed summaries report convergence and
+`pdHess` rates plus `student_nu` ok, note, warning, and error counts. Coverage
+and interval calibration are intentionally absent from this pilot.
+
+Results from 25 replicates per condition:
+
+| Cell | Convergence rate | `pdHess` rate | `student_nu` ok | `student_nu` note | `student_nu` warning | `student_nu` error |
+|---|---:|---:|---:|---:|---:|---:|
+| `nu(w = 0) = 2.8` | 0.92 | 0.88 | 17 | 0 | 5 | 3 |
+| `nu(w = 0) = 8.0` | 1.00 | 1.00 | 15 | 10 | 0 | 0 |
+
+This is diagnostic evidence for carrying the `student_nu` row beside model
+comparisons and simulation summaries. It does **not** promote Student-t
+coverage, power, profile/bootstrap intervals, random effects in `nu`, a
+different tail model, or release readiness.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
