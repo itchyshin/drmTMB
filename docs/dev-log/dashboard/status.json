@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-18 11:41 MDT",
+  "updated": "2026-06-18 13:59 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1112,7 +1112,7 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#621 main gates are green at a9481977: R-CMD-check run 27773290153 passed on macOS, Ubuntu, and Windows; rerun pkgdown/Pages run 27775089811 passed with pkgdown in 15m02s and deploy in 48s. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 17:33:24 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#622 main gates are green at d3ad54f4: R-CMD-check run 27780664419 passed on macOS, Ubuntu, and Windows; manual pkgdown/Pages run 27784599161 passed with pkgdown in 20m15s and deploy in 9s after the workflow-run attempt stalled in setup-r. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 19:57:57 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
