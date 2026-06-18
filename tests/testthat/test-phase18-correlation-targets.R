@@ -16,7 +16,7 @@ new_phase18_biv_rho_data <- function(n = 110L, modelled = FALSE) {
   mu1 <- 0.20 + 0.45 * x
   mu2 <- -0.10 - 0.30 * x
   rho <- if (modelled) {
-    0.99999999 * tanh(0.10 + 0.35 * w)
+    0.999999 * tanh(0.10 + 0.35 * w)
   } else {
     rep(0.25, n)
   }

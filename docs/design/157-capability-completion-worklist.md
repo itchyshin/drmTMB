@@ -84,7 +84,8 @@ note, first Phase 19 binomial `stats::glm()` parity artifact, and the first
 `main` or in the current merge slice. The current guard-sensitivity slice also
 banks the first fixed-effect Gaussian `log(sigma)` clamp pilot, the first
 Student-t finite-variance diagnostic pilot, skew-normal tail-floor source
-and fit-stress diagnostics, and beta/zero-one beta support-floor diagnostic.
+and fit-stress diagnostics, beta/zero-one beta support-floor diagnostic, and
+residual `rho12` open-interval diagnostic.
 The `log(sigma)` pilot shows negligible default-vs-off
 differences when the clamp is inactive and material differences when the
 default band binds. The Student-t pilot shows that near-boundary
@@ -100,16 +101,20 @@ slant diagnostic. The support-floor diagnostic shows source-level beta shape
 floors activating only in high-scale source cells; six small fitted beta,
 zero-one beta, and missing-predictor cells converged with `pdHess = TRUE`;
 the four fitted response-route cells that expose shape vectors stayed above
-the floor; and six malformed boundary cells errored visibly. The plain
-binomial route is now a fitted, parity-banked, and
+the floor; and six malformed boundary cells errored visibly. The residual
+`rho12` diagnostic shows 4/4 fixed bivariate Gaussian `rho12 ~ 1` stress fits
+converged with `pdHess = TRUE`, while still surfacing 2/4 default
+starting-value clamps, 2/4 fixed-gradient warnings, and one default
+`rho12_boundary` warning at fitted `rho12 = 0.9813`. The plain binomial route
+is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
 operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, bivariate
-scale routes, Student-t calibration, correlation guards, larger skew-normal
-guard grids, and broader interval consequences.
+scale routes, Student-t calibration, random-effect and structured correlation
+guards, larger skew-normal guard grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or
 release language.

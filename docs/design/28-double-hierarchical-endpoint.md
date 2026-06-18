@@ -71,7 +71,7 @@ and the residual covariance still has its own row-level term:
 
 ```text
 Omega_ij[1,2] = rho12_ij sigma1_ij sigma2_ij
-rho12_ij = 0.99999999 * tanh(X_rho12[ij, ] beta_rho12)
+rho12_ij = 0.999999 * tanh(X_rho12[ij, ] beta_rho12)
 ```
 
 This separation is the core design rule: group-level covariance blocks answer

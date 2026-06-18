@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-18 09:45 MDT",
+  "updated": "2026-06-18 11:41 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; the skew-normal tail-floor source/fit-stress diagnostics and beta/zero-one beta support-floor diagnostic are now banked, while correlation guards, Student-t calibration depth, scale-side guard depth, larger guard grids, and broader intervals remain planned."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; the skew-normal tail-floor source/fit-stress diagnostics, beta/zero-one beta support-floor diagnostic, and residual rho12 open-interval diagnostic are now banked, while random-effect/structured correlation guards, Student-t calibration depth, scale-side guard depth, larger guard grids, and broader intervals remain planned."
     }
   ]
 }

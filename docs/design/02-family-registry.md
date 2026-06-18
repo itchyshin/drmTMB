@@ -720,7 +720,7 @@ bf(
 ```
 
 `rho12` uses a guarded atanh-style link internally:
-`rho12 = 0.99999999 * tanh(eta_rho12)` on the response scale.
+`rho12 = 0.999999 * tanh(eta_rho12)` on the response scale.
 `mvbind(y1, y2) ~ x` is implemented as shorthand for identical `mu1` and
 `mu2` location formulas. Selected matching labelled random-intercept
 covariance blocks are implemented for all-Gaussian bivariate fits; bivariate

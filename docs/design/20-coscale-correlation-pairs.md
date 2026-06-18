@@ -15,7 +15,7 @@ Omega_i[1,1] = sigma1_i^2
 Omega_i[2,2] = sigma2_i^2
 Omega_i[1,2] = rho12_i sigma1_i sigma2_i
 
-rho12_i = 0.99999999 * tanh(X_rho12[i, ] beta_rho12)
+rho12_i = 0.999999 * tanh(X_rho12[i, ] beta_rho12)
 ```
 
 Matching implemented R syntax:

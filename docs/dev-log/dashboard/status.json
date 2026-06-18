@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-18 09:45 MDT",
+  "updated": "2026-06-18 11:41 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -811,7 +811,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
-      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, skew-normal tail-floor source and fit-stress diagnostics, and beta/zero-one beta support-floor diagnostic are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. The support-floor diagnostic shows source-level beta shape floors activating in high-scale source cells, 6/6 small fitted cells converging with pdHess = TRUE, 0 reported shape-floor activations among the 4 fitted response-route cells that expose shape vectors, missing-predictor fitted shape counts recorded as NA, retained check_drm warning rows, and 6/6 boundary validation cells failing visibly. Broader correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, skew-normal tail-floor source and fit-stress diagnostics, beta/zero-one beta support-floor diagnostic, and residual rho12 open-interval diagnostic are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. The support-floor diagnostic shows source-level beta shape floors activating in high-scale source cells, 6/6 small fitted cells converging with pdHess = TRUE, 0 reported shape-floor activations among the 4 fitted response-route cells that expose shape vectors, missing-predictor fitted shape counts recorded as NA, retained check_drm warning rows, and 6/6 boundary validation cells failing visibly. The rho12 diagnostic shows 4/4 fixed residual-correlation stress fits converged with pdHess = TRUE while still surfacing 2/4 default starting-value clamps, 2/4 fixed-gradient warnings, and one default rho12_boundary warning at fitted rho12 = 0.9813. Random-effect and structured correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
       "last_verified": "2026-06-18"
     },
     {
@@ -1102,25 +1102,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a beta/zero-one beta support-floor diagnostic beside the skew-normal source/fit-stress, log(sigma), and Student-t guard artifacts; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a residual rho12 open-interval diagnostic beside the beta/zero-one beta support-floor, skew-normal source/fit-stress, log(sigma), and Student-t guard artifacts; metrics remain unchanged."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "The support-floor artifact is diagnostic evidence only: source-level shape floors activate in high-scale cells, the four fitted response-route cells that expose shapes report no floor activation, missing-predictor fitted shape counts are NA, and malformed beta/zero-one beta boundaries fail visibly."
+      "text": "The residual rho12 artifact is diagnostic evidence only: 4/4 fixed rho12 ~ 1 fits converged with pdHess = TRUE, but high-correlation cells exposed starting-value clamps, fixed-gradient warnings, and one rho12_boundary warning rather than a coverage or power claim."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#620 main gates are green at 32741fa6: R-CMD-check run 27765267220 passed on macOS, Ubuntu, and Windows; rerun pkgdown/Pages run 27767064877 passed with pkgdown in 25m21s and deploy in 1m14s. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 15:43:02 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#621 main gates are green at a9481977: R-CMD-check run 27773290153 passed on macOS, Ubuntu, and Windows; rerun pkgdown/Pages run 27775089811 passed with pkgdown in 15m02s and deploy in 48s. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 17:33:24 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "The support-floor diagnostic reports 60 source rows, 6/6 fitted cells converged with pdHess = TRUE, 0/4 reported response-route fitted shape-floor activations, retained check_drm warning rows for the valid missing-predictor zero-one beta cell, and 6/6 expected validation failures. Correlation guards, interval coverage, random/structured/bivariate routes, and release claims remain future evidence."
+      "text": "The residual rho12 diagnostic reports 4 source rows, 4/4 fixed residual-correlation fits converged with pdHess = TRUE, 2/4 default starting-value clamps, 2/4 fixed-gradient warnings, and one default rho12_boundary warning at fitted rho12 = 0.9813. Random-effect/structured correlation guards, interval coverage, random/structured/bivariate routes, and release claims remain future evidence."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-18",
+      "who": "Codex",
+      "text": "Banked a residual rho12 open-interval diagnostic for the numerical-guard ledger: true correlations 0, 0.4, 0.9, and 0.98 under fixed rho12 ~ 1, with start clamps, fixed-gradient warnings, boundary distance, and check_drm rows retained as evidence.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/README.md",
+      "link_label": "rho12 guard diagnostic"
+    },
     {
       "when": "2026-06-18",
       "who": "Codex",

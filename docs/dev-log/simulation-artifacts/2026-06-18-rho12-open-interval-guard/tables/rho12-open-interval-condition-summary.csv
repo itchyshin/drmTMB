@@ -1,0 +1,5 @@
+"cell_id","rho_true","n_requested","n_attempted","n_fit_error","n_warning","n_converged","n_pdHess","n_converged_and_pdHess","n_gradient_ok","n_check_drm_warning_or_error"
+"rho12_zero",0,1,1,0,0,1,1,1,1,0
+"rho12_moderate",0.4,1,1,0,0,1,1,1,1,0
+"rho12_high",0.9,1,1,0,0,1,1,1,0,1
+"rho12_default_boundary",0.98,1,1,0,0,1,1,1,0,1

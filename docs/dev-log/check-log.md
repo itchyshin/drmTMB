@@ -2,6 +2,95 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- residual rho12 open-interval guard diagnostic
+
+Goal:
+
+- Add a diagnostic-only fitted residual `rho12` open-interval guard artifact
+  for the `drmTMB#59` numerical-guard sensitivity lane.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/`
+  with a reproducible runner, source transform grid, fitted diagnostics,
+  exposure table, per-cell denominator table, full `check_drm()` rows, failure
+  table, session info, run summary, and README.
+- Synchronized active residual `rho12` simulation helpers, tests, design docs,
+  vignettes, and NEWS references to the six-nines
+  `rho12 = 0.999999 * tanh(eta_rho12)` transform used by the TMB template and
+  R extractors.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` and
+  `docs/design/52-phase-18-bivariate-rho12-ademp.md` with a fixed residual
+  `rho12` guard-diagnostic checkpoint.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md`,
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/dev-log/dashboard/status.json`, and
+  `docs/dev-log/dashboard/sweep.json` while leaving mission-control metrics at
+  25/68 banked or verified, 1 active, 0 blocked, and 1 deferred.
+- Added
+  `docs/dev-log/after-task/2026-06-18-rho12-open-interval-guard.md`.
+
+Checks run:
+
+- `/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/run-pilot.R`
+- `cd /tmp && /usr/local/bin/Rscript --vanilla /Users/z3437171/.codex/worktrees/1d33/drmTMB/docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/run-pilot.R`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^(corpairs|profile-targets|phase18-correlation-targets|phase18-biv-rho12-summary-smoke)$', reporter = 'summary')"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e "pkgdown::check_pkgdown()"`
+- `rg -n "0\\.99999999|eight-nines" README.md ROADMAP.md NEWS.md docs/design vignettes R tests inst man`
+- `rg -n "random effects in ``rho12``|random effects in \`rho12\`|structured.*rho12|structured.*\`rho12\`|rho12.*structured|rho12.*random" README.md ROADMAP.md NEWS.md docs/design vignettes docs/dev-log/dashboard docs/dev-log/after-task/2026-06-18-rho12-open-interval-guard.md docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/README.md`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|fitted.*stability" docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-18-rho12-open-interval-guard.md docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/README.md NEWS.md`
+
+Results:
+
+- The source grid has 4 rows for target correlations 0, 0.4, 0.9, and 0.98.
+  With the matching guarded inverse link, the guarded response value equals the
+  target; the unguarded `tanh(eta)` value is larger by about `rho * 1e-6`.
+- The fitted diagnostic has 4 requested cells and 4 attempted fits. All 4
+  converged with `pdHess = TRUE`, with no fit errors and no R warnings.
+- The high-correlation cells still exposed inspection signals: 2/4 used the
+  default R-side starting-value clamp from the raw residual correlation to
+  0.8, 2/4 had `fixed_gradient` warnings, and the `rho_true = 0.98` cell
+  triggered the default `rho12_boundary` warning with fitted `rho12 = 0.9813`.
+- The largest absolute response-scale `rho12` error was `0.05096506`, from the
+  `rho_true = 0.4` cell. The `rho_true = 0.9` cell estimated `rho12 = 0.9269`.
+  The default-boundary cell estimated `rho12 = 0.9813`; its minimum fitted
+  `1 - rho12^2` was `0.03700307`, and its boundary distance was `0.01867593`.
+- The active-source stale-guard scan found only the intentional NEWS comparison
+  explaining the old eight-nines guard was replaced by the six-nines guard.
+  Historical dev-log and generated artifact output were not rewritten.
+- The runner also passed when launched from `/tmp`, confirming that it resolves
+  the package root from the runner path rather than the caller's working
+  directory.
+- Focused `rho12` and correlation-target tests passed. One pre-existing
+  bootstrap/profile fixture emitted a non-convergence warning while exercising
+  structured location-scale dependencies; the focused test run still completed
+  without failures.
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- `pkgdown::check_pkgdown()` with `RSTUDIO_PANDOC=/opt/homebrew/bin` found no
+  problems.
+- The random-effect/structured `rho12` and boundary-claim scans returned the
+  intended new negative-boundary wording plus pre-existing planned-neighbour
+  and roadmap guardrails. They did not expose a new claim that this slice
+  promotes random-effect/structured `rho12`, intervals, coverage, power,
+  release, CRAN, Julia bridge parity, selectable Julia-side algorithms, or
+  non-Gaussian AI-REML/REML support.
+
+Boundaries:
+
+- Diagnostic artifact only. No TMB likelihood, public optimizer behavior,
+  formula grammar, warning threshold, interval calibration, coverage claim,
+  power claim, release-readiness claim, CRAN-readiness claim, Julia bridge
+  behavior, random effects in `rho12`, structured correlation support,
+  missing-data breadth, or non-Gaussian REML/AI-REML language changed.
+
 ## 2026-06-18 -- support-floor diagnostic
 
 Goal:
