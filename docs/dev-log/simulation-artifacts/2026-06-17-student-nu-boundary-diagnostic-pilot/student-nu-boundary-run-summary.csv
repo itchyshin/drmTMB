@@ -1,0 +1,2 @@
+"surface","interpretation_label","master_seed","n_conditions","n_rep","fit_attempts","elapsed_seconds","min_convergence_rate","min_pdHess_rate","max_student_nu_warning_rate","max_student_nu_error_rate","max_warning_rate"
+"student_nu_boundary_diagnostic_pilot","diagnostic_pilot",20260618,2,25,50,5.66989493370056,0.92,0.88,0.2,0.12,0.08

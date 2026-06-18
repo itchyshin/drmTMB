@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 21:05 MDT",
+  "updated": "2026-06-17 22:26 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1102,25 +1102,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row is drmTMB#59 numerical-guard sensitivity. This slice adds Student-t nu boundary diagnostics to the existing shape simulation summaries; the Phase 2 engine_control row remains queued until a deliberately scoped bridge-control slice starts."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a small Student-t nu boundary diagnostic pilot using the new summary diagnostics; the Phase 2 engine_control row remains queued until a deliberately scoped bridge-control slice starts."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "Active-work text now names the active row without binding the live queue to a previous merge number. Historical after-task reports remain evidence snapshots, not the live queue."
+      "text": "Active-work text names the active row and the current evidence need rather than a merge number. Historical after-task reports remain evidence snapshots, not the live queue."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "The latest banked baseline before this slice is #613 at 9c75fca9: post-merge R-CMD-check run 27732660832 passed on macOS, Ubuntu, and Windows; pkgdown run 27733607997 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#614 main evidence is green at 6a536ae2: R-CMD-check run 27735266431 passed on macOS, Ubuntu, and Windows; pkgdown run 27736233532 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "This is diagnostic-surface plumbing for a future Student-t finite-variance-boundary pilot. It does not add new guard-class simulation results, q8 coverage or power, speed, scale-side phylogeny promotion, missing-data generality, Julia bridge controls, profile/bootstrap coverage, release readiness, or CRAN readiness."
+      "text": "This is a diagnostic pilot, not coverage or promotion evidence. The 25-replicate-per-cell Student-t artifact reports finite-variance-boundary warning/error/note/ok rates, but it does not add q8 coverage or power, speed, scale-side phylogeny promotion, missing-data generality, Julia bridge controls, profile/bootstrap calibration, release readiness, or CRAN readiness."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Banked a small Student-t finite-variance-boundary diagnostic pilot: 50 fixed-effect Student-t shape fits across low-nu and ordinary-nu cells, with explicit `student_nu` warning/error/note/ok rates for the numerical-guard sensitivity ledger.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/README.md",
+      "link_label": "Student-t nu boundary pilot"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
