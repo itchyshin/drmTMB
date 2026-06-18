@@ -1,0 +1,5 @@
+"cell_id","replicate","seed","status","severity","message","skipped"
+"student_shape_001",17,1459881256,"ok","warning","NaNs produced",FALSE
+"student_shape_001",23,1993497611,"ok","warning","NaNs produced",FALSE
+"student_shape_002",3,1171991994,"ok","warning","NaNs produced",FALSE
+"student_shape_002",20,1042641940,"ok","warning","NaNs produced",FALSE

@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Student-t nu boundary diagnostic pilot
+
+Goal:
+
+- Bank a small Student-t finite-variance-boundary diagnostic pilot for
+  `drmTMB#59`, using the `check_drm()` `student_nu` status columns in the
+  Phase 18 Student-t shape simulation artifacts.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/`
+  with a reproducible `run-pilot.R`, CSV tables, session info, and README.
+- Ran 25 replicates in each of two fixed-effect Student-t shape cells:
+  `nu(w = 0) = 2.8` and `nu(w = 0) = 8.0`.
+- Recorded fit-level `student_nu` warning, error, note, and ok rates beside
+  convergence, `pdHess`, warning, bias, RMSE, and MCSE summaries.
+- Refreshed mission-control active-work text and activity rows while leaving
+  the dashboard metrics unchanged: `drmTMB#59` remains active.
+- Added
+  `docs/dev-log/after-task/2026-06-17-student-nu-boundary-diagnostic-pilot.md`.
+
+Headline evidence:
+
+- 50 fit attempts; minimum convergence rate 0.92; minimum `pdHess` rate 0.88.
+- Low-`nu` cell (`nu(w = 0) = 2.8`): 17 ok, 5 warnings, 3 errors; warning
+  rate 0.20 and error rate 0.12.
+- Ordinary-`nu` cell (`nu(w = 0) = 8.0`): 15 ok, 10 notes, 0 warnings,
+  0 errors.
+
+External evidence:
+
+- The branch is based on post-#614 `main` at `6a536ae2`. Post-merge
+  R-CMD-check run `27735266431` passed on macOS, Ubuntu, and Windows; pkgdown
+  run `27736233532` built and deployed.
+
+Checks run:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/run-pilot.R`
+- `test ! -d docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/results`
+- `Rscript -e "devtools::test(filter = 'phase18-student-shape', reporter = 'summary')"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background && curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0:4], first_activity: .activity[0]}'`
+- `rg -n 'release readiness|CRAN readiness|coverage language|coverage claim|promotion language|promote|calibrated interval|true nu <= 2' docs/dev-log/simulation-artifacts/2026-06-17-student-nu-boundary-diagnostic-pilot/README.md docs/dev-log/after-task/2026-06-17-student-nu-boundary-diagnostic-pilot.md`
+- `gh issue view 59 --repo itchyshin/drmTMB --json number,title,state,url --jq '{number,title,state,url}'`
+
+Boundaries:
+
+- Diagnostic pilot only. No R runtime model API, TMB likelihood, formula
+  grammar, estimator, profile/bootstrap calibration, coverage claim, speed
+  claim, Julia bridge behavior, release promotion, or CRAN-readiness decision
+  changed.
+
 ## 2026-06-17 -- Student-t nu simulation diagnostics
 
 Goal:

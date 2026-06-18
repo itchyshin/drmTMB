@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 21:05 MDT",
+  "updated": "2026-06-17 22:26 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; this slice makes Student-t `nu` boundary diagnostics visible in the existing shape simulation summaries."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; this slice banks a small Student-t `nu` boundary diagnostic pilot with explicit warning/error/note/ok rates."
     }
   ]
 }
