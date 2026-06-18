@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Student-t diagnostic guidance
+
+Goal:
+
+- Add applied-user guidance showing how to extract the `check_drm()`
+  `student_nu` row and keep its status beside model-comparison,
+  coefficient, and simulation-summary tables.
+
+Changes:
+
+- Updated `vignettes/robust-student.Rmd` so the diagnostic chunk stores
+  `check_drm(fit_student)`, prints the full table, and extracts the
+  `student_nu` status, value, and message.
+- Added prose that tells readers to carry `student_nu` `note` and `warning`
+  statuses with Student-t results because those statuses change the
+  interpretation of the residual-tail assumption even when optimization
+  converges.
+- Refreshed mission-control active-work and activity text while leaving
+  dashboard metrics unchanged: `drmTMB#59` remains active.
+- Added
+  `docs/dev-log/after-task/2026-06-17-student-nu-diagnostic-guidance.md`.
+
+Checks run:
+
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); rmarkdown::render('vignettes/robust-student.Rmd', output_dir = tempdir(), quiet = TRUE)"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background`
+- `curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0:4], first_activity: .activity[0]}'`
+- `rg -n "release readiness|CRAN readiness|coverage claim|promotion language|promote|calibrated interval|engine_control|REML|AI-REML" vignettes/robust-student.Rmd docs/dev-log/after-task/2026-06-17-student-nu-diagnostic-guidance.md docs/dev-log/check-log.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json`
+
+Results:
+
+- `pkgdown::check_pkgdown()` found no problems.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- The served dashboard reported `updated = "2026-06-17 23:06 MDT"` with
+  unchanged metrics and the Student-t diagnostic guidance as the first
+  activity row.
+- The boundary scan found only intentional boundary wording in the new
+  after-task report and pre-existing dashboard/check-log references to REML,
+  `engine_control`, release-readiness boundaries, and promotion guardrails.
+
+Boundaries:
+
+- Documentation guidance only. No R runtime model API, TMB likelihood, formula
+  grammar, diagnostic threshold, estimator, simulation result, interval
+  calibration, coverage claim, Julia bridge behavior, release promotion, or
+  CRAN-readiness decision changed.
+
 ## 2026-06-17 -- Student-t nu boundary diagnostic pilot
 
 Goal:

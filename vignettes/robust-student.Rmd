@@ -122,7 +122,12 @@ comparison focuses on location, scale, and residual-tail assumptions.
 Run `check_drm()` before interpreting the Student-t coefficients:
 
 ```{r}
-check_drm(fit_student)
+student_checks <- check_drm(fit_student)
+student_checks
+student_checks[
+  student_checks$check == "student_nu",
+  c("status", "value", "message")
+]
 ```
 
 The `student_nu` row inspects fitted response-scale `nu` values. A near-boundary
@@ -133,6 +138,12 @@ Gaussian and check whether the Gaussian and Student-t `mu` and `sigma`
 conclusions differ. If `nu` is near the boundary, inspect influential
 observations, compare Gaussian and Student-t conclusions, and report that the
 fitted tail-shape parameter is near the lower bound.
+
+Keep the `student_nu` status beside AIC, coefficient, and simulation-summary
+tables. An `ok` row supports reading the fitted `nu` as an ordinary
+finite-variance Student-t shape estimate. A `note` or `warning` should travel
+with the result, because it changes how a reader should interpret the tail
+assumption even when the optimizer converged.
 
 ## Interpret coefficients by parameter
 
