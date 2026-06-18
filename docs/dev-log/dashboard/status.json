@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-18 06:00 MDT",
+  "updated": "2026-06-18 09:45 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -811,7 +811,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
-      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, and skew-normal tail-floor source and fit-stress diagnostics are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. Broader support floors, correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, first Student-t finite-variance diagnostic pilot, skew-normal tail-floor source and fit-stress diagnostics, and beta/zero-one beta support-floor diagnostic are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. The support-floor diagnostic shows source-level beta shape floors activating in high-scale source cells, 6/6 small fitted cells converging with pdHess = TRUE, 0 reported shape-floor activations among the 4 fitted response-route cells that expose shape vectors, missing-predictor fitted shape counts recorded as NA, retained check_drm warning rows, and 6/6 boundary validation cells failing visibly. Broader correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
       "last_verified": "2026-06-18"
     },
     {
@@ -1102,25 +1102,32 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a skew-normal tail-floor fit-stress diagnostic beside the source-level, log(sigma), and Student-t guard artifacts; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a beta/zero-one beta support-floor diagnostic beside the skew-normal source/fit-stress, log(sigma), and Student-t guard artifacts; metrics remain unchanged."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "The new fit-stress artifact is diagnostic evidence only: generating-scale floor observations did not become fitted-scale floor-dominated observations, but one ordinary-reference fit had non-convergence, pdHess = FALSE, a large fixed-gradient warning, and a very large slant diagnostic."
+      "text": "The support-floor artifact is diagnostic evidence only: source-level shape floors activate in high-scale cells, the four fitted response-route cells that expose shapes report no floor activation, missing-predictor fitted shape counts are NA, and malformed beta/zero-one beta boundaries fail visibly."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#619 main evidence is green at 01c7f5c1: R-CMD-check run 27750245501 passed on macOS, Ubuntu, and Windows; pkgdown/Pages run 27751789902 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#620 main gates are green at 32741fa6: R-CMD-check run 27765267220 passed on macOS, Ubuntu, and Windows; rerun pkgdown/Pages run 27767064877 passed with pkgdown in 25m21s and deploy in 1m14s. Pages returned HTTP 200 with last-modified Thu, 18 Jun 2026 15:43:02 GMT. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "The skew-normal fit-stress diagnostic reports a threshold near alpha*z = -37.0471, max fitted-scale absolute log-CDF lift of 4.440892e-16, zero fitted floor-dominated observations, and an explicit non-converged ordinary-reference row. Support floors, correlation guards, interval coverage, and release claims remain future evidence."
+      "text": "The support-floor diagnostic reports 60 source rows, 6/6 fitted cells converged with pdHess = TRUE, 0/4 reported response-route fitted shape-floor activations, retained check_drm warning rows for the valid missing-predictor zero-one beta cell, and 6/6 expected validation failures. Correlation guards, interval coverage, random/structured/bivariate routes, and release claims remain future evidence."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-18",
+      "who": "Codex",
+      "text": "Banked a beta/zero-one beta support-floor diagnostic for the numerical-guard ledger: source floors activate in high-scale guard cells, fitted response-route shape reports stayed above the floor, missing-predictor fitted shape counts remain unexposed, and boundary validation failures remained visible.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/README.md",
+      "link_label": "support-floor diagnostic"
+    },
     {
       "when": "2026-06-18",
       "who": "Codex",
