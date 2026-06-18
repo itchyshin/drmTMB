@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 17:28 MDT",
+  "updated": "2026-06-17 18:42 MDT",
   "active_work": [
     {
       "when": "now",
-      "who": "Codex",
-      "text": "Phase 1 public-claim lint slice: README, ROADMAP, NEWS, pkgdown navigation, the dashboard README, and any local Documenter.jl source now have to link back to docs/design/168-r-julia-finish-capability-matrix.md. The validator also rejects public release-promotion wording and reserved Julia-control claims outside the release gate. Rose signoff remains active for fitted/planned/missing/unsupported row audit."
+      "who": "Rose",
+      "text": "Phase 1 Rose signoff is verified: known-limitations missing-data wording now says bounded current preview, the known-limitations ledger is included in the public-claim validator, and stale dashboard active-work text was refreshed. Mission-control metrics are 25/68 verified, 1 active, 0 blocked, and 1 deferred."
     }
   ]
 }

@@ -1,10 +1,10 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 17:28 MDT",
+  "updated": "2026-06-17 18:42 MDT",
   "metrics": {
-    "verified": 24,
-    "active": 2,
+    "verified": 25,
+    "active": 1,
     "blocked": 0,
     "deferred": 1,
     "total": 68
@@ -54,8 +54,8 @@
       "id": "Phase 1",
       "name": "Master capability matrix",
       "owner": "Rose + Fisher + Grace",
-      "status": "active",
-      "counts": "4/5",
+      "status": "verified",
+      "counts": "5/5",
       "slices": [
         {
           "name": "Create canonical finish matrix with engine, bridge, inference, docs, visual, simulation, and release columns",
@@ -79,7 +79,8 @@
         },
         {
           "name": "Rose signoff on fitted, planned, missing, and unsupported rows",
-          "status": "active"
+          "status": "verified",
+          "evidence": "docs/dev-log/after-task/2026-06-17-phase1-rose-signoff.md"
         }
       ]
     },
@@ -1097,29 +1098,36 @@
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md"
     }
   ],
-    "active_work": [
+  "active_work": [
     {
       "when": "now",
       "who": "Ada",
-      "text": "Takeover merge queue is closed: PRs #474, #605, #606, #607, #475, #473, and #608 merged after fresh current-main 3-OS R-CMD-check evidence; stale bridge wrappers #520, #522, #523, #527, #528, #530, #532, and #534 were closed as superseded by current main; #540, #571, #573, and #574 were closed as unsupported or superseded. Issue #570 remains open for the real beak evidence gates because later evidence says the full-data sigma-phylo failure is not a start-basin problem."
-    },
-    {
-      "when": "now",
-      "who": "Fisher",
-      "text": "Closed bridge wrappers do not promote new inference claims. Cross-family, interval, variance/correlation, q8, and numerical-guard claims still need the mission-control evidence gates, not old stack titles."
+      "text": "Phase 1 matrix truth is closed: the public-claim lint is on main, the Rose row now verifies fitted/planned/missing/unsupported consistency for the current public status surfaces, and the next mission-control work should stay on the remaining active cross-team visit or a new narrow Phase 2 bridge slice."
     },
     {
       "when": "now",
       "who": "Rose",
-      "text": "PR #540 was closed rather than merged: it had one real unmerged optimizer-control commit, failed prior 3-OS CI, conflicted with current main, and exposed an unsupported control surface that needs a separate design slice."
+      "text": "The signoff corrected two stale current-state leaks: known-limitations no longer calls missing-data support release-ready, and dashboard active-work text no longer reports the old 21/68, 3-active state. Historical after-task reports remain historical evidence, not current status."
     },
     {
       "when": "now",
       "who": "Grace",
-      "text": "Mission-control status remains at 21/68 banked or verified, 3 active, 0 blocked, and 1 deferred because this slice records PR-queue state rather than promoting a specific matrix row. The live browser copy at 127.0.0.1:8765 must be refreshed from the durable source after this status slice merges."
+      "text": "Post-#611 main evidence is green at 21fa8893: R-CMD-check passed on macOS, Ubuntu, and Windows, and pkgdown built and deployed. Mission-control status is now 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+    },
+    {
+      "when": "now",
+      "who": "Fisher",
+      "text": "This is a governance and wording signoff only. It does not promote q8, speed, scale-side phylogeny, missing-data generality, Julia bridge controls, profile/bootstrap coverage, release readiness, or CRAN readiness."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Closed Phase 1 Rose signoff after correcting stale missing-data release wording in known limitations, adding that ledger to the public-claim validator, and refreshing stale dashboard active-work text.",
+      "url": "docs/dev-log/after-task/2026-06-17-phase1-rose-signoff.md",
+      "link_label": "Phase 1 Rose signoff"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
