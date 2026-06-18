@@ -2,6 +2,73 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- post-624 dashboard evidence refresh
+
+Goal:
+
+- Refresh mission-control evidence after PR #624 merged, without changing
+  capability counts or widening the q2 covariance boundary diagnostic claim.
+
+Changes:
+
+- Updated `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` timestamps.
+- Replaced the active Grace gate note with post-#624 `main` R-CMD-check and
+  pkgdown/Pages evidence for `6bd81b0d`.
+- Added
+  `docs/dev-log/after-task/2026-06-18-post624-dashboard-evidence-refresh.md`
+  and a dashboard activity row for the evidence refresh.
+
+Checks run:
+
+- `git fetch --all --prune`
+- `git merge-base --is-ancestor 6bd81b0df5f0590b88ecb57c441c6fa1d0120b88 origin/main && git rev-parse origin/main && git rev-list --count 6bd81b0df5f0590b88ecb57c441c6fa1d0120b88..origin/main`
+- `gh pr list --repo itchyshin/drmTMB --state open --json number,title,headRefName,baseRefName,isDraft,updatedAt,url`
+- `gh run view 27790909354 --repo itchyshin/drmTMB --json databaseId,status,conclusion,url,event,headSha,displayTitle,workflowName,createdAt,updatedAt,startedAt,jobs`
+- `gh run watch 27792296045 --repo itchyshin/drmTMB --exit-status --interval 30`
+- `gh run view 27792296045 --repo itchyshin/drmTMB --json databaseId,status,conclusion,url,event,headSha,displayTitle,workflowName,createdAt,updatedAt,startedAt,jobs`
+- `curl -fsS -I -L --max-time 20 'https://itchyshin.github.io/drmTMB/?cb=624'`
+- `curl -fsSL --max-time 20 'https://itchyshin.github.io/drmTMB/?cb=624' | rg -n "q2|rho12|check_drm|drmTMB|numerical|guard" | head -30`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e "pkgdown::check_pkgdown()"`
+- `git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|fitted.*stability|random effects in \`rho12\`|structured correlations'`
+
+Results:
+
+- PR #624 merged as `6bd81b0df5f0590b88ecb57c441c6fa1d0120b88`.
+- `origin/main` is exactly that SHA in this worktree; the handoff checkpoint
+  file from the previous worktree is not present on public `main`.
+- No open PRs were present at takeover.
+- Post-merge R-CMD-check run `27790909354` passed on `main`: macOS in
+  14m46s, Ubuntu in 22m29s, and Windows in 29m02s.
+- Post-merge pkgdown/Pages run `27792296045` passed for the same SHA: pkgdown
+  in 22m21s and deploy in 8s.
+- Live Pages returned HTTP 200 with
+  `last-modified: Thu, 18 Jun 2026 22:29:51 GMT`.
+- The live home page still exposes the `rho12` bivariate-coscale navigation,
+  `check_drm()` reference link, package overview, and no CRAN-ready claim.
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- `pkgdown::check_pkgdown()` found no problems.
+- The added-line claim-boundary scan found only negative boundary wording:
+  no CRAN-ready claim, and explicit unpromoted coverage, power, release,
+  CRAN, Julia bridge parity, structured correlation, random effects in
+  `rho12`, and non-Gaussian REML/AI-REML claims.
+
+Boundaries:
+
+- Evidence refresh only. Mission-control metrics remain 25/68 banked or
+  verified, 1 active, 0 blocked, and 1 deferred. The q2 covariance boundary
+  work remains diagnostic visibility only; recovery accuracy, interval
+  coverage, power, release readiness, CRAN readiness, Julia bridge parity,
+  structured correlations, random effects in `rho12`, and non-Gaussian
+  REML/AI-REML remain unpromoted.
+
 ## 2026-06-18 -- post-622 dashboard evidence refresh
 
 Goal:
