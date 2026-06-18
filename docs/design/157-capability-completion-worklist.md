@@ -85,7 +85,8 @@ note, first Phase 19 binomial `stats::glm()` parity artifact, and the first
 banks the first fixed-effect Gaussian `log(sigma)` clamp pilot, the first
 Student-t finite-variance diagnostic pilot, skew-normal tail-floor source
 and fit-stress diagnostics, beta/zero-one beta support-floor diagnostic, and
-residual `rho12` open-interval diagnostic.
+residual `rho12` open-interval diagnostic, plus the first q2 `mu`/`sigma`
+random-effect covariance boundary diagnostic.
 The `log(sigma)` pilot shows negligible default-vs-off
 differences when the clamp is inactive and material differences when the
 default band binds. The Student-t pilot shows that near-boundary
@@ -106,7 +107,11 @@ the floor; and six malformed boundary cells errored visibly. The residual
 converged with `pdHess = TRUE`, while still surfacing 2/4 default
 starting-value clamps, 2/4 fixed-gradient warnings, and one default
 `rho12_boundary` warning at fitted `rho12 = 0.9813`. The plain binomial route
-is now a fitted, parity-banked, and
+The q2 covariance diagnostic shows 4/4 univariate Gaussian `mu`/`sigma`
+covariance stress fits converged with `pdHess = TRUE`, while the true
+`rho = 0.98` cell fit at `rho = 0.999999` and now surfaces a
+`mu_sigma_random_effect_covariance` warning instead of looking like an ordinary
+ok row. The plain binomial route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
 operating-characteristic grids, profile/bootstrap interval studies if needed,
@@ -114,7 +119,8 @@ and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, bivariate
 scale routes, Student-t calibration, random-effect and structured correlation
-guards, larger skew-normal guard grids, and broader interval consequences.
+guards beyond this q2 `mu`/`sigma` slice, larger skew-normal guard grids, and
+broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or
 release language.

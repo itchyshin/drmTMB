@@ -1996,6 +1996,18 @@ test_that("bivariate Gaussian supports labelled sigma1/sigma2 random-intercept c
   expect_match(scale_cov$value, "min_group_n=8")
   expect_match(scale_cov$message, "scale-scale")
 
+  near_boundary <- fit
+  near_boundary$corpars$sigma[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_scale <- near_boundary_chk[
+    near_boundary_chk$check == "biv_sigma_random_effect_covariance",
+  ]
+  expect_equal(near_boundary_scale$status, "warning")
+  expect_match(near_boundary_scale$value, "rho_abs=0.9950")
+  expect_match(near_boundary_scale$value, "boundary=0.9800")
+  expect_match(near_boundary_scale$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
+
   singleton_registry <- fit
   member_row <- which(
     singleton_registry$model$random$covariance_blocks$members$dpar == "sigma1"
@@ -2454,6 +2466,18 @@ test_that("bivariate Gaussian fits same-response mu/sigma covariance", {
   expect_equal(cov_check$status, "ok")
   expect_match(cov_check$value, "n_groups=64")
   expect_match(cov_check$message, "mu/sigma")
+
+  near_boundary <- fit
+  near_boundary$corpars$mu_sigma[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_cov <- near_boundary_chk[
+    near_boundary_chk$check == "biv_mu_sigma_random_effect_covariance",
+  ]
+  expect_equal(near_boundary_cov$status, "warning")
+  expect_match(near_boundary_cov$value, "rho_abs=0.9950")
+  expect_match(near_boundary_cov$value, "boundary=0.9800")
+  expect_match(near_boundary_cov$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
 })
 
 test_that("bivariate Gaussian fits same-response mu/sigma slope covariance", {
