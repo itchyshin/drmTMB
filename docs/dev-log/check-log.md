@@ -2,6 +2,43 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Phase 1 public-claim lint and matrix wiring
+
+Goal:
+
+- Close the Phase 1 governance slices that keep public status claims tied to
+  the finish capability matrix before more implementation work resumes.
+
+Changes:
+
+- Linked README, ROADMAP, NEWS, pkgdown navigation, and dashboard README back
+  to `docs/design/168-r-julia-finish-capability-matrix.md`.
+- Reworded the missing-data public status from release-ready to a bounded
+  preview surface, leaving the release gate planned.
+- Extended `tools/validate-mission-control.py` so public current-claim sources
+  must link the finish matrix, any local Documenter.jl source is checked if it
+  appears later, and release-promotion or reserved Julia-control wording fails
+  outside the release gate.
+- Updated the mission-control dashboard from 21/68 verified and 3 active to
+  24/68 verified and 2 active. Rose signoff remains active.
+
+Checks run:
+
+- `python3 -m py_compile tools/validate-mission-control.py`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background`
+- `rg -n 'release-ready|release ready|ready for release|ready to release|CRAN-ready|CRAN ready|engine_control' README.md ROADMAP.md NEWS.md _pkgdown.yml docs/dev-log/dashboard/README.md docs/design/168-r-julia-finish-capability-matrix.md vignettes`
+
+Boundaries:
+
+- Documentation and governance slice only. No R runtime code, TMB likelihood,
+  formula grammar, Julia bridge behavior, simulation evidence, release
+  promotion, or CRAN-readiness decision changed.
+
 ## 2026-06-17 -- Supersede takeover queue after-task report after #609
 
 Goal:

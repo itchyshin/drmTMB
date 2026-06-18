@@ -7,7 +7,9 @@ For the dependency-ordered list of remaining capability implementation slices
 between today's fitted surface and the full planned capability set, see
 `docs/design/157-capability-completion-worklist.md`. The fitted-versus-planned
 boundary itself is maintained in
-`docs/design/46-pre-simulation-readiness-matrix.md`.
+`docs/design/46-pre-simulation-readiness-matrix.md`. The finish-plan claim
+registry is `docs/design/168-r-julia-finish-capability-matrix.md`; when these
+ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version 0.1.3 Preview Release
 
@@ -35,10 +37,10 @@ boundary itself is maintained in
   residual `rho12`, mesh/SPDE spatial structure, sparse large-pedigree speed
   claims, and the full double-hierarchical endpoint remain roadmap work for
   later releases.
-- Missing-data release boundary: the current `miss_control()` surface is
-  release-ready for Gaussian response masks, one-at-a-time modelled missing
-  predictors in univariate Gaussian location models across the implemented
-  predictor-family set, `imputed()` summaries, and MD9a, the first
+- Missing-data preview boundary: the current `miss_control()` surface is a
+  bounded fitted path for Gaussian response masks, one-at-a-time modelled
+  missing predictors in univariate Gaussian location models across the
+  implemented predictor-family set, `imputed()` summaries, and MD9a, the first
   non-Gaussian response route for an ordinary Poisson model with one
   fixed-effect binary `mi()` predictor. Broader missing-data work, including
   multiple missing predictors, missing non-Gaussian responses, non-binary

@@ -94,6 +94,8 @@ navbar:
           href: articles/adding-families.html
         - text: Implemented source map
           href: articles/source-map.html
+        - text: Finish capability matrix
+          href: https://github.com/itchyshin/drmTMB/blob/main/docs/design/168-r-julia-finish-capability-matrix.md
 
 reference:
   - title: Package

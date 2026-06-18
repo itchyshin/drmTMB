@@ -20,7 +20,12 @@ The validator checks that `version.txt` matches the HTML build constant, phase
 counts match slice statuses, metrics match the phase slices, canonical team
 names are used, the finish-board rows have valid issue, owner, status, and
 evidence fields, and the dashboard matrix has the same number of rows as
-`docs/design/168-r-julia-finish-capability-matrix.md`.
+`docs/design/168-r-julia-finish-capability-matrix.md`. It also checks that
+README, ROADMAP, NEWS, pkgdown navigation, this dashboard README, and any local
+Documenter.jl sources link back to
+`docs/design/168-r-julia-finish-capability-matrix.md`, and rejects
+public-facing release-promotion wording or reserved Julia-control claims outside
+the release gate.
 
 Then open:
 
