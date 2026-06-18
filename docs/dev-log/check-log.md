@@ -2,6 +2,88 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- support-floor diagnostic
+
+Goal:
+
+- Add a diagnostic-only support-floor artifact for beta, zero-one beta, and
+  beta-style missing-predictor likelihood routes in the `drmTMB#59`
+  numerical-guard sensitivity lane.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/`
+  with a reproducible runner, deterministic source grid, fitted diagnostics,
+  `check_drm()` rows, validation rows, failure rows, session info, and README.
+- The runner resolves the repository root from its own file path and records
+  UTC timestamp, git SHA, branch, dirty state, and command in the run summary
+  and session info.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` with a fifth
+  diagnostic section for beta and zero-one beta support floors.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` and
+  `docs/design/157-capability-completion-worklist.md` so support-floor
+  diagnostic evidence is banked without promoting intervals, coverage, power,
+  release readiness, CRAN readiness, Julia bridge parity, or non-Gaussian
+  REML/AI-REML language.
+- Added
+  `docs/dev-log/after-task/2026-06-18-support-floor-diagnostic.md`.
+
+Checks run:
+
+- `/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/run-pilot.R`
+- `cd /tmp && /usr/local/bin/Rscript --vanilla /Users/z3437171/.codex/worktrees/1d33/drmTMB/docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/run-pilot.R`
+- `/usr/local/bin/Rscript --vanilla -e "devtools::test(filter = '^(beta-location-scale|zero-one-beta|missing-predictor-beta|missing-predictor-zero-one-beta)$', reporter = 'summary')"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript -e "pkgdown::check_pkgdown()"`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|fitted.*stability" docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-18-support-floor-diagnostic.md docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/README.md`
+
+Results:
+
+- The source grid has 60 rows. Shape-floor activation is absent at
+  `log_sigma = log(0.5)` and `log_sigma = log(2)`. It appears in high-scale
+  source cells: 4/12 alpha and 4/12 beta-shape floor activations at
+  `log_sigma = 8`, then 12/12 and 12/12 at `log_sigma = 12` and
+  `log_sigma = 16`.
+- All 6 small fitted cells converged with `pdHess = TRUE`. Four fitted
+  response-route cells exposed `alpha` and `beta_shape`; none reported either
+  vector at the `1e-8` floor. The two fitted missing-predictor cells did not
+  expose `alpha` or `beta_shape`, so those floor counts are `NA`, not zero.
+- All 6 validation cells errored with the expected boundary messages.
+- The largest fixed-gradient diagnostic was `0.002022189` in the valid
+  missing-predictor zero-one beta cell, where `check_drm()` warning rows are
+  retained rather than hidden.
+- The runner also succeeded when launched from `/tmp`, confirming that it
+  loads the package from the detected repository root rather than the caller's
+  working directory.
+- Focused beta, zero-one beta, and missing-predictor tests passed.
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- `pkgdown::check_pkgdown()` with `RSTUDIO_PANDOC=/opt/homebrew/bin` found no
+  problems.
+- The boundary scan found only intentional or pre-existing guardrail wording:
+  the new no-Julia-bridge/no-CRAN/no-non-Gaussian-REML boundaries, the
+  matrix-level `engine_control` reservation, Gaussian-only AI-REML guardrails,
+  and older power/calibration/release boundary text. No new coverage, power,
+  release, CRAN, Julia bridge, or non-Gaussian AI-REML claim was added.
+- Live main gate check found post-#620 R-CMD-check run `27765267220` green at
+  `32741fa6`. Matching pkgdown run `27767064877` initially cancelled during
+  dependency setup, then passed on rerun for the same SHA: pkgdown in 25m21s
+  and deploy in 1m14s. Pages returned HTTP 200 with
+  `last-modified: Thu, 18 Jun 2026 15:43:02 GMT`.
+
+Boundaries:
+
+- Diagnostic artifact only. No R runtime API, TMB likelihood, formula grammar,
+  optimizer behavior, warning threshold, interval calibration, coverage claim,
+  power claim, release-readiness claim, CRAN-readiness claim, or Julia bridge
+  behavior changed.
+
 ## 2026-06-18 -- skew-normal tail-floor fit-stress diagnostic
 
 Goal:

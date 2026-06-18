@@ -1,0 +1,25 @@
+"cell_id","route","expected_error","errored","expected_message_seen","message","warning_count","warnings"
+"beta_response_zero_invalid","beta_response","strictly between 0 and 1",TRUE,TRUE,"Beta models require response values strictly between 0 and 1.
+✖ The response ""y"" contains boundary, out-of-range, or non-finite values after
+  missing-row filtering.",0,""
+"beta_response_one_invalid","beta_response","strictly between 0 and 1",TRUE,TRUE,"Beta models require response values strictly between 0 and 1.
+✖ The response ""y"" contains boundary, out-of-range, or non-finite values after
+  missing-row filtering.",0,""
+"zero_one_beta_outside_invalid","zero_one_beta_response","closed interval",TRUE,TRUE,"Zero-one beta models require response values in the closed interval [0,
+1].
+✖ The response ""y"" contains out-of-range or non-finite values after missing-row
+  filtering.",0,""
+"zero_one_beta_no_interior_invalid","zero_one_beta_response","at least one interior",TRUE,TRUE,"Zero-one beta models require at least one interior response value.
+✖ The response ""y"" contains only exact boundary values after missing-row
+  filtering.
+ℹ Interior beta parameters `mu` and `sigma` need data with `0 < y < 1`.",0,""
+"missing_predictor_beta_boundary_invalid","missing_predictor_beta","strictly between 0 and 1",TRUE,TRUE,"Beta/proportion missing-predictor models require observed values
+strictly between 0 and 1.
+✖ Predictor ""cover"" contains boundary, out-of-range, or non-finite observed
+  values.
+ℹ Use `impute_model(x ~ z, family = zero_one_beta())` for proportions with
+  exact 0 or 1 values.",0,""
+"missing_predictor_zero_one_beta_no_interior_invalid","missing_predictor_zero_one_beta","interior value",TRUE,TRUE,"Zero-one beta missing-predictor models require at least one observed
+interior value.
+✖ Predictor ""cover"" contains only exact boundary values among observed rows.
+ℹ Interior beta parameters need at least one observed value with `0 < x < 1`.",0,""

@@ -381,6 +381,59 @@ statement: the small stress grid did not show fitted-scale tail-floor
 activation, but finite likelihood values and some converged fits are not enough
 to promote fitted skew-normal stability.
 
+## Fifth Diagnostic: Beta And Zero-One Beta Support Floors
+
+The fifth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-support-floor-diagnostic/`.
+It is a support-floor diagnostic for beta, zero-one beta, and beta-style
+missing-predictor likelihoods.
+
+**Aim.** Check where the `1e-12` beta mean clamp and `1e-8` beta shape floor
+would activate, while keeping fitted-model convergence, Hessian, gradient,
+warning, `check_drm()`, and response-validation evidence visible.
+
+**Data-generating mechanisms.** The source grid evaluates beta and zero-one
+beta response routes plus beta and zero-one beta missing-predictor routes over
+three mean-link values and five `log_sigma` values. The fitted cells use small
+ordinary and boundary-near beta/zero-one beta examples plus valid
+missing-predictor beta and zero-one beta examples. Separate validation cells
+send exact 0/1 beta responses, out-of-range zero-one beta responses,
+all-boundary zero-one beta responses, boundary beta predictors, and
+all-boundary zero-one beta predictors through the public validation path.
+
+**Estimands.** The diagnostic tracks raw and floored beta shapes in the source
+grid; fitted `alpha` and `beta_shape` reports where the TMB template exposes
+them; convergence, `pdHess`, fixed-gradient, standard-error, warning, logLik,
+AIC, and BIC fields; and validation error messages.
+
+**Methods.** The fitted cells use the default optimizer path. The runner does
+not use multi-start, fallback optimizers, wider clamps, or other rescue
+controls. If a fit or validation cell fails, the failure is recorded rather
+than forced through a different path.
+
+**Performance measures.** The committed summaries report source-level floor
+activation counts with denominators, fitted floor-active counts where the TMB
+report exposes shape vectors, fit-status rows, validation success counts, and
+failure denominators. Coverage, power, profile intervals, bootstrap intervals,
+and comparator parity are intentionally absent.
+
+The source grid has 60 rows. Shape-floor activation is absent at
+`log_sigma = log(0.5)` and `log_sigma = log(2)`. It appears in the high-scale
+source cells: 4/12 alpha and 4/12 beta-shape floor activations at
+`log_sigma = 8`, then 12/12 and 12/12 at `log_sigma = 12` and
+`log_sigma = 16`. All 6 fitted cells converged with `pdHess = TRUE`. The four
+fitted response-route cells exposed `alpha` and `beta_shape`, and none reported
+either vector at the `1e-8` floor. The two fitted missing-predictor cells did
+not expose `alpha` or `beta_shape` in the TMB report, so their fitted
+shape-floor counts are recorded as `NA`. All 6 validation cells errored with
+the expected boundary messages.
+
+This is support-floor diagnostic evidence, not a promotion of beta or
+zero-one beta interval coverage. It also does not promote random effects,
+structured effects, bivariate bounded responses, missing-data breadth, Julia
+bridge parity, release readiness, CRAN readiness, or non-Gaussian
+REML/AI-REML claims.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
