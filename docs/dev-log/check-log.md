@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-06-17 -- Student-t guard ledger sync
+
+Goal:
+
+- Synchronize the numerical-guard source of truth after the Student-t
+  finite-variance diagnostic pilot landed, without promoting coverage, power,
+  interval calibration, release readiness, or CRAN readiness.
+
+Changes:
+
+- Added a Student-t finite-variance boundary pilot section to
+  `docs/design/176-numerical-guard-simulation-audit.md`.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` and
+  `docs/design/157-capability-completion-worklist.md` so the Student-t pilot is
+  banked beside the first fixed-effect Gaussian `log(sigma)` clamp pilot.
+- Refreshed `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` while leaving the metrics unchanged:
+  `drmTMB#59` remains active, with 25/68 banked or verified rows.
+- Added
+  `docs/dev-log/after-task/2026-06-17-student-guard-ledger-sync.md`.
+
+Checks run:
+
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background`
+- `curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0:4], first_activity: .activity[0]}'`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML" docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-student-guard-ledger-sync.md`
+
+Results:
+
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- `pkgdown::check_pkgdown()` found no problems.
+- The served dashboard reported `updated = "2026-06-17 23:41 MDT"` with
+  unchanged metrics and the Student-t guard ledger sync as the first activity
+  row.
+- The boundary scan found only intentional or pre-existing boundary wording in
+  the checked files: release-ready guard text in the finish matrix, planned
+  power/calibration wording in the worklist, reserved `engine_control` and
+  Gaussian-only AI-REML boundary rows in the dashboard, and the new
+  no-calibrated-interval boundary.
+
+Boundaries:
+
+- Documentation and mission-control truth sync only. No R runtime model API,
+  TMB likelihood, formula grammar, diagnostic threshold, estimator, simulation
+  result, interval calibration, coverage claim, power claim, Julia bridge
+  behavior, release promotion, or CRAN-readiness decision changed.
+
 ## 2026-06-17 -- Student-t diagnostic guidance
 
 Goal:

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 23:06 MDT",
+  "updated": "2026-06-17 23:41 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -810,8 +810,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md",
-      "blocker": "The first fixed-effect Gaussian log(sigma) clamp pilot and the ADEMP/Williams guard-sensitivity design are banked. The pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. Broader guard classes, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
+      "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
+      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, and first Student-t finite-variance diagnostic pilot are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The Student-t pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. Broader support floors, correlation guards, interval coverage, random/structured/bivariate scale routes, and release claims remain planned.",
       "last_verified": "2026-06-17"
     },
     {
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice adds applied-user guidance for carrying the Student-t `student_nu` diagnostic beside model-comparison and simulation-summary tables; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice synchronizes the guard-audit ledger so the banked Student-t finite-variance diagnostic pilot sits beside the first log(sigma) clamp pilot; metrics remain unchanged."
     },
     {
       "when": "now",
@@ -1112,15 +1112,22 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#614 main evidence is green at 6a536ae2: R-CMD-check run 27735266431 passed on macOS, Ubuntu, and Windows; pkgdown run 27736233532 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#615 main evidence is green at e3920a8: R-CMD-check run 27737876557 passed on macOS, Ubuntu, and Windows; pkgdown run 27738791927 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
       "who": "Fisher",
-      "text": "This is a diagnostic pilot, not coverage or promotion evidence. The 25-replicate-per-cell Student-t artifact reports finite-variance-boundary warning/error/note/ok rates, but it does not add q8 coverage or power, speed, scale-side phylogeny promotion, missing-data generality, Julia bridge controls, profile/bootstrap calibration, release readiness, or CRAN readiness."
+      "text": "The Student-t pilot is now linked from the guard-audit source of truth. It reports finite-variance-boundary warning/error/note/ok rates, but it does not add q8 coverage or power, speed, scale-side phylogeny promotion, missing-data generality, Julia bridge controls, profile/bootstrap calibration, release readiness, or CRAN readiness."
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Synchronized the numerical-guard audit ledger so the banked Student-t finite-variance diagnostic pilot is recorded beside the first log(sigma) clamp pilot, with coverage, power, interval-calibration, release, and CRAN boundaries left planned.",
+      "url": "docs/design/176-numerical-guard-simulation-audit.md",
+      "link_label": "Student-t guard ledger sync"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
