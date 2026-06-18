@@ -2,6 +2,51 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- post-622 dashboard evidence refresh
+
+Goal:
+
+- Refresh mission-control evidence after PR #622 merged, without changing
+  capability counts or widening the residual `rho12` diagnostic claim.
+
+Changes:
+
+- Updated `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` timestamps.
+- Replaced the active Grace gate note with post-#622 `main` R-CMD-check and
+  pkgdown/Pages evidence for `d3ad54f4`.
+
+Checks run:
+
+- `/opt/homebrew/bin/gh run view 27780664419 --repo itchyshin/drmTMB --json jobs,status,conclusion,url`
+- `/opt/homebrew/bin/gh run view 27784599161 --repo itchyshin/drmTMB --json status,conclusion,jobs,url,headSha,event,createdAt,updatedAt`
+- `curl -I -L --max-time 20 'https://itchyshin.github.io/drmTMB/?cb=622'`
+- `curl -fsSL --max-time 20 'https://itchyshin.github.io/drmTMB/?cb=622' | rg -n "rho12|0\\.999999|guard|drmTMB" | head -20`
+
+Results:
+
+- PR #622 merged as `d3ad54f457e272cd896dc8a4158349bb1c08452f`.
+- Post-merge R-CMD-check run `27780664419` passed on `main`: macOS in
+  16m11s, Windows in 28m50s, and Ubuntu in 30m52s.
+- The first post-merge workflow-run pkgdown attempt `27782391896` stalled in
+  `setup-r` and was cancelled without building or deploying. Manual
+  workflow-dispatch run `27784599161` then passed for the same SHA: pkgdown in
+  20m15s and deploy in 9s.
+- Live Pages returned HTTP 200 with
+  `last-modified: Thu, 18 Jun 2026 19:57:57 GMT`, replacing the previous
+  post-#621 deployment timestamp.
+- The live home page still exposes the `rho12` bivariate-coscale navigation
+  and package overview. This confirms site reachability, not a new release or
+  CRAN claim.
+
+Boundaries:
+
+- Evidence refresh only. Mission-control metrics remain 25/68 banked or
+  verified, 1 active, 0 blocked, and 1 deferred. The residual `rho12`
+  diagnostic remains diagnostic evidence only; random-effect/structured
+  correlation guards, interval calibration, coverage, power, release, CRAN, and
+  Julia bridge parity remain future work.
+
 ## 2026-06-18 -- residual rho12 open-interval guard diagnostic
 
 Goal:
