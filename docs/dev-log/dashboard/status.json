@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 22:26 MDT",
+  "updated": "2026-06-17 23:06 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a small Student-t nu boundary diagnostic pilot using the new summary diagnostics; the Phase 2 engine_control row remains queued until a deliberately scoped bridge-control slice starts."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice adds applied-user guidance for carrying the Student-t `student_nu` diagnostic beside model-comparison and simulation-summary tables; metrics remain unchanged."
     },
     {
       "when": "now",
@@ -1121,6 +1121,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-17",
+      "who": "Codex",
+      "text": "Added robust Student-t vignette guidance showing how to extract the `check_drm()` `student_nu` row and keep its status beside AIC, coefficient, and simulation-summary tables.",
+      "url": "vignettes/robust-student.Rmd",
+      "link_label": "Student-t diagnostic guidance"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
