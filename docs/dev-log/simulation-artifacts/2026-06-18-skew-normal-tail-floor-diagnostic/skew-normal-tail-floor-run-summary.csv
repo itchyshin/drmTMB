@@ -1,0 +1,2 @@
+"surface","label","n_cells","n_points","floor_value","floor_threshold_alpha_z","max_ordinary_abs_log_lift","max_near_floor_abs_log_lift","max_floor_dominated_log_lift","all_floored_values_finite"
+"skew_normal_tail_floor_diagnostic","source_level_tail_floor",3,17,9.99999999999999e-301,-37.0470997435354,4.43413277558154e-17,35.7816881206064,2514.52559345868,TRUE

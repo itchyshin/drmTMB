@@ -2,6 +2,83 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- skew-normal tail-floor diagnostic
+
+Goal:
+
+- Add a narrow source-level diagnostic artifact for the skew-normal
+  `log(Phi(alpha * z) + 1e-300)` tail floor in the `drmTMB#59`
+  numerical-guard sensitivity lane.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-diagnostic/`
+  with a reproducible runner, diagnostic grid, summaries, session info, and
+  README.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` with a third
+  diagnostic section for the skew-normal tail log floor.
+- Updated `docs/design/168-r-julia-finish-capability-matrix.md` and
+  `docs/design/157-capability-completion-worklist.md` so the artifact is
+  banked without promoting fit-level skew-normal tail-floor stress.
+- Refreshed `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` to `2026-06-18 02:58 MDT` while leaving
+  metrics unchanged: 25/68 banked or verified, 1 active, 0 blocked, and 1
+  deferred.
+- Added
+  `docs/dev-log/after-task/2026-06-18-skew-normal-tail-floor-diagnostic.md`.
+
+Checks run:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-diagnostic/run-pilot.R`
+- `Rscript -e "testthat::test_file('tests/testthat/test-skew-normal-density-contract.R')"` (initial bare invocation)
+- `Rscript -e "devtools::load_all('.', quiet = TRUE); testthat::test_file('tests/testthat/test-skew-normal-density-contract.R')"`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `git diff --cached --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background`
+- `curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0:4], first_activity: .activity[0]}'`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML" docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-18-skew-normal-tail-floor-diagnostic.md docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-diagnostic/README.md`
+
+Results:
+
+- The artifact runner regenerated the source-level diagnostic grid, summary
+  tables, run summary, and session info.
+- The initial bare `testthat::test_file()` invocation failed because the
+  package namespace was not loaded and `skew_normal()` was unavailable; the
+  corrected command with `devtools::load_all('.', quiet = TRUE)` passed with 22
+  expectations, 0 failures, 0 warnings, and 0 skips.
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed before staging; `git diff --cached --check` caught
+  two trailing spaces in generated `session-info.txt`, and passed after those
+  spaces were stripped.
+- `pkgdown::check_pkgdown()` found no problems.
+- The served dashboard reported `updated = "2026-06-18 02:58 MDT"` with
+  unchanged metrics and the skew-normal tail-floor diagnostic as the first
+  activity row.
+- The dashboard Grace row records post-#618 main evidence: R-CMD-check run
+  `27746395391` passed on macOS, Ubuntu, and Windows for `5c019fd6`; pkgdown
+  run `27747933180` built and deployed for the same main SHA.
+- The boundary scan found only intentional or pre-existing boundary wording:
+  release-ready guard text in the capability matrix, reserved `engine_control`
+  and Gaussian-only AI-REML boundary rows in the dashboard, existing
+  calibrated-interval and power guard text in the worklist/dashboard, and the
+  new after-task boundary note. No new release-readiness, CRAN-readiness,
+  coverage, power, calibrated-interval, Julia-bridge-control, or non-Gaussian
+  AI-REML claim was added.
+
+Boundaries:
+
+- Source-level numerical-guard diagnostic only. No R runtime API, TMB
+  likelihood, formula grammar, fitted simulation claim, mission-control metric,
+  coverage claim, power claim, release-readiness claim, CRAN-readiness claim,
+  or Julia bridge behavior changed.
+
 ## 2026-06-18 -- post-#617 dashboard evidence refresh
 
 Goal:

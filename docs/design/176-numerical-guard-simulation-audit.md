@@ -287,6 +287,51 @@ comparisons and simulation summaries. It does **not** promote Student-t
 coverage, power, profile/bootstrap intervals, random effects in `nu`, a
 different tail model, or release readiness.
 
+## Third Diagnostic: Skew-Normal Tail Log Floor
+
+The third executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-diagnostic/`.
+It is a source-level diagnostic for the skew-normal expression
+`log(Phi(alpha * z) + 1e-300)` in `src/drmTMB.cpp`, not a fit-level
+guard-sensitivity simulation.
+
+**Aim.** Check when the floored TMB expression matches the exact
+`log(Phi(alpha * z))` contribution and when the floor deliberately caps an
+extreme tail contribution.
+
+**Data-generating mechanisms.** No fitted data are generated. The diagnostic
+evaluates a deterministic grid of `alpha * z` values because the guard acts on
+that scalar tail-CDF argument inside the skew-normal log density.
+
+**Estimands.** The diagnostic tracks exact log-CDF contribution, floored
+log-CDF contribution, log-density lift from the floor, whether the floor
+dominates the raw CDF, and whether the floored contribution remains finite.
+
+**Methods.** The exact reference uses `pnorm(alpha_z, log.p = TRUE)`. The TMB
+source-level reference uses `log(pnorm(alpha_z) + 1e-300)`, matching the C++
+guard expression. The diagnostic separates ordinary tail cells, near-floor
+cells, and floor-dominated extreme-tail cells.
+
+**Performance measures.** The committed summaries report the maximum absolute
+log-CDF lift, number of floor-dominated points, threshold where
+`Phi(alpha * z) = 1e-300`, and finite-value status.
+
+The floor starts to dominate at about `alpha * z = -37.0471`, where
+`Phi(alpha * z)` is approximately `1e-300`. For ordinary values from
+`alpha * z = -8` through `8`, the maximum absolute log-CDF lift was
+`4.434133e-17`. For near-floor values the largest lift was `35.78169` log units
+at `alpha * z = -38`. For floor-dominated extreme tails, the largest lift was
+`2514.526` log units at `alpha * z = -80`, because the guard caps the tail
+contribution at `log(1e-300)` instead of allowing a much smaller exact log
+probability.
+
+This is useful source-level evidence: ordinary `alpha * z` values are
+unchanged to numerical tolerance, and extreme source-level tails remain finite.
+It does **not** show that fitted skew-normal estimates, standard errors,
+Hessian status, intervals, or scientific conclusions are unchanged under
+strong-skew or outlier-heavy data. Those remain future fit-level
+guard-sensitivity work.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
