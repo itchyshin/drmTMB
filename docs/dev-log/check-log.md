@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- post-#617 dashboard evidence refresh
+
+Goal:
+
+- Refresh mission-control current-state evidence after PR #617 merged and its
+  post-merge main R-CMD-check and pkgdown gates passed.
+
+Changes:
+
+- Updated `docs/dev-log/dashboard/status.json` and
+  `docs/dev-log/dashboard/sweep.json` to `2026-06-18 01:46 MDT`.
+- Replaced the stale post-#615 Grace active-work evidence with post-#617
+  evidence for `main` at `c57160a`: R-CMD-check run `27742727979` passed on
+  macOS, Ubuntu, and Windows; pkgdown run `27744058133` built and deployed.
+- Added a top activity row for the post-#617 dashboard evidence refresh.
+- Added
+  `docs/dev-log/after-task/2026-06-18-post617-dashboard-evidence-refresh.md`.
+
+Checks run:
+
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript -e "pkgdown::check_pkgdown()"`
+- `sh tools/start-mission-control.sh --background`
+- `curl -fsS http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0:4], first_activity: .activity[0]}'`
+- `rg -n "CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML" docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-18-post617-dashboard-evidence-refresh.md`
+
+Results:
+
+- JSON parsing passed for `status.json` and `sweep.json`.
+- `tools/validate-mission-control.py` reported
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- `git diff --check` passed.
+- `pkgdown::check_pkgdown()` found no problems.
+- The served dashboard reported `updated = "2026-06-18 01:46 MDT"` with
+  unchanged metrics, the post-#617 Grace active-work row, and the post-#617
+  evidence refresh as the first activity row.
+- The boundary scan found only intentional or pre-existing boundary wording:
+  the new after-task boundary note, reserved `engine_control` and Gaussian-only
+  AI-REML boundary rows in the dashboard, release-ready guard text, and earlier
+  coverage/power/calibration guard text. No new release-readiness,
+  CRAN-readiness, coverage, power, calibrated-interval, Julia-bridge-control,
+  or non-Gaussian AI-REML claim was added.
+
+Boundaries:
+
+- Dashboard and check-log evidence only. No R runtime API, TMB likelihood,
+  formula grammar, simulation result, mission-control metric, coverage claim,
+  power claim, release-readiness claim, CRAN-readiness claim, or Julia bridge
+  behavior changed.
+
 ## 2026-06-17 -- Student-t guard ledger sync
 
 Goal:
