@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17 23:41 MDT",
+  "updated": "2026-06-18 01:46 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; this slice synchronizes the guard-audit ledger so the banked Student-t finite-variance diagnostic pilot sits beside the first log(sigma) clamp pilot."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is drmTMB#59 numerical-guard sensitivity; post-#617 R-CMD-check and pkgdown evidence for the Student-t guard-ledger sync is now recorded."
     }
   ]
 }

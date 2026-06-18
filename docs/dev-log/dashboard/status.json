@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-17 23:41 MDT",
+  "updated": "2026-06-18 01:46 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice synchronizes the guard-audit ledger so the banked Student-t finite-variance diagnostic pilot sits beside the first log(sigma) clamp pilot; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This refresh records that the Student-t guard-ledger sync is banked on main with post-merge R-CMD-check and pkgdown evidence; metrics remain unchanged."
     },
     {
       "when": "now",
@@ -1112,7 +1112,7 @@
     {
       "when": "now",
       "who": "Grace",
-      "text": "Post-#615 main evidence is green at e3920a8: R-CMD-check run 27737876557 passed on macOS, Ubuntu, and Windows; pkgdown run 27738791927 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#617 main evidence is green at c57160a: R-CMD-check run 27742727979 passed on macOS, Ubuntu, and Windows; pkgdown run 27744058133 built and deployed. Mission-control status remains 25/68 banked or verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "now",
@@ -1121,6 +1121,13 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-18",
+      "who": "Codex",
+      "text": "Refreshed mission-control current-state evidence after PR #617 merged: the dashboard now records post-#617 R-CMD-check and pkgdown evidence for c57160a while keeping drmTMB#59 active and metrics unchanged.",
+      "url": "docs/dev-log/after-task/2026-06-18-post617-dashboard-evidence-refresh.md",
+      "link_label": "post-#617 dashboard evidence"
+    },
     {
       "when": "2026-06-17",
       "who": "Codex",
