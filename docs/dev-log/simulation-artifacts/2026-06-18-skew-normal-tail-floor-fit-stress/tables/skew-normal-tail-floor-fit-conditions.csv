@@ -1,0 +1,4 @@
+"cell_id","target_alpha_z","contamination_fraction","n","nu_intercept","nu_slope","sigma_slope","rho_xw"
+"ordinary_reference",NA,0,120,6,0,0.15,0
+"near_floor_injected",-38,0.03,120,6,0,0.15,0
+"floor_dominated_injected",-45,0.03,120,6,0,0.15,0

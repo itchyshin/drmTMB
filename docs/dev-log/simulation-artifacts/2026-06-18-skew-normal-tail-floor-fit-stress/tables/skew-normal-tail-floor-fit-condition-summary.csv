@@ -1,0 +1,4 @@
+"cell_id","n_fit","n_failed","convergence_rate","pdHess_rate","mean_max_abs_gradient","max_warning_count","max_fitted_log_lift","max_fitted_abs_log_lift","max_fitted_floor_dominated","min_fitted_alpha_z"
+"floor_dominated_injected",3,0,1,1,1.44303692631165e-05,0,2.22044604925031e-16,4.44089209850063e-16,0,-2.00048275041516
+"near_floor_injected",3,0,1,1,0.000123911735749625,0,4.44089209850063e-16,4.44089209850063e-16,0,-2.70186538816524
+"ordinary_reference",3,0,0.666666666666667,0.666666666666667,25.911958616312,2,4.44089209850063e-16,4.44089209850063e-16,0,-1.54841487481637

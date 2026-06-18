@@ -332,6 +332,55 @@ Hessian status, intervals, or scientific conclusions are unchanged under
 strong-skew or outlier-heavy data. Those remain future fit-level
 guard-sensitivity work.
 
+## Fourth Diagnostic: Skew-Normal Tail Log Floor Fit Stress
+
+The fourth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-skew-normal-tail-floor-fit-stress/`.
+It is a small fixed-effect fit-level diagnostic, not a promotion grid.
+
+**Aim.** Test whether deliberately stressed fixed-effect skew-normal data cause
+the fitted likelihood to evaluate observations in the tail-floor regime, while
+keeping convergence, Hessian, fixed-gradient, warning, and `check_drm()` status
+rows beside the estimates.
+
+**Data-generating mechanisms.** Three cells use the existing Phase 18
+fixed-effect skew-normal DGP with `n = 120`, `nu = 6`, a `sigma` slope of
+`0.15`, and three replicates per cell. The ordinary reference cell leaves the
+simulated data unchanged. The near-floor cell replaces 3% of observations with
+values whose generating-scale `alpha * z` is `-38`. The floor-dominated cell
+does the same at `alpha * z = -45`.
+
+**Estimands.** The pilot tracks coefficient truth, estimates, errors, bias,
+RMSE, and MCSE; objective, log likelihood, AIC, BIC, convergence, `pdHess`,
+fixed gradients, warnings, `skew_normal_nu` and `fixed_gradient` diagnostic
+rows; and tail-floor exposure on both generating and fitted scales.
+
+**Methods.** Each replicate is fit with the current fixed-effect
+`skew_normal()` route and `drm_control(optimizer_preset = "careful")`. There
+is no unguarded TMB comparator in this pilot, so the result cannot estimate
+default-vs-reference likelihood differences.
+
+**Performance measures.** The committed summaries report convergence and
+`pdHess` rates, maximum fixed-gradient magnitude, warning counts, maximum
+fitted-scale log-CDF lift, number of fitted floor-dominated observations,
+minimum fitted `alpha * z`, coefficient bias, RMSE, and MCSE.
+
+The pilot ran 9 requested fits with no fit errors. The injected cells created
+generating-scale floor exposure: 4 observations per replicate at `alpha * z =
+-38` and 4 observations per replicate at `alpha * z = -45`. The fitted models
+did not evaluate any observation in the floor-dominated regime: the maximum
+fitted-scale absolute log-CDF lift was `4.440892e-16`, the maximum fitted
+floor-dominated count was `0`, and the minimum fitted `alpha * z` was
+`-2.701865`.
+
+The ordinary reference cell also produced one non-converged,
+non-positive-Hessian replicate with a large fixed-gradient warning and a very
+large fitted slant diagnostic (`skew_normal_nu` `max_abs=103384102`). That row
+is part of the evidence. This pilot therefore supports a narrow diagnostic
+statement: the small stress grid did not show fitted-scale tail-floor
+activation, but finite likelihood values and some converged fits are not enough
+to promote fitted skew-normal stability.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
