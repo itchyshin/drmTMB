@@ -1,0 +1,5 @@
+"cell_id","cell_label","nu_at_w0","parameter","n_profile","n_profile_ok","n_profile_failed","n_profile_degenerate","profile_ok_rate","profile_ok_mcse","profile_degenerate_rate"
+"student_shape_001","low_nu_boundary",2.8,"nu:(Intercept)",5,0,5,0,0,0,0
+"student_shape_001","low_nu_boundary",2.8,"nu:w",5,0,5,0,0,0,0
+"student_shape_002","ordinary_nu",8,"nu:(Intercept)",5,3,2,0,0.6,0.219089023002066,0
+"student_shape_002","ordinary_nu",8,"nu:w",5,1,4,0,0.2,0.178885438199983,0

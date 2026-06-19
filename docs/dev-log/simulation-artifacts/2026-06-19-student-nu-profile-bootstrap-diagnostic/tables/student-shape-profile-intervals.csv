@@ -1,0 +1,101 @@
+"surface","cell_id","replicate","parameter","truth","estimate","std.error","error","converged","pdHess","nobs","elapsed","warning_count","warnings","profile.conf.low","profile.conf.high","profile.conf.level","profile.method","profile.interval_scale","profile.status","profile.message","bootstrap.conf.low","bootstrap.conf.high","bootstrap.conf.level","bootstrap.method","bootstrap.interval_scale","bootstrap.status","bootstrap.message","bootstrap.n","bootstrap.backend","bootstrap.requested_cores","bootstrap.cores","fit_diagnostic_status","fit_diagnostic_message","student_nu_status","student_nu_value","student_nu_message","artifact_grain","conf.low","conf.high","conf.level","interval_method","interval_scale","interval_status","interval_message"
+"student_shape","student_shape_001",1,"nu:(Intercept)",-0.22314355131421,0.287031936356949,0.865281102953964,0.510175487671159,TRUE,TRUE,180,0.229,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-5.70758103904953,0.779559430666613,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.035,27.37]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",1,"nu:w",0,-1.2615733310975,0.899913732128725,-1.2615733310975,TRUE,TRUE,180,0.229,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-16.1953623003155,-0.870972658088958,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.035,27.37]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",2,"nu:(Intercept)",-0.22314355131421,-17.8683099688842,NA,-17.64516641757,FALSE,FALSE,180,0.22,1,"NaNs produced",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-90.1530683544695,-2.81238771157883,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"error","hessian_positive_definite: sdreport does not report a positive-definite Hessian. | standard_errors_finite: Could not extract fixed-effect standard errors: Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals. | student_nu: At least one fitted Student-t nu value is non-finite or not above 2.","error",NA,"At least one fitted Student-t nu value is non-finite or not above 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",2,"nu:w",0,-20.0843035086189,NA,-20.0843035086189,FALSE,FALSE,180,0.22,1,"NaNs produced",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target ""fixef:nu:w"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",-140.907713886892,0.00830464601689163,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"error","hessian_positive_definite: sdreport does not report a positive-definite Hessian. | standard_errors_finite: Could not extract fixed-effect standard errors: Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals. | student_nu: At least one fitted Student-t nu value is non-finite or not above 2.","error",NA,"At least one fitted Student-t nu value is non-finite or not above 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target ""fixef:nu:w"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate"
+"student_shape","student_shape_001",3,"nu:(Intercept)",-0.22314355131421,-77.931355652799,13.8602153624206,-77.7082121014848,FALSE,TRUE,180,0.138999999999999,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target
+""fixef:nu:(Intercept)"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",-148.284177341105,-0.497466402780838,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"error","student_nu: At least one fitted Student-t nu value is non-finite or not above 2.","error",NA,"At least one fitted Student-t nu value is non-finite or not above 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target
+""fixef:nu:(Intercept)"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate"
+"student_shape","student_shape_001",3,"nu:w",0,-52.7907139902893,6.73475934387115,-52.7907139902893,FALSE,TRUE,180,0.138999999999999,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target ""fixef:nu:w"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",-102.458626721303,0.192350845440231,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"error","student_nu: At least one fitted Student-t nu value is non-finite or not above 2.","error",NA,"At least one fitted Student-t nu value is non-finite or not above 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target ""fixef:nu:w"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate"
+"student_shape","student_shape_001",4,"nu:(Intercept)",-0.22314355131421,-1.94102780898914,1.86115470868668,-1.71788425767493,TRUE,TRUE,180,0.0589999999999993,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-30.3376780125807,-1.91490839032096,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.000,5017.]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",4,"nu:w",0,2.93756503350964,2.26413147725629,2.93756503350964,TRUE,TRUE,180,0.0589999999999993,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",2.01723259159292,19.2384094224653,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.000,5017.]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",5,"nu:(Intercept)",-0.22314355131421,-0.364747620412884,0.91293165903237,-0.141604069098674,TRUE,TRUE,180,0.059000000000001,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-8.07660818079527,0.794913520329965,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[2.415,3.184]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_001",5,"nu:w",0,-0.217609258491158,0.699610440151032,-0.217609258491158,TRUE,TRUE,180,0.059000000000001,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-2.53605844990065,4.78238728814652,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[2.415,3.184]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_002",1,"nu:(Intercept)",1.79175946922805,2.63058650332627,1.41895590899531,0.83882703409822,TRUE,TRUE,180,0.0579999999999998,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",1.62809481470682,7.02697732007254,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[15.61,16.11]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_002",1,"nu:w",0,0.00731585392459289,0.873721578165584,0.00731585392459289,TRUE,TRUE,180,0.0579999999999998,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-1.07914528636018,0.642029800143827,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[15.61,16.11]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_002",2,"nu:(Intercept)",1.79175946922805,2.26689517398785,0.890946048859809,0.475135704759796,TRUE,TRUE,180,0.0600000000000005,0,"",1.4401628403527,3.45522202149316,0.7,"profile","formula_coefficient","ok","ok",1.56338299251433,5.98971146452183,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"note","student_nu: At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","note","range=[2.621,264.1]","At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","replicate",1.4401628403527,3.45522202149316,0.7,"profile","formula_coefficient","ok","ok"
+"student_shape","student_shape_002",2,"nu:w",0,0.923294009652462,0.961547651850469,0.923294009652462,TRUE,TRUE,180,0.0600000000000005,0,"",0.163066132415081,2.37437999772501,0.7,"profile","formula_coefficient","ok","ok",-0.0590064106096835,5.49420634395889,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"note","student_nu: At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","note","range=[2.621,264.1]","At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","replicate",0.163066132415081,2.37437999772501,0.7,"profile","formula_coefficient","ok","ok"
+"student_shape","student_shape_002",3,"nu:(Intercept)",1.79175946922805,2.04002032942989,0.851076181751982,0.248260860201838,TRUE,TRUE,180,0.0609999999999999,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target
+""fixef:nu:(Intercept)"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",2.71411844647092,16.7138738627016,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[2.359,51.07]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","Could not extract a profile confidence interval for target
+""fixef:nu:(Intercept)"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate"
+"student_shape","student_shape_002",3,"nu:w",0,-0.812274228815458,0.9696361623707,-0.812274228815458,TRUE,TRUE,180,0.0609999999999999,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-10.2626249822105,-0.410907846007049,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"ok","Selected fit-level diagnostics are ok.","ok","range=[2.359,51.07]","All fitted Student-t nu values are finite and above the boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_002",4,"nu:(Intercept)",1.79175946922805,10.1549541436525,NA,8.36319467442449,FALSE,FALSE,180,0.135,1,"NaNs produced",10.1429173976301,10.1618144549984,0.7,"profile","formula_coefficient","ok","ok",3.43182573964895,69.6530817942623,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","hessian_positive_definite: sdreport does not report a positive-definite Hessian. | standard_errors_finite: Could not extract fixed-effect standard errors: Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals. | student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.012,14788717430277.]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",10.1429173976301,10.1618144549984,0.7,"profile","formula_coefficient","ok","ok"
+"student_shape","student_shape_002",4,"nu:w",0,-6.3392365603311,NA,-6.3392365603311,FALSE,FALSE,180,0.135,1,"NaNs produced",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-17.1419674956239,0.270300235673206,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"warning","hessian_positive_definite: sdreport does not report a positive-definite Hessian. | standard_errors_finite: Could not extract fixed-effect standard errors: Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals. | student_nu: At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","warning","range=[2.012,14788717430277.]","At least one fitted Student-t nu value is very close to the finite-variance boundary at 2.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"
+"student_shape","student_shape_002",5,"nu:(Intercept)",1.79175946922805,2.04061293065821,0.850793652197036,0.248853461430159,TRUE,TRUE,180,0.0670000000000002,0,"",1.21098739741692,3.09305783620031,0.7,"profile","formula_coefficient","ok","ok",1.65414213611312,17.1116403901859,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"note","student_nu: At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","note","range=[2.407,118.7]","At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","replicate",1.21098739741692,3.09305783620031,0.7,"profile","formula_coefficient","ok","ok"
+"student_shape","student_shape_002",5,"nu:w",0,-1.18437756277291,1.04138816718816,-1.18437756277291,TRUE,TRUE,180,0.0670000000000002,0,"",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval",-10.3349021476645,-0.612082056988114,0.7,"parametric_bootstrap","formula_coefficient","ok","",10,"none",1,1,"note","student_nu: At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","note","range=[2.407,118.7]","At least one fitted Student-t nu value is large; compare against a Gaussian model because tails may be nearly Gaussian.","replicate",NA,NA,0.7,"profile","formula_coefficient","failed","nonfinite_interval"

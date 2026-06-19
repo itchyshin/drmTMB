@@ -57216,3 +57216,43 @@ fixed-effect Student-t shape models. It does not promote Student-t
 profile/bootstrap intervals, random effects, bivariate responses, structured
 effects, true `nu <= 2` stress behavior, Julia bridge parity, release
 readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-19: Student-t nu profile/bootstrap feasibility diagnostic
+
+The numerical-guard ledger now has a small fixed-effect Student-t
+profile/bootstrap feasibility diagnostic beside the earlier boundary and Wald
+calibration slices. The artifact at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-diagnostic/`
+uses the existing Phase 18 Student-t shape writer for
+`bf(y ~ x, sigma ~ z, nu ~ w)` with `family = student()`, comparing the
+same low-boundary finite-variance cell with `nu(w = 0) = 2.8` and ordinary
+cell with `nu(w = 0) = 8.0`.
+
+The artifact ran 10 requested fits. The minimum convergence rate was 0.60,
+the minimum `pdHess` rate was 0.80, and the `nu` profile ok rate was 0.00 in
+the low-boundary cell and 0.20-0.60 in the ordinary cell. All requested
+parametric-bootstrap intervals returned with 10 refits. The profile failures
+are the point of the slice: profile status needs to travel with any later
+Student-t interval work instead of being hidden behind finite point estimates
+or a small bootstrap smoke.
+
+Checks run so far:
+
+```sh
+/usr/local/bin/Rscript --vanilla - <<'RS'
+# tiny one-replicate probe of Student-t profile/bootstrap interval columns
+RS
+air format docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-diagnostic/run-pilot.R
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-diagnostic/run-pilot.R
+```
+
+Result: the artifact rerun reproduced 10 requested fits, the profile and
+bootstrap summary CSVs, README, interval diagnostics, interval failures, and
+session info. Additional dashboard, pkgdown, stale-wording, and claim-boundary
+checks are recorded in the after-task report for this branch.
+
+Claim boundary: this is interval-method feasibility evidence for fixed-effect
+Student-t shape models. It does not promote Student-t profile/bootstrap
+coverage, random effects, bivariate responses, structured effects, true
+`nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
+readiness, or non-Gaussian REML/AI-REML language.

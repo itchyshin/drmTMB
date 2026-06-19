@@ -1,0 +1,2 @@
+"surface","interpretation_label","master_seed","git_sha","n_conditions","n_rep","fit_attempts","profile_parameters","profile_level","bootstrap_nsim","bootstrap_level","elapsed_seconds","min_convergence_rate","min_pdHess_rate","min_nu_profile_ok_rate","max_nu_profile_degenerate_rate","min_nu_bootstrap_ok_rate","min_nu_bootstrap_refits"
+"student_nu_profile_bootstrap_diagnostic","diagnostic_feasibility_pilot",20260620,"56f47b7fc9c8f96fd089fdc9f4c6385d87cc7cef",2,5,10,"nu:(Intercept);nu:w",0.7,10,0.7,15.6258819103241,0.6,0.8,0,0,1,10

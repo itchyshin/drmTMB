@@ -780,6 +780,53 @@ random effects, bivariate responses, structured effects, true infinite-variance
 stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
 non-Gaussian REML/AI-REML language.
 
+## Thirteenth Diagnostic: Student-t Profile/Bootstrap Feasibility
+
+The thirteenth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-diagnostic/`.
+It follows the Student-t Wald calibration slice with a deliberately small
+interval-method feasibility check. The purpose is to record whether profile
+and parametric-bootstrap interval status rows are visible for the two `nu`
+coefficients, not to calibrate interval coverage.
+
+**Aim.** Check whether the existing Student-t shape runner can request
+profile-likelihood intervals for `nu:(Intercept)` and `nu:w`, run bounded
+parametric-bootstrap refits, and retain interval failures beside `student_nu`,
+convergence, and `pdHess` status.
+
+**Data-generating mechanisms.** Two complete-data Student-t cells reuse the
+Wald calibration design: `bf(y ~ x, sigma ~ z, nu ~ w)`, `n = 180`,
+`beta_mu = (0.25, 0.55)`, `beta_sigma = (log(0.65), 0.20)`,
+`nu_slope = 0`, and `rho(x, w) = 0.20`. The low-boundary cell has
+`nu(w = 0) = 2.8`; the ordinary cell has `nu(w = 0) = 8.0`.
+
+**Estimands.** The diagnostic tracks fit status, `student_nu` diagnostics,
+profile interval status for the two `nu` coefficients, parametric-bootstrap
+interval status for all fixed-effect coefficients, bootstrap refit counts, and
+interval failure rows.
+
+**Methods.** Each cell has five replicates. Profile intervals are requested at
+level `0.70` with `ystep = 0.75` for `nu:(Intercept)` and `nu:w`.
+Parametric-bootstrap intervals are requested at level `0.70` with 10 refits
+per fit. There are no retries, fallback optimizers, forced-convergence
+overrides, comparator fits, or coverage claims.
+
+**Performance measures.** The committed summaries report 10 requested fits,
+cell-level convergence and `pdHess` rates, profile ok/failure/degenerate
+rates, bootstrap ok/failure rates, and minimum bootstrap refit counts. The
+minimum convergence rate was `0.60`; the minimum `pdHess` rate was `0.80`;
+`nu` profile ok rates were `0.00` in the low-boundary cell and `0.20` to
+`0.60` in the ordinary cell; and all requested bootstrap intervals returned
+with 10 refits. The profile failures are the important evidence: a finite
+point estimate and a bounded bootstrap smoke run do not make low-boundary
+Student-t profile intervals ready for user-facing calibration language.
+
+This is interval-feasibility diagnostic evidence for fixed-effect Student-t
+shape models only. It does not promote Student-t profile/bootstrap coverage,
+random effects, bivariate responses, structured effects, true infinite-variance
+stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
+non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-18 23:48 MDT",
+  "updated": "2026-06-19 01:06 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is still drmTMB#59 numerical-guard sensitivity. The ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, fixed-effect bivariate sigma1/sigma2 clamp-sensitivity, and Student-t Wald calibration diagnostics are banked as diagnostic evidence only. The Student-t Wald slice has 200 fixed-effect shape fits, minimum convergence 0.91, minimum pdHess 0.89, shape-term Wald coverage 0.87-0.90, and coverage MCSE up to 0.03363034. Larger bivariate scale-route grids, larger guard grids, Student-t profile/bootstrap calibration, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is still drmTMB#59 numerical-guard sensitivity. The ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, fixed-effect bivariate sigma1/sigma2 clamp-sensitivity, Student-t Wald calibration, and Student-t profile/bootstrap feasibility diagnostics are banked as diagnostic evidence only. The profile/bootstrap slice has 10 fixed-effect Student-t shape fits, minimum convergence 0.60, minimum pdHess 0.80, low-boundary nu profile ok rate 0.00, ordinary-nu profile ok rates 0.20-0.60, and all requested parametric-bootstrap intervals returning with 10 refits. Larger bivariate scale-route grids, larger guard grids, larger Student-t profile/bootstrap calibration, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
     }
   ]
 }

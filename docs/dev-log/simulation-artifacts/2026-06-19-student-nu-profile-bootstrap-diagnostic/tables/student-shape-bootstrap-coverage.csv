@@ -1,0 +1,13 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"student_shape","student_shape_001","mu:(Intercept)",5,5,3,0.6,0.219089023002066,0.346549309449988,0.203736293329992
+"student_shape","student_shape_001","mu:x",5,5,4,0.8,0.178885438199983,0.163739151476666,0.0337936782855584
+"student_shape","student_shape_001","nu:(Intercept)",5,5,2,0.4,0.219089023002066,55.7817646748631,27.2396042516126
+"student_shape","student_shape_001","nu:w",5,5,3,0.6,0.219089023002066,56.6862016621596,27.3064879447428
+"student_shape","student_shape_001","sigma:(Intercept)",5,5,5,1,0,0.358076725167004,0.142093408882825
+"student_shape","student_shape_001","sigma:z",5,5,3,0.6,0.219089023002066,0.310936258731746,0.1143091932657
+"student_shape","student_shape_002","mu:(Intercept)",5,5,4,0.8,0.178885438199983,1.43335717836335,1.33770607869961
+"student_shape","student_shape_002","mu:x",5,5,4,0.8,0.178885438199983,0.216241769745363,0.0918883698427634
+"student_shape","student_shape_002","nu:(Intercept)",5,5,3,0.6,0.219089023002066,21.100744140458,11.4950325294953
+"student_shape","student_shape_002","nu:w",5,5,3,0.6,0.219089023002066,8.85223855984992,2.61502013918854
+"student_shape","student_shape_002","sigma:(Intercept)",5,5,4,0.8,0.178885438199983,1.93730263252536,1.69217272646532
+"student_shape","student_shape_002","sigma:z",5,5,5,1,0,1.27278425707386,1.12086416406092

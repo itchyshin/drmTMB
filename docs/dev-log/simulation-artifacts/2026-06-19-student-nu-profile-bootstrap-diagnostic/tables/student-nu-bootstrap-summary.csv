@@ -1,0 +1,13 @@
+"cell_id","cell_label","nu_at_w0","parameter","n_interval","n_bootstrap_ok","n_bootstrap_failed","min_n_bootstrap","mean_n_bootstrap","bootstrap_ok_rate","bootstrap_ok_mcse"
+"student_shape_001","low_nu_boundary",2.8,"mu:(Intercept)",5,5,0,10,10,1,0
+"student_shape_001","low_nu_boundary",2.8,"mu:x",5,5,0,10,10,1,0
+"student_shape_001","low_nu_boundary",2.8,"nu:(Intercept)",5,5,0,10,10,1,0
+"student_shape_001","low_nu_boundary",2.8,"nu:w",5,5,0,10,10,1,0
+"student_shape_001","low_nu_boundary",2.8,"sigma:(Intercept)",5,5,0,10,10,1,0
+"student_shape_001","low_nu_boundary",2.8,"sigma:z",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"mu:(Intercept)",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"mu:x",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"nu:(Intercept)",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"nu:w",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"sigma:(Intercept)",5,5,0,10,10,1,0
+"student_shape_002","ordinary_nu",8,"sigma:z",5,5,0,10,10,1,0
