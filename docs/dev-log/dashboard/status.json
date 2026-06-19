@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 09:40 MDT",
+  "updated": "2026-06-19 15:15 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1079,8 +1079,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the fixed-effect skew-normal diagnostic pilot, the q8 staged diagnostic artifact, and the q8 staged endpoint-status hardening are banked as diagnostic evidence. Broader guard classes, q8 recovery accuracy, q8 coverage/power, same-response hardening, visual artifacts, direct Julia, Julia-via-R, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/after-task/2026-06-19-q8-staged-endpoint-status-hardening.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the native R/TMB Big 4 numerical-guard diagnostics, and q8 staged endpoint-status hardening are banked as diagnostic evidence. The next companion gates are direct DRM.jl evidence from a clean DRM.jl worktree and then Julia-via-R registry/parity evidence in drmTMB. Broader guard classes, q8 recovery accuracy, q8 coverage/power, same-response promotion, visual artifacts, direct Julia parity, Julia-via-R parity, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-19-post-big4-companion-gate-refresh.md"
     },
     {
       "area": "Release gate",
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. The current source-of-truth update banks the native R/TMB fixed-effect skew-normal guard grid: 200 complete-data fits, 0 fit errors, convergence and pdHess rates of 1.000, zero fitted-scale floor-dominated observations, and 27 fixed-gradient warning rows, so the overall decision is diagnostic_hold. This is skew-normal guard evidence only; recovery accuracy, interval calibration, comparator parity, direct Julia, Julia-via-R, release, and CRAN remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Post-#634 mission-control refresh: the native R/TMB Big 4 numerical-guard diagnostics are banked on main as diagnostic evidence only, with q8 endpoint status hardened but not promoted. The next companion-package gate is direct DRM.jl evidence from a clean DRM.jl worktree, followed by separate Julia-via-R registry/parity evidence before any bridge row is promoted. The one active finish-board row remains drmTMB#59 numerical-guard sensitivity; direct Julia, Julia-via-R, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "2026-06-19",

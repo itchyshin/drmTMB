@@ -2,6 +2,72 @@
 
 Record meaningful development checks here.
 
+## 2026-06-19: Post-Big-4 companion gate refresh
+
+Goal:
+
+- Refresh mission-control and finish-plan wording after PR #634 banked the
+  native R/TMB Big 4 numerical-guard diagnostics on `main`, and make direct
+  DRM.jl plus Julia-via-R evidence the next explicit gates.
+
+Checks run:
+
+- `git status --short --branch`
+- `git log -1 --format='%H %s'`
+- `tools/start-mission-control.sh --background`
+- `curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, drmTMB_repo: (.repos[] | select(.name=="drmTMB")), active_work: .active_work[0].text}'`
+- `git -C '/Users/z3437171/Dropbox/Github Local/DRM.jl' fetch origin --prune`
+- `git -C '/Users/z3437171/Dropbox/Github Local/DRM.jl' status --short --branch`
+- `git -C '/Users/z3437171/Dropbox/Github Local/DRM.jl' log -1 --format='%H %s' origin/main`
+- `julia --version`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `tools/validate-mission-control.py`
+- `git diff --check`
+- `rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-19-post-big4-companion-gate-refresh.md || true`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'`
+- `tools/start-mission-control.sh --background`
+- `curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, drmTMB_repo: (.repos[] | select(.name=="drmTMB")), active_work: .active_work[0].text}'`
+- `curl -s http://127.0.0.1:8765/sweep.json | jq '{updated, active_work: .active_work[0].text}'`
+
+Results:
+
+- `drmTMB` started clean at
+  `ae42e467ecda485413d969d5d11a95cfe2fca0c3`, the PR #634 merge commit.
+- Mission control was already listening on `http://127.0.0.1:8765/`; the served
+  repo metadata refreshed to detached `ae42e467` with `dirty = false`, metrics
+  25 verified, 1 active, 0 blocked, and 1 deferred.
+- DRM.jl `origin/main` was
+  `9bdea6564661e1d9eb454ed3c6d2d9398522f74f`, while the saved checkout was on
+  `shannon/ayumi-integration` with unrelated modified and untracked Ayumi
+  files. The next direct-Julia work should therefore use a fresh DRM.jl
+  worktree from `origin/main`.
+- `julia --version` reported Julia 1.10.0.
+- Dashboard JSON parsing, `tools/validate-mission-control.py`, and
+  `git diff --check` passed. The validator reported 25/68
+  banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate
+  rows, and 9 Julia capability rows.
+- The claim-boundary scan returned only expected existing or newly added
+  negative-boundary wording, such as direct Julia, Julia-via-R, release, CRAN,
+  coverage, power, recovery accuracy, AI-REML, and `engine_control` remaining
+  separate gates.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The served dashboard refreshed to `2026-06-19 15:15 MDT`, branch
+  `codex/post-big4-companion-gate-refresh`, head `ae42e467`, with the
+  post-#634 companion-gate active-work text.
+- Ada's PR review caught one stale dashboard ADEMP/comparator row that still
+  pointed at the q8 endpoint-status hardening note; the row now points at the
+  post-Big-4 companion-gate after-task report and keeps direct DRM.jl and
+  Julia-via-R parity planned.
+
+Boundary:
+
+- This is a source-of-truth refresh, not a bridge-promotion or model-capability
+  change. Native Big 4 diagnostics remain diagnostic-only; direct DRM.jl,
+  Julia-via-R parity, release readiness, CRAN readiness, recovery accuracy,
+  coverage, power, non-Gaussian REML/AI-REML, and selectable Julia
+  `engine_control` remain separate gates.
+
 ## 2026-06-19: Big 4 final local validation sweep
 
 Goal:
