@@ -131,7 +131,11 @@ test_that("summary() exposes a coefficient table with SE, z, p, and CIs", {
   expect_true(all(is.finite(s$coefficients$conf.high)))
 
   # SE = sqrt(diag(vcov)); z = estimate / se.
-  expect_equal(s$coefficients$std.error, c(0.2, 0.1, sqrt(0.02)), tolerance = 1e-10)
+  expect_equal(
+    s$coefficients$std.error,
+    c(0.2, 0.1, sqrt(0.02)),
+    tolerance = 1e-10
+  )
   expect_equal(s$coefficients$statistic[2L], 0.4 / 0.1, tolerance = 1e-10)
 
   # The phylogenetic SD is reported on the positive response scale.
@@ -152,8 +156,15 @@ test_that("a partial / missing bridge covariance yields NA Wald intervals", {
     coef_names = coef_names,
     coefficients = c(0.5, 0.4, log(1.3)),
     vcov = V,
-    loglik = -50, aic = 106, bic = 110, df = 3L, nobs = 20L, converged = TRUE,
-    fitted = rep(0, 20L), residuals = rep(0, 20L), sigma = numeric(),
+    loglik = -50,
+    aic = 106,
+    bic = 110,
+    df = 3L,
+    nobs = 20L,
+    converged = TRUE,
+    fitted = rep(0, 20L),
+    residuals = rep(0, 20L),
+    sigma = numeric(),
     corpairs = list()
   )
   form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
@@ -163,7 +174,9 @@ test_that("a partial / missing bridge covariance yields NA Wald intervals", {
     formula = form,
     family = stats::poisson(),
     data = data.frame(
-      y = rep(0, 20L), x = rep(0, 20L), species = paste0("sp", seq_len(20L))
+      y = rep(0, 20L),
+      x = rep(0, 20L),
+      species = paste0("sp", seq_len(20L))
     ),
     family_type = "poisson",
     structured_sd_scales = c("phylo(1 | species)" = sqrt(2))
@@ -183,10 +196,7 @@ test_that("a partial / missing bridge covariance yields NA Wald intervals", {
 # order (same rationale as the cross-family round-trips).
 
 drm_julia_inference_engine_path <- function() {
-  Sys.getenv(
-    "DRM_JL_PHYLO_PATH",
-    "/Users/z3437171/worktrees/DRM-relmatext"
-  )
+  drm_test_drmjl_path()
 }
 
 # Fit a phylo Poisson model with `engine = "julia"`, then call confint() inside
@@ -197,7 +207,13 @@ drm_julia_inference_fit <- function(n_tip = 24L) {
   jl_path <- drm_julia_inference_engine_path()
   callr::r(
     function(pkg, jl_path, n_tip) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
@@ -212,7 +228,10 @@ drm_julia_inference_fit <- function(n_tip = 24L) {
 
       form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
       fj <- drmTMB::drmTMB(
-        form, family = stats::poisson(), data = dat, engine = "julia"
+        form,
+        family = stats::poisson(),
+        data = dat,
+        engine = "julia"
       )
 
       ci <- stats::confint(fj) # default Wald

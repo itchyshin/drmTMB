@@ -50,14 +50,23 @@ test_that("bridge corpairs reconstructs among-axis phylo correlations from Sigma
 
   result <- list(
     coef_names = c(
-      "mu1_(Intercept)", "mu1_x",
-      "mu2_(Intercept)", "mu2_x",
-      "sigma1_(Intercept)", "sigma2_(Intercept)",
+      "mu1_(Intercept)",
+      "mu1_x",
+      "mu2_(Intercept)",
+      "mu2_x",
+      "sigma1_(Intercept)",
+      "sigma2_(Intercept)",
       "rho12_(Intercept)",
       paste0("phylocov_", names(lc))
     ),
     coefficients = c(
-      1.0, 0.5, -1.0, 0.3, -0.7, -0.8, 0.2,
+      1.0,
+      0.5,
+      -1.0,
+      0.3,
+      -0.7,
+      -0.8,
+      0.2,
       unname(lc)
     ),
     vcov = diag(length(lc) + 7L),
@@ -92,7 +101,12 @@ test_that("bridge corpairs reconstructs among-axis phylo correlations from Sigma
 
   fit <- drmTMB:::new_drmTMB_julia(
     result = result,
-    call = quote(drmTMB(form, family = biv_gaussian(), data = dat, engine = "julia")),
+    call = quote(drmTMB(
+      form,
+      family = biv_gaussian(),
+      data = dat,
+      engine = "julia"
+    )),
     formula = form,
     family = drmTMB::biv_gaussian(),
     data = dat,
@@ -115,7 +129,14 @@ test_that("bridge corpairs reconstructs among-axis phylo correlations from Sigma
   )
   expect_equal(
     drmTMB::corpairs(fit, level = "phylogenetic")$class,
-    c("mean-mean", "mean-scale", "mean-scale", "mean-scale", "mean-scale", "scale-scale")
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
   )
   expect_equal(nrow(drmTMB::corpairs(fit, block = "p")), 6L)
 
@@ -137,10 +158,7 @@ test_that("bridge corpairs reconstructs among-axis phylo correlations from Sigma
 # --- Live q=4 phylo round-trip (guarded) ------------------------------------
 
 drm_phylo_q4_path <- function() {
-  Sys.getenv(
-    "DRM_JL_PATH",
-    "/Users/z3437171/worktrees/DRM-RELEASE"
-  )
+  drm_test_drmjl_path("DRM_JL_PATH")
 }
 
 # Fit a small q=4 bivariate phylo location-scale model via engine = "julia" in a
@@ -151,7 +169,13 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
   jl_path <- drm_phylo_q4_path()
   callr::r(
     function(pkg, jl_path, n_tip, m) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       Sys.setenv(DRM_JL_PATH = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
@@ -186,7 +210,10 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
       y1 <- stats::rnorm(N * m, mean1, sig1)
       y2 <- stats::rnorm(N * m, mean2, sig2)
       dat <- data.frame(
-        species = sp[rows], x = x, y1 = y1, y2 = y2,
+        species = sp[rows],
+        x = x,
+        y1 = y1,
+        y2 = y2,
         stringsAsFactors = FALSE
       )
 
@@ -219,12 +246,16 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
         classes = drmTMB::corpairs(fj, level = "phylogenetic")$class,
         estimates = pairs$estimate,
         mean1_mean2 = if (nrow(mm) == 1L) mm$estimate else NA_real_,
-        phylo_levels = unique(drmTMB::corpairs(fj, level = "phylogenetic")$level)
+        phylo_levels = unique(
+          drmTMB::corpairs(fj, level = "phylogenetic")$level
+        )
       )
     },
     args = list(
-      pkg = pkg, jl_path = jl_path,
-      n_tip = as.integer(n_tip), m = as.integer(m)
+      pkg = pkg,
+      jl_path = jl_path,
+      n_tip = as.integer(n_tip),
+      m = as.integer(m)
     ),
     error = "error"
   )
@@ -264,7 +295,14 @@ test_that("q4 bivariate phylo location-scale corpairs surfaces among-axis correl
   expect_equal(unique(res$phylo_levels), "phylogenetic")
   expect_equal(
     res$classes,
-    c("mean-mean", "mean-scale", "mean-scale", "mean-scale", "mean-scale", "scale-scale")
+    c(
+      "mean-mean",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "mean-scale",
+      "scale-scale"
+    )
   )
 
   # Every reconstructed among-axis correlation is finite and a valid correlation.

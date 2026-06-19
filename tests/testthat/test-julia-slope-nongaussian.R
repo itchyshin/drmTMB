@@ -4,7 +4,7 @@
 # slopes. So the Julia bridge is the only route, and we assert a finite-and-sane floor.
 
 drm_slope_ng_path <- function() {
-  Sys.getenv("DRM_JL_PHYLO_PATH", "/Users/z3437171/worktrees/DRM-RELEASE")
+  drm_test_drmjl_path()
 }
 
 drm_phylo_slope_gamma_fit <- function(n_tip = 40L) {
@@ -12,7 +12,13 @@ drm_phylo_slope_gamma_fit <- function(n_tip = 40L) {
   jl_path <- drm_slope_ng_path()
   callr::r(
     function(pkg, jl_path, n_tip) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       Sys.setenv(DRM_JL_PATH = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))

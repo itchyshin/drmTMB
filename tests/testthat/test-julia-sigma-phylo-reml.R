@@ -345,10 +345,7 @@ test_that("REML stays gated for the phylo-only count family cell", {
 # at jl_path is the one loaded for this fit, independent of test order.
 
 drm_sigma_phylo_reml_path <- function() {
-  Sys.getenv(
-    "DRM_JL_PHYLO_PATH",
-    "/Users/z3437171/worktrees/DRM-relmatext"
-  )
+  drm_test_drmjl_path()
 }
 
 drm_sigma_phylo_reml_fit <- function(n_tip = 32L) {
@@ -356,7 +353,13 @@ drm_sigma_phylo_reml_fit <- function(n_tip = 32L) {
   jl_path <- drm_sigma_phylo_reml_path()
   callr::r(
     function(pkg, jl_path, n_tip) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 

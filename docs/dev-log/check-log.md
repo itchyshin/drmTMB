@@ -2,6 +2,86 @@
 
 Record meaningful development checks here.
 
+## 2026-06-19: Julia-via-R clean-main bridge audit
+
+Goal:
+
+- Make the R-side Julia bridge tests use an explicit DRM.jl checkout and
+  optional Julia-home environment instead of stale local default paths, then
+  verify the current bridge registry/parity surface against the clean merged
+  DRM.jl main worktree.
+
+Checks run:
+
+- `git fetch origin --prune`
+- `git status --short --branch`
+- `git log -1 --format='%H %s'`
+- `git -C /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main fetch origin --prune`
+- `git -C /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main status --short --branch`
+- `git -C /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main log -1 --format='%H %s'`
+- `git -C '/Users/z3437171/Dropbox/Github Local/DRM.jl' status --short --branch`
+- `DRM_JL_PHYLO_PATH=/Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main JULIA_HOME=/Users/z3437171/.juliaup/bin /usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine|julia-tmb-parity", reporter = "summary")'`
+- `air format tests/testthat/helper-julia-bridge-path.R tests/testthat/test-julia-missing.R tests/testthat/test-julia-slope-nongaussian.R tests/testthat/test-julia-tmb-parity.R tests/testthat/test-julia-phylo-count.R tests/testthat/test-julia-phylo-nongaussian.R tests/testthat/test-julia-inference.R tests/testthat/test-julia-sigma-phylo-reml.R tests/testthat/test-julia-phylo-q4-corpairs.R tests/testthat/test-julia-structured.R tests/testthat/test-xfam-bridge.R`
+- `DRM_JL_PHYLO_PATH=/Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main JULIA_HOME=/Users/z3437171/.juliaup/bin /usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia", reporter = "summary")'`
+- `/usr/local/bin/Rscript --vanilla tools/write-julia-gate-registry.R`
+- `/usr/local/bin/Rscript --vanilla tools/write-julia-capability-comparison.R`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `tools/validate-mission-control.py`
+- `git diff --check`
+- `/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine|julia-tmb-parity", reporter = "summary")'`
+- `rg -n 'JULIA_HOME = "/Users/z3437171/.juliaup/bin"|Sys\.setenv\(JULIA_HOME = "/Users|local_envvar\(c\(JULIA_HOME = "/Users|DRM-integrate|DRM-RELEASE|DRM-relmatext|DRM-crossfamily' tests/testthat docs/design/168-r-julia-finish-capability-matrix.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json || true`
+- `rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-19-julia-via-r-clean-main-bridge-audit.md || true`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'`
+- `tools/start-mission-control.sh --background`
+- `curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, drmTMB_repo: (.repos[] | select(.name=="drmTMB")), active_work: .active_work[0].text}'`
+- `curl -s http://127.0.0.1:8765/sweep.json | jq '{updated, active_work: .active_work[0].text}'`
+
+Results:
+
+- `drmTMB` started clean at
+  `91029e3a613c8e2123b78a7a845caed64eb4b60b`, the PR #635 merge commit.
+- The clean DRM.jl worktree started at
+  `f46035def594e8a5c6e904fd19eda567cfa9c903`, the PR #295 merge commit.
+- The saved DRM.jl checkout remained dirty on `shannon/ayumi-integration`, so
+  this slice did not use it as evidence.
+- The focused Julia gate/parity subset passed against the clean DRM.jl main
+  worktree with one known Route A Gaussian phylo-mean skip for the tracked
+  all-node log-likelihood bug.
+- The broader `devtools::test(filter = "julia")` sweep passed against the same
+  clean DRM.jl main worktree with the same single known Route A skip.
+- The generated Julia gate and capability artifacts remained unchanged at
+  15 gate rows and 9 capability rows. This confirms the test-path hygiene and
+  clean-main sweep did not widen the bridge registry.
+- Dashboard JSON parsing, `tools/validate-mission-control.py`, and
+  `git diff --check` passed. The mission-control validator reported 25/68
+  banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate
+  rows, and 9 Julia capability rows.
+- Without `DRM_JL_PHYLO_PATH`, the focused gate/parity test skipped the live
+  Route B and Route C parity checks because no DRM.jl engine path was available;
+  this is the intended behavior after removing stale local defaults.
+- The live test source scan found no hardcoded maintainer-local `JULIA_HOME`
+  defaults and no stale live DRM.jl checkout defaults in the touched bridge
+  tests or dashboard/matrix surfaces. Live child processes now honor
+  `DRM_JL_JULIA_HOME`, then `JULIA_HOME`, and otherwise leave Julia discovery
+  unset.
+- The claim-boundary scan returned only existing and newly added negative or
+  planned boundary wording.
+- `pkgdown::check_pkgdown()` reported no problems.
+- The served mission-control copy at `http://127.0.0.1:8765/` refreshed to
+  `2026-06-19 17:12 MDT`, branch `codex/julia-via-r-clean-main-parity`,
+  head `91029e3a`, dirty true, with metrics 25 verified, 1 active, 0 blocked,
+  and 1 deferred.
+
+Boundary:
+
+- This banks Julia-via-R bridge test hygiene and a clean-main
+  `devtools::test(filter = "julia")` bridge-test pass. It does not promote
+  plain non-phylo binomial through `engine = "julia"`, Route A Gaussian
+  phylo-mean parity, q4/q8 bridge parity, release readiness, CRAN readiness,
+  speed claims, selectable Julia `engine_control`, or non-Gaussian
+  REML/AI-REML.
+
 ## 2026-06-19: Post-Big-4 companion gate refresh
 
 Goal:

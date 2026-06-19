@@ -95,10 +95,7 @@ test_that("has-phylo detector finds a phylo term in any entry", {
 # Tier-2 round-trips).
 
 drm_phylo_count_path <- function() {
-  Sys.getenv(
-    "DRM_JL_PHYLO_PATH",
-    "/Users/z3437171/Dropbox/Github Local/DRM.jl"
-  )
+  drm_test_drmjl_path()
 }
 
 # Fit the same phylo Poisson model with BOTH engines in one clean subprocess and
@@ -109,7 +106,13 @@ drm_phylo_count_fit <- function(n_tip = 24L) {
   jl_path <- drm_phylo_count_path()
   callr::r(
     function(pkg, jl_path, n_tip) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
@@ -128,7 +131,10 @@ drm_phylo_count_fit <- function(n_tip = 24L) {
       form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
 
       fj <- drmTMB::drmTMB(
-        form, family = stats::poisson(), data = dat, engine = "julia"
+        form,
+        family = stats::poisson(),
+        data = dat,
+        engine = "julia"
       )
       ft <- drmTMB::drmTMB(form, family = stats::poisson(), data = dat)
 

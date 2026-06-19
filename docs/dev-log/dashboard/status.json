@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 15:15 MDT",
+  "updated": "2026-06-19 17:12 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -438,24 +438,24 @@
   "repos": [
     {
       "name": "drmTMB",
-      "branch": "codex/ayumi-q4-point-ladder",
-      "head": "serve-time",
+      "branch": "codex/julia-via-r-clean-main-parity",
+      "head": "91029e3a",
       "dirty": true,
-      "note": "R-first Ayumi branch. Repairs Julia q4 target estimates from phylocov and banks a tiny all-q4 bootstrap smoke before any 10k claim."
+      "note": "Julia-via-R clean-main bridge audit branch. The serve script rewrites this row with live branch, head, and dirty state."
     },
     {
-      "name": "drmTMB finish-board worktree",
+      "name": "drmTMB finish-board worktree (historical)",
       "branch": "codex/julia-docs-drift-guard",
-      "head": "pr-pending",
+      "head": "merged-slice",
       "dirty": false,
-      "note": "Clean Codex PR worktree for the non-Ayumi bridge-gate docs-drift guard and DRM.jl capability comparison. This slice does not edit src/drmTMB.cpp."
+      "note": "Historical context row for the earlier non-Ayumi bridge-gate docs-drift guard and DRM.jl capability comparison. The live drmTMB row above is the current worktree state."
     },
     {
       "name": "DRM.jl",
       "branch": "main evidence worktree",
-      "head": "9bdea65",
+      "head": "f46035d",
       "dirty": false,
-      "note": "DRM.jl #292 merged green; verified through /tmp/DRM-main-merged. The user's saved DRM.jl checkout may still be dirty."
+      "note": "DRM.jl #295 merged green. Clean evidence worktree at /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main; the user's saved DRM.jl checkout may still be dirty."
     },
     {
       "name": "gllvmTMB",
@@ -884,8 +884,8 @@
       "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "#587 is merged. Review remaining R-gated Julia-covered cells before any bridge promotion; do not imply user-selectable Julia-side controls.",
-      "evidence_url": "docs/dev-log/after-task/2026-06-16-julia-capability-comparison-doc-guard.md"
+      "next": "Clean-main bridge-test audit is banked: stale local DRM.jl and Julia-home defaults were removed from live bridge tests, and `devtools::test(filter = \"julia\")` passed against merged DRM.jl main with the known Route A skip. Review remaining R-gated Julia-covered cells before any row-specific bridge promotion; do not imply user-selectable Julia-side controls.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-19-julia-via-r-clean-main-bridge-audit.md"
     },
     {
       "area": "Gaussian phylogenetic SD target",
@@ -1079,8 +1079,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the native R/TMB Big 4 numerical-guard diagnostics, and q8 staged endpoint-status hardening are banked as diagnostic evidence. The next companion gates are direct DRM.jl evidence from a clean DRM.jl worktree and then Julia-via-R registry/parity evidence in drmTMB. Broader guard classes, q8 recovery accuracy, q8 coverage/power, same-response promotion, visual artifacts, direct Julia parity, Julia-via-R parity, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/after-task/2026-06-19-post-big4-companion-gate-refresh.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the native R/TMB Big 4 numerical-guard diagnostics, q8 staged endpoint-status hardening, direct DRM.jl smoke evidence, and Julia-via-R clean-main bridge-test evidence are banked. Broader guard classes, q8 recovery accuracy, q8 coverage/power, same-response promotion, visual artifacts, row-specific bridge parity, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-19-julia-via-r-clean-main-bridge-audit.md"
     },
     {
       "area": "Release gate",
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Post-#634 mission-control refresh: the native R/TMB Big 4 numerical-guard diagnostics are banked on main as diagnostic evidence only, with q8 endpoint status hardened but not promoted. The next companion-package gate is direct DRM.jl evidence from a clean DRM.jl worktree, followed by separate Julia-via-R registry/parity evidence before any bridge row is promoted. The one active finish-board row remains drmTMB#59 numerical-guard sensitivity; direct Julia, Julia-via-R, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "Julia-via-R clean-main bridge audit: direct DRM.jl smoke evidence is banked on DRM.jl main, stale local DRM.jl and Julia-home defaults were removed from live R bridge tests, and `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "2026-06-19",
