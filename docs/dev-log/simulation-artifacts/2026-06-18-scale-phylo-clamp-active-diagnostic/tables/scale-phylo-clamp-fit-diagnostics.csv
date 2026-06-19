@@ -1,0 +1,37 @@
+"stress","clamp","shock","seed","n_tip","n_per_tip","converged","convergence_code","convergence_message","iterations","function_evaluations","gradient_evaluations","pdHess","sdreport_status","min_log_sigma","max_log_sigma","n_log_sigma_lt_minus12","n_log_sigma_gt_12","n_log_sigma_gt_15","logsigma_clamp_status","logsigma_clamp_value","logsigma_clamp_message","scale_phylo_status","scale_phylo_value","scale_phylo_message","max_abs_gradient","fixed_gradient_status","fixed_gradient_value","fixed_gradient_component","objective","logLik","AIC","BIC","elapsed","warning_count","warnings"
+"moderate_residual_shock","default",50,202,80,1,FALSE,1,"false convergence (8)",34,76,35,FALSE,"note",-14.7202587936611,2.69418090943203,5,0,0,"ok",NA,"The log(sigma) clamp is not active at the optimum.",NA,NA,NA,5851594491.75623,"warning","max=5851594492.; component=beta_mu[2]","beta_mu[2]",166.231996741913,-166.231996741913,346.463993483825,363.138179926543,9.447,21,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit."
+"extreme_residual_shock","default",50000,202,80,1,FALSE,1,"false convergence (8)",27,68,28,FALSE,"note",0.787004958666873,13.9281997579304,0,2,0,"warning","13.93","The fitted log(sigma) reached 13.93, above the clamp band upper bound 12; the scale ran to the clamp and the fit may have converged artificially (estimates and SEs near the clamp are unreliable).",NA,NA,NA,1103315.59869797,"warning","max=1103316.; component=log_sd_phylo[2]","log_sd_phylo[2]",648.787533881283,-648.787533881283,1311.57506776257,1328.24925420528,9.395,9,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit. | `drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted
+`log(sigma)` reached 13.9, above the band upper bound 12).
+ℹ The scale ran to the upper clamp, so the fit may have converged artificially:
+  estimates and standard errors near the clamp are unreliable. Rescale the
+  response, widen the band with `drm_control(logsigma_clamp = )`, add
+  within-group replication, or use a penalized/MAP fit; `check_drm()` reports
+  the fit state."
+"moderate_residual_shock","disabled",50,202,80,1,FALSE,1,"false convergence (8)",30,81,30,FALSE,"note",-3.05598891313137,3.00905979436449,0,0,0,"ok",NA,"The log(sigma) clamp is not active at the optimum.",NA,NA,NA,14512179841.2958,"warning","max=14512179841.; component=beta_mu[2]","beta_mu[2]",161.794567441637,-161.794567441637,337.589134883274,354.263321325992,4.718,10,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit."
+"extreme_residual_shock","disabled",50000,202,80,1,FALSE,1,"false convergence (8)",33,73,33,FALSE,"note",0.787023273195662,14.288445129832,0,2,0,"ok",NA,"The log(sigma) clamp is not active at the optimum.",NA,NA,NA,8518874.93012047,"warning","max=8518875.; component=log_sd_phylo[2]","log_sd_phylo[2]",648.276843123256,-648.276843123256,1310.55368624651,1327.22787268923,5.862,13,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit."
+"moderate_residual_shock","wide",50,202,80,1,FALSE,1,"false convergence (8)",34,86,34,FALSE,"note",-3.05627223130631,3.00909062660711,0,0,0,"ok",NA,"The log(sigma) clamp is not active at the optimum.",NA,NA,NA,83173016086.2626,"warning","max=83173016086.; component=beta_mu[2]","beta_mu[2]",161.358089211307,-161.358089211307,336.716178422615,353.390364865332,5.439,8,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit."
+"extreme_residual_shock","wide",50000,202,80,1,FALSE,1,"false convergence (8)",31,71,31,FALSE,"note",0.786998965803519,14.2884334530168,0,2,0,"ok",NA,"The log(sigma) clamp is not active at the optimum.",NA,NA,NA,1805304.39939196,"warning","max=1805304.; component=log_sd_phylo[2]","log_sd_phylo[2]",648.664521890085,-648.664521890085,1311.32904378017,1328.00323022289,9.056,9,"NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | NA/NaN function evaluation | `drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit."

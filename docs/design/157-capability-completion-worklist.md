@@ -122,7 +122,14 @@ coordinate-spatial, `animal()`, and `relmat()` q2 location covariance:
 `biv_animal_q2_covariance`, and `biv_relmat_q2_covariance` rows; 12 requested
 structured fits had 0 fit errors, 11 optimizer-converged fits, 12
 `pdHess = TRUE` fits, 12 default-gradient-ok fits, and five route-specific
-fitted-boundary warnings. The plain binomial
+fitted-boundary warnings. The scale-side phylogenetic clamp-active diagnostic
+adds one more guard-depth artifact for the original `log(sigma)` runaway
+surface: six one-observation-per-tip `mu` + `sigma` phylogeny stress fits had
+0 fit errors, 0 optimizer-converged fits, 0 positive-Hessian inference fits
+because `se = FALSE` skipped `sdreport()`, six fixed-gradient warnings, and
+one default `logsigma_clamp_active` warning at `log(sigma) = 13.93`; the
+disabled and wide-clamp controls on the same extreme data still failed the
+optimizer and fixed-gradient checks. The plain binomial
 route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger

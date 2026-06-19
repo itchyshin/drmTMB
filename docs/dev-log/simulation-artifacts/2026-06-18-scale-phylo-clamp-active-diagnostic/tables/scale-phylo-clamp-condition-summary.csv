@@ -1,0 +1,7 @@
+"stress","clamp","shock","n_requested","n_attempted","n_fit_error","n_warning","n_converged","n_pdHess","n_check_drm_warning_or_error"
+"moderate_residual_shock","default",50,1,1,0,1,0,0,1
+"extreme_residual_shock","default",50000,1,1,0,1,0,0,1
+"moderate_residual_shock","disabled",50,1,1,0,1,0,0,1
+"extreme_residual_shock","disabled",50000,1,1,0,1,0,0,1
+"moderate_residual_shock","wide",50,1,1,0,1,0,0,1
+"extreme_residual_shock","wide",50000,1,1,0,1,0,0,1

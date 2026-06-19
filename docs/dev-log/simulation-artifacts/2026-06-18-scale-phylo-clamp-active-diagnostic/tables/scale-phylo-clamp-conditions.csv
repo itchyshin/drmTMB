@@ -1,0 +1,7 @@
+"stress","clamp","shock","seed","description"
+"moderate_residual_shock","default",50,202,"One observation per tip with three large residual shocks."
+"extreme_residual_shock","default",50000,202,"One observation per tip with three deliberately extreme residual shocks."
+"moderate_residual_shock","disabled",50,202,"One observation per tip with three large residual shocks."
+"extreme_residual_shock","disabled",50000,202,"One observation per tip with three deliberately extreme residual shocks."
+"moderate_residual_shock","wide",50,202,"One observation per tip with three large residual shocks."
+"extreme_residual_shock","wide",50000,202,"One observation per tip with three deliberately extreme residual shocks."
