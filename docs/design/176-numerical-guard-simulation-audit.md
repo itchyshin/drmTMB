@@ -578,6 +578,57 @@ correlations, q4/q8 covariance intervals, random effects in `rho12`, Julia
 bridge parity, release readiness, CRAN readiness, or non-Gaussian
 REML/AI-REML language.
 
+## Ninth Diagnostic: Structured Q2 Boundary Visibility
+
+The ninth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-structured-q2-boundary-diagnostic/`.
+It extends the fitted-boundary visibility check to already fitted structured q2
+location-covariance routes. It is not a recovery, coverage, or power grid.
+
+**Aim.** Check whether fitted near-boundary structured location correlations
+are visible through `check_drm()` for bivariate Gaussian coordinate-spatial,
+`animal()`, and `relmat()` q2 `mu1`/`mu2` covariance routes.
+
+**Data-generating mechanisms.** Twelve complete-data bivariate Gaussian cells
+cross three structured q2 surfaces with true latent correlations 0, 0.4, 0.9,
+and 0.98. The diagnostic keeps q4/q8 covariance, random effects in `rho12`,
+non-Gaussian covariance, interval calibration, and recovery/power evaluation
+out of scope.
+
+**Estimands.** The diagnostic tracks the true and fitted route-specific
+structured correlation, the guarded link-equivalent target, fitted component
+SDs, boundary distance, fixed gradients, convergence, `pdHess`,
+`sdreport_status`, log likelihood, AIC/BIC, warnings, and all `check_drm()`
+rows.
+
+**Methods.** Each cell uses the default Phase 18 q2 fitting helpers with no
+manual retries, multistart, fallback optimizer, profile interval, bootstrap
+interval, or manual convergence rescue. The runner records warnings and
+failures as data.
+
+**Performance measures.** The committed summaries report source-grid guard
+distances, per-cell fit diagnostics, per-cell exposure counts, per-cell
+denominators for requested/attempted/error/warning/converged/`pdHess`/gradient
+ok/`check_drm` warning-or-error rows, surface-level counts, and a compact run
+summary. There is no coverage, power, or calibrated interval estimate in this
+slice.
+
+The diagnostic ran 12 requested fits with no fit errors. Eleven fits reported
+optimizer convergence, all 12 reported `pdHess = TRUE`, and all 12 had fixed
+gradients below the default threshold. The animal-model true `rho = 0.9` cell
+retained optimizer non-convergence (`false convergence (8)`) while also showing
+`pdHess = TRUE` and a fitted structured correlation at the numerical guard.
+Five route-specific covariance warnings were visible: coordinate-spatial at
+true `rho = 0.98`, animal at true `rho = 0.9` and 0.98, and `relmat()` at true
+`rho = 0.9` and 0.98. The minimum fitted boundary distance was
+`1.000015e-06`, the largest fixed gradient was `7.440224e-05`, and the largest
+absolute fitted-minus-true correlation difference was `0.6262573`.
+
+This is diagnostic evidence for structured q2 fitted-boundary visibility only.
+It does not settle structured q2 recovery accuracy, interval coverage, power,
+q4/q8 covariance intervals, random effects in `rho12`, Julia bridge parity,
+release readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

@@ -1,0 +1,13 @@
+"cell_id","surface","check_name","target","n_level","n_each","matrix_argument","rho_true","seed"
+"spatial_zero","spatial","biv_spatial_q2_covariance","zero",10,8,NA,0,5100
+"spatial_moderate","spatial","biv_spatial_q2_covariance","moderate",10,8,NA,0.4,5140
+"spatial_high","spatial","biv_spatial_q2_covariance","high",10,8,NA,0.9,5190
+"spatial_boundary","spatial","biv_spatial_q2_covariance","boundary",10,8,NA,0.98,5198
+"animal_zero","animal","biv_animal_q2_covariance","zero",10,8,"precision",0,6100
+"animal_moderate","animal","biv_animal_q2_covariance","moderate",10,8,"precision",0.4,6140
+"animal_high","animal","biv_animal_q2_covariance","high",10,8,"precision",0.9,6190
+"animal_boundary","animal","biv_animal_q2_covariance","boundary",10,8,"precision",0.98,6198
+"relmat_zero","relmat","biv_relmat_q2_covariance","zero",10,8,"precision",0,7100
+"relmat_moderate","relmat","biv_relmat_q2_covariance","moderate",10,8,"precision",0.4,7140
+"relmat_high","relmat","biv_relmat_q2_covariance","high",10,8,"precision",0.9,7190
+"relmat_boundary","relmat","biv_relmat_q2_covariance","boundary",10,8,"precision",0.98,7198

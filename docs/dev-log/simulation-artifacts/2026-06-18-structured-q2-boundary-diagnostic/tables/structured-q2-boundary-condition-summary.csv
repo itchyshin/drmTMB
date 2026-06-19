@@ -1,0 +1,13 @@
+"cell_id","surface","check_name","target","rho_true","n_requested","n_attempted","n_fit_error","n_warning","n_converged","n_pdHess","n_gradient_ok","n_check_drm_warning_or_error","n_covariance_warning"
+"spatial_zero","spatial","biv_spatial_q2_covariance","zero",0,1,1,0,0,1,1,1,0,0
+"spatial_moderate","spatial","biv_spatial_q2_covariance","moderate",0.4,1,1,0,0,1,1,1,0,0
+"spatial_high","spatial","biv_spatial_q2_covariance","high",0.9,1,1,0,0,1,1,1,0,0
+"spatial_boundary","spatial","biv_spatial_q2_covariance","boundary",0.98,1,1,0,0,1,1,1,1,1
+"animal_zero","animal","biv_animal_q2_covariance","zero",0,1,1,0,0,1,1,1,0,0
+"animal_moderate","animal","biv_animal_q2_covariance","moderate",0.4,1,1,0,0,1,1,1,0,0
+"animal_high","animal","biv_animal_q2_covariance","high",0.9,1,1,0,1,0,1,1,2,1
+"animal_boundary","animal","biv_animal_q2_covariance","boundary",0.98,1,1,0,0,1,1,1,1,1
+"relmat_zero","relmat","biv_relmat_q2_covariance","zero",0,1,1,0,0,1,1,1,0,0
+"relmat_moderate","relmat","biv_relmat_q2_covariance","moderate",0.4,1,1,0,0,1,1,1,0,0
+"relmat_high","relmat","biv_relmat_q2_covariance","high",0.9,1,1,0,0,1,1,1,1,1
+"relmat_boundary","relmat","biv_relmat_q2_covariance","boundary",0.98,1,1,0,0,1,1,1,1,1

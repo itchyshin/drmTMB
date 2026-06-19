@@ -56978,3 +56978,59 @@ Result: mission-control validation passed with `21/68 banked_or_verified`,
 `3 active`, `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and
 `9 Julia capability rows`. Both dashboard JSON files parsed cleanly.
 `git diff --check` passed.
+
+## 2026-06-18: structured q2 boundary diagnostic
+
+The numerical-guard ledger now has fitted-boundary diagnostic visibility for
+non-phylo structured q2 location covariance. `check_drm()` reports
+`biv_spatial_q2_covariance`, `biv_animal_q2_covariance`, and
+`biv_relmat_q2_covariance` rows for bivariate Gaussian coordinate-spatial,
+`animal()`, and `relmat()` q2 `mu1`/`mu2` covariance routes. The existing
+phylogenetic row remains `biv_phylo_mu_covariance`.
+
+The artifact at
+`docs/dev-log/simulation-artifacts/2026-06-18-structured-q2-boundary-diagnostic/`
+crosses spatial, animal, and `relmat()` q2 surfaces with true latent
+correlations 0, 0.4, 0.9, and 0.98. It ran 12 requested fits with 0 fit errors,
+11 optimizer-converged fits, 12 `pdHess = TRUE` fits, 12 default-gradient-ok
+fits, 6 `check_drm()` warning-or-error rows, and five structured q2 covariance
+warnings. The animal true `rho = 0.9` cell retained optimizer non-convergence
+(`false convergence (8)`) despite `pdHess = TRUE`; that mixed status is kept as
+diagnostic evidence.
+
+Checks run so far:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-structured-q2-boundary-diagnostic/run-pilot.R
+air format R/check.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R
+Rscript --vanilla -e 'devtools::test(filter = "check-drm|spatial-gaussian|animal-relmat-gaussian", reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+python3 tools/validate-mission-control.py
+git diff --check
+git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' || true
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+rg -n "biv_(spatial|animal|relmat)_q2_covariance|structured q2 boundary|structured q2 fitted-boundary|structured q2 recovery|q2 location covariance|q2 location-covariance" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/176-numerical-guard-simulation-audit.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md
+rg -n "structured q2.*(coverage|power|recovery|release|CRAN|Julia bridge|AI-REML|REML)|biv_(spatial|animal|relmat)_q2_covariance" README.md ROADMAP.md NEWS.md docs vignettes R tests
+rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs vignettes R tests
+```
+
+Result: the artifact rerun reproduced 12 cells, 0 fit errors, 11 optimizer
+convergences, 12 positive Hessians, 12 gradient-ok rows, and five covariance
+warnings. Focused tests passed locally. The roxygen run completed, and
+unrelated generated documentation drift was removed before this check-log
+entry. Both dashboard JSON files parsed cleanly. Mission-control validation
+passed with `25/68 banked_or_verified`, `1 active`, `17 matrix rows`,
+`11 finish rows`, `15 Julia gate rows`, and `9 Julia capability rows`.
+`git diff --check` passed. The claim-boundary scan only hit negative or
+out-of-scope wording. `pkgdown::check_pkgdown()` reported no problems.
+Status-inventory scans found the intended new diagnostic rows and explicit
+diagnostic-only guardrails; the meta-analysis scan found only existing
+`meta_V()` / deprecated `meta_known_V()` compatibility text and intentional
+guardrails against `meta_gaussian()`, `tau ~`, and `rho ~`.
+
+Claim boundary: this is diagnostic visibility only. It does not promote
+structured q2 recovery accuracy, interval coverage, power, q4/q8 covariance
+intervals, random effects in `rho12`, Julia bridge parity, release readiness,
+CRAN readiness, or non-Gaussian REML/AI-REML language.

@@ -1,0 +1,4 @@
+"surface","n_fit_cells","n_converged","n_pdHess","n_gradient_ok","n_covariance_warnings","min_boundary_distance","max_abs_rho_error"
+"animal",4,3,4,4,2,1.00001540259687e-06,0.351365665070024
+"relmat",4,4,4,4,2,1.00002718561587e-06,0.431075110852545
+"spatial",4,4,4,4,1,0.016313132753059,0.626257259413237

@@ -106,8 +106,8 @@ the floor; and six malformed boundary cells errored visibly. The residual
 `rho12` diagnostic shows 4/4 fixed bivariate Gaussian `rho12 ~ 1` stress fits
 converged with `pdHess = TRUE`, while still surfacing 2/4 default
 starting-value clamps, 2/4 fixed-gradient warnings, and one default
-`rho12_boundary` warning at fitted `rho12 = 0.9813`. The plain binomial route
-The q2 covariance diagnostic shows 4/4 univariate Gaussian `mu`/`sigma`
+`rho12_boundary` warning at fitted `rho12 = 0.9813`. The q2 covariance
+diagnostic shows 4/4 univariate Gaussian `mu`/`sigma`
 covariance stress fits converged with `pdHess = TRUE`, while the true
 `rho = 0.98` cell fit at `rho = 0.999999` and now surfaces a
 `mu_sigma_random_effect_covariance` warning instead of looking like an ordinary
@@ -115,7 +115,14 @@ ok row. The ordinary q2 correlation-grid diagnostic extends that
 boundary-visibility pattern to univariate `mu`/`sigma`, bivariate `mu1`/`mu2`,
 and bivariate `sigma1`/`sigma2` random-intercept covariance routes: 12/12 fits
 converged with `pdHess = TRUE`, 8/12 had default-gradient-ok status, and four
-route-specific fitted-boundary warnings were retained. The plain binomial
+route-specific fitted-boundary warnings were retained. The structured q2
+boundary diagnostic adds fitted-boundary visibility for bivariate
+coordinate-spatial, `animal()`, and `relmat()` q2 location covariance:
+`check_drm()` now surfaces `biv_spatial_q2_covariance`,
+`biv_animal_q2_covariance`, and `biv_relmat_q2_covariance` rows; 12 requested
+structured fits had 0 fit errors, 11 optimizer-converged fits, 12
+`pdHess = TRUE` fits, 12 default-gradient-ok fits, and five route-specific
+fitted-boundary warnings. The plain binomial
 route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
@@ -123,8 +130,8 @@ operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, bivariate
-scale routes, Student-t calibration, random-effect and structured correlation
-guards beyond this ordinary q2 fitted-boundary grid, larger skew-normal guard
+scale routes, Student-t calibration, additional random-effect and structured
+correlation guard depth, larger skew-normal guard
 grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or

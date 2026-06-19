@@ -393,6 +393,12 @@ test_that("bivariate Gaussian mu supports coordinate-based spatial correlation",
     drop = FALSE
   ]
   covariance <- summary(fit)$covariance
+  diagnostics <- check_drm(fit)
+  q2_diagnostic <- diagnostics[
+    diagnostics$check == "biv_spatial_q2_covariance",
+    ,
+    drop = FALSE
+  ]
 
   expect_equal(fit$opt$convergence, 0)
   expect_equal(spatial_mu$type, "spatial")
@@ -448,6 +454,25 @@ test_that("bivariate Gaussian mu supports coordinate-based spatial correlation",
   expect_equal(nrow(covariance), 1L)
   expect_equal(covariance$level, "spatial")
   expect_equal(covariance$correlation_target, spatial_profile_names[[3L]])
+  expect_equal(nrow(q2_diagnostic), 1L)
+  expect_equal(q2_diagnostic$status, "ok")
+  expect_match(q2_diagnostic$value, "rho_abs=")
+  expect_match(q2_diagnostic$value, "boundary=0.9800")
+  expect_match(q2_diagnostic$message, "Spatial q2 location covariance")
+
+  near_boundary <- fit
+  near_boundary$corpars$spatial[] <- 0.995
+  near_boundary_chk <- check_drm(near_boundary, rho_boundary = 0.98)
+  near_boundary_q2 <- near_boundary_chk[
+    near_boundary_chk$check == "biv_spatial_q2_covariance",
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(near_boundary_q2$status, "warning")
+  expect_match(near_boundary_q2$value, "rho_abs=0.9950")
+  expect_match(near_boundary_q2$message, "close to \\+/-1")
+  expect_false(attr(near_boundary_chk, "ok"))
 })
 
 test_that("bivariate Gaussian supports spatial q4 location-scale blocks", {
