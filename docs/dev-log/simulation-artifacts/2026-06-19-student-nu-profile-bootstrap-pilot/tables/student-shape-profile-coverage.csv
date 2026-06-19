@@ -1,0 +1,5 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"student_shape","student_shape_001","nu:(Intercept)",25,10,4,0.16,0.0733212111192934,1.54200310952008,0.0825586920427188
+"student_shape","student_shape_001","nu:w",25,13,8,0.32,0.0932952303175248,1.10242665246121,0.176014276682829
+"student_shape","student_shape_002","nu:(Intercept)",25,15,11,0.44,0.0992773891679269,1.65469326997842,0.0711474638028098
+"student_shape","student_shape_002","nu:w",25,17,13,0.52,0.0999199679743744,1.31428829723457,0.0874219726474519

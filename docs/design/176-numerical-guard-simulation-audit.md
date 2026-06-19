@@ -827,6 +827,53 @@ random effects, bivariate responses, structured effects, true infinite-variance
 stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
 non-Gaussian REML/AI-REML language.
 
+## Fourteenth Diagnostic: Student-t Profile/Bootstrap Pilot
+
+The fourteenth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-pilot/`.
+It extends the smaller feasibility artifact to 25 replicates per cell and 25
+parametric-bootstrap refits per fit. The purpose is still diagnostic: record
+which `nu` profile targets fail, which bounded bootstrap intervals return, and
+how rough 70% pilot coverage behaves before any larger calibration grid.
+
+**Aim.** Check whether the profile/bootstrap status pattern from the smaller
+feasibility slice persists at a larger pilot size, and record MCSE-backed rough
+coverage summaries for the two `nu` coefficients without promoting the
+interval route.
+
+**Data-generating mechanisms.** Two complete-data Student-t cells reuse the
+Wald and feasibility design: `bf(y ~ x, sigma ~ z, nu ~ w)`, `n = 180`,
+`beta_mu = (0.25, 0.55)`, `beta_sigma = (log(0.65), 0.20)`,
+`nu_slope = 0`, and `rho(x, w) = 0.20`. The low-boundary cell has
+`nu(w = 0) = 2.8`; the ordinary cell has `nu(w = 0) = 8.0`.
+
+**Estimands.** The pilot tracks convergence status, positive Hessian status,
+`student_nu` diagnostics, profile interval status and rough coverage for
+`nu:(Intercept)` and `nu:w`, parametric-bootstrap interval status and rough
+coverage for the same `nu` coefficients, bootstrap refit counts, MCSE, and
+interval failure rows.
+
+**Methods.** Each cell has 25 replicates. Profile intervals are requested at
+level `0.70` with `ystep = 0.75` for `nu:(Intercept)` and `nu:w`.
+Parametric-bootstrap intervals are requested at level `0.70` with 25 refits
+per fit. There are no retries, fallback optimizers, forced-convergence
+overrides, comparator fits, or profile/bootstrap promotion claims.
+
+**Performance measures.** The committed summaries report 50 requested fits.
+The minimum convergence rate was `0.92`; the minimum `pdHess` rate was
+`0.88`; profile ok rates ranged from `0.40` to `0.68`; and all requested
+parametric-bootstrap intervals returned with 25 refits. Profile pilot coverage
+for the ok profile rows ranged from `0.40` to `0.765`, with MCSE up to
+`0.1549193`. Bootstrap pilot coverage ranged from `0.56` to `0.72`, with MCSE
+up to `0.09927739`. These values are useful warning evidence, not calibrated
+coverage evidence.
+
+This is diagnostic interval-pilot evidence for fixed-effect Student-t shape
+models only. It does not promote Student-t profile/bootstrap coverage, random
+effects, bivariate responses, structured effects, true infinite-variance stress
+behavior, Julia bridge parity, release readiness, CRAN readiness, or
+non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

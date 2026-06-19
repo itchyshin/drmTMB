@@ -57256,3 +57256,56 @@ Student-t shape models. It does not promote Student-t profile/bootstrap
 coverage, random effects, bivariate responses, structured effects, true
 `nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
 readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-19: Student-t nu profile/bootstrap diagnostic pilot
+
+The numerical-guard ledger now has a larger fixed-effect Student-t
+profile/bootstrap diagnostic pilot beside the earlier 10-fit feasibility
+artifact. The artifact at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-pilot/`
+uses the existing Phase 18 Student-t shape writer for
+`bf(y ~ x, sigma ~ z, nu ~ w)` with `family = student()`, comparing the same
+low-boundary finite-variance cell with `nu(w = 0) = 2.8` and ordinary cell with
+`nu(w = 0) = 8.0`.
+
+The artifact ran 50 requested fits: 25 replicates per cell and 25
+parametric-bootstrap refits per fit. The minimum convergence rate was 0.92,
+the minimum `pdHess` rate was 0.88, `nu` profile ok rates were 0.40-0.68, and
+all requested parametric-bootstrap intervals returned with 25 refits. Rough 70%
+profile pilot coverage was 0.40-0.765 with MCSE up to 0.1549193; rough 70%
+bootstrap pilot coverage was 0.56-0.72 with MCSE up to 0.09927739. These
+numbers are warning and prioritization evidence only.
+
+Checks run so far:
+
+```sh
+air format docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-pilot/run-pilot.R
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-pilot/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' || true
+rg -n 'Student-t.*(release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy|power claim|coverage claim|profile/bootstrap promotion)|nu.*(release|CRAN|Julia bridge|AI-REML|REML|power claim|coverage claim)' README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+/usr/local/bin/Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Result: the first artifact run exposed a runner bug where coverage MCSE fields
+became `-Inf` because coverage had not yet been computed from the interval
+truth/endpoints. The runner now computes `covered` explicitly and reran cleanly,
+writing the README, run-summary CSV, focused profile/bootstrap summaries,
+standard Student-t shape tables, RDS replicate results, and session info. Both
+dashboard JSON files parsed cleanly. Mission-control validation passed with
+`25/68 banked_or_verified`, `1 active`, `17 matrix rows`, `11 finish rows`,
+`15 Julia gate rows`, and `9 Julia capability rows`. `git diff --check` passed.
+The claim-boundary scan hit only explicit negative-boundary wording in changed
+files. The broader Student-t and meta-analysis scans were noisy from existing
+public-status and historical guardrails, but the new hits were diagnostic-only
+boundaries. `pkgdown::check_pkgdown()` reported no problems.
+
+Claim boundary: this is diagnostic interval-pilot evidence for fixed-effect
+Student-t shape models. It does not promote Student-t profile/bootstrap
+coverage, random effects, bivariate responses, structured effects, true
+`nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
+readiness, or non-Gaussian REML/AI-REML language.
