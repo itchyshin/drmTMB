@@ -1,0 +1,5 @@
+"condition_id","n_converged","n_pdHess","n_clamp_active","n_warnings","n_requested","n_fit_error"
+"both_scales_above_default",30,30,10,10,30,0
+"ordinary_biv_scale",30,30,0,0,30,0
+"sigma1_above_default",30,30,10,10,30,0
+"sigma2_above_default",30,30,10,10,30,0

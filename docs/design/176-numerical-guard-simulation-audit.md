@@ -680,6 +680,62 @@ coverage, power, q4/q8 covariance readiness, bivariate scale-route readiness,
 Julia bridge parity, release readiness, CRAN readiness, missing-data behavior,
 or non-Gaussian REML/AI-REML language.
 
+## Eleventh Diagnostic: Bivariate Scale Clamp Sensitivity
+
+The eleventh executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/`.
+It checks the fixed-effect bivariate Gaussian `sigma1`/`sigma2` route for the
+same `log(sigma)` guard visibility already audited on the first univariate
+fixed-effect scale pilot.
+
+**Aim.** Check whether the configurable `log(sigma)` clamp is negligible when
+inactive and visibly diagnostic when it binds on bivariate Gaussian scale
+formulas.
+
+**Data-generating mechanisms.** Four complete-data bivariate Gaussian cells
+use `mu1 = y1 ~ x`, `mu2 = y2 ~ x`, `sigma1 = ~ z1`, `sigma2 = ~ z2`, and a
+constant residual correlation `rho12`: ordinary scale, high `sigma1`, high
+`sigma2`, and high values on both residual-scale axes.
+
+**Estimands.** The diagnostic tracks fit errors, optimizer status, positive
+Hessian status, warnings, fixed-gradient status, fitted `log(sigma1)` and
+`log(sigma2)` ranges, clamp deltas, default-vs-unclamped coefficient and log
+likelihood differences, and `check_drm()` rows.
+
+**Methods.** Each cell has 10 replicates and three public control settings:
+default clamp, `logsigma_clamp = NULL`, and a wide
+`logsigma_clamp = c(-25, 25)` band. The runner does not retry fits, force
+convergence, change starts, use fallback optimizers, profile intervals, or
+bootstrap intervals.
+
+**Performance measures.** The committed summaries report per-condition and
+per-config denominators for fit errors, convergence, positive Hessians,
+warnings, clamp-active status, `check_drm()` warning/error status, fixed
+gradient warnings, fitted scale ranges, and maximum default-vs-off
+differences. There is no bias, RMSE, MCSE target, coverage, power, or interval
+calibration estimate in this slice.
+
+The diagnostic ran 120 requested fits with no fit errors. All 120 fits
+converged with `pdHess = TRUE`. The ordinary bivariate scale cell had no
+clamp-active fits and matched the unclamped reference to numerical tolerance
+under both default and wide controls. The three high-scale cells produced 30
+`logsigma_clamp_active` warnings, all under the default clamp. The default
+high-scale cells reported fitted upper log scales at `15`, while the matching
+unclamped and wide-band fits reached up to `log(sigma1) = 16.500978` and
+`log(sigma2) = 16.341581`. When the default clamp bound, the maximum absolute
+log likelihood difference against the unclamped reference was `383.851973`,
+and maximum scale-intercept differences exceeded 31 on the affected axes. The
+wide-band fits matched the unclamped reference to about `1e-11` in log
+likelihood. The 34 fixed-gradient warnings retained by `check_drm()` are still
+diagnostics, not promotion evidence.
+
+This is diagnostic evidence for fixed-effect bivariate Gaussian scale-guard
+visibility only. It does not settle bivariate scale-route recovery accuracy,
+interval coverage, power, q2/q4/q8 covariance readiness, random effects in
+`rho12`, structured correlation readiness, Julia bridge parity, release
+readiness, CRAN readiness, missing-data behavior, or non-Gaussian
+REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
