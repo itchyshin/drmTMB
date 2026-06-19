@@ -145,6 +145,13 @@ maximum `student_nu` warning rate 0.23, maximum `student_nu` error rate 0.11,
 and shape-term Wald coverage of 0.87-0.90 with MCSE up to 0.03363034. This is
 diagnostic calibration evidence only, not Student-t profile/bootstrap
 coverage, release readiness, or non-Gaussian REML/AI-REML evidence.
+The Student-t profile/bootstrap feasibility diagnostic adds a small
+interval-method stress next to that Wald result: 10 fixed-effect shape fits
+had minimum convergence 0.60, minimum `pdHess` 0.80, `nu` profile ok rates of
+0.00 in the low-boundary cell and 0.20-0.60 in the ordinary cell, while all
+requested parametric-bootstrap intervals returned with 10 refits. This is
+status visibility for profile/bootstrap machinery, not coverage calibration
+or promotion evidence.
 The plain binomial route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
@@ -152,9 +159,9 @@ operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, larger
-bivariate scale-route grids, Student-t profile/bootstrap calibration,
-additional random-effect and structured correlation guard depth, larger skew-normal guard
-grids, and broader interval consequences.
+bivariate scale-route grids, larger Student-t profile/bootstrap calibration,
+additional random-effect and structured correlation guard depth, larger
+skew-normal guard grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or
 release language.

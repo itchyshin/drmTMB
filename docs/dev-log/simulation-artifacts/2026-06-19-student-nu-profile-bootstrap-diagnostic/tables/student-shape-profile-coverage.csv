@@ -1,0 +1,5 @@
+"surface","cell_id","parameter","n_replicate","n_interval","n_covered","coverage","coverage_mcse","mean_interval_width","interval_width_mcse"
+"student_shape","student_shape_001","nu:(Intercept)",5,0,0,0,0,NA,NA
+"student_shape","student_shape_001","nu:w",5,0,0,0,0,NA,NA
+"student_shape","student_shape_002","nu:(Intercept)",5,3,2,0.4,0.219089023002066,1.30534222576405,0.644367229630487
+"student_shape","student_shape_002","nu:w",5,1,0,0,0,2.21131386530993,NA

@@ -1,0 +1,12 @@
+"cell_id","replicate","seed","status","severity","message","skipped"
+"student_shape_001",2,2117286844,"ok","warning","NaNs produced",FALSE
+"student_shape_001",2,2117286844,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_001",3,1792308820,"ok","warning","NaNs produced",FALSE
+"student_shape_001",4,2096994115,"ok","warning","NaNs produced",FALSE
+"student_shape_001",5,1978468652,"ok","warning","NaNs produced",FALSE
+"student_shape_002",1,348647529,"ok","warning","NaNs produced",FALSE
+"student_shape_002",3,743854074,"ok","warning","NaNs produced",FALSE
+"student_shape_002",4,1023418486,"ok","warning","NaNs produced",FALSE
+"student_shape_002",4,1023418486,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",4,1023418486,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",5,719563837,"ok","warning","NaNs produced",FALSE
