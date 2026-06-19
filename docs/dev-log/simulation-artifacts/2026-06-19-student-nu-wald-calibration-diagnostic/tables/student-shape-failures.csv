@@ -1,0 +1,15 @@
+"cell_id","replicate","seed","status","severity","message","skipped"
+"student_shape_001",14,717769962,"ok","warning","NaNs produced",FALSE
+"student_shape_001",27,1034869424,"ok","warning","NaNs produced",FALSE
+"student_shape_001",31,42440296,"ok","warning","NaNs produced",FALSE
+"student_shape_001",44,298524320,"ok","warning","NaNs produced",FALSE
+"student_shape_001",67,1746483714,"ok","warning","NaNs produced",FALSE
+"student_shape_001",95,1373132031,"ok","warning","NaNs produced",FALSE
+"student_shape_001",100,443941088,"ok","warning","NaNs produced",FALSE
+"student_shape_002",37,1236655455,"ok","warning","NaNs produced",FALSE
+"student_shape_002",45,1127054840,"ok","warning","NaNs produced",FALSE
+"student_shape_002",48,1968166119,"ok","warning","NaNs produced",FALSE
+"student_shape_002",64,1428818612,"ok","warning","NaNs produced",FALSE
+"student_shape_002",66,1474047838,"ok","warning","NaNs produced",FALSE
+"student_shape_002",70,328051586,"ok","warning","NaNs produced",FALSE
+"student_shape_002",99,838530451,"ok","warning","NaNs produced",FALSE
