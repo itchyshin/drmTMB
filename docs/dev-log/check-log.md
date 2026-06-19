@@ -57034,3 +57034,60 @@ Claim boundary: this is diagnostic visibility only. It does not promote
 structured q2 recovery accuracy, interval coverage, power, q4/q8 covariance
 intervals, random effects in `rho12`, Julia bridge parity, release readiness,
 CRAN readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-18: scale-side phylogenetic clamp-active diagnostic
+
+The numerical-guard ledger now has a small scale-side phylogenetic
+`log(sigma)` guard diagnostic for the original runaway surface. The artifact at
+`docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/`
+fits a univariate Gaussian model with `phylo(1 | species, tree = tree)` in
+both `mu` and `sigma`, one observation per tip, two residual-shock stresses,
+and three public clamp settings: default, disabled, and wide.
+
+The artifact ran 6 requested fits with 0 fit errors. All 6 returned optimizer
+non-convergence (`false convergence (8)`), all 6 had fixed-gradient warnings,
+and all 6 retained fit-path warnings. The default extreme-shock cell reached
+`log(sigma) = 13.93` and surfaced a `logsigma_clamp_active` warning. The
+disabled and wide-clamp fits on the same data reached `log(sigma) = 14.288`
+without a clamp-active row because the default upper band was not active, but
+they still failed the optimizer and fixed-gradient checks. The runner uses
+`se = FALSE`, so Hessian and standard-error checks are intentionally
+diagnostic notes rather than inference evidence.
+
+Checks run so far:
+
+```sh
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/run-pilot.R
+air format docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/run-pilot.R
+Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+python3 tools/validate-mission-control.py
+git diff --check
+git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' || true
+rg -n "scale-side phylogenetic clamp|scale-phylo clamp|logsigma_clamp_active|log\\(sigma\\) = 13\\.93|14\\.288" docs/design/176-numerical-guard-simulation-audit.md docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-18-scale-phylo-clamp-active-diagnostic.md docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/README.md
+rg -n "scale-side phylogenetic.*(coverage|power|release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy|recommended applied)|scale-phylo.*(coverage|power|release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy|recommended applied)" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Result: the artifact rerun reproduced 6 cells, 0 fit errors, 0 optimizer
+convergences, 0 positive-Hessian inference fits because `sdreport()` was
+skipped, 6 fixed-gradient warnings, and 1 default clamp-active warning. The
+runner was formatted and rerun. Both dashboard JSON files parsed cleanly.
+Mission-control validation passed with `25/68 banked_or_verified`, `1 active`,
+`17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and
+`9 Julia capability rows`. `git diff --check` passed. The claim-boundary scan
+hit only explicit negative-boundary wording in the changed files. The
+scale-phylo scan found the intended artifact, dashboard, design, worklist,
+check-log, and after-task references. The broader scale-phylo scan found only
+negative-boundary wording, and the meta-analysis scan found only existing
+`meta_V()` / deprecated `meta_known_V()` compatibility text and intentional
+guardrails against `meta_gaussian()`, `tau ~`, and `rho ~`.
+`pkgdown::check_pkgdown()` reported no problems.
+
+Claim boundary: this is diagnostic visibility only. It does not promote
+scale-side phylogenetic recovery accuracy, interval coverage, power, a
+recommended applied scale-phylo workflow, q4/q8 covariance readiness,
+bivariate scale-route readiness, Julia bridge parity, release readiness, CRAN
+readiness, missing-data behavior, or non-Gaussian REML/AI-REML language.

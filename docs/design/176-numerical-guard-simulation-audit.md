@@ -629,6 +629,57 @@ It does not settle structured q2 recovery accuracy, interval coverage, power,
 q4/q8 covariance intervals, random effects in `rho12`, Julia bridge parity,
 release readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
 
+## Tenth Diagnostic: Scale-Phylo Clamp-Active Visibility
+
+The tenth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-scale-phylo-clamp-active-diagnostic/`.
+It returns to the `log(sigma)` guard on the scale-side phylogenetic surface
+that motivated the clamp, but keeps the result diagnostic-only.
+
+**Aim.** Check whether a one-observation-per-tip Gaussian model with
+`phylo(1 | species, tree = tree)` in both `mu` and `sigma` surfaces ordinary
+optimizer failure and the upper `log(sigma)` clamp-active warning when the
+scale-side random field tries to absorb extreme residuals.
+
+**Data-generating mechanisms.** Two complete-data Gaussian cells use 80 tips,
+one observation per tip, a phylogenetic location effect, and three injected
+residual shocks. The moderate cell uses shock multiplier 50; the extreme cell
+uses shock multiplier 50000.
+
+**Estimands.** The diagnostic tracks convergence code, objective, log
+likelihood, AIC/BIC, fixed-gradient status and largest component, fitted
+`log(sigma)` range, count of fitted `log(sigma)` values above 12 or 15, warning
+counts, and all `check_drm()` rows.
+
+**Methods.** Each stress cell is fit with the default clamp,
+`logsigma_clamp = NULL`, and a wide `logsigma_clamp = c(-25, 25)`. The runner
+uses `drm_control(se = FALSE)` to keep the artifact small and does not retry
+fits, force convergence, change starts, use fallback optimizers, profile
+intervals, or bootstrap intervals. Failures and warnings are recorded as data.
+
+**Performance measures.** The committed summaries report per-cell denominators
+for requested, attempted, fit-error, warning, convergence, positive-Hessian,
+and `check_drm()` warning/error status plus run-level counts. There is no bias,
+RMSE, MCSE, coverage, or calibrated interval estimate in this slice.
+
+The diagnostic ran 6 requested fits with no fit errors. All 6 fits reported
+optimizer non-convergence (`false convergence (8)`), all 6 had fixed-gradient
+warnings, and all 6 emitted warnings from the fit path. Because `se = FALSE`,
+`sdreport()` and positive-Hessian inference are intentionally absent. The
+extreme-shock cell with the default clamp reached `log(sigma) = 13.93`; the
+`logsigma_clamp_active` row reported a warning because this is above the
+default identity-band upper bound of 12. The same data with
+`logsigma_clamp = NULL` reached `log(sigma) = 14.288`, and the wide-band fit
+also reached `log(sigma) = 14.288`; both still failed the optimizer and
+fixed-gradient checks, but no clamp-active warning was appropriate for those
+control settings.
+
+This is diagnostic evidence for scale-side phylogenetic guard visibility only.
+It does not settle scale-side phylogenetic recovery accuracy, interval
+coverage, power, q4/q8 covariance readiness, bivariate scale-route readiness,
+Julia bridge parity, release readiness, CRAN readiness, missing-data behavior,
+or non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
