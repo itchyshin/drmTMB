@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-19 02:18 MDT",
+  "updated": "2026-06-19 03:52 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is still drmTMB#59 numerical-guard sensitivity. The ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, fixed-effect bivariate sigma1/sigma2 clamp-sensitivity, Student-t Wald calibration, Student-t profile/bootstrap feasibility, and Student-t profile/bootstrap diagnostic pilot are banked as diagnostic evidence only. The new profile/bootstrap pilot has 50 fixed-effect Student-t shape fits, minimum convergence 0.92, minimum pdHess 0.88, profile ok rates of 0.40-0.68, all requested parametric-bootstrap intervals returning with 25 refits, rough 70% profile pilot coverage of 0.40-0.765, and rough 70% bootstrap pilot coverage of 0.56-0.72. Larger bivariate scale-route grids, larger guard grids, larger Student-t profile/bootstrap calibration, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is still drmTMB#59 numerical-guard sensitivity. The ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, fixed-effect bivariate sigma1/sigma2 clamp-sensitivity, Student-t Wald calibration, Student-t profile/bootstrap feasibility, Student-t profile/bootstrap diagnostic pilot, and Student-t profile/bootstrap calibration diagnostic are banked as diagnostic evidence only. The new calibration diagnostic has 100 fixed-effect Student-t shape fits, minimum convergence 0.88, minimum pdHess 0.86, profile ok rates of 0.38-0.54, all requested parametric-bootstrap intervals returning with 50 refits, rough 70% profile coverage of 0.5185185-0.8095238, and rough 70% bootstrap coverage of 0.50-0.68. Larger bivariate scale-route grids, larger guard grids, promotion-grade Student-t profile/bootstrap evidence, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
     }
   ]
 }

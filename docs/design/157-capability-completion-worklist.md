@@ -160,6 +160,15 @@ intervals returned with 25 refits, rough 70% profile pilot coverage ranged from
 0.40 to 0.765, and rough 70% bootstrap pilot coverage ranged from 0.56 to
 0.72. This is still diagnostic interval-pilot evidence, not calibrated
 profile/bootstrap coverage or release evidence.
+The Student-t profile/bootstrap calibration diagnostic extends that same
+fixed-effect shape route to 50 replicates per cell and 50 bootstrap refits per
+fit: 100 requested fits had minimum convergence 0.88, minimum `pdHess` 0.86,
+`nu` profile ok rates of 0.38-0.54, all requested parametric-bootstrap
+intervals returned with 50 refits, rough 70% profile coverage ranged from
+0.5185185 to 0.8095238, and rough 70% bootstrap coverage ranged from 0.50 to
+0.68. This is diagnostic interval-calibration evidence only; profile failures
+and rough undercoverage remain visible, so promotion-grade Student-t
+profile/bootstrap language is still planned.
 The plain binomial route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
@@ -167,9 +176,9 @@ operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, larger
-bivariate scale-route grids, larger Student-t profile/bootstrap calibration,
-additional random-effect and structured correlation guard depth, larger
-skew-normal guard grids, and broader interval consequences.
+bivariate scale-route grids, promotion-grade Student-t profile/bootstrap
+evidence, additional random-effect and structured correlation guard depth,
+larger skew-normal guard grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or
 release language.
