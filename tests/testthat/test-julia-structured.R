@@ -70,11 +70,15 @@ test_that("structured-term detector finds relmat/animal/spatial, not phylo/plain
 
 test_that("marker-kwarg strip removes the matrix arg for every structured marker", {
   expect_equal(
-    deparse1(drmTMB:::drm_julia_strip_phylo_tree(quote(x + relmat(1 | id, K = K)))),
+    deparse1(drmTMB:::drm_julia_strip_phylo_tree(quote(
+      x + relmat(1 | id, K = K)
+    ))),
     "x + relmat(1 | id)"
   )
   expect_equal(
-    deparse1(drmTMB:::drm_julia_strip_phylo_tree(quote(x + animal(1 | id, A = A)))),
+    deparse1(drmTMB:::drm_julia_strip_phylo_tree(quote(
+      x + animal(1 | id, A = A)
+    ))),
     "x + animal(1 | id)"
   )
   expect_equal(
@@ -93,7 +97,9 @@ test_that("marker-kwarg strip removes the matrix arg for every structured marker
   # Stripping the matrix arg drops its symbol from the variables the bridge
   # collects, so the engine never looks for the matrix in `data`.
   expect_equal(
-    all.vars(drmTMB:::drm_julia_strip_phylo_tree(quote(x + relmat(1 | id, K = K)))),
+    all.vars(drmTMB:::drm_julia_strip_phylo_tree(quote(
+      x + relmat(1 | id, K = K)
+    ))),
     c("x", "id")
   )
 })
@@ -103,25 +109,38 @@ test_that("matrix resolution routes relmat->K, animal->A, spatial->coords", {
   K <- diag(3)
   A <- diag(3)
   co <- cbind(c(0, 1, 2), c(0, 1, 2))
-  dat <- data.frame(id = c("a", "b", "c"), x = stats::rnorm(3), y = stats::rnorm(3))
+  dat <- data.frame(
+    id = c("a", "b", "c"),
+    x = stats::rnorm(3),
+    y = stats::rnorm(3)
+  )
   term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
 
   # relmat(K) routes to drm(K = ...) for every supported family.
   for (fam in c("gaussian", "poisson", "nbinom2", "gamma")) {
     res <- drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + relmat(1 | id, K = K))), fam, env, dat
+      term(bf(y ~ x + relmat(1 | id, K = K))),
+      fam,
+      env,
+      dat
     )
     expect_equal(res$kwarg, "K")
     expect_equal(dim(res$matrix), c(3L, 3L))
   }
   # animal(A) routes to drm(A = ...).
   res_a <- drmTMB:::drm_julia_structured_matrix(
-    term(bf(y ~ x + animal(1 | id, A = A))), "poisson", env, dat
+    term(bf(y ~ x + animal(1 | id, A = A))),
+    "poisson",
+    env,
+    dat
   )
   expect_equal(res_a$kwarg, "A")
   # spatial(coords) routes to drm(coords = ...) for Gaussian.
   res_s <- drmTMB:::drm_julia_structured_matrix(
-    term(bf(y ~ x + spatial(1 | id, coords = co))), "gaussian", env, dat
+    term(bf(y ~ x + spatial(1 | id, coords = co))),
+    "gaussian",
+    env,
+    dat
   )
   expect_equal(res_s$kwarg, "coords")
   expect_equal(ncol(res_s$matrix), 2L)
@@ -134,19 +153,29 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
   Ainv <- diag(3)
   co <- cbind(c(0, 1, 2), c(0, 1, 2))
   k_bad <- matrix(1, nrow = 3, ncol = 2)
-  dat <- data.frame(id = c("a", "b", "c"), x = stats::rnorm(3), y = stats::rnorm(3))
+  dat <- data.frame(
+    id = c("a", "b", "c"),
+    x = stats::rnorm(3),
+    y = stats::rnorm(3)
+  )
   term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
 
   # Precision / inverse forms have no drm() route (drm consumes K / A / coords).
   expect_error(
     drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + relmat(1 | id, Q = Q))), "gaussian", env, dat
+      term(bf(y ~ x + relmat(1 | id, Q = Q))),
+      "gaussian",
+      env,
+      dat
     ),
     "relmat.*K"
   )
   expect_error(
     drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + animal(1 | id, Ainv = Ainv))), "gaussian", env, dat
+      term(bf(y ~ x + animal(1 | id, Ainv = Ainv))),
+      "gaussian",
+      env,
+      dat
     ),
     "animal.*A"
   )
@@ -154,14 +183,20 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
   # relmat(1 | g, K = K) instead.
   expect_error(
     drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + spatial(1 | id, coords = co))), "poisson", env, dat
+      term(bf(y ~ x + spatial(1 | id, coords = co))),
+      "poisson",
+      env,
+      dat
     ),
     "Gaussian"
   )
   # A non-square covariance is rejected.
   expect_error(
     drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + relmat(1 | id, K = k_bad))), "gaussian", env, dat
+      term(bf(y ~ x + relmat(1 | id, K = k_bad))),
+      "gaussian",
+      env,
+      dat
     ),
     "square"
   )
@@ -170,12 +205,18 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
 test_that("structured payload requires intercept-only mu and sigma ~ 1", {
   env <- environment()
   K <- diag(3)
-  dat <- data.frame(id = c("a", "b", "c"), x = stats::rnorm(3), y = stats::rnorm(3))
+  dat <- data.frame(
+    id = c("a", "b", "c"),
+    x = stats::rnorm(3),
+    y = stats::rnorm(3)
+  )
 
   # An intercept-only relmat mu with sigma ~ 1 builds a payload.
   payload <- drmTMB:::drm_julia_structured_payload(
     bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-    "gaussian", dat, env
+    "gaussian",
+    dat,
+    env
   )
   expect_equal(payload$kwarg, "K")
   expect_equal(unname(payload$structured_sd_scales), 1)
@@ -185,7 +226,9 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
   expect_error(
     drmTMB:::drm_julia_structured_payload(
       bf(y ~ x + relmat(1 | id, K = K), sigma ~ x),
-      "gaussian", dat, env
+      "gaussian",
+      dat,
+      env
     ),
     "sigma ~ 1"
   )
@@ -193,7 +236,9 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
   expect_error(
     drmTMB:::drm_julia_structured_payload(
       bf(y ~ x + relmat(1 + x | id, K = K), sigma ~ 1),
-      "gaussian", dat, env
+      "gaussian",
+      dat,
+      env
     ),
     "1 \\| group"
   )
@@ -208,10 +253,7 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
 # cross-family round-trips).
 
 drm_structured_path <- function() {
-  Sys.getenv(
-    "DRM_JL_RELMAT_PATH",
-    "/Users/z3437171/worktrees/DRM-relmatext"
-  )
+  drm_test_drmjl_path("DRM_JL_RELMAT_PATH")
 }
 
 # Fit a Poisson relmat model through engine = "julia" in one clean subprocess and
@@ -222,7 +264,13 @@ drm_structured_relmat_fit <- function(n = 30L) {
   jl_path <- drm_structured_path()
   callr::r(
     function(pkg, jl_path, n) {
-      Sys.setenv(JULIA_HOME = "/Users/z3437171/.juliaup/bin")
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
       options(drmTMB.DRM.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
@@ -256,7 +304,10 @@ drm_structured_relmat_fit <- function(n = 30L) {
 
       form <- drmTMB::bf(y ~ x + relmat(1 | id, K = K))
       fj <- drmTMB::drmTMB(
-        form, family = stats::poisson(), data = dat, engine = "julia"
+        form,
+        family = stats::poisson(),
+        data = dat,
+        engine = "julia"
       )
 
       cj <- stats::coef(fj, "mu")

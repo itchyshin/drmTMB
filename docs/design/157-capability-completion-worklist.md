@@ -223,13 +223,15 @@ fit-health triage, but not calibrated interval, comparator, Julia bridge,
 release, or CRAN language.
 PR #634 merged the native R/TMB Big 4 numerical-guard diagnostics to `main`.
 The next finish-plan constraint is no longer another native artifact by
-default; it is companion-package evidence. Work should proceed as direct
-DRM.jl evidence from a clean DRM.jl worktree first, then separate
-Julia-via-R registry/parity evidence in `drmTMB`. The saved DRM.jl checkout can
-be dirty with Ayumi files, so direct-Julia implementation should use a fresh
-worktree from `origin/main`. No direct Julia, bridge parity, release, CRAN,
-recovery, coverage, power, or selectable `engine_control` claim follows from
-the native Big 4 diagnostics alone.
+default; it is companion-package evidence. PR #295 banked direct DRM.jl smoke
+evidence from a clean DRM.jl worktree, and the Julia-via-R clean-main bridge
+audit now makes the R bridge tests use explicit DRM.jl checkout variables and
+`devtools::test(filter = "julia")` passed against that merged DRM.jl main
+worktree with the known Route A skip. The saved DRM.jl checkout can be dirty
+with Ayumi files, so future direct-Julia and Julia-via-R implementation should
+keep using a clean worktree from `origin/main`. No bridge-row promotion,
+release, CRAN, recovery, coverage, power, or selectable `engine_control` claim
+follows from these companion evidence slices alone.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 

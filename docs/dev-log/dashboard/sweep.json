@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-19 15:15 MDT",
+  "updated": "2026-06-19 17:12 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Ada",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The native R/TMB Big 4 numerical-guard diagnostics are banked on main as diagnostic evidence only, including q8 endpoint-status hardening without q8 promotion. The next companion-package gate is direct DRM.jl evidence from a clean DRM.jl worktree, followed by separate Julia-via-R registry/parity evidence before any bridge row is promoted. Direct Julia, Julia-via-R, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Direct DRM.jl smoke evidence is banked on DRM.jl main, and the Julia-via-R clean-main bridge audit removed stale local DRM.jl and Julia-home defaults from live bridge tests. `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates."
     }
   ]
 }
