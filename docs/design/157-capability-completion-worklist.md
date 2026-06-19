@@ -129,16 +129,24 @@ surface: six one-observation-per-tip `mu` + `sigma` phylogeny stress fits had
 because `se = FALSE` skipped `sdreport()`, six fixed-gradient warnings, and
 one default `logsigma_clamp_active` warning at `log(sigma) = 13.93`; the
 disabled and wide-clamp controls on the same extreme data still failed the
-optimizer and fixed-gradient checks. The plain binomial
-route is now a fitted, parity-banked, and
+optimizer and fixed-gradient checks. The bivariate scale clamp diagnostic
+adds fixed-effect `sigma1`/`sigma2` visibility for the same guard: 120
+requested bivariate Gaussian fits had 0 fit errors, 120 optimizer-converged
+fits, 120 `pdHess = TRUE` fits, and 30 default `logsigma_clamp_active`
+warnings in the high-scale cells. The ordinary cell matched the unclamped
+reference to numerical tolerance, default high-scale cells showed material log
+likelihood and scale-coefficient differences when the clamp bound, and wide
+controls matched the unclamped reference. This is still diagnostic visibility,
+not bivariate scale-route recovery, coverage, interval, or release evidence.
+The plain binomial route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
 operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
-numerical-guard programme remains active for scale-side phylogeny, bivariate
-scale routes, Student-t calibration, additional random-effect and structured
-correlation guard depth, larger skew-normal guard
+numerical-guard programme remains active for scale-side phylogeny, larger
+bivariate scale-route grids, Student-t calibration, additional random-effect
+and structured correlation guard depth, larger skew-normal guard
 grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or

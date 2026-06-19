@@ -57091,3 +57091,74 @@ scale-side phylogenetic recovery accuracy, interval coverage, power, a
 recommended applied scale-phylo workflow, q4/q8 covariance readiness,
 bivariate scale-route readiness, Julia bridge parity, release readiness, CRAN
 readiness, missing-data behavior, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-18: bivariate scale clamp-sensitivity diagnostic
+
+The numerical-guard ledger now has a narrow fixed-effect bivariate Gaussian
+`sigma1`/`sigma2` `log(sigma)` clamp diagnostic. The artifact at
+`docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/`
+fits
+`bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2, rho12 = ~ 1)`
+with `family = biv_gaussian()` across ordinary scale, high `sigma1`, high
+`sigma2`, and high-both-axis cells. Each replicate is fit with the default
+clamp, `logsigma_clamp = NULL`, and a wide
+`logsigma_clamp = c(-25, 25)` band.
+
+The artifact ran 120 requested fits with 0 fit errors. All 120 fits converged
+with `pdHess = TRUE`. The ordinary bivariate scale cell had no clamp-active
+fits and matched the unclamped reference to numerical tolerance. The three
+high-scale cells produced 30 `logsigma_clamp_active` warnings, all under the
+default clamp. The default high-scale fits reported upper fitted log scales at
+`15`; the matching disabled and wide-clamp fits reached up to
+`log(sigma1) = 16.500978` and `log(sigma2) = 16.341581`. The maximum default
+vs unclamped log likelihood difference was `383.851973`, while wide-band fits
+matched the unclamped reference to about `1e-11` in log likelihood. The
+artifact retains 34 fixed-gradient warning rows from `check_drm()` as
+diagnostics, not promotion evidence.
+
+Tests of the tests: an initial probe intentionally failed after using
+`family = gaussian()` with `mu1`, `mu2`, `sigma1`, `sigma2`, and `rho12`; that
+confirmed the univariate Gaussian route still rejects bivariate parameters.
+The committed runner uses the implemented `biv_gaussian()` route.
+
+Checks run so far:
+
+```sh
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/run-pilot.R
+air format docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/run-pilot.R
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/run-pilot.R
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+python3 tools/validate-mission-control.py
+git diff --check
+git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|recovery accuracy|promote|promotion' || true
+rg -n "bivariate scale clamp|biv-scale|sigma1.*sigma2.*clamp|logsigma_clamp_active|383\\.851|16\\.500|16\\.341" docs/design/176-numerical-guard-simulation-audit.md docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-18-biv-scale-clamp-sensitivity-diagnostic.md docs/dev-log/simulation-artifacts/2026-06-18-biv-scale-clamp-sensitivity-diagnostic/README.md
+rg -n 'bivariate scale.*(coverage|power|release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy|random effects in `rho12`)|sigma1.*sigma2.*(coverage|power|release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy)' README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs vignettes R tests || true
+Rscript --vanilla -e "pkgdown::check_pkgdown()"
+```
+
+Result: the formatted runner reproduced 120 requested fits, 0 fit errors, 120
+converged fits, 120 `pdHess = TRUE` fits, 30 clamp-active warnings, 34
+fixed-gradient warnings, maximum reported `log(sigma1) = 16.500978`, maximum
+reported `log(sigma2) = 16.341581`, and maximum absolute log likelihood
+difference against the unclamped reference of `383.851973`. The runner wrote
+the README, run-summary CSV, per-fit diagnostics, `check_drm()` rows,
+aggregate summaries, comparison tables, and session info. Both dashboard JSON
+files parsed cleanly. Mission-control validation passed with `25/68
+banked_or_verified`, `1 active`, `17 matrix rows`, `11 finish rows`, `15 Julia
+gate rows`, and `9 Julia capability rows`. `git diff --check` passed. The
+claim-boundary scan hit only explicit negative-boundary wording in the changed
+files. The bivariate-scale scan found the intended artifact, dashboard,
+design, worklist, check-log, and after-task references. The broader
+bivariate-scale scan was noisy from existing roadmap and vignette guardrails,
+but the new hits were diagnostic-only boundaries. The meta-analysis scan found
+only existing `meta_V()` / deprecated `meta_known_V()` compatibility text and
+intentional guardrails against `meta_gaussian()`, `tau ~`, and `rho ~`.
+`pkgdown::check_pkgdown()` reported no problems.
+
+Claim boundary: this is diagnostic visibility only. It does not promote
+bivariate scale-route recovery accuracy, interval coverage, power, q2/q4/q8
+covariance readiness, random effects in `rho12`, structured correlation
+readiness, Julia bridge parity, release readiness, CRAN readiness,
+missing-data behavior, or non-Gaussian REML/AI-REML language.
