@@ -152,6 +152,14 @@ had minimum convergence 0.60, minimum `pdHess` 0.80, `nu` profile ok rates of
 requested parametric-bootstrap intervals returned with 10 refits. This is
 status visibility for profile/bootstrap machinery, not coverage calibration
 or promotion evidence.
+The Student-t profile/bootstrap pilot extends that interval-method stress to
+25 replicates per cell and 25 bootstrap refits per fit: 50 requested
+fixed-effect shape fits had minimum convergence 0.92, minimum `pdHess` 0.88,
+`nu` profile ok rates of 0.40-0.68, all requested parametric-bootstrap
+intervals returned with 25 refits, rough 70% profile pilot coverage ranged from
+0.40 to 0.765, and rough 70% bootstrap pilot coverage ranged from 0.56 to
+0.72. This is still diagnostic interval-pilot evidence, not calibrated
+profile/bootstrap coverage or release evidence.
 The plain binomial route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger

@@ -1,0 +1,5 @@
+"cell_id","cell_label","nu_at_w0","parameter","n_profile","n_profile_ok","n_profile_failed","n_profile_covered","n_profile_degenerate","profile_ok_rate","profile_ok_mcse","profile_coverage","profile_coverage_mcse","profile_degenerate_rate"
+"student_shape_001","low_nu_boundary",2.8,"nu:(Intercept)",25,10,15,4,0,0.4,0.0979795897113271,0.4,0.154919333848297,0
+"student_shape_001","low_nu_boundary",2.8,"nu:w",25,13,12,8,1,0.52,0.0999199679743744,0.615384615384615,0.134932002970312,0.04
+"student_shape_002","ordinary_nu",8,"nu:(Intercept)",25,15,10,11,0,0.6,0.0979795897113271,0.733333333333333,0.11417984514369,0
+"student_shape_002","ordinary_nu",8,"nu:w",25,17,8,13,0,0.68,0.0932952303175248,0.764705882352941,0.102879368493554,0

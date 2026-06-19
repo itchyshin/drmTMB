@@ -1,0 +1,5 @@
+"cell_id","cell_label","nu_at_w0","parameter","n_interval","n_bootstrap_ok","n_bootstrap_failed","n_bootstrap_covered","min_n_bootstrap","mean_n_bootstrap","bootstrap_ok_rate","bootstrap_ok_mcse","bootstrap_coverage","bootstrap_coverage_mcse"
+"student_shape_001","low_nu_boundary",2.8,"nu:(Intercept)",25,25,0,15,25,25,1,0,0.6,0.0979795897113271
+"student_shape_001","low_nu_boundary",2.8,"nu:w",25,25,0,15,25,25,1,0,0.6,0.0979795897113271
+"student_shape_002","ordinary_nu",8,"nu:(Intercept)",25,25,0,14,25,25,1,0,0.56,0.0992773891679268
+"student_shape_002","ordinary_nu",8,"nu:w",25,25,0,18,25,25,1,0,0.72,0.0897997772825746
