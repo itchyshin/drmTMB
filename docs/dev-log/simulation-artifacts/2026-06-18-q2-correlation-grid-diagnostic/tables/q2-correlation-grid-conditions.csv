@@ -1,0 +1,13 @@
+"cell_id","route","check_name","covariance_route","target","n_id","n_each","rho_true","seed"
+"univ_mu_sigma_zero","univ_mu_sigma","mu_sigma_random_effect_covariance","univariate mu/sigma random intercept","zero",34,8,0,2000
+"univ_mu_sigma_moderate","univ_mu_sigma","mu_sigma_random_effect_covariance","univariate mu/sigma random intercept","moderate",34,8,0.4,2040
+"univ_mu_sigma_high","univ_mu_sigma","mu_sigma_random_effect_covariance","univariate mu/sigma random intercept","high",34,8,0.9,2090
+"univ_mu_sigma_boundary","univ_mu_sigma","mu_sigma_random_effect_covariance","univariate mu/sigma random intercept","boundary",34,8,0.98,2098
+"biv_mu_zero","biv_mu","biv_mu_random_effect_covariance","bivariate mu1/mu2 random intercept","zero",36,8,0,3000
+"biv_mu_moderate","biv_mu","biv_mu_random_effect_covariance","bivariate mu1/mu2 random intercept","moderate",36,8,0.4,3040
+"biv_mu_high","biv_mu","biv_mu_random_effect_covariance","bivariate mu1/mu2 random intercept","high",36,8,0.9,3090
+"biv_mu_boundary","biv_mu","biv_mu_random_effect_covariance","bivariate mu1/mu2 random intercept","boundary",36,8,0.98,3098
+"biv_sigma_zero","biv_sigma","biv_sigma_random_effect_covariance","bivariate sigma1/sigma2 random intercept","zero",40,10,0,4000
+"biv_sigma_moderate","biv_sigma","biv_sigma_random_effect_covariance","bivariate sigma1/sigma2 random intercept","moderate",40,10,0.4,4040
+"biv_sigma_high","biv_sigma","biv_sigma_random_effect_covariance","bivariate sigma1/sigma2 random intercept","high",40,10,0.9,4090
+"biv_sigma_boundary","biv_sigma","biv_sigma_random_effect_covariance","bivariate sigma1/sigma2 random intercept","boundary",40,10,0.98,4098

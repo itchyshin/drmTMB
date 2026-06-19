@@ -1,0 +1,13 @@
+"cell_id","route","check_name","target","rho_true","n_requested","n_attempted","n_fit_error","n_warning","n_converged","n_pdHess","n_converged_and_pdHess","n_gradient_ok","n_check_drm_warning_or_error","n_covariance_warning"
+"univ_mu_sigma_zero","univ_mu_sigma","mu_sigma_random_effect_covariance","zero",0,1,1,0,0,1,1,1,1,0,0
+"univ_mu_sigma_moderate","univ_mu_sigma","mu_sigma_random_effect_covariance","moderate",0.4,1,1,0,0,1,1,1,1,0,0
+"univ_mu_sigma_high","univ_mu_sigma","mu_sigma_random_effect_covariance","high",0.9,1,1,0,0,1,1,1,1,1,1
+"univ_mu_sigma_boundary","univ_mu_sigma","mu_sigma_random_effect_covariance","boundary",0.98,1,1,0,0,1,1,1,1,1,1
+"biv_mu_zero","biv_mu","biv_mu_random_effect_covariance","zero",0,1,1,0,0,1,1,1,0,1,0
+"biv_mu_moderate","biv_mu","biv_mu_random_effect_covariance","moderate",0.4,1,1,0,0,1,1,1,0,1,0
+"biv_mu_high","biv_mu","biv_mu_random_effect_covariance","high",0.9,1,1,0,0,1,1,1,1,0,0
+"biv_mu_boundary","biv_mu","biv_mu_random_effect_covariance","boundary",0.98,1,1,0,0,1,1,1,1,1,1
+"biv_sigma_zero","biv_sigma","biv_sigma_random_effect_covariance","zero",0,1,1,0,0,1,1,1,0,1,0
+"biv_sigma_moderate","biv_sigma","biv_sigma_random_effect_covariance","moderate",0.4,1,1,0,0,1,1,1,0,1,0
+"biv_sigma_high","biv_sigma","biv_sigma_random_effect_covariance","high",0.9,1,1,0,0,1,1,1,1,1,1
+"biv_sigma_boundary","biv_sigma","biv_sigma_random_effect_covariance","boundary",0.98,1,1,0,0,1,1,1,1,0,0

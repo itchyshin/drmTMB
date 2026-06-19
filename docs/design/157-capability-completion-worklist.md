@@ -111,7 +111,12 @@ The q2 covariance diagnostic shows 4/4 univariate Gaussian `mu`/`sigma`
 covariance stress fits converged with `pdHess = TRUE`, while the true
 `rho = 0.98` cell fit at `rho = 0.999999` and now surfaces a
 `mu_sigma_random_effect_covariance` warning instead of looking like an ordinary
-ok row. The plain binomial route is now a fitted, parity-banked, and
+ok row. The ordinary q2 correlation-grid diagnostic extends that
+boundary-visibility pattern to univariate `mu`/`sigma`, bivariate `mu1`/`mu2`,
+and bivariate `sigma1`/`sigma2` random-intercept covariance routes: 12/12 fits
+converged with `pdHess = TRUE`, 8/12 had default-gradient-ok status, and four
+route-specific fitted-boundary warnings were retained. The plain binomial
+route is now a fitted, parity-banked, and
 fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
 operating-characteristic grids, profile/bootstrap interval studies if needed,
@@ -119,8 +124,8 @@ and any future Julia bridge parity issue. Those are optional promotion slices,
 not prerequisites for resuming the older capability queue. The broader
 numerical-guard programme remains active for scale-side phylogeny, bivariate
 scale routes, Student-t calibration, random-effect and structured correlation
-guards beyond this q2 `mu`/`sigma` slice, larger skew-normal guard grids, and
-broader interval consequences.
+guards beyond this ordinary q2 fitted-boundary grid, larger skew-normal guard
+grids, and broader interval consequences.
 The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
 evidence: it supports further formal grid work, but not calibrated interval or
 release language.
