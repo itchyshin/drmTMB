@@ -1,0 +1,11 @@
+"condition_id","description","beta_mu1_intercept","beta_mu1_x","beta_mu2_intercept","beta_mu2_x","beta_sigma1_intercept","beta_sigma1_z1","beta_sigma2_intercept","beta_sigma2_z2","rho12"
+"ordinary_rho0","ordinary bivariate scale with independent residual axes",0.2,0.4,-0.1,-0.3,-0.2,0.2,0.1,-0.15,0
+"ordinary_rho_pos08","ordinary bivariate scale with strong positive residual correlation",0.2,0.4,-0.1,-0.3,-0.2,0.2,0.1,-0.15,0.8
+"ordinary_rho_neg08","ordinary bivariate scale with strong negative residual correlation",0.2,0.4,-0.1,-0.3,-0.2,0.2,0.1,-0.15,-0.8
+"both_scales_near_upper_inband","both scale axes high but inside the default identity band",0.2,0.4,-0.1,-0.3,11,0.25,11,-0.25,0.35
+"both_scales_near_lower_inband","both scale axes low but inside the default identity band",0.2,0.4,-0.1,-0.3,-11,0.25,-11,-0.25,0.35
+"sigma1_above_default","legitimate huge unstandardized sigma1 scale above default band",0.2,0.4,-0.1,-0.3,16,0.25,0.1,-0.15,0.35
+"sigma2_above_default","legitimate huge unstandardized sigma2 scale above default band",0.2,0.4,-0.1,-0.3,-0.2,0.2,16,-0.25,0.35
+"both_scales_above_default","legitimate huge unstandardized sigma1 and sigma2 scales above default band",0.2,0.4,-0.1,-0.3,16,0.25,15.5,-0.25,0.35
+"sigma1_below_default","legitimate tiny unstandardized sigma1 scale below default band",0.2,0.4,-0.1,-0.3,-16,0.25,0.1,-0.15,0.35
+"sigma2_below_default","legitimate tiny unstandardized sigma2 scale below default band",0.2,0.4,-0.1,-0.3,-0.2,0.2,-16,-0.25,0.35

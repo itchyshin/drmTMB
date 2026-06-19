@@ -1,0 +1,9 @@
+"cell_id","cell_family","n","nu_intercept","nu_slope","sigma_slope","rho_xw","target_alpha_z","contamination_fraction","beta_mu_intercept","beta_mu_x","beta_sigma_intercept"
+"symmetric_reference","ordinary",720,0,0,0.15,0.2,NA,0,0.2,0.4,-0.356674943938732
+"moderate_right_static","moderate_tail",720,1.2,0,0.15,0.2,NA,0,0.2,0.4,-0.356674943938732
+"moderate_left_static","moderate_tail",720,-1.2,0,0.15,0.2,NA,0,0.2,0.4,-0.356674943938732
+"moderate_right_slope","moderate_tail",720,1.2,0.35,0.3,0.4,NA,0,0.2,0.4,-0.356674943938732
+"strong_right_static","extreme_tail",360,6,0,0.15,0,NA,0,0.2,0.4,-0.356674943938732
+"strong_left_static","extreme_tail",360,-6,0,0.15,0,NA,0,0.2,0.4,-0.356674943938732
+"near_floor_injected","injected_tail",240,6,0,0.15,0,-38,0.03,0.2,0.4,-0.356674943938732
+"floor_dominated_injected","injected_tail",240,6,0,0.15,0,-45,0.03,0.2,0.4,-0.356674943938732

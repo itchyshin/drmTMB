@@ -1,0 +1,4 @@
+"route","target","seed","n_obs","n_missing_response","fit_error","converged","pdHess","dropped_rows_status","dropped_rows_value","covariance_status","message"
+"univ_mu_sigma","moderate",20360619,272,13,FALSE,TRUE,TRUE,"note","nobs=259; dropped=13","ok","Rows were dropped by complete-case or known-covariance filtering."
+"biv_mu","moderate",20460619,288,14,FALSE,TRUE,TRUE,"note","nobs=274; dropped=14","ok","Rows were dropped by complete-case or known-covariance filtering."
+"biv_sigma","moderate",20560619,400,20,FALSE,TRUE,TRUE,"note","nobs=380; dropped=20","warning","Rows were dropped by complete-case or known-covariance filtering."

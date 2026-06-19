@@ -1,0 +1,4 @@
+"route","check_name","n_fit","n_converged","n_pdHess","n_gradient_ok","n_check_drm_warning_or_error","n_covariance_warning","n_r_warning","max_abs_fit_rho","min_boundary_distance","max_abs_gradient"
+"univ_mu_sigma","mu_sigma_random_effect_covariance",700,700,700,642,319,261,0,0.99999899921093,1.00078906972723e-06,0.00368629054671499
+"biv_mu","biv_mu_random_effect_covariance",700,700,700,274,508,100,0,0.999998999767044,1.00023295590557e-06,0.0059062996142353
+"biv_sigma","biv_sigma_random_effect_covariance",700,700,700,360,620,281,0,0.999998994671569,1.00532843105849e-06,0.0077469246935969

@@ -1,0 +1,8 @@
+"target","rho_true","purpose","eta_equivalent","rho_guarded","rho_unguarded","guard_delta","boundary_distance","one_minus_rho2","delta_derivative"
+"negative_high",-0.95,"negative near-boundary stress",-1.8317905667545,-0.95,-0.95000095000095,-9.50000950017404e-07,0.05,0.0975,0.0974980974990975
+"negative_edge",-0.8,"strong negative ordinary edge",-1.09861451089651,-0.8,-0.8000008000008,-8.00000800049716e-07,0.2,0.36,0.35999835999936
+"zero",0,"false boundary-warning screen",0,0,0,0,1,1,0.999999
+"moderate",0.4,"ordinary moderate positive correlation",0.423649406384645,0.4,0.4000004000004,4.00000400024858e-07,0.6,0.84,0.83999883999984
+"positive_edge",0.8,"strong positive ordinary edge",1.09861451089651,0.8,0.8000008000008,8.00000800049716e-07,0.2,0.36,0.35999835999936
+"positive_high",0.95,"positive near-boundary stress",1.8317905667545,0.95,0.95000095000095,9.50000950017404e-07,0.05,0.0975,0.0974980974990975
+"positive_boundary",0.98,"fitted-boundary visibility at check_drm default",2.297584673167,0.98,0.98000098000098,9.80000980033147e-07,0.02,0.0396000000000001,0.0395980395990396

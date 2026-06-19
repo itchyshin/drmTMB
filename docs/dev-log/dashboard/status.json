@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 03:52 MDT",
+  "updated": "2026-06-19 09:40 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -811,7 +811,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/176-numerical-guard-simulation-audit.md",
-      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, scale-side phylogenetic clamp-active diagnostic, first fixed-effect bivariate sigma1/sigma2 clamp-sensitivity diagnostic, first Student-t finite-variance diagnostic pilot, first Student-t Wald calibration diagnostic, first Student-t profile/bootstrap feasibility diagnostic, Student-t profile/bootstrap diagnostic pilot, Student-t profile/bootstrap calibration diagnostic, skew-normal tail-floor source and fit-stress diagnostics, beta/zero-one beta support-floor diagnostic, residual rho12 open-interval diagnostic, q2 mu/sigma covariance boundary diagnostic, ordinary q2 correlation-grid diagnostic, and structured q2 boundary diagnostic are banked. The log(sigma) pilot has 300/300 fits ok, negligible default-vs-off differences when inactive (max logLik diff 2.046363e-11), a wide band that matches the unclamped reference, and material default-band changes in out-of-band huge/tiny scale fits. The scale-side phylogenetic diagnostic has 6/6 one-observation-per-tip stress fits with false convergence, fixed-gradient warnings, and retained fit-path warnings; the default extreme-shock fit surfaces logsigma_clamp_active at log(sigma) = 13.93, while disabled and wide-clamp controls on the same data remain failed diagnostics rather than promoted fits. The bivariate scale diagnostic has 120/120 fixed-effect bivariate Gaussian sigma1/sigma2 fits converged with pdHess = TRUE, 30 default logsigma_clamp_active warnings in high-scale cells, no ordinary-cell clamp-active fits, default high-scale log likelihood differences up to 383.851973 against the unclamped reference, and wide-band fits matching the unclamped reference to about 1e-11 in log likelihood. The Student-t boundary pilot has 50 fixed-effect shape fits and surfaces near-boundary student_nu warnings/errors without making coverage, power, interval-calibration, release, or CRAN claims. The Student-t Wald calibration diagnostic has 200 fixed-effect shape fits, minimum convergence rate 0.91, minimum pdHess rate 0.89, maximum student_nu warning rate 0.23, maximum student_nu error rate 0.11, shape-term Wald coverage 0.87-0.90, and coverage MCSE up to 0.03363034; it remains Wald-only diagnostic calibration evidence. The Student-t profile/bootstrap feasibility diagnostic has 10 fixed-effect shape fits, minimum convergence rate 0.60, minimum pdHess rate 0.80, nu profile ok rates of 0.00 in the low-boundary cell and 0.20-0.60 in the ordinary cell, and all requested parametric-bootstrap intervals returning with 10 refits. The larger Student-t profile/bootstrap diagnostic pilot has 50 fixed-effect shape fits, minimum convergence rate 0.92, minimum pdHess rate 0.88, nu profile ok rates of 0.40-0.68, all requested parametric-bootstrap intervals returning with 25 refits, rough 70% profile pilot coverage of 0.40-0.765, and rough 70% bootstrap pilot coverage of 0.56-0.72. The Student-t profile/bootstrap calibration diagnostic has 100 fixed-effect shape fits, minimum convergence rate 0.88, minimum pdHess rate 0.86, nu profile ok rates of 0.38-0.54, all requested parametric-bootstrap intervals returning with 50 refits, rough 70% profile coverage of 0.5185185-0.8095238, and rough 70% bootstrap coverage of 0.50-0.68; the profile/bootstrap slices are status and interval-calibration visibility, not profile/bootstrap promotion evidence. The skew-normal source diagnostic shows ordinary alpha*z values are unchanged to numerical tolerance, while floor-dominated extreme tails are capped at log(1e-300). The fit-stress diagnostic ran 9 fits with generating-scale floor exposure but no fitted-scale floor-dominated observations; it also retained one ordinary-reference non-converged, non-positive-Hessian fit with a large slant diagnostic. The support-floor diagnostic shows source-level beta shape floors activating in high-scale source cells, 6/6 small fitted cells converging with pdHess = TRUE, 0 reported shape-floor activations among the 4 fitted response-route cells that expose shape vectors, missing-predictor fitted shape counts recorded as NA, retained check_drm warning rows, and 6/6 boundary validation cells failing visibly. The rho12 diagnostic shows 4/4 fixed residual-correlation stress fits converged with pdHess = TRUE while still surfacing 2/4 default starting-value clamps, 2/4 fixed-gradient warnings, and one default rho12_boundary warning at fitted rho12 = 0.9813. The q2 mu/sigma diagnostic shows 4/4 Gaussian mu/sigma covariance stress fits converged with pdHess = TRUE while the true rho = 0.98 cell fit at rho = 0.999999 and now surfaces a mu_sigma_random_effect_covariance warning. The ordinary q2 correlation-grid diagnostic shows 12/12 fitted ordinary q2 covariance cells converged with pdHess = TRUE, 8/12 default-gradient-ok cells, and four route-specific fitted-boundary warnings across univariate mu/sigma, bivariate mu1/mu2, and bivariate sigma1/sigma2 routes. The structured q2 diagnostic shows 12 spatial/animal/relmat q2 cells with 0 fit errors, 11 optimizer-converged fits, 12 pdHess TRUE fits, 12 gradient-ok fits, and five fitted-boundary covariance warnings; the animal high-correlation cell retained optimizer non-convergence despite pdHess TRUE. Recovery accuracy, promotion-grade Student-t profile/bootstrap interval evidence, q4/q8 covariance intervals, random effects in rho12, additional guard depth, and release claims remain planned.",
+      "blocker": "The ADEMP/Williams guard-sensitivity design, first fixed-effect Gaussian log(sigma) clamp pilot, scale-side phylogenetic clamp-active diagnostic, first and larger fixed-effect bivariate sigma1/sigma2 clamp diagnostics, first Student-t finite-variance diagnostic pilot, Student-t Wald/profile/bootstrap diagnostics, Student-t profile-failure decision audit, skew-normal tail-floor source and fit-stress diagnostics, fixed-effect skew-normal guard grid, beta/zero-one beta support-floor diagnostic, residual rho12 open-interval diagnostic, q2 mu/sigma covariance boundary diagnostic, ordinary q2 correlation-grid diagnostic, larger ordinary q2 covariance hardening diagnostic, and structured q2 boundary diagnostic are banked. The larger bivariate scale diagnostic supports upper-side guard visibility and ordinary/upper-in-band guard non-interference, while lower-tail rows retain numerical roughness and remain diagnostic-hold. The larger ordinary q2 diagnostic has 2100 native R/TMB complete-data primary fits with 0 fit errors, 2100 optimizer-converged fits, and 2100 pdHess TRUE fits, but retains 1447 check_drm warning/error replicate statuses, 642 route-specific covariance warnings, weak fixed-gradient ok rates for bivariate routes, and large fitted-minus-true correlation errors in some biv_sigma cells. The fixed-effect skew-normal guard grid has 200 native R/TMB complete-data fits with 0 fit errors, convergence and pdHess rates of 1.000, and zero fitted-scale floor domination, but 27 fixed-gradient warning rows keep the overall skew-normal guard decision at diagnostic_hold. Recovery accuracy, Student-t profile-method repair, justified Student-t bootstrap calibration, q4/q8 covariance intervals, random effects in rho12, direct Julia parity, Julia-via-R parity, additional guard depth, and release claims remain planned.",
       "last_verified": "2026-06-19"
     },
     {
@@ -837,8 +837,8 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/design/159-drmtmb-0-2-0-release-readiness.md",
-      "blocker": "The fixed-effect binomial GLM parity artifact, fixed-effect Wald interval artifact, log(sigma) guard pilot, and fixed-effect skew-normal diagnostic pilot are banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, and issue ledgers agree.",
-      "last_verified": "2026-06-17"
+      "blocker": "The fixed-effect binomial GLM parity artifact, fixed-effect Wald interval artifact, log(sigma) guard pilot, bivariate sigma1/sigma2 clamp diagnostic, Student-t Wald/profile/bootstrap diagnostics, q2 correlation diagnostics, structured q2 boundary diagnostic, and fixed-effect skew-normal diagnostics are banked, but release gates remain deferred until broader evidence, pkgdown, comparator, widget, issue ledgers, direct Julia evidence, and owner decision agree.",
+      "last_verified": "2026-06-19"
     }
   ],
   "matrix": [
@@ -929,8 +929,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. Fixed-effect skew-normal now has a six-cell diagnostic pilot, but formal calibration and comparator evidence remain planned.",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot/README.md"
+      "next": "Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. Fixed-effect skew-normal now has a six-cell diagnostic pilot plus a 200-fit guard grid; fitted-scale floor domination stayed at zero, but fixed-gradient warnings keep the guard-grid decision at diagnostic_hold. Formal calibration and comparator evidence remain planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-19-skew-normal-guard-grid-diagnostic/README.md"
     },
     {
       "area": "Bernoulli/binomial response family",
@@ -1079,8 +1079,8 @@
       "visual": "partial",
       "simulation": "partial",
       "release": "planned",
-      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the first fixed-effect skew-normal diagnostic pilot, and the q8 staged diagnostic artifact are banked; broader guard classes, q8 coverage/power, same-response hardening, visual artifacts, and release-readiness evidence remain partial or planned.",
-      "evidence_url": "docs/dev-log/after-task/2026-06-17-q8-staged-diagnostic-artifact.md"
+      "next": "Binomial fixed-effect glm parity, the 500-replicate fixed-effect Wald interval artifact, the first log(sigma) clamp sensitivity pilot, the fixed-effect skew-normal diagnostic pilot, the q8 staged diagnostic artifact, and the q8 staged endpoint-status hardening are banked as diagnostic evidence. Broader guard classes, q8 recovery accuracy, q8 coverage/power, same-response hardening, visual artifacts, direct Julia, Julia-via-R, and release-readiness evidence remain partial or planned.",
+      "evidence_url": "docs/dev-log/after-task/2026-06-19-q8-staged-endpoint-status-hardening.md"
     },
     {
       "area": "Release gate",
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. This slice banks a 100-fit Student-t profile/bootstrap calibration diagnostic beside the Student-t pilot, feasibility, Wald calibration, bivariate sigma1/sigma2 clamp-sensitivity, scale-side phylogenetic clamp-active, structured q2, ordinary q2 correlation-grid, residual rho12, beta/zero-one beta support-floor, skew-normal source/fit-stress, fixed-effect log(sigma), and Student-t boundary artifacts; metrics remain unchanged."
+      "text": "The one active finish-board row remains drmTMB#59 numerical-guard sensitivity. The current source-of-truth update banks the native R/TMB fixed-effect skew-normal guard grid: 200 complete-data fits, 0 fit errors, convergence and pdHess rates of 1.000, zero fitted-scale floor-dominated observations, and 27 fixed-gradient warning rows, so the overall decision is diagnostic_hold. This is skew-normal guard evidence only; recovery accuracy, interval calibration, comparator parity, direct Julia, Julia-via-R, release, and CRAN remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "2026-06-19",
@@ -1177,6 +1177,13 @@
       "text": "Banked a residual rho12 open-interval diagnostic for the numerical-guard ledger: true correlations 0, 0.4, 0.9, and 0.98 under fixed rho12 ~ 1, with start clamps, fixed-gradient warnings, boundary distance, and check_drm rows retained as evidence.",
       "url": "docs/dev-log/simulation-artifacts/2026-06-18-rho12-open-interval-guard/README.md",
       "link_label": "rho12 guard diagnostic"
+    },
+    {
+      "when": "2026-06-19",
+      "who": "Codex",
+      "text": "Banked a fixed-effect skew-normal guard grid for the numerical-guard ledger: 200 native R/TMB complete-data fits, 0 fit errors, convergence and pdHess rates of 1.000, zero fitted-scale floor-dominated observations, and 27 fixed-gradient warning rows, so the overall decision is diagnostic_hold.",
+      "url": "docs/dev-log/simulation-artifacts/2026-06-19-skew-normal-guard-grid-diagnostic/README.md",
+      "link_label": "skew-normal guard grid"
     },
     {
       "when": "2026-06-18",
@@ -1356,8 +1363,8 @@
       "url": "docs/dev-log/after-task/2026-06-15-ayumi-q4-bootstrap-optimizer-controls.md",
       "link_label": "after-task"
     },
-        {
-            "when": "2026-06-15",
+    {
+      "when": "2026-06-15",
       "who": "Codex",
       "text": "drmTMB#565 banked the Julia q4 phylocov target-estimate repair; 30-tip Ayumi Julia ML all-q4 bootstrap B=2 returned four rows with 2/2 refits.",
       "url": "https://github.com/itchyshin/drmTMB/pull/565",
@@ -1383,38 +1390,38 @@
       "text": "Internal issue ledger updated with the Julia bootstrap plumbing success and native bootstrap negative evidence.",
       "url": "https://github.com/itchyshin/drmTMB/issues/555#issuecomment-4711541040",
       "link_label": "drmTMB#555"
-        },
-        {
-            "when": "2026-06-15",
-            "who": "GitHub",
-            "text": "DRM.jl#292 merged the q4 bridge-vcov fix after docs and Julia test jobs passed; drmTMB#555 and DRM.jl#291 now carry the merged-main smoke evidence.",
-            "url": "https://github.com/itchyshin/DRM.jl/pull/292",
-            "link_label": "DRM.jl#292"
-        },
-        {
-            "when": "2026-06-15",
-            "who": "GitHub",
-            "text": "drmTMB#556 merged the R-side Julia REML requested/effective estimator status truth table after macOS, Ubuntu, and Windows checks passed.",
-            "url": "https://github.com/itchyshin/drmTMB/pull/556",
-            "link_label": "#556"
-        },
-        {
-            "when": "2026-06-15",
-            "who": "GitHub",
-            "text": "drmTMB#557 banked native TMB REML rejection-neighbour coverage, drmTMB#558 banked Julia confint target wording, and drmTMB#559 banked the Ayumi q4 support/status harness.",
-            "url": "https://github.com/itchyshin/drmTMB/pull/559",
-            "link_label": "#557/#558/#559"
-        },
-        {
-            "when": "2026-06-14",
-            "who": "GitHub",
-            "text": "drmTMB#552/#553 banked native q4 ML profile row-status handling for sigma-axis phylogenetic SD targets.",
-            "url": "https://github.com/itchyshin/drmTMB/pull/553",
-            "link_label": "#553"
-        },
-        {
-            "when": "2026-06-14",
-            "who": "GitHub",
+    },
+    {
+      "when": "2026-06-15",
+      "who": "GitHub",
+      "text": "DRM.jl#292 merged the q4 bridge-vcov fix after docs and Julia test jobs passed; drmTMB#555 and DRM.jl#291 now carry the merged-main smoke evidence.",
+      "url": "https://github.com/itchyshin/DRM.jl/pull/292",
+      "link_label": "DRM.jl#292"
+    },
+    {
+      "when": "2026-06-15",
+      "who": "GitHub",
+      "text": "drmTMB#556 merged the R-side Julia REML requested/effective estimator status truth table after macOS, Ubuntu, and Windows checks passed.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/556",
+      "link_label": "#556"
+    },
+    {
+      "when": "2026-06-15",
+      "who": "GitHub",
+      "text": "drmTMB#557 banked native TMB REML rejection-neighbour coverage, drmTMB#558 banked Julia confint target wording, and drmTMB#559 banked the Ayumi q4 support/status harness.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/559",
+      "link_label": "#557/#558/#559"
+    },
+    {
+      "when": "2026-06-14",
+      "who": "GitHub",
+      "text": "drmTMB#552/#553 banked native q4 ML profile row-status handling for sigma-axis phylogenetic SD targets.",
+      "url": "https://github.com/itchyshin/drmTMB/pull/553",
+      "link_label": "#553"
+    },
+    {
+      "when": "2026-06-14",
+      "who": "GitHub",
       "text": "drmTMB#549 merged the first intentional Julia bridge gate registry after macOS, Ubuntu, and Windows checks passed.",
       "url": "https://github.com/itchyshin/drmTMB/pull/549",
       "link_label": "#549"
@@ -1453,7 +1460,7 @@
       "link_label": "#544 comment"
     }
   ],
-    "blockers": [
+  "blockers": [
     {
       "status": "guard",
       "kind": "Claim boundary",
@@ -1484,7 +1491,7 @@
     {
       "when": "2026-06-17",
       "who": "Status matrix",
-      "text": "The fixed-effect skew-normal pilot has 150/150 ok fits, convergence and pdHess rates of 1.000 in all six cells, zero warnings, maximum slant-term absolute bias 0.3067476, and 70% slant Wald coverage from 0.64 to 0.96 with MCSE up to 0.096, so it supports further formal grid work but not calibrated interval promotion."
+      "text": "The fixed-effect skew-normal pilot has 150/150 ok fits, convergence and pdHess rates of 1.000 in all six cells, zero warnings, maximum slant-term absolute bias 0.3067476, and 70% slant Wald coverage from 0.64 to 0.96 with MCSE up to 0.096. The later 200-fit guard grid kept fitted-scale floor domination at zero but retained 27 fixed-gradient warning rows, so skew-normal guard behavior is diagnostic_hold rather than calibrated interval promotion."
     },
     {
       "when": "2026-06-17",
@@ -1526,21 +1533,21 @@
       "who": "Dashboard",
       "text": "Source lives under docs/dev-log/dashboard, validates with tools/validate-mission-control.py, and serves from /tmp/drm-dashboard."
     },
-        {
-            "when": "2026-06-14",
-            "who": "Issue ledger",
-            "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 is closed after the first bridge-gate registry/capability guard, with follow-on bridge promotion handled by new parity issues."
-        },
-        {
+    {
+      "when": "2026-06-14",
+      "who": "Issue ledger",
+      "text": "drmTMB#555 is the active Ayumi R-first workflow tracker; drmTMB#544 is closed after the first bridge-gate registry/capability guard, with follow-on bridge promotion handled by new parity issues."
+    },
+    {
       "when": "2026-06-15",
       "who": "Status matrix",
       "text": "Merged #565 makes Ayumi q4 Julia target inventory report fitted phylocov SDs, not placeholder 0.5 values; the admitted all-q4 bootstrap smoke returned 2/2 refits at 30 tips."
-        },
-        {
-            "when": "2026-06-15",
-            "who": "Status matrix",
-            "text": "Merged DRM.jl main 9bdea65 verified through the drmTMB Ayumi harness: Julia ML and REML point fits return at 30 tips; ML bootstrap returns four q4 SD rows; REML bootstrap failure is now explicit and tracked."
-        },
+    },
+    {
+      "when": "2026-06-15",
+      "who": "Status matrix",
+      "text": "Merged DRM.jl main 9bdea65 verified through the drmTMB Ayumi harness: Julia ML and REML point fits return at 30 tips; ML bootstrap returns four q4 SD rows; REML bootstrap failure is now explicit and tracked."
+    },
     {
       "when": "2026-06-15",
       "who": "Status matrix",
@@ -1561,14 +1568,14 @@
       "who": "Jason",
       "text": "HSquared scout confirms AI-REML wording belongs only to exact Gaussian LMM/MME cells; Ayumi's bivariate q4 sigma-phylo route still needs point/profile/bootstrap/speed evidence, not an AI-REML label."
     },
-        {
-            "when": "2026-06-15",
-            "who": "Status matrix",
-            "text": "Native R/TMB status rows now precede Julia speed work: #552/#553 banked q4 profile status, #557 banked REML rejection gates, and #559 banked the harness."
-        },
-        {
-            "when": "2026-06-14",
-            "who": "Status matrix",
+    {
+      "when": "2026-06-15",
+      "who": "Status matrix",
+      "text": "Native R/TMB status rows now precede Julia speed work: #552/#553 banked q4 profile status, #557 banked REML rejection gates, and #559 banked the harness."
+    },
+    {
+      "when": "2026-06-14",
+      "who": "Status matrix",
       "text": "Rows separate engine, bridge, point estimate, Wald, profile, bootstrap, docs, visual, simulation, and release status."
     },
     {

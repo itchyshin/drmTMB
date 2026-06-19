@@ -171,6 +171,12 @@ phase18_summarise_biv_gaussian_q8_endpoint_staged_fit <- function(
     elapsed = elapsed,
     warnings = warnings
   )
+  endpoint_status <- phase18_q8_staged_endpoint_status_rows(
+    fit,
+    truth,
+    cell_id = cell_id,
+    replicate = replicate
+  )
   scope <- phase18_q8_staged_scope_row(
     cell_id = cell_id,
     replicate = replicate,
@@ -178,7 +184,7 @@ phase18_summarise_biv_gaussian_q8_endpoint_staged_fit <- function(
     warnings = warnings
   )
 
-  out <- rbind(metrics, deltas, provenance, scope)
+  out <- rbind(metrics, deltas, provenance, endpoint_status, scope)
   row.names(out) <- NULL
   out
 }
@@ -206,6 +212,27 @@ phase18_q8_staged_empty_rows <- function(
     nobs = rep(NA_real_, n),
     fit_elapsed_sec = rep(NA_real_, n),
     optimizer_preset = rep(NA_character_, n),
+    optimizer_attempt_count = rep(NA_integer_, n),
+    optimizer_selected_attempt = rep(NA_character_, n),
+    optimizer_retried = rep(NA, n),
+    optimizer_attempt_presets = rep(NA_character_, n),
+    optimizer_attempt_statuses = rep(NA_character_, n),
+    optimizer_message = rep(NA_character_, n),
+    iterations = rep(NA_real_, n),
+    function_evaluations = rep(NA_real_, n),
+    gradient_evaluations = rep(NA_real_, n),
+    iter_max = rep(NA_real_, n),
+    eval_max = rep(NA_real_, n),
+    budget_status = rep(NA_character_, n),
+    sdreport_status = rep(NA_character_, n),
+    sdreport_message = rep(NA_character_, n),
+    se_requested = rep(NA, n),
+    fixed_gradient_status = rep(NA_character_, n),
+    max_abs_gradient = rep(NA_real_, n),
+    max_gradient_component = rep(NA_character_, n),
+    gradient_tolerance = rep(NA_real_, n),
+    failure_mode = rep(NA_character_, n),
+    failure_detail = rep(NA_character_, n),
     fit_warning_count = rep(NA_integer_, n),
     fit_warnings = rep(NA_character_, n),
     fit_error = rep(NA_character_, n),
@@ -220,6 +247,23 @@ phase18_q8_staged_empty_rows <- function(
     fixed_effect_match_count = rep(NA_integer_, n),
     qgt2_sd_match_count = rep(NA_integer_, n),
     qgt2_theta_match_count = rep(NA_integer_, n),
+    parameter = rep(NA_character_, n),
+    parameter_class = rep(NA_character_, n),
+    endpoint_index = rep(NA_integer_, n),
+    endpoint = rep(NA_character_, n),
+    endpoint_scope = rep(NA_character_, n),
+    dpar = rep(NA_character_, n),
+    coefficient = rep(NA_character_, n),
+    endpoint_role = rep(NA_character_, n),
+    truth = rep(NA_real_, n),
+    estimate = rep(NA_real_, n),
+    estimate_error = rep(NA_real_, n),
+    availability_status = rep(NA_character_, n),
+    point_status = rep(NA_character_, n),
+    se_status = rep(NA_character_, n),
+    availability_reason = rep(NA_character_, n),
+    boundary_distance = rep(NA_real_, n),
+    interval_status = rep(NA_character_, n),
     diagnostic_scope = rep(NA_character_, n),
     unsupported_claims = rep(NA_character_, n),
     result_elapsed_sec = rep(as.numeric(elapsed), n),
@@ -257,9 +301,47 @@ phase18_q8_staged_metric_rows <- function(
   out$nobs <- metrics$nobs
   out$fit_elapsed_sec <- metrics$elapsed_sec
   out$optimizer_preset <- metrics$optimizer_preset
+  out <- phase18_q8_staged_copy_optional_metric(
+    out,
+    metrics,
+    c(
+      "optimizer_attempt_count",
+      "optimizer_selected_attempt",
+      "optimizer_retried",
+      "optimizer_attempt_presets",
+      "optimizer_attempt_statuses",
+      "optimizer_message",
+      "iterations",
+      "function_evaluations",
+      "gradient_evaluations",
+      "iter_max",
+      "eval_max",
+      "budget_status",
+      "sdreport_status",
+      "sdreport_message",
+      "se_requested",
+      "fixed_gradient_status",
+      "max_abs_gradient",
+      "max_gradient_component",
+      "gradient_tolerance",
+      "failure_mode",
+      "failure_detail"
+    )
+  )
   out$fit_warning_count <- metrics$warning_count
   out$fit_warnings <- metrics$warnings
   out$fit_error <- metrics$error
+  out
+}
+
+phase18_q8_staged_copy_optional_metric <- function(out, metrics, columns) {
+  for (column in columns) {
+    out[[column]] <- if (column %in% names(metrics)) {
+      metrics[[column]]
+    } else {
+      out[[column]]
+    }
+  }
   out
 }
 
@@ -328,6 +410,331 @@ phase18_q8_staged_provenance_row <- function(
     provenance$qgt2_theta_matches
   )
   out
+}
+
+phase18_q8_staged_endpoint_status_rows <- function(
+  fit,
+  truth,
+  cell_id,
+  replicate
+) {
+  captured <- fit$fits
+  if (!is.list(captured) || length(captured) == 0L) {
+    return(phase18_q8_staged_empty_rows(
+      0L,
+      "endpoint_status",
+      cell_id = cell_id,
+      replicate = replicate,
+      elapsed = NA_real_,
+      warnings = character()
+    ))
+  }
+  rows <- lapply(captured, function(x) {
+    phase18_q8_staged_fit_endpoint_status(
+      x,
+      truth,
+      cell_id = cell_id,
+      replicate = replicate
+    )
+  })
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_q8_staged_fit_endpoint_status <- function(
+  captured_fit,
+  truth,
+  cell_id,
+  replicate
+) {
+  taxonomy <- phase18_q8_staged_endpoint_taxonomy()
+  sd_truth <- c(truth$sd_mu, truth$sd_sigma)
+  sd_parameter <- c(
+    paste0("sd:mu:", names(truth$sd_mu)),
+    paste0("sd:sigma:", names(truth$sd_sigma))
+  )
+  cor_truth <- truth$cor_re_cov
+  residual_truth <- truth$residual_rho
+
+  n_sd <- nrow(taxonomy)
+  n_cor <- length(cor_truth)
+  n_residual <- length(residual_truth)
+  n <- n_sd + n_cor + n_residual
+  out <- phase18_q8_staged_empty_rows(
+    n,
+    "endpoint_status",
+    cell_id = cell_id,
+    replicate = replicate,
+    elapsed = NA_real_,
+    warnings = character()
+  )
+  out$fit_label <- phase18_q8_staged_scalar_character(captured_fit$label)
+  out$ok <- isTRUE(captured_fit$ok)
+  out$convergence <- phase18_q8_staged_fit_metric(
+    captured_fit,
+    "convergence",
+    NA_integer_
+  )
+  out$pdHess <- phase18_q8_staged_fit_metric(captured_fit, "pdHess", NA)
+  out <- phase18_q8_staged_copy_captured_metrics(
+    out,
+    captured_fit,
+    c(
+      "optimizer_attempt_count",
+      "optimizer_selected_attempt",
+      "optimizer_retried",
+      "optimizer_attempt_presets",
+      "optimizer_attempt_statuses",
+      "optimizer_message",
+      "iterations",
+      "function_evaluations",
+      "gradient_evaluations",
+      "iter_max",
+      "eval_max",
+      "budget_status",
+      "sdreport_status",
+      "sdreport_message",
+      "se_requested",
+      "fixed_gradient_status",
+      "max_abs_gradient",
+      "max_gradient_component",
+      "gradient_tolerance",
+      "failure_mode",
+      "failure_detail"
+    )
+  )
+  out$fit_warning_count <- phase18_q8_staged_fit_metric(
+    captured_fit,
+    "warning_count",
+    NA_integer_
+  )
+  out$fit_warnings <- phase18_q8_staged_fit_metric(
+    captured_fit,
+    "warnings",
+    NA_character_
+  )
+  out$fit_error <- phase18_q8_staged_fit_metric(
+    captured_fit,
+    "error",
+    NA_character_
+  )
+
+  out$parameter <- c(
+    sd_parameter,
+    paste0("cor:re_cov:", names(cor_truth)),
+    "rho12"
+  )
+  out$parameter_class <- c(
+    rep("direct_random_sd", n_sd),
+    rep("derived_random_correlation", n_cor),
+    rep("residual_rho12", n_residual)
+  )
+  out$endpoint_index <- c(
+    taxonomy$endpoint_index,
+    rep(NA_integer_, n_cor),
+    NA_integer_
+  )
+  out$endpoint <- c(
+    taxonomy$endpoint,
+    names(cor_truth),
+    names(residual_truth)
+  )
+  out$endpoint_scope <- c(
+    rep("q8_direct_sd", n_sd),
+    rep("q8_derived_correlation", n_cor),
+    rep("residual_rho12_separate", n_residual)
+  )
+  out$dpar <- c(taxonomy$dpar, rep("re_cov", n_cor), "rho12")
+  out$coefficient <- c(taxonomy$coefficient, rep(NA_character_, n_cor), "rho12")
+  out$endpoint_role <- c(
+    taxonomy$endpoint_role,
+    rep("derived_correlation", n_cor),
+    "residual_correlation"
+  )
+  out$truth <- unname(c(sd_truth, cor_truth, residual_truth))
+  out$interval_status <- "not_requested"
+
+  values <- phase18_q8_staged_fit_endpoint_values(captured_fit$fit, truth)
+  out$estimate <- phase18_q8_staged_match_estimates(out$parameter, values)
+  out$availability_status <- phase18_q8_staged_availability_status(
+    captured_fit,
+    out$parameter,
+    values,
+    out$estimate
+  )
+  out$point_status <- phase18_q8_staged_point_status(out)
+  out$availability_reason <- phase18_q8_staged_availability_reason(out)
+  out$se_status <- if (isTRUE(out$se_requested[[1L]])) {
+    "not_computed_for_endpoint_status"
+  } else {
+    "not_requested"
+  }
+  out$estimate_error <- out$estimate - out$truth
+  is_correlation <- out$endpoint_scope %in%
+    c(
+      "q8_derived_correlation",
+      "residual_rho12_separate"
+    )
+  out$boundary_distance[is_correlation] <- 0.999999 -
+    abs(out$estimate[is_correlation])
+  out$boundary_distance[
+    out$endpoint_scope == "q8_direct_sd"
+  ] <- out$estimate[out$endpoint_scope == "q8_direct_sd"]
+  out
+}
+
+phase18_q8_staged_copy_captured_metrics <- function(
+  out,
+  captured_fit,
+  columns
+) {
+  for (column in columns) {
+    out[[column]] <- phase18_q8_staged_fit_metric(
+      captured_fit,
+      column,
+      out[[column]][[1L]]
+    )
+  }
+  out
+}
+
+phase18_q8_staged_endpoint_taxonomy <- function() {
+  data.frame(
+    endpoint_index = seq_len(8L),
+    endpoint = c(
+      "mu1:(Intercept)",
+      "mu1:x",
+      "mu2:(Intercept)",
+      "mu2:x",
+      "sigma1:(Intercept)",
+      "sigma1:x",
+      "sigma2:(Intercept)",
+      "sigma2:x"
+    ),
+    dpar = rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L),
+    coefficient = rep(c("(Intercept)", "x"), 4L),
+    endpoint_role = rep(c("intercept", "slope"), 4L),
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_q8_staged_fit_endpoint_values <- function(fit, truth) {
+  if (is.null(fit)) {
+    return(stats::setNames(numeric(), character()))
+  }
+  sd_mu <- phase18_q8_staged_named_values(
+    fit$sdpars$mu,
+    names(truth$sd_mu),
+    "sd:mu:"
+  )
+  sd_sigma <- phase18_q8_staged_named_values(
+    fit$sdpars$sigma,
+    names(truth$sd_sigma),
+    "sd:sigma:"
+  )
+  cor_re_cov <- phase18_q8_staged_named_values(
+    fit$corpars$re_cov,
+    names(truth$cor_re_cov),
+    "cor:re_cov:"
+  )
+  residual_rho <- phase18_q8_staged_residual_rho12(fit)
+  c(
+    sd_mu,
+    sd_sigma,
+    cor_re_cov,
+    c(rho12 = residual_rho)
+  )
+}
+
+phase18_q8_staged_named_values <- function(x, expected, prefix) {
+  out <- rep(NA_real_, length(expected))
+  names(out) <- paste0(prefix, expected)
+  if (is.null(x)) {
+    return(out)
+  }
+  matched <- match(expected, names(x))
+  ok <- !is.na(matched)
+  out[ok] <- as.numeric(x[matched[ok]])
+  out
+}
+
+phase18_q8_staged_residual_rho12 <- function(fit) {
+  if (!is.null(fit$rho12)) {
+    return(as.numeric(fit$rho12[[1L]]))
+  }
+  tryCatch(
+    as.numeric(rho12(fit)[[1L]]),
+    error = function(e) NA_real_
+  )
+}
+
+phase18_q8_staged_match_estimates <- function(parameter, values) {
+  out <- rep(NA_real_, length(parameter))
+  matched <- match(parameter, names(values))
+  ok <- !is.na(matched)
+  out[ok] <- as.numeric(values[matched[ok]])
+  out
+}
+
+phase18_q8_staged_availability_status <- function(
+  captured_fit,
+  parameter,
+  values,
+  estimate
+) {
+  if (!isTRUE(captured_fit$ok)) {
+    return(rep("fit_failed", length(parameter)))
+  }
+  present <- parameter %in% names(values)
+  ifelse(
+    !present,
+    "missing",
+    ifelse(is.finite(estimate), "estimated", "nonfinite")
+  )
+}
+
+phase18_q8_staged_point_status <- function(x) {
+  out <- x$availability_status
+  estimated <- x$availability_status == "estimated"
+  clean_fit <- x$convergence == 0L &
+    !is.na(x$pdHess) &
+    x$pdHess &
+    !is.na(x$fixed_gradient_status) &
+    x$fixed_gradient_status == "ok" &
+    !is.na(x$failure_mode) &
+    x$failure_mode == "none"
+  out[estimated & clean_fit] <- "diagnostic_clean_estimate"
+  out[estimated & !clean_fit] <- "diagnostic_estimate_with_fit_warnings"
+  out
+}
+
+phase18_q8_staged_availability_reason <- function(x) {
+  out <- x$availability_status
+  estimated <- x$availability_status == "estimated"
+  detail <- paste(
+    paste0("convergence=", x$convergence),
+    paste0("pdHess=", x$pdHess),
+    paste0("fixed_gradient_status=", x$fixed_gradient_status),
+    paste0("failure_mode=", x$failure_mode),
+    sep = "; "
+  )
+  out[estimated] <- detail[estimated]
+  out
+}
+
+phase18_q8_staged_fit_metric <- function(captured_fit, column, default) {
+  metrics <- captured_fit$metrics
+  if (
+    !is.data.frame(metrics) || !column %in% names(metrics) || nrow(metrics) < 1L
+  ) {
+    return(default)
+  }
+  value <- metrics[[column]][[1L]]
+  if (length(value) == 0L) {
+    return(default)
+  }
+  value
 }
 
 phase18_q8_staged_scope_row <- function(
@@ -418,6 +825,7 @@ phase18_summarise_biv_gaussian_q8_endpoint_staged_diagnostic <- function(
     metrics = tables$metrics,
     deltas = tables$deltas,
     provenance = tables$provenance,
+    endpoint_status = tables$endpoint_status,
     scope = tables$scope,
     manifest = manifest,
     failures = failures
@@ -445,6 +853,27 @@ phase18_q8_staged_split_tables <- function(summary) {
         "nobs",
         "fit_elapsed_sec",
         "optimizer_preset",
+        "optimizer_attempt_count",
+        "optimizer_selected_attempt",
+        "optimizer_retried",
+        "optimizer_attempt_presets",
+        "optimizer_attempt_statuses",
+        "optimizer_message",
+        "iterations",
+        "function_evaluations",
+        "gradient_evaluations",
+        "iter_max",
+        "eval_max",
+        "budget_status",
+        "sdreport_status",
+        "sdreport_message",
+        "se_requested",
+        "fixed_gradient_status",
+        "max_abs_gradient",
+        "max_gradient_component",
+        "gradient_tolerance",
+        "failure_mode",
+        "failure_detail",
         "fit_warning_count",
         "fit_warnings",
         "fit_error",
@@ -482,6 +911,59 @@ phase18_q8_staged_split_tables <- function(summary) {
         "fixed_effect_match_count",
         "qgt2_sd_match_count",
         "qgt2_theta_match_count"
+      )
+    ),
+    endpoint_status = phase18_q8_staged_select(
+      summary[summary$artifact_kind == "endpoint_status", , drop = FALSE],
+      c(
+        "surface",
+        "cell_id",
+        "replicate",
+        "fit_label",
+        "ok",
+        "convergence",
+        "pdHess",
+        "optimizer_attempt_count",
+        "optimizer_selected_attempt",
+        "optimizer_retried",
+        "optimizer_attempt_presets",
+        "optimizer_attempt_statuses",
+        "optimizer_message",
+        "iterations",
+        "function_evaluations",
+        "gradient_evaluations",
+        "iter_max",
+        "eval_max",
+        "budget_status",
+        "sdreport_status",
+        "sdreport_message",
+        "se_requested",
+        "fixed_gradient_status",
+        "max_abs_gradient",
+        "max_gradient_component",
+        "gradient_tolerance",
+        "failure_mode",
+        "failure_detail",
+        "fit_warning_count",
+        "fit_warnings",
+        "fit_error",
+        "parameter",
+        "parameter_class",
+        "endpoint_index",
+        "endpoint",
+        "endpoint_scope",
+        "dpar",
+        "coefficient",
+        "endpoint_role",
+        "truth",
+        "estimate",
+        "estimate_error",
+        "availability_status",
+        "point_status",
+        "se_status",
+        "availability_reason",
+        "boundary_distance",
+        "interval_status"
       )
     ),
     scope = phase18_q8_staged_select(
@@ -542,6 +1024,10 @@ phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs <-
         table_dir,
         paste0(prefix, "-provenance.csv")
       ),
+      endpoint_status_csv = file.path(
+        table_dir,
+        paste0(prefix, "-endpoint-status.csv")
+      ),
       scope_csv = file.path(table_dir, paste0(prefix, "-scope.csv")),
       manifest_csv = file.path(table_dir, paste0(prefix, "-manifest.csv")),
       failures_csv = file.path(table_dir, paste0(prefix, "-failures.csv"))
@@ -568,6 +1054,11 @@ phase18_write_biv_gaussian_q8_endpoint_staged_diagnostic_grid_outputs <-
     utils::write.csv(
       summary$provenance,
       paths$provenance_csv,
+      row.names = FALSE
+    )
+    utils::write.csv(
+      summary$endpoint_status,
+      paths$endpoint_status_csv,
       row.names = FALSE
     )
     utils::write.csv(summary$scope, paths$scope_csv, row.names = FALSE)

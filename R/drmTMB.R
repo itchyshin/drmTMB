@@ -1200,6 +1200,35 @@ drm_qgt2_staged_fit_metrics <- function(
   df <- NA_real_
   nobs <- NA_real_
   optimizer_preset <- NA_character_
+  optimizer_attempt_count <- NA_integer_
+  optimizer_selected_attempt <- NA_character_
+  optimizer_retried <- NA
+  optimizer_attempt_presets <- NA_character_
+  optimizer_attempt_statuses <- NA_character_
+  optimizer_message <- NA_character_
+  iterations <- NA_real_
+  function_evaluations <- NA_real_
+  gradient_evaluations <- NA_real_
+  iter_max <- NA_real_
+  eval_max <- NA_real_
+  budget_status <- NA_character_
+  sdreport_status <- NA_character_
+  sdreport_message <- NA_character_
+  se_requested <- NA
+  fixed_gradient_status <- NA_character_
+  max_abs_gradient <- NA_real_
+  max_gradient_component <- NA_character_
+  gradient_tolerance <- 1e-4
+  failure_mode <- NA_character_
+  failure_detail <- NA_character_
+
+  if (!isTRUE(ok)) {
+    failure_mode <- "fit_error"
+    failure_detail <- error
+    budget_status <- "not_evaluated"
+    sdreport_status <- "not_available"
+    fixed_gradient_status <- "not_available"
+  }
 
   if (isTRUE(ok)) {
     convergence <- as.integer(fit$opt$convergence)
@@ -1216,6 +1245,88 @@ drm_qgt2_staged_fit_metrics <- function(
     if (!is.null(fit$optimizer_used$optimizer_preset)) {
       optimizer_preset <- as.character(fit$optimizer_used$optimizer_preset)
     }
+    attempts <- drm_qgt2_optimizer_attempts(fit)
+    optimizer_attempt_count <- attempts$count
+    optimizer_selected_attempt <- attempts$selected
+    optimizer_retried <- isTRUE(attempts$count > 1L)
+    optimizer_attempt_presets <- attempts$presets
+    optimizer_attempt_statuses <- attempts$statuses
+    optimizer_message <- drm_qgt2_scalar_character(fit$opt$message)
+    iterations <- drm_qgt2_scalar_numeric(fit$opt$iterations)
+    function_evaluations <- drm_qgt2_named_numeric(
+      fit$opt$evaluations,
+      "function"
+    )
+    if (is.na(function_evaluations)) {
+      function_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "function")
+    }
+    gradient_evaluations <- drm_qgt2_named_numeric(
+      fit$opt$evaluations,
+      "gradient"
+    )
+    if (is.na(gradient_evaluations)) {
+      gradient_evaluations <- drm_qgt2_named_numeric(fit$opt$counts, "gradient")
+    }
+    iter_max <- drm_qgt2_named_numeric(fit$control$optimizer, "iter.max")
+    eval_max <- drm_qgt2_named_numeric(fit$control$optimizer, "eval.max")
+    se_requested <- if (!is.null(fit$control$se)) {
+      isTRUE(fit$control$se)
+    } else {
+      NA
+    }
+    sdreport_message <- drm_qgt2_scalar_character(fit$sdr$message)
+    sdreport_status <- if (is.null(fit$sdr)) {
+      "not_available"
+    } else if (isTRUE(pdHess)) {
+      "positive_hessian"
+    } else {
+      "nonpositive_hessian"
+    }
+    gradient <- tryCatch(
+      fit$obj$gr(fit$opt$par),
+      error = function(e) NA_real_
+    )
+    if (is.numeric(gradient) && any(is.finite(gradient))) {
+      max_abs_gradient <- max(abs(gradient), na.rm = TRUE)
+      max_index <- which.max(abs(gradient))
+      gradient_names <- names(gradient)
+      max_gradient_component <- if (
+        !is.null(gradient_names) &&
+          length(gradient_names) >= max_index &&
+          !is.na(gradient_names[[max_index]]) &&
+          nzchar(gradient_names[[max_index]])
+      ) {
+        gradient_names[[max_index]]
+      } else {
+        NA_character_
+      }
+      if (is.na(max_gradient_component)) {
+        max_gradient_component <- as.character(max_index)
+      }
+      fixed_gradient_status <- if (max_abs_gradient <= gradient_tolerance) {
+        "ok"
+      } else {
+        "warning"
+      }
+    } else {
+      fixed_gradient_status <- "not_available"
+    }
+    budget_status <- drm_qgt2_budget_status(
+      convergence = convergence,
+      iterations = iterations,
+      function_evaluations = function_evaluations,
+      iter_max = iter_max,
+      eval_max = eval_max
+    )
+    failure <- drm_qgt2_failure_status(
+      convergence = convergence,
+      pdHess = pdHess,
+      fixed_gradient_status = fixed_gradient_status,
+      warning_count = length(warnings),
+      error = error
+    )
+    failure_mode <- failure$mode
+    failure_detail <- failure$detail
   }
 
   data.frame(
@@ -1229,11 +1340,148 @@ drm_qgt2_staged_fit_metrics <- function(
     nobs = nobs,
     elapsed_sec = as.numeric(elapsed),
     optimizer_preset = optimizer_preset,
+    optimizer_attempt_count = optimizer_attempt_count,
+    optimizer_selected_attempt = optimizer_selected_attempt,
+    optimizer_retried = optimizer_retried,
+    optimizer_attempt_presets = optimizer_attempt_presets,
+    optimizer_attempt_statuses = optimizer_attempt_statuses,
+    optimizer_message = optimizer_message,
+    iterations = iterations,
+    function_evaluations = function_evaluations,
+    gradient_evaluations = gradient_evaluations,
+    iter_max = iter_max,
+    eval_max = eval_max,
+    budget_status = budget_status,
+    sdreport_status = sdreport_status,
+    sdreport_message = sdreport_message,
+    se_requested = se_requested,
+    fixed_gradient_status = fixed_gradient_status,
+    max_abs_gradient = max_abs_gradient,
+    max_gradient_component = max_gradient_component,
+    gradient_tolerance = gradient_tolerance,
+    failure_mode = failure_mode,
+    failure_detail = failure_detail,
     warning_count = length(warnings),
     warnings = paste(warnings, collapse = " | "),
     error = error,
     stringsAsFactors = FALSE
   )
+}
+
+drm_qgt2_optimizer_attempts <- function(fit) {
+  attempts <- fit$optimizer_attempts
+  if (is.data.frame(attempts) && nrow(attempts) > 0L) {
+    presets <- if ("optimizer_preset" %in% names(attempts)) {
+      paste(attempts$optimizer_preset, collapse = " | ")
+    } else {
+      NA_character_
+    }
+    statuses <- if ("status" %in% names(attempts)) {
+      paste(attempts$status, collapse = " | ")
+    } else if ("convergence" %in% names(attempts)) {
+      paste0("convergence=", paste(attempts$convergence, collapse = " | "))
+    } else {
+      NA_character_
+    }
+    return(list(
+      count = nrow(attempts),
+      selected = if ("optimizer_preset" %in% names(attempts)) {
+        as.character(utils::tail(attempts$optimizer_preset, 1L))
+      } else {
+        NA_character_
+      },
+      presets = presets,
+      statuses = statuses
+    ))
+  }
+  list(
+    count = 1L,
+    selected = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
+    presets = drm_qgt2_scalar_character(fit$optimizer_used$optimizer_preset),
+    statuses = NA_character_
+  )
+}
+
+drm_qgt2_scalar_character <- function(x) {
+  if (is.null(x) || length(x) == 0L || is.na(x[[1L]])) {
+    return(NA_character_)
+  }
+  as.character(x[[1L]])
+}
+
+drm_qgt2_scalar_numeric <- function(x) {
+  if (is.null(x) || length(x) == 0L || is.na(x[[1L]])) {
+    return(NA_real_)
+  }
+  as.numeric(x[[1L]])
+}
+
+drm_qgt2_named_numeric <- function(x, name) {
+  if (is.null(x) || !name %in% names(x)) {
+    return(NA_real_)
+  }
+  as.numeric(x[[name]])
+}
+
+drm_qgt2_budget_status <- function(
+  convergence,
+  iterations,
+  function_evaluations,
+  iter_max,
+  eval_max
+) {
+  if (identical(convergence, 0L)) {
+    return("converged")
+  }
+  if (
+    is.finite(iterations) &&
+      is.finite(iter_max) &&
+      iterations >= iter_max
+  ) {
+    return("iteration_budget_reached")
+  }
+  if (
+    is.finite(function_evaluations) &&
+      is.finite(eval_max) &&
+      function_evaluations >= eval_max
+  ) {
+    return("evaluation_budget_reached")
+  }
+  "nonconverged_before_budget_or_unknown"
+}
+
+drm_qgt2_failure_status <- function(
+  convergence,
+  pdHess,
+  fixed_gradient_status,
+  warning_count,
+  error
+) {
+  if (!is.na(error)) {
+    return(list(mode = "fit_error", detail = error))
+  }
+  if (!identical(convergence, 0L)) {
+    return(list(
+      mode = "optimizer_nonconvergence",
+      detail = paste0("convergence=", convergence)
+    ))
+  }
+  if (!isTRUE(pdHess)) {
+    return(list(mode = "nonpositive_hessian", detail = "pdHess is not TRUE"))
+  }
+  if (identical(fixed_gradient_status, "warning")) {
+    return(list(
+      mode = "fixed_gradient_warning",
+      detail = fixed_gradient_status
+    ))
+  }
+  if (warning_count > 0L) {
+    return(list(
+      mode = "warning",
+      detail = paste0("warning_count=", warning_count)
+    ))
+  }
+  list(mode = "none", detail = NA_character_)
 }
 
 drm_qgt2_staged_fit_comparison <- function(cold, staged) {

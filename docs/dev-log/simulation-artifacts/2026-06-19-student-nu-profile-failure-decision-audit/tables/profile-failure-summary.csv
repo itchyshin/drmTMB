@@ -1,0 +1,5 @@
+"cell_id","parameter","interval_status","n_failures"
+"student_shape_001","nu:(Intercept)","failed",23
+"student_shape_002","nu:(Intercept)","failed",29
+"student_shape_001","nu:w","failed",24
+"student_shape_002","nu:w","failed",31

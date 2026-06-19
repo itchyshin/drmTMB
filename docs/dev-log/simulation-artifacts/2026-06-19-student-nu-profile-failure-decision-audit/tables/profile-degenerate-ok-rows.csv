@@ -1,0 +1,3 @@
+"cell_id","replicate","parameter","truth","estimate","conf.low","conf.high","converged","pdHess","student_nu_status"
+"student_shape_001",8,"nu:(Intercept)",-0.22314355131421,-34.2514435154413,-34.2514435159821,-34.251443514667,FALSE,FALSE,"error"
+"student_shape_001",9,"nu:(Intercept)",-0.22314355131421,8.14597614031921,8.14597613980317,8.14597614063729,FALSE,FALSE,"warning"

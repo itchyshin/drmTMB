@@ -44,7 +44,7 @@ evidence is reconciled.
 | AI-REML-inspired algorithms | planned | unsupported | planned | planned | planned | planned | planned | unsupported | planned | planned | Borrow `hsquared` only as a design analogue for exact Gaussian MME cells; use observed-information, Fisher/natural-gradient, or AD-gradient methods for Laplace/non-Gaussian cells after derivation. |
 | Missing values | partial | planned | planned | planned | planned | planned | planned | planned | planned | planned | Use likelihood/FIML-style masks. Complete-data all-true masks must match current complete-data log-likelihood exactly. |
 | Visuals and articles | partial | partial | partial | partial | partial | partial | partial | planned | partial | planned | Every major capability needs a real visual: capability heatmap, profile curve, parity plot, missingness heatmap, structural visual, and runtime-plus-CI plot where relevant. |
-| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, the first fixed-effect `log(sigma)` clamp sensitivity pilot, the first scale-side phylogenetic clamp-active diagnostic, the first fixed-effect bivariate `sigma1`/`sigma2` clamp-sensitivity diagnostic, the first Student-t finite-variance diagnostic pilot, the first Student-t Wald calibration diagnostic, the first Student-t profile/bootstrap feasibility diagnostic, the Student-t profile/bootstrap diagnostic pilot, the Student-t profile/bootstrap calibration diagnostic, the skew-normal tail-floor source and fit-stress diagnostics, the beta/zero-one beta support-floor diagnostic, the residual `rho12` open-interval diagnostic, the q2 `mu`/`sigma` covariance boundary diagnostic, the ordinary q2 correlation-grid diagnostic, the structured q2 boundary diagnostic, the numerical-guard ADEMP design, skew-normal diagnostic pilot, and q8 staged diagnostic artifact are banked; broader guard-class simulations, q8 coverage/power, same-response hardening, bridge parity, and release-readiness evidence remain partial or planned. |
+| ADEMP and comparator program | partial | planned | partial | partial | planned | planned | partial | partial | partial | planned | Binomial fixed-effect parity, fixed-effect Wald interval calibration, the first fixed-effect `log(sigma)` clamp sensitivity pilot, the first scale-side phylogenetic clamp-active diagnostic, the first fixed-effect bivariate `sigma1`/`sigma2` clamp-sensitivity diagnostic, the larger fixed-effect bivariate `sigma1`/`sigma2` clamp diagnostic, the first Student-t finite-variance diagnostic pilot, the first Student-t Wald calibration diagnostic, the first Student-t profile/bootstrap feasibility diagnostic, the Student-t profile/bootstrap diagnostic pilot, the Student-t profile/bootstrap calibration diagnostic, the Student-t profile-failure decision audit, the skew-normal diagnostic pilot, skew-normal tail-floor source and fit-stress diagnostics, the fixed-effect skew-normal guard grid, the beta/zero-one beta support-floor diagnostic, the residual `rho12` open-interval diagnostic, the q2 `mu`/`sigma` covariance boundary diagnostic, the ordinary q2 correlation-grid diagnostic, the larger ordinary q2 covariance hardening diagnostic, the structured q2 boundary diagnostic, the numerical-guard ADEMP design, and q8 staged diagnostic artifact are banked; broader operating-characteristic simulations, q8 coverage/power, bridge parity, and release-readiness evidence remain partial or planned. |
 | Release gate | planned | planned | planned | planned | planned | planned | planned | planned | planned | planned | Release notes must separate local package health, public CI/pkgdown state, speed evidence, unsupported cells, and remaining validation debt. No CRAN submission without user decision. |
 
 ## Issue-Led Slice Rules
@@ -140,7 +140,7 @@ weakly identified cells cannot collapse into one status word.
   modelling, binary missing-predictor imputation, random-effect binomial, or a
   Julia bridge claim.
 
-## Post-#602 Work Order
+## Post-#633 Work Order
 
 1. Keep the dashboard live at `http://127.0.0.1:8765/`.
 2. Keep the finish-board widget, generated Julia gate tables, and issue-led
@@ -164,6 +164,9 @@ weakly identified cells cannot collapse into one status word.
    Student-t Wald calibration diagnostic, the Student-t profile/bootstrap
    feasibility diagnostic, the Student-t profile/bootstrap diagnostic pilot,
    the Student-t profile/bootstrap calibration diagnostic,
+   the Student-t profile-failure decision audit,
+   the larger fixed-effect bivariate `sigma1`/`sigma2` clamp diagnostic,
+   the skew-normal diagnostic pilot, fixed-effect skew-normal guard grid,
    the skew-normal tail-floor source and fit-stress diagnostics,
    the beta/zero-one beta support-floor diagnostic, the residual
    `rho12` open-interval
@@ -172,10 +175,27 @@ weakly identified cells cannot collapse into one status word.
    scale-side phylogenetic clamp-active diagnostic, the fixed-effect bivariate
    `sigma1`/`sigma2` clamp-sensitivity diagnostic, and the ADEMP design in
    `docs/design/176-numerical-guard-simulation-audit.md`: larger bivariate
-   scale-route grids, larger skew-normal guard grids, promotion-grade
-   Student-t profile/bootstrap evidence, additional random-effect and
-   structured correlation guard depth, larger scale-side phylogeny grids, and
-   broader interval consequences still need sensitivity evidence.
+   scale-route grids, formal skew-normal operating-characteristic grids,
+   additional
+   random-effect and structured correlation guard depth, larger scale-side
+   phylogeny grids, and broader interval consequences still need sensitivity
+   evidence. The post-#633 decision ledger keeps Student-t profile intervals
+   blocked by method until failure modes are investigated, keeps Student-t
+   bootstrap intervals diagnostic until the target/refit budget is justified,
+   and names fixed-effect bivariate `sigma1`/`sigma2` clamp sensitivity as the
+   strongest next scale-guard candidate.
+   The four-block operating plan in
+   `docs/design/177-big4-finish-plan-2026-06-19.md` sequences that scale
+   slice before ordinary q2/same-response hardening, q8 endpoint hardening,
+   and fixed-effect skew-normal guard-grid work. The larger scale slice is
+   now banked as native R/TMB diagnostic evidence only: upper-side guard
+   visibility is visible, while lower-tail rows retain numerical roughness and
+   need follow-up before any interval, recovery, or bridge claim.
+   The ordinary q2 hardening slice is also now banked as native R/TMB
+   diagnostic evidence only: all 2100 primary fits returned, converged, and
+   had `pdHess = TRUE`, but bivariate-route fixed-gradient status and
+   fitted-minus-true correlation errors keep this out of promotion, bridge,
+   interval, release, and CRAN language.
 7. Leave release, comparator, and CRAN readiness planned until implementation,
    evidence, pkgdown, issue comments, dashboard rows, and 3-OS CI agree.
 

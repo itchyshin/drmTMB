@@ -924,6 +924,154 @@ random effects, bivariate responses, structured effects, true infinite-variance
 stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
 non-Gaussian REML/AI-REML language.
 
+## Decision Ledger After The First Fifteen Diagnostics
+
+This ledger turns the current diagnostic bank into the next working order. It
+does not promote any row by itself. Its purpose is to keep the next slices from
+confusing four different states: a diagnostic is visible, a larger grid is
+worth running, a method problem blocks promotion, or a row should stay on
+diagnostic hold.
+
+| Guard row | Current evidence | Decision state | Next action |
+|---|---|---|---|
+| Student-t `student_nu` diagnostic visibility | Boundary, Wald, profile, and bootstrap artifacts all retain `student_nu` status, warnings, errors, and interval-failure rows. | `promote_candidate` for diagnostic reporting only | Require `student_nu` status to travel with future summaries. This is not an interval, recovery, or release claim. |
+| Student-t finite-variance shape, Wald intervals | The 200-fit Wald diagnostic retained near-boundary `student_nu` warnings/errors and shape-term Wald coverage of `0.87-0.90` with MCSE up to `0.03363034`. | `needs_larger_grid` with low-boundary intercept on `diagnostic_hold` | Run a larger fixed-effect finite-variance calibration only if the next claim is explicitly Wald-only and cell-specific. |
+| Student-t finite-variance shape, profile intervals | Profile ok rates stayed low across feasibility, pilot, and calibration diagnostics, ending at `0.38-0.54` in the 100-fit calibration artifact with 107 focused `nu` profile failures. | `blocked_by_method` | Do not promote profile intervals. First investigate profile target construction, budgets, and failure modes on representative fits. |
+| Student-t finite-variance shape, bootstrap intervals | All requested bootstrap intervals returned in the pilot and calibration diagnostics, but rough 70% bootstrap coverage in the 100-fit artifact was `0.50-0.68` with MCSE up to `0.07071068`. | `diagnostic_hold` for the ordinary intercept and `needs_larger_grid` for the remaining target-specific cells | Keep bootstrap as status visibility. A larger grid is justified only after deciding whether the bootstrap target and refit budget answer a user-facing question. |
+| Fixed-effect Gaussian `log(sigma)` clamp | Default, disabled, and wide-band controls were compared in ordinary, near-band, and out-of-band scale cells. The default guard was negligible when inactive and materially changed out-of-band fits when active. | `needs_larger_grid` | Add interval consequences and larger guard-sensitivity cells before any public inference claim uses the clamp result. |
+| Fixed-effect bivariate Gaussian `sigma1`/`sigma2` clamp | The first 120-fit diagnostic showed ordinary cells matching the unclamped reference and upper high-scale cells surfacing default clamp warnings. The 1500-fit larger diagnostic added lower-tail, near-band, and residual-correlation cells: 0 fit errors, 1492 optimizer-converged fits, 1497 `pdHess = TRUE` fits, 150 upper-side clamp warnings, 100 lower-side raw-vs-reported clamp-delta detections, and automatic optimizer escalation up to two retries. | `diagnostic_hold` for inference; upper-side guard visibility banked | Keep this as native R/TMB fixed-effect diagnostic evidence. Split any follow-up into upper-side guard visibility and lower-side numerical roughness before interval, recovery, q2/q4/q8, or bridge claims. |
+| Scale-side phylogenetic `log(sigma)` clamp | Six stress fits had no fit errors but all retained false convergence and fixed-gradient warnings; disabled and wide controls did not rescue the extreme weak-identification case. | `diagnostic_hold` | Do not run a promotion grid until weak identification is separated from clamp activation. Keep this as a warning-visibility artifact. |
+| Skew-normal tail log floor | Source-level ordinary tail values match exact calculations to numerical tolerance; the fit-stress diagnostic had no fitted-scale floor domination but retained one non-converged, non-positive-Hessian ordinary-reference fit. The 2026-06-19 guard grid requested 200 fixed-effect complete-data fits across ordinary, moderate-tail, extreme-tail, and injected-tail cells: all returned, converged, and had `pdHess = TRUE`; injected generating-scale floor exposure did not become fitted-scale floor domination, but 27 fits retained fixed-gradient warnings. | `diagnostic_hold` | Keep fitted tail-floor exposure and fixed-gradient status together in future summaries. Formal operating-characteristic, interval, comparator, direct Julia, Julia-via-R, release, and CRAN claims remain separate gates. |
+| Beta and zero-one beta support floors | Source-level support floors activate in high-scale source cells; small fitted response-route cells converged with `pdHess = TRUE`; malformed boundary cells failed visibly. | `needs_larger_grid` | Pair any larger grid with response validation and explicit open-support wording. Do not promote bounded-response breadth from floor visibility alone. |
+| Residual `rho12` open-interval guard | Four fixed residual-correlation stress fits converged with `pdHess = TRUE`, while still surfacing start clamps, fixed-gradient warnings, and one boundary warning at fitted `rho12 = 0.9813`. | `needs_larger_grid` | Add interval and recovery consequences for fixed residual `rho12` before moving to random `rho12` or structured correlations. |
+| Ordinary q2 random-effect correlations | The first 12-cell grid showed fitted-boundary visibility. The 2100-fit larger diagnostic had 0 fit errors, 2100 optimizer-converged fits, and 2100 `pdHess = TRUE` fits, but retained 1447 `check_drm()` warning/error replicate statuses, 642 route-specific covariance warnings, weak fixed-gradient ok rates for bivariate routes, and large fitted-minus-true correlation errors in some `biv_sigma` cells. | `diagnostic_hold` for inference; larger route-specific diagnostic banked | Keep as ordinary q2 fitted-boundary visibility and recovery-screen evidence. Do not move to structured, q4/q8, interval, or bridge claims until route-specific gradient and recovery behavior are understood. |
+| Structured q2 boundary visibility | Twelve coordinate-spatial, `animal()`, and `relmat()` q2 cells had zero fit errors and five route-specific warnings, but the largest fitted-minus-true correlation difference was `0.6262573`. | `diagnostic_hold` | Keep structured q2 as fitted-boundary visibility only until ordinary q2 evidence and structured recovery diagnostics are stronger. |
+| True `nu <= 2` Student-t stress | The fitted Student-t model is `nu = 2 + exp(eta_nu)` and deliberately excludes infinite-variance tails. | `blocked_by_method` | Do not use finite-variance diagnostics to imply support for true `nu <= 2` data. Treat such cells as misspecification stress only. |
+
+The next three implementation blocks should follow this order:
+
+1. finish this decision-ledger synchronization across the worklist, finish
+   matrix, dashboard, check log, after-task report, and `drmTMB#59`;
+2. bank one Student-t interval decision slice that either repairs the profile
+   method or explicitly holds profile intervals out of promotion;
+3. choose one scale/correlation sensitivity slice, with fixed-effect bivariate
+   `sigma1`/`sigma2` clamp sensitivity as the strongest next candidate.
+
+Only after those decisions should the team reopen q8, same-response q2,
+skew-normal, binomial, or bridge-parity work as separate issue-led slices.
+
+For the R/Julia finish plan, the evidence standard is deliberately asymmetric.
+Native R/TMB evidence can support native `drmTMB` rows. Direct Julia evidence
+can support `DRM.jl` rows. The R-side `engine = "julia"` bridge needs its own
+registry row, representative rejection or parity test, point-estimate evidence,
+and CI/status evidence before it can support a `drmTMB` user-facing bridge
+claim. Do not use a green native R diagnostic or a direct Julia result as
+evidence that Julia-via-R is complete.
+
+## Student-t Profile Failure Decision Audit
+
+The Student-t interval decision slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-failure-decision-audit/`.
+It is a readback artifact over the 100-fit profile/bootstrap calibration
+diagnostic, not a new simulation run.
+
+The audit records 107 focused `nu` profile failures. Failure is not confined to
+bad optimizer states: 86 profile failures occurred in fits with
+`converged = TRUE` and `pdHess = TRUE`. Most failed rows reported
+`nonfinite_interval`; two low-boundary `nu:(Intercept)` rows were formally
+`ok` but had degenerate intervals. The target-level decision is therefore:
+
+| Cell | Target | Profile decision | Bootstrap decision |
+|---|---|---|---|
+| Low-boundary finite-variance `nu(w = 0) = 2.8` | `nu:(Intercept)` | `blocked_by_method` | `needs_larger_grid` |
+| Low-boundary finite-variance `nu(w = 0) = 2.8` | `nu:w` | `blocked_by_method` | `needs_larger_grid` |
+| Ordinary finite-variance `nu(w = 0) = 8.0` | `nu:(Intercept)` | `blocked_by_method` | `diagnostic_hold` |
+| Ordinary finite-variance `nu(w = 0) = 8.0` | `nu:w` | `blocked_by_method` | `needs_larger_grid` |
+
+This closes the immediate Student-t interval decision: do not run a larger
+profile coverage grid until the profile target construction and failure modes
+are repaired or redesigned. A bootstrap grid can be considered only after the
+team chooses a user-facing target and refit budget. This does not promote
+Student-t profile/bootstrap intervals.
+
+## Bivariate Scale Clamp Larger Diagnostic
+
+The bivariate scale-clamp larger diagnostic is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-biv-scale-clamp-larger-diagnostic/`.
+It deepens the earlier 120-fit fixed-effect bivariate Gaussian
+`sigma1`/`sigma2` diagnostic with 10 cells, 50 replicates per cell, and three
+public clamp controls: `logsigma_clamp = NULL`, the default control, and a wide
+`logsigma_clamp = c(-25, 25)` band.
+
+The model remains fixed-effect native R/TMB:
+`bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ z1, sigma2 = ~ z2, rho12 = ~ 1)`
+with `family = biv_gaussian()`. The runner records optimizer attempts,
+automatic preset escalation, raw and reported `log_sigma1`/`log_sigma2`, upper
+and lower clamp deltas, `check_drm()` rows, warnings, convergence,
+positive-Hessian status, and replicate-matched differences against the
+unclamped reference. It uses one start, no fallback optimizer, no manual
+retries, no profile intervals, and no bootstrap intervals. The automatic
+optimizer preset ladder is still recorded as data.
+
+The diagnostic ran 1500 requested fits with 0 fit errors, 1492
+optimizer-converged fits, and 1497 fits with `pdHess = TRUE`. The upper-side
+guard signal was clear: the three upper out-of-band default rows produced 150
+`logsigma_clamp_active` warnings, and default-vs-unclamped log-likelihood
+differences reached `644.592`. Ordinary `rho12 = 0`, `rho12 = 0.8`, and
+`rho12 = -0.8` cells and the near-upper in-band cell had no clamp-active fits
+and matched the unclamped reference to numerical tolerance.
+
+The lower side is deliberately not treated as clean. The two lower out-of-band
+default rows produced 100 raw-versus-reported lower clamp-delta detections, but
+`check_drm()` does not warn for lower-side scale boundaries because its
+`logsigma_clamp_active` warning is reserved for upper overflow. Lower in-band
+and lower out-of-band cells retained many fixed-gradient warnings and automatic
+optimizer preset escalations; `retry_count` reached 2. The
+`sigma2_below_default` wide-band row still had one non-converged fit and a
+maximum log-likelihood difference of `24.4263376` against the unclamped
+reference. These rows show lower-tail numerical roughness that should be
+audited before any interval, recovery, or readiness claim.
+
+This is larger native R/TMB diagnostic evidence for fixed-effect bivariate
+Gaussian scale-guard sensitivity only. It does not settle bivariate scale-route
+recovery accuracy, interval coverage, power, q2/q4/q8 covariance readiness,
+random effects in `rho12`, structured correlation readiness, direct Julia
+behavior, R-side Julia bridge behavior, release readiness, CRAN readiness,
+missing-data behavior, or non-Gaussian REML/AI-REML language.
+
+## Ordinary q2 Covariance Hardening Diagnostic
+
+The ordinary q2 covariance hardening diagnostic is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-q2-ordinary-hardening-diagnostic/`.
+It repeats the three ordinary q2 routes from the one-shot correlation grid:
+univariate same-response `mu`/`sigma` covariance, bivariate `mu1`/`mu2`
+covariance, and bivariate `sigma1`/`sigma2` covariance.
+
+The primary grid is complete-data Gaussian only. It uses seven true latent
+random-effect correlations, `-0.95`, `-0.80`, `0`, `0.40`, `0.80`, `0.95`,
+and `0.98`, with 100 replicates per route-cell for 2100 requested primary
+fits. A separate three-row missing-response smoke table records complete-case
+dropped-row diagnostics for one moderate cell per route, but those rows are not
+included in the primary q2 status or recovery summaries.
+
+All 2100 primary fits returned without fit errors, all 2100 reported optimizer
+convergence, and all 2100 had `pdHess = TRUE`. That is useful status evidence,
+but it is not promotion evidence. The run retained 1447 `check_drm()`
+warning/error replicate statuses and 642 route-specific covariance warnings.
+Fixed-gradient ok counts were 642/700 for `univ_mu_sigma`, 274/700 for
+`biv_mu`, and 360/700 for `biv_sigma`. The largest fitted-minus-true
+correlation errors were `0.999999`, `0.561493`, and `1.399771` for those same
+routes, respectively.
+
+The route-specific interpretation is therefore conservative. The artifact
+banks larger native R/TMB ordinary q2 fitted-boundary visibility and recovery
+screening. It keeps `biv_sigma` on diagnostic hold for inference wording
+because gradient status and fitted-minus-true correlation errors remain rough
+even in ordinary cells. It does not support interval coverage, power,
+structured q2, q4/q8 covariance, random effects in residual `rho12`, direct
+Julia parity, Julia-via-R bridge parity, release readiness, CRAN readiness,
+missing-data recovery, or non-Gaussian REML/AI-REML.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
