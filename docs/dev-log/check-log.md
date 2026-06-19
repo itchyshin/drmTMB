@@ -2,6 +2,76 @@
 
 Record meaningful development checks here.
 
+## 2026-06-18 -- ordinary q2 correlation-grid diagnostic
+
+Goal:
+
+- Bank a diagnostic-only ordinary q2 random-effect correlation grid for
+  `drmTMB#59`, extending fitted-boundary visibility beyond the previous
+  univariate `mu`/`sigma` q2 slice without changing package code, formula
+  grammar, likelihoods, mission-control counts, or public support claims.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-18-q2-correlation-grid-diagnostic/`
+  with a self-contained runner, README, run summary, session info, and tables.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` with the
+  eighth diagnostic entry.
+- Synchronized
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/design/168-r-julia-finish-capability-matrix.md`,
+  `docs/dev-log/dashboard/status.json`, and
+  `docs/dev-log/dashboard/sweep.json`.
+
+Checks run:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-18-q2-correlation-grid-diagnostic/run-pilot.R`
+- `air format docs/dev-log/simulation-artifacts/2026-06-18-q2-correlation-grid-diagnostic/run-pilot.R`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `python3 tools/validate-mission-control.py`
+- `git diff --check`
+- `Rscript --vanilla - <<'RS' ... artifact consistency assertions ... RS`
+- `git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|structured correlations|recovery accuracy|promote|promotion' || true`
+- `Rscript --vanilla -e "pkgdown::check_pkgdown()"`
+
+Results:
+
+- The artifact requested 12 fits: three ordinary q2 covariance routes
+  (univariate `mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate
+  `sigma1`/`sigma2`) crossed with true latent correlations 0, 0.4, 0.9, and
+  0.98.
+- All 12 fits converged with `pdHess = TRUE`; there were no fit errors and no
+  R warnings.
+- Eight of 12 fits had default fixed-gradient checks below the threshold.
+  Eight cells had at least one `check_drm()` warning-or-error row.
+- Four cells had route-specific fitted-boundary covariance warnings:
+  univariate `mu`/`sigma` at true `rho = 0.9` and 0.98, bivariate
+  `mu1`/`mu2` at true `rho = 0.98`, and bivariate `sigma1`/`sigma2` at true
+  `rho = 0.9`.
+- The minimum fitted boundary distance was `1.003682e-06`, the largest fixed
+  gradient was `0.003596244`, and the largest absolute fitted-minus-true
+  correlation difference was `0.4083517`.
+- `tools/validate-mission-control.py` still reports
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- The artifact consistency assertions passed for 12 requested cells, 0 fit
+  errors, 12 converged fits, 12 positive Hessians, 4 route-specific covariance
+  warnings, and the three expected `check_drm()` covariance row names.
+- `pkgdown::check_pkgdown()` found no problems.
+- The claim-boundary scan found only negative or planned wording: no coverage,
+  power, release, CRAN, Julia bridge parity, structured-correlation, random
+  effects in `rho12`, recovery-accuracy, or non-Gaussian REML/AI-REML
+  promotion was added.
+
+Boundaries:
+
+- Diagnostic artifact and ledger update only. This slice records fitted q2
+  boundary visibility, not recovery accuracy, calibrated intervals, coverage,
+  power, structured correlations, q4/q8 covariance intervals, random effects
+  in `rho12`, Julia bridge parity, release readiness, CRAN readiness, or
+  non-Gaussian REML/AI-REML support.
+
 ## 2026-06-18 -- post-624 dashboard evidence refresh
 
 Goal:

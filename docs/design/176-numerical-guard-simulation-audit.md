@@ -528,6 +528,56 @@ power, bivariate q2 covariance, q4/q8 covariance intervals, structured
 correlations, random effects in `rho12`, Julia bridge parity, release
 readiness, CRAN readiness, or non-Gaussian REML/AI-REML language.
 
+## Eighth Diagnostic: Ordinary Q2 Correlation Grid
+
+The eighth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-18-q2-correlation-grid-diagnostic/`.
+It extends the q2 covariance boundary-visibility pattern across already fitted
+ordinary q2 random-effect covariance routes. It is not a recovery, coverage, or
+power grid.
+
+**Aim.** Check whether fitted near-boundary random-effect correlations are
+visible through `check_drm()` for univariate Gaussian `mu`/`sigma`, bivariate
+Gaussian `mu1`/`mu2`, and bivariate Gaussian `sigma1`/`sigma2` random-intercept
+covariance routes.
+
+**Data-generating mechanisms.** Twelve complete-data Gaussian cells cross
+three ordinary q2 covariance routes with true latent correlations 0, 0.4, 0.9,
+and 0.98. The diagnostic keeps structured covariance, q4/q8 covariance,
+random effects in `rho12`, non-Gaussian covariance, and interval calibration
+out of scope.
+
+**Estimands.** The diagnostic tracks the true and fitted route-specific
+correlation, the guarded link-equivalent target, fitted component SDs,
+`1 - rho^2`, boundary distance, fixed gradients, convergence, `pdHess`,
+`sdreport_status`, log likelihood, AIC/BIC, warnings, and all `check_drm()`
+rows.
+
+**Methods.** Each cell uses the default optimizer path with no retries,
+multi-start, fallback optimizer, profile interval, bootstrap interval, or
+manual convergence rescue. The runner records warnings and failures as data.
+
+**Performance measures.** The committed summaries report source-grid guard
+distances, per-cell fit diagnostics, per-cell exposure counts, per-cell
+denominators for requested/attempted/error/warning/converged/`pdHess`/gradient
+ok/`check_drm` warning-or-error rows, route-level counts, and a compact run
+summary. There is no coverage, power, or calibrated interval estimate in this
+slice.
+
+The diagnostic ran 12 requested fits with no fit errors or R warnings. All 12
+fits converged with `pdHess = TRUE`; 8/12 had fixed gradients below the default
+threshold. Four route-specific covariance warnings were visible: univariate
+`mu`/`sigma` at true `rho = 0.9` and 0.98, bivariate `mu1`/`mu2` at true
+`rho = 0.98`, and bivariate `sigma1`/`sigma2` at true `rho = 0.9`. The
+minimum fitted boundary distance was `1.003682e-06`, and the largest fixed
+gradient was `0.003596244`.
+
+This is diagnostic evidence for ordinary q2 fitted-boundary visibility only.
+It does not settle q2 recovery accuracy, interval coverage, power, structured
+correlations, q4/q8 covariance intervals, random effects in `rho12`, Julia
+bridge parity, release readiness, CRAN readiness, or non-Gaussian
+REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
