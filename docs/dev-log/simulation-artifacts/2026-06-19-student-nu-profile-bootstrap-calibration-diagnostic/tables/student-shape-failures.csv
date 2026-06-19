@@ -1,0 +1,121 @@
+"cell_id","replicate","seed","status","severity","message","skipped"
+"student_shape_001",1,1124796542,"ok","warning","NaNs produced",FALSE
+"student_shape_001",2,413426517,"ok","warning","NaNs produced",FALSE
+"student_shape_001",3,65882448,"ok","warning","NaNs produced",FALSE
+"student_shape_001",4,536145574,"ok","warning","NaNs produced",FALSE
+"student_shape_001",5,51976897,"ok","warning","NaNs produced",FALSE
+"student_shape_001",6,1093702371,"ok","warning","NaNs produced",FALSE
+"student_shape_001",7,86690583,"ok","warning","NaNs produced",FALSE
+"student_shape_001",7,86690583,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_001",8,1501050267,"ok","warning","NaNs produced",FALSE
+"student_shape_001",8,1501050267,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_001",9,1495639937,"ok","warning","NaNs produced",FALSE
+"student_shape_001",10,1467371450,"ok","warning","NaNs produced",FALSE
+"student_shape_001",11,952350252,"ok","warning","NaNs produced",FALSE
+"student_shape_001",12,587907161,"ok","warning","NaNs produced",FALSE
+"student_shape_001",13,922750304,"ok","warning","NaNs produced",FALSE
+"student_shape_001",13,922750304,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_001",14,740699066,"ok","warning","NaNs produced",FALSE
+"student_shape_001",15,1083106862,"ok","warning","NaNs produced",FALSE
+"student_shape_001",16,2020018292,"ok","warning","NaNs produced",FALSE
+"student_shape_001",17,923623380,"ok","warning","NaNs produced",FALSE
+"student_shape_001",18,1694639217,"ok","warning","NaNs produced",FALSE
+"student_shape_001",19,1996947875,"ok","warning","NaNs produced",FALSE
+"student_shape_001",20,2044238761,"ok","warning","NaNs produced",FALSE
+"student_shape_001",21,106706530,"ok","warning","NaNs produced",FALSE
+"student_shape_001",21,106706530,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_001",22,891718902,"ok","warning","NaNs produced",FALSE
+"student_shape_001",23,472966902,"ok","warning","NaNs produced",FALSE
+"student_shape_001",24,291674201,"ok","warning","NaNs produced",FALSE
+"student_shape_001",25,338074099,"ok","warning","NaNs produced",FALSE
+"student_shape_001",26,860508986,"ok","warning","NaNs produced",FALSE
+"student_shape_001",27,930619140,"ok","warning","NaNs produced",FALSE
+"student_shape_001",28,1813209871,"ok","warning","NaNs produced",FALSE
+"student_shape_001",29,610138975,"ok","warning","NaNs produced",FALSE
+"student_shape_001",30,356592810,"ok","warning","NaNs produced",FALSE
+"student_shape_001",31,755448092,"ok","warning","NaNs produced",FALSE
+"student_shape_001",32,369557580,"ok","warning","NaNs produced",FALSE
+"student_shape_001",33,1527673597,"ok","warning","NaNs produced",FALSE
+"student_shape_001",34,30987660,"ok","warning","NaNs produced",FALSE
+"student_shape_001",35,785628484,"ok","warning","NaNs produced",FALSE
+"student_shape_001",36,833338506,"ok","warning","NaNs produced",FALSE
+"student_shape_001",37,1185245540,"ok","warning","NaNs produced",FALSE
+"student_shape_001",38,356405967,"ok","warning","NaNs produced",FALSE
+"student_shape_001",39,1912746787,"ok","warning","NaNs produced",FALSE
+"student_shape_001",40,342342520,"ok","warning","NaNs produced",FALSE
+"student_shape_001",41,2108183345,"ok","warning","NaNs produced",FALSE
+"student_shape_001",42,395722958,"ok","warning","NaNs produced",FALSE
+"student_shape_001",43,1236471076,"ok","warning","NaNs produced",FALSE
+"student_shape_001",43,1236471076,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_001",44,1931345587,"ok","warning","NaNs produced",FALSE
+"student_shape_001",45,243527204,"ok","warning","NaNs produced",FALSE
+"student_shape_001",46,946842729,"ok","warning","NaNs produced",FALSE
+"student_shape_001",48,738802533,"ok","warning","NaNs produced",FALSE
+"student_shape_001",49,1405245425,"ok","warning","NaNs produced",FALSE
+"student_shape_002",1,667867102,"ok","warning","NaNs produced",FALSE
+"student_shape_002",2,1172971131,"ok","warning","NaNs produced",FALSE
+"student_shape_002",2,1172971131,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",2,1172971131,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",3,1703543600,"ok","warning","NaNs produced",FALSE
+"student_shape_002",4,368403193,"ok","warning","NaNs produced",FALSE
+"student_shape_002",5,720434886,"ok","warning","NaNs produced",FALSE
+"student_shape_002",6,1887193200,"ok","warning","NaNs produced",FALSE
+"student_shape_002",6,1887193200,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",7,617810399,"ok","warning","NaNs produced",FALSE
+"student_shape_002",8,1561681259,"ok","warning","NaNs produced",FALSE
+"student_shape_002",8,1561681259,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",8,1561681259,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",9,2104024990,"ok","warning","NaNs produced",FALSE
+"student_shape_002",10,95984862,"ok","warning","NaNs produced",FALSE
+"student_shape_002",11,597825050,"ok","warning","NaNs produced",FALSE
+"student_shape_002",12,894305388,"ok","warning","NaNs produced",FALSE
+"student_shape_002",12,894305388,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",12,894305388,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",13,884068692,"ok","warning","NaNs produced",FALSE
+"student_shape_002",14,632163493,"ok","warning","NaNs produced",FALSE
+"student_shape_002",14,632163493,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",15,1912636868,"ok","warning","NaNs produced",FALSE
+"student_shape_002",16,532928379,"ok","warning","NaNs produced",FALSE
+"student_shape_002",17,83850937,"ok","warning","NaNs produced",FALSE
+"student_shape_002",18,395020384,"ok","warning","NaNs produced",FALSE
+"student_shape_002",19,1661306307,"ok","warning","NaNs produced",FALSE
+"student_shape_002",20,167289500,"ok","warning","NaNs produced",FALSE
+"student_shape_002",21,1531643398,"ok","warning","NaNs produced",FALSE
+"student_shape_002",21,1531643398,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",22,1301091857,"ok","warning","NaNs produced",FALSE
+"student_shape_002",23,269028873,"ok","warning","NaNs produced",FALSE
+"student_shape_002",24,960710496,"ok","warning","NaNs produced",FALSE
+"student_shape_002",24,960710496,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",25,1594124977,"ok","warning","NaNs produced",FALSE
+"student_shape_002",26,756811974,"ok","warning","NaNs produced",FALSE
+"student_shape_002",26,756811974,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",27,2042284117,"ok","warning","NaNs produced",FALSE
+"student_shape_002",28,570036925,"ok","warning","NaNs produced",FALSE
+"student_shape_002",29,28094970,"ok","warning","NaNs produced",FALSE
+"student_shape_002",30,813280473,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",30,813280473,"ok","warning","NaNs produced",FALSE
+"student_shape_002",31,235612822,"ok","warning","NaNs produced",FALSE
+"student_shape_002",32,1154611650,"ok","warning","NaNs produced",FALSE
+"student_shape_002",33,1555568235,"ok","warning","NaNs produced",FALSE
+"student_shape_002",34,2055961970,"ok","warning","NaNs produced",FALSE
+"student_shape_002",34,2055961970,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",35,1168715943,"ok","warning","NaNs produced",FALSE
+"student_shape_002",36,1396709939,"ok","warning","NaNs produced",FALSE
+"student_shape_002",37,568602166,"ok","warning","NaNs produced",FALSE
+"student_shape_002",38,1377600541,"ok","warning","NaNs produced",FALSE
+"student_shape_002",39,284031065,"ok","warning","NaNs produced",FALSE
+"student_shape_002",39,284031065,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",40,1835066589,"ok","warning","collapsing to unique 'x' values",FALSE
+"student_shape_002",40,1835066589,"ok","warning","NaNs produced",FALSE
+"student_shape_002",41,866610481,"ok","warning","NaNs produced",FALSE
+"student_shape_002",42,973279389,"ok","warning","NaNs produced",FALSE
+"student_shape_002",43,1209557510,"ok","warning","NaNs produced",FALSE
+"student_shape_002",44,1892967771,"ok","warning","NaNs produced",FALSE
+"student_shape_002",44,1892967771,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",45,1101464930,"ok","warning","NaNs produced",FALSE
+"student_shape_002",46,1765206220,"ok","warning","NaNs produced",FALSE
+"student_shape_002",46,1765206220,"ok","warning","NA/NaN function evaluation",FALSE
+"student_shape_002",47,765037455,"ok","warning","NaNs produced",FALSE
+"student_shape_002",48,1426711378,"ok","warning","NaNs produced",FALSE
+"student_shape_002",49,118094899,"ok","warning","NaNs produced",FALSE
+"student_shape_002",50,1019742240,"ok","warning","NaNs produced",FALSE

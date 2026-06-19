@@ -2,6 +2,82 @@
 
 Record meaningful development checks here.
 
+## 2026-06-19: Student-t nu profile/bootstrap calibration diagnostic
+
+Goal:
+
+- Bank a larger fixed-effect Student-t `nu` profile/bootstrap interval
+  diagnostic for `drmTMB#59`, extending the 25-replicate pilot to 50
+  replicates per finite-variance cell and 50 parametric-bootstrap refits per
+  fit without changing package code, formula grammar, likelihoods,
+  mission-control counts, or public support claims.
+
+Changes:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic/`
+  with a reproducible runner, README, run summary, session info, fit status,
+  profile interval summaries, bootstrap interval summaries, interval
+  diagnostics, interval failures, and replicate artifacts.
+- Updated `docs/design/176-numerical-guard-simulation-audit.md` with the
+  fifteenth diagnostic entry.
+- Synchronized
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/design/168-r-julia-finish-capability-matrix.md`,
+  `docs/dev-log/dashboard/status.json`, and
+  `docs/dev-log/dashboard/sweep.json`.
+
+Checks run:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic/run-pilot.R`
+- `/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic/run-pilot.R`
+- `/usr/local/bin/Rscript --vanilla - <<'RS' ... artifact summary readback ... RS`
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+- `tools/validate-mission-control.py`
+- `git diff --check`
+- `/usr/local/bin/Rscript --vanilla - <<'RS' ... artifact consistency assertions ... RS`
+- `git diff -U0 | rg -n 'CRAN ready|CRAN-ready|release ready|release-ready|coverage claim|power claim|calibrated interval|engine_control|AI-REML|Julia bridge parity|Julia-side algorithm|random effects in `rho12`|structured correlations|recovery accuracy|promote|promotion' || true`
+- `rg -n 'Student-t.*(release|CRAN|Julia bridge|AI-REML|REML|recovery accuracy|power claim|coverage claim|profile/bootstrap promotion)|nu.*(release|CRAN|Julia bridge|AI-REML|REML|power claim|coverage claim)' README.md ROADMAP.md NEWS.md docs vignettes R tests || true`
+- `rg -n "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" README.md ROADMAP.md NEWS.md docs vignettes R tests || true`
+- `rg -n "25 refits|25 bootstrap refits|diagnostic pilot has 50|larger Student-t profile/bootstrap calibration|calibrated Student-t profile/bootstrap interval evidence" docs/design/176-numerical-guard-simulation-audit.md docs/design/157-capability-completion-worklist.md docs/design/168-r-julia-finish-capability-matrix.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic.md docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic/README.md || true`
+- `RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e "pkgdown::check_pkgdown()"`
+
+Results:
+
+- The artifact requested 100 fixed-effect Student-t shape fits across two
+  finite-variance cells: low-boundary `nu(w = 0) = 2.8` and ordinary
+  `nu(w = 0) = 8.0`.
+- The minimum convergence rate was `0.88`; the minimum `pdHess` rate was
+  `0.86`; both cells had warning rates of `0.10`.
+- `nu` profile ok rates ranged from `0.38` to `0.54`; the profile summaries
+  retained 107 failed profile rows and two degenerate profile intervals.
+- Rough 70% profile coverage for ok profile rows ranged from `0.5185185` to
+  `0.8095238`, with coverage MCSE up to `0.1010226`.
+- All requested parametric-bootstrap intervals returned with 50 refits.
+- Rough 70% bootstrap coverage ranged from `0.50` to `0.68`, with coverage
+  MCSE up to `0.07071068`.
+- `tools/validate-mission-control.py` still reports
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows, 11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- The artifact consistency assertions passed for 100 requested fits, 50
+  replicates per cell, 50 bootstrap refits, profile ok rates `0.38-0.54`,
+  bootstrap coverage `0.50-0.68`, 107 focused `nu` profile failures, and 191
+  total interval-failure rows including inherited Wald failures.
+- `pkgdown::check_pkgdown()` found no problems.
+- The claim-boundary scans found only negative, planned, or historical
+  guardrail wording: no Student-t profile/bootstrap promotion, release/CRAN,
+  Julia bridge parity, random-effect, bivariate, true `nu <= 2`, or
+  non-Gaussian REML/AI-REML claim was added.
+
+Boundaries:
+
+- Diagnostic interval-calibration artifact and ledger update only. This slice
+  records target-specific profile failures, bounded-bootstrap status, rough
+  70% interval behavior, and MCSE, not promotion-grade Student-t
+  profile/bootstrap coverage, recovery accuracy, power, random effects,
+  bivariate routes, true `nu <= 2`, Julia bridge parity, release readiness,
+  CRAN readiness, or non-Gaussian REML/AI-REML support.
+
 ## 2026-06-18 -- ordinary q2 correlation-grid diagnostic
 
 Goal:

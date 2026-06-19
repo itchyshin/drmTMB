@@ -1,0 +1,3 @@
+"cell_id","cell_label","nu_at_w0","convergence_rate","pdHess_rate","warning_rate","mean_warning_count","fit_replicates"
+"student_shape_001","low_nu_boundary",2.8,0.88,0.86,0.1,0.1,50
+"student_shape_002","ordinary_nu",8,0.92,0.86,0.1,0.1,50

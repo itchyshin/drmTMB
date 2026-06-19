@@ -874,6 +874,56 @@ effects, bivariate responses, structured effects, true infinite-variance stress
 behavior, Julia bridge parity, release readiness, CRAN readiness, or
 non-Gaussian REML/AI-REML language.
 
+## Fifteenth Diagnostic: Student-t Profile/Bootstrap Calibration Diagnostic
+
+The fifteenth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-profile-bootstrap-calibration-diagnostic/`.
+It extends the Student-t profile/bootstrap pilot to 50 replicates per cell and
+50 parametric-bootstrap refits per fit. The purpose is diagnostic calibration:
+record rough 70% interval behavior with smaller MCSE while keeping failed
+profile rows, bootstrap refit counts, convergence status, and `student_nu`
+diagnostics visible.
+
+**Aim.** Check whether the target-specific `nu` profile failures persist with a
+larger interval run, and whether the bounded parametric-bootstrap route returns
+all requested intervals while still showing rough finite-sample undercoverage.
+
+**Data-generating mechanisms.** Two complete-data Student-t cells reuse the
+same finite-variance design as the Wald, feasibility, and pilot slices:
+`bf(y ~ x, sigma ~ z, nu ~ w)`, `n = 180`,
+`beta_mu = (0.25, 0.55)`, `beta_sigma = (log(0.65), 0.20)`,
+`nu_slope = 0`, and `rho(x, w) = 0.20`. The low-boundary cell has
+`nu(w = 0) = 2.8`; the ordinary cell has `nu(w = 0) = 8.0`.
+
+**Estimands.** The diagnostic tracks convergence status, positive Hessian
+status, `student_nu` diagnostics, profile interval status and rough coverage
+for `nu:(Intercept)` and `nu:w`, parametric-bootstrap interval status and rough
+coverage for the same `nu` coefficients, bootstrap refit counts, MCSE,
+degenerate profile intervals, and interval failure rows.
+
+**Methods.** Each cell has 50 replicates. Profile intervals are requested at
+level `0.70` with `ystep = 0.75` for `nu:(Intercept)` and `nu:w`.
+Parametric-bootstrap intervals are requested at level `0.70` with 50 refits
+per fit. There are no retries, fallback optimizers, forced-convergence
+overrides, comparator fits, random effects, bivariate routes, or interval
+promotion claims.
+
+**Performance measures.** The committed summaries report 100 requested fits.
+The minimum convergence rate was `0.88`; the minimum `pdHess` rate was `0.86`;
+profile ok rates ranged from `0.38` to `0.54`; and all requested
+parametric-bootstrap intervals returned with 50 refits. Profile rough coverage
+for ok profile rows ranged from `0.5185185` to `0.8095238`, with MCSE up to
+`0.1010226`. Bootstrap rough coverage ranged from `0.50` to `0.68`, with MCSE
+up to `0.07071068`. These summaries deepen the interval diagnostic, but the
+profile failures and rough undercoverage still argue against promotion-grade
+Student-t profile/bootstrap language.
+
+This is diagnostic interval-calibration evidence for fixed-effect Student-t
+shape models only. It does not promote Student-t profile/bootstrap coverage,
+random effects, bivariate responses, structured effects, true infinite-variance
+stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
+non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow
