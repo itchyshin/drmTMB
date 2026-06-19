@@ -736,6 +736,50 @@ interval coverage, power, q2/q4/q8 covariance readiness, random effects in
 readiness, CRAN readiness, missing-data behavior, or non-Gaussian
 REML/AI-REML language.
 
+## Twelfth Diagnostic: Student-t Wald Calibration
+
+The twelfth executable slice is banked at
+`docs/dev-log/simulation-artifacts/2026-06-19-student-nu-wald-calibration-diagnostic/`.
+It deepens the earlier Student-t finite-variance boundary pilot by adding a
+100-replicate-per-cell Wald interval diagnostic for the same fixed-effect
+Student-t shape route.
+
+**Aim.** Check whether the Student-t finite-variance diagnostic remains visible
+in a larger fixed-effect shape pilot, and record MCSE-backed Wald interval
+consequences for low-boundary and ordinary finite-variance cells.
+
+**Data-generating mechanisms.** Two complete-data Student-t cells use
+`bf(y ~ x, sigma ~ z, nu ~ w)` with `n = 180`,
+`beta_mu = (0.25, 0.55)`, `beta_sigma = (log(0.65), 0.20)`,
+`nu_slope = 0`, and `rho(x, w) = 0.20`. The low-boundary cell has
+`nu(w = 0) = 2.8`; the ordinary cell has `nu(w = 0) = 8.0`.
+
+**Estimands.** The diagnostic tracks formula-scale fixed effects for `mu`,
+`sigma`, and `nu`, plus convergence status, positive Hessian status,
+`student_nu` warning/error/note/ok status from `check_drm()`, Wald interval
+success, coverage, MCSE, interval width, missed intervals, and unusable
+intervals.
+
+**Methods.** Each cell has 100 replicates and uses the existing Phase 18
+Student-t shape runner with `family = student()`. The fitted model remains
+`nu = 2 + exp(eta_nu)`, a finite-variance route; true `nu <= 2` stress data,
+profile intervals, bootstrap intervals, comparators, fallback optimizers,
+forced convergence, and retries are intentionally absent from this slice.
+
+**Performance measures.** The committed summaries report 200 requested fits,
+cell-level convergence and `pdHess` rates, `student_nu` diagnostic rates, and
+Wald interval diagnostics. The minimum convergence rate was `0.91`; the
+minimum `pdHess` rate was `0.89`; the maximum `student_nu` warning rate was
+`0.23`; and the maximum `student_nu` error rate was `0.11`. Shape-term Wald
+coverage was `0.87` to `0.90`, with coverage MCSE up to `0.03363034` and
+interval success rates of `0.89` to `0.90`.
+
+This is diagnostic calibration evidence for fixed-effect Student-t shape
+models only. It does not settle Student-t profile or bootstrap intervals,
+random effects, bivariate responses, structured effects, true infinite-variance
+stress behavior, Julia bridge parity, release readiness, CRAN readiness, or
+non-Gaussian REML/AI-REML language.
+
 ## User-Facing Rule
 
 Do not let a numerical guard upgrade a fit. A guarded fit may avoid overflow

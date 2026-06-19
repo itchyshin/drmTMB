@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-18 22:35 MDT",
+  "updated": "2026-06-18 23:48 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Post-#624 main gates are green at 6bd81b0d: R-CMD-check run 27790909354 passed on macOS, Ubuntu, and Windows, and pkgdown/Pages run 27792296045 deployed with live Pages last-modified Thu, 18 Jun 2026 22:29:51 GMT. The active finish-board row is still drmTMB#59 numerical-guard sensitivity; the ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, and fixed-effect bivariate sigma1/sigma2 clamp-sensitivity diagnostics are banked as visibility evidence only. Student-t calibration depth, larger bivariate scale-route grids, larger guard grids, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. The active finish-board row is still drmTMB#59 numerical-guard sensitivity. The ordinary q2 correlation-grid, structured q2 boundary, scale-side phylogenetic clamp-active, fixed-effect bivariate sigma1/sigma2 clamp-sensitivity, and Student-t Wald calibration diagnostics are banked as diagnostic evidence only. The Student-t Wald slice has 200 fixed-effect shape fits, minimum convergence 0.91, minimum pdHess 0.89, shape-term Wald coverage 0.87-0.90, and coverage MCSE up to 0.03363034. Larger bivariate scale-route grids, larger guard grids, Student-t profile/bootstrap calibration, additional random-effect and structured correlation guard depth, larger scale-side grids, and broader intervals remain planned."
     }
   ]
 }
