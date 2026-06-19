@@ -57,7 +57,7 @@ Read this first — it is the distinction most likely to be confused.
 | Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery/staged-diagnostic writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane and a 2026-06-17 six-cell x 25-replicate diagnostic pilot. The pilot had 150/150 ok fits, convergence and `pdHess` rates of 1.000, zero warnings, and slant-term 70% Wald coverage from 0.64 to 0.96 with large pilot MCSE; formal high-replicate operating characteristics remain future evidence. |
+| `skew_normal()` fixed-effect `mu`/`sigma`/`nu` | Implemented with focused source tests plus a standalone Phase 18 smoke/grid artifact lane, a 2026-06-17 six-cell x 25-replicate diagnostic pilot, source/fit tail-floor diagnostics, and the 2026-06-19 fixed-effect guard grid. The guard grid requested 200 native R/TMB complete-data fits: all returned, converged, and had `pdHess = TRUE`; injected generating-scale floor exposure did not become fitted-scale floor domination, but fixed-gradient warnings in 27 fits keep the overall decision at `diagnostic_hold`. Formal high-replicate operating characteristics, comparator evidence, interval calibration, Julia bridge parity, release readiness, and CRAN readiness remain future evidence. |
 | Plain Bernoulli/binomial fixed-effect response family (`drmTMB#569`) | Implemented first slice; accepted routes are `stats::binomial(link = "logit")` with 0/1 and `cbind(successes, failures)`, fixed-effect `mu` only, no weights-as-trials, and `stats::glm()` parity as the first evidence gate. The Phase 18 `binomial_fixed_effect` lane, the first Phase 19 `stats::glm()` parity artifact, and a 500-replicate fixed-effect Wald interval-calibration artifact are banked. Random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage language, and the Julia bridge remain planned or unsupported. |
 | **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery/staged-diagnostic tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
@@ -76,7 +76,7 @@ implementation (TMB); Phase B runs the evidence; Phase C is comparator and
 release. Items marked *(parallel)* have no dependency and can be picked up any
 time.
 
-**Current non-Ayumi checkpoint (2026-06-17):** the issue-led widget (#577),
+**Current non-Ayumi checkpoint (2026-06-19):** the issue-led widget (#577),
 bridge-gate audit (#544), native fixed-effect binomial route (#569), Phase 18
 `binomial_fixed_effect` lane, bounded-response docs, numerical-guard audit
 note, first Phase 19 binomial `stats::glm()` parity artifact, and the first
@@ -174,14 +174,53 @@ fixed-effect-interval-audited first slice, not the next implementation blocker.
 The next binomial-specific work is broader evidence depth: larger
 operating-characteristic grids, profile/bootstrap interval studies if needed,
 and any future Julia bridge parity issue. Those are optional promotion slices,
-not prerequisites for resuming the older capability queue. The broader
-numerical-guard programme remains active for scale-side phylogeny, larger
-bivariate scale-route grids, promotion-grade Student-t profile/bootstrap
-evidence, additional random-effect and structured correlation guard depth,
-larger skew-normal guard grids, and broader interval consequences.
-The 2026-06-17 fixed-effect skew-normal pilot is also banked as diagnostic
-evidence: it supports further formal grid work, but not calibrated interval or
-release language.
+not prerequisites for resuming the older capability queue.
+
+The broader numerical-guard programme now has a decision ledger in
+`docs/design/176-numerical-guard-simulation-audit.md`. That ledger keeps
+scale-side phylogeny on diagnostic hold, treats fixed-effect bivariate
+`sigma1`/`sigma2` clamp sensitivity and ordinary q2 correlation evidence as
+larger-grid candidates, treats Student-t profile intervals as blocked by method
+until their failure modes are addressed, and keeps Student-t bootstrap
+intervals diagnostic until the target and refit budget answer a user-facing
+question. The next implementation blocks are therefore: first synchronize the
+decision ledger, second bank the Student-t interval decision route, third run one
+scale/correlation sensitivity slice, and only then reopen q8, same-response
+q2, skew-normal, binomial, or bridge-parity work as separate issue-led slices.
+The Student-t interval decision route is now represented by the profile-failure
+decision audit, which keeps all current profile targets `blocked_by_method` and
+keeps bootstrap targets diagnostic or larger-grid candidates depending on the
+target.
+The next four-block operating plan is recorded in
+`docs/design/177-big4-finish-plan-2026-06-19.md`: bivariate
+`sigma1`/`sigma2` scale-clamp sensitivity, ordinary q2 and same-response
+covariance hardening, q8 endpoint and staged-start hardening, and a
+fixed-effect skew-normal guard grid, with native R/TMB, direct Julia, and
+Julia-via-R evidence kept as separate lanes throughout.
+The first block now has a larger native R/TMB diagnostic artifact:
+`docs/dev-log/simulation-artifacts/2026-06-19-biv-scale-clamp-larger-diagnostic/`.
+It ran 1500 fixed-effect bivariate Gaussian scale fits with 0 fit errors, 1492
+optimizer-converged fits, 1497 positive-Hessian fits, 150 upper-side clamp
+warnings, and 100 lower-side raw-versus-reported clamp-delta detections. This
+banks upper-side guard visibility and exposes lower-tail numerical roughness;
+it is not bivariate scale-route recovery, interval, Julia bridge, release, or
+CRAN evidence.
+The second block now has a larger native R/TMB ordinary q2 diagnostic artifact:
+`docs/dev-log/simulation-artifacts/2026-06-19-q2-ordinary-hardening-diagnostic/`.
+It ran 2100 complete-data primary fits across univariate same-response
+`mu`/`sigma`, bivariate `mu1`/`mu2`, and bivariate `sigma1`/`sigma2` covariance
+routes, with 0 fit errors, 2100 optimizer-converged fits, and 2100
+positive-Hessian fits. The artifact also retained 1447 `check_drm()`
+warning/error replicate statuses, 642 route-specific covariance warnings, weak
+fixed-gradient ok rates in bivariate routes, and large fitted-minus-true
+correlation errors in some `biv_sigma` cells. It banks route-specific ordinary
+q2 fitted-boundary visibility and recovery-screen evidence only; it does not
+promote structured q2, q4/q8 covariance, interval coverage, power, Julia bridge,
+release, or CRAN claims.
+The 2026-06-19 fixed-effect skew-normal guard grid is also banked as native
+R/TMB diagnostic evidence: it supports fitted tail-floor visibility and
+fit-health triage, but not calibrated interval, comparator, Julia bridge,
+release, or CRAN language.
 
 **Phase A — implement capabilities (local TMB), in this order:**
 
@@ -191,9 +230,10 @@ release language.
    leading-minor optimization errors, and unavailable intervals mean they do
    not support individual-difference power claims.
 2. *(parallel)* `skew_normal()` fixed-effect artifact depth — Tier C follow-up;
-   the first fitted slice exists, and a 2026-06-17 six-cell diagnostic pilot is
-   banked. The remaining useful work is a larger formal operating-characteristic
-   run plus any external comparator that can match the public moment
+   the first fitted slice, a 2026-06-17 six-cell diagnostic pilot, source/fit
+   tail-floor diagnostics, and the 2026-06-19 guard grid are banked. The
+   remaining useful work is formal operating-characteristic, interval, and
+   external-comparator evidence that can match the public moment
    parameterization honestly.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic

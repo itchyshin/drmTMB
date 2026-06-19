@@ -906,8 +906,9 @@ Phase 6d should be closed as small hardening slices:
   independent numeric slope first slices with fixed-effect `sigma` and `nu`.
 - Harden and extend Student-t, lognormal, Gamma, beta, Poisson, and
   negative-binomial models beside the fitted skew-normal fixed-effect first
-  slice. Skew-normal formal operating-characteristic grids and skew-t remain
-  later evidence gates.
+  slice. A fixed-effect skew-normal guard grid is banked as diagnostic-hold
+  evidence; formal operating-characteristic grids and skew-t remain later
+  evidence gates.
 - Use `lognormal()` for positive continuous responses where `mu` and `sigma`
   are defined on the log-response scale and `fitted()` returns the arithmetic
   response mean.
@@ -1189,8 +1190,9 @@ remain blocked by future covariance or non-Gaussian random-effect work.
   The first asymmetry slice is fixed-effect and univariate, not a random-effect
   or structured-dependence endpoint. A standalone Phase 18
   `skew_normal_fixed_effect` artifact lane now supplies repeatable smoke/grid
-  evidence for the fitted fixed-effect surface, but it is not a formal 500- or
-  1000-replicate operating-characteristic result.
+  evidence for the fitted fixed-effect surface. The 2026-06-19 guard grid
+  keeps fitted tail-floor exposure and fixed-gradient warnings visible, but it
+  is not a formal 500- or 1000-replicate operating-characteristic result.
 - Use GAMLSS-style names: `nu` for the first shape parameter and `tau` for the
   second when needed. For `skew_normal()`, `nu` should be the asymmetry or
   skewness parameter. The first fitted lane uses public moment parameters, with
@@ -2025,7 +2027,7 @@ Use this order unless Slice 191 evidence overturns it:
 | 1419-1518 | Tweedie fixed-effect admission | Done locally: `tweedie()` now fits the first univariate fixed-effect semicontinuous route with `mu`, public `sigma = sqrt(phi)`, and intercept-only `nu ~ 1`; focused tests cover high-zero and low-zero recovery, fitted response semantics, simulation, support-boundary filtering, and malformed neighbours. Tweedie random effects, predictor-dependent `nu`, structured effects, bivariate or mixed-response routes, zero-inflation aliases, and hurdle aliases remain planned. |
 | 1519-1538 | Skew-normal source map | Done locally as design-only evidence, later superseded by the fitted first slice: `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` records candidate parameterizations, comparator sources, local boundaries, and first implementation tests before the constructor and likelihood branch landed. |
 | 1619-1668 | Next Team A Tweedie hardening lane | Planned in `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`: decide the PR boundary, add or design the `glmmTMB::tweedie()` comparator contract, keep public `sigma^2` versus comparator `phi` explicit, harden `fitted()`, `sigma()`, `predict(dpar = "nu")`, simulation, stale-claim, and rendered-site checks, and stop before `nu ~ x`, random effects, structured effects, bivariate Tweedie, zero-inflation aliases, or hurdle aliases. |
-| 1669-1718 | Next Team B skew-normal decision gate | Superseded by the fitted first slice: `docs/design/125-phase-18-next-two-team-slices-1619-1718.md` framed the native-versus-moment decision, and the implementation now uses public moment parameters with source tests for density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and malformed-neighbour behaviour. A fixed-effect Phase 18 artifact lane now exists; formal high-replicate operating-characteristic grids and external fitted-model comparators remain planned. |
+| 1669-1718 | Next Team B skew-normal decision gate | Superseded by the fitted first slice: `docs/design/125-phase-18-next-two-team-slices-1619-1718.md` framed the native-versus-moment decision, and the implementation now uses public moment parameters with source tests for density, normal-limit, sign-convention, recovery, false-positive, interval-status, diagnostic, and malformed-neighbour behaviour. A fixed-effect Phase 18 artifact lane and fixed-effect guard grid now exist; formal high-replicate operating-characteristic grids and external fitted-model comparators remain planned. |
 | 1619-1628 | Tweedie comparator contract | Done locally: `docs/design/126-phase-18-tweedie-comparator-contract-slices-1619-1628.md` and the optional `glmmTMB` comparator test compare `mu` coefficients, `2 * sigma` coefficients to log-dispersion `phi`, intercept-only power, and log-likelihood on low-zero and high-zero overlapping fixed-effect models without widening Tweedie support. |
 | 1669-1672 | Skew-normal parameterization decision | Done locally and now implemented: `docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md` chose the moment contract for the first fitted lane, with public `mu = E[y]`, public `sigma = SD[y]`, `nu` as slant/shape, and internal transform to native `xi`, `omega`, and `alpha = nu`. |
 | 1673-1702 | Skew-normal first-test contract | Done locally and now source-tested: `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md` recorded the density normalization, Gaussian normal-limit, sign-orientation, false-positive, and admission gates that the fitted first slice now covers in focused tests. |

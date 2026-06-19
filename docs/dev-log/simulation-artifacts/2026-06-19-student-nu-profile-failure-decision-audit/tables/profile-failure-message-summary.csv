@@ -1,0 +1,22 @@
+"interval_message","n_profile_failures"
+"nonfinite_interval",88
+"Could not extract a profile confidence interval for target ""fixef:nu:w"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",7
+"Could not extract a profile confidence interval for target
+""fixef:nu:(Intercept)"".
+ℹ The profile may not cross the likelihood-ratio threshold on both sides.
+ℹ Try a wider `parm.range`, a smaller `ystep`, or inspect the profile object
+  interactively.
+ℹ This can indicate a boundary, one-sided, non-monotone, or
+  failed-inner-optimization profile.
+✖ Original error: need at least two non-NA values to interpolate
+Caused by error in `approx()`:
+! need at least two non-NA values to interpolate",6
+"point_estimate_outside_interval",6

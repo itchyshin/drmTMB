@@ -1,0 +1,11 @@
+"condition_id","n_converged","n_pdHess","n_clamp_active","n_upper_clamp_delta_active","n_lower_clamp_delta_active","n_warnings","n_retries","n_requested","n_fit_error"
+"both_scales_above_default",148,147,50,50,0,55,4,150,0
+"both_scales_near_lower_inband",150,150,0,0,0,147,147,150,0
+"both_scales_near_upper_inband",150,150,0,0,0,0,0,150,0
+"ordinary_rho_neg08",150,150,0,0,0,0,0,150,0
+"ordinary_rho_pos08",150,150,0,0,0,0,0,150,0
+"ordinary_rho0",150,150,0,0,0,0,0,150,0
+"sigma1_above_default",149,150,50,50,0,51,2,150,0
+"sigma1_below_default",148,150,50,0,50,82,84,150,0
+"sigma2_above_default",150,150,50,50,0,50,0,150,0
+"sigma2_below_default",147,150,50,0,50,90,93,150,0
