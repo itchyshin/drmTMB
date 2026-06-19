@@ -663,6 +663,17 @@ test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covarian
   relmat_diagnostic <- relmat_check[
     relmat_check$check == "relmat_mu_diagnostics",
   ]
+  relmat_q2_diagnostic <- relmat_check[
+    relmat_check$check == "biv_relmat_q2_covariance",
+    ,
+    drop = FALSE
+  ]
+  animal_check <- check_drm(fit_animal)
+  animal_q2_diagnostic <- animal_check[
+    animal_check$check == "biv_animal_q2_covariance",
+    ,
+    drop = FALSE
+  ]
   targets <- profile_targets(fit_relmat)
   relmat_profile_names <- c(
     "sd:mu:mu1:relmat(1 | p | id)",
@@ -707,6 +718,17 @@ test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covarian
   expect_equal(nrow(relmat_diagnostic), 1L)
   expect_equal(relmat_diagnostic$status, "ok")
   expect_match(relmat_diagnostic$value, "n_coef=2")
+  expect_equal(nrow(relmat_q2_diagnostic), 1L)
+  expect_equal(relmat_q2_diagnostic$status, "ok")
+  expect_match(relmat_q2_diagnostic$value, "rho_abs=")
+  expect_match(relmat_q2_diagnostic$message, "relmat q2 location covariance")
+  expect_equal(nrow(animal_q2_diagnostic), 1L)
+  expect_equal(animal_q2_diagnostic$status, "ok")
+  expect_match(animal_q2_diagnostic$value, "rho_abs=")
+  expect_match(
+    animal_q2_diagnostic$message,
+    "Animal-model q2 location covariance"
+  )
   expect_equal(relmat_profile$parm, relmat_profile_names)
   expect_equal(
     relmat_profile$tmb_parameter,
@@ -732,6 +754,33 @@ test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covarian
     as.numeric(stats::logLik(fit_relmat)),
     tolerance = 1e-5
   )
+
+  near_relmat <- fit_relmat
+  near_relmat$corpars$relmat[] <- 0.995
+  near_relmat_chk <- check_drm(near_relmat, rho_boundary = 0.98)
+  near_relmat_q2 <- near_relmat_chk[
+    near_relmat_chk$check == "biv_relmat_q2_covariance",
+    ,
+    drop = FALSE
+  ]
+
+  near_animal <- fit_animal
+  near_animal$corpars$animal[] <- 0.995
+  near_animal_chk <- check_drm(near_animal, rho_boundary = 0.98)
+  near_animal_q2 <- near_animal_chk[
+    near_animal_chk$check == "biv_animal_q2_covariance",
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(near_relmat_q2$status, "warning")
+  expect_match(near_relmat_q2$value, "rho_abs=0.9950")
+  expect_match(near_relmat_q2$message, "close to \\+/-1")
+  expect_false(attr(near_relmat_chk, "ok"))
+  expect_equal(near_animal_q2$status, "warning")
+  expect_match(near_animal_q2$value, "rho_abs=0.9950")
+  expect_match(near_animal_q2$message, "close to \\+/-1")
+  expect_false(attr(near_animal_chk, "ok"))
 })
 
 test_that("bivariate Gaussian mu fits animal q2 pedigree covariance", {

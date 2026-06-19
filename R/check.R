@@ -37,7 +37,8 @@
 #' scale, and whether an ordinary group-level covariance block uses the same
 #' grouping factor. Matching bivariate coordinate-spatial q=2, `animal()`, and
 #' `relmat()` q=2 location effects receive the corresponding structured
-#' replication and SD-ratio diagnostics. If a bivariate Gaussian fit includes a
+#' replication, SD-ratio, and boundary-correlation diagnostics. If a bivariate
+#' Gaussian fit includes a
 #' phylogenetic, coordinate-spatial, animal-model, or `relmat()` q=4
 #' `mu1`/`mu2`/`sigma1`/`sigma2` block, it reports level replication, location
 #' SDs relative to residual scales, log-`sigma` SDs, and whether any latent
@@ -233,6 +234,7 @@ check_drm.drmTMB <- function(
     check_known_relatedness_mu_diagnostics(object),
     check_phylo_direct_sd_model(object),
     check_biv_phylo_mu_covariance(object, rho_boundary = rho_boundary),
+    check_biv_structured_q2_covariance(object, rho_boundary = rho_boundary),
     check_biv_structured_q4_covariance(object, rho_boundary = rho_boundary),
     check_scale_phylo_identifiability(object),
     check_penalized_fit(object)
@@ -3055,6 +3057,81 @@ check_biv_phylo_mu_covariance <- function(object, rho_boundary) {
   )
 }
 
+check_biv_structured_q2_covariance <- function(object, rho_boundary) {
+  if (
+    !identical(object$model$model_type, "biv_gaussian") ||
+      !has_structured_mu_effect(object)
+  ) {
+    return(NULL)
+  }
+
+  structured_mu <- object$model$structured$phylo_mu
+  if (!identical(as.integer(structured_mu$q), 2L)) {
+    return(NULL)
+  }
+  structured_type <- structured_mu_type(structured_mu)
+  if (identical(structured_type, "phylo")) {
+    return(NULL)
+  }
+
+  cor_key <- structured_mu_correlation_key(structured_mu)
+  correlations <- object$corpars[[cor_key]]
+  rho_abs <- max_abs_finite_or_na(correlations)
+  near_rho_boundary <- !is.finite(rho_abs) || rho_abs > rho_boundary
+
+  index <- structured_mu$observation_node_index
+  counts <- tabulate(match(index, unique(index)))
+  min_count <- if (length(counts) > 0L) {
+    min(counts)
+  } else {
+    NA_integer_
+  }
+  n_levels <- length(counts)
+  weak_replication <- is.finite(min_count) && min_count < 2L
+
+  sd_ratios <- bivariate_structured_q2_sd_ratios(object, structured_mu)
+  finite_sd_ratios <- sd_ratios[is.finite(sd_ratios)]
+  min_sd_ratio <- if (length(finite_sd_ratios) > 0L) {
+    min(finite_sd_ratios)
+  } else {
+    NA_real_
+  }
+  weak_sd <- length(sd_ratios) == 0L ||
+    length(finite_sd_ratios) != length(sd_ratios) ||
+    any(finite_sd_ratios < 0.05)
+
+  check_row(
+    paste0("biv_", structured_type, "_q2_covariance"),
+    if (near_rho_boundary) {
+      "warning"
+    } else if (weak_replication || weak_sd) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "group=",
+      structured_mu$group,
+      "; rho_abs=",
+      format_check_number(rho_abs),
+      "; boundary=",
+      format_check_number(rho_boundary),
+      "; n_levels=",
+      n_levels,
+      "; min_level_n=",
+      min_count,
+      "; min_sd_ratio=",
+      format_check_number(min_sd_ratio)
+    ),
+    bivariate_structured_q2_diagnostic_message(
+      structured_q4_diagnostic_title(structured_type),
+      near_rho_boundary,
+      weak_replication,
+      weak_sd
+    )
+  )
+}
+
 check_biv_structured_q4_covariance <- function(object, rho_boundary) {
   if (
     !identical(object$model$model_type, "biv_gaussian") ||
@@ -3145,6 +3222,79 @@ check_biv_structured_q4_covariance <- function(object, rho_boundary) {
       weak_location_sd,
       weak_scale_sd
     )
+  )
+}
+
+bivariate_structured_q2_sd_ratios <- function(object, structured_mu) {
+  sdpars <- object$sdpars$mu
+  if (is.null(sdpars) || length(sdpars) == 0L) {
+    return(numeric())
+  }
+  labels <- phylo_mu_sd_labels(structured_mu, object$model$model_type)
+  dpars <- phylo_mu_dpars(structured_mu)
+  sd_values <- unname(sdpars[match(labels, names(sdpars))])
+  sigma_values <- tryCatch(stats::sigma(object), error = function(e) e)
+  if (inherits(sigma_values, "error") || !is.list(sigma_values)) {
+    return(rep(NA_real_, length(sd_values)))
+  }
+  residual_scale <- c(
+    mu1 = mean(sigma_values$sigma1, na.rm = TRUE),
+    mu2 = mean(sigma_values$sigma2, na.rm = TRUE)
+  )
+  sd_values / residual_scale[dpars]
+}
+
+bivariate_structured_q2_diagnostic_message <- function(
+  type_title,
+  near_rho_boundary,
+  weak_replication,
+  weak_sd
+) {
+  if (near_rho_boundary && (weak_replication || weak_sd)) {
+    return(paste(
+      "The fitted",
+      tolower(type_title),
+      "q2 location correlation is close to +/-1 and replication or",
+      "structured SD evidence is weak; inspect profiles, simulation, or a",
+      "simpler structured-effect model before interpreting it."
+    ))
+  }
+  if (near_rho_boundary) {
+    return(paste(
+      "The fitted",
+      tolower(type_title),
+      "q2 location correlation is close to +/-1; inspect likelihood profiles",
+      "or compare against a model without the structured covariance before",
+      "interpreting it."
+    ))
+  }
+  if (weak_replication && weak_sd) {
+    return(paste(
+      "At least one observed level has fewer than two fitted observations and",
+      "at least one",
+      tolower(type_title),
+      "location SD is tiny relative to its matching residual scale; interpret",
+      "the structured q2 correlation cautiously."
+    ))
+  }
+  if (weak_replication) {
+    return(paste(
+      "At least one observed level has fewer than two fitted observations;",
+      "interpret the structured q2 correlation cautiously."
+    ))
+  }
+  if (weak_sd) {
+    return(paste(
+      "At least one",
+      tolower(type_title),
+      "location SD is tiny relative to its matching residual scale; the",
+      "structured q2 correlation may be weakly identified."
+    ))
+  }
+  paste(
+    type_title,
+    "q2 location covariance has replicated levels, non-negligible fitted",
+    "component SDs, and a latent correlation away from the boundary."
   )
 }
 

@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-18 18:35 MDT",
+  "updated": "2026-06-18 19:53 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Rose",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Post-#624 main gates are green at 6bd81b0d: R-CMD-check run 27790909354 passed on macOS, Ubuntu, and Windows, and pkgdown/Pages run 27792296045 deployed with live Pages last-modified Thu, 18 Jun 2026 22:29:51 GMT. The active finish-board row is still drmTMB#59 numerical-guard sensitivity; the ordinary q2 correlation-grid diagnostic is banked as fitted-boundary visibility only. Structured correlation guards, Student-t calibration depth, scale-side guard depth, larger guard grids, and broader intervals remain planned."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Post-#624 main gates are green at 6bd81b0d: R-CMD-check run 27790909354 passed on macOS, Ubuntu, and Windows, and pkgdown/Pages run 27792296045 deployed with live Pages last-modified Thu, 18 Jun 2026 22:29:51 GMT. The active finish-board row is still drmTMB#59 numerical-guard sensitivity; the ordinary q2 correlation-grid and structured q2 boundary diagnostics are banked as fitted-boundary visibility only. Student-t calibration depth, scale-side guard depth, larger guard grids, additional random-effect and structured correlation guard depth, and broader intervals remain planned."
     }
   ]
 }

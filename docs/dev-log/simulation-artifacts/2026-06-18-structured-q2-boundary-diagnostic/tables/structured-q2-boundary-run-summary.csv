@@ -1,0 +1,2 @@
+"timestamp_utc","git_sha","git_branch","git_dirty","n_source_rows","n_surfaces","n_fit_cells","n_fit_errors","n_converged","n_pdHess","n_converged_and_pdHess","n_gradient_ok","n_check_drm_warning_or_error","n_covariance_warnings","max_abs_rho_error","max_abs_gradient","min_boundary_distance"
+"2026-06-19T01:53:26Z","c2ace4d276969c1eccad33f92163615019fa0e12","codex/structured-q2-boundary-diagnostic",TRUE,4,3,12,0,11,12,11,12,6,5,0.626257259413237,7.44022407797149e-05,1.00001540259687e-06
