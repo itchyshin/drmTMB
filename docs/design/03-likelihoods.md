@@ -1898,6 +1898,15 @@ structured terms, and bivariate or mixed beta models are later phases. Use
 `stats::binomial()` for ordinary event probabilities and `beta_binomial()` for
 overdispersed counted successes out of known trials.
 
+The beta likelihood applies two numerical guards so the log-density stays finite
+near the proportion boundary: the fitted mean `mu_i` is squeezed away from 0 and
+1 by `beta_mu_eps = 1e-12` before the beta shapes `alpha_i` and `beta_i` are
+formed, and each shape is floored at `beta_shape_floor = 1e-8`. Both guards are
+inactive on a well-posed fit; they only prevent `log(0)` and `log Gamma(0)` when
+the optimizer explores `mu_i` at the boundary, and the same `1e-12` mean squeeze
+and `1e-8` shape floor apply to the interior component of `zero_one_beta()` and
+to the beta and zero-one-beta `mi()` missing-predictor routes.
+
 ## Implemented Zero-One Beta Mean-Scale-Boundary
 
 Zero-one beta models are for continuous proportions where exact 0 and exact 1
