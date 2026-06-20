@@ -14,10 +14,11 @@ if (!"package:drmTMB" %in% search()) {
 }
 ```
 
-`drmTMB` fits distributional regression models for one or two responses. Start
-here when you want to fit a first model, check that the fitted object matches
-your scientific question, and find the next article without reading the whole
-roadmap.
+`drmTMB` fits distributional regression models -- models that give every
+distributional parameter (such as the mean, scale, and shape) its own formula --
+for one or two responses. Start here when you want to fit a first model, check
+that the fitted object matches your scientific question, and find the next
+article without reading the whole roadmap.
 
 The central workflow is simple: write one formula for each parameter you want
 to estimate, then check that the fitted model matches the symbolic model you had
