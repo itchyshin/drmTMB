@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 17:20 MDT",
+  "updated": "2026-06-20 17:55 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1059,13 +1059,13 @@
       "bridge": "planned",
       "point": "covered",
       "wald": "partial",
-      "profile": "planned",
+      "profile": "partial",
       "bootstrap": "planned",
       "docs": "partial",
       "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "A 500-replicate native R/TMB fixed-effect mu recovery artifact (poisson, nbinom2, Gamma(log), lognormal, beta, student; n in {300, 600}; 12,000 fits; 0 errors; largest absolute bias 0.0052; pdHess >= 0.996) promotes point estimates to covered, scoped to fixed-effect mu coefficient recovery for the implemented one-response families (Rose+Fisher verified). Wald stays partial because student n=300 mu:x Wald coverage is 0.926, below the 0.93 floor (student small-n is the flagged off-cell; both n=600 cells recover to 0.944/0.952). Simulation stays partial (not authorized by the artifact; the binomial row likewise keeps simulation partial despite covered intervals). Variance, correlation, profile/bootstrap, random/structured effects, bivariate/mixed responses, and the Julia bridge remain planned and require their own recovery rows. The earlier skew-normal guard grid stays diagnostic_hold.",
+      "next": "A 500-replicate native R/TMB fixed-effect mu recovery artifact (poisson, nbinom2, Gamma(log), lognormal, beta, student; n in {300, 600}; 12,000 fits; 0 errors; largest absolute bias 0.0052; pdHess >= 0.996) promotes point estimates to covered, scoped to fixed-effect mu coefficient recovery for the implemented one-response families (Rose+Fisher verified). Wald stays partial because student n=300 mu:x Wald coverage is 0.926, below the 0.93 floor (student small-n is the flagged off-cell; both n=600 cells recover to 0.944/0.952). Simulation stays partial (not authorized by the artifact; the binomial row likewise keeps simulation partial despite covered intervals). A 500-rep/cell profile-likelihood calibration across the same six families (docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-profile-calibration/; Fisher verified) moves the profile cell to partial, in parity with Wald: profile tracks Wald to within MC noise (max |profile-Wald| 0.004), nominal by n=600, n=300 count/heavy-tailed slopes mildly sub-nominal under both. Variance, correlation, bootstrap intervals, random/structured effects, bivariate/mixed responses, and the Julia bridge remain planned and require their own recovery rows. The earlier skew-normal guard grid stays diagnostic_hold.",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-fe-recovery-calibration/README.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Non-Gaussian PROFILE cell planned -> partial (Fisher SUPPORT-FLIP-TO-PARTIAL, parity with Wald). 500-rep/cell profile-likelihood calibration across all six one-response families (poisson/nbinom2/Gamma/lognormal/beta/student) x n {300,600}: 0 fit errors, 0 profile CI failures across 6000 intervals, profile coverage tracks Wald to within MC noise (max |profile-Wald| 0.004), both nominal by n=600. The n=300 slopes for count/heavy-tailed families (nbinom2 0.936, poisson 0.936, student 0.930) mildly undercover under BOTH methods -- the same small-n pattern that holds Wald at partial -- so profile gets partity-partial, not covered. Profile was marginally more robust than Wald (0 vs 2 CI failures on student n=300). Enabled by the endpoint-coefficient profile speedup. Bootstrap/RE/structured/bridge remain planned. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

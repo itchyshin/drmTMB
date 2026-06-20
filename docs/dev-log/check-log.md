@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Non-Gaussian PROFILE calibration -> Profile cell partial (Ada; Fisher gate, parity)
+
+Goal:
+
+- Owner steer: broaden profile. Enabled by the endpoint-coefficient speedup, run a
+  6-family profile calibration for non-Gaussian fixed-effect mu.
+
+Artifact (`docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-profile-calibration/`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-profile-calibration/run.R 500
+```
+
+- 6 families (poisson/nbinom2/Gamma/lognormal/beta/student) x n {300,600} x 500 reps;
+  confint profile + wald for mu:(Intercept), mu:x. 0 fit errors; ~24 min (student-nu
+  the bottleneck). 0 profile CI failures across 6000 intervals (Wald had 2 on student
+  n=300, non-pdHess).
+- Profile tracks Wald to within MC noise (max |profile-Wald| 0.004); both nominal by
+  n=600. n=300 slopes nbinom2 0.936, poisson 0.936, student 0.930 mildly sub-nominal
+  under BOTH methods.
+
+Verification:
+
+- Fisher SUPPORT-FLIP-TO-PARTIAL (parity with the partial Wald cell; covered would
+  over-claim a quality difference the data deny -- profile is statistically
+  indistinguishable from Wald). Independently reconciled coverage + failures from the
+  fits CSV; precedent: rho12/binomial profile followed Wald's status under parity.
+
+Promotion:
+
+- design 168 + status.json Non-Gaussian row: PROFILE planned -> partial, scoped to
+  native R/TMB fixed-effect mu, parity with Wald. Bootstrap/RE/structured/bridge
+  remain planned.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (matrix cell; counts unchanged).
+  Pushes live.
+
 ## 2026-06-20: rho12 BOOTSTRAP pilot -> Bootstrap cell partial (Ada; Fisher gate)
 
 Goal:
