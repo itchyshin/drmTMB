@@ -569,7 +569,7 @@
       "engine_julia": "unsupported",
       "point": "covered",
       "wald": "covered",
-      "profile": "planned",
+      "profile": "covered",
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
@@ -577,7 +577,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md",
-      "blocker": "#585, #588, #591, and the 500-replicate interval artifact are banked. Scope remains fixed-effect native TMB only; Julia bridge, random effects, structured effects, profile/bootstrap intervals, headline coverage, and release readiness stay unsupported or planned.",
+      "blocker": "#585, #588, #591, the 500-replicate Wald interval artifact, and a 500-replicate profile interval artifact (coverage 0.93-0.972) are banked. Scope remains fixed-effect native TMB only; Julia bridge, random effects, structured effects, bootstrap intervals, headline coverage, and release readiness stay unsupported or planned.",
       "last_verified": "2026-06-17"
     },
     {
@@ -595,7 +595,7 @@
       "engine_julia": "unsupported",
       "point": "covered",
       "wald": "covered",
-      "profile": "planned",
+      "profile": "covered",
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
@@ -603,7 +603,7 @@
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4721271792",
-      "blocker": "Contract and merged implementation still agree: fixed-effect mu only. The 500-replicate interval artifact audits Wald intervals for the supported fixed-effect cells, not sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge routes.",
+      "blocker": "Contract and merged implementation still agree: fixed-effect mu only. The 500-replicate Wald and profile interval artifacts audit fixed-effect mu intervals for the supported cells, not sigma, rho12, random/structured, bivariate, non-logit, proportion-plus-weights, or Julia bridge routes.",
       "last_verified": "2026-06-17"
     },
     {
@@ -777,15 +777,15 @@
       "engine_julia": "unsupported",
       "point": "covered",
       "wald": "covered",
-      "profile": "planned",
+      "profile": "covered",
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
       "visual": "planned",
       "simulation": "covered",
       "release_gate": "planned",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md",
-      "blocker": "The 500-replicate fixed-effect Wald interval artifact is banked: 3,000/3,000 fits ok, pdHess rate 1.000, zero failures, coverage 0.946-0.964 with max MCSE 0.01010782. Broader headline coverage, profile/bootstrap intervals, random/structured/bivariate routes, and Julia bridge support remain planned or unsupported.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/README.md",
+      "blocker": "The 500-replicate fixed-effect Wald (coverage 0.946-0.964) and profile (coverage 0.93-0.972, 4,000/4,000 profiles ok, max MCSE 0.0114) interval artifacts are banked. Broader headline coverage, bootstrap intervals, random/structured/bivariate routes, and Julia bridge support remain planned or unsupported.",
       "last_verified": "2026-06-17"
     },
     {
@@ -938,14 +938,14 @@
       "bridge": "unsupported",
       "point": "partial",
       "wald": "covered",
-      "profile": "planned",
+      "profile": "covered",
       "bootstrap": "unsupported",
       "docs": "partial",
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "#585, #588, #589, #591, and the 500-replicate fixed-effect Wald interval artifact are banked. Fixed-effect stats::binomial(logit) fits have stats::glm() parity, clearer docs, and MCSE-backed Wald interval evidence for six audited cells; random effects, structured effects, bivariate/mixed responses, profile/bootstrap intervals, headline coverage, and the Julia bridge remain planned or unsupported.",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md"
+      "next": "#585, #588, #589, #591, the 500-replicate fixed-effect Wald interval artifact, and a 500-replicate fixed-effect profile interval artifact (coverage 0.93-0.972, MCSE <= 0.0114, 4000/4000 profiles ok) are banked. Fixed-effect stats::binomial(logit) fits have stats::glm() parity, clearer docs, and MCSE-backed Wald and profile interval coverage for the audited fixed-effect cells; random effects, structured effects, bivariate/mixed responses, bootstrap intervals, headline coverage, and the Julia bridge remain planned or unsupported.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/README.md"
     },
     {
       "area": "Bivariate residual correlation rho12",
