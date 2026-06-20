@@ -140,6 +140,22 @@ till 2pm, flip planned/partial cells, communicate + bridge R↔Julia.
   eye figures, Florence-approved; promoted rho12 + non-Gaussian matrix **visual**
   cells `-> covered` and the rho12 lead-novelty finish-board visual.
 - `a5c07b7d` — Route A bridge finding + R↔Julia coordination in the bridge-parity doc.
+- `99b603aa` — handover refresh.
+- `08eb4a19` — **Random slopes point cell `partial -> covered`** (owner chose "new
+  recovery sims for harder caps"): a 500-rep native Gaussian correlated random-slope
+  recovery (`bf(y ~ x + (1 + x | id), sigma ~ 1)`, n_group {40,80}, 0 errors, pdHess
+  1.000). Curie+Fisher both promote, scoped to POINT recovery: fixed effects
+  near-unbiased; RE SDs consistent with the expected ML small-sample downward bias
+  (sd_slope -6.7%@40 → -1.1%@80). rho not validated; RE-SD intervals not claimed;
+  Wald cell stays partial (n=40 b1 0.922). Artifact:
+  `docs/dev-log/simulation-artifacts/2026-06-20-gaussian-random-slope-recovery/`.
+
+**Recovery-sim pattern for harder caps (reusable):** self-contained `run.R` with an
+`n_rep` arg, an n_group/n ladder to show CONSISTENCY (RE-variance bias shrinks with
+groups — read it as estimator behavior, not failure), extract RE SDs from
+`fit$sdpars$<dpar>`, smoke (3) → pilot (50) → 500, then Curie+Fisher verify. Scope
+"covered" to POINT recovery and disclose the small-n RE-SD bias; keep wald/interval
+cells separate.
 
 **Confidence Eye grammar (now the coverage-figure standard here):** use
 `docs/dev-log/figure-audits/_coverage-eye-helper.R` (vertical lens, quadratic-loglik
@@ -163,15 +179,23 @@ become an asserted ≤1e-6 parity test. Recorded in
    comment` permission, or say "post the coordination comments".
 2. The matrix rho12 bridge cell is now `partial` (resolved) — no longer open.
 
-**Remaining flippable queue (low-risk, evidence already banked):**
-- ADEMP matrix **visual** `partial -> covered`: a Florence-gated comparator figure
-  from the banked binomial glm-parity tables + coverage CSVs (reuse the eye helper /
-  a parity scatter).
-- Binomial / rho12 / non-Gaussian **docs** cells `partial -> covered`: a
-  figure-gallery vignette surfacing the new eye figures (Pat/Darwin gate, pkgdown
-  render check) — heavier than a status flip.
-- New native fixed-effect recovery sims (like the non-Gaussian one) for other
-  `point=partial` rows — heavier; random/structured effects are higher-risk.
+**Direction chosen by owner (this stretch): run NEW recovery sims for harder caps.**
+Random slopes point is now done (`08eb4a19`). Next harder-cap recovery candidates
+(same proven pattern: smoke→pilot→500→Curie+Fisher→scoped promote):
+- **Independent-slopes-only** confirmation (`(1|id) + (0+x|id)` or `||`) — completes
+  the design-168 "independent second" milestone explicitly.
+- **Random-slope RE-SD interval calibration** — would address the Random slopes
+  `wald`/`profile` cells (currently partial/planned) the point promotion left alone.
+- **Non-Gaussian random effects** recovery (existing DGPs: `sim_dgp_nbinom2_mu_random_effect.R`,
+  `sim_dgp_bounded_response_mu_random_intercept.R`).
+- A **Confidence Eye recovery figure** for the random-slope artifact → Random slopes
+  visual cell.
+
+Lower-risk banked-evidence flips still available:
+- ADEMP matrix **visual** (comparator figure of banked glm-parity data) — but ADEMP
+  is an aggregate row, likely an honest partial-hold, not a clean covered.
+- Binomial/rho12/non-Gaussian **docs** cells via a figure-gallery vignette
+  surfacing the eye figures (Pat/Darwin gate, pkgdown render) — heavier.
 
 Genuinely blocked/owner-gated (unchanged): high-2 q4 logdet, q8, rho12 random
 effects, structured/q4 recovery, missing-data, DRM.jl #9/#8, Route A (pending
