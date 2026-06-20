@@ -20,7 +20,9 @@ team, the deep plan-doc map, and boundaries). Repo state is authoritative — re
 ## 1. Workspaces and branches (PUSHES HELD)
 
 - **drmTMB (R)**: `/Users/z3437171/.codex/worktrees/540b/drmTMB`, branch
-  **`shannon/overnight-audit-gaps-20260619`**, now at **`4a1ecd95`**.
+  **`shannon/overnight-audit-gaps-20260619`**, now at the latest session-2 commit
+  (`git log --oneline -8`; binomial-visual promotion `3f47503c` + this handover
+  update on top).
 - **DRM.jl (Julia)**: `/Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main`,
   branch `shannon/overnight-audit-verify-20260619` (`f46035d`) — untouched this
   session.
@@ -53,6 +55,11 @@ Four defended slices, each Rose+Fisher-verified, validator green, pushes held:
    capability row `nonphylo_biv_rho12_predictor`; rho12 ~ x coefficient parity
    (incl. both rho12 coefficients, matched by name) + Wald-endpoint parity,
    asserted <= 1e-4 (measured ~1.3e-6).
+5. `3f47503c` — **Binomial visual cell -> covered** (Florence gate, not
+   Rose+Fisher: it visualises already-verified data). A coverage figure
+   (`docs/dev-log/figure-audits/2026-06-20-binomial-coverage/`) of the banked
+   Wald + profile coverage; Florence v2->v3 approve. Matrix "Bernoulli/binomial
+   response family" visual `planned -> covered`.
 
 Method note learned this session: **commit the re-runnable test BEFORE the status
 promotion** (Fisher holds a promotion whose numbers live only in narrative). Bank
@@ -82,10 +89,12 @@ validate -> commit -> check-log + after-task + widget activity.
   answered by the new rho12 ~ x bridge parity); Fisher says no (design-168
   "covered" is a stricter registry-level standard; Route C precedent moved only the
   TSV cell). Held this session on the split. A clean owner call would settle it.
-- **(b) Binomial coverage visual** (Florence-gated): render a coverage figure from
-  the banked binomial artifacts; reduces the binomial `visual` planned cell.
-  Low-risk, self-contained; obey the render-proof discipline (fresh PNG filename,
-  inspect the exact rendered image).
+- ~~(b) Binomial coverage visual~~ — **DONE this session** (`3f47503c`). A natural
+  follow-on: surface that figure in a binomial pkgdown article/gallery, which would
+  also support the binomial `docs` cell (currently partial).
+- **Other `visual` planned cells**: the same low-risk pattern (figure of
+  already-verified evidence -> Florence gate -> promote the visual cell) applies to
+  other rows whose data is banked (e.g. non-Gaussian recovery, rho12 recovery).
 - **(c) high-2 atomic::logdet re-land** — OWNER-GATED (needs supervised q4
   convergence adjudication). Do not touch autonomously.
 - **(e) genuinely blocked / owner-gated:** q8 method, rho12 random effects,
