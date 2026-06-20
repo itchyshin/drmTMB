@@ -2,6 +2,41 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Mint per-sub-type Structural rows (Ada; owner-approved structural change)
+
+Goal:
+
+- Owner approved the Rose+Fisher recommendation: replace the aggregate "Structural
+  dependencies" matrix row (which can never honestly flip while kernel/SPDE are
+  unimplemented) with per-sub-type rows so earned recovery evidence has individual
+  homes -- 3 covered POINT cells from already-verified evidence.
+
+Change (design 168 + status.json matrix; kept in sync):
+
+- Replaced 1 aggregate row with 6 per-sub-type rows (matrix rows 17 -> 22):
+  - Structural: relmat (known relatedness) -- POINT covered (sd -3.0% -> -1.0%).
+  - Structural: animal (pedigree) -- POINT covered (sd -3.1% -> -1.3%).
+  - Structural: spatial (coordinate kernel) -- POINT covered (sd -10.9% -> -2.8%;
+    Wald partial, intercept under-nominal).
+  - Structural: phylo (tree + interaction) -- POINT partial (single-tree SD weakly
+    identified; coevolution phylo_interaction recovers better).
+  - Structural: kernel (estimated NNGP/Matern) -- all planned (net-new; design 179).
+  - Structural: SPDE (mesh) -- all planned (parses but fit aborts; GLLVM.jl#62).
+- The 3 covered rows carry evidence_url to their recovery artifacts (validator
+  requires evidence for any covered cell).
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok`; 22 matrix rows (design 168 ==
+  status.json len); 25/68 slice metric UNCHANGED (matrix cells/rows don't move it).
+  `git diff --check` clean.
+
+Boundary:
+
+- Structural matrix change (owner-reserved, approved). Each covered cell is scoped to
+  native R/TMB Gaussian POINT recovery; RE-SD intervals, bridge parity, docs, visuals
+  remain planned per row. Resolves the long-standing aggregate-row blocker. Pushes live.
+
 ## 2026-06-20: Random-slope PROFILE calibration -> Profile cell partial (Ada; Fisher gate)
 
 Goal:

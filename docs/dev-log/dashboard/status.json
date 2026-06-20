@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 18:55 MDT",
+  "updated": "2026-06-20 19:20 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1129,7 +1129,52 @@
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {
-      "area": "Structural dependencies",
+      "area": "Structural: relmat (known relatedness)",
+      "engine": "partial",
+      "bridge": "planned",
+      "point": "covered",
+      "wald": "partial",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "docs": "planned",
+      "visual": "planned",
+      "simulation": "partial",
+      "release": "planned",
+      "next": "Native Gaussian known-K (user-supplied) random-intercept POINT recovery covered (500 reps x n_id {40,80}; 0 errors; pdHess 1.000; sd_relmat -3.0% -> -1.0%; fixed-effect Wald 0.936-0.960; Curie+Fisher). RE-SD interval calibration (profile/bootstrap), bridge parity, docs, and visuals planned. Per-sub-type row minted 2026-06-20 (owner-approved), replacing the Structural dependencies aggregate.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-relmat-structured-recovery/"
+    },
+    {
+      "area": "Structural: animal (pedigree)",
+      "engine": "partial",
+      "bridge": "planned",
+      "point": "covered",
+      "wald": "partial",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "docs": "planned",
+      "visual": "planned",
+      "simulation": "partial",
+      "release": "planned",
+      "next": "Native Gaussian pedigree numerator-relationship-matrix random-intercept POINT recovery covered (500 reps x n_id {40,80}; 0 errors; pdHess 1.000; sd_animal -3.1% -> -1.3%; fixed-effect Wald 0.924-0.960; Curie+Fisher). RE-SD intervals, bridge, docs, visuals planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-animal-pedigree-recovery/"
+    },
+    {
+      "area": "Structural: spatial (coordinate kernel)",
+      "engine": "partial",
+      "bridge": "planned",
+      "point": "covered",
+      "wald": "partial",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "docs": "planned",
+      "visual": "planned",
+      "simulation": "partial",
+      "release": "planned",
+      "next": "Native Gaussian fixed exponential coordinate kernel (range = median pairwise distance) random-intercept POINT recovery covered (500 reps x n_site {20,40}; 0 errors; pdHess 1.000; sd_spatial -10.9% -> -2.8%). Intercept Wald under-nominal (0.888-0.910; spatial-mean confounding) -> Wald partial. Estimated-range Matern kernel (design 179), RE-SD intervals, bridge, docs, visuals planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-spatial-coords-recovery/"
+    },
+    {
+      "area": "Structural: phylo (tree + interaction)",
       "engine": "partial",
       "bridge": "planned",
       "point": "partial",
@@ -1140,8 +1185,36 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals. Sub-type milestone (Rose+Fisher adjudicated; aggregate POINT cell HELD partial -- 4 of 6 sub-types now have native Gaussian POINT recovery, 2 unimplemented): clean held diagnostics for relmat known-K (sd -3.0% -> -1.0%), animal pedigree NRM (-3.1% -> -1.3%), and spatial fixed-range coordinate kernel (-10.9% -> -2.8%), all 500 reps/cell, 0 errors, pdHess 1.000, fixed effects unbiased; single-tree phylo SD weakly identified (-32% -> -4.8%); phylo_interaction/coevolution SD recovers better (-6.4% -> -1.6%). kernel() and SPDE/mesh are unimplemented (mesh fit aborts; coordinate range fixed, not estimated), so the aggregate cannot honestly reach covered (Rose+Fisher: unscoped aggregate covered over-claims; do not redefine the denominator from 6 to 4). OWNER DECISION pending: mint per-sub-type rows (relmat/animal/spatial POINT -> covered; phylo -> partial; kernel/SPDE -> planned), or hold the aggregate until kernel/SPDE exist. See docs/dev-log/simulation-artifacts/2026-06-20-{relmat-structured,animal-pedigree,spatial-coords,phylo-sd,coevolution-phylo-interaction}-recovery/.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "Single-tree phylo SD weakly identified (sd_phylo -32% at 60 species -> -4.8% at 240; intercept Wald 0.728 -> 0.916) -> POINT held partial (honest identifiability diagnostic). The coevolutionary phylo_interaction term recovers better (sd_coev -6.4% -> -1.6%; design 178 Stage 0). Adequate-N recovery, the additive multi-component fit (design 178 Stage 1), profile/bootstrap, R-Julia bridge (Route A pending DRM.jl), docs, visuals planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-phylo-sd-recovery/"
+    },
+    {
+      "area": "Structural: kernel (estimated NNGP/Matern)",
+      "engine": "planned",
+      "bridge": "planned",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "docs": "planned",
+      "visual": "planned",
+      "simulation": "planned",
+      "release": "planned",
+      "next": "Estimated-kernel (NNGP / Matern with estimated range and smoothness) covariance is net-new -- the scalable replacement for fixed relmat/spatial matrices. Plan: design 179 (in-process Julia) + DRM.jl#270 + GLLVM.jl#62 (Matern-SPDE FEM core). Not implemented."
+    },
+    {
+      "area": "Structural: SPDE (mesh)",
+      "engine": "planned",
+      "bridge": "planned",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "docs": "planned",
+      "visual": "planned",
+      "simulation": "planned",
+      "release": "planned",
+      "next": "SPDE/mesh: spatial(..., mesh = mesh) parses but the fit aborts (\"planned but not implemented yet\", R/drmTMB.R). Plan: adopt the GLLVM.jl#62 Matern-SPDE FEM core (MIT; provenance in inst/COPYRIGHTS). Not implemented."
     },
     {
       "area": "Julia speedups",
@@ -1272,6 +1345,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Owner-approved structural matrix change: replaced the aggregate 'Structural dependencies' row with SIX per-sub-type rows so earned recovery evidence has individual homes. relmat, animal, and spatial POINT cells -> covered (native Gaussian recovery, 500 reps/cell, 0 errors, pdHess 1.000; Curie+Fisher verified). phylo POINT -> partial (single-tree SD weakly identified -32%->-4.8%; coevolution phylo_interaction recovers better -6.4%->-1.6%). kernel (estimated NNGP/Matern) and SPDE/mesh -> planned (net-new/unimplemented; design 179 + DRM.jl#270 + GLLVM.jl#62). Matrix rows 17 -> 22; the 25/68 slice metric is unchanged (matrix cells don't move it). Resolves the long-standing aggregate-row blocker (Rose+Fisher both recommended per-sub-type rows). Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
