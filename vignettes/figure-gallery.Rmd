@@ -2083,8 +2083,8 @@ ggplot(sim_rain, aes(bias_error, estimand_label)) +
   labs(
     title = "Bias by estimand",
     subtitle = "Faint dots are fixture replicate errors; large points and bars show mean bias with 95% MCSE intervals",
-    x = NULL,
-    y = "Estimate minus truth",
+    x = "Estimate minus truth",
+    y = NULL,
     colour = "Surface"
   ) +
   guides(fill = "none") +
