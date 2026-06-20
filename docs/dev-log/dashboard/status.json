@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 17:55 MDT",
+  "updated": "2026-06-20 18:25 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1155,7 +1155,7 @@
       "visual": "planned",
       "simulation": "planned",
       "release": "planned",
-      "next": "No speed headline without point-estimate and CI/status evidence; benchmark native TMB, R-to-Julia bridge, and direct DRM.jl separately. R-side profile baseline banked (docs/dev-log/simulation-artifacts/2026-06-20-profile-engine-speed-benchmark/): the endpoint profile engine is ~3-5x faster than tmbprofile on direct scale/SD/correlation targets (endpoints agree <=1.4e-5). Direction for 'maximized in Julia': an in-process direct DRM.jl profile/bootstrap loop (not the callr bridge). No cell promoted.",
+      "next": "No speed headline without point-estimate and CI/status evidence; benchmark native TMB, R-to-Julia bridge, and direct DRM.jl separately. R-side profile baseline banked (docs/dev-log/simulation-artifacts/2026-06-20-profile-engine-speed-benchmark/): the endpoint profile engine is ~3-5x faster than tmbprofile on direct scale/SD/correlation targets (endpoints agree <=1.4e-5). Direction for 'maximized in Julia': an in-process direct DRM.jl profile/bootstrap loop (not the callr bridge). No cell promoted. Scoped plan: design 179 -- the DRM.jl profile/bootstrap loop is ALREADY in-process and batched (one julia_call runs the whole loop; ~3-min is per-confint session cost, not per-point). Gaps: bridge locked to SD block (Stage A widen -- cheapest first evidence), cold-start bootstrap (Stage B warm-start), per-call cold re-fit (Stage C resident handle).",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Scoped the owner's 'maximized in Julia' profile/bootstrap direction into design 179 (read-only map of DRM.jl + the bridge). KEY CORRECTION: the DRM.jl profile loop is ALREADY in-process -- confint(method=:profile) fixes theta[k], re-optimizes nuisance params over the stored objective, warm-starts each solve, root-finds the chi-square crossing, threadable, never re-enters drm(); and the bridge is BATCHED (one julia_call runs the whole profile grid / bootstrap B-loop in one resident process). So the ~3-min cost is per-confint session cost (compile + cold re-fit from payload), NOT per-point round-trips. Real gaps: (A) the bridge is locked to the SD block, so coefficient/scale/correlation profiles DRM.jl already computes aren't exposed -- Stage A widening is the cheapest first cell-evidence and unlocks the native R coefficient weak spot; (B) bootstrap is cold-start per replicate (warm-start = the marquee Julia differentiator, since bootstrap is what native TMB can't make cheap); (C) per-call cold re-fit (resident fit handle). Recommendation: Stage A now. No cell promoted (scoping note). Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
