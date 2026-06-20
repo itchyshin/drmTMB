@@ -2083,11 +2083,40 @@ drm_compute_uncertainty <- function(obj, opt, control) {
 
   list(
     sdr = sdr,
-    state = drm_uncertainty_state(
-      status = "ok",
-      se = TRUE,
-      message = "TMB::sdreport() completed successfully."
+    state = drm_sdreport_success_state(sdr)
+  )
+}
+
+# Build the uncertainty state for a successful TMB::sdreport(). A positive-
+# definite Hessian yields status "ok"; a non-positive-definite Hessian yields
+# status "non_pd_hessian" and a one-time warning, because Wald standard errors
+# and Wald confidence intervals are then unreliable even though the point
+# estimates and the sdreport object remain available.
+drm_sdreport_success_state <- function(sdr) {
+  if (!isTRUE(sdr$pdHess)) {
+    cli::cli_warn(
+      c(
+        "TMB::sdreport() did not return a positive-definite Hessian.",
+        "i" = paste(
+          "Wald standard errors and Wald confidence intervals are unreliable",
+          "for this fit; point estimates remain usable. See {.fn check_drm}."
+        )
+      ),
+      class = "drmTMB_non_pd_hessian"
     )
+    return(drm_uncertainty_state(
+      status = "non_pd_hessian",
+      se = TRUE,
+      message = paste(
+        "TMB::sdreport() ran but the Hessian was not positive definite;",
+        "Wald standard errors and Wald confidence intervals are unreliable."
+      )
+    ))
+  }
+  drm_uncertainty_state(
+    status = "ok",
+    se = TRUE,
+    message = "TMB::sdreport() completed successfully."
   )
 }
 

@@ -1960,6 +1960,10 @@ drm_uncertainty_message <- function(object) {
   switch(
     drm_uncertainty_status(object),
     ok = "TMB::sdreport() completed successfully.",
+    non_pd_hessian = paste(
+      "TMB::sdreport() ran but the Hessian was not positive definite;",
+      "Wald standard errors and Wald confidence intervals are unreliable."
+    ),
     skipped = paste(
       "TMB::sdreport() was skipped because",
       "drm_control(se = FALSE) was used."
@@ -2011,6 +2015,7 @@ drm_standard_error_status <- function(object) {
     drm_uncertainty_status(object),
     skipped = "sdreport_skipped",
     failed = "sdreport_failed",
+    non_pd_hessian = "sdreport_non_pd_hessian",
     ok = "ok",
     "sdreport_unavailable"
   )

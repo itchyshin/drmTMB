@@ -1001,3 +1001,37 @@ test_that("pinning preserves random-effect slots in the TMB object", {
   )
   expect_true(all(is.finite(ranef(fit)$mu$values)))
 })
+
+test_that("sdreport success state distinguishes a non-positive-definite Hessian", {
+  expect_warning(
+    bad <- drmTMB:::drm_sdreport_success_state(list(pdHess = FALSE)),
+    class = "drmTMB_non_pd_hessian"
+  )
+  expect_identical(bad$status, "non_pd_hessian")
+  expect_true(bad$se)
+  expect_match(bad$message, "not positive definite")
+
+  good <- drmTMB:::drm_sdreport_success_state(list(pdHess = TRUE))
+  expect_identical(good$status, "ok")
+  expect_match(good$message, "completed successfully")
+})
+
+test_that("non_pd_hessian status maps to non-PD SE status and message", {
+  fake <- structure(
+    list(
+      uncertainty = list(
+        status = "non_pd_hessian",
+        se = TRUE,
+        message = "TMB::sdreport() ran but the Hessian was not positive definite."
+      ),
+      sdr = list(pdHess = FALSE)
+    ),
+    class = "drmTMB"
+  )
+  expect_identical(drmTMB:::drm_uncertainty_status(fake), "non_pd_hessian")
+  expect_identical(
+    drmTMB:::drm_standard_error_status(fake),
+    "sdreport_non_pd_hessian"
+  )
+  expect_match(drmTMB:::drm_uncertainty_message(fake), "not positive definite")
+})
