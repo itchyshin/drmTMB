@@ -50,19 +50,19 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from preview version `0.1.3`. The package is still
+This site is built from preview version `0.1.4`. The package is still
 pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
 roadmap work rather than hidden features.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `0.1.3` preview from GitHub
+`drmTMB` is not on CRAN yet. Install the tagged `0.1.4` preview from GitHub
 with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.1.3")
+pak::pak("itchyshin/drmTMB@v0.1.4")
 ```
 
 If you want the newest development build from `main`, use:
