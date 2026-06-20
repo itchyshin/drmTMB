@@ -121,3 +121,58 @@ The owner reserved: (1) whether to push the two branches — currently **held**;
 
 Hand off the same way (this note + a recovery checkpoint) when your context fills.
 Good luck.
+
+## 8. Continuation update (2026-06-20 ~11:15 MDT)
+
+**Owner directives handled this stretch:** (1) PUSH both branches — done; both are
+now on origin (drmTMB `shannon/overnight-audit-gaps-20260619`, DRM.jl
+`shannon/overnight-audit-verify-20260619`; first pushes — the earlier "PR #636" was
+never actually pushed). drmTMB pushes are now ongoing (owner authorized). (2) The
+matrix rho12 bridge cell decision: owner agreed with Fisher (covered overclaims) →
+resolved to **`planned -> partial`** (Rose+Fisher reconfirmed). (3) New goal: work
+till 2pm, flip planned/partial cells, communicate + bridge R↔Julia.
+
+**Commits added this stretch (all pushed):**
+- `098d2ad0` — rho12 bridge cell `planned -> partial`; 3 binomial finish-board
+  visual cells `planned -> covered` (existing figure).
+- `516e7ac9` — **Confidence Eye** coverage figures (maintainer-requested grammar):
+  shared helper `_coverage-eye-helper.R`; rho12 + non-Gaussian + binomial(refresh)
+  eye figures, Florence-approved; promoted rho12 + non-Gaussian matrix **visual**
+  cells `-> covered` and the rho12 lead-novelty finish-board visual.
+- `a5c07b7d` — Route A bridge finding + R↔Julia coordination in the bridge-parity doc.
+
+**Confidence Eye grammar (now the coverage-figure standard here):** use
+`docs/dev-log/figure-audits/_coverage-eye-helper.R` (vertical lens, quadratic-loglik
+profile, hollow circle=intercept / triangle=slope, `show.legend=FALSE` on the
+polygon, set `ylim` wide enough to not clip the widest eye). Per design 39, coverage
+plots use eyes only "for a specific reason"; the maintainer's request is that reason.
+
+**Route A finding (important):** a fresh repro of Gaussian phylo-mean
+(`y ~ x + phylo(1|sp), sigma ~ 1`) vs DRM.jl `f46035d` gave **clean parity ≤1.6e-9**
+across 3 seeds on a balanced 60-species DGP — the garbage-logLik symptom did NOT
+reproduce. The Route A skip is **data-shape-specific**, not a blanket failure. If the
+DRM.jl team confirms a fix (or the triggering shape is found), the Route A skip can
+become an asserted ≤1e-6 parity test. Recorded in
+`docs/dev-log/2026-06-20-bridge-parity-verification.md` (Update section).
+
+**Two decisions now waiting on the owner:**
+1. **GitHub coordination posting** — a public comment to drmTMB#499 (bridge status)
+   and a DRM.jl-side note (Route A question) were drafted but **auto-denied** (the
+   "communicate" directive didn't specifically authorize external posting). The
+   content is in the bridge-parity doc. Owner can post it, or grant a `gh issue
+   comment` permission, or say "post the coordination comments".
+2. The matrix rho12 bridge cell is now `partial` (resolved) — no longer open.
+
+**Remaining flippable queue (low-risk, evidence already banked):**
+- ADEMP matrix **visual** `partial -> covered`: a Florence-gated comparator figure
+  from the banked binomial glm-parity tables + coverage CSVs (reuse the eye helper /
+  a parity scatter).
+- Binomial / rho12 / non-Gaussian **docs** cells `partial -> covered`: a
+  figure-gallery vignette surfacing the new eye figures (Pat/Darwin gate, pkgdown
+  render check) — heavier than a status flip.
+- New native fixed-effect recovery sims (like the non-Gaussian one) for other
+  `point=partial` rows — heavier; random/structured effects are higher-risk.
+
+Genuinely blocked/owner-gated (unchanged): high-2 q4 logdet, q8, rho12 random
+effects, structured/q4 recovery, missing-data, DRM.jl #9/#8, Route A (pending
+DRM.jl), engine_control, release/CRAN.
