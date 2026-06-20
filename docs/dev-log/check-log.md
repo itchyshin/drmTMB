@@ -2,6 +2,67 @@
 
 Record meaningful development checks here.
 
+## 2026-06-19: Overnight finish-plan Wave 2 + DRM.jl track (Ada autonomous)
+
+Goal:
+
+- Land the boundary-safe native R/TMB correctness items from the 2026-06-12
+  audit HIGH list with full adversarial review, and run the parallel DRM.jl
+  (Julia) audit + engine-health verification. Branch
+  `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Wave 2 native R/TMB (committed):
+
+- `ce09ba51` high-4: pdHess=FALSE now reports uncertainty status
+  `non_pd_hessian` + a classed warning (Wald SE/CI already gated on pdHess).
+- `f5405ffe` high-6: `drm_link_registry()` single source of truth +
+  family/registry drift-guard test.
+- `be40114f` high-11: figure-gallery bias-panel axis labels un-inverted.
+- `716c6d60` review nits (Rose/Emmy/Gauss).
+- `fa7788b6` high-2 (stable `atomic::logdet`) attempted then REVERTED: it shifts
+  weakly-identified spatial q4 convergence (flips test-spatial-gaussian.R:573);
+  queued for supervised adjudication.
+- high-3 confirmed already covered (`validate_known_v_matrix` PSD guard +
+  `test-meta-vcov.R:94`; `Omega = V + diag(sigma^2)` provably PD).
+
+Checks run:
+
+```sh
+# 5-lens adversarial review (Gauss/Noether/Rose/Fisher/Emmy): 0 blocking, 0 high
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(reporter = "summary")'   # 0 failures post-revert
+RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e 'devtools::check(document = FALSE, error_on = "never")'
+python3 tools/validate-mission-control.py
+/usr/local/bin/Rscript --vanilla -e 'tools::checkRd("man/drmTMB.Rd"); tools::checkRd("man/model-fit-extractors.Rd")'
+git diff --check
+```
+
+Results:
+
+- Adversarial review: 0 blocking, 0 high; Gauss compiled a standalone TMB
+  equivalence check (value diff 0, gradient diff 3.3e-16); Fisher empirically
+  confirmed no non-PD fit gains valid Wald.
+- `devtools::check`: 0 errors, 0 warnings, 0 actionable notes (1 environment
+  NOTE for the ~456s packaged test runtime; vignettes re-built OK including the
+  figure fix). `devtools::test`: 0 failures (3 new non-PD warnings are the
+  intended honesty behaviour). Validator pass; checkRd OK; diff-check clean.
+
+DRM.jl (Julia) track, separate lane, branch
+`shannon/overnight-audit-verify-20260619` off `f46035d` (push held):
+
+- Read-only audit + focused-test verification (no engine/contract source
+  changed). Core engine tests pass (aic-bic, gaussian-core, gaussian-bivariate,
+  inference). `test_q4_laplace.jl` is a guarded stub (needs
+  `test/fit_q4_julia.jl`); Aqua needs test-env instantiation. Recorded in the
+  DRM.jl after-task note with the boundary-safe plan (Issue #9 Documenter pin
+  first) and avoid list (Issue #8 engine math; R-bridge slices).
+
+Boundary:
+
+- Native R/TMB correctness/honesty + maintainability only on the R side; direct
+  DRM.jl verification in its own lane. No recovery/coverage/power, q4/q8 or
+  binomial Julia bridge parity, release/CRAN, non-Gaussian REML/AI-REML, or
+  selectable `engine_control` claim. Lanes kept separate.
+
 ## 2026-06-19: Overnight finish-plan Wave 0 + Wave 1 (Ada autonomous)
 
 Goal:
