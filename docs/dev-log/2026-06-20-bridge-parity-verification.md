@@ -160,3 +160,37 @@ cross-family `rho12`, random-effect `rho12`, profile/bootstrap bridge intervals,
 Route A, q4/q8, binomial bridge, `engine_control`. This remains bridge **parity**
 (engine agreement), not interval **coverage**, and a separate lane from the native
 500-rep `rho12 ~ x` recovery that earlier promoted the row's point/Wald/simulation.
+
+## Update (2026-06-20) — owner decision + Route A coordination finding (for the DRM.jl team)
+
+**Owner decision on the matrix rho12 bridge cell.** The maintainer reviewed the
+Surface-2 split and agreed with Fisher that registry-level `covered` overclaims a
+single per-cell parity test, but that `planned` understates the now-committed
+bridge evidence. A fresh Rose+Fisher pass confirmed **`planned -> partial`** for
+the matrix "Bivariate residual correlation rho12" bridge cell. Applied: the matrix
+row + status.json bridge cell are now `partial`, with a cross-reference noting the
+per-cell `nonphylo_biv_rho12_predictor` TSV row is `covered` at its narrower
+granularity. (Commit `098d2ad0`.)
+
+**Route A coordination finding — for the DRM.jl side.** The parity suite still
+*skips* Route A (Gaussian phylo-mean, `y ~ x + phylo(1|sp), sigma ~ 1`) citing a
+prior garbage-logLik (~3e7) + false-convergence on *some* data. A fresh
+callr-isolated repro against DRM.jl direct-main `f46035d` (ape::rcoal 60-species
+tree, one obs/species, phylo intercept on `mu`, `sigma ~ 1`) gave **clean parity**
+across 3 seeds: `engine="julia"` == `engine="tmb"` to **<= 1.6e-9** logLik, all
+converged. The garbage-logLik symptom did **not** reproduce on this DGP shape.
+
+Implication: the Route A skip is **data-shape-specific**, not a blanket failure.
+The original triggering repro (`/tmp/routeA_diag.R`) is gone, so the exact shape
+(unbalanced tree? multiple obs/species? larger n?) is unknown.
+
+**Questions for the DRM.jl team** (to relay onto DRM.jl, e.g. issue #294 or a new
+issue; the R-side cannot post cross-repo comments unattended):
+
+1. Was the all-node Gaussian phylo-mean logLik path changed/fixed around `f46035d`?
+2. Is the triggering data shape for the garbage-logLik symptom known?
+
+If Route A is genuinely fixed, the R-side `test-julia-tmb-parity.R` Route A skip
+can be converted to an asserted `<= 1e-6` parity test (same pattern as Routes B/C).
+Until the triggering shape is recovered or the DRM.jl team confirms the fix, the
+skip stays (conservative). Lanes remain separate; pushes held.

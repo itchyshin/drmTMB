@@ -2,6 +2,40 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Route A bridge finding + R-Julia coordination record (Ada, owner-directed)
+
+Goal:
+
+- Owner: "communicate and bridge R and Julia sides." Capture the bridge parity
+  state + a fresh Route A finding as durable in-repo coordination.
+
+Route A repro (callr-isolated, DRM.jl direct-main `f46035d`):
+
+```sh
+DRM_JL_PHYLO_PATH=.../DRM.jl-direct-main JULIA_HOME=.../.juliaup/bin \
+  Rscript --vanilla /tmp/routeA_repro.R
+```
+
+- Gaussian phylo-mean (`y ~ x + phylo(1|sp), sigma ~ 1`), ape::rcoal 60-species,
+  one obs/species, 3 seeds: `engine="julia"` == `engine="tmb"` to **<= 1.6e-9**
+  logLik, all converged. The documented garbage-logLik (~3e7) symptom did NOT
+  reproduce on this DGP shape -> the Route A skip is data-shape-specific, not a
+  blanket failure. (The R-side parity suite still skips Route A, conservatively,
+  until the triggering shape is recovered or DRM.jl confirms a fix.)
+
+Coordination recorded in `docs/dev-log/2026-06-20-bridge-parity-verification.md`
+(owner decision: matrix rho12 bridge `planned -> partial`; Route A finding +
+questions for the DRM.jl team).
+
+Note: a public GitHub coordination comment to drmTMB#499 was auto-denied (the
+"communicate" directive does not specifically authorize external posting). Recorded
+in-repo instead; the GitHub-posting option is surfaced to the owner.
+
+Boundary:
+
+- Native R/TMB <-> Julia-via-R bridge evidence only; lanes kept separate. No status
+  cell changed by this finding (Route A stays skipped). Pushes held.
+
 ## 2026-06-20: Confidence Eye coverage figures -> rho12 + non-Gaussian visual cells covered (Ada, owner-directed, Florence gate)
 
 Goal:
