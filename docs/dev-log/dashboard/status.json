@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 11:45 MDT",
+  "updated": "2026-06-20 12:04 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1004,7 +1004,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals.",
+      "next": "Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals. Sub-type milestone (Curie+Fisher verified; aggregate point cell HELD partial -- 1 of 6 sub-types): native Gaussian relmat (user-supplied known K) random-intercept POINT recovery is clean (500 reps x n_id in {40, 80}; 0 errors; pdHess 1.000; fixed effects unbiased; sd_relmat -3.0% at n_id=40 shrinking to -1.0% at n_id=80; fixed-effect Wald coverage 0.936-0.960; docs/dev-log/simulation-artifacts/2026-06-20-relmat-structured-recovery/). The cell stays partial until animal/phylo/spatial/kernel/SPDE have comparable recovery.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Curie",
+      "text": "Second harder-cap recovery sim: relmat (known-relatedness) structured effect. A 500-replicate native R/TMB Gaussian relmat random-intercept recovery (bf(y ~ x + relmat(1 | id, Q = Q), sigma ~ 1); known AR(1) K; n_id in {40, 80}; 1000 fits; 0 errors; pdHess 1.000) recovers cleanly: fixed effects unbiased, the known-K RE SD consistent (sd_relmat -3.0% at n_id=40 shrinking to -1.0% at n_id=80), and fixed-effect Wald coverage 0.936-0.960 at every cell (no sub-0.93). Curie + Fisher both HELD the aggregate 'Structural dependencies' point cell at partial: that row spans six structurally distinct sub-types (animal/phylo/relmat/spatial/kernel/SPDE) and there is no granular relmat row for a scoped covered to live in, so flipping the aggregate on 1 of 6 sub-types would overclaim. The relmat evidence is banked as a named sub-type milestone in the row's next-gate; the cell re-evaluates when animal/phylo/spatial/kernel/SPDE have comparable recovery. An honest hold, not a flip. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Curie",

@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: relmat (known-K) structured recovery -> evidence banked, cell HELD partial (Ada, owner-directed, Curie+Fisher)
+
+Goal:
+
+- Second harder-cap recovery sim. Native Gaussian relmat (known relatedness)
+  random-intercept recovery; promote "Structural dependencies" point if clean+in-scope.
+
+Evidence (native R/TMB, deterministic `master_seed = 20260620`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-relmat-structured-recovery/run.R 500
+```
+
+- `bf(y ~ x + relmat(1 | id, Q = Q), sigma ~ 1)`, gaussian; known AR(1) K
+  (Q = solve(K)); n_id in {40, 80}; n_each=6; 500 reps/cell (1000 fits); 0 errors;
+  pdHess 1.000. Smoke confirmed extraction (sdpars name "relmat(1 | id)").
+- Recovery (rel bias n_id=40 / 80): b0 +0.8%/+0.8%; b1 +0.4%/+0.2%;
+  sd_relmat -3.0%/-1.0%; sigma -0.2%/+0.1%. Fixed-effect Wald coverage 0.944/0.958
+  (b0), 0.936/0.960 (b1) -- every cell >= 0.936.
+
+Verification (Curie + Fisher workflow, both HOLD):
+
+- The recovery is promotion-grade for the relmat/known-K sub-capability, BUT the
+  matrix "Structural dependencies" point cell is a single aggregate over six
+  sub-types (animal/phylo/relmat/spatial/kernel/SPDE); the next-gate requires each.
+  This is 1 of 6, and (unlike rho12) there is no granular relmat row for a scoped
+  covered. Flipping the aggregate would overclaim. HELD partial; evidence banked as
+  a named sub-type milestone in the row's next-gate text.
+
+Edits:
+
+- design 168 + status.json "Structural dependencies" next-gate text: relmat
+  sub-type milestone added; point cell UNCHANGED (partial). Artifact README +
+  run.R + tables banked. activity (who=Curie) + timestamp.
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (counts unchanged; no cell flipped); `git diff --check` clean.
+
+Boundary:
+
+- Native R/TMB, Gaussian, one relmat block with known K, complete data, point
+  recovery only. No cell promoted. RE-SD intervals, arbitrary-K PSD checks,
+  animal/phylo/spatial/kernel/SPDE, the Julia bridge, and non-Gaussian families
+  remain partial/planned. Pushes live.
+
 ## 2026-06-20: Gaussian random-slope recovery -> Random slopes point cell covered (Ada, owner-directed, Curie+Fisher)
 
 Goal:
