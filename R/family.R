@@ -5,6 +5,10 @@
 #' correlation `rho12`. The residual-correlation link is recorded as
 #' `"atanh_guarded"` because fitted response-scale correlations use
 #' `rho12 = 0.999999 * tanh(eta_rho12)`.
+#' The residual standard deviations `sigma1` and `sigma2`, together with the
+#' residual correlation `rho12`, describe how the two responses co-vary in their
+#' residual scale; this joint residual scale-and-correlation structure is what
+#' the package calls the *coscale*.
 #'
 #' @return A `drm_family` object.
 #' @export

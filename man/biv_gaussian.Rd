@@ -15,6 +15,10 @@ for both locations, both residual standard deviations, and residual
 correlation \code{rho12}. The residual-correlation link is recorded as
 \code{"atanh_guarded"} because fitted response-scale correlations use
 \code{rho12 = 0.999999 * tanh(eta_rho12)}.
+The residual standard deviations \code{sigma1} and \code{sigma2}, together with the
+residual correlation \code{rho12}, describe how the two responses co-vary in their
+residual scale; this joint residual scale-and-correlation structure is what
+the package calls the \emph{coscale}.
 }
 \examples{
 biv_gaussian()
