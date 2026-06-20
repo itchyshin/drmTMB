@@ -878,7 +878,8 @@ not just a technical patch for a response regression.
 ## Inspect the missing-data metadata
 
 Every fitted route records a `fit$missing_data` object. The most useful fields
-are:
+are (the `version` codes such as `"MD1"`, `"MD3a"`, `"MD6a"`, and `"MD9a"` are
+internal slice identifiers for specific missing-data routes):
 
 | Field | Meaning |
 | --- | --- |
