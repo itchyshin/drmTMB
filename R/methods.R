@@ -1842,6 +1842,9 @@ fitted.drmTMB <- function(object, ...) {
 #'   `"mu"`, `"sigma"`, or `"rho12"`). When `NULL` (the default), `coef()`
 #'   returns the full named list of coefficient vectors; when supplied, it
 #'   returns the coefficient vector for that one parameter.
+#' @return `coef()` returns a named list of fixed-effect coefficient vectors, or
+#'   the coefficient vector for one distributional parameter when `dpar` is
+#'   given.
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

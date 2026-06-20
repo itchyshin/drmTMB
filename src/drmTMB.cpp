@@ -271,6 +271,10 @@ Type objective_function<Type>::operator()()
       }
     }
     matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
+    // atomic::logdet is the stable log|det| (LU-based); it avoids the NaN/-Inf
+    // that log(M.determinant()) returns when roundoff drives a near-singular
+    // positive-definite determinant slightly negative. Valid here because the
+    // covariance diag(sd) * PD-correlation * diag(sd) is positive definite.
     Type log_det_covariance = atomic::logdet(phylo_q4_covariance);
     matrix<Type> quadratic_matrix(q, q);
     quadratic_matrix.setZero();

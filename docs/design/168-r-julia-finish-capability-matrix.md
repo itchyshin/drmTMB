@@ -137,8 +137,11 @@ weakly identified cells cannot collapse into one status word.
   convergence, failure count, thread, memory, version, and dirty-state evidence.
 - GPU, CUDA, TPU, accelerator, compute-target, and offload vocabulary stays
   `planned` or `unsupported` until benchmark evidence exists.
-  `tools/validate-mission-control.py` lints the public files for accelerator
-  claims that lack a `planned`/`unsupported` guard. The token "backend" is
+  `tools/validate-mission-control.py` lints the public reference files (README,
+  ROADMAP, NEWS, `_pkgdown.yml`, the dashboard README, and known-limitations)
+  for accelerator claims that lack a `planned`/`unsupported` guard; this design
+  matrix is the source of truth and is itself exempt from the scan. The token
+  "backend" is
   deliberately excluded because it denotes the parallel-execution mode
   (`backend = "multicore"`/`"none"`) and the TMB precision backend, not a
   hardware accelerator.
