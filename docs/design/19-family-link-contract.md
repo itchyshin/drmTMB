@@ -20,7 +20,7 @@ The implemented families use these parameter meanings:
 |---|---|---|---|
 | Gaussian | `mu` | identity | arithmetic mean of `y` |
 | Gaussian | `sigma` | log | residual standard deviation of `y` |
-| Student-t | `mu` | identity | location parameter and mean when `nu > 1` |
+| Student-t | `mu` | identity | location parameter and arithmetic mean of `y` (`nu = 2 + exp(eta_nu) > 2` is enforced, so the mean always exists) |
 | Student-t | `sigma` | log | Student-t scale parameter |
 | Student-t | `nu` | `logm2` | degrees of freedom, `nu = 2 + exp(eta_nu)` |
 | Skew-normal | `mu` | identity | arithmetic mean of `y` |
