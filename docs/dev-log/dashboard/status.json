@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 10:01 MDT",
+  "updated": "2026-06-20 10:16 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Earned the lead-novelty bridge cell: rho12 ~ x coefficient + interval parity. A new committed, callr-isolated test (tests/testthat/test-julia-tmb-parity.R 'Route B lead novelty', committed first as evidence at 357810d1) fits bf(mu1=y1~x, mu2=y2~x, sigma1=~1, sigma2=~1, rho12=~x) with engine='julia' and engine='tmb', matches all eight fixed-effect coefficients BY NAME (resolving the prior 'engines order the block differently' limitation that blocked coefficient parity) -- including fixef:rho12:(Intercept) and fixef:rho12:x -- with coefficient parity max|delta|~1.25e-6 and Wald-endpoint parity ~1.27e-6 (asserted <= 1e-4). Created a new julia-capabilities.tsv capability row nonphylo_biv_rho12_predictor = covered (the documented Route B promote-path landing spot). Rose+Fisher split: Rose promoted both surfaces; Fisher held pending the committed evidence package (now satisfied by committing the test first) and held the design-168 matrix bridge cell on claim-width grounds. Net: promote the new TSV row only; HOLD the matrix 'Bivariate residual correlation rho12' bridge cell at planned (split verdict + Route C precedent). Scope: Wald CI parity (not coverage), non-phylo fixed-effect rho12~x only; phylo/cross-family/random-effect rho12 and profile/bootstrap stay gated. Native/direct-Julia/bridge lanes separate; pushes held."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

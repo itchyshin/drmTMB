@@ -2,6 +2,64 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: R-Julia bridge Route B rho12 ~ x parity -> new capability row covered (Ada autonomous)
+
+Goal:
+
+- Satisfy the documented Route B promote-path (coefficient parity for the lead
+  novelty `rho12 ~ x` plus a dedicated non-phylo bivariate-`rho12` bridge
+  capability row) and promote that row if earned. Branch
+  `shannon/overnight-audit-gaps-20260619`; DRM.jl engine direct-main `f46035d`;
+  pushes held.
+
+Evidence (callr-isolated bridge harness):
+
+```sh
+DRM_JL_PHYLO_PATH=.../DRM.jl-direct-main JULIA_HOME=.../.juliaup/bin \
+  Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity")'
+```
+
+- New committed test `tests/testthat/test-julia-tmb-parity.R` "Route B lead
+  novelty" (committed first as evidence, `357810d1`): `bf(mu1=y1~x, mu2=y2~x,
+  sigma1=~1, sigma2=~1, rho12=~x)`, `engine="julia"` == `engine="tmb"` on all
+  eight fixed-effect coefficients matched by parm NAME (incl. rho12 intercept +
+  slope) and on Wald CI endpoints, asserted `<= 1e-4` (measured max|Δ coef|
+  ~1.25e-6, max|Δ endpoint| ~1.27e-6, |ΔlogLik| 6.3e-6). Suite 19 PASS / 0 FAIL /
+  1 SKIP (skip = Route A bug).
+
+Verification (Rose + Fisher adversarial workflow, both read source):
+
+- Split: Rose promote both surfaces; Fisher hold both -- Surface 1 (new row)
+  pending the committed evidence package (process, not methodology), Surface 2
+  (design-168 matrix bridge cell) on claim-width grounds.
+- Resolution: PROMOTE the new TSV row (Fisher's process hold satisfied by
+  committing the test first + banking the deltas here and in the after-task; Rose
+  approves). HOLD the matrix bridge cell at planned (split verdict + Route C
+  precedent + default-to-hold).
+
+Edits:
+
+- `docs/dev-log/dashboard/julia-capabilities.tsv`: new row
+  `nonphylo_biv_rho12_predictor` = `covered` (Wald CI + coefficient parity,
+  non-phylo fixed-effect rho12 ~ x, this cell only); evidence_url is the GitHub
+  issue URL (validator contract); total capability rows 9 -> 10.
+- `docs/dev-log/2026-06-20-bridge-parity-verification.md`: Route B update section.
+- `docs/dev-log/dashboard/status.json`: activity entry + timestamp.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: `mission_control_ok` (now 10 Julia
+  capability rows; slice metrics + matrix/finish/gate counts unchanged).
+- `git diff --check`: clean.
+
+Boundary:
+
+- One new TSV capability cell only. Matrix "Bivariate residual correlation rho12"
+  bridge cell HELD at planned. Phylo/cross-family/random-effect rho12,
+  profile/bootstrap bridge intervals, Route A, q4/q8, binomial bridge, and
+  engine_control unchanged. Bridge PARITY, not interval coverage. Native R/TMB,
+  direct DRM.jl, and Julia-via-R lanes stay separate. Pushes held.
+
 ## 2026-06-20: R-Julia bridge Route C interval parity -> base_gaussian covered (Ada autonomous)
 
 Goal:

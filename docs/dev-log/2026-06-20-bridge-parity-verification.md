@@ -114,3 +114,49 @@ in source) verified **promote**, scoped:
 
 Net: one scoped, defended bridge-cell promotion; the rest of the conservative
 statuses remain correct.
+
+## Update (2026-06-20, later still): Route B rho12 ~ x earns a new capability row
+
+The Route B promote-path above ("add a predictor-dependent `rho12 ~ x` bridge
+parity test that asserts **coefficient** parity ... and add a dedicated non-phylo
+bivariate-`rho12` bridge capability row -- none exists today") is now satisfied.
+
+`tests/testthat/test-julia-tmb-parity.R` gained a committed, callr-isolated
+**"Route B lead novelty"** test (committed first as evidence at `357810d1`): for
+`bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x)`,
+`engine="julia"` and `engine="tmb"` agree on all eight fixed-effect coefficients
+**matched by parm NAME** -- including `fixef:rho12:(Intercept)` and
+`fixef:rho12:x` -- on both the point estimates (Wald midpoints) and the Wald CI
+endpoints, to an asserted `<= 1e-4` (measured max |Δ coef| ~1.25e-6, max |Δ
+endpoint| ~1.27e-6, |ΔlogLik| 6.3e-6). Matching by name resolves the prior
+limitation ("the engines order that block differently") that had blocked
+coefficient parity.
+
+A fresh Rose + Fisher adversarial pass **split**:
+
+- **Rose: promote both** surfaces (new TSV row + the matrix bridge cell), arguing
+  the "Bivariate residual correlation rho12" matrix row is a *single-capability*
+  row whose bridge column is directly answered by per-cell `rho12 ~ x` parity.
+- **Fisher: hold both** -- Surface 1 *pending the committed evidence package*
+  (methodology sound, but the test/numbers must be banked first), and Surface 2 on
+  *claim-width* grounds (the design-168 "covered" vocabulary is a stricter
+  registry-level standard; the Route C precedent moved only the TSV cell).
+
+Resolution applied:
+
+- **New capability row `nonphylo_biv_rho12_predictor` -> `covered`** (Surface 1):
+  PROMOTED. Fisher's hold was process-only and is satisfied by committing the test
+  first (`357810d1`) and banking the deltas in the after-task + check-log; Rose
+  fully approves. Scope: Wald CI + coefficient parity, non-phylo fixed-effect
+  `rho12 ~ x`, this cell only.
+- **Matrix "Bivariate residual correlation rho12" bridge cell** (Surface 2):
+  **HELD at `planned`.** Split verdict (Rose promote, Fisher hold); per the
+  guardrail default-to-hold discipline and the Route C precedent (matrix left
+  conservative), the bridge cell does not move on this slice. It is a candidate for
+  a future explicit decision now that direct per-cell bridge parity exists.
+
+Still held / gated (unchanged): phylogenetic `rho12` (`biv_rho12_phylo` gate),
+cross-family `rho12`, random-effect `rho12`, profile/bootstrap bridge intervals,
+Route A, q4/q8, binomial bridge, `engine_control`. This remains bridge **parity**
+(engine agreement), not interval **coverage**, and a separate lane from the native
+500-rep `rho12 ~ x` recovery that earlier promoted the row's point/Wald/simulation.
