@@ -4,6 +4,9 @@ Each family should be represented by a small structured object.
 
 ## Required Fields
 
+This list is the **target** schema for a fully-featured family object, not the
+current constructor output (see "Current Constructor API" below).
+
 - `name`
 - `n_response`
 - `dpars`
@@ -17,6 +20,13 @@ Each family should be represented by a small structured object.
 - `native_parameter_meaning`
 - `fitted_response_rule`
 - `variance_rule`
+
+## Current Constructor API
+
+The `drm_family` constructors in `R/family.R` currently expose five fields:
+`name`, `family`, `n_response`, `dpars`, and `links`. The remaining target
+fields above are resolved internally by `model_type` rather than carried on the
+family object today.
 
 ## Link and Response-Scale Contract
 
