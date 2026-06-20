@@ -4568,12 +4568,14 @@ drm_inverse_link <- function(object, dpar, eta) {
   )
 }
 
-drm_dpar_link <- function(object, dpar) {
-  if (startsWith(dpar, "corpair(")) {
-    return("atanh_re_guarded")
-  }
-  links <- switch(
-    object$model$model_type,
+# Single source of truth for distributional-parameter link functions, keyed by
+# fitted model_type. It includes the base-R-derived types (gaussian, gamma,
+# poisson, binomial) and the formula-derived types (zi_poisson, zi_nbinom2,
+# hurdle_nbinom2) that have no drm_family constructor. drm_dpar_link() reads
+# this table, and test-family-link-contract.R asserts that each drm_family
+# constructor's links agree with it so the two definitions cannot drift.
+drm_link_registry <- function() {
+  list(
     gaussian = c(mu = "identity", sigma = "log"),
     student = c(mu = "identity", sigma = "log", nu = "logm2"),
     skew_normal = c(mu = "identity", sigma = "log", nu = "identity"),
@@ -4602,9 +4604,15 @@ drm_dpar_link <- function(object, dpar) {
       sigma1 = "log",
       sigma2 = "log",
       rho12 = "atanh_guarded"
-    ),
-    NULL
+    )
   )
+}
+
+drm_dpar_link <- function(object, dpar) {
+  if (startsWith(dpar, "corpair(")) {
+    return("atanh_re_guarded")
+  }
+  links <- drm_link_registry()[[object$model$model_type]]
   if (is.null(links)) {
     cli::cli_abort(
       "Internal error: no link table for model type {.val {object$model$model_type}}."

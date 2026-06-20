@@ -327,3 +327,40 @@ test_that("internal link helpers reject unsupported routing", {
     "no fitted-response rule"
   )
 })
+
+test_that("link registry is the single source of truth for dpar links", {
+  registry <- drmTMB:::drm_link_registry()
+
+  # Every fitted model_type drm_dpar_link can be asked about has a registry row,
+  # and drm_dpar_link reads exactly that row.
+  for (model_type in names(registry)) {
+    fake <- list(model = list(model_type = model_type))
+    for (dpar in names(registry[[model_type]])) {
+      expect_identical(
+        drmTMB:::drm_dpar_link(fake, dpar),
+        unname(registry[[model_type]][[dpar]]),
+        info = paste(model_type, dpar)
+      )
+    }
+  }
+
+  # Each drm_family constructor's links must agree with the registry so the two
+  # link definitions cannot drift apart.
+  constructors <- c(
+    "biv_gaussian", "student", "skew_normal", "lognormal", "tweedie",
+    "beta", "zero_one_beta", "beta_binomial", "cumulative_logit",
+    "nbinom2", "truncated_nbinom2"
+  )
+  for (ctor in constructors) {
+    fam <- do.call(ctor, list())
+    expect_true(
+      fam$name %in% names(registry),
+      info = paste("registry missing", fam$name)
+    )
+    expect_identical(
+      fam$links,
+      registry[[fam$name]],
+      info = paste("family/registry link drift for", fam$name)
+    )
+  }
+})
