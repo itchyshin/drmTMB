@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 10:31 MDT",
+  "updated": "2026-06-20 10:50 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -573,7 +573,7 @@
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md",
@@ -599,7 +599,7 @@
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "https://github.com/itchyshin/drmTMB/issues/569#issuecomment-4721271792",
@@ -781,7 +781,7 @@
       "bootstrap": "unsupported",
       "tests": "covered",
       "docs": "covered",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "covered",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/README.md",
@@ -950,7 +950,7 @@
     {
       "area": "Bivariate residual correlation rho12",
       "engine": "partial",
-      "bridge": "planned",
+      "bridge": "partial",
       "point": "covered",
       "wald": "covered",
       "profile": "planned",
@@ -959,7 +959,7 @@
       "visual": "planned",
       "simulation": "covered",
       "release": "planned",
-      "next": "Fixed-effect predictor-dependent rho12 ~ x is recovered near-unbiased with Wald coverage 0.920-0.964 (500-replicate artifact). Keep residual rho12 separate from group, phylogenetic, spatial, kernel, and cross-family correlations; random-effect rho12, profile/bootstrap intervals, and the Julia bridge remain planned.",
+      "next": "Fixed-effect predictor-dependent rho12 ~ x is recovered near-unbiased with Wald coverage 0.920-0.964 (500-replicate native artifact). The R-Julia bridge is partial: engine='julia' reproduces native engine='tmb' coefficient and Wald CI-endpoint parity for rho12 ~ x to <= 1e-4 on one seed-fixed dataset (the narrower per-cell nonphylo_biv_rho12_predictor capability row is covered at that granularity) -- engine-vs-engine parity, not interval coverage, and a single dataset, not a comprehensively validated bridge. Keep residual rho12 separate from group, phylogenetic, spatial, kernel, and cross-family correlations; random-effect rho12 and profile/bootstrap intervals remain planned.",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-rho12-predictor-recovery/README.md"
     },
     {
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Owner-directed status reconciliation. (1) Matrix 'Bivariate residual correlation rho12' BRIDGE cell planned -> PARTIAL: the owner agrees with Fisher that registry-level 'covered' overclaims a single per-cell rho12 ~ x parity test, but real committed bridge evidence (the Route B parity test + nonphylo_biv_rho12_predictor capability row) means 'planned' now understates it. Rose+Fisher both confirmed partial; row prose rewritten (the stale 'Julia bridge remain planned' sentence removed) with a cross-reference noting the per-cell TSV row is covered at its narrower granularity while the registry matrix cell is partial (parity, not coverage; one dataset). (2) Propagated the already-Florence-approved binomial coverage figure to the three binomial finish-board rows whose visual field still read planned (drmTMB-569-binomial-fixed, -569-response-contract, -binomial-evidence-gates -> visual covered) -- no new figure or sim, the same banked evidence the matrix binomial visual cell used. Validator green; pushes now live (branch pushed per owner)."
+    },
     {
       "when": "2026-06-20",
       "who": "Florence",

@@ -2,6 +2,49 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: rho12 bridge cell -> partial + binomial finish-board visual propagation (Ada, owner-directed)
+
+Goal:
+
+- Owner decisions: (1) push the held branches; (2) resolve the matrix rho12
+  bridge-cell question, owner agreeing with Fisher (covered overclaims), "try
+  again". Branch `shannon/overnight-audit-gaps-20260619`.
+
+Push (owner-authorized):
+
+- `git push -u origin shannon/overnight-audit-gaps-20260619` (drmTMB) and
+  `git push -u origin shannon/overnight-audit-verify-20260619` (DRM.jl) — both
+  first pushes; new remote branches created (the handover's "PR #636" predated any
+  actual push).
+
+Resolve (Workflow `wsp4qgou4`, Rose+Fisher both -> partial):
+
+- Matrix "Bivariate residual correlation rho12" BRIDGE cell `planned -> partial`.
+  Real committed bridge evidence (Route B parity test + nonphylo_biv_rho12_predictor
+  capability row, covered) makes planned an understatement; but it is engine-vs-engine
+  parity on one seed-fixed dataset, not interval coverage, so covered overclaims
+  (owner + Fisher). Partial is the honest middle. Row prose rewritten to drop the
+  now-false "Julia bridge remain planned" sentence and add a cross-reference to the
+  covered per-cell TSV row (granularity distinction made visible, per Rose).
+
+Propagate (scout-identified, already banked):
+
+- Three binomial finish-board rows (`drmTMB-569-binomial-fixed`,
+  `drmTMB-569-response-contract`, `drmTMB-binomial-evidence-gates`) visual field
+  `planned -> covered`, on the same Florence-approved binomial coverage figure that
+  promoted the matrix binomial visual cell this session. No new figure or sim.
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (counts unchanged); `git diff --check` clean.
+
+Boundary:
+
+- rho12 bridge is partial = parity, not coverage, one dataset; aggregate R-Julia
+  bridge gate row unchanged; native/direct-Julia/bridge lanes separate. Binomial
+  finish-board visual flips reuse already-verified evidence only.
+
 ## 2026-06-20: Binomial coverage figure -> visual cell covered (Ada autonomous, Florence gate)
 
 Goal:
