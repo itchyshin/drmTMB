@@ -22,10 +22,10 @@ bivariate Gaussian models.
 \code{drmTMB} fit.
 }
 \details{
-For univariate Gaussian models, response residuals are \code{y - mu}. Pearson
-residuals divide by the fitted observation standard deviation. If a dense
-known sampling covariance was used, Pearson residuals are whitened by the
-fitted total observation covariance.
+For univariate Gaussian, Student-t, and skew-normal models, response residuals
+are \code{y - mu}. Pearson residuals divide by the fitted observation standard
+deviation. If a dense known sampling covariance was used, Pearson residuals are
+whitened by the fitted total observation covariance.
 
 For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
