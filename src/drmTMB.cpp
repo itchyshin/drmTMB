@@ -271,7 +271,7 @@ Type objective_function<Type>::operator()()
       }
     }
     matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
-    Type log_det_covariance = log(phylo_q4_covariance.determinant());
+    Type log_det_covariance = atomic::logdet(phylo_q4_covariance);
     matrix<Type> quadratic_matrix(q, q);
     quadratic_matrix.setZero();
     for (int b = 0; b < q; ++b) {
@@ -316,7 +316,7 @@ Type objective_function<Type>::operator()()
       }
     }
     matrix<Type> covariance_inverse = re_cov_probe_covariance.inverse();
-    Type log_det_covariance = log(re_cov_probe_covariance.determinant());
+    Type log_det_covariance = atomic::logdet(re_cov_probe_covariance);
     matrix<Type> quadratic_matrix(q, q);
     quadratic_matrix.setZero();
     for (int b = 0; b < q; ++b) {
@@ -3338,7 +3338,7 @@ Type objective_function<Type>::operator()()
             }
           }
           matrix<Type> covariance_inverse = phylo_q4_covariance.inverse();
-          Type log_det_covariance = log(phylo_q4_covariance.determinant());
+          Type log_det_covariance = atomic::logdet(phylo_q4_covariance);
           Type quadratic_phylo = Type(0.0);
           for (int a = 0; a < q_phylo; ++a) {
             for (int b = 0; b < q_phylo; ++b) {
