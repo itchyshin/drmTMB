@@ -234,3 +234,39 @@ pattern, RE SDs from `fit$sdpars$mu`, n-ladder to show consistency.
 - **Figure-gallery vignette** surfacing the eye figures → docs cells (Pat/Darwin).
 - Owner decisions still parked: post the R↔Julia coordination comments (auto-denied);
   whether to add per-sub-type structured rows.
+
+## 10. Coevolution (Hadfield 2014) + kernel directions (2026-06-20 ~12:35 MDT)
+
+Owner opened two strategic threads. Commits: `99f57a80` (design 178 + phylo-SD
+diagnostic), `19b03ee6` (design 178 corrected). Branch pushed.
+
+**Coevolution = "A Tale of Two Phylogenies" (Hadfield et al. 2014, Am Nat).** Full
+design + paper mapping in `docs/design/178-coevolution-tale-of-two-phylogenies.md`.
+Key verified facts (owner-corrected, both confirmed in code):
+- The model is fully expressible in EXISTING grammar -- no new primitives. Main
+  effects = `phylo(1|host)` / `phylo(1|parasite)`; coevolution = two-tree
+  `phylo_interaction(1|host:parasite, tree1, tree2)`; the evolutionary-interaction
+  terms (eq. 4 `I(x)A`, `A(x)I`) = `phylo_interaction()` with a STAR tree for the
+  other partner.
+- BUT the additive multi-component fit is BLOCKED at the engine: the assembly
+  extracts a SINGLE structured term per dpar (`extract_gaussian_mu_phylo_term`,
+  `R/drmTMB.R:7534-7549`, aborts on >1 phylo term; sibling guard `:2634`). Verified
+  by fitting `phylo(host)+phylo(parasite)+phylo_interaction(...)` -> it errors
+  "Only one phylogenetic structured effect is implemented in mu". The single-term
+  slices DO work.
+- So the next step is an ENGINE EXTENSION (Gauss): collect all structured terms,
+  build + SUM their precisions per dpar (R assembly + very likely `src/drmTMB.cpp`).
+  Then identifiability validation at adequate N -- which is the maintainer's "we
+  just need larger N, be honest" point. The phylo-SD diagnostic
+  (`2026-06-20-phylo-sd-recovery/`) QUANTIFIES that N requirement (rel bias
+  -32%@60 species -> -4.8%@240; consistent estimator, not a defect).
+- Staged plan in design 178: Stage 1 engine multi-block; Stage 2 adequate-N
+  recovery (species ladder, report the N contract); Stage 3 star-tree evolutionary
+  interactions; Stage 4 ICC accessor (align DRM.jl#188) + Bernoulli + spatial (eq.7-8).
+- This is careful engine surgery -- do it with fresh context + Gauss, not at the
+  tail of a long session. The paper PDF is at /Users/z3437171/Downloads/674445.pdf.
+
+**Kernel.** Jason (landscape_scout) is mapping the gllvm/DRM.jl#270 kernel
+(NNGP/Matern) abstraction as the scalable replacement for fixed relmat; fold his
+synthesis into design 178 (the A matrices generalize to estimated kernels). Scout
+was in flight at handoff.

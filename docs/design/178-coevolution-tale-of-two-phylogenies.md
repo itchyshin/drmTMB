@@ -171,12 +171,18 @@ Maintainer review corrected two claims above; both verified against the code:
 
 ### Revised plan to actually fit Hadfield (2014)
 
-- **Stage 1 (engine gate).** Relax the one-structured-effect-per-dpar guard
-  (`R/drmTMB.R:2634`, `:7547`) to admit a SUM of structured RE blocks per dpar
-  (Gauss to confirm the TMB template already sums independent RE blocks, which is
-  standard; if so this is a guard relaxation + assembly wiring, not a new
-  likelihood). Start with the 3-component additive model
-  (host main + parasite main + coevolution).
+- **Stage 1 (engine extension -- bigger than a guard flip).** Verified: it is NOT
+  just a guard. `extract_gaussian_mu_phylo_term` (`R/drmTMB.R:7534-7549`) aborts on
+  more than one phylo term AND extracts a *single* structured term; the downstream
+  TMB data construction is built around one structured precision per dpar. So
+  admitting the additive model requires extending the assembly to COLLECT all
+  structured terms, build each one's precision, and SUM their contributions (each
+  with its own variance component) -- R assembly work and very likely a C++ change
+  in `src/drmTMB.cpp` to loop over multiple structured RE blocks. This is a
+  Gauss-level engine task, not a one-line guard relaxation. Start with the
+  3-component additive model (host main + parasite main + coevolution). The
+  single-term slices (`phylo()` alone, `phylo_interaction()` alone) already work, so
+  the per-block machinery exists; the new work is the multi-block sum.
 - **Stage 2 (identifiability + recovery at adequate N).** A recovery sim for the
   3-component model across a host/parasite species ladder (e.g. n in {30, 60, 120}
   each), reporting the N at which each component's bias is acceptable -- the
