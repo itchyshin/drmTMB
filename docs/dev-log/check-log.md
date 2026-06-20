@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Endpoint profile engine extended to fixed-effect coefficients (Ada; owner-directed, TDD)
+
+Goal:
+
+- Owner: "manage + speed up profile" (profile is the favorite). The endpoint solver
+  was ~3-5x faster than tmbprofile but only for direct scale/SD/correlation targets;
+  fixed-effect COEFFICIENTS fell back to tmbprofile. Extend the endpoint engine to
+  coefficients so all coefficient profiles get the speed-up.
+
+Change (R-only; `R/profile.R`):
+
+- `profile_endpoint_target_supported()` now admits `target_class == "fixed-effect"`
+  and `transformation == "linear_predictor"`. The endpoint solver, position mapping,
+  and `profile_transform_interval` (which already had a `linear_predictor` identity
+  branch) were all general; only the eligibility gate excluded coefficients. So both
+  `profile_engine = "endpoint"` and the default `"auto"` now use the fast solver for
+  coefficients, with the existing tmbprofile fallback on error intact.
+
+TDD + verification:
+
+- RED: `confint(parm="mu:x", profile_engine="endpoint")` errored ("fixed-effect /
+  linear_predictor not supported").
+- GREEN: endpoint coefficient CI = tmbprofile CI to max |diff| 4.4e-6; `auto` selects
+  endpoint; per-call 29.8 ms vs 117.1 ms (3.93x) on a Gaussian mu:x.
+- Tests: updated test-profile-targets.R (removed the now-obsolete coefficient-rejects
+  assertion; the newdata-rejects + ystep->tmbprofile assertions stay) and added
+  "endpoint engine supports fixed-effect coefficient profiles and agrees with
+  tmbprofile". test-profile-targets.R FAIL 0 PASS 795; test-biv-gaussian.R FAIL 0
+  PASS 945.
+- Docs: roxygen (@param profile_engine + description) updated; `devtools::document()`
+  regenerated man/confint.drmTMB.Rd (unrelated roxygen2-version .Rd drift reverted to
+  keep the change surgical). NEWS.md entry added.
+
+Boundary:
+
+- R-only engine enhancement; no C++ change. Endpoint and tmbprofile agree to ~1e-5;
+  tmbprofile remains the fallback and is selectable. Makes broad coefficient profile
+  calibration (random-slope, non-Gaussian) feasible. Pushes live.
+
 ## 2026-06-20: Profile-engine speed benchmark -- endpoint vs tmbprofile (Ada; owner-directed speed diagnostic)
 
 Goal:

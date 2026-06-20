@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 16:15 MDT",
+  "updated": "2026-06-20 16:55 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Engine enhancement (owner steer: speed up profile): the fast endpoint profile solver now handles FIXED-EFFECT COEFFICIENTS, not just scale/SD/correlation targets. R-only change to profile_endpoint_target_supported() (admit target_class 'fixed-effect' + transformation 'linear_predictor'); the solver, position mapping, and transform were already general, and auto keeps its tmbprofile fallback. TDD: endpoint coefficient CI == tmbprofile to 4.4e-6; auto now selects endpoint; 3.93x faster on a Gaussian mu:x (29.8 vs 117.1 ms). test-profile-targets.R FAIL 0 PASS 795; test-biv-gaussian.R FAIL 0 PASS 945; document() regenerated man/confint.drmTMB.Rd (unrelated roxygen2 drift reverted); NEWS entry added. This makes every coefficient profile ~3-5x faster by default and unblocks feasible profile calibration for RE/non-Gaussian rows. No matrix cell flipped. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

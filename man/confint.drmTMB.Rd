@@ -60,11 +60,13 @@ correlation targets.}
 per-target adaptive-step budget for long or exploratory profile runs.}
 
 \item{profile_engine}{Profile engine for direct fitted-object targets.
-\code{"auto"} uses a scalar endpoint solver for direct scale, SD, and
-correlation targets when no \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls are supplied, and
-otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. \code{"endpoint"} requires the scalar
-endpoint solver, while \code{"tmbprofile"} preserves the previous full-profile
-route for comparison and debugging.}
+\code{"auto"} uses a scalar endpoint solver for direct fixed-effect coefficient,
+scale, SD, and correlation targets when no \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls are
+supplied, and otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. \code{"endpoint"} requires the
+scalar endpoint solver, while \code{"tmbprofile"} preserves the previous
+full-profile route for comparison and debugging. The endpoint solver
+root-finds the two interval endpoints directly and is typically several times
+faster than the full-grid \code{tmbprofile} route while agreeing on the endpoints.}
 
 \item{profile_endpoint_max_eval}{Optional positive whole number limiting
 constrained endpoint evaluations per endpoint side when the scalar
@@ -154,8 +156,9 @@ The fastest routine route is \code{confint(fit)}, which uses Wald intervals for
 fixed effects and direct response-scale targets. For long phylogenetic,
 spatial, animal-model, or relatedness fits, profile only the needed
 variance-component or correlation rows with the default
-\code{profile_engine = "auto"} first; direct scalar scale, SD, and correlation
-targets use the endpoint engine when no full-profile controls are supplied.
+\code{profile_engine = "auto"} first; direct scalar fixed-effect, scale, SD, and
+correlation targets use the endpoint engine when no full-profile controls are
+supplied.
 Use \code{profile_engine = "tmbprofile"} or \code{profile_precision = "fast"} when you
 want the previous full-curve \code{TMB::tmbprofile()} route for comparison,
 diagnostics, or control tuning.

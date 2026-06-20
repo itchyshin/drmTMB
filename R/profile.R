@@ -38,8 +38,9 @@
 #' fixed effects and direct response-scale targets. For long phylogenetic,
 #' spatial, animal-model, or relatedness fits, profile only the needed
 #' variance-component or correlation rows with the default
-#' `profile_engine = "auto"` first; direct scalar scale, SD, and correlation
-#' targets use the endpoint engine when no full-profile controls are supplied.
+#' `profile_engine = "auto"` first; direct scalar fixed-effect, scale, SD, and
+#' correlation targets use the endpoint engine when no full-profile controls are
+#' supplied.
 #' Use `profile_engine = "tmbprofile"` or `profile_precision = "fast"` when you
 #' want the previous full-curve `TMB::tmbprofile()` route for comparison,
 #' diagnostics, or control tuning.
@@ -70,11 +71,13 @@
 #'   [TMB::tmbprofile()] as `maxit` when `method = "profile"`. Use this as a
 #'   per-target adaptive-step budget for long or exploratory profile runs.
 #' @param profile_engine Profile engine for direct fitted-object targets.
-#'   `"auto"` uses a scalar endpoint solver for direct scale, SD, and
-#'   correlation targets when no [TMB::tmbprofile()] controls are supplied, and
-#'   otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the scalar
-#'   endpoint solver, while `"tmbprofile"` preserves the previous full-profile
-#'   route for comparison and debugging.
+#'   `"auto"` uses a scalar endpoint solver for direct fixed-effect coefficient,
+#'   scale, SD, and correlation targets when no [TMB::tmbprofile()] controls are
+#'   supplied, and otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the
+#'   scalar endpoint solver, while `"tmbprofile"` preserves the previous
+#'   full-profile route for comparison and debugging. The endpoint solver
+#'   root-finds the two interval endpoints directly and is typically several times
+#'   faster than the full-grid `tmbprofile` route while agreeing on the endpoints.
 #' @param profile_endpoint_max_eval Optional positive whole number limiting
 #'   constrained endpoint evaluations per endpoint side when the scalar
 #'   endpoint engine is used. This is a diagnostic escape hatch for long
@@ -304,7 +307,7 @@ confint.drmTMB <- function(
     if (!all(supported)) {
       unsupported <- paste(targets$parm[!supported], collapse = ", ")
       cli::cli_abort(c(
-        "{.arg profile_endpoint_max_eval} can only be used with direct scalar scale, SD, and correlation profile targets.",
+        "{.arg profile_endpoint_max_eval} can only be used with direct scalar fixed-effect, scale, SD, and correlation profile targets.",
         x = "Unsupported target(s): {unsupported}."
       ))
     }
@@ -2415,7 +2418,7 @@ drm_profile_endpoint_result <- function(
 ) {
   if (!profile_endpoint_target_supported(target)) {
     cli::cli_abort(c(
-      "Profile endpoint engine is only implemented for direct scalar scale, SD, and correlation targets.",
+      "Profile endpoint engine is only implemented for direct scalar fixed-effect, scale, SD, and correlation targets.",
       i = "Requested {.val {target$parm}} has target class {.val {target$target_class}} and transformation {.val {target$transformation}}."
     ))
   }
@@ -2499,12 +2502,14 @@ profile_endpoint_target_supported <- function(target) {
     identical(target$target_type[[1L]], "direct") &&
     target$target_class[[1L]] %in%
       c(
+        "fixed-effect",
         "distributional-scale",
         "random-effect-sd",
         "random-effect-correlation",
         "residual-correlation"
       ) &&
-    target$transformation[[1L]] %in% c("exp", "tanh", "rho12_tanh")
+    target$transformation[[1L]] %in%
+      c("linear_predictor", "exp", "tanh", "rho12_tanh")
 }
 
 profile_endpoint_targets_supported <- function(targets) {

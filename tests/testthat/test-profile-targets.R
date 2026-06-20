@@ -2155,16 +2155,6 @@ test_that("endpoint engine keeps unsupported targets on current profile paths", 
   expect_error(
     stats::confint(
       fit,
-      parm = "fixef:mu:x",
-      level = 0.80,
-      method = "profile",
-      profile_engine = "endpoint"
-    ),
-    "direct scalar scale, SD, and correlation"
-  )
-  expect_error(
-    stats::confint(
-      fit,
       parm = "sigma",
       level = 0.80,
       method = "profile",
@@ -2173,6 +2163,29 @@ test_that("endpoint engine keeps unsupported targets on current profile paths", 
     ),
     "direct fitted-object scalar targets"
   )
+})
+
+test_that("endpoint engine supports fixed-effect coefficient profiles and agrees with tmbprofile", {
+  set.seed(20260620)
+  n <- 400
+  x <- stats::rnorm(n)
+  dat <- data.frame(y = 0.3 + 0.5 * x + stats::rnorm(n, sd = 0.8), x = x)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  ep <- stats::confint(fit, parm = "fixef:mu:x", method = "profile",
+                       profile_engine = "endpoint")
+  tp <- stats::confint(fit, parm = "fixef:mu:x", method = "profile",
+                       profile_engine = "tmbprofile")
+  au <- stats::confint(fit, parm = "fixef:mu:x", method = "profile")
+
+  # The endpoint engine now handles fixed-effect coefficients (linear_predictor
+  # transformation), and `auto` selects it when no tmbprofile controls are given.
+  expect_equal(ep$profile.engine, "endpoint")
+  expect_equal(ep$conf.status, "profile")
+  expect_equal(au$profile.engine, "endpoint")
+  # Endpoint and full-grid tmbprofile agree on the interval.
+  expect_equal(ep$lower, tp$lower, tolerance = 1e-3)
+  expect_equal(ep$upper, tp$upper, tolerance = 1e-3)
 })
 
 test_that("endpoint profile intervals can split target work across workers", {
