@@ -2,6 +2,56 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Overnight doc-completeness phase + DRM.jl Aqua (Ada autonomous)
+
+Goal:
+
+- Continue the autonomous run with agent-drafted, boundary-safe
+  documentation-completeness slices (one per agent, verified against current
+  code, applied one-by-one), and advance the DRM.jl registry-readiness gate.
+  Branch `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Doc-completeness slices (committed, each verified against current source):
+
+- beta / zero-one-beta numerical guards documented in `03-likelihoods.md`
+  (`beta_mu_eps = 1e-12`, `beta_shape_floor = 1e-8`).
+- Student-t `mu` is the mean unconditionally (`nu > 2` enforced) in
+  `19-family-link-contract.md`.
+- `coscale` defined on the `biv_gaussian()` help page (roxygen + Rd).
+- `residuals()` documented for Student-t and skew-normal, not just Gaussian
+  (verified at `methods.R:2883-2905`; roxygen + Rd).
+- `check_drm()` threshold defaults documented (`1e-3` / `0.98` / `1e-4`;
+  roxygen + Rd).
+- "distributional regression" defined at first use in `drmTMB.Rmd`; MD slice
+  codes explained in `missing-data.Rmd`; family-registry "Required Fields"
+  marked as target schema vs the current five-field constructor API.
+
+A read-only agent that proposed a `vignettes/profile-likelihood.Rmd` figure
+edit was rejected because that file does not exist (hallucinated); verification
+before applying caught it.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'tools::checkRd(...)'   # biv_gaussian, residuals, check_drm Rd: OK
+RSTUDIO_PANDOC=/opt/homebrew/bin /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'  # No problems found
+git diff --check                                            # clean
+```
+
+DRM.jl (separate lane, branch `shannon/overnight-audit-verify-20260619`):
+
+- Instantiated the test env and ran the Aqua hygiene gate:
+  `Aqua.test_all(DRM)` passed 10/10 in 8.7s (no piracy, ambiguities, unbound
+  type params, or stale deps). Advances the registry-readiness gate. Recorded
+  in the DRM.jl after-task note. Pushes held.
+
+Boundary:
+
+- Documentation completeness/clarity and Julia verification only. No model,
+  likelihood, parameterization, recovery/coverage/power, bridge-parity,
+  release/CRAN, REML-non-Gaussian, or engine_control claim. Lanes kept
+  separate.
+
 ## 2026-06-19: Overnight finish-plan Wave 2 + DRM.jl track (Ada autonomous)
 
 Goal:
