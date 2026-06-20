@@ -115,3 +115,42 @@ code requires `inst/COPYRIGHTS` provenance + tests.
   `fixef:<dpar>:<coef>`; relmat marker needs a precomputed `Q`/`K` symbol (no inline `solve()`).
 
 Hand off the same way when context fills. Good luck.
+
+## 8. Continuation (same session, after the handover commit) — interval-method broadening
+
+Owner steer continued: get profile + bootstrap going across the rows, profile is the
+favorite. **HEAD now `abc0e390`** (3 more slices after the handover; all pushed, tree
+clean, validator green 25/68).
+
+- `8ee77fbf` **Non-Gaussian Profile -> partial** (Fisher, parity). 6-family x n {300,600}
+  x 500-rep profile calibration; profile tracks Wald to within MC noise (max diff 0.004),
+  nominal by n=600; the count/heavy-tailed n=300 slopes mildly sub-nominal under BOTH
+  methods, so parity-partial with the Wald cell.
+- `8b2924e5` **design 179** (`docs/design/179-julia-inprocess-profile-bootstrap.md`):
+  scoped the "maximized in Julia" direction. KEY: the DRM.jl profile loop is ALREADY
+  in-process and batched (one `julia_call` runs the whole loop; ~3-min is per-`confint`
+  session cost, not per-point). Staged plan: **Stage A** widen the bridge past the SD
+  block to the coefficient/scale/correlation profiles DRM.jl already computes (cheapest
+  first Julia-speedup cell-evidence; unlocks the native R coefficient weak spot);
+  Stage B warm-start in-process bootstrap (the marquee Julia differentiator); Stage C
+  resident fit handle. Recommendation: Stage A first.
+- `abc0e390` **Random slopes Profile -> partial** (Fisher). Profile is parity-or-BETTER
+  than Wald (all 4 cells clear the 0.93 floor where the n=40 Wald slope is 0.922); held
+  partial not covered because the n=40 profile cells are within ~1 MCSE of the floor and
+  RE-SD/rho/bootstrap are unaddressed.
+
+**Interval-method status now:** profile broadened across the three fixed-effect-bearing
+rows (rho12 covered; non-Gaussian partial; random-slope partial). Bootstrap: rho12
+partial (pilot); broadening to other rows is cost-prohibitive (R refits x families/RE) --
+the honest path is the Julia warm-start bootstrap (design 179 Stage B). The
+endpoint-coefficient profile speedup (`f0fb4f7f`) is what made coefficient profile
+calibration feasible.
+
+**Marquee next (both genuinely want FRESH context):**
+1. **Julia Stage A** (design 179) — widen the bridge to expose the coefficient/scale/
+   correlation profiles DRM.jl already computes; cheapest first "Julia speedups" cell
+   evidence; needs the Julia toolchain (~3-min round-trips) + per-target parity gates.
+2. **Coevolution Stage 1 engine surgery** (design 178) — the Hadfield additive model;
+   Gauss-level R assembly + `src/drmTMB.cpp` block loop; TDD-first.
+3. **Owner decision still pending:** mint per-sub-type Structural rows (3 covered cells
+   from already-verified relmat/animal/spatial evidence).
