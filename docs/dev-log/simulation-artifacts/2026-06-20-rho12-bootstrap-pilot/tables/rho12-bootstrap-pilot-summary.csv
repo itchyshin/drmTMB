@@ -1,0 +1,5 @@
+"n","method","target","coverage","mcse","mean_width","n_ok","n_attempt","ci_fail_rate","pdhess_rate"
+300,"bootstrap","rho12:(Intercept)",0.95,0.0218,0.2128,100,100,0,1
+300,"bootstrap","rho12:x",0.91,0.0286,0.2159,100,100,0,1
+600,"bootstrap","rho12:(Intercept)",0.98,0.014,0.1515,100,100,0,1
+600,"bootstrap","rho12:x",0.95,0.0218,0.146,100,100,0,1

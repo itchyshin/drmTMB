@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 16:55 MDT",
+  "updated": "2026-06-20 17:20 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1090,7 +1090,7 @@
       "point": "covered",
       "wald": "covered",
       "profile": "covered",
-      "bootstrap": "planned",
+      "bootstrap": "partial",
       "docs": "partial",
       "visual": "covered",
       "simulation": "covered",
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "rho12 BOOTSTRAP cell planned -> partial (Fisher SUPPORT-PARTIAL). A parametric-bootstrap (confint method='bootstrap', R=199) interval pilot, 100 reps/cell, n in {300,600}, same rho12 ~ x DGP as the verified Wald/profile calibrations: 0 fit errors, 0 CI failures, pdHess 1.000. Bootstrap coverage 0.95/0.91/0.98/0.95 tracks Wald/profile; widths match. Pilot-scale (MCSE 0.014-0.029), so partial not covered (a 500-rep bootstrap is impractical -- each CI = R refits). Fisher independently recomputed coverage from the 400-row fits CSV (0 failures). This completes ALL THREE interval methods for the lead-novelty rho12 row: Wald covered, profile covered, bootstrap partial. Random-effect rho12 remains planned. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

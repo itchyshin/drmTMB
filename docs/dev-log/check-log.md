@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: rho12 BOOTSTRAP pilot -> Bootstrap cell partial (Ada; Fisher gate)
+
+Goal:
+
+- Owner steer: all three interval methods going for the lead-novelty rho12. Bootstrap
+  is the third (Wald covered, profile covered).
+
+Artifact (`docs/dev-log/simulation-artifacts/2026-06-20-rho12-bootstrap-pilot/`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-rho12-bootstrap-pilot/run.R 100 199
+```
+
+- Parametric bootstrap (confint method="bootstrap"; simulate nsim=R, refit each),
+  R=199, 100 reps/cell, n in {300,600}, same rho12 ~ x DGP. ~40k refits;
+  elapsed ~1837 s. 0 fit errors, 0 CI failures, pdHess 1.000.
+- Coverage 0.95/0.91/0.98/0.95 (MCSE 0.014-0.029); widths match Wald/profile.
+
+Verification:
+
+- Fisher SUPPORT-PARTIAL (independently recomputed coverage from the 400-row fits
+  CSV; 0 failures, status=bootstrap). Partial not covered: pilot-scale MCSE > the
+  500-rep Wald/profile cells; a full bootstrap calibration is impractical (each CI =
+  R refits).
+
+Promotion:
+
+- design 168 + status.json rho12 row: BOOTSTRAP planned -> partial, scoped to
+  feasibility + approximate calibration at pilot scale. Completes all three interval
+  methods for rho12 (Wald covered, profile covered, bootstrap partial). Random-effect
+  rho12 remains planned.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (matrix cell; counts unchanged).
+  Pushes live.
+
 ## 2026-06-20: Endpoint profile engine extended to fixed-effect coefficients (Ada; owner-directed, TDD)
 
 Goal:
