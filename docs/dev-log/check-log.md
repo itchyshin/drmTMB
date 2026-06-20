@@ -2,6 +2,41 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: rho12 ~ predictors recovery + lead-novelty promotion (Ada autonomous)
+
+Goal:
+
+- Produce the next evidence-path item: recovery + Wald calibration for the lead
+  novelty (predictor-dependent residual `rho12 ~ x`, fixed-effect bivariate
+  Gaussian). Branch `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-20-rho12-predictor-recovery/run.R 500
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- 500 reps x 2 cells (n in {300,600}); 0/2000 fit/confint errors; pdHess rate
+  1.000; near-unbiased recovery of both `rho12` coefficients (bias <= 0.0113);
+  Wald coverage 0.920-0.964 (the n=300 `rho12:x` slope cell at 0.920 recovers to
+  0.956 at n=600, recorded honestly). Elapsed 75.7 s.
+- Promoted the bivariate residual `rho12` point/Wald/simulation cells
+  partial -> covered (fixed-effect predictor-dependent route) in the 168 finish
+  matrix, the status.json matrix row, and the drmTMB#60 lead-novelty
+  finish-board row. Validator green; metrics unchanged at 25/68; row counts
+  17/11/15/9 unchanged.
+
+Boundary:
+
+- Native R/TMB, fixed-effect predictor-dependent `rho12` only. Random effects in
+  `rho12`, profile/bootstrap `rho12` intervals, group/phylo/spatial/cross-family
+  correlations, and the Julia bridge remain planned. No power claim.
+
 ## 2026-06-20: Status reconciliation + binomial profile-interval promotion (Ada autonomous)
 
 Goal:

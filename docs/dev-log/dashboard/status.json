@@ -1139,6 +1139,11 @@
     {
       "when": "2026-06-20",
       "who": "Ada",
+      "text": "Matured the lead novelty. A 500-replicate x 2-cell native fixed-effect recovery of the predictor-dependent residual correlation rho12 ~ x (bivariate Gaussian) recovers both rho12 coefficients near-unbiased (bias <= 0.011, pdHess 1.000, 0/2000 errors) with Wald coverage 0.920-0.964 (the n=300 slope cell at 0.920 recovers to 0.956 at n=600, recorded honestly). Promoted the bivariate residual rho12 point/Wald/simulation cells partial -> covered (fixed-effect predictor-dependent route) across the matrix, design 168, and the drmTMB#60 lead-novelty finish-board row; engine/profile/bootstrap/bridge/visual/release stay partial/planned. Validator green; metrics unchanged at 25/68. Pushes held."
+    },
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
       "text": "Reduced partial/planned the honest way. A 4-mapper + Rose/Fisher reconciliation of 132 partial/planned cells found 0 promotable from existing evidence (the statuses are correctly conservative; the green DRM.jl suite is direct-Julia evidence that cannot promote a bridge or native cell). Then produced the highest-leverage new evidence: a 500-replicate x 4-cell binomial fixed-effect profile-interval calibration (tmbprofile coverage 0.93-0.972, MCSE <= 0.0114, 4000/4000 profiles ok), and promoted the binomial fixed-effect profile cell planned -> covered across the matrix row, the three binomial finish-board rows, and design 168. Validator green; metrics unchanged at 25/68 (a cell-status change). Native R/TMB, fixed-effect only; random/structured/bivariate profile, bootstrap, and the Julia bridge stay planned/unsupported. Pushes held."
     },
     {
