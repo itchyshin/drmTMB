@@ -135,6 +135,13 @@ weakly identified cells cannot collapse into one status word.
   Laplace and non-Gaussian distributional models, use the actual method name.
 - Speed claims require point estimate, objective/log-likelihood, CI/status,
   convergence, failure count, thread, memory, version, and dirty-state evidence.
+- GPU, CUDA, TPU, accelerator, compute-target, and offload vocabulary stays
+  `planned` or `unsupported` until benchmark evidence exists.
+  `tools/validate-mission-control.py` lints the public files for accelerator
+  claims that lack a `planned`/`unsupported` guard. The token "backend" is
+  deliberately excluded because it denotes the parallel-execution mode
+  (`backend = "multicore"`/`"none"`) and the TMB precision backend, not a
+  hardware accelerator.
 - Plain Bernoulli/binomial support means event-probability `mu` only. It is not
   beta-binomial overdispersion, beta/zero-one beta continuous-proportion
   modelling, binary missing-predictor imputation, random-effect binomial, or a

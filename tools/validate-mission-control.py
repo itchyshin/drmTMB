@@ -35,6 +35,14 @@ RELEASE_READY_PATTERN = re.compile(
     re.I,
 )
 RESERVED_PUBLIC_CONTROL_PATTERN = re.compile(r"\bengine_control\b")
+# Accelerator / hardware vocabulary must stay guarded as planned/unsupported
+# until benchmark evidence exists. Deliberately excludes the overloaded token
+# "backend", which denotes the parallel-execution mode (backend = "multicore" /
+# "none") and the TMB precision backend, not a hardware accelerator.
+ACCELERATOR_CLAIM_PATTERN = re.compile(
+    r"\b(GPU|CUDA|cuDNN|TPU|accelerator|compute[- ]target|offload)\b",
+    re.I,
+)
 
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
@@ -396,6 +404,14 @@ def main() -> int:
         for match in RESERVED_PUBLIC_CONTROL_PATTERN.finditer(text):
             line = text_line_number(text, match.start())
             errors.append(f"{rel_path(path)}:{line} exposes reserved engine_control language")
+        for accel_line_no, accel_line_text in enumerate(text.splitlines(), start=1):
+            if ACCELERATOR_CLAIM_PATTERN.search(accel_line_text) and not re.search(
+                r"\b(planned|unsupported)\b", accel_line_text, re.I
+            ):
+                errors.append(
+                    f"{rel_path(path)}:{accel_line_no} claims GPU/accelerator "
+                    "capability without a 'planned' or 'unsupported' guard"
+                )
 
     if errors:
         for error in errors:
