@@ -2,6 +2,61 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Non-Gaussian FE recovery 500-rep promotion (Ada autonomous)
+
+Goal:
+
+- Scale the in-flight non-Gaussian fixed-effect recovery pilot (50 reps) to
+  promotion grade (500 reps) and, if the evidence holds, promote the scoped
+  "Non-Gaussian models" matrix cell. Branch
+  `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Evidence run (native R/TMB, deterministic, `master_seed = 20260620`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-fe-recovery-calibration/run.R 500
+```
+
+- 6 families (poisson, nbinom2, Gamma(log), lognormal, beta, student) x n in
+  {300, 600} x 500 reps x 2 targets = 12,000 fits. 0 fit/confint errors;
+  `n_ok = 500` every cell; elapsed 289.4 s. Largest absolute bias 0.0052
+  (nbinom2 n=300 intercept); pdHess 1.000 for five families, 0.996 for
+  student n=300. Wald coverage 0.926-0.970 across cells; the only sub-0.93 cell
+  is student n=300 mu:x = 0.926 (recovers to 0.944/0.952 at n=600).
+
+Verification (Rose + Fisher adversarial workflow, both recomputed coverage from
+the per-fit CSV and reproduced the summary exactly):
+
+- point: both promote. wald: both hold (student n=300 mu:x = 0.926 < 0.93 floor).
+  simulation: Fisher promote, Rose hold; guardrail hold won (no explicit
+  simulation-promotion clause in the artifact; binomial row keeps simulation
+  partial despite covered intervals). Net: promote `point` only.
+
+Edits (status.json and design 168 promoted together; README updated PILOT ->
+500-rep):
+
+- `docs/design/168-...md` and `docs/dev-log/dashboard/status.json`:
+  "Non-Gaussian models" point `partial -> covered` (scoped: fixed-effect mu
+  coefficient recovery, native R/TMB, complete data, the six implemented
+  one-response families); wald and simulation kept partial with the student
+  small-n caveat; evidence_url repointed to the new artifact.
+- `docs/dev-log/.../2026-06-20-nongaussian-fe-recovery-calibration/README.md`:
+  rewritten to the 500-rep result + the verified promotion outcome.
+
+Validation:
+
+- `python3 -c "import json; json.load(...)"`: status.json valid JSON.
+- `python3 tools/validate-mission-control.py`: `mission_control_ok: 25/68 ...
+  17 matrix rows` (metrics and row counts unchanged by a cell-status change).
+- `git diff --check`: clean.
+
+Boundary:
+
+- Native R/TMB, fixed-effect mu coefficient recovery only, complete data. No
+  Wald/profile/bootstrap interval promotion, no random/structured-effect,
+  scale/shape, bivariate/mixed, Julia-bridge, or release/CRAN claim. Pushes held.
+
 ## 2026-06-20: R-Julia bridge + DRM.jl Julia track (Ada autonomous)
 
 Goal:

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 17:12 MDT",
+  "updated": "2026-06-20 09:39 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -921,7 +921,7 @@
       "area": "Non-Gaussian models",
       "engine": "partial",
       "bridge": "planned",
-      "point": "partial",
+      "point": "covered",
       "wald": "partial",
       "profile": "planned",
       "bootstrap": "planned",
@@ -929,8 +929,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Coefficient parity first; variance, correlation, and CI claims require their own recovery rows. Fixed-effect skew-normal now has a six-cell diagnostic pilot plus a 200-fit guard grid; fitted-scale floor domination stayed at zero, but fixed-gradient warnings keep the guard-grid decision at diagnostic_hold. Formal calibration and comparator evidence remain planned.",
-      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-19-skew-normal-guard-grid-diagnostic/README.md"
+      "next": "A 500-replicate native R/TMB fixed-effect mu recovery artifact (poisson, nbinom2, Gamma(log), lognormal, beta, student; n in {300, 600}; 12,000 fits; 0 errors; largest absolute bias 0.0052; pdHess >= 0.996) promotes point estimates to covered, scoped to fixed-effect mu coefficient recovery for the implemented one-response families (Rose+Fisher verified). Wald stays partial because student n=300 mu:x Wald coverage is 0.926, below the 0.93 floor (student small-n is the flagged off-cell; both n=600 cells recover to 0.944/0.952). Simulation stays partial (not authorized by the artifact; the binomial row likewise keeps simulation partial despite covered intervals). Variance, correlation, profile/bootstrap, random/structured effects, bivariate/mixed responses, and the Julia bridge remain planned and require their own recovery rows. The earlier skew-normal guard grid stays diagnostic_hold.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-nongaussian-fe-recovery-calibration/README.md"
     },
     {
       "area": "Bernoulli/binomial response family",
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Scaled the non-Gaussian fixed-effect recovery to promotion grade. A 500-replicate native R/TMB fixed-effect mu = b0 + b1*x recovery + Wald-calibration artifact across the six implemented one-response families (poisson, nbinom2, Gamma(log), lognormal, beta, student) x n in {300, 600} = 12,000 fits returned 0 errors, near-unbiased recovery (largest absolute bias 0.0052), and pdHess >= 0.996. A Rose + Fisher adversarial pass (both recomputed coverage from the raw per-fit CSV) promoted the 'Non-Gaussian models' point cell partial -> covered, scoped to fixed-effect mu coefficient recovery. Wald was HELD partial: student n=300 mu:x coverage is 0.926, below the 0.93 floor (the only off-cell; recovers to 0.944/0.952 at n=600). Simulation was HELD partial: the verifiers split (Fisher promote, Rose hold) and the guardrail hold won -- this artifact lacks the explicit simulation-promotion clause the rho12 artifact carried, and the binomial row keeps simulation partial despite covered intervals. Updated status.json + design 168 together; validator green; metrics unchanged at 25/68. Native R/TMB, fixed-effect, complete data only; pushes held."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
