@@ -114,12 +114,12 @@ flags the additive model (`phylo(1|h) + phylo(1|p) + phylo_interaction(...)`) as
 ## Connections (do not duplicate effort)
 
 - **Kernel abstraction (DRM.jl#270; gllvm direction).** `A^(h)`, `A^(p)` are fixed
-  phylogenetic correlation matrices; the gllvm team is moving to a kernel/sparse-GP
-  abstraction (NNGP/Matern) as the scalable replacement for fixed relatedness. A
-  kernelized double-phylogeny would replace `A` with a kernel `K(theta)` whose
-  hyperparameters are estimated -- a natural generalization of terms 1-5. Jason's
-  landscape scout (in flight) is mapping the kernel API; fold its result here
-  before committing to the Stage-2 grammar.
+  phylogenetic correlation matrices; the gllvm ecosystem is moving to a
+  kernel/sparse-GP abstraction (NNGP/Matern) as the scalable replacement for fixed
+  relatedness. A kernelized double-phylogeny would replace `A` with a kernel
+  `K(theta)` whose hyperparameters are estimated -- a natural generalization of
+  terms 1-5. The landscape scout's findings are folded in below (see "Kernel
+  generalization"); read that before committing to the Stage-2/Stage-4 grammar.
 - **DRM.jl coevolution epic.** #186 (bivariate phylo coevolution, q4 PLSM), #188
   (Sigma_a cross-trait correlation accessors + CIs), #189 (coevolution from a
   spatial kernel / known relmat). The ICC accessor (Stage 3) should align with the
@@ -352,3 +352,78 @@ type and no hand-written per-block Cholesky.
 
 This is Gauss-level work; do it TDD-first with Noether checking the Kronecker /
 block-diagonal math and Curie+Fisher gating the recovery.
+
+## Kernel generalization (DRM.jl#270 / GLLVM.jl#62 synthesis, 2026-06-20)
+
+The owner's second strategic thread asks how the gllvm-style **kernel abstraction**
+relates to the fixed correlation matrices in this model. Synthesis of DRM.jl#270
+("Kernel-based covariance + sparse GP (NNGP/Matern) as the scalable 'relmat'
+abstraction") and its GLLVM.jl#62 coordination:
+
+### What the ecosystem does (gllvm 2.0.5; van der Veen & O'Hara 2024)
+
+- **Large phylogenies / relatedness:** a nearest-neighbour Gaussian process (NNGP)
+  sparse approximation (`nn.colMat`, ~10 neighbours) -- the dense `O(G^2)` covariance
+  never materialises; cost is `O(G*k)`.
+- **Spatial:** parametric **Matern / exponential kernels over coordinates** with
+  range + smoothness **estimated** (a kernel, not a precomputed matrix).
+- **SPDE/Matern-GMRF:** GLLVM.jl#62 is a complete, tested Lindgren-Rue-Lindstrom /
+  sdmTMB-style FEM module (`spde*.jl` + `matern_correlation`), MIT-licensed,
+  depending only on `LinearAlgebra`/`SparseArrays`/`SpecialFunctions`.
+
+### The unifying idea: "a kernel as the avatar of relmat"
+
+Relatedness becomes a **kernel with estimated hyperparameters**, not a fixed matrix:
+(1) parametric spatial kernels (Matern/exponential) estimated from coordinates, for
+all families; (2) sparse-GP approximations (NNGP ~10 neighbours, or band) so large
+`relmat`/spatial covariances stay `O(G*k)`; (3) compose with a phylogenetic
+signal-deformation parameter (the companion issue).
+
+### How this maps onto the Hadfield model and drmTMB
+
+- **The A matrices generalize to kernels.** In Hadfield (2014) `A^(h)`, `A^(p)` are
+  fixed phylogenetic correlations from known trees. A kernelized double-phylogeny
+  replaces each fixed `A` with an estimated `K(theta)` (e.g. a Matern-SPDE GMRF over
+  a latent space, or an NNGP approximation), so all five Kronecker terms 1-5 become
+  estimated-kernel Kronecker terms -- the same algebra, scalable hyperparameters.
+- **drmTMB's tree path is already in the right (sparse) form.** The augmented-state
+  `S^-1` precision (`drm_phylo_augmented_precision`) is exactly the
+  "tree path is already sparse via the augmented-state precision -- worth keeping"
+  that DRM.jl flags. The drmTMB-side kernelization work is therefore (a) make the
+  `spatial()` coordinate path an *estimated* Matern kernel rather than the current
+  precomputed-`K` route, and (b) NNGP-approximate large `relmat`.
+- **Stage 1 is parameterization-agnostic -- and forward-compatible.** The Stage-1
+  block-diagonal-precision architecture sums each block's (sparse) precision
+  regardless of whether it came from a fixed tree (`S^-1`), a fixed `relmat`, or an
+  estimated kernel `K(theta)`. A kernel block simply contributes its sparse precision
+  to the `bdiag`. So the Stage-1 engine extension does NOT need to know about kernels;
+  kernel blocks slot in later as another structured-term type. The one extension the
+  per-block design must anticipate: a kernel block carries *extra hyperparameters*
+  (range, smoothness) beyond a single SD, so the per-block parameter metadata
+  (Stage-1 plan, "length-K `log_sd_phylo`") generalizes to per-block parameter
+  *vectors*.
+- **Stage 2/4 grammar.** When estimated-kernel terms arrive, the grammar gains
+  per-block hyperparameters; the natural surface is the existing `spatial(... )`
+  marker extended to `spatial(1 | site, kernel = matern(...))`, and a future
+  `kernel(...)`/sparse-GP option for large relatedness. The Matern-SPDE spatial
+  kernel (GLLVM.jl#62) is the scalable engine for the paper's region/spatial
+  replication design (eq. 7-8, Stage 4).
+
+### Coordination (do not duplicate effort)
+
+- **Matern-SPDE:** adopt GLLVM.jl#62's FEM core (license-clean MIT) rather than
+  building from scratch; DRM.jl writes a thin latent driver against its family
+  interface. drmTMB should mirror this if/when it kernelizes `spatial()` -- and
+  record provenance in `inst/COPYRIGHTS` per the reuse rule.
+- **NNGP / band sparse-GP** is net-new (not in GLLVM.jl#62) -- shared design work
+  between DRM.jl and drmTMB.
+- **ICC accessor (Stage 3 / DRM.jl#188)** must report kernel-based variance
+  components on the same footing as fixed-tree components, so R and Julia report
+  coevolution identically whether the covariance is a tree or an estimated kernel.
+
+### Boundary
+
+This is a design synthesis (no grammar/likelihood/kernel code added). It records the
+kernel direction so the coevolution Stage-2/Stage-4 grammar and the drmTMB
+`spatial()`/`relmat()` roadmap stay aligned with the gllvm/DRM.jl ecosystem. No cell
+promoted.

@@ -2,6 +2,41 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Kernel abstraction synthesis folded into design 178 (Ada, owner-directed; design doc)
+
+Goal:
+
+- Owner thread 2: fold the gllvm/DRM.jl#270 kernel (NNGP/Matern/SPDE) abstraction --
+  the scalable replacement for fixed relmat -- into design 178, so the coevolution
+  Stage-2/4 grammar and the drmTMB spatial()/relmat() roadmap stay aligned.
+
+Source (read via gh, the prior scout's findings are captured in the issue):
+
+- DRM.jl#270 body + owner comment: gllvm uses NNGP (~10 neighbours) for
+  relatedness/phylo and estimated Matern/exponential kernels for spatial; DRM.jl
+  today forms dense R^-1 (O(G^3)); proposal = "a kernel as the avatar of relmat"
+  (estimated hyperparameters, sparse GP). Matern-SPDE = adopt GLLVM.jl#62 (complete
+  MIT FEM core); NNGP = net-new.
+
+Synthesis banked (design 178 new section "Kernel generalization"):
+
+- The Hadfield A^(h)/A^(p) fixed correlations generalize to estimated kernels
+  K(theta); all five Kronecker terms become estimated-kernel terms (same algebra).
+- drmTMB's augmented-state S^-1 tree precision is already the right sparse form;
+  kernelization work = estimated Matern spatial() + NNGP relmat.
+- Stage 1's block-diagonal-precision architecture is parameterization-agnostic and
+  forward-compatible: a kernel block just contributes its sparse precision to the
+  bdiag; the only extension is per-block parameter *vectors* (range/smoothness)
+  beyond a single SD.
+- Coordination: adopt GLLVM.jl#62 for Matern-SPDE (provenance in inst/COPYRIGHTS if
+  ported); NNGP net-new; ICC accessor (Stage 3 / DRM.jl#188) must treat kernel and
+  fixed-tree components on the same footing.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (no cell changed). Design doc
+  only. Pushes live.
+
 ## 2026-06-20: Coevolution Stage 1 -- verified engine change-map banked (Ada, owner-directed; design doc)
 
 Goal:

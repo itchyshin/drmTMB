@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 14:05 MDT",
+  "updated": "2026-06-20 14:20 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Kernel abstraction (owner thread 2) synthesized into design 178. Read DRM.jl#270 (the prior scout's findings are captured in the issue): gllvm uses NNGP (~10-neighbour sparse GP) for relatedness/phylo and estimated Matern/exponential kernels for spatial; DRM.jl today forms dense R^-1 (O(G^3)); the proposal is 'a kernel as the avatar of relmat' (estimated hyperparameters + sparse GP), with Matern-SPDE adopted from GLLVM.jl#62 (MIT FEM core) and NNGP net-new. Banked a 'Kernel generalization' section: the Hadfield A^(h)/A^(p) fixed correlations generalize to estimated kernels K(theta) (all five Kronecker terms, same algebra); drmTMB's augmented-state S^-1 tree precision is already the right sparse form; and the Stage-1 block-diagonal-precision architecture is parameterization-agnostic + forward-compatible (a kernel block just adds its sparse precision to the bdiag; only extension is per-block parameter vectors for range/smoothness). Design doc only -- no code. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
