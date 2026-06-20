@@ -1137,6 +1137,11 @@
   ],
   "activity": [
     {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Continued the autonomous run, one slice per agent: banked seven boundary-safe documentation-completeness fixes, each verified against current code -- beta/zero-one-beta numerical guards, Student-t mean (nu>2 enforced), the coscale definition, residuals() families (Student-t + skew-normal), check_drm() threshold defaults, distributional-regression and MD-code first-use definitions, and the family-registry target-vs-current schema. A hallucinated profile-likelihood figure edit was rejected by pre-apply verification. pkgdown::check_pkgdown found no problems. On the DRM.jl lane, instantiated the test env and Aqua.test_all(DRM) passed 10/10, advancing the registry-readiness gate. Pushes held; metrics unchanged at 25/68."
+    },
+    {
       "when": "2026-06-19",
       "who": "Ada",
       "text": "Overnight autonomous run: completion-audit of the finish plan, then boundary-safe slices on branch shannon/overnight-audit-gaps-20260619 (pushes held). Wave 1 docs/widget hygiene (README version, coef docs, accelerator lint, getting-started note) plus a 14-item claim/widget verification (all pass). Wave 2 native correctness: pdHess=FALSE now reports a distinct non_pd_hessian uncertainty status and a one-time warning, a single drm_link_registry() with a family/registry drift-guard test, and a figure-gallery axis-label fix. A stable atomic::logdet q>2 covariance change was attempted then reverted because it shifts weakly-identified spatial q4 convergence; queued for supervised review. Five-lens adversarial review found 0 blocking and 0 high; devtools::check clean (0 errors/0 warnings, 1 runtime NOTE); validator green. No recovery/coverage/power, bridge-parity, release, or engine_control claim."
