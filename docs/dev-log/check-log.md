@@ -2,6 +2,46 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Random-slope PROFILE calibration -> Profile cell partial (Ada; Fisher gate)
+
+Goal:
+
+- Broaden profile to the random-slope fixed effects (Profile cell planned). Enabled by
+  the endpoint-coefficient speedup (RE-model coefficient profiles now tractable).
+
+Artifact (`docs/dev-log/simulation-artifacts/2026-06-20-random-slope-profile-calibration/`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-random-slope-profile-calibration/run.R 500
+```
+
+- bf(y ~ x + (1+x|id), sigma~1); n_group {40,80}; 500 reps/cell; confint profile + wald
+  for the two fixed-effect mu coefficients. 0 fit errors, 0 CI failures, pdHess 1.000;
+  ~40 min.
+- Profile coverage 0.938/0.932/0.966/0.948 vs Wald 0.932/0.922/0.960/0.946. Profile is
+  slightly wider (better small-sample): all 4 profile cells clear the 0.93 floor where
+  the n=40 Wald slope is 0.922.
+
+Verification:
+
+- Fisher SUPPORT-ONLY-IF-SCOPED -> partial (not covered). Rule: profile inherits
+  covered only if Wald is covered (rho12 precedent) or profile clears the floor by
+  >2 MCSE; here Wald is partial and the n=40 profile cells are within ~1 MCSE of the
+  floor, and RE-SD/rho/bootstrap are unaddressed. Independently reconciled the 4000-row
+  fits CSV (0 failures; coverage/widths/MCSE reproduce).
+
+Promotion:
+
+- design 168 + status.json Random slopes row: PROFILE planned -> partial, scoped to
+  fixed-effect mu; profile parity-or-better than Wald, all cells at/above floor,
+  nominal by n=80. Bootstrap/RE-SD/rho/bridge remain planned.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (matrix cell; counts unchanged).
+  Pushes live.
+
 ## 2026-06-20: Non-Gaussian PROFILE calibration -> Profile cell partial (Ada; Fisher gate, parity)
 
 Goal:

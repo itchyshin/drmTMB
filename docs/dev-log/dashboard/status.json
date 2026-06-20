@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 18:25 MDT",
+  "updated": "2026-06-20 18:55 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1044,13 +1044,13 @@
       "bridge": "planned",
       "point": "covered",
       "wald": "partial",
-      "profile": "planned",
+      "profile": "partial",
       "bootstrap": "planned",
       "docs": "partial",
       "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 0 errors; pdHess 1.000; Curie+Fisher verified) promotes point estimates to covered, scoped to point recovery: fixed effects near-unbiased (rel bias <= 1%) at both group counts; the random intercept/slope SDs are consistent with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80) -- covered for RE SDs means recovered up to a documented, shrinking bias, not unbiased. The random-effect correlation rho was not validated and RE-SD interval calibration is not claimed. Wald stays partial (n_group=40 b1 coverage 0.922 < 0.93). A Florence-approved recovery figure (docs/dev-log/figure-audits/2026-06-20-random-slope-recovery/) of this verified artifact promotes the visual cell to covered (dots + MC error bars + zero line; POINT recovery + RE-SD consistency, not coverage). Independent-slope-only, non-Gaussian, structured/phylogenetic slopes, profile/bootstrap, and the Julia bridge remain planned.",
+      "next": "A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 0 errors; pdHess 1.000; Curie+Fisher verified) promotes point estimates to covered, scoped to point recovery: fixed effects near-unbiased (rel bias <= 1%) at both group counts; the random intercept/slope SDs are consistent with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80) -- covered for RE SDs means recovered up to a documented, shrinking bias, not unbiased. The random-effect correlation rho was not validated and RE-SD interval calibration is not claimed. Wald stays partial (n_group=40 b1 coverage 0.922 < 0.93). A Florence-approved recovery figure (docs/dev-log/figure-audits/2026-06-20-random-slope-recovery/) of this verified artifact promotes the visual cell to covered (dots + MC error bars + zero line; POINT recovery + RE-SD consistency, not coverage). A 500-rep/cell profile-likelihood calibration on the same DGP (docs/dev-log/simulation-artifacts/2026-06-20-random-slope-profile-calibration/; Fisher verified) moves the profile cell to partial (fixed-effect mu only): profile is parity-or-better than Wald, all cells at/above the 0.93 floor, nominal by n_group=80; held partial not covered because the n_group=40 profile cells (0.932/0.938) are within ~1 MCSE of the floor and RE-SD/rho/bootstrap are unaddressed. Independent-slope-only, non-Gaussian, structured/phylogenetic slopes, bootstrap, and the Julia bridge remain planned.",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-gaussian-random-slope-recovery/README.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Random slopes PROFILE cell planned -> partial (Fisher SUPPORT-ONLY-IF-SCOPED). 500-rep/cell profile-likelihood calibration for the random-slope FIXED-effect mu coefficients (n_group {40,80}): 0 fit errors, 0 CI failures, pdHess 1.000. Notable: profile is BETTER than Wald here -- slightly wider, the better small-sample interval, so all four profile cells clear the 0.93 floor (n=40 slope 0.932) where the Wald slope is 0.922 (the reason the Wald cell is partial). Held at partial not covered because the n=40 profile cells (0.932/0.938) are within ~1 MCSE of the floor and RE-SD/rho/bootstrap are unaddressed (the rho12-covered precedent required a covered Wald cell; here Wald is partial). Enabled by the endpoint-coefficient profile speedup. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
