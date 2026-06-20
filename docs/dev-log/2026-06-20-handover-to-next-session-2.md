@@ -270,3 +270,44 @@ Key verified facts (owner-corrected, both confirmed in code):
 (NNGP/Matern) abstraction as the scalable replacement for fixed relmat; fold his
 synthesis into design 178 (the A matrices generalize to estimated kernels). Scout
 was in flight at handoff.
+
+## 11. Session-3 entry point (final state, 2026-06-20 ~12:45 MDT)
+
+Read sections 0-10 above first; this is the delta + current pointer.
+
+- **HEAD = `48411e44`**, branch `shannon/overnight-audit-gaps-20260619`, **20
+  commits this session, ALL PUSHED to origin**, tree clean, validator green
+  (`25/68`, 17 matrix rows, 10 Julia capability rows). **drmTMB pushes are LIVE**
+  (owner authorized); keep pushing per-slice. DRM.jl branch
+  `shannon/overnight-audit-verify-20260619` pushed, untouched since.
+- **Cells moved -> covered this session** (all evidence-gated): non-Gaussian FE
+  point; Route C `base_gaussian` bridge; non-phylo rho12 bridge (TSV) + rho12
+  matrix bridge `planned->partial`; binomial visual + binomial point
+  (reconciliation) + 3 binomial finish-board visuals; rho12 visual; non-Gaussian
+  visual; **random-slope point** (Curie+Fisher). Banked HELD (no flip, honest):
+  relmat structured recovery (clean, but aggregate "Structural dependencies" row
+  needs all 6 sub-types) and the phylo-SD identifiability diagnostic.
+- **Two ACTIVE strategic threads (owner-directed):**
+  1. **Coevolution = Hadfield et al. 2014 "A Tale of Two Phylogenies".** Paper PDF:
+     `/Users/z3437171/Downloads/674445.pdf`. Full plan +
+     verified findings: `docs/design/178-coevolution-tale-of-two-phylogenies.md`
+     (§Addendum). TDD spec: `tests/testthat/test-coevolution-additive-gate.R`
+     (gate guard PASS + skipped Stage-1 target). **Verified:** model is fully
+     expressible in existing grammar (main = `phylo()`; coevolution = two-tree
+     `phylo_interaction()`; evol-interactions = `phylo_interaction()` with a STAR
+     tree); the blocker is the engine admitting only ONE structured effect per dpar
+     (`R/drmTMB.R:7534-7549`, `:2634`). **NEXT = Stage 1 engine extension** (sum
+     multiple structured RE blocks per dpar; R assembly + likely `src/drmTMB.cpp`)
+     -- Gauss-level, do with FRESH context, TDD-first (activate the skipped target
+     test). Identifiability = "needs adequate N, stated honestly," not a defect.
+  2. **Kernel abstraction** (gllvm / DRM.jl#270; the scalable replacement for fixed
+     relmat). Jason (landscape_scout, agentId `a2ece3e93ecc28e05`) was launched to
+     map it; **check its output** (`/workflows` or the agent transcript) and fold
+     the synthesis into design 178 (the A matrices generalize to estimated kernels).
+- **Owner decision still parked:** the R<->Julia GitHub coordination comments
+  (bridge-status on drmTMB#499; Route A question on DRM.jl#294) were auto-denied;
+  content is in `docs/dev-log/2026-06-20-bridge-parity-verification.md`. Owner can
+  post them or grant `gh issue comment` permission.
+- **Boundaries unchanged** (section 6). Every promotion Rose+Fisher (or Curie/
+  Florence) verified, scoped, evidence-first; aggregate rows need a SET of sub-type
+  sims or per-sub-type rows; cite asserted tolerances, not measured values.
