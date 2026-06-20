@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Gaussian random-slope recovery -> Random slopes point cell covered (Ada, owner-directed, Curie+Fisher)
+
+Goal:
+
+- Owner chose "run new recovery sims for harder caps". Produce a native Gaussian
+  random-slope recovery and promote the "Random slopes" point cell if clean.
+
+Evidence (native R/TMB, deterministic `master_seed = 20260620`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-gaussian-random-slope-recovery/run.R 500
+```
+
+- `bf(y ~ x + (1 + x | id), sigma ~ 1)`, gaussian; n_group in {40, 80};
+  n_per_group=8; 500 reps/cell (1000 fits); 0 fit errors; pdHess 1.000.
+- Smoke (3 reps) confirmed fit + `fit$sdpars$mu` extraction
+  ("(1 + x | id):(Intercept)", "(1 + x | id):x"); pilot (50) then 500.
+- Recovery (rel bias n_group=40 / 80): b0 +1.0%/+0.3%; b1 -0.8%/-0.1%;
+  sd_int -2.8%/-1.0%; sd_slope -6.7%/-1.1%; sigma 0.0%/0.0%. Fixed-effect Wald
+  coverage: n=40 b0 0.932 / b1 0.922; n=80 b0 0.960 / b1 0.946.
+
+Verification (Curie + Fisher workflow, both promote; Fisher recomputed headline
+stats from the raw 5000-row per-fit CSV, matched the summary exactly):
+
+- point partial -> covered, scoped to native Gaussian correlated random-slope
+  POINT recovery. The sd_slope -6.7% at n_group=40 is the expected ML small-sample
+  variance-component downward bias (consistent, shrinks to -1.1% at n_group=80),
+  not a defect; "covered" for RE SDs = recovered up to a documented shrinking bias.
+  rho not validated; RE-SD interval calibration not claimed; Wald cell stays partial
+  (n=40 b1 0.922). No blocking concerns.
+
+Edits:
+
+- design 168 + status.json "Random slopes" point `partial -> covered` (scoped text);
+  evidence_url -> the artifact README; activity (who=Curie) + timestamp.
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (counts unchanged); `git diff --check` clean.
+
+Boundary:
+
+- Native R/TMB, Gaussian, one correlated random-slope block, complete data, point
+  recovery only. Wald/profile/bootstrap, rho, independent-only, non-Gaussian,
+  structured/phylo slopes, and the Julia bridge unchanged. Pushes live (owner-authorized).
+
 ## 2026-06-20: Route A bridge finding + R-Julia coordination record (Ada, owner-directed)
 
 Goal:

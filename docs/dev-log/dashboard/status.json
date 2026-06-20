@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 11:09 MDT",
+  "updated": "2026-06-20 11:45 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -906,7 +906,7 @@
       "area": "Random slopes",
       "engine": "partial",
       "bridge": "planned",
-      "point": "partial",
+      "point": "covered",
       "wald": "partial",
       "profile": "planned",
       "bootstrap": "planned",
@@ -914,8 +914,8 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 0 errors; pdHess 1.000; Curie+Fisher verified) promotes point estimates to covered, scoped to point recovery: fixed effects near-unbiased (rel bias <= 1%) at both group counts; the random intercept/slope SDs are consistent with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80) -- covered for RE SDs means recovered up to a documented, shrinking bias, not unbiased. The random-effect correlation rho was not validated and RE-SD interval calibration is not claimed. Wald stays partial (n_group=40 b1 coverage 0.922 < 0.93). Independent-slope-only, non-Gaussian, structured/phylogenetic slopes, profile/bootstrap, and the Julia bridge remain planned.",
+      "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-gaussian-random-slope-recovery/README.md"
     },
     {
       "area": "Non-Gaussian models",
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Curie",
+      "text": "New recovery sim for a harder capability (owner-directed). A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 1000 fits; 0 errors; pdHess 1.000) shows clean fixed-effect point recovery (rel bias <= 1% both group counts) and consistent random intercept/slope SD recovery with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80). Curie + Fisher (Fisher recomputed from the raw per-fit CSV) both promote the matrix 'Random slopes' POINT cell partial -> covered, scoped to native Gaussian correlated random-slope point recovery. Covered for the RE SDs means recovered up to a documented, shrinking ML bias -- NOT unbiased; the rho correlation was not validated; RE-SD interval calibration is not claimed; the Wald cell stays partial (n_group=40 b1 coverage 0.922 < 0.93). Independent-only, non-Gaussian, structured/phylo slopes, profile/bootstrap, and the Julia bridge remain planned. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Florence",
