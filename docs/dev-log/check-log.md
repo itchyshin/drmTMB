@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Coevolution Stage 0 -- phylo_interaction SD recovery (Ada, owner-directed; HELD diagnostic)
+
+Goal:
+
+- design 178 Stage 0: validate that the headline coevolutionary `phylo_interaction()`
+  term (Hadfield et al. 2014 `A^(p) (x) A^(h)` Kronecker effect) recovers on its own
+  -- the honest single-component baseline before the Stage-1 additive engine
+  extension. Bank as evidence; promote only if a scoped granular cell exists.
+
+Artifact (native R/TMB, deterministic, `master_seed = 20260620`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-coevolution-phylo-interaction-recovery/run.R 500
+```
+
+- `bf(y ~ x + phylo_interaction(1 | host:parasite, tree1 = host_tree,
+  tree2 = parasite_tree), sigma ~ 1)`, gaussian; coev effect from
+  `N(0, sd_coev^2 * (A_parasite (x) A_host))`, `sd_coev = 0.7`; `n_each = 4` obs/pair;
+  ladder `n_host = n_parasite in {6, 10, 14}`; 500 reps/cell (1500 fits).
+- Result: 0 fit errors, pdHess 1.000. Coevolutionary SD rel bias -6.4% / -2.5% /
+  -1.6% (consistent estimator, shrinks with species). Slope rel bias <= 0.2% (Wald
+  0.940-0.962); sigma unbiased. Intercept near-unbiased but high-variance, Wald
+  0.906 / 0.922 / 0.930 (grand-mean / phylo-field confounding, below the 0.93 floor
+  at n_sp 6 and 10).
+
+Verification:
+
+- Numerical correctness (Curie's role; the subagent was rate-limited so performed
+  directly): Kronecker order confirmed from `build_phylo_interaction_mu_structure`
+  (`R/drmTMB.R:8809-8815`) -- DGP `kronecker(A_p, A_h)` with host-fastest grid
+  matches the model's `kronecker(precision2, precision1)`,
+  `obs_node = (node2-1)*n1 + node1`; augmented `S^-1` tip-marginal =
+  `sd^2 * (A_p (x) A_h)`, so `sd_coev` maps 1:1 to `fit$sdpars$mu`. Independent
+  30-rep re-run reproduced (-3.6% / -4.0% / -1.8%; 0 errors; pdHess 1.000).
+- Inference/scope (Fisher): ENDORSE-AS-HELD. Two README edits applied -- removed a
+  confounded cross-diagnostic "most identifiable of five components" overclaim; added
+  the intercept-Wald-below-floor disclosure.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (no cell changed; counts
+  unchanged). `git diff --check` clean.
+
+Boundary:
+
+- HELD diagnostic. No matrix/finish cell promoted (no granular coevolution row;
+  aggregate "Structural dependencies" cannot be flipped by one sub-type). Native
+  R/TMB, Gaussian, one `phylo_interaction` block, complete data; POINT recovery +
+  fixed-effect Wald only; coev-SD interval calibration not claimed. Pushes live.
+
 ## 2026-06-20: Coevolution design note (Hadfield 2014) + phylo-SD identifiability diagnostic (Ada, owner-directed)
 
 Goal:

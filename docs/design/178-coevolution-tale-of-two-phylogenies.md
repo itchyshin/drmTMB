@@ -90,11 +90,13 @@ flags the additive model (`phylo(1|h) + phylo(1|p) + phylo_interaction(...)`) as
 
 ## Staged, evidence-gated plan
 
-- **Stage 0 (validate what exists).** A recovery simulation for
+- **Stage 0 (validate what exists). DONE 2026-06-20 -- see the Stage-0 evidence
+  subsection in the Addendum below.** A recovery simulation for
   `phylo_interaction()`: simulate from `sigma^2_{[ph]} (A^(p) (x) A^(h))`, fit, and
   recover the coevolutionary SD + fixed effects (smoke -> pilot -> 500-rep ->
-  Curie+Fisher), mirroring the relmat/random-slope recovery slices. This is the
-  bounded, do-it-now step; it banks the headline term as recovery-validated.
+  Curie+Fisher), mirroring the relmat/random-slope recovery slices. This was the
+  bounded, do-it-now step; it banks the headline term as recovery-validated (a HELD
+  diagnostic -- no granular coevolution matrix row exists to promote).
 - **Stage 1.** The simultaneous additive model `phylo(1|h, tree1) +
   phylo(1|p, tree2) + phylo_interaction(1|h:p, tree1, tree2)`: identifiability
   diagnostics (can the three components be separated?), then a 3-component recovery
@@ -196,3 +198,39 @@ Maintainer review corrected two claims above; both verified against the code:
 
 The single-term slices (`phylo_interaction()` alone; `phylo()` alone) already work
 today; only the *simultaneous* multi-component fit is gated.
+
+### Stage 0 evidence (2026-06-20) — coevolutionary term recovery validated (HELD diagnostic)
+
+The headline coevolutionary term, fit ALONE, recovers honestly. Artifact:
+`docs/dev-log/simulation-artifacts/2026-06-20-coevolution-phylo-interaction-recovery/`
+(self-contained `run.R`, 500 reps/cell, `master_seed = 20260620`).
+
+- **Model:** `bf(y ~ x + phylo_interaction(1 | host:parasite, tree1 = host_tree,
+  tree2 = parasite_tree), sigma ~ 1)`, Gaussian. DGP draws the coevolutionary effect
+  from `N(0, sd_coev^2 * (A_parasite (x) A_host))`, `A = cov2cor(vcv(rcoal_tree))`,
+  `sd_coev = 0.7`, `b0 = 0.3`, `b1 = 0.5`, `sigma = 0.4`, `n_each = 4` obs/pair,
+  species ladder `n_host = n_parasite in {6, 10, 14}`.
+- **Result (0 fit errors, pdHess 1.000 across 1500 fits):** coevolutionary SD rel
+  bias **-6.4% / -2.5% / -1.6%** at n_sp 6/10/14 -- a consistent estimator (the
+  downward bias shrinks monotonically with species count). Slope rel bias <= 0.2%
+  (Wald 0.940-0.962); residual sigma essentially unbiased. The intercept is
+  near-unbiased in the mean but high-variance with under-nominal Wald coverage at
+  few species (0.906 / 0.922 / 0.930) -- the grand-mean / phylogenetic-field
+  confounding, approaching nominal as species grow.
+- **Verification:** numerical correctness checked at code level (the DGP's
+  `kronecker(A_p, A_h)` with host-fastest `expand.grid` matches the model's
+  `kronecker(precision2, precision1)` with `observation_node_index =
+  (node2-1)*n1 + node1`; the augmented `S^-1` tip-marginal equals
+  `sd^2 * (A_p (x) A_h)`, so `sd_coev` maps 1:1 to the reported SD) plus an
+  independent 30-rep re-run reproducing the pattern. Inference/scope reviewed
+  (Fisher, ENDORSE-AS-HELD): scoped to POINT recovery + fixed-effect Wald only;
+  coevolutionary-SD interval calibration NOT claimed; no controlled comparison with
+  the single-tree phylo-SD diagnostic (different replication and total N).
+- **Disposition:** HELD diagnostic, no cell promoted. There is no granular
+  coevolution / `phylo_interaction` row in the capability matrix, and the aggregate
+  "Structural dependencies" row cannot be flipped by one sub-type. This is the
+  honest single-component baseline under any Stage-1 additive claim: the
+  coevolutionary component works alone, so the Stage-1 multi-block engine extension
+  builds on validated ground, and the "needs adequate N" contract is now quantified
+  for the interaction term (mild bias, shrinking, even at modest species counts --
+  far milder than the single-tree phylo main effect, which needs many more species).

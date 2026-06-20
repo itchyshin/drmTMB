@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 12:23 MDT",
+  "updated": "2026-06-20 13:50 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -561,10 +561,24 @@
       "issue_label": "drmTMB#569",
       "lane": "Critical Path",
       "status": "banked",
-      "owners": ["Ada", "Boole", "Gauss", "Noether", "Fisher", "Curie", "Pat", "Darwin"],
+      "owners": [
+        "Ada",
+        "Boole",
+        "Gauss",
+        "Noether",
+        "Fisher",
+        "Curie",
+        "Pat",
+        "Darwin"
+      ],
       "family": "stats::binomial(link = \"logit\")",
-      "response_encoding": ["0/1", "cbind(successes, failures)"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "0/1",
+        "cbind(successes, failures)"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -587,10 +601,23 @@
       "issue_label": "drmTMB#569",
       "lane": "Issue Ledger",
       "status": "banked",
-      "owners": ["Boole", "Noether", "Fisher", "Curie", "Pat", "Rose"],
+      "owners": [
+        "Boole",
+        "Noether",
+        "Fisher",
+        "Curie",
+        "Pat",
+        "Rose"
+      ],
       "family": "Y_i ~ Binomial(n_i, mu_i); logit(mu_i) = eta_i",
-      "response_encoding": ["0/1 vector", "two-column cbind(successes, failures)", "no weights-as-trials"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "0/1 vector",
+        "two-column cbind(successes, failures)",
+        "no weights-as-trials"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -613,10 +640,27 @@
       "issue_label": "drmTMB#544",
       "lane": "Critical Path",
       "status": "partial",
-      "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Ada",
+        "Boole",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "engine = \"julia\" intentional gate registry",
-      "response_encoding": ["R syntax cells", "DRM.jl evidence cells"],
-      "dpars": ["mu", "sigma", "nu", "rho12", "zi", "zoi", "coi"],
+      "response_encoding": [
+        "R syntax cells",
+        "DRM.jl evidence cells"
+      ],
+      "dpars": [
+        "mu",
+        "sigma",
+        "nu",
+        "rho12",
+        "zi",
+        "zoi",
+        "coi"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "experimental",
       "point": "partial",
@@ -639,9 +683,19 @@
       "issue_label": "drmTMB#577",
       "lane": "Issue Ledger",
       "status": "banked",
-      "owners": ["Ada", "Emmy", "Grace", "Rose", "Florence"],
+      "owners": [
+        "Ada",
+        "Emmy",
+        "Grace",
+        "Rose",
+        "Florence"
+      ],
       "family": "row-oriented issue-led capability widget",
-      "response_encoding": ["finish_board rows", "validator checks", "served dashboard"],
+      "response_encoding": [
+        "finish_board rows",
+        "validator checks",
+        "served dashboard"
+      ],
       "dpars": [],
       "engine_tmb": "unsupported",
       "engine_julia": "unsupported",
@@ -665,10 +719,26 @@
       "issue_label": "drmTMB#60",
       "lane": "Twin Claim Board",
       "status": "partial",
-      "owners": ["Ada", "Noether", "Fisher", "Darwin", "Pat", "Rose"],
+      "owners": [
+        "Ada",
+        "Noether",
+        "Fisher",
+        "Darwin",
+        "Pat",
+        "Rose"
+      ],
       "family": "bivariate Gaussian residual rho12 ~ predictors",
-      "response_encoding": ["two responses", "residual coscale only"],
-      "dpars": ["mu1", "mu2", "sigma1", "sigma2", "rho12"],
+      "response_encoding": [
+        "two responses",
+        "residual coscale only"
+      ],
+      "dpars": [
+        "mu1",
+        "mu2",
+        "sigma1",
+        "sigma2",
+        "rho12"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "planned",
       "point": "covered",
@@ -691,10 +761,20 @@
       "issue_label": "maintainer note",
       "lane": "Twin Claim Board",
       "status": "deferred",
-      "owners": ["Ada", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Ada",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "direct DRM.jl Binomial documentation alignment",
-      "response_encoding": ["claim alignment only", "no Codex DRM.jl code changes"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "claim alignment only",
+        "no Codex DRM.jl code changes"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "unsupported",
       "engine_julia": "partial",
       "point": "partial",
@@ -717,9 +797,18 @@
       "issue_label": "gllvmTMB#488",
       "lane": "Cross-Package Lessons",
       "status": "partial",
-      "owners": ["Jason", "Boole", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Jason",
+        "Boole",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "bridge capability ledger and cbind-binomial transport lesson",
-      "response_encoding": ["visible/hidden article discipline", "bridge matrix rows"],
+      "response_encoding": [
+        "visible/hidden article discipline",
+        "bridge matrix rows"
+      ],
       "dpars": [],
       "engine_tmb": "partial",
       "engine_julia": "partial",
@@ -743,9 +832,16 @@
       "issue_label": "scout note",
       "lane": "Cross-Package Lessons",
       "status": "planned",
-      "owners": ["Jason", "Fisher", "Grace", "Rose"],
+      "owners": [
+        "Jason",
+        "Fisher",
+        "Grace",
+        "Rose"
+      ],
       "family": "validation-status helper and public-claims register",
-      "response_encoding": ["Gaussian REML/AI-REML boundary only"],
+      "response_encoding": [
+        "Gaussian REML/AI-REML boundary only"
+      ],
       "dpars": [],
       "engine_tmb": "unsupported",
       "engine_julia": "planned",
@@ -769,10 +865,21 @@
       "issue_label": "drmTMB#569",
       "lane": "Evidence Gates",
       "status": "banked",
-      "owners": ["Fisher", "Curie", "Grace", "Florence", "Rose"],
+      "owners": [
+        "Fisher",
+        "Curie",
+        "Grace",
+        "Florence",
+        "Rose"
+      ],
       "family": "glm parity plus MCSE-backed fixed-effect Wald intervals",
-      "response_encoding": ["Phase 18 binomial_fixed_effect lane", "500 reps x 6 fixed-effect cells"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "Phase 18 binomial_fixed_effect lane",
+        "500 reps x 6 fixed-effect cells"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -795,10 +902,28 @@
       "issue_label": "drmTMB#59",
       "lane": "Evidence Gates",
       "status": "active",
-      "owners": ["Gauss", "Fisher", "Curie", "Grace", "Rose", "Florence", "Pat"],
+      "owners": [
+        "Gauss",
+        "Fisher",
+        "Curie",
+        "Grace",
+        "Rose",
+        "Florence",
+        "Pat"
+      ],
       "family": "numerical guard sensitivity audit",
-      "response_encoding": ["correlation open-interval guards", "finite-variance Student-t shape floor", "support floors", "Gaussian log(sigma) clamp", "skew-normal tail log floor"],
-      "dpars": ["sigma", "nu", "rho12"],
+      "response_encoding": [
+        "correlation open-interval guards",
+        "finite-variance Student-t shape floor",
+        "support floors",
+        "Gaussian log(sigma) clamp",
+        "skew-normal tail log floor"
+      ],
+      "dpars": [
+        "sigma",
+        "nu",
+        "rho12"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "unsupported",
       "point": "partial",
@@ -821,9 +946,20 @@
       "issue_label": "drmTMB#342",
       "lane": "Release Readiness",
       "status": "partial",
-      "owners": ["Ada", "Grace", "Rose", "Pat"],
+      "owners": [
+        "Ada",
+        "Grace",
+        "Rose",
+        "Pat"
+      ],
       "family": "release gate separated from local package health",
-      "response_encoding": ["local checks", "3-OS CI", "pkgdown", "issue ledger", "owner decision"],
+      "response_encoding": [
+        "local checks",
+        "3-OS CI",
+        "pkgdown",
+        "issue ledger",
+        "owner decision"
+      ],
       "dpars": [],
       "engine_tmb": "planned",
       "engine_julia": "planned",
@@ -1136,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Coevolution Stage 0 (design 178): validated that the headline coevolutionary phylo_interaction() term -- the Hadfield et al. 2014 A(p)(x)A(h) Kronecker effect -- recovers ALONE, native R/TMB Gaussian. bf(y ~ x + phylo_interaction(1 | host:parasite, tree1, tree2), sigma ~ 1); coev effect from N(0, sd_coev^2 * (A_parasite (x) A_host)), sd_coev=0.7; species ladder n_host=n_parasite in {6,10,14}; 500 reps/cell (1500 fits); 0 errors; pdHess 1.000. Coevolutionary SD rel bias -6.4% / -2.5% / -1.6% (consistent estimator, shrinks with species); slope rel bias <=0.2% (Wald 0.940-0.962); sigma unbiased; intercept near-unbiased but high-variance with under-nominal Wald (0.906/0.922/0.930, mean/phylo-field confounding). Numerical correctness verified directly (Kronecker order + augmented S^-1 tip-marginal scale; the Curie subagent was rate-limited) + an independent 30-rep re-run; Fisher ENDORSE-AS-HELD with two README edits (removed a confounded cross-diagnostic overclaim; disclosed the intercept-Wald-below-floor). HELD diagnostic, NO cell flip: there is no granular coevolution row and the aggregate Structural dependencies row cannot be flipped by one sub-type. This is the honest single-component baseline under any Stage-1 additive claim. Artifact: docs/dev-log/simulation-artifacts/2026-06-20-coevolution-phylo-interaction-recovery/. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
