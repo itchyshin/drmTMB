@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: rho12 PROFILE CI calibration -> Profile cell covered (Ada; Fisher gate)
+
+Goal:
+
+- Owner steer: get all three interval methods (Wald/profile/bootstrap) going, profile
+  prioritised. Profile-likelihood calibration for the lead-novelty rho12 ~ x.
+
+Artifact (native R/TMB, deterministic; `docs/dev-log/simulation-artifacts/2026-06-20-rho12-profile-calibration/`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-rho12-profile-calibration/run.R 500
+```
+
+- Same DGP as the rho12 recovery (the Wald-promotion basis): bf(mu1=y1~x, mu2=y2~x,
+  sigma1=~1, sigma2=~1, rho12=~x); 500 reps/cell, n in {300,600}; confint profile +
+  wald for both rho12 coefficients. 0 fit errors, 0 CI failures, pdHess 1.000.
+- Profile coverage 0.948/0.922/0.964/0.960; Wald 0.946/0.920/0.964/0.956; widths
+  near-identical; both nominal by n=600; n=300 slope mildly undercovers under BOTH
+  methods. Profile engine: tmbprofile (coefficients fall back from `auto`; the fast
+  endpoint solver covers only direct scale/SD/correlation targets).
+
+Verification:
+
+- Fisher SUPPORT-ONLY-IF-SCOPED (condition -- n=300 slope boundary travels with the
+  cell -- met). Fisher independently recomputed coverage from the 4000-row fits CSV
+  and confirmed 0 profile failures, conf.status=profile.
+
+Promotion:
+
+- design 168 + status.json rho12 row: PROFILE cell planned -> covered, scoped to
+  native R/TMB fixed-effect rho12~x via tmbprofile; profile-vs-Wald parity + ~0.95 at
+  n>=600. Bootstrap + random-effect rho12 + Julia bridge remain planned.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (matrix cell; counts unchanged).
+  Pushes live.
+
 ## 2026-06-20: Animal + spatial structured recovery (Ada; sub-type evidence toward Structural dependencies)
 
 Goal:

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 15:25 MDT",
+  "updated": "2026-06-20 15:55 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1089,7 +1089,7 @@
       "bridge": "partial",
       "point": "covered",
       "wald": "covered",
-      "profile": "planned",
+      "profile": "covered",
       "bootstrap": "planned",
       "docs": "partial",
       "visual": "covered",
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "rho12 PROFILE CI cell planned -> covered (Fisher SUPPORT-ONLY-IF-SCOPED; condition met). A 500-rep/cell (n in {300,600}) profile-likelihood interval calibration on the same rho12 ~ x DGP that promoted the Wald cell: 0 fit errors, 0 CI failures, pdHess 1.000. Profile coverage 0.948/0.922/0.964/0.960 tracks Wald (0.946/0.920/0.964/0.956) to within MC noise; both reach nominal by n=600; the n=300 slope mildly undercovers under BOTH methods (profile 0.922, wald 0.920 < 0.93) -- profile-vs-Wald parity + ~0.95 at n>=600, not a small-n exactness claim. Fisher independently recomputed coverage from the 4000-row fits CSV and confirmed 0 profile failures / conf.status=profile. Profile engine note: coefficients use tmbprofile (the fast endpoint solver covers only direct scale/SD/correlation targets) -- a speed-up opportunity. Random-effect rho12 + bootstrap remain planned. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
