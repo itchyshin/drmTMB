@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Coevolution design note (Hadfield 2014) + phylo-SD identifiability diagnostic (Ada, owner-directed)
+
+Goal:
+
+- Owner: revisit coevolution-of-interaction models and implement Hadfield et al.
+  (2014) "A Tale of Two Phylogenies" (Am Nat); also (earlier) check the kernel
+  abstraction. Read the paper PDF; map it to drmTMB; bank a plan + the empirical
+  phylo identifiability grounding.
+
+Design note:
+
+- `docs/design/178-coevolution-tale-of-two-phylogenies.md`: maps the paper's
+  5-component phylogenetic variance decomposition (eq. 3-6; J/I/A Kronecker terms:
+  host PSR main, parasite HR main, host evol interaction, parasite evol
+  interaction, coevolutionary interaction) to drmTMB grammar. Status: the
+  coevolutionary term = `phylo_interaction()` (implemented, q=1 mu, Gaussian/
+  Poisson/NB2); main effects = `phylo()` (not co-fitted); the two evolutionary
+  interaction terms (I(x)A, A(x)I) and ICC reporting are missing. Staged plan
+  (Stage 0 validate phylo_interaction recovery -> ... -> ICC accessor -> Bernoulli
+  + spatial replication). Connects to the kernel abstraction (DRM.jl#270; Jason
+  scout in flight) and the DRM.jl coevolution epic (#186/#188/#189).
+
+Phylo-SD identifiability diagnostic (native R/TMB, deterministic):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-phylo-sd-recovery/run.R 500
+```
+
+- `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)`, gaussian; n_sp in
+  {60, 120, 240}; 500 reps/cell; 0 errors; pdHess >= 0.998. sd_phylo rel bias
+  -32.1% / -9.2% / -4.8% (shrinks with species -> consistent but weakly identified,
+  NOT a scaling artifact). Phylo intercept Wald coverage 0.728 / 0.884 / 0.916
+  (poorly identified, phylo-mean confounding); slope + sigma clean. HELD diagnostic,
+  no cell promotion (supports keeping phylo/structured cells partial; grounds the
+  coevolution identifiability concerns).
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (no cell changed); `git diff --check` clean.
+
+Boundary:
+
+- Design note (no grammar/likelihood change) + a held diagnostic. No cell promoted.
+  Pushes live.
+
 ## 2026-06-20: Binomial point cell reconciliation partial -> covered (Ada, owner-directed)
 
 Goal:

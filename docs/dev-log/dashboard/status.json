@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 12:07 MDT",
+  "updated": "2026-06-20 12:23 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Two owner-directed strategic threads opened. (1) COEVOLUTION: read the Hadfield et al. (2014) 'A Tale of Two Phylogenies' (Am Nat) paper and wrote docs/design/178-coevolution-tale-of-two-phylogenies.md mapping its 5-component phylogenetic variance decomposition (host PSR main, parasite HR main, host + parasite evolutionary interactions, and the coevolutionary A(p)(x)A(h) interaction) to drmTMB grammar. drmTMB already implements the headline coevolutionary term as phylo_interaction() (q=1 mu; Gaussian/Poisson/NB2); the simultaneous additive model, the two evolutionary-interaction Kronecker terms, and ICC reporting are the gap. Staged, evidence-gated plan banked. (2) KERNEL: launched a landscape scout (Jason) on the gllvm/DRM.jl#270 kernel (NNGP/Matern) abstraction as the scalable replacement for fixed relmat -- to inform the coevolution grammar; scout in flight. Also banked a phylo-SD identifiability diagnostic: 500-rep x 3-cell native recovery shows the phylo SD is weakly identified (rel bias -32% at 60 species shrinking to -4.8% at 240; consistent but slow) and the phylo intercept poorly covered (0.73->0.92) -- a held diagnostic, no cell promotion, grounding the coevolution identifiability concerns. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
