@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 10:16 MDT",
+  "updated": "2026-06-20 10:31 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -941,10 +941,10 @@
       "profile": "covered",
       "bootstrap": "unsupported",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "#585, #588, #589, #591, the 500-replicate fixed-effect Wald interval artifact, and a 500-replicate fixed-effect profile interval artifact (coverage 0.93-0.972, MCSE <= 0.0114, 4000/4000 profiles ok) are banked. Fixed-effect stats::binomial(logit) fits have stats::glm() parity, clearer docs, and MCSE-backed Wald and profile interval coverage for the audited fixed-effect cells; random effects, structured effects, bivariate/mixed responses, bootstrap intervals, headline coverage, and the Julia bridge remain planned or unsupported.",
+      "next": "#585, #588, #589, #591, the 500-replicate fixed-effect Wald interval artifact, and a 500-replicate fixed-effect profile interval artifact (coverage 0.93-0.972, MCSE <= 0.0114, 4000/4000 profiles ok) are banked. Fixed-effect stats::binomial(logit) fits have stats::glm() parity, clearer docs, and MCSE-backed Wald and profile interval coverage for the audited fixed-effect cells; random effects, structured effects, bivariate/mixed responses, bootstrap intervals, headline coverage, and the Julia bridge remain planned or unsupported. A Florence-approved coverage figure (docs/dev-log/figure-audits/2026-06-20-binomial-coverage/) visualises the verified Wald + profile coverage and promotes the visual cell planned -> covered.",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/README.md"
     },
     {
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Florence",
+      "text": "Promoted the binomial visual cell on an AA-approved coverage figure. Built docs/dev-log/figure-audits/2026-06-20-binomial-coverage/binomial-coverage-wald-profile-v3.png from the already-verified 500-replicate Wald + profile calibration artifacts (no refit): empirical 95% interval coverage per cell with +/- 1.96 cell-specific MCSE bars, nominal-0.95 line, and a 0.93-0.97 reference band, faceted by method (Wald/Profile) x encoding (binary/cbind), hollow circle = intercept and hollow triangle = slope (redundant colour+shape). Florence review v2->revise (x-axis comparability, sole-colour encoding) -> v3->approve (caption documents the distinct design grids and non-comparability; shape encoding added; title softened to 'clusters around the nominal 0.95'; band labelled a reference region, not a threshold; the one weak cell, profile cbind slope n=240, shown honestly). Promoted the matrix 'Bernoulli/binomial response family' visual cell planned -> covered in design 168 + status.json. Scope: a coverage display of already-verified evidence, not a calibration proof; native TMB fixed-effect only. Pushes held."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

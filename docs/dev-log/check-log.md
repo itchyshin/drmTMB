@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Binomial coverage figure -> visual cell covered (Ada autonomous, Florence gate)
+
+Goal:
+
+- Reduce the binomial `visual` planned cell with a Florence-approved coverage
+  figure built from already-verified evidence (no new sim). Branch
+  `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Figure:
+
+- `docs/dev-log/figure-audits/2026-06-20-binomial-coverage/plot-binomial-coverage.R`
+  renders `binomial-coverage-wald-profile-v3.png` from the banked
+  `2026-06-17` Wald (12 cells, 0.946-0.964) and `2026-06-20` profile (8 cells,
+  0.930-0.972) coverage CSVs. Hollow circle/triangle (intercept/slope), +/- 1.96
+  cell-specific MCSE bars, nominal-0.95 line, 0.93-0.97 reference band, faceted
+  method x encoding. ggplot2; dpi 144.
+
+Verification (Florence figure gate, two passes, render-proof inspected each time):
+
+- v1: x-axis label overlap (fixed pre-review by moving encoding to a row facet).
+- v2 -> revise: x-axis comparability (Wald cell N vs profile n), colour as sole
+  coefficient discriminator, MCSE/band framing.
+- v3 -> approve: added redundant shape encoding; caption documents the distinct
+  Wald/profile design grids and their non-comparability; "cell-specific MCSE";
+  band labelled a reference region not a pass/fail threshold; title softened to
+  "clusters around the nominal 0.95"; weakest cell (profile cbind slope n=240)
+  shown honestly and unclipped. Florence: "publication-grade ... you may proceed."
+- Inference angle already covered: the plotted coverage numbers were Rose+Fisher-
+  verified at the earlier Wald/profile cell promotions; this slice only visualises
+  that verified evidence, so Florence is the appropriate gate for a visual cell.
+
+Edits:
+
+- `docs/design/168-...md` + `docs/dev-log/dashboard/status.json`: "Bernoulli/
+  binomial response family" visual cell `planned -> covered`; next-gate text +
+  figure-audit README added; status.json activity (who = Florence) + timestamp.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: `mission_control_ok` (matrix row
+  counts unchanged; the binomial row already carried evidence_url for its covered
+  cells).
+- `git diff --check`: clean.
+
+Boundary:
+
+- Coverage DISPLAY of already-verified fixed-effect Wald + profile evidence, not a
+  calibration proof; native TMB fixed-effect only. Promotes the binomial visual
+  cell only; random/structured effects, bivariate/mixed, bridge, headline
+  coverage unchanged. Pushes held.
+
 ## 2026-06-20: R-Julia bridge Route B rho12 ~ x parity -> new capability row covered (Ada autonomous)
 
 Goal:
