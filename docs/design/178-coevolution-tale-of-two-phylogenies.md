@@ -134,3 +134,59 @@ Each stage ships with its own recovery/identifiability evidence and Curie+Fisher
 (and Noether for the Kronecker math) verification before any status promotion. The
 "Structural dependencies" matrix row (the home for these structured terms) stays
 partial until the staged evidence lands.
+
+## Addendum (verified 2026-06-20) — correcting the gap and the identifiability framing
+
+Maintainer review corrected two claims above; both verified against the code:
+
+1. **Terms 3 & 4 are NOT "missing grammar."** Every term reuses `phylo()` /
+   `phylo_interaction()`; there are no new primitives. Eq. 4 makes term 3
+   (`sigma^2_{p[h]} delta_{k,l} a^(h)_{i,j}` = `I^(p) (x) A^(h)`) exactly a
+   `phylo_interaction(1 | host:parasite, tree1 = host_tree, tree2 = star)` where the
+   parasite "tree" is a star phylogeny (so `A^(p) = I`); term 4 is the host star.
+   The host/parasite main effects are `phylo(1 | host)` / `phylo(1 | parasite)`, and
+   the coevolutionary term is the full two-tree `phylo_interaction()`. The earlier
+   "missing grammar" rows in the table are withdrawn.
+
+2. **The real blocker is a conservative R-level gate, and its reason is the
+   larger-N identifiability concern -- not a fundamental limitation.** Fitting the
+   additive model `y ~ x + phylo(1 | host, tree=ht) + phylo(1 | parasite, tree=pt) +
+   phylo_interaction(1 | host:parasite, tree1=ht, tree2=pt)` (n_h=n_p=25, 1250 obs)
+   parses but errors at fit time:
+   `"Only one phylogenetic structured effect is implemented in mu"`
+   (`R/drmTMB.R:7547`; the sibling guard at `R/drmTMB.R:2634` reads "Only one
+   structured effect type is implemented per univariate Gaussian model ... **Fit one
+   structured layer at a time until multiple structured layers have their own
+   identifiability checks.**"). So the multi-component model is gated *pending
+   identifiability validation*, which is precisely the maintainer's "we just need
+   larger N, to be honest about" point.
+
+3. **Identifiability reframed (honest, not a hold).** The phylo-SD diagnostic
+   (`docs/dev-log/simulation-artifacts/2026-06-20-phylo-sd-recovery/`) is not a
+   weak-identifiability *defect*; it *quantifies the N requirement* for a
+   phylogenetic variance component: rel bias -32% at 60 species, -9% at 120, -4.8%
+   at 240 -- a consistent estimator that needs adequate species counts. The honest
+   statement for users is "phylogenetic variance components need many species; with
+   few species they are downward-biased," not "this does not work."
+
+### Revised plan to actually fit Hadfield (2014)
+
+- **Stage 1 (engine gate).** Relax the one-structured-effect-per-dpar guard
+  (`R/drmTMB.R:2634`, `:7547`) to admit a SUM of structured RE blocks per dpar
+  (Gauss to confirm the TMB template already sums independent RE blocks, which is
+  standard; if so this is a guard relaxation + assembly wiring, not a new
+  likelihood). Start with the 3-component additive model
+  (host main + parasite main + coevolution).
+- **Stage 2 (identifiability + recovery at adequate N).** A recovery sim for the
+  3-component model across a host/parasite species ladder (e.g. n in {30, 60, 120}
+  each), reporting the N at which each component's bias is acceptable -- the
+  transparent "larger N" contract. Curie+Fisher verify; promote scoped to the N
+  range where recovery holds.
+- **Stage 3.** Add the evolutionary-interaction terms via star-tree
+  `phylo_interaction()` (terms 3, 4); confirm the 5-component model is identifiable
+  at adequate N.
+- **Stage 4.** ICC / `coev_components()` accessor (aligned with DRM.jl#188), then
+  Bernoulli incidence + spatial replication (eq. 7-8).
+
+The single-term slices (`phylo_interaction()` alone; `phylo()` alone) already work
+today; only the *simultaneous* multi-component fit is gated.
