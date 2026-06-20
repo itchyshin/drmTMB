@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 10:50 MDT",
+  "updated": "2026-06-20 11:09 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -677,7 +677,7 @@
       "bootstrap": "planned",
       "tests": "partial",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "covered",
       "release_gate": "planned",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-rho12-predictor-recovery/README.md",
@@ -926,7 +926,7 @@
       "profile": "planned",
       "bootstrap": "planned",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release": "planned",
       "next": "A 500-replicate native R/TMB fixed-effect mu recovery artifact (poisson, nbinom2, Gamma(log), lognormal, beta, student; n in {300, 600}; 12,000 fits; 0 errors; largest absolute bias 0.0052; pdHess >= 0.996) promotes point estimates to covered, scoped to fixed-effect mu coefficient recovery for the implemented one-response families (Rose+Fisher verified). Wald stays partial because student n=300 mu:x Wald coverage is 0.926, below the 0.93 floor (student small-n is the flagged off-cell; both n=600 cells recover to 0.944/0.952). Simulation stays partial (not authorized by the artifact; the binomial row likewise keeps simulation partial despite covered intervals). Variance, correlation, profile/bootstrap, random/structured effects, bivariate/mixed responses, and the Julia bridge remain planned and require their own recovery rows. The earlier skew-normal guard grid stays diagnostic_hold.",
@@ -956,7 +956,7 @@
       "profile": "planned",
       "bootstrap": "planned",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "covered",
       "release": "planned",
       "next": "Fixed-effect predictor-dependent rho12 ~ x is recovered near-unbiased with Wald coverage 0.920-0.964 (500-replicate native artifact). The R-Julia bridge is partial: engine='julia' reproduces native engine='tmb' coefficient and Wald CI-endpoint parity for rho12 ~ x to <= 1e-4 on one seed-fixed dataset (the narrower per-cell nonphylo_biv_rho12_predictor capability row is covered at that granularity) -- engine-vs-engine parity, not interval coverage, and a single dataset, not a comprehensively validated bridge. Keep residual rho12 separate from group, phylogenetic, spatial, kernel, and cross-family correlations; random-effect rho12 and profile/bootstrap intervals remain planned.",
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Florence",
+      "text": "Coverage figures switched to the Confidence Eye grammar (maintainer request). Each cell's empirical coverage is now a vertical Confidence Eye -- a pale compatibility lens whose half-width follows the quadratic log-likelihood profile (widest at the estimate, tapering to +/- 1.96 cell MCSE), with hollow circle (intercept) / triangle (slope) markers; a shared helper (docs/dev-log/figure-audits/_coverage-eye-helper.R) mirrors plot_corpairs()'s eye geometry. Per the visualization grammar, coverage plots use eyes only for a specific reason -- the maintainer's request is that reason; the eye is labelled MC uncertainty on coverage, not model uncertainty. Florence review v2->v3->v5: fixed a y-axis clipping of the rho12 n=300 slope eye (now ylim shows the full lens) and a legend key (hollow markers, not filled squares). Approved all three. Promoted the rho12 and non-Gaussian matrix visual cells planned -> covered (and the rho12 lead-novelty finish-board visual cell), and refreshed the binomial visual evidence to the eye version. Pushes held."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

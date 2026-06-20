@@ -9,13 +9,19 @@ family" **visual** cell `planned -> covered`.
 
 ## Figure
 
-`binomial-coverage-wald-profile-v3.png` (rendered by `plot-binomial-coverage.R`).
+`binomial-coverage-eye-v5.png` (rendered by `plot-binomial-coverage-eye.R`, shared
+eye helper `../_coverage-eye-helper.R`). The original error-bar version
+(`binomial-coverage-wald-profile-v3.png`, committed 3f47503c) was superseded by
+the maintainer-requested **Confidence Eye** grammar for figure-family consistency.
 
-- Point = empirical coverage of 95% intervals per audited cell (hollow circle =
-  Intercept, hollow triangle = Slope x; redundant colour+shape encoding).
-- Error bar = +/- 1.96 cell-specific Monte-Carlo SE.
+- Each cell's empirical coverage is a vertical **Confidence Eye**: a pale
+  compatibility lens whose half-width follows the quadratic log-likelihood profile
+  (widest at the coverage estimate, tapering to zero at +/- 1.96 cell MCSE), with a
+  hollow point marker (circle = Intercept, triangle = Slope x; redundant
+  colour+shape).
 - Solid line = nominal 0.95; pale band = 0.93-0.97 **reference region (not a
-  pass/fail threshold)**.
+  pass/fail threshold)**. The eye is Monte-Carlo uncertainty on coverage, not model
+  uncertainty.
 - Facets: columns = interval method (Wald | Profile); rows = response encoding
   (0/1 binary | cbind()).
 
@@ -41,6 +47,11 @@ family" **visual** cell `planned -> covered`.
   softened to "clusters around the nominal 0.95"; "no refit" added. The one weak
   cell (Profile / cbind / Slope / n=240, coverage 0.930, lower bar ~0.908) is shown
   honestly and unclipped.
+- **eye-v5 -> approve** (2026-06-20, later): rebuilt with the maintainer-requested
+  Confidence Eye grammar (shared helper) for figure-family consistency with the
+  rho12 and non-Gaussian coverage figures; same data, same honest weak cell, legend
+  key shows hollow markers. The error-bar v3 is superseded (preserved in git
+  history at commit 3f47503c).
 
 Not changed, with reasons: full relabel of Wald cells by `n` (the artifact CSVs
 carry no reliable cell_id->n map; resolved via caption instead) and dpi (144 is

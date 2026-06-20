@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Confidence Eye coverage figures -> rho12 + non-Gaussian visual cells covered (Ada, owner-directed, Florence gate)
+
+Goal:
+
+- Maintainer asked the coverage figures to use the Confidence Eye grammar (not
+  plain error bars; triangles allowed). Build rho12 + non-Gaussian coverage eye
+  figures from already-verified data, refresh the binomial to eyes for family
+  consistency, and promote the visual cells. Branch
+  `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Figures (shared helper `docs/dev-log/figure-audits/_coverage-eye-helper.R`,
+vertical-lens geometry mirroring plot_corpairs()'s quadratic-loglik eye):
+
+- `2026-06-20-rho12-recovery/rho12-recovery-coverage-eye-v5.png` (4 cells,
+  coverage 0.920-0.964).
+- `2026-06-20-nongaussian-recovery/nongaussian-recovery-coverage-eye-v3.png`
+  (24 cells, 6 families, coverage 0.926-0.970).
+- `2026-06-20-binomial-coverage/binomial-coverage-eye-v5.png` (eye refresh of the
+  prior bar figure; old bars png + script git-removed, preserved at 3f47503c).
+- All built from already-verified 500-replicate artifacts (no refit). Eye =
+  +/- 1.96 cell MCSE compatibility lens on the coverage estimate (MC uncertainty,
+  not model uncertainty), labelled in subtitle + caption.
+
+Grammar note: `docs/design/39-visualization-grammar.md` makes coverage plots use
+eyes only "for a specific reason"; the maintainer request is that reason.
+
+Verification (Florence figure gate, render-proof inspected each render):
+
+- Round 1: non-Gaussian approve, binomial approve, rho12 REVISE (n=300 slope eye
+  clipped by ylim) + shared minor (legend showed filled squares).
+- Fixes: rho12 ylim -> c(0.88,1.0) (full eye); helper geom_polygon show.legend =
+  FALSE so the legend shows hollow markers. Round 2: rho12 approve. All three approved.
+
+Promotions:
+
+- Matrix "Bivariate residual correlation rho12" visual planned -> covered;
+  matrix "Non-Gaussian models" visual planned -> covered; finish-board
+  `drmTMB-rho12-predictors-lead-novelty` visual planned -> covered. Binomial visual
+  evidence refreshed to the eye figure (cell already covered).
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (counts unchanged); `git diff --check` clean.
+
+Boundary:
+
+- Coverage displays of already-verified fixed-effect evidence (native TMB), not
+  calibration proofs. Visual cells only; Wald/profile/random/bridge cells unchanged.
+  Pushes held.
+
 ## 2026-06-20: rho12 bridge cell -> partial + binomial finish-board visual propagation (Ada, owner-directed)
 
 Goal:
