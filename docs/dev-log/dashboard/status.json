@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 14:40 MDT",
+  "updated": "2026-06-20 15:05 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Two structured sub-type recoveries banked toward the Structural dependencies aggregate: ANIMAL (pedigree numerator relationship matrix; bf(y ~ x + animal(1|id, A=A), sigma~1); 500 reps x n_id {40,80}; 0 errors; pdHess 1.000; sd_animal rel bias -3.1% -> -1.3%, matching relmat; fixed effects unbiased) and SPATIAL (coordinate exponential kernel; bf(y ~ x + spatial(1|site, coords), sigma~1); DGP independently replicates the model's exp(-dist/median_dist) kernel; 500 reps x n_site {20,40}; 0 errors; pdHess 1.000; sd_spatial rel bias -10.9% -> -2.8%, consistent; slope/sigma clean; intercept under-nominal Wald 0.888-0.910 from spatial-mean confounding). With relmat + phylo + phylo_interaction already banked, all FOUR implemented structured sub-types now have native recovery evidence (kernel + SPDE are net-new/planned per DRM.jl#270). HELD diagnostics, no cell flip yet -- next: Rose+Fisher adjudicate the aggregate point flip. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

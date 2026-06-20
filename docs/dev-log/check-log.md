@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Animal + spatial structured recovery (Ada; sub-type evidence toward Structural dependencies)
+
+Goal:
+
+- Bank the two remaining IMPLEMENTED structured sub-types (animal, spatial) with
+  native recovery evidence, so all four implemented sub-types (animal/phylo/relmat/
+  spatial; kernel + SPDE are not implemented -- net-new/planned per DRM.jl#270) have
+  recovery diagnostics, enabling an attempt at the "Structural dependencies"
+  aggregate point flip.
+
+Animal (pedigree NRM), 500 reps x n_id {40,80} (1000 fits), 0 errors, pdHess 1.000:
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-animal-pedigree-recovery/run.R 500
+```
+
+- `bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)`, genuine pedigree numerator
+  relationship matrix (Henderson recursion). sd_animal rel bias -3.1% -> -1.3%
+  (consistent; matches relmat -3.0% -> -1.0%); fixed effects unbiased; Wald
+  0.924-0.960.
+
+Spatial (exponential coordinate kernel), 500 reps x n_site {20,40} (1000 fits),
+0 errors, pdHess 1.000:
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-spatial-coords-recovery/run.R 500
+```
+
+- `bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1)`; DGP independently
+  replicates the model's fixed `exp(-dist/median_dist)` kernel (unit diagonal, so
+  sd maps 1:1). sd_spatial rel bias -10.9% -> -2.8% (consistent, intermediate
+  between relmat and ultrametric phylo); slope/sigma clean (slope Wald 0.946-0.958);
+  intercept high-variance with under-nominal Wald (0.888-0.910, spatial-mean
+  confounding).
+
+Verification (numerical, performed directly):
+
+- Animal: NRM has unit diagonal for non-inbred founders, so sd_animal is the
+  additive-genetic SD on the A scale the model reports; A passed to the model
+  matches the DGP. Spatial: DGP kernel exactly matches drm_spatial_coords_precision
+  (`R/drmTMB.R:9211-9215`: range = median positive distance, `exp(-D/range)`, unit
+  diagonal). Both show the consistent-estimator signature (bias shrinks with N), the
+  positive control against a scale bug.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (no cell changed -- HELD
+  diagnostics). Pushes live.
+
 ## 2026-06-20: Kernel abstraction synthesis folded into design 178 (Ada, owner-directed; design doc)
 
 Goal:
