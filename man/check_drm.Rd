@@ -21,14 +21,14 @@ check_drm(object, ...)
 \item{...}{Reserved for future diagnostic options.}
 
 \item{gradient_tolerance}{Maximum absolute fixed-parameter gradient treated
-as acceptable.}
+as acceptable. Default is \code{1e-3}.}
 
 \item{rho_boundary}{Absolute residual or structured correlation value above
-which a bivariate Gaussian fit receives a warning.}
+which a bivariate Gaussian fit receives a warning. Default is \code{0.98}.}
 
 \item{sd_boundary}{Random-effect standard deviation below which a fit
 receives a warning that the variance component is near the lower
-boundary.}
+boundary. Default is \code{1e-4}.}
 }
 \value{
 A data frame of checks with columns \code{check}, \code{status}, \code{value}, and

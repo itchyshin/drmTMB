@@ -77,12 +77,12 @@
 #'
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated
-#'   as acceptable.
+#'   as acceptable. Default is `1e-3`.
 #' @param rho_boundary Absolute residual or structured correlation value above
-#'   which a bivariate Gaussian fit receives a warning.
+#'   which a bivariate Gaussian fit receives a warning. Default is `0.98`.
 #' @param sd_boundary Random-effect standard deviation below which a fit
 #'   receives a warning that the variance component is near the lower
-#'   boundary.
+#'   boundary. Default is `1e-4`.
 #' @param ... Reserved for future diagnostic options.
 #'
 #' @return A data frame of checks with columns `check`, `status`, `value`, and
