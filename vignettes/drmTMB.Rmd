@@ -88,6 +88,11 @@ fit <- drmTMB(
 check_drm(fit)
 ```
 
+`drm_formula()` is the primary constructor for bundling one formula per
+distributional parameter; `bf()` is a short, exactly-equivalent alias
+(`bf <- drm_formula`), so other articles that write `bf(...)` build the same
+specification. This guide uses the explicit `drm_formula()` spelling.
+
 Read the `sigma` coefficient as a log residual-SD contrast. Exponentiating it
 gives an SD ratio; exponentiating twice the coefficient gives a residual
 variance ratio:
