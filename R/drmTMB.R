@@ -151,7 +151,28 @@
 #'   Native `engine = "tmb"` only.
 #' @param ... Reserved for future model options.
 #'
-#' @return A `drmTMB` fit object.
+#' @return An object of class `drmTMB`: a list with components including
+#'   \describe{
+#'     \item{`call`, `formula`, `family`}{the matched call, the [drm_formula()]
+#'       specification, and the family object.}
+#'     \item{`coefficients`}{a named list of fixed-effect coefficient vectors,
+#'       one per estimated distributional parameter; also reachable with
+#'       [coef()].}
+#'     \item{`sdpars`, `corpars`, `random_effects`}{split standard-deviation,
+#'       correlation, and random-effect estimates.}
+#'     \item{`logLik`, `df`, `nobs`, `estimator`}{the (data) log-likelihood,
+#'       degrees of freedom, number of observations, and estimator label
+#'       (`"ML"`, `"REML"`, or `"MAP"`); see [logLik()], [AIC()], [BIC()].}
+#'     \item{`uncertainty`}{the `TMB::sdreport()` status state (status, message,
+#'       and whether standard errors were requested).}
+#'     \item{`obj`, `opt`, `sdr`}{the underlying `TMB::MakeADFun()` object, the
+#'       optimizer result, and the `TMB::sdreport()` object (or `NULL`).}
+#'     \item{`missing_data`, `REML`, `optimizer_used`}{the missing-data summary,
+#'       the REML flag, and the optimizer actually used.}
+#'   }
+#'   Use the extractor methods (for example [coef()], [vcov()], [predict()],
+#'   [residuals()], [sigma()], [check_drm()]) rather than reaching into these
+#'   components directly.
 #' @export
 #'
 #' @examples

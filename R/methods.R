@@ -1837,6 +1837,11 @@ fitted.drmTMB <- function(object, ...) {
   drm_fitted_response(object)
 }
 
+#' @rdname model-fit-extractors
+#' @param dpar Optional name of a single distributional parameter (for example
+#'   `"mu"`, `"sigma"`, or `"rho12"`). When `NULL` (the default), `coef()`
+#'   returns the full named list of coefficient vectors; when supplied, it
+#'   returns the coefficient vector for that one parameter.
 #' @export
 coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {

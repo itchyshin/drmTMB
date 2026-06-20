@@ -2,6 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{vcov.drmTMB}
 \alias{vcov.drmTMB}
+\alias{coef.drmTMB}
 \alias{model-fit-extractors}
 \alias{logLik.drmTMB}
 \alias{AIC.drmTMB}
@@ -11,6 +12,8 @@
 \alias{deviance.drmTMB}
 \title{Extract standard model-fit quantities}
 \usage{
+\method{coef}{drmTMB}(object, dpar = NULL, ...)
+
 \method{vcov}{drmTMB}(object, ...)
 
 \method{logLik}{drmTMB}(object, ...)
@@ -28,11 +31,18 @@
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
 
+\item{dpar}{Optional name of a single distributional parameter (for example
+\code{"mu"}, \code{"sigma"}, or \code{"rho12"}). When \code{NULL} (the default),
+\code{coef()} returns the full named list of coefficient vectors; when supplied,
+it returns the coefficient vector for that one parameter.}
+
 \item{...}{Reserved for future extractor options.}
 
 \item{k}{Numeric penalty per parameter for \code{AIC()}; the default is \code{2}.}
 }
 \value{
+\code{coef()} returns a named list of fixed-effect coefficient vectors, or the
+coefficient vector for one distributional parameter when \code{dpar} is given.
 \code{logLik()} returns an object of class \code{"logLik"}. \code{vcov()} returns a
 numeric covariance matrix. \code{nobs()}, \code{df.residual()}, and \code{deviance()}
 return numeric scalars.

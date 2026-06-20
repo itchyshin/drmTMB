@@ -127,7 +127,29 @@ Native \code{engine = "tmb"} only.}
 \item{...}{Reserved for future model options.}
 }
 \value{
-A \code{drmTMB} fit object.
+An object of class \code{drmTMB}: a list with components including
+\describe{
+\item{\code{call}, \code{formula}, \code{family}}{the matched call, the
+\code{drm_formula()} specification, and the family object.}
+\item{\code{coefficients}}{a named list of fixed-effect coefficient vectors,
+one per estimated distributional parameter; also reachable with \code{coef()}.}
+\item{\code{sdpars}, \code{corpars}, \code{random_effects}}{split
+standard-deviation, correlation, and random-effect estimates.}
+\item{\code{logLik}, \code{df}, \code{nobs}, \code{estimator}}{the (data)
+log-likelihood, degrees of freedom, number of observations, and estimator
+label (\code{"ML"}, \code{"REML"}, or \code{"MAP"}); see \code{logLik()},
+\code{AIC()}, and \code{BIC()}.}
+\item{\code{uncertainty}}{the \code{TMB::sdreport()} status state (status,
+message, and whether standard errors were requested).}
+\item{\code{obj}, \code{opt}, \code{sdr}}{the underlying \code{TMB::MakeADFun()}
+object, the optimizer result, and the \code{TMB::sdreport()} object (or
+\code{NULL}).}
+\item{\code{missing_data}, \code{REML}, \code{optimizer_used}}{the missing-data
+summary, the REML flag, and the optimizer actually used.}
+}
+Use the extractor methods (for example \code{coef()}, \code{vcov()},
+\code{predict()}, \code{residuals()}, \code{sigma()}, and \code{check_drm()})
+rather than reaching into these components directly.
 }
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
