@@ -1,0 +1,4 @@
+"target","parm","endpoint_ms","tmbprofile_ms","speedup","endpoint_engine","tmbprofile_engine","max_endpoint_diff"
+"gaussian sigma (scale), n=2000","sigma",43.9,136.7,3.11,"endpoint","tmbprofile",2.86e-06
+"relmat SD, n_id=80","sd:mu:relmat(1 | id)",1151.5,5001.3,4.34,"endpoint","tmbprofile",1.38e-05
+"phylo SD, 120 species","sd:mu:phylo(1 | species)",377.2,1847.5,4.9,"endpoint","tmbprofile",1.07e-05

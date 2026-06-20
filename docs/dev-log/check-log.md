@@ -2,6 +2,36 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Profile-engine speed benchmark -- endpoint vs tmbprofile (Ada; owner-directed speed diagnostic)
+
+Goal:
+
+- Owner: can we manage + speed up profile, and maximize it in Julia? Answer with
+  measured evidence.
+
+Benchmark (`docs/dev-log/simulation-artifacts/2026-06-20-profile-engine-speed-benchmark/`):
+
+```sh
+/usr/local/bin/Rscript --vanilla \
+  docs/dev-log/simulation-artifacts/2026-06-20-profile-engine-speed-benchmark/run.R 10
+```
+
+- `confint(method="profile")` endpoint engine vs tmbprofile, block-timed:
+  gaussian sigma n=2000 3.1x (44 vs 137 ms); relmat SD n_id=80 4.3x (1152 vs 5001 ms);
+  phylo SD 120 species 4.9x (377 vs 1848 ms). Endpoints agree <= 1.4e-5.
+- The endpoint engine root-finds the two CI endpoints directly; `auto` already uses
+  it for direct scale/SD/correlation targets. Fixed-effect COEFFICIENTS still fall
+  back to tmbprofile (the rho12 profile calibration ran on the slow path) -- the
+  top R-side speed-up is extending the endpoint solver to coefficients.
+- "maximized in Julia" = in-process direct DRM.jl profile/bootstrap loop (repeated
+  re-optimization workload); NOT the callr bridge (~3-min round-trip). Recorded in
+  the Julia speedups row next-gate.
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (no cell changed -- R-side
+  timing diagnostic). Pushes live.
+
 ## 2026-06-20: rho12 PROFILE CI calibration -> Profile cell covered (Ada; Fisher gate)
 
 Goal:

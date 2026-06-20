@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 15:55 MDT",
+  "updated": "2026-06-20 16:15 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1155,7 +1155,7 @@
       "visual": "planned",
       "simulation": "planned",
       "release": "planned",
-      "next": "No speed headline without point-estimate and CI/status evidence; benchmark native TMB, R-to-Julia bridge, and direct DRM.jl separately.",
+      "next": "No speed headline without point-estimate and CI/status evidence; benchmark native TMB, R-to-Julia bridge, and direct DRM.jl separately. R-side profile baseline banked (docs/dev-log/simulation-artifacts/2026-06-20-profile-engine-speed-benchmark/): the endpoint profile engine is ~3-5x faster than tmbprofile on direct scale/SD/correlation targets (endpoints agree <=1.4e-5). Direction for 'maximized in Julia': an in-process direct DRM.jl profile/bootstrap loop (not the callr bridge). No cell promoted.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Profile-engine speed benchmark banked (owner asked: can we speed up profile + maximize in Julia?). confint(method='profile') endpoint engine vs tmbprofile: gaussian sigma 3.1x, relmat SD 4.3x, phylo SD 4.9x (endpoints agree <=1.4e-5); the speedup grows with model cost (structured GMRF SD targets benefit most). auto already uses the endpoint solver for direct scale/SD/correlation targets; fixed-effect COEFFICIENTS still fall back to tmbprofile (so the rho12 coefficient profiling ran slow) -- extending the endpoint solver to coefficients is the top R-side speed-up. 'maximized in Julia' = in-process direct DRM.jl profile/bootstrap loop (repeated re-optimization workload), NOT the callr bridge (~3-min round-trip). Recorded in the Julia speedups row. R-side timing diagnostic, no cell flipped. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
