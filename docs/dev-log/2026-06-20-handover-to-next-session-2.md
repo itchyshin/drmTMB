@@ -200,3 +200,37 @@ Lower-risk banked-evidence flips still available:
 Genuinely blocked/owner-gated (unchanged): high-2 q4 logdet, q8, rho12 random
 effects, structured/q4 recovery, missing-data, DRM.jl #9/#8, Route A (pending
 DRM.jl), engine_control, release/CRAN.
+
+## 9. Continuation update (2026-06-20 ~12:07 MDT) — harder-cap recovery stretch
+
+Commits since §8 (all pushed): `99379d32` handover; `08eb4a19` Random slopes point
+→ covered; `2be5fd2f` relmat structured recovery (banked, **cell HELD partial**);
+`82cb5ea2` binomial point reconciled → covered.
+
+**KEY LESSON — aggregate rows can't be flipped by one sub-type.** The relmat
+recovery was clean (fixed effects unbiased; sd_relmat -3.0%@40 → -1.0%@80; Wald
+coverage 0.936-0.960 every cell) but Curie+Fisher HELD the "Structural dependencies"
+point cell: it is a single aggregate over six sub-types (animal/phylo/relmat/spatial/
+kernel/SPDE), and there is **no granular relmat row** for a scoped `covered` to live
+in. Same shape as ADEMP / Visuals-and-articles / Master matrix. To flip an aggregate
+row you need a SET of sub-type sims (cover most), OR the owner adds per-sub-type rows
+to the matrix/registry so each sub-type is individually promotable (a structural
+decision — surface it to the owner).
+
+**Under-promotion check paid off:** binomial `point` was partial while `wald`/
+`profile` were covered — reconciled to covered on the already-verified glm-parity
+(1.9e-11) + 12-cell bias (<=0.009) evidence. Worth scanning for other
+"intervals-covered-but-point-partial" inconsistencies.
+
+**Recovery-sim helpers banked (reuse):** random-slope (`(1+x|id)`), relmat
+(`relmat(1|id, Q=solve(K))`, AR(1) K) — both with the smoke→pilot(50)→500→Curie+Fisher
+pattern, RE SDs from `fit$sdpars$mu`, n-ladder to show consistency.
+
+**Single-capability flippable cells are now largely exhausted.** Remaining work:
+- **Structured sub-type set** (animal next — pedigree, very like relmat; then phylo)
+  toward eventually flipping Structural dependencies; OR propose per-sub-type rows.
+- **Random-slope / non-Gaussian RE-SD interval calibration** (the wald/profile cells
+  the point promotions left at partial) — harder (profile/bootstrap on RE SDs).
+- **Figure-gallery vignette** surfacing the eye figures → docs cells (Pat/Darwin).
+- Owner decisions still parked: post the R↔Julia coordination comments (auto-denied);
+  whether to add per-sub-type structured rows.
