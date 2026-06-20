@@ -2,6 +2,54 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: R-Julia bridge + DRM.jl Julia track (Ada autonomous)
+
+Goal:
+
+- Ultracode the remaining direct-DRM.jl work and the R-to-Julia bridge.
+  Branch `shannon/overnight-audit-gaps-20260619`; DRM.jl branch
+  `shannon/overnight-audit-verify-20260619`; pushes held.
+
+Direct DRM.jl lane:
+
+- Already verified this session: full `test/runtests.jl` green (228 testsets,
+  0 failures) + Aqua 10/10 on `f46035d` (banked in the DRM.jl after-task note).
+- Issue #9 Documenter CI is a maintainer item: `docs/Project.toml` pins
+  `Documenter = "1"` (unpinned) against `DocumenterVitepress = "0.3"`; the fix
+  needs the exact compatible Documenter range verified by a docs/make.jl build
+  (CairoMakie + vitepress toolchain), which cannot be safely determined +
+  verified unsupervised. Recorded as a maintainer recommendation, not an
+  unverified version pin. Phase 3 articles are blocked behind it; Issue #8
+  (logdet ridge) is maintainer-owned engine math.
+
+R-Julia bridge lane:
+
+```sh
+DRM_JL_PHYLO_PATH=.../DRM.jl-direct-main JULIA_HOME=.../.juliaup/bin \
+  /usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine|julia-tmb-parity")'
+```
+
+- Bridge runs here via the callr-isolated harness: `julia-gate-vs-engine`
+  (113 intentional-rejection checks) PASS; `engine="julia" == engine="tmb"`
+  to `<= 1e-6` for Route C (Gaussian location-scale) and Route B (bivariate
+  residual `rho12`, intercept-only logLik invariant); Route A (Gaussian
+  phylo-mean) SKIPPED (tracked garbage-logLik bug). Banked in
+  `docs/dev-log/2026-06-20-bridge-parity-verification.md`.
+- Bridge-cell promotion: a Rose + Fisher adversarial pass held EVERY bridge cell
+  (0 promotions). The proven Route C cell is already `partial` and the only step
+  up (`covered`) needs interval/CI parity the bridge does not have; Route B's
+  parity (intercept-only, logLik-only) is narrower than the `rho12 ~ x` cell's
+  claim; the aggregate bridge-gate row still contains the Route A bug and gated
+  routes. The conservative statuses are correct; the note records the exact
+  evidence that would promote each cell.
+
+Boundary:
+
+- Bridge verification + direct-Julia verification only. No bridge-cell
+  promotion, no q4/q8 or binomial bridge claim, no engine_control, no
+  release/CRAN, no speed claim. Native R/TMB, direct DRM.jl, and Julia-via-R
+  evidence remain separate lanes.
+
 ## 2026-06-20: rho12 ~ predictors recovery + lead-novelty promotion (Ada autonomous)
 
 Goal:
