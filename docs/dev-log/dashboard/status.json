@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 15:05 MDT",
+  "updated": "2026-06-20 15:25 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1140,7 +1140,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "planned",
-      "next": "Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals. Sub-type milestone (Curie+Fisher verified; aggregate point cell HELD partial -- 1 of 6 sub-types): native Gaussian relmat (user-supplied known K) random-intercept POINT recovery is clean (500 reps x n_id in {40, 80}; 0 errors; pdHess 1.000; fixed effects unbiased; sd_relmat -3.0% at n_id=40 shrinking to -1.0% at n_id=80; fixed-effect Wald coverage 0.936-0.960; docs/dev-log/simulation-artifacts/2026-06-20-relmat-structured-recovery/). The cell stays partial until animal/phylo/spatial/kernel/SPDE have comparable recovery.",
+      "next": "Animal, phylo, relmat, spatial, kernel, and SPDE rows each need provenance, PSD/name-alignment tests, recovery, bridge parity, docs, and visuals. Sub-type milestone (Rose+Fisher adjudicated; aggregate POINT cell HELD partial -- 4 of 6 sub-types now have native Gaussian POINT recovery, 2 unimplemented): clean held diagnostics for relmat known-K (sd -3.0% -> -1.0%), animal pedigree NRM (-3.1% -> -1.3%), and spatial fixed-range coordinate kernel (-10.9% -> -2.8%), all 500 reps/cell, 0 errors, pdHess 1.000, fixed effects unbiased; single-tree phylo SD weakly identified (-32% -> -4.8%); phylo_interaction/coevolution SD recovers better (-6.4% -> -1.6%). kernel() and SPDE/mesh are unimplemented (mesh fit aborts; coordinate range fixed, not estimated), so the aggregate cannot honestly reach covered (Rose+Fisher: unscoped aggregate covered over-claims; do not redefine the denominator from 6 to 4). OWNER DECISION pending: mint per-sub-type rows (relmat/animal/spatial POINT -> covered; phylo -> partial; kernel/SPDE -> planned), or hold the aggregate until kernel/SPDE exist. See docs/dev-log/simulation-artifacts/2026-06-20-{relmat-structured,animal-pedigree,spatial-coords,phylo-sd,coevolution-phylo-interaction}-recovery/.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Structural dependencies aggregate POINT flip ADJUDICATED -> HELD partial (Rose + Fisher). With animal + spatial banked, all 4 IMPLEMENTED structured sub-types have native POINT recovery, but Rose (HOLD) + Fisher (support-only-if-scoped/else-HOLD) agree an unscoped aggregate 'covered' over-claims: kernel + SPDE are unimplemented (mesh fit aborts; coordinate range fixed), and redefining the denominator from 6 to 4 is the prohibited maneuver. Updated the cell accounting honestly (1/6 -> 4/6 HELD). Both reviewers recommend the structural fix: mint per-sub-type rows so relmat/animal/spatial POINT can go covered, phylo partial (weakly identified), kernel/SPDE planned -- surfaced as an OWNER DECISION. No cell flipped. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
@@ -1702,6 +1707,10 @@
     }
   ],
   "blockers": [
+    {
+      "when": "2026-06-20",
+      "item": "OWNER DECISION: mint per-sub-type Structural rows (relmat/animal/spatial POINT->covered; phylo->partial; kernel/SPDE->planned) vs hold the aggregate until kernel/SPDE exist. Rose+Fisher both recommend per-sub-type rows; evidence banked under 2026-06-20-*-recovery/."
+    },
     {
       "status": "guard",
       "kind": "Claim boundary",
