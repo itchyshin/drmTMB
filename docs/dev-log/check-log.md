@@ -2,6 +2,38 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Binomial point cell reconciliation partial -> covered (Ada, owner-directed)
+
+Goal:
+
+- Fix an under-promoted cell: binomial fixed-effect POINT was partial while wald
+  and profile were already covered (inconsistent -- interval calibration requires
+  point recovery). No new sim; reconcile against already-verified evidence.
+
+Evidence (already banked + Rose+Fisher-verified at the wald/profile promotions):
+
+- `2026-06-17-binomial-fe-interval-calibration/tables/binomial-fe-aggregate.csv`:
+  12 fixed-effect cells, |bias| <= 0.009, convergence 1.000, pdHess 1.000.
+- `comparator-results/2026-06-16-binomial-glm-parity/...`: drmTMB == stats::glm to
+  max |coef diff| 1.9e-11 (exact point agreement).
+
+Edit:
+
+- design 168 + status.json "Bernoulli/binomial response family" point cell
+  `partial -> covered` (scoped: fixed-effect mu, native TMB), matching the verified
+  wald/profile cells. activity (who=Ada) + timestamp. No new artifact.
+
+Validation:
+
+- status.json valid JSON; `validate-mission-control.py` `mission_control_ok`
+  (counts unchanged); `git diff --check` clean.
+
+Boundary:
+
+- Status reconciliation of existing verified evidence; fixed-effect mu only.
+  Random/structured/bivariate, bootstrap, headline coverage, and the Julia bridge
+  remain planned/unsupported. Pushes live.
+
 ## 2026-06-20: relmat (known-K) structured recovery -> evidence banked, cell HELD partial (Ada, owner-directed, Curie+Fisher)
 
 Goal:

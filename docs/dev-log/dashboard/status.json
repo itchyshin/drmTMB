@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 12:04 MDT",
+  "updated": "2026-06-20 12:07 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -936,7 +936,7 @@
       "area": "Bernoulli/binomial response family",
       "engine": "partial",
       "bridge": "unsupported",
-      "point": "partial",
+      "point": "covered",
       "wald": "covered",
       "profile": "covered",
       "bootstrap": "unsupported",
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Reconciled an under-promoted cell: the binomial fixed-effect POINT cell was partial while wald and profile were already covered -- inconsistent, since interval calibration required point recovery. The already-banked, already-Rose+Fisher-verified evidence is unambiguous: 12-cell fixed-effect bias |<= 0.009| (conv 1.000, pdHess 1.000) plus exact stats::glm() parity (max |coef diff| 1.9e-11). Promoted the matrix 'Bernoulli/binomial response family' point cell partial -> covered (scoped: fixed-effect mu, native TMB), matching the verified wald/profile cells. No new sim -- a status reconciliation of existing verified evidence. Random/structured/bivariate, bootstrap, headline coverage, and the Julia bridge remain planned/unsupported. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Curie",
