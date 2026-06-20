@@ -234,3 +234,121 @@ The headline coevolutionary term, fit ALONE, recovers honestly. Artifact:
   builds on validated ground, and the "needs adequate N" contract is now quantified
   for the interaction term (mild bias, shrinking, even at modest species counts --
   far milder than the single-tree phylo main effect, which needs many more species).
+
+## Stage 1 implementation plan (verified change-map, 2026-06-20)
+
+A read-only scoping pass mapped the single-structured-term dataflow from the R
+parser through the TMB data list into `src/drmTMB.cpp`, to turn "do the engine
+surgery" into a precise, TDD-first plan. The load-bearing claims were checked
+against the worktree.
+
+### The real engine boundary (verified)
+
+The current kernel's per-term loop is **over endpoints (dpars) that share ONE
+precision and ONE node space**, not over distinct structured blocks. In
+`src/drmTMB.cpp`: `int n_phylo = Q_phylo.rows()` (`:731`), `q_phylo =
+log_sd_phylo.size()` (`:732`, the number of mu/sigma endpoints), and the eta loop
+uses `effect_index = k * n_phylo + phylo_mu_node_index(i)` (`:737`) with a single
+`Q_phylo` and a single `phylo_mu_node_index`. The penalty loop (`:792-817`) reuses
+the same single `Q_phylo` / `log_det_Q_phylo`. The Hadfield blocks have *different*
+node-space sizes (host `n_h`-augmented, parasite `n_p`-augmented, interaction
+`~n_h*n_p`-augmented), so they cannot share one `n_phylo` or one
+`phylo_mu_node_index`. This is why Stage 1 is genuine engine surgery, not a guard
+flip. The per-term *builders* (`drm_phylo_augmented_precision`,
+`build_phylo_mu_structure`, `build_phylo_interaction_mu_structure`) are already pure
+and re-callable; the new work is collecting K of them and summing their
+contributions.
+
+### Verdict: decompose into three ordered sub-slices
+
+Stage 1 is NOT a single defended slice. Decompose so each ends green:
+
+- **Slice 1A — multi-block engine on the Gaussian `mu` path.** Sum K phylo /
+  phylo_interaction blocks in eta and in the GMRF penalty. The bulk of the work.
+  Testable by an assembly unit test + a penalty/eta consistency assertion before
+  any reporting work.
+- **Slice 1B — post-fit extraction & reporting.** `split_tmb_random_effects`,
+  `split_tmb_sdpars`, `transform_gaussian_random_effects`, profile targets, so
+  `fit$sdpars$mu` returns the K named SDs the acceptance test reads. This is where
+  silent errors hide (aliasing, SD-name collision); it gets its own tests.
+- **Slice 1C — activate the acceptance recovery test** (`test-coevolution-additive-gate.R:57`)
+  at adequate N on a species ladder, and flip the gate-lock guard (`:34`).
+
+Count models (Poisson/nbinom2) inherit Slice 1A through `make_tmb_data` + the shared
+kernel but are out of scope for the Stage-1 acceptance test (Gaussian only) and stay
+gated until their own recovery slice.
+
+### Recommended architecture (lowest-risk)
+
+**Block-diagonal precision + one concatenated `u_phylo` + length-K flat
+`log_sd_phylo`, with per-block metadata for SD scaling and log-det bookkeeping.**
+Do NOT attempt a `vector<SparseMatrix>` multi-block C++ loop (TMB has no native
+type for it). Build `Q_phylo <- Matrix::bdiag(per-block precisions)` in R;
+`uᵀ Q_phylo u` then decomposes exactly into the per-block sum with zero cross-block
+coupling by construction, keeping the kernel's single sparse mat-vec (and trivially
+correct autodiff). The kernel still loops over blocks for the per-block SD scaling
+and the per-block normalizing constant, so it needs new `DATA_IVECTOR
+phylo_block_start`, `DATA_IVECTOR phylo_block_n`, `DATA_VECTOR
+log_det_Q_phylo_blocks`, and a per-block observation->node index — but no new matrix
+type and no hand-written per-block Cholesky.
+
+### Ordered change list (file:line)
+
+1. **Gates (relax):** `R/drmTMB.R:7545-7550` (`extract_gaussian_mu_phylo_term`
+   abort) -> return a *list* of phylo terms; siblings
+   `:8215-8225/:8291-8301/:8342-8352/:8391-8401` and `single_entry_structured_term`
+   (`:7860-7873`). `:2632-2638` active-structured gate -> for Stage 1 allow multiple
+   phylo/phylo_interaction terms while keeping mixed-type (phylo+spatial) gated.
+2. **Fan-out:** `R/drmTMB.R:2650-2654` (singular `structured_term` selection) ->
+   keep all active terms; `:2961` -> `lapply(terms, build_structured_mu_structure)`
+   producing a `phylo_mu_blocks` list. Do not change the builders.
+3. **Block-diagonal assembler** in the `make_tmb_data` Gaussian region
+   (`R/drmTMB.R:14503-14524`): `bdiag` of per-block precisions; per-observation
+   per-block node index rebased by `cumsum(n_re)`; sum/collect per-block log-dets;
+   emit `phylo_block_start` / `phylo_block_n`.
+4. **Parameters (R start + map):** concatenate `u_phylo <- rep(0, sum(q_k*n_re_k))`
+   and `log_sd_phylo <- c(per-block SDs)` (length K for the q=1-per-block Hadfield
+   case); `gaussian_ls_map` `log_sd_phylo` length becomes K
+   (`R/drmTMB.R:12544/:13718/:14113`).
+5. **C++ kernel** (`src/drmTMB.cpp`): new per-block DATA near `:161-169`; replace
+   the flat `k*n_phylo` arithmetic in eta (`:735-749`) and penalty (`:791-817`) with
+   `phylo_block_start(b) + within-block index`, per-block `log_det_Q_phylo_blocks(b)`
+   and `log_sd_phylo(b)`.
+6. **Extraction (Slice 1B):** `split_tmb_random_effects` (`:16182`), `split_tmb_sdpars`
+   (`:15837`), `transform_gaussian_random_effects` (`:16189`), `drm_profile_targets`
+   (`R/profile.R:1240-1250`) -> loop blocks; give each block a distinct SD namespace
+   (two bare `phylo` terms would both label `phylo:(Intercept)` and alias).
+
+### Identifiability / N caveats to carry forward
+
+- Phylo variance components are consistent but downward-biased at small N (single-tree
+  phylo-SD: -32% @60 species -> -4.8% @240). The Stage-0 coevolution evidence shows
+  the *interaction* term is milder (-6.4% @6 -> -1.6% @14 per tree, with `n_each=4`).
+  The acceptance test must use a species ladder with tolerances that widen at small N,
+  not a single tight bound.
+- Main-vs-interaction separability: `J(x)A` (main) and `A(x)A` (coevolution) are
+  distinct but correlated; with few species the host-main and coevolution SDs trade
+  off. Report the *joint* bias of all three components, coevolution SD as headline.
+- Keep the augmented `S^-1` parameterization the builders already use
+  (`drm_phylo_augmented_precision`); do not switch to `A^-1`. Flag the interaction
+  block size `~(2n_h-1)(2n_p-1)` for memory/runtime. Keep `n_rep >= 2`.
+
+### TDD steps and silent-failure guards
+
+- **Step 0 (red):** un-`skip` `test-coevolution-additive-gate.R:57` and write the
+  body; it fails at the gate (`R/drmTMB.R:7547`) -- the Stage-1 entry condition.
+- **Assembly guard (anti-aliasing):** the 3-term `bf()` yields a `phylo_mu_blocks`
+  list of length 3 with the right `n_re`, and `bdiag` of the three precisions has all
+  off-block entries zero.
+- **Penalty correctness:** with fixed `log_sd_phylo` and a known `u_phylo`, the C++
+  `quadratic` REPORT equals the hand-computed `Σ_b u_bᵀ Q_b u_b / sd_b²` -- catches
+  double-counting and the scale-by-1/sd placement.
+- **Eta correctness (block-aliasing):** fitting each block alone reproduces the
+  additive eta at matched parameters (no cross-block leakage).
+- **SD naming:** `names(fit$sdpars$mu)` are three *distinct* labels and
+  `length(...) == 3` -- guards the bare-`phylo` collision and a stale length-1 `map`
+  that would silently fix two SDs equal.
+- **Recovery (1C):** the activated acceptance test on the species ladder.
+
+This is Gauss-level work; do it TDD-first with Noether checking the Kronecker /
+block-diagonal math and Curie+Fisher gating the recovery.

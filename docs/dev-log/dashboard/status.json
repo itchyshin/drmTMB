@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 13:50 MDT",
+  "updated": "2026-06-20 14:05 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Coevolution Stage 1 scoped + plan banked (design 178). A read-only map of the single-structured-term dataflow (R parser -> TMB data -> src/drmTMB.cpp) confirmed the real engine boundary: the kernel's per-term loop (src/drmTMB.cpp:731-749, 791-817) iterates over ENDPOINTS sharing ONE precision/node-space (effect_index = k*n_phylo + node_index), NOT over distinct structured blocks -- so Hadfield's host/parasite/interaction blocks (different node spaces) need a genuine multi-block extension, not a guard flip. Banked a verified, TDD-first plan: decompose into Slice 1A (multi-block Gaussian-mu engine), 1B (extraction/reporting), 1C (activate the skipped acceptance test + flip the gate); recommended architecture = block-diagonal precision + concatenated u_phylo + length-K log_sd_phylo, keeping the C++ single-Q contract (no vector<SparseMatrix>), with per-block log_det + block_start/n for SD scaling. File:line change list, identifiability/N caveats, and five named silent-failure guards included. Design doc only -- no grammar/likelihood/C++ change. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

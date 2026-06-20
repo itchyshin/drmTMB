@@ -2,6 +2,43 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Coevolution Stage 1 -- verified engine change-map banked (Ada, owner-directed; design doc)
+
+Goal:
+
+- Turn the owner's "NEXT = Stage 1 engine extension" into a precise, TDD-first,
+  decomposed implementation plan, grounded in a read-only map of the
+  single-structured-term dataflow (R parser -> TMB data -> src/drmTMB.cpp).
+
+Verification of the load-bearing claims (read directly):
+
+- `src/drmTMB.cpp:731-749, 791-817`: the kernel's `k`-loop iterates over ENDPOINTS
+  (`q_phylo = log_sd_phylo.size()`, mu/sigma) sharing ONE `Q_phylo` /
+  `phylo_mu_node_index`, via `effect_index = k*n_phylo + node_index`. It is NOT a
+  loop over distinct structured blocks. Hadfield's host/parasite/interaction blocks
+  have different node spaces, so a genuine multi-block extension (block-diagonal Q +
+  per-block metadata + block loop) is required -- confirming Stage 1 is engine
+  surgery, not a guard flip.
+- `R/drmTMB.R:2632-2638` (active-structured gate), `:7534-7550`
+  (extract_gaussian_mu_phylo_term abort), `:8809-8815`
+  (build_phylo_interaction_mu_structure Kronecker) confirmed as mapped.
+
+Plan banked (design 178 new section "Stage 1 implementation plan"):
+
+- Verdict: decompose into Slice 1A (multi-block Gaussian-mu engine), 1B (extraction/
+  reporting), 1C (activate acceptance test + flip gate).
+- Architecture: block-diagonal precision + concatenated u_phylo + length-K
+  log_sd_phylo, keeping the C++ single-Q contract (no vector<SparseMatrix>); add
+  per-block log_det + block_start/n for SD scaling and the normalizing constant.
+- File:line change list, identifiability/N caveats, TDD steps with five named
+  silent-failure guards (block aliasing, SD-name collision, penalty double-count,
+  SD-scale placement, map length).
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (no cell changed). Design doc
+  only -- no grammar/likelihood/C++ change in this commit. Pushes live.
+
 ## 2026-06-20: Coevolution Stage 0 -- phylo_interaction SD recovery (Ada, owner-directed; HELD diagnostic)
 
 Goal:
