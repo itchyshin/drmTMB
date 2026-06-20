@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 14:20 MDT",
+  "updated": "2026-06-20 14:40 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1047,10 +1047,10 @@
       "profile": "planned",
       "bootstrap": "planned",
       "docs": "partial",
-      "visual": "planned",
+      "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 0 errors; pdHess 1.000; Curie+Fisher verified) promotes point estimates to covered, scoped to point recovery: fixed effects near-unbiased (rel bias <= 1%) at both group counts; the random intercept/slope SDs are consistent with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80) -- covered for RE SDs means recovered up to a documented, shrinking bias, not unbiased. The random-effect correlation rho was not validated and RE-SD interval calibration is not claimed. Wald stays partial (n_group=40 b1 coverage 0.922 < 0.93). Independent-slope-only, non-Gaussian, structured/phylogenetic slopes, profile/bootstrap, and the Julia bridge remain planned.",
+      "next": "A 500-replicate native R/TMB Gaussian correlated random-slope recovery (bf(y ~ x + (1 + x | id), sigma ~ 1); n_group in {40, 80}; 0 errors; pdHess 1.000; Curie+Fisher verified) promotes point estimates to covered, scoped to point recovery: fixed effects near-unbiased (rel bias <= 1%) at both group counts; the random intercept/slope SDs are consistent with the expected ML small-sample downward bias (sd_slope -6.7% at n_group=40 shrinking to -1.1% at n_group=80) -- covered for RE SDs means recovered up to a documented, shrinking bias, not unbiased. The random-effect correlation rho was not validated and RE-SD interval calibration is not claimed. Wald stays partial (n_group=40 b1 coverage 0.922 < 0.93). A Florence-approved recovery figure (docs/dev-log/figure-audits/2026-06-20-random-slope-recovery/) of this verified artifact promotes the visual cell to covered (dots + MC error bars + zero line; POINT recovery + RE-SD consistency, not coverage). Independent-slope-only, non-Gaussian, structured/phylogenetic slopes, profile/bootstrap, and the Julia bridge remain planned.",
       "evidence_url": "docs/dev-log/simulation-artifacts/2026-06-20-gaussian-random-slope-recovery/README.md"
     },
     {
@@ -1272,6 +1272,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Random slopes VISUAL cell planned -> covered (Florence APPROVE). A recovery/bias figure (docs/dev-log/figure-audits/2026-06-20-random-slope-recovery/) of the already-verified (Curie+Fisher) 500-rep Gaussian correlated random-slope artifact: dots + Monte-Carlo error bars + a zero line (the repo's default recovery grammar, NOT a Confidence Eye, since the promoted claim is POINT recovery + RE-SD CONSISTENCY, not coverage). Shows fixed effects near-unbiased at both group counts and the RE SDs' expected ML small-sample downward bias shrinking with groups (SD(slope) -6.7% at n_group=40 -> -1.1% at 80; its n40 CI excludes zero, n80 CI includes it). Florence cross-checked every plotted value vs the CSV; honest scope disclosed (rho not validated, RE-SD interval calibration not claimed, Wald stays partial). Only the visual cell moved. Pushes live."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",
