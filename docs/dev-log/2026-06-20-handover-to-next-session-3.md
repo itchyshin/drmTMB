@@ -152,5 +152,23 @@ calibration feasible.
    evidence; needs the Julia toolchain (~3-min round-trips) + per-target parity gates.
 2. **Coevolution Stage 1 engine surgery** (design 178) — the Hadfield additive model;
    Gauss-level R assembly + `src/drmTMB.cpp` block loop; TDD-first.
-3. **Owner decision still pending:** mint per-sub-type Structural rows (3 covered cells
-   from already-verified relmat/animal/spatial evidence).
+3. ~~Owner decision pending: mint per-sub-type Structural rows~~ **DONE** (`733724f4`,
+   owner-approved): the aggregate "Structural dependencies" row was replaced with 6
+   per-sub-type rows (matrix 17 -> 22). relmat/animal/spatial POINT -> covered; phylo
+   POINT -> partial; kernel/SPDE -> planned. The 25/68 slice metric is unchanged.
+
+## 9. Final state (HEAD `733724f4`)
+
+14 defended slices this session, all pushed, tree clean, validator green (25/68 slice
+metric, 22 matrix rows). The interval-method broadening + the per-sub-type Structural
+rows are complete. **Remaining work all wants FRESH context:**
+- **Julia Stage A** (design 179): widen the bridge to expose the coefficient/scale/
+  correlation profiles DRM.jl already computes -- cheapest first "Julia speedups"
+  cell-evidence. Needs the Julia toolchain (~3-min round-trips) + per-target parity.
+- **Coevolution Stage 1** (design 178): the Hadfield additive-model engine surgery
+  (R assembly + `src/drmTMB.cpp` block loop), TDD-first.
+- **Julia Stage B** (design 179): warm-start in-process bootstrap -- the marquee Julia
+  differentiator (bootstrap is what native TMB cannot make cheap).
+- Bootstrap broadening for non-Gaussian/random-slope is cost-prohibitive natively;
+  the honest path is the Julia warm-start above.
+- GitHub coordination comments (drmTMB#499 / DRM.jl#294) still parked (auto-denied).
