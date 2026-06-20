@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Status reconciliation + binomial profile-interval promotion (Ada autonomous)
+
+Goal:
+
+- Address "still a lot of partial/planned": reconcile the finish-plan statuses
+  against current evidence, and produce the one piece of new evidence that
+  legitimately reduces partial/planned tonight. Branch
+  `shannon/overnight-audit-gaps-20260619`; pushes held.
+
+Reconciliation:
+
+- A 4-mapper + Rose/Fisher + Ada reconciliation examined 132 partial/planned
+  cells across the matrix, finish-board, and Julia bridge rows: **0 confirmed
+  promotions** from existing evidence (statuses are honestly conservative; the
+  green DRM.jl suite is direct-Julia evidence and cannot promote a bridge/native
+  cell). Recorded with the prioritized evidence-path in
+  `docs/dev-log/2026-06-20-status-reconciliation.md`.
+
+New evidence produced (highest-leverage item from the path):
+
+- `docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/`
+  -- 500 reps x 4 cells (binary + cbind, n in {240,480}) of tmbprofile interval
+  coverage for the fixed-effect binomial `mu` coefficients.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-20-binomial-fe-profile-calibration/run.R 500
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- profile_ok_rate 1.000; 0/4000 fit/profile errors; coverage 0.93-0.972
+  (nominal 0.95, MCSE 0.0074-0.0114), comparable to the banked Wald artifact
+  (0.946-0.964). Elapsed 1697 s.
+- Promoted the binomial fixed-effect `profile` cell `planned -> covered` in the
+  168 finish matrix, the status.json matrix row, and the three binomial
+  finish-board rows (scoped to fixed-effect `mu`). Validator green; metrics
+  unchanged at 25/68 (a cell-status change, not a slice promotion); 17/11/15/9
+  row counts unchanged.
+
+Boundary:
+
+- Native R/TMB, fixed-effect `mu` only, complete data, interval coverage for a
+  correctly specified model. No recovery/power claim; random/structured/
+  bivariate profile, bootstrap, headline coverage, and the Julia bridge remain
+  planned/unsupported.
+
 ## 2026-06-20: Overnight doc-completeness phase + DRM.jl Aqua (Ada autonomous)
 
 Goal:
