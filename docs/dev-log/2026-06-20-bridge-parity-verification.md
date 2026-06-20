@@ -81,3 +81,36 @@ conservative -- any promotion would cross a claim boundary:
 Net: the bridge is healthy and the supported-route (B/C) parity is banked, but
 no cell promotion is warranted today without crossing a claim boundary. This is
 the rigorous outcome, not a shortfall -- the conservative statuses are correct.
+
+## Update (2026-06-20, later): Route C interval parity earns a scoped promotion
+
+The promote-path above ("add a bridge interval parity test ... CI endpoints to a
+stated tolerance ... for the Gaussian location-scale cell") is now satisfied.
+`tests/testthat/test-julia-tmb-parity.R` gained a committed, callr-isolated
+**"Route C interval parity"** test: for `bf(y ~ x, sigma ~ x)`, `engine="julia"`
+and `engine="tmb"` agree on the **Wald CI endpoints** of all four location-scale
+fixed-effect coefficients to an asserted `<= 1e-4` (measured max |delta endpoint|
+~5.6e-6; full suite 12 PASS / 0 FAIL / 1 SKIP, the skip being Route A). Native
+Wald variances come from the TMB `sdreport` covariance (`sdr$cov.fixed`); Julia
+Wald variances come from the DRM.jl-marshalled `object$vcov`. The two covariance
+sources are independent, so endpoint agreement verifies **covariance transport**
+across the bridge -- the step beyond the earlier point + logLik + coefficient
+parity.
+
+A fresh Rose + Fisher adversarial pass (both traced the two covariance code paths
+in source) verified **promote**, scoped:
+
+- `base_gaussian_location_scale` (`julia-capabilities.tsv`): `partial -> covered`,
+  scoped to **Wald CI parity** (engine-vs-engine agreement, **not** interval
+  coverage/calibration). The **asserted** `<= 1e-4` bound is the guarantee;
+  `5.6e-6` is the measured value.
+- **Still held** (unchanged): profile/bootstrap **fixed-effect** bridge intervals
+  (the Julia bridge profile/bootstrap path supports only phylogenetic SD targets),
+  Route A (tracked bug), q4/q8, non-phylo binomial bridge, `engine_control`, and
+  the **aggregate `R-Julia bridge gate` row** (still spans the Route A bug and the
+  gated routes).
+- Route B / `rho12 ~ x` still needs a coefficient-parity test plus a dedicated
+  non-phylo bivariate-`rho12` bridge capability row (none exists yet).
+
+Net: one scoped, defended bridge-cell promotion; the rest of the conservative
+statuses remain correct.

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 09:39 MDT",
+  "updated": "2026-06-20 10:01 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1136,6 +1136,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Earned the first R-Julia bridge-cell promotion. Added a committed, callr-isolated interval-parity test (tests/testthat/test-julia-tmb-parity.R, 'Route C interval parity'): for Gaussian location-scale bf(y ~ x, sigma ~ x), engine='julia' == engine='tmb' Wald CI endpoints for all four fixed-effect coefficients to an asserted <= 1e-4 (measured max|delta| ~5.6e-6). Because the Julia fit marshals its OWN covariance (object$vcov from DRM.jl) while native Wald reads sdr$cov.fixed, endpoint agreement verifies covariance TRANSPORT across engines, the exact step the prior 0-promotion verdict named as the promote-path beyond point+logLik+coef parity. Rose+Fisher both independently traced the two covariance sources in source and verified promote. Promoted the base_gaussian_location_scale capability cell partial -> covered in julia-capabilities.tsv, scoped to Wald CI parity (not coverage). Out of scope and unchanged: profile/bootstrap fixed-effect bridge intervals (Julia bridge profile path supports only phylo SD targets), Route A (tracked bug), q4/q8, binomial bridge, engine_control, and the AGGREGATE R-Julia bridge gate row (still partial). Native/direct-Julia/bridge lanes kept separate; pushes held."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

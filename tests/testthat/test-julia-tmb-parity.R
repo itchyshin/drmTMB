@@ -92,6 +92,92 @@ test_that("engine='julia' == engine='tmb' to <=1e-6 on Gaussian location-scale (
   expect_lt(max(abs(res$coef_tmb - res$coef_jl)), 1e-5)
 })
 
+# Route C INTERVAL parity (Wald CI endpoints). engine="julia" marshals its OWN
+# fixed-effect covariance (object$vcov, computed by DRM.jl independently of TMB),
+# so matching Wald endpoints verify covariance TRANSPORT, not just the point
+# estimate — the step the bridge-promotion gate requires beyond point+logLik.
+# Measured max|Δ endpoint| ≈ 5.6e-6 across the 4 location-scale coefficients.
+# Profile/bootstrap bridge intervals for fixed effects are deliberately NOT
+# asserted: the Julia bridge profile/bootstrap path supports only phylogenetic SD
+# targets, so fixed-effect profile parity is out of scope (gated), not a gap.
+drm_parity_fit_route_c_wald_ci <- function() {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_parity_jl_path()
+  callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(42L)
+      n <- 120L
+      x <- stats::rnorm(n)
+      y <- 0.5 + 0.6 * x + stats::rnorm(n, 0, exp(-0.2 + 0.3 * x))
+      dat <- data.frame(x = x, y = y)
+      form <- drmTMB::bf(y ~ x, sigma ~ x)
+      ft <- drmTMB::drmTMB(
+        form,
+        family = stats::gaussian(),
+        data = dat,
+        engine = "tmb"
+      )
+      fj <- drmTMB::drmTMB(
+        form,
+        family = stats::gaussian(),
+        data = dat,
+        engine = "julia"
+      )
+      ci <- function(f) {
+        d <- stats::confint(f, method = "wald")
+        d[, c("parm", "lower", "upper", "conf.status")]
+      }
+      list(
+        ci_tmb = ci(ft),
+        ci_jl = ci(fj),
+        conv_tmb = drmTMB::is_converged(ft),
+        conv_jl = drmTMB::is_converged(fj)
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path),
+    error = "error"
+  )
+}
+
+test_that("engine='julia' == engine='tmb' Wald CI endpoints on Gaussian location-scale (Route C interval parity)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(
+    dir.exists(drm_parity_jl_path()),
+    "DRM.jl engine path not available"
+  )
+
+  res <- tryCatch(
+    drm_parity_fit_route_c_wald_ci(),
+    error = function(e) {
+      testthat::skip(paste(
+        "Route C interval-parity round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(isTRUE(res$conv_tmb) && isTRUE(res$conv_jl))
+  m <- merge(res$ci_tmb, res$ci_jl, by = "parm", suffixes = c("_t", "_j"))
+  # All four location-scale fixed-effect coefficients present + Wald-ready in both.
+  expect_equal(nrow(m), 4L)
+  expect_true(all(m$conf.status_t == "wald") && all(m$conf.status_j == "wald"))
+  expect_true(all(is.finite(c(m$lower_t, m$upper_t, m$lower_j, m$upper_j))))
+  # The interval-parity claim, as a number (measured max|Δ| ≈ 5.6e-6):
+  delta <- abs(c(m$lower_t - m$lower_j, m$upper_t - m$upper_j))
+  expect_lt(max(delta), 1e-4)
+})
+
 drm_parity_fit_route_b <- function() {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_parity_jl_path()

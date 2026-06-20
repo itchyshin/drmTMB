@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: R-Julia bridge Route C interval parity -> base_gaussian covered (Ada autonomous)
+
+Goal:
+
+- Produce the interval-parity evidence the prior bridge verdict named as the
+  promote-path for the Route C `base_gaussian_location_scale` cell, verify it,
+  and promote that single cell if earned. Branch
+  `shannon/overnight-audit-gaps-20260619`; DRM.jl engine = direct-main `f46035d`;
+  pushes held.
+
+Evidence (callr-isolated bridge harness):
+
+```sh
+DRM_JL_PHYLO_PATH=.../DRM.jl-direct-main JULIA_HOME=.../.juliaup/bin \
+  Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity")'
+```
+
+- New committed test `tests/testthat/test-julia-tmb-parity.R` "Route C interval
+  parity": for `bf(y ~ x, sigma ~ x)`, `engine="julia"` == `engine="tmb"` Wald CI
+  endpoints for all four fixed-effect coefficients to an asserted `<= 1e-4`
+  (measured max |delta endpoint| ~5.6e-6). Suite: 12 PASS / 0 FAIL / 1 SKIP
+  (skip = Route A tracked bug).
+- Profile/bootstrap fixed-effect bridge intervals confirmed unavailable (native
+  profile needs explicit parm; Julia bridge profile/bootstrap supports only phylo
+  SD targets), so only Wald parity is claimed.
+
+Verification (Rose + Fisher adversarial workflow, both traced the two covariance
+sources in source: native `sdr$cov.fixed` vs Julia-marshalled `object$vcov`):
+
+- Both verdict = promote. Covariance transport confirmed as genuine new evidence
+  beyond point+logLik+coef. Required caveats: cite the asserted `<= 1e-4` bound
+  (not 5.6e-6) as the guarantee; Wald-only / parity-not-coverage / single cell;
+  aggregate gate row stays partial.
+
+Edits:
+
+- `docs/dev-log/dashboard/julia-capabilities.tsv`: `base_gaussian_location_scale`
+  claim_status `partial -> covered`; next_action + claim_boundary updated with the
+  Wald-only, parity-not-coverage, single-cell scope; evidence_url kept as the
+  GitHub issue URL (validator requires this).
+- `docs/dev-log/2026-06-20-bridge-parity-verification.md`: appended the
+  promote-path update section.
+- `docs/dev-log/dashboard/status.json`: activity entry + timestamp.
+
+Validation:
+
+- `python3 tools/validate-mission-control.py`: `mission_control_ok` (counts
+  unchanged; a TSV cell-status change does not move slice metrics or row counts).
+- `git diff --check`: clean.
+
+Boundary:
+
+- One TSV capability cell only. Aggregate `R-Julia bridge gate` row, Route A,
+  q4/q8, binomial bridge, profile/bootstrap fixed-effect intervals, and
+  engine_control all unchanged. Native R/TMB, direct DRM.jl, and Julia-via-R
+  evidence stay separate lanes. Pushes held.
+
 ## 2026-06-20: Non-Gaussian FE recovery 500-rep promotion (Ada autonomous)
 
 Goal:
