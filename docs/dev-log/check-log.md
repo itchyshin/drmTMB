@@ -2,6 +2,71 @@
 
 Record meaningful development checks here.
 
+## 2026-06-19: Overnight finish-plan Wave 0 + Wave 1 (Ada autonomous)
+
+Goal:
+
+- Map the broader finish plan and mission-control widget, then close the
+  boundary-safe documentation/claim/widget gaps without crossing any critical
+  claim boundary. Branch `shannon/overnight-audit-gaps-20260619` off `bd1f3e46`;
+  pushes held for owner review.
+
+Wave 0 (completion audit, read-only):
+
+- A 10-mapper + Rose-verify + Ada-synthesis workflow enumerated 141 finish-plan
+  items and classified 18 wave-1 (docs/widget), 4 wave-2 (native code), 2 wave-3
+  (article/figure), and 63 blocked (design gates, method repair, evidence,
+  owner decisions, research-scoped). Recorded in
+  `docs/dev-log/2026-06-19-overnight-finish-orchestration.md`.
+
+Wave 1 verify sweep (14 read-only claim/widget audits, all PASS):
+
+- q8 diagnostic bound, q4 phylo derived-only, recovery diagnostic-qualified,
+  REML Gaussian-only, no release/CRAN claims, no public `engine_control`
+  language, missing-data vs complete-case separation, missing response vs
+  predictor separation, figures do not imply coverage, log(sigma) clamp pilot
+  honest, widget validator green, served copy live, metrics synchronized, and
+  activity rows current. Zero contradictions; zero cannot-verify.
+
+Wave 1 edits (4 slices):
+
+- `2a47858d` README version drift `0.1.3` -> `0.1.4` (matches DESCRIPTION; tag
+  `v0.1.4` exists; pre-CRAN wording preserved).
+- `5448279b` getting-started vignette note that `bf()` is an exact alias of
+  `drm_formula()`.
+- `222f9d0e` document `coef.drmTMB` (folded into `model-fit-extractors`) and
+  expand `drmTMB()` `@return` with a `\describe` of fit-object components.
+- `3355af39` accelerator-vocabulary lint in `tools/validate-mission-control.py`
+  (GPU/CUDA/TPU/accelerator/compute-target/offload; excludes the overloaded
+  `backend`), plus a Claim Guards bullet in design 168.
+
+Checks run:
+
+```sh
+python3 tools/validate-mission-control.py            # exit 0, 25/68, 17 matrix rows
+Rscript --vanilla -e 'tools::checkRd("man/drmTMB.Rd"); tools::checkRd("man/model-fit-extractors.Rd")'  # OK
+# accelerator lint logic unit check: fires on unguarded GPU/compute-target,
+# exempts planned/unsupported, ignores bare "backend"
+git diff --check                                     # clean
+```
+
+Results:
+
+- Validator passes; both hand-edited Rd files are valid.
+- `devtools::document()` was NOT committed: local roxygen2 is 7.3.2 while the
+  repo is generated with 8.0.0 (`Config/roxygen2/version: 8.0.0`); running it
+  here injected regressions (conflicting `RoxygenNote`, deleted Authors block,
+  downgraded `\link` targets), so the man pages were hand-synced instead and a
+  matching-version `document()` is left for a follow-up.
+
+Boundary:
+
+- Documentation/claim/widget hygiene only. No model, likelihood, formula, or
+  numerical-guard change; no recovery/coverage/power, q4/q8 or binomial Julia
+  bridge parity, release/CRAN, REML-non-Gaussian, or selectable
+  `engine_control` claim. Native R/TMB, direct DRM.jl, and Julia-via-R lanes
+  remain separate.
+
 ## 2026-06-19: Julia-via-R clean-main bridge audit
 
 Goal:
