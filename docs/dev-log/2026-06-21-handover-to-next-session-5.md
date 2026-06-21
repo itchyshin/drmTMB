@@ -55,7 +55,8 @@ Four slices, all Rose+Fisher verified, committed + pushed:
    487-commit-stale `f9edc0c` (which mutates the scalar `:*_fixed` kernels and would
    collide). FD ≤1e-6 (NB2/Gamma) / ≤1e-4 (Beta); 1-col-Xσ reduction invariant
    (1e-12/1e-10); recovery σ-slope bands exclude zero; constant-σ regression 46/46.
-   **#164 issue CLOSE is still pending owner approval** (classifier-gated — see §4).
+   **#164 was CLOSED** 2026-06-21 with the evidence comment (owner-approved; phylo +
+   crossed both landed, relmat out of the issue's title scope).
 2. **gaussian_response_mask → covered** (bridge), drmTMB `863da255`. The mask already
    worked; it was `partial` only because the engine-vs-engine parity test was never
    written. Added a masked-data Route-C parity block to `test-julia-tmb-parity.R`
@@ -123,11 +124,10 @@ A). Touches BOTH repos → two commits (DRM.jl bridge + drmTMB R/test). Rose+Fis
 
 ## 4. Pending / blocked
 
-- **#164 issue CLOSE (DRM.jl #164):** owner-approved verbally, but the auto-permission
-  classifier DENIED `gh issue close` (it needs an explicit per-issue "yes" in the
-  prompt, which a multi-select answer didn't register as). The evidence comment is
-  drafted at `/tmp/drm164-close.md`. Re-attempt only after the owner explicitly names
-  the issue to close; if denied again, STOP and surface it (do NOT work around it).
+- **#164 issue CLOSE: DONE** — closed 2026-06-21 with the evidence comment. (The
+  earlier classifier denial was cleared by an explicit owner authorization. Lesson
+  for next time: issue-close needs an explicit per-issue "yes" in the prompt — a
+  multi-select answer does not register as one.)
 - **phylo_coef `covered` is blocked** on two DRM.jl-lane prereqs (design 179): (a)
   boundary-robust `parm=:sigma` profiling (DRM.jl `parm=:sigma` diverges toward the
   log-σ→−∞ boundary, ~10 disagreement vs native); (b) warm-start THROUGH the bridge
@@ -183,4 +183,4 @@ notes in `docs/dev-log/after-task/`; check-log rows in both repos' `docs/dev-log
 
 Four slices landed + pushed (#164 crossed σ, gaussian_response_mask→covered,
 binomial kept-gated, biv_q4 defended-partial). Bridge matrix 3/11 covered. Next:
-phylo_coef μ multi-coef batching (scoped in §3). Pending owner nod: #164 close.
+phylo_coef μ multi-coef batching (scoped in §3). #164 closed.
