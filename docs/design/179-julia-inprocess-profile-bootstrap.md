@@ -199,6 +199,17 @@ Gaussian())`, no random / structured / phylo / meta terms). Opt-in via
   The LocScale q2 cell additionally has a degenerate parametric bootstrap under the
   current population-level (RE-at-zero) `simulate`, so its warm path wants a
   RE-conditional simulate first.
+- **Attempted and reverted (2026-06-20): warm-start for the single `(1 | g)` Gaussian
+  random-intercept cell.** `_fit_ranef_gaussian` (gaussian_ranef.jl) has a clean
+  single-LBFGS entry, so threading a `start` kwarg + a `_gaussian_warm_refit` branch
+  was straightforward. But the warm/cold parity gate FAILED on the variance-component
+  (`:resd`, log σ_b) summary row: the β rows matched to 1e-10, but σ_b's SE/CI diverged
+  beyond 1e-6. Root cause is the SAME population-level (RE-at-zero) `simulate` — every
+  replicate draws σ_b = 0, so the variance MLE sits on the boundary where warm and cold
+  LBFGS terminate at different near-`-∞` log σ_b points. The clean "warm == cold"
+  contract therefore does not hold for `(1 | g)`, so it was reverted (fixed-effect cell
+  remains the only shipped warm cell). Same conclusion as LocScale: the RE warm-start
+  needs an RE-conditional simulate before its bootstrap is non-degenerate.
 
 ## Stage A — exact change site (code-verified 2026-06-20)
 
