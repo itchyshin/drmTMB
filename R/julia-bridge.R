@@ -143,7 +143,7 @@ drm_julia_intentional_gates <- function() {
       "DRM.jl q4 PLSM bridge expects phylo terms on mu1, mu2, sigma1, and sigma2.",
       "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
       "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
-      "DRM.jl general-covariance bridge currently requires sigma ~ 1.",
+      "The general-covariance bridge currently requires sigma ~ 1; the DRM.jl engine fits sigma ~ x for the NB2/Gamma/Beta general-covariance routes directly (2026-06-21), but the bridge gate is not yet widened.",
       "DRM.jl bridge consumes covariance/relatedness matrices, not precision slots.",
       "Cross-family bridge currently drops missing rows and requires complete axes.",
       "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
@@ -248,7 +248,7 @@ drm_julia_capability_comparison <- function() {
       "Four-axis phylogenetic location-scale REML (mu1, mu2, sigma1, sigma2 with REML = TRUE). 'covered' (engine-vs-engine parity) is STRUCTURALLY UNREACHABLE: native engine='tmb' rejects bivariate phylo REML ('REML for bivariate Gaussian models currently supports fixed-effect mean models only'), so there is no second engine to parity against. partial = (a) a live bridge q4 REML round-trip (tests/testthat/test-julia-biv-q4-reml.R): engine='julia' REML=TRUE forwards faithfully (effective_REML, estimator 'REML'), ML and REML both converge, finite among-axis SDs, REML genuinely differs from ML, and Wald CIs for the Sigma_a targets are correctly unavailable at the singular q4 boundary; (b) a direct-DRM.jl recovery pilot (docs/dev-log/simulation-artifacts/2026-06-21-q4-reml-recovery-pilot/, 40 reps) showing the REML estimator the bridge forwards is less biased than ML, recovering the four among-axis SDs closer to truth on every axis (REML MAE 0.127 vs ML 0.133; REML closer in 57-62% of draws). PILOT point-recovery evidence, NOT interval coverage and NOT a full calibration; profile/bootstrap SD-interval parity is a further gap. Do not infer native-TMB restricted-likelihood support for scale-side structured effects.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
       "Finite-and-sane bridge smoke evidence only; no native TMB parity or non-phylo binomial bridge promotion.",
-      "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
+      "Requires covariance/relatedness matrix K; the bridge currently gates sigma ~ x for this route (the DRM.jl engine fits covariate dispersion for the NB2/Gamma/Beta general-covariance routes directly since 2026-06-21, but the bridge has not been widened). Beta and precision-Q bridge routes stay gated.",
       "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
       "Native TMB owns ordinary binomial support (#569, landed via PR #585 / 5810ed7d, 2026-06-16); the Julia bridge intentionally routes a non-phylo binomial back to native TMB (no separate engine='julia' non-phylo route). There is no Julia speed edge for non-phylo GLMs (cf. the base_nonphylo_count gate), so a bridge would add parity-completeness only, not capability; it stays intentionally gated by design.",
@@ -3134,7 +3134,7 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
       ))
   ) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} uses DRM.jl's general-covariance sparse route, which currently requires {.code sigma ~ 1}.",
+      "{.code engine = \"julia\"} currently requires {.code sigma ~ 1} for the general-covariance sparse route; the DRM.jl engine fits {.code sigma ~ x} directly, but the bridge gate is not yet widened.",
       i = "Use native {.code engine = \"tmb\"} for structured models with predictor-dependent residual scale."
     ))
   }

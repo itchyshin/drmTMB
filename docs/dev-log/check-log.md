@@ -59781,3 +59781,19 @@ Findings / scope:
   After-task: `docs/dev-log/after-task/2026-06-21-phylo-coef-profile-multi-batch.md`.
 - Bootstrap multi-coef is NOT batched (single-coef contract); sigma profiles still
   not offered; warm-start still not reachable through the bridge.
+
+## 2026-06-21: bridge claim-boundary — attribute general-cov sigma~x gate to the bridge (Ada)
+
+Follow-on to the DRM.jl relmat/animal/spatial `sigma ~ x` slice (DRM.jl 4e4d157): that
+slice made the DRM.jl ENGINE fit covariate dispersion on the general-covariance routes,
+so the drmTMB bridge strings that said "DRM.jl ... requires `sigma ~ 1`" became a layer
+misattribution (Rose flagged it in the relmat-slice review). Reworded three
+`R/julia-bridge.R` strings — the gate-registry evidence, the
+`general_covariance_structured` `claim_boundary`, and the user-facing `cli_abort` guard
+— to put the gate at the BRIDGE layer (the engine fits `sigma ~ x`; the bridge has not
+been widened). Kept "requires `sigma ~ 1`" in the guard so the gate `message_pattern`
+still matches. No behaviour change (the bridge still routes general-cov `sigma ~ x` to
+native TMB). Regenerated the gate + capability TSVs; `test-julia-gate-vs-engine.R`
+113/113; `validate-mission-control.py` green. Did NOT add Beta to the bridge family list
+— the bridge genuinely does not route Beta general-cov (a separate widening, not a
+wording fix).
