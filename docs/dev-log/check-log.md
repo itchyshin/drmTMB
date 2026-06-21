@@ -59587,3 +59587,33 @@ Student-t shape models. It does not promote Student-t profile/bootstrap
 coverage, random effects, bivariate responses, structured effects, true
 `nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
 readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-20: Julia warm-start parametric bootstrap (design 179 Stage B, direct DRM.jl lane)
+
+Cross-repo slice in the DRM.jl direct lane (NOT the R-Julia bridge): an opt-in
+warm-started parametric bootstrap for the fixed-effect Gaussian location-scale
+model. `bootstrap_result` / `bootstrap_ci` / `bootstrap_summary` gained
+`warmstart = true` (default `false` -> the existing cold path, byte-unchanged).
+`_fit_fixed_gaussian` gained an optional `start` kwarg; `_gaussian_warm_refit`
+reuses the fitted optimum as the LBFGS start for every replicate refit, with a
+per-replicate cold-start fallback on a non-finite / non-converged warm solve.
+Restricted to the fixed-effect cell (random / structured / phylo / meta fits and
+the bivariate q4 path raise a clear `ArgumentError`).
+
+Checks (run in `/Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main`,
+Julia 1.10.0): `test_bootstrap_warmstart.jl` 58/58; regression
+`test_bootstrap` 46/46, `test_bootstrap_nongaussian` 45/45,
+`test_bootstrap_sigma_a` 36/36, `test_gaussian_core` 4/4 — all green. The parity
+gate asserts agreement to 1e-7 on the replicate-derived SE/CI on identical seeds;
+the `estimate` field is the original fit's coefficient (refit-independent) so it is
+exactly equal. A single interactive B=600 benchmark (NOT asserted in the test)
+measured 1.37x faster with SE/CI agreement ~1.2e-11. Reviewed by Fisher
+(inference: sound — the parity gate isolates the optimiser start as the only
+degree of freedom) and Rose (claim-boundary).
+
+Claim boundary: this is engine PARITY (warm == cold to optimiser tolerance) plus a
+single-run speed observation, NOT interval coverage, NOT a release/CRAN claim, and
+NOT a Julia-bridge change (the R bridge is unchanged; the bridge's Gaussian-phylo
+bootstrap stays cold until its fitter accepts a packed start). The warm path is
+direct-DRM.jl-lane only and confined to the fixed-effect Gaussian location-scale
+cell; expensive refit cells (phylo / RE) and the LocScale q2 path remain deferred.

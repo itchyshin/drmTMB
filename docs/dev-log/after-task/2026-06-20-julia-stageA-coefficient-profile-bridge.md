@@ -69,4 +69,9 @@ kept separate.
 
 - Fisher-gate + record the Julia bridge coefficient-profile parity capability cell.
 - A full `devtools::check()` (only targeted suites run here).
-- Stage A multi-coef + Stage B (warm-start bootstrap) per design 179.
+- Stage A multi-coef per design 179.
+- Stage B warm-start bootstrap: the FIXED-EFFECT Gaussian location-scale cell LANDED
+  in the direct DRM.jl lane (2026-06-20, see
+  `2026-06-20-julia-stageB-warmstart-bootstrap.md`); the BRIDGE bootstrap path
+  (Gaussian phylo) and the expensive RE cells stay deferred until their fitters
+  accept a packed start.

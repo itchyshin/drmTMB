@@ -186,9 +186,14 @@ covers profile+bootstrap (partial).
 - **Multi-coefficient batching** (design 179): the SD-axis-specific multi-row join —
   efficiency (single-coef works today).
 - **Boundary-robust sigma coefficient profiles** — a DRM.jl-side fix (log-sigma boundary).
-- **Warm-start in-process bootstrap** (design 179 Stage B optimisation): only tractable
-  for the non-bridge LocScale q2 path; the bridge's Gaussian/q4 bootstrap needs new
-  packed-start fitter entrypoints / E-step surgery — a focused fresh-session effort.
+- **Warm-start in-process bootstrap** (design 179 Stage B optimisation): the
+  fixed-effect Gaussian location-scale cell **LANDED** in the direct DRM.jl lane
+  (2026-06-20, opt-in `warmstart=true`; warm==cold parity gate; after-task
+  `2026-06-20-julia-stageB-warmstart-bootstrap.md`). STILL DEFERRED: the EXPENSIVE
+  refit cells (Gaussian phylo / RE — the bridge's bootstrap path) need a packed-start
+  fitter entrypoint before the bridge can pass `warmstart` through; the LocScale q2
+  path additionally needs an RE-conditional `simulate` (its population-level draw makes
+  the parametric bootstrap degenerate at the boundary).
 - **Coevolution Stage 1** (design 178): the Hadfield additive-model engine surgery
   (R assembly + `src/drmTMB.cpp` block loop), TDD-first.
 - **Promote covered** only with multi-seed/model parity (Stage A is single-fixture).

@@ -154,12 +154,51 @@ profile + bootstrap through the bridge.**
   offered. Boundary-robust sigma profiling is a DRM.jl-side fix.
 - **multi-coefficient batching -- DEFERRED** (efficiency only; the shared SD/coef
   multi-row join is the flagged collision risk). Single-coefficient calls work today.
-- **warm-start bootstrap (Stage B optimisation) -- DEFERRED to a fresh session.** Per
-  the scoping, warm-start is only tractable for the non-bridge LocScale q2 path
-  (`_fit_locscale` βμ0/βψ0/λ0 kwargs); the bridge's bootstrap path (Gaussian phylo,
-  q4) needs new packed-start fitter entrypoints / E-step-adjacent surgery -- not
-  landable safely. The current bridge bootstrap is cold; `algorithm=:warm` plumbing +
-  the LocScale warm path + a warm-vs-cold parity gate are the focused follow-on.
+- **warm-start bootstrap (Stage B optimisation) -- FIRST INCREMENT LANDED
+  (2026-06-20), direct DRM.jl lane.** See "Stage B — warm-start increment" below.
+
+## Stage B — warm-start increment LANDED (2026-06-20, direct DRM.jl lane)
+
+The warm-start bootstrap is implemented for the cell where it is provably safe: the
+**fixed-effect Gaussian location-scale model** (`drm(bf(y ~ …, sigma ~ …),
+Gaussian())`, no random / structured / phylo / meta terms). Opt-in via
+`warmstart = true` on `bootstrap_result` / `bootstrap_ci` / `bootstrap_summary`
+(default `false` -> the existing cold path, unchanged).
+
+- **Mechanism.** `_fit_fixed_gaussian` gained an optional `start` kwarg (the fitted
+  optimum θ̂). `_gaussian_warm_refit` (src/inference.jl) reuses the original fit's θ̂
+  as the LBFGS start for every replicate refit; each refit reaches the same MLE in
+  fewer iterations. A per-replicate cold-start fallback fires on a non-finite /
+  non-converged warm solve, so `warmstart` changes cost-not-result *under the parity
+  gate* and the interior-MLE conditions below. It does NOT detect a warm solve that
+  converges to a different stationary point (the location-scale NLL is not proven
+  globally unimodal); the guarantee rests on the empirical gate, not a proof.
+- **Why this cell.** It is the warm path that lands safely now: the objective is
+  well-behaved (interior MLE, no variance boundary), `simulate` draws clean
+  replicates, and the warm refit calls `_fit_fixed_gaussian` directly -- no change to
+  `drm()`'s dispatch and no change to the R bridge (lanes stay separate).
+- **Parity gate (the load-bearing claim).** `test/test_bootstrap_warmstart.jl`:
+  on identical seeds, warm and cold return matching summaries. The committed gate
+  asserts tolerance **1e-7** on the replicate-derived SE/CI (B=80, B=50); the
+  `estimate` field is the original fit's coefficient (refit-independent) so it is
+  exactly equal -- a consistency check, not parity evidence. Parity, NOT coverage.
+  Existing bootstrap suites (test_bootstrap / _nongaussian / _sigma_a: 46+45+36)
+  stay green.
+- **Speed / agreement (single interactive run, NOT in the committed test).** One
+  B=600 benchmark on this fixture measured **1.37x** faster and SE/CI agreement
+  **~1.2e-11**; recorded for context only -- the test asserts the 1e-7 floor, not
+  these figures. The fixed-effect refit is near-closed-form, so the iteration saving
+  is real but modest. The marquee win is for EXPENSIVE refits (phylo / RE), the
+  deferred work below.
+- **Still deferred (honest scope).** The expensive refit cells -- Gaussian phylo /
+  random-effect (the bridge's bootstrap path) and the non-Gaussian LocScale q2 path --
+  need their own fitters to accept a packed start (`_fit_locscale` already has
+  βμ0/βψ0/λ0; the Gaussian RE/phylo fitters do not). Those reuse this same
+  `warmstart` surface + cold fallback + parity gate once the start kwarg is threaded;
+  the bridge-side `warmstart` passthrough waits on the Gaussian-phylo warm fitter.
+  The LocScale q2 cell additionally has a degenerate parametric bootstrap under the
+  current population-level (RE-at-zero) `simulate`, so its warm path wants a
+  RE-conditional simulate first.
 
 ## Stage A — exact change site (code-verified 2026-06-20)
 
