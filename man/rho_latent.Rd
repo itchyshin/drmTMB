@@ -17,3 +17,26 @@ The latent / link-scale correlation between the two responses.
 \description{
 Latent-scale correlation from a cross-family Julia fit
 }
+\examples{
+\dontrun{
+# Requires the DRM.jl engine (engine = "julia").
+set.seed(20260610)
+n <- 150
+x <- rnorm(n)
+u <- rnorm(n)
+dat <- data.frame(
+  y1 = 0.5 + 0.8 * x + 0.7 * u + rnorm(n, sd = 0.5),
+  y2 = rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
+  x = x
+)
+
+fit <- drmTMB(
+  bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+  family = c(gaussian(), poisson()),
+  data = dat,
+  engine = "julia"
+)
+
+rho_latent(fit)
+}
+}

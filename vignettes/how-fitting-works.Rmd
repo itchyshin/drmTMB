@@ -1,0 +1,139 @@
+---
+title: "How drmTMB fits: the integral and optimiser layers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How drmTMB fits: the integral and optimiser layers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Fitting a model with random effects in `drmTMB` is **two nested problems**, and
+almost all of the machinery you hear about — the Laplace approximation,
+automatic differentiation, `nlminb`, REML, the Julia engine — is really an
+answer to one of the two. Separating them is the quickest way to understand what
+happens when you call `drmTMB()`, and which control to reach for when a fit
+struggles.
+
+> **The one-line version.** The **integral layer** turns the intractable
+> marginal likelihood into something the computer can evaluate; the **optimiser
+> layer** climbs it. They are *orthogonal* — the optimiser does not care how the
+> marginal was approximated, and the approximation does not care which optimiser
+> climbs it.
+
+## The two questions
+
+A model has fixed parameters `θ` (regression coefficients, variance components,
+dispersion, shape) and latent random effects `u` (study/group effects,
+phylogenetic deviations, residual correlations). `drmTMB` does not maximise the
+joint likelihood of the data *and* `u`; it integrates `u` out, leaving a
+**marginal** likelihood in `θ` alone:
+
+```
+L(θ) = ∫ p(y | u, θ) · p(u | θ) du.
+```
+
+Fitting then splits cleanly:
+
+1. **The integral (marginal) layer** — make `L(θ)` computable. The integral has
+   no closed form for non-Gaussian families, so it must be approximated.
+2. **The optimiser layer** — maximise the resulting `L̂(θ)` over `θ`.
+
+```
++-- OUTER . optimise theta -------------------------------------+
+|   climb L^(theta):  nlminb (default) / optim . ML or REML     |   <- optimiser layer
++---------------------------------------------------------------+
+        v  every evaluation of L^(theta) first builds the marginal ...
++-- MIDDLE . the marginal  L(theta) = int p(y|u,theta) p(u|theta) du --+
+|   make it tractable:  Laplace approximation (via TMB)                |   <- integral layer
++----------------------------------------------------------------------+
+        v  which in turn must handle the latent u ...
++-- INNER . the latent u ---------------------------------------+
+|   Laplace -> inner Newton finds the mode u^(theta)            |
++---------------------------------------------------------------+
+```
+
+## Layer 1 — the integral, handled by TMB
+
+`drmTMB` delegates the marginal to **Template Model Builder (TMB)**, which does
+two things:
+
+- **The Laplace approximation.** TMB replaces the random-effect integrand with a
+  Gaussian centred at its mode `û(θ)`, matched in curvature (the Hessian) there.
+  Finding that mode is an *inner* optimisation that TMB runs for you on every
+  outer step. For a Gaussian random effect on the mean the approximation is
+  *exact*; it is an approximation precisely when the integrand is non-Gaussian
+  (binary, count, skewed), which is where dispersion and shape parameters pick up
+  any error first.
+- **Exact gradients by automatic differentiation.** TMB differentiates the
+  Laplace-approximated marginal *through* the inner mode (the implicit function
+  theorem), so the optimiser receives an exact `∇L̂(θ)` rather than a
+  finite-difference estimate. This is what makes the outer optimisation fast and
+  stable even with many variance parameters.
+
+## Layer 2 — the optimiser
+
+`drmTMB` hands TMB's `(L̂, ∇L̂)` to a standard R optimiser:
+
+- **`nlminb` is the default** deterministic outer optimiser. When a fit returns
+  an optimiser error, `drmTMB` automatically retries with the built-in
+  `"careful"` and `"robust"` presets and records which one succeeded — see
+  [Improving convergence](convergence.html).
+- **`optim` (BFGS / L-BFGS-B)** is available as an alternative. L-BFGS is a
+  *quasi-Newton* method — it learns curvature from successive gradients instead
+  of forming a Hessian, so it needs only `∇L̂` and scales to many parameters. (It
+  is the default optimiser in the related `gllvm` package, and in `drmTMB`'s
+  Julia engine.)
+- **ML by default; REML optional.** Setting `REML = TRUE` changes *which*
+  likelihood you climb — TMB integrates the fixed effects out as well, the same
+  restricted likelihood `lme4` and `metafor` target — not the optimiser that
+  climbs it.
+
+```{r, eval = FALSE}
+# Same model, same integral layer (TMB Laplace) — different optimiser-layer choices:
+fit    <- drmTMB(bf(y ~ x + (1 | study)), data = d)                 # nlminb, ML
+fit_re <- drmTMB(bf(y ~ x + (1 | study)), data = d, REML = TRUE)    # restricted likelihood
+```
+
+## The Julia engine swaps the integral layer
+
+`drmTMB(..., engine = "julia")` keeps the grammar, the data marshalling, and the
+post-fit methods exactly as they are, but routes the **integral layer** to the
+companion `DRM.jl` engine. That engine adds marginal approximations beyond
+Laplace — a variational/ELBO option and Gauss–Hermite quadrature for the
+cross-family bivariate models — and contributes an `O(p)` sparse phylogenetic
+path. The optimiser layer is again L-BFGS on the Julia side. See
+[Running models with the Julia engine](julia-engine.html).
+
+## Why "orthogonal" matters
+
+Because the optimiser only ever consumes a value and a gradient, the two layers
+move independently: you can switch `engine = "tmb"` ↔ `"julia"` (changing the
+integral layer) without changing how you read the fit, and you can change
+optimiser presets without touching the likelihood. It also explains where other
+methods sit — *EM*, for instance, is an alternative to the **optimiser** layer
+(it ascends by alternating an E-step and an M-step instead of climbing a
+gradient), while the *variational* approximation is an alternative in the
+**integral** layer.
+
+A practical consequence: **profile-likelihood confidence intervals are the
+costliest thing the engine does**, because the layers nest. Every outer `θ`-step
+triggers an inner mode-find, and a profile CI adds a *third* level — fix one
+component of `θ`, re-optimise the rest, and repeat that constrained fit along a
+search for the likelihood-ratio threshold.
+
+## Where each piece lives
+
+| Layer | Question it answers | In `drmTMB` |
+|---|---|---|
+| **Integral** | how to handle the latent `u` | Laplace via **TMB** (`engine = "tmb"`); Laplace / variational / Gauss–Hermite via **DRM.jl** (`engine = "julia"`) |
+| **Optimiser** | how to maximise `L̂(θ)` | **`nlminb`** (default) with `careful`/`robust` retries; `optim` (BFGS / L-BFGS-B); **ML** or **REML** |
+
+## See also
+
+- [Improving convergence](convergence.html) — the optimiser-layer controls in practice.
+- [When variance carries signal](location-scale.html) — what the marginal is estimating.
+- [Running models with the Julia engine](julia-engine.html) — swapping the integral layer.

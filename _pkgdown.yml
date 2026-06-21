@@ -41,6 +41,8 @@ navbar:
           href: articles/convergence.html
         - text: Working with large data
           href: articles/large-data.html
+        - text: How a fit works (integral & optimiser)
+          href: articles/how-fitting-works.html
         - text: Running models with the Julia engine
           href: articles/julia-engine.html
     tutorials:
@@ -203,6 +205,7 @@ articles:
       - phylogenetic-spatial
   - title: Inference, Diagnostics, and Figures
     contents:
+      - how-fitting-works
       - convergence
       - large-data
       - julia-engine
