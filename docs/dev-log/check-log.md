@@ -59704,3 +59704,31 @@ Checks: `test-julia-gate-vs-engine.R` 113/113 (artifact == registry);
 `tools/validate-mission-control.py` `mission_control_ok` (11 capability rows,
 unchanged counts). This only de-stales a factual note on a cell that stays gated;
 no new parity claim. #569 CLOSED + PR #585 MERGED verified via gh. Claude/Ada.
+
+## 2026-06-21: biv_q4_phylo_reml defended-partial (q4 phylo REML through the bridge)
+
+Advanced the `biv_q4_phylo_reml` cell to a DEFENDED PARTIAL (it stays `partial`).
+`covered` (engine-vs-engine parity) is structurally impossible: native engine='tmb'
+rejects bivariate phylo REML ("REML for bivariate Gaussian models currently
+supports fixed-effect mean models only", R/drmTMB.R), so there is no second engine
+to parity against.
+
+Action: (a) new live bridge q4 REML round-trip test
+(`tests/testthat/test-julia-biv-q4-reml.R`): engine='julia' REML=TRUE forwards
+faithfully (effective_REML, estimator 'REML'), ML+REML converge, finite among-axis
+SDs, REML genuinely differs from ML, and Wald CIs for the Sigma_a targets correctly
+unavailable. (b) a direct-DRM.jl recovery pilot
+(`docs/dev-log/simulation-artifacts/2026-06-21-q4-reml-recovery-pilot/`, seeded
+40-rep Monte Carlo): ML downward-biased on all four among-axis SDs, REML closer to
+truth on all four (REML MAE 0.127 vs ML 0.133; REML closer in 57-62% of draws) — a
+PILOT, not a calibration. (c) corrected the registry claim_boundary + next_action
+(covered impossible; partial backed by the live test + pilot); regenerated both TSVs.
+
+Key reframe (owner's catch): the "REML >= ML" inequality is brittle (it fails when
+ML overshoots a weakly-identified scale axis); "closer to truth" is the right
+diagnostic. The pilot uses the well-conditioned balanced-tree DGP.
+
+Checks: live test 10/10 (`NOT_CRAN=true` + `DRM_JL_PATH`);
+`test-julia-gate-vs-engine.R` 113/113; `validate-mission-control.py` green;
+recovery pilot reproducible (seeded, with per-axis MC-SE + z). Verified by Rose
+(claim-boundary: GO) + Fisher (inference: GO). Claude/Ada.
