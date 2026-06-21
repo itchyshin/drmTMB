@@ -174,12 +174,21 @@ harness: engine="julia" coefficient profile endpoints match native TMB to the as
 Capability row `phylo_coef_profile_bridge` -> **partial** (Fisher). Live test in
 `test-julia-inference.R`.
 
+**Stage A finish + Stage B bootstrap — LANDED (owner "finish A and B").** mu
+fixed-effect coefficients now have **Wald + profile + bootstrap** through the bridge
+(DRM.jl `4c04559`, drmTMB `e6ba7d55`). Bootstrap-of-mu-coef is cold parametric (reuses
+existing machinery); live `test-julia-inference.R` PASS 53/0. **sigma** coefficient
+profiles withdrawn (DRM.jl `parm=:sigma` diverges at the log-sigma boundary, ~10
+disagreement — verification caught it). Capability row `phylo_coef_profile_bridge`
+covers profile+bootstrap (partial).
+
 **Remaining (FRESH context):**
-- **Julia Stage A continuation** (design 179): multi-coefficient batching (the
-  SD-axis-specific multi-row join), sigma/scale/correlation coefficient targets.
-- **Julia Stage B** (design 179): warm-start in-process bootstrap -- the marquee Julia
-  differentiator (bootstrap is what native TMB cannot make cheap; native broadening is
-  cost-prohibitive).
+- **Multi-coefficient batching** (design 179): the SD-axis-specific multi-row join —
+  efficiency (single-coef works today).
+- **Boundary-robust sigma coefficient profiles** — a DRM.jl-side fix (log-sigma boundary).
+- **Warm-start in-process bootstrap** (design 179 Stage B optimisation): only tractable
+  for the non-bridge LocScale q2 path; the bridge's Gaussian/q4 bootstrap needs new
+  packed-start fitter entrypoints / E-step surgery — a focused fresh-session effort.
 - **Coevolution Stage 1** (design 178): the Hadfield additive-model engine surgery
   (R assembly + `src/drmTMB.cpp` block loop), TDD-first.
 - **Promote covered** only with multi-seed/model parity (Stage A is single-fixture).
