@@ -2,6 +2,52 @@
 
 Record meaningful development checks here.
 
+## 2026-06-21: takeover branch and worktree cleanup
+
+Goal:
+
+- Execute the first Claude/Shannon-to-Codex takeover housekeeping slice by
+  deleting the three stale merged `claude/*` remote branches tracked in
+  `drmTMB#476`, pruning registered stale worktrees, and preserving any dirty
+  worktree state.
+
+Checks run:
+
+- `git status --short --branch`
+- `gh issue view 476 --repo itchyshin/drmTMB --json number,title,state,body,comments,updatedAt,url`
+- `git fetch origin --prune`
+- `for b in claude/power-simulation-prep claude/clause-team-mirror-followup claude/clause-team-analysis-s1RRw; do git ls-remote --heads origin "$b"; done`
+- `git branch -r --format='%(refname:short)' | rg '^origin/(claude/power-simulation-prep|claude/clause-team-mirror-followup|claude/clause-team-analysis-s1RRw)$' || true`
+- `git push origin --delete claude/power-simulation-prep claude/clause-team-mirror-followup claude/clause-team-analysis-s1RRw`
+- `git fetch origin --prune`
+- `git worktree list --porcelain`
+- `git worktree remove <clean non-main registered drmTMB worktree>` for 29
+  clean stale worktrees
+- `git worktree prune`
+- `gh issue close 476 --repo itchyshin/drmTMB --comment <verification note>`
+
+Results:
+
+- Remote branches `claude/power-simulation-prep`,
+  `claude/clause-team-mirror-followup`, and
+  `claude/clause-team-analysis-s1RRw` were deleted from `origin`.
+- Post-delete `git ls-remote --heads origin <branch>` returned no refs for all
+  three branch names, and the remote-tracking branch scan returned no matches.
+- Issue `drmTMB#476` was closed with the branch deletion and verification
+  evidence.
+- Removed 29 clean non-main registered drmTMB worktrees under `/private/tmp`
+  and `/Users/z3437171/worktrees`.
+- Preserved `/private/tmp/drmtmb-main-after609-bDAfMv` because it contains an
+  untracked `tools/__pycache__/` directory. Main remained clean at
+  `bd1f3e46`.
+
+Boundary:
+
+- This is repository housekeeping only. No package code, formula grammar,
+  likelihood parameterization, documentation claims, simulation evidence,
+  release status, CRAN status, Julia bridge gate, or DRM.jl engine claim
+  changed.
+
 ## 2026-06-19: Julia-via-R clean-main bridge audit
 
 Goal:
