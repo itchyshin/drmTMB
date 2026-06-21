@@ -224,7 +224,7 @@ drm_julia_capability_comparison <- function() {
     claim_status = c(
       "covered",
       "covered",
-      "partial",
+      "covered",
       "partial",
       "experimental",
       "experimental",
@@ -244,7 +244,7 @@ drm_julia_capability_comparison <- function() {
     claim_boundary = c(
       "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
       "Fixed-effect non-phylogenetic residual rho12 ~ x only (biv_gaussian); covered is point, logLik, coefficient, and Wald CI-endpoint parity (engine vs engine, not interval coverage). Phylogenetic rho12 (biv_rho12_phylo gate), cross-family rho12, random-effect rho12, and profile/bootstrap bridge intervals stay gated/planned; the aggregate R-Julia bridge gate row and the design-168 matrix bridge cell stay as-is.",
-      "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
+      "Gaussian observed-response masks (missing = miss_control(response = \"include\")). covered = point, logLik, coefficient, and Wald CI-endpoint parity (engine vs engine, not interval coverage) on masked Gaussian location-scale data: engine='julia' == engine='tmb' to an asserted |dlogLik| < 1e-6 (measured ~4.3e-10), max|dcoef| < 1e-5 (measured ~1.4e-6), and max|dWald-endpoint| <= 1e-4 (measured ~1.4e-6); tests/testthat/test-julia-tmb-parity.R response-mask block, callr-isolated. Both engines report the observed count (nobs = 112 of 120 here); DRM.jl drops the masked rows from the likelihood while keeping the full design. Missing predictors and non-Gaussian response masks remain gated; bivariate Gaussian response-mask parity is not banked in this cell (univariate location-scale only). The aggregate design-168 'Missing values' matrix/dashboard bridge cell stays planned at that granularity; this is the narrow per-cell univariate-Gaussian carve-out.",
       "Requires the full four-axis phylogenetic location-scale grammar; do not infer native TMB restricted-likelihood support for scale-side structured effects.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
       "Finite-and-sane bridge smoke evidence only; no native TMB parity or non-phylo binomial bridge promotion.",
@@ -257,7 +257,7 @@ drm_julia_capability_comparison <- function() {
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
       "rho12 ~ x bridge parity is banked: engine='julia' == engine='tmb' on all eight fixed-effect coefficients including rho12:(Intercept)/rho12:x and Wald CI endpoints to an asserted <= 1e-4 (measured ~1.3e-6); tests/testthat/test-julia-tmb-parity.R 'Route B lead novelty', callr-isolated. Keep parity tied to exact bridge payloads; do not extend to profile/bootstrap or other rho12 routes without their own per-cell parity.",
-      "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
+      "Response-mask parity is banked (test-julia-tmb-parity.R response-mask block). Do not widen without per-cell evidence: non-Gaussian observed-data masks and missing-predictor support each need their own engine-vs-engine parity audit before promotion.",
       "Bank fit-specific CI/status parity before release language.",
       "Keep non-phylo count bridge errors in the gate registry.",
       "Add comparator or parity evidence before promoting beyond experimental.",

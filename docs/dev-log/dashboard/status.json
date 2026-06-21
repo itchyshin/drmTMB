@@ -1258,7 +1258,7 @@
       "visual": "planned",
       "simulation": "planned",
       "release": "planned",
-      "next": "Use likelihood/FIML-style masks; complete-data all-true masks must match current complete-data log-likelihood exactly.",
+      "next": "Use likelihood/FIML-style masks; complete-data all-true masks must match current complete-data log-likelihood exactly. Narrow per-cell carve-out: the gaussian_response_mask Julia-bridge row is covered (engine-vs-engine parity on the univariate Gaussian response mask); this aggregate cell stays planned (predictors, non-Gaussian, bivariate-mask parity, EM/FIML open).",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {

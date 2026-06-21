@@ -178,6 +178,114 @@ test_that("engine='julia' == engine='tmb' Wald CI endpoints on Gaussian location
   expect_lt(max(delta), 1e-4)
 })
 
+# Route C under a RESPONSE MASK (the gaussian_response_mask capability cell). Same
+# Gaussian location-scale fixture as Route C (seed 42, n = 120), but 8 responses are
+# NA and BOTH engines fit with miss_control(response = "include"). DRM.jl masks the
+# NA rows in gaussian_core (observed-data likelihood, full design kept); native TMB
+# does the same Gaussian-only mask. This is the engine-vs-engine parity that the
+# registry's boundary names as the certification gate for promoting the cell to
+# 'covered'. Both engines drop the masked rows to the observed count (no per-engine
+# nobs divergence), so we assert observed-data logLik + coef + Wald-endpoint parity
+# AND nobs agreement. This is the single seed-fixed fixture that matches the Route
+# C/B house convention; Fisher's review separately swept 2-30 masked rows and found
+# logLik parity 1.2e-10..5.5e-10 and coefficient parity ~1e-6..~1e-5 (mildly looser
+# at heavier masking / fewer observed rows, as expected).
+drm_parity_fit_route_c_missing <- function() {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_parity_jl_path()
+  callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(42L)
+      n <- 120L
+      x <- stats::rnorm(n)
+      y <- 0.5 + 0.6 * x + stats::rnorm(n, 0, exp(-0.2 + 0.3 * x))
+      y[c(7L, 19L, 33L, 48L, 61L, 77L, 90L, 104L)] <- NA
+      dat <- data.frame(x = x, y = y)
+      form <- drmTMB::bf(y ~ x, sigma ~ x)
+      miss <- drmTMB::miss_control(response = "include")
+      ft <- drmTMB::drmTMB(
+        form, family = stats::gaussian(), data = dat,
+        engine = "tmb", missing = miss
+      )
+      fj <- drmTMB::drmTMB(
+        form, family = stats::gaussian(), data = dat,
+        engine = "julia", missing = miss
+      )
+      flat <- function(f) as.numeric(unlist(stats::coef(f), use.names = FALSE))
+      ci <- function(f) {
+        d <- stats::confint(f, method = "wald")
+        d[, c("parm", "lower", "upper", "conf.status")]
+      }
+      list(
+        ll_tmb = as.numeric(stats::logLik(ft)),
+        ll_jl = as.numeric(stats::logLik(fj)),
+        coef_tmb = flat(ft),
+        coef_jl = flat(fj),
+        ci_tmb = ci(ft),
+        ci_jl = ci(fj),
+        nobs_tmb = stats::nobs(ft),
+        nobs_jl = stats::nobs(fj),
+        conv_tmb = drmTMB::is_converged(ft),
+        conv_jl = drmTMB::is_converged(fj)
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path),
+    error = "error"
+  )
+}
+
+test_that("engine='julia' == engine='tmb' on Gaussian response-mask: logLik + coef + Wald parity (gaussian_response_mask)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(
+    dir.exists(drm_parity_jl_path()),
+    "DRM.jl engine path not available"
+  )
+
+  res <- tryCatch(
+    drm_parity_fit_route_c_missing(),
+    error = function(e) {
+      testthat::skip(paste(
+        "tmb-vs-julia response-mask parity round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(isTRUE(res$conv_tmb) && isTRUE(res$conv_jl))
+  expect_true(is.finite(res$ll_tmb) && is.finite(res$ll_jl))
+  m <- merge(res$ci_tmb, res$ci_jl, by = "parm", suffixes = c("_t", "_j"))
+  d_ll <- abs(res$ll_tmb - res$ll_jl)
+  d_coef <- max(abs(res$coef_tmb - res$coef_jl))
+  d_ci <- max(abs(c(m$lower_t - m$lower_j, m$upper_t - m$upper_j)))
+  cat(sprintf(
+    "[mask parity] |dll|=%.3e  max|dcoef|=%.3e  max|dCI|=%.3e  nobs=%d\n",
+    d_ll, d_coef, d_ci, res$nobs_jl
+  ))
+  # Both engines drop the masked rows to the observed count (no per-engine divergence):
+  expect_equal(res$nobs_tmb, 112L)
+  expect_equal(res$nobs_jl, 112L)
+  # Point + logLik parity (engine vs engine), as a number:
+  expect_lt(d_ll, 1e-6)
+  expect_equal(length(res$coef_tmb), length(res$coef_jl))
+  expect_lt(d_coef, 1e-5)
+  # Wald CI endpoint parity (covariance transport under the mask):
+  expect_equal(nrow(m), 4L)
+  expect_true(all(m$conf.status_t == "wald") && all(m$conf.status_j == "wald"))
+  expect_true(all(is.finite(c(m$lower_t, m$upper_t, m$lower_j, m$upper_j))))
+  expect_lt(d_ci, 1e-4)
+})
+
 drm_parity_fit_route_b <- function() {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_parity_jl_path()

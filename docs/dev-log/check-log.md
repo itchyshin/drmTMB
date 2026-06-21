@@ -59641,3 +59641,46 @@ Claim boundary: this reconciles a registry/artifact CONSISTENCY drift to match
 already-banked parity evidence; it does not create new parity claims (covered
 remains engine-vs-engine parity, NOT interval coverage). Verified locally by
 Claude/Ada.
+
+## 2026-06-21: promote gaussian_response_mask partial -> covered (bridge response-mask parity)
+
+The `gaussian_response_mask` capability cell (engine='julia' fitting Gaussian
+location-scale data with NA responses under `missing = miss_control(response =
+"include")`) was `partial` only because the engine-vs-engine parity test was never
+written: the mask was already implemented end-to-end (R bridge -> DRM.jl
+`gaussian_core` observed-data likelihood, full design kept), and the existing
+`test-julia-missing.R` checked the Julia engine in isolation (finite logLik +
+observed nobs) without comparing it to native TMB.
+
+Action: added a masked-data engine-vs-engine parity block to
+`tests/testthat/test-julia-tmb-parity.R` (`drm_parity_fit_route_c_missing` + its
+`test_that`), a clone of the Route C harness that injects NA responses and fits BOTH
+`engine='tmb'` and `engine='julia'` under `miss_control(response='include')` on one
+seed-fixed fixture (8/120 masked, the Route C/B convention). Promoted the R registry
+`drm_julia_capability_comparison()` row `claim_status` partial -> covered with an
+updated `claim_boundary`/`next_action`, regenerated BOTH TSVs, and added a
+per-cell-vs-aggregate reconciliation note to the design-168 "Missing values" row +
+the dashboard `status.json` (the aggregate Missing-values bridge cell stays
+`planned`; only the narrow univariate-Gaussian per-cell row is `covered`).
+
+Checks (measured live this session, callr-isolated):
+- 8/120 masked: |dlogLik| 4.25e-10, max|dcoef| 1.39e-6, max|dWald-endpoint| 1.39e-6,
+  nobs_tmb == nobs_jl == 112, both converged.
+- Fisher anchored the logLik: the masked TMB logLik is BIT-IDENTICAL to the physical
+  `na.omit` complete-case fit, proving it is the true observed-data likelihood (not
+  a coincidental two-engine cancellation); independent per-engine SEs agree to
+  ~2e-6 (covariance transport under the mask). Fisher's fraction sweep (2-30 masked
+  rows) holds logLik parity 1.2e-10..5.5e-10 and coefficient parity ~1e-6..~1e-5.
+- `test-julia-gate-vs-engine.R` 113/113 (artifact == registry, both TSV copies);
+  `tools/validate-mission-control.py` `mission_control_ok` (11 capability rows).
+- Full `test-julia-tmb-parity.R` in-suite: 0 fail (Route A is the pre-existing
+  deliberate skip).
+
+Claim boundary: covered = point + logLik + coefficient + Wald-endpoint parity
+(engine vs engine), NOT interval coverage, on the UNIVARIATE Gaussian response mask
+only. Missing predictors, non-Gaussian response masks, and bivariate-mask parity
+remain gated; the non-Gaussian rejection gate `drm_julia_missing_supported` is
+unchanged. Bridge lane only; no native-TMB-standalone or direct-DRM.jl claim.
+Verified by Rose (claim-boundary: NO-GO until the "bivariate masks remain gated"
+overclaim was corrected and the design-168/status.json contradiction reconciled,
+both now done -> GO) + Fisher (inference: GO). Claude/Ada.

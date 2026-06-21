@@ -9,6 +9,11 @@
 # The live fit runs in a fresh subprocess (callr) and SKIPS when JuliaCall /
 # DRM.jl are absent. The non-Gaussian rejection is a pure-R gate (it aborts
 # before any Julia call) and runs unconditionally.
+#
+# Engine-vs-engine parity for this mask (engine='tmb' == engine='julia' on the
+# observed-data logLik / coefficients / Wald endpoints) is banked separately in
+# test-julia-tmb-parity.R (the response-mask block); this file checks only that
+# the Julia engine fits the observed data and rejects non-Gaussian masks.
 
 drm_miss_jl_path <- function() {
   drm_test_drmjl_path()
