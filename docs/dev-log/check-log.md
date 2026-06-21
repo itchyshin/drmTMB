@@ -59617,3 +59617,27 @@ NOT a Julia-bridge change (the R bridge is unchanged; the bridge's Gaussian-phyl
 bootstrap stays cold until its fitter accepts a packed start). The warm path is
 direct-DRM.jl-lane only and confined to the fixed-effect Gaussian location-scale
 cell; expensive refit cells (phylo / RE) and the LocScale q2 path remain deferred.
+
+## 2026-06-20: reconcile Julia capability registry drift (R registry == both TSVs)
+
+The dashboard `julia-capabilities.tsv` had drifted 2 rows ahead of the in-code R
+registry `drm_julia_capability_comparison()` and the shipped `inst/extdata` copy:
+the dashboard carried `nonphylo_biv_rho12_predictor` (covered) and
+`phylo_coef_profile_bridge` (partial) and promoted `base_gaussian_location_scale`
+to `covered`, none of which were in the R registry. A parallel read-only audit
+confirmed the underlying evidence is banked (Route B rho12 ~ x and Route C base
+Wald-endpoint parity in `tests/testthat/test-julia-tmb-parity.R`; the
+`phylo_coef_profile_bridge` Stage A/B work from this session), so the owner chose
+to promote the registry rather than retract the dashboard.
+
+Action: added the two rows + the `base_gaussian` promotion to the R registry
+function, then regenerated BOTH TSVs from it via
+`tools/write-julia-capability-comparison.R` (single source of truth).
+
+Checks: `test-julia-gate-vs-engine.R` 113/113 (the `artifact == registry`
+equality for both TSV copies); `tools/validate-mission-control.py`
+`mission_control_ok` (11 Julia capability rows, 22 matrix rows, unchanged counts).
+Claim boundary: this reconciles a registry/artifact CONSISTENCY drift to match
+already-banked parity evidence; it does not create new parity claims (covered
+remains engine-vs-engine parity, NOT interval coverage). Verified locally by
+Claude/Ada.

@@ -158,6 +158,7 @@ drm_julia_capability_comparison <- function() {
   data.frame(
     capability_id = c(
       "base_gaussian_location_scale",
+      "nonphylo_biv_rho12_predictor",
       "gaussian_response_mask",
       "biv_q4_phylo_reml",
       "phylo_count_large_p",
@@ -165,10 +166,12 @@ drm_julia_capability_comparison <- function() {
       "general_covariance_structured",
       "cross_family_latent",
       "engine_control_surface",
-      "plain_binomial_nonphylo"
+      "plain_binomial_nonphylo",
+      "phylo_coef_profile_bridge"
     ),
     route = c(
       "base",
+      "bivariate",
       "base",
       "bivariate_phylo",
       "phylo",
@@ -176,10 +179,12 @@ drm_julia_capability_comparison <- function() {
       "structured",
       "cross_family",
       "base",
-      "base"
+      "base",
+      "phylo"
     ),
     syntax = c(
       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
+      "bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x), family = biv_gaussian(), engine = \"julia\"",
       "missing = miss_control(response = \"include\") for Gaussian cells",
       "biv_gaussian() q4 phylo on mu1, mu2, sigma1, sigma2 with REML = TRUE",
       "poisson()/nbinom2() with phylo(1 | group, tree = tree)",
@@ -187,9 +192,11 @@ drm_julia_capability_comparison <- function() {
       "relmat(1 | group, K = K) for supported one-response families",
       "c(gaussian(), poisson()) cross-family latent-rho route",
       "engine_control = ... or non-default Julia optimizer controls",
-      "stats::binomial() without phylo() through engine = \"julia\""
+      "stats::binomial() without phylo() through engine = \"julia\"",
+      "confint(fit, parm = \"mu:x\", method = \"profile\" | \"bootstrap\") on bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1), family = gaussian(), engine = \"julia\""
     ),
     r_bridge_status = c(
+      "supported",
       "supported",
       "supported",
       "experimental",
@@ -198,10 +205,12 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "unsupported",
-      "intentional_error"
+      "intentional_error",
+      "supported"
     ),
     drmjl_status = c(
       "default DRM.jl Gaussian location-scale path",
+      "default DRM.jl bivariate Gaussian residual-correlation path",
       "Gaussian observed-response mask path",
       "q4 PLSM REML path when installed DRM.jl supports it",
       "large-p sparse phylo path",
@@ -209,10 +218,12 @@ drm_julia_capability_comparison <- function() {
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
       "no R surface by design",
-      "direct Binomial evidence is not an R non-phylo bridge claim"
+      "direct Binomial evidence is not an R non-phylo bridge claim",
+      "in-process profile_result coefficient targets via drm_bridge_inference profile_param/profile_coef passthrough"
     ),
     claim_status = c(
-      "partial",
+      "covered",
+      "covered",
       "partial",
       "partial",
       "experimental",
@@ -220,16 +231,19 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "unsupported",
-      "planned"
+      "planned",
+      "partial"
     ),
     evidence_url = c(
-      rep("https://github.com/itchyshin/drmTMB/issues/544", 6),
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 7),
       "https://github.com/itchyshin/gllvmTMB/issues/488",
       "https://github.com/itchyshin/drmTMB/issues/544",
-      "https://github.com/itchyshin/drmTMB/issues/569"
+      "https://github.com/itchyshin/drmTMB/issues/569",
+      "https://github.com/itchyshin/drmTMB/issues/544"
     ),
     claim_boundary = c(
       "Uses the default DRM.jl fitting path; no Julia-side engine_control surface is exposed from R.",
+      "Fixed-effect non-phylogenetic residual rho12 ~ x only (biv_gaussian); covered is point, logLik, coefficient, and Wald CI-endpoint parity (engine vs engine, not interval coverage). Phylogenetic rho12 (biv_rho12_phylo gate), cross-family rho12, random-effect rho12, and profile/bootstrap bridge intervals stay gated/planned; the aggregate R-Julia bridge gate row and the design-168 matrix bridge cell stay as-is.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
       "Requires the full four-axis phylogenetic location-scale grammar; do not infer native TMB restricted-likelihood support for scale-side structured effects.",
       "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
@@ -237,10 +251,12 @@ drm_julia_capability_comparison <- function() {
       "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
       "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
-      "Native TMB #569 owns ordinary binomial support; Julia bridge binomial remains separate evidence."
+      "Native TMB #569 owns ordinary binomial support; Julia bridge binomial remains separate evidence.",
+      "Stage A/B (design 179): a SINGLE fixed-effect MU coefficient of a Gaussian phylo model via the single-row bridge path. partial = engine agreement, NOT interval coverage. PROFILE: engine=julia profile endpoints match native tmbprofile to the asserted test tolerance 1e-3 (measured ~2e-5, one seed-fixed n_tip=40 fixture). BOOTSTRAP: cold parametric bootstrap row for the coefficient -- feasibility + sanity (finite CI brackets the estimate), stochastic, NOT tight parity. SIGMA coefficient profiles are NOT offered (DRM.jl parm=:sigma diverges at the log-sigma boundary). Multi-coefficient batching and sigma/scale targets are NOT reachable. Warm-start bootstrap is NOT reachable THROUGH THE BRIDGE: a direct-DRM.jl-lane warm-start landed for the fixed-effect Gaussian location-scale cell (design 179 Stage B, opt-in warmstart=true), but the bridge bootstraps a Gaussian PHYLO fit whose fitter does not yet accept a packed start, so the bridge path stays cold. native R/TMB / direct DRM.jl / Julia-via-R lanes stay separate."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
+      "rho12 ~ x bridge parity is banked: engine='julia' == engine='tmb' on all eight fixed-effect coefficients including rho12:(Intercept)/rho12:x and Wald CI endpoints to an asserted <= 1e-4 (measured ~1.3e-6); tests/testthat/test-julia-tmb-parity.R 'Route B lead novelty', callr-isolated. Keep parity tied to exact bridge payloads; do not extend to profile/bootstrap or other rho12 routes without their own per-cell parity.",
       "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
       "Bank fit-specific CI/status parity before release language.",
       "Keep non-phylo count bridge errors in the gate registry.",
@@ -248,11 +264,13 @@ drm_julia_capability_comparison <- function() {
       "Compare current DRM.jl accepted families with the R gate before widening.",
       "Resolve the mixed-family API mismatch before any public promotion.",
       "Design engine_control explicitly before relaxing the gate.",
-      "Wait for #569 native parity plus a separate bridge parity PR."
+      "Wait for #569 native parity plus a separate bridge parity PR.",
+      "Land multi-coefficient batching and boundary-robust sigma coefficient profiles; extend the direct-lane warm-start to the EXPENSIVE refit cells (Gaussian phylo / RE) so the bridge can pass warmstart through; then multi-seed/model evidence before any covered promotion."
     ),
     issue = c(
-      rep("drmTMB#544", 8),
-      "drmTMB#569"
+      rep("drmTMB#544", 9),
+      "drmTMB#569",
+      "drmTMB#544"
     ),
     stringsAsFactors = FALSE
   )
