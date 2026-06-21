@@ -79,3 +79,8 @@ its instructions, update both directories so the two runtimes stay in sync.
 Selective reuse of A-inverse or SPDE speed code may be appropriate later, but
 copying code requires provenance notes in `inst/COPYRIGHTS` and tests around
 the ported behaviour.
+
+
+## Git worktrees (house rule)
+
+Never create git worktrees outside this repository folder. Create all worktrees inside the git-ignored `./.worktrees/` directory, e.g. `git worktree add .worktrees/<name> <branch>`. Do NOT place worktrees as siblings of the repo, in /tmp, or in your home directory. When finished, remove them with `git worktree remove <path>` and run `git worktree prune`.

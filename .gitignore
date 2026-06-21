@@ -74,3 +74,6 @@ rsconnect/
 /dis_reg_models
 /doc/
 /Meta/
+
+# Keep git worktrees inside the repo (house rule)
+.worktrees/

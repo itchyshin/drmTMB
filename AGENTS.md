@@ -185,3 +185,8 @@ Keep `_pkgdown.yml` synchronized with exported functions and vignettes.
 
 Hermes is optional external lab orchestration. It is not a package dependency
 and should not be installed inside this repository or required for development.
+
+
+## Git worktrees (house rule)
+
+Never create git worktrees outside this repository folder. Create all worktrees inside the git-ignored `./.worktrees/` directory, e.g. `git worktree add .worktrees/<name> <branch>`. Do NOT place worktrees as siblings of the repo, in /tmp, or in your home directory. When finished, remove them with `git worktree remove <path>` and run `git worktree prune`.
