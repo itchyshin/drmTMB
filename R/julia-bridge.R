@@ -251,7 +251,7 @@ drm_julia_capability_comparison <- function() {
       "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
       "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
-      "Native TMB #569 owns ordinary binomial support; Julia bridge binomial remains separate evidence.",
+      "Native TMB owns ordinary binomial support (#569, landed via PR #585 / 5810ed7d, 2026-06-16); the Julia bridge intentionally routes a non-phylo binomial back to native TMB (no separate engine='julia' non-phylo route). There is no Julia speed edge for non-phylo GLMs (cf. the base_nonphylo_count gate), so a bridge would add parity-completeness only, not capability; it stays intentionally gated by design.",
       "Stage A/B (design 179): a SINGLE fixed-effect MU coefficient of a Gaussian phylo model via the single-row bridge path. partial = engine agreement, NOT interval coverage. PROFILE: engine=julia profile endpoints match native tmbprofile to the asserted test tolerance 1e-3 (measured ~2e-5, one seed-fixed n_tip=40 fixture). BOOTSTRAP: cold parametric bootstrap row for the coefficient -- feasibility + sanity (finite CI brackets the estimate), stochastic, NOT tight parity. SIGMA coefficient profiles are NOT offered (DRM.jl parm=:sigma diverges at the log-sigma boundary). Multi-coefficient batching and sigma/scale targets are NOT reachable. Warm-start bootstrap is NOT reachable THROUGH THE BRIDGE: a direct-DRM.jl-lane warm-start landed for the fixed-effect Gaussian location-scale cell (design 179 Stage B, opt-in warmstart=true), but the bridge bootstraps a Gaussian PHYLO fit whose fitter does not yet accept a packed start, so the bridge path stays cold. native R/TMB / direct DRM.jl / Julia-via-R lanes stay separate."
     ),
     next_action = c(
@@ -264,7 +264,7 @@ drm_julia_capability_comparison <- function() {
       "Compare current DRM.jl accepted families with the R gate before widening.",
       "Resolve the mixed-family API mismatch before any public promotion.",
       "Design engine_control explicitly before relaxing the gate.",
-      "Wait for #569 native parity plus a separate bridge parity PR.",
+      "#569 native binomial has landed (PR #585); the non-phylo binomial bridge stays deliberately deprioritized (parity-completeness only). Promote only on an explicit owner request, via the engine-vs-engine parity recipe used for nonphylo_biv_rho12_predictor.",
       "Land multi-coefficient batching and boundary-robust sigma coefficient profiles; extend the direct-lane warm-start to the EXPENSIVE refit cells (Gaussian phylo / RE) so the bridge can pass warmstart through; then multi-seed/model evidence before any covered promotion."
     ),
     issue = c(

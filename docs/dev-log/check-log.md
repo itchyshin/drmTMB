@@ -59684,3 +59684,23 @@ unchanged. Bridge lane only; no native-TMB-standalone or direct-DRM.jl claim.
 Verified by Rose (claim-boundary: NO-GO until the "bivariate masks remain gated"
 overclaim was corrected and the design-168/status.json contradiction reconciled,
 both now done -> GO) + Fisher (inference: GO). Claude/Ada.
+
+## 2026-06-21: refresh stale plain_binomial_nonphylo registry note (#569 landed; keep gated)
+
+Owner decision: keep the non-phylo binomial Julia bridge intentionally gated. The
+registry cell's `next_action` still said "Wait for #569 native parity," but #569
+(Bernoulli/binomial response family) CLOSED 2026-06-16 via merged PR #585
+(`5810ed7d`, both verified via gh). A non-phylo binomial bridge would duplicate
+native TMB at ~3 min/call with no Julia speed edge (cf. the `base_nonphylo_count`
+gate), so the owner chose to keep it gated rather than promote for
+parity-completeness.
+
+Action: refreshed `claim_boundary` + `next_action` for `plain_binomial_nonphylo` in
+`drm_julia_capability_comparison()` to record that #569 landed and the bridge stays
+intentionally gated by design; regenerated both capability TSVs. NO promotion:
+`claim_status` stays `planned`, `r_bridge_status` stays `intentional_error`.
+
+Checks: `test-julia-gate-vs-engine.R` 113/113 (artifact == registry);
+`tools/validate-mission-control.py` `mission_control_ok` (11 capability rows,
+unchanged counts). This only de-stales a factual note on a cell that stays gated;
+no new parity claim. #569 CLOSED + PR #585 MERGED verified via gh. Claude/Ada.
