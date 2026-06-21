@@ -156,6 +156,44 @@ scoping):
 - **Verification env confirmed:** Julia 1.10.0 at `/Users/z3437171/.juliaup/bin`,
   DRM.jl on `shannon/overnight-audit-verify-20260619`, bridge harness helpers present.
 
+### Stage A — deeper R-side findings (2026-06-20; larger than "small/medium")
+
+Going to implement Stage A and reading the actual R bridge code surfaced four
+entanglements that make it a fresh-focused-session effort, not an in-session slice
+(recorded so the next session executes without re-discovering them):
+
+1. **Bridge inference is PHYLO-GATED.** `drm_julia_call_inference`
+   (`R/julia-bridge.R:733`) aborts unless `object$bridge_payload$tree` exists. So the
+   whole `engine="julia"` profile/bootstrap path only runs for phylo models -- the
+   Stage-A parity test must use a Gaussian PHYLO model (fixed-effect coefficients of a
+   phylo fit), not a plain location-scale model.
+2. **Target enumeration is SD-only.** `drm_julia_profile_targets`
+   (`R/julia-bridge.R:1380-1426`, biv `:1432+`) enumerates only the phylo SD target
+   (univariate) or the four axis SDs (bivariate). Coefficients are never offered, so
+   `confint(method="profile")` never requests them. Stage A must add fixed-effect
+   coefficient target rows (target_class "fixed-effect", transformation
+   "linear_predictor") that join to DRM.jl's returned `(param, coef)` rows.
+3. **The single-row parser hardcodes the exp (SD) transform.**
+   `drm_julia_inference_confint_row` (`R/julia-bridge.R:1921-1926`) always does
+   `interval <- exp(c(lower, upper)) * scale`. Coefficients need the identity
+   (linear_predictor) transform; this must become conditional on
+   `target$transformation` (identity / exp / tanh).
+4. **The multi-row join is SD-axis-specific.** `drm_julia_inference_confint_multi`
+   is built around the bivariate `sd_mu1`/`sd_mu2`/... axes, not general `(param,coef)`
+   coefficient pairs; a general multi-coefficient response needs a new join keyed on
+   `(param, coef)`.
+
+Plus the Julia side: `drm_bridge_inference` profile branch (`DRM.jl src/bridge.jl:74-95`)
+hardcodes `parm = [:resd_sigma, :resd, :resd_mu]` + `_bridge_pick_sd_row` (single SD
+row); it needs a `parm`/target passthrough + a multi-row `_bridge_inference_flatten`.
+
+**Revised sizing:** medium (4 aligned R/Julia regions across two repos), verified only
+through the ~3-min callr phylo-model harness. **Smallest first increment:** a SINGLE
+fixed-effect coefficient of a Gaussian phylo model through the existing single-row
+path (needs findings 1-3, not 4), parity vs native `confint.drmTMB(method="profile")`
+(now fast via the endpoint-coefficient solver) to ~1e-4. Do it fresh, TDD-first
+against the bridge harness, revert both repos on parity failure.
+
 ## Boundary
 
 Design/scoping note only; no grammar/likelihood/bridge code changed here. Each stage
