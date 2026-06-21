@@ -292,3 +292,87 @@ test_that("confint() on a Poisson phylo Julia fit returns finite Wald CIs", {
   # The summary coefficient table carries finite standard errors.
   expect_true(all(is.finite(res$coef_table$std.error)))
 })
+
+# --- Stage A (drmTMB#179): coefficient profile parity via the bridge ----------
+# Fits a Gaussian phylo model with engine = "julia" AND native engine = "tmb" in
+# one clean subprocess, then compares profile-likelihood CIs for the fixed-effect
+# mu coefficients. The bridge now profiles requested coefficients (not just the
+# SD block); DRM.jl computes these in-process. Parity is engine agreement, not a
+# coverage claim.
+
+drm_julia_coef_profile_parity <- function(n_tip = 40L) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_julia_inference_engine_path()
+  callr::r(
+    function(pkg, jl_path, n_tip) {
+      julia_home <- Sys.getenv("DRM_JL_JULIA_HOME", Sys.getenv("JULIA_HOME", ""))
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      set.seed(42)
+      tree <- ape::rcoal(n_tip)
+      sp <- tree$tip.label
+      x <- stats::rnorm(n_tip)
+      bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.6)
+      y <- 0.5 + 0.4 * x + bm[sp] + stats::rnorm(n_tip, 0, 0.5)
+      dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+      form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+
+      ft <- drmTMB::drmTMB(form, family = stats::gaussian(), data = dat)
+      fj <- drmTMB::drmTMB(
+        form,
+        family = stats::gaussian(),
+        data = dat,
+        engine = "julia"
+      )
+      rows <- lapply(c("mu:x", "mu:(Intercept)"), function(p) {
+        tci <- suppressWarnings(stats::confint(ft, parm = p, method = "profile"))
+        jci <- suppressWarnings(stats::confint(fj, parm = p, method = "profile"))
+        data.frame(
+          parm = p,
+          t_lower = tci$lower, t_upper = tci$upper,
+          j_lower = jci$lower, j_upper = jci$upper,
+          j_engine = as.character(jci$profile.engine),
+          stringsAsFactors = FALSE
+        )
+      })
+      do.call(rbind, rows)
+    },
+    args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip)),
+    error = "error"
+  )
+}
+
+test_that("engine = 'julia' coefficient profile CIs match native TMB (Stage A)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_julia_inference_engine_path()),
+    "DRM.jl phylo engine not available"
+  )
+
+  res <- tryCatch(
+    drm_julia_coef_profile_parity(n_tip = 40L),
+    error = function(e) {
+      testthat::skip(paste(
+        "Stage A coefficient profile parity round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(is.data.frame(res))
+  expect_true(all(res$j_engine == "julia_profile_result"))
+  # Engine agreement: the bridge profile endpoints match native TMB profile
+  # endpoints. Asserted tolerance 1e-3 (measured ~2e-5 on this fixture); this is
+  # parity, not interval coverage.
+  expect_lt(
+    max(abs(c(res$t_lower - res$j_lower, res$t_upper - res$j_upper))),
+    1e-3
+  )
+})

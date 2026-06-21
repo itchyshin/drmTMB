@@ -117,6 +117,23 @@ Relative to other threads, Stage A is a clean near-term slice; Stage B is the ma
 Julia differentiator (bootstrap is what native TMB cannot make cheap) but carries the
 real implementation risk, so it wants its own focused effort.
 
+## Stage A — LANDED (2026-06-20, first increment)
+
+The smallest Stage-A increment is implemented and verified: `confint(engine="julia",
+method="profile")` now returns **fixed-effect coefficient** profile CIs (not just the
+SD block). Cross-repo: DRM.jl `bridge.jl` (`1ef441e`, the `opts[:profile_param]`/
+`[:profile_coef]` passthrough + matching row) + drmTMB `R/julia-bridge.R` (coefficient
+target enumeration, gate relaxation, identity transform, options merge, no-parm stays
+SD-only, bootstrap-of-coef rejected). Verified through the callr Julia harness on a
+Gaussian phylo fixture: engine="julia" coefficient profile CIs match native TMB
+profile endpoints to **max |diff| ~2.3e-5** (mu:x 1.0e-6, mu:(Intercept) 2.3e-5);
+the two engines fit identically (coefs match to 5 dp). Committed live test:
+`tests/testthat/test-julia-inference.R` ("coefficient profile CIs match native TMB
+(Stage A)", asserted tolerance 1e-3). Remaining Stage-A work: multi-coefficient
+batching (the SD-axis-specific multi-row join), sigma/scale/correlation coefficient
+targets, and bootstrap-of-coefficients (Stage B). Engine agreement (parity), NOT
+interval coverage.
+
 ## Stage A — exact change site (code-verified 2026-06-20)
 
 Confirmed against the code so a fresh session can execute Stage A immediately (the

@@ -721,7 +721,9 @@ drm_julia_call_inference <- function(
   level,
   R,
   seed,
-  threads
+  threads,
+  profile_param = NULL,
+  profile_coef = NULL
 ) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -737,6 +739,15 @@ drm_julia_call_inference <- function(
     ))
   }
 
+  # Stage A (drmTMB#179): merge the requested coefficient target into the bridge
+  # options so DRM.jl profiles that block/coef and returns its row.
+  opts <- payload$options
+  if (!is.null(profile_param) && !is.null(profile_coef)) {
+    opts <- c(
+      if (is.null(opts)) list() else as.list(opts),
+      list(profile_param = profile_param, profile_coef = profile_coef)
+    )
+  }
   drm_julia_setup()
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_inference",
@@ -744,7 +755,7 @@ drm_julia_call_inference <- function(
     object$model$model_type,
     as.list(payload$data),
     payload$tree,
-    if (length(payload$options) == 0L) NULL else payload$options,
+    if (length(opts) == 0L) NULL else opts,
     method,
     level,
     as.integer(R),
@@ -1421,6 +1432,36 @@ drm_julia_profile_targets <- function(object) {
       "julia_bridge_payload_required"
     }
   )
+  # Stage A (drmTMB#179): also offer fixed-effect mu coefficient targets so
+  # confint(parm = "mu:x", method = "profile") routes a coefficient profile through
+  # the bridge. DRM.jl's confint(parm = :mu, method = :profile) already computes
+  # these in-process; the bridge widening (opts$profile_param / profile_coef)
+  # returns the requested row. Identity (linear_predictor) working scale.
+  co <- tryCatch(coef(object, "mu"), error = function(e) NULL)
+  if (!is.null(co) && length(co) > 0L) {
+    coef_rows <- lapply(names(co), function(cn) {
+      new_profile_target_row(
+        parm = paste0("fixef:mu:", cn),
+        target_class = "fixed-effect",
+        dpar = "mu",
+        term = cn,
+        tmb_parameter = "mu",
+        index = 1L,
+        estimate = unname(co[[cn]]),
+        link_estimate = unname(co[[cn]]),
+        scale = "link",
+        transformation = "linear_predictor",
+        target_type = "direct",
+        profile_ready = profile_ready,
+        profile_note = if (profile_ready) {
+          "ready"
+        } else {
+          "julia_bridge_payload_required"
+        }
+      )
+    })
+    out <- rbind(out, do.call(rbind, coef_rows))
+  }
   row.names(out) <- NULL
   validate_profile_targets(out)
 }
@@ -1719,14 +1760,41 @@ confint.drmTMB_julia <- function(
     parm,
     fixed_only = FALSE
   )
+  # Stage A (drmTMB#179): the no-parm default stays the legacy structured-SD slice;
+  # fixed-effect coefficient targets are opt-in via an explicit `parm`.
+  if (is.null(parm)) {
+    sd_rows <- targets$target_class == "random-effect-sd"
+    if (any(sd_rows)) {
+      targets <- targets[sd_rows, , drop = FALSE]
+    }
+  }
   drm_julia_validate_inference_targets(targets)
+  # If the selected target is a fixed-effect coefficient, tell the bridge which
+  # block/coef to profile (it otherwise returns the SD row). Bootstrap of
+  # coefficients is not yet wired through the bridge.
+  prof_param <- NULL
+  prof_coef <- NULL
+  is_coef_target <- nrow(targets) >= 1L &&
+    identical(as.character(targets$target_class[[1L]]), "fixed-effect")
+  if (is_coef_target && identical(method, "bootstrap")) {
+    cli::cli_abort(c(
+      "Julia-engine bootstrap intervals are not available for fixed-effect coefficients yet.",
+      i = "Use {.code method = \"profile\"} for coefficient intervals, or {.code method = \"wald\"}."
+    ))
+  }
+  if (identical(method, "profile") && is_coef_target) {
+    prof_param <- as.character(targets$tmb_parameter[[1L]])
+    prof_coef <- as.character(targets$term[[1L]])
+  }
   result <- drm_julia_call_inference(
     object = object,
     method = method,
     level = level,
     R = R,
     seed = seed,
-    threads = threads
+    threads = threads,
+    profile_param = prof_param,
+    profile_coef = prof_coef
   )
   # Multi-row (bivariate) path: DRM.jl returns result$multi == TRUE with
   # equal-length vectors for param/estimate/lower/upper/etc. Map each Julia
@@ -1895,6 +1963,21 @@ drm_julia_validate_inference_targets <- function(targets) {
     return(invisible(NULL))
   }
 
+  # Stage A (drmTMB#179): a single fixed-effect coefficient profile target is also
+  # admitted (the bridge now profiles the requested mu coefficient).
+  if (
+    nrow(targets) == 1L &&
+      identical(targets$target_class[[1L]], "fixed-effect")
+  ) {
+    if (!isTRUE(targets$profile_ready[[1L]])) {
+      cli::cli_abort(c(
+        "Julia-engine target {.val {targets$parm[[1L]]}} is not ready for profile intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
   # Univariate case: exactly 1 row, dpar == "mu", tmb_parameter == "resd".
   if (
     nrow(targets) != 1L ||
@@ -1918,12 +2001,18 @@ drm_julia_validate_inference_targets <- function(targets) {
 
 drm_julia_inference_confint_row <- function(target, result, level, method) {
   result <- as.list(result)
-  scale <- target$estimate[[1L]] / exp(target$link_estimate[[1L]])
-  interval <- exp(c(
-    as.numeric(result$lower),
-    as.numeric(result$upper)
-  )) *
-    scale
+  if (identical(target$transformation[[1L]], "linear_predictor")) {
+    # Stage A: fixed-effect coefficient profile -- DRM.jl returns the endpoints on
+    # the linear-predictor (link) scale already, so no exp back-transform.
+    interval <- c(as.numeric(result$lower), as.numeric(result$upper))
+  } else {
+    scale <- target$estimate[[1L]] / exp(target$link_estimate[[1L]])
+    interval <- exp(c(
+      as.numeric(result$lower),
+      as.numeric(result$upper)
+    )) *
+      scale
+  }
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation[[1L]]

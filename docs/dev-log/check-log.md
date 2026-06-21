@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Julia Stage A LANDED -- bridge profiles coefficient targets (Ada; owner-directed, cross-repo)
+
+Goal:
+
+- Owner ("push"): execute the smallest design-179 Stage-A increment -- expose
+  fixed-effect coefficient profile CIs through the R-Julia bridge, parity vs native.
+
+Cross-repo change:
+
+- DRM.jl `src/bridge.jl` (`1ef441e`): drm_bridge_inference profile branch reads
+  opts[:profile_param]/[:profile_coef]; profiles that block + returns the matching
+  row. Backward-compatible (absent -> legacy single SD row).
+- drmTMB `R/julia-bridge.R`: drm_julia_profile_targets now enumerates mu coefficient
+  targets (linear_predictor); drm_julia_validate_inference_targets admits a single
+  fixed-effect coef target; drm_julia_inference_confint_row uses the identity
+  transform for linear_predictor; drm_julia_call_inference merges profile_param/coef
+  into the bridge options; confint.drmTMB_julia keeps no-parm = legacy SD-only and
+  rejects bootstrap-of-coefficients.
+
+Verification (callr Julia harness, Gaussian phylo fixture, JULIA_HOME + DRM_JL_PHYLO_PATH):
+
+- Coefficient profile parity: engine="julia" vs native TMB profile endpoints --
+  mu:x max|diff| 1.0e-6, mu:(Intercept) 2.3e-5; the two engines fit identically
+  (coefs match to 5 dp). SD profile path + no-parm default unchanged; bootstrap-of-
+  coef rejected. Live test `test-julia-inference.R` ("coefficient profile CIs match
+  native TMB (Stage A)") PASS (asserted tol 1e-3, measured ~2e-5).
+- Regression: test-julia-inference.R + test-julia-bridge.R + test-julia-biv-confint.R
+  pass (165 assertions, 0 failed after updating the synthetic profile-targets contract
+  test to the new SD+coefficients enumeration); live file run 0 failures incl the
+  existing Poisson round-trip.
+
+Boundary:
+
+- Parity = engine agreement, NOT interval coverage. Asserted tolerance is the
+  guarantee. First Stage-A increment (single coefficient via the single-row path);
+  multi-coef batching, sigma/scale targets, and bootstrap-of-coef remain. No matrix
+  cell promoted yet (Fisher-gated separately). Pushes live (both repos).
+
 ## 2026-06-20: Mint per-sub-type Structural rows (Ada; owner-approved structural change)
 
 Goal:

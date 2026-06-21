@@ -290,14 +290,21 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   expect_equal(fit$uncertainty$se, FALSE)
 
   targets <- profile_targets(fit)
-  expect_equal(targets$parm, "sd:mu:phylo(1 | species)")
-  expect_equal(targets$tmb_parameter, "resd")
-  expect_equal(targets$estimate, 1.7 * sqrt(2), tolerance = 1e-12)
-  expect_equal(targets$link_estimate, log(1.7), tolerance = 1e-12)
-  expect_equal(targets$profile_ready, TRUE)
+  sd_target <- targets[targets$parm == "sd:mu:phylo(1 | species)", , drop = FALSE]
+  expect_equal(nrow(sd_target), 1L)
+  expect_equal(sd_target$tmb_parameter, "resd")
+  expect_equal(sd_target$estimate, 1.7 * sqrt(2), tolerance = 1e-12)
+  expect_equal(sd_target$link_estimate, log(1.7), tolerance = 1e-12)
+  expect_equal(sd_target$profile_ready, TRUE)
+  # Stage A (drmTMB#179): profile_targets now ALSO offers the fixed-effect mu
+  # coefficient profile targets (linear_predictor working scale).
+  expect_true(all(c("fixef:mu:(Intercept)", "fixef:mu:x") %in% targets$parm))
+  coef_targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
+  expect_equal(nrow(coef_targets), 2L)
+  expect_true(all(coef_targets$transformation == "linear_predictor"))
 
   ci <- drmTMB:::drm_julia_inference_confint_row(
-    target = targets,
+    target = sd_target,
     result = list(
       lower = log(1.1),
       upper = log(2.1),
@@ -323,7 +330,9 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
       level,
       R,
       seed,
-      threads
+      threads,
+      profile_param = NULL,
+      profile_coef = NULL
     ) {
       expect_s3_class(object, "drmTMB_julia")
       expect_equal(method, "profile")
