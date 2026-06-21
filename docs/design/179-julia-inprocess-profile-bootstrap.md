@@ -131,10 +131,35 @@ profile endpoints to the **asserted test tolerance 1e-3** (measured max |diff|
 5 dp). Profile endpoints are root-found on BOTH sides, so the asserted bound -- not
 the much-tighter single-fixture measured value -- is the guarantee. Committed live
 test: `tests/testthat/test-julia-inference.R` ("coefficient profile CIs match native
-TMB (Stage A)"). Remaining Stage-A work: multi-coefficient
-batching (the SD-axis-specific multi-row join), sigma/scale/correlation coefficient
-targets, and bootstrap-of-coefficients (Stage B). Engine agreement (parity), NOT
-interval coverage.
+TMB (Stage A)"). Engine agreement (parity), NOT interval coverage.
+
+### Stage A finish + Stage B bootstrap-of-coefficients (2026-06-20)
+
+Owner "finish A and B". Net result: **mu fixed-effect coefficients now have Wald +
+profile + bootstrap through the bridge.**
+
+- **mu coefficient profiles** -- LANDED (above), parity to 1e-3.
+- **mu coefficient bootstrap** -- LANDED (Stage B landable slice). The bridge bootstrap
+  branch (`DRM.jl bridge.jl`) now selects the requested coefficient's bootstrap row
+  (cold parametric bootstrap, reusing existing machinery + the Stage A
+  `profile_param`/`profile_coef` plumbing); the R side routes a single mu coefficient
+  through it. Verified live: `confint(engine="julia", parm="mu:x", method="bootstrap",
+  R=99)` returns a finite CI bracketing the slope (~[0.31,0.55], near the profile
+  ~[0.30,0.57]); feasibility + sanity, NOT tight parity (parametric bootstrap is
+  stochastic). Committed live test ("bootstrap CI for a mu coefficient via the bridge
+  (Stage B)").
+- **sigma coefficients -- OUT of scope (not bridge-ready).** DRM.jl's `parm = :sigma`
+  profile runs off toward the log-sigma -> -Inf boundary and disagrees with the native
+  endpoint by ~10 on a Gaussian phylo fixture, so sigma coefficient targets are NOT
+  offered. Boundary-robust sigma profiling is a DRM.jl-side fix.
+- **multi-coefficient batching -- DEFERRED** (efficiency only; the shared SD/coef
+  multi-row join is the flagged collision risk). Single-coefficient calls work today.
+- **warm-start bootstrap (Stage B optimisation) -- DEFERRED to a fresh session.** Per
+  the scoping, warm-start is only tractable for the non-bridge LocScale q2 path
+  (`_fit_locscale` βμ0/βψ0/λ0 kwargs); the bridge's bootstrap path (Gaussian phylo,
+  q4) needs new packed-start fitter entrypoints / E-step-adjacent surgery -- not
+  landable safely. The current bridge bootstrap is cold; `algorithm=:warm` plumbing +
+  the LocScale warm path + a warm-vs-cold parity gate are the focused follow-on.
 
 ## Stage A — exact change site (code-verified 2026-06-20)
 

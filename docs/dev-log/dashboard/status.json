@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 20:30 MDT",
+  "updated": "2026-06-20 22:00 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1345,6 +1345,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Julia Stage A finish + Stage B (owner 'finish A and B', ultracode). mu fixed-effect COEFFICIENTS now have Wald + profile + BOOTSTRAP through the R-Julia bridge. Bootstrap-of-coef landed (cold parametric; DRM.jl bridge.jl bootstrap branch selects the requested coef row, R routes a single mu coef): mu:x bootstrap [0.315,0.548] (R=99), finite + brackets the slope, near the profile ref -- feasibility, not tight parity (stochastic). Live test-julia-inference.R PASS 53/0 (profile parity + bootstrap + Poisson, no regression). SIGMA coefficient profiles withdrawn: DRM.jl parm=:sigma diverges at the log-sigma boundary (~10 disagreement; verification caught it pre-ship). Multi-coef batching + warm-start bootstrap DEFERRED to a fresh session (warm-start only tractable for the non-bridge LocScale path per scoping). Capability row phylo_coef_profile_bridge updated (profile+bootstrap, still partial). Pushes live (both repos)."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

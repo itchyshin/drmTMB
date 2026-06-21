@@ -376,3 +376,69 @@ test_that("engine = 'julia' coefficient profile CIs match native TMB (Stage A)",
     1e-3
   )
 })
+
+# --- Stage B (drmTMB#179): bootstrap CI for a mu coefficient via the bridge -----
+# The bridge bootstrap branch now selects a requested coefficient's bootstrap row
+# (cold parametric bootstrap; warm-start is a separate optimisation). Feasibility +
+# sanity (finite, brackets the estimate), not tight parity (bootstrap is stochastic).
+
+drm_julia_coef_bootstrap_fit <- function(n_tip = 40L, R = 99L) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_julia_inference_engine_path()
+  callr::r(
+    function(pkg, jl_path, n_tip, R) {
+      julia_home <- Sys.getenv("DRM_JL_JULIA_HOME", Sys.getenv("JULIA_HOME", ""))
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(42)
+      tree <- ape::rcoal(n_tip)
+      sp <- tree$tip.label
+      x <- stats::rnorm(n_tip)
+      bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.6)
+      y <- 0.5 + 0.4 * x + bm[sp] + stats::rnorm(n_tip, 0, 0.5)
+      dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+      form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+      fj <- drmTMB::drmTMB(
+        form, family = stats::gaussian(), data = dat, engine = "julia"
+      )
+      as.data.frame(suppressWarnings(
+        stats::confint(fj, parm = "mu:x", method = "bootstrap", R = R, seed = 1L)
+      ))
+    },
+    args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip), R = as.integer(R)),
+    error = "error"
+  )
+}
+
+test_that("engine = 'julia' bootstrap CI for a mu coefficient via the bridge (Stage B)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_julia_inference_engine_path()),
+    "DRM.jl phylo engine not available"
+  )
+
+  res <- tryCatch(
+    drm_julia_coef_bootstrap_fit(n_tip = 40L, R = 99L),
+    error = function(e) {
+      testthat::skip(paste(
+        "Stage B coefficient bootstrap round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(is.data.frame(res))
+  expect_equal(res$parm, "fixef:mu:x")
+  expect_true(all(res$method == "bootstrap"))
+  expect_true(is.finite(res$lower) && is.finite(res$upper))
+  expect_lt(res$lower, res$upper)
+  # The bootstrap CI brackets the fitted slope (~0.44); feasibility + sanity, not
+  # tight parity (parametric bootstrap is stochastic).
+  expect_true(res$lower < 0.44 && res$upper > 0.44)
+})

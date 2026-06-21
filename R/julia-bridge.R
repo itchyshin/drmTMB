@@ -1432,11 +1432,15 @@ drm_julia_profile_targets <- function(object) {
       "julia_bridge_payload_required"
     }
   )
-  # Stage A (drmTMB#179): also offer fixed-effect mu coefficient targets so
+  # Stage A (drmTMB#179): offer fixed-effect MU coefficient targets so
   # confint(parm = "mu:x", method = "profile") routes a coefficient profile through
   # the bridge. DRM.jl's confint(parm = :mu, method = :profile) already computes
-  # these in-process; the bridge widening (opts$profile_param / profile_coef)
-  # returns the requested row. Identity (linear_predictor) working scale.
+  # these in-process; the bridge widening (opts$profile_param / profile_coef) returns
+  # the requested row. Identity (linear_predictor) working scale; tmb_parameter is the
+  # DRM.jl block symbol used as the bridge join key. SIGMA coefficient profiles are
+  # NOT offered: DRM.jl's parm = :sigma profile runs off toward the log-sigma -> -Inf
+  # boundary and does not match the native endpoint (measured lower-bound disagreement
+  # ~10 on a Gaussian phylo fixture), so they stay out of bridge scope.
   co <- tryCatch(coef(object, "mu"), error = function(e) NULL)
   if (!is.null(co) && length(co) > 0L) {
     coef_rows <- lapply(names(co), function(cn) {
@@ -1776,13 +1780,11 @@ confint.drmTMB_julia <- function(
   prof_coef <- NULL
   is_coef_target <- nrow(targets) >= 1L &&
     identical(as.character(targets$target_class[[1L]]), "fixed-effect")
-  if (is_coef_target && identical(method, "bootstrap")) {
-    cli::cli_abort(c(
-      "Julia-engine bootstrap intervals are not available for fixed-effect coefficients yet.",
-      i = "Use {.code method = \"profile\"} for coefficient intervals, or {.code method = \"wald\"}."
-    ))
-  }
-  if (identical(method, "profile") && is_coef_target) {
+  if (is_coef_target) {
+    # Stage A (profile) + Stage B (bootstrap): both route a single fixed-effect mu
+    # coefficient through the bridge via profile_param/profile_coef. The bridge
+    # profile branch profiles that block; the bootstrap branch selects that
+    # coefficient's bootstrap row.
     prof_param <- as.character(targets$tmb_parameter[[1L]])
     prof_coef <- as.character(targets$term[[1L]])
   }

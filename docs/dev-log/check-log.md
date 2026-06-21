@@ -2,6 +2,44 @@
 
 Record meaningful development checks here.
 
+## 2026-06-20: Julia Stage A finish + Stage B bootstrap-of-coef (Ada; owner "finish A and B")
+
+Goal:
+
+- Owner: finish Stage A + Stage B. Result: mu fixed-effect coefficients now have
+  Wald + profile + BOOTSTRAP through the R-Julia bridge.
+
+Changes (cross-repo):
+
+- DRM.jl `src/bridge.jl`: bootstrap branch now selects the requested coefficient's
+  bootstrap row (opts profile_param/profile_coef), else legacy SD row. Cold
+  parametric bootstrap (existing machinery).
+- drmTMB `R/julia-bridge.R`: route a single mu coefficient through the bridge for
+  bootstrap too (removed the Stage A bootstrap-of-coef rejection); sigma coefficient
+  targets withdrawn (see below).
+
+Verification (callr harness, Gaussian phylo fixture):
+
+- mu:x bootstrap [0.315, 0.548] (R=99, seed=1), finite + brackets the ~0.437 slope,
+  near the profile ref [0.297,0.574] -- feasibility/sanity, not tight parity
+  (stochastic). Regressions intact: profile mu:x [0.297,0.574]; SD bootstrap (no
+  parm) [0.193,0.649]. R-only julia suites 166 assertions, 0 failed.
+
+Findings / scope:
+
+- SIGMA coefficient profiles NOT bridge-ready: DRM.jl parm=:sigma profile runs to the
+  log-sigma -> -Inf boundary, disagreeing with native by ~10 -- sigma targets withdrawn
+  (verification caught this before it shipped).
+- Multi-coefficient batching DEFERRED (efficiency; SD/coef join risk). Warm-start
+  bootstrap (Stage B optimisation) DEFERRED to a fresh session (only tractable for the
+  non-bridge LocScale path per scoping; Gaussian/q4 warm needs deep DRM.jl surgery).
+
+Validation:
+
+- `validate-mission-control.py` `mission_control_ok` (capability row
+  phylo_coef_profile_bridge updated for profile+bootstrap; still partial). Pushes live
+  (both repos). Committed live test "bootstrap CI for a mu coefficient via the bridge".
+
 ## 2026-06-20: Julia Stage A LANDED -- bridge profiles coefficient targets (Ada; owner-directed, cross-repo)
 
 Goal:
