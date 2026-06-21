@@ -377,6 +377,135 @@ test_that("engine = 'julia' coefficient profile CIs match native TMB (Stage A)",
   )
 })
 
+# --- Stage A multi-coef (drmTMB#179): batched mu-coef profile parity -------------
+# A SINGLE confint(parm = c("mu:(Intercept)", "mu:x"), method = "profile") call
+# profiles the WHOLE mu block in one bridge round-trip and returns every coefficient
+# row (DRM.jl result$multi == TRUE, joined by coefficient name), versus native TMB
+# profile CIs computed per coefficient. Swept across seeds x n_tip in {40, 80}.
+#
+# The engine = "julia" Gaussian phylo-mean route returns garbage logLik on some data
+# (tracked bug; see test-julia-tmb-parity.R). This slice BATCHES the profile call, it
+# does not fix the fit, so cells where the two engines disagree on logLik are recorded
+# good_fit = FALSE and excluded from the parity assertion. Parity is engine agreement,
+# not interval coverage.
+
+drm_julia_coef_profile_multi_parity <- function(n_tips = c(40L, 80L),
+                                                 seeds = c(42L, 7L, 13L, 101L)) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_julia_inference_engine_path()
+  callr::r(
+    function(pkg, jl_path, n_tips, seeds) {
+      julia_home <- Sys.getenv("DRM_JL_JULIA_HOME", Sys.getenv("JULIA_HOME", ""))
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      coefs <- c("mu:(Intercept)", "mu:x")
+      out <- list()
+      for (n_tip in n_tips) {
+        for (seed in seeds) {
+          set.seed(seed)
+          tree <- ape::rcoal(n_tip)
+          sp <- tree$tip.label
+          x <- stats::rnorm(n_tip)
+          bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.6)
+          y <- 0.5 + 0.4 * x + bm[sp] + stats::rnorm(n_tip, 0, 0.5)
+          dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+          form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+
+          ft <- drmTMB::drmTMB(form, family = stats::gaussian(), data = dat)
+          fj <- drmTMB::drmTMB(
+            form, family = stats::gaussian(), data = dat, engine = "julia"
+          )
+          ll_t <- tryCatch(as.numeric(stats::logLik(ft)), error = function(e) NA_real_)
+          ll_j <- tryCatch(as.numeric(stats::logLik(fj)), error = function(e) NA_real_)
+          fit_agree <- is.finite(ll_t) && is.finite(ll_j) && abs(ll_t - ll_j) < 1e-2
+
+          # ONE batched Julia profile call for the whole mu block.
+          jci <- tryCatch(
+            suppressWarnings(stats::confint(fj, parm = coefs, method = "profile")),
+            error = function(e) NULL
+          )
+          j_nrow <- if (is.null(jci)) 0L else nrow(jci)
+          for (p in coefs) {
+            tci <- tryCatch(
+              suppressWarnings(stats::confint(ft, parm = p, method = "profile")),
+              error = function(e) NULL
+            )
+            jrow <- if (!is.null(jci)) {
+              jci[as.character(jci$parm) == paste0("fixef:", p), , drop = FALSE]
+            } else {
+              NULL
+            }
+            have_rows <- !is.null(tci) && !is.null(jrow) && nrow(jrow) == 1L
+            out[[length(out) + 1L]] <- data.frame(
+              n_tip = n_tip, seed = seed, parm = p,
+              fit_agree = fit_agree, have_rows = have_rows,
+              ll_t = ll_t, ll_j = ll_j,
+              t_lower = if (!is.null(tci)) tci$lower else NA_real_,
+              t_upper = if (!is.null(tci)) tci$upper else NA_real_,
+              j_lower = if (have_rows) jrow$lower else NA_real_,
+              j_upper = if (have_rows) jrow$upper else NA_real_,
+              j_engine = if (have_rows) as.character(jrow$profile.engine) else NA_character_,
+              j_nrow = j_nrow,
+              stringsAsFactors = FALSE
+            )
+          }
+        }
+      }
+      do.call(rbind, out)
+    },
+    args = list(pkg = pkg, jl_path = jl_path,
+                n_tips = as.integer(n_tips), seeds = as.integer(seeds)),
+    error = "error"
+  )
+}
+
+test_that("engine = 'julia' batched mu-coef profile CIs match native TMB (Stage A multi-coef)", {
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_julia_inference_engine_path()),
+    "DRM.jl phylo engine not available"
+  )
+
+  res <- tryCatch(
+    drm_julia_coef_profile_multi_parity(),
+    error = function(e) {
+      testthat::skip(paste(
+        "Stage A multi-coef profile parity round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(is.data.frame(res))
+  # Cells where engine='julia' reproduces the native fit (logLik agreement). The
+  # Gaussian phylo-mean route returns a garbage logLik on some data (a tracked fit
+  # bug); those cells have no valid fit to parity against and are dropped HERE. But a
+  # well-fit cell that FAILS to batch must fail the test, not be silently dropped --
+  # so the batching assertions below are gated on fit_agree only (NOT on have_rows).
+  agree <- res[res$fit_agree, , drop = FALSE]
+  # The Stage A anchor cell (seed 42, n_tip 40) fits cleanly, so >= 1 agreeing cell.
+  expect_gt(nrow(agree), 0L)
+  # On EVERY well-fit cell the single batched call must return BOTH mu coefficients in
+  # one round-trip with the profile-engine label -- a join/batch regression fails here.
+  expect_true(all(agree$have_rows))
+  expect_true(all(agree$j_nrow == 2L))
+  expect_true(all(agree$j_engine == "julia_profile_result"))
+  # Engine agreement: batched bridge endpoints match native per-coefficient profile
+  # endpoints to <= 1e-4 (measured ~2e-5). Parity, not interval coverage.
+  ok <- agree[agree$have_rows, , drop = FALSE]
+  expect_lt(
+    max(abs(c(ok$t_lower - ok$j_lower, ok$t_upper - ok$j_upper))),
+    1e-4
+  )
+})
+
 # --- Stage B (drmTMB#179): bootstrap CI for a mu coefficient via the bridge -----
 # The bridge bootstrap branch now selects a requested coefficient's bootstrap row
 # (cold parametric bootstrap; warm-start is a separate optimisation). Feasibility +

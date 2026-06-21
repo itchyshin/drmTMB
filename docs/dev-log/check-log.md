@@ -59732,3 +59732,52 @@ Checks: live test 10/10 (`NOT_CRAN=true` + `DRM_JL_PATH`);
 `test-julia-gate-vs-engine.R` 113/113; `validate-mission-control.py` green;
 recovery pilot reproducible (seeded, with per-axis MC-SE + z). Verified by Rose
 (claim-boundary: GO) + Fisher (inference: GO). Claude/Ada.
+
+## 2026-06-21: phylo_coef mu multi-coefficient profile batching (Ada; handover §4 do-now)
+
+Goal:
+
+- Handover §4: batch the `phylo_coef_profile_bridge` mu coefficient profiles so a
+  single `confint(parm = <all mu coefs>, method = "profile")` is ONE bridge
+  round-trip instead of one call per coefficient. Stronger partial (covered stays
+  blocked on the sigma-boundary + warm-start prereqs).
+
+Changes (cross-repo):
+
+- DRM.jl `src/bridge.jl`: profile branch for `profile_param` set + `profile_coef`
+  absent → `profile_result(fit; parm = block)` once → all coefficient rows via
+  `_bridge_inference_flatten_multi_profile` (rows get
+  `bounded = isfinite(lower) && isfinite(upper)`; profile rows lack the field).
+- drmTMB `R/julia-bridge.R`: `call_inference` injects `profile_param` even when
+  `profile_coef` is NULL; `confint` router `is_multi_coef` → `prof_coef = NULL`;
+  `validate_inference_targets(targets, method)` admits ≥2 same-block fixed-effect
+  coef targets for PROFILE only (bootstrap stays single-coef); `confint_multi` joins
+  fixed-effect rows by coef NAME (SD rows keep the dpar join). Registry
+  `phylo_coef_profile_bridge` row refreshed (claim_boundary + next_action;
+  `claim_status` stays `partial`). Both capability TSVs regenerated.
+
+Verification (callr harness, Gaussian phylo fixture):
+
+- Batched `confint(parm = c("mu:(Intercept)", "mu:x"), method = "profile")` → 2 rows,
+  one round-trip; endpoints vs native per-coef tmbprofile ≤ 2.43e-5 on every well-fit
+  cell (10/16 grid cells; 6 excluded = engine='julia' phylo-mean garbage logLik, the
+  tracked Route A bug, NOT a batching defect). `test-julia-inference.R` 4-seed grid
+  PASS 59 / FAIL 0 (Stage A single + multi-coef + Stage B); `test-julia-biv-q4-reml.R`
+  10/10 (SD-axis dpar join intact); gate `test-julia-gate-vs-engine.R` 113/113;
+  `validate-mission-control.py` green.
+
+Findings / scope:
+
+- FIVE edits, not three: the `call_inference` option-merge (silently dropped
+  `profile_param` when `profile_coef` was NULL) and the target-count validator
+  (rejected 2 coef targets before the new routing) were the non-obvious ones — both
+  caught by the test failing, not by reading.
+- Reviews — Rose (claim-boundary) + Fisher (inference): GO after fixes. Fisher caught
+  a test-robustness gap (a batch regression on a well-fit cell could be silently
+  excluded rather than fail) — assertions now gate on fit-agreement only, and the
+  test grid was widened to the artifact's 4 seeds. Rose required disclosing the 6/16
+  garbage-fit rate as a fit-route limitation (done in claim_boundary + README).
+- Artifact: `docs/dev-log/simulation-artifacts/2026-06-21-phylo-coef-profile-multi-batch/`.
+  After-task: `docs/dev-log/after-task/2026-06-21-phylo-coef-profile-multi-batch.md`.
+- Bootstrap multi-coef is NOT batched (single-coef contract); sigma profiles still
+  not offered; warm-start still not reachable through the bridge.

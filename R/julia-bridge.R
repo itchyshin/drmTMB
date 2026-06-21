@@ -193,7 +193,7 @@ drm_julia_capability_comparison <- function() {
       "c(gaussian(), poisson()) cross-family latent-rho route",
       "engine_control = ... or non-default Julia optimizer controls",
       "stats::binomial() without phylo() through engine = \"julia\"",
-      "confint(fit, parm = \"mu:x\", method = \"profile\" | \"bootstrap\") on bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1), family = gaussian(), engine = \"julia\""
+      "confint(fit, parm = c(\"mu:(Intercept)\", \"mu:x\") | \"mu:x\", method = \"profile\" | \"bootstrap\") on bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ 1), family = gaussian(), engine = \"julia\""
     ),
     r_bridge_status = c(
       "supported",
@@ -219,7 +219,7 @@ drm_julia_capability_comparison <- function() {
       "latent-rho mixed-family path; API drift is tracked in tests",
       "no R surface by design",
       "direct Binomial evidence is not an R non-phylo bridge claim",
-      "in-process profile_result coefficient targets via drm_bridge_inference profile_param/profile_coef passthrough"
+      "in-process profile_result coefficient targets via drm_bridge_inference profile_param/profile_coef passthrough; a profile_param-only (whole-block) request profiles every coefficient in one call"
     ),
     claim_status = c(
       "covered",
@@ -252,7 +252,7 @@ drm_julia_capability_comparison <- function() {
       "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
       "Native TMB owns ordinary binomial support (#569, landed via PR #585 / 5810ed7d, 2026-06-16); the Julia bridge intentionally routes a non-phylo binomial back to native TMB (no separate engine='julia' non-phylo route). There is no Julia speed edge for non-phylo GLMs (cf. the base_nonphylo_count gate), so a bridge would add parity-completeness only, not capability; it stays intentionally gated by design.",
-      "Stage A/B (design 179): a SINGLE fixed-effect MU coefficient of a Gaussian phylo model via the single-row bridge path. partial = engine agreement, NOT interval coverage. PROFILE: engine=julia profile endpoints match native tmbprofile to the asserted test tolerance 1e-3 (measured ~2e-5, one seed-fixed n_tip=40 fixture). BOOTSTRAP: cold parametric bootstrap row for the coefficient -- feasibility + sanity (finite CI brackets the estimate), stochastic, NOT tight parity. SIGMA coefficient profiles are NOT offered (DRM.jl parm=:sigma diverges at the log-sigma boundary). Multi-coefficient batching and sigma/scale targets are NOT reachable. Warm-start bootstrap is NOT reachable THROUGH THE BRIDGE: a direct-DRM.jl-lane warm-start landed for the fixed-effect Gaussian location-scale cell (design 179 Stage B, opt-in warmstart=true), but the bridge bootstraps a Gaussian PHYLO fit whose fitter does not yet accept a packed start, so the bridge path stays cold. native R/TMB / direct DRM.jl / Julia-via-R lanes stay separate."
+      "Stage A/B (design 179): fixed-effect MU coefficient(s) of a Gaussian phylo model via the bridge profile path. partial = engine agreement, NOT interval coverage. PROFILE (single coef): engine=julia profile endpoints match native tmbprofile to the asserted test tolerance 1e-3 (measured ~2e-5, one seed-fixed n_tip=40 fixture). PROFILE (multi-coef batching, drmTMB#179): a single confint(parm = c(\"mu:(Intercept)\", \"mu:x\"), method=\"profile\") call profiles the whole mu block in ONE bridge round-trip and returns every coefficient row (DRM.jl result$multi, joined by coefficient name); batched endpoints match native per-coefficient tmbprofile to an asserted 1e-4 (measured ~2e-5) on every well-fit cell across seeds x n_tip in {40, 80} (tests/testthat/test-julia-inference.R Stage A multi-coef; artifact docs/dev-log/simulation-artifacts/2026-06-21-phylo-coef-profile-multi-batch/). CAVEAT: the underlying engine=julia Gaussian phylo-MEAN fit itself returns a garbage logLik on a substantial fraction of data (10 of 16 grid cells valid here; the remainder are the tracked Route A fit bug, test-julia-tmb-parity.R) -- the batching PLUMBING is proven correct on valid fits but does NOT repair that fit route. Garbage-fit cells have no valid native target to parity against and are excluded; the test asserts every WELL-FIT cell still batches correctly, so a batch regression on a good fit fails. BOOTSTRAP: cold parametric bootstrap row for a SINGLE coefficient -- feasibility + sanity (finite CI brackets the estimate), stochastic, NOT tight parity; multi-coef bootstrap is NOT batched (single-coefficient contract preserved). SIGMA coefficient profiles are NOT offered (DRM.jl parm=:sigma diverges at the log-sigma boundary). Warm-start bootstrap is NOT reachable THROUGH THE BRIDGE: a direct-DRM.jl-lane warm-start landed for the fixed-effect Gaussian location-scale cell (design 179 Stage B, opt-in warmstart=true), but the bridge bootstraps a Gaussian PHYLO fit whose fitter does not yet accept a packed start, so the bridge path stays cold. native R/TMB / direct DRM.jl / Julia-via-R lanes stay separate."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
@@ -265,7 +265,7 @@ drm_julia_capability_comparison <- function() {
       "Resolve the mixed-family API mismatch before any public promotion.",
       "Design engine_control explicitly before relaxing the gate.",
       "#569 native binomial has landed (PR #585); the non-phylo binomial bridge stays deliberately deprioritized (parity-completeness only). Promote only on an explicit owner request, via the engine-vs-engine parity recipe used for nonphylo_biv_rho12_predictor.",
-      "Land multi-coefficient batching and boundary-robust sigma coefficient profiles; extend the direct-lane warm-start to the EXPENSIVE refit cells (Gaussian phylo / RE) so the bridge can pass warmstart through; then multi-seed/model evidence before any covered promotion."
+      "Multi-coefficient mu batching is banked (Stage A multi-coef parity, asserted <= 1e-4, measured ~2e-5, across seeds x n_tip in {40, 80}). Remaining before any covered promotion: boundary-robust sigma coefficient profiles (DRM.jl parm=:sigma diverges at the log-sigma boundary); extend the direct-lane warm-start to the EXPENSIVE refit cells (Gaussian phylo / RE) so the bridge can pass warmstart through; then multi-seed/model evidence."
     ),
     issue = c(
       rep("drmTMB#544", 9),
@@ -758,12 +758,19 @@ drm_julia_call_inference <- function(
   }
 
   # Stage A (drmTMB#179): merge the requested coefficient target into the bridge
-  # options so DRM.jl profiles that block/coef and returns its row.
+  # options so DRM.jl profiles that block/coef and returns its row(s). A non-NULL
+  # profile_param is injected even when profile_coef is NULL: that param-only signal
+  # asks the bridge to profile the whole block and return every coefficient row
+  # (multi-coef batching). profile_coef is added only for a single-coefficient request.
   opts <- payload$options
-  if (!is.null(profile_param) && !is.null(profile_coef)) {
+  if (!is.null(profile_param)) {
+    extra <- list(profile_param = profile_param)
+    if (!is.null(profile_coef)) {
+      extra$profile_coef <- profile_coef
+    }
     opts <- c(
       if (is.null(opts)) list() else as.list(opts),
-      list(profile_param = profile_param, profile_coef = profile_coef)
+      extra
     )
   }
   drm_julia_setup()
@@ -1790,7 +1797,7 @@ confint.drmTMB_julia <- function(
       targets <- targets[sd_rows, , drop = FALSE]
     }
   }
-  drm_julia_validate_inference_targets(targets)
+  drm_julia_validate_inference_targets(targets, method)
   # If the selected target is a fixed-effect coefficient, tell the bridge which
   # block/coef to profile (it otherwise returns the SD row). Bootstrap of
   # coefficients is not yet wired through the bridge.
@@ -1798,13 +1805,25 @@ confint.drmTMB_julia <- function(
   prof_coef <- NULL
   is_coef_target <- nrow(targets) >= 1L &&
     identical(as.character(targets$target_class[[1L]]), "fixed-effect")
+  # Stage A multi-coef (drmTMB#179): a profile request for >1 fixed-effect coefficient
+  # in the same block is batched into ONE bridge call — prof_coef stays NULL so the
+  # bridge profiles the whole block and returns every row (joined by coef name in
+  # drm_julia_inference_confint_multi). Bootstrap stays single-coefficient (unchanged).
+  is_multi_coef <- is_coef_target &&
+    nrow(targets) > 1L &&
+    identical(method, "profile") &&
+    all(targets$target_class == "fixed-effect")
   if (is_coef_target) {
-    # Stage A (profile) + Stage B (bootstrap): both route a single fixed-effect mu
-    # coefficient through the bridge via profile_param/profile_coef. The bridge
+    # Stage A (profile) + Stage B (bootstrap): route the requested fixed-effect mu
+    # coefficient(s) through the bridge via profile_param/profile_coef. The bridge
     # profile branch profiles that block; the bootstrap branch selects that
     # coefficient's bootstrap row.
     prof_param <- as.character(targets$tmb_parameter[[1L]])
-    prof_coef <- as.character(targets$term[[1L]])
+    prof_coef <- if (is_multi_coef) {
+      NULL
+    } else {
+      as.character(targets$term[[1L]])
+    }
   }
   result <- drm_julia_call_inference(
     object = object,
@@ -1962,7 +1981,7 @@ drm_julia_validate_seed <- function(seed) {
   as.integer(seed)
 }
 
-drm_julia_validate_inference_targets <- function(targets) {
+drm_julia_validate_inference_targets <- function(targets, method = "profile") {
   biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
 
   # Bivariate case: exactly 4 rows, one per axis, all phylo RE-SDs.
@@ -1993,6 +2012,29 @@ drm_julia_validate_inference_targets <- function(targets) {
       cli::cli_abort(c(
         "Julia-engine target {.val {targets$parm[[1L]]}} is not ready for profile intervals.",
         i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
+  # Stage A multi-coef (drmTMB#179): two or more fixed-effect coefficient profile
+  # targets sharing one block (all mu coefficients) are batched into ONE bridge
+  # call; the bridge profiles the block once and returns every coefficient row.
+  # Profile only -- the bridge bootstrap path is single-row, so bootstrap keeps the
+  # single-coefficient contract (a multi-coef bootstrap request falls through to the
+  # error below, exactly as before).
+  if (
+    identical(method, "profile") &&
+      nrow(targets) > 1L &&
+      all(targets$target_class == "fixed-effect") &&
+      length(unique(targets$tmb_parameter)) == 1L
+  ) {
+    not_ready <- !targets$profile_ready
+    if (any(not_ready)) {
+      first_bad <- which(not_ready)[[1L]]
+      cli::cli_abort(c(
+        "Julia-engine target {.val {targets$parm[[first_bad]]}} is not ready for profile intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[first_bad]]}}."
       ))
     }
     return(invisible(NULL))
@@ -2094,6 +2136,10 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   # Julia returns param names like "sd_mu1"; strip leading "sd_" to get dpar.
   julia_params <- as.character(unlist(result$param, use.names = FALSE))
   julia_dpar <- sub("^sd_", "", julia_params)
+  # Multi-coef profile (drmTMB#179): fixed-effect coefficients all share one dpar
+  # ("mu"), so those rows join by coefficient name instead. DRM.jl returns the coef
+  # names alongside the params.
+  julia_coef <- as.character(unlist(result$coef, use.names = FALSE))
   julia_lower <- as.numeric(unlist(result$lower, use.names = FALSE))
   julia_upper <- as.numeric(unlist(result$upper, use.names = FALSE))
   julia_estimate <- as.numeric(unlist(result$estimate, use.names = FALSE))
@@ -2126,13 +2172,24 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   rows <- vector("list", nrow(targets))
   for (i in seq_len(nrow(targets))) {
     target <- targets[i, , drop = FALSE]
-    dpar_i <- target$dpar[[1L]]
-    # Match target dpar to Julia param ("mu1" -> "sd_mu1").
-    ji <- match(dpar_i, julia_dpar)
+    # Fixed-effect coefficient rows share one dpar ("mu"), so join by coef name;
+    # random-effect-SD (bivariate) rows join by dpar ("mu1" -> "sd_mu1").
+    if (identical(as.character(target$target_class[[1L]]), "fixed-effect")) {
+      # Coef names are design-matrix column labels, unique for the mu block batched
+      # here, so match() (first hit) is safe; a future block whose labels can repeat
+      # or be empty would need an explicit uniqueness guard on julia_coef.
+      key <- as.character(target$term[[1L]])
+      key_label <- "coefficient"
+      ji <- match(key, julia_coef)
+    } else {
+      key <- target$dpar[[1L]]
+      key_label <- "axis"
+      ji <- match(key, julia_dpar)
+    }
     if (is.na(ji)) {
       cli::cli_abort(c(
-        "Bivariate confint: DRM.jl result has no entry for axis {.val {dpar_i}}.",
-        i = "Julia returned params: {.val {julia_params}}."
+        "Julia multi-row confint: DRM.jl result has no entry for {key_label} {.val {key}}.",
+        i = "Julia returned coefs {.val {julia_coef}}; params {.val {julia_params}}."
       ))
     }
     # DRM.jl returns the among-axis SD bounds ALREADY on the SD (response) scale —
