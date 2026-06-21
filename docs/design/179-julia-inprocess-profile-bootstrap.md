@@ -126,10 +126,12 @@ SD block). Cross-repo: DRM.jl `bridge.jl` (`1ef441e`, the `opts[:profile_param]`
 target enumeration, gate relaxation, identity transform, options merge, no-parm stays
 SD-only, bootstrap-of-coef rejected). Verified through the callr Julia harness on a
 Gaussian phylo fixture: engine="julia" coefficient profile CIs match native TMB
-profile endpoints to **max |diff| ~2.3e-5** (mu:x 1.0e-6, mu:(Intercept) 2.3e-5);
-the two engines fit identically (coefs match to 5 dp). Committed live test:
-`tests/testthat/test-julia-inference.R` ("coefficient profile CIs match native TMB
-(Stage A)", asserted tolerance 1e-3). Remaining Stage-A work: multi-coefficient
+profile endpoints to the **asserted test tolerance 1e-3** (measured max |diff|
+~2.3e-5: mu:x 1.0e-6, mu:(Intercept) 2.3e-5; both engines fit identically, coefs to
+5 dp). Profile endpoints are root-found on BOTH sides, so the asserted bound -- not
+the much-tighter single-fixture measured value -- is the guarantee. Committed live
+test: `tests/testthat/test-julia-inference.R` ("coefficient profile CIs match native
+TMB (Stage A)"). Remaining Stage-A work: multi-coefficient
 batching (the SD-axis-specific multi-row join), sigma/scale/correlation coefficient
 targets, and bootstrap-of-coefficients (Stage B). Engine agreement (parity), NOT
 interval coverage.

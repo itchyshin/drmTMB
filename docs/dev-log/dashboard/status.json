@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-20 19:20 MDT",
+  "updated": "2026-06-20 20:30 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -1345,6 +1345,11 @@
     }
   ],
   "activity": [
+    {
+      "when": "2026-06-20",
+      "who": "Ada",
+      "text": "Julia Stage A LANDED + capability row added (Fisher ADD-PARTIAL). The R-Julia bridge now profiles fixed-effect COEFFICIENTS (confint(engine='julia', method='profile')), not just the SD block -- cross-repo: DRM.jl bridge.jl 1ef441e (opts profile_param/profile_coef passthrough) + drmTMB bc467293 (target enumeration, gate, identity transform, options merge; no-parm stays SD-only; bootstrap-of-coef rejected). Parity verified via the callr Julia harness: engine=julia coefficient profile endpoints match native TMB to the asserted tolerance 1e-3 (measured ~2e-5 on a single Gaussian phylo fixture; both engines fit identically). New julia-capabilities.tsv row phylo_coef_profile_bridge -> partial (Fisher: single-fixture first increment, profile-route root-found-on-both-sides so tolerance-sensitive; covered needs multi-seed/model evidence). Live + R-only julia suites 0 failures. Note: pre-existing drift -- inst/extdata/julia-capabilities.tsv (9 rows) lags the dashboard registry (now 11); flagged, not fixed. Pushes live (both repos)."
+    },
     {
       "when": "2026-06-20",
       "who": "Ada",

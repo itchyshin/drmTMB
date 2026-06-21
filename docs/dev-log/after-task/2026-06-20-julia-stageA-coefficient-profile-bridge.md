@@ -50,6 +50,12 @@ native R/TMB profile intervals.
 - The live test asserts engine agreement (parity) to 1e-3 and engine label
   "julia_profile_result"; the synthetic test pins the new profile-targets enumeration
   (SD + 2 coef rows) and the single-row builder on the selected SD row.
+- Fragility note (Fisher): unlike Wald-endpoint parity (an exact algebraic quantity,
+  e.g. the rho12 bridge), this is a PROFILE route -- endpoints are root-found
+  numerically on BOTH engines, so cross-engine agreement is tolerance-sensitive. The
+  single-fixture measured ~2e-5 is NOT a stable cross-fixture property; the asserted
+  1e-3 is the contracted bound, and multi-seed/multi-model evidence is required before
+  any "covered" promotion.
 
 ## Boundary
 
