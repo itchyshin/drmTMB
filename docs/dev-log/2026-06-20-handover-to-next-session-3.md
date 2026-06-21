@@ -157,18 +157,31 @@ calibration feasible.
    per-sub-type rows (matrix 17 -> 22). relmat/animal/spatial POINT -> covered; phylo
    POINT -> partial; kernel/SPDE -> planned. The 25/68 slice metric is unchanged.
 
-## 9. Final state (HEAD `733724f4`)
+## 9. Final state (HEAD drmTMB `942d1fd0`, DRM.jl `1ef441e`)
 
-14 defended slices this session, all pushed, tree clean, validator green (25/68 slice
-metric, 22 matrix rows). The interval-method broadening + the per-sub-type Structural
-rows are complete. **Remaining work all wants FRESH context:**
-- **Julia Stage A** (design 179): widen the bridge to expose the coefficient/scale/
-  correlation profiles DRM.jl already computes -- cheapest first "Julia speedups"
-  cell-evidence. Needs the Julia toolchain (~3-min round-trips) + per-target parity.
+15 defended slices this session, all pushed, both repos clean, validator green (25/68
+slice metric, 22 matrix rows, 11 Julia capability rows). Interval-method broadening +
+per-sub-type Structural rows + **Julia Stage A (LANDED)** are complete.
+
+**Julia Stage A — LANDED this session (owner "push").** The R-Julia bridge now
+profiles fixed-effect COEFFICIENTS via `confint(engine="julia", method="profile")`
+(was SD-block only). Cross-repo: DRM.jl `bridge.jl` `1ef441e` (opts
+profile_param/profile_coef passthrough) + drmTMB `bc467293` (R/julia-bridge.R target
+enumeration / gate / identity transform / options merge; no-parm stays SD-only;
+bootstrap-of-coef rejected) + `942d1fd0` (capability row). Parity via the callr Julia
+harness: engine="julia" coefficient profile endpoints match native TMB to the asserted
+**1e-3** (measured ~2e-5 on one Gaussian phylo fixture; engines fit identically).
+Capability row `phylo_coef_profile_bridge` -> **partial** (Fisher). Live test in
+`test-julia-inference.R`.
+
+**Remaining (FRESH context):**
+- **Julia Stage A continuation** (design 179): multi-coefficient batching (the
+  SD-axis-specific multi-row join), sigma/scale/correlation coefficient targets.
+- **Julia Stage B** (design 179): warm-start in-process bootstrap -- the marquee Julia
+  differentiator (bootstrap is what native TMB cannot make cheap; native broadening is
+  cost-prohibitive).
 - **Coevolution Stage 1** (design 178): the Hadfield additive-model engine surgery
   (R assembly + `src/drmTMB.cpp` block loop), TDD-first.
-- **Julia Stage B** (design 179): warm-start in-process bootstrap -- the marquee Julia
-  differentiator (bootstrap is what native TMB cannot make cheap).
-- Bootstrap broadening for non-Gaussian/random-slope is cost-prohibitive natively;
-  the honest path is the Julia warm-start above.
+- **Promote covered** only with multi-seed/model parity (Stage A is single-fixture).
+- Pre-existing drift: `inst/extdata/julia-capabilities.tsv` lags the dashboard registry.
 - GitHub coordination comments (drmTMB#499 / DRM.jl#294) still parked (auto-denied).
