@@ -117,6 +117,45 @@ Relative to other threads, Stage A is a clean near-term slice; Stage B is the ma
 Julia differentiator (bootstrap is what native TMB cannot make cheap) but carries the
 real implementation risk, so it wants its own focused effort.
 
+## Stage A — exact change site (code-verified 2026-06-20)
+
+Confirmed against the code so a fresh session can execute Stage A immediately (the
+cross-repo edit + ~3-min callr parity loop is what needs the fresh session, not more
+scoping):
+
+- **The capability already exists and is TESTED.** `DRM.jl/test/test_profile_ci.jl`
+  fits `drm(bf(@formula(y ~ x + z), @formula(sigma ~ 1)), Gaussian(); data)` and
+  asserts `confint(fit; method = :profile)` returns one profile row per coefficient
+  (param/coef/estimate/lower/upper), profile ≈ Wald for the mu coefficients. So
+  DRM.jl natively profiles coefficients; `parm` filters by parameter BLOCK
+  (`:mu`, `:sigma`, `:resd`, ...) and `parm = nothing` returns ALL coefficients
+  (`DRM.jl/src/inference.jl:101-104, 142-224`).
+- **The bridge is the only thing locking it to the SD block.**
+  `DRM.jl/src/bridge.jl:74-95` (the `bridge_method == "profile"` branch) hardcodes
+  `profile_result(fit; parm = [:resd_sigma, :resd, :resd_mu])` then
+  `row = _bridge_pick_sd_row(result.ci)` (a SINGLE SD row) and flattens that one row
+  via `_bridge_inference_flatten` (`:416`). The bootstrap branch (`:95-119`) is the
+  same single-SD-row shape.
+- **Julia edit (small):** add an `opts[:parm]`/`opts[:targets]` passthrough; when
+  absent keep `[:resd_sigma, :resd, :resd_mu]` + single SD row (BACKWARD COMPAT for
+  the current R side); when present pass it (or `nothing` = all) to `profile_result`
+  and return ALL rows via a multi-row variant of `_bridge_inference_flatten`.
+- **R edit (the intricate part):** the confint bridge path
+  (`drmTMB/R/julia-bridge.R` `drm_julia_inference_confint_row`/`_multi`,
+  `drm_julia_profile_targets`) must request the wider target set, parse the multi-row
+  response, and map each returned `(param, coef)` to the drmTMB parm name +
+  per-target response-scale transform (linear_predictor identity for coefficients,
+  exp/tanh for scale/SD/correlation -- the same transforms native confint uses).
+- **NOT splittable into a value-delivering Julia-only increment:** the Julia change
+  alone changes no user-facing behaviour (the current R side still asks for SD-only);
+  value lands only when both sides change together, and the only full-path check is
+  the callr Julia harness (`tests/testthat/helper-julia-bridge-path.R`,
+  `test-julia-inference.R`) at ~3 min/round-trip. Make both edits, run ONE harness
+  parity check (engine="julia" profile coefficient CI vs native
+  `confint.drmTMB(method="profile")` to ~1e-4), and revert BOTH if it fails.
+- **Verification env confirmed:** Julia 1.10.0 at `/Users/z3437171/.juliaup/bin`,
+  DRM.jl on `shannon/overnight-audit-verify-20260619`, bridge harness helpers present.
+
 ## Boundary
 
 Design/scoping note only; no grammar/likelihood/bridge code changed here. Each stage
