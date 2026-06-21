@@ -1,0 +1,4 @@
+"artifact","status","glmmTMB_available","glmmTMB_version"
+"data.csv","ok",TRUE,"1.1.13"
+"truth.csv","ok",TRUE,"1.1.13"
+"summary.csv","ok",TRUE,"1.1.13"

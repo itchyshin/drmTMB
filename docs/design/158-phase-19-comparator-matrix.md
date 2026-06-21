@@ -8,9 +8,9 @@ is the contributor preparing the comparator demonstration and the project owner
 deciding which comparisons go into the paper.
 
 It does not run the fits. Running comparators needs a machine with `glmmTMB`,
-`brms`, `metafor`, `betareg`, `gamlss`, `ordinal`, and related packages
-installed; this note is the design that makes those runs mechanical and keeps
-scale conversions correct. It builds on the comparator-boundary decisions in
+`brms`, `metafor`, `betareg`, `gamlss`, `ordinal`, `RTMBdist`, and related
+packages installed; this note is the design that makes those runs mechanical and
+keeps scale conversions correct. It builds on the comparator-boundary decisions in
 `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md`
 and the Tweedie comparator contract in `docs/design/126-...`.
 
@@ -45,6 +45,7 @@ Internal-to-comparator conversions:
 | `beta()` | `sigma` | precision `phi = 1 / sigma^2` | `betareg`/`glmmTMB` beta precision `phi` | `phi = 1/sigma^2` |
 | `beta_binomial()` | `sigma` | precision `phi = 1/sigma^2`, row trials | `glmmTMB` betabinomial | match precision; align trials column |
 | `nbinom2()` | `sigma` | size `= 1 / sigma^2` | `glmmTMB::nbinom2` / `MASS::glm.nb` theta | `theta (size) = 1/sigma^2` |
+| `skew_normal()` | moment `mu`, `sigma`, `nu` | `alpha = nu`; `delta = alpha / sqrt(1 + alpha^2)`; `omega = sigma / sqrt(1 - 2 * delta^2 / pi)`; `xi = mu - omega * delta * sqrt(2 / pi)` | `sn::dsn`, `RTMBdist::dskewnorm`, `RTMBdist::dskewnorm2`, `brms::skew_normal`, `glmmTMB::skewnormal` | compare `sn::dsn` and `RTMBdist::dskewnorm` on native `xi`, `omega`, `alpha`; compare `RTMBdist::dskewnorm2`, `brms`, and `glmmTMB` on public moment `mu`, `sigma`, `alpha`; do not treat `gamlss.dist::SN2` as the same Azzalini density |
 | `meta_V(V=V)` | fixed/random means, heterogeneity | known `V` added to residual | `metafor::rma.mv` with `V` | `V` is input data in both; compare heterogeneity `tau^2` notation explicitly |
 
 ## Comparator Matrix
@@ -68,7 +69,7 @@ Internal-to-comparator conversions:
 | Phylogenetic `mu` | `MCMCglmm`, `brms` (phylo), `phylolm`, `phyr` | phylogenetic SD / signal | Bayesian comparators differ in prior; `phylolm` is fixed-effect only |
 | Coordinate-spatial `mu` | `spaMM`, `INLA` | spatial field | `drmTMB` coordinate fields vs SPDE/Matern differ in parameterization |
 | `animal()` / `relmat()` | `MCMCglmm`, `ASReml`, `brms` | additive-genetic variance, heritability | ASReml is licensed; MCMCglmm/brms are Bayesian |
-| `skew_normal()` (planned) | `gamlss` (SN1/SN2), `sn` package | location, scale, skewness | not yet fitted in `drmTMB` (Tier C in doc 157) |
+| `skew_normal()` | `sn`, `RTMBdist`, `brms`, `glmmTMB` | location, scale, skewness/slant on matched Azzalini scales | fixed-effect first slice is fitted in `drmTMB`; `docs/design/166-phase-18-skew-normal-comparator-scale-map.md` maps public moment parameters to native `xi`, `omega`, `alpha`; one simple local `glmmTMB` smoke matched only with nonzero `psi` starts, so formal comparator grids must record shape starts; `gamlss.dist::SN2` is a different two-piece family, not a same-density comparator |
 
 ## Definition Of Done For Phase 19
 

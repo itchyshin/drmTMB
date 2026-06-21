@@ -1,0 +1,4 @@
+"artifact","path","strategy","theta_re_cov"
+"summary","docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/summary.csv","q4-to-q8-staged-start-pilot","not_copied_without_validated_pair_packing"
+"qgt2_sd_matches","docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/qgt2-sd-matches.csv","q4-to-q8-staged-start-pilot","not_copied_without_validated_pair_packing"
+"fixed_effect_matches","docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/fixed-effect-matches.csv","q4-to-q8-staged-start-pilot","not_copied_without_validated_pair_packing"

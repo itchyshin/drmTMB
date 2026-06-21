@@ -1,0 +1,5 @@
+"artifact","path","exists"
+"fit-summary","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-pilot/fit-summary.csv",TRUE
+"profile-targets","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-pilot/profile-targets.csv",TRUE
+"start-mapping","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-pilot/start-mapping.csv",TRUE
+"failures","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-pilot/failures.csv",TRUE

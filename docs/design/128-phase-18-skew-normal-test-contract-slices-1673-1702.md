@@ -1,14 +1,14 @@
 # Phase 18 Skew-Normal First-Test Contract, Slices 1673-1702
 
-This note is Team B's design-only gate after the skew-normal
-parameterization decision. It does not implement `skew_normal()`, add a
-constructor, or admit any C++ likelihood branch. Its reader is the contributor
-who will write the first tests before fitting support is exposed.
+This note began as Team B's design-only gate after the skew-normal
+parameterization decision. On 2026-06-08 it became the source-test contract for
+the implemented fixed-effect first slice. Its reader is the contributor checking
+that the constructor, TMB density branch, methods, and boundary tests still
+preserve the accepted parameterization.
 
 The contract keeps the first lane univariate and fixed-effect:
 
 ```r
-# Planned, not fitted yet:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),
@@ -56,11 +56,10 @@ xi_i = mu_i
 log f_i(y_i) = dnorm(y_i, mean = mu_i, sd = sigma_i, log = TRUE)
 ```
 
-The first normal-limit test should compare per-observation log densities and
-the summed negative log likelihood to the Gaussian target with absolute
-differences no larger than `1e-10`. It should also compare `fitted()`
-semantics for `mu`, `sigma()`, and future `predict(dpar = "nu")` output on
-fixed-effect rows where `nu` is zero. It should run before any recovery or
+The normal-limit tests compare per-observation log densities and the summed
+negative log likelihood to the Gaussian target. They also compare `fitted()`
+semantics for `mu`, `sigma()`, and `predict(dpar = "nu")` output on
+fixed-effect rows where `nu` is zero. These checks run before any recovery or
 comparator-fit test, because every later skew-normal claim depends on the
 symmetric limit being the ordinary Gaussian location-scale model.
 
@@ -98,29 +97,25 @@ symmetric. The first grid should include at least:
 For the design gate, a "positive" skew-normal result means recovery or
 predictive improvement under a skew-normal data-generating process. A Gaussian
 or Student-t sensitivity model, heteroscedastic residual spread, outliers, or
-mean-model misspecification must not be reported as evidence that
-`skew_normal()` is fitted or that `nu ~ w` is ready for examples.
+mean-model misspecification must not be reported as evidence that formal
+recovery is complete, that false-positive rates are calibrated, or that
+`nu ~ w` examples are inferentially mature.
 
-## No-C++ Admission Criteria
+## Implementation Admission Criteria
 
-This design-only slice is admissible without C++ only if all of these remain
-true:
+The 2026-06-08 implementation admits the fixed-effect first slice only when all
+of these remain true:
 
-- no `skew_normal()` constructor is added;
-- no file under `src/` changes and no TMB family enum, switch branch, or
-  density helper is added;
-- no `R/`, `tests/`, or `NAMESPACE` change exposes or exercises skew-normal
-  support in this slice;
-- shared `ROADMAP.md` and `docs/dev-log/check-log.md` changes may record the
-  design status only, not fitted support;
-- every code block using `skew_normal()` is labelled planned or future, not
-  runnable;
-- the note keeps `mu`, `sigma`, and `nu` as the only first-lane
-  distributional parameters and keeps `rho12` out;
-- the first implementation PR is still required to add density tests,
-  normal-limit tests, sign-orientation tests, false-positive checks,
-  malformed-neighbour tests, extractor checks, documentation, and after-task
-  evidence before user-facing support is claimed.
+- `skew_normal()` is exported and declares only `mu`, `sigma`, and `nu`;
+- the TMB branch keeps all normalizing constants in
+  `log(2) - log(omega) + log phi(z) + log Phi(nu z)`;
+- `nu = 0` reduces to the Gaussian location-scale density;
+- positive and negative `nu` keep the public right- and left-skew orientation;
+- `fitted()`, `sigma()`, `predict(dpar = "nu")`, `logLik()`, `simulate()`, and
+  `check_drm()` use the public moment parameterization rather than native
+  `xi` or `omega`;
+- random effects, `sd(group)`, structured effects, known covariance, `rho12`,
+  bivariate skew-normal, `skew ~`, and latent `skew(id)` remain rejected.
 
 Boole's syntax gate is that the public formula remains one formula per
 distributional parameter, with no `skew ~ x` alias and no `skew(id) ~ x`.
@@ -143,11 +138,11 @@ Student-t sensitivity models until skew-normal support is actually admitted.
 | 1679 | Done | The sign test is density-level and moment-based, not inferred from fitted coefficients alone. |
 | 1680 | Done | The false-positive boundary separates skewness evidence from mean, scale, outlier, and misspecification signals. |
 | 1681 | Done | The first false-positive grid includes homoscedastic, heteroscedastic, correlated-design, and misspecified-scale cases. |
-| 1682 | Done | The no-C++ admission criteria forbid a constructor, `src/` edit, TMB family enum, switch branch, and density helper in this slice. |
+| 1682 | Superseded | The no-C++ admission criteria were replaced by the 2026-06-08 fixed-effect implementation gate. |
 | 1683 | Done | The note keeps `rho12`, bivariate skew-normal, composed families, and mixed responses outside the first lane. |
 | 1684 | Done | The first implementation PR must add tests, documentation, and after-task evidence before user-facing support is claimed. |
 | 1685 | Done | `docs/design/130-phase-18-comparator-boundary-decisions-slices-1631-1632-1685-1686.md` records finite continuous response support and model-frame filtering before support validation. |
 | 1686 | Done | The same note records that rank-deficiency handling should use shared fixed-effect infrastructure unless density tests reveal a skew-normal-specific failure. |
-| 1687 | Done | `tests/testthat/test-skew-normal-boundary.R` now reads this first-test contract as part of the no-fit boundary scan. |
-| 1688 | Done | The boundary test still requires `skew_normal()` to be absent from the namespace. |
-| 1689-1702 | Planned | The next implementation slice should turn this contract into source-level density tests, malformed-neighbour tests, extractor checks, and documentation before exposing `skew_normal()`. |
+| 1687 | Superseded | The no-fit boundary scan was replaced by source-level density and fitted first-slice tests. |
+| 1688 | Superseded | `skew_normal()` is now present in the namespace for the fixed-effect first slice. |
+| 1689-1702 | Done | `tests/testthat/test-skew-normal-density-contract.R` and `tests/testthat/test-skew-normal-location-scale.R` now exercise density, normal-limit, sign, objective, deterministic recovery, Gaussian-limit false-positive, method, simulation, and malformed-neighbour checks before support is claimed. |

@@ -1,0 +1,2 @@
+"diagnostic_id","strategy","parm","level","lower","upper","scale","transformation","tmb_parameter","index","method","profile.engine","conf.status","profile.boundary","profile.message","status","warning_count","warnings","elapsed"
+"q8_diag_001","q4_staged_q8","sd:mu:mu1:(1 + x | p | id):(Intercept)",0.7,0.238655105193325,0.358799914905134,"response","exp","log_sd_re_cov",1,"profile","endpoint","profile",FALSE,"ok","ok",0,"",29.632

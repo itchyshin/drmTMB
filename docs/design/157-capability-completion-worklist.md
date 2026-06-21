@@ -43,10 +43,33 @@ Read this first — it is the distinction most likely to be confused.
    power-grid use; a follow-up robust-refit audit did not rescue any of the
    130 weak fits, while two clean representative fits showed endpoint-profile
    feasibility for the direct q2 targets. The q8 endpoint recovery lane now
-   has a 2026-06-07 local two-cell diagnostic audit, but it also stays out of
-   the power grid: 38/40 manifests completed, convergence rates were 0.263
-   and 0.158, positive-Hessian rates were 0, two fits had leading-minor
-   optimization errors, and no Wald intervals were usable.
+   has diagnostic instrumentation plus a 2026-06-07 local two-cell diagnostic
+   audit, but it also stays out of the power grid: 38/40 manifests completed,
+   convergence rates were 0.263 and 0.158, two fits had leading-minor
+   optimization errors, and no Wald intervals were usable. A 2026-06-08
+   five-row stress audit through the diagnostic writer completed all manifests
+   but converged only 2/5 fits. Because that artifact lane uses `se = FALSE`,
+   it records no positive-Hessian evidence rather than a computed Hessian
+   failure. A follow-up `se = TRUE` probe reran the two formerly converged
+   stress rows and made both nonconverged with `NaNs produced` and
+   ill-conditioned q8 correlation matrices, including under
+   `optimizer_preset = "careful"`. This confirms `hold_diagnostic` and moves
+   the next q8 task to a broader paired staged-start/Hessian rescue audit. A
+   2026-06-08 fallback pilot then showed one successful endpoint profile for a
+   direct q8 SD target, no successful generic bootstrap refits for that same
+   direct target at `R = 3`, and explicit rejection of derived q8 correlations
+   by public bootstrap. A 2026-06-09 usability pilot added validated q4-to-q8
+   theta starts and a sample-size ladder. Larger replication improved q8
+   Hessian and conditioning behaviour: at 96 groups x 12 repeats, cold and
+   SD-staged `se = TRUE` fits had `pdHess = TRUE` and q8 correlation condition
+   numbers near 1.27e6 and 6.11e5. Those fits still returned optimizer code 1,
+   so this is sample-size-dependent usability evidence, not coverage or power
+   promotion. A bounded 2026-06-09 inference pilot produced one direct-SD
+   profile interval on the weak-SD row and no derived-correlation bootstrap
+   intervals from two requested refits. A paired high-sample optimizer-budget
+   pilot then reran the 96 x 12 row with 800 and 1600 `nlminb`
+   evaluations/iterations; the larger budget did not change convergence code,
+   `pdHess`, or the printed q8 correlation diagnostics.
 3. **Not-yet-fitted (the gap).** Capabilities that require new TMB likelihood
    work and do not fit today. These are the ordered tiers in this note and the
    whole point of the local-R session.
@@ -54,12 +77,13 @@ Read this first — it is the distinction most likely to be confused.
 | Capability | Category |
 | --- | --- |
 | Gaussian fixed-effect + location-scale; ordinary `mu` intercepts/slopes/q>2 blocks; independent `sigma` slopes | Implemented |
-| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
+| Bivariate Gaussian: residual `rho12`; `mu1`/`mu2`, same-response `mu`/`sigma`, and `sigma1`/`sigma2` random-**intercept** covariance; slope-only `mu1`/`mu2`, same-response `mu`/`sigma`, and q4/q6 `mu1`/`mu2` **location** blocks; q2 `sigma1`/`sigma2` scale-slope blocks; first q8 all-endpoint ordinary Gaussian block | Implemented (same-response q2, q2 scale-slope, and q8 rows have smoke/recovery writers; q4/q6 and q8 correlations are derived-interval-unavailable; q8 has q>4 `check_drm()` diagnostics, per-replicate optimizer/gradient/eigen summaries, diagnostic condition presets, a stress-audit writer, and a 2026-06-07 diagnostic hold audit but no coverage or power evidence) |
 | Recovery/coverage for the bivariate Gaussian + Poisson/NB2 `mu` surfaces | Simulation-evidence (formal Actions artifacts exist for the seven 2026-06-05 lanes; q4/q6 are weak and not promotion evidence) |
 | Ordinary non-Gaussian (`Poisson`/`NB2`/`Student`/`lognormal`/`Gamma`/`beta`/`beta_binomial`/`truncated_nbinom2`) `mu` intercepts + **independent** slopes; NB2 log-`sigma` intercept; q=1 structured intercepts | Implemented |
-| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks exist, and the 2026-06-07 two-cell audit is diagnostic hold evidence; coverage, power, and interval claims remain unavailable) |
+| **q8** endpoint coverage and power artifacts | **Simulation-evidence gap** (first ordinary Gaussian q8 smoke/recovery tasks, diagnostic columns, diagnostic condition presets, stress-audit writer, 2026-06-07 two-cell diagnostic audit, 2026-06-08 five-row stress audit, 2026-06-08 `se = TRUE` Hessian probe, private source-tested start-override, q4-to-q8 SD and theta mapper helpers, paired hard-row start pilots, a 2026-06-09 sample-size ladder, direct-SD endpoint-profile successes, a developer derived-correlation bootstrap artifact, and a paired 800/1600 optimizer-budget pilot exist; low and baseline sample sizes remain fragile, high sample size improves Hessian/conditioning, the larger single-optimizer budget did not change convergence on the high row, and derived q8 correlation intervals remain unavailable after the first two-refit bootstrap pilot) |
+| Fixed-effect `skew_normal()` | **Implemented first slice** (univariate fixed-effect `mu`/`sigma`/`nu`; weighted likelihood, tail-CDF floor, fixed-effect `nu` intervals, deterministic recovery, Gaussian-limit false-positive, malformed-neighbour tests, smoke artifacts, false-positive artifacts, a formal recovery design gate, 2026-06-08 formal-pilot/false-positive artifacts, a simple 2026-06-08 `se = TRUE` Hessian pilot with 8/8 positive-Hessian fits, source-level comparator scale mapping, and one simple `glmmTMB` comparator smoke with nonzero-shape-start caveat exist; no completed formal recovery grid, calibrated false-positive evidence, formal external comparator grid, random effects, structured effects, known sampling covariance, bivariate route, `rho12`, or `skew(id)`) |
 | **Correlated** non-Gaussian slopes; labelled non-Gaussian covariance (q2/q4); non-Gaussian q4/q6/q8 blocks | **Not-yet-fitted** (registry `count_labelled_q2_q4` is `blocked`) |
-| skew-normal; structured slopes beyond one `mu` slope; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
+| structured slopes beyond one `mu` slope; skew-normal random or structured effects; `rho12` random effects; large-data; mixed-response bivariate | **Not-yet-fitted** |
 
 So: **q4/q6 exist only for bivariate *Gaussian location*, q2 same-response
 `mu`/`sigma` and q2 scale-slope `sigma1`/`sigma2` exist as first slices, the
@@ -77,12 +101,32 @@ time.
 **Phase A — implement capabilities (local TMB), in this order:**
 
 1. q8 all-endpoint coverage/power lane — Tier A.2 follow-up; the first fitted
-   route, diagnostic smoke/recovery artifacts, and a 2026-06-07 local
-   two-cell audit exist, but low convergence, zero positive-Hessian rate, two
-   leading-minor optimization errors, and unavailable intervals mean they do
-   not support individual-difference power claims.
+   route, q>4 post-fit diagnostics, diagnostic condition presets, diagnostic
+   smoke/recovery artifacts, a stress-audit writer, a 2026-06-07 local two-cell
+   audit, a 2026-06-08 five-row stress audit, and a 2026-06-09 sample-size
+   usability pilot exist, but low convergence, leading-minor optimization
+   errors in smaller rows, mixed `se = TRUE` Hessian behaviour, and unavailable
+   derived-correlation intervals mean they do not support individual-difference
+   power claims. The private start-override hook, q4-to-q8 SD mapper,
+   q4-to-q8 theta mapper, and paired hard-row pilots now exist; a paired 800 vs
+   1600 optimizer-budget audit on the high sample-size row did not change
+   convergence, so the next q8 task should focus on a deliberately sized row
+   plus alternative optimizer/start diagnostics rather than budget alone, as
+   described in
+   `docs/design/165-phase-18-q8-start-hook-preflight.md`.
 2. *(parallel)* `skew_normal()` fixed-effect first slice — Tier C;
-   implementation-ready, independent of Tier A, good early win.
+   implemented locally as a univariate fixed-effect `mu`/`sigma`/`nu` route,
+   with weighted-objective, fixed-effect interval, CDF-tail-floor,
+   deterministic recovery, Gaussian-limit false-positive,
+   smoke/false-positive artifacts, malformed-neighbour tests, simple
+   positive-Hessian evidence, source-level comparator scale mapping, and one
+   simple `glmmTMB` comparator smoke. A 2026-06-08 three-cell pilot and one
+   symmetric false-positive cell remain warning evidence, while a later simple
+   `se = TRUE` pilot produced 8/8 positive-Hessian fixed-effect fits. The
+   `glmmTMB` smoke showed that nonzero shape starts are needed before trusting
+   comparator fits. Remaining skew-normal work is running and auditing the formal
+   recovery grid, calibrated false-positive checks, examples, formal external-
+   comparator grids, and expansion, not a blocker for the first fitted slice.
 3. Structured `mu` slopes + slope correlations — Tier B: phylogenetic, then
    coordinate-spatial, then `animal()`/`relmat()` (with bivariate genetic
    covariance).
@@ -142,7 +186,8 @@ residual
 `rho12`; `meta_V(V = V)`; coordinate-spatial,
 phylogenetic, `animal()`, and `relmat()` Gaussian `mu`/`sigma` intercepts plus
 one `mu` slope; ordinary Poisson/NB2 `mu` random effects and q=1 structured
-intercepts; the fixed-effect non-Gaussian family set; fixed-effect ordinal.
+intercepts; the fixed-effect non-Gaussian family set including fixed-effect
+`skew_normal()`; fixed-effect ordinal.
 
 The remaining evidence and capability gaps below are what stand between that
 surface and the "all capabilities planned" milestone. The q2 `sigma1`/`sigma2`
@@ -169,13 +214,33 @@ plasticity, residual variability, and its change. Finish it in order.
      `bivariate_gaussian_q8_endpoint_recovery`.
    - The first ordinary Gaussian fitting slice exists for matching all-four
      `(1 + x | p | id)` endpoint terms, with smoke and recovery artifact
-   writers. Treat these as diagnostic before power: the recovery lane records
-   bias, RMSE, MCSE, and interval unavailability, not coverage. The
-   2026-06-07 audit confirms the hold: 38/40 requested fits completed, model
-   convergence was 0.263 and 0.158 across the two cells, positive-Hessian
-   rates were 0, two replicates failed with non-positive leading minors, and
-   no Wald intervals were usable. Keep q8 correlations
-   `derived_interval_unavailable` until a validated interval method exists.
+     writers. Treat these as diagnostic before power: the recovery lane
+     records bias, RMSE, MCSE, and interval unavailability, not coverage. The
+     diagnostic condition grid now sweeps replication, endpoint-SD ratio,
+     residual `rho12`, and latent-correlation intensity for follow-up stress
+     runs, and the stress-audit writer can emit the diagnostic-summary CSV
+     without promoting q8. The 2026-06-07 audit confirms the hold: 38/40
+     requested fits completed, model convergence was 0.263 and 0.158 across the
+     two cells, two replicates failed with non-positive leading minors, and no
+     Wald intervals were usable. The 2026-06-08 stress audit completed all five
+     diagnostic manifests but converged only the high latent-correlation and
+     weak-SD-ratio rows under `se = FALSE`, so the stress artifacts did not
+     compute Hessian evidence. The follow-up `se = TRUE` Hessian probe reran
+     those two rows; both became nonconverged, emitted `NaNs produced`, and had
+     ill-conditioned latent correlation matrices. `optimizer_preset = "careful"`
+     did not rescue them. Q4-staged starts improved one low-replication row,
+     and the 2026-06-09 theta-staged pilot rescued the weak-SD row from a
+     cold-start leading-minor error, but theta starts were not uniformly better.
+     The 2026-06-09 sample-size ladder showed the key direction: high
+     replication improved q8 conditioning and gave positive Hessians for cold
+     and SD-staged fits, while low and baseline rows remained fragile. Direct
+     q8 SD profiles can work, including one 2026-06-09 weak-SD interval, but
+     derived q8 correlations remain `derived_interval_unavailable` until a
+     custom bootstrap or other validated interval method returns successful
+     refits. A paired 800/1600 optimizer-budget audit on the high sample-size
+     row did not change convergence, so treat the next q8 task as an
+     alternative optimizer/start and deliberately sized-data diagnostic, not a
+     power grid.
 
 ## Tier B — Structured Random Slopes (#33, #147)
 
@@ -194,8 +259,26 @@ plasticity, residual variability, and its change. Finish it in order.
 7. **`skew_normal()` fixed-effect first slice.**
    - Gates: `docs/design/127-...parameterization-decision`,
      `128-...test-contract`, `132-...implementation-gate`,
-     `123-...source-map`. The parameterization and test contract are decided;
-     this slice is implementation-ready.
+     `123-...source-map`, and
+     `162-phase-18-skew-normal-fixed-effect-formal-recovery-design.md` plus
+     `166-phase-18-skew-normal-comparator-scale-map.md`. The parameterization,
+     source tests, constructor, TMB branch, methods, docs, smoke artifact lane,
+     symmetric false-positive artifact lane, and comparator scale map are
+     implemented locally, including deterministic recovery,
+     factor/correlated-predictor, `nu ~ w` direction, Gaussian-limit
+     false-positive source tests, and native Azzalini scale conversion tests. One
+     simple `glmmTMB` comparator smoke matched `drmTMB` estimates for
+     `sigma ~ 1`, `nu ~ 1` only when `glmmTMB` was started with nonzero `psi`;
+     the default start stayed at the symmetric shape boundary. The first
+     2026-06-08 formal pilot converged all nine smoke-helper fits but
+     computed no Hessian evidence because it used `se = FALSE`; the symmetric
+     false-positive cell converged with `pdHess = FALSE` and fitted
+     `|nu| = 0.981`. A follow-up simple Hessian pilot with `se = TRUE` and
+     `optimizer_preset = "careful"` converged 8/8 fixed-effect fits with
+     `pdHess = TRUE`, covering constant-scale, heteroscedastic, and `nu ~ w`
+     probes. Symmetric cells still fit nonzero slant and the `nu ~ w` slope
+     under-recovered, so treat these as first-slice Hessian evidence and warning
+     diagnostics, not formal recovery evidence.
    - Scope: univariate fixed-effect `mu`/`sigma`/`nu` only; no random or
      structured effects in the first slice.
 

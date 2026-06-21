@@ -1,0 +1,3 @@
+"comparator","available","local_action","note"
+"sn",FALSE,"external fit not run","Needed for SN-family scale mapping and likelihood comparison."
+"gamlss",FALSE,"external fit not run","Needed for GAMLSS SN1/SN2 scale mapping and likelihood comparison."

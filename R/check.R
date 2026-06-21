@@ -12,7 +12,8 @@
 #' [TMB::sdreport()], finite fixed-effect standard errors, dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, known sampling covariance summaries,
+#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
 #' univariate Gaussian fit includes one or more matched labelled
@@ -197,6 +198,7 @@ check_drm.drmTMB <- function(
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_skew_normal_nu(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -209,6 +211,10 @@ check_drm.drmTMB <- function(
     check_biv_mu_random_effect_covariance(object),
     check_biv_sigma_random_effect_covariance(object),
     check_biv_q4_random_effect_covariance(
+      object,
+      rho_boundary = rho_boundary
+    ),
+    check_biv_qgt2_random_effect_covariance(
       object,
       rho_boundary = rho_boundary
     ),
@@ -776,6 +782,46 @@ check_student_nu <- function(object) {
     "ok",
     value,
     "All fitted Student-t nu values are finite and above the boundary at 2."
+  )
+}
+
+check_skew_normal_nu <- function(object) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) e)
+  if (inherits(nu, "error")) {
+    return(check_row(
+      "skew_normal_nu",
+      "warning",
+      NA_character_,
+      paste("Could not extract skew-normal nu values:", conditionMessage(nu))
+    ))
+  }
+  if (!all(is.finite(nu))) {
+    return(check_row(
+      "skew_normal_nu",
+      "error",
+      NA_character_,
+      "At least one fitted skew-normal nu value is non-finite."
+    ))
+  }
+
+  max_abs <- max(abs(nu), 0)
+  value <- paste0("max_abs=", format_check_number(max_abs))
+  if (max_abs > 10) {
+    return(check_row(
+      "skew_normal_nu",
+      "note",
+      value,
+      "At least one fitted skew-normal slant value is large; inspect the profile target, residual shape, and Gaussian or Student-t sensitivity models before interpreting skewness."
+    ))
+  }
+  check_row(
+    "skew_normal_nu",
+    "ok",
+    value,
+    "All fitted skew-normal nu values are finite."
   )
 }
 
@@ -2046,6 +2092,278 @@ bivariate_q4_re_diagnostic_message <- function(
     ))
   }
   "Ordinary q4 location-scale covariance has replicated groups, non-negligible fitted component SDs, and latent correlations away from the boundary."
+}
+
+check_biv_qgt2_random_effect_covariance <- function(object, rho_boundary) {
+  if (!identical(object$model$model_type, "biv_gaussian")) {
+    return(NULL)
+  }
+  registry <- object$model$random$covariance_blocks
+  if (
+    !is.list(registry) ||
+      is.null(registry$blocks) ||
+      nrow(registry$blocks) == 0L
+  ) {
+    return(NULL)
+  }
+
+  blocks <- registry$blocks[
+    registry$blocks$implemented &
+      registry$blocks$n_members > 4L &
+      registry$blocks$level == "group",
+    ,
+    drop = FALSE
+  ]
+  if (nrow(blocks) == 0L) {
+    return(NULL)
+  }
+
+  block_summaries <- lapply(seq_len(nrow(blocks)), function(i) {
+    block <- blocks[i, , drop = FALSE]
+    members <- registry$members[
+      registry$members$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    pairs <- registry$pairs[
+      registry$pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    first_member <- members[order(members$member_id0), , drop = FALSE][1L, ]
+    group_counts <- registry_member_group_counts(
+      first_member,
+      block$n_groups[[1L]]
+    )
+    location_sd_ratios <- bivariate_q4_location_sd_ratios(object, members)
+    scale_sd_values <- bivariate_q4_scale_sd_values(object, members)
+    correlations <- bivariate_q4_correlations(object, pairs)
+    cor_diagnostics <- bivariate_qgt2_correlation_diagnostics(
+      members,
+      pairs,
+      correlations
+    )
+
+    list(
+      n_members = block$n_members[[1L]],
+      n_pairs = nrow(pairs),
+      n_groups = block$n_groups[[1L]],
+      min_group_n = if (length(group_counts) > 0L) {
+        min(group_counts)
+      } else {
+        NA_real_
+      },
+      singleton_groups = sum(group_counts < 2L),
+      min_location_sd_ratio = min_finite_or_na(location_sd_ratios),
+      min_log_sigma_sd = min_finite_or_na(scale_sd_values),
+      max_abs_cor = max_abs_finite_or_na(correlations),
+      min_cor_eigen = cor_diagnostics$min_eigen,
+      max_cor_condition = cor_diagnostics$condition
+    )
+  })
+
+  max_q <- max(vapply(block_summaries, `[[`, numeric(1L), "n_members"))
+  max_pairs <- max(vapply(block_summaries, `[[`, numeric(1L), "n_pairs"))
+  min_groups <- min(vapply(block_summaries, `[[`, numeric(1L), "n_groups"))
+  min_group_n <- min_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_group_n"
+  ))
+  singleton_groups <- sum(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "singleton_groups"
+  ))
+  min_location_sd_ratio <- min_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_location_sd_ratio"
+  ))
+  min_log_sigma_sd <- min_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_log_sigma_sd"
+  ))
+  max_abs_cor <- max_abs_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "max_abs_cor"
+  ))
+  min_cor_eigen <- min_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "min_cor_eigen"
+  ))
+  max_cor_condition <- max_finite_or_na(vapply(
+    block_summaries,
+    `[[`,
+    numeric(1L),
+    "max_cor_condition"
+  ))
+
+  weak_group_count <- min_groups < 2L * max_q
+  weak_replication <- is.finite(min_group_n) && min_group_n < 2L
+  weak_location_sd <- is.finite(min_location_sd_ratio) &&
+    min_location_sd_ratio < 0.05
+  weak_scale_sd <- is.finite(min_log_sigma_sd) && min_log_sigma_sd < 0.05
+  near_rho_boundary <- !is.finite(max_abs_cor) || max_abs_cor > rho_boundary
+  ill_conditioned <- (is.finite(min_cor_eigen) && min_cor_eigen < 1e-6) ||
+    (is.finite(max_cor_condition) && max_cor_condition > 1e6)
+
+  check_row(
+    "biv_qgt2_random_effect_covariance",
+    if (near_rho_boundary || ill_conditioned) {
+      "warning"
+    } else if (
+      weak_group_count ||
+        weak_replication ||
+        weak_location_sd ||
+        weak_scale_sd
+    ) {
+      "note"
+    } else {
+      "ok"
+    },
+    paste0(
+      "n_blocks=",
+      nrow(blocks),
+      "; max_q=",
+      max_q,
+      "; max_pairs=",
+      max_pairs,
+      "; min_groups=",
+      min_groups,
+      "; min_group_n=",
+      format_check_number(min_group_n),
+      "; singleton_groups=",
+      singleton_groups,
+      "; min_location_sd_ratio=",
+      format_check_number(min_location_sd_ratio),
+      "; min_log_sigma_sd=",
+      format_check_number(min_log_sigma_sd),
+      "; max_abs_cor=",
+      format_check_number(max_abs_cor),
+      "; min_cor_eigen=",
+      format_check_number(min_cor_eigen),
+      "; max_cor_condition=",
+      format_check_number(max_cor_condition),
+      "; boundary=",
+      format_check_number(rho_boundary)
+    ),
+    bivariate_qgt2_re_diagnostic_message(
+      max_q,
+      max_pairs,
+      near_rho_boundary,
+      ill_conditioned,
+      weak_group_count,
+      weak_replication,
+      weak_location_sd,
+      weak_scale_sd
+    )
+  )
+}
+
+bivariate_qgt2_correlation_diagnostics <- function(
+  members,
+  pairs,
+  correlations
+) {
+  q <- nrow(members)
+  if (q < 2L || nrow(pairs) == 0L || length(correlations) != nrow(pairs)) {
+    return(list(min_eigen = NA_real_, condition = NA_real_))
+  }
+
+  member_ids <- members$member_id0[order(members$member_id0)]
+  correlation_matrix <- diag(q)
+  from <- match(pairs$from_member_id0, member_ids)
+  to <- match(pairs$to_member_id0, member_ids)
+  ok <- !is.na(from) & !is.na(to) & is.finite(correlations)
+  if (!all(ok)) {
+    return(list(min_eigen = NA_real_, condition = NA_real_))
+  }
+
+  correlation_matrix[cbind(from, to)] <- correlations
+  correlation_matrix[cbind(to, from)] <- correlations
+  eigenvalues <- tryCatch(
+    eigen(correlation_matrix, symmetric = TRUE, only.values = TRUE)$values,
+    error = function(e) NA_real_
+  )
+  if (!all(is.finite(eigenvalues))) {
+    return(list(min_eigen = NA_real_, condition = NA_real_))
+  }
+
+  min_eigen <- min(eigenvalues)
+  max_eigen <- max(eigenvalues)
+  condition <- if (min_eigen > 0) {
+    max_eigen / min_eigen
+  } else {
+    Inf
+  }
+  list(min_eigen = min_eigen, condition = condition)
+}
+
+bivariate_qgt2_re_diagnostic_message <- function(
+  max_q,
+  max_pairs,
+  near_rho_boundary,
+  ill_conditioned,
+  weak_group_count,
+  weak_replication,
+  weak_location_sd,
+  weak_scale_sd
+) {
+  if (near_rho_boundary || ill_conditioned) {
+    problems <- c(
+      if (near_rho_boundary) "at least one latent correlation is close to +/-1",
+      if (ill_conditioned) {
+        "the reconstructed latent correlation matrix is ill-conditioned"
+      }
+    )
+    return(paste(
+      paste0(
+        "A q",
+        max_q,
+        " endpoint covariance block is fitted with ",
+        max_pairs,
+        " latent correlations, but"
+      ),
+      paste(problems, collapse = " and "),
+      "so profile, simulate, or simplify before interpreting the full block."
+    ))
+  }
+  weak <- c(
+    if (weak_group_count) {
+      paste0("few groups for a q", max_q, " covariance block")
+    },
+    if (weak_replication) {
+      "at least one group has fewer than two fitted observations"
+    },
+    if (weak_location_sd) {
+      "at least one location SD is tiny relative to residual scale"
+    },
+    if (weak_scale_sd) "at least one log-sigma random-effect SD is tiny"
+  )
+  if (length(weak) > 0L) {
+    return(paste(
+      paste0("A q", max_q, " endpoint covariance block is fitted, but"),
+      paste(weak, collapse = "; "),
+      "so interpret the full latent correlation block cautiously."
+    ))
+  }
+  paste0(
+    "q",
+    max_q,
+    " endpoint covariance has replicated groups, non-negligible fitted component SDs, and ",
+    max_pairs,
+    " latent correlations away from the boundary."
+  )
 }
 
 random_effect_label_is_intercept <- function(label) {

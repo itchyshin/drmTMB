@@ -1,15 +1,15 @@
 # Phase 18 Skew-Normal Source Map, Slices 1519-1538
 
-This note is an admission gate for the first skew-normal lane. It does not
-implement `skew_normal()`. Its reader is the R package contributor who will
-eventually add a fixed-effect likelihood and must know which existing software,
-parameterizations, tests, and claims are safe to copy.
+This note is the source map for the first skew-normal lane. It began as an
+admission gate before package support existed. On 2026-06-08 the fixed-effect
+first slice was implemented; this note now records which existing software,
+parameterizations, tests, and claims remain safe comparators for maintenance and
+future expansion.
 
 The first target is residual or observation-level asymmetry in a univariate
 continuous response:
 
 ```r
-# Planned, not fitted yet:
 drmTMB(
   bf(y ~ x, sigma ~ z, nu ~ w),
   family = skew_normal(),
@@ -30,12 +30,12 @@ The local design already fixes the narrow boundary:
 
 | Source | Current local contract |
 | --- | --- |
-| `docs/design/03-likelihoods.md`, "Planned Skew-Normal Location-Scale-Shape Gate" | Candidate moment-parameter contract with public `mu = E[y]`, public `sigma = SD[y]`, `nu_i = eta_nu_i`, normal limit at `nu = 0`, and positive `nu` as right-skewed residuals after transforming internally to native `xi`, `omega`, and `alpha`. |
-| `docs/design/02-family-registry.md`, "Planned: Skew-Normal Location-Scale-Shape" | Planned family object has `dpars = c("mu", "sigma", "nu")` and links `identity`, `log`, and `identity`; no constructor is implemented. |
+| `docs/design/03-likelihoods.md`, "Implemented Skew-Normal Location-Scale-Shape" | Moment-parameter contract with public `mu = E[y]`, public `sigma = SD[y]`, `nu_i = eta_nu_i`, normal limit at `nu = 0`, and positive `nu` as right-skewed residuals after transforming internally to native `xi`, `omega`, and `alpha`. |
+| `docs/design/02-family-registry.md`, "Implemented: Skew-Normal Location-Scale-Shape" | The family object has `dpars = c("mu", "sigma", "nu")` and links `identity`, `log`, and `identity`; the implemented route is fixed-effect and univariate. |
 | `docs/design/14-gamlss-parameter-names.md` | `nu` is the canonical first shape parameter. `skew` can be considered later as an alias, not as the first public spelling. |
 | `docs/design/19-phylogenetic-location-scale-shape.md` | Residual `nu ~ x` and future latent-effect `skew(id) ~ x` are different scientific questions. |
-| `docs/design/41-phase-18-simulation-programme.md` and `docs/design/46-pre-simulation-readiness-matrix.md` | Fixed-effect Student-t `nu` is admitted; skew-normal and skew-t remain design-only until likelihood, interval, diagnostic, and recovery evidence exists. |
-| `R/drmTMB.R` and `tests/testthat/test-student-location-scale.R` | Bar terms in `nu` or future `tau` formulas fail with a shape-specific boundary, including a message that future skew-normal and skew-t shape parameters need fixed-effect recovery before random effects. |
+| `docs/design/41-phase-18-simulation-programme.md` and `docs/design/46-pre-simulation-readiness-matrix.md` | Fixed-effect Student-t `nu` and fixed-effect skew-normal `nu` are admitted; skew-normal random effects, structured effects, bivariate routes, and skew-t remain planned until likelihood, interval, diagnostic, and recovery evidence exists. |
+| `R/drmTMB.R`, `tests/testthat/test-skew-normal-location-scale.R`, and `tests/testthat/test-skew-normal-density-contract.R` | The fixed-effect `skew_normal()` route is implemented with density, objective, normal-limit, method, simulation, and malformed-neighbour tests. Bar terms in `mu`, `sigma`, or `nu` fail with a first-slice boundary. |
 | `ROADMAP.md`, Phase 16 and row 1953 | First asymmetry slice is fixed-effect and univariate; no `sigma` random effects, `nu` random effects, `sd(group)` scale models, `phylo()`, `spatial()`, bivariate skew-normal, or `rho12`. |
 
 ## Software Source Map
@@ -70,7 +70,7 @@ The local design already fixes the narrow boundary:
 
 ## Parameterization Choice
 
-The next implementation lane should use the moment contract: `mu = E[y]`,
+The implemented first lane uses the moment contract: `mu = E[y]`,
 `sigma = SD[y]`, and `nu = alpha`. This matches `brms::skew_normal()`,
 `brms::SkewNormal`, `glmmTMB::skewnormal()`, and
 `RTMBdist::dskewnorm2()` most closely. It is friendlier for `fitted()` and
@@ -89,7 +89,8 @@ contract for the first fitted `drmTMB` family.
 
 ## Malformed-Neighbour Checklist
 
-The first runnable skew-normal lane should reject these neighbours before TMB:
+The first runnable skew-normal lane rejects these neighbours before TMB or
+during spec construction:
 
 - any random-effect bar term in `nu`, including `nu ~ x + (1 | id)` and
   `nu ~ x + (0 + x | id)`;
@@ -109,9 +110,9 @@ The first runnable skew-normal lane should reject these neighbours before TMB:
   dropping;
 - all-zero or near-all-zero initial `nu` states if derivative checks show the
   optimizer can get stuck at the symmetric limit;
-- examples, reference docs, or simulation labels that imply fitted support
-  before the constructor, density branch, extractors, diagnostics, and tests
-  exist.
+- examples, reference docs, or simulation labels that imply broad fitted
+  support beyond the constructor, density branch, extractors, diagnostics, and
+  tests that exist today.
 
 ## Comparator Tests And Benchmarks To Add Later
 
@@ -119,8 +120,8 @@ Comparator tests should be small before they are broad:
 
 - density equality against `sn::dsn()` and `RTMBdist::dskewnorm()` at negative,
   zero, and positive `nu`, including log-density and tail points;
-- normal-limit equality against `gaussian()` when `nu = 0`, with the same
-  `mu` and `sigma` interpretation stated in the test name;
+- external normal-limit equality against `gaussian()` when `nu = 0`, with the
+  same `mu` and `sigma` interpretation stated in the test name;
 - sign-convention tests showing positive `nu` produces right-skewed residuals
   and negative `nu` produces left-skewed residuals under the chosen density;
 - simulation recovery for intercept-only `nu`, then `nu ~ w`, with positive
@@ -128,8 +129,8 @@ Comparator tests should be small before they are broad:
 - false-positive grids where the data are Gaussian but `sigma ~ z` is active,
   to check that `nu ~ w` does not absorb heteroscedasticity;
 - confounding grids where `x`, `z`, and `w` have controlled correlations;
-- `fitted()`, `predict(dpar = "mu")`, `sigma()`, and future `predict(dpar =
-  "nu")` tests that confirm public response-mean, response-SD, and shape
+- `fitted()`, `predict(dpar = "mu")`, `sigma()`, and `predict(dpar = "nu")`
+  tests that confirm public response-mean, response-SD, and shape
   semantics;
 - profile-target or interval-status rows for fixed `mu`, `sigma`, and `nu`
   coefficients before any coverage claim;
@@ -166,12 +167,12 @@ boundary; Ada can integrate this source map into those serial ledgers later.
 
 ## Supported And Unsafe Novelty Claims
 
-Supported now: `drmTMB` has a documented, evidence-gated plan for a univariate
-fixed-effect skew-normal location-scale-shape family with canonical
-`mu`/`sigma`/`nu` formulas, residual skewness first, and no latent-effect
-skewness grammar.
+Supported now: `drmTMB` has a univariate fixed-effect skew-normal
+location-scale-shape family with canonical `mu`/`sigma`/`nu` formulas, residual
+skewness first, density and normal-limit tests, fixed-effect method checks, and
+no latent-effect skewness grammar.
 
-Not supported now: fitted `skew_normal()` support, latent skewness, skew-normal
-random effects, bivariate skew-normal `rho12`, broad phylogenetic
-location-scale-shape skewness models, or a claim that `drmTMB` is the first R
-package to model skew-normal location, scale, and shape predictors.
+Not supported now: latent skewness, skew-normal random effects, bivariate
+skew-normal `rho12`, broad phylogenetic location-scale-shape skewness models,
+or a claim that `drmTMB` is the first R package to model skew-normal location,
+scale, and shape predictors.

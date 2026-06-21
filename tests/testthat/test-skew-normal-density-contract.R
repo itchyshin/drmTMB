@@ -62,6 +62,30 @@ test_that("skew-normal reference density has the Gaussian normal limit", {
   )
 })
 
+test_that("skew-normal TMB tail floor preserves ordinary log densities", {
+  y <- seq(-2, 2, length.out = 9)
+  exact <- skew_normal_log_density_reference(
+    y = y,
+    mu = 0.25,
+    sigma = 0.8,
+    nu = 1.4
+  )
+  floored <- skew_normal_log_density_tmb_floor_reference(
+    y = y,
+    mu = 0.25,
+    sigma = 0.8,
+    nu = 1.4
+  )
+
+  expect_equal(floored, exact, tolerance = 1e-12)
+  expect_true(is.finite(skew_normal_log_density_tmb_floor_reference(
+    y = 100,
+    mu = 0,
+    sigma = 1,
+    nu = -10
+  )))
+})
+
 test_that("skew-normal reference density records the public sign orientation", {
   nu <- c(-4, -1.5, 0, 1.5, 4)
   third_moment <- skew_normal_third_central_moment_reference(
@@ -90,10 +114,74 @@ test_that("skew-normal reference density records the public sign orientation", {
   expect_equal(right_skew, left_skew_mirror, tolerance = 1e-12)
 })
 
-test_that("skew-normal density fixture remains test-only", {
+test_that("skew-normal comparator scale map separates native and moment scales", {
+  scale_map <- skew_normal_comparator_scale_map(
+    mu = 0.4,
+    sigma = 1.2,
+    nu = -2.5
+  )
+  native <- scale_map$native_azzalini
+  public <- scale_map$public_moment
+
+  mean_shift <- public$alpha / sqrt(1 + public$alpha^2) * sqrt(2 / pi)
+
+  expect_equal(native$alpha, public$alpha)
+  expect_gt(native$omega, 0)
+  expect_equal(
+    native$xi + native$omega * mean_shift,
+    public$mu,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    native$omega * sqrt(1 - mean_shift^2),
+    public$sigma,
+    tolerance = 1e-12
+  )
+
+  comparator <- scale_map$comparators
+  expect_equal(
+    comparator$parameter_scale[comparator$comparator == "sn::dsn"],
+    "native_azzalini"
+  )
+  expect_equal(
+    comparator$parameter_scale[comparator$comparator == "RTMBdist::dskewnorm2"],
+    "public_moment"
+  )
   expect_false(
+    comparator$comparable_density[comparator$comparator == "gamlss.dist::SN2"]
+  )
+  expect_equal(
+    comparator$parameter_scale[comparator$comparator == "gamlss.dist::SN2"],
+    "two_piece_not_azzalini"
+  )
+})
+
+test_that("skew-normal native comparator density matches after scale conversion", {
+  y <- seq(-2.5, 2.5, length.out = 11)
+  scale_map <- skew_normal_comparator_scale_map(
+    mu = -0.2,
+    sigma = 0.9,
+    nu = 1.7
+  )
+  native <- scale_map$native_azzalini
+  z <- (y - native$xi) / native$omega
+  native_log_density <- log(2) -
+    log(native$omega) +
+    dnorm(z, log = TRUE) +
+    pnorm(native$alpha * z, log.p = TRUE)
+
+  expect_equal(
+    native_log_density,
+    skew_normal_log_density_reference(y = y, mu = -0.2, sigma = 0.9, nu = 1.7),
+    tolerance = 1e-12
+  )
+})
+
+test_that("skew-normal density fixture matches the exported first slice", {
+  expect_true(
     exists("skew_normal", envir = asNamespace("drmTMB"), inherits = FALSE)
   )
+  expect_equal(unname(skew_normal()$links[["nu"]]), "identity")
 
   expect_error(
     skew_normal_public_to_native(mu = 0, sigma = 0, nu = 0),

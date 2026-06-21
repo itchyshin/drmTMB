@@ -363,9 +363,9 @@ ggplot(scale_check, aes(temperature, abs_residual, colour = habitat)) +
 
 Confidence intervals are only one slice through the uncertainty surface. This
 gallery calls the fuller display a Confidence Eye: a pale confidence region
-with a hollow point-estimate circle. The idea is close to
-[Raindrop plots](https://doi.org/10.1198/0003130032369), but the name and use
-are deliberately distinct. A Confidence Eye is not a posterior density; it is a
+with a hollow point-estimate circle. The idea is close to the raindrop-plot
+family of uncertainty displays, but the name and use are deliberately distinct.
+A Confidence Eye is not a posterior density; it is a
 frequentist compatibility display that gives confidence intervals a visible
 shape without adding interval bars, filled estimate dots, or outlines by
 default. The code below uses a normal likelihood approximation from the estimate

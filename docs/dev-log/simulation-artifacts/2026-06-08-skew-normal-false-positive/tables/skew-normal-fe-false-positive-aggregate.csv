@@ -1,0 +1,6 @@
+"surface","cell_id","parameter","n_replicate","artifact_grain","mean_truth","mean_estimate","bias","rmse","mean_abs_error","empirical_se","convergence_rate","pdHess_rate","warning_rate","mean_elapsed","bias_mcse","rmse_mcse"
+"skew_normal_fixed_effect_false_positive","skew_normal_fixed_effect_001","mu:(Intercept)",1,"aggregate",0.2,0.21927671815164,0.0192767181516401,0.0192767181516401,0.0192767181516401,NA,1,0,0,0.364,NA,NA
+"skew_normal_fixed_effect_false_positive","skew_normal_fixed_effect_001","mu:x",1,"aggregate",0.4,0.460017974750308,0.0600179747503076,0.0600179747503076,0.0600179747503076,NA,1,0,0,0.364,NA,NA
+"skew_normal_fixed_effect_false_positive","skew_normal_fixed_effect_001","nu:(Intercept)",1,"aggregate",0,-0.981199860745016,-0.981199860745016,0.981199860745016,0.981199860745016,NA,1,0,0,0.364,NA,NA
+"skew_normal_fixed_effect_false_positive","skew_normal_fixed_effect_001","sigma:(Intercept)",1,"aggregate",-0.35,-0.339634823828149,0.010365176171851,0.010365176171851,0.010365176171851,NA,1,0,0,0.364,NA,NA
+"skew_normal_fixed_effect_false_positive","skew_normal_fixed_effect_001","sigma:z",1,"aggregate",0.15,0.206205766627489,0.0562057666274886,0.0562057666274886,0.0562057666274886,NA,1,0,0,0.364,NA,NA

@@ -1754,6 +1754,7 @@ test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope bloc
   )
   chk <- check_drm(fit)
   convergence_check <- chk[chk$check == "optimizer_convergence", ]
+  qgt2_check <- chk[chk$check == "biv_qgt2_random_effect_covariance", ]
   cor_targets <- targets[
     match(paste0("cor:re_cov:", expected_cor), targets$parm),
   ]
@@ -1762,6 +1763,12 @@ test_that("bivariate Gaussian supports q8 all-endpoint location-scale slope bloc
   expect_true(fit$opt$convergence %in% c(0L, 1L))
   expect_true(is.finite(fit$opt$objective))
   expect_true(convergence_check$status %in% c("ok", "warning"))
+  expect_equal(nrow(qgt2_check), 1L)
+  expect_true(qgt2_check$status %in% c("ok", "note", "warning"))
+  expect_match(qgt2_check$value, "max_q=8")
+  expect_match(qgt2_check$value, "max_pairs=28")
+  expect_match(qgt2_check$value, "min_cor_eigen=")
+  expect_match(qgt2_check$message, "q8 endpoint covariance")
   expect_equal(fit$model$random$mu$n_re, 0L)
   expect_equal(fit$model$random$sigma$n_re, 0L)
   expect_equal(fit$model$random$covariance_blocks$n_qgt2_blocks, 1L)

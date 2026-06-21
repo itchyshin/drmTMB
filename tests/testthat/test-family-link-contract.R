@@ -1,6 +1,7 @@
 test_that("internal link table maps implemented distributional parameters", {
   fake_gaussian <- list(model = list(model_type = "gaussian"))
   fake_student <- list(model = list(model_type = "student"))
+  fake_skew_normal <- list(model = list(model_type = "skew_normal"))
   fake_lognormal <- list(model = list(model_type = "lognormal"))
   fake_gamma <- list(model = list(model_type = "gamma"))
   fake_tweedie <- list(model = list(model_type = "tweedie"))
@@ -17,6 +18,9 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(drmTMB:::drm_dpar_link(fake_gaussian, "mu"), "identity")
   expect_equal(drmTMB:::drm_dpar_link(fake_gaussian, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_student, "nu"), "logm2")
+  expect_equal(drmTMB:::drm_dpar_link(fake_skew_normal, "mu"), "identity")
+  expect_equal(drmTMB:::drm_dpar_link(fake_skew_normal, "sigma"), "log")
+  expect_equal(drmTMB:::drm_dpar_link(fake_skew_normal, "nu"), "identity")
   expect_equal(drmTMB:::drm_dpar_link(fake_lognormal, "sigma"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_gamma, "mu"), "log")
   expect_equal(drmTMB:::drm_dpar_link(fake_gamma, "sigma"), "log")
@@ -49,6 +53,9 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(unname(tweedie()$links[["mu"]]), "log")
   expect_equal(unname(tweedie()$links[["sigma"]]), "log")
   expect_equal(unname(tweedie()$links[["nu"]]), "logit12")
+  expect_equal(unname(skew_normal()$links[["mu"]]), "identity")
+  expect_equal(unname(skew_normal()$links[["sigma"]]), "log")
+  expect_equal(unname(skew_normal()$links[["nu"]]), "identity")
   expect_equal(unname(truncated_nbinom2()$links[["mu"]]), "log")
   expect_equal(unname(truncated_nbinom2()$links[["sigma"]]), "log")
   expect_equal(unname(beta()$links[["mu"]]), "logit")
@@ -62,6 +69,7 @@ test_that("internal link table maps implemented distributional parameters", {
 test_that("internal inverse links match the documented parameter scales", {
   fake_gaussian <- list(model = list(model_type = "gaussian"))
   fake_student <- list(model = list(model_type = "student"))
+  fake_skew_normal <- list(model = list(model_type = "skew_normal"))
   fake_gamma <- list(model = list(model_type = "gamma"))
   fake_tweedie <- list(model = list(model_type = "tweedie"))
   fake_beta <- list(model = list(model_type = "beta"))
@@ -78,6 +86,12 @@ test_that("internal inverse links match the documented parameter scales", {
   expect_equal(drmTMB:::drm_inverse_link(fake_gaussian, "mu", eta), eta)
   expect_equal(drmTMB:::drm_inverse_link(fake_gaussian, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_student, "nu", eta), 2 + exp(eta))
+  expect_equal(drmTMB:::drm_inverse_link(fake_skew_normal, "mu", eta), eta)
+  expect_equal(
+    drmTMB:::drm_inverse_link(fake_skew_normal, "sigma", eta),
+    exp(eta)
+  )
+  expect_equal(drmTMB:::drm_inverse_link(fake_skew_normal, "nu", eta), eta)
   expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "mu", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_gamma, "sigma", eta), exp(eta))
   expect_equal(drmTMB:::drm_inverse_link(fake_tweedie, "mu", eta), exp(eta))

@@ -42,7 +42,7 @@ phase18_dgp_biv_gaussian_q8_endpoint_cell <- function(
       call. = FALSE
     )
   }
-  phase18_dgp_biv_gaussian_q8_endpoint(
+  dat <- phase18_dgp_biv_gaussian_q8_endpoint(
     n_id = cell$n_id[[1L]],
     n_each = cell$n_each[[1L]],
     beta_mu1 = c(
@@ -87,6 +87,23 @@ phase18_dgp_biv_gaussian_q8_endpoint_cell <- function(
     cell_id = cell_id,
     replicate = replicate
   )
+  diagnostic_columns <- intersect(
+    c(
+      "diagnostic_id",
+      "diagnostic_preset",
+      "diagnostic_level",
+      "diagnostic_note"
+    ),
+    names(cell)
+  )
+  if (length(diagnostic_columns) > 0L) {
+    truth <- attr(dat, "truth", exact = TRUE)
+    for (column in diagnostic_columns) {
+      truth[[column]] <- cell[[column]][[1L]]
+    }
+    attr(dat, "truth") <- truth
+  }
+  dat
 }
 
 phase18_fit_biv_gaussian_q8_endpoint <- function(data, cell) {

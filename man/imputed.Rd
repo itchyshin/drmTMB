@@ -58,3 +58,20 @@ This is not multiple imputation: the output does not contain posterior
 means, posterior intervals, credible intervals, or pooled-imputation
 summaries.
 }
+\examples{
+set.seed(20260607)
+dat <- data.frame(
+  y = rnorm(16),
+  x = rnorm(16),
+  z = rnorm(16)
+)
+dat$x[c(4, 11)] <- NA
+
+fit <- drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1),
+  data = dat,
+  impute = list(x = x ~ z),
+  missing = miss_control(predictor = "model")
+)
+imputed(fit)
+}

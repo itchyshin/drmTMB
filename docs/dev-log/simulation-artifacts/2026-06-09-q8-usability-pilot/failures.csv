@@ -1,0 +1,4 @@
+"diagnostic_id","strategy","se","status","message"
+"q8_diag_004","cold",FALSE,"error","the leading minor of order 8 is not positive"
+"q8_size_001","cold",FALSE,"error","the leading minor of order 8 is not positive"
+"q8_size_001","q4_sd_staged",FALSE,"error","the leading minor of order 8 is not positive"

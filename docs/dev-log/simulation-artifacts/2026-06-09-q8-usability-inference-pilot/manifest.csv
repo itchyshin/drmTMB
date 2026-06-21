@@ -1,0 +1,5 @@
+"artifact","path","exists","rows"
+"inference-source-fit","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-inference-pilot/inference-source-fit.csv",TRUE,1
+"direct-sd-profile","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-inference-pilot/direct-sd-profile.csv",TRUE,1
+"derived-correlation-bootstrap-draws","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-inference-pilot/derived-correlation-bootstrap-draws.csv",TRUE,29
+"derived-correlation-bootstrap-intervals","docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-inference-pilot/derived-correlation-bootstrap-intervals.csv",TRUE,0

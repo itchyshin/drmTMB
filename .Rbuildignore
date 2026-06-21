@@ -10,6 +10,7 @@
 ^pkgdown$
 ^pkgdown-site$
 ^_pkgdown\.yml$
+^cran-comments\.md$
 ^AGENTS\.md$
 ^CONTRIBUTING\.md$
 ^ROADMAP\.md$

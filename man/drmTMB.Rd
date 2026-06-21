@@ -12,17 +12,18 @@ drmTMB(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  engine = c("tmb", "julia"),
   ...
 )
 }
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
+\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[=cumulative_logit]{cumulative_logit()}},
-\code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
@@ -92,6 +93,11 @@ route supports one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete count responses, and no
 zero-inflation, random, or structured response terms.}
 
+\item{engine}{Fitting engine. \code{"tmb"} keeps the native R/TMB implementation.
+\code{"julia"} is an experimental bridge to \code{DRM.jl} through \code{JuliaCall};
+install \code{JuliaCall} and either install \code{DRM.jl}, set \code{DRM_JL_PATH}, or set
+\code{options(drmTMB.DRM.jl.path = "/path/to/DRM.jl")}.}
+
 \item{...}{Reserved for future model options.}
 }
 \value{
@@ -100,7 +106,7 @@ A \code{drmTMB} fit object.
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
 supports univariate Gaussian location-scale models,
-univariate Student-t location-scale-shape models, lognormal
+univariate Student-t and skew-normal location-scale-shape models, lognormal
 location-scale models, Gamma mean-CV models for positive responses,
 Tweedie mean-scale-power models for non-negative semicontinuous responses,
 beta mean-scale models for strict proportions,

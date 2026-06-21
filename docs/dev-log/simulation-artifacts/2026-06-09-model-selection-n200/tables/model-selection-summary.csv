@@ -1,0 +1,7 @@
+"surface","artifact_grain","scenario","candidate_set","selection_target","n_replicate","aic_truth_selection_rate","aic_truth_selection_mcse","bic_truth_selection_rate","bic_truth_selection_mcse","mean_delta_aic_truth","mean_delta_bic_truth","candidate_convergence_rate","candidate_pdHess_rate","candidate_warning_rate"
+"model_selection","selection_summary","constant_sigma","sigma_formula","sigma ~ 1",200,0.825,0.0268677315752558,0.975,0.0110397010829098,0.273689713592795,0.0407033513790574,1,1,0
+"model_selection","selection_summary","extra_zeros","nb2_zinb2","ZINB2",200,0.92,0.0191833260932509,0.73,0.0313926743046845,0.0646454173093815,0.625142328108694,1,1,0
+"model_selection","selection_summary","heavy_tail","gaussian_student","Student-t",200,0.84,0.0259229627936314,0.665,0.0333747659167821,0.183728171219776,0.89438057176886,0.9975,0.995,0.005
+"model_selection","selection_summary","nb2_counts","nb2_zinb2","NB2",200,0.935,0.0174320107847603,0.99,0.00703562363973515,0.129062788938202,0.0250295564891275,1,1,0
+"model_selection","selection_summary","normal_tail","gaussian_student","Gaussian",200,0.945,0.0161206389451535,0.98,0.00989949493661167,11.0154909031801,10.9043388195906,0.76,0.8175,0.18
+"model_selection","selection_summary","sigma_signal","sigma_formula","sigma ~ x",200,1,0,1,0,0,0,1,1,0

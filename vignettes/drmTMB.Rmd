@@ -25,19 +25,18 @@ in mind. The broader implemented map lives in
 [What can I fit today?](model-map.html), and family choice lives in
 [Choosing response families](distribution-families.html).
 
-## Install the preview
+## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged preview from GitHub with
-`pak`:
+Install the CRAN release with:
 
 ```r
-install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.1.3")
+install.packages("drmTMB")
 ```
 
 For the newest development build from `main`, use:
 
 ```r
+install.packages("pak")
 pak::pak("itchyshin/drmTMB")
 ```
 
@@ -46,11 +45,10 @@ are compiled during installation. If installation fails while compiling C++,
 install the usual R build tools for your platform: Rtools on Windows, Xcode
 Command Line Tools on macOS, or the R development toolchain on Linux.
 
-The core runtime dependencies are installed automatically by `pak`: `cli`,
-`Matrix`, `TMB`, and the compiled headers from `RcppEigen` and `TMB`. The
-articles and development checks also use optional packages such as `glmmTMB`,
-`lme4`, `MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, `withr`, and
-`pkgdown`.
+The core runtime dependencies are installed automatically: `cli`, `Matrix`,
+`TMB`, and the compiled headers from `RcppEigen` and `TMB`. The articles and
+development checks also use optional packages such as `glmmTMB`, `lme4`,
+`MASS`, `metafor`, `knitr`, `rmarkdown`, `testthat`, `withr`, and `pkgdown`.
 
 For example, an applied user might ask: do mean trait values and residual
 variability change with an environmental predictor, after accounting for

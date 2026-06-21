@@ -1,0 +1,406 @@
+{
+  "title": "Finishing the twin - DRM.jl + drmTMB",
+  "subtitle": "Mission control for the evidence-led R-Julia distributional-regression twin. A row is not done unless engine, bridge, point estimates, CI/status, tests, docs, visuals, issue evidence, and Rose audit agree.",
+  "updated": "2026-06-14 15:40 MDT",
+  "metrics": {
+    "verified": 5,
+    "active": 1,
+    "blocked": 2,
+    "deferred": 3,
+    "total": 24
+  },
+  "phases": [
+    {
+      "id": "Phase 0",
+      "name": "Mission control and truth freeze",
+      "owner": "Ada + Rose + Grace",
+      "status": "active",
+      "counts": "4/5",
+      "slices": [
+        {
+          "name": "Build static mission-control dashboard source",
+          "status": "verified",
+          "issue": "drmTMB#544",
+          "url": "https://github.com/itchyshin/drmTMB/issues/544"
+        },
+        {
+          "name": "Serve live copy from /tmp/drm-dashboard on port 8765",
+          "status": "verified"
+        },
+        {
+          "name": "Record issue-led start note",
+          "status": "blocked"
+        },
+        {
+          "name": "Add check-log and after-task evidence",
+          "status": "verified"
+        },
+        {
+          "name": "Freeze unsupported-claim language",
+          "status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "Phase 1",
+      "name": "Master capability matrix",
+      "owner": "Rose + Fisher + Grace",
+      "status": "active",
+      "counts": "1/4",
+      "slices": [
+        {
+          "name": "Create canonical finish matrix with engine, bridge, inference, docs, visual, and release columns",
+          "status": "active"
+        },
+        {
+          "name": "Wire README, ROADMAP, NEWS, docs, pkgdown, and dashboard to the matrix",
+          "status": "planned"
+        },
+        {
+          "name": "Add matrix lint/check later so public claims cannot drift",
+          "status": "planned"
+        },
+        {
+          "name": "Rose signoff on fitted, planned, missing, and unsupported rows",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "Phase 2",
+      "name": "Bridge-gate drift first",
+      "owner": "Hopper + Boole + Emmy",
+      "status": "queued",
+      "counts": "0/4",
+      "slices": [
+        {
+          "name": "Audit every R-side Julia bridge reject against DRM.jl capabilities",
+          "status": "queued",
+          "issue": "drmTMB#544",
+          "url": "https://github.com/itchyshin/drmTMB/issues/544"
+        },
+        {
+          "name": "Add generated gate-vs-engine CI guard",
+          "status": "queued"
+        },
+        {
+          "name": "Reserve engine_control targets and reject unsupported values",
+          "status": "queued"
+        },
+        {
+          "name": "Document intentional rejections",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "Phase 3",
+      "name": "Robust point estimates and CIs",
+      "owner": "Fisher + Noether + Curie",
+      "status": "queued",
+      "counts": "0/4",
+      "slices": [
+        {
+          "name": "Standardize CI-status vocabulary",
+          "status": "queued"
+        },
+        {
+          "name": "Keep useful point estimates when Wald inference is unsafe",
+          "status": "queued"
+        },
+        {
+          "name": "Promote Gaussian phylogenetic SD profile/bootstrap parity target",
+          "status": "queued"
+        },
+        {
+          "name": "Add no-speed-headline-without-inference-headline checks",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "Phase 4",
+      "name": "Capability completion",
+      "owner": "Ada + Gauss + Boole",
+      "status": "queued",
+      "counts": "0/5",
+      "slices": [
+        {
+          "name": "Random slopes: independent, correlated, structured",
+          "status": "queued"
+        },
+        {
+          "name": "Non-Gaussian coefficient parity before variance and correlation claims",
+          "status": "queued"
+        },
+        {
+          "name": "Bivariate and mixed-family rho12/cross-family gate",
+          "status": "queued"
+        },
+        {
+          "name": "High-q q4 then q8 correlation gate",
+          "status": "queued"
+        },
+        {
+          "name": "Animal, phylo, relmat, spatial, kernel, and SPDE provenance gates",
+          "status": "queued"
+        }
+      ]
+    },
+    {
+      "id": "Phase 5",
+      "name": "Julia speedups with inference",
+      "owner": "Gauss + Karpinski + Grace",
+      "status": "queued",
+      "counts": "0/5",
+      "slices": [
+        {
+          "name": "Benchmark native TMB, R-Julia bridge, and direct DRM.jl",
+          "status": "queued"
+        },
+        {
+          "name": "Separate cold, warm, marshalling, kernel, profile, and bootstrap timings",
+          "status": "queued"
+        },
+        {
+          "name": "Borrow HSquared AI-REML lessons only for exact Gaussian MME cells",
+          "status": "queued"
+        },
+        {
+          "name": "Pilot observed-information or natural-gradient covariance updates",
+          "status": "queued"
+        },
+        {
+          "name": "Keep GPU/backend language planned until benchmark evidence exists",
+          "status": "queued"
+        }
+      ]
+    }
+  ],
+  "repos": [
+    {
+      "name": "drmTMB",
+      "branch": "detached",
+      "head": "b4a4d7be",
+      "dirty": true,
+      "note": "Current workspace for this slice; many pre-existing changes remain."
+    },
+    {
+      "name": "DRM.jl",
+      "branch": "shannon/ayumi-integration",
+      "head": "23d8f79",
+      "dirty": true,
+      "note": "Julia engine sister; use as source of real exported capability."
+    },
+    {
+      "name": "gllvmTMB",
+      "branch": "engine-julia",
+      "head": "f046d0f",
+      "dirty": false,
+      "note": "Bridge-gate drift mirror lives in gllvmTMB#488."
+    },
+    {
+      "name": "GLLVM.jl",
+      "branch": "codex/non-gaussian-fitter-gradients",
+      "head": "6d8e158",
+      "dirty": true,
+      "note": "Template source for repo truth, benchmark, and bridge-matrix discipline."
+    },
+    {
+      "name": "hsquared",
+      "branch": "main",
+      "head": "3666363",
+      "dirty": false,
+      "note": "R package model for capability/status discipline."
+    },
+    {
+      "name": "HSquared.jl",
+      "branch": "codex/phase5-marker-region-data",
+      "head": "2317133",
+      "dirty": true,
+      "note": "AI-REML and selected-inverse lessons are design analogues, not transferred claims."
+    }
+  ],
+  "agents": [
+    {
+      "name": "Ada",
+      "role": "orchestrator and integrator",
+      "status": "active"
+    },
+    {
+      "name": "Rose",
+      "role": "systems auditor and claim gate",
+      "status": "active"
+    },
+    {
+      "name": "Grace",
+      "role": "CI, pkgdown, CRAN, reproducibility",
+      "status": "active"
+    },
+    {
+      "name": "Gauss",
+      "role": "TMB and numerical engine",
+      "status": "queued"
+    },
+    {
+      "name": "Karpinski",
+      "role": "Julia speed, sparse math, AD",
+      "status": "queued"
+    },
+    {
+      "name": "Hopper",
+      "role": "R-Julia bridge",
+      "status": "queued"
+    },
+    {
+      "name": "Boole",
+      "role": "formula grammar",
+      "status": "queued"
+    },
+    {
+      "name": "Fisher",
+      "role": "statistical inference",
+      "status": "queued"
+    },
+    {
+      "name": "Florence",
+      "role": "figures and visual diagnostics",
+      "status": "queued"
+    },
+    {
+      "name": "Pat",
+      "role": "applied-user walkthrough",
+      "status": "queued"
+    },
+    {
+      "name": "Jason",
+      "role": "sister-package scout",
+      "status": "queued"
+    }
+  ],
+  "matrix": [
+    {
+      "area": "Mission-control dashboard",
+      "engine": "covered",
+      "bridge": "partial",
+      "point": "covered",
+      "wald": "unsupported",
+      "profile": "unsupported",
+      "bootstrap": "unsupported",
+      "next": "Serve at port 8765 and keep JSON current."
+    },
+    {
+      "area": "Master capability matrix",
+      "engine": "partial",
+      "bridge": "partial",
+      "point": "partial",
+      "wald": "partial",
+      "profile": "partial",
+      "bootstrap": "partial",
+      "next": "Wire public docs and dashboard to the matrix."
+    },
+    {
+      "area": "R-Julia bridge gate",
+      "engine": "partial",
+      "bridge": "experimental",
+      "point": "partial",
+      "wald": "planned",
+      "profile": "partial",
+      "bootstrap": "partial",
+      "next": "Implement drmTMB#544 gate-vs-engine guard."
+    },
+    {
+      "area": "Gaussian phylogenetic SD inference",
+      "engine": "partial",
+      "bridge": "experimental",
+      "point": "partial",
+      "wald": "partial",
+      "profile": "partial",
+      "bootstrap": "partial",
+      "next": "Promote only after native R, bridge, and direct Julia parity are in the matrix."
+    },
+    {
+      "area": "Mixed/cross-family correlation",
+      "engine": "planned",
+      "bridge": "unsupported",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "next": "Keep experimental until DRM.jl#280-style recovery and bridge labels pass."
+    },
+    {
+      "area": "Missing values",
+      "engine": "partial",
+      "bridge": "planned",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "next": "Use likelihood/FIML masks; no mean-imputation shortcut."
+    },
+    {
+      "area": "Julia speedups",
+      "engine": "experimental",
+      "bridge": "experimental",
+      "point": "planned",
+      "wald": "planned",
+      "profile": "planned",
+      "bootstrap": "planned",
+      "next": "No speed headline without point-estimate and CI/status parity."
+    }
+  ],
+  "active_work": [
+    {
+      "when": "now",
+      "who": "Ada",
+      "text": "Phase 0/1 backbone is locally implemented; next slice is the actual gate-vs-engine CI guard."
+    },
+    {
+      "when": "now",
+      "who": "Rose",
+      "text": "Keeping speed, bridge, and CI claims marked partial or planned until evidence lands."
+    }
+  ],
+  "activity": [
+    {
+      "when": "2026-06-14",
+      "who": "Codex",
+      "text": "Verified dashboard render at http://127.0.0.1:8765/ with metric cards, roadmap phases, and matrix rows."
+    },
+    {
+      "when": "2026-06-14",
+      "who": "GitHub",
+      "text": "Fetched drmTMB#544 successfully; issue-comment write blocked by integration permissions."
+    }
+  ],
+  "blockers": [
+    {
+      "status": "blocked",
+      "kind": "GitHub issue comment",
+      "item": "Connector can read drmTMB#544 but comment write returned 403; gh CLI is not installed."
+    },
+    {
+      "status": "guard",
+      "kind": "Claim boundary",
+      "item": "Current Julia route is the default DRM.jl fitting path only; no selectable Julia algorithm claim."
+    }
+  ],
+  "evidence": [
+    {
+      "when": "2026-06-14",
+      "who": "Local dashboard",
+      "text": "Dashboard source lives under docs/dev-log/dashboard, refreshes status.json plus sweep.json every 8 seconds, and renders in the in-app browser."
+    },
+    {
+      "when": "2026-06-14",
+      "who": "Issue ledger",
+      "text": "drmTMB#544 is the active bridge-gate epic."
+    },
+    {
+      "when": "2026-06-14",
+      "who": "Status matrix",
+      "text": "Rows separate engine, bridge, point estimate, Wald, profile, bootstrap, and next-gate status."
+    }
+  ]
+}

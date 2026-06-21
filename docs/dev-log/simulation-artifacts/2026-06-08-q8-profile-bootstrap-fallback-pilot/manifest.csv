@@ -1,0 +1,7 @@
+"artifact","path","exists"
+"fit-summary","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/fit-summary.csv",TRUE
+"profile-targets","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/profile-targets.csv",TRUE
+"profile-interval","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/profile-interval.csv",TRUE
+"bootstrap-interval","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/bootstrap-interval.csv",TRUE
+"unsupported-derived-correlation","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/unsupported-derived-correlation.csv",TRUE
+"qgt2-sd-matches","docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/qgt2-sd-matches.csv",TRUE

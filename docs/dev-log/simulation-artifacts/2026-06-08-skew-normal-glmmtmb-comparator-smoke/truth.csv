@@ -1,0 +1,5 @@
+"parameter","truth"
+"mu:(Intercept)",0.3
+"mu:x",0.7
+"sigma",0.8
+"alpha",1.4

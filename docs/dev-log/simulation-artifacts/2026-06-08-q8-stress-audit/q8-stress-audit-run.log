@@ -1,0 +1,81 @@
+command_started=2026-06-08 14:15:16 MDT
+output_dir=docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit
+condition_rows=5
+  diagnostic_id diagnostic_preset diagnostic_level n_id n_each residual_rho
+1   q8_diag_001       replication              low   24      6         0.08
+2   q8_diag_004          sd_ratio             weak   48     10         0.08
+3   q8_diag_007             rho12         negative   48     10        -0.65
+4   q8_diag_009             rho12         positive   48     10         0.65
+5   q8_diag_012       correlation             high   48     10         0.08
+command_finished=2026-06-08 14:15:58 MDT
+paths
+$aggregate_csv
+[1] "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-aggregate.csv"
+
+$replicate_csv
+[1] "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-replicates.csv"
+
+$manifest_csv
+[1] "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-manifest.csv"
+
+$failures_csv
+[1] "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-failures.csv"
+
+$diagnostic_summary_csv
+[1] "/Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-summary.csv"
+
+artifact_manifest
+                                   surface               artifact
+1 biv_gaussian_q8_endpoint_diagnostic_grid          aggregate_csv
+2 biv_gaussian_q8_endpoint_diagnostic_grid          replicate_csv
+3 biv_gaussian_q8_endpoint_diagnostic_grid           manifest_csv
+4 biv_gaussian_q8_endpoint_diagnostic_grid           failures_csv
+5 biv_gaussian_q8_endpoint_diagnostic_grid diagnostic_summary_csv
+                                                                                                                                                                path
+1  /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-aggregate.csv
+2 /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-replicates.csv
+3   /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-manifest.csv
+4   /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-failures.csv
+5    /Users/z3437171/Dropbox/Github Local/drmTMB/docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/tables/biv-gaussian-q8-endpoint-diagnostic-summary.csv
+  exists n_row
+1   TRUE   225
+2   TRUE   225
+3   TRUE     5
+4   TRUE     0
+5   TRUE     5
+diagnostic_summary
+                              surface diagnostic_preset diagnostic_level n_fit
+1 biv_gaussian_q8_endpoint_diagnostic       correlation             high     1
+2 biv_gaussian_q8_endpoint_diagnostic       replication              low     1
+3 biv_gaussian_q8_endpoint_diagnostic             rho12         negative     1
+4 biv_gaussian_q8_endpoint_diagnostic             rho12         positive     1
+5 biv_gaussian_q8_endpoint_diagnostic          sd_ratio             weak     1
+  convergence_rate pdHess_rate warning_rate optimizer_ok_rate qgt2_rate
+1                1           0            0                 1         1
+2                0           0            0                 0         1
+3                0           0            0                 0         1
+4                0           0            0                 0         1
+5                1           0            0                 1         1
+  mean_max_gradient  min_sd_mu min_sd_sigma max_abs_cor min_cor_eigen
+1      2.458196e-04 0.11250526   0.13385672   0.8887138  1.166318e-04
+2      4.943943e-04 0.24209505   0.18843548   0.9872394  4.170752e-11
+3      1.793413e-03 0.18502682   0.15125827   0.7255304  4.827163e-09
+4      8.785337e-05 0.11375305   0.02958371   0.8095145  3.707575e-08
+5      1.197544e-04 0.09356128   0.07350223   0.8144233  6.116138e-06
+  max_cor_condition sd_boundary_rate high_correlation_rate ill_conditioned_rate
+1      2.508965e+04                0                     0                    0
+2      9.908449e+10                0                     1                    1
+3      5.933128e+08                0                     0                    1
+4      8.008138e+07                0                     0                    1
+5      5.186168e+05                0                     0                    0
+  max_q max_pairs min_group_n
+1     8        28          10
+2     8        28           6
+3     8        28          10
+4     8        28          10
+5     8        28          10
+manifest_status_counts
+
+ok 
+ 5 
+failure_rows=0

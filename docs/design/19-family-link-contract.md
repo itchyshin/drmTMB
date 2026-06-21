@@ -23,6 +23,9 @@ The implemented families use these parameter meanings:
 | Student-t | `mu` | identity | location parameter and mean when `nu > 1` |
 | Student-t | `sigma` | log | Student-t scale parameter |
 | Student-t | `nu` | `logm2` | degrees of freedom, `nu = 2 + exp(eta_nu)` |
+| Skew-normal | `mu` | identity | arithmetic mean of `y` |
+| Skew-normal | `sigma` | log | response standard deviation of `y` |
+| Skew-normal | `nu` | identity | residual slant or shape; positive values give right-skewed residuals |
 | Lognormal | `mu` | identity | mean of `log(y)`, not mean of `y` |
 | Lognormal | `sigma` | log | standard deviation of `log(y)` |
 | Gamma | `mu` | log | arithmetic mean of `y` |
@@ -84,6 +87,7 @@ Examples:
 ```text
 Gaussian:   predict(mu) = E[y] = fitted()
 Student-t:  predict(mu) = location; fitted() currently returns mu
+Skew-normal: predict(mu) = E[y] = fitted(); predict(nu) = residual slant
 Lognormal:  predict(mu) = E[log(y)]; fitted() = exp(mu + sigma^2 / 2)
 Poisson:    predict(mu) = E[y] = fitted()
 Beta:       predict(mu) = E[y] = fitted()
@@ -180,6 +184,38 @@ exact-zero mass, and `sigma(fit)` returns public `sigma`. The first slice keeps
 `nu ~ 1` intercept-only; predictor-dependent power models, random effects,
 structured effects, bivariate Tweedie models, zero-inflation aliases, and
 hurdle aliases remain separate gates.
+
+## Implemented Skew-Normal Continuous Contract
+
+For `skew_normal()`, the first implementation is a univariate fixed-effect
+location-scale-shape model:
+
+```text
+y_i | mu_i, sigma_i, nu_i ~ SkewNormal(mu_i, sigma_i, nu_i)
+mu_i = X_mu[i, ] beta_mu
+log(sigma_i) = X_sigma[i, ] beta_sigma
+nu_i = X_nu[i, ] beta_nu
+```
+
+The public parameters are moments and shape: `mu_i = E[y_i]`, `sigma_i =
+SD[y_i]`, and `nu_i` is the Azzalini slant parameter. The TMB likelihood
+transforms to native location and scale internally:
+
+```text
+delta_i = nu_i / sqrt(1 + nu_i^2)
+omega_i = sigma_i / sqrt(1 - 2 * delta_i^2 / pi)
+xi_i = mu_i - omega_i * delta_i * sqrt(2 / pi)
+```
+
+`fitted()` and `predict(dpar = "mu")` return the response mean `mu`, and
+`sigma(fit)` returns the response standard deviation `sigma`, not native
+`omega`. `predict(dpar = "nu")` returns the public residual slant. Positive
+`nu` means right-skewed residuals, negative `nu` means left-skewed residuals,
+and `nu = 0` reduces to the Gaussian location-scale likelihood.
+
+The first slice has no random effects, no `sd(group)` scale formulas, no known
+sampling covariance, no structured effects, no bivariate route, no residual
+`rho12`, and no `skew` or `skew(id)` alias.
 
 ## Implemented Poisson Count Contract
 

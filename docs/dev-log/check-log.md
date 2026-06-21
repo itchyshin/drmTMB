@@ -2,6 +2,686 @@
 
 Record meaningful development checks here.
 
+## 2026-06-14 -- Mission-control dashboard and finish matrix backbone
+
+Goal:
+
+- Implement the Phase 0/1 backbone from the final finish plan: a live local
+  mission-control dashboard, a canonical finish capability matrix, and durable
+  evidence that future bridge and speed slices can point to.
+
+Changes:
+
+- Added `docs/dev-log/dashboard/` with a static `index.html`,
+  `status.json`, `sweep.json`, `version.txt`, and a README for the local
+  board served at `http://127.0.0.1:8765/`.
+- Added `tools/start-mission-control.sh` to sync the durable dashboard source
+  into `/tmp/drm-dashboard` and serve it on port 8765.
+- Borrowed the `GLLVM.jl` dashboard's useful Repo Truth strip so the board now
+  shows local branch, HEAD, and dirty-state context for `drmTMB`, `DRM.jl`,
+  `gllvmTMB`, `GLLVM.jl`, `hsquared`, and `HSquared.jl`.
+- Added `docs/design/168-r-julia-finish-capability-matrix.md` as the
+  finish-plan claim registry, separating engine support, R bridge support,
+  point estimates, Wald/profile/bootstrap status, docs, visuals, simulations,
+  and release gates.
+- Kept unsupported or not-yet-promoted rows visibly marked as `planned`,
+  `partial`, `experimental`, or `unsupported`; this slice does not relax any
+  Julia bridge gate.
+
+Checks run:
+
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check -- docs/dev-log/dashboard/index.html docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/dashboard/version.txt docs/dev-log/dashboard/README.md tools/start-mission-control.sh docs/design/168-r-julia-finish-capability-matrix.md` passed.
+- `curl -sS -i http://127.0.0.1:8765/status.json` and
+  `curl -sS -i http://127.0.0.1:8765/sweep.json` returned HTTP 200 with JSON.
+- Browser verification at `http://127.0.0.1:8765/` found the expected H1,
+  four metric cards, six repo cards, six roadmap phases, and eight matrix rows.
+
+GitHub issue maintenance:
+
+- Read `drmTMB#544` through the GitHub connector and confirmed it is the
+  active bridge-gate drift epic.
+- Attempted to add the implementation-start note to `drmTMB#544`; the
+  connector returned `403 Resource not accessible by integration`.
+- `gh` is not installed in this environment, so remote issue commenting remains
+  blocked for this slice. The dashboard records that blocker explicitly.
+
+Interpretation:
+
+- The local mission-control surface is live and evidence-aware.
+- The next coding slice remains `drmTMB#544`: generate or audit the R
+  gate-versus-DRM.jl capability table and add the CI guard. No bridge gate was
+  changed in this slice.
+
+## 2026-06-09 -- Julia-engine article reviewer pass
+
+Goal:
+
+- Apply Pat, Rose, Fisher, and Darwin review to the R-Julia bridge article so
+  the HTML preview reads as a user-facing bridge article rather than a dense
+  algorithm note.
+
+Changes:
+
+- Reframed the article around what works now, the biological AVONET/Hackett
+  question, and the practical profile-versus-bootstrap decision for the
+  admitted Gaussian phylogenetic SD target.
+- Collapsed the long AVONET benchmark helper behind a details block and
+  replaced the 9,993-tip row with the post-cache warm bridge row from the
+  overhead-reduction benchmark: native TMB `61.113 s`, Julia bridge `3.784 s`,
+  speedup `16.15x`, with direct DRM.jl kernel time kept as contributor context.
+- Tightened inference wording: profile rows are warm-session endpoint-parity
+  evidence for one target, not coverage or near-boundary calibration; bootstrap
+  rows are `B = 10` timing smoke only and should not be read as interval
+  agreement.
+- Added supersession notes to older bridge after-task reports whose historical
+  profile-guard or EM/default-route wording has since been replaced.
+- Marked the public `B = 10` bootstrap CSV rows and metadata as timing smoke,
+  not coverage or calibration evidence.
+
+Checks run:
+
+- Render `vignettes/julia-engine.Rmd` to
+  `/tmp/drmtmb-julia-engine-preview/julia-engine.html`; the command returned
+  `render ok`.
+- Ran a stale-wording check against the source article, `NEWS.md`, the public
+  `confint()` benchmark CSV/metadata, and the rendered HTML for
+  `profile_unavailable`, old guarded-profile wording, old 9,993-tip timing
+  values, and old algorithm-heavy reader-path wording; no stale hits were
+  returned.
+- `Rscript --vanilla -e 'read.csv("docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv"); cat("csv ok\n")'`
+  returned `csv ok`.
+- `git diff --check -- vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-julia-confint-bridge-slice.md docs/dev-log/after-task/2026-06-08-experimental-julia-engine-bridge.md docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09-metadata.md`
+  passed.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'pkgdown::build_article("julia-engine", quiet = TRUE); cat("pkgdown article ok\n")'`
+  passed and wrote `pkgdown-site/articles/julia-engine.html`.
+- `rg` confirmed `_pkgdown.yml`, `pkgdown-site/articles/index.html`, and the
+  generated article page expose `Working with the Julia engine` under Developer
+  Notes.
+- `rg` found no stale profile-guard, old timing-row, or old algorithm-wording
+  hits in `pkgdown-site/articles/julia-engine.html`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("check_pkgdown ok\n")'`
+  passed with `No problems found`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'pkgdown::build_site(); cat("pkgdown site ok\n")'`
+  passed and rebuilt the ignored `pkgdown-site/` output.
+- `rg` confirmed the full generated site contains `Working with the Julia
+  engine` in `pkgdown-site/articles/index.html`, the article page, and the
+  sitemap, with the current `61.113 s` and `3.784 s` 9,993-tip row.
+- A stale-pattern scan over `pkgdown-site/articles/julia-engine.html`,
+  `pkgdown-site/articles/index.html`, and `pkgdown-site/sitemap.xml` found no
+  old profile-guard wording, old 9,993-tip timing row, or old promotional
+  bridge wording.
+
+## 2026-06-09 -- Julia bridge bootstrap confint and profile guard slice
+
+Supersession note: this temporary profile-guard entry is superseded later on
+2026-06-09 by `Julia bridge phylogenetic profile admission slice`; profile
+intervals are now admitted for the single Gaussian phylogenetic SD target
+`sd:mu:phylo(1 | species)`.
+
+Goal:
+
+- Turn the direct DRM.jl repeated-inference primitive into a narrow public
+  R bridge bootstrap route for the admitted Gaussian phylogenetic SD target,
+  and guard profile intervals until sparse-profile endpoint parity is fixed.
+
+Changes:
+
+- Added `confint.drmTMB_julia()` for `method = "bootstrap"` when the fitted
+  Julia-engine model contains the Gaussian
+  `phylo(1 | species, tree = tree)` mean cell with `sigma ~ 1`.
+- Added an explicit `method = "profile"` guard. A 1,000-species benchmark found
+  that the current DRM.jl sparse-profile lower endpoint did not match the
+  native R profile endpoint, so the bridge now tells users to use Julia
+  bootstrap or native R profile instead of returning that interval.
+- Stored the reusable bridge payload on `drmTMB_julia` objects so inference can
+  call Julia without rebuilding the R-side formula/tree contract.
+- Added `profile_targets()` support for `drmTMB_julia` objects. The first
+  ready target is `sd:mu:phylo(1 | species)` with internal Julia parameter
+  `resd`.
+- Added R-side conversion from DRM.jl's working `resd` bootstrap endpoints to
+  drmTMB's response-scale phylogenetic SD interval using the stored tree scale.
+- Added `DRM.drm_bridge_inference()` on the sibling Julia side, exporting it
+  beside `drm_bridge()`. It can call DRM.jl `profile_result()` or
+  `bootstrap_result()` and returns primitive fields for JuliaCall. The R bridge
+  currently admits only the bootstrap result.
+- Updated `tools/benchmark-r-julia-bootstrap-refits.R` so the public comparison
+  records native R `confint()` rows, public Julia `confint()` bootstrap rows,
+  Julia thread metadata, and profile guard rows.
+- Updated `vignettes/julia-engine.Rmd` and `NEWS.md` so the article distinguishes
+  admitted bootstrap from blocked profile.
+
+Checks run:
+
+- `air format R/julia-bridge.R R/profile.R tests/testthat/test-julia-bridge.R`
+- `Rscript --vanilla -e 'parse("R/julia-bridge.R"); parse("R/profile.R"); parse("tests/testthat/test-julia-bridge.R"); cat("parse ok\n")'`
+  returned `parse ok`.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R")'`
+  passed with 63 expectations after adding the profile guard test.
+- `/Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia --project=/Users/z3437171/Dropbox/Github\ Local/DRM.jl /Users/z3437171/Dropbox/Github\ Local/DRM.jl/test/test_bridge.jl`
+  passed with 46 expectations.
+- A live R-through-Julia smoke fit on a 4-species Gaussian phylogenetic model
+  printed `profile_targets(fit)` with ready target
+  `sd:mu:phylo(1 | species)`, then returned a bootstrap interval `0.2651091`
+  to `0.3148081` with `3/3` successful Julia refits. The same slice now guards
+  profile intervals before calling Julia.
+- `JULIA_NUM_THREADS=4 DRMTMB_BOOT_BENCH_SPECIES=100 DRMTMB_BOOT_BENCH_B=2 DRMTMB_BOOT_BENCH_R_WORKERS=1 DRMTMB_BOOT_BENCH_RUN_PROFILE=true DRMTMB_BOOT_BENCH_PROFILE_WORKERS=1 DRMTMB_BOOT_BENCH_RUN_JULIA_CONFINT=true DRMTMB_BOOT_BENCH_JULIA_CONFINT_THREADS=false,true DRMTMB_BOOT_BENCH_RUN_JULIA_BRIDGE=false DRMTMB_BOOT_BENCH_RUN_DIRECT_JULIA=false DRMTMB_BOOT_BENCH_OUT=/tmp/drmtmb-public-julia-confint-smoke.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed and wrote a smoke CSV with Julia BLAS pinned to one thread.
+- `JULIA_NUM_THREADS=4 DRMTMB_BOOT_BENCH_SPECIES=1000 DRMTMB_BOOT_BENCH_B=10 DRMTMB_BOOT_BENCH_R_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_PROFILE=true DRMTMB_BOOT_BENCH_PROFILE_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_JULIA_CONFINT=true DRMTMB_BOOT_BENCH_JULIA_CONFINT_THREADS=false,true DRMTMB_BOOT_BENCH_RUN_JULIA_BRIDGE=false DRMTMB_BOOT_BENCH_RUN_DIRECT_JULIA=false DRMTMB_BOOT_BENCH_OUT=docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed and wrote
+  `docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv` plus
+  metadata. Bootstrap rows were: R serial `30.392 s`, R 4-worker multicore
+  `9.038 s`, Julia public serial `4.483 s`, and Julia public 4-thread
+  `1.066 s`. Both R rows had `9/10` successful refits; both Julia rows had
+  `10/10` successful refits. The bootstrap interval endpoints were close:
+  R `1.142` to `1.231`, Julia `1.147` to `1.237`. R profile rows succeeded
+  (`13.906 s` serial, `7.691 s` endpoint multicore); Julia profile rows were
+  recorded as `profile_unavailable`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE); cat("render ok\n")'`
+  returned `render ok`.
+- After adding a dedicated profile endpoint comparison table to
+  `vignettes/julia-engine.Rmd`, the same render command returned `render ok`
+  again, and `rg` confirmed the generated HTML contains the R profile
+  endpoints, guarded Julia profile rows, and diagnostic Julia mismatch rows.
+- `Rscript --vanilla` read
+  `docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv`, confirmed
+  eight rows, confirmed at least one `profile_unavailable` row, and confirmed
+  Julia public rows recorded `julia_blas_threads = 1`.
+- `git diff --check -- R/profile.R NAMESPACE NEWS.md vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-julia-confint-bridge-slice.md tools/benchmark-r-julia-bootstrap-refits.R docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09-metadata.md`
+  passed.
+
+Interpretation:
+
+- Track 2 now has a real, public, narrow bootstrap bridge route: `confint()`
+  can ask Julia to compute bootstrap intervals for the supported Gaussian
+  phylogenetic SD target and return them on the R response scale.
+- Public Julia bootstrap was `6.78x` faster than R serial and `2.02x` faster
+  than R multicore without Julia worker threads; with four Julia threads it was
+  `28.51x` faster than R serial and `8.48x` faster than R multicore.
+- This is not broad Julia inference parity. Profile intervals, fixed-effect
+  bootstrap intervals, non-Gaussian families, phylogenetic scale formulas,
+  multiple structured terms, and neighbouring syntax still need their own
+  target maps and parity tests.
+- The live smoke reported `julia.blas_threads = 16` because the ad hoc R
+  process did not pin BLAS threads. Future benchmark rows should set and record
+  hidden BLAS/OpenMP threads before comparing elapsed times.
+
+## 2026-06-09 -- Julia bridge phylogenetic profile admission slice
+
+Goal:
+
+- Replace the temporary Julia profile guard with a parity-tested profile route
+  for the admitted Gaussian `phylo(1 | species, tree = tree)` mean-cell SD
+  target, then refresh the article preview with readable profile/bootstrap
+  tables.
+
+Changes:
+
+- Removed the blanket `confint.drmTMB_julia(method = "profile")` abort while
+  keeping the narrow target validation for
+  `sd:mu:phylo(1 | species)`.
+- Updated `tests/testthat/test-julia-bridge.R` so public profile `confint()`
+  is tested through a mocked Julia inference primitive without requiring
+  JuliaCall in ordinary R unit tests.
+- Updated `vignettes/julia-engine.Rmd` and `NEWS.md` to say profile and
+  bootstrap are admitted only for the Gaussian phylogenetic SD target.
+- Replaced the article's wide monospaced benchmark blocks with compact
+  markdown tables and moved low-level Julia algorithm detail out of the main
+  reader path.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R` completed.
+- `Rscript --vanilla -e 'invisible(parse("R/julia-bridge.R")); invisible(parse("tests/testthat/test-julia-bridge.R")); cat("parse ok\n")'`
+  returned `parse ok`.
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R")'`
+  passed with 71 expectations.
+- `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia --project=/Users/z3437171/Dropbox/Github\ Local/DRM.jl --threads=4 /Users/z3437171/Dropbox/Github\ Local/DRM.jl/test/test_bridge.jl`
+  passed with 46 expectations.
+- `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia --project=/Users/z3437171/Dropbox/Github\ Local/DRM.jl --threads=4 /Users/z3437171/Dropbox/Github\ Local/DRM.jl/test/test_profile_ci.jl`
+  passed the focused profile CI test sets.
+- `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia --project=/Users/z3437171/Dropbox/Github\ Local/DRM.jl --threads=4 /Users/z3437171/Dropbox/Github\ Local/DRM.jl/test/test_conjugate_em.jl`
+  passed with 34 expectations.
+- A live 1,000-species AVONET/Hackett parity probe compared native R endpoint
+  profile with the Julia bridge profile primitive. Native R returned `1.162186`
+  to `1.350848`; Julia returned `1.162188` to `1.350846`; endpoint differences
+  were `1.59e-06` and `2.65e-06`.
+- `JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 DRMTMB_BOOT_BENCH_SPECIES=1000 DRMTMB_BOOT_BENCH_B=10 DRMTMB_BOOT_BENCH_R_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_PROFILE=true DRMTMB_BOOT_BENCH_PROFILE_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_JULIA_CONFINT=true DRMTMB_BOOT_BENCH_JULIA_CONFINT_THREADS=false,true DRMTMB_BOOT_BENCH_RUN_JULIA_BRIDGE=false DRMTMB_BOOT_BENCH_RUN_DIRECT_JULIA=false DRMTMB_BOOT_BENCH_OUT=docs/dev-log/benchmarks/r-julia-public-confint-2026-06-09.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed and refreshed the benchmark CSV/metadata.
+- The refreshed benchmark recorded profile rows: R serial `13.357 s`, R
+  multicore `7.611 s`, Julia serial `2.548 s`, Julia threaded `1.126 s`, with
+  matching Julia endpoints `1.162188` to `1.350846`.
+- `RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE); cat("render ok\n")'`
+  returned `render ok`.
+- `rg` confirmed the rendered HTML contains the new Julia profile/bootstrap
+  rows and no stale `profile_unavailable` or diagnostic-mismatch rows.
+- `git diff --check` passed for the touched R bridge files, article, NEWS,
+  benchmark CSV/metadata, check log, after-task notes, and DRM.jl source/test
+  files.
+
+Interpretation:
+
+- The admitted Julia-engine profile interval is now real for one target:
+  `sd:mu:phylo(1 | species)` in the Gaussian phylogenetic mean cell with
+  `sigma ~ 1`.
+- This is not broad profile parity. Fixed effects, non-Gaussian families,
+  phylogenetic scale models, multiple structured terms, and neighbouring syntax
+  still need target maps and parity tests before the R bridge should expose
+  them.
+
+## 2026-06-09 -- Bootstrap and profile refit benchmark slice
+
+Goal:
+
+- Measure the next repeated-refit slice after the single-fit R engine
+  comparison: native R/TMB bootstrap/profile refits through public
+  `confint()` versus benchmark-only Julia-engine and direct DRM.jl repeated
+  inference rows.
+
+Changes:
+
+- Added `tools/benchmark-r-julia-bootstrap-refits.R`.
+- The script builds the AVONET/Hackett Gaussian phylogenetic model, simulates
+  bootstrap responses from the current native fit, times public native
+  `confint(..., method = "bootstrap")` with serial or multicore R workers, and
+  optionally times a Julia-engine refit loop over the same simulated responses.
+- Added an optional direct DRM.jl threaded row that is launched from R but
+  labelled separately because it is not the R bridge.
+- Extended the script to time public R endpoint-profile rows and direct DRM.jl
+  `profile_result()` rows for the phylogenetic SD target.
+- Updated the sibling DRM.jl AVONET benchmark report to avoid hard-coding the
+  full `9993`-tip label when a pruned tree is passed.
+
+Checks run:
+
+- `air format tools/benchmark-r-julia-bootstrap-refits.R`
+- `Rscript --vanilla -e 'invisible(parse("tools/benchmark-r-julia-bootstrap-refits.R")); cat("parse ok\n")'`
+- `DRMTMB_BOOT_BENCH_SPECIES=100 DRMTMB_BOOT_BENCH_B=2 DRMTMB_BOOT_BENCH_R_WORKERS=1 DRMTMB_BOOT_BENCH_OUT=/tmp/drmtmb-bootstrap-refit-smoke.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed. The smoke row reported R native bootstrap serial `1.836 s` for
+  `B = 2` with `2/2` successful refits and a benchmark-only Julia bridge loop
+  `0.255 s` for `B = 2` after a `21.546 s` first Julia call.
+- `DRMTMB_BOOT_BENCH_SPECIES=1000 DRMTMB_BOOT_BENCH_B=10 DRMTMB_BOOT_BENCH_R_WORKERS=1,4 DRMTMB_BOOT_BENCH_OUT=docs/dev-log/benchmarks/r-julia-bootstrap-refits-2026-06-09.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed and wrote
+  `docs/dev-log/benchmarks/r-julia-bootstrap-refits-2026-06-09.csv` plus
+  metadata. The 1,000-species AVONET/Hackett rows were: R native bootstrap
+  serial `28.999 s` for `B = 10` with `9/10` successful refits; R native
+  bootstrap multicore with 4 workers `8.018 s` with `9/10` successful refits;
+  and the benchmark-only Julia bridge loop `2.458 s` with `10/10` converged
+  refits after a `17.503 s` first Julia call.
+- `DRMTMB_BOOT_BENCH_SPECIES=1000 DRMTMB_BOOT_BENCH_B=10 DRMTMB_BOOT_BENCH_R_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_JULIA_BRIDGE=true DRMTMB_BOOT_BENCH_RUN_PROFILE=true DRMTMB_BOOT_BENCH_PROFILE_WORKERS=1,4 DRMTMB_BOOT_BENCH_RUN_DIRECT_JULIA=true DRMTMB_BOOT_BENCH_DIRECT_JULIA_THREADS=4 DRMTMB_BOOT_BENCH_DIRECT_B=10 DRMTMB_BOOT_BENCH_OUT=docs/dev-log/benchmarks/r-julia-bootstrap-profile-thread-compare-2026-06-09.csv Rscript --vanilla tools/benchmark-r-julia-bootstrap-refits.R`
+  completed and wrote
+  `docs/dev-log/benchmarks/r-julia-bootstrap-profile-thread-compare-2026-06-09.csv`
+  plus metadata and the direct DRM.jl report
+  `docs/dev-log/benchmarks/direct-drmjl-avonet-bootstrap-n1000-B10-threads-4-2026-06-09.md`.
+  Bootstrap rows were: R serial `30.000 s`, R 4-worker `8.728 s`, warm
+  JuliaCall bridge loop `2.702 s`, direct DRM.jl serial `2.369 s`, and direct
+  DRM.jl 4-thread `0.872 s`. Profile rows were: R serial `14.290 s`, R
+  endpoint multicore requested 4 but used 2 endpoint workers `8.755 s`, direct
+  DRM.jl serial `1.815 s`, and direct DRM.jl threaded requested 4 but used 2
+  endpoint workers `0.702 s`.
+- `Rscript --vanilla -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE)'`
+  rendered the HTML preview successfully.
+- `git diff --check -- tools/benchmark-r-julia-bootstrap-refits.R vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-bootstrap-refit-benchmark-slice.md docs/dev-log/benchmarks/r-julia-bootstrap-refits-2026-06-09.csv docs/dev-log/benchmarks/r-julia-bootstrap-refits-2026-06-09-metadata.md`
+  passed.
+- `Rscript --vanilla -e 'invisible(parse("tools/benchmark-r-julia-bootstrap-refits.R")); cat("R parse ok\n")'`
+  returned `R parse ok` after the profile/direct-thread extensions.
+- `julia --project=../DRM.jl -e 'include(joinpath("..", "DRM.jl", "bench", "avonet_phylo_gaussian_algorithms.jl")); println("Julia include ok")'`
+  returned `Julia include ok`.
+- `git diff --check -- tools/benchmark-r-julia-bootstrap-refits.R vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-bootstrap-refit-benchmark-slice.md docs/dev-log/benchmarks/r-julia-bootstrap-profile-thread-compare-2026-06-09.csv docs/dev-log/benchmarks/r-julia-bootstrap-profile-thread-compare-2026-06-09-metadata.md docs/dev-log/benchmarks/direct-drmjl-avonet-bootstrap-n1000-B10-threads-4-2026-06-09.md`
+  passed.
+- In sibling `DRM.jl`, `git diff --check -- bench/avonet_phylo_gaussian_algorithms.jl`
+  passed.
+
+Interpretation:
+
+- This keeps public behavior unchanged while giving the next evidence row for
+  bootstrap/profile acceleration. The Julia bridge loop is not yet the final
+  threaded design; a true R-to-Julia threaded bootstrap needs a Julia batch
+  primitive that can call `bootstrap_result()` inside one Julia runtime.
+- For the local `B = 10` 1,000-species row, the warm Julia bridge loop was
+  about `11.8x` faster than R serial bootstrap and `3.3x` faster than the
+  4-worker R multicore row. Counting Julia setup from a fresh R process changes
+  the small-`B` story; the approximate cold-start break-even from these slopes
+  is `B = 7` against R serial and `B = 32` against the 4-worker R row.
+- The direct DRM.jl primitive is the target design for the next R bridge slice:
+  direct 4-thread bootstrap was about `34.4x` faster than R serial and `10.0x`
+  faster than R 4-worker bootstrap. Direct threaded profile was about `20.4x`
+  faster than R serial profile and `12.5x` faster than the R endpoint
+  multicore row. A single profile target has only two endpoint arms, so the
+  actual profile worker count is two even when four workers or threads are
+  requested.
+- Direct DRM.jl profile endpoints are still reported on DRM.jl's working
+  parameter scale in this artifact, while R reports the response-scale
+  `sd:mu:phylo(1 | species)` interval. Treat the profile timing as valid
+  speed evidence, not interval-scale parity evidence yet.
+
+## 2026-06-09 -- R engine comparison benchmark harness
+
+Goal:
+
+- Make native `engine = "tmb"` versus experimental `engine = "julia"` timings
+  rerunnable from R with first-call, warm repeated-fit, convergence, parity,
+  and backend metadata recorded in the same artifact.
+
+Changes:
+
+- Added `tools/benchmark-julia-engines.R` for the supported fixed-effect
+  Gaussian bridge row and the AVONET/Hackett Gaussian phylogenetic bridge row.
+- The script writes a benchmark CSV and metadata Markdown under
+  `docs/dev-log/benchmarks/` by default, pins BLAS/OpenMP-style low-level
+  thread environment variables to one by default, and records the current
+  package versions and git state.
+- Updated `vignettes/julia-engine.Rmd` to point future timing refreshes to the
+  benchmark script instead of treating the embedded examples as the only timing
+  recipe.
+
+Checks run:
+
+- `air format tools/benchmark-julia-engines.R`
+- `Rscript --vanilla -e 'invisible(parse("tools/benchmark-julia-engines.R")); cat("parse ok\n")'`
+  returned `parse ok`.
+- `DRMTMB_ENGINE_BENCH_MODE=fixed DRMTMB_ENGINE_BENCH_N=100 DRMTMB_ENGINE_BENCH_REPS=1 DRMTMB_ENGINE_BENCH_OUT=docs/dev-log/benchmarks/r-engine-comparison-fixed-smoke-2026-06-09.csv Rscript --vanilla tools/benchmark-julia-engines.R`
+  completed and wrote
+  `docs/dev-log/benchmarks/r-engine-comparison-fixed-smoke-2026-06-09.csv`
+  plus metadata. The smoke row was `n = 100`, native TMB first call `0.106 s`,
+  Julia first call `15.082 s`, native TMB warm `1.002 s`, Julia warm
+  `0.053 s`, warm speedup `18.91`, `logLik_diff = 1.41e-09`,
+  `max_common_coef_diff = 5.65e-06`, both convergence codes `0`, and Julia
+  uncertainty `ok` for `mu;sigma`.
+- `DRMTMB_ENGINE_BENCH_MODE=both DRMTMB_ENGINE_BENCH_REPS=3 DRMTMB_ENGINE_BENCH_OUT=docs/dev-log/benchmarks/r-engine-comparison-2026-06-09.csv Rscript --vanilla tools/benchmark-julia-engines.R`
+  completed and wrote
+  `docs/dev-log/benchmarks/r-engine-comparison-2026-06-09.csv` plus metadata.
+  Fixed Gaussian warm rows were `8.00x`, `12.00x`, and `10.00x` faster through
+  the Julia engine at `n = 100`, `1000`, and `10000`, with all likelihood
+  differences below `2e-08`. AVONET/Hackett phylogenetic warm rows were
+  `2.58x`, `10.38x`, and `14.52x` faster through the Julia engine at
+  `100`, `1000`, and `9993` species. The 9,993-species row had native TMB
+  median `68.405 s`, Julia bridge median `4.710 s`, `logLik_diff = 1.16e-03`,
+  native TMB convergence code `1`, Julia convergence code `0`, and Julia
+  uncertainty `partial` for `mu`.
+- `Rscript --vanilla -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE)'`
+  rendered the HTML preview successfully.
+- `git diff --check -- tools/benchmark-julia-engines.R vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-r-engine-comparison-benchmark.md docs/dev-log/benchmarks/r-engine-comparison-fixed-smoke-2026-06-09.csv docs/dev-log/benchmarks/r-engine-comparison-fixed-smoke-2026-06-09-metadata.md docs/dev-log/benchmarks/r-engine-comparison-2026-06-09.csv docs/dev-log/benchmarks/r-engine-comparison-2026-06-09-metadata.md`
+  passed.
+
+Interpretation:
+
+- This is the bridge benchmark harness needed before making stronger speed
+  claims from R. It keeps timing and matching evidence together, and it keeps
+  first-call/setup costs separate from warm repeated fits that matter for
+  profile and bootstrap workflows.
+- The first smoke attempt showed that a plain `Rscript` process did not have
+  Julia on `PATH`; the script now accepts `DRMTMB_ENGINE_BENCH_JULIA_BIN` and
+  auto-detects Julia under `~/.julia/juliaup`.
+
+## 2026-06-09 -- Julia phylo bridge overhead reduction
+
+Goal:
+
+- Reduce the R-to-Julia overhead in repeated
+  `drmTMB(..., engine = "julia")` Gaussian phylogenetic bridge fits, especially
+  the 9,993-tip AVONET/Hackett path that will matter for profile and bootstrap
+  workflows.
+
+Changes:
+
+- Moved the JuliaCall wrapper definition from every bridge call into
+  `drm_julia_setup()`.
+- Trimmed the data frame sent through JuliaCall to the variables used by the
+  bridge formula plus the phylogenetic grouping variable.
+- Cached the R-side Newick serialization, structured-SD scale, row order, and
+  same-tree/same-species bridge payload for repeated fits.
+- Added a DRM.jl bridge cache so repeated Newick strings reuse the parsed
+  `AugmentedPhy` all-node tree.
+
+Checks run:
+
+- `air format R/julia-bridge.R tests/testthat/test-julia-bridge.R`
+- `Rscript --vanilla -e 'parse("R/julia-bridge.R"); cat("parse ok\n")'`
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R")'`
+  passed with 53 expectations.
+- `/Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia --project=. -e 'using Test; include("test/test_bridge.jl")'`
+  passed with 32 Julia bridge expectations.
+- Warm 9,993-tip AVONET/Hackett Julia-bridge timing wrote
+  `docs/dev-log/benchmarks/julia-bridge-overhead-avonet-2026-06-09.csv`.
+  The repeated R payload step dropped from about `2.227 s` to `0.022 s`.
+  The full warm Julia bridge median over 3 reps was `3.784 s` with minimum
+  `3.538 s`, compared with the previous `17.222 s` warm row and direct
+  DRM.jl Sparse L-BFGS kernel `2.623 s`.
+
+Interpretation:
+
+- This removes most avoidable repeated bridge overhead for same-tree refits.
+  The remaining gap to direct DRM.jl is now mainly JuliaCall data transfer,
+  return payload, and R object reconstruction, not repeated tree serialization
+  or repeated Newick parsing.
+- The first cold tree still costs about `10.269 s` to serialize/validate in R,
+  so cold one-off fits and repeated profile/bootstrap refits should be reported
+  separately.
+
+## 2026-06-09 -- Julia phylo bridge Sparse L-BFGS default refresh
+
+Goal:
+
+- Refresh the R bridge, article, and benchmark evidence after DRM.jl promoted
+  the Gaussian `phylo(1 | species, tree = tree)` mean cell from sparse EM to
+  all-node sparse L-BFGS with profiled mean coefficients and exact Takahashi
+  trace gradients.
+
+Changes:
+
+- Updated `R/julia-bridge.R` so `drmTMB_julia` uncertainty status can be
+  `partial` when DRM.jl returns a finite covariance block for some fixed-effect
+  coefficients and `NaN` for other blocks.
+- Kept the phylogenetic bridge payload explicit with `g_tol = 1e-4`, while the
+  current DRM.jl default now ignores EM-style tolerance sensitivity for the
+  Sparse L-BFGS route over the smoke range.
+- Updated `vignettes/julia-engine.Rmd` and `NEWS.md` to describe the current
+  default as Sparse L-BFGS, not sparse EM, and to separate direct Julia kernel
+  time from R bridge marshalling time.
+- Added a sparse phylogenetic comparison table to the Julia-engine article,
+  comparing native R/TMB sparse precision (`61.113 s`), Julia through the R
+  bridge (`17.222 s` before the overhead-reduction pass; `3.784 s` after the
+  follow-up cache work above), and the direct DRM.jl Sparse L-BFGS kernel
+  (`2.623 s`) on the 9,993-tip AVONET/Hackett row.
+
+Checks run:
+
+- Fresh warm-session AVONET/Hackett R bridge smoke wrote
+  `docs/dev-log/benchmarks/julia-bridge-phylo-gaussian-sparse-lbfgs-2026-06-09.csv`.
+  Rows:
+  `n = 100`: 1.162 s native TMB versus 0.126 s Julia engine,
+  `speedup = 9.22`, `logLik_diff = 5.07e-06`,
+  `max_common_coef_diff = 1.54`, native convergence 0, Julia convergence 0,
+  Julia uncertainty `partial: mu`;
+  `n = 1000`: 2.555 s native TMB versus 0.430 s Julia engine,
+  `speedup = 5.94`, `logLik_diff = 1.01e-08`,
+  `max_common_coef_diff = 2.68e-05`, both convergence flags 0,
+  Julia uncertainty `partial: mu`;
+  initial `n = 9993`: 61.113 s native TMB versus 17.222 s Julia engine before
+  the overhead-reduction pass,
+  `speedup = 3.55`, `logLik_diff = 1.16e-03`,
+  `max_common_coef_diff = 7.85e-03`, native convergence 1, Julia convergence 0,
+  Julia uncertainty `partial: mu`. The follow-up overhead section above
+  supersedes the warm repeated 9,993-tip bridge time with `3.784 s`.
+- Direct DRM.jl AVONET/Hackett algorithm scout recorded Sparse L-BFGS
+  `median_s = 2.623` to `2.644`, converged, `logLik = -3653.055261`, and
+  `nll_for_profile = yes`; forced sparse EM at `g_tol = 1e-4` took `0.901 s`
+  but had lower likelihood by `8.46e-03` and no profile objective.
+
+Interpretation:
+
+- Both engines use sparse tree representations for this route. The remaining
+  bridge speed gap is not dense tips versus sparse nodes; it is native
+  TMB-style optimization versus a Julia sparse marginal route plus JuliaCall
+  marshalling and R object reconstruction.
+- Sparse L-BFGS is the better default because it converges cleanly, gives the
+  best smoke likelihood, stores the mean fixed-effect covariance block, and
+  attaches the sparse objective needed for profile-like workflows. EM remains
+  useful as an explicit point-estimate comparator.
+
+## 2026-06-08 -- Julia engine phylo bridge and default-route policy
+
+Goal:
+
+- Add the first R-to-Julia Gaussian phylogenetic bridge slice and document the
+  default-route policy: Julia can have richer native functionality, but
+  `drmTMB(..., engine = "julia")` should expose only R-scale parity-tested
+  routes or fail early.
+
+Changes:
+
+- Marshalled one `phylo(1 | species, tree = tree)` Gaussian mean term through
+  the Julia bridge when `sigma ~ 1`.
+- Serialized supported R `phylo` trees to Newick, reordered the bridge data by
+  Newick tip order, converted the grouping column to character labels for
+  Julia, and restored fitted values, residuals, and `sigma` to the original R
+  row order.
+- Kept estimator and optimizer controls out of the public R API, but pinned the
+  admitted Gaussian phylo bridge cell to the DRM.jl sparse-EM smoke tolerance
+  (`g_tol = 1e-4`) internally so bridge fits do not inherit the unnecessarily
+  strict generic default.
+- Updated DRM.jl so `algorithm = :auto` uses the all-node sparse conjugate-EM
+  route for the Gaussian phylogenetic mean cell, while `:gls`/`:lbfgs` remain
+  available as dense comparison routes.
+- Updated the DRM.jl EM adapter to store conditional fitted means, so
+  `fitted()` matches the native mixed-model meaning rather than returning only
+  the fixed-effect marginal mean.
+- Reconstructed Julia structured `resd_*` coefficients as `fit$sdpars` in R
+  instead of exposing them as fixed effects, and labelled all-`NaN` EM covariance
+  routes as point-estimate-only.
+- Converted the Julia EM Brownian phylogenetic SD back to drmTMB's
+  correlation-matrix `sdpars$mu` scale by multiplying by the square root of the
+  ultrametric tree height.
+- Cached the Julia setup path within the R session so repeated fits do not
+  reactivate DRM.jl on every bridge call.
+- Updated `vignettes/julia-engine.Rmd` with the working phylo example, the
+  Gaussian/non-Gaussian default-route table, 100/1000/9993 AVONET/Hackett
+  benchmark helper code, current smoke timing rows, the GLLVM.jl L-BFGS lesson,
+  and profile/bootstrap design direction.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::load_all(".", quiet = TRUE); testthat::test_file("tests/testthat/test-julia-bridge.R")'`
+  returned 44 passes, 0 failures, 0 warnings, and 0 skips after the
+  tolerance/scale policy was pinned.
+- `julia --project=. test/test_bridge.jl` in `DRM.jl` returned 30 passes, no
+  failures.
+- `julia --project=. test/test_conjugate_em.jl` in `DRM.jl` returned 21 passes,
+  no failures.
+- A temporary-library JuliaCall phylogenetic integration smoke on a 32-species
+  data set with phylogenetic signal returned class `drmTMB_julia`,
+  `logLik_diff = 7.52e-09`, `max_mu_coef_diff = 1.60e-06`,
+  `max_sigma_coef_diff = 2.29e-05`, `max_fitted_diff = 1.22e-03`, and
+  `uncertainty = unavailable,FALSE` for the EM covariance route.
+- Found Julia 1.10.0 at
+  `/Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia`;
+  `JuliaCall::julia_setup(installJulia = FALSE)` used that binary when
+  `JULIA_HOME` and `PATH` pointed at the same `bin` directory.
+- A warm-session AVONET/Hackett timing smoke for the phylogenetic bridge wrote
+  `docs/dev-log/benchmarks/julia-bridge-phylo-gaussian-2026-06-09.csv`.
+  The current rows are:
+  `n = 100`: 1.186 s native TMB versus 0.175 s Julia engine,
+  `speedup = 6.78`, `logLik_diff = 8.57e-02`,
+  `max_common_coef_diff = 8.08`, native convergence 0, Julia convergence 1;
+  `n = 1000`: 2.567 s native TMB versus 0.265 s Julia engine,
+  `speedup = 9.69`, `logLik_diff = 6.38e-05`,
+  `max_common_coef_diff = 6.11e-04`, both convergence flags 0;
+  `n = 9993`: 61.697 s native TMB versus 15.870 s Julia engine,
+  `speedup = 3.89`, `logLik_diff = 1.24e-04`,
+  `max_common_coef_diff = 8.01e-03`, native convergence 1, Julia convergence 0.
+- A TMB-only 9,993-species diagnostic with `drm_control(se = FALSE)` took
+  57.942 s and also returned convergence code 1, so the large-row TMB time is
+  mostly fitter/optimizer time rather than only Wald-standard-error work.
+- Interpretation note: both native `drmTMB` and DRM.jl use sparse
+  phylogenetic tree structures for this route. The benchmark is sparse
+  TMB/Laplace-style optimization versus sparse Julia all-node EM, not dense
+  tip-covariance TMB versus sparse Julia. GLLVM.jl-style sparse L-BFGS is a
+  next algorithm comparison, not the current bridge default; DRM.jl's present
+  dense `:lbfgs` comparison route is not the right 9,993-tip default.
+
+Not run:
+
+- A release-grade phylogenetic benchmark with multiple replicates,
+  cold/warm-start separation, memory columns, version metadata, and
+  repeated-observation-per-species designs was not run.
+
+## 2026-06-08 -- Experimental Julia engine bridge
+
+Goal:
+
+- Implement the first working `drmTMB(..., engine = "julia")` bridge slice for
+  Gaussian one-response and two-response models by pairing R-side JuliaCall glue
+  with a DRM.jl-side primitive entry point.
+
+Changes:
+
+- Added the experimental `engine` argument to `drmTMB()` and routed
+  `engine = "julia"` through `R/julia-bridge.R`.
+- Added a lightweight `drmTMB_julia` object with standard fitted-model methods
+  for coefficients, covariance, likelihood summaries, fitted values, residuals,
+  scale, residual-correlation extraction, prediction from stored values, and
+  convergence checks.
+- Guarded the R bridge to the tested Gaussian one-response and two-response
+  slice; weights, imputation, missing-data routes, non-default control, and
+  non-Gaussian coefficient-scale routes fail before JuliaCall setup.
+- Added `tests/testthat/test-julia-bridge.R`.
+- Added `vignettes/julia-engine.Rmd` and wired it into the Developer Notes
+  article navigation so early testers and contributors have a concrete bridge
+  workflow, including Darwin-oriented plant-trait examples, native TMB versus
+  Julia-engine output tables, warm-session `system.time()` evidence, the
+  phylogenetic benchmark target, and a `ggplot2` section for plotting
+  Julia-engine fitted values back in R.
+- Added the companion DRM.jl `drm_bridge()` primitive and focused Julia tests in
+  the sibling `DRM.jl` worktree.
+- Added
+  `docs/dev-log/after-task/2026-06-08-experimental-julia-engine-bridge.md`.
+
+Checks run:
+
+- `julia --project=. test/test_bridge.jl` in `DRM.jl` returned 25 passes, no
+  failures.
+- `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-julia-bridge.R")'`
+  returned 25 passes, no failures, warnings, or skips.
+- A direct Julia bivariate smoke call to `drm_bridge()` returned finite
+  coefficient names and plain fitted, scale, and residual-correlation payloads.
+- `Rscript -e 'cat(requireNamespace("JuliaCall", quietly = TRUE), "\n")'`
+  returned `FALSE` in the main R library.
+- A temporary-library JuliaCall smoke installed `JuliaCall` and `rjson` under
+  `/tmp`, set `options(drmTMB.DRM.jl.path = "../DRM.jl")`, and successfully fit
+  `drmTMB(bf(y ~ x, sigma ~ 1), engine = "julia")`, returning class
+  `drmTMB_julia`, 24 observations, logLik -32.71, and convergence 0.
+- Local article-output checks found matching native TMB and Julia-engine values
+  for the numeric Gaussian plant-growth example:
+  `max_abs_coef_diff = 2.57e-06`, `max_abs_fitted_diff = 2.09e-06`,
+  `max_abs_sigma_diff = 2.70e-06`, and logLik difference `5.77e-10`.
+- The bivariate Gaussian plant-trait output check found
+  `max_abs_coef_diff = 3.31e-06`, `max_abs_sigma1_diff = 4.07e-06`,
+  `max_abs_sigma2_diff = 2.24e-06`, `max_abs_rho12_diff = 1.87e-06`, and
+  logLik difference `1.93e-09`.
+- A warm-session `system.time()` smoke comparison for the supported Gaussian
+  bridge found the `n = 120` example effectively tied
+  (`0.013` s native TMB versus `0.014` s Julia engine, median of three reps)
+  and the `n = 5000` fixed-effect Gaussian example about `3.17x` faster through
+  the Julia engine (`0.114` s versus `0.036` s, median of three reps). The
+  article records this as local smoke evidence, not a release-grade benchmark.
+- `Rscript -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE)'`
+  completed without errors and wrote
+  `/tmp/drmtmb-julia-engine-preview/julia-engine.html`.
+- `Rscript -e 'yaml::read_yaml("_pkgdown.yml")'` parsed the pkgdown
+  configuration and confirmed `julia-engine` is listed under articles.
+- `git diff --check -- vignettes/julia-engine.Rmd _pkgdown.yml` passed.
+
+Not run:
+
+- `devtools::document()` was not run because this detached worktree already has
+  many unrelated roxygen/man-page changes; `man/drmTMB.Rd` and `NAMESPACE` were
+  updated narrowly for this slice.
+- Full `devtools::test()`, `devtools::check()`, `pkgdown::check_pkgdown()`, and
+  `pkgdown::build_site()` were not rerun for this focused bridge/article slice.
+
 ## 2026-06-05 -- Same-response bivariate mean-scale slope covariance
 
 Goal:
@@ -5191,7 +5871,7 @@ Validation:
 gh run list --repo itchyshin/drmTMB --workflow "Phase 18 simulation grid" --limit 30 --json databaseId,displayTitle,event,status,conclusion,createdAt,updatedAt,headBranch,headSha,url
 gh api repos/itchyshin/drmTMB/actions/artifacts --paginate -q '.artifacts[] | select(.name | startswith("phase18-nbinom2_phylo_q1_formal-shard-")) | [.id,.name,.size_in_bytes,.expired,.created_at,.expires_at,.workflow_run.id,.workflow_run.head_sha] | @tsv'
 for shard in $(seq 1 16); do gh run download "<run_id>" --repo itchyshin/drmTMB -n "phase18-nbinom2_phylo_q1_formal-shard-${shard}-of-16-<run_id>" -D "/tmp/drmTMB-nb2-q1-formal-shards-20260525/shard-${shard}"; done
-Rscript --vanilla - <<'RS'
+/usr/local/bin/Rscript --vanilla - <<'RS'
 # Combined artifact audit over formal spec, manifest, aggregate, replicate,
 # Wald coverage, profile coverage/interval, interval diagnostic, and failure
 # CSVs, using shard + local cell_id as the global condition key.
@@ -52752,3 +53432,1258 @@ Checks run after documenting the audit:
 - GitHub issue maintenance: opened PR #503 for the audit and posted the
   `hold_diagnostic` summary to issue #5:
   <https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4644265017>.
+
+## 2026-06-07 - Local CRAN-readiness sprint for 0.2.0
+
+Goal: move the current source tree from development-preview metadata to a local
+CRAN submit-rehearsal state for `drmTMB 0.2.0`.
+
+Changes made:
+
+- Bumped `DESCRIPTION` and `NEWS.md` from `0.1.3.9000` to `0.2.0`.
+- Rewrote `DESCRIPTION` title/description for CRAN-facing style, including
+  quoted `'TMB'`, expanded model scope, and no development-version wording.
+- Replaced pre-CRAN/GitHub-tag install wording in `README.md` and
+  `vignettes/drmTMB.Rmd` with `install.packages("drmTMB")`, keeping the GitHub
+  `pak::pak("itchyshin/drmTMB")` development path.
+- Added `cran-comments.md` and ignored it from source builds with
+  `^cran-comments\.md$` in `.Rbuildignore`.
+- Added runnable examples for exported topics that lacked examples: `gr()`,
+  `meta_known_V()`, and `imputed()`. Deprecated-marker examples suppress their
+  expected warnings.
+- Replaced a figure-gallery DOI hyperlink that returned 403 under
+  `urlchecker::url_check()` with plain prose about the raindrop-plot family.
+- Rebuilt pkgdown after the README/vignette/reference changes.
+
+Checks run:
+
+- `Rscript -e "devtools::document()"` regenerated `man/gr.Rd`,
+  `man/meta_known_V.Rd`, and `man/imputed.Rd`.
+- `air format R/formula-markers.R R/missing-data.R` and later
+  `air format R/formula-markers.R` completed without output.
+- `Rscript -e "urlchecker::url_check()"` passed with `All URLs are correct!`.
+- `tools::checkRd()` over all `man/*.Rd` files produced no output.
+- Exported help-topic audit found 42 exports with 0 missing `\value` and
+  0 missing `\examples`.
+- Stale CRAN/version/URL scan:
+  `rg -n 'dontrun|not on CRAN|pre-CRAN|0[.]1[.]3[.]9000|0[.]1[.]3 preview|install tagged|Submitted|TODO|FIXME|TBD' DESCRIPTION README.md NEWS.md R man vignettes docs/design docs/dev-log/known-limitations.md _pkgdown.yml cran-comments.md`
+  returned only the intended historical transition line in
+  `docs/design/159-drmtmb-0-2-0-release-readiness.md` before that note was
+  updated.
+- `Rscript -e "devtools::test()"` passed with 10,139 expectations, 0 failures,
+  0 warnings, and 0 skips in 1022.8 seconds.
+- `Rscript -e "pkgdown::check_pkgdown()"` returned `No problems found`.
+- First CRAN-style check:
+  `devtools::check(manual = TRUE, cran = TRUE, remote = TRUE, incoming = TRUE, force_suggests = TRUE, args = c("--timings", "--as-cran"), error_on = "never")`
+  completed in 10m 29s with 0 errors, 0 warnings, and 3 notes. The fixable note
+  was `cran-comments.md` being included as a non-standard top-level file.
+- Final CRAN-style check with `cran-comments.md` ignored completed in 10m 9.2s
+  with 0 errors, 0 warnings, and 2 notes:
+  - CRAN incoming note for maintainer/new submission/tarball size
+    5,269,245 bytes.
+  - Local HTML manual validation note because `tidy -v` reports
+    `HTML Tidy for Mac OS X released on 31 October 2006 - Apple Inc. build 13462`.
+- `Rscript -e "pkgdown::build_site(preview = FALSE)"` completed successfully in
+  305.66 seconds and rebuilt `pkgdown-site/`. During article rendering it
+  emitted the known local warning that `glmmTMB` was built with TMB 1.9.17 while
+  current TMB is 1.9.21.
+- Rendered-page stale scan:
+  `rg -n 'not on CRAN|pre-CRAN|0[.]1[.]3[.]9000|0[.]1[.]3 preview|install tagged|doi.org/10[.]1198/0003130032369' README.md vignettes pkgdown-site/index.html pkgdown-site/articles/drmTMB.html pkgdown-site/articles/figure-gallery.html pkgdown-site/news/index.html pkgdown-site/reference/gr.html pkgdown-site/reference/meta_known_V.html pkgdown-site/reference/imputed.html`
+  returned no matches.
+- Rendered evidence scan found the intended `install.packages("drmTMB")`,
+  `0.2.0 release candidate`, raindrop-plot prose, and new examples in source
+  and rendered pages.
+- `git diff --check` passed before the final ledger edits.
+
+GitHub issue maintenance:
+
+- Inspected open release issue #342 and Phase 20 issue #61.
+- Posted the detailed local CRAN-readiness update to #342:
+  <https://github.com/itchyshin/drmTMB/issues/342#issuecomment-4644488407>.
+- Posted the Phase 20 CRAN-hygiene versus paper-prep split to #61:
+  <https://github.com/itchyshin/drmTMB/issues/61#issuecomment-4644488932>.
+
+Not run:
+
+- `devtools::check_win_devel()`, CRAN submission, CRAN email approval, and
+  post-acceptance release steps.
+
+## 2026-06-08 - Capability freeze, profile article, and fixed-effect skew-normal first slice
+
+Goal: complete the agreed pre-CRAN 1-3 slice for `drmTMB 0.2.0`: keep the
+release-candidate hygiene edits, add a focused profile-likelihood article, and
+admit only the fixed-effect univariate `skew_normal()` first slice.
+
+Changes made:
+
+- Added/exported `skew_normal()` with public `mu = E[y]`, public
+  `sigma = SD[y]`, and `nu` as the residual slant parameter.
+- Added the fixed-effect skew-normal builder, starting values, TMB data path,
+  `model_type = 17` likelihood branch, simulation, residuals, `sigma()`,
+  `predict(dpar = "nu")`, and `check_drm()` `nu` diagnostics.
+- Replaced the old skew-normal constructor-absence boundary test with fitted
+  first-slice tests covering density normalization, Gaussian limit, sign
+  orientation, independent objective equality, methods, simulation, and
+  malformed-neighbour rejections.
+- Added `vignettes/profile-likelihood.Rmd` and `_pkgdown.yml` navigation for
+  the profile-likelihood demonstration article.
+- Updated README, NEWS, ROADMAP, formula grammar, family registry, likelihood
+  design, link contract, distribution-family/model/source-map articles,
+  release-readiness notes, known limitations, and superseded skew-normal design
+  notes to separate implemented fixed-effect support from planned neighbours.
+- Updated `cran-comments.md` to the latest CRAN-style result: 0 errors,
+  0 warnings, and 3 notes.
+
+Checks run:
+
+- `Rscript -e 'devtools::document()'` regenerated `NAMESPACE`,
+  `man/skew_normal.Rd`, and touched `man/drmTMB.Rd`,
+  `man/sigma.drmTMB.Rd`, and `man/check_drm.Rd`.
+- `Rscript -e 'devtools::test(filter = "skew-normal|family-link-contract|profile-plots", reporter = "summary")'`
+  passed.
+- `air format R/check.R R/drmTMB.R R/family.R R/methods.R R/profile.R tests/testthat/test-family-link-contract.R tests/testthat/test-skew-normal-density-contract.R tests/testthat/test-skew-normal-location-scale.R`
+  completed without output.
+- `Rscript -e 'devtools::test(reporter = "summary")'` passed.
+- `Rscript -e 'pkgdown::build_article("profile-likelihood")'` passed and
+  rebuilt the profile-likelihood article figure.
+- `Rscript -e 'pkgdown::check_pkgdown()'` returned `No problems found`.
+- `Rscript -e 'pkgdown::build_site(preview = FALSE)'` completed successfully
+  and rebuilt `pkgdown-site/`. During article rendering it emitted the known
+  local warning that `glmmTMB` was built with TMB 1.9.17 while current TMB is
+  1.9.21.
+- `Rscript -e 'urlchecker::url_check()'` passed with `All URLs are correct!`.
+- File-by-file `tools::checkRd()` over all `man/*.Rd` files produced no output.
+- CRAN-style check:
+  `devtools::check(manual = TRUE, cran = TRUE, remote = TRUE, incoming = TRUE, force_suggests = TRUE, args = c("--timings", "--as-cran"), error_on = "never")`
+  completed in 10m 51.6s with 0 errors, 0 warnings, and 3 notes:
+  - CRAN incoming feasibility note for new submission and tarball size
+    5,357,670 bytes.
+  - Local future-file-timestamp note: unable to verify current time.
+  - Local HTML manual validation note because installed `tidy` is too old.
+- Stale skew-normal support scan:
+  `rg -n "skew_normal.*(not fitted yet|not implemented|planned only|future work|does not currently fit)|does not currently fit skew-normal|skew-normal.*not fitted|skew_normal constructor absent|skew_normal.*absent|requiring skew_normal" README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes R tests man _pkgdown.yml --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**'`
+  now returns only the intentional unsupported-random-effects message in
+  `R/drmTMB.R`.
+- Profile article/rendered evidence scan:
+  `rg -n "profile-likelihood|profile likelihood|likelihood-ratio|Residual SD profile|cutoff|endpoint|timing|sigma" vignettes/profile-likelihood.Rmd docs/dev-log/figure-audits/2026-06-08-profile-likelihood-article/figure-audit.md pkgdown-site/articles/profile-likelihood.html _pkgdown.yml NEWS.md docs/design/159-drmtmb-0-2-0-release-readiness.md`
+  found the intended source, rendered-page, figure-audit, NEWS, navigation, and
+  release-readiness wording.
+- CRAN/version/URL hygiene scan:
+  `rg -n 'dontrun|not on CRAN|pre-CRAN|0[.]1[.]3[.]9000|0[.]1[.]3 preview|install tagged|Submitted|TODO|FIXME|TBD|http://' DESCRIPTION README.md NEWS.md R man vignettes docs/design docs/dev-log/known-limitations.md _pkgdown.yml cran-comments.md --glob '!docs/design/159-drmtmb-0-2-0-release-readiness.md'`
+  returned only the two local SVG namespace `http://www.w3.org/2000/svg` hits.
+- `git diff --check` passed after final stale-design-note edits.
+
+Figure audit:
+
+- Rendered and inspected
+  `pkgdown-site/articles/profile-likelihood_files/figure-html/unnamed-chunk-7-1.png`.
+- Recorded durable evidence in
+  `docs/dev-log/figure-audits/2026-06-08-profile-likelihood-article/figure-audit.md`
+  and copied the inspected PNG to the same audit directory.
+- Final verdict: pass after replacing a clipped caption with short title and
+  subtitle; curve, estimate, cutoff, endpoints, and legend are readable.
+
+GitHub issue maintenance:
+
+- Inspected open skew-normal/release/CRAN-profile issues #3, #342, #61, and the
+  broad local-R work queue #491.
+- Posted the skew-normal first-slice update to #3:
+  <https://github.com/itchyshin/drmTMB/issues/3#issuecomment-4650841034>.
+- Posted the 0.2.0 release-gate update to #342:
+  <https://github.com/itchyshin/drmTMB/issues/342#issuecomment-4650841039>.
+- Posted the Phase 20 CRAN/paper gate update to #61:
+  <https://github.com/itchyshin/drmTMB/issues/61#issuecomment-4650841031>.
+- Left #491 unchanged because the narrower issues carry the relevant evidence.
+
+After-task report:
+
+- `docs/dev-log/after-task/2026-06-08-capability-freeze-profile-skew-normal.md`
+  records the implemented claim, mathematical contract, tests-of-tests,
+  consistency audit, GitHub issue maintenance, and remaining limitations.
+
+Not run:
+
+- `devtools::check_win_devel()`, actual CRAN submission, CRAN email approval,
+  and post-acceptance release/version steps.
+
+## 2026-06-08 — Q8 diagnostic isolation and skew-normal fixed-effect polish
+
+Goal:
+
+- Complete the first systematic capability slice from the post-CRAN-hold queue:
+  Q8-1 diagnostic isolation for ordinary bivariate Gaussian q8 endpoint blocks,
+  and SN-1 fixed-effect contract polish for `skew_normal()`.
+
+Implemented:
+
+- Added `check_drm()` row `biv_qgt2_random_effect_covariance` for fitted
+  bivariate Gaussian group-level covariance blocks with more than four
+  members. The row records `max_q`, `max_pairs`, group replication, fitted
+  location-SD and log-sigma SD minima, `max_abs_cor`, reconstructed correlation
+  matrix minimum eigenvalue, and condition number. It warns on boundary or
+  ill-conditioned latent correlation matrices and notes weak replication or
+  tiny fitted component SDs.
+- Extended q8 endpoint simulation summaries with run-level diagnostics:
+  optimizer code/message, objective, max gradient, q>4 block count, q size,
+  pair count, minimum group size, fitted SD minima, max absolute latent
+  correlation, and reconstructed correlation-matrix eigen/condition summaries.
+- Polished the `skew_normal()` unsupported-neighbour path so backticked
+  `skew(id) ~ ...` reports a latent-skewness-specific planned-neighbour
+  message instead of the generic extra-location-formula error.
+- Added fixed-effect skew-normal tests for weighted likelihood equality,
+  fixed-effect `nu` interval visibility through `profile_targets()`,
+  `confint()`, `summary(conf.int = TRUE)`, and `predict_parameters()`, and the
+  TMB tail-CDF floor contract.
+- Updated NEWS, ROADMAP, likelihood design notes, the source map, known
+  limitations, and the capability worklist to keep q8 diagnostic status and
+  skew-normal fixed-effect boundaries synchronized.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::test(filter = "skew-normal", reporter = "summary")'`
+  passed after correcting the expected `predict_parameters()` interval-source
+  vocabulary from `fixed_effect_wald` to `wald`.
+- `Rscript --vanilla -e 'devtools::test(filter = "phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  passed before formatting.
+- `air format R/check.R R/drmTMB.R inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R tests/testthat/helper-skew-normal-density.R tests/testthat/test-skew-normal-density-contract.R tests/testthat/test-skew-normal-location-scale.R tests/testthat/test-biv-gaussian.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R`
+  completed without output.
+- Post-format, `Rscript --vanilla -e 'devtools::test(filter = "skew-normal|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  passed.
+- Post-format, `Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-biv-gaussian.R", reporter = "summary")'`
+  passed, including the live q8 `check_drm()` row assertion.
+- Stale wording scan:
+  `rg -n 'q=8 random-slope endpoint blocks remain invisible|q8 random-slope endpoint blocks can wait|skew_normal.*interval-status|skew-normal.*interval-status|Latent skewness syntax|1e-300|biv_qgt2_random_effect_covariance|q>4' ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes/source-map.Rmd R/check.R R/drmTMB.R tests/testthat inst/sim/fit`
+  returned only intended q>4 diagnostic names, the intended latent-skewness
+  error text, the documented CDF-floor contract, and one ROADMAP statement that
+  now names the fixed-effect `nu` interval-status test.
+- Boundary scan:
+  `rg -n 'q8.*(coverage|power|diagnostic|hold)|skew\\(id\\)|skew_normal\\(\\).*fixed-effect|fixed-effect \`skew_normal\`|latent \`skew\\(id\\)\`' NEWS.md ROADMAP.md docs/design/157-capability-completion-worklist.md docs/dev-log/known-limitations.md vignettes/source-map.Rmd docs/design/03-likelihoods.md`
+  found intended boundary statements: q8 remains diagnostic/no coverage/no
+  power, and latent `skew(id)` remains unsupported.
+- `git diff --check` passed.
+
+Issue maintenance:
+
+- Searched open issues for q8/skew-normal overlap with
+  `q8 endpoint diagnostic skew_normal skew normal`,
+  `skew_normal skew normal nu fixed effect interval`, and
+  `biv_gaussian q8 endpoint coverage power diagnostic`.
+- Existing open issues cover the work: #3 for skew-normal, #491 for the broad
+  local-R capability queue, and #33 for remaining structured/bivariate random
+  slopes. No new issue or duplicate comment was needed for this local slice.
+
+Remaining limits:
+
+- Q8 still has no coverage, power, or interval promotion. The new work makes
+  weak fits easier to diagnose; it does not improve convergence or Hessian
+  behaviour.
+- `skew_normal()` remains fixed-effect and univariate. Recovery grids,
+  false-positive checks, diagnostics, examples, random/structured effects,
+  bivariate support, residual `rho12`, and latent `skew(id)` remain future
+  slices.
+
+## 2026-06-08 — Q8 diagnostic presets and skew-normal deterministic recovery
+
+Goal:
+
+- Continue the systematic capability-completion queue by completing the next
+  q8 diagnostic slice and the next fixed-effect `skew_normal()` evidence slice,
+  without changing formula grammar or likelihood parameterization.
+
+Implemented:
+
+- Added `phase18_biv_gaussian_q8_endpoint_diagnostic_conditions()` for the
+  ordinary bivariate Gaussian q8 endpoint DGP. The preset grid has four
+  three-level diagnostic slices: replication, endpoint-SD ratio, residual
+  `rho12`, and latent q8 correlation intensity. The helper preserves extra
+  diagnostic metadata columns while remaining compatible with the existing q8
+  smoke/recovery cell runner.
+- Added source tests that assert the q8 diagnostic grid shape, stable
+  `diagnostic_id` ordering, positive-definite correlation preset rows, negative
+  / zero / positive residual `rho12` cells, endpoint-SD weak/baseline/strong
+  ordering, and DGP-cell compatibility with the extra metadata columns.
+- Added deterministic skew-normal source tests using quasi-random normal
+  scores rather than stochastic Monte Carlo replicates. The tests check
+  negative and positive skew recovery, weak versus strong skew separation, a
+  factor predictor with correlated scale predictor, a `nu ~ w` direction check,
+  and a Gaussian-limit false-positive cell where fitted `nu` stays near zero.
+- Updated NEWS, ROADMAP, likelihood notes, family registry, worked-example
+  inventory, pre-simulation readiness matrix, capability worklist, and known
+  limitations so q8 remains diagnostic-only and `skew_normal()` remains
+  univariate fixed-effect-only while reflecting the new source-test evidence.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::test(filter = "skew-normal|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  passed after formatting. The run covered
+  `phase18-biv-gaussian-q8-endpoint-recovery`,
+  `phase18-biv-gaussian-q8-endpoint`,
+  `skew-normal-density-contract`, and
+  `skew-normal-location-scale`.
+- `air format inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R tests/testthat/test-skew-normal-location-scale.R`
+  completed without output.
+- `git diff --check` passed.
+- Stale-status scan:
+  `rg -n 'no fitted skew-family likelihood|Keep skew examples as design-only|Positive and negative skew recovery grids|q8.*coverage.*power.*ready|q8.*power-ready|skew_normal\\(\\).*random effects.*implemented|skew\\(id\\).*implemented' NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md vignettes/source-map.Rmd --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'`
+  returned only intended current-boundary rows: q8 coverage/power remains not
+  ready, and skew-normal random effects remain unsupported.
+- Open-issue scan:
+  `gh issue list --repo itchyshin/drmTMB --state open --search "skew-normal OR skew_normal OR q8 endpoint diagnostic" --limit 20 --json number,title,state,url,labels`
+  found existing coverage in #3, #5, #33, #59, #61, #342, and #491. No new
+  issue or duplicate comment was needed for this local source-test slice.
+
+Remaining limits:
+
+- The q8 preset grid is a diagnostic condition grid. It does not change the
+  poor 2026-06-07 q8 audit result and does not create coverage, power, or
+  interval-readiness evidence.
+- `skew_normal()` now has deterministic source-test recovery and a Gaussian
+  false-positive check, but no formal DGP/runner/grid artifacts, external
+  comparator lane, heteroscedasticity/outlier false-positive program, random
+  effects, structured effects, bivariate route, residual `rho12`, or latent
+  `skew(id)` support.
+
+## 2026-06-08 — Q8 diagnostic summaries and skew-normal smoke artifacts
+
+Goal:
+
+- Continue the overnight capability slices by adding fit-level q8 diagnostic
+  summaries and the first fixed-effect `skew_normal()` Phase 18 smoke artifact
+  lane, while keeping q8 at `hold_diagnostic` and keeping skew-normal support
+  fixed-effect and univariate.
+
+Implemented:
+
+- Threaded optional q8 diagnostic metadata from
+  `phase18_biv_gaussian_q8_endpoint_diagnostic_conditions()` through the q8
+  DGP truth object and replicate summary rows.
+- Added
+  `phase18_summarise_biv_gaussian_q8_endpoint_diagnostic_presets()` and
+  `phase18_summarise_biv_gaussian_q8_endpoint_fit_diagnostics()` so q8 preset
+  runs can be summarised by preset/level with convergence, positive-Hessian,
+  warning, optimizer, boundary, and latent-correlation conditioning rates.
+- Added a no-fit source test for the q8 diagnostic wrapper so surface labels
+  and metadata grouping are covered without adding another heavy q8 TMB fit.
+- Added the fixed-effect skew-normal simulation stack:
+  `inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R`,
+  `inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R`,
+  `inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R`,
+  `inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R`, and
+  `inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R`.
+- Added `tests/testthat/test-phase18-skew-normal-fixed-effect.R` for seeded
+  DGP behaviour, one smoke summary, one grid-writer output, diagnostic CSV
+  output, and malformed-input rejection.
+- Added a deterministic `check_drm()` test showing large fitted skew-normal
+  slant values are flagged as a `note`, and fixed the local skew-normal
+  quasi-response helper length check.
+- Updated `inst/sim/README.md` and
+  `docs/design/41-phase-18-simulation-programme.md` to mark the q8 helper as
+  diagnostic and the skew-normal lane as smoke/artifact evidence, not formal
+  recovery.
+
+Checks run:
+
+- First post-metadata focused run:
+  `Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  failed once because the positive residual-`rho12` diagnostic row is
+  `q8_diag_009`, not `q8_diag_008`; the test expectation was corrected.
+- Final focused run:
+  `Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  passed after formatting. The filter covered
+  `phase18-biv-gaussian-q8-endpoint-recovery`,
+  `phase18-biv-gaussian-q8-endpoint`,
+  `phase18-skew-normal-fixed-effect`, and
+  `skew-normal-location-scale`.
+- `air format inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R inst/sim/fit/sim_summarise_biv_gaussian_q8_endpoint.R inst/sim/run/sim_run_biv_gaussian_q8_endpoint_smoke.R inst/sim/run/sim_summary_biv_gaussian_q8_endpoint_smoke.R tests/testthat/test-phase18-skew-normal-fixed-effect.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R tests/testthat/test-skew-normal-location-scale.R inst/sim/README.md docs/design/41-phase-18-simulation-programme.md`
+  completed without output.
+- `git diff --check` passed.
+- Stale-claim scan:
+  `rg -n 'q8.*(coverage|power).*(ready|passed|complete)|skew_normal.*(random effects|structured effects|bivariate|rho12).*(implemented|supported|ready)|skew-normal.*formal recovery.*(ready|complete|passed)' NEWS.md ROADMAP.md README.md docs/design inst/sim vignettes R tests --glob '!docs/dev-log/**' --glob '!docs/design/archive/**'`
+  returned intended boundary rows only: q8 coverage/power remains closed, and
+  skew-normal random/structured/bivariate/`rho12` routes remain unsupported.
+
+Remaining limits:
+
+- Q8 diagnostic summaries do not improve the weak q8 convergence/Hessian
+  evidence from the 2026-06-07 audit and do not create interval, coverage, or
+  power readiness.
+- The skew-normal artifact lane is a first smoke lane for
+  `bf(y ~ x, sigma ~ z, nu ~ 1)`. Formal recovery, external comparators,
+  predictor-varying `nu` grids, heteroscedastic/outlier false-positive grids,
+  random effects, structured effects, bivariate skew-normal, residual `rho12`,
+  and latent `skew(id)` remain future work.
+
+## 2026-06-08 — Q8 stress-audit writer and skew-normal false-positive artifacts
+
+Goal:
+
+- Complete the next recommended two-hour slice: add a small q8 diagnostic
+  stress-audit artifact route, add a symmetric fixed-effect skew-normal
+  false-positive artifact route, and record the formal fixed-effect
+  skew-normal recovery design gate.
+
+Implemented:
+
+- Added
+  `phase18_biv_gaussian_q8_endpoint_diagnostic_audit_conditions()` with the
+  small q8 stress-audit subset: low replication, weak endpoint SDs, negative
+  and positive residual `rho12`, and high latent q8 correlation.
+- Added
+  `phase18_write_biv_gaussian_q8_endpoint_diagnostic_grid_outputs()` to write
+  q8 diagnostic aggregate, replicate, manifest, failure, and
+  diagnostic-summary CSV artifacts without changing q8's `hold_diagnostic`
+  status.
+- Added `phase18_skew_normal_fe_false_positive_conditions()` for true
+  symmetric `nu = 0` cells crossing sample size, scale heterogeneity, and
+  location/scale predictor correlation.
+- Added
+  `phase18_summarise_skew_normal_fe_false_positive_smoke()`,
+  `phase18_summarise_skew_normal_fe_false_positive()`, and
+  `phase18_write_skew_normal_fe_false_positive_grid_outputs()` so symmetric
+  skew-normal smoke runs report fitted-`nu` threshold rates and
+  `check_drm()` large-slant note rates.
+- Added
+  `docs/design/162-phase-18-skew-normal-fixed-effect-formal-recovery-design.md`
+  defining the first fixed-effect formal recovery grid, estimands, false-positive
+  rows, stop rules, and non-goals.
+- Updated the Phase 18 programme, capability worklist, readiness matrix,
+  known limitations, inst/sim inventory, ROADMAP, and NEWS so q8 remains
+  diagnostic-only and skew-normal has smoke/false-positive artifacts plus a
+  design gate, not completed formal recovery.
+
+Checks run:
+
+- `Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'`
+  passed after correcting the q8 stress subset from the nonexistent
+  `correlation:strong` level to the existing `correlation:high` level.
+- `air format inst/sim/dgp/sim_dgp_biv_gaussian_q8_endpoint.R inst/sim/run/sim_write_biv_gaussian_q8_endpoint_diagnostic_grid.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R tests/testthat/test-phase18-skew-normal-fixed-effect.R docs/design/162-phase-18-skew-normal-fixed-effect-formal-recovery-design.md docs/design/41-phase-18-simulation-programme.md docs/design/157-capability-completion-worklist.md docs/dev-log/known-limitations.md inst/sim/README.md ROADMAP.md NEWS.md docs/design/46-pre-simulation-readiness-matrix.md`
+  completed without output.
+- `git diff --check` passed.
+- Stale-claim scan:
+  `rg -n 'skew_normal.*formal artifact grids|formal artifact.*skew_normal|skew-normal.*formal artifact|skew-family recovery grids|q8.*(coverage|power).*(ready|passed|complete)|skew_normal.*(random effects|structured effects|bivariate|rho12).*(implemented|supported|ready)|skew-normal.*formal recovery.*(ready|complete|passed)' NEWS.md ROADMAP.md README.md docs/design docs/dev-log/known-limitations.md inst/sim vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/design/archive/**'`
+  returned intended boundary rows only: q8 coverage/power remains closed, and
+  skew-normal random/structured/bivariate/`rho12` routes remain unsupported.
+- Issue scan:
+  `gh issue list --repo itchyshin/drmTMB --state open --search "skew-normal OR skew_normal OR q8 diagnostic OR q8 endpoint" --limit 20 --json number,title,state,url,labels`
+  found existing coverage in #3, #5, #33, #59, #61, #342, and #491. No new
+  issue or duplicate comment was needed.
+
+Remaining limits:
+
+- The q8 diagnostic writer has not run a local stress audit yet in this slice.
+  It creates the artifact route and tests its output contract; the actual
+  diagnostic-preset stress run remains the next q8 action.
+- The skew-normal false-positive lane is a small symmetric diagnostic artifact
+  route. It is not a formal recovery result, a calibrated skewness test, an
+  external comparator, or support for predictor-varying `nu`, random effects,
+  structured effects, bivariate skew-normal, residual `rho12`, or latent
+  `skew(id)`.
+
+## 2026-06-08 — Julia-engine article AVONET phylo benchmark and algorithm wording
+
+Goal:
+
+- Replace the synthetic large-tree phylogenetic timing example in the Julia
+  engine article with the real AVONET/Hackett bird data available from sibling
+  local checkouts, and avoid implying that Gaussian EM is the settled fastest
+  Julia algorithm.
+
+Implemented:
+
+- Updated `vignettes/julia-engine.Rmd` so the phylogenetic benchmark helper
+  looks for `../pigauto/avonet/AVONET3_BirdTree.csv` plus
+  `../pigauto/avonet/Stage2_Hackett_MCC_no_neg.tre`, with a fallback to the
+  mirrored `../BACE/dev/testing_data/AVONET.csv` and `Hackett_tree.tre`.
+- Labelled the full avian row as 9,993 species, not a rounded 10,000 species
+  row. The helper makes branch lengths strictly positive with a tiny epsilon
+  before fitting because pruned Hackett subsets can contain zero-length branches
+  that the sparse precision builder correctly rejects.
+- Rewrote the algorithm-default prose so all-node sparse conjugate EM is the
+  current admitted Gaussian `phylo(1 | species)` baseline, not a universal
+  "fastest Julia" claim. The article now says a benchmark harness should
+  compare the EM baseline against sparse likelihood/optimizer routes and future
+  closed-form starts or SQUAREM-style acceleration before declaring a default.
+
+Evidence:
+
+```sh
+Rscript --vanilla -e 'p <- "../pigauto/avonet/AVONET3_BirdTree.csv"; d <- read.csv(p, nrows=3, check.names=FALSE); print(names(d)); t <- "../pigauto/avonet/Stage2_Hackett_MCC_no_neg.tre"; cat("tree_exists", file.exists(t), "\n")'
+```
+
+Result: the pigauto AVONET CSV and Hackett tree were present. AVONET columns
+included `Species3`, `Mass`, `Hand-Wing.Index`, and `Beak.Length_Culmen`.
+
+```sh
+Rscript --vanilla -e 'p <- "../pigauto/avonet/AVONET3_BirdTree.csv"; d <- read.csv(p, check.names=FALSE); species <- gsub(" ", "_", d$Species3, fixed=TRUE); keep <- complete.cases(d[, c("Mass", "Hand-Wing.Index", "Beak.Length_Culmen", "Wing.Length")]); cat("rows", nrow(d), "complete", sum(keep), "unique_species", length(unique(species[keep])), "\n"); tr <- ape::read.tree("../pigauto/avonet/Stage2_Hackett_MCC_no_neg.tre"); cat("tips", length(tr$tip.label), "nodes", tr$Nnode, "overlap", sum(species[keep] %in% tr$tip.label), "rooted", ape::is.rooted(tr), "\n")'
+```
+
+Result: `rows 9993 complete 9993 unique_species 9993`; the Hackett tree had
+9,993 tips, 9,992 internal nodes, and all 9,993 complete AVONET species matched
+tree tips.
+
+Live JuliaCall AVONET/Hackett warm-session smoke after locating the Julia 1.10
+binary:
+
+```text
+model                         n      species   rows   tmb_s    julia_s   speedup   logLik_diff   max_coef_diff   sd_phylo_diff   tmb_conv   julia_conv
+AVONET phylogenetic Gaussian  100    100       100    1.186    0.175     6.78      8.57e-02      8.08e+00        3.31e-03        0          1
+AVONET phylogenetic Gaussian  1000   1000      1000   2.567    0.265     9.69      6.38e-05      6.11e-04        3.16e-04        0          0
+AVONET phylogenetic Gaussian  9993   9993      9993   61.697   15.870    3.89      1.24e-04      8.01e-03        8.11e-06        1          0
+```
+
+The 100-species row is retained as a warning row, not a parity claim: the small
+tree-order subset can put the residual-versus-phylogenetic variance split near
+a boundary. The 1,000 and 9,993 species rows are the better AVONET smoke rows,
+with the caveat that native TMB returned convergence code 1 on the default
+9,993-species row. A TMB-only `se = FALSE` rerun took 57.942 s and returned the
+same convergence code, so this is not only standard-error overhead.
+
+Source and algorithm checks:
+
+- `DRM.jl/src/location_only.jl` still shows the current Gaussian phylo mean EM
+  route using Takahashi selected-inverse trace terms, but its convergence and
+  algorithm-default policy need a proper AVONET-scale bakeoff before we claim
+  "fastest".
+- GLLVM.jl's fast Gaussian phylogenetic work points toward a sparse L-BFGS or
+  TMB-like marginal route as the next algorithm comparison. DRM.jl's current
+  dense `:lbfgs` comparison route is not the same thing and is not the right
+  9,993-tip default.
+
+Checks:
+
+- `Rscript --vanilla -e 'rmarkdown::render("vignettes/julia-engine.Rmd", output_dir = "/tmp/drmtmb-julia-engine-preview", quiet = TRUE)'`
+  passed.
+- `rg -n "AVONET|Hackett|9993|settled fastest|Takahashi|L-BFGS|sparse EM|61\\.697|15\\.870" vignettes/julia-engine.Rmd /tmp/drmtmb-julia-engine-preview/julia-engine.html`
+  found the expected source and rendered HTML text.
+- `git diff --check -- vignettes/julia-engine.Rmd docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-08-experimental-julia-engine-bridge.md`
+  passed.
+
+Remaining limits:
+
+- The AVONET rows are still warm-session smoke evidence. A release-grade
+  benchmark needs cold-start setup, bridge marshalling, native fitter time,
+  Julia fitter time, memory, convergence status, iteration counts, likelihood
+  agreement, and repeated-observation-per-species designs.
+- The Julia EM route is useful and sparse, but the current evidence does not
+  prove it is the quickest Julia algorithm for phylogenetic models.
+
+## 2026-06-08 — Q8 stress audit and skew-normal pilot evidence agents
+
+Goal:
+
+- Run the next two-hour evidence/integrity batch with separate q8, skew-normal,
+  stale-claim, docs/status, and issue/reporting responsibilities.
+
+Implemented:
+
+- Ran the q8 diagnostic stress-audit writer over the five-row subset: low
+  replication, weak endpoint SD ratio, negative residual `rho12`, positive
+  residual `rho12`, and high latent q8 correlation.
+- Ran a fixed-effect `skew_normal()` formal pilot with three cells (`left`,
+  `symmetric`, `right`; `n = 320`; `beta_sigma_z = 0.25`; `rho_xz = 0`) and
+  three replicates per cell.
+- Ran a one-cell symmetric fixed-effect `skew_normal()` false-positive artifact
+  with true `nu = 0`, `n = 300`, `beta_sigma_z = 0.15`, and `rho_xz = 0.10`.
+- Updated `ROADMAP.md`, `NEWS.md`, `inst/sim/README.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/design/125-phase-18-next-two-team-slices-1619-1718.md`,
+  `docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md`,
+  `docs/design/158-phase-19-comparator-matrix.md`,
+  `docs/dev-log/known-limitations.md`, and
+  `vignettes/robust-student.Rmd` so q8 and skew-normal status reflects the new
+  evidence without claiming coverage, power, formal recovery, or comparator
+  support.
+
+Evidence:
+
+- Q8 stress audit artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-q8-stress-audit/`.
+  The diagnostic summary completed 5/5 manifests, converged 2/5 fits, had 0/5
+  positive-Hessian fits, 0/5 warning rows, and no failure-ledger rows. Low
+  replication and positive/negative residual-`rho12` rows were nonconverged and
+  ill-conditioned. This confirms q8 `hold_diagnostic`.
+- Skew-normal formal-pilot artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-formal-pilot/`.
+  The pilot converged 9/9 fits, had 0/9 positive-Hessian fits, and no warnings.
+  `nu` recovery was weak at this tiny replicate count: bias/RMSE were about
+  `0.793/0.980` for left slant, `-0.344/1.111` for symmetric, and
+  `-1.227/1.422` for right slant.
+- Skew-normal false-positive artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-false-positive/`.
+  The one-cell symmetric run converged but had `pdHess = FALSE`, fitted
+  `|nu| = 0.981` at a 0.5 threshold, and therefore stays a false-positive
+  diagnostic warning, not a calibrated false-positive-rate result.
+- The stale-claim scanner wrote
+  `docs/dev-log/agent-notes/2026-06-08-stale-claim-scan.md` and identified stale
+  planned-only skew-normal wording plus an ambiguous ROADMAP use of "coverage"
+  for source/artifact evidence. Those active-surface claims were repaired.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+```
+
+Result: passed. The filter covered
+`phase18-biv-gaussian-q8-endpoint-recovery`,
+`phase18-biv-gaussian-q8-endpoint`, `phase18-skew-normal-fixed-effect`, and
+`skew-normal-location-scale`.
+
+Issue maintenance:
+
+- Commented on skew-normal issue #3:
+  https://github.com/itchyshin/drmTMB/issues/3#issuecomment-4653210543
+- Commented on q8/individual-difference covariance issue #5:
+  https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4653212564
+- The GitHub app connector could not write the issue comment because the
+  integration returned HTTP 403, so the local `gh` token was used instead.
+
+Remaining limits:
+
+- Q8 is fitted and diagnostic-artifact ready only. The new stress audit confirms
+  low convergence and zero positive-Hessian support; q8 remains out of coverage,
+  power, and interval-readiness claims.
+- Fixed-effect `skew_normal()` is implemented as a first univariate slice with
+  smoke, formal-pilot, and false-positive artifacts. The pilot and false-positive
+  evidence do not support formal recovery or comparator-backed promotion yet.
+
+## 2026-06-08 — Q8 Hessian rescue and skew-normal comparator pilot
+
+Goal:
+
+- Run the next q8 Hessian/start-rescue evidence slice and the next fixed-effect
+  `skew_normal()` Hessian/comparator pilot, then synchronize active status docs,
+  issue ledgers, and after-task reporting.
+
+Implemented:
+
+- Ran a q8 `se = TRUE` Hessian probe on the two stress rows that had converged
+  under `se = FALSE`: high latent q8 correlation and weak endpoint SD ratio.
+- Repeated those two rows with `optimizer_preset = "careful"`.
+- Wrote a q8 comparison table that places the earlier `se = FALSE` stress rows
+  beside the new `se = TRUE` baseline and careful probes.
+- Ran a fixed-effect `skew_normal()` Hessian/comparator pilot over eight simple
+  `se = TRUE` fits: constant-scale left/symmetric/right cells,
+  heteroscedastic left/symmetric/right cells, and one predictor-varying slant
+  cell fit as both `nu ~ 1` and `nu ~ w`.
+- Added `docs/design/163-phase-18-q8-hessian-start-rescue.md` and
+  `docs/design/164-phase-18-skew-normal-hessian-comparator-pilot.md`.
+- Updated `README.md`, `ROADMAP.md`, `NEWS.md`,
+  `docs/design/34-validation-debt-register.md`,
+  `docs/design/41-phase-18-simulation-programme.md`,
+  `docs/design/46-pre-simulation-readiness-matrix.md`,
+  `docs/design/157-capability-completion-worklist.md`,
+  `docs/dev-log/known-limitations.md`, and `inst/sim/README.md` so q8 and
+  skew-normal status agrees across active ledgers.
+
+Evidence:
+
+- Q8 baseline Hessian probe artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-q8-hessian-probe/`.
+  Both rows had 0/2 convergence, 0/2 positive-Hessian fits, warning rate 1,
+  optimizer-ok rate 0, and `NaNs produced`.
+- Q8 careful Hessian probe artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-q8-hessian-probe-careful/`.
+  `optimizer_preset = "careful"` gave the same qualitative result.
+- Q8 comparison artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-q8-hessian-probe-comparison/`.
+  The comparison clarifies that the earlier stress-audit `pdHess_rate = 0`
+  came from `se = FALSE`, so Hessian evidence was not computed there. When
+  `se = TRUE` was requested for the two formerly converged hard rows, both
+  became nonconverged and ill-conditioned.
+- Skew-normal Hessian/comparator pilot artifacts:
+  `docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-hessian-comparator-pilot/`.
+  The pilot converged 8/8 fixed-effect fits with `pdHess = TRUE` and no
+  warnings. Symmetric cells still fit nonzero slant, the `nu ~ w` slope
+  under-recovered, and local `sn`/`gamlss` comparator fits were not run because
+  neither package was available.
+
+Checks run:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/163-phase-18-q8-hessian-start-rescue.md docs/design/164-phase-18-skew-normal-hessian-comparator-pilot.md docs/dev-log/known-limitations.md inst/sim/README.md
+air format README.md docs/design/34-validation-debt-register.md
+Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+rg -n 'q8.*(coverage|power|interval).*(ready|passed|complete|supported)|q8.*positive-Hessian|0/5 positive-Hessian|0/9 positive-Hessian|skew_normal.*(random effects|structured effects|bivariate|rho12).*(implemented|supported|ready)|skew-normal.*formal recovery.*(ready|complete|passed)|skew_normal.*external comparator.*(passed|complete|supported)' NEWS.md ROADMAP.md README.md docs/design docs/dev-log/known-limitations.md inst/sim vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/design/archive/**'
+git diff --check
+```
+
+Result: the focused test run passed; `git diff --check` passed. The stale-claim
+scan returned intended boundary rows only: q8 remains closed for coverage,
+power, and interval readiness; skew-normal random or structured effects remain
+unsupported; and the remaining positive-Hessian wording is either
+same-response q2 history or the new simple fixed-effect skew-normal Hessian
+evidence.
+
+Issue maintenance:
+
+- Commented on q8/individual-difference covariance issue #5:
+  https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4653465280
+- Commented on skew-normal issue #3:
+  https://github.com/itchyshin/drmTMB/issues/3#issuecomment-4653465303
+
+Remaining limits:
+
+- Q8 remains fitted and diagnostic-artifact ready only. A true q4/q6-to-q8
+  staged-start or internal start-mapping hook is needed before another larger
+  recovery grid is useful.
+- Fixed-effect `skew_normal()` now has encouraging simple positive-Hessian
+  evidence, but not formal recovery, calibrated false-positive, external
+  comparator, random-effect, structured-effect, bivariate, residual `rho12`, or
+  latent `skew(id)` support.
+
+## 2026-06-08 — Q8 start-hook preflight and skew-normal comparator scale map
+
+Goal:
+
+- Convert the q8 Hessian/start-rescue finding into an implementation preflight
+  and close the fixed-effect `skew_normal()` comparator-scale ambiguity before
+  any external fitted-comparator run.
+
+Implemented:
+
+- Added `docs/design/165-phase-18-q8-start-hook-preflight.md`.
+  The note fixes the internal hook point after
+  `add_covariance_probe_parameter(spec)` and before `TMB::MakeADFun()`, keeps
+  public `start`/`warm_start`/`map`-like controls reserved, and defines the first
+  staged-start contract as validated named `spec$start` overrides.
+- Added `docs/design/166-phase-18-skew-normal-comparator-scale-map.md`.
+  The note maps public `skew_normal()` moment parameters `mu`, `sigma`, and
+  `nu` to native Azzalini `xi`, `omega`, and `alpha`.
+- Added dependency-free skew-normal comparator scale-map source tests. They
+  verify that the native transform reconstructs public `mu` and `sigma`, that
+  the native Azzalini density matches the public reference density after
+  conversion, and that `gamlss.dist::SN2` is not marked as a same-density
+  comparator.
+- Updated the Phase 19 comparator matrix, the Phase 18 simulation programme,
+  capability worklist, readiness matrix, likelihood note, known-limitations
+  ledger, simulation README, ROADMAP, and NEWS so they distinguish source-level
+  scale mapping from actual external fitted-comparator evidence.
+
+Checks run:
+
+```sh
+air format NEWS.md ROADMAP.md docs/design/03-likelihoods.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/163-phase-18-q8-hessian-start-rescue.md docs/design/164-phase-18-skew-normal-hessian-comparator-pilot.md docs/design/165-phase-18-q8-start-hook-preflight.md docs/design/166-phase-18-skew-normal-comparator-scale-map.md docs/dev-log/known-limitations.md inst/sim/README.md tests/testthat/helper-skew-normal-density.R tests/testthat/test-skew-normal-density-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal-density-contract|skew-normal-location-scale|optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+rg -n 'q8.*(coverage|power|interval).*(ready|passed|complete|supported)|q8.*positive-Hessian|skew_normal.*(random effects|structured effects|bivariate|rho12).*(implemented|supported|ready)|skew-normal.*formal recovery.*(ready|complete|passed)|skew_normal.*external comparator.*(passed|complete|supported)|comparator scale mapping and recovery evidence remain future|gamlss.*same-density comparator' NEWS.md ROADMAP.md README.md docs/design docs/dev-log/known-limitations.md inst/sim vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/design/archive/**'
+git diff --check
+```
+
+Result: the focused test run passed. `git diff --check` passed. The stale-claim
+scan returned intended boundary rows only: q8 remains closed for coverage,
+power, and interval readiness; skew-normal random or structured effects remain
+unsupported; and external fitted-comparator evidence is still future work even
+though source-level scale mapping now exists.
+
+Issue maintenance:
+
+- Commented on q8/individual-difference covariance issue #5:
+  https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4653762360
+- Commented on skew-normal issue #3:
+  https://github.com/itchyshin/drmTMB/issues/3#issuecomment-4653762363
+
+Remaining limits:
+
+- Q8 still has no start-hook implementation. The next q8 slice should implement
+  a private `spec$start` override helper and compare cold versus staged q8 fits
+  on paired seeds.
+- Fixed-effect `skew_normal()` now has a safe comparator scale map, but no
+  completed formal recovery grid, calibrated false-positive evidence, external
+  fitted-comparator artifacts, random effects, structured effects, bivariate
+  route, residual `rho12`, or latent `skew(id)` support.
+
+## 2026-06-08 — Q8 private start override and glmmTMB comparator smoke cleanup
+
+Goal:
+
+- Clean up the two remaining local foundations after the q8 start-hook preflight
+  and skew-normal comparator scale map: implement the private q8 start-override
+  validator and run the first simple `glmmTMB` skew-normal comparator smoke.
+
+Implemented:
+
+- Added `drm_apply_start_override()` as a private hook in the ordinary
+  `drmTMB()` fit path. The call is a no-op by default and sits after
+  `add_covariance_probe_parameter(spec)` and before `TMB::MakeADFun()`.
+- Added source tests in `tests/testthat/test-optimizer-contract.R` for empty
+  override preservation, unknown names, duplicate names, wrong lengths,
+  non-finite values, mapped-slot preservation, and provenance/applied-count
+  metadata.
+- Wrote a simple fixed-effect `glmmTMB` comparator smoke artifact:
+  `docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-glmmtmb-comparator-smoke/`.
+  On one `sigma ~ 1`, `nu ~ 1` data set, `glmmTMB::skewnormal()` matched the
+  local `drmTMB` mean, scale, and shape estimates when started with nonzero
+  `psi`; the default `glmmTMB` start converged at the symmetric shape boundary.
+- Updated the q8 start-hook design note, skew-normal comparator scale-map note,
+  ROADMAP, capability worklist, readiness matrix, Phase 18 simulation programme,
+  Phase 19 comparator matrix, known-limitations ledger, and simulation README.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/165-phase-18-q8-start-hook-preflight.md docs/design/166-phase-18-skew-normal-comparator-scale-map.md docs/dev-log/known-limitations.md inst/sim/README.md ROADMAP.md
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal-density-contract|skew-normal-location-scale|optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+Rscript --vanilla -e 'pkgs <- c("sn", "RTMBdist", "brms", "glmmTMB", "gamlss"); print(data.frame(package = pkgs, available = vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)), row.names = FALSE)'
+rg -n 'q8.*(coverage|power|interval).*(ready|passed|complete|supported)|q8.*positive-Hessian|skew_normal.*(random effects|structured effects|bivariate|rho12).*(implemented|supported|ready)|skew-normal.*formal recovery.*(ready|complete|passed)|skew_normal.*external comparator.*(passed|complete|supported)|external comparator fit artifacts exist yet|Q8 still has no start-hook implementation|next q8 task is the internal start-hook implementation' NEWS.md ROADMAP.md README.md docs/design docs/dev-log/known-limitations.md inst/sim vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/design/archive/**'
+find docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-glmmtmb-comparator-smoke -maxdepth 1 -type f -print | sort
+git diff --check
+```
+
+Result: both focused test runs passed. Optional package availability was
+`brms = TRUE`, `glmmTMB = TRUE`, and `sn = RTMBdist = gamlss = FALSE`.
+`git diff --check` passed. The stale scan returned intended boundary rows only:
+q8 still lacks promotion evidence, skew-normal random/structured/bivariate
+support remains unsupported, and the comparator wording now distinguishes the
+simple `glmmTMB` smoke from formal comparator grids.
+
+Issue maintenance:
+
+- Commented on q8/individual-difference covariance issue #5:
+  https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4654023341
+- Commented on skew-normal issue #3:
+  https://github.com/itchyshin/drmTMB/issues/3#issuecomment-4654023355
+
+Remaining limits:
+
+- Q8 now has the private start-override foundation, but not the q4/q6-to-q8
+  mapper or paired cold-versus-staged diagnostic artifacts.
+- Fixed-effect `skew_normal()` now has one simple `glmmTMB` comparator smoke,
+  but not formal recovery, calibrated false-positive evidence, heteroscedastic
+  or predictor-varying comparator grids, random effects, structured effects,
+  bivariate support, residual `rho12`, or latent `skew(id)`.
+
+## 2026-06-08 — Q8 staged-start mapper and first paired pilot
+
+Goal:
+
+- Finish the next q8 pre-simulation start-rescue slice by mapping already fitted
+  q4 starts into the q8 all-endpoint target without opening a public `start =`
+  API or copying unvalidated packed q8 correlations.
+
+Implemented:
+
+- Factored the existing prepared-spec MakeADFun/optimizer tail into the private
+  `drm_fit_spec()` helper. The public `drmTMB()` path still has no start
+  argument and calls the same helper with no override.
+- Added `drm_qgt2_staged_start_override()` as a private source-fit to
+  target-spec mapper. It copies fixed effects by distributional parameter and
+  model-matrix column name, copies q>2 endpoint SD starts by covariance-member
+  key, records provenance, and refuses `copy_theta_re_cov = TRUE` until a
+  tested pair-key/packed-theta helper exists.
+- Added source tests in `tests/testthat/test-optimizer-contract.R` for q4-to-q8
+  fixed-effect mapping, endpoint-SD key mapping, preserved neutral
+  `theta_re_cov`, applied-count metadata, and the explicit packed-theta
+  refusal.
+- Wrote a one-row paired pilot artifact:
+  `docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/`. On
+  `q8_diag_001` with seed `20260641`, cold q8 returned convergence code 1,
+  objective 232.4051, maximum gradient 1.78e-4, minimum q8 correlation
+  eigenvalue 5.57e-14, and condition number 5.90e13. Q4-staged q8 returned
+  convergence code 0, objective 232.3794, maximum gradient 1.22e-4, minimum q8
+  correlation eigenvalue 2.26e-7, and condition number 1.43e7.
+- Updated the q8 start-hook and Hessian rescue notes, Phase 18 simulation
+  programme, ROADMAP, capability worklist, readiness matrix, known-limitations
+  ledger, and simulation README.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-optimizer-contract.R
+Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract", reporter = "summary")'
+Rscript --vanilla -e 'devtools::test(filter = "skew-normal-density-contract|skew-normal-location-scale|optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+rg -n 'Q8 still has no start-hook implementation|Q8 still needs the q4/q6-to-q8 mapper|q4/q6-to-q8 mapper and paired cold-versus-staged diagnostic artifacts do not exist|next q8 task is the q4/q6-to-q8 mapping helper|q8 start/Hessian rescue|q8.*(coverage|power|interval).*(ready|passed|complete|supported)|q8.*positive-Hessian' NEWS.md ROADMAP.md README.md docs/design docs/dev-log/known-limitations.md inst/sim vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/design/archive/**'
+Rscript --vanilla - <<'RS'
+# one-row q8 cold-vs-q4-staged pilot, wrote docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/
+RS
+```
+
+Result: focused optimizer-contract tests passed before and after formatting.
+The broader q8/skew-normal contract subset passed after closeout edits.
+The first paired pilot supports using q4-staged starts as a hard-row diagnostic
+input, but it does not promote q8 to interval, coverage, or power readiness.
+The stale scan returned intended boundary rows only: q8 coverage, power, and
+interval readiness remain closed, and current start/Hessian wording now points
+to the broader hard-row audit rather than a missing mapper.
+Issue #5 was updated:
+https://github.com/itchyshin/drmTMB/issues/5#issuecomment-4654290349
+
+Remaining limits:
+
+- Q8 still needs a broader paired staged-start audit across the hard diagnostic
+  rows, especially `se = TRUE` Hessian rows.
+- Packed q8 `theta_re_cov` copying remains closed until a pair-key and
+  packed-theta reconstruction helper is implemented and tested.
+
+## 2026-06-08 - q8 profile/bootstrap fallback pilot
+
+Ran a q8 hard-row fallback pilot to test whether profile likelihood or generic
+parametric bootstrap can substitute for Hessian-based inference on the ordinary
+Gaussian all-endpoint q8 block.
+
+Artifacts:
+
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/fit-summary.csv`
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/profile-targets.csv`
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/profile-interval.csv`
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/bootstrap-interval.csv`
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/unsupported-derived-correlation.csv`
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/qgt2-sd-matches.csv`
+
+Fit evidence:
+
+- Low replication (`q8_diag_001`): cold q8 returned convergence code 1,
+  maximum gradient 1.78e-4, minimum q8 correlation eigenvalue 5.57e-14, and
+  condition number 5.90e13; q4-staged q8 returned convergence code 0, maximum
+  gradient 1.22e-4, minimum q8 correlation eigenvalue 2.26e-7, and condition
+  number 1.43e7.
+- Weak endpoint SD ratio (`q8_diag_004`): cold and staged q8 both returned
+  convergence code 1 under `se = FALSE`; both `se = TRUE` probes returned
+  convergence code 1, `pdHess = FALSE`, and `NaNs produced`.
+- Residual `rho12` stress rows (`q8_diag_007`, `q8_diag_009`): cold and staged
+  q8 both returned convergence code 1 under `se = FALSE`.
+- High latent q8 correlation (`q8_diag_012`): cold q8 returned convergence
+  code 0 under `se = FALSE`; staged q8 returned convergence code 1. With
+  `se = TRUE`, the cold start returned convergence code 0 and `pdHess = TRUE`,
+  while the staged start returned convergence code 1, `pdHess = FALSE`, and
+  `NaNs produced`.
+
+Interval evidence:
+
+- `profile-targets.csv` recorded 45 direct fixed-effect rows, 40 direct
+  random-effect SD rows, and 5 direct residual-`rho12` rows across the staged
+  q8 fits; all were `profile_ready = TRUE`.
+- The 140 q8 group-level correlation rows were derived
+  `unstructured_corr` rows with
+  `profile_note = "derived_unstructured_correlation"` and
+  `profile_ready = FALSE`.
+- One endpoint profile interval succeeded: on the staged low-replication fit,
+  `confint(..., method = "profile", profile_engine = "endpoint",
+  level = 0.70)` returned 0.2387 to 0.3588 for
+  `sd:mu:mu1:(1 + x | p | id):(Intercept)`.
+- Generic public bootstrap did not rescue that same direct target:
+  `confint(..., method = "bootstrap", R = 3)` returned
+  `bootstrap_unavailable`, with 0/3 successful refits and warning
+  `NA/NaN function evaluation`.
+- Public bootstrap explicitly rejected a q8 derived group-level correlation
+  before refitting because bootstrap confidence intervals currently support
+  direct fitted-object targets only.
+
+Documentation updated:
+
+- `docs/design/163-phase-18-q8-hessian-start-rescue.md`
+- `docs/design/165-phase-18-q8-start-hook-preflight.md`
+- `docs/design/157-capability-completion-worklist.md`
+- `docs/design/46-pre-simulation-readiness-matrix.md`
+- `docs/dev-log/known-limitations.md`
+- `inst/sim/README.md`
+- `ROADMAP.md`
+- `docs/dev-log/after-task/2026-06-08-q8-profile-bootstrap-fallback-pilot.md`
+
+Decision: q8 remains `hold_diagnostic`. Direct q8 endpoint SDs have a first
+positive profile-likelihood pilot, but generic public bootstrap is not yet a q8
+fallback, and derived q8 group-level correlations need a custom
+derived-statistic bootstrap artifact before interval claims can be considered.
+
+## 2026-06-08 - R/J bridge and parallel inference timing
+
+Installed `{JuliaCall}` in the active R 4.5 arm64 library and recorded local
+threading/parallel timing evidence in
+`docs/dev-log/benchmarks/r-julia-threading-comparison-2026-06-08.md`. The warm
+fixed-effect Gaussian bridge is a positive parity result: at `n = 10000`,
+native TMB median was `0.174s`, Julia bridge median was `0.014s`, with
+`logLik` difference `3.09e-09`. R native phylogenetic profile and bootstrap
+parallelism are also measured: profile endpoint multicore with two workers
+reduced the 10,000-row / 1,000-species phylogenetic SD profile from `22.606s`
+(`tmbprofile`) to `4.830s`, and R bootstrap `B = 20` with four multicore
+workers took `15.787s` versus `61.756s` serial. The phylogenetic Julia bridge is
+callable but not ready for a speed claim under current defaults: the 100- and
+1000-species smoke rows returned Julia convergence code `1` and did not meet
+the likelihood-parity standard.
+
+Follow-up prose pass: clarified in the benchmark note and Julia-engine vignette
+that R `parallel = "multicore"` is forked-process parallelism, Julia
+`threads = true` is within-process shared-memory threading, and TMB/OpenMP or
+BLAS/LAPACK threads are separate low-level backends that must be recorded to
+avoid oversubscription in timing comparisons.
+
+Second prose/evidence pass: added a plain BLAS/OpenMP definition to the
+Julia-engine vignette and folded in the direct DRM.jl AVONET/Hackett
+thread-scaling smoke as a non-bridge repeated-refit result. With BLAS/OpenMP
+pinned to one thread, B = 100 bootstrap elapsed times were `178.230s` (1 Julia
+thread), `85.916s` (2), `45.241s` (4), `32.042s` (8), `27.604s` (16), and
+`20.291s` (20). The article labels B = 10000 as projected, not completed.
+
+## 2026-06-09 - q8 sample-size usability and theta-start closeout
+
+Goal:
+
+- Finish the q8 usability slices by adding a validated q4-to-q8 theta-start
+  mapper, running a sample-size ladder, and recording direct-SD profile plus
+  derived-correlation bootstrap evidence without promoting q8 to coverage or
+  power readiness.
+
+Implemented:
+
+- Added optional `theta_re_cov` inheritance to
+  `drm_qgt2_staged_start_override(copy_theta_re_cov = TRUE)`. It maps common
+  source correlations by pair label, shrinks them, regularizes the q8
+  correlation start if needed, packs the matrix back to TMB's unstructured
+  theta scale, and verifies reconstruction.
+- Added `inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R` with hard-row
+  and sample-size conditions, cold / q4 SD-staged / q4 theta-staged strategies,
+  bounded direct-SD profile attempts, and a developer derived-correlation
+  bootstrap lane.
+- Wrote
+  `docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-pilot/` and
+  `docs/dev-log/simulation-artifacts/2026-06-09-q8-usability-inference-pilot/`.
+- Synchronized README, NEWS, ROADMAP, readiness matrix, capability worklist, q8
+  design notes, simulation README, known limitations, team improvements, and
+  after-task report.
+
+Evidence:
+
+- Low sample-size q8 rows stayed fragile: cold and SD-staged fits errored with
+  non-positive leading minors, while theta-staged got through but returned
+  optimizer code 1.
+- Baseline sample-size rows fit but retained near-singular q8 correlation
+  matrices.
+- At 96 groups x 12 repeats, cold and SD-staged `se = TRUE` fits reported
+  `pdHess = TRUE`, minimum q8 correlation eigenvalues 2.05e-6 and 4.26e-6, and
+  condition numbers 1.27e6 and 6.11e5. Both still returned optimizer code 1
+  under the 800-iteration budget.
+- Theta-staged starts rescued the weak-SD stress row to optimizer code 0, but
+  they were not uniformly better and reported `pdHess = FALSE` on the high
+  sample-size `se = TRUE` row where cold and SD-staged reported `pdHess = TRUE`.
+- One direct endpoint-SD profile on the weak-SD row returned a 70% interval of
+  0.135 to 0.194. The two-refit derived-correlation bootstrap wrote 29 draw
+  rows but no interval rows because one refit was nonconverged and one errored.
+
+Checks run:
+
+```sh
+Rscript --vanilla - <<'RS'
+# styler::style_file(c(
+#   "inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R",
+#   "tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R"
+# ))
+RS
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "optimizer-contract|phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla - <<'RS'
+# phase18_run_biv_gaussian_q8_usability_pilot(...)
+RS
+/usr/local/bin/Rscript --vanilla - <<'RS'
+# phase18_run_biv_gaussian_q8_inference_pilot(...)
+RS
+rg -n "q8|Q8|theta_re_cov|staged|sample-size|sample size|bootstrap|profile" docs/design/163-phase-18-q8-hessian-start-rescue.md docs/design/165-phase-18-q8-start-hook-preflight.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md inst/sim/README.md ROADMAP.md NEWS.md docs/dev-log/team-improvements.md README.md
+rg -n "theta_re_cov.*refus|does not copy packed|without a validated pair-key|explicit packed-theta refusal|preserved neutral q8 correlations|q8.*does not work|q8.*would not work|q8.*works|Q8.*works|Q8.*does not" README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md inst/sim R tests --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
+git diff --check -- R/drmTMB.R inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R tests/testthat/test-optimizer-contract.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R README.md NEWS.md ROADMAP.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/67-sdstar-p8-poisson-q1.md docs/design/157-capability-completion-worklist.md docs/design/163-phase-18-q8-hessian-start-rescue.md docs/design/165-phase-18-q8-start-hook-preflight.md docs/dev-log/check-log.md docs/dev-log/known-limitations.md docs/dev-log/team-improvements.md inst/sim/README.md docs/dev-log/after-task/2026-06-09-q8-usability-sample-size-starts.md
+```
+
+Result: `styler` changed the q8 runner and q8 test file; focused tests passed
+after styling. The stale-copying and binary-q8 scan returned no rows, and
+`git diff --check` was clean. Q8 remains fitted and diagnostic-artifact ready,
+with sample-size-dependent usability evidence, but not coverage-ready or
+power-ready.
+
+Issue maintenance: issue #5 is the overlapping q8 all-endpoint issue. The
+GitHub connector could read the issue, but posting the closeout comment failed
+with GitHub API 403 `Resource not accessible by integration`. The after-task
+report records the intended issue update locally.
+
+## 2026-06-09 - q8 optimizer-budget paired pilot
+
+Goal:
+
+- Close the next q8 usability gate by testing whether a larger `nlminb()`
+  budget changes the high sample-size `se = TRUE` q8 result.
+
+Implemented:
+
+- Added named optimizer-budget helpers and
+  `phase18_run_biv_gaussian_q8_optimizer_budget_pilot()` to
+  `inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R`.
+- Added optimizer metadata columns (`optimizer_label`, `eval_max`, `iter_max`)
+  to q8 fit-summary, profile-target, failure, and start-mapping artifact rows.
+- Added source tests in
+  `tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R` for the
+  optimizer-budget metadata contract.
+- Wrote
+  `docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot/`.
+- Synchronized README, NEWS, ROADMAP, capability worklist, pre-simulation
+  readiness matrix, q8 design notes, simulation README, known limitations, and
+  this after-task report.
+
+Evidence:
+
+- The pilot reran `q8_size_003` (96 groups x 12 repeats, seed `20260687`) with
+  `se = TRUE`, cold / q4 SD-staged / q4 theta-staged starts, and 800 versus
+  1600 evaluations/iterations.
+- Cold and q4 SD-staged fits reported `pdHess = TRUE` under both budgets but
+  still returned optimizer convergence code 1.
+- Printed q8 correlation diagnostics were unchanged by the larger budget:
+  cold q8 had minimum eigenvalue 2.05e-6 and condition number 1.27e6; SD-staged
+  q8 had minimum eigenvalue 4.26e-6 and condition number 6.11e5.
+- Q4 theta-staged q8 reported convergence code 1, `pdHess = FALSE`, and one
+  `NaNs produced` warning under both budgets.
+- Decision: high replication improves q8 Hessian/conditioning behaviour, but
+  budget-alone rescue is not supported for this high row. Q8 remains fitted and
+  diagnostic-artifact ready, not coverage-ready or power-ready.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'parse(file = "inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R"); parse(file = "tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R"); cat("parse ok\n")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phase18-biv-gaussian-q8-endpoint", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'styler::style_file(c("inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R", "tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R"))'
+/usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); # sourced sim helpers; phase18_run_biv_gaussian_q8_optimizer_budget_pilot(result_dir = "docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot", overwrite = TRUE)'
+rg -n "larger-sample, larger[- ]optimizer|larger optimizer-budget|optimizer-budget audit passes|needs optimizer-budget follow-up|next q8 gate is a larger|larger optimizer budget paired audit" README.md NEWS.md ROADMAP.md docs/design docs/dev-log/known-limitations.md inst/sim/README.md --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**'
+git diff --check -- inst/sim/run/sim_run_biv_gaussian_q8_usability_pilot.R tests/testthat/test-phase18-biv-gaussian-q8-endpoint.R README.md NEWS.md ROADMAP.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/163-phase-18-q8-hessian-start-rescue.md docs/design/165-phase-18-q8-start-hook-preflight.md docs/dev-log/known-limitations.md inst/sim/README.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-09-q8-optimizer-budget-pilot.md docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot/fit-summary.csv docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot/profile-targets.csv docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot/start-mapping.csv docs/dev-log/simulation-artifacts/2026-06-09-q8-optimizer-budget-pilot/manifest.csv
+```
+
+Result: parse and focused q8 endpoint tests passed; `styler` found both touched
+R files unchanged. The stale optimizer-budget wording scan returned no rows
+outside historical logs and after-task reports, and `git diff --check` was
+clean for the touched files and new artifacts.
+
+## 2026-06-09 - model-selection article and AIC/BIC n200 support run
+
+Goal:
+
+- Add a reader-facing model-selection article that compares AIC and BIC across
+  small, explicit `drmTMB` candidate sets, with simulation evidence kept
+  honest about sample size and diagnostics.
+
+Implemented:
+
+- Added `vignettes/model-selection.Rmd` and routed it through `_pkgdown.yml`
+  under Model Guides and the "Choose Your Model" article section.
+- Added the article-support ADEMP sheet
+  `docs/design/167-model-selection-aic-bic-simulation-design.md`.
+- Added the Phase 18 model-selection DGP, candidate fitter, smoke runner,
+  writer, compact summary table, and focused tests:
+  `inst/sim/dgp/sim_dgp_model_selection.R`,
+  `inst/sim/fit/sim_summarise_model_selection.R`,
+  `inst/sim/run/sim_run_model_selection_smoke.R`,
+  `inst/sim/run/sim_write_model_selection_smoke.R`,
+  `inst/sim/reports/model-selection-article-summary.csv`, and
+  `tests/testthat/test-phase18-model-selection-smoke.R`.
+- Wrote local 200-replicate article-support artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`.
+- Synchronized NEWS, the worked-example inventory, and the Phase 18 simulation
+  README.
+
+Evidence:
+
+- The article-support run used six paired cells and 200 replicates per cell:
+  Gaussian versus Student-t, NB2 versus ZINB2, and `sigma ~ 1` versus
+  `sigma ~ x`.
+- AIC target-selection rates were 0.825 for `constant_sigma`, 0.920 for
+  `extra_zeros`, 0.840 for `heavy_tail`, 0.935 for `nb2_counts`, 0.945 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- BIC target-selection rates were 0.975 for `constant_sigma`, 0.730 for
+  `extra_zeros`, 0.665 for `heavy_tail`, 0.990 for `nb2_counts`, 0.980 for
+  `normal_tail`, and 1.000 for `sigma_signal`.
+- The 200-replicate result makes the intended tradeoff visible: AIC is more
+  willing to keep the extra Student-t or zero-inflation parameter, while BIC
+  more often prefers the simpler candidate under this sample size. The
+  `normal_tail` row still shows that unnecessary Student-t candidates can carry
+  warning or weak-Hessian status.
+- The table is documentation evidence only. It is not a calibrated power,
+  false-positive, or full operating-characteristic grid.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'parse(file="inst/sim/dgp/sim_dgp_model_selection.R"); parse(file="inst/sim/fit/sim_summarise_model_selection.R"); parse(file="inst/sim/run/sim_run_model_selection_smoke.R"); parse(file="inst/sim/run/sim_write_model_selection_smoke.R"); parse(file="tests/testthat/test-phase18-model-selection-smoke.R"); cat("parse ok\n")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phase18-model-selection-smoke", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'styler::style_file(c("inst/sim/dgp/sim_dgp_model_selection.R", "inst/sim/fit/sim_summarise_model_selection.R", "inst/sim/run/sim_run_model_selection_smoke.R", "inst/sim/run/sim_write_model_selection_smoke.R", "tests/testthat/test-phase18-model-selection-smoke.R"))'
+/usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); # sourced sim helpers; phase18_write_model_selection_smoke_outputs(output_dir = "docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200", n_rep = 200L, master_seed = 20260609L, overwrite = TRUE, cores = 6L, backend = "multicore", save_results = FALSE)'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'devtools::load_all(quiet = TRUE); rmarkdown::render("vignettes/model-selection.Rmd", output_dir = tempdir(), quiet = TRUE); cat("render ok\n")'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::build_article("model-selection", quiet = TRUE)'
+rg -n "best model|AIC.*proves|BIC.*proves|formal.*model-selection|formal.*AIC|formal.*BIC|calibrated.*model-selection|operating-characteristic|power grid|same data|same analysis rows|same response" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md NEWS.md docs/design/37-worked-example-inventory.md inst/sim/README.md
+rg -n "model-selection|model selection|AIC|BIC" README.md ROADMAP.md NEWS.md docs vignettes inst/sim --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
+rg -n "[[:blank:]]$|^<<<<<<<|^=======$|^>>>>>>>" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md inst/sim/dgp/sim_dgp_model_selection.R inst/sim/fit/sim_summarise_model_selection.R inst/sim/run/sim_run_model_selection_smoke.R inst/sim/run/sim_write_model_selection_smoke.R tests/testthat/test-phase18-model-selection-smoke.R inst/sim/reports/model-selection-article-summary.csv
+git diff --check -- NEWS.md _pkgdown.yml docs/design/37-worked-example-inventory.md inst/sim/README.md
+```
+
+Result: focused tests passed before the n200 follow-up; the n200 follow-up
+finished in about 24 seconds with `backend = "multicore"` and
+`save_results = FALSE`, writing 2,400 candidate rows, 1,200 manifest rows, six
+selection-summary rows, and an empty failure ledger. Direct vignette render
+passed after pointing `RSTUDIO_PANDOC` at RStudio's bundled Pandoc.
+`pkgdown::check_pkgdown()` reported no problems, and
+`pkgdown::build_article("model-selection")` wrote
+`articles/model-selection.html`. The first pkgdown article render exposed a
+fragile `is_converged()` helper in the vignette; replacing it with a local
+`fit$opt$convergence == 0` helper fixed the article. The stale wording scans
+kept the article-support/formal-grid boundary visible. GitHub issue searches for
+`model selection AIC BIC` and `AIC BIC logLik model-fit extractors` found no
+overlapping open issue.
+
+## 2026-06-12 - repository health check on detached dirty checkout
+
+Goal:
+
+- Check the local `drmTMB` checkout and current GitHub repo surface without
+  changing branch state or reverting any in-progress work.
+
+Local state:
+
+- The checkout was detached at `b4a4d7be` (`Record q8 endpoint recovery
+  audit`) while `origin/main` pointed to `192e5392`.
+- The worktree was intentionally broad and dirty after the checks:
+  63 modified-or-deleted tracked paths, 76 untracked paths, and one tracked
+  deletion. Major dirty areas included `R/`, `src/drmTMB.cpp`, `tests/`,
+  vignettes, `_pkgdown.yml`, design notes, check logs, after-task reports,
+  benchmarks, and simulation artifacts.
+- `devtools::document()` reported writing `drmTMB-package.Rd`, `drmTMB.Rd`,
+  `beta.Rd`, and `model-fit-extractors.Rd`, and added
+  `RoxygenNote: 7.3.2` to `DESCRIPTION`.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --stat
+git diff --check
+Rscript --version
+Rscript --vanilla -e 'devtools::test(reporter = "summary")'
+Rscript --vanilla -e 'devtools::document()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
+RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 Rscript --vanilla -e 'devtools::check(document = FALSE, error_on = "never")'
+git diff --check
+gh pr list --state open --limit 10
+gh issue list --state open --limit 10
+gh run list --limit 10
+gh run view 27345201071 --log-failed
+```
+
+Results:
+
+- `git diff --check` was clean before and after roxygen.
+- `devtools::test(reporter = "summary")` completed successfully with the final
+  `DONE` banner.
+- `pkgdown::check_pkgdown()` reported `No problems found`.
+- `devtools::check(document = FALSE, error_on = "never")` completed in
+  10m 39.5s with 0 errors, 0 warnings, and 1 note:
+  `checking for future file timestamps ... NOTE unable to verify current time`.
+- The packaged testthat run inside R CMD check passed in 341s/384s.
+
+GitHub repo surface:
+
+- The latest `R-CMD-check` runs visible from `gh run list --limit 10` were
+  green for `main`, `v0.1.4`, and recent pull requests.
+- The latest `pkgdown` workflow on `main` failed at run `27345201071`, head
+  SHA `192e53928651409b3b80b523eb46493020125dc0`.
+- The failing `pkgdown` log reported one missing vignette from `_pkgdown.yml`
+  (`cross-family`) and four missing reference topics
+  (`confint.drmTMB_julia`, `predict.drmTMB_julia`, `rho_latent`, and
+  `summary.drmTMB_julia`). The site build stopped in
+  `build_reference_index()`, so Pages deployment was skipped.
+- That GitHub failure is on `main`, not on the detached dirty checkout tested
+  locally here. The local dirty checkout passed `pkgdown::check_pkgdown()`,
+  but it is not the same tree as `main`.

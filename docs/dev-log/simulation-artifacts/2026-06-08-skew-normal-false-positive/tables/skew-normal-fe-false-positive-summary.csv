@@ -1,0 +1,2 @@
+"surface","skew_regime","beta_sigma_z","rho_xz","n_fit","nu_abs_threshold","convergence_rate","pdHess_rate","warning_rate","skew_normal_nu_note_rate","nu_false_positive_rate","mean_fitted_nu_abs","max_fitted_nu_abs"
+"skew_normal_fixed_effect_false_positive","symmetric",0.15,0.1,1,0.5,1,0,0,0,1,0.981199860745016,0.981199860745016

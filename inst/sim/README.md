@@ -80,6 +80,9 @@ Current pilot files:
   sheet for the bivariate Gaussian residual `rho12` lane.
 - `docs/design/53-phase-18-student-shape-ademp.md` is the one-page ADEMP
   sheet for the fixed-effect Student-t shape `nu` lane.
+- `docs/design/167-model-selection-aic-bic-simulation-design.md` is the
+  article-support ADEMP sheet for AIC/BIC candidate-selection comparisons
+  across continuous-tail, count-zero, and scale-formula examples.
 - `docs/design/54-phase-18-animal-relmat-known-matrix-ademp.md` is the
   one-page ADEMP sheet for the known-matrix animal/`relmat()` intercept and
   matching q=2 bivariate location-covariance lanes.
@@ -107,6 +110,12 @@ Current pilot files:
   all-endpoint labels, records the 28 implied pairwise correlations, and checks
   that the smoke row is artifact-ready before any recovery, coverage, or power
   claim.
+- `docs/dev-log/simulation-artifacts/2026-06-08-q8-profile-bootstrap-fallback-pilot/`
+  records the first q8 hard-row profile/bootstrap fallback check. It confirms
+  that direct q8 endpoint SDs can be profile targets, but generic public
+  bootstrap was not stable on the staged low-replication fit and derived q8
+  correlations need a separate derived-statistic bootstrap artifact if they are
+  ever promoted.
 - `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md` records the local
   NB2 q1 all-cell formal sentinel, representative 5-replicate audit, and
   `hold_smoke_only` promotion decision before the 500-replicate gate.
@@ -272,7 +281,34 @@ Current pilot files:
   `run/sim_write_biv_gaussian_q8_endpoint_grid.R`,
   `run/sim_summary_biv_gaussian_q8_endpoint_recovery.R`, and
   `run/sim_write_biv_gaussian_q8_endpoint_recovery_grid.R` provide diagnostic
-  smoke/recovery artifacts. The 2026-06-07 local recovery audit is recorded in
+  smoke/recovery artifacts. `phase18_biv_gaussian_q8_endpoint_diagnostic_conditions()`
+  adds replication, endpoint-SD ratio, residual-`rho12`, and latent-correlation
+  preset rows, `phase18_biv_gaussian_q8_endpoint_diagnostic_audit_conditions()`
+  selects a small stress-audit subset, and
+  `run/sim_write_biv_gaussian_q8_endpoint_diagnostic_grid.R` writes aggregate,
+  replicate, manifest, failure, and diagnostic-summary CSVs for that subset.
+  The 2026-06-08 five-row stress audit completed all manifests and converged
+  2/5 fits under `se = FALSE`, so it did not compute positive-Hessian evidence.
+  The follow-up `se = TRUE` Hessian probe reran those two formerly converged
+  stress rows; both became nonconverged with `NaNs produced` and
+  ill-conditioned q8 correlation matrices, and `optimizer_preset = "careful"`
+  did not rescue them. The first private q4-to-q8 staged-start pilot is stored
+  at `docs/dev-log/simulation-artifacts/2026-06-08-q8-staged-start-pilot/`; on
+  `q8_diag_001` with seed `20260641`, the staged fit improved optimizer code
+  from 1 to 0, but this is one low-replication pilot and not q8 promotion
+  evidence. `run/sim_run_biv_gaussian_q8_usability_pilot.R` adds a
+  sample-size ladder plus cold, q4 SD-staged, and q4 theta-staged strategies.
+  The 2026-06-09 pilot shows sample-size-dependent usability: high replication
+  improved q8 Hessian and conditioning behaviour, while low and baseline rows
+  remained fragile. The 2026-06-09 optimizer-budget pilot reran the high row
+  with 800 and 1600 evaluations/iterations; doubling the budget did not change
+  convergence, `pdHess`, or the printed q8 correlation diagnostics. The same
+  runner writes bounded direct-SD profile and derived-correlation bootstrap
+  artifacts; the first weak-SD inference pilot produced one direct-SD profile
+  interval but no derived-correlation bootstrap intervals.
+  `phase18_summarise_biv_gaussian_q8_endpoint_fit_diagnostics()` summarises
+  convergence, Hessian, warning, boundary, and correlation-conditioning rates
+  by preset. The 2026-06-07 local recovery audit is recorded in
   `docs/design/161-phase-18-bivariate-q8-recovery-audit.md` and keeps the lane
   at `hold_diagnostic`, not coverage or power evidence.
 - `dgp/sim_dgp_poisson_mu_random_effect.R` generates non-zero-inflated Poisson
@@ -360,6 +396,11 @@ Current pilot files:
 - `dgp/sim_dgp_student_shape.R` generates Student-t data with `mu ~ x`,
   `sigma ~ z`, and `nu ~ w`, using the fitted `nu = 2 + exp(eta_nu)` shape
   transform and optional mean-shape predictor correlation.
+- `dgp/sim_dgp_model_selection.R` generates paired model-selection cells for
+  Gaussian versus Student-t tails, NB2 versus ZINB2 structural zeros, and
+  constant versus predictor-dependent Gaussian `sigma` formulas. It records a
+  `selection_target` for each cell so AIC/BIC truth-selection summaries can be
+  computed without treating the article-support run as a formal power grid.
 - `dgp/sim_dgp_animal_relmat_q2.R` generates bivariate Gaussian data with a
   known animal or lower-level relatedness matrix, matching q=2 `mu1`/`mu2`
   structured effects, and residual `rho12` kept as a separate layer.
@@ -457,6 +498,9 @@ Current pilot files:
   `sigma`, and `nu` coefficients on their fitted formula scales, adds optional
   profile and parametric-bootstrap interval columns, and includes a helper for
   named response-scale truth grids.
+- `fit/sim_summarise_model_selection.R` summarises candidate-level AIC, BIC,
+  log likelihood, degrees of freedom, convergence, Hessian status, warnings,
+  errors, and target-selection indicators for the model-selection lane.
 - `fit/sim_summarise_animal_relmat_q2.R` summarises fixed `mu1`/`mu2`
   coefficients, public residual scales, structured SDs, structured
   correlations, and residual `rho12` for known-matrix animal/`relmat()` q=2
@@ -555,6 +599,10 @@ Current pilot files:
   bivariate Gaussian q=2 residual-scale intercept covariance surface.
 - `run/sim_run_student_shape_smoke.R` does the same for the Student-t
   fixed-effect shape `nu` surface.
+- `run/sim_run_model_selection_smoke.R` does the same for the article-support
+  AIC/BIC model-selection surface, writing one candidate row per replicate and
+  preserving warning-bearing candidates. The file name keeps the Phase 18 smoke
+  runner convention, but the article table is generated at 200 replicates.
 - `run/sim_run_animal_relmat_q2_smoke.R` does the same for the known-matrix
   animal/`relmat()` q=2 bivariate location-covariance surface.
 - `run/sim_run_animal_relmat_q4_smoke.R` does the same for the constant
@@ -729,6 +777,47 @@ Current pilot files:
   interval-failure CSVs. Replicate-runner and bootstrap backends are separate
   for the same reason as the bivariate `rho12` grid, with the same nested-
   parallel guard.
+- `run/sim_write_model_selection_smoke.R` writes model-selection candidate,
+  selection-summary, manifest, and failure CSVs. The 200-replicate
+  article-support artifact lives at
+  `docs/dev-log/simulation-artifacts/2026-06-09-model-selection-n200/`, and the
+  compact vignette table is copied to
+  `inst/sim/reports/model-selection-article-summary.csv`.
+- `dgp/sim_dgp_skew_normal_fixed_effect.R`,
+  `run/sim_run_skew_normal_fixed_effect_smoke.R`,
+  `run/sim_summary_skew_normal_fixed_effect_smoke.R`, and
+  `run/sim_write_skew_normal_fixed_effect_grid.R` provide the first
+  fixed-effect univariate `skew_normal()` smoke artifact lane. The lane fits
+  `bf(y ~ x, sigma ~ z, nu ~ 1)` for left, symmetric, and right residual
+  slant regimes, writes aggregate, replicate, manifest, failure, and
+  diagnostic CSV artifacts, and records the `check_drm()` `skew_normal_nu`
+  status beside fitted `nu` ranges. It is smoke/artifact evidence, not formal
+  recovery, coverage, power, random-effect, structured-effect, bivariate, or
+  latent-`skew(id)` evidence.
+- `phase18_skew_normal_fe_false_positive_conditions()`,
+  `phase18_summarise_skew_normal_fe_false_positive_smoke()`, and
+  `run/sim_write_skew_normal_fixed_effect_grid.R`'s
+  `phase18_write_skew_normal_fe_false_positive_grid_outputs()` add a symmetric
+  `nu = 0` false-positive artifact lane for fixed-effect `skew_normal()`. The
+  lane writes the ordinary smoke artifacts plus a false-positive summary with
+  fitted-`nu` threshold and `check_drm()` note rates. It is a diagnostic guard
+  for the future formal grid, not a calibrated hypothesis test.
+- The 2026-06-08 fixed-effect skew-normal formal pilot ran three slant cells
+  (`left`, `symmetric`, `right`) with 3 replicates per cell at `n = 320`; all 9
+  fits converged under `se = FALSE`, so no Hessian evidence was computed, and
+  `nu` recovery was weak. The same day's one-cell symmetric false-positive run
+  converged with `pdHess = FALSE` and fitted `|nu| = 0.981` at a 0.5 threshold.
+  A follow-up simple `se = TRUE` Hessian pilot converged 8/8 fixed-effect fits
+  with `pdHess = TRUE`, including constant-scale, heteroscedastic, and `nu ~ w`
+  probes. The symmetric and predictor-varying cells still show false-positive
+  and under-recovery risks, so these artifacts are useful diagnostics, not
+  formal recovery or calibrated false-positive evidence. The comparator
+  scale-map slice records the public moment to native Azzalini conversion for
+  future `sn`, `RTMBdist`, `brms`, and `glmmTMB` comparisons. The first simple
+  `glmmTMB` comparator smoke artifact is in
+  `docs/dev-log/simulation-artifacts/2026-06-08-skew-normal-glmmtmb-comparator-smoke/`;
+  it shows agreement on one `sigma ~ 1`, `nu ~ 1` cell only when `glmmTMB` uses
+  nonzero shape starts. Formal external comparator grids remain future work.
 - `run/sim_write_first_wave_artifact_status.R` writes bound
   artifact-manifest and surface-status CSVs from multiple grid-writer outputs,
   giving report templates a small preflight table before they read individual

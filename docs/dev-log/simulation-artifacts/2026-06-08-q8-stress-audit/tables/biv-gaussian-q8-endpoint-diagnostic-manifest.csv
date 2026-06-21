@@ -1,0 +1,6 @@
+"cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"biv_gaussian_q8_endpoint_001",1,1896817654,"ok",FALSE,0,NA,2.897
+"biv_gaussian_q8_endpoint_002",1,282090703,"ok",FALSE,0,NA,10.865
+"biv_gaussian_q8_endpoint_003",1,523373101,"ok",FALSE,0,NA,8.271
+"biv_gaussian_q8_endpoint_004",1,1198980370,"ok",FALSE,0,NA,10.709
+"biv_gaussian_q8_endpoint_005",1,549904645,"ok",FALSE,0,NA,7.2

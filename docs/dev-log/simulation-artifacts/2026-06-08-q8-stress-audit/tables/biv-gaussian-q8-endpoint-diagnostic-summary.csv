@@ -1,0 +1,6 @@
+"surface","diagnostic_preset","diagnostic_level","n_fit","convergence_rate","pdHess_rate","warning_rate","optimizer_ok_rate","qgt2_rate","mean_max_gradient","min_sd_mu","min_sd_sigma","max_abs_cor","min_cor_eigen","max_cor_condition","sd_boundary_rate","high_correlation_rate","ill_conditioned_rate","max_q","max_pairs","min_group_n"
+"biv_gaussian_q8_endpoint_diagnostic","correlation","high",1,1,0,0,1,1,0.000245819609123288,0.112505260883352,0.13385671538313,0.88871378223749,0.000116631762542914,25089.6543414472,0,0,0,8,28,10
+"biv_gaussian_q8_endpoint_diagnostic","replication","low",1,0,0,0,0,1,0.000494394278427457,0.24209504733789,0.188435477471862,0.987239373763624,4.17075228056844e-11,99084492215.1228,0,1,1,8,28,6
+"biv_gaussian_q8_endpoint_diagnostic","rho12","negative",1,0,0,0,0,1,0.00179341251844178,0.185026819988049,0.151258271225386,0.725530374803008,4.82716278393764e-09,593312847.994008,0,0,1,8,28,10
+"biv_gaussian_q8_endpoint_diagnostic","rho12","positive",1,0,0,0,0,1,8.7853367828683e-05,0.113753052118236,0.0295837050327012,0.809514483516764,3.70757467336167e-08,80081381.6180604,0,0,1,8,28,10
+"biv_gaussian_q8_endpoint_diagnostic","sd_ratio","weak",1,1,0,0,1,1,0.000119754361158853,0.0935612779306387,0.0735022285742272,0.814423304050137,6.1161377678738e-06,518616.844722722,0,0,0,8,28,10

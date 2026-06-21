@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.1.3.9000 development</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.2.0 release candidate</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
@@ -15,7 +15,7 @@ template:
       alt: "drmTMB hex logo"
 
 development:
-  mode: release
+  mode: default
 
 navbar:
   structure:
@@ -31,6 +31,8 @@ navbar:
           href: articles/which-scale.html
         - text: Choosing response families
           href: articles/distribution-families.html
+        - text: Model selection with AIC and BIC
+          href: articles/model-selection.html
         - text: Checking and using fitted models
           href: articles/model-workflow.html
         - text: Handling missing data
@@ -88,6 +90,8 @@ navbar:
           href: articles/formula-grammar.html
         - text: Adding families
           href: articles/adding-families.html
+        - text: Working with the Julia engine
+          href: articles/julia-engine.html
         - text: Implemented source map
           href: articles/source-map.html
 
@@ -110,6 +114,7 @@ reference:
       - cumulative_logit
       - categorical
       - student
+      - skew_normal
       - lognormal
       - tweedie
       - nbinom2
@@ -178,6 +183,7 @@ articles:
     contents:
       - which-scale
       - distribution-families
+      - model-selection
       - location-scale
       - bivariate-coscale
       - meta-analysis
@@ -198,6 +204,7 @@ articles:
   - title: Inference, Diagnostics, and Figures
     contents:
       - convergence
+      - profile-likelihood
       - large-data
       - figure-gallery
   - title: Simulation and Validation
@@ -209,4 +216,5 @@ articles:
     contents:
       - formula-grammar
       - adding-families
+      - julia-engine
       - source-map

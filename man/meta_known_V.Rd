@@ -15,9 +15,13 @@ sampling variances. A matrix represents the known covariance among rows.}
 A formula marker; never evaluated by users.
 }
 \description{
-\code{meta_known_V()} is deprecated as a formula marker in \verb{drmTMB 0.1.3.9000}.
-Use \code{\link[=meta_V]{meta_V()}} for known sampling variance or covariance. The deprecated
-marker still routes to the same additive known-\code{V} likelihood path for
-compatibility.
+\code{meta_known_V()} is deprecated as a formula marker. Use \code{\link[=meta_V]{meta_V()}} for known
+sampling variance or covariance. The deprecated marker still routes to the
+same additive known-\code{V} likelihood path for compatibility.
+}
+\examples{
+suppressWarnings(
+  bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator)
+)
 }
 \keyword{internal}

@@ -1,0 +1,158 @@
+---
+title: "Profile-likelihood intervals"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Profile-likelihood intervals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.2,
+  dpi = 144
+)
+```
+
+Profile-likelihood intervals ask a different question from Wald intervals. A
+Wald interval uses local curvature near the fitted estimate. A profile interval
+fixes one target at a sequence of values, re-optimizes the nuisance parameters,
+and keeps the values whose likelihood-ratio distance is still compatible with
+the fitted model.
+
+This article shows the full profile object for one Gaussian residual-scale
+target. The same workflow applies to other direct targets listed by
+`profile_targets()`.
+
+## Fit a small model
+
+The example asks whether a continuous response changes with temperature while
+the residual standard deviation is constant:
+
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma
+  &\sim \operatorname{Normal}(\mu_i, \sigma^2),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i .
+\end{aligned}
+\]
+
+```{r}
+library(drmTMB)
+
+set.seed(20260608)
+n <- 70
+dat <- data.frame(temperature = runif(n, -1.2, 1.2))
+dat$growth <- 0.5 + 0.8 * dat$temperature + rnorm(n, sd = 0.55)
+
+fit <- drmTMB(
+  bf(growth ~ temperature, sigma ~ 1),
+  family = gaussian(),
+  data = dat
+)
+```
+
+`profile_targets()` names the fitted quantities that can be requested. The
+constant residual SD appears twice: once as the fixed-effect coefficient on the
+log-`sigma` link scale, and once as the response-scale target `sigma`.
+
+```{r}
+profile_targets(fit)
+```
+
+## Compute the profile curve
+
+The focused call below profiles the response-scale residual SD. `compare =
+TRUE` keeps the first pass and the denser pass in the returned table, so the
+plot can show how much extra sampling changed the likelihood-ratio curve.
+`profile_precision = "fast"` is a quick demonstration setting; for a final
+analysis, rerun important targets with the default controls or a deliberate
+`profile_maxit`.
+
+```{r}
+prof <- profile(
+  fit,
+  parm = "sigma",
+  level = 0.95,
+  compare = TRUE,
+  profile_precision = "fast",
+  trace = FALSE
+)
+```
+
+The profile stores the fitted estimate, the interval endpoints, the
+likelihood-ratio distance, the pass label, elapsed seconds, and the profile
+engine metadata.
+
+```{r}
+profile_summary <- unique(prof[c(
+  "parm",
+  "estimate",
+  "conf.low",
+  "conf.high",
+  "conf.status",
+  "profile.message",
+  "profile_source"
+)])
+profile_summary
+```
+
+```{r}
+profile_timing <- aggregate(
+  elapsed ~ profile_pass + profile_controls,
+  data = prof,
+  FUN = unique
+)
+profile_timing
+```
+
+## Inspect the likelihood-ratio curve
+
+The dashed horizontal line is the 95% likelihood-ratio cutoff. The vertical
+line marks the fitted `sigma` estimate, and the interval endpoints show where
+the profiled curve crosses the cutoff.
+
+```{r}
+plot(prof) +
+  ggplot2::labs(
+    title = "Residual SD profile",
+    subtitle = "Dotted line is the 95% cutoff; dashed lines are profile endpoints.",
+    caption = NULL
+  ) +
+  ggplot2::theme_minimal(base_size = 11) +
+  ggplot2::theme(
+    panel.grid.minor = ggplot2::element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+The interval is useful only because the curve crosses the cutoff on both sides
+of the estimate. If one side does not cross, or if `conf.status`,
+`profile.boundary`, or `profile.message` reports a boundary or failure, treat
+the interval as diagnostic evidence rather than a finished uncertainty
+summary.
+
+## Request only the endpoints
+
+When a full curve is not needed, `confint()` can return the profile endpoints.
+For direct scalar scale, SD, and correlation targets, `profile_engine = "auto"`
+uses a faster endpoint solver unless full-profile controls require
+`TMB::tmbprofile()`. Use `profile_engine = "tmbprofile"` when you want the
+same full-profile route used above.
+
+```{r}
+confint(
+  fit,
+  parm = "sigma",
+  method = "profile",
+  profile_engine = "tmbprofile",
+  profile_precision = "fast"
+)
+```
+
+The profile table and plot are the safer first read for a new target. The
+endpoint interval is the compact result after the curve shape has been checked.

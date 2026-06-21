@@ -1,0 +1,3 @@
+"surface","hessian_probe_strategy","diagnostic_preset","diagnostic_level","n_fit","convergence_rate","pdHess_rate","warning_rate","optimizer_ok_rate","qgt2_rate","mean_max_gradient","min_sd_mu","min_sd_sigma","max_abs_cor","min_cor_eigen","max_cor_condition","sd_boundary_rate","high_correlation_rate","ill_conditioned_rate","max_q","max_pairs","min_group_n"
+"biv_gaussian_q8_endpoint","baseline_800_se_true","correlation","high",1,0,0,1,0,1,0.00109327536988069,0.12282658160415,0.0761296680006709,0.964507396073733,1.4135440409418e-10,23833100141.9572,0,1,1,8,28,10
+"biv_gaussian_q8_endpoint","baseline_800_se_true","sd_ratio","weak",1,0,0,1,0,1,0.00138661927901662,0.0684005861140796,0.0801366549026296,0.982188463994814,1.37749727977704e-09,2597490450.57024,0,1,1,8,28,10

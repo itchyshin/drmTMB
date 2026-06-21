@@ -1,0 +1,30 @@
+"artifact_grain","bootstrap","parameter","estimate","status","refit_convergence","refit_pdHess","refit_message","refit_elapsed"
+"bootstrap",1,"cor(mu1:(Intercept),mu1:x | p | id)",0.369534382852508,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),mu2:(Intercept) | p | id)",0.547792617163214,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),mu2:x | p | id)",0.284470912267603,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),sigma1:(Intercept) | p | id)",-0.30622793230803,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),sigma1:x | p | id)",0.209179865703024,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),sigma2:(Intercept) | p | id)",-0.207971656083537,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:(Intercept),sigma2:x | p | id)",-0.0978876791125519,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,mu2:(Intercept) | p | id)",-0.0793318941411015,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,mu2:x | p | id)",0.457643474262961,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,sigma1:(Intercept) | p | id)",-0.692814639383039,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,sigma1:x | p | id)",0.0887520113249947,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,sigma2:(Intercept) | p | id)",0.658408358735382,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu1:x,sigma2:x | p | id)",-0.785934913125315,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:(Intercept),mu2:x | p | id)",-0.164815284646034,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:(Intercept),sigma1:(Intercept) | p | id)",0.520341776625656,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:(Intercept),sigma1:x | p | id)",0.476384084775905,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:(Intercept),sigma2:(Intercept) | p | id)",-0.567196590694705,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:(Intercept),sigma2:x | p | id)",-0.0254349810584565,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:x,sigma1:(Intercept) | p | id)",-0.216923157473257,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:x,sigma1:x | p | id)",-0.780176485940996,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:x,sigma2:(Intercept) | p | id)",-0.106330162619405,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(mu2:x,sigma2:x | p | id)",0.169180907830052,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma1:(Intercept),sigma1:x | p | id)",-0.0532821919329597,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma1:(Intercept),sigma2:(Intercept) | p | id)",-0.768986976197475,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma1:(Intercept),sigma2:x | p | id)",0.523603609828042,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma1:x,sigma2:(Intercept) | p | id)",0.267385350169883,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma1:x,sigma2:x | p | id)",-0.59991387237193,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",1,"cor(sigma2:(Intercept),sigma2:x | p | id)",-0.79918163620996,"nonconverged",1,FALSE,"singular convergence (7)",7.98899999999999
+"bootstrap",2,NA,NA,"error",NA,NA,"the leading minor of order 8 is not positive",8.2

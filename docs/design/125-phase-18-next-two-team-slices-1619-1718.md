@@ -38,20 +38,22 @@ the square root of Tweedie dispersion `phi`, and `nu` is still intercept-only.
 Predictor-dependent `nu`, random effects, structured effects, bivariate
 Tweedie, zero-inflation aliases, and hurdle aliases remain planned.
 
-Slices 1519-1538 added a source map for a future `skew_normal()` family. That
-map records the current native-location design assumption:
+Slices 1519-1538 added a source map for `skew_normal()`, and the later
+fixed-effect first slice now fits residual skewness with public moment
+semantics. The first fitted route is univariate and fixed-effect:
 
 ```r
-# Planned, not fitted:
 drmTMB(
-  bf(y ~ x, sigma ~ z, nu ~ w),
+  bf(y ~ x, sigma ~ z, nu ~ 1),
   family = skew_normal(),
   data = dat
 )
 ```
 
 Here `nu` is residual or observation-level skewness. It is not latent-effect
-skewness, and `skew(id) ~ x` remains outside the grammar.
+skewness, and `skew(id) ~ x` remains outside the grammar. Predictor-dependent
+fixed-effect `nu` is an admitted first-slice syntax surface, but formal recovery
+and comparator evidence remain future promotion work.
 
 ## Team A: Slices 1619-1668, Tweedie Evidence Hardening
 
@@ -114,13 +116,14 @@ software.
 
 ## Team B: Slices 1669-1718, Skew-Normal Decision Gate
 
-Team B should still avoid C++ likelihood code unless Ada explicitly promotes a
-later implementation lane. Its purpose is to decide the parameterization and
-the first test contract so the future `skew_normal()` branch is not ambiguous.
+Team B was originally a no-C++ decision gate. That gate is now historical: the
+fixed-effect `skew_normal()` first slice is implemented, and this section
+remains useful as the parameterization and first-test provenance behind the
+implemented branch.
 
 | Slice | Task | Done when |
 | --- | --- | --- |
-| 1669 | Rehydrate the skew-normal source map | Issue #3, `docs/design/123...`, likelihood design, family registry, and roadmap agree that skew-normal is design-only. |
+| 1669 | Rehydrate the skew-normal source map | Issue #3, `docs/design/123...`, likelihood design, family registry, and roadmap agree on the pre-implementation source map. Superseded status: the fixed-effect first slice is now implemented. |
 | 1670 | Name the reader-facing question | The note says the first family models residual asymmetry after `mu` and `sigma`, not latent-effect skewness. |
 | 1671 | Compare native and moment parameterizations | The decision note contrasts `mu = xi`, `sigma = omega`, `nu = alpha` with response mean, response SD, and `alpha`. |
 | 1672 | Decide the default parameterization for the next implementation lane | Ada, Boole, Gauss, Noether, Fisher, and Pat record whether to keep native parameters or switch to moment parameters. |
@@ -138,12 +141,12 @@ the first test contract so the future `skew_normal()` branch is not ambiguous.
 | 1684 | Decide starting values for `nu` | The implementation plan says whether exact zero starts are safe or whether a small nonzero start avoids flat derivatives. |
 | 1685 | Decide support and missingness checks | The plan covers finite continuous responses and model-frame filtering before support validation. |
 | 1686 | Decide rank-deficiency behaviour | The plan records whether shared fixed-effect rank handling is enough or family-specific diagnostics are needed. |
-| 1687 | Add a no-fit boundary scan | Source and rendered scans must catch accidental claims that `skew_normal()` is fitted. |
-| 1688 | Keep constructor absent | Tests continue to expect `skew_normal()` to be absent until the full family lane lands. |
+| 1687 | Add a first-slice boundary scan | Source and rendered scans must catch claims that `skew_normal()` supports random effects, structured effects, known sampling covariance, bivariate responses, `rho12`, or latent `skew(id)` syntax. |
+| 1688 | Supersede the no-fit constructor gate | Tests now expect the exported fixed-effect `skew_normal()` route and reject unsupported neighbouring syntax. |
 | 1689 | Keep formula grammar unchanged | `docs/design/01-formula-grammar.md` stays unchanged unless the canonical syntax changes. |
-| 1690 | Keep family registry honest | The registry says planned, not implemented, until constructor, likelihood, methods, docs, and tests land. |
-| 1691 | Keep likelihood design honest | The likelihood design may record the decision, but not claim code exists. |
-| 1692 | Keep README and pkgdown examples absent | User-facing examples remain planned-only until runnable code exists. |
+| 1690 | Keep family registry honest | The registry says implemented first slice for fixed-effect `mu`/`sigma`/`nu`, and planned for random, structured, known-covariance, bivariate, `rho12`, and latent-skew neighbours. |
+| 1691 | Keep likelihood design honest | The likelihood design records the public moment contract and the implemented native transform. |
+| 1692 | Keep README and pkgdown examples bounded | User-facing examples remain inside the supported fixed-effect route. |
 | 1693 | Draft first implementation checklist | The checklist covers constructor, builder, TMB branch, extractors, simulation, residuals, docs, and tests. |
 | 1694 | Draft first density tests | Tests compare log density at negative, zero, and positive `nu`, including tail points. |
 | 1695 | Draft first recovery tests | Tests include intercept-only `nu`, then `nu ~ w`, with positive and negative skew. |

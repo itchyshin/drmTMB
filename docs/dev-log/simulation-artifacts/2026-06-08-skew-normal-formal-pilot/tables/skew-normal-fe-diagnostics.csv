@@ -1,0 +1,4 @@
+"surface","skew_regime","n_fit","convergence_rate","pdHess_rate","warning_rate","skew_normal_nu_ok_rate","skew_normal_nu_note_rate","max_fitted_nu_abs"
+"skew_normal_fixed_effect","left",3,1,0,0,1,0,1.22176172642061
+"skew_normal_fixed_effect","right",3,1,0,0,1,0,0.912315174270418
+"skew_normal_fixed_effect","symmetric",3,1,0,0,1,0,1.23394003118977

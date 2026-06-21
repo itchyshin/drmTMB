@@ -1,0 +1,9 @@
+"dgp_label","fit_label","n_fit","convergence_rate","pdHess_rate","warning_rate","mean_max_gradient","mean_elapsed"
+"nu_slope","sigmaz_nu1_misspecified",1,1,1,0,0.000209452481424455,0.0589999999999997
+"nu_slope","sigmaz_nuw",1,1,1,0,0.00117361045056678,0.0909999999999997
+"sigma_constant_left","sigma1_nu1",1,1,1,0,0.00272807730416923,0.093
+"sigma_constant_right","sigma1_nu1",1,1,1,0,0.00208700765032667,0.0459999999999998
+"sigma_constant_symmetric","sigma1_nu1",1,1,1,0,0.00135646600966489,0.839
+"sigma_z_left","sigmaz_nu1",1,1,1,0,0.00013532391375437,0.0640000000000001
+"sigma_z_right","sigmaz_nu1",1,1,1,0,0.002657294457184,0.0700000000000003
+"sigma_z_symmetric","sigmaz_nu1",1,1,1,0,0.000169056547626001,0.0550000000000002

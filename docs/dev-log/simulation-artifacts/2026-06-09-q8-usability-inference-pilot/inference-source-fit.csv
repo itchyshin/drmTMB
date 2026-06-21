@@ -1,0 +1,2 @@
+"diagnostic_id","diagnostic_preset","diagnostic_level","usability_axis","strategy","se","status","convergence","pdHess","objective","max_gradient","min_sd_mu","min_sd_sigma","max_abs_cor","min_cor_eigen","max_cor_condition","nobs","elapsed","warning_count","warnings","error"
+"q8_diag_004","sd_ratio","weak","stress","q4_theta_staged",FALSE,"ok",0,FALSE,626.585443515723,0.000285916256871133,0.0983805985356175,0.0315824307899666,0.966190609010115,2.82564029850191e-07,12041553.884737,480,15.934,0,"",NA

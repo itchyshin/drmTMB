@@ -59,6 +59,232 @@ phase18_biv_gaussian_q8_endpoint_conditions <- function(
   conditions
 }
 
+phase18_biv_gaussian_q8_endpoint_diagnostic_conditions <- function(
+  preset = c("replication", "sd_ratio", "rho12", "correlation")
+) {
+  allowed <- c("replication", "sd_ratio", "rho12", "correlation")
+  if (identical(preset, "all")) {
+    preset <- allowed
+  }
+  preset <- match.arg(preset, allowed, several.ok = TRUE)
+
+  rows <- lapply(preset, phase18_biv_gaussian_q8_endpoint_diagnostic_preset)
+  out <- do.call(rbind, rows)
+  out$diagnostic_id <- sprintf("q8_diag_%03d", seq_len(nrow(out)))
+  out <- out[c(
+    "diagnostic_id",
+    "diagnostic_preset",
+    "diagnostic_level",
+    "diagnostic_note",
+    setdiff(
+      names(out),
+      c(
+        "diagnostic_id",
+        "diagnostic_preset",
+        "diagnostic_level",
+        "diagnostic_note"
+      )
+    )
+  )]
+  row.names(out) <- NULL
+  out
+}
+
+phase18_biv_gaussian_q8_endpoint_diagnostic_audit_conditions <- function(
+  mode = c("stress", "all")
+) {
+  mode <- match.arg(mode)
+  conditions <- phase18_biv_gaussian_q8_endpoint_diagnostic_conditions("all")
+  if (identical(mode, "all")) {
+    return(conditions)
+  }
+
+  keep <- (conditions$diagnostic_preset == "replication" &
+    conditions$diagnostic_level == "low") |
+    (conditions$diagnostic_preset == "sd_ratio" &
+      conditions$diagnostic_level == "weak") |
+    (conditions$diagnostic_preset == "rho12" &
+      conditions$diagnostic_level %in% c("negative", "positive")) |
+    (conditions$diagnostic_preset == "correlation" &
+      conditions$diagnostic_level == "high")
+  out <- conditions[keep, , drop = FALSE]
+  row.names(out) <- NULL
+  out
+}
+
+phase18_biv_gaussian_q8_endpoint_diagnostic_preset <- function(preset) {
+  switch(
+    preset,
+    replication = do.call(
+      rbind,
+      list(
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "replication",
+          "low",
+          "Few groups and short within-group series.",
+          n_id = 24L,
+          n_each = 6L
+        ),
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "replication",
+          "baseline",
+          "Default diagnostic replication setting.",
+          n_id = 48L,
+          n_each = 10L
+        ),
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "replication",
+          "high",
+          "More groups and observations per group.",
+          n_id = 96L,
+          n_each = 12L
+        )
+      )
+    ),
+    sd_ratio = phase18_biv_gaussian_q8_endpoint_sd_ratio_conditions(),
+    rho12 = do.call(
+      rbind,
+      list(
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "rho12",
+          "negative",
+          "Negative residual correlation with baseline latent correlations.",
+          residual_rho = -0.65
+        ),
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "rho12",
+          "zero",
+          "Zero residual correlation with baseline latent correlations.",
+          residual_rho = 0
+        ),
+        phase18_biv_gaussian_q8_endpoint_condition_row(
+          "rho12",
+          "positive",
+          "Positive residual correlation with baseline latent correlations.",
+          residual_rho = 0.65
+        )
+      )
+    ),
+    correlation = phase18_biv_gaussian_q8_endpoint_correlation_conditions()
+  )
+}
+
+phase18_biv_gaussian_q8_endpoint_condition_row <- function(
+  diagnostic_preset,
+  diagnostic_level,
+  diagnostic_note,
+  ...
+) {
+  row <- phase18_biv_gaussian_q8_endpoint_conditions(...)
+  if (nrow(row) != 1L) {
+    stop(
+      "Diagnostic condition rows must expand to exactly one row.",
+      call. = FALSE
+    )
+  }
+  row$diagnostic_preset <- diagnostic_preset
+  row$diagnostic_level <- diagnostic_level
+  row$diagnostic_note <- diagnostic_note
+  row
+}
+
+phase18_biv_gaussian_q8_endpoint_sd_ratio_conditions <- function() {
+  rows <- list(
+    weak = phase18_biv_gaussian_q8_endpoint_condition_row(
+      "sd_ratio",
+      "weak",
+      "Location and log-sigma endpoint SDs are small relative to residual scale."
+    ),
+    baseline = phase18_biv_gaussian_q8_endpoint_condition_row(
+      "sd_ratio",
+      "baseline",
+      "Default endpoint SD sizes."
+    ),
+    strong = phase18_biv_gaussian_q8_endpoint_condition_row(
+      "sd_ratio",
+      "strong",
+      "Location and log-sigma endpoint SDs are larger."
+    )
+  )
+  rows$weak <- phase18_biv_gaussian_q8_endpoint_scale_sd_row(
+    rows$weak,
+    location = 0.45,
+    scale = 0.50
+  )
+  rows$strong <- phase18_biv_gaussian_q8_endpoint_scale_sd_row(
+    rows$strong,
+    location = 1.65,
+    scale = 1.60
+  )
+  do.call(rbind, rows)
+}
+
+phase18_biv_gaussian_q8_endpoint_scale_sd_row <- function(
+  row,
+  location,
+  scale
+) {
+  location_cols <- c(
+    "sd_mu1_intercept",
+    "sd_mu1_x",
+    "sd_mu2_intercept",
+    "sd_mu2_x"
+  )
+  scale_cols <- c(
+    "sd_sigma1_intercept",
+    "sd_sigma1_x",
+    "sd_sigma2_intercept",
+    "sd_sigma2_x"
+  )
+  row[location_cols] <- row[location_cols] * location
+  row[scale_cols] <- row[scale_cols] * scale
+  row
+}
+
+phase18_biv_gaussian_q8_endpoint_correlation_conditions <- function() {
+  do.call(
+    rbind,
+    list(
+      phase18_biv_gaussian_q8_endpoint_condition_row(
+        "correlation",
+        "zero",
+        "All latent q8 correlations are zero.",
+        cor_base = 0,
+        cor_mu_intercept = 0,
+        cor_mu_x = 0,
+        cor_sigma_intercept = 0,
+        cor_sigma_x = 0,
+        cor_mu1_sigma1_intercept = 0,
+        cor_mu1_sigma1_x = 0
+      ),
+      phase18_biv_gaussian_q8_endpoint_condition_row(
+        "correlation",
+        "moderate",
+        "Moderate latent q8 correlations away from the boundary.",
+        cor_base = 0.03,
+        cor_mu_intercept = 0.20,
+        cor_mu_x = 0.18,
+        cor_sigma_intercept = 0.16,
+        cor_sigma_x = 0.14,
+        cor_mu1_sigma1_intercept = -0.12,
+        cor_mu1_sigma1_x = 0.10
+      ),
+      phase18_biv_gaussian_q8_endpoint_condition_row(
+        "correlation",
+        "high",
+        "Higher latent q8 correlations for boundary and conditioning diagnostics.",
+        cor_base = 0.05,
+        cor_mu_intercept = 0.34,
+        cor_mu_x = 0.30,
+        cor_sigma_intercept = 0.28,
+        cor_sigma_x = 0.24,
+        cor_mu1_sigma1_intercept = -0.22,
+        cor_mu1_sigma1_x = 0.18
+      )
+    )
+  )
+}
+
 phase18_biv_gaussian_q8_endpoint_sd_mu_names <- function() {
   c(
     "mu1:(1 + x | p | id):(Intercept)",

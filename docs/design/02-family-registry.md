@@ -57,6 +57,7 @@ and recovery evidence.
 | --- | --- | --- | --- | --- |
 | `gaussian()` | `mu` identity; `sigma` log | none | Fixed effects; ordinary `mu` random intercepts, independent slopes, q > 2 numeric slope blocks, selected labelled intercept covariance; Gaussian `sigma` random intercepts and independent slopes; selected `sd(group)` SD-surface formulas; Gaussian-only `meta_V()`, `phylo()`, and `spatial()` routes are separate rows in the readiness matrix. | Covered by Gaussian location-scale, random-effect, profile, `check_drm()`, meta-analysis, phylogenetic, and spatial tests. |
 | `student()` | `mu` identity; `sigma` log; `nu` logm2 | `nu = 2 + exp(eta_nu)` is tail shape or degrees of freedom | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated Student-t slopes, labelled covariance, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. | `tests/testthat/test-student-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-nongaussian-scale-boundary.R`; random-effect recovery and shape-boundary tests. |
+| `skew_normal()` | `mu` identity; `sigma` log; `nu` identity | `nu` is residual slant or shape; positive values mean right-skewed residuals | Fixed-effect univariate first slice. `mu` is the response mean, `sigma` is the response SD, and the TMB branch transforms internally to native `xi`, `omega`, and `alpha = nu`. Random effects, `sigma` or `nu` random effects, `sd(group)`, structured effects, known covariance, bivariate skew-normal models, `rho12`, `skew ~`, and latent `skew(id)` remain planned. | `tests/testthat/test-skew-normal-density-contract.R`; `tests/testthat/test-skew-normal-location-scale.R`; density normalization, normal-limit, sign-orientation, objective, simulation, method, and malformed-neighbour tests. |
 | `lognormal()` | `mu` identity on `log(y)`; `sigma` log | none | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes. Correlated lognormal slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed lognormal models remain planned. | `tests/testthat/test-lognormal-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-effect recovery tests. |
 | `Gamma(link = "log")` | `mu` log; `sigma` log | no public `nu`; internal shape is `1 / sigma^2` | Fixed effects plus ordinary unlabelled `mu` random intercepts and independent numeric `mu` slopes; non-log Gamma links remain unsupported. Correlated Gamma slopes, labelled covariance, `sigma` random effects, structured effects, and bivariate or mixed Gamma models remain planned. | `tests/testthat/test-gamma-location-scale.R`; `tests/testthat/test-nongaussian-mu-random-slopes.R`; `tests/testthat/test-family-link-contract.R`; scale-boundary and random-effect recovery tests. |
 | `tweedie()` | `mu` log; `sigma` log; `nu` logit12 | `nu = 1 + plogis(eta_nu)` is the Tweedie power; internal dispersion is `phi = sigma^2` | Fixed-effect univariate models only, with intercept-only `nu ~ 1`. Tweedie random effects, predictor-dependent `nu`, labelled covariance, `sd(group)`, `meta_V(V = V)`, structured effects, bivariate Tweedie, mixed-response models, zero-inflation aliases, and hurdle aliases remain planned. | `tests/testthat/test-tweedie-location-scale.R`; `tests/testthat/test-family-link-contract.R`; high-zero and low-zero recovery, support-boundary, fitted-response, simulation, and malformed-neighbour tests. |
@@ -73,15 +74,15 @@ and recovery evidence.
 | `c(gaussian(), gaussian())`, `list(gaussian(), gaussian())`, `biv_gaussian()` | `mu1`, `mu2` identity; `sigma1`, `sigma2` log; `rho12` guarded atanh | `rho12` is residual coscale or correlation, not group, phylogenetic, or spatial covariance | Fixed effects; selected matching labelled random-intercept covariance blocks; matching slope-only ordinary `mu1`/`mu2` covariance; matching q=2 slope-only `sigma1`/`sigma2` scale covariance; selected phylogenetic location and location-scale blocks; constant coordinate-spatial q=2 `mu1`/`mu2` location covariance; constant coordinate-spatial q=4 location-scale covariance as extractor/diagnostic smoke. Same-response and all-four endpoint bivariate random slopes plus mixed-response bivariate families remain planned. | `tests/testthat/test-biv-gaussian.R`; `tests/testthat/test-corpairs.R`; `tests/testthat/test-spatial-gaussian.R`; `tests/testthat/test-phase18-biv-gaussian-q2-scale-slope.R`; bivariate profile, summary, phylogenetic, spatial, and Phase 18 q2 scale-slope tests. |
 
 Planned family rows stay out of fitted examples until they have the same
-evidence pattern. The current named example is `skew_normal()`, where `nu`
-would be residual asymmetry on the native skew-normal scale. That row has no
-likelihood, no recovery tests, no prediction contract, and no random-effect
-allowance yet. User-facing examples may show planned syntax only when they
-also say "not fitted yet" and give a fitted fallback, such as Gaussian
-location-scale regression or the implemented fixed-effect `student()` route.
-The first Tweedie row now uses public `sigma = sqrt(phi)`; comparator tests
-against software that reports Tweedie dispersion `phi` must name the square
-transform explicitly.
+evidence pattern. `skew_normal()` has moved out of that planned-family bucket
+only for the univariate fixed-effect first slice described below. User-facing
+examples may show `skew_normal()` as runnable only inside the `mu`/`sigma`/`nu`
+fixed-effect boundary; random effects, structured effects, known sampling
+covariance, bivariate routes, residual `rho12`, and latent `skew(id)` syntax
+still need fitted fallbacks such as Gaussian location-scale regression or the
+implemented fixed-effect `student()` route. The first Tweedie row now uses
+public `sigma = sqrt(phi)`; comparator tests against software that reports
+Tweedie dispersion `phi` must name the square transform explicitly.
 
 ## Distributional Parameter Naming
 
@@ -122,7 +123,7 @@ Continuous shape work has one fitted path and several planned neighbours:
 | Surface | Fitted state | Boundary before simulation |
 | --- | --- | --- |
 | Student-t `nu ~ ...` | Implemented for fixed-effect univariate `student()` models as `nu = 2 + exp(eta_nu)`; ordinary `mu` random intercepts and independent slopes are separate first-slice location paths. | Keep `nu` random effects, known sampling covariance, phylogenetic, spatial, and bivariate Student-t paths out of simulation grids until each has likelihood, extractor, diagnostic, interval, and recovery evidence. |
-| Skew-normal `nu ~ ...` | Planned fixed-effect residual-asymmetry family with public `mu = E[y]`, public `sigma = SD[y]`, and `nu` as the slant/shape parameter. | First add density and comparator checks, positive and negative skew recovery, the `nu = 0` normal-limit check, and false-positive heteroscedasticity checks. |
+| Skew-normal `nu ~ ...` | Implemented fixed-effect residual-asymmetry first slice with public `mu = E[y]`, public `sigma = SD[y]`, and `nu` as the slant/shape parameter. | Density, normal-limit, objective, method, simulation, deterministic recovery, Gaussian-limit false-positive, and malformed-neighbour tests are in source. Formal recovery grids, external comparator checks, and false-positive heteroscedasticity checks remain future evidence. |
 | Skew-t `nu ~ ...`, future `tau ~ ...` | Planned after the skew-normal gate. | Choose and document which parameter controls asymmetry and which controls tails before adding syntax, examples, or simulations. |
 | Future `skew(id) ~ ...` | Design-only latent-effect skewness grammar. | Do not treat this as an alias for residual `nu ~ ...`; require simulations separating residual skewness, heteroscedasticity, ordinary random effects, and latent-effect skewness. |
 
@@ -236,9 +237,9 @@ random-intercept focused. Correlated Student-t slopes, labelled covariance,
 `sigma` random effects, `nu` random effects, known sampling covariance,
 phylogenetic terms, and bivariate Student-t models are later phases.
 
-## Planned: Skew-Normal Location-Scale-Shape
+## Implemented: Skew-Normal Location-Scale-Shape
 
-The first skew-normal family is planned as a univariate fixed-effect path:
+The first skew-normal family is implemented as a univariate fixed-effect path:
 
 ```r
 skew_normal <- function() {
@@ -253,25 +254,25 @@ skew_normal <- function() {
 
 This contract treats `mu` as the arithmetic response mean, `sigma` as the
 response standard deviation, and `nu` as the unrestricted slant or asymmetry
-shape used in the density in `docs/design/03-likelihoods.md`. The future TMB
-likelihood may transform internally to native Azzalini location `xi`, scale
-`omega`, and slant `alpha`, but `fitted()` and `sigma()` should remain on the
+shape used in the density in `docs/design/03-likelihoods.md`. The TMB
+likelihood transforms internally to native Azzalini location `xi`, scale
+`omega`, and slant `alpha = nu`, but `fitted()` and `sigma()` remain on the
 public moment scale. Positive `nu` means right-skewed residuals, `nu = 0`
 reduces to the Gaussian location-scale likelihood, and negative `nu` means
-left-skewed residuals. This sign convention is a design assumption until
-checked against the first trusted comparator.
+left-skewed residuals. The source tests check the density normalization,
+normal limit, sign orientation, objective value, simulation route, extractors,
+and malformed-neighbour boundaries for this first slice.
 
 Random effects, known sampling covariance, phylogenetic terms, spatial terms,
 bivariate skew-normal models, `rho12`, and aliases such as `skew ~ x` are later
-phases. Examples and reference documentation should teach canonical `nu ~ x`
-before any alias is added. ID-level skewness syntax such as `skew(id) ~ x` is
-not an alias for this residual shape formula; it is a later latent-effect model.
+phases. Examples and reference documentation teach canonical `nu ~ x` before
+any alias is added. ID-level skewness syntax such as `skew(id) ~ x` is not an
+alias for this residual shape formula; it is a later latent-effect model.
 
-Reader-facing examples should use this planned syntax only with an explicit
-boundary:
+Reader-facing examples should use this syntax only with the fixed-effect
+first-slice boundary:
 
 ```r
-# Planned, not fitted yet:
 drmTMB(
   bf(y ~ x1, sigma ~ x2, nu ~ x3),
   family = skew_normal(),
@@ -279,11 +280,10 @@ drmTMB(
 )
 ```
 
-The fitted fallback is to compare Gaussian location-scale and Student-t
-location-scale-shape models, then report whether conclusions about `mu` and
-`sigma` are sensitive to heavy tails. That fallback does not answer a skewness
-question; it only prevents a planned skew-normal formula from being mistaken
-for current analysis syntax.
+For early analyses, compare Gaussian location-scale, Student-t
+location-scale-shape, and skew-normal location-scale-shape fits before treating
+`nu` as biological asymmetry. Heavy tails, heteroscedasticity, mean-model
+misspecification, and residual skewness can look similar in small samples.
 
 ## Implemented: Lognormal Location-Scale
 

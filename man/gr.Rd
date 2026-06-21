@@ -15,11 +15,17 @@ gr(group, cov)
 A formula marker; never evaluated by users.
 }
 \description{
-\code{gr()} is deprecated as a public formula marker in \verb{drmTMB 0.1.3.9000}.
-Use \code{\link[=relmat]{relmat()}} for a validated lower-level user-supplied relatedness or
-precision matrix, \code{\link[=animal]{animal()}} for pedigree or additive-relatedness animal
-models, \code{\link[=phylo]{phylo()}} for phylogenetic dependence, or \code{\link[=spatial]{spatial()}} for spatial
-dependence. The exported \code{gr()} placeholder remains only for compatibility
-with older design notes and should not be used in new model formulas.
+\code{gr()} is deprecated as a public formula marker. Use \code{\link[=relmat]{relmat()}} for a
+validated lower-level user-supplied relatedness or precision matrix,
+\code{\link[=animal]{animal()}} for pedigree or additive-relatedness animal models, \code{\link[=phylo]{phylo()}} for
+phylogenetic dependence, or \code{\link[=spatial]{spatial()}} for spatial dependence. The exported
+\code{gr()} placeholder remains only for compatibility with older design notes and
+should not be used in new model formulas.
+}
+\examples{
+bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+suppressWarnings(
+  bf(y ~ x + gr(id, cov = K), sigma ~ 1)
+)
 }
 \keyword{internal}

@@ -32,6 +32,7 @@ quantity each `sigma` formula models.
 | --- | --- | --- | --- | --- |
 | Continuous, symmetric residuals | `gaussian()` | `mu`, `sigma` | residual standard deviation | most mature path; non-Gaussian extensions are separate |
 | Continuous with heavy tails | `student()` | `mu`, `sigma`, `nu` | Student-t scale, not exactly residual SD | fixed effects only |
+| Continuous with asymmetric residuals | `skew_normal()` | `mu`, `sigma`, `nu` | response standard deviation; `nu` controls residual slant | fixed-effect first slice only |
 | Positive multiplicative response | `lognormal()` | `mu`, `sigma` | SD on the log-response scale | fixed effects only |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | fixed effects only |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | fixed effects only; `nu ~ 1` only |
@@ -97,6 +98,7 @@ or comparator quantities:
 | Family | drmTMB public scale | Internal or comparator parameter | Variability direction |
 | --- | --- | --- | --- |
 | `gaussian()` | residual SD `sigma` | residual SD | larger `sigma` means larger residual variance |
+| `skew_normal()` | response SD `sigma` | native Azzalini scale `omega` after moment transform | larger `sigma` means larger response variance |
 | `Gamma(link = "log")` | coefficient of variation `sigma` | shape `1 / sigma^2` | larger `sigma` means larger response CV |
 | `tweedie()` | public scale `sigma` | dispersion `phi = sigma^2` | larger `sigma` means larger semicontinuous-response variance |
 | `beta()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
@@ -120,6 +122,7 @@ then transform those fitted quantities for the scale your reader needs.
 | --- | --- |
 | `gaussian()` | residual SD is `sigma`; residual variance is `sigma^2` |
 | `student()` | model scale is `sigma`; residual variance is `sigma^2 * nu / (nu - 2)` when `nu > 2` |
+| `skew_normal()` | residual SD is public `sigma`; native `omega` is internal after converting from `mu`, `sigma`, and `nu` |
 | `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
 | `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
 | `tweedie()` | mean is `mu`; variance is `sigma^2 * mu^nu`, with `1 < nu < 2` |
@@ -192,6 +195,40 @@ effects, meta-analytic known covariance, phylogenetic terms, and bivariate
 Student-t models are planned later. The tutorial "Robust continuous responses"
 shows the equation, syntax, diagnostics, and a Gaussian comparison for this
 family.
+
+Skew-normal location-scale-shape models add `nu`, the residual slant or
+asymmetry parameter:
+
+\[
+\begin{aligned}
+y_i \mid \mu_i, \sigma_i, \nu_i
+  &\sim \operatorname{SkewNormal}(\mu_i, \sigma_i, \nu_i),\\
+\mu_i
+  &= \beta_0 + \beta_1 \text{temperature}_i,\\
+\log(\sigma_i)
+  &= \gamma_0 + \gamma_1 \text{treatment}_i,\\
+\nu_i
+  &= \delta_0 + \delta_1 \text{season}_i.
+\end{aligned}
+\]
+
+```r
+drmTMB(
+  bf(y ~ temperature, sigma ~ treatment, nu ~ season),
+  family = skew_normal(),
+  data = dat
+)
+```
+
+Use this first skew-normal path when a continuous response has residual
+asymmetry after the expected response and residual SD have been modelled.
+Public `mu` is `E[y]`, public `sigma` is `SD[y]`, and `nu` is the residual
+slant: positive values give right-skewed residuals and negative values give
+left-skewed residuals. The implementation transforms internally to native
+`xi`, `omega`, and `alpha = nu`, but those native quantities are not the
+user-facing `fitted()` or `sigma()` results. Random effects, structured
+effects, known sampling covariance, bivariate skew-normal models, residual
+`rho12`, and latent `skew(id)` syntax remain planned.
 
 Lognormal location-scale models are implemented for positive continuous
 responses such as biomass, body mass, concentration, time, and area:

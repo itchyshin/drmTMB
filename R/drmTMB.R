@@ -2,7 +2,7 @@
 #'
 #' `drmTMB()` is the main model-fitting entry point. The current implementation
 #' supports univariate Gaussian location-scale models,
-#' univariate Student-t location-scale-shape models, lognormal
+#' univariate Student-t and skew-normal location-scale-shape models, lognormal
 #' location-scale models, Gamma mean-CV models for positive responses,
 #' Tweedie mean-scale-power models for non-negative semicontinuous responses,
 #' beta mean-scale models for strict proportions,
@@ -50,7 +50,7 @@
 #'
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
-#'   [lognormal()], [stats::Gamma()] with `link = "log"`,
+#'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
 #'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
 #'   [beta_binomial()], [cumulative_logit()],
 #'   [stats::poisson()] with `link = "log"`, [nbinom2()],
@@ -121,6 +121,10 @@
 #'   route supports one fixed-effect binary missing predictor with a
 #'   Bernoulli/logit `impute_model()`, complete count responses, and no
 #'   zero-inflation, random, or structured response terms.
+#' @param engine Fitting engine. `"tmb"` keeps the native R/TMB implementation.
+#'   `"julia"` is an experimental bridge to `DRM.jl` through `JuliaCall`;
+#'   install `JuliaCall` and either install `DRM.jl`, set `DRM_JL_PATH`, or set
+#'   `options(drmTMB.DRM.jl.path = "/path/to/DRM.jl")`.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -142,8 +146,10 @@ drmTMB <- function(
   control = list(),
   impute = NULL,
   missing = miss_control(),
+  engine = c("tmb", "julia"),
   ...
 ) {
+  engine <- match.arg(engine)
   if (!inherits(formula, "drm_formula")) {
     cli::cli_abort(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
@@ -157,6 +163,19 @@ drmTMB <- function(
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   formula_env <- drm_formula_env(formula, parent.frame())
+  if (identical(engine, "julia")) {
+    return(drmTMB_julia_bridge(
+      formula = formula,
+      family = family,
+      data = data,
+      env = formula_env,
+      weights_missing = base::missing(weights),
+      control = control,
+      impute = impute,
+      missing = missing,
+      call = match.call()
+    ))
+  }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
 
@@ -221,6 +240,12 @@ drmTMB <- function(
       missing = missing_control
     ),
     student = drm_build_student_ls_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full
+    ),
+    skew_normal = drm_build_skew_normal_ls_spec(
       formula,
       data,
       env = formula_env,
@@ -297,9 +322,31 @@ drmTMB <- function(
     )
   )
 
+  drm_fit_spec(
+    spec = spec,
+    formula = formula,
+    family = family,
+    control = control,
+    call = match.call()
+  )
+}
+
+drm_fit_spec <- function(
+  spec,
+  formula,
+  family,
+  control,
+  call,
+  start_override = NULL,
+  start_provenance = NULL
+) {
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
-
+  spec <- drm_apply_start_override(
+    spec,
+    override = start_override,
+    provenance = start_provenance
+  )
   obj <- TMB::MakeADFun(
     data = spec$tmb_data,
     parameters = spec$start,
@@ -325,7 +372,7 @@ drmTMB <- function(
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
   fit <- list(
-    call = match.call(),
+    call = call,
     formula = formula,
     family = family,
     data = spec$data,
@@ -562,6 +609,9 @@ drm_family_type <- function(family) {
   if (inherits(family, "drm_family") && identical(family$name, "student")) {
     return("student")
   }
+  if (inherits(family, "drm_family") && identical(family$name, "skew_normal")) {
+    return("skew_normal")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "lognormal")) {
     return("lognormal")
   }
@@ -585,7 +635,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -1485,6 +1535,224 @@ drm_build_student_ls_spec <- function(
     start = student_ls_start(y, X_mu, X_sigma, X_nu, re_mu = re_mu),
     map = student_ls_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
+  spec
+}
+
+drm_build_skew_normal_ls_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "sigma", "nu"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models only support {.code mu}, {.code sigma}, and {.code nu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = "Use canonical residual-shape syntax such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}; aliases such as {.code skew ~ w} or latent {.code skew(id) ~ w} remain planned."
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn skew_normal} models.",
+      "i" = "Start with fixed-effect skew-normal formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}."
+    ))
+  }
+  mu_responses <- vapply(
+    entries[dpars == "mu"],
+    function(entry) {
+      if (is.na(entry$response)) {
+        return(NA_character_)
+      }
+      entry$response
+    },
+    character(1L)
+  )
+  unsupported_skew_response <- mu_responses[
+    !is.na(mu_responses) & grepl("^skew\\(", mu_responses)
+  ]
+  if (length(unsupported_skew_response) > 0L) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models use {.code nu} for fixed-effect residual slant.",
+      "x" = "Latent skewness syntax such as {.code {unsupported_skew_response[[1L]]} ~ ...} is not implemented.",
+      "i" = "Use {.code bf(y ~ x, sigma ~ z, nu ~ w)} for the fixed-effect first slice."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A {.fn skew_normal} model requires exactly one location formula."
+    )
+  }
+  for (optional in c("sigma", "nu")) {
+    if (sum(dpars == optional) > 1L) {
+      cli::cli_abort(
+        "A {.fn skew_normal} model can have at most one {.code {optional}} formula."
+      )
+    }
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  sigma_entry <- if (any(dpars == "sigma")) {
+    entries[[which(dpars == "sigma")]]
+  } else {
+    default_dpar_entry("sigma", quote(1))
+  }
+  nu_entry <- if (any(dpars == "nu")) {
+    entries[[which(dpars == "nu")]]
+  } else {
+    default_dpar_entry("nu", quote(1))
+  }
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "{.fn skew_normal} models currently support one continuous response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models require a single continuous response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} belongs to denominator-aware count or proportion families."
+    ))
+  }
+  if (!is.na(nu_entry$response)) {
+    cli::cli_abort(
+      "The {.code nu} formula must be one-sided, for example {.code nu ~ w}."
+    )
+  }
+
+  meta <- extract_meta_known_v(mu_entry$rhs)
+  if (!is.null(meta$V)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} is not implemented for {.fn skew_normal} models.",
+      "i" = "Use {.code family = gaussian()} for Gaussian meta-analysis with known sampling covariance."
+    ))
+  }
+  mu_entry$rhs <- meta$rhs
+
+  mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+  mu_entry$rhs <- mu_re$rhs
+  validate_skew_normal_random_terms(mu_re$terms, "mu")
+  sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+  sigma_entry$rhs <- sigma_re$rhs
+  validate_skew_normal_random_terms(sigma_re$terms, "sigma")
+  nu_re <- extract_random_mu_terms(nu_entry$rhs, "nu")
+  nu_entry$rhs <- nu_re$rhs
+  validate_skew_normal_random_terms(nu_re$terms, "nu")
+
+  for (entry in list(mu_entry, sigma_entry, nu_entry)) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
+  f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+
+  vars <- unique(c(all.vars(f_mu), all.vars(f_sigma), all.vars(f_nu)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(
+    f_mu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_sigma <- stats::model.frame(
+    f_sigma,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  mf_nu <- stats::model.frame(
+    f_nu,
+    data = data_model,
+    na.action = stats::na.omit
+  )
+  y <- stats::model.response(mf_mu)
+
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  if (!is.null(dim(y))) {
+    cli::cli_abort(
+      "{.fn skew_normal} models require a single continuous response."
+    )
+  }
+  if (!all(is.finite(y))) {
+    cli::cli_abort(c(
+      "{.fn skew_normal} models require finite continuous response values.",
+      "x" = "The response {.val {mu_entry$response}} contains non-finite values after missing-row filtering."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+
+  if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
+    cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
+  }
+
+  spec <- list(
+    model_type = "skew_normal",
+    y = as.numeric(y),
+    weights = weights_model,
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = list(mu = X_mu, sigma = X_sigma, nu = X_nu),
+    terms = list(
+      mu = stats::delete.response(stats::terms(mf_mu)),
+      sigma = stats::terms(mf_sigma),
+      nu = stats::terms(mf_nu)
+    ),
+    model_frame = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    random = list(
+      mu = empty_random_mu_structure(nrow(data_model)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(
+      mu = empty_sd_mu_structure(0L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = c("mu", "sigma", "nu"),
+    start = skew_normal_ls_start(y, X_mu, X_sigma, X_nu),
+    map = skew_normal_ls_map(),
+    random_names = NULL
   )
   spec$tmb_data <- add_covariance_block_tmb_data(
     make_tmb_data(spec),
@@ -4794,6 +5062,19 @@ validate_student_sigma_random_terms <- function(terms) {
     "Non-Gaussian {.code sigma} random effects are not implemented for {.fn student}.",
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary Student-t {.code mu} random intercepts; residual-scale random effects need their own likelihood and recovery tests."
+  ))
+}
+
+validate_skew_normal_random_terms <- function(terms, dpar) {
+  if (length(terms) == 0L) {
+    return(invisible(terms))
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  cli::cli_abort(c(
+    "{.fn skew_normal} random effects are not implemented in this first fixed-effect slice.",
+    "x" = "The {.code {dpar}} formula contains unsupported random-effect term{?s}: {.code {labels}}.",
+    "i" = "Use fixed-effect formulas such as {.code bf(y ~ x, sigma ~ z, nu ~ w)}.",
+    "i" = "Residual-shape random effects, residual-scale random effects, ordinary grouped skew-normal random effects, and latent {.code skew(id)} syntax need separate likelihood, extractor, interval, and simulation-recovery evidence."
   ))
 }
 
@@ -10322,6 +10603,62 @@ student_nu_start <- function(y, X_mu, beta_mu, X_nu) {
   beta_nu
 }
 
+skew_normal_ls_start <- function(y, X_mu, X_sigma, X_nu) {
+  gaussian_start <- gaussian_ls_start(y, X_mu, X_sigma)
+  c(
+    list(
+      beta_mu = gaussian_start$beta_mu,
+      beta_sigma = gaussian_start$beta_sigma,
+      beta_nu = skew_normal_nu_start(
+        y,
+        X_mu,
+        gaussian_start$beta_mu,
+        X_sigma,
+        gaussian_start$beta_sigma,
+        X_nu
+      )
+    ),
+    list(
+      beta_zi = 0,
+      theta_ord = 0,
+      beta_sd_mu = 0,
+      u_mu = 0,
+      log_sd_mu = 0,
+      eta_cor_mu = 0,
+      eta_cor_mu_sigma = 0,
+      eta_cor_sigma = 0,
+      u_sigma = 0,
+      log_sd_sigma = 0,
+      beta_mu1 = 0,
+      beta_mu2 = 0,
+      beta_sigma1 = 0,
+      beta_sigma2 = 0,
+      beta_rho12 = 0,
+      u_phylo = 0,
+      log_sd_phylo = 0,
+      eta_cor_phylo = 0
+    )
+  )
+}
+
+skew_normal_nu_start <- function(y, X_mu, beta_mu, X_sigma, beta_sigma, X_nu) {
+  beta_nu <- numeric(ncol(X_nu))
+  if (length(beta_nu) == 0L) {
+    return(beta_nu)
+  }
+  mu <- as.vector(X_mu %*% beta_mu)
+  sigma <- exp(as.vector(X_sigma %*% beta_sigma))
+  standardized <- (y - mu) / sigma
+  skewness <- mean((standardized - mean(standardized))^3) /
+    stats::sd(standardized)^3
+  if (!is.finite(skewness)) {
+    skewness <- 0
+  }
+  start_sign <- if (skewness < 0) -1 else 1
+  beta_nu[[1L]] <- start_sign * min(5, max(0.1, 2 * abs(skewness)))
+  beta_nu
+}
+
 lognormal_ls_start <- function(
   y,
   X_mu,
@@ -11489,6 +11826,12 @@ student_ls_map <- function(
   out
 }
 
+skew_normal_ls_map <- function() {
+  out <- gaussian_ls_map()
+  out$beta_nu <- NULL
+  out
+}
+
 covariance_block_re_start <- function(registry, y_scale = c(1, 1)) {
   if (
     !is.list(registry) ||
@@ -11802,6 +12145,576 @@ add_covariance_probe_parameter <- function(spec) {
   spec
 }
 
+drm_apply_start_override <- function(spec, override = NULL, provenance = NULL) {
+  if (!is.null(provenance) && !is.list(provenance)) {
+    cli::cli_abort("Internal start-override provenance must be a list.")
+  }
+  if (is.null(override) || length(override) == 0L) {
+    if (!is.null(provenance)) {
+      spec$start_override <- list(
+        provenance = provenance,
+        applied = drm_empty_start_override_applied()
+      )
+    }
+    return(spec)
+  }
+  if (!is.list(override) || is.null(names(override))) {
+    cli::cli_abort("Internal start override must be a named list.")
+  }
+  override_names <- names(override)
+  if (any(!nzchar(override_names)) || any(is.na(override_names))) {
+    cli::cli_abort("Internal start override names must be non-empty.")
+  }
+  if (anyDuplicated(override_names)) {
+    cli::cli_abort("Internal start override names must be unique.")
+  }
+  unknown <- setdiff(override_names, names(spec$start))
+  if (length(unknown) > 0L) {
+    cli::cli_abort(c(
+      "Internal start override contains unknown parameter names.",
+      "x" = "Unknown name{?s}: {.val {unknown}}."
+    ))
+  }
+
+  applied <- vector("list", length(override_names))
+  for (i in seq_along(override_names)) {
+    name <- override_names[[i]]
+    current <- spec$start[[name]]
+    proposed <- override[[name]]
+    if (!is.numeric(proposed) || any(!is.finite(proposed))) {
+      cli::cli_abort(c(
+        "Internal start override values must be finite numeric vectors.",
+        "x" = "Parameter {.field {name}} has invalid values."
+      ))
+    }
+    if (length(proposed) != length(current)) {
+      cli::cli_abort(c(
+        "Internal start override has the wrong length.",
+        "x" = "{.field {name}} expected length {length(current)}, but found {length(proposed)}."
+      ))
+    }
+
+    free <- drm_start_override_free_positions(
+      map = spec$map[[name]],
+      n = length(current),
+      name = name
+    )
+    replacement <- current
+    replacement[free] <- proposed[free]
+    names(replacement) <- names(current)
+    spec$start[[name]] <- replacement
+    applied[[i]] <- data.frame(
+      parameter = name,
+      n_total = length(current),
+      n_applied = sum(free),
+      n_fixed = sum(!free),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  spec$start_override <- list(
+    provenance = if (is.null(provenance)) list() else provenance,
+    applied = do.call(rbind, applied)
+  )
+  spec
+}
+
+drm_empty_start_override_applied <- function() {
+  data.frame(
+    parameter = character(),
+    n_total = integer(),
+    n_applied = integer(),
+    n_fixed = integer(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_start_override_free_positions <- function(map, n, name) {
+  if (is.null(map)) {
+    return(rep(TRUE, n))
+  }
+  if (length(map) == 1L) {
+    return(rep(!is.na(map), n))
+  }
+  if (length(map) != n) {
+    cli::cli_abort(c(
+      "Internal start override map length does not match the start vector.",
+      "x" = "{.field {name}} expected map length 1 or {n}, but found {length(map)}."
+    ))
+  }
+  !is.na(map)
+}
+
+drm_qgt2_staged_start_override <- function(
+  source_fit,
+  target_spec,
+  copy_theta_re_cov = FALSE,
+  theta_re_cov_shrink = 0.85,
+  strategy = "qgt2-staged-start"
+) {
+  if (isTRUE(copy_theta_re_cov)) {
+    theta_re_cov_shrink <- drm_qgt2_validate_theta_shrink(
+      theta_re_cov_shrink
+    )
+  }
+  if (!is.list(source_fit) || !is.list(source_fit$model)) {
+    cli::cli_abort(
+      "Internal q>2 staged starts require a fitted source {.cls drmTMB} object."
+    )
+  }
+  if (!is.list(target_spec) || !is.list(target_spec$start)) {
+    cli::cli_abort(
+      "Internal q>2 staged starts require a target model specification."
+    )
+  }
+
+  fixed <- drm_qgt2_fixed_effect_start_override(source_fit, target_spec)
+  sd <- drm_qgt2_log_sd_start_override(source_fit, target_spec)
+  theta <- if (isTRUE(copy_theta_re_cov)) {
+    drm_qgt2_theta_start_override(
+      source_fit,
+      target_spec,
+      shrink = theta_re_cov_shrink
+    )
+  } else {
+    list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "not_requested"
+    )
+  }
+  override <- c(fixed$override, sd$override, theta$override)
+  override <- override[lengths(override) > 0L]
+
+  list(
+    override = override,
+    provenance = list(
+      strategy = strategy,
+      source_model_type = drm_start_override_scalar(
+        source_fit$model$model_type,
+        NA_character_
+      ),
+      target_model_type = drm_start_override_scalar(
+        target_spec$model_type,
+        NA_character_
+      ),
+      fixed_effect_matches = fixed$matches,
+      qgt2_sd_matches = sd$matches,
+      qgt2_theta_matches = theta$matches,
+      theta_re_cov = theta$status,
+      theta_re_cov_shrink = if (isTRUE(copy_theta_re_cov)) {
+        theta_re_cov_shrink
+      } else {
+        NA_real_
+      }
+    )
+  )
+}
+
+drm_qgt2_fixed_effect_start_override <- function(source_fit, target_spec) {
+  dpar_parameter <- c(
+    mu1 = "beta_mu1",
+    mu2 = "beta_mu2",
+    sigma1 = "beta_sigma1",
+    sigma2 = "beta_sigma2",
+    rho12 = "beta_rho12"
+  )
+  override <- list()
+  match_rows <- list()
+  for (dpar in names(dpar_parameter)) {
+    parameter <- dpar_parameter[[dpar]]
+    current <- target_spec$start[[parameter]]
+    source <- source_fit$coefficients[[dpar]]
+    if (is.null(current) || is.null(source)) {
+      next
+    }
+    target_names <- names(current)
+    if (is.null(target_names)) {
+      target_names <- colnames(target_spec$X[[dpar]])
+    }
+    if (is.null(target_names)) {
+      next
+    }
+    source_names <- names(source)
+    if (is.null(source_names)) {
+      source_names <- target_names[seq_len(min(
+        length(target_names),
+        length(source)
+      ))]
+      names(source) <- source_names
+    }
+    common <- intersect(target_names, source_names)
+    proposed <- current
+    if (length(common) > 0L) {
+      proposed[match(common, target_names)] <- source[common]
+    }
+    names(proposed) <- names(current)
+    override[[parameter]] <- proposed
+    match_rows[[length(match_rows) + 1L]] <- data.frame(
+      dpar = dpar,
+      parameter = parameter,
+      n_target = length(current),
+      n_source = length(source),
+      n_matched = length(common),
+      matched = paste(common, collapse = ","),
+      stringsAsFactors = FALSE
+    )
+  }
+  list(
+    override = override,
+    matches = drm_rbind_or_empty(
+      match_rows,
+      c("dpar", "parameter", "n_target", "n_source", "n_matched", "matched")
+    )
+  )
+}
+
+drm_qgt2_log_sd_start_override <- function(source_fit, target_spec) {
+  target_registry <- target_spec$random$covariance_blocks
+  target_members <- qgt2_covariance_members(target_registry)
+  if (nrow(target_members) == 0L || is.null(target_spec$start$log_sd_re_cov)) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_sd_match_table()
+    ))
+  }
+
+  source_sd <- drm_qgt2_source_log_sd_by_key(source_fit)
+  target_keys <- drm_qgt2_member_start_keys(target_members)
+  proposed <- target_spec$start$log_sd_re_cov
+  common <- intersect(target_keys, names(source_sd))
+  if (length(common) > 0L) {
+    proposed[match(common, target_keys)] <- source_sd[common]
+  }
+  names(proposed) <- names(target_spec$start$log_sd_re_cov)
+
+  matches <- data.frame(
+    key = target_keys,
+    dpar = target_members$dpar,
+    coef = target_members$coef,
+    source_matched = target_keys %in% names(source_sd),
+    stringsAsFactors = FALSE
+  )
+  list(
+    override = list(log_sd_re_cov = proposed),
+    matches = matches
+  )
+}
+
+drm_qgt2_source_log_sd_by_key <- function(source_fit) {
+  registry <- source_fit$model$random$covariance_blocks
+  members <- qgt2_covariance_members(registry)
+  if (nrow(members) == 0L) {
+    return(stats::setNames(numeric(), character()))
+  }
+  keys <- drm_qgt2_member_start_keys(members)
+  out <- rep(NA_real_, length(keys))
+  for (i in seq_len(nrow(members))) {
+    sd_value <- covariance_registry_member_sd(
+      source_fit,
+      members[i, , drop = FALSE]
+    )
+    if (is.finite(sd_value) && sd_value > 0) {
+      out[[i]] <- log(sd_value)
+    }
+  }
+  ok <- is.finite(out)
+  stats::setNames(out[ok], keys[ok])
+}
+
+drm_qgt2_theta_start_override <- function(
+  source_fit,
+  target_spec,
+  shrink = 0.85
+) {
+  shrink <- drm_qgt2_validate_theta_shrink(shrink)
+  target_registry <- target_spec$random$covariance_blocks
+  target_blocks <- qgt2_covariance_blocks(target_registry)
+  if (
+    nrow(target_blocks) == 0L ||
+      is.null(target_spec$start$theta_re_cov) ||
+      length(target_spec$start$theta_re_cov) == 0L
+  ) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "no_target_theta_re_cov"
+    ))
+  }
+
+  source_cor <- drm_qgt2_source_cor_by_pair(source_fit)
+  if (length(source_cor) == 0L) {
+    return(list(
+      override = list(),
+      matches = drm_empty_qgt2_theta_match_table(),
+      status = "no_source_correlations"
+    ))
+  }
+
+  proposed <- target_spec$start$theta_re_cov
+  target_pairs <- qgt2_covariance_pairs(target_registry)
+  target_members <- qgt2_covariance_members(target_registry)
+  match_rows <- list()
+  theta_offset <- 0L
+  for (block_i in seq_len(nrow(target_blocks))) {
+    block <- target_blocks[block_i, , drop = FALSE]
+    q <- block$n_members[[1L]]
+    n_theta <- choose(q, 2L)
+    block_members <- target_members[
+      target_members$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    block_pairs <- target_pairs[
+      target_pairs$block_id0 == block$block_id0[[1L]],
+      ,
+      drop = FALSE
+    ]
+    block_corr <- diag(q)
+    copied <- block_pairs$parameter %in% names(source_cor)
+    if (any(copied)) {
+      copied_values <- shrink * source_cor[block_pairs$parameter[copied]]
+      copied_values <- drm_qgt2_guard_theta_correlations(copied_values)
+      for (j in which(copied)) {
+        from <- block_pairs$from_member_id0[[j]] + 1L
+        to <- block_pairs$to_member_id0[[j]] + 1L
+        block_corr[from, to] <- copied_values[[block_pairs$parameter[[j]]]]
+        block_corr[to, from] <- block_corr[from, to]
+      }
+      regularized <- drm_qgt2_regularize_correlation_start(block_corr)
+      theta <- correlation_matrix_to_tmb_unstructured_theta(
+        regularized$corr
+      )
+      proposed[seq.int(theta_offset + 1L, length.out = n_theta)] <- theta
+      reconstructed <- tmb_unstructured_corr_matrix(theta)
+    } else {
+      regularized <- list(corr = block_corr, shrink_factor = 1, min_eigen = 1)
+      reconstructed <- block_corr
+    }
+
+    block_rows <- lapply(seq_len(nrow(block_pairs)), function(j) {
+      from <- block_pairs$from_member_id0[[j]] + 1L
+      to <- block_pairs$to_member_id0[[j]] + 1L
+      parameter <- block_pairs$parameter[[j]]
+      data.frame(
+        parameter = parameter,
+        from_key = drm_qgt2_member_start_keys(block_members[from, , drop = FALSE]),
+        to_key = drm_qgt2_member_start_keys(block_members[to, , drop = FALSE]),
+        source_matched = copied[[j]],
+        source_correlation = if (copied[[j]]) {
+          source_cor[[parameter]]
+        } else {
+          NA_real_
+        },
+        copied_correlation = block_corr[from, to],
+        reconstructed_correlation = reconstructed[from, to],
+        block_shrink_factor = regularized$shrink_factor,
+        block_min_eigen = regularized$min_eigen,
+        stringsAsFactors = FALSE
+      )
+    })
+    match_rows <- c(match_rows, block_rows)
+    theta_offset <- theta_offset + n_theta
+  }
+
+  names(proposed) <- names(target_spec$start$theta_re_cov)
+  matches <- drm_rbind_or_empty(
+    match_rows,
+    c(
+      "parameter",
+      "from_key",
+      "to_key",
+      "source_matched",
+      "source_correlation",
+      "copied_correlation",
+      "reconstructed_correlation",
+      "block_shrink_factor",
+      "block_min_eigen"
+    )
+  )
+  if (!any(matches$source_matched)) {
+    return(list(
+      override = list(),
+      matches = matches,
+      status = "no_matching_pair_keys"
+    ))
+  }
+  list(
+    override = list(theta_re_cov = proposed),
+    matches = matches,
+    status = "copied_by_pair_key"
+  )
+}
+
+drm_qgt2_source_cor_by_pair <- function(source_fit) {
+  if (!is.list(source_fit$corpars)) {
+    return(stats::setNames(numeric(), character()))
+  }
+  source_cor <- source_fit$corpars$re_cov
+  if (is.null(source_cor) || length(source_cor) == 0L) {
+    return(stats::setNames(numeric(), character()))
+  }
+  if (is.null(names(source_cor))) {
+    source_pairs <- qgt2_covariance_pairs(
+      source_fit$model$random$covariance_blocks
+    )
+    names(source_cor) <- source_pairs$parameter[seq_along(source_cor)]
+  }
+  ok <- is.finite(source_cor) & !is.na(names(source_cor)) & nzchar(names(source_cor))
+  source_cor[ok]
+}
+
+drm_qgt2_validate_theta_shrink <- function(shrink) {
+  if (
+    !is.numeric(shrink) ||
+      length(shrink) != 1L ||
+      !is.finite(shrink) ||
+      shrink <= 0 ||
+      shrink > 1
+  ) {
+    cli::cli_abort(
+      "{.arg theta_re_cov_shrink} must be one finite number in (0, 1]."
+    )
+  }
+  shrink
+}
+
+drm_qgt2_guard_theta_correlations <- function(x, guard = 0.98) {
+  pmax(pmin(x, guard), -guard)
+}
+
+drm_qgt2_regularize_correlation_start <- function(
+  corr,
+  min_eigen = 1e-6,
+  shrink_step = 0.75,
+  max_iter = 12L
+) {
+  offdiag <- corr
+  diag(offdiag) <- 0
+  for (i in seq_len(max_iter + 1L)) {
+    factor <- shrink_step^(i - 1L)
+    candidate <- diag(nrow(corr)) + factor * offdiag
+    eigenvalues <- tryCatch(
+      eigen(candidate, symmetric = TRUE, only.values = TRUE)$values,
+      error = function(e) NA_real_
+    )
+    min_value <- min(eigenvalues)
+    if (is.finite(min_value) && min_value > min_eigen) {
+      return(list(
+        corr = candidate,
+        shrink_factor = factor,
+        min_eigen = min_value
+      ))
+    }
+  }
+  list(
+    corr = diag(nrow(corr)),
+    shrink_factor = 0,
+    min_eigen = 1
+  )
+}
+
+correlation_matrix_to_tmb_unstructured_theta <- function(corr) {
+  if (
+    !is.matrix(corr) ||
+      nrow(corr) != ncol(corr) ||
+      any(!is.finite(corr))
+  ) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires a finite square matrix."
+    )
+  }
+  if (!isTRUE(all.equal(diag(corr), rep(1, nrow(corr))))) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires unit diagonal."
+    )
+  }
+  lower_chol <- tryCatch(
+    t(chol(corr)),
+    error = function(e) e
+  )
+  if (inherits(lower_chol, "error")) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta conversion requires a positive-definite matrix."
+    )
+  }
+  diagonal <- diag(lower_chol)
+  if (any(!is.finite(diagonal)) || any(diagonal <= 0)) {
+    cli::cli_abort(
+      "Internal error: correlation-to-theta Cholesky factor has invalid diagonal."
+    )
+  }
+  lower_unit <- sweep(lower_chol, 1L, diagonal, "/")
+  lower <- which(lower.tri(lower_unit), arr.ind = TRUE)
+  lower <- lower[order(lower[, "row"], lower[, "col"]), , drop = FALSE]
+  theta <- lower_unit[lower]
+  reconstructed <- tmb_unstructured_corr_matrix(theta)
+  if (max(abs(reconstructed - corr)) > 1e-8) {
+    cli::cli_abort(
+      "Internal error: packed theta did not reconstruct the requested correlation matrix."
+    )
+  }
+  theta
+}
+
+drm_qgt2_member_start_keys <- function(members) {
+  if (!is.data.frame(members) || nrow(members) == 0L) {
+    return(character())
+  }
+  paste0(
+    "group=",
+    members$group,
+    ";block=",
+    members$block_label,
+    ";dpar=",
+    members$dpar,
+    ";coef=",
+    members$coef
+  )
+}
+
+drm_empty_qgt2_sd_match_table <- function() {
+  data.frame(
+    key = character(),
+    dpar = character(),
+    coef = character(),
+    source_matched = logical(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_empty_qgt2_theta_match_table <- function() {
+  data.frame(
+    parameter = character(),
+    from_key = character(),
+    to_key = character(),
+    source_matched = logical(),
+    source_correlation = numeric(),
+    copied_correlation = numeric(),
+    reconstructed_correlation = numeric(),
+    block_shrink_factor = numeric(),
+    block_min_eigen = numeric(),
+    stringsAsFactors = FALSE
+  )
+}
+
+drm_rbind_or_empty <- function(rows, columns) {
+  if (length(rows) == 0L) {
+    return(stats::setNames(
+      data.frame(matrix(ncol = length(columns), nrow = 0L)),
+      columns
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+drm_start_override_scalar <- function(x, default) {
+  if (length(x) == 1L && !is.null(x)) {
+    return(x)
+  }
+  default
+}
+
 corpair_model_is_group <- function(model) {
   is.list(model) &&
     isTRUE(model$n_models > 0L) &&
@@ -11965,6 +12878,64 @@ make_tmb_data <- function(spec) {
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
       n_mu_re_terms = re_mu$n_terms,
+      n_mu_re_cors = 0L,
+      mu_re_index = re_mu$index0,
+      mu_re_value = re_mu$value,
+      mu_re_term = re_mu$term_id0,
+      mu_re_dpar = re_mu$dpar_id0,
+      mu_re_pos = re_mu$re_pos0,
+      mu_re_cor_id = re_mu$re_cor_id0,
+      mu_re_pair_index = re_mu$re_pair_index0,
+      mu_re_sd_row = sd_mu$re_sd_row0,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
+  if (identical(spec$model_type, "skew_normal")) {
+    re_mu <- spec$random$mu
+    sd_mu <- spec$random_scale$mu
+    return(list(
+      model_type = 17L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = spec$X$sigma,
+      X_nu = spec$X$nu,
+      X_zi = dummy_matrix,
+      X_sd_mu = sd_mu$X,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = 0L,
       n_mu_re_cors = 0L,
       mu_re_index = re_mu$index0,
       mu_re_value = re_mu$value,
@@ -12922,6 +13893,7 @@ split_tmb_parameters <- function(par, spec) {
   if (
     identical(spec$model_type, "gaussian") ||
       identical(spec$model_type, "student") ||
+      identical(spec$model_type, "skew_normal") ||
       identical(spec$model_type, "lognormal") ||
       identical(spec$model_type, "gamma") ||
       identical(spec$model_type, "tweedie") ||
@@ -12937,6 +13909,7 @@ split_tmb_parameters <- function(par, spec) {
     out <- list(mu = beta_mu, sigma = beta_sigma)
     if (
       identical(spec$model_type, "student") ||
+        identical(spec$model_type, "skew_normal") ||
         identical(spec$model_type, "tweedie")
     ) {
       beta_nu <- unname(par$beta_nu)

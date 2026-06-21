@@ -311,7 +311,7 @@ confint.drmTMB <- function(
 #' profile_targets(fit, ready_only = TRUE)
 #' @export
 profile_targets <- function(object, ready_only = FALSE) {
-  if (!inherits(object, "drmTMB")) {
+  if (!inherits(object, "drmTMB") && !inherits(object, "drmTMB_julia")) {
     cli::cli_abort("{.arg object} must be a {.cls drmTMB} fit.")
   }
   if (
@@ -625,7 +625,9 @@ plot.profile.drmTMB <- function(x, interval = TRUE, ...) {
     labels$colour <- "Profile pass"
     labels$linetype <- "Profile pass"
   }
-  out + do.call(ggplot2::labs, labels)
+  out +
+    do.call(ggplot2::labs, labels) +
+    ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0))
 }
 
 utils::globalVariables(".data")
@@ -803,7 +805,8 @@ profile_plot_caption <- function(data) {
     ),
     collapse = "; "
   )
-  paste0("Source: ", source, ". Elapsed: ", elapsed_text, ".")
+  caption <- paste0("Source: ", source, ". Elapsed: ", elapsed_text, ".")
+  paste(strwrap(caption, width = 78), collapse = "\n")
 }
 
 plot_profile_require_ggplot2 <- function() {
@@ -997,6 +1000,10 @@ interval_source_levels <- function() {
 }
 
 drm_profile_targets <- function(object) {
+  if (inherits(object, "drmTMB_julia")) {
+    return(drm_julia_profile_targets(object))
+  }
+
   rows <- list()
   counters <- new.env(parent = emptyenv())
 
@@ -2660,6 +2667,7 @@ validate_profile_targets <- function(targets) {
   allowed_notes <- c(
     "ready",
     "tmb_object_required",
+    "julia_bridge_payload_required",
     "missing_tmb_parameter",
     "derived_target",
     "derived_unstructured_correlation"

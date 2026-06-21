@@ -46,16 +46,20 @@ mi <- function(x) {
 
 #' Deprecated known sampling covariance marker
 #'
-#' `meta_known_V()` is deprecated as a formula marker in `drmTMB 0.1.3.9000`.
-#' Use [meta_V()] for known sampling variance or covariance. The deprecated
-#' marker still routes to the same additive known-`V` likelihood path for
-#' compatibility.
+#' `meta_known_V()` is deprecated as a formula marker. Use [meta_V()] for known
+#' sampling variance or covariance. The deprecated marker still routes to the
+#' same additive known-`V` likelihood path for compatibility.
 #'
 #' @inheritParams meta_V
 #'
 #' @return A formula marker; never evaluated by users.
 #' @keywords internal
 #' @export
+#'
+#' @examples
+#' suppressWarnings(
+#'   bf(yi ~ moderator + meta_known_V(V = vi), sigma ~ moderator)
+#' )
 meta_known_V <- function(V) {
   warn_meta_known_v_deprecated()
   invisible(NULL)
@@ -75,12 +79,12 @@ warn_meta_known_v_deprecated <- function() {
 
 #' Deprecated legacy known-covariance group effect marker
 #'
-#' `gr()` is deprecated as a public formula marker in `drmTMB 0.1.3.9000`.
-#' Use [relmat()] for a validated lower-level user-supplied relatedness or
-#' precision matrix, [animal()] for pedigree or additive-relatedness animal
-#' models, [phylo()] for phylogenetic dependence, or [spatial()] for spatial
-#' dependence. The exported `gr()` placeholder remains only for compatibility
-#' with older design notes and should not be used in new model formulas.
+#' `gr()` is deprecated as a public formula marker. Use [relmat()] for a
+#' validated lower-level user-supplied relatedness or precision matrix,
+#' [animal()] for pedigree or additive-relatedness animal models, [phylo()] for
+#' phylogenetic dependence, or [spatial()] for spatial dependence. The exported
+#' `gr()` placeholder remains only for compatibility with older design notes and
+#' should not be used in new model formulas.
 #'
 #' @param group Grouping factor.
 #' @param cov Known covariance or precision structure.
@@ -88,6 +92,12 @@ warn_meta_known_v_deprecated <- function() {
 #' @return A formula marker; never evaluated by users.
 #' @keywords internal
 #' @export
+#'
+#' @examples
+#' bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+#' suppressWarnings(
+#'   bf(y ~ x + gr(id, cov = K), sigma ~ 1)
+#' )
 gr <- function(group, cov) {
   .Deprecated(
     msg = paste(

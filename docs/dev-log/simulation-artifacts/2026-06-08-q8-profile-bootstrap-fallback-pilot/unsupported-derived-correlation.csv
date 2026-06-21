@@ -1,0 +1,9 @@
+"diagnostic_id","strategy","parm","method","expected_boundary","status","message"
+"q8_diag_001","q4_staged_q8","cor:re_cov:cor(mu1:(Intercept),mu1:x | p | id)","bootstrap","derived_q8_correlation_not_direct_target","error","Bootstrap confidence intervals currently support direct fitted-object
+targets only.
+✖ Unsupported bootstrap target(s): cor:re_cov:cor(mu1:(Intercept),mu1:x | p |
+  id).
+ℹ Requested target type(s): derived; inventory note(s):
+  derived_unstructured_correlation.
+ℹ Use `profile_targets()` to inspect `target_type` and `profile_note` before
+  choosing bootstrap targets."

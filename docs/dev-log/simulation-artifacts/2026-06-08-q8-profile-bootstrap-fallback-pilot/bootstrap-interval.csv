@@ -1,0 +1,2 @@
+"diagnostic_id","strategy","parm","level","lower","upper","scale","transformation","tmb_parameter","index","method","profile.engine","conf.status","profile.boundary","profile.message","bootstrap.n","bootstrap.failed","bootstrap.parallel","bootstrap.workers","status","warning_count","warnings","elapsed"
+"q8_diag_001","q4_staged_q8","sd:mu:mu1:(1 + x | p | id):(Intercept)",0.7,NA,NA,"response","exp","log_sd_re_cov",1,"bootstrap",NA,"bootstrap_unavailable",NA,"fewer than two successful bootstrap refits",0,3,"none",1,"ok",1,"NA/NaN function evaluation",7.40099999999998

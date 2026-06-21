@@ -79,6 +79,327 @@ test_that("future optimizer contract names are reserved in plain control lists",
   )
 })
 
+test_that("internal start override preserves no-op specs", {
+  spec <- list(
+    start = list(
+      beta_mu = c(`(Intercept)` = 0, x = 1),
+      beta_sigma = c(`(Intercept)` = -0.2)
+    ),
+    map = list(beta_sigma = factor(NA)),
+    random_names = "u_mu"
+  )
+
+  expect_equal(drmTMB:::drm_apply_start_override(spec), spec)
+})
+
+test_that("internal start override validates names and respects mapped slots", {
+  spec <- list(
+    start = list(
+      beta_mu = c(`(Intercept)` = 0, x = 1),
+      beta_nu = c(`(Intercept)` = 0),
+      theta_re_cov = c(`mu1:mu2` = 0, `mu1:sigma1` = 0, `mu2:sigma1` = 0)
+    ),
+    map = list(
+      beta_nu = factor(NA),
+      theta_re_cov = factor(c(1, NA, 2))
+    ),
+    random_names = "u_re_cov"
+  )
+
+  out <- drmTMB:::drm_apply_start_override(
+    spec,
+    override = list(
+      beta_mu = c(`(Intercept)` = 0.4, x = 1.3),
+      beta_nu = c(`(Intercept)` = 2),
+      theta_re_cov = c(`mu1:mu2` = 0.1, `mu1:sigma1` = 0.2, `mu2:sigma1` = 0.3)
+    ),
+    provenance = list(strategy = "unit-test")
+  )
+
+  expect_equal(out$start$beta_mu, c(`(Intercept)` = 0.4, x = 1.3))
+  expect_equal(out$start$beta_nu, spec$start$beta_nu)
+  expect_equal(
+    out$start$theta_re_cov,
+    c(`mu1:mu2` = 0.1, `mu1:sigma1` = 0, `mu2:sigma1` = 0.3)
+  )
+  expect_equal(out$map, spec$map)
+  expect_equal(out$random_names, spec$random_names)
+  expect_equal(out$start_override$provenance$strategy, "unit-test")
+  expect_equal(
+    out$start_override$applied$n_applied,
+    c(2L, 0L, 2L)
+  )
+  expect_equal(
+    out$start_override$applied$n_fixed,
+    c(0L, 1L, 1L)
+  )
+})
+
+test_that("internal start override rejects invalid override shapes", {
+  spec <- list(
+    start = list(beta_mu = c(`(Intercept)` = 0, x = 1)),
+    map = list()
+  )
+
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec, override = c(beta_mu = 1)),
+    "named list"
+  )
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec, override = list(beta_sigma = 1)),
+    "unknown parameter"
+  )
+  expect_error(
+    drmTMB:::drm_apply_start_override(spec, override = list(beta_mu = 1)),
+    "wrong length"
+  )
+  expect_error(
+    drmTMB:::drm_apply_start_override(
+      spec,
+      override = list(beta_mu = c(1, NA))
+    ),
+    "finite numeric"
+  )
+  expect_error(
+    drmTMB:::drm_apply_start_override(
+      spec,
+      override = structure(
+        list(c(1, 2), c(3, 4)),
+        names = c("beta_mu", "beta_mu")
+      )
+    ),
+    "unique"
+  )
+})
+
+test_that("q>2 staged start override maps fixed effects and endpoint SDs by keys", {
+  dat <- data.frame(
+    id = factor(rep(seq_len(8L), each = 4L)),
+    x = rep(seq(-1, 1, length.out = 4L), times = 8L)
+  )
+  dat$y1 <- 0.2 + 0.4 * dat$x + rep(seq(-0.2, 0.2, length.out = 8L), each = 4L)
+  dat$y2 <- -0.1 -
+    0.3 * dat$x +
+    rep(seq(0.15, -0.15, length.out = 8L), each = 4L)
+
+  source_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ x + (1 | p | id),
+      sigma2 = ~ x + (1 | p | id),
+      rho12 = ~1
+    ),
+    data = dat
+  )
+  target_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    bf(
+      mu1 = y1 ~ x + (1 + x | p | id),
+      mu2 = y2 ~ x + (1 + x | p | id),
+      sigma1 = ~ x + (1 + x | p | id),
+      sigma2 = ~ x + (1 + x | p | id),
+      rho12 = ~1
+    ),
+    data = dat
+  )
+
+  source_members <- drmTMB:::qgt2_covariance_members(
+    source_spec$random$covariance_blocks
+  )
+  source_sd <- stats::setNames(
+    c(0.31, 0.35, 0.18, 0.22),
+    source_members$label
+  )
+  source_fit <- list(
+    model = source_spec,
+    coefficients = list(
+      mu1 = c(`(Intercept)` = 0.11, x = 0.41),
+      mu2 = c(`(Intercept)` = -0.12, x = -0.31),
+      sigma1 = c(`(Intercept)` = -0.71),
+      sigma2 = c(`(Intercept)` = -0.62),
+      rho12 = c(`(Intercept)` = 0.08)
+    ),
+    sdpars = list(
+      mu = source_sd[source_members$component == "mu"],
+      sigma = source_sd[source_members$component == "sigma"]
+    ),
+    corpars = list(
+      re_cov = stats::setNames(
+        c(0.24, -0.18, 0.12, 0.08, -0.10, 0.20),
+        source_spec$random$covariance_blocks$pairs$parameter
+      )
+    )
+  )
+
+  mapped <- drmTMB:::drm_qgt2_staged_start_override(source_fit, target_spec)
+  target_members <- drmTMB:::qgt2_covariance_members(
+    target_spec$random$covariance_blocks
+  )
+  sd_matches <- mapped$provenance$qgt2_sd_matches
+  matched_rows <- which(sd_matches$source_matched)
+
+  expect_named(
+    mapped$override,
+    c(
+      "beta_mu1",
+      "beta_mu2",
+      "beta_sigma1",
+      "beta_sigma2",
+      "beta_rho12",
+      "log_sd_re_cov"
+    )
+  )
+  expect_equal(unname(mapped$override$beta_mu1), c(0.11, 0.41))
+  expect_equal(unname(mapped$override$beta_mu2), c(-0.12, -0.31))
+  expect_equal(mapped$override$beta_sigma1[[1L]], -0.71)
+  expect_equal(
+    mapped$override$beta_sigma1[[2L]],
+    target_spec$start$beta_sigma1[[2L]]
+  )
+  expect_equal(mapped$override$beta_sigma2[[1L]], -0.62)
+  expect_equal(
+    mapped$override$beta_sigma2[[2L]],
+    target_spec$start$beta_sigma2[[2L]]
+  )
+  expect_equal(unname(mapped$override$beta_rho12), 0.08)
+  expect_equal(sum(sd_matches$source_matched), 4L)
+  expect_equal(target_members$coef[matched_rows], rep("(Intercept)", 4L))
+  expect_equal(
+    exp(unname(mapped$override$log_sd_re_cov[matched_rows])),
+    unname(source_sd),
+    tolerance = 1e-12
+  )
+  expect_equal(
+    mapped$override$log_sd_re_cov[!sd_matches$source_matched],
+    target_spec$start$log_sd_re_cov[!sd_matches$source_matched]
+  )
+  expect_false("theta_re_cov" %in% names(mapped$override))
+  expect_equal(
+    mapped$provenance$theta_re_cov,
+    "not_requested"
+  )
+
+  applied <- drmTMB:::drm_apply_start_override(
+    target_spec,
+    override = mapped$override,
+    provenance = mapped$provenance
+  )
+  expect_equal(applied$start$theta_re_cov, target_spec$start$theta_re_cov)
+  expect_equal(
+    applied$start_override$applied$parameter,
+    names(mapped$override)
+  )
+})
+
+test_that("q>2 staged start override copies theta starts by pair key", {
+  dat <- data.frame(
+    id = factor(rep(seq_len(8L), each = 4L)),
+    x = rep(seq(-1, 1, length.out = 4L), times = 8L)
+  )
+  dat$y1 <- 0.2 + 0.4 * dat$x + rep(seq(-0.2, 0.2, length.out = 8L), each = 4L)
+  dat$y2 <- -0.1 -
+    0.3 * dat$x +
+    rep(seq(0.15, -0.15, length.out = 8L), each = 4L)
+  source_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    bf(
+      mu1 = y1 ~ x + (1 | p | id),
+      mu2 = y2 ~ x + (1 | p | id),
+      sigma1 = ~ x + (1 | p | id),
+      sigma2 = ~ x + (1 | p | id),
+      rho12 = ~1
+    ),
+    data = dat
+  )
+  target_spec <- drmTMB:::drm_build_biv_gaussian_spec(
+    bf(
+      mu1 = y1 ~ x + (1 + x | p | id),
+      mu2 = y2 ~ x + (1 + x | p | id),
+      sigma1 = ~ x + (1 + x | p | id),
+      sigma2 = ~ x + (1 + x | p | id),
+      rho12 = ~1
+    ),
+    data = dat
+  )
+  source_fit <- list(
+    model = source_spec,
+    coefficients = list(),
+    sdpars = list(),
+    corpars = list(
+      re_cov = stats::setNames(
+        c(0.24, -0.18, 0.12, 0.08, -0.10, 0.20),
+        source_spec$random$covariance_blocks$pairs$parameter
+      )
+    )
+  )
+
+  mapped <- drmTMB:::drm_qgt2_staged_start_override(
+    source_fit,
+    target_spec,
+    copy_theta_re_cov = TRUE,
+    theta_re_cov_shrink = 0.5
+  )
+  target_pairs <- target_spec$random$covariance_blocks$pairs
+  theta <- mapped$override$theta_re_cov
+  corr <- drmTMB:::tmb_unstructured_corr_matrix(theta)
+  copied <- target_pairs$parameter %in% names(source_fit$corpars$re_cov)
+
+  expect_true("theta_re_cov" %in% names(mapped$override))
+  expect_equal(mapped$provenance$theta_re_cov, "copied_by_pair_key")
+  expect_equal(sum(mapped$provenance$qgt2_theta_matches$source_matched), 6L)
+  for (i in seq_len(nrow(target_pairs))) {
+    from <- target_pairs$from_member_id0[[i]] + 1L
+    to <- target_pairs$to_member_id0[[i]] + 1L
+    if (copied[[i]]) {
+      expect_equal(
+        corr[from, to],
+        0.5 * source_fit$corpars$re_cov[[target_pairs$parameter[[i]]]],
+        tolerance = 1e-10
+      )
+    } else {
+      expect_equal(corr[from, to], 0, tolerance = 1e-10)
+    }
+  }
+
+  applied <- drmTMB:::drm_apply_start_override(
+    target_spec,
+    override = mapped$override,
+    provenance = mapped$provenance
+  )
+  expect_equal(applied$start$theta_re_cov, theta)
+})
+
+test_that("q>2 staged start override validates theta shrink", {
+  expect_error(
+    drmTMB:::drm_qgt2_staged_start_override(
+      list(model = list()),
+      list(start = list()),
+      copy_theta_re_cov = TRUE,
+      theta_re_cov_shrink = 1.5
+    ),
+    "theta_re_cov_shrink"
+  )
+})
+
+test_that("unstructured correlation theta inverse reconstructs target matrices", {
+  corr <- matrix(
+    c(
+      1.00, 0.20, -0.15, 0.05,
+      0.20, 1.00, 0.18, -0.10,
+      -0.15, 0.18, 1.00, 0.25,
+      0.05, -0.10, 0.25, 1.00
+    ),
+    nrow = 4L,
+    byrow = TRUE
+  )
+  theta <- drmTMB:::correlation_matrix_to_tmb_unstructured_theta(corr)
+
+  expect_equal(
+    drmTMB:::tmb_unstructured_corr_matrix(theta),
+    corr,
+    tolerance = 1e-10
+  )
+})
+
 test_that("Gaussian fixed-effect starts use OLS mean and residual scale", {
   dat <- data.frame(
     x = seq(-1.5, 1.5, length.out = 10),

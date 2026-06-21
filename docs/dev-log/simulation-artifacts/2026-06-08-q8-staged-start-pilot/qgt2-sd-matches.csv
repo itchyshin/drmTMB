@@ -1,0 +1,9 @@
+"key","dpar","coef","source_matched"
+"group=id;block=p;dpar=mu1;coef=(Intercept)","mu1","(Intercept)",TRUE
+"group=id;block=p;dpar=mu1;coef=x","mu1","x",FALSE
+"group=id;block=p;dpar=mu2;coef=(Intercept)","mu2","(Intercept)",TRUE
+"group=id;block=p;dpar=mu2;coef=x","mu2","x",FALSE
+"group=id;block=p;dpar=sigma1;coef=(Intercept)","sigma1","(Intercept)",TRUE
+"group=id;block=p;dpar=sigma1;coef=x","sigma1","x",FALSE
+"group=id;block=p;dpar=sigma2;coef=(Intercept)","sigma2","(Intercept)",TRUE
+"group=id;block=p;dpar=sigma2;coef=x","sigma2","x",FALSE

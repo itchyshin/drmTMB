@@ -1,23 +1,20 @@
 Package: drmTMB
-Title: Distributional Regression Models Using Template Model Builder
-Version: 0.1.3.9000
+Title: Distributional Regression Models Using 'TMB'
+Version: 0.2.0
 Authors@R: c(
     person("Shinichi", "Nakagawa", email = "itchyshin@gmail.com",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-7765-5182"))
   )
-Description: Fast distributional regression models for univariate and
-    bivariate responses using Template Model Builder. The current
-    implementation focuses on Gaussian and Student-t location-scale models,
-    known sampling covariance, phylogenetic location effects, random-effect
-    scale models, bivariate residual correlation, positive-continuous,
-    Tweedie semicontinuous, strict-proportion, zero-one bounded, and
-    denominator-aware proportion
-    families, and
-    fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
-    hurdle count, and ordinal cumulative-logit models.
-    Skewness and additional response-family models are staged for later
-    phases.
+Description: Fit distributional regression models for univariate and
+    bivariate responses using 'Template Model Builder' ('TMB'). Predictors can
+    model location, scale, shape, zero-inflation, hurdle probability,
+    random-effect scale, and bivariate residual correlation. Supported
+    families include Gaussian, Student-t, positive-continuous, Tweedie
+    semicontinuous, bounded-proportion, count, ordinal cumulative-logit, and
+    Gaussian meta-analytic known-covariance models. The package is designed for
+    applied ecology, evolution, and environmental-science analyses that need
+    model diagnostics and explicit boundaries between fitted and planned syntax.
 License: GPL (>= 3)
 URL: https://itchyshin.github.io/drmTMB/, https://github.com/itchyshin/drmTMB
 BugReports: https://github.com/itchyshin/drmTMB/issues
@@ -39,6 +36,7 @@ Suggests:
     emmeans,
     glmmTMB,
     ggplot2,
+    JuliaCall,
     knitr,
     lme4,
     MASS,
@@ -49,3 +47,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.2

@@ -164,7 +164,18 @@
   random-intercept, `sigma1`/`sigma2` random-intercept, and response-specific
   bivariate `mu`/`sigma` random-intercept correlations. It reports all six
   ordinary q=4 all-four bivariate random-intercept correlations when that block
-  is fitted, and it also reports the fitted bivariate phylogenetic mean-mean
+  is fitted, and it reports the first ordinary q=8 all-endpoint Gaussian block
+  as 28 derived group-level correlations. Q8 remains diagnostic-only and
+  sample-size dependent until convergence, Hessian, interval, coverage, and
+  power evidence improve. Private q4-to-q8 SD and theta staged-start mappers now
+  exist, but theta starts are a diagnostic option rather than a blanket rescue.
+  The 2026-06-09 sample-size ladder showed that high replication improved q8
+  Hessian and conditioning behaviour, while low and baseline rows stayed
+  fragile. A paired 800/1600 optimizer-budget pilot on the high sample-size row
+  did not change convergence, `pdHess`, or the printed q8 correlation
+  diagnostics. Direct endpoint-SD profiles can work on selected q8 fits, but
+  derived q8 correlations remain unpromoted for intervals: the first custom
+  two-refit bootstrap pilot produced no interval rows. `corpairs()` also reports the fitted bivariate phylogenetic mean-mean
   correlation, the six phylogenetic q=4 endpoint correlations,
   coordinate-spatial q=2 and constant q=4 rows, and animal/`relmat()`
   known-matrix q=2 and constant q=4 rows when those blocks are fitted. For the
@@ -232,9 +243,26 @@
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
   plus ordinary unlabelled `mu` random intercepts and independent numeric
   slopes. Student-t `nu` is a fixed-effect tail-shape parameter; random effects
-  in `sigma` or `nu`, future skew-normal or skew-t shape random effects,
-  correlated Student-t slopes, and latent ID-level skewness syntax such as
-  `skew(id) ~ x` are not yet implemented.
+  in `sigma` or `nu`, future skew-t shape random effects, correlated Student-t
+  slopes, and latent ID-level skewness syntax such as `skew(id) ~ x` are not
+  yet implemented.
+- Univariate skew-normal location-scale-shape models are implemented only for
+  fixed-effect `mu`, `sigma`, and `nu` formulas. Public `mu` is `E[y]`, public
+  `sigma` is `SD[y]`, and `nu` is residual slant. Skew-normal random effects,
+  structured effects, known sampling covariance, bivariate skew-normal models,
+  residual `rho12`, completed formal recovery grids, calibrated
+  false-positive evidence, and latent `skew(id)` syntax are not yet
+  implemented. Fixed-effect Wald intervals for `nu`, deterministic fixed-effect
+  recovery, smoke artifacts, a formal recovery design gate, symmetric
+  false-positive artifacts, and a 2026-06-08 three-cell formal pilot are
+  available. The first pilot used `se = FALSE`, so it did not compute Hessian
+  evidence and showed weak `nu` recovery. A follow-up simple `se = TRUE`
+  Hessian pilot converged 8/8 fixed-effect fits with `pdHess = TRUE`, but
+  symmetric cells still fit nonzero slant and the `nu ~ w` slope
+  under-recovered. Source-level comparator scale mapping exists for native
+  Azzalini and public moment scales. One simple `glmmTMB` comparator smoke
+  matched the local fit only when `glmmTMB` used nonzero shape starts; formal
+  external comparator grids remain future work.
 - Univariate Gamma mean-CV models are implemented for positive finite responses
   with `family = Gamma(link = "log")`. `mu` is the response mean and `sigma` is
   the coefficient of variation, and ordinary unlabelled `mu` random intercepts

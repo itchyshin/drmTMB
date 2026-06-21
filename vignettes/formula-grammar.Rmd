@@ -41,6 +41,7 @@ In this table, "coscale" means a model for residual correlation, currently
 | `y ~ x1 + x2`, `sigma ~ x1` | Implemented | Univariate Gaussian location-scale model. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2` | Implemented | Fixed-effect univariate Student-t location-scale-shape model. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `nu ~ 1`, `family = student()` | Implemented first slice | Ordinary Student-t `mu` random intercepts and independent numeric slopes enter the identity-location predictor. Correlated slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects, structured effects, known covariance, and bivariate Student-t models remain planned. |
+| `y ~ x1 + x2`, `sigma ~ x1`, `nu ~ x2`, `family = skew_normal()` | Implemented first slice | Fixed-effect univariate skew-normal location-scale-shape model. Public `mu` is `E[y]`, public `sigma` is `SD[y]`, and `nu` is residual slant. Random effects, structured effects, known sampling covariance, bivariate skew-normal models, `rho12`, and latent `skew(id)` syntax remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = lognormal()` | Implemented | Fixed-effect univariate lognormal model for positive responses; `mu` and `sigma` are on the log-response scale. |
 | `y ~ x1 + (1 | id) + (0 + x1 | id)`, `sigma ~ x2`, `family = lognormal()` | Implemented first slice | Ordinary lognormal `mu` random intercepts and independent numeric slopes enter the log-response location. Correlated slopes, labelled covariance blocks, `sigma` random effects, structured effects, known covariance, and bivariate lognormal models remain planned. |
 | `y ~ x1 + x2`, `sigma ~ x1`, `family = Gamma(link = "log")` | Implemented | Fixed-effect univariate Gamma mean-CV model for positive responses; `mu` is the response mean and `sigma` is the coefficient of variation. |
@@ -147,10 +148,23 @@ first location slice. Correlated Student-t slopes, `sigma` random effects,
 `nu` random effects, known sampling covariance, phylogenetic terms, and
 bivariate Student-t models are later phases.
 
-Future skew-normal and skew-t formulas should also start with fixed-effect
-residual-shape terms such as `nu ~ x`. A later latent-effect spelling such as
-`skew(id) ~ x_group` would ask a different question about the distribution of
-group effects and should not be taught as an alias for residual `nu`.
+Current implemented skew-normal form:
+
+```r
+drm_formula(y ~ x, sigma ~ z, nu ~ w)
+```
+
+paired with:
+
+```r
+family = skew_normal()
+```
+
+This route is fixed-effect and univariate. It models residual asymmetry after
+the response mean `mu` and response SD `sigma` have been accounted for. A later
+latent-effect spelling such as `skew(id) ~ x_group` would ask a different
+question about the distribution of group effects and should not be taught as an
+alias for residual `nu`.
 
 Current implemented lognormal form:
 

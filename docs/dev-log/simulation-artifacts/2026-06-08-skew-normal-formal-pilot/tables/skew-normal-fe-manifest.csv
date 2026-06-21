@@ -1,0 +1,10 @@
+"cell_id","replicate","seed","status","skipped","warning_count","error","elapsed"
+"skew_normal_fixed_effect_001",1,791369569,"ok",FALSE,0,NA,0.335
+"skew_normal_fixed_effect_001",2,353617954,"ok",FALSE,0,NA,1.283
+"skew_normal_fixed_effect_001",3,1620501718,"ok",FALSE,0,NA,0.0929999999999995
+"skew_normal_fixed_effect_002",1,2035156027,"ok",FALSE,0,NA,0.0659999999999998
+"skew_normal_fixed_effect_002",2,33616884,"ok",FALSE,0,NA,0.0789999999999997
+"skew_normal_fixed_effect_002",3,500922821,"ok",FALSE,0,NA,0.0700000000000003
+"skew_normal_fixed_effect_003",1,311395228,"ok",FALSE,0,NA,0.0819999999999999
+"skew_normal_fixed_effect_003",2,1880157488,"ok",FALSE,0,NA,0.0650000000000004
+"skew_normal_fixed_effect_003",3,1607522165,"ok",FALSE,0,NA,0.0659999999999998

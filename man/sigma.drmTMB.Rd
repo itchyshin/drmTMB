@@ -20,7 +20,9 @@ of numeric vectors for bivariate Gaussian models.
 univariate Gaussian location-scale models this is the fitted residual
 \code{sigma_i} vector on the response scale. For Student-t models this is the
 Student-t scale parameter; when \code{nu > 2}, the residual standard deviation is
-\code{sigma * sqrt(nu / (nu - 2))}. For lognormal models this is the fitted
+\code{sigma * sqrt(nu / (nu - 2))}. For skew-normal models this is the response
+standard deviation under the public moment parameterization, not the native
+Azzalini scale \code{omega}. For lognormal models this is the fitted
 standard deviation of \code{log(y)}. For Gamma models this is the fitted
 coefficient of variation. For Tweedie models this is the public scale
 parameter where internal dispersion is \code{phi = sigma^2}. For beta,

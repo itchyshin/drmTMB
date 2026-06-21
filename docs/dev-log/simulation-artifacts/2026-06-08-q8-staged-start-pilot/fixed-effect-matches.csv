@@ -1,0 +1,6 @@
+"dpar","parameter","n_target","n_source","n_matched","matched"
+"mu1","beta_mu1",2,2,2,"(Intercept),x"
+"mu2","beta_mu2",2,2,2,"(Intercept),x"
+"sigma1","beta_sigma1",2,2,2,"(Intercept),x"
+"sigma2","beta_sigma2",2,2,2,"(Intercept),x"
+"rho12","beta_rho12",1,1,1,"(Intercept)"

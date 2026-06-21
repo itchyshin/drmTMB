@@ -8,6 +8,22 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-06-08 - Julia Bridge Route Gate
+
+- Improvement implemented: before widening `engine = "julia"`, Ada and Boole
+  should name the exact model cell, distribution family, formula grammar,
+  default DRM.jl fitting route, R-scale coefficient transforms, and unsupported
+  neighbouring syntax.
+- Improvement implemented: Grace and Fisher should require paired tests before
+  public R admission: a DRM.jl bridge/native comparison and a drmTMB
+  reconstruction/guardrail test. Julia-only experimental routes may remain
+  available in DRM.jl, but the R bridge should expose only parity-tested routes
+  or fail early.
+- Trigger: the Gaussian phylogenetic mean bridge showed that Julia's fastest
+  route is family- and structure-specific. Gaussian phylo can use all-node
+  sparse EM, while non-Gaussian phylo should target sparse Laplace after parity
+  tests rather than inheriting a global EM default.
+
 ## 2026-05-30 - Deprecated Alias Drift Guard
 
 - Improvement implemented: prose review now treats `meta_V(V = V)` as the
@@ -539,3 +555,31 @@ and the literature/methods curator (`literature-curator` in both directories) no
 longer claims the Curie name. The literature-curator role stays nameless because
 the standing-roles table assigns it no canonical name (landscape/source-map
 scouting belongs to Jason).
+
+## 2026-06-07 - CRAN Comments Must Stay Out Of The Tarball
+
+- Improvement implemented: when `cran-comments.md` is created by hand during a
+  CRAN-readiness sprint, add `^cran-comments\.md$` to `.Rbuildignore` before the
+  first source-package check.
+- Improvement implemented: examples for deprecated exported topics should
+  suppress the expected deprecation warning at the example call site, so
+  `R CMD check` examples stay quiet while the reference topic still shows the
+  compatibility syntax.
+- Trigger: the first strict `devtools::check(manual = TRUE, cran = TRUE,
+  remote = TRUE, incoming = TRUE, force_suggests = TRUE, args = c("--timings",
+  "--as-cran"))` run produced a fixable top-level-file NOTE because
+  `cran-comments.md` was included in the built tarball. The same sprint exposed
+  a deprecated `meta_known_V()` example that needed warning suppression.
+
+## 2026-06-09 - Q8 QA Must Be Sample-Size Conditional
+
+- Improvement implemented: q8 status checks should report sample size,
+  replication, optimizer budget, Hessian status, and q8 correlation conditioning
+  before saying whether a route works for inference. Avoid binary wording such
+  as "q8 does not work" when larger sample sizes may move the same model from
+  leading-minor errors or near-singular correlations to usable Hessian
+  diagnostics.
+- Trigger: the 2026-06-09 q8 usability pilot showed that low and baseline q8
+  rows stayed fragile, while the 96 x 12 sample-size row improved q8
+  conditioning and produced `pdHess = TRUE` for cold and SD-staged `se = TRUE`
+  fits, even though optimizer convergence still needed follow-up.

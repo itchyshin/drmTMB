@@ -4674,6 +4674,23 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
 #' @return A data frame with `variable`, `original_row`, `model_row`,
 #'   `observed`, `estimate`, `std_error`, `source`, and `uncertainty_status`.
 #' @export
+#'
+#' @examples
+#' set.seed(20260607)
+#' dat <- data.frame(
+#'   y = rnorm(16),
+#'   x = rnorm(16),
+#'   z = rnorm(16)
+#' )
+#' dat$x[c(4, 11)] <- NA
+#'
+#' fit <- drmTMB(
+#'   bf(y ~ z + mi(x), sigma ~ 1),
+#'   data = dat,
+#'   impute = list(x = x ~ z),
+#'   missing = miss_control(predictor = "model")
+#' )
+#' imputed(fit)
 imputed <- function(object, ...) {
   UseMethod("imputed")
 }
