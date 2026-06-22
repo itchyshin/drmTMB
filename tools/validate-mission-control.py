@@ -35,6 +35,15 @@ RELEASE_READY_PATTERN = re.compile(
     re.I,
 )
 RESERVED_PUBLIC_CONTROL_PATTERN = re.compile(r"\bengine_control\b")
+COVERAGE_NOT_EVALUATED_PATTERN = re.compile(
+    r"\bcoverage(?:_status)?\s*(?:=|is)?\s*not[_ -]evaluated\b",
+    re.I,
+)
+AI_REML_READY_TRUE_PATTERN = re.compile(r"\bai_reml_ready\s*=\s*true\b", re.I)
+PROMOTED_AI_REML_GATE_PATTERN = re.compile(
+    r"\bpromoted[_ -]ai[_ -]reml[_ -]optimizer[_ -]gate\b",
+    re.I,
+)
 
 SLICE_STATUSES = {"queued", "active", "blocked", "verified", "banked", "deferred"}
 PHASE_STATUSES = SLICE_STATUSES
@@ -277,6 +286,10 @@ def main() -> int:
     )
     for row in matrix:
         row_name = row.get("area", "<matrix row>")
+        row_text = " ".join(
+            str(row.get(key, ""))
+            for key in ("area", "next", "evidence", "evidence_url")
+        )
         has_covered = False
         for field in matrix_fields:
             value = row.get(field)
@@ -285,6 +298,13 @@ def main() -> int:
             has_covered = has_covered or value == "covered"
         if has_covered and not (row.get("evidence") or row.get("evidence_url")):
             errors.append(f"{row_name}: covered row lacks evidence")
+        if row.get("simulation") == "covered" and COVERAGE_NOT_EVALUATED_PATTERN.search(row_text):
+            errors.append(f"{row_name}: simulation is covered while coverage is not evaluated")
+        if (
+            AI_REML_READY_TRUE_PATTERN.search(row_text)
+            and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text)
+        ):
+            errors.append(f"{row_name}: ai_reml_ready=true without a promoted optimizer gate")
 
     finish_board = status.get("finish_board", [])
     lanes_seen: set[str] = set()
@@ -396,6 +416,12 @@ def main() -> int:
         for match in RESERVED_PUBLIC_CONTROL_PATTERN.finditer(text):
             line = text_line_number(text, match.start())
             errors.append(f"{rel_path(path)}:{line} exposes reserved engine_control language")
+        for match in AI_REML_READY_TRUE_PATTERN.finditer(text):
+            if not PROMOTED_AI_REML_GATE_PATTERN.search(text):
+                line = text_line_number(text, match.start())
+                errors.append(
+                    f"{rel_path(path)}:{line} claims ai_reml_ready=true without a promoted optimizer gate"
+                )
 
     if errors:
         for error in errors:

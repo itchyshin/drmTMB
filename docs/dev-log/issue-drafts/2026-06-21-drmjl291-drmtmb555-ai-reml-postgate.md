@@ -21,7 +21,10 @@ Banked in a clean DRM.jl worktree
   `ai_reml_ready = false`;
 - validation/status tuple and bridge payload draft with
   `r_bridge_status = planned` and `claim_status = internal_diagnostic`;
-- focused test: 88/88 assertions.
+- machine-readable simulation-status rows with a schema validator, TSV writer,
+  optional medium stress row, optional large-stress skipped row behind a runtime
+  budget guard, and row provenance mapping;
+- focused test: 370/370 assertions.
 
 Claim boundary: this is exact-Gaussian location-only evidence. It does not
 implement or advertise AI-REML, does not promote a drmTMB R bridge field, does

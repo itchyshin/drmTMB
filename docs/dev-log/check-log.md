@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-06-22: AI-REML row-contract hardening and mission-control lints
+
+Goal:
+
+- Package the banked exact-Gaussian location-only DRM.jl diagnostics and
+  drmTMB mission-control sync into focused commits, then harden the row-contract
+  lane with schema-drift tests, malformed-contract writer failure, provenance
+  rows, optional large-stress skip semantics, a comparator scout note, and
+  dashboard drift lints.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-simulation-status.jl --output docs/dev-log/validation-status/2026-06-21-loconly-reml-simulation-status.tsv
+tmp=$(mktemp -d)/loconly-status-medium.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-medium-stress --output "$tmp" && wc -l "$tmp"
+tmp=$(mktemp -d)/loconly-status-large.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-large-stress --output "$tmp" && wc -l "$tmp"
+git diff --check
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-row-contract-hardening.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md tools/validate-mission-control.py
+```
+
+Results:
+
+- DRM.jl commit `dc2ee87` banked the existing location-only Gaussian REML
+  diagnostics. drmTMB commit `8544aff4` banked the mission-control transfer
+  docs. DRM.jl commit `7968a5c` then hardened the row contract.
+- The focused DRM.jl test passed: 370/370 assertions. The default TSV writer
+  produced four rows; optional medium stress produced five rows; optional large
+  stress produced five rows with `large_interior_stress_skipped` because no
+  explicit runtime budget was supplied.
+- `tools/validate-mission-control.py` now blocks a dashboard row from marking
+  simulation `covered` while saying coverage is not evaluated, and blocks exact
+  `ai_reml_ready = true` wording unless a promoted optimizer gate is present.
+- Mission-control JSON parsed and validator output stayed:
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- A fresh recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-06-22-051517-codex-checkpoint.md`.
+
+Boundary:
+
+- The lane remains exact-Gaussian developer evidence only. The row contract has
+  `coverage_status = not_evaluated` and `ai_reml_ready = false`; it does not
+  promote a drmTMB R bridge row, q4, Laplace, non-Gaussian, Ayumi-facing, or
+  10k-scale interval claim.
+
 ## 2026-06-21: AI-REML simulation-status rows
 
 Goal:
