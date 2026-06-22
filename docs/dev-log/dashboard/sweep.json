@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-19 17:12 MDT",
+  "updated": "2026-06-21 21:05 MDT",
   "active_work": [
     {
       "when": "now",
       "who": "Ada",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Direct DRM.jl smoke evidence is banked on DRM.jl main, and the Julia-via-R clean-main bridge audit removed stale local DRM.jl and Julia-home defaults from live bridge tests. `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates."
+      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. HSquared transfer work is partial and exact-Gaussian-only: the clean DRM.jl worktree has a location-only Gaussian supplied-variance REML helper, dense same-estimand comparator, boundary classifier, Takahashi trace and PEV diagnostics plus PEV summaries, AI-vs-observed information diagnostic, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference optimizer experiment with ai_reml_ready=false, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, dense-score and sparse-score optimizer experiments, observed-Hessian status, diagnostic payload, status/schema rows, micro scaling smoke, boundary fixtures, tiny deterministic recovery-grid diagnostics, weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, and a larger interior stress row. Simulation evidence is partial and coverage is not evaluated. No bridge row is promoted, q4/non-Gaussian routes keep observed-information/profile/bootstrap wording, Ayumi remains parked, and 10k sigma-phylo interval claims remain blocked by drmTMB#570, DRM.jl#293, drmTMB#555, and DRM.jl#291."
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
   "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 17:12 MDT",
+  "updated": "2026-06-21 21:05 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -452,10 +452,10 @@
     },
     {
       "name": "DRM.jl",
-      "branch": "main evidence worktree",
+      "branch": "codex/ai-reml-gaussian-mme-pilot",
       "head": "f46035d",
-      "dirty": false,
-      "note": "DRM.jl #295 merged green. Clean evidence worktree at /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main; the user's saved DRM.jl checkout may still be dirty."
+      "dirty": true,
+      "note": "Clean implementation worktree at /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot for exact-Gaussian AI-REML transfer slices; the user's saved DRM.jl checkout on shannon/ayumi-integration remains untouched and may still be dirty."
     },
     {
       "name": "gllvmTMB",
@@ -704,7 +704,7 @@
       "tests": "planned",
       "docs": "planned",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "",
       "blocker": "Owner decides whether to open a DRM.jl issue or maintainer note. Codex does not modify DRM.jl code, and drmTMB makes no binomial Julia-bridge claim.",
@@ -730,7 +730,7 @@
       "tests": "planned",
       "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "https://github.com/itchyshin/gllvmTMB/issues/488",
       "blocker": "Borrow the capability-ledger pattern, not gllvmTMB's broader multivariate model scope.",
@@ -739,28 +739,28 @@
     {
       "id": "HSquared-validation-status-lesson",
       "package": "HSquared / hsquared",
-      "issue": "",
-      "issue_label": "scout note",
+      "issue": "https://github.com/itchyshin/DRM.jl/issues/291",
+      "issue_label": "DRM.jl#291 / drmTMB#555",
       "lane": "Cross-Package Lessons",
-      "status": "planned",
+      "status": "partial",
       "owners": ["Jason", "Fisher", "Grace", "Rose"],
       "family": "validation-status helper and public-claims register",
       "response_encoding": ["Gaussian REML/AI-REML boundary only"],
       "dpars": [],
       "engine_tmb": "unsupported",
-      "engine_julia": "planned",
+      "engine_julia": "partial",
       "point": "planned",
       "wald": "planned",
       "profile": "planned",
       "bootstrap": "planned",
-      "tests": "planned",
-      "docs": "planned",
+      "tests": "partial",
+      "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "",
-      "blocker": "Borrow status discipline; do not transfer AI-REML language to Laplace or non-Gaussian cells.",
-      "last_verified": "2026-06-16"
+      "evidence_url": "docs/design/178-ai-reml-hsquared-transfer-gate.md",
+      "blocker": "Transfer note, clean DRM.jl worktree, location-only Gaussian supplied-variance REML helper, dense same-estimand comparator, boundary classifier, Takahashi trace and PEV diagnostics plus PEV summaries, AI-vs-observed information diagnostic, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference optimizer experiment with ai_reml_ready=false, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, dense-score and sparse-score optimizer experiments, observed-Hessian status, diagnostic payload, status/schema rows, boundary fixtures, tiny deterministic recovery-grid diagnostics, a weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, and a larger interior stress row are banked. This is still an internal exact-Gaussian pilot: no q4, Laplace, non-Gaussian, R bridge, interval coverage, Ayumi-facing, or 10k interval claim is promoted.",
+      "last_verified": "2026-06-21"
     },
     {
       "id": "drmTMB-binomial-evidence-gates",
@@ -972,7 +972,7 @@
       "bootstrap": "planned",
       "docs": "planned",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
       "next": "Use DRM.jl#280-style recovery and bridge labels before user-facing promotion.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
@@ -1024,18 +1024,18 @@
     },
     {
       "area": "AI-REML-inspired algorithms",
-      "engine": "planned",
+      "engine": "partial",
       "bridge": "unsupported",
       "point": "planned",
       "wald": "planned",
       "profile": "planned",
       "bootstrap": "planned",
-      "docs": "planned",
+      "docs": "partial",
       "visual": "unsupported",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
-      "next": "Borrow hsquared only as a design analogue for exact Gaussian MME cells; use the actual method name for Laplace/non-Gaussian cells.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "Exact-Gaussian location-only DRM.jl helper and away-run diagnostics are banked: dense same-estimand comparator, boundary classifier, PEV diagnostics/summaries, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference, dense-score, and sparse-score optimizer experiments with ai_reml_ready=false, observed-Hessian status, diagnostic payload, status/schema rows, micro scaling smoke, tiny deterministic recovery-grid diagnostics, weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, and a larger interior stress row. Simulation evidence is partial and coverage is not evaluated. Still no R bridge, public optimizer, q4/Laplace/non-Gaussian AI-REML, or 10k interval claim.",
+      "evidence_url": "docs/design/178-ai-reml-hsquared-transfer-gate.md"
     },
     {
       "area": "Missing values",
@@ -1102,7 +1102,7 @@
     {
       "when": "now",
       "who": "Ada",
-      "text": "Julia-via-R clean-main bridge audit: direct DRM.jl smoke evidence is banked on DRM.jl main, stale local DRM.jl and Julia-home defaults were removed from live R bridge tests, and `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "HSquared transfer work is banked only for exact Gaussian sparse-MME cells: the clean DRM.jl worktree has an internal location-only Gaussian supplied-variance REML helper, dense same-estimand comparator, boundary classifier, Takahashi trace and PEV diagnostics plus PEV summaries, AI-vs-observed information diagnostic, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference optimizer experiment with ai_reml_ready=false, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, dense-score and sparse-score optimizer experiments, observed-Hessian status, diagnostic payload, status/schema rows, micro scaling smoke, boundary fixtures, tiny deterministic recovery-grid diagnostics, weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, and a larger interior stress row. Simulation evidence is partial and coverage is not evaluated. No bridge row is promoted, q4/non-Gaussian routes keep observed-information/profile/bootstrap wording, Ayumi remains parked, and 10k sigma-phylo interval claims remain blocked by drmTMB#570, DRM.jl#293, drmTMB#555, and DRM.jl#291. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
     },
     {
       "when": "2026-06-19",

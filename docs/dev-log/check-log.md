@@ -2,6 +2,397 @@
 
 Record meaningful development checks here.
 
+## 2026-06-21: AI-REML simulation-status rows
+
+Goal:
+
+- Add a compact machine-readable simulation-status surface for the
+  exact-Gaussian location-only REML guarded update experiment, then sync the
+  drmTMB mission-control evidence without changing bridge, q4, Ayumi, or
+  10k-scale interval claims. The full 20-slice pass adds the row schema,
+  validator, TSV writer, optional medium stress row, broader recovery grid, and
+  weak-signal condition grid.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-simulation-status.jl --output docs/dev-log/validation-status/2026-06-21-loconly-reml-simulation-status.tsv
+tmp=$(mktemp -d)/loconly-status-medium.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-medium-stress --output "$tmp" && wc -l "$tmp"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-simulation-status-rows.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 348/348 assertions. It now
+  covers `_loconly_reml_simulation_status()` with four rows:
+  `stable_recovery`, `condition_grid`, `weak_signal_boundary_probe`, and
+  `larger_interior_stress`, plus the row schema, validator, TSV writer,
+  optional medium stress row, broader recovery-grid helper, and weak-signal
+  condition-grid helper.
+- The default TSV writer produced four rows. The optional medium-stress script
+  path produced five rows in a temporary TSV.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 21:05 MDT`.
+
+Boundary:
+
+- This is exact-Gaussian developer simulation evidence only. The row set has
+  `coverage_status = not_evaluated` and `ai_reml_ready = false`; it does not
+  promote a drmTMB R bridge row, q4, Laplace, non-Gaussian, Ayumi-facing, or
+  10k-scale interval claim.
+
+## 2026-06-21: AI-REML weak-signal boundary recovery probe
+
+Goal:
+
+- Add an explicitly labelled weak-signal point-recovery probe for the
+  exact-Gaussian location-only REML guarded update experiment, where boundary
+  states are allowed diagnostic outcomes.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-weak-signal-boundary-probe.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 277/277 assertions. It now
+  covers a weak-signal recovery probe with `boundary_states_allowed`, boundary
+  count/rate, nested recovery diagnostics, and no universal convergence
+  requirement.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 20:33 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not evaluate
+  coverage, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML recovery-grid diagnostics
+
+Goal:
+
+- Add tiny deterministic point-recovery diagnostics for the exact-Gaussian
+  location-only REML guarded update experiment, including a single-cell recovery
+  grid and a row-separated condition grid.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-recovery-grid-diagnostics.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 267/267 assertions. It now
+  covers a tiny deterministic recovery grid, convergence/bias/RMSE/MCSE fields,
+  boundary counts, an ADEMP-shaped diagnostic payload, and a two-cell
+  row-separated condition grid.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 20:29 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not evaluate
+  coverage, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML guarded update experiment gate
+
+Goal:
+
+- Add and bank a guarded two-parameter average-information update experiment for
+  the exact-Gaussian location-only REML pilot, compared against the
+  finite-difference, dense-score, and sparse-score optimizer diagnostics, while
+  keeping public and q4 claims unchanged.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-guarded-update-experiment.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 229/229 assertions. It now
+  covers a guarded average-information update experiment, descent step-halving,
+  iteration trace records, endpoint agreement with the finite-difference,
+  dense-score, and sparse-score optimizer diagnostics, final comparator and
+  boundary labels, and singular fixed-effect information failure behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:23 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not promote a
+  drmTMB R bridge row, does not alter q4, Laplace, non-Gaussian, Ayumi-facing,
+  or 10k-scale interval claims, and does not touch the parked DRM.jl
+  `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML sparse information diagnostic gate
+
+Goal:
+
+- Add and bank a sparse average-information diagnostic for the exact-Gaussian
+  location-only REML pilot, compared against the dense AI diagnostic and
+  finite-difference observed Hessian, while keeping public and q4 claims
+  unchanged.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-sparse-information-diagnostic.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 205/205 assertions. It now
+  covers a sparse average-information diagnostic, dense-AI parity,
+  finite-difference observed-Hessian comparison, payload inclusion, and
+  singular fixed-effect information failure behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:12 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement a
+  validated variance-component update, does not promote a drmTMB R bridge row,
+  does not alter q4, Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval
+  claims, and does not touch the parked DRM.jl `shannon/ayumi-integration`
+  drafts.
+
+## 2026-06-21: AI-REML sparse-score diagnostic gate
+
+Goal:
+
+- Add and bank a sparse-Woodbury restricted-score diagnostic for the
+  exact-Gaussian location-only REML pilot, compare it with the dense oracle and
+  finite differences, then refresh mission-control evidence without promoting a
+  bridge or q4 claim.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-sparse-score-diagnostic.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 194/194 assertions. It now
+  covers a sparse-Woodbury restricted-score diagnostic, trace/quadratic
+  decomposition fields, sparse-score agreement with the dense score and finite
+  differences, a sparse-score optimizer experiment, payload/schema inclusion,
+  and near-zero/singular boundary behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:06 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement a
+  validated average-information update, does not promote a drmTMB R bridge row,
+  does not alter q4, Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval
+  claims, and does not touch the parked DRM.jl `shannon/ayumi-integration`
+  drafts.
+
+## 2026-06-21: AI-REML dense-score optimizer diagnostic
+
+Goal:
+
+- Add a dense analytic restricted-score diagnostic and dense-score optimizer
+  experiment for the exact-Gaussian location-only REML pilot.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-dense-score-optimizer.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 161/161 assertions in 7.9
+  seconds. It now covers the dense analytic restricted score against finite
+  differences and a dense-score optimizer experiment against the
+  finite-difference optimizer diagnostic.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 15:56 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement
+  AI-REML, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML away-run FD/local-profile stability
+
+Goal:
+
+- Continue the exact-Gaussian diagnostic lane with FD gradient/Hessian stability,
+  local-profile sanity, optimizer accounting, PEV summaries, and dashboard sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-awayrun-fd-profile-stability.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 137/137 assertions in 7.1
+  seconds. It now covers FD gradient/Hessian stability, local-profile sanity,
+  optimizer start accounting, optimizer FD/local-profile subdiagnostics, PEV
+  summaries, payload inclusion, and the existing dense-comparator/boundary
+  checks.
+- Updated the transfer-gate ledger with the away-run 20-slice batch, refreshed
+  the AI-REML-inspired capability matrix row, and served the mission-control
+  dashboard at `updated = "2026-06-21 15:50 MDT"`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement
+  AI-REML, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML next 20 comparator/boundary hardening
+
+Goal:
+
+- Run the next 20 exact-Gaussian hardening slices after the post-gate
+  diagnostics: dense comparator, boundary classifier, optimizer observed-Hessian
+  gates, combined diagnostic payload, PEV shrinkage check, status refresh, and
+  mission-control sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-next20-comparator-boundary.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 122/122 assertions in 7.0
+  seconds. It now covers dense same-estimand REML components, sparse-vs-dense
+  comparator diagnostics, boundary labels, optimizer dense-comparator and
+  observed-Hessian status, diagnostic payload shape, PEV shrinkage, and the
+  previous status/schema fixtures.
+- Updated `docs/design/178-ai-reml-hsquared-transfer-gate.md` with a
+  20-slice completion ledger and refreshed the AI-REML-inspired matrix row.
+- Dashboard validation passed with `25/68 banked_or_verified`, `1 active`,
+  `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and `9 Julia
+  capability rows`. The live dashboard at `http://127.0.0.1:8765/` served
+  `updated = "2026-06-21 15:42 MDT"`.
+
+Boundary:
+
+- This batch remains exact-Gaussian developer evidence only. It does not
+  implement AI-REML, does not promote a drmTMB R bridge row, does not alter q4,
+  Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does
+  not touch the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML post-gate exact-Gaussian diagnostics
+
+Goal:
+
+- Execute the second local HSquared transfer batch after the exact-Gaussian
+  gate: optimizer experiment, same-estimand dense comparator, selected-inverse
+  PEV diagnostic, validation/status row, bridge schema draft, micro scaling
+  smoke, q4 exclusion note, issue-comment draft, and dashboard sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-postgate-slices.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 88/88 assertions in 6.2
+  seconds. It now covers the dense GLS same-estimand oracle, Takahashi trace and
+  PEV diagnostics, AI-vs-observed diagnostic, finite-difference optimizer
+  experiment with `ai_reml_ready = false`, status/schema tuple, boundary
+  fixtures, and a tiny balanced-tree scaling smoke.
+- Added the local issue-comment draft at
+  `docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md`.
+  Nothing was posted to GitHub.
+- Added `docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md` so
+  q4 Patterson-Thompson language cannot drift into HSquared AI-REML wording.
+- Dashboard validation passed with `25/68 banked_or_verified`, `1 active`,
+  `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and `9 Julia
+  capability rows`. The live dashboard at `http://127.0.0.1:8765/` served the
+  updated `2026-06-21 15:34 MDT` status.
+
+Boundary:
+
+- This batch is still exact-Gaussian developer evidence only. It does not
+  implement AI-REML, does not promote a drmTMB R bridge row, does not alter q4,
+  Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does
+  not touch the parked DRM.jl `shannon/ayumi-integration` drafts.
+
 ## 2026-06-21: takeover branch and worktree cleanup
 
 Goal:
@@ -58288,3 +58679,89 @@ Student-t shape models. It does not promote Student-t profile/bootstrap
 coverage, random effects, bivariate responses, structured effects, true
 `nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
 readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-21: AI-REML transfer gate from HSquared
+
+The R-Julia finish matrix now points to a dedicated transfer note at
+`docs/design/178-ai-reml-hsquared-transfer-gate.md`. The note records the
+read-only scout pass over `hsquared` / `HSquared.jl`: the transferable pieces are
+sparse Gaussian MME algebra, Henderson determinant identities, Takahashi
+selected-inverse traces/diagonals, provenance fields, and validation-status
+discipline. The non-transferable piece is the AI-REML label for bivariate q4,
+Laplace, or non-Gaussian distributional routes.
+
+Checks run:
+
+```sh
+sed -n '1,260p' /Users/z3437171/shinichi-brain/AGENTS.md
+sed -n '1,260p' /Users/z3437171/shinichi-brain/memory/00-INDEX.md
+rg -n "drmTMB|DRM\\.jl|HSquared|hsquared|AI-REML|REML|TMB|Julia" /Users/z3437171/shinichi-brain/memory/PROJECTS.md /Users/z3437171/shinichi-brain/memory/LESSONS.md /Users/z3437171/shinichi-brain/memory/DECISIONS.md
+sed -n '1,220p' /Users/z3437171/Dropbox/Github\ Local/DRM.jl/AGENTS.md
+git status --short --branch
+git log --oneline --decorate -5
+git -C /Users/z3437171/Dropbox/Github\ Local/DRM.jl fetch --all --prune
+git -C /Users/z3437171/Dropbox/Github\ Local/DRM.jl worktree add -b codex/ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot origin/main
+git -C /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot status --short --branch
+git -C /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot log --oneline -1
+sed -n '1,220p' /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/HANDOVER.md
+sed -n '1,160p' /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/ROADMAP.md
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/src/location_only.jl | sed -n '1,470p'
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/src/gaussian_structured.jl | sed -n '250,620p'
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_two_structured_gaussian_sparse.jl | sed -n '1,290p'
+```
+
+Result: `drmTMB` was clean on `main` before the branch
+`codex/ai-reml-transfer-slices` was created. The user's DRM.jl checkout is on
+`shannon/ayumi-integration` with parked, uncommitted Ayumi drafts, so this slice
+kept that checkout read-only. A clean implementation worktree was created at
+`/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot` from
+`origin/main` (`f46035d`, PR #295 merge).
+
+The DRM.jl source map picked the first exact-Gaussian pilot: the
+location-only Gaussian phylogenetic mean cell in `src/location_only.jl`, where
+`LocOnlyProblem` already exposes a sparse Woodbury marginal likelihood, profiled
+fixed effects, and exact Takahashi traces. The two-structured Gaussian sparse
+path in `src/gaussian_structured.jl` is a second candidate because
+`test/test_two_structured_gaussian_sparse.jl` already anchors dense-vs-sparse
+log likelihood, point estimates, and dense finite-difference gradients. The
+sigma-phylo location-scale and q4 REML files are exclusion anchors, not pilot
+targets, because their objectives are augmented/location-scale rather than the
+HSquared Gaussian animal-model object.
+
+Follow-up implementation in the clean DRM.jl worktree added the engine slices
+after the map: an internal supplied-variance restricted objective for the
+location-only Gaussian phylogenetic mean cell, a Takahashi trace diagnostic
+reporting `trace_mode = :takahashi_selinv`, an AI-vs-observed information
+diagnostic, and boundary fixtures. The focused DRM.jl test passed:
+
+```sh
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-hsquared-transfer-gate.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0].text, hsquared: (.finish_board[] | select(.id=="HSquared-validation-status-lesson") | {status, engine_julia, docs, evidence_url})}'
+```
+
+Result: 36/36 assertions passed in 5.2 s after the AI-information and boundary
+fixture additions. `git diff --check` passed in both worktrees. The
+claim-boundary scan hit expected
+negative-boundary wording in the new transfer note and historical guardrail
+entries in `docs/dev-log/check-log.md`; no Ayumi reply text was changed.
+Both dashboard JSON files parsed cleanly. Mission-control validation passed
+with `25/68 banked_or_verified`, `1 active`, `17 matrix rows`, `11 finish rows`,
+`15 Julia gate rows`, and `9 Julia capability rows`. The dashboard was already
+listening at `http://127.0.0.1:8765/` and served the updated
+`HSquared-validation-status-lesson` row as `partial` with the transfer note as
+evidence.
+
+Claim boundary: this is a design and validation-gate slice plus an internal
+exact-Gaussian REML helper in a clean DRM.jl worktree. It does not implement an
+average-information optimizer in `drmTMB` or `DRM.jl`, does not promote q4 REML,
+does not claim 10k-scale intervals, and does not reopen the parked Ayumi reply.
