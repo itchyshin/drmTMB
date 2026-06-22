@@ -60944,3 +60944,55 @@ Boundary:
   R-via-Julia parity, q2 native REML, q4 native REML, q4 interval coverage,
   non-Gaussian REML, broad bridge support, public optimizer controls, or any
   Ayumi-facing reply.
+
+## 2026-06-22: Structured RE fixture adapters and pilot accounting
+
+Goal:
+
+- Finish the next five structured RE execution slices: q1 parity fixture,
+  q1 payload/reconstruction hardening, q2 same-target fixture, q4 extractor
+  boundary fixture, and ADEMP pilot adapters.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R \
+  inst/sim/R/sim_structured_re_ademp.R \
+  inst/sim/run/sim_write_structured_re_ademp_scaffold.R \
+  tests/testthat/test-structured-re-bridge-fixtures.R \
+  tests/testthat/test-structured-re-ademp-scaffold.R
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- Added `sim_structured_re_bridge_fixtures.R` with deterministic q1 payload,
+  matrix digest, reconstruction, bridge parity status, q2 same-target, and q4
+  extractor-boundary helpers.
+- Added `test-structured-re-bridge-fixtures.R`: 42 passing assertions. The q1
+  parity fixture banks the known Route A all-node logLik blocker rather than
+  promoting R-via-Julia bridge support.
+- Extended `sim_structured_re_ademp.R` and
+  `sim_write_structured_re_ademp_scaffold.R` so the scaffold writes mock pilot
+  replicate and denominator CSVs. `test-structured-re-ademp-scaffold.R` now has
+  48 passing assertions.
+- `devtools::test(filter = 'structured-re')` passed with 155 assertions, 0
+  failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed and reported 12
+  executable-evidence rows. The executable-evidence TSV now uses
+  `devtools::test(filter = ...)` commands so evidence rows fail hard when a
+  targeted file fails.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-22-structured-re-fixture-adapters.md`.
+
+Boundary:
+
+- This banks deterministic fixture adapters and ADEMP pilot accounting only. It
+  does not bank live native/direct/bridge parity, q2 or q4 bridge support, q4
+  intervals, calibrated coverage, non-Gaussian REML, broad bridge support, or an
+  Ayumi-facing reply.

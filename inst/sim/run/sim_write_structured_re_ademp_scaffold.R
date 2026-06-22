@@ -32,6 +32,7 @@ phase18_write_structured_re_ademp_scaffold <- function(
     planned_n_rep = n_rep
   )
   accounting_template <- phase18_structured_re_ademp_accounting_template()
+  pilot_summary <- phase18_structured_re_ademp_pilot_summary(registry)
 
   utils::write.csv(registry$cells, paths$cells_csv, row.names = FALSE)
   utils::write.csv(registry$seeds, paths$seeds_csv, row.names = FALSE)
@@ -39,6 +40,16 @@ phase18_write_structured_re_ademp_scaffold <- function(
   utils::write.csv(
     accounting_template,
     paths$accounting_template_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    pilot_summary$replicates,
+    paths$pilot_replicates_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    pilot_summary$denominators,
+    paths$pilot_denominators_csv,
     row.names = FALSE
   )
 
@@ -51,6 +62,8 @@ phase18_write_structured_re_ademp_scaffold <- function(
     registry = registry,
     mcse_policy = policy,
     accounting_template = accounting_template,
+    pilot_replicates = pilot_summary$replicates,
+    pilot_denominators = pilot_summary$denominators,
     artifact_manifest = phase18_grid_artifact_manifest(
       "structured_re_ademp_scaffold",
       paths
@@ -69,6 +82,14 @@ phase18_structured_re_ademp_scaffold_paths <- function(table_dir) {
     accounting_template_csv = file.path(
       table_dir,
       "structured-re-ademp-accounting-template.csv"
+    ),
+    pilot_replicates_csv = file.path(
+      table_dir,
+      "structured-re-ademp-pilot-replicates.csv"
+    ),
+    pilot_denominators_csv = file.path(
+      table_dir,
+      "structured-re-ademp-pilot-denominators.csv"
     )
   )
 }

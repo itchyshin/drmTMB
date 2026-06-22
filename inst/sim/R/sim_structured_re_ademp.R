@@ -155,6 +155,96 @@ phase18_structured_re_ademp_accounting_template <- function() {
   )
 }
 
+phase18_structured_re_ademp_mock_replicates <- function(
+  registry,
+  fit_status = "not_run",
+  interval_status = "not_evaluated"
+) {
+  if (!is.list(registry) || !all(c("cells", "seeds") %in% names(registry))) {
+    stop("`registry` must contain `cells` and `seeds`.", call. = FALSE)
+  }
+  cells <- registry$cells
+  seeds <- registry$seeds
+  if (!is.data.frame(cells) || nrow(cells) == 0L) {
+    stop("`registry$cells` must be a non-empty data frame.", call. = FALSE)
+  }
+  if (!is.data.frame(seeds) || nrow(seeds) == 0L) {
+    stop("`registry$seeds` must be a non-empty data frame.", call. = FALSE)
+  }
+  missing_cells <- setdiff(
+    c("cell_id", "dimension", "structured_type"),
+    names(cells)
+  )
+  if (length(missing_cells) > 0L) {
+    stop(
+      "`registry$cells` is missing ",
+      paste(missing_cells, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  missing_seeds <- setdiff(c("cell_id", "replicate"), names(seeds))
+  if (length(missing_seeds) > 0L) {
+    stop(
+      "`registry$seeds` is missing ",
+      paste(missing_seeds, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  phase18_structured_re_ademp_validate_statuses(
+    fit_status,
+    c("ok", "error", "nonconverged", "boundary", "not_run"),
+    "fit_status"
+  )
+  phase18_structured_re_ademp_validate_statuses(
+    interval_status,
+    c("finite", "unavailable", "nonfinite", "not_evaluated", "not_applicable"),
+    "interval_status"
+  )
+
+  cell_index <- match(seeds$cell_id, cells$cell_id)
+  if (anyNA(cell_index)) {
+    stop("`registry$seeds$cell_id` must match `registry$cells$cell_id`.")
+  }
+  n <- nrow(seeds)
+  data.frame(
+    cell_id = seeds$cell_id,
+    replicate = seeds$replicate,
+    dimension = cells$dimension[cell_index],
+    structured_type = cells$structured_type[cell_index],
+    fit_status = rep(fit_status, length.out = n),
+    interval_status = rep(interval_status, length.out = n),
+    covered = rep(NA, n),
+    estimate = rep(NA_real_, n),
+    truth = rep(NA_real_, n),
+    elapsed = rep(NA_real_, n),
+    artifact_grain = "replicate",
+    stringsAsFactors = FALSE
+  )
+}
+
+phase18_structured_re_ademp_pilot_summary <- function(
+  registry,
+  replicates = NULL,
+  by = c("cell_id", "dimension")
+) {
+  if (is.null(replicates)) {
+    replicates <- phase18_structured_re_ademp_mock_replicates(registry)
+  }
+  denominators <- phase18_structured_re_ademp_denominators(
+    replicates = replicates,
+    by = by
+  )
+
+  list(
+    replicates = replicates,
+    denominators = denominators,
+    claim_boundary = "pilot adapter only; no coverage claim"
+  )
+}
+
 phase18_structured_re_ademp_denominators <- function(
   replicates,
   by = c("cell_id", "dimension")

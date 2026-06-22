@@ -126,6 +126,35 @@ test_that("structured RE ADEMP denominators retain failures and unavailable inte
   )
 })
 
+test_that("structured RE ADEMP pilot adapters keep not-run rows in denominators", {
+  source_structured_re_ademp_scaffold()
+
+  registry <- phase18_structured_re_ademp_registry(
+    n_rep = 2L,
+    master_seed = 20260622L,
+    dimensions = c("q1", "q4"),
+    structured_type = "phylo",
+    matrix_condition = "well_conditioned",
+    signal_strength = "weak",
+    boundary_proximity = "interior"
+  )
+  pilot <- phase18_structured_re_ademp_pilot_summary(registry)
+
+  expect_equal(nrow(pilot$replicates), 4L)
+  expect_equal(pilot$replicates$fit_status, rep("not_run", 4L))
+  expect_equal(
+    pilot$replicates$interval_status,
+    rep("not_evaluated", 4L)
+  )
+  expect_equal(pilot$replicates$artifact_grain, rep("replicate", 4L))
+  expect_equal(nrow(pilot$denominators), 2L)
+  expect_equal(pilot$denominators$n_total, c(2L, 2L))
+  expect_equal(pilot$denominators$n_fit_ok, c(0L, 0L))
+  expect_equal(pilot$denominators$n_failed_fit, c(2L, 2L))
+  expect_equal(pilot$denominators$n_interval_unavailable, c(2L, 2L))
+  expect_match(pilot$claim_boundary, "no coverage claim", fixed = TRUE)
+})
+
 test_that("structured RE ADEMP scaffold writer stages resumable artifacts", {
   source_structured_re_ademp_scaffold()
 
@@ -150,6 +179,10 @@ test_that("structured RE ADEMP scaffold writer stages resumable artifacts", {
   expect_equal(nrow(utils::read.csv(out$paths$cells_csv)), 1L)
   expect_equal(nrow(utils::read.csv(out$paths$seeds_csv)), 2L)
   expect_equal(nrow(utils::read.csv(out$paths$mcse_policy_csv)), 1L)
+  expect_equal(nrow(utils::read.csv(out$paths$pilot_replicates_csv)), 2L)
+  expect_equal(nrow(utils::read.csv(out$paths$pilot_denominators_csv)), 1L)
+  expect_equal(nrow(out$pilot_replicates), 2L)
+  expect_equal(out$pilot_denominators$n_total, 2L)
   expect_equal(nrow(out$artifact_manifest), length(out$paths))
   expect_true(all(out$artifact_manifest$exists))
   expect_error(
