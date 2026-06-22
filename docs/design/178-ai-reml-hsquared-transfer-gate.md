@@ -137,8 +137,9 @@ boundary fixtures, dense restricted-score diagnostic, sparse-Woodbury
 restricted-score diagnostic, sparse average-information diagnostic, and
 matching developer optimizer diagnostics, including a guarded
 average-information update experiment, tiny recovery-grid diagnostics, a
-weak-signal boundary probe, machine-readable simulation-status rows, and a
-larger interior stress row are now implemented internally for the
+weak-signal boundary probe, machine-readable simulation-status rows, a larger
+interior stress row, and a no-dependency planned external-comparator status
+row are now implemented internally for the
 location-only Gaussian phylogenetic mean cell on
 `codex/ai-reml-gaussian-mme-pilot`. The focused dense-oracle test is
 `DRM.jl/test/test_location_only_reml_mme.jl`.
@@ -285,8 +286,9 @@ claim-bounded implementation or evidence tasks:
    worktree; it records `ai_reml_ready = false`.
 2. Add a same-estimand external Gaussian comparator check for the location-only
    phylogenetic mean cell. Status: partial; the focused test has an independent
-   dense GLS same-estimand oracle, but no external package dependency has been
-   added.
+   dense GLS same-estimand oracle, and a row-shaped
+   `external_comparator_status = planned` gate now rejects non-target rows, but
+   no external package dependency or optional comparator script has been added.
 3. Add a selected-inverse diagonal/PEV diagnostic fixture before any uncertainty
    extractor is considered. Status: done with a Takahashi selected-inverse
    posterior-variance diagnostic checked against a dense inverse.

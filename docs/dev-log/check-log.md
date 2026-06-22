@@ -2,6 +2,45 @@
 
 Record meaningful development checks here.
 
+## 2026-06-22: AI-REML comparator gate mission-control sync
+
+Goal:
+
+- Mirror the DRM.jl no-dependency external-comparator gate into drmTMB
+  mission control after the comparator status became row-shaped, while keeping
+  bridge, q4, non-Gaussian, coverage, public optimizer, Ayumi-facing, and
+  10k-scale interval claims unchanged.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-comparator-gate-sync.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/dev-log/dashboard/status.json
+```
+
+Results:
+
+- DRM.jl PR #297 now includes commit `ed30a46`, which adds
+  `_loconly_reml_external_comparator_status()` with
+  `external_comparator_status = planned`, target validation, and no external
+  dependency.
+- The drmTMB transfer ledger, dashboard active row, and local issue draft now
+  mention the planned comparator gate while keeping simulation partial and
+  bridge unsupported.
+- Mission-control validation remained:
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+
+Boundary:
+
+- The current covered comparator is still the internal dense GLS same-estimand
+  oracle. No external package dependency, optional comparator script, R bridge
+  row, q4 evidence, interval coverage, public optimizer, Ayumi-facing, or
+  10k-scale interval claim was added.
+
 ## 2026-06-22: AI-REML row-contract hardening and mission-control lints
 
 Goal:

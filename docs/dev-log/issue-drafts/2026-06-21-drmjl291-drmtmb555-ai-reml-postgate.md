@@ -24,7 +24,10 @@ Banked in a clean DRM.jl worktree
 - machine-readable simulation-status rows with a schema validator, TSV writer,
   optional medium stress row, optional large-stress skipped row behind a runtime
   budget guard, and row provenance mapping;
-- focused test: 370/370 assertions.
+- no-dependency external-comparator gate with
+  `external_comparator_status = planned`, target validation, and the internal
+  dense GLS oracle retained as the only covered same-estimand gate;
+- focused test: 386/386 assertions.
 
 Claim boundary: this is exact-Gaussian location-only evidence. It does not
 implement or advertise AI-REML, does not promote a drmTMB R bridge field, does
