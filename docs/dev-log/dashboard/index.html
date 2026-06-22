@@ -371,7 +371,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r12";
+const BUILD = "r13";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -635,7 +635,8 @@ function renderStructuredContracts(sidecars) {
     ["Type gaps", sidecars.typeGaps || [], ["gap_id", "structured_type", "missing_cell", "status"]],
     ["R docs/API", sidecars.rDocsApiSync || [], ["sync_id", "surface", "missing_or_deferred", "status"]],
     ["Julia twin", sidecars.juliaTwinSync || [], ["sync_id", "repo", "head", "bridge_impact"]],
-    ["Closeout", sidecars.closeoutPackage || [], ["closeout_id", "item", "claim_boundary", "status"]]
+    ["Closeout", sidecars.closeoutPackage || [], ["closeout_id", "item", "claim_boundary", "status"]],
+    ["Executable evidence", sidecars.executableEvidence || [], ["evidence_id", "scope", "evidence_class", "status"]]
   ];
   const body = groups.map(([label, rows, fields]) =>
     `<article class="finish-section">
@@ -783,7 +784,8 @@ async function tick() {
       typeGaps: parseTsv(await readText("structured-re-type-gaps.tsv")),
       rDocsApiSync: parseTsv(await readText("structured-re-r-docs-api-sync.tsv")),
       juliaTwinSync: parseTsv(await readText("structured-re-julia-twin-sync.tsv")),
-      closeoutPackage: parseTsv(await readText("structured-re-closeout-package.tsv"))
+      closeoutPackage: parseTsv(await readText("structured-re-closeout-package.tsv")),
+      executableEvidence: parseTsv(await readText("structured-re-executable-evidence.tsv"))
     };
     render(mergeStatus(base, overlay), gates, capabilities, sidecars);
   } catch (err) {

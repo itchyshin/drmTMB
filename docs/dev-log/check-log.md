@@ -60882,3 +60882,65 @@ Boundary:
   executable R-via-Julia parity, q2 native REML, q4 native REML, q4 intervals,
   calibrated coverage, broad bridge support, public optimizer controls, an
   Ayumi reply, or a commit.
+
+## 2026-06-22: Structured RE executable contract guards and ADEMP scaffold
+
+Goal:
+
+- Turn the banked q1/q2/q4 structured random-effect contracts into executable
+  guards and add an ADEMP scaffold that stages cells, seeds, MCSE policy, and
+  failed-fit/interval denominator accounting without promoting bridge support
+  or coverage.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_ademp.R \
+  inst/sim/run/sim_write_structured_re_ademp_scaffold.R \
+  tests/testthat/test-structured-re-conversion-contracts.R \
+  tests/testthat/test-structured-re-ademp-scaffold.R
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); res <- testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R'); stopifnot(all(vapply(res, function(x) is.null(x[['failure']]) && is.null(x[['error']]), logical(1))))"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); res <- testthat::test_file('tests/testthat/test-structured-re-ademp-scaffold.R'); stopifnot(all(vapply(res, function(x) is.null(x[['failure']]) && is.null(x[['error']]), logical(1))))"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 \
+  sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-q1-bridge-payload-contract.tsv >/dev/null
+```
+
+Result:
+
+- Added `tests/testthat/test-structured-re-conversion-contracts.R`: 65
+  passing assertions guard the q1 bridge payload/reconstruction/parity
+  contracts, q2 target/bridge/REML separation, q4 smoke/extractor/interval
+  boundaries, and ADEMP design denominator/MCSE wording.
+- Added `inst/sim/R/sim_structured_re_ademp.R`,
+  `inst/sim/run/sim_write_structured_re_ademp_scaffold.R`, and
+  `tests/testthat/test-structured-re-ademp-scaffold.R`: 34 passing assertions
+  cover q1/q2/q4 condition registry rows, reproducible Phase 18 seed tables,
+  the 0.95 coverage MCSE target of 475 required replicates with a 500-replicate
+  default, failed-fit and unavailable-interval denominator accounting, and a
+  resumable scaffold writer.
+- `devtools::test(filter = 'structured-re')` passed with 99 assertions, 0
+  failures, 0 warnings, and 0 skips.
+- Added `structured-re-executable-evidence.tsv`; the validator now checks its
+  schema, evidence paths, statuses, claim classes, non-empty commands, and
+  AI-REML overclaim guard. The dashboard widget build is `r13` and renders the
+  executable-evidence group.
+- `tools/validate-mission-control.py` passed and reported 6
+  executable-evidence rows. `git diff --check` was clean. The local dashboard
+  served `status.json`, `structured-re-executable-evidence.tsv`, and
+  `structured-re-q1-bridge-payload-contract.tsv`.
+
+Boundary:
+
+- This banks executable guards and runner scaffolds only. It does not bank
+  R-via-Julia parity, q2 native REML, q4 native REML, q4 interval coverage,
+  non-Gaussian REML, broad bridge support, public optimizer controls, or any
+  Ayumi-facing reply.

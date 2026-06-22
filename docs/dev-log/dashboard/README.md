@@ -218,6 +218,12 @@ the next 200 execution slices needed to move scoped `partial` or `planned`
 structured random-effect rows toward `covered` matrix status or `banked`
 slice-ledger status.
 
+`structured-re-executable-evidence.tsv` records the first executable guards
+added after the conversion ledger: q1/q2/q4 contract tests and the ADEMP
+scaffold tests. These rows bank testable boundaries and runner/accounting
+scaffolds only. They do not promote bridge support, native q2/q4 REML, q4
+interval coverage, non-Gaussian REML, or any Ayumi-facing reply text.
+
 `structured-re-status-vocabulary.tsv` defines the row-level meaning of
 `covered`, `partial`, `planned`, `banked`, `blocked`, `experimental`, and
 `unsupported` for this structured random-effect arc. It keeps `covered` scoped

@@ -66,6 +66,7 @@ STRUCTURED_RE_TYPE_GAPS = DASHBOARD / "structured-re-type-gaps.tsv"
 STRUCTURED_RE_R_DOCS_API_SYNC = DASHBOARD / "structured-re-r-docs-api-sync.tsv"
 STRUCTURED_RE_JULIA_TWIN_SYNC = DASHBOARD / "structured-re-julia-twin-sync.tsv"
 STRUCTURED_RE_CLOSEOUT_PACKAGE = DASHBOARD / "structured-re-closeout-package.tsv"
+STRUCTURED_RE_EXECUTABLE_EVIDENCE = DASHBOARD / "structured-re-executable-evidence.tsv"
 CLAIM_MATRIX_REF = "docs/design/168-r-julia-finish-capability-matrix.md"
 PUBLIC_CLAIM_REFERENCE_FILES = (
     ROOT / "README.md",
@@ -759,6 +760,18 @@ STRUCTURED_RE_CLOSEOUT_PACKAGE_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_EXECUTABLE_EVIDENCE_FIELDS = (
+    "evidence_id",
+    "scope",
+    "artifact",
+    "claim_status",
+    "evidence_class",
+    "evidence_path",
+    "test_command",
+    "status",
+    "claim_boundary",
+    "next_gate",
+)
 HUNDRED_SLICE_WAVES = (
     "Truth freeze",
     "DRM exact Gaussian",
@@ -1283,6 +1296,7 @@ def main() -> int:
     structured_re_r_docs_api_sync_rows = read_tsv(STRUCTURED_RE_R_DOCS_API_SYNC)
     structured_re_julia_twin_sync_rows = read_tsv(STRUCTURED_RE_JULIA_TWIN_SYNC)
     structured_re_closeout_package_rows = read_tsv(STRUCTURED_RE_CLOSEOUT_PACKAGE)
+    structured_re_executable_evidence_rows = read_tsv(STRUCTURED_RE_EXECUTABLE_EVIDENCE)
     documenter_paths = local_documenter_claim_paths()
 
     version = (DASHBOARD / "version.txt").read_text(encoding="utf-8").strip()
@@ -3206,6 +3220,27 @@ def main() -> int:
         if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
             errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
 
+    for row in structured_re_executable_evidence_rows:
+        row_id = row.get("evidence_id", "<structured executable evidence>")
+        if set(row.keys()) != set(STRUCTURED_RE_EXECUTABLE_EVIDENCE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-executable-evidence.tsv fields do not match the contract"
+            )
+        if row.get("status") not in SLICE_STATUSES | MATRIX_STATUSES:
+            errors.append(f"{row_id}: invalid status {row.get('status')!r}")
+        if row.get("claim_status") not in {"executable_guard", "executable_scaffold"}:
+            errors.append(f"{row_id}: invalid claim_status {row.get('claim_status')!r}")
+        if not evidence_reference_exists(row.get("evidence_path", "")):
+            errors.append(f"{row_id}: evidence_path does not resolve")
+        for field in ("scope", "artifact", "evidence_class", "test_command", "claim_boundary", "next_gate"):
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        row_text = " ".join(
+            str(row.get(field, "")) for field in STRUCTURED_RE_EXECUTABLE_EVIDENCE_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
+
     if len(member_wave_assignment_rows) != len(STRUCTURED_RE_CONVERSION_WAVES):
         errors.append(
             f"member-wave-assignments.tsv has {len(member_wave_assignment_rows)} rows; "
@@ -3423,6 +3458,7 @@ def main() -> int:
         f", {len(structured_re_r_docs_api_sync_rows)} R docs/API sync rows"
         f", {len(structured_re_julia_twin_sync_rows)} Julia twin-sync rows"
         f", {len(structured_re_closeout_package_rows)} closeout-package rows"
+        f", {len(structured_re_executable_evidence_rows)} executable-evidence rows"
     )
     return 0
 
