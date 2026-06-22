@@ -1,8 +1,13 @@
 # Ayumi Phylo Balance Reply Draft
 
-Status: local draft only. The external GitHub issue was not readable from this
-session, so refresh the issue thread before posting. Do not post this text until
-the maintainer approves the exact final comment.
+Status: local draft only. The external GitHub issue URL was not readable from
+this session, but a pasted issue snapshot was supplied on 2026-06-22. Refresh
+the live issue thread before posting. Do not post this text until the
+maintainer approves the exact final comment.
+
+Bayesian comparison status: Ayumi's Bayesian results are not in the pasted
+snapshot yet. Do not compare against, interpret, or anticipate those results in
+the issue reply.
 
 ## Draft
 
@@ -50,10 +55,15 @@ I would currently recommend reporting Model A+ as the primary analysis, and
 treating the scale-side and q4 fits as sensitivity/diagnostic routes until the
 remaining inference gates are banked.
 
+I would hold any comparison with the Bayesian analysis until those results are
+available, then compare the routes target by target rather than treating the
+Bayesian fit as already adjudicated.
+
 ## Pre-Post Checklist
 
-- Refresh the live issue and adjust the opening if Ayumi has added new
-  context.
+- Refresh the live issue and adjust the opening if Ayumi has added new context
+  beyond the pasted 2026-06-22 snapshot.
+- Do not comment on Bayesian results until Ayumi has actually shared them.
 - Re-run the forbidden-claim scan on the exact final comment.
 - Do not add claims about native q4 REML, non-Gaussian REML, HSquared AI-REML,
   R bridge support, public optimizer controls, or 10,440-tip intervals.

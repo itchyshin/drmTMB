@@ -13,6 +13,12 @@ Added a local, non-posted reply draft at
 The draft answers the balance question by route: native TMB ML, native TMB
 REML, direct DRM.jl, R-via-Julia, Model A+, and q4 inference.
 
+The draft was updated after a pasted GitHub issue snapshot was supplied. Direct
+issue URL access was still not reliable from this session, but the pasted text
+confirms Ayumi's boundary/convergence question and that her Bayesian results
+are not in yet. The reply must not compare against Bayesian results until she
+has shared them.
+
 Added `docs/design/206-ayumi-follow-on-implementation-slices.md`, a 100-slice
 implementation plan for the remaining work: native REML derivation/prototype,
 native ML inference hardening, direct DRM.jl parity, R-via-Julia bridge
@@ -32,4 +38,5 @@ The positive-claim scan is clean.
 
 No issue comment was posted. A099 should remain blocked until the maintainer
 approves the exact final issue comment and the live issue thread has been
-refreshed.
+refreshed. If the live thread remains inaccessible, use the pasted snapshot as
+context but still ask for a fresh issue-thread check before posting.

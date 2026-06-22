@@ -60388,7 +60388,14 @@ The next 100 implementation slices are
 `docs/design/206-ayumi-follow-on-implementation-slices.md`. The broad scan hits
 only negative guardrail wording; the positive-claim scan is clean.
 
+Update: a pasted snapshot of `Ayumi-495/LS_ecogeographical-rules#2` was
+supplied after the draft was committed. Direct URL access was still unreliable
+from this session, but the pasted text is enough to confirm the issue context
+and that Ayumi's Bayesian results are not in yet. The draft now carries that
+guard explicitly.
+
 Boundary:
 
 - No issue comment was posted. A099 remains blocked until the exact final issue
-  comment is approved and the live issue thread has been refreshed.
+  comment is approved and the live issue thread has been refreshed. Do not
+  compare against Bayesian results until Ayumi has shared them.
