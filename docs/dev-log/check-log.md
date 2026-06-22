@@ -60366,3 +60366,29 @@ Boundary:
   guarded closeout are done. It does not mean an Ayumi reply has been drafted or
   posted, and it does not convert direct DRM.jl q4/profile/bootstrap evidence
   into R bridge support or interval-coverage evidence.
+
+## 2026-06-22: Ayumi reply draft and follow-on implementation plan
+
+Goal:
+
+- Open the post-research Ayumi arc by drafting a local, non-posted reply and
+  defining the next implementation slices for remaining native REML, inference,
+  bridge, data, docs, and public-reply gaps.
+
+Checks run:
+
+```sh
+rg -n "balanced native REML|native balanced REML|q4 AI-REML|AI-REML solves|AI-REML validates|HSquared proves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|non-Gaussian REML|engine_control|public optimizer|R bridge support|native q4 REML" docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md || true
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)" docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md || true
+```
+
+Result: the local reply draft is
+`docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md`.
+The next 100 implementation slices are
+`docs/design/206-ayumi-follow-on-implementation-slices.md`. The broad scan hits
+only negative guardrail wording; the positive-claim scan is clean.
+
+Boundary:
+
+- No issue comment was posted. A099 remains blocked until the exact final issue
+  comment is approved and the live issue thread has been refreshed.
