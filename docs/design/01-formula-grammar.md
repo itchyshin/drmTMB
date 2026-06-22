@@ -769,11 +769,15 @@ sigma ~ relmat(1 | id, Q = Q)
 
 Matching intercept-only structured terms in `mu` and `sigma` fit two latent
 fields on the same structured precision and estimate one latent structured
-`mu`-`sigma` correlation. Residual-scale structured slopes, interaction
-slopes, structured `rho12` effects, and bivariate structured effects beyond
-the fitted q=2 location paths and the fitted phylo/spatial/animal/`relmat()`
-constant q=4 blocks remain planned until the fitted paths have simulation and
-comparator coverage. The near-term ceiling remains two `mu` slopes.
+`mu`-`sigma` correlation under native ML. Native `REML = TRUE` is currently
+exact-Gaussian and mean-side-only for phylogenetic structured effects; it
+rejects scale-side, matched `mu`/`sigma`, q2, and q4 phylogenetic REML layouts
+until a separate restricted-likelihood design is validated. Residual-scale
+structured slopes, interaction slopes, structured `rho12` effects, and
+bivariate structured effects beyond the fitted q=2 location paths and the
+fitted phylo/spatial/animal/`relmat()` constant q=4 blocks remain planned until
+the fitted paths have simulation and comparator coverage. The near-term ceiling
+remains two `mu` slopes.
 Intercept-slope `corpair()` rows stay distant-future; a later
 coefficient-aware design can target a bivariate slope1-slope2
 plasticity-syndrome correlation for the same covariate across responses.
@@ -1005,6 +1009,14 @@ Not every parameter should accept random effects at the same development stage.
   `Q` for relatedness and precision inputs; keep `V` for known sampling covariance in
   the preferred `meta_V(V = V)` design. `gr()` is deprecated legacy syntax
   and should not be taught as a second public low-level path.
+- For phylogenetic structured effects, native ML and native REML have different
+  support surfaces. Native ML fits univariate Gaussian `mu`, `sigma`, and
+  matched `mu+sigma` intercept cells and diagnostic bivariate q4
+  location-scale cells. Native `REML = TRUE` is exact-Gaussian and
+  mean-side-only in current drmTMB: scale-side, matched `mu+sigma`, q2, and q4
+  phylogenetic REML requests should reject early rather than fitting a hidden
+  fallback. Direct DRM.jl q4 REML/profile/bootstrap rows are not R formula
+  grammar support until the R bridge has row-specific parity evidence.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use

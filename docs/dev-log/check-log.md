@@ -58901,3 +58901,1468 @@ It does not add an external comparator dependency, promote an R bridge, promote
 a public optimizer, evaluate interval coverage, promote q4/Laplace/non-Gaussian
 AI-REML, reopen Ayumi-facing text, or change the 10k sigma-phylo interval
 blockers.
+
+## 2026-06-22: 100-slice R/Julia finish-run truth freeze
+
+The requested next 100 R/Julia/bridge slices now have a mission-control ledger:
+`docs/dev-log/dashboard/finish-100-slices.tsv`. The ledger has exactly 100 rows.
+Rows 1-10 bank the truth-freeze wave; rows 11-100 remain queued until
+implementation, tests, docs, issue evidence, and dashboard state catch up.
+
+`docs/design/180-r-julia-100-slice-finish-run.md` records the run contract,
+wave order, bridge dependency graph, claim guards, and first-wave scope. The
+mission-control validator now checks the 100-slice ledger schema, sequence,
+wave membership, dependencies, bridge statuses, and evidence for banked rows.
+The dashboard serve script copies the ledger into `/tmp/drm-dashboard`.
+
+Checks run:
+
+```sh
+git status --short --branch
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+python3 - <<'PY'
+import csv
+from pathlib import Path
+rows = list(csv.DictReader(Path("docs/dev-log/dashboard/finish-100-slices.tsv").open(), delimiter="\t"))
+print(len(rows), rows[0]["slice_id"], rows[-1]["slice_id"])
+PY
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true|engine_control" docs/design/168-r-julia-finish-capability-matrix.md docs/design/180-r-julia-100-slice-finish-run.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/dashboard/finish-100-slices.tsv tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/finish-100-slices.tsv | awk 'NR==1 || NR==2 || NR==101 {print}'
+```
+
+Result: both dashboard JSON files parsed cleanly; the 100-slice ledger parsed as
+100 rows from `S001` to `S100`; mission-control validation passed; `git diff
+--check` passed; and the live dashboard served the new ledger. The claim-boundary
+scan hit only guardrail text, quoted forbidden phrases, or the scan command.
+
+Claim boundary: this is a queue and validation slice. It does not implement
+slices 11-100, does not promote bridge support, does not add a public optimizer,
+does not claim interval coverage, and does not reopen Ayumi-facing text.
+
+## 2026-06-22: S011 DRM.jl exact-Gaussian comparator version probe
+
+DRM.jl slice S011 now banks a no-dependency external-comparator version-probe
+contract for the exact-Gaussian location-only phylogenetic REML diagnostic lane.
+The DRM.jl status object records an unselected phylolm-style candidate, the
+`loconly-gaussian-phylo-reml-v1` fixture id and version, the required
+same-estimand evidence gates, and `version_probe_status = defined_not_run`.
+
+Mission-control row S011 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. Its bridge
+status remains `unsupported`; S012 is the optional developer comparator runner.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-comparator-version-probe.md docs/dev-log/after-task/2026-06-22-loconly-reml-comparator-version-probe.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 429/429 assertions. The
+DRM.jl and drmTMB `git diff --check` runs were clean. The claim-boundary scan
+hit only the quoted scan command in the new DRM.jl evidence files. Both
+dashboard JSON files parsed cleanly, and the mission-control validator passed.
+
+Claim boundary: S011 is direct Julia developer diagnostic evidence for the
+exact-Gaussian location-only REML target only. It does not select or add an
+external dependency, run an external comparator, promote the R bridge, promote a
+public optimizer, evaluate interval coverage, touch q4, touch non-Gaussian or
+Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S012 DRM.jl external comparator probe script
+
+DRM.jl slice S012 now banks the optional developer package/version probe script
+for the exact-Gaussian location-only REML external-comparator lane. The script
+writes `docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv`.
+In this developer environment it recorded local `phylolm` version 2.6.5 while
+keeping `fit_status = not_run`, `same_estimand_status =
+requires_fixture_reproduction`, `dependency_status = not_added`,
+`coverage_status = not_evaluated`, and `ai_reml_ready = false`.
+
+Mission-control row S012 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S013 is
+retargeted to the same-estimand external fixture fit check.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-external-comparator-probe.jl --output docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl tools/loconly-reml-external-comparator-probe.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-external-comparator-probe-script.md docs/dev-log/after-task/2026-06-22-loconly-reml-external-comparator-probe-script.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md docs/dev-log/validation-status/README.md docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 459/459 assertions. The
+probe script wrote one row and recorded local `phylolm` version 2.6.5. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S012 ledger update.
+
+Claim boundary: S012 records optional package availability/version only. It
+does not add an external dependency, run the external comparator, compare
+same-estimand estimates, promote the R bridge, promote a public optimizer,
+evaluate interval coverage, touch q4, touch non-Gaussian or Laplace routes, or
+reopen Ayumi-facing text.
+
+## 2026-06-22: S013 DRM.jl external fit feasibility block
+
+DRM.jl slice S013 now banks a fit-feasibility row for the exact-Gaussian
+location-only REML external-comparator lane. Local `phylolm` 2.6.5 is present,
+but the current `loconly-gaussian-phylo-reml-v1` fixture has 12 observations
+for 6 species, two observations per species, and within-species covariate
+variation. Because `phylolm` is a tip-level phylogenetic linear model, running
+it on this fixture would not be a same-estimand comparator. The row therefore
+records `fit_status = not_run`, `same_estimand_status =
+not_same_estimand_current_fixture`, and blocker
+`repeated_observation_fixture_not_tip_level`.
+
+Mission-control row S013 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S014
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl tools/loconly-reml-external-comparator-probe.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-external-fit-feasibility.md docs/dev-log/after-task/2026-06-22-loconly-reml-external-fit-feasibility.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 483/483 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S013 ledger update.
+
+Claim boundary: S013 is negative same-estimand evidence. It does not add an
+external dependency, run `phylolm`, compare external estimates, promote the R
+bridge, promote a public optimizer, evaluate interval coverage, touch q4, touch
+non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S014 DRM.jl derivative finite-difference status
+
+DRM.jl slice S014 now banks row-shaped derivative finite-difference status for
+the exact-Gaussian location-only REML fixture. The status rows rebuild
+`loconly-gaussian-phylo-reml-v1` and record dense score versus finite
+difference, plus sparse Woodbury score versus finite difference and dense
+score. The focused test pins both rows and rejects a row whose FD discrepancy
+exceeds tolerance.
+
+Mission-control row S014 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S015
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-derivative-fd-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-derivative-fd-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 506/506 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S014 ledger update.
+
+Claim boundary: S014 is fixture-level score derivative evidence. It does not
+add or promote an optimizer, promote the R bridge, evaluate interval coverage,
+touch q4, touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S015 DRM.jl guarded line-search status
+
+DRM.jl slice S015 now banks row-shaped guarded line-search status for the
+exact-Gaussian location-only REML optimizer experiment. The status row rebuilds
+the `loconly-gaussian-phylo-reml-v1` fixture, runs the guarded sparse
+average-information update from two starts, records the accepted line-search
+state, and preserves the readiness reason that no simulation, bridge, or
+coverage gate is implemented.
+
+Mission-control row S015 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S016
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-line-search-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-line-search-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 531/531 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S015 ledger update.
+
+Claim boundary: S015 is an optimizer-experiment diagnostic. It does not promote
+a public optimizer, promote the R bridge, evaluate interval coverage, touch q4,
+touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S016 DRM.jl near-zero variance boundary grid
+
+DRM.jl slice S016 now banks a row-shaped near-zero variance boundary grid for
+the exact-Gaussian location-only REML diagnostic lane. The status wraps the
+weak-signal condition grid into rows for `low_phylo_signal` and
+`near_zero_phylo_signal`, records convergence and boundary rates, and keeps
+boundary states as expected diagnostic outcomes rather than failures or interval
+coverage.
+
+Mission-control row S016 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S017
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-boundary-grid-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-boundary-grid-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 550/550 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S016 ledger update.
+
+Claim boundary: S016 is boundary-behavior simulation-diagnostic evidence. It
+does not evaluate coverage, promote a public optimizer, promote the R bridge,
+touch q4, touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S017 DRM.jl local profile-axis sanity status
+
+DRM.jl slice S017 now banks a row-shaped local profile-axis sanity diagnostic
+for the exact-Gaussian location-only REML fixture. The status rebuilds
+`loconly-gaussian-phylo-reml-v1`, runs the guarded sparse
+average-information update from two starts, and records finite one-step
+profile-axis checks on the residual and phylogenetic log-standard-deviation
+axes. The rows keep profile diagnostics separate from interval coverage.
+
+Mission-control row S017 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S018
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-profile-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-profile-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 572/572 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S017 ledger update.
+
+Claim boundary: S017 is a profile-axis sanity diagnostic. It does not evaluate
+interval coverage, promote profile-likelihood intervals, promote a public
+optimizer, promote the R bridge, touch q4, touch non-Gaussian or Laplace
+routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S018 DRM.jl variance-component point-status rows
+
+DRM.jl slice S018 now banks row-shaped variance-component point-status output
+for the exact-Gaussian location-only REML fixture. The status rebuilds
+`loconly-gaussian-phylo-reml-v1`, runs the guarded sparse
+average-information update from two starts, and records residual and
+phylogenetic variance-component rows with log-standard-deviation,
+standard-deviation, variance, point-status, interval-status, boundary-status,
+and coverage-status fields.
+
+Mission-control row S018 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S019
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-variance-component-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-variance-component-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 600/600 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S018 ledger update.
+
+Claim boundary: S018 is a variance-component point-status diagnostic. It does
+not evaluate interval coverage, promote intervals, promote a public optimizer,
+promote the R bridge, touch q4, touch non-Gaussian or Laplace routes, or reopen
+Ayumi-facing text.
+
+## 2026-06-22: S019 DRM.jl exact-Gaussian structured source map
+
+DRM.jl slice S019 now banks the second exact-Gaussian sparse source-map
+candidate for later row-contract transfer. The new scout note maps
+`loconly_gaussian_phylo_reml` in `src/location_only.jl` as the current
+row-contract donor and `two_structured_gaussian_sparse` in
+`src/gaussian_structured.jl` as the next candidate because it already uses a
+sparse augmented Gaussian route, Woodbury identities, and Takahashi selected
+inverse entries.
+
+Mission-control row S019 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S020
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_two_structured_gaussian_sparse.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/dev-log/scout/2026-06-22-exact-gaussian-structured-source-map.md docs/dev-log/validation-status/README.md docs/dev-log/check-log.d/2026-06-22-exact-gaussian-structured-source-map.md docs/dev-log/after-task/2026-06-22-exact-gaussian-structured-source-map.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused two-structured sparse Gaussian test passed locally with
+46/46 assertions. The DRM.jl `git diff --check` run was clean, and its
+claim-boundary scan hit only the quoted scan command in the new evidence files.
+Mission-control validation and `git diff --check` passed after the S019 ledger
+update.
+
+Claim boundary: S019 is a source-map slice. It does not relabel the
+two-structured Gaussian ML route as REML/AI-REML, promote q4, promote the R
+bridge, evaluate interval coverage, touch non-Gaussian or Laplace routes, or
+reopen Ayumi-facing text.
+
+## 2026-06-22: S020 DRM.jl Documenter exact-Gaussian diagnostics page
+
+DRM.jl slice S020 now banks a Documenter-facing exact-Gaussian diagnostics
+page under `docs/src/diagnostics-and-validation/exact-gaussian-diagnostics.md`.
+The page records the location-only REML row-contract donor, the
+two-structured Gaussian sparse candidate, evidence gates, and claim boundaries.
+`docs/make.jl` now includes the page under Diagnostics & Validation, and the
+developer source map no longer lists `location_only.jl` as an unwired example.
+
+Mission-control row S020 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S021
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+cd docs
+julia --project=. --startup-file=no - <<'JL'
+using Documenter
+using DocumenterVitepress
+using DRM
+makedocs(...)
+JL
+cd ..
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/make.jl docs/src/diagnostics-and-validation/exact-gaussian-diagnostics.md docs/src/developer-notes/source-map.md docs/dev-log/check-log.d/2026-06-22-exact-gaussian-diagnostics-documenter.md docs/dev-log/after-task/2026-06-22-exact-gaussian-diagnostics-documenter.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the docs environment was instantiated after developing the local
+checkout into the ignored docs manifest. The no-deploy `makedocs` build
+completed and Vitepress rendered successfully. Existing warnings remained:
+absolute links in `index.md`, unlisted docstrings, missing optional
+logo/favicon assets, chunk-size warning, and npm audit noise. The DRM.jl
+`git diff --check` run was clean, and its claim-boundary scan hit only the
+quoted scan command in the new evidence files. Mission-control validation and
+`git diff --check` passed after the S020 ledger update.
+
+Claim boundary: S020 is a Documenter diagnostic page. It does not promote
+AI-REML readiness, q4, the R bridge, interval coverage, non-Gaussian or Laplace
+routes, or Ayumi-facing text.
+
+## 2026-06-22: S021 R-side q4 target and estimator inventory
+
+drmTMB slice S021 now banks a guarded R-side q4 target and estimator inventory.
+The new `docs/dev-log/dashboard/q4-target-inventory.tsv` separates native TMB
+ML q4 evidence, unsupported native TMB q4 REML, experimental Julia bridge q4
+REML, profile-target extraction from the Julia phylocov block, and native TMB
+bootstrap smoke or negative evidence. The paired design note is
+`docs/design/181-q4-target-estimator-inventory.md`.
+
+Mission-control row S021 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the local after-task report. S022 remains
+queued for balanced `phylo()` support across location and scale axes.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/dev-log/dashboard/q4-target-inventory.tsv docs/design/181-q4-target-estimator-inventory.md docs/dev-log/dashboard/README.md tools/validate-mission-control.py tools/start-mission-control.sh docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-q4-target-estimator-inventory.md
+```
+
+Result: mission-control validation passed with 6 q4 target rows. JSON parsing
+and `git diff --check` were clean. The claim-boundary scan hit only negative
+boundary wording and the quoted scan command in the new evidence files.
+
+Claim boundary: S021 is an inventory slice. It does not add q4 support, relax a
+Julia bridge gate, promote q4 AI-REML, claim interval coverage, make the 30-tip
+bootstrap smoke a calibrated interval result, make the 100-tip native bootstrap
+negative result a fallback, or change Ayumi-facing text.
+
+## 2026-06-22: S022 univariate phylo balance inventory
+
+drmTMB slice S022 now banks a guarded location/scale `phylo()` balance
+inventory. The new `docs/dev-log/dashboard/phylo-balance-inventory.tsv`
+separates native TMB ML, native TMB REML, and experimental R-to-Julia bridge
+rows for univariate mean-only, residual-scale-only, matched mean-scale, and
+bivariate q4 phylogenetic Gaussian combinations. The paired design note is
+`docs/design/182-univariate-phylo-balance-inventory.md`.
+
+Mission-control row S022 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the local after-task report. S023 remains
+queued for focused tests of currently supported combinations.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(62022); tree <- ape::rcoal(8); tree$tip.label <- paste0("sp", seq_len(8)); species <- rep(tree$tip.label, each = 5); x <- stats::rnorm(length(species)); y <- stats::rnorm(length(species), 0.2 + 0.3 * x, exp(-0.6)); dat <- data.frame(y = y, x = x, species = factor(species, levels = tree$tip.label)); fit <- drmTMB::drmTMB(drmTMB::bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)), family = stats::gaussian(), data = dat, control = drmTMB::drm_control(se = FALSE, optimizer = list(eval.max = 300, iter.max = 300))); cat("convergence=", fit$opt$convergence, "\n", sep = ""); cat("sdpars_sigma=", paste(names(fit$sdpars$sigma), collapse = ";"), "\n", sep = "")'
+```
+
+Result: the local sigma-only native ML smoke returned `convergence=0` and
+`sdpars_sigma=phylo(1 | species)`. Validator, JSON, focused-test, whitespace,
+and claim-boundary checks are recorded in the after-task report after the final
+S022 validation pass.
+
+Claim boundary: S022 is an inventory slice. It does not change model code,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S023 supported phylo combo tests
+
+drmTMB slice S023 now banks a focused native TMB ML test for the univariate
+Gaussian `sigma`-only phylogenetic row:
+
+```r
+bf(
+  y ~ x,
+  sigma ~ phylo(1 | species, tree = tree)
+)
+```
+
+The test in `tests/testthat/test-phylo-gaussian.R` checks convergence, the
+internal structured dpar contract, `sdpars$sigma`, absence of a latent
+correlation row, conditional `sigma` prediction, and the direct
+`sd:sigma:phylo(1 | species)` profile target. The
+`phylo-balance-inventory.tsv` row `uni_sigma_phylo_native_ml` is now `covered`
+for fit and test status. Mission-control row S023 is now `banked`; S024 remains
+queued for unsupported-neighbour errors.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 9 phylo balance rows, and `git diff --check` was clean.
+
+Claim boundary: S023 adds focused test coverage only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S024 unsupported phylo neighbour errors
+
+drmTMB slice S024 now pins the unsupported native TMB REML neighbour for the
+univariate Gaussian `sigma`-only phylogenetic row:
+
+```r
+bf(
+  y ~ x,
+  sigma ~ phylo(1 | species, tree = tree)
+)
+```
+
+The focused test in `tests/testthat/test-reml-phylo-location.R` expects the
+same early scale-side structured-effect error used by the matched `mu + sigma`
+REML rejection. The balance inventory now includes
+`uni_sigma_phylo_native_reml` as an explicit unsupported row, next to the
+covered native ML row.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "reml-phylo-location", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `reml-phylo-location` tests passed, mission-control validation
+passed with 10 phylo balance rows, and `git diff --check` was clean.
+
+Claim boundary: S024 adds a guard test only. It does not change ML support,
+REML support, bridge support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S025 scale-side phylo diagnostic grid
+
+drmTMB slice S025 now banks a small scale-side phylogenetic diagnostic grid.
+`tests/testthat/test-scale-phylo-identifiability.R` now forces a narrow
+log-sigma clamp on a scale-side phylo fit and checks that `check_drm()` reports
+both `logsigma_clamp_active = warning` and
+`scale_phylo_identifiability = note`. The new
+`docs/dev-log/dashboard/scale-phylo-diagnostics.tsv` records four guarded
+diagnostic rows, and the mission-control validator checks the table schema,
+expected statuses, evidence paths, and AI-REML readiness guard.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "scale-phylo-identifiability", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `scale-phylo-identifiability` tests passed, mission-control
+validation passed with 4 scale phylo diagnostic rows, and `git diff --check`
+was clean.
+
+Claim boundary: S025 adds diagnostics only. It does not change model behavior,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S026 phylo profile/logLik status parity
+
+drmTMB slice S026 now banks a guarded phylogenetic profile/log-likelihood
+status table. The sigma-only native ML phylo test now checks finite
+`logLik(fit)`, a direct `sd:sigma:phylo(1 | species)` profile target,
+`profile_ready = TRUE`, and `profile_note = "ready"`. The new
+`docs/dev-log/dashboard/phylo-profile-loglik-status.tsv` keeps direct-ready SD
+targets separate from derived q4 correlations and keeps interval status
+`not_evaluated` unless evidence proves otherwise.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 6 phylo profile/logLik rows, and `git diff --check` was clean.
+
+Claim boundary: S026 adds status parity only. It does not change model behavior,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S027 bootstrap refit accounting
+
+drmTMB slice S027 now banks
+`docs/dev-log/dashboard/bootstrap-refit-accounting.tsv`, a guarded table for
+requested, successful, and failed bootstrap refits. It separates public direct
+target diagnostics, scalar phylogenetic SDs, structured location-scale targets,
+native q4 30-tip plumbing success, native q4 100-tip careful/robust negative
+evidence, and Julia q4 bridge plumbing evidence. The table records
+failure-reason visibility and keeps interval claim status at
+`not_calibrated_coverage`, `plumbing_only`, or `unavailable`.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 7 bootstrap accounting rows, and
+`git diff --check` was clean.
+
+Claim boundary: S027 adds accounting only. It does not run new bootstrap jobs,
+change bootstrap algorithms, claim interval coverage, promote native q4
+uncertainty, change bridge support, use non-Gaussian REML wording, change
+HSquared AI-REML status, or draft Ayumi-facing text.
+
+## 2026-06-22: S028 phylo q2/q4 target map
+
+drmTMB slice S028 now banks
+`docs/dev-log/dashboard/phylo-q2-q4-target-map.tsv`, a guarded map linking q2
+and q4 phylogenetic target evidence without collapsing their statuses. The map
+separates native TMB q2 location ML, q2 corpair regression, unsupported native
+q2 REML, native TMB full q4 ML, native TMB block-diagonal q2-plus-q2 ML,
+unsupported native q4 REML, and experimental Julia q4 REML bridge rows.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 7 q2/q4 target-map rows, and
+`git diff --check` was clean.
+
+Claim boundary: S028 adds target mapping only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S029 phylo extractor status fields
+
+drmTMB slice S029 now pins q2 and q4 extractor status fields in
+`tests/testthat/test-phylo-gaussian.R` and banks
+`docs/dev-log/dashboard/phylo-extractor-status.tsv`. The table records
+`corpairs()` point-only status, q2 profile newdata requirements, q4 derived
+interval unavailability, q4 summary covariance status, profile-target
+readiness, and block-diagonal q2-plus-q2 point-only status.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 7 phylo extractor-status rows, and `git diff --check` was clean.
+
+Claim boundary: S029 adds extractor-status assertions and a status table only.
+It does not change model behavior, formula grammar, REML support, bridge
+support, q4 support, interval coverage, non-Gaussian REML wording, HSquared
+AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S030 native phylo dashboard sync
+
+drmTMB slice S030 refreshed the live mission-control dashboard after the native
+R Gaussian phylo wave. The start script validated and served the dashboard, and
+HTTP readback confirmed the new q2/q4 target map, extractor-status table, and
+bootstrap accounting rows were reachable from `http://127.0.0.1:8765/`.
+
+Checks run:
+
+```sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/finish-100-slices.tsv | awk 'NR==1 || NR==29 || NR==30 || NR==31 {print}'
+curl -fsS http://127.0.0.1:8765/phylo-q2-q4-target-map.tsv | awk 'NR==1 || NR==5 {print}'
+curl -fsS http://127.0.0.1:8765/phylo-extractor-status.tsv | awk 'NR==1 || NR==5 {print}'
+curl -fsS http://127.0.0.1:8765/bootstrap-refit-accounting.tsv | awk 'NR==1 || NR==6 {print}'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the dashboard was already listening at
+`http://127.0.0.1:8765/`; served readback showed S028 and S029 banked, S030
+queued before this ledger update, the native full q4 target-map row, the q4
+derived extractor-status row, and the 100-tip native q4 bootstrap negative
+accounting row. A second readback after the ledger update showed S030 banked
+and S031 queued.
+
+Claim boundary: S030 is a dashboard sync only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S031 bridge payload schema
+
+drmTMB slice S031 now banks
+`docs/dev-log/dashboard/bridge-payload-schema.tsv`, a row-specific bridge
+payload schema table. The table names required payload fields for default
+Gaussian location-scale fits, Gaussian response masks, location-only
+exact-Gaussian REML diagnostics, univariate sigma-phylo REML, bivariate q4
+phylo REML, large-p phylogenetic count models, general covariance structured
+models, cross-family latent-rho models, and intentional-error payloads.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 9 bridge payload-schema rows,
+and `git diff --check` was clean.
+
+Claim boundary: S031 defines schema only. It does not relax bridge gates,
+change model behavior, formula grammar, REML support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, public
+`engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S032 bridge provenance fields
+
+drmTMB slice S032 now banks
+`docs/dev-log/dashboard/bridge-provenance-fields.tsv`, a provenance table for
+bridge payloads. The table names required fields for requested versus effective
+estimator, target identity, data rows, formula grammar, matrix payloads,
+runtime versions and dirty flags, inference status, R reconstruction maps, and
+unsupported-payload guards.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 9 bridge provenance rows, and
+`git diff --check` was clean.
+
+Claim boundary: S032 defines provenance only. It does not serialize a payload,
+relax bridge gates, change model behavior, formula grammar, REML support, q4
+support, interval coverage, non-Gaussian REML wording, HSquared AI-REML status,
+public `engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S033 location-only bridge draft row
+
+drmTMB slice S033 now banks
+`docs/dev-log/dashboard/loconly-bridge-draft.tsv`, a single gated draft row for
+the exact-Gaussian location-only phylogenetic REML diagnostic. The row keeps
+direct DRM.jl diagnostic evidence separate from native R, R-via-Julia, parity,
+and bridge status, which all remain planned.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 1 location-only bridge draft
+row, and `git diff --check` was clean.
+
+Claim boundary: S033 adds a draft row only. It does not serialize a payload,
+relax bridge gates, change model behavior, formula grammar, REML support, q4
+support, interval coverage, non-Gaussian REML wording, HSquared AI-REML status,
+public `engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S034 bridge payload serialization
+
+drmTMB slice S034 now adds a focused base-R TSV serialization test for the
+exact-Gaussian location-only bridge draft row. The test round-trips the schema
+tuple and verifies that a missing `effective_estimator` field is detected. The
+new `docs/dev-log/dashboard/bridge-serialization-status.tsv` records TSV as
+covered and JSON as planned.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "bridge-payload-serialization", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused serialization tests passed, mission-control validation passed
+with 2 bridge serialization rows, and `git diff --check` was clean.
+
+Claim boundary: S034 adds internal serialization stability only. It does not
+define a public payload format, introduce a JSON dependency, relax bridge
+gates, change model behavior, formula grammar, REML support, q4 support,
+interval coverage, non-Gaussian REML wording, HSquared AI-REML status, public
+`engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S035 bridge reconstruction status
+
+drmTMB slice S035 now adds internal `drm_julia_reconstruction_status()` in
+`R/julia-bridge.R`. The helper returns a diagnostic-only one-row status object
+for `drmTMB_julia` fits and records requested/effective estimator, payload,
+coefficient, covariance, profile-target, corpair, bridge, and inference
+promotion statuses. The new
+`docs/dev-log/dashboard/bridge-reconstruction-status.tsv` records the covered
+synthetic Gaussian status row and the planned location-only reconstruction row.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-inference", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-inference` tests passed, mission-control validation
+passed with 2 bridge reconstruction rows, and `git diff --check` was clean.
+
+Claim boundary: S035 adds an internal reconstruction-status helper only. It
+does not add R-via-Julia fitting, relax bridge gates, change model behavior,
+formula grammar, REML support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, public `engine_control` status, or
+Ayumi-facing text.
+
+## 2026-06-22: S036 Julia-home CI smoke
+
+drmTMB slice S036 now adds focused test coverage for the R-side Julia home
+helper contract used by live Julia bridge tests. The tests cover
+`DRM_JL_JULIA_HOME` precedence, `JULIA_HOME` fallback, explicit child setup,
+and caller-scoped restoration. The new
+`docs/dev-log/dashboard/julia-home-smoke.tsv` records this as environment
+smoke evidence only.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-home-path", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-home-path` tests passed, mission-control validation
+passed with 4 Julia-home smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S036 tests environment helper behavior only. It does not add
+R-via-Julia fitting, relax bridge gates, change model behavior, formula
+grammar, REML support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, public `engine_control` status, or
+Ayumi-facing text.
+
+## 2026-06-22: S037 bridge route rejection messages
+
+drmTMB slice S037 now makes intentional R-to-Julia bridge rejection messages a
+tested contract. `expect_julia_gate()` still checks that each gate errors before
+Julia setup, and now also checks that the message carries route-specific
+guidance. The new `docs/dev-log/dashboard/bridge-rejection-messages.tsv`
+mirrors the intentional-gate registry and is validated by mission control.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-gate-vs-engine` tests passed, mission-control
+validation passed with 15 bridge rejection-message rows, and `git diff --check`
+was clean.
+
+Claim boundary: S037 keeps every covered row at `intentional_error`. It does
+not add R-via-Julia fitting, relax bridge gates, change formula grammar, change
+REML support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S038 capability comparison regeneration
+
+drmTMB slice S038 now records regeneration evidence for the generated Julia
+bridge capability and gate artifacts. The writer scripts regenerated 9
+capability rows and 15 intentional-gate rows to both dashboard and
+`inst/extdata/` outputs, with no content diff in those generated TSVs.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-capability-comparison.R
+Rscript tools/write-julia-gate-registry.R
+git diff -- docs/dev-log/dashboard/julia-capabilities.tsv inst/extdata/julia-capabilities.tsv docs/dev-log/dashboard/julia-gates.tsv inst/extdata/julia-gates.tsv
+Rscript -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: artifact-matching `julia-gate-vs-engine` tests passed, generated
+capability/gate TSVs had no content diff after regeneration, mission-control
+validation passed with 2 capability regeneration rows, and `git diff --check`
+was clean.
+
+Claim boundary: S038 records artifact regeneration only. It does not add
+R-via-Julia fitting, relax bridge gates, change formula grammar, change REML
+support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S039 row-specific parity smoke
+
+drmTMB slice S039 now records same-target native TMB versus R-to-Julia bridge
+parity smoke evidence in
+`docs/dev-log/dashboard/bridge-parity-smoke-status.tsv`. Route C
+(`gaussian()` location-scale with `sigma ~ x`) and Route B (bivariate Gaussian
+residual `rho12`) passed their existing parity assertions. Route A
+(`gaussian()` phylo-mean with `sigma ~ 1`) remains explicitly skipped because
+of the known all-node log-likelihood bug.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH="/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot" \
+DRM_JL_JULIA_HOME="/Users/z3437171/.juliaup/bin" \
+JULIA_HOME="/Users/z3437171/.juliaup/bin" \
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity", reporter = "summary")'
+
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: Route C and Route B parity assertions passed, Route A remained skipped
+with its known all-node log-likelihood reason, mission-control validation
+passed with 3 bridge parity-smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S039 records row-specific parity smoke only. It does not add
+R-via-Julia fitting beyond existing tested routes, relax bridge gates, change
+formula grammar, change REML support, add q4 interval coverage, claim
+non-Gaussian REML, expose public `engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S040 bridge dashboard sync
+
+drmTMB slice S040 now banks the bridge-wave dashboard refresh after S031-S039.
+The served `/tmp/drm-dashboard` copy was refreshed and read back for
+`finish-100-slices.tsv`, `bridge-parity-smoke-status.tsv`,
+`capability-regeneration-status.tsv`, and `bridge-rejection-messages.tsv`.
+
+Checks run:
+
+```sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/finish-100-slices.tsv
+curl -fsS http://127.0.0.1:8765/bridge-parity-smoke-status.tsv
+curl -fsS http://127.0.0.1:8765/capability-regeneration-status.tsv
+curl -fsS http://127.0.0.1:8765/bridge-rejection-messages.tsv
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: served readback confirmed the bridge-wave dashboard rows and then
+confirmed S036-S040 banked with S041 queued; mission-control validation passed
+with 3 bridge parity-smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S040 refreshes mission-control state only. It does not add
+R-via-Julia fitting, relax bridge gates, change formula grammar, change REML
+support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S041 binomial bridge map
+
+drmTMB slice S041 now records
+`docs/dev-log/dashboard/binomial-bridge-map.tsv`, separating native TMB
+fixed-effect `stats::binomial(link = "logit")` evidence, native unsupported
+neighbours, intentional non-phylo Julia bridge rejection, experimental
+Binomial phylo bridge status, and direct DRM.jl alignment.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "binomial-response|julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `binomial-response` and `julia-gate-vs-engine` tests passed,
+mission-control validation passed with 6 binomial bridge-map rows, and
+`git diff --check` was clean.
+
+Claim boundary: S041 is a scope map only. It does not add R-via-Julia binomial
+fitting, relax bridge gates, add binomial random effects, change formula
+grammar, claim non-Gaussian REML, expose public `engine_control`, or touch
+Ayumi-facing text.
+
+## 2026-06-22: S042 binomial docs polish
+
+drmTMB slice S042 now tightens README and NEWS binomial wording. The public
+text names native TMB fixed-effect `stats::binomial(link = "logit")` support,
+the two supported response encodings, the `beta_binomial()` path for
+extra-binomial variation through `sigma`, and unsupported binomial neighbours
+including non-phylogenetic `engine = "julia"` fits.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control/public-claim validation passed, dashboard JSON parsed,
+and `git diff --check` was clean.
+
+Claim boundary: S042 changes prose only. It does not add R-via-Julia binomial
+fitting, relax bridge gates, add binomial random effects, change formula
+grammar, claim non-Gaussian REML, expose public `engine_control`, or touch
+Ayumi-facing text.
+
+## 2026-06-22: S043 binomial profile row
+
+drmTMB slice S043 now records target-scoped profile feasibility for fixed-effect
+binomial rows in `docs/dev-log/dashboard/binomial-profile-status.tsv`.
+`profile_targets()` exposes direct fixed-effect `mu` targets, the default
+`confint(method = "profile")` call still requires explicit `parm` names, and an
+explicit low-budget `fixef:mu:x` profile returns structured
+`profile_failed`/`nonfinite_interval` status.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "binomial-response", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `binomial-response` tests passed, dashboard JSON parsed,
+mission-control validation passed with 3 binomial profile-status rows, and
+`git diff --check` was clean.
+
+Claim boundary: S043 records target visibility and failure-status evidence
+only. It does not promote binomial profile intervals, evaluate coverage, add
+random effects, relax Julia bridge gates, claim non-Gaussian REML, expose
+public `engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: Ayumi phylo-balance research plan
+
+Goal:
+
+- Research the parked Ayumi phylo-balance concern and write a balance-first
+  100-slice plan for the next Ayumi-facing arc, without drafting or posting a
+  reply.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: dashboard JSON parsed, mission-control validation passed, and
+`git diff --check` was clean.
+
+Boundary:
+
+- The direct Ayumi issue URL was inaccessible from this session, so
+  `docs/design/197-ayumi-phylo-balance-research-100-slices.md` records that
+  limitation and uses local evidence plus internal issue trackers. No Ayumi
+  reply or issue comment was drafted or posted.
+
+## 2026-06-22: Ayumi phylo-balance execution ledger A001-A020
+
+Goal:
+
+- Start implementing the Ayumi phylo-balance 100-slice plan by banking the
+  rehydration and semantics waves as validator-owned mission-control state.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: dashboard JSON parsed, mission-control validation passed with 100
+Ayumi balance-slice rows, 8 Ayumi balance vocabulary rows, and 6 Ayumi balance
+tracker rows, and `git diff --check` was clean.
+
+Boundary:
+
+- A001-A020 record issue access, tracker status, forbidden wording, route
+  vocabulary, and reply gates. They do not add model capability, do not draft
+  or post a new Ayumi reply, and do not promote native REML, q4 REML,
+  R-to-Julia bridge support, or interval coverage.
+
+## 2026-06-22: Ayumi native ML balance targets A021-A025
+
+Goal:
+
+- Bank the first native ML Ayumi balance rows by tying univariate `phylo()`
+  support to explicit direct profile-target rows and early mismatch errors.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+air format tests/testthat/test-phylo-gaussian.R
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed before and after formatting.
+A021-A025 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A021-A025 prove native TMB ML fit/target status and malformed matched-term
+  errors only. They do not run bootstrap, evaluate coverage, promote native
+  REML, relax bridge gates, claim q4 REML, or draft an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML bootstrap accounting A026
+
+Goal:
+
+- Add a tiny native ML bootstrap plumbing smoke for univariate phylo targets
+  that records refit counts and per-refit diagnostics without making a coverage
+  claim.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phylo-gaussian.R
+git diff --check
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed. A026 is banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A026 is bootstrap plumbing/accounting evidence only: two-refit smokes for
+  native ML mean-side and scale-side univariate phylo targets. It does not
+  evaluate coverage, promote matched-cell bootstrap stability, claim
+  Ayumi-scale runtime, relax REML boundaries, or draft an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML recovery smokes A027-A028
+
+Goal:
+
+- Add broad known-truth recovery smokes for native ML sigma-only and matched
+  mean-plus-scale univariate phylogenetic Gaussian cells.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phylo-gaussian.R
+git diff --check
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed. A027-A028 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A027-A028 are broad single-replicate recovery smokes only. They do not
+  provide MCSE, coverage, bias/RMSE grids, Ayumi-data recovery, beak rescue,
+  native REML support, q4 REML support, or an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML diagnostic summary A029-A030
+
+Goal:
+
+- Bank scale-side diagnostic readback and a concise native ML balance summary
+  for the Ayumi arc.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "scale-phylo-identifiability", reporter = "summary")'
+```
+
+Result: focused `scale-phylo-identifiability` tests passed. A029-A030 are
+banked in `docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, and the
+native ML summary is in `docs/design/198-ayumi-native-ml-balance-summary.md`.
+
+Boundary:
+
+- A029-A030 summarize native ML balance only. They do not solve native
+  scale-side REML, matched native REML, q4 REML, Julia speed, beak rescue,
+  Ayumi-scale runtime, interval coverage, or public reply wording.
+
+## 2026-06-22: Ayumi native REML asymmetry A031-A040
+
+Goal:
+
+- Bank the native REML wave by separating exact-Gaussian mean-side phylo REML
+  evidence from unsupported scale-side, matched `mu`/`sigma`, q2, and q4
+  native REML cells.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "reml-phylo-location", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "reml-bivariate", reporter = "summary")'
+rg -n "balanced native REML|native balanced REML|balanced.*REML|scale-side.*REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|native.*q4.*REML|non-Gaussian REML|engine_control" README.md ROADMAP.md NEWS.md docs vignettes R tests
+git diff -U0 -- docs/design/199-native-reml-phylo-asymmetry-gap.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv | rg -n "balanced native REML|native balanced REML|balanced.*REML|scale-side.*REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|native.*q4.*REML|non-Gaussian REML|engine_control" || true
+```
+
+Result: focused REML tests passed. A031-A040 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, with the derivation
+gap and deferred estimator contract recorded in
+`docs/design/199-native-reml-phylo-asymmetry-gap.md`.
+
+Boundary:
+
+- A031-A040 do not implement balanced native REML. They preserve the
+  exact-Gaussian mean-side-only native REML boundary, keep scale-side and
+  matched phylo REML unsupported, keep q2/q4 native REML unsupported, and do
+  not promote the Julia bridge, interval coverage, or Ayumi-facing reply text.
+
+## 2026-06-22: Ayumi Julia bridge readiness A041-A050
+
+Goal:
+
+- Bank the Julia bridge wave while keeping native R/TMB, direct DRM.jl, and
+  R-via-Julia evidence separate for mean-only, sigma-side, and matched
+  phylogenetic Gaussian REML rows.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-sigma-phylo-reml", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+DRM_JL_PHYLO_PATH='/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot' /usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-sigma-phylo-reml", reporter = "summary")'
+/Users/z3437171/.juliaup/bin/julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot -e 'using DRM; st = DRM._loconly_reml_simulation_status(); println(st)'
+air format R/julia-bridge.R tests/testthat/test-julia-sigma-phylo-reml.R
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-inference", reporter = "summary")'
+```
+
+Result: pure R bridge gates passed; gate-vs-engine tests passed; the live
+matched sigma-phylo REML bridge smoke passed when pointed at the active DRM.jl
+worktree; the direct loc-only helper reported diagnostic rows with
+`ai_reml_ready = false`. A041-A050 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A041-A050 do not promote the bridge. Mean-only phylo REML remains native
+  R/TMB only, sigma-side and matched sigma-phylo REML bridge cells remain
+  experimental, and no public optimizer, q4 native REML, interval coverage,
+  non-Gaussian REML, or Ayumi reply claim was added.
+
+## 2026-06-22: Ayumi bivariate q4 truth A051-A060
+
+Goal:
+
+- Bank the bivariate q4 wave while separating native ML point/status evidence
+  from native q4 REML, interval coverage, q2-plus-q2, and Julia bridge claims.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused phylogenetic Gaussian tests passed. A051-A060 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, and the q4 target
+inventory now includes the 250-tip profile-budget status row.
+
+Boundary:
+
+- A051-A060 do not implement native q4 REML, promote q4 bridge support, turn
+  q2-plus-q2 into full q4, make derived q4 correlations interval-ready, claim
+  bootstrap/profile coverage, claim HSquared AI-REML, or claim 10,440-tip
+  sigma-phylo intervals.
+
+## 2026-06-22: Ayumi data readiness A061-A070
+
+Goal:
+
+- Bank the Ayumi-data wave from current local availability and persisted
+  artifacts without launching expensive raw-bundle reruns.
+
+Checks run:
+
+```sh
+ls -la /tmp/ayumi-ls-ecogeo/for_test 2>/dev/null || true
+find . -path ./.git -prune -o \( -iname '*.rds' -o -iname '*birds*tarsus*' -o -iname '*ayumi*q4*' \) -print
+/usr/local/bin/Rscript --vanilla -e 'for (p in c("inst/sim/run/ayumi_model_a_plus_evidence.R", "tools/ayumi-q4-status-harness.R", "tools/ayumi-convergence-stress.R", "tools/ayumi-mass-beak-pv2-rerun.R")) { parse(p); cat("parse ok:", p, "\n") }'
+/usr/local/bin/Rscript --vanilla -e 'files <- c("docs/dev-log/ayumi-convergence/slices-1189-1208/mass-beak-current/fits.rds", "docs/dev-log/ayumi-convergence/slices-391-402/mass-beak-pv2-q4-main/fits.rds"); for (p in files) { x <- readRDS(p); cat("rds ok:", p, "class=", paste(class(x), collapse = "/"), "\n") }'
+```
+
+Result: the raw `/tmp/ayumi-ls-ecogeo/for_test` bundle was absent in this
+session. The Model A+ and q4 harness scripts parsed, and persisted Mass+Beak
+RDS artifacts read cleanly. A061-A070 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A061-A070 do not claim fresh real-data reruns, do not promote q4 inference,
+  do not run a large Julia ladder, do not claim interval coverage, and do not
+  draft or post an Ayumi reply.
+
+## 2026-06-22: Ayumi inference gap ledger A071-A080
+
+Goal:
+
+- Bank the inference-status wave by separating Wald, profile, bootstrap,
+  coverage, boundary, direct Julia, and bridge-promotion claims.
+
+Checks run:
+
+```sh
+/Users/z3437171/.juliaup/bin/julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot -e 'using DRM; names_to_check = (:fit_q4_sparse_tmb, :profile_sigma_a, :bootstrap_sigma_a, :confint, :drm); for n in names_to_check println(string(n), "=", isdefined(DRM, n)) end'
+```
+
+Result: direct DRM.jl source availability for q4/profile/bootstrap entry
+points was confirmed in the active implementation worktree. A071-A080 are
+banked in `docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`; the
+coverage ledger is in
+`docs/dev-log/dashboard/ayumi-inference-coverage-ledger.tsv`; the boundary
+ledger is in `docs/dev-log/dashboard/ayumi-boundary-status-ledger.tsv`; and the
+summary is in `docs/design/203-ayumi-inference-gap-ledger.md`.
+
+Boundary:
+
+- A071-A080 do not claim calibrated coverage, do not promote the R bridge, do
+  not add native q4 REML, do not convert direct DRM.jl source availability into
+  Ayumi-scale interval support, and do not draft or post an Ayumi reply.
+
+## 2026-06-22: Ayumi literature/docs A081-A090
+
+Goal:
+
+- Bank the literature/docs wave by connecting the public location-scale
+  motivation, local identifiability evidence, and current route-specific
+  drmTMB/DRM.jl boundaries.
+
+Checks run:
+
+```sh
+web check: https://ayumi-495.github.io/Eco_location-scale_model/
+web search: Simpson et al. 2017 PC priors; Chung et al. 2013 penalized variance components; de Villemereuil and Nakagawa 2014; Nakagawa et al. 2025 PLSM
+```
+
+Result: A081-A090 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`. The synthesis is
+in `docs/design/204-ayumi-literature-docs-summary.md`; README, formula grammar,
+and known limitations now state the native ML versus native REML boundary and
+keep direct DRM.jl interval machinery separate from R bridge promotion.
+
+Boundary:
+
+- A081-A090 do not add a public vignette, do not claim brms/glmmTMB parity, do
+  not infer calibrated q4 intervals from literature, and do not draft or post
+  an Ayumi issue reply.
+
+## 2026-06-22: Ayumi reply-readiness gate A091-A099
+
+Goal:
+
+- Bank reply-prep governance without drafting or posting an Ayumi issue reply.
+
+Checks run:
+
+```sh
+process check: no GitHub issue action; no Ayumi-facing reply text created
+```
+
+Result: A091-A098 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv` as a
+non-postable readiness gate, and A099 is blocked until explicit maintainer
+approval. The readiness gate is in
+`docs/design/205-ayumi-reply-readiness-gate.md`.
+
+Boundary:
+
+- A091-A099 do not draft a reply, do not post a reply, do not touch the
+  external issue, and do not promote native q4 REML, AI-REML, bridge support,
+  public optimizer controls, or 10,440-tip intervals.
+
+## 2026-06-22: Ayumi phylo-balance 100-slice closeout A100
+
+Goal:
+
+- Close the local 100-slice Ayumi phylogenetic balance arc with a durable
+  after-arc report and recovery checkpoint.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: A100 is banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`. The closeout report
+is `docs/dev-log/after-task/2026-06-22-ayumi-phylo-balance-100-closeout.md`.
+
+Boundary:
+
+- This closeout does not draft or post an Ayumi reply, does not touch the
+  external issue, and does not promote native q4 REML, AI-REML, bridge support,
+  public optimizer controls, or 10,440-tip intervals.
+
+## 2026-06-22: Ayumi phylo-balance 100-slice completion audit
+
+Goal:
+
+- Verify from current worktree evidence that the Ayumi phylogenetic balance
+  research and 100-slice plan are complete without treating the blocked public
+  reply gate as authorization to draft or post.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+(cd /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot && git status --short --branch && git diff --check)
+awk -F '\t' 'NR==1 {print "header_fields=" NF; next} {status[$8]++; if (NF != 13) print "bad_field_count", NR, NF, $1; expected=sprintf("A%03d", NR-1); if ($1 != expected) print "bad_id", NR, $1, expected; if ($8 != "banked" && $8 != "blocked") print "bad_status", NR, $1, $8; if ($8 == "banked" && $12 == "planned") print "banked_without_evidence", NR, $1} END {for (s in status) print "status", s, status[s]}' docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv
+awk -F '\t' 'NR>1 && $12 != "planned" {print $1 "\t" $12}' docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv | while IFS=$'\t' read -r id path; do if [ ! -e "$path" ]; then printf 'missing_evidence\t%s\t%s\n' "$id" "$path"; fi; done
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-reml-phylo-location.R"); testthat::test_file("tests/testthat/test-scale-phylo-identifiability.R")'
+git diff -U0 -- README.md docs/design/01-formula-grammar.md docs/dev-log/known-limitations.md docs/design/197-ayumi-phylo-balance-research-100-slices.md docs/design/198-ayumi-native-ml-balance-summary.md docs/design/199-native-reml-phylo-asymmetry-gap.md docs/design/200-ayumi-julia-bridge-balance-readiness.md docs/design/201-ayumi-bivariate-q4-truth.md docs/design/202-ayumi-data-readiness-summary.md docs/design/203-ayumi-inference-gap-ledger.md docs/design/204-ayumi-literature-docs-summary.md docs/design/205-ayumi-reply-readiness-gate.md docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv docs/dev-log/dashboard/ayumi-inference-coverage-ledger.tsv docs/dev-log/dashboard/ayumi-boundary-status-ledger.tsv docs/dev-log/after-task/2026-06-22-ayumi-phylo-balance-100-closeout.md | rg -n "balanced native REML|native balanced REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|non-Gaussian REML|engine_control|No R bridge promotion|No public optimizer promotion" || true
+```
+
+Result:
+
+- The Ayumi 100-slice ledger has 13 fields, exactly 100 slice rows, 99 banked
+  rows, and one blocked row: A099, the explicit approved-issue-reply gate.
+- No banked row lacks an evidence path, and no recorded evidence path is
+  missing.
+- Mission-control validation passed with 100 Ayumi balance-slice rows, 8 Ayumi
+  balance vocabulary rows, 6 Ayumi balance tracker rows, 8 Ayumi inference
+  coverage rows, and 8 Ayumi boundary-status rows.
+- Focused phylogenetic checks passed after loading the package with
+  `devtools::load_all()`: `test-phylo-gaussian.R` 269 pass,
+  `test-reml-phylo-location.R` 8 pass, and
+  `test-scale-phylo-identifiability.R` 13 pass.
+- The overclaim scan hit only negative guardrail wording, not a promotion of
+  native q4 REML, q4 AI-REML, bridge support, public optimizer controls, or
+  10,440-tip intervals.
+
+Boundary:
+
+- Completion means the local research plan, ledgers, evidence packet, and
+  guarded closeout are done. It does not mean an Ayumi reply has been drafted or
+  posted, and it does not convert direct DRM.jl q4/profile/bootstrap evidence
+  into R bridge support or interval-coverage evidence.

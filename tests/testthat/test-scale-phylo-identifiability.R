@@ -4,7 +4,7 @@
 # A small, well-posed univariate location-scale phylo fit WITH multiple
 # observations per tip (so the scale-side field is identifiable and an sdreport
 # is produced). Branch behaviour is then exercised by setting sdr$pdHess.
-make_scale_phylo_fit <- function(se = TRUE) {
+make_scale_phylo_fit <- function(se = TRUE, logsigma_clamp = c(-12, 12)) {
   skip_if_not_installed("ape")
   set.seed(303)
   n_tip <- 18L
@@ -32,7 +32,7 @@ make_scale_phylo_fit <- function(se = TRUE) {
       sigma ~ x + phylo(1 | species, tree = tree)
     ),
     data = d,
-    control = drm_control(se = se)
+    control = drm_control(se = se, logsigma_clamp = logsigma_clamp)
   ))
 }
 
@@ -87,6 +87,28 @@ test_that("scale-phylo identifiability check steers to a fixed-effect scale when
   expect_equal(row$status, "note")
   expect_match(row$message, "scale", ignore.case = TRUE)
   expect_match(row$message, "fixed effects")
+})
+
+test_that("scale-phylo identifiability check coexists with clamp-active diagnostics", {
+  skip_on_cran()
+  fit <- make_scale_phylo_fit(se = TRUE, logsigma_clamp = c(-3, -0.8))
+  skip_if(is.null(fit$sdr))
+  fit$sdr$pdHess <- FALSE
+
+  checks <- check_drm(fit)
+  clamp <- checks[checks$check == "logsigma_clamp_active", , drop = FALSE]
+  scale_phylo <- checks[
+    checks$check == "scale_phylo_identifiability",
+    ,
+    drop = FALSE
+  ]
+
+  expect_equal(nrow(clamp), 1L)
+  expect_equal(nrow(scale_phylo), 1L)
+  expect_equal(clamp$status, "warning")
+  expect_equal(scale_phylo$status, "note")
+  expect_match(scale_phylo$message, "scale", ignore.case = TRUE)
+  expect_match(scale_phylo$message, "fixed effects")
 })
 
 test_that("scale-phylo identifiability check is NULL without an sdreport", {

@@ -153,7 +153,11 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   bivariate `sd_phylo1()` / `sd_phylo2()` path is implemented as a
   location-only response-specific direct-SD model; it is not a way to model
   residual `sigma1` / `sigma2` random-effect SDs or q=4 phylogenetic
-  location-scale endpoint SDs. Matching labelled `animal()` and `relmat()`
+  location-scale endpoint SDs. Native `REML = TRUE` is currently
+  exact-Gaussian and mean-side-only for phylogenetic structured effects;
+  scale-side, matched `mu`/`sigma`, q2, and q4 phylogenetic REML requests
+  reject early and should be treated as planned estimator work rather than
+  balanced native REML support. Matching labelled `animal()` and `relmat()`
   known-matrix terms are fitted for bivariate Gaussian q=2 `mu1`/`mu2`
   location covariance and for constant all-four q=4 location-scale blocks when
   `A`/`Ainv` or `K`/`Q` is supplied. Those rows use `corpars$animal` or
@@ -180,6 +184,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `estimator = "penalized"` path, or a Bayesian fit with a prior-sensitivity
   analysis). `pdHess = FALSE` here is a Wald-inference warning, not a reason to
   discard the point fit.
+  Direct DRM.jl q4 profile/bootstrap machinery is useful design evidence, but
+  it is not a native TMB route or an R-via-Julia bridge claim. Current
+  mission-control rows keep direct Julia interval status, known bootstrap
+  undercoverage, and unevaluated drmTMB coverage as separate facts.
 - `corpairs()` currently reports only correlations that are already fitted:
   residual bivariate `rho12` summaries and ordinary univariate Gaussian `mu`
   random-effect correlations, plus the implemented univariate `mu`/`sigma`

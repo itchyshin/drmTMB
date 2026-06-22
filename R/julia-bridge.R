@@ -305,14 +305,16 @@ drmTMB_julia_bridge <- function(
     ))
   }
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} does not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted fits until the bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} does not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for imputation workflows until the bridge has an imputation payload."
+    ))
   }
   family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
@@ -332,11 +334,12 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
-  # Gaussian cells: the fixed-effect location-scale model, and the sigma-phylo
-  # location-scale model (phylo on mu AND sigma), which DRM.jl now fits by
-  # restricted maximum likelihood (Ayumi #2). The mean-only phylo Gaussian route
-  # (sigma ~ 1) and the phylo-only families still return ML on the DRM.jl side,
-  # so warn and fit ML rather than silently mislead. Bivariate q4 phylo
+  # Gaussian cells: the fixed-effect location-scale model, and Gaussian
+  # location-scale models with a phylo term on sigma (with or without a matching
+  # mean-side phylo term), which DRM.jl now fits by restricted maximum
+  # likelihood (Ayumi #2). The mean-only phylo Gaussian route (sigma ~ 1) and
+  # the phylo-only families still return ML on the DRM.jl side, so warn and fit
+  # ML rather than silently mislead. Bivariate q4 phylo
   # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
@@ -499,11 +502,12 @@ drm_julia_has_phylo_term <- function(formula) {
 }
 
 # TRUE when any formula entry carries a phylo() term on the `sigma` axis. This
-# marks the Gaussian location-scale phylo cell (phylo on mu AND sigma), the one
-# phylogenetic route DRM.jl now fits by restricted maximum likelihood
-# (`drm(...; method = :REML)`) -- the sigma-phylo capability the native TMB engine
-# lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and the phylo-only
-# families have no `sigma` phylo term, so REML stays gated for them.
+# marks the Gaussian sigma-phylo location-scale cells, with or without a
+# matching mean-side phylo term, that DRM.jl now fits by restricted maximum
+# likelihood (`drm(...; method = :REML)`) -- the sigma-phylo capability the
+# native TMB engine lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and
+# the phylo-only families have no `sigma` phylo term, so REML stays gated for
+# them.
 drm_julia_has_sigma_phylo_term <- function(formula) {
   sigma_phylo_terms <- unlist(
     lapply(formula$entries, function(entry) {
@@ -1374,6 +1378,66 @@ new_drmTMB_julia <- function(
     )
   )
   class(out) <- "drmTMB_julia"
+  out
+}
+
+drm_julia_reconstruction_status <- function(object) {
+  if (!inherits(object, "drmTMB_julia")) {
+    cli::cli_abort(
+      "{.fn drm_julia_reconstruction_status} requires a {.cls drmTMB_julia} object."
+    )
+  }
+  scalar_chr <- function(x, default = NA_character_) {
+    if (is.null(x) || length(x) == 0L) {
+      return(default)
+    }
+    as.character(x[[1L]])
+  }
+  profile_targets <- tryCatch(
+    drm_julia_profile_targets(object),
+    error = function(cnd) empty_profile_targets()
+  )
+  corpairs <- object$corpairs
+  has_corpairs <- is.data.frame(corpairs) && nrow(corpairs) > 0L
+  if (!has_corpairs && is.list(corpairs)) {
+    has_corpairs <- length(corpairs) > 0L
+  }
+  out <- data.frame(
+    model_type = scalar_chr(object$model$model_type),
+    estimator = scalar_chr(object$estimator),
+    requested_estimator = if (isTRUE(object$requested_REML)) {
+      "REML"
+    } else {
+      "ML"
+    },
+    effective_estimator = if (isTRUE(object$effective_REML)) {
+      "REML"
+    } else {
+      "ML"
+    },
+    payload_status = if (is.list(object$bridge_payload)) {
+      "present"
+    } else {
+      "missing"
+    },
+    coefficient_status = if (length(object$coef_vector) > 0L) {
+      "present"
+    } else {
+      "missing"
+    },
+    vcov_status = scalar_chr(object$uncertainty$status, "unavailable"),
+    profile_target_status = if (nrow(profile_targets) > 0L) {
+      "present"
+    } else {
+      "absent"
+    },
+    corpairs_status = if (has_corpairs) "present" else "absent",
+    bridge_status = "diagnostic_only",
+    inference_promotion = "none",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  class(out) <- c("drmTMB_julia_reconstruction_status", class(out))
   out
 }
 
@@ -2864,14 +2928,16 @@ drmTMB_julia_structured_bridge <- function(
   call
 ) {
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} structured models do not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models do not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted structured fits until the bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} structured models do not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models do not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for structured imputation workflows until the bridge has an imputation payload."
+    ))
   }
   family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
@@ -3215,14 +3281,16 @@ drmTMB_julia_xfam_bridge <- function(
   call
 ) {
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} cross-family models do not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted fits until the cross-family bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} cross-family models do not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for imputation workflows until the cross-family bridge has an imputation payload."
+    ))
   }
   missing_control <- drm_parse_missing_control(missing)
   if (

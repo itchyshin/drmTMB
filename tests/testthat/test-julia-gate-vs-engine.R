@@ -15,7 +15,31 @@ expect_julia_gate <- function(gate_id, expr, regexp) {
   if (!missing(regexp)) {
     expect_equal(regexp, gate$message_pattern)
   }
-  expect_error(force(expr), regexp = gate$message_pattern)
+  err <- tryCatch(force(expr), error = function(cnd) cnd)
+  expect_s3_class(err, "error")
+  if (!inherits(err, "error")) {
+    return(invisible(err))
+  }
+  message <- conditionMessage(err)
+  expect_match(message, gate$message_pattern)
+  expect_match(
+    message,
+    paste(
+      c(
+        "engine\\s*=\\s*\"tmb\"",
+        "Supported:",
+        "drop",
+        "complete responses and predictors",
+        "large-p phylogenetic speed edge",
+        "coefficient-scale parity tests",
+        "latent engine",
+        "not wired"
+      ),
+      collapse = "|"
+    ),
+    ignore.case = TRUE
+  )
+  invisible(err)
 }
 
 new_gate_tree <- function(n = 6) {

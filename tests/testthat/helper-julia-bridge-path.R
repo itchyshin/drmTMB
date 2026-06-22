@@ -22,10 +22,10 @@ drm_test_set_julia_home <- function() {
   invisible(home)
 }
 
-drm_test_local_julia_home <- function() {
+drm_test_local_julia_home <- function(.local_envir = parent.frame()) {
   home <- drm_test_julia_home()
   if (nzchar(home)) {
-    withr::local_envvar(c(JULIA_HOME = home))
+    withr::local_envvar(c(JULIA_HOME = home), .local_envir = .local_envir)
   }
   invisible(home)
 }

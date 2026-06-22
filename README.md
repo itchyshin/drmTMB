@@ -158,13 +158,17 @@ head(sigma(fit)^2) # fitted residual variances
   ordinary repeated-measure random intercepts such as
   `bf(y ~ x + (1 | id), sigma ~ z)`; beta uses this syntax only for strict
   `(0, 1)` proportions.
-- **Event indicators or successes out of known trials.** Use
-  `stats::binomial(link = "logit")` with 0/1 responses or
-  `cbind(successes, failures)` when ordinary binomial sampling variation is
-  enough. Use `beta_binomial()` with `cbind(successes, failures)` when the
-  data need extra-binomial variation through `sigma`. Ordinary repeated-measure
-  beta-binomial random intercepts in `mu` are fitted as a first slice with
-  syntax such as `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`.
+- **Event indicators or successes out of known trials.** Use native TMB
+  `stats::binomial(link = "logit")` for fixed-effect event-probability models
+  with 0/1 responses or `cbind(successes, failures)` counts when ordinary
+  binomial sampling variation is enough. Use `beta_binomial()` with
+  `cbind(successes, failures)` when the data need extra-binomial variation
+  through `sigma`. Binomial random effects, structured effects, `sigma`
+  formulas, bivariate or mixed responses, and non-phylogenetic
+  `engine = "julia"` binomial fits remain unsupported. Ordinary
+  repeated-measure beta-binomial random intercepts in `mu` are fitted as a
+  first slice with syntax such as
+  `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`.
   Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Continuous proportions with structural exact 0 or 1 values.** Use
@@ -310,6 +314,14 @@ The
 [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
 gives the finer ledger by family, distributional parameter, dependence layer,
 q, random-slope support, `corpairs()`, `zi`, and `hu`.
+
+For phylogenetic location-scale models, read "balanced" row by row. Native ML
+has fitted univariate Gaussian `mu`, `sigma`, and matched `mu+sigma`
+intercept cells, plus diagnostic q4 location-scale cells. Native REML is
+currently exact-Gaussian and mean-side-only for phylogenetic structured
+effects; scale-side, matched `mu+sigma`, q2, and q4 phylogenetic REML requests
+reject early. Direct DRM.jl q4 profile/bootstrap machinery is separate from
+the R bridge and does not by itself establish calibrated Ayumi-scale intervals.
 
 Spatial syntax is part of the structured-effect design. The fitted coordinate
 path supports univariate Gaussian `mu` and `sigma` intercepts with

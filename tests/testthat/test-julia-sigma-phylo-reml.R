@@ -1,11 +1,12 @@
 # Gaussian σ-phylo location-scale REML via engine = "julia" (Ayumi #2).
 #
-# DRM.jl now fits the Gaussian location-scale phylo cell -- phylo(1 | g) on the
-# mean AND on sigma -- and the bivariate q4 phylogenetic location-scale model by
-# restricted maximum likelihood (`drm(...; method = :REML)`). These are
-# capabilities the native TMB engine lacks, so the bridge must let
-# `method = "REML"` through the REML gate for THESE cells while still rejecting
-# (warn + fall back to ML) the cells DRM.jl does not yet REML-fit:
+# DRM.jl now fits Gaussian sigma-phylo location-scale cells -- phylo(1 | g) on
+# sigma, with or without a matching mean-side phylo term -- and the bivariate q4
+# phylogenetic location-scale model by restricted maximum likelihood
+# (`drm(...; method = :REML)`). These are capabilities the native TMB engine
+# lacks, so the bridge must let `method = "REML"` through the REML gate for
+# THESE cells while still rejecting (warn + fall back to ML) the cells DRM.jl
+# does not yet REML-fit:
 #   * mean-only phylo Gaussian (phylo on mu, sigma ~ 1)
 #   * the phylo-only families (Poisson / NB2 / Gamma / Beta / Binomial)
 #   * cross-family and general-covariance (relmat / animal / spatial) routes
@@ -17,6 +18,10 @@
 test_that("sigma-phylo detector fires only for a phylo term on sigma", {
   tree <- ape::rcoal(6)
 
+  sigma_only <- drmTMB::bf(
+    y ~ x,
+    sigma ~ phylo(1 | species, tree = tree)
+  )
   sigma_phylo <- drmTMB::bf(
     y ~ x + phylo(1 | species, tree = tree),
     sigma ~ phylo(1 | species, tree = tree)
@@ -27,6 +32,7 @@ test_that("sigma-phylo detector fires only for a phylo term on sigma", {
   )
   fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
 
+  expect_true(drmTMB:::drm_julia_has_sigma_phylo_term(sigma_only))
   expect_true(drmTMB:::drm_julia_has_sigma_phylo_term(sigma_phylo))
   expect_false(drmTMB:::drm_julia_has_sigma_phylo_term(mean_only))
   expect_false(drmTMB:::drm_julia_has_sigma_phylo_term(fixed_locscale))
@@ -79,6 +85,10 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   tree <- ape::rcoal(8)
 
   fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
+  sigma_only <- drmTMB::bf(
+    y ~ x,
+    sigma ~ phylo(1 | species, tree = tree)
+  )
   sigma_phylo <- drmTMB::bf(
     y ~ x + phylo(1 | species, tree = tree),
     sigma ~ phylo(1 | species, tree = tree)
@@ -97,6 +107,7 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   count_phylo <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
 
   expect_true(drmTMB:::drm_julia_reml_supported(fixed_locscale, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(sigma_only, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(sigma_phylo, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
   expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))

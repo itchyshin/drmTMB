@@ -98,6 +98,31 @@ test_that("confint(method = 'wald') marshals fixed-effect intervals (link scale)
   )
 })
 
+test_that("reconstruction status object is diagnostic-only", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit()
+
+  status <- drmTMB:::drm_julia_reconstruction_status(fit)
+
+  expect_s3_class(status, "drmTMB_julia_reconstruction_status")
+  expect_equal(nrow(status), 1L)
+  expect_equal(status$model_type, "gaussian")
+  expect_equal(status$estimator, "ML")
+  expect_equal(status$requested_estimator, "ML")
+  expect_equal(status$effective_estimator, "ML")
+  expect_equal(status$payload_status, "missing")
+  expect_equal(status$coefficient_status, "present")
+  expect_equal(status$vcov_status, "ok")
+  expect_equal(status$profile_target_status, "present")
+  expect_equal(status$corpairs_status, "absent")
+  expect_equal(status$bridge_status, "diagnostic_only")
+  expect_equal(status$inference_promotion, "none")
+  expect_error(
+    drmTMB:::drm_julia_reconstruction_status(list()),
+    "requires"
+  )
+})
+
 test_that("confint(method = 'wald') accepts compact and set aliases", {
   skip_if_not_installed("ape")
   fit <- drm_julia_inference_synthetic_fit()

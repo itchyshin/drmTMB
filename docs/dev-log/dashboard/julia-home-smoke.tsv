@@ -1,0 +1,5 @@
+smoke_id	helper	environment_case	expected_behavior	observed_status	test_status	bridge_status	evidence_url	claim_boundary	next_gate
+drm_jl_julia_home_precedence	drm_test_julia_home	DRM_JL_JULIA_HOME_and_JULIA_HOME	DRM_JL_JULIA_HOME_wins	covered	covered	experimental	docs/dev-log/after-task/2026-06-22-julia-home-ci-smoke.md	default engine path only	keep live Julia bridge tests separately gated
+julia_home_fallback	drm_test_julia_home	JULIA_HOME_only	JULIA_HOME_used	covered	covered	experimental	docs/dev-log/after-task/2026-06-22-julia-home-ci-smoke.md	default engine path only	keep live Julia bridge tests separately gated
+set_julia_home_helper	drm_test_set_julia_home	DRM_JL_JULIA_HOME_and_JULIA_HOME	sets_JULIA_HOME_for_child_setup	covered	covered	experimental	docs/dev-log/after-task/2026-06-22-julia-home-ci-smoke.md	default engine path only	keep live Julia bridge tests separately gated
+local_julia_home_helper	drm_test_local_julia_home	caller_scoped_environment	sets_then_restores_in_caller_scope	covered	covered	experimental	docs/dev-log/after-task/2026-06-22-julia-home-ci-smoke.md	default engine path only	keep live Julia bridge tests separately gated
