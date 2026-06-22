@@ -1,5 +1,11 @@
 # Ayumi Follow-On Implementation Slices
 
+> Implementation-scope update: this file captured the phylo-first follow-on
+> after the Ayumi balance research arc. The broader structured random-effect
+> implementation scope is now tracked in
+> `docs/design/207-structured-random-effect-balance-100-slices.md` and its
+> validator-owned dashboard ledgers.
+
 ## Purpose
 
 This is the follow-on implementation arc after the Ayumi phylogenetic balance

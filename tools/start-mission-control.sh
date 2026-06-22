@@ -12,8 +12,11 @@ python3 "$ROOT/tools/validate-mission-control.py"
 
 mkdir -p "$DEST"
 mkdir -p "$DEST/docs/design" "$DEST/docs/dev-log/after-task" "$DEST/docs/dev-log/comparator-results" "$DEST/docs/dev-log/simulation-artifacts"
-cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$SRC/julia-gates.tsv" "$SRC/julia-capabilities.tsv" "$SRC/finish-100-slices.tsv" "$SRC/q4-target-inventory.tsv" "$SRC/phylo-balance-inventory.tsv" "$SRC/scale-phylo-diagnostics.tsv" "$SRC/phylo-profile-loglik-status.tsv" "$SRC/bootstrap-refit-accounting.tsv" "$SRC/phylo-q2-q4-target-map.tsv" "$SRC/phylo-extractor-status.tsv" "$SRC/bridge-payload-schema.tsv" "$SRC/bridge-provenance-fields.tsv" "$SRC/loconly-bridge-draft.tsv" "$SRC/bridge-serialization-status.tsv" "$SRC/bridge-reconstruction-status.tsv" "$SRC/julia-home-smoke.tsv" "$SRC/bridge-rejection-messages.tsv" "$SRC/capability-regeneration-status.tsv" "$SRC/bridge-parity-smoke-status.tsv" "$SRC/binomial-bridge-map.tsv" "$SRC/binomial-profile-status.tsv" "$SRC/ayumi-phylo-balance-100-slices.tsv" "$SRC/ayumi-phylo-balance-vocabulary.tsv" "$SRC/ayumi-phylo-balance-trackers.tsv" "$DEST/"
-cp "$ROOT/docs/design/168-r-julia-finish-capability-matrix.md" "$DEST/docs/design/"
+cp "$SRC/index.html" "$SRC/status.json" "$SRC/sweep.json" "$SRC/version.txt" "$SRC/README.md" "$DEST/"
+for tsv in "$SRC"/*.tsv; do
+  cp "$tsv" "$DEST/"
+done
+cp "$ROOT/docs/design/"*.md "$DEST/docs/design/"
 cp "$ROOT/docs/dev-log/after-task/"*.md "$DEST/docs/dev-log/after-task/"
 if [ -d "$ROOT/docs/dev-log/comparator-results" ]; then
   cp -R "$ROOT/docs/dev-log/comparator-results/." "$DEST/docs/dev-log/comparator-results/"

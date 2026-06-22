@@ -178,9 +178,126 @@ that affect Ayumi interpretation: `pdHess = FALSE`, log-`sigma` clamps,
 near-boundary residual `rho12`, q4 covariance warnings, profile failures, and
 direct Julia collapsed-axis profiles.
 
+`structured-re-balance-matrix.tsv` records q1, q2, q2-plus-q2, and q4
+structured random-effect status across `phylo()`, `spatial()`, `animal()`,
+`relmat()`, and the q1-only `phylo_interaction()` route. It separates fit
+status, inference status, and bridge status so location-side support,
+scale-side support, all-four q4 point fits, count-model q1 fits, and
+unsupported interval or bridge claims cannot collapse into one balance claim.
+
+`structured-re-balance-100-slices.tsv` records the structured random-effect
+balance arc. SR001-SR060 bank the corrected scope, native ML q1/q2/q4, slope,
+and native exact-Gaussian REML status. SR061-SR090 bank inference, bridge
+readiness, and documentation status where evidence exists, while blocking
+coverage pilots and bridge parity rows that are not yet proven. SR091-SR100
+record closeout gates for live Ayumi issue access, Bayesian-result comparison,
+reply approval, posting, final validation, commit approval, and recovery
+checkpointing.
+
+`structured-re-finish-100-slices.tsv` records the next structured random-effect
+finish arc. SR101-SR110 bank the carryover scope, evidence ladder, and
+validator ownership for the second 100-slice tranche. SR111-SR140 focus on q1,
+q2, and q4 bridge parity, where a row can be promoted only after native R/TMB,
+direct DRM.jl, and R-via-Julia evidence agree on the same target. SR141-SR150
+scale pilot coverage accounting into calibrated simulation design. SR151-SR180
+cover native REML boundaries, structured-type gaps, R docs, and user-facing
+error/status text. SR181-SR190 synchronize direct DRM.jl evidence and
+gate-vs-engine checks. SR191-SR200 keep the Ayumi reply, posting, commit, and
+handoff gates explicit.
+
+`member-roster.tsv`, `member-discussions.tsv`, and
+`member-wave-assignments.tsv` are the mission-control member board. They turn
+the standing Ada/Rose/Grace/etc. review perspectives into validator-owned
+dashboard state: what each member can do, which waves they own, what they
+should improve, which claims they sign off, and what discussion record blocks
+or accepts a row transition.
+
+`structured-re-conversion-200-slices.tsv` records the SC201-SC400 conversion
+ledger. Its rows do not promote package behaviour by themselves; they track
+the next 200 execution slices needed to move scoped `partial` or `planned`
+structured random-effect rows toward `covered` matrix status or `banked`
+slice-ledger status.
+
+`structured-re-status-vocabulary.tsv` defines the row-level meaning of
+`covered`, `partial`, `planned`, `banked`, `blocked`, `experimental`, and
+`unsupported` for this structured random-effect arc. It keeps `covered` scoped
+to an exact matrix/status row and keeps `banked` scoped to a slice-ledger row
+with evidence.
+
+`structured-re-q1-bridge-payload-contract.tsv` records the q1 bridge payload
+fields that must exist before q1 bridge parity can be attempted. It names
+target, estimator, matrix digest, endpoint fields, provenance, and unsupported
+payload pieces without promoting R-via-Julia support.
+
+`structured-re-q1-reconstruction-map.tsv` records how future q1 bridge payloads
+should reconstruct `coef`, `vcov`, summary, profile-target, and unavailable
+status fields. It is an extractor/status map, not interval or coverage
+evidence.
+
+`structured-re-q1-parity-fixture-contract.tsv` records deterministic q1 parity
+fixture contracts for native R/TMB, direct DRM.jl, and future R-via-Julia
+routes. Rows marked `covered` here mean the fixture contract is specified; they
+do not mean executable bridge parity has passed.
+
+`structured-re-q2-target-contract.tsv` records the q2 target vocabulary. It
+keeps q2 location covariance targets separate from q2-plus-q2 block evidence
+and full q4 derived correlations, and it keeps native q2 REML unsupported
+until an exact-Gaussian derivation and tests exist.
+
+`structured-re-q2-native-evidence.tsv` records fixture-level native q2 evidence
+for `phylo()`, `spatial()`, `animal()`, and `relmat()` rows. It is deliberately
+point-only and does not promote q4, REML, bridge, or interval coverage claims.
+
+`structured-re-q2-bridge-boundary.tsv` records why q2 bridge rows remain
+planned or unsupported until row-specific R-via-Julia parity exists. It keeps
+negative evidence visible so native matrix coverage cannot be read as bridge
+support.
+
+`structured-re-q4-target-contract.tsv` records q4 target classes. It separates
+direct structured-standard-deviation targets from derived cross-axis
+correlations and keeps native q4 REML unsupported.
+
+`structured-re-q4-extractor-parity.tsv` records q4 point/extractor status for
+summary covariance, profile targets, corpairs, and planned bridge
+reconstruction. It is not interval coverage evidence.
+
+`structured-re-q4-bridge-boundary.tsv` records q4 bridge blockers. Smoke rows
+remain smoke until native R/TMB, direct DRM.jl, and R-via-Julia evidence agree
+on the same target.
+
+`structured-re-reml-scope-gate.tsv` records where REML wording is allowed and
+where it is forbidden. It keeps REML exact-Gaussian and route-specific, blocks
+native q2/q4 REML promotion until derivations and tests exist, and keeps q4
+Patterson-Thompson REML separate from HSquared AI-REML.
+
+`structured-re-ademp-design.tsv` records the ADEMP q1, q2, and q4 design
+contracts. It names aims, data-generating mechanisms, estimands, methods,
+performance measures, MCSE targets, failed-fit denominators, and interval
+policies before any calibrated simulation grid is run. The companion design
+note is `docs/design/217-structured-reml-and-ademp-conversion-gates.md`.
+
+`structured-re-type-gaps.tsv` records the remaining structured-type gaps for
+`phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It
+states what users can run now and which cells remain missing or deferred.
+
+`structured-re-r-docs-api-sync.tsv` records the R documentation and API sync
+surface. It keeps dashboard/internal wording separate from public examples and
+does not widen formula grammar or user-facing support.
+
+`structured-re-julia-twin-sync.tsv` records the active DRM.jl and drmTMB
+branches and heads used by this dashboard pass. It also records that the parked
+`/Users/z3437171/Dropbox/Github Local/DRM.jl` Ayumi checkout was not edited.
+
+`structured-re-closeout-package.tsv` records validator, served-widget,
+check-log, after-task, hard-boundary, and git-boundary closeout rows. It is a
+local recovery surface, not a staging, commit, pull-request, or public support
+claim.
+
 Rows marked `verified`, `banked`, or `covered` need evidence. Local evidence
 files linked from the dashboard are copied into `/tmp/drm-dashboard` by the
-start script so the served page can resolve them.
+start script so the served page can resolve them. The start script copies every
+dashboard TSV by pattern, and the validator rejects copy-list drift when new
+TSV ledgers are added.
 
 The `drmTMB` Repo Truth row is refreshed in the served `/tmp` copy at launch
 time from `git branch`, `git rev-parse`, and `git status --porcelain`. The

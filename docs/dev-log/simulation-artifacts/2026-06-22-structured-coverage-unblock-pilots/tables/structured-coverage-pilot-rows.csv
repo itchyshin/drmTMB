@@ -1,0 +1,18 @@
+"cell","replicate","target","truth","estimate","lower","upper","covered","conf_status","fit_ok","converged","pdHess","error_message"
+"q1_phylo_mu",1,"sd:mu:phylo(1 | species)",0.45,NA,0,Inf,FALSE,"wald_at_boundary",TRUE,TRUE,TRUE,NA
+"q1_phylo_mu",2,"sd:mu:phylo(1 | species)",0.45,NA,0,Inf,FALSE,"wald_at_boundary",TRUE,TRUE,TRUE,NA
+"q1_phylo_mu",3,"sd:mu:phylo(1 | species)",0.45,NA,0.0950807998882889,0.783894671485975,TRUE,"wald",TRUE,TRUE,TRUE,NA
+"q2_phylo_mu",1,"sd:mu:mu1:phylo(1 | p | species)",0.45,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q2_phylo_mu",1,"sd:mu:mu2:phylo(1 | p | species)",0.4,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q2_phylo_mu",2,"sd:mu:mu1:phylo(1 | p | species)",0.45,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q2_phylo_mu",2,"sd:mu:mu2:phylo(1 | p | species)",0.4,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q2_phylo_mu",3,"sd:mu:mu1:phylo(1 | p | species)",0.45,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q2_phylo_mu",3,"sd:mu:mu2:phylo(1 | p | species)",0.4,NA,NA,NA,FALSE,"wald_unavailable",TRUE,TRUE,FALSE,NA
+"q4_phylo_all_four",1,"sd:mu:mu1:phylo(1 | p | species)",0.4,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",1,"sd:mu:mu2:phylo(1 | p | species)",0.35,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",1,"sd:mu:sigma1:phylo(1 | p | species)",0.2,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",1,"sd:mu:sigma2:phylo(1 | p | species)",0.2,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",2,"sd:mu:mu1:phylo(1 | p | species)",0.4,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",2,"sd:mu:mu2:phylo(1 | p | species)",0.35,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",2,"sd:mu:sigma1:phylo(1 | p | species)",0.2,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA
+"q4_phylo_all_four",2,"sd:mu:sigma2:phylo(1 | p | species)",0.2,NA,NA,NA,FALSE,"wald_unavailable",TRUE,FALSE,FALSE,NA

@@ -1,0 +1,4 @@
+"cell","n_replicate","n_target_rows","n_fit_ok","n_converged","n_pdhess","n_interval_rows","n_finite_intervals","coverage","coverage_mcse","claim_status"
+"q1_phylo_mu",3,3,3,3,3,3,1,1,0,"pilot_only"
+"q2_phylo_mu",3,6,6,6,0,6,0,NA,NA,"pilot_only"
+"q4_phylo_all_four",2,8,8,0,0,8,0,NA,NA,"pilot_only"

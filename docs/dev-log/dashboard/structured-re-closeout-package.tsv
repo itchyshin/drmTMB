@@ -1,0 +1,7 @@
+closeout_id	item	status	evidence_url	claim_boundary	next_gate
+validator_gate	mission-control validator	covered	tools/validate-mission-control.py	Validator ownership is local evidence not public support.	Rerun before any commit or PR.
+served_widget	live mission-control widget	covered	docs/dev-log/dashboard/index.html	Served widget displays internal dashboard state.	Refresh /tmp copy before handoff.
+check_log	check-log entry	covered	docs/dev-log/check-log.md	Check-log records local run evidence.	Update with final validation output.
+after_task	after-task reports	covered	docs/dev-log/after-task/2026-06-22-structured-re-conversion-contracts.md	After-task reports close dashboard work only.	Add handoff checkpoint.
+hard_boundaries	overclaim guards	covered	docs/dev-log/dashboard/sweep.json	No bridge q4 REML AI-REML optimizer coverage or Ayumi reply promotion.	Keep scans clean.
+git_boundary	no staging or commit	covered	docs/dev-log/check-log.md	User did not request staging or commit.	Wait for explicit approval.
