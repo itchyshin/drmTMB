@@ -58856,3 +58856,48 @@ Claim boundary: this is a design and validation-gate slice plus an internal
 exact-Gaussian REML helper in a clean DRM.jl worktree. It does not implement an
 average-information optimizer in `drmTMB` or `DRM.jl`, does not promote q4 REML,
 does not claim 10k-scale intervals, and does not reopen the parked Ayumi reply.
+
+## 2026-06-22: AI-REML comparator fixture mission-control refresh
+
+The DRM.jl exact-Gaussian location-only REML lane added a versioned
+no-dependency same-estimand comparator fixture,
+`loconly-gaussian-phylo-reml-v1`. The fixture pins a small balanced-tree
+Gaussian location-only problem plus dense GLS REML reference values, validates
+the target as `gaussian_loconly_phylo_reml`, and marks the phylolm-style row
+`artifact_status = fixture_defined` while keeping `external_comparator_status =
+planned`, `dependency_status = not_added`, `coverage_status = not_evaluated`,
+and `ai_reml_ready = false`.
+
+The drmTMB mission-control dashboard, sweep summary, local issue draft, and
+after-task report now mirror that fixture status without changing the public
+claim boundary. The local issue draft remains unposted.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+gh pr view 297 --json statusCheckRollup,mergeStateStatus,headRefOid,url,title
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+gh pr view 638 --json statusCheckRollup,mergeStateStatus,headRefOid,url,title
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-comparator-gate-sync.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0].text, hsquared: (.finish_board[] | select(.id=="HSquared-validation-status-lesson") | {status, engine_julia, simulation, last_verified})}'
+```
+
+Result: DRM.jl PR #297 was green and clean at
+`9a2c044ac6d0690784e198c6211789070cc49562`; drmTMB PR #638 was green and clean
+before this mission-control refresh at `4eb9286ce727ebcfe5c505801241e3cd6ccf79ac`.
+Both dashboard JSON files parsed cleanly. Mission-control validation passed.
+`git diff --check` passed. The claim-boundary scan hit only quoted forbidden
+phrases, guardrail text, historical boundary notes, or the scan command itself.
+The live dashboard was refreshed from the updated local JSON.
+
+Claim boundary: this is still exact-Gaussian location-only developer evidence.
+It does not add an external comparator dependency, promote an R bridge, promote
+a public optimizer, evaluate interval coverage, promote q4/Laplace/non-Gaussian
+AI-REML, reopen Ayumi-facing text, or change the 10k sigma-phylo interval
+blockers.
