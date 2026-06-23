@@ -214,6 +214,61 @@ test_that("a partial / missing bridge covariance yields NA Wald intervals", {
   expect_true(all(ci$conf.status == "wald_unavailable"))
 })
 
+test_that("Julia structured coefficient scale map reconstructs SDs and recov correlations", {
+  skip_if_not_installed("ape")
+  tree <- ape::rcoal(4)
+  tree$tip.label <- paste0("sp", seq_len(4))
+
+  mean_form <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  )
+  mean_params <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c("resd_phylo(1 | species)" = log(1.25)),
+    formula = mean_form,
+    sd_scales = c("phylo(1 | species)" = sqrt(2))
+  )
+  expect_equal(
+    unname(mean_params$sdpars$mu[["phylo(1 | species)"]]),
+    1.25 * sqrt(2)
+  )
+  expect_equal(length(mean_params$sdpars$sigma), 0L)
+  expect_equal(length(mean_params$corpars), 0L)
+
+  locscale_form <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ phylo(1 | species, tree = tree)
+  )
+  log_l11 <- log(1.1)
+  log_l22 <- log(0.9)
+  l21 <- 0.2
+  locscale_params <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c(
+      "recov_mu:phylo(1 | species):L11" = log_l11,
+      "recov_sigma:phylo(1 | species):L22" = log_l22,
+      "recov_mu_sigma:phylo(1 | species):L21" = l21
+    ),
+    formula = locscale_form,
+    sd_scales = c("phylo(1 | species)" = sqrt(2))
+  )
+  expected_sigma_sd <- sqrt(l21^2 + exp(log_l22)^2) * sqrt(2)
+  expected_rho <- l21 / sqrt(l21^2 + exp(log_l22)^2)
+
+  expect_equal(
+    unname(locscale_params$sdpars$mu[["mu:phylo(1 | species)"]]),
+    exp(log_l11) * sqrt(2)
+  )
+  expect_equal(
+    unname(locscale_params$sdpars$sigma[["sigma:phylo(1 | species)"]]),
+    expected_sigma_sd
+  )
+  expect_equal(
+    names(locscale_params$corpars$phylo),
+    "cor(mu:(Intercept),sigma:(Intercept) | phylo | species)"
+  )
+  expect_equal(unname(locscale_params$corpars$phylo), expected_rho)
+})
+
 # --- Live Poisson phylo round-trip ------------------------------------------
 #
 # Runs in a FRESH R subprocess (callr) so the phylo-capable DRM.jl engine at

@@ -116,7 +116,7 @@ test_that("Julia bridge marshals one phylogenetic tree", {
   expect_equal(payload$formula$mu, "y ~ x + phylo(1 | species)")
   expect_match(payload$tree, "^\\(\\(sp_1:1")
   expect_equal(names(payload$data), c("y", "x", "species"))
-  expect_equal(payload$options, list(g_tol = 1e-4))
+  expect_equal(payload$options, list(g_tol = 1e-8))
   expect_equal(
     payload$structured_sd_scales,
     c("phylo(1 | species)" = sqrt(2)),
@@ -484,6 +484,44 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
     method = "REML"
   )
   expect_equal(reml_payload$options, list(method = "REML"))
+  expect_true(drmTMB:::drm_julia_reml_supported(form, "biv_gaussian"))
+
+  q2_form <- bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  q2_payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = q2_form,
+    family_type = "biv_gaussian",
+    data = dat,
+    env = environment()
+  )
+  expect_equal(q2_payload$formula$mu1, "y1 ~ x + phylo(1 | species)")
+  expect_equal(q2_payload$formula$mu2, "y2 ~ x + phylo(1 | species)")
+  expect_equal(q2_payload$formula$sigma1, "sigma1 ~ 1")
+  expect_equal(q2_payload$formula$sigma2, "sigma2 ~ 1")
+  expect_equal(q2_payload$bivariate_dimension, "q2")
+  expect_equal(q2_payload$options, list(g_tol = 1e-4))
+  expect_false(drmTMB:::drm_julia_reml_supported(q2_form, "biv_gaussian"))
+
+  expect_error(
+    drmTMB:::drm_julia_phylo_payload(
+      formula = bf(
+        mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+        mu2 = y2 ~ x,
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1
+      ),
+      family_type = "biv_gaussian",
+      data = dat,
+      env = environment()
+    ),
+    "q2.*mu1/mu2|q4 all-four-axis"
+  )
 
   # rho12 may not carry phylo on the bridge route.
   expect_error(

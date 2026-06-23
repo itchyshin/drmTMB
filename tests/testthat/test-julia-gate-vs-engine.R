@@ -58,7 +58,7 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "base_missing_response_nongaussian",
     "base_unsupported_family",
     "base_nonphylo_count",
-    "biv_partial_phylo_q4",
+    "biv_invalid_partial_phylo",
     "biv_rho12_phylo",
     "structured_unsupported_family",
     "structured_sigma_predictor",
@@ -310,7 +310,7 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
   )
 })
 
-test_that("bivariate q4 phylo gates are intentional and pre-JuliaCall", {
+test_that("bivariate invalid phylo gates are intentional and pre-JuliaCall", {
   tree <- new_gate_tree(6)
   dat <- data.frame(
     y1 = rnorm(6),
@@ -319,22 +319,22 @@ test_that("bivariate q4 phylo gates are intentional and pre-JuliaCall", {
     species = tree$tip.label
   )
 
-  partial_q4 <- bf(
+  partial_phylo <- bf(
     mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
-    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x,
     sigma1 = ~1,
     sigma2 = ~1,
     rho12 = ~1
   )
   expect_julia_gate(
-    "biv_partial_phylo_q4",
+    "biv_invalid_partial_phylo",
     drmTMB(
-      partial_q4,
+      partial_phylo,
       family = biv_gaussian(),
       data = dat,
       engine = "julia"
     ),
-    "Missing phylogenetic axis"
+    "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis"
   )
 
   rho12_phylo <- bf(

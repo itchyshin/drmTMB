@@ -245,6 +245,111 @@ phase18_structured_re_ademp_pilot_summary <- function(
   )
 }
 
+phase18_structured_re_ademp_calibration_gate <- function(
+  replicates,
+  policy = phase18_structured_re_ademp_mcse_policy(),
+  by = c("cell_id", "dimension")
+) {
+  if (!is.data.frame(policy) || nrow(policy) != 1L) {
+    stop("`policy` must be a one-row data frame.", call. = FALSE)
+  }
+  missing_policy <- setdiff(
+    c("target_mcse", "planned_n_rep"),
+    names(policy)
+  )
+  if (length(missing_policy) > 0L) {
+    stop(
+      "`policy` is missing ",
+      paste(missing_policy, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  phase18_structured_re_ademp_assert_positive_number(
+    policy$target_mcse,
+    "policy$target_mcse"
+  )
+  assert_positive_whole_number(policy$planned_n_rep, "policy$planned_n_rep")
+
+  denominators <- phase18_structured_re_ademp_denominators(
+    replicates = replicates,
+    by = by
+  )
+  groups <- split(
+    seq_len(nrow(replicates)),
+    interaction(replicates[by], drop = TRUE, lex.order = TRUE)
+  )
+  status_rows <- lapply(groups, function(i) {
+    x <- replicates[i, , drop = FALSE]
+    n_not_run <- sum(x$fit_status == "not_run")
+    n_not_evaluated <- sum(x$interval_status == "not_evaluated")
+    data.frame(
+      x[1L, by, drop = FALSE],
+      n_fit_not_run = n_not_run,
+      n_interval_not_evaluated = n_not_evaluated,
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  status_rows <- do.call(rbind, status_rows)
+  row.names(status_rows) <- NULL
+  gate <- merge(
+    denominators,
+    status_rows,
+    by = by,
+    all.x = TRUE,
+    sort = FALSE
+  )
+
+  target_mcse <- policy$target_mcse[[1L]]
+  planned_n_rep <- policy$planned_n_rep[[1L]]
+  gate$planned_n_rep <- planned_n_rep
+  gate$target_mcse <- target_mcse
+  gate$replicate_count_met <- gate$n_total >= planned_n_rep
+  gate$interval_evaluation_complete <- gate$n_interval_not_evaluated == 0L
+  gate$mcse_met <- !is.na(gate$coverage_mcse) &
+    gate$coverage_mcse <= target_mcse
+
+  reasons <- Map(
+    function(n_total, n_not_run, n_not_evaluated, coverage_mcse, n_finite) {
+      out <- character()
+      if (n_total < planned_n_rep) {
+        out <- c(out, "planned_n_rep_not_met")
+      }
+      if (n_not_run > 0L) {
+        out <- c(out, "fit_rows_not_run")
+      }
+      if (n_not_evaluated > 0L) {
+        out <- c(out, "interval_rows_not_evaluated")
+      }
+      if (n_finite == 0L) {
+        out <- c(out, "no_finite_intervals")
+      }
+      if (is.na(coverage_mcse) || coverage_mcse > target_mcse) {
+        out <- c(out, "coverage_mcse_unavailable_or_above_target")
+      }
+      if (length(out) == 0L) {
+        "none"
+      } else {
+        paste(out, collapse = ";")
+      }
+    },
+    gate$n_total,
+    gate$n_fit_not_run,
+    gate$n_interval_not_evaluated,
+    gate$coverage_mcse,
+    gate$n_interval_finite
+  )
+  gate$blocked_reasons <- unlist(reasons, use.names = FALSE)
+  gate$gate_status <- ifelse(
+    gate$blocked_reasons == "none",
+    "eligible_for_review",
+    "blocked"
+  )
+  gate$claim_boundary <- "calibration gate only; no coverage claim"
+  gate
+}
+
 phase18_structured_re_ademp_denominators <- function(
   replicates,
   by = c("cell_id", "dimension")
@@ -327,6 +432,241 @@ phase18_structured_re_ademp_denominators <- function(
     )
   })
   out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_structured_re_q4_interval_diagnostic_plan <- function(
+  level = 0.95,
+  target_mcse = 0.01,
+  planned_n_rep = NULL
+) {
+  policy <- phase18_structured_re_ademp_mcse_policy(
+    level = level,
+    target_mcse = target_mcse,
+    planned_n_rep = planned_n_rep
+  )
+  planned_n_rep <- policy$planned_n_rep[[1L]]
+  mcse_label <- paste0("coverage_mcse<=", format(policy$target_mcse[[1L]]))
+  denominator_fields <- paste(
+    c(
+      "coverage_denominator",
+      "n_total",
+      "n_fit_ok",
+      "n_failed_fit",
+      "n_interval_finite",
+      "n_interval_unavailable",
+      "coverage_mcse"
+    ),
+    collapse = ";"
+  )
+
+  direct_axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  direct_rows <- data.frame(
+    diagnostic_id = paste0("q4_interval_diagnostic_sd_", direct_axes),
+    slice_id = "SR150",
+    target = "gaussian_q4_phylo",
+    target_kind = "direct_sd",
+    axis_pair = direct_axes,
+    direct_sd_target = paste0("sd_", direct_axes),
+    derived_correlation_target = "not_applicable",
+    interval_methods = "wald;profile;bootstrap",
+    required_fit_evidence = paste0(
+      "converged_pdhess_true_replicates>=",
+      planned_n_rep
+    ),
+    required_interval_evidence = paste0(
+      "finite_direct_sd_intervals_by_method;",
+      mcse_label
+    ),
+    denominator_fields = denominator_fields,
+    current_blocker = "pilot_has_zero_converged_q4_rows_and_zero_finite_intervals",
+    status = "planned",
+    evidence_url = "docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-plan.md",
+    claim_boundary = paste(
+      "Q4 interval diagnostic plan only;",
+      "no q4 interval reliability, interval coverage, q4 REML,",
+      "AI-REML, or broad bridge support is promoted."
+    ),
+    next_gate = "Run deterministic q4 interval diagnostics before calibrated coverage wording.",
+    stringsAsFactors = FALSE
+  )
+
+  pairs <- c(
+    "mu1_mu2",
+    "mu1_sigma1",
+    "mu1_sigma2",
+    "mu2_sigma1",
+    "mu2_sigma2",
+    "sigma1_sigma2"
+  )
+  derived_rows <- data.frame(
+    diagnostic_id = paste0("q4_interval_diagnostic_cor_", pairs),
+    slice_id = "SR150",
+    target = "gaussian_q4_phylo",
+    target_kind = "derived_correlation",
+    axis_pair = pairs,
+    direct_sd_target = "not_direct",
+    derived_correlation_target = paste0("cor_", pairs),
+    interval_methods = "wald;profile;bootstrap",
+    required_fit_evidence = paste0(
+      "corpairs_point_reconstruction_and_converged_replicates>=",
+      planned_n_rep
+    ),
+    required_interval_evidence = paste0(
+      "finite_derived_correlation_intervals_by_method;",
+      mcse_label
+    ),
+    denominator_fields = denominator_fields,
+    current_blocker = "derived_correlation_interval_reconstruction_not_available",
+    status = "planned",
+    evidence_url = "docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-plan.md",
+    claim_boundary = paste(
+      "Q4 derived-correlation interval diagnostic plan only;",
+      "no q4 interval reliability, interval coverage, q4 REML,",
+      "AI-REML, or broad bridge support is promoted."
+    ),
+    next_gate = "Bank q4 corpairs reconstruction and finite interval diagnostics before calibrated coverage wording.",
+    stringsAsFactors = FALSE
+  )
+
+  out <- rbind(direct_rows, derived_rows)
+  row.names(out) <- NULL
+  out
+}
+
+phase18_structured_re_q4_interval_diagnostic_status <- function(
+  pilot_rows,
+  source_artifact = "docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-rows.csv"
+) {
+  if (!is.data.frame(pilot_rows)) {
+    stop("`pilot_rows` must be a data frame.", call. = FALSE)
+  }
+  missing <- setdiff(
+    c(
+      "cell",
+      "target",
+      "fit_ok",
+      "converged",
+      "pdHess",
+      "lower",
+      "upper",
+      "conf_status"
+    ),
+    names(pilot_rows)
+  )
+  if (length(missing) > 0L) {
+    stop(
+      "`pilot_rows` is missing ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(source_artifact) ||
+      length(source_artifact) != 1L ||
+      !nzchar(source_artifact)
+  ) {
+    stop("`source_artifact` must be one non-empty string.", call. = FALSE)
+  }
+
+  plan <- phase18_structured_re_q4_interval_diagnostic_plan()
+  direct_rows <- plan[plan$target_kind == "direct_sd", , drop = FALSE]
+  derived_rows <- plan[
+    plan$target_kind == "derived_correlation",
+    ,
+    drop = FALSE
+  ]
+  direct_status <- lapply(seq_len(nrow(direct_rows)), function(i) {
+    row <- direct_rows[i, , drop = FALSE]
+    target_label <- paste0(
+      "sd:mu:",
+      row$axis_pair[[1L]],
+      ":phylo(1 | p | species)"
+    )
+    observed <- pilot_rows[
+      pilot_rows$cell == "q4_phylo_all_four" &
+        pilot_rows$target == target_label,
+      ,
+      drop = FALSE
+    ]
+    finite <- is.finite(observed$lower) & is.finite(observed$upper)
+    conf_status <- unique(stats::na.omit(as.character(observed$conf_status)))
+    interval_status <- if (any(finite)) {
+      "finite_wald_observed"
+    } else if (length(conf_status) > 0L) {
+      paste(conf_status, collapse = ";")
+    } else {
+      "not_evaluated"
+    }
+    failure_class <- if (nrow(observed) == 0L) {
+      "no_q4_pilot_target_rows"
+    } else if (any(finite)) {
+      "finite_interval_observed_diagnostic_only"
+    } else {
+      "nonconverged_or_pdhess_false;no_finite_wald_intervals"
+    }
+    data.frame(
+      diagnostic_id = paste0("q4_interval_status_sd_", row$axis_pair),
+      slice_id = "SR150",
+      target = "gaussian_q4_phylo",
+      target_kind = row$target_kind,
+      axis_pair = row$axis_pair,
+      direct_sd_target = row$direct_sd_target,
+      derived_correlation_target = row$derived_correlation_target,
+      source_artifact = source_artifact,
+      observed_target_rows = nrow(observed),
+      n_fit_ok = sum(as.logical(observed$fit_ok), na.rm = TRUE),
+      n_converged = sum(as.logical(observed$converged), na.rm = TRUE),
+      n_pdhess = sum(as.logical(observed$pdHess), na.rm = TRUE),
+      n_finite_intervals = sum(finite),
+      interval_status = interval_status,
+      failure_class = failure_class,
+      interval_claim_status = "blocked",
+      status = "covered",
+      evidence_url = "docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-status.md",
+      claim_boundary = paste(
+        "Q4 interval diagnostic status only;",
+        "no q4 interval reliability, interval coverage, q4 REML,",
+        "AI-REML, or broad bridge support is promoted."
+      ),
+      next_gate = "Diagnose q4 convergence and pdHess failures before rerunning finite interval diagnostics.",
+      stringsAsFactors = FALSE
+    )
+  })
+  derived_status <- lapply(seq_len(nrow(derived_rows)), function(i) {
+    row <- derived_rows[i, , drop = FALSE]
+    data.frame(
+      diagnostic_id = paste0("q4_interval_status_cor_", row$axis_pair),
+      slice_id = "SR150",
+      target = "gaussian_q4_phylo",
+      target_kind = row$target_kind,
+      axis_pair = row$axis_pair,
+      direct_sd_target = row$direct_sd_target,
+      derived_correlation_target = row$derived_correlation_target,
+      source_artifact = source_artifact,
+      observed_target_rows = 0L,
+      n_fit_ok = 0L,
+      n_converged = 0L,
+      n_pdhess = 0L,
+      n_finite_intervals = 0L,
+      interval_status = "derived_interval_not_reconstructed",
+      failure_class = "derived_correlation_interval_reconstruction_not_available",
+      interval_claim_status = "blocked",
+      status = "covered",
+      evidence_url = "docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-status.md",
+      claim_boundary = paste(
+        "Q4 derived-correlation interval diagnostic status only;",
+        "no q4 interval reliability, interval coverage, q4 REML,",
+        "AI-REML, or broad bridge support is promoted."
+      ),
+      next_gate = "Implement derived-correlation interval reconstruction before calibrated coverage wording.",
+      stringsAsFactors = FALSE
+    )
+  })
+
+  out <- do.call(rbind, c(direct_status, derived_status))
   row.names(out) <- NULL
   out
 }

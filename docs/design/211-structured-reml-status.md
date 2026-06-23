@@ -46,5 +46,12 @@ native TMB engine. It is not HSquared AI-REML. Direct DRM.jl q4 REML evidence
 is direct Julia evidence only until an R-to-Julia bridge row proves parity for
 that exact cell.
 
+The R-to-Julia bridge now has live q1 Gaussian sigma-only and matched
+`mu+sigma` phylogenetic REML admission tests in
+`tests/testthat/test-julia-sigma-phylo-reml.R`. Those tests prove finite,
+effective-REML bridge admission for those exact cells only. They do not change
+the native TMB rejection list above, do not prove native/direct/R-via-Julia ML
+same-target parity, and do not create public bridge support wording.
+
 This note does not promote native q4 REML, non-Gaussian REML, R bridge support,
 public optimizer controls, or calibrated interval coverage.

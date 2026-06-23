@@ -20,8 +20,8 @@ The local evidence map is materially clearer than before:
   exact-Gaussian and mean-side-only in current drmTMB; scale-side,
   matched `mu+sigma`, q2, and q4 phylogenetic REML reject early.
 - The R-via-Julia bridge has experimental sigma-phylo and matched sigma-phylo
-  REML gates, including a configured live smoke, but it is not a promoted
-  bridge route.
+  REML gates, including configured live bridge-admission tests for both cells,
+  but it is not a promoted bridge route.
 - Native q4 ML is diagnostic point/status evidence. q4 SD targets can be
   direct-ready, but q4 correlations are derived-only and interval support is
   not calibrated.

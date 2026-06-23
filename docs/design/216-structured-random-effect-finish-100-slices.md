@@ -16,10 +16,31 @@ The validator-owned source table is:
 
 The handoff into SR101-SR200 is:
 
-- SR001-SR100: 91 banked rows and 9 blocked rows.
+- SR001-SR100: 92 banked rows and 8 blocked rows after the q1 mean-phylo
+  Route A parity blocker moved to banked experimental evidence.
 - SR064-SR066 are banked only as pilot-accounting rows, not as interval
   reliability.
-- SR073-SR075 remain blocked because bridge smoke is not row-complete parity.
+- SR073 is now banked for one deterministic q1 mean-phylo ML parity fixture.
+  SR074-SR075 remain blocked because their bridge smoke is not row-complete
+  parity.
+- Within the SR101-SR200 tranche, SR111 banks the q1 mean-phylo Route A ML
+  parity fixture, SR112 now banks q1 sigma-only phylo ML parity plus separate
+  bridge-only REML admission, and SR113 banks q1 matched `mu` plus `sigma`
+  phylo ML parity for one repeated-species native R/TMB, direct DRM.jl, and
+  R-via-Julia fixture. SR114 now banks q1 Gaussian `relmat()` mean-side ML
+  parity for one K-matrix fixture across the same three evidence routes.
+  SR115 now banks q1 Gaussian `animal()` mean-side ML parity for one A-matrix
+  fixture across those routes. SR116 now banks q1 Gaussian `spatial()`
+  mean-side ML parity for one coordinate fixture by converting coords to the
+  same fixed-range K target that native drmTMB uses before calling DRM.jl.
+  SR117 now banks one q1 Poisson `phylo()` mean-side ML/Laplace bridge parity
+  fixture with approximate native dense-TMB and R-via-Julia tolerances. SR118
+  now banks q1 unsupported-route preflight errors for structured sigma
+  predictors, precision slots, and malformed covariance matrices. SR119 now
+  banks q1 coefficient-scale maps for fixed link-scale coefficients,
+  response-scale structured SDs, and coupled phylo Cholesky reconstruction.
+  SR120 banks the q1 acceptance gate tying fixtures, tolerances, scale maps,
+  and negative preflight evidence together before q2 work begins.
 - SR091, SR093, SR095-SR097, and SR099 remain blocked by live issue access,
   reply drafting/approval, public posting, posted-URL recording, or commit
   approval.
@@ -76,16 +97,81 @@ coverage claim.
     with approval, scan exact text, post only after approval, and record the
     public URL.
 
-## Opening Disposition
+## Current Disposition
 
-The opening SR101-SR200 ledger intentionally banks only the first governance
-wave. The remaining rows are queued or blocked because their evidence has not
-been produced yet.
+The opening SR101-SR200 ledger banked the first governance wave. The current
+execution has also banked the q1 mean-phylo, q1 sigma-only, q1 matched `mu`
+plus `sigma`, q1 `spatial()` mean-side, q1 `relmat()` mean-side, q1
+`animal()` mean-side ML parity evidence, and one q1 Poisson `phylo()`
+mean-side ML/Laplace bridge parity fixture. It also banks the q1 unsupported
+structured-route preflight errors as negative evidence and the q1
+coefficient-scale reconstruction map as contract evidence. SR120 banks the q1
+acceptance gate as a transition gate, not as broad bridge support. SR121 banks
+the q2 payload-boundary contract and coefficient-ordering fixture while keeping
+R-via-Julia q2 parity unavailable. SR122 banks coordinate-spatial q2 native ML
+point evidence while keeping bridge support planned. SR123 and SR124 bank animal
+and `relmat()` q2 native ML point evidence with the same bridge boundary. SR125
+banks q2-plus-q2 target separation as boundary evidence, not as full q4 or
+bridge support. SR126 banks scale-only q2 structured-block rejections for
+`spatial()`, `animal()`, and `relmat()` as negative evidence only. SR127 banks
+the q2 coefficient-ordering map as fixture-level contract evidence only. SR128
+banks the direct DRM.jl q2 export/status contract for `phylo()`, `spatial()`,
+`animal()`, and `relmat()` as narrow direct fixture evidence: phylo same-target
+ML, animal/relmat known-covariance, and spatial fixed-covariance only. SR129
+banks q2 payload provenance for source repositories, branches, heads, payload
+version, estimator, endpoint, matrix ID, matrix digest, matrix levels, version
+fields, and dirty-state policy. SR130 banks the q2 parity acceptance gate for
+one complete-response exact-Gaussian ML native/direct/R-via-Julia fixture per
+structured type: phylo, animal, `relmat()`, and fixed-covariance coordinate
+`spatial()`. Aggregate q2 support remains fixture-scoped only; range-estimating
+spatial, q2 REML, q4, broad bridge support, and interval coverage are not
+accepted. SR132 banks the q4 phylogenetic covariance target map for four direct SD targets and six
+derived correlations while SR131 remains blocked. SR133 records the q4
+`corpairs()` parity blocker: bridge point extraction exists, but native R/TMB,
+direct DRM.jl, and R-via-Julia have not been compared on the same q4 fixture.
+SR134 banks the q4 profile-target bridge map for the four direct SD axes while
+keeping profile-interval reliability, q4 parity, q4 REML, AI-REML, and interval
+coverage out of scope. SR136 banks the q4 scale-axis interval-failure ledger
+for `sd_sigma1` and `sd_sigma2`, keeping native refit failures and direct
+DRM.jl undercoverage visible as blockers. SR137 banks direct DRM.jl q4 point
+SD export rows for `sd_mu1`, `sd_mu2`, `sd_sigma1`, and `sd_sigma2` while
+leaving R-via-Julia q4 bridge parity unevaluated. SR138 banks the deterministic
+balanced8 q4 fixture data and known `Sigma_a` metadata needed for same-target
+native/direct/bridge point comparisons. SR139 predeclares q4 point-parity
+tolerances for log likelihood, fixed coefficients, direct SDs, and derived
+correlations. SR140 records that q4 parity acceptance remains blocked until the
+same-fixture native/direct/bridge point comparison, `corpairs()` parity, and
+interval-reliability evidence exist. The remaining rows are queued or blocked
+because their evidence has not been produced yet.
 
-The first implementation target should be SR111-SR120: a q1 bridge parity
-fixture that can compare native R/TMB, direct DRM.jl, and R-via-Julia on one
-deterministic target scale. Once that pattern is stable, extend it to q2 and
-q4 rather than writing bespoke parity checks for each route.
+The next implementation target remains in the q4 wave: SR131 is blocked until
+all-four parity evidence exists, SR133 is blocked until same-fixture corpairs
+parity exists, and SR135 remains blocked until requested/effective q4 REML
+wording can be audited without treating Patterson-Thompson REML as HSquared
+AI-REML. SR136 does not change interval wording; it records why q4 scale-axis
+interval wording remains blocked. SR137 does not change bridge wording; it
+records direct-Julia point targets before same-fixture parity work. SR138 is
+fixture evidence only; it is not a parity result. SR139 is tolerance policy
+only; it is not parity acceptance. SR140 is a blocker, not a support transition.
+SR141 banks the q1, q2, and q4 ADEMP coverage-design rows as design-only
+evidence: data-generating mechanisms, estimands, methods, performance
+measures, MCSE targets, failed-fit denominators, and interval policies are
+written before any calibrated grid is run. It is not a coverage result.
+SR142-SR149 bank coverage-calibration infrastructure only: q1/q2/q4 scaffold
+rows, interval-method separation, bootstrap accounting fields, MCSE targets,
+failure taxonomy, and a report template. SR150 remains blocked until real
+replicate outputs replace mock rows and finite-interval accounting plus MCSE
+support a calibrated claim. SR151-SR159 bank native REML scope status:
+source-map rows, q1 mean-side allowed wording, sigma/q2/q4 rejection or
+feasibility rows, Patterson-Thompson wording, requested/effective estimator
+diagnostic fields, public optimizer gating, and non-Gaussian wording scans.
+Unsupported cells remain unsupported. SR160 records the blocked REML acceptance
+gate, and SR161-SR170 bank structured-type gap scope rows for mesh/SPDE,
+sparse animal pedigree helpers, `relmat()` precision `Q`, q1-only
+`phylo_interaction()`, direct-SD grammar, structured slopes, structured
+`rho12`, non-Gaussian q2/q4 structured covariance, and the type-gap acceptance
+gate. The q2 rows must reuse the q1 evidence ladder without borrowing q4,
+REML, interval, or current bridge-support wording.
 
 ## Claim Boundary
 

@@ -8,6 +8,25 @@ This file is for process improvements, not package feature requests. Product
 or statistical-design changes still belong in roadmap files, design docs,
 issues, or pull requests.
 
+## 2026-06-23 - DRAC Compute Resource Gate
+
+- Improvement implemented: DRAC and other shared compute resources should be
+  used only when local or `totoro` pilots are insufficient for the current
+  evidence gate. A passing plan is not enough to dispatch a large grid.
+- Improvement implemented: the standing team covers the core checks but not
+  full cluster operations as a named specialty. Ada integrates the decision,
+  Curie owns simulation design and shard balance, Fisher owns MCSE and
+  inferential adequacy, Grace owns reproducibility and file isolation, and Rose
+  blocks overclaiming. Scheduler details, module systems, quotas, storage
+  cleanup, and fair-use rules need either explicit user confirmation or a
+  dedicated cluster-ops reviewer before DRAC dispatch.
+- Improvement implemented: every DRAC plan should have three gates: a local or
+  `totoro` pilot, a two-shard rehearsal with private outputs and aggregation,
+  and only then a full job-array or worker dispatch.
+- Trigger: the r57 q4 derived-correlation shard plan made DRAC execution
+  technically possible, but the user correctly flagged that shared compute
+  should not be used unless the evidence value justifies it.
+
 ## 2026-05-30 - Deprecated Alias Drift Guard
 
 - Improvement implemented: prose review now treats `meta_V(V = V)` as the

@@ -1,0 +1,5 @@
+seed	n_tip	n_each	sd_scale	corr_offdiag	axis	parm	fit_convergence	pdHess	max_gradient	profile_precision	profile_elapsed_sec	lower	upper	profile_engine	conf_status	profile_boundary	profile_message	diagnostic_class
+202606902	32	8	0.50	0.05	mu1	sd:mu:mu1:phylo(1 | p | species)	0	TRUE	0.0009231771	fast	95.985	0.7369947	1.2513073	tmbprofile	profile	FALSE	ok	all_direct_profile_finite_direct_sd_interval
+202606902	32	8	0.50	0.05	mu2	sd:mu:mu2:phylo(1 | p | species)	0	TRUE	0.0009231771	fast	95.985	0.6944433	1.1536266	tmbprofile	profile	FALSE	ok	all_direct_profile_finite_direct_sd_interval
+202606902	32	8	0.50	0.05	sigma1	sd:mu:sigma1:phylo(1 | p | species)	0	TRUE	0.0009231771	fast	95.985	0.2956858	0.7575208	tmbprofile	profile	FALSE	ok	all_direct_profile_finite_direct_sd_interval
+202606902	32	8	0.50	0.05	sigma2	sd:mu:sigma2:phylo(1 | p | species)	0	TRUE	0.0009231771	fast	95.985	0.1851932	0.5901206	tmbprofile	profile	FALSE	ok	all_direct_profile_finite_direct_sd_interval

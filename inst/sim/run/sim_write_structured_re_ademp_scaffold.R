@@ -32,7 +32,16 @@ phase18_write_structured_re_ademp_scaffold <- function(
     planned_n_rep = n_rep
   )
   accounting_template <- phase18_structured_re_ademp_accounting_template()
+  q4_interval_diagnostic_plan <- phase18_structured_re_q4_interval_diagnostic_plan(
+    level = level,
+    target_mcse = target_mcse,
+    planned_n_rep = n_rep
+  )
   pilot_summary <- phase18_structured_re_ademp_pilot_summary(registry)
+  calibration_gate <- phase18_structured_re_ademp_calibration_gate(
+    pilot_summary$replicates,
+    policy = policy
+  )
 
   utils::write.csv(registry$cells, paths$cells_csv, row.names = FALSE)
   utils::write.csv(registry$seeds, paths$seeds_csv, row.names = FALSE)
@@ -40,6 +49,11 @@ phase18_write_structured_re_ademp_scaffold <- function(
   utils::write.csv(
     accounting_template,
     paths$accounting_template_csv,
+    row.names = FALSE
+  )
+  utils::write.csv(
+    q4_interval_diagnostic_plan,
+    paths$q4_interval_diagnostic_plan_csv,
     row.names = FALSE
   )
   utils::write.csv(
@@ -52,6 +66,11 @@ phase18_write_structured_re_ademp_scaffold <- function(
     paths$pilot_denominators_csv,
     row.names = FALSE
   )
+  utils::write.csv(
+    calibration_gate,
+    paths$calibration_gate_csv,
+    row.names = FALSE
+  )
 
   list(
     surface = "structured_re_ademp_scaffold",
@@ -62,8 +81,10 @@ phase18_write_structured_re_ademp_scaffold <- function(
     registry = registry,
     mcse_policy = policy,
     accounting_template = accounting_template,
+    q4_interval_diagnostic_plan = q4_interval_diagnostic_plan,
     pilot_replicates = pilot_summary$replicates,
     pilot_denominators = pilot_summary$denominators,
+    calibration_gate = calibration_gate,
     artifact_manifest = phase18_grid_artifact_manifest(
       "structured_re_ademp_scaffold",
       paths
@@ -83,6 +104,10 @@ phase18_structured_re_ademp_scaffold_paths <- function(table_dir) {
       table_dir,
       "structured-re-ademp-accounting-template.csv"
     ),
+    q4_interval_diagnostic_plan_csv = file.path(
+      table_dir,
+      "structured-re-q4-interval-diagnostic-plan.csv"
+    ),
     pilot_replicates_csv = file.path(
       table_dir,
       "structured-re-ademp-pilot-replicates.csv"
@@ -90,6 +115,10 @@ phase18_structured_re_ademp_scaffold_paths <- function(table_dir) {
     pilot_denominators_csv = file.path(
       table_dir,
       "structured-re-ademp-pilot-denominators.csv"
+    ),
+    calibration_gate_csv = file.path(
+      table_dir,
+      "structured-re-ademp-calibration-gate.csv"
     )
   )
 }

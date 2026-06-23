@@ -1,0 +1,5 @@
+seed	n_tip	n_each	sd_scale	corr_offdiag	fit_ok	convergence	converged	pdHess	max_gradient	min_direct_sd_estimate	max_abs_derived_correlation	finite_wald_direct_sd_intervals	direct_sd_interval_status	elapsed_sec	message	diagnostic_class
+202606903	32	8	0.35	0.05	TRUE	0	TRUE	TRUE	0.0005086443	0.2763767	0.4563727	4_of_4	wald_finite	2.439	relative convergence (4)	converged_pdhess_true_finite_wald_direct_sd_intervals
+202606904	32	8	0.35	0.05	TRUE	1	FALSE	FALSE	0.0005266354	0.2351468	0.7138606	not_evaluated	pdhess_false	2.990	singular convergence (7)	nonconverged_or_pdhess_false_denominator_row
+202606903	32	8	0.50	0.05	TRUE	0	TRUE	TRUE	0.0048295879	0.4295070	0.4155418	4_of_4	wald_finite	2.251	relative convergence (4)	converged_pdhess_true_finite_wald_direct_sd_intervals
+202606904	32	8	0.50	0.05	TRUE	0	TRUE	TRUE	0.0004270074	0.3717247	0.6081273	4_of_4	wald_finite	2.401	relative convergence (4)	converged_pdhess_true_finite_wald_direct_sd_intervals

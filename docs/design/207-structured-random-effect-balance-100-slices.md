@@ -71,11 +71,12 @@ design evidence. SR051-SR060 are banked by exact-Gaussian native REML support
 and rejection evidence. SR061-SR090 are banked by inference, labelled
 coverage-pilot accounting, bridge-readiness, and docs closeout notes.
 SR064-SR066 are pilot-only: they bank target/failure/MCSE accounting, not
-coverage reliability. SR073-SR075 remain blocked because bridge parity is not
-row-complete, even though a guarded live bridge smoke passed on 2026-06-22.
+coverage reliability. SR073 is now banked by one deterministic q1 mean-phylo
+ML Route A parity fixture. SR074-SR075 remain blocked because their bridge
+parity is not row-complete, even though guarded live bridge evidence exists.
 SR091, SR093, SR095-SR097, and SR099 remain blocked by live issue access, draft
 approval, maintainer approval, public posting, posted-URL recording, or commit
 approval. SR100 is banked by the tracked 2026-06-22 check-log entry that records
 the local recovery checkpoint. After the coverage unblock pass and bridge smoke
-audit the ledger has 91 banked rows and 9 blocked rows. A row becomes banked
+audit the ledger has 92 banked rows and 8 blocked rows. A row becomes banked
 only when its evidence path exists and the validator accepts it.
