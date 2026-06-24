@@ -125,34 +125,34 @@ one complete-response exact-Gaussian ML native/direct/R-via-Julia fixture per
 structured type: phylo, animal, `relmat()`, and fixed-covariance coordinate
 `spatial()`. Aggregate q2 support remains fixture-scoped only; range-estimating
 spatial, q2 REML, q4, broad bridge support, and interval coverage are not
-accepted. SR132 banks the q4 phylogenetic covariance target map for four direct SD targets and six
-derived correlations while SR131 remains blocked. SR133 records the q4
-`corpairs()` parity blocker: bridge point extraction exists, but native R/TMB,
-direct DRM.jl, and R-via-Julia have not been compared on the same q4 fixture.
-SR134 banks the q4 profile-target bridge map for the four direct SD axes while
-keeping profile-interval reliability, q4 parity, q4 REML, AI-REML, and interval
-coverage out of scope. SR136 banks the q4 scale-axis interval-failure ledger
-for `sd_sigma1` and `sd_sigma2`, keeping native refit failures and direct
-DRM.jl undercoverage visible as blockers. SR137 banks direct DRM.jl q4 point
-SD export rows for `sd_mu1`, `sd_mu2`, `sd_sigma1`, and `sd_sigma2` while
-leaving R-via-Julia q4 bridge parity unevaluated. SR138 banks the deterministic
-balanced8 q4 fixture data and known `Sigma_a` metadata needed for same-target
-native/direct/bridge point comparisons. SR139 predeclares q4 point-parity
-tolerances for log likelihood, fixed coefficients, direct SDs, and derived
-correlations. SR140 records that q4 parity acceptance remains blocked until the
-same-fixture native/direct/bridge point comparison, `corpairs()` parity, and
-interval-reliability evidence exist. The remaining rows are queued or blocked
-because their evidence has not been produced yet.
+accepted. SR131, SR133, and SR140 now bank calibrated q4 point evidence: the
+same-fixture native R/TMB, direct DRM.jl, and R-via-Julia point comparison,
+`corpairs()` point parity, and the q4 point-parity acceptance gate are banked
+for log likelihood, fixed coefficients, direct SD targets, and derived
+correlations. SR132 banks the q4 phylogenetic covariance target map for four
+direct SD targets and six derived correlations, and SR134 banks the q4
+profile-target bridge map for the four direct SD axes. These q4 rows are point
+and extractor evidence only: q4 interval reliability, q4 interval coverage, q4
+REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML,
+and broad bridge support remain unpromoted. SR136 banks the q4 scale-axis
+interval-failure ledger for `sd_sigma1` and `sd_sigma2`, keeping native refit
+failures and direct DRM.jl undercoverage visible as blockers. SR137 banks
+direct DRM.jl q4 point SD export rows for `sd_mu1`, `sd_mu2`, `sd_sigma1`, and
+`sd_sigma2`. SR138 banks the deterministic balanced8 q4 fixture data and known
+`Sigma_a` metadata, and SR139 predeclares q4 point-parity tolerances for log
+likelihood, fixed coefficients, direct SDs, and derived correlations. The
+remaining rows are queued or blocked because their evidence has not been
+produced yet.
 
-The next implementation target remains in the q4 wave: SR131 is blocked until
-all-four parity evidence exists, SR133 is blocked until same-fixture corpairs
-parity exists, and SR135 remains blocked until requested/effective q4 REML
+The next implementation target moves out of point parity and into the guarded
+q4 inference boundary: SR135 remains blocked until requested/effective q4 REML
 wording can be audited without treating Patterson-Thompson REML as HSquared
-AI-REML. SR136 does not change interval wording; it records why q4 scale-axis
-interval wording remains blocked. SR137 does not change bridge wording; it
-records direct-Julia point targets before same-fixture parity work. SR138 is
-fixture evidence only; it is not a parity result. SR139 is tolerance policy
-only; it is not parity acceptance. SR140 is a blocker, not a support transition.
+AI-REML, and SR150 remains blocked until calibrated finite-interval denominator
+and MCSE evidence exists. SR136 does not change interval wording; it records
+why q4 scale-axis interval wording remains blocked. SR137 does not change
+bridge wording; it records direct-Julia point targets. SR138 is fixture data,
+SR139 is tolerance policy, and SR140 is point-parity acceptance only, not an
+interval, coverage, REML, AI-REML, or support transition.
 SR141 banks the q1, q2, and q4 ADEMP coverage-design rows as design-only
 evidence: data-generating mechanisms, estimands, methods, performance
 measures, MCSE targets, failed-fit denominators, and interval policies are

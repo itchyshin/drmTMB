@@ -49,6 +49,211 @@ structured_re_expect_all_match <- function(x, pattern, fixed = TRUE) {
   expect_equal(grepl(pattern, x, fixed = fixed), rep(TRUE, length(x)))
 }
 
+test_that("q-series support-cell dashboard owns exact structured rows", {
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    qseries,
+    c(
+      "cell_id",
+      "formula_cell",
+      "family_class",
+      "family",
+      "structure_provider",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "covariance_layout",
+      "route",
+      "estimator_requested",
+      "estimator_effective",
+      "fit_status",
+      "extractor_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "authority_status",
+      "evidence_url",
+      "claim_boundary",
+      "denominator_policy",
+      "next_gate"
+    )
+  )
+  expect_equal(anyDuplicated(qseries$cell_id), 0L)
+  expect_false(any(qseries$cell_id == ""))
+
+  required_cells <- c(
+    "qseries_ordinary_q1_intercept",
+    "qseries_ordinary_q1_independent_slope",
+    "qseries_ordinary_q2_mu1_mu2_intercept",
+    "qseries_ordinary_q8_all_endpoint_one_slope",
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_phylo_q1_sigma_intercept",
+    "qseries_phylo_q1_mu_sigma_intercept",
+    "qseries_phylo_q1_mu_one_slope",
+    "qseries_spatial_q1_mu_one_slope",
+    "qseries_animal_q1_mu_one_slope",
+    "qseries_relmat_q1_mu_one_slope",
+    "qseries_phylo_q1_sigma_one_slope_planned",
+    "qseries_spatial_q1_sigma_one_slope_planned",
+    "qseries_animal_q1_sigma_one_slope_planned",
+    "qseries_relmat_q1_sigma_one_slope_planned",
+    "qseries_phylo_q2_mu1_mu2_intercept",
+    "qseries_spatial_q2_mu1_mu2_intercept",
+    "qseries_animal_q2_mu1_mu2_intercept",
+    "qseries_relmat_q2_mu1_mu2_intercept",
+    "qseries_phylo_q2_plus_q2_intercept",
+    "qseries_spatial_q2_plus_q2_sigma_rejected",
+    "qseries_animal_q2_plus_q2_sigma_rejected",
+    "qseries_relmat_q2_plus_q2_sigma_rejected",
+    "qseries_phylo_q4_all_four_intercept",
+    "qseries_spatial_q4_all_four_intercept",
+    "qseries_animal_q4_all_four_intercept",
+    "qseries_relmat_q4_all_four_intercept",
+    "qseries_phylo_q6_planned",
+    "qseries_spatial_q6_planned",
+    "qseries_animal_q6_planned",
+    "qseries_relmat_q6_planned",
+    "qseries_phylo_q8_planned",
+    "qseries_spatial_q8_planned",
+    "qseries_animal_q8_planned",
+    "qseries_relmat_q8_planned",
+    "qseries_phylo_interaction_q1_mu",
+    "qseries_phylo_poisson_q1_mu_intercept",
+    "qseries_phylo_nbinom2_q1_mu_intercept",
+    "qseries_nongaussian_structured_slopes_planned",
+    "qseries_phylo_direct_sd_univariate",
+    "qseries_phylo_direct_sd_bivariate"
+  )
+  expect_true(all(required_cells %in% qseries$cell_id))
+
+  evidence_statuses <- c(
+    "planned",
+    "unsupported",
+    "parser_ready",
+    "point_fit",
+    "extractor_ready",
+    "fixture_parity",
+    "interval_feasible",
+    "inference_ready",
+    "supported",
+    "diagnostic_only",
+    "blocked"
+  )
+  for (field in c(
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status"
+  )) {
+    expect_setequal(
+      setdiff(unique(qseries[[field]]), evidence_statuses),
+      character()
+    )
+  }
+
+  structured_q8 <- qseries[
+    qseries$dimension_pattern == "q8" &
+      qseries$structure_provider != "ordinary",
+    ,
+    drop = FALSE
+  ]
+  expect_true(all(
+    structured_q8$fit_status %in%
+      c(
+        "planned",
+        "unsupported",
+        "blocked"
+      )
+  ))
+
+  q4_rows <- qseries[qseries$dimension_pattern == "q4", , drop = FALSE]
+  expect_false(any(
+    q4_rows$coverage_status %in%
+      c(
+        "inference_ready",
+        "supported"
+      )
+  ))
+
+  sigma_slope_cells <- qseries[
+    grepl("sigma_one_slope_planned", qseries$cell_id, fixed = TRUE),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(unique(sigma_slope_cells$fit_status), "planned")
+  structured_re_expect_all_match(
+    sigma_slope_cells$claim_boundary,
+    "planned",
+    fixed = TRUE
+  )
+})
+
+test_that("mu-slope parity fixture dashboard keeps phylo-only fixture boundary", {
+  fixture <- structured_re_read_dashboard_tsv(
+    "structured-re-mu-slope-parity-fixture.tsv"
+  )
+
+  expect_named(
+    fixture,
+    c(
+      "fixture_id",
+      "formula_cell",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "estimator",
+      "native_status",
+      "direct_drmjl_status",
+      "r_via_julia_status",
+      "coefficient_order",
+      "matrix_slot",
+      "input_scale",
+      "parity_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(fixture), 4L)
+  expect_setequal(
+    fixture$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+
+  implemented <- fixture[
+    fixture$structured_type %in% c("phylo", "spatial", "animal"),
+    ,
+    drop = FALSE
+  ]
+  relmat <- fixture[fixture$structured_type == "relmat", , drop = FALSE]
+
+  expect_equal(implemented$bridge_status, rep("fixture_parity", 3L))
+  expect_equal(
+    implemented$parity_status,
+    rep("covered_same_target_fixture", 3L)
+  )
+  expect_equal(
+    implemented$coefficient_order,
+    rep(
+      "mu:(Intercept);mu:x;sd_mu:structured(Intercept);sd_mu:structured(x)",
+      3L
+    )
+  )
+  expect_equal(relmat$bridge_status, "planned")
+  expect_equal(relmat$parity_status, "planned")
+  expect_equal(relmat$coefficient_order, "planned")
+  expect_match(relmat$next_gate, "K-versus-Q", fixed = TRUE)
+  structured_re_expect_all_match(fixture$claim_boundary, "coverage")
+})
+
 test_that("q4 two-shard aggregator rejects unsafe shard evidence", {
   shard_source <- structured_re_artifact_path(
     "docs",
@@ -574,6 +779,10 @@ test_that("q2 contracts separate q2, q2-plus-q2, q4, and REML", {
       "source_head",
       "matrix_id",
       "matrix_digest",
+      "matrix_slot",
+      "input_scale",
+      "missing_level_policy",
+      "bridge_marshalling",
       "endpoint",
       "required_levels",
       "version_fields",

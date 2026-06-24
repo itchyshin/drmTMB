@@ -44,6 +44,15 @@ AYUMI_BALANCE_TRACKERS = DASHBOARD / "ayumi-phylo-balance-trackers.tsv"
 AYUMI_INFERENCE_COVERAGE = DASHBOARD / "ayumi-inference-coverage-ledger.tsv"
 AYUMI_BOUNDARY_STATUS = DASHBOARD / "ayumi-boundary-status-ledger.tsv"
 STRUCTURED_RE_BALANCE_MATRIX = DASHBOARD / "structured-re-balance-matrix.tsv"
+STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS = (
+    DASHBOARD / "structured-re-q-series-support-cells.tsv"
+)
+STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
+    DASHBOARD / "structured-re-mu-slope-fixture-audit.tsv"
+)
+STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-mu-slope-parity-fixture.tsv"
+)
 STRUCTURED_RE_BALANCE_SLICE_LEDGER = DASHBOARD / "structured-re-balance-100-slices.tsv"
 STRUCTURED_RE_FINISH_SLICE_LEDGER = DASHBOARD / "structured-re-finish-100-slices.tsv"
 MEMBER_ROSTER = DASHBOARD / "member-roster.tsv"
@@ -842,6 +851,69 @@ STRUCTURED_RE_BALANCE_MATRIX_FIELDS = (
     "claim_boundary",
     "next_gate",
 )
+STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS = (
+    "cell_id",
+    "formula_cell",
+    "family_class",
+    "family",
+    "structure_provider",
+    "dimension_pattern",
+    "endpoint_set",
+    "slope_class",
+    "covariance_layout",
+    "route",
+    "estimator_requested",
+    "estimator_effective",
+    "fit_status",
+    "extractor_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "authority_status",
+    "evidence_url",
+    "claim_boundary",
+    "denominator_policy",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT_FIELDS = (
+    "audit_id",
+    "formula_cell",
+    "structure_provider",
+    "family",
+    "route",
+    "estimator",
+    "artifact_writer_status",
+    "focused_test_status",
+    "extractor_identity_status",
+    "bridge_fixture_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS = (
+    "fixture_id",
+    "formula_cell",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "estimator",
+    "native_status",
+    "direct_drmjl_status",
+    "r_via_julia_status",
+    "coefficient_order",
+    "matrix_slot",
+    "input_scale",
+    "parity_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
 STRUCTURED_RE_BALANCE_SLICE_FIELDS = HUNDRED_SLICE_FIELDS
 MEMBER_ROSTER_FIELDS = (
     "member_id",
@@ -937,6 +1009,10 @@ STRUCTURED_RE_Q2_PAYLOAD_PROVENANCE_FIELDS = (
     "source_head",
     "matrix_id",
     "matrix_digest",
+    "matrix_slot",
+    "input_scale",
+    "missing_level_policy",
+    "bridge_marshalling",
     "endpoint",
     "required_levels",
     "version_fields",
@@ -2765,6 +2841,107 @@ AYUMI_BOUNDARY_INTERVAL_STATUSES = {
     "not_claimed",
 }
 STRUCTURED_RE_TYPES = {"phylo", "spatial", "animal", "relmat", "phylo_interaction"}
+STRUCTURED_RE_Q_SERIES_PROVIDERS = STRUCTURED_RE_TYPES | {
+    "ordinary",
+    "all_structured",
+}
+STRUCTURED_RE_Q_SERIES_FAMILY_CLASSES = {
+    "gaussian",
+    "non_gaussian",
+}
+STRUCTURED_RE_Q_SERIES_DIMENSION_PATTERNS = {
+    "q1",
+    "q1_plus_q1",
+    "q2",
+    "q2_plus_q2",
+    "q4",
+    "q6",
+    "q8",
+}
+STRUCTURED_RE_Q_SERIES_SLOPE_CLASSES = {
+    "intercept_only",
+    "independent_one_slope",
+    "labelled_slope_covariance",
+    "multiple_slope",
+    "not_applicable",
+}
+STRUCTURED_RE_Q_SERIES_ROUTES = {
+    "native_tmb",
+    "native_direct_bridge_fixture",
+    "planned",
+    "unsupported",
+}
+STRUCTURED_RE_Q_SERIES_ESTIMATORS = {
+    "ML",
+    "ML_Laplace",
+    "ML_or_REML",
+    "REML",
+    "not_applicable",
+}
+STRUCTURED_RE_Q_SERIES_STATUSES = {
+    "planned",
+    "unsupported",
+    "parser_ready",
+    "point_fit",
+    "extractor_ready",
+    "fixture_parity",
+    "interval_feasible",
+    "inference_ready",
+    "supported",
+    "diagnostic_only",
+    "blocked",
+}
+STRUCTURED_RE_Q_SERIES_AUTHORITY_STATUSES = {
+    "source",
+    "derived",
+    "stale",
+    "superseded",
+}
+STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS = {
+    "qseries_ordinary_q1_intercept",
+    "qseries_ordinary_q1_independent_slope",
+    "qseries_ordinary_q2_mu1_mu2_intercept",
+    "qseries_ordinary_q4_location_one_slope",
+    "qseries_ordinary_q6_location_two_slopes",
+    "qseries_ordinary_q8_all_endpoint_one_slope",
+    "qseries_phylo_q1_mu_intercept",
+    "qseries_phylo_q1_sigma_intercept",
+    "qseries_phylo_q1_mu_sigma_intercept",
+    "qseries_phylo_q1_mu_one_slope",
+    "qseries_spatial_q1_mu_one_slope",
+    "qseries_animal_q1_mu_one_slope",
+    "qseries_relmat_q1_mu_one_slope",
+    "qseries_phylo_q1_sigma_one_slope_planned",
+    "qseries_spatial_q1_sigma_one_slope_planned",
+    "qseries_animal_q1_sigma_one_slope_planned",
+    "qseries_relmat_q1_sigma_one_slope_planned",
+    "qseries_phylo_q2_mu1_mu2_intercept",
+    "qseries_spatial_q2_mu1_mu2_intercept",
+    "qseries_animal_q2_mu1_mu2_intercept",
+    "qseries_relmat_q2_mu1_mu2_intercept",
+    "qseries_phylo_q2_plus_q2_intercept",
+    "qseries_spatial_q2_plus_q2_sigma_rejected",
+    "qseries_animal_q2_plus_q2_sigma_rejected",
+    "qseries_relmat_q2_plus_q2_sigma_rejected",
+    "qseries_phylo_q4_all_four_intercept",
+    "qseries_spatial_q4_all_four_intercept",
+    "qseries_animal_q4_all_four_intercept",
+    "qseries_relmat_q4_all_four_intercept",
+    "qseries_phylo_q6_planned",
+    "qseries_spatial_q6_planned",
+    "qseries_animal_q6_planned",
+    "qseries_relmat_q6_planned",
+    "qseries_phylo_q8_planned",
+    "qseries_spatial_q8_planned",
+    "qseries_animal_q8_planned",
+    "qseries_relmat_q8_planned",
+    "qseries_phylo_interaction_q1_mu",
+    "qseries_phylo_poisson_q1_mu_intercept",
+    "qseries_phylo_nbinom2_q1_mu_intercept",
+    "qseries_nongaussian_structured_slopes_planned",
+    "qseries_phylo_direct_sd_univariate",
+    "qseries_phylo_direct_sd_bivariate",
+}
 STRUCTURED_RE_INPUT_SCOPES = {
     "tree",
     "coords",
@@ -2965,6 +3142,15 @@ def main() -> int:
     ayumi_inference_coverage_rows = read_tsv(AYUMI_INFERENCE_COVERAGE)
     ayumi_boundary_status_rows = read_tsv(AYUMI_BOUNDARY_STATUS)
     structured_re_balance_matrix_rows = read_tsv(STRUCTURED_RE_BALANCE_MATRIX)
+    structured_re_q_series_support_cell_rows = read_tsv(
+        STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS
+    )
+    structured_re_mu_slope_fixture_audit_rows = read_tsv(
+        STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT
+    )
+    structured_re_mu_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE
+    )
     structured_re_balance_slice_rows = read_tsv(STRUCTURED_RE_BALANCE_SLICE_LEDGER)
     structured_re_finish_slice_rows = read_tsv(STRUCTURED_RE_FINISH_SLICE_LEDGER)
     member_roster_rows = read_tsv(MEMBER_ROSTER)
@@ -4442,6 +4628,227 @@ def main() -> int:
             + ", ".join(missing_structured_re_dimensions)
         )
 
+    q_series_cell_ids: set[str] = set()
+    if not structured_re_q_series_support_cell_rows:
+        errors.append("structured-re-q-series-support-cells.tsv has no rows")
+    for row in structured_re_q_series_support_cell_rows:
+        row_id = row.get("cell_id", "<structured RE q-series cell>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q-series-support-cells.tsv fields "
+                "do not match the support-cell contract"
+            )
+        if not row.get("cell_id"):
+            errors.append("structured-re-q-series-support-cells.tsv row lacks cell_id")
+        elif row_id in q_series_cell_ids:
+            errors.append(f"duplicate structured RE q-series cell id: {row_id}")
+        q_series_cell_ids.add(row_id)
+        for field in STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row.get("family_class") not in STRUCTURED_RE_Q_SERIES_FAMILY_CLASSES:
+            errors.append(
+                f"{row_id}: invalid family_class {row.get('family_class')!r}"
+            )
+        if row.get("structure_provider") not in STRUCTURED_RE_Q_SERIES_PROVIDERS:
+            errors.append(
+                f"{row_id}: invalid structure_provider "
+                f"{row.get('structure_provider')!r}"
+            )
+        if row.get("dimension_pattern") not in STRUCTURED_RE_Q_SERIES_DIMENSION_PATTERNS:
+            errors.append(
+                f"{row_id}: invalid dimension_pattern "
+                f"{row.get('dimension_pattern')!r}"
+            )
+        if row.get("slope_class") not in STRUCTURED_RE_Q_SERIES_SLOPE_CLASSES:
+            errors.append(f"{row_id}: invalid slope_class {row.get('slope_class')!r}")
+        if row.get("route") not in STRUCTURED_RE_Q_SERIES_ROUTES:
+            errors.append(f"{row_id}: invalid route {row.get('route')!r}")
+        for field in ("estimator_requested", "estimator_effective"):
+            if row.get(field) not in STRUCTURED_RE_Q_SERIES_ESTIMATORS:
+                errors.append(f"{row_id}: invalid {field} {row.get(field)!r}")
+        for field in (
+            "fit_status",
+            "extractor_status",
+            "bridge_status",
+            "interval_status",
+            "coverage_status",
+        ):
+            if row.get(field) not in STRUCTURED_RE_Q_SERIES_STATUSES:
+                errors.append(f"{row_id}: invalid {field} {row.get(field)!r}")
+        if row.get("authority_status") not in STRUCTURED_RE_Q_SERIES_AUTHORITY_STATUSES:
+            errors.append(
+                f"{row_id}: invalid authority_status "
+                f"{row.get('authority_status')!r}"
+            )
+        row_text = " ".join(
+            str(row.get(field, "")) for field in STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS
+        )
+        if AI_REML_READY_TRUE_PATTERN.search(row_text) and not PROMOTED_AI_REML_GATE_PATTERN.search(row_text):
+            errors.append(f"{row_id}: ai_reml_ready=true without a promoted optimizer gate")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        if (
+            row.get("dimension_pattern") == "q4"
+            and row.get("coverage_status") in {"inference_ready", "supported"}
+        ):
+            errors.append(f"{row_id}: q4 coverage is not accepted in this map")
+        if (
+            row.get("dimension_pattern") in {"q6", "q8"}
+            and row.get("structure_provider") != "ordinary"
+            and row.get("fit_status") not in {"planned", "unsupported", "blocked"}
+        ):
+            errors.append(
+                f"{row_id}: structured {row.get('dimension_pattern')} must remain "
+                "planned, unsupported, or blocked until runtime evidence exists"
+            )
+    missing_q_series_cells = sorted(
+        STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS - q_series_cell_ids
+    )
+    if missing_q_series_cells:
+        errors.append(
+            "structured-re-q-series-support-cells.tsv lacks required cells: "
+            + ", ".join(missing_q_series_cells)
+        )
+
+    expected_mu_slope_audits = {
+        "phylo": "mu_slope_phylo_artifact_audit",
+        "spatial": "mu_slope_spatial_artifact_audit",
+        "animal": "mu_slope_animal_artifact_audit",
+        "relmat": "mu_slope_relmat_artifact_audit",
+    }
+    seen_mu_slope_audits: set[str] = set()
+    if len(structured_re_mu_slope_fixture_audit_rows) != len(expected_mu_slope_audits):
+        errors.append(
+            "structured-re-mu-slope-fixture-audit.tsv has "
+            f"{len(structured_re_mu_slope_fixture_audit_rows)} rows; expected "
+            f"{len(expected_mu_slope_audits)}"
+        )
+    for row in structured_re_mu_slope_fixture_audit_rows:
+        row_id = row.get("audit_id", "<structured RE mu slope audit>")
+        if set(row.keys()) != set(STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-mu-slope-fixture-audit.tsv fields "
+                "do not match the audit contract"
+            )
+        for field in STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structure_provider")
+        if provider not in expected_mu_slope_audits:
+            errors.append(f"{row_id}: invalid structure_provider {provider!r}")
+        elif row_id != expected_mu_slope_audits[provider]:
+            errors.append(f"{row_id}: audit_id does not match provider {provider!r}")
+        if row_id in seen_mu_slope_audits:
+            errors.append(f"duplicate structured RE mu slope audit id: {row_id}")
+        seen_mu_slope_audits.add(row_id)
+        for field in ("artifact_writer_status", "focused_test_status"):
+            if row.get(field) != "source_tested":
+                errors.append(f"{row_id}: {field} must remain source_tested")
+        if row.get("extractor_identity_status") != "banked":
+            errors.append(f"{row_id}: extractor_identity_status must be banked")
+        for field in ("bridge_fixture_status", "interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if "coverage" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
+        if "bridge" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep bridge promotion separate")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    expected_mu_slope_parity_fixtures = {
+        "phylo": "mu_slope_phylo_same_target_ml",
+        "spatial": "mu_slope_spatial_same_target_ml",
+        "animal": "mu_slope_animal_same_target_ml",
+        "relmat": "mu_slope_relmat_same_target_ml",
+    }
+    seen_mu_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_mu_slope_parity_fixture_rows) != len(
+        expected_mu_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-mu-slope-parity-fixture.tsv has "
+            f"{len(structured_re_mu_slope_parity_fixture_rows)} rows; expected "
+            f"{len(expected_mu_slope_parity_fixtures)}"
+        )
+    for row in structured_re_mu_slope_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE mu slope parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-mu-slope-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_mu_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_mu_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_mu_slope_parity_fixtures:
+            errors.append(f"duplicate structured RE mu slope parity fixture id: {row_id}")
+        seen_mu_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q1":
+            errors.append(f"{row_id}: dimension must remain q1")
+        if row.get("endpoint") != "mu":
+            errors.append(f"{row_id}: endpoint must remain mu")
+        if row.get("slope_class") != "independent_one_slope":
+            errors.append(f"{row_id}: slope_class must remain independent_one_slope")
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        implemented_mu_slope_parity = {"phylo", "spatial", "animal"}
+        if provider in implemented_mu_slope_parity:
+            for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+                if row.get(field) != "fixture_available":
+                    errors.append(f"{row_id}: {field} must be fixture_available")
+            if row.get("parity_status") != "covered_same_target_fixture":
+                errors.append(
+                    f"{row_id}: parity_status must be covered_same_target_fixture"
+                )
+            if row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: bridge_status must be fixture_parity")
+            if row.get("coefficient_order") != (
+                "mu:(Intercept);mu:x;sd_mu:structured(Intercept);"
+                "sd_mu:structured(x)"
+            ):
+                errors.append(f"{row_id}: coefficient_order changed")
+            if "broad bridge support" not in row.get("claim_boundary", ""):
+                errors.append(
+                    f"{row_id}: claim_boundary must keep broad bridge unsupported"
+                )
+            if provider == "phylo" and "template" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must name the template role")
+            if provider == "spatial" and "fixed-covariance" not in row.get(
+                "claim_boundary", ""
+            ):
+                errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+            if provider == "animal" and "A-matrix" not in row.get(
+                "claim_boundary", ""
+            ):
+                errors.append(f"{row_id}: animal claim_boundary must name A-matrix")
+        else:
+            for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+                if row.get(field) != "planned":
+                    errors.append(f"{row_id}: {field} must remain planned")
+            for field in ("parity_status", "bridge_status"):
+                if row.get(field) != "planned":
+                    errors.append(f"{row_id}: {field} must remain planned")
+            if row.get("coefficient_order") != "planned":
+                errors.append(f"{row_id}: coefficient_order must remain planned")
+            if "Implement" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must state the implementation gate")
+            if provider == "relmat" and "K-versus-Q" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: relmat next_gate must keep K/Q boundary")
+        if "coverage" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
     if len(structured_re_balance_slice_rows) != 100:
         errors.append(
             "structured-re-balance-100-slices.tsv has "
@@ -5018,6 +5425,23 @@ def main() -> int:
             errors.append(f"{row_id}: matrix_id must be a q2 fixture matrix")
         if not row.get("matrix_digest", "").startswith("4x4:"):
             errors.append(f"{row_id}: matrix_digest must name the 4x4 fixture matrix")
+        expected_matrix_slot = {
+            "phylo": "tree",
+            "spatial": "coords",
+            "animal": "A",
+            "relmat": "K",
+        }.get(row.get("structured_type"))
+        if expected_matrix_slot and row.get("matrix_slot") != expected_matrix_slot:
+            errors.append(
+                f"{row_id}: matrix_slot must be {expected_matrix_slot!r} for "
+                f"{row.get('structured_type')} q2 provenance"
+            )
+        if not row.get("input_scale"):
+            errors.append(f"{row_id}: input_scale must name the provider input scale")
+        if not row.get("missing_level_policy"):
+            errors.append(f"{row_id}: missing_level_policy must name level alignment policy")
+        if not row.get("bridge_marshalling"):
+            errors.append(f"{row_id}: bridge_marshalling must name bridge payload boundary")
         if "matrix_row_names" not in row.get("required_levels", ""):
             errors.append(f"{row_id}: required_levels must include matrix_row_names")
         if "payload_version" not in row.get("version_fields", ""):
@@ -5035,9 +5459,21 @@ def main() -> int:
                 f"{row_id}: {structured_type} q2 bridge status must record the experimental fixture"
             )
         if structured_type == "phylo":
+            if "tree" not in row.get("matrix_slot", ""):
+                errors.append(f"{row_id}: phylo matrix_slot must name the tree")
+            if "extra_tree_tips_allowed" not in row.get("missing_level_policy", ""):
+                errors.append(f"{row_id}: phylo missing_level_policy must allow extra tree tips")
+            if "tree_serialized" not in row.get("bridge_marshalling", ""):
+                errors.append(f"{row_id}: phylo bridge_marshalling must name tree serialization")
             if "no broad q2 bridge support" not in row.get("claim_boundary", ""):
                 errors.append(f"{row_id}: phylo claim_boundary must reject broad q2 bridge support")
         elif structured_type == "spatial":
+            if "fixed_covariance_K" not in row.get("input_scale", ""):
+                errors.append(f"{row_id}: spatial input_scale must name fixed covariance K")
+            if "extra_coordinate_rows_not_supported" not in row.get("missing_level_policy", ""):
+                errors.append(f"{row_id}: spatial missing_level_policy must reject extra coordinate rows")
+            if "range_estimating_spatial_not_promoted" not in row.get("bridge_marshalling", ""):
+                errors.append(f"{row_id}: spatial bridge_marshalling must reject range-estimating promotion")
             if "fixed-covariance" not in row.get("claim_boundary", ""):
                 errors.append(f"{row_id}: spatial claim_boundary must name fixed-covariance fixture evidence")
             if "no range-estimating spatial route" not in row.get("claim_boundary", ""):
@@ -5045,6 +5481,12 @@ def main() -> int:
             if "no" not in row.get("claim_boundary", "") or "broad" not in row.get("claim_boundary", ""):
                 errors.append(f"{row_id}: spatial claim_boundary must reject broad bridge support")
         elif structured_type in {"animal", "relmat"}:
+            if "extra_matrix_levels_allowed" not in row.get("missing_level_policy", ""):
+                errors.append(f"{row_id}: {structured_type} missing_level_policy must allow extra matrix levels")
+            if structured_type == "animal" and "pedigree_Ainv_not_marshaled" not in row.get("bridge_marshalling", ""):
+                errors.append(f"{row_id}: animal bridge_marshalling must reject pedigree/Ainv marshalling")
+            if structured_type == "relmat" and "Q_precision_not_marshaled" not in row.get("bridge_marshalling", ""):
+                errors.append(f"{row_id}: relmat bridge_marshalling must reject Q precision marshalling")
             if "fixture-level audit evidence" not in row.get("claim_boundary", ""):
                 errors.append(
                     f"{row_id}: {structured_type} claim_boundary must name fixture-level audit evidence"
@@ -10767,6 +11209,9 @@ def main() -> int:
         f", {len(ayumi_inference_coverage_rows)} Ayumi inference coverage rows"
         f", {len(ayumi_boundary_status_rows)} Ayumi boundary-status rows"
         f", {len(structured_re_balance_matrix_rows)} structured RE matrix rows"
+        f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
+        f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
+        f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
         f", {len(structured_re_balance_slice_rows)} structured RE balance-slice rows"
         f", {len(structured_re_finish_slice_rows)} structured RE finish-slice rows"
         f", {len(member_roster_rows)} member roster rows"

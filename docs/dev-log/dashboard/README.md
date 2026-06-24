@@ -185,6 +185,18 @@ status, inference status, and bridge status so location-side support,
 scale-side support, all-four q4 point fits, count-model q1 fits, and
 unsupported interval or bridge claims cannot collapse into one balance claim.
 
+`structured-re-q-series-support-cells.tsv` records the exact q-series
+completion cells for structured random effects and ordinary comparators. It
+names the formula cell, family, provider, dimension pattern, endpoint set,
+slope class, covariance layout, route, requested/effective estimator, fit,
+extractor, bridge, interval, coverage, authority, denominator, evidence, and
+next-gate fields for each row. This file is the row-level source of truth for
+q-series completion planning: a balanced `mu+sigma` row, a q2 fixture, a q4
+point row, an ordinary q8 diagnostic route, or a direct-SD profile target
+never promotes neighbouring half-cells, structured q6/q8, REML, intervals,
+coverage, broad bridge support, or public optimizer controls unless the exact
+cell row says so.
+
 `structured-re-balance-100-slices.tsv` records the structured random-effect
 balance arc. SR001-SR060 bank the corrected scope, native ML q1/q2/q4, slope,
 and native exact-Gaussian REML status. SR061-SR090 bank inference, bridge
@@ -312,11 +324,12 @@ by one fixed-covariance R-via-Julia fixture.
 
 `structured-re-q2-payload-provenance.tsv` records the q2 payload provenance
 obligations as row-shaped evidence: source repositories, branches, heads,
-payload version, matrix ID, matrix digest, endpoint, required matrix levels,
-version fields, and dirty-state policy. It is a provenance contract only; the
-phylo, `spatial()`, `animal()`, and `relmat()` rows support one narrow fixture
-each. The spatial row is fixed-covariance only. None of these rows promotes
-broad q2 bridge support.
+payload version, matrix ID, matrix digest, matrix slot, input scale,
+missing-level policy, bridge-marshalling boundary, endpoint, required matrix
+levels, version fields, and dirty-state policy. It is a provenance contract
+only; the phylo, `spatial()`, `animal()`, and `relmat()` rows support one
+narrow fixture each. The spatial row is fixed-covariance only. None of these
+rows promotes broad q2 bridge support.
 
 `structured-re-q2-coefficient-order-map.tsv` records the fixture-derived q2
 coefficient order for `phylo()`, `spatial()`, `animal()`, and `relmat()`. It is
@@ -706,6 +719,21 @@ keeps the blocked REML acceptance gate separate from structured-type gaps such
 as mesh/SPDE, sparse animal pedigree helpers, `relmat()` precision `Q`, q1-only
 `phylo_interaction()`, direct-SD grammar, structured slopes, structured
 `rho12`, and non-Gaussian q2/q4 structured covariance.
+
+`structured-re-mu-slope-fixture-audit.tsv` records the current one-slope
+Gaussian structured `mu` artifact evidence for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`. These rows bank source-tested DGP, smoke-summary,
+and grid-writer evidence plus extractor identity. They do not promote bridge
+fixture parity, residual-scale slopes, labelled structured slope covariance,
+interval reliability, or coverage.
+
+`structured-re-mu-slope-parity-fixture.tsv` records the same-target bridge
+fixture gate for those one-slope Gaussian structured `mu` rows. It banks
+deterministic native/direct/R-via-Julia fixture contracts for `phylo()`,
+fixed-covariance `spatial()`, and A-matrix `animal()` cells. The `relmat()`
+row remains planned until the K-versus-Q fixture source is reconciled, so this
+sidecar does not promote broad bridge support, residual-scale slopes, labelled
+structured slope covariance, interval reliability, or coverage.
 
 `structured-re-type-gaps.tsv` records the remaining structured-type gaps for
 `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It

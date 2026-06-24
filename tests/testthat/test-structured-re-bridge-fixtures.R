@@ -90,19 +90,115 @@ test_that("q1 parity fixture records three-route agreement without broad support
   expect_match(status$claim_boundary, "deterministic contract", fixed = TRUE)
 })
 
+test_that("one-slope structured mu fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_mu_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal")
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q1")
+    expect_equal(native$summary$endpoint, "mu")
+    expect_equal(
+      native$coef$term,
+      c(
+        "mu:(Intercept)",
+        "mu:x",
+        "sd_mu:structured(Intercept)",
+        "sd_mu:structured(x)"
+      )
+    )
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  implemented_rows <- contract[
+    contract$structured_type %in% implemented,
+    ,
+    drop = FALSE
+  ]
+  relmat <- contract[contract$structured_type == "relmat", , drop = FALSE]
+  expect_equal(implemented_rows$bridge_status, rep("fixture_parity", 3L))
+  expect_equal(
+    implemented_rows$parity_status,
+    rep("covered_same_target_fixture", 3L)
+  )
+  expect_equal(
+    implemented_rows$r_via_julia_status,
+    rep("fixture_available", 3L)
+  )
+  expect_match(
+    implemented_rows$claim_boundary,
+    "broad bridge support",
+    fixed = TRUE
+  )
+  expect_equal(relmat$bridge_status, "planned")
+  expect_equal(relmat$parity_status, "planned")
+  expect_equal(relmat$coefficient_order, "planned")
+  expect_match(relmat$next_gate, "K-versus-Q", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary,
+    "coverage",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_mu_slope_payload_fixture(structured_type = "relmat"),
+    "K-versus-Q",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_mu_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
 test_that("q2 fixture contract separates q2 from q2-plus-q2 and q4", {
   source_structured_re_bridge_fixtures()
 
   contract <- phase18_structured_re_q2_fixture_contract()
 
-  expect_equal(nrow(contract), 3L)
-  same_target <- contract[contract$fixture_id == "q2_phylo_same_target_ml", ]
-  expect_equal(same_target$dimension, "q2")
-  expect_equal(same_target$estimator, "ML")
+  expect_equal(nrow(contract), 6L)
+  same_target <- contract[grepl("_same_target_ml$", contract$fixture_id), ]
+  expect_equal(nrow(same_target), 4L)
+  expect_setequal(
+    same_target$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(same_target$dimension, rep("q2", 4L))
+  expect_equal(same_target$estimator, rep("ML", 4L))
   expect_match(same_target$separated_from, "q2_plus_q2", fixed = TRUE)
   expect_match(same_target$separated_from, "q4", fixed = TRUE)
-  expect_equal(same_target$bridge_status, "experimental")
-  expect_equal(same_target$r_via_julia_status, "fixture_available")
+  expect_equal(same_target$bridge_status, rep("experimental", 4L))
+  expect_equal(same_target$r_via_julia_status, rep("fixture_available", 4L))
+  expect_match(
+    same_target$claim_boundary[same_target$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
 
   q2_plus <- contract[contract$fixture_id == "q2_plus_q2_not_q4", ]
   expect_equal(q2_plus$dimension, "q2_plus_q2")
@@ -171,14 +267,6 @@ test_that("q2 payload fixture records ordering and narrow phylo bridge status", 
     "not HSquared AI-REML",
     fixed = TRUE
   )
-  expect_error(
-    phase18_structured_re_q2_payload_fixture(
-      structured_type = "relmat",
-      route = "r_via_julia"
-    ),
-    "non-phylo",
-    fixed = TRUE
-  )
   bridge <- phase18_structured_re_q2_payload_fixture(route = "r_via_julia")
   expect_equal(
     bridge$inference$status[bridge$inference$extractor == "r_via_julia"],
@@ -189,6 +277,23 @@ test_that("q2 payload fixture records ordering and narrow phylo bridge status", 
       bridge$inference$extractor == "r_via_julia"
     ],
     "q2 phylo",
+    fixed = TRUE
+  )
+  relmat_bridge <- phase18_structured_re_q2_payload_fixture(
+    structured_type = "relmat",
+    route = "r_via_julia"
+  )
+  expect_equal(
+    relmat_bridge$inference$status[
+      relmat_bridge$inference$extractor == "r_via_julia"
+    ],
+    "available"
+  )
+  expect_match(
+    relmat_bridge$inference$unavailable_reason[
+      relmat_bridge$inference$extractor == "r_via_julia"
+    ],
+    "relmat K-matrix",
     fixed = TRUE
   )
 })
@@ -220,11 +325,16 @@ test_that("q2 coefficient order map follows the payload fixture", {
   )
   expect_equal(
     coef_map$bridge_status,
-    c("experimental", "planned", "planned", "planned")
+    rep("experimental", 4L)
   )
   expect_match(
     coef_map$claim_boundary,
-    "no broad q2 bridge support",
+    "q2",
+    fixed = TRUE
+  )
+  expect_match(
+    coef_map$claim_boundary[coef_map$structured_type == "spatial"],
+    "fixed-covariance",
     fixed = TRUE
   )
 })
@@ -252,6 +362,46 @@ test_that("q2 payload provenance keeps matrix and version evidence row-shaped", 
   )
   expect_match(provenance$source_head, "e016fc15b4fb", fixed = TRUE)
   expect_match(provenance$matrix_digest, "4x4:", fixed = TRUE)
+  expect_equal(
+    provenance$matrix_slot,
+    c("tree", "coords", "A", "K")
+  )
+  expect_equal(
+    provenance$input_scale,
+    c(
+      "ultrametric_tree_branch_lengths",
+      "coordinates_to_fixed_covariance_K",
+      "additive_covariance",
+      "user_covariance"
+    )
+  )
+  expect_equal(
+    provenance$missing_level_policy,
+    c(
+      "error_if_observed_species_absent_from_tree;extra_tree_tips_allowed",
+      paste0(
+        "error_if_coords_missing_observed_group_or_vary_within_group;",
+        "extra_coordinate_rows_not_supported"
+      ),
+      "error_if_observed_id_absent_from_matrix;extra_matrix_levels_allowed",
+      "error_if_observed_id_absent_from_matrix;extra_matrix_levels_allowed"
+    )
+  )
+  expect_match(
+    provenance$bridge_marshalling[provenance$structured_type == "spatial"],
+    "range_estimating_spatial_not_promoted",
+    fixed = TRUE
+  )
+  expect_match(
+    provenance$bridge_marshalling[provenance$structured_type == "animal"],
+    "pedigree_Ainv_not_marshaled",
+    fixed = TRUE
+  )
+  expect_match(
+    provenance$bridge_marshalling[provenance$structured_type == "relmat"],
+    "Q_precision_not_marshaled",
+    fixed = TRUE
+  )
   expect_match(provenance$required_levels, "matrix_row_names", fixed = TRUE)
   expect_match(provenance$version_fields, "payload_version", fixed = TRUE)
   expect_match(
@@ -261,16 +411,26 @@ test_that("q2 payload provenance keeps matrix and version evidence row-shaped", 
   )
   expect_equal(
     provenance$bridge_status,
-    c("experimental", "planned", "planned", "planned")
+    rep("experimental", 4L)
   )
   expect_match(
     provenance$claim_boundary,
-    "no broad q2 bridge support",
+    "q2",
+    fixed = TRUE
+  )
+  expect_match(
+    provenance$claim_boundary[provenance$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    provenance$claim_boundary[provenance$structured_type == "animal"],
+    "A-matrix",
     fixed = TRUE
   )
 })
 
-test_that("q2 acceptance gate banks phylo and blocks non-phylo routes", {
+test_that("q2 acceptance gate banks route-specific fixture rows", {
   source_structured_re_bridge_fixtures()
 
   gate <- phase18_structured_re_q2_acceptance_gate()
@@ -295,8 +455,23 @@ test_that("q2 acceptance gate banks phylo and blocks non-phylo routes", {
   )
   expect_equal(phylo$acceptance_status, "banked_phylo_fixture")
   expect_equal(phylo$status, "covered")
+  expect_equal(phylo$bridge_status, "experimental")
   expect_equal(phylo$missing_evidence, "none_for_phylo_fixture")
   expect_match(phylo$tolerance_policy, "same_target_fixture", fixed = TRUE)
+  expect_equal(
+    phylo$required_before_acceptance,
+    "none_for_phylo_fixture"
+  )
+  expect_equal(
+    non_phylo$r_via_julia_status[non_phylo$structured_type == "spatial"],
+    "available_q2_fixed_covariance_spatial_formula_bridge_fixture"
+  )
+  expect_equal(
+    non_phylo$r_via_julia_status[
+      non_phylo$structured_type %in% c("animal", "relmat")
+    ],
+    rep("available_q2_known_covariance_formula_bridge_fixture", 2L)
+  )
   expect_equal(
     non_phylo$direct_drmjl_status[non_phylo$structured_type == "spatial"],
     "available_fixed_covariance_residual_correlation_fixture"
@@ -307,19 +482,35 @@ test_that("q2 acceptance gate banks phylo and blocks non-phylo routes", {
     ],
     rep("available_known_covariance_residual_correlation_point_export", 2L)
   )
-  expect_equal(non_phylo$acceptance_status, rep("blocked", 3L))
-  expect_match(non_phylo$missing_evidence, "r_via_julia_q2_route", fixed = TRUE)
+  expect_equal(
+    non_phylo$acceptance_status[non_phylo$structured_type == "spatial"],
+    "banked_fixed_covariance_spatial_fixture"
+  )
+  expect_equal(
+    non_phylo$acceptance_status[
+      non_phylo$structured_type %in% c("animal", "relmat")
+    ],
+    rep("banked_known_covariance_fixture", 2L)
+  )
+  expect_equal(non_phylo$status, rep("covered", 3L))
+  expect_equal(non_phylo$bridge_status, rep("experimental", 3L))
+  expect_match(non_phylo$missing_evidence, "^none_for_", perl = TRUE)
   expect_false(any(grepl(
     "direct_q2_fit",
     non_phylo$missing_evidence,
     fixed = TRUE
   )))
-  expect_match(non_phylo$tolerance_policy, "not_applicable", fixed = TRUE)
+  expect_match(non_phylo$tolerance_policy, "same_target_fixture", fixed = TRUE)
   expect_equal(
     gate$bridge_status,
-    c("experimental", "planned", "planned", "planned")
+    rep("experimental", 4L)
   )
   expect_match(gate$claim_boundary, "q2", fixed = TRUE)
+  expect_match(
+    gate$claim_boundary[gate$structured_type == "spatial"],
+    "not a range-estimating spatial route",
+    fixed = TRUE
+  )
 })
 
 test_that("q4 fixture contract separates direct SD and derived correlations", {

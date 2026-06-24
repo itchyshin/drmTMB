@@ -2,6 +2,282 @@
 
 Record meaningful development checks here.
 
+## 2026-06-23: spatial and animal one-slope mu parity fixtures
+
+Goal:
+
+- Extend the one-slope Gaussian structured `mu` same-target parity fixture lane
+  from `phylo()` to the next two provider-safe cells:
+  fixed-covariance `spatial(1 + x | site, coords = coords)` and
+  A-matrix `animal(1 + x | id, A = A)`.
+- Keep `relmat()` planned because the current Phase 18 artifact fit uses
+  `relmat(..., Q = Q)`, while the R-via-Julia bridge contract marshals
+  `relmat(..., K = K)` only. That K-versus-Q boundary needs its own fixture
+  reconciliation before promotion.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phase18-spatial-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-animal-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-relmat-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+python3 -m py_compile tools/validate-mission-control.py && rm -rf tools/__pycache__
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "Spatial one-slope mu parity remains planned|Animal one-slope mu parity remains planned|spatial.*add bridge or parity|animal.*add A/Ainv bridge|mu_slope_(spatial|animal)_same_target_ml|K-versus-Q" docs tests inst tools R
+rg -n "relmat\\(1 \\+ x \\| id, Q = Q\\)|relmat\\(1 \\+ x \\| id, K = K\\)|bridge_marshals_K_covariance_fixture_only|Q_precision_native_tmb_only|phase18_fit_relmat_mu_slope" R docs inst/sim tests/testthat
+gh issue list --repo itchyshin/drmTMB --search "structured slope relmat mu slope" --limit 10 --json number,title,state,url
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+```
+
+Results:
+
+- `phase18_structured_re_mu_slope_payload_fixture()` now admits
+  `phylo()`, fixed-covariance `spatial()`, and A-matrix `animal()` one-slope
+  `mu` cells; `relmat()` still errors with the K-versus-Q fixture-source
+  boundary.
+- `structured-re-mu-slope-parity-fixture.tsv` now marks phylo, spatial, and
+  animal as `fixture_parity`; relmat remains `planned`.
+- `qseries_spatial_q1_mu_one_slope` and
+  `qseries_animal_q1_mu_one_slope` now point at the parity sidecar with
+  `route = native_direct_bridge_fixture` and
+  `bridge_status = fixture_parity`. Their interval and coverage statuses
+  remain `planned`.
+- `structured-re-bridge-fixtures` passed with 293 assertions.
+- `structured-re-conversion-contracts` passed with 1481 assertions.
+- `phase18-spatial-mu-slope` passed with 30 assertions.
+- `phase18-animal-mu-slope` passed with 48 assertions.
+- `phase18-relmat-mu-slope` passed with 48 assertions; this confirms the
+  current relmat artifact source while keeping relmat bridge parity planned.
+- `structured-effects` passed with 268 assertions.
+- `python3 tools/validate-mission-control.py` passed and reports 69 structured
+  RE q-series cells, 4 structured RE mu-slope audit rows, and 4 structured RE
+  mu-slope parity-fixture rows.
+- `git diff --check` passed.
+- Issue search found existing open umbrellas #147, #33, and #491; no new issue
+  was opened and no issue comment was posted.
+- PR #638 remains draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  R-CMD-check at head `009528d609519039bb8df13d84db779408f06499`.
+
+Boundary:
+
+- Spatial parity is fixed-covariance fixture evidence only; it does not promote
+  range-estimating spatial, mesh/SPDE, residual-scale slopes, intervals, or
+  coverage.
+- Animal parity is A-matrix fixture evidence only; it does not promote
+  pedigree/Ainv bridge marshalling, residual-scale slopes, intervals, or
+  coverage.
+- Relmat remains planned for bridge parity until the K-versus-Q fixture source
+  is reconciled.
+- No q4 interval reliability, q4 interval coverage, q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML, DRAC execution, or
+  SR150 evidence is promoted.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-spatial-animal-parity-fixtures.md`
+
+## 2026-06-23: phylo one-slope mu parity fixture
+
+Goal:
+
+- Complete the first same-target bridge/parity fixture for the q-series
+  one-slope Gaussian structured `mu` lane. This slice banks only the exact
+  `phylo(1 + x | species, tree = tree)` ML fixture across native, direct
+  DRM.jl, and R-via-Julia routes.
+- Keep `spatial()`, `animal()`, and `relmat()` one-slope `mu` parity rows
+  planned, and keep residual-scale slopes, labelled structured slope
+  covariance, intervals, coverage, REML, and broad bridge support separate.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 -m py_compile tools/validate-mission-control.py && rm -rf tools/__pycache__
+python3 tools/validate-mission-control.py
+git diff --check
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+```
+
+Results:
+
+- Added `phase18_structured_re_mu_slope_payload_fixture()` for the exact
+  `phylo()` one-slope `mu` ML same-target fixture and
+  `phase18_structured_re_mu_slope_parity_fixture_contract()` for the
+  provider-level planned/fixture map.
+- Added `structured-re-mu-slope-parity-fixture.tsv` with one fixture-parity row
+  for `phylo()` and planned rows for `spatial()`, `animal()`, and `relmat()`.
+- Updated `qseries_phylo_q1_mu_one_slope` to
+  `route = native_direct_bridge_fixture` and
+  `bridge_status = fixture_parity`; interval and coverage remain `planned`.
+- Added R and mission-control validator checks that preserve the phylo-only
+  fixture boundary and require non-phylo rows to remain planned.
+- `structured-re-bridge-fixtures` passed with 277 assertions.
+- `structured-re-conversion-contracts` passed with 1480 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reports 69 structured
+  RE q-series cells, 4 structured RE mu-slope audit rows, and 4 structured RE
+  mu-slope parity-fixture rows.
+- `git diff --check` passed.
+- PR #638 remains draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  R-CMD-check at head `009528d609519039bb8df13d84db779408f06499`.
+
+Boundary:
+
+- This is deterministic same-target fixture parity for one `phylo()` `mu` slope
+  cell. It is not broad bridge support, `sigma` slope support, labelled
+  structured slope covariance, q4 interval reliability, q4 interval coverage,
+  q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian AI-REML, DRAC execution, or SR150 evidence.
+
+Next slice plan:
+
+1. Implement the fixed-covariance `spatial()` same-target one-slope `mu`
+   native/direct/R-via-Julia fixture.
+2. Add the `animal()` A-matrix same-target one-slope `mu` fixture.
+3. Resolve the relmat K-versus-Q source boundary, then add the relmat
+   same-target one-slope `mu` fixture.
+4. Only after those exact `mu` parity fixtures are banked, start the separate
+   `sigma` one-slope tranche.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-phylo-parity-fixture.md`
+
+## 2026-06-23: structured provider-contract gate
+
+Goal:
+
+- Bank the provider-contract layer promised by the structured q-series
+  completion map before adding new runtime q-cells. The slice exposes fitted
+  provider levels, observed levels, level alignment, input scale,
+  missing-level policy, and bridge-marshalling boundary through
+  `structured_effects()`, and extends the q2 payload provenance sidecar with
+  provider-specific matrix-slot and marshalling fields.
+- Verify one independent Gaussian structured `mu` slope identity at extractor
+  level across `phylo()`, `spatial()`, `animal()`, and `relmat()` while keeping
+  bridge parity, intervals, coverage, residual-scale slopes, labelled
+  structured slope covariance, q4/q6/q8 structured slopes, and REML claims
+  unchanged.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+air format R/methods.R tests/testthat/test-structured-effects.R tests/testthat/test-structured-re-bridge-fixtures.R inst/sim/R/sim_structured_re_bridge_fixtures.R
+air format tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phase18-phylo-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-spatial-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-animal-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-relmat-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-random-slope-grid-writers')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+git diff --check
+```
+
+Results:
+
+- `structured-effects` passed with 268 assertions.
+- `structured-re-bridge-fixtures` passed with 260 assertions.
+- `structured-re-conversion-contracts` passed with 1470 assertions.
+- `git diff --check` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and still reports 69
+  structured RE q-series cells.
+- `devtools::document()` passed. It also generated unrelated Rd churn from the
+  local roxygen version; those unrelated changes were manually removed, leaving
+  only the `structured_effects()` return-value update.
+
+Claim boundary:
+
+- This is a metadata, provenance, and extractor-verification slice. It does not
+  promote broad structured bridge support, q4 interval reliability, q4 interval
+  coverage, q4 native-TMB REML, q4 AI-REML, HSquared AI-REML, non-Gaussian
+  AI-REML, or SR150.
+
+## 2026-06-23: structured mu-slope artifact fixture audit
+
+Goal:
+
+- Complete the next recommended q-series slice by reconciling stale provider
+  contract next-gates for structured q1 `mu` intercept rows, then bank a
+  validator-owned audit of the existing one-slope Gaussian structured `mu`
+  artifact evidence.
+
+Checks run:
+
+```sh
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+```
+
+Results so far:
+
+- PR #638 is still draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  at head `009528d609519039bb8df13d84db779408f06499`.
+- Added `structured-re-mu-slope-fixture-audit.tsv` with four rows for
+  `phylo()`, `spatial()`, `animal()`, and `relmat()` one-slope Gaussian
+  structured `mu` artifact evidence.
+- Wired the new sidecar into `tools/validate-mission-control.py`; validation
+  passed and now reports 4 structured RE mu-slope audit rows.
+- Updated stale q-series next gates for structured q1 `mu` intercept rows and
+  one-slope `mu` rows without changing fit, bridge, interval, or coverage
+  status.
+- `phase18-phylo-mu-slope` passed with 49 assertions.
+- `phase18-spatial-mu-slope` passed with 30 assertions.
+- `phase18-animal-mu-slope` passed with 48 assertions.
+- `phase18-relmat-mu-slope` passed with 48 assertions.
+- `phase18-random-slope-grid-writers` passed with 25 assertions.
+- `structured-effects` passed with 268 assertions.
+- `structured-re-conversion-contracts` passed with 1470 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- The audit rows bank source-tested DGP, smoke-summary, grid-writer, and
+  extractor identity evidence. They are not bridge parity, interval
+  reliability, coverage, residual-scale structured slopes, labelled structured
+  slope covariance, structured q4/q6/q8 support, REML, or AI-REML evidence.
+
+Next slice plan:
+
+1. Add same-target one-slope `mu` bridge/parity fixture design rows for
+   `phylo()`, fixed-covariance `spatial()`, `animal()`, and `relmat()`.
+2. Implement only the narrowest native/direct/R-via-Julia fixture that already
+   has a source-tested DGP and artifact writer.
+3. Keep `sigma` one-slope cells separate until each provider has its own
+   parser/runtime and extractor evidence.
+4. Leave structured labelled slope covariance, q4/q6/q8 slopes, REML,
+   intervals, and coverage blocked until the exact cell-specific evidence
+   exists.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-fixture-audit.md`
+
 ## 2026-06-23: q2 spatial fixed-covariance bridge fixture
 
 Goal:
@@ -64800,3 +65076,144 @@ Boundary:
   q4 interval reliability, interval coverage, q4 REML, native-TMB q4 REML,
   HSquared AI-REML, non-Gaussian AI-REML, broad bridge support, DRAC readiness,
   a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: q2 helper/dashboard drift correction after PR #638 review
+
+Goal:
+
+- Fix a source/test drift found during draft PR #638 diff review: the
+  mission-control dashboard sidecars bank q2 ML bridge acceptance rows for
+  phylo, fixed covariance spatial, animal, and relmat fixtures, but
+  `phase18_structured_re_q2_*()` helpers still described the non-phylo rows as
+  planned or blocked.
+
+Result:
+
+- Updated `inst/sim/R/sim_structured_re_bridge_fixtures.R` so the q2 payload
+  fixture, fixture contract, coefficient-order map, payload-provenance table,
+  and acceptance gate mirror the r63 dashboard status boundary for all four q2
+  ML structured types.
+- Updated `tests/testthat/test-structured-re-bridge-fixtures.R` to require the
+  current q2 fixture boundary and keep q2-plus and q2 REML outside the claim
+  boundary.
+- Added after-task note
+  `docs/dev-log/after-task/2026-06-23-q2-helper-dashboard-drift-correction.md`.
+
+Checks:
+
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"`
+  passed with 254 assertions.
+- A custom source-vs-dashboard check passed for q2 acceptance-gate,
+  coefficient-order, and payload-provenance status columns.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1457 assertions.
+- `git diff --check` passed.
+- `python3 tools/validate-mission-control.py` passed with the r63 dashboard
+  evidence set.
+
+Boundary:
+
+- No files were staged or committed. PR #638 remains draft-only local review
+  work. This correction does not undraft, merge, submit DRAC jobs, unblock
+  SR150, or promote q4 interval reliability, q4 interval coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML,
+  broad bridge support, public optimizer controls, or an Ayumi-facing reply.
+
+## 2026-06-23: q-series support-cell completion map
+
+Goal:
+
+- Implement the final q-series planning decision by making the exact
+  support-cell row the unit of truth before any new structured random-effect
+  runtime cells are added.
+
+Result:
+
+- Added `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` with
+  69 exact q-series cells spanning ordinary comparators, structured
+  intercepts, one-slope `mu` cells, explicit planned `sigma` slope half-cells,
+  q2 fixtures, q2-plus rejections, q4 point rows, q6/q8 planned rows, count q1
+  rows, and direct-SD targets.
+- Added `docs/design/218-structured-q-series-completion-map.md` to define the
+  support-cell schema, evidence ladder, authority rule, current boundary, and
+  runtime implementation order.
+- Wired the q-series table into `tools/validate-mission-control.py`, the
+  dashboard README, and `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Reconciled q4 drift in
+  `docs/design/216-structured-random-effect-finish-100-slices.md` and the
+  SR132 next-gate text in `structured-re-finish-100-slices.tsv`.
+- Tightened the stale q8 residual-scale error hint in `R/drmTMB.R` and the
+  experimental q4 Julia-bridge REML wording in `NEWS.md`.
+- Added after-task note
+  `docs/dev-log/after-task/2026-06-23-q-series-support-cell-map.md`.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `python3 tools/validate-mission-control.py` passed and reported 69
+  structured RE q-series cells.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1470 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"`
+  passed with 254 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This slice is a control-plane and
+  documentation implementation only. It does not add new runtime q-series
+  cells, undraft or merge PR #638, submit DRAC jobs, unblock SR150, promote
+  q4 interval reliability, q4 interval coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML, broad bridge support,
+  public optimizer controls, or an Ayumi-facing reply.
+
+## 2026-06-23: structured-effect extractor identity gate
+
+Goal:
+
+- Implement the next q-series architecture gate by giving structured-effect
+  extractors neutral provider, matrix-source, endpoint, member, and coefficient
+  identity before adding new runtime q-cells.
+
+Result:
+
+- Extended `structured_effects()` with provider-neutral columns:
+  `provider`, `matrix_id`, `matrix_slot`, `matrix_source`, `matrix_role`,
+  `matrix_digest`, `block_label`, `covariance_layout`, `endpoint_set`,
+  `coefficient_set`, `member_count`, `member_levels`, `endpoint_blocks`, and
+  `endpoint_covariance_labels`.
+- Added compact resolved-precision fingerprints so future provider contract
+  tests can compare the precision actually passed downstream without exporting
+  full matrices.
+- Extended `tests/testthat/test-structured-effects.R` to cover `phylo()`,
+  `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()` identities,
+  including covariance-source (`A`, `K`) versus precision-source (`Ainv`, `Q`)
+  rows.
+- Updated `NEWS.md`, `man/structured_effects.Rd`, and
+  `docs/design/218-structured-q-series-completion-map.md` for the new
+  extractor identity gate.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::document()"` passed; unrelated generated
+  Rd churn from the local roxygen version was removed, leaving only the
+  `structured_effects.Rd` change tied to this slice.
+- `air format R/methods.R tests/testthat/test-structured-effects.R R/drmTMB.R tests/testthat/test-structured-re-conversion-contracts.R tests/testthat/test-structured-re-bridge-fixtures.R inst/sim/R/sim_structured_re_bridge_fixtures.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"`
+  passed with 178 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This slice changes extractor metadata and
+  tests only. It does not add residual-scale structured slopes, structured
+  q4/q6/q8 runtime cells, bridge support, q4 interval reliability, q4 interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian AI-REML, public optimizer controls, DRAC execution, a PR #638
+  undraft/merge, or an Ayumi-facing reply.

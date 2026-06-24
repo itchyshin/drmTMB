@@ -208,14 +208,6 @@ phase18_structured_re_q2_payload_fixture <- function(
       call. = FALSE
     )
   }
-  if (identical(route, "r_via_julia") && !identical(structured_type, "phylo")) {
-    stop(
-      "R-via-Julia q2 bridge payload remains unavailable for non-phylo ",
-      "structured types until row-specific bridge routes exist.",
-      call. = FALSE
-    )
-  }
-
   matrix_value <- phase18_structured_re_fixture_matrix("q2")
   coef <- c(
     "mu1:(Intercept)" = 0.25,
@@ -276,10 +268,112 @@ phase18_structured_re_q2_payload_fixture <- function(
         "bootstrap refits not run",
         "coverage grid not calibrated",
         if (identical(route, "r_via_julia")) {
-          "q2 phylo complete-response exact-Gaussian ML fixture only"
+          switch(
+            structured_type,
+            phylo = "q2 phylo complete-response exact-Gaussian ML fixture only",
+            spatial = "q2 fixed-covariance spatial complete-response exact-Gaussian ML fixture only",
+            animal = "q2 animal A-matrix complete-response exact-Gaussian ML fixture only",
+            relmat = "q2 relmat K-matrix complete-response exact-Gaussian ML fixture only"
+          )
         } else {
           "q2-specific bridge payload route not evaluated"
         }
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_mu_slope_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+  implemented_structured_types <- c("phylo", "spatial", "animal")
+  if (!structured_type %in% implemented_structured_types) {
+    stop(
+      "The one-slope structured mu bridge fixture is banked only for phylo, ",
+      "fixed-covariance spatial, and animal A-matrix cells; relmat remains ",
+      "planned until the K-versus-Q fixture source is reconciled.",
+      call. = FALSE
+    )
+  }
+
+  matrix_value <- phase18_structured_re_fixture_matrix("q1")
+  coef <- c(
+    "mu:(Intercept)" = 0.20,
+    "mu:x" = 0.45,
+    "sd_mu:structured(Intercept)" = 0.35,
+    "sd_mu:structured(x)" = 0.18
+  )
+  vcov <- diag(c(0.010, 0.015, 0.020, 0.022))
+  dimnames(vcov) <- list(names(coef), names(coef))
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q1_", structured_type, "_mu_one_slope_ml"),
+      dimension = "q1",
+      structured_type = structured_type,
+      endpoint = "mu",
+      slope_class = "independent_one_slope",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0("fixture_q1_", structured_type, "_mu_slope"),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_mu_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -15.678
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "sigma_slope",
+        "corpair"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "not_applicable",
+        "not_applicable"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "residual-scale structured slope is a separate cell",
+        "independent one-slope mu fixture has no labelled covariance corpair"
       ),
       stringsAsFactors = FALSE
     )
@@ -385,32 +479,164 @@ phase18_structured_re_parity_status <- function(
   )
 }
 
+phase18_structured_re_mu_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    implemented <- structured_type %in% c("phylo", "spatial", "animal")
+    coefficient_order <- if (implemented) {
+      payload <- phase18_structured_re_mu_slope_payload_fixture(structured_type)
+      paste(names(payload$estimates$coef), collapse = ";")
+    } else {
+      "planned"
+    }
+    data.frame(
+      fixture_id = paste0("mu_slope_", structured_type, "_same_target_ml"),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 + x | species, tree = tree) in mu",
+        spatial = "spatial(1 + x | site, coords = coords) in mu",
+        animal = "animal(1 + x | id, A = A) in mu",
+        relmat = "relmat(1 + x | id, K = K) in mu"
+      ),
+      structured_type = structured_type,
+      dimension = "q1",
+      endpoint = "mu",
+      slope_class = "independent_one_slope",
+      estimator = "ML",
+      native_status = if (implemented) "fixture_available" else "planned",
+      direct_drmjl_status = if (implemented) "fixture_available" else "planned",
+      r_via_julia_status = if (implemented) "fixture_available" else "planned",
+      coefficient_order = coefficient_order,
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = if (implemented) {
+        "covered_same_target_fixture"
+      } else {
+        "planned"
+      },
+      bridge_status = if (implemented) "fixture_parity" else "planned",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo one-slope mu fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract only; no broad bridge support,",
+          "sigma slope support, labelled covariance, interval reliability,",
+          "or coverage is promoted."
+        ),
+        spatial = paste(
+          "Spatial one-slope mu fixture parity is fixed-covariance only;",
+          "no range-estimating spatial support, broad bridge support, sigma",
+          "slope support, labelled covariance, interval reliability, or",
+          "coverage is promoted."
+        ),
+        animal = paste(
+          "Animal one-slope mu fixture parity uses an A-matrix contract only;",
+          "no pedigree/Ainv bridge marshalling, broad bridge support, sigma",
+          "slope support, labelled covariance, interval reliability, or",
+          "coverage is promoted."
+        ),
+        relmat = paste(
+          "Relmat one-slope mu parity remains planned; artifact evidence does",
+          "not promote K/Q bridge marshalling, sigma slope support,",
+          "intervals, or coverage."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact fixture as the template for provider-specific same-target bridge parity; keep interval and coverage gates separate.",
+        spatial = "Use this fixed-covariance fixture as the spatial same-target bridge-parity template; keep range-estimating spatial, interval, and coverage gates separate.",
+        animal = "Use this A-matrix fixture as the animal same-target bridge-parity template; keep pedigree/Ainv, interval, and coverage gates separate.",
+        relmat = "Implement same-target native/direct/R-via-Julia fixture after resolving the K-versus-Q fixture source."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
 phase18_structured_re_q2_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  boundary <- vapply(
+    structured_types,
+    function(structured_type) {
+      switch(
+        structured_type,
+        phylo = paste(
+          "Q2 phylo ML fixture only; no broad bridge support promotion."
+        ),
+        spatial = paste(
+          "Q2 spatial ML fixture is fixed-covariance only; no",
+          "range-estimating spatial, mesh/SPDE, or broad bridge support",
+          "promotion."
+        ),
+        animal = paste(
+          "Q2 animal ML fixture uses an A matrix only; no pedigree/Ainv",
+          "marshalling or broad bridge support promotion."
+        ),
+        relmat = paste(
+          "Q2 relmat ML fixture uses a K matrix only; no Q precision",
+          "marshalling or broad bridge support promotion."
+        )
+      )
+    },
+    character(1L)
+  )
   data.frame(
     fixture_id = c(
-      "q2_phylo_same_target_ml",
+      paste0("q2_", structured_types, "_same_target_ml"),
       "q2_plus_q2_not_q4",
       "q2_reml_unsupported_boundary"
     ),
-    dimension = c("q2", "q2_plus_q2", "q2"),
-    structured_type = "phylo",
-    estimator = c("ML", "ML", "REML"),
+    dimension = c(rep("q2", length(structured_types)), "q2_plus_q2", "q2"),
+    structured_type = c(structured_types, "phylo", "phylo"),
+    estimator = c(rep("ML", length(structured_types)), "ML", "REML"),
     target = c(
-      "mu1_mu2_same_structured_matrix",
+      paste0("mu1_mu2_", structured_types, "_same_structured_matrix"),
       "two_independent_q2_blocks",
       "q2_exact_gaussian_reml"
     ),
-    native_status = c("fixture_available", "planned", "unsupported"),
-    direct_drmjl_status = c("fixture_available", "planned", "unsupported"),
-    r_via_julia_status = c("fixture_available", "planned", "unsupported"),
+    native_status = c(
+      rep("fixture_available", length(structured_types)),
+      "planned",
+      "unsupported"
+    ),
+    direct_drmjl_status = c(
+      rep("fixture_available", length(structured_types)),
+      "planned",
+      "unsupported"
+    ),
+    r_via_julia_status = c(
+      rep("fixture_available", length(structured_types)),
+      "planned",
+      "unsupported"
+    ),
     separated_from = c(
-      "q2_plus_q2;q4",
+      rep("q2_plus_q2;q4", length(structured_types)),
       "q2;q4",
       "q2_ml;q4;HSquared_AI_REML"
     ),
-    bridge_status = c("experimental", "planned", "unsupported"),
+    bridge_status = c(
+      rep("experimental", length(structured_types)),
+      "planned",
+      "unsupported"
+    ),
     claim_boundary = c(
-      "Same-target q2 phylo ML fixture only; no broad bridge support promotion.",
+      boundary,
       "Two q2 blocks are not full q4 structured covariance.",
       "q2 REML remains unsupported and is not HSquared AI-REML."
     ),
@@ -426,11 +652,40 @@ phase18_structured_re_q2_coefficient_order_map <- function() {
       route = "native_tmb"
     )
     coef_order <- paste(names(payload$estimates$coef), collapse = ";")
-    bridge_status <- if (identical(structured_type, "phylo")) {
-      "experimental"
-    } else {
-      "planned"
-    }
+    evidence_url <- switch(
+      structured_type,
+      phylo = "docs/dev-log/after-task/2026-06-22-q2-coefficient-ordering-map.md",
+      spatial = "docs/dev-log/after-task/2026-06-23-q2-spatial-fixed-bridge-parity.md",
+      animal = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md",
+      relmat = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md"
+    )
+    claim_boundary <- switch(
+      structured_type,
+      phylo = paste(
+        "Q2 coefficient order is fixture-level contract evidence only;",
+        "q2 phylo bridge evidence is limited to one exact-Gaussian ML",
+        "fixture and no broad q2 bridge support or interval coverage is",
+        "promoted."
+      ),
+      spatial = paste(
+        "Q2 coefficient order is fixture-level contract evidence for one",
+        "fixed-covariance q2 spatial bridge fixture; no range-estimating",
+        "spatial route, q2 REML, q4 support, broad public bridge support,",
+        "or interval coverage is promoted."
+      ),
+      animal = paste(
+        "Q2 coefficient order is fixture-level contract evidence for one",
+        "q2 animal A-matrix bridge fixture; no pedigree/Ainv bridge",
+        "marshalling, q2 REML, q4 support, broad public bridge support,",
+        "or interval coverage is promoted."
+      ),
+      relmat = paste(
+        "Q2 coefficient order is fixture-level contract evidence for one",
+        "q2 relmat K-matrix bridge fixture; no Q precision marshalling,",
+        "q2 REML, q4 support, broad public bridge support, or interval",
+        "coverage is promoted."
+      )
+    )
     data.frame(
       map_id = paste("q2", structured_type, "location_coef_order", sep = "_"),
       structured_type = structured_type,
@@ -444,15 +699,10 @@ phase18_structured_re_q2_coefficient_order_map <- function() {
       extractor = "coef;vcov;summary",
       tolerance_quantity = "coef;logLik;structured_sd;structured_correlation",
       status = "covered",
-      bridge_status = bridge_status,
-      evidence_url = "docs/dev-log/after-task/2026-06-22-q2-coefficient-ordering-map.md",
-      claim_boundary = paste(
-        "Q2 coefficient order is fixture-level contract evidence only;",
-        "q2 phylo bridge evidence is limited to one exact-Gaussian ML",
-        "fixture and no broad q2 bridge support or interval coverage is",
-        "promoted."
-      ),
-      next_gate = "Compare native direct and R-via-Julia q2 coefficients only after q2 bridge route design.",
+      bridge_status = "experimental",
+      evidence_url = evidence_url,
+      claim_boundary = claim_boundary,
+      next_gate = "Keep q2 coefficient-order evidence scoped to route-specific fixtures before widening REML, q4, or interval claims.",
       stringsAsFactors = FALSE
     )
   })
@@ -467,11 +717,89 @@ phase18_structured_re_q2_payload_provenance <- function() {
       route = "native_tmb"
     )
     target <- payload$target
-    bridge_status <- if (identical(structured_type, "phylo")) {
-      "experimental"
-    } else {
-      "planned"
-    }
+    matrix_slot <- switch(
+      structured_type,
+      phylo = "tree",
+      spatial = "coords",
+      animal = "A",
+      relmat = "K"
+    )
+    input_scale <- switch(
+      structured_type,
+      phylo = "ultrametric_tree_branch_lengths",
+      spatial = "coordinates_to_fixed_covariance_K",
+      animal = "additive_covariance",
+      relmat = "user_covariance"
+    )
+    missing_level_policy <- switch(
+      structured_type,
+      phylo = paste(
+        "error_if_observed_species_absent_from_tree;",
+        "extra_tree_tips_allowed",
+        sep = ""
+      ),
+      spatial = paste(
+        "error_if_coords_missing_observed_group_or_vary_within_group;",
+        "extra_coordinate_rows_not_supported",
+        sep = ""
+      ),
+      animal = paste(
+        "error_if_observed_id_absent_from_matrix;",
+        "extra_matrix_levels_allowed",
+        sep = ""
+      ),
+      relmat = paste(
+        "error_if_observed_id_absent_from_matrix;",
+        "extra_matrix_levels_allowed",
+        sep = ""
+      )
+    )
+    bridge_marshalling <- switch(
+      structured_type,
+      phylo = "tree_serialized_by_phylo_bridge_fixture",
+      spatial = paste(
+        "coords_converted_to_fixed_covariance_K_fixture;",
+        "range_estimating_spatial_not_promoted",
+        sep = ""
+      ),
+      animal = "A_covariance_bridge_fixture_only;pedigree_Ainv_not_marshaled",
+      relmat = "K_covariance_bridge_fixture_only;Q_precision_not_marshaled"
+    )
+    evidence_url <- switch(
+      structured_type,
+      phylo = "docs/dev-log/after-task/2026-06-22-q2-payload-provenance.md",
+      spatial = "docs/dev-log/after-task/2026-06-23-q2-spatial-fixed-bridge-parity.md",
+      animal = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md",
+      relmat = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md"
+    )
+    claim_boundary <- switch(
+      structured_type,
+      phylo = paste(
+        "Q2 payload provenance is a fixture-level audit contract only;",
+        "q2 phylo bridge evidence is limited to one exact-Gaussian ML",
+        "fixture and no broad q2 bridge support, q2 REML, q4 support,",
+        "or interval coverage is promoted."
+      ),
+      spatial = paste(
+        "Q2 spatial payload provenance is fixture-level audit evidence for",
+        "one fixed-covariance exact-Gaussian ML spatial bridge route; no",
+        "range-estimating spatial route, mesh/SPDE route, q2 REML, q4",
+        "support, broad public bridge support, or interval coverage is",
+        "promoted."
+      ),
+      animal = paste(
+        "Q2 animal payload provenance is fixture-level audit evidence for",
+        "one exact-Gaussian ML A-matrix bridge route; no pedigree/Ainv",
+        "bridge marshalling, q2 REML, q4 support, broad public bridge",
+        "support, or interval coverage is promoted."
+      ),
+      relmat = paste(
+        "Q2 relmat payload provenance is fixture-level audit evidence for",
+        "one exact-Gaussian ML K-matrix bridge route; no Q precision bridge",
+        "marshalling, q2 REML, q4 support, broad public bridge support,",
+        "or interval coverage is promoted."
+      )
+    )
     data.frame(
       provenance_id = paste(
         "q2",
@@ -490,20 +818,19 @@ phase18_structured_re_q2_payload_provenance <- function() {
       source_head = "b56aabd947b5;e016fc15b4fb",
       matrix_id = payload$matrix$matrix_id,
       matrix_digest = payload$matrix$matrix_digest,
+      matrix_slot = matrix_slot,
+      input_scale = input_scale,
+      missing_level_policy = missing_level_policy,
+      bridge_marshalling = bridge_marshalling,
       endpoint = target$endpoint[[1L]],
       required_levels = "group_index;matrix_row_names;matrix_col_names",
       version_fields = "payload_version;drmTMB_head;DRM.jl_head;estimator;route",
       dirty_state_policy = "local_dirty_state_must_be_reported;not_public_support",
       status = "covered",
-      bridge_status = bridge_status,
-      evidence_url = "docs/dev-log/after-task/2026-06-22-q2-payload-provenance.md",
-      claim_boundary = paste(
-        "Q2 payload provenance is a fixture-level audit contract only;",
-        "q2 phylo bridge evidence is limited to one exact-Gaussian ML",
-        "fixture and no broad q2 bridge support, q2 REML, q4 support,",
-        "or interval coverage is promoted."
-      ),
-      next_gate = "Use this provenance map when designing the q2-specific bridge route.",
+      bridge_status = "experimental",
+      evidence_url = evidence_url,
+      claim_boundary = claim_boundary,
+      next_gate = "Keep q2 provenance tied to route-specific fixtures before widening REML, q4, or interval claims.",
       stringsAsFactors = FALSE
     )
   })
@@ -513,11 +840,62 @@ phase18_structured_re_q2_payload_provenance <- function() {
 phase18_structured_re_q2_acceptance_gate <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   rows <- lapply(structured_types, function(structured_type) {
-    bridge_status <- if (identical(structured_type, "phylo")) {
-      "experimental"
-    } else {
-      "planned"
-    }
+    r_via_julia_status <- switch(
+      structured_type,
+      phylo = "available_q2_phylo_formula_bridge_fixture",
+      spatial = "available_q2_fixed_covariance_spatial_formula_bridge_fixture",
+      animal = "available_q2_known_covariance_formula_bridge_fixture",
+      relmat = "available_q2_known_covariance_formula_bridge_fixture"
+    )
+    acceptance_status <- switch(
+      structured_type,
+      phylo = "banked_phylo_fixture",
+      spatial = "banked_fixed_covariance_spatial_fixture",
+      animal = "banked_known_covariance_fixture",
+      relmat = "banked_known_covariance_fixture"
+    )
+    missing_evidence <- switch(
+      structured_type,
+      phylo = "none_for_phylo_fixture",
+      spatial = "none_for_fixed_covariance_spatial_fixture",
+      animal = "none_for_known_covariance_fixture",
+      relmat = "none_for_known_covariance_fixture"
+    )
+    evidence_url <- switch(
+      structured_type,
+      phylo = "docs/dev-log/after-task/2026-06-22-q2-parity-acceptance-blocker.md",
+      spatial = "docs/dev-log/after-task/2026-06-23-q2-spatial-fixed-bridge-parity.md",
+      animal = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md",
+      relmat = "docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md"
+    )
+    claim_boundary <- switch(
+      structured_type,
+      phylo = paste(
+        "Q2 phylo parity is banked only for one complete-response",
+        "exact-Gaussian ML native/direct/bridge fixture; no broad q2",
+        "bridge support, q2 REML, q4 support, or interval coverage is",
+        "promoted."
+      ),
+      spatial = paste(
+        "Q2 spatial parity is banked for one complete-response",
+        "exact-Gaussian ML native/direct/R-via-Julia fixed-covariance",
+        "spatial formula fixture; this is not a range-estimating spatial",
+        "route, mesh/SPDE route, q2 REML, q4 support, broad public bridge",
+        "support, or interval coverage."
+      ),
+      animal = paste(
+        "Q2 animal parity is banked for one complete-response exact-Gaussian",
+        "ML native/direct/bridge A-matrix fixture; no pedigree/Ainv bridge",
+        "marshalling, q2 REML, q4 support, range-estimating spatial route,",
+        "broad public bridge support, or interval coverage is promoted."
+      ),
+      relmat = paste(
+        "Q2 relmat parity is banked for one complete-response exact-Gaussian",
+        "ML native/direct/bridge K-matrix fixture; no Q precision bridge",
+        "marshalling, q2 REML, q4 support, range-estimating spatial route,",
+        "broad public bridge support, or interval coverage is promoted."
+      )
+    )
     data.frame(
       gate_id = paste("q2", structured_type, "parity_acceptance", sep = "_"),
       target = paste("gaussian_q2_mu1_mu2", structured_type, sep = "_"),
@@ -532,70 +910,16 @@ phase18_structured_re_q2_acceptance_gate <- function() {
       } else {
         "available_known_covariance_residual_correlation_point_export"
       },
-      r_via_julia_status = if (identical(structured_type, "phylo")) {
-        "available_q2_phylo_formula_bridge_fixture"
-      } else {
-        "planned_unimplemented"
-      },
-      tolerance_policy = if (identical(structured_type, "phylo")) {
-        "native_direct_bridge_same_target_fixture_tolerances_met"
-      } else {
-        "not_applicable_until_bridge_route_exists"
-      },
-      acceptance_status = if (identical(structured_type, "phylo")) {
-        "banked_phylo_fixture"
-      } else {
-        "blocked"
-      },
-      missing_evidence = if (identical(structured_type, "phylo")) {
-        "none_for_phylo_fixture"
-      } else {
-        "r_via_julia_q2_route;same_target_tolerance"
-      },
-      required_before_acceptance = if (identical(structured_type, "phylo")) {
-        "none_for_phylo_fixture"
-      } else {
-        paste(
-          "native/direct/bridge same-target logLik coef structured_sd",
-          "structured_correlation comparison"
-        )
-      },
-      status = if (identical(structured_type, "phylo")) {
-        "covered"
-      } else {
-        "blocked"
-      },
-      bridge_status = bridge_status,
-      evidence_url = "docs/dev-log/after-task/2026-06-22-q2-parity-acceptance-blocker.md",
-      claim_boundary = paste(
-        if (identical(structured_type, "phylo")) {
-          paste(
-            "Q2 phylo parity is banked only for one complete-response",
-            "exact-Gaussian ML native/direct/bridge fixture; no broad q2",
-            "bridge support, q2 REML, q4 support, or interval coverage is",
-            "promoted."
-          )
-        } else if (identical(structured_type, "spatial")) {
-          paste(
-            "Q2 spatial direct DRM.jl evidence is fixed-covariance fixture",
-            "evidence only, not a range-estimating spatial route; parity",
-            "acceptance remains blocked without an R-via-Julia q2 route and",
-            "same-target tolerances."
-          )
-        } else {
-          paste(
-            "Q2 direct DRM.jl known-covariance fixture evidence is banked,",
-            "but parity acceptance remains blocked without an R-via-Julia q2",
-            "route and same-target tolerances; no q2 REML, q4 support, or",
-            "interval coverage is promoted."
-          )
-        }
-      ),
-      next_gate = if (identical(structured_type, "phylo")) {
-        "Implement spatial animal and relmat R-via-Julia q2 routes before aggregate q2 acceptance."
-      } else {
-        "Implement q2-specific R-via-Julia route before acceptance."
-      },
+      r_via_julia_status = r_via_julia_status,
+      tolerance_policy = "native_direct_bridge_same_target_fixture_tolerances_met",
+      acceptance_status = acceptance_status,
+      missing_evidence = missing_evidence,
+      required_before_acceptance = missing_evidence,
+      status = "covered",
+      bridge_status = "experimental",
+      evidence_url = evidence_url,
+      claim_boundary = claim_boundary,
+      next_gate = "Keep aggregate q2 acceptance scoped to complete-response exact-Gaussian ML fixed-covariance and known-matrix fixtures before widening REML, q4, or interval claims.",
       stringsAsFactors = FALSE
     )
   })

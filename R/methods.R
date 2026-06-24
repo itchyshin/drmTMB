@@ -167,8 +167,10 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A data frame with one row per fitted structured-effect marker. The
-#'   `args`, `dpars`, and `coef_names` columns are list columns. Empty fits
-#'   return the same columns with zero rows.
+#'   `args`, `dpars`, `coef_names`, `member_levels`, `provider_levels`,
+#'   `observed_levels`, `endpoint_blocks`, and `endpoint_covariance_labels`
+#'   columns are list columns. Empty fits return the same columns with zero
+#'   rows.
 #' @export
 #'
 #' @examples
@@ -219,19 +221,61 @@ structured_effects_table_row <- function(structured_mu) {
 
   data.frame(
     marker = marker,
+    provider = marker,
     grouping_variable = structured_effects_group(structured_mu, marker),
     matrix_attachment = structured_effects_matrix_attachment(args),
+    matrix_id = structured_effects_matrix_id(structured_mu, marker, args),
+    matrix_slot = structured_effects_matrix_slot(structured_mu, marker),
+    matrix_source = structured_effects_matrix_source(args),
+    matrix_role = structured_effects_matrix_role(structured_mu, marker),
+    matrix_digest = structured_effects_matrix_digest(structured_mu),
+    input_scale = structured_effects_input_scale(structured_mu, marker),
+    level_alignment = structured_effects_level_alignment(structured_mu, marker),
+    missing_level_policy = structured_effects_missing_level_policy(
+      structured_mu,
+      marker
+    ),
+    bridge_marshalling = structured_effects_bridge_marshalling(
+      structured_mu,
+      marker
+    ),
+    provenance_contract = structured_effects_provenance_contract(),
     structure = structured_effects_structure(structured_mu, marker),
     group1 = structured_effects_scalar(structured_mu$group1),
     group2 = structured_effects_scalar(structured_mu$group2),
     label = structured_effects_scalar(structured_mu$label),
     block = phylo_mu_block(structured_mu),
+    block_label = phylo_mu_block(structured_mu),
+    covariance_layout = phylo_mu_covariance_mode(structured_mu),
+    endpoint_set = paste(phylo_mu_dpars(structured_mu), collapse = "+"),
+    coefficient_set = paste(
+      as.character(structured_mu$coef_names),
+      collapse = "+"
+    ),
     q = structured_mu_q(structured_mu),
     n_re = structured_effects_integer(structured_mu$n_re),
+    member_count = length(structured_effects_member_levels(structured_mu)),
+    provider_level_count = length(
+      structured_effects_provider_levels(structured_mu, marker)
+    ),
+    observed_level_count = length(
+      structured_effects_observed_levels(structured_mu, marker)
+    ),
     random_effect_block = structured_mu_random_effect_key(structured_mu),
     correlation_level = structured_mu_corpair_level(structured_mu),
     dpars = I(list(phylo_mu_dpars(structured_mu))),
     coef_names = I(list(as.character(structured_mu$coef_names))),
+    member_levels = I(list(structured_effects_member_levels(structured_mu))),
+    provider_levels = I(list(
+      structured_effects_provider_levels(structured_mu, marker)
+    )),
+    observed_levels = I(list(
+      structured_effects_observed_levels(structured_mu, marker)
+    )),
+    endpoint_blocks = I(list(phylo_mu_endpoint_blocks(structured_mu))),
+    endpoint_covariance_labels = I(list(
+      phylo_mu_endpoint_covariance_labels(structured_mu)
+    )),
     args = I(list(args)),
     stringsAsFactors = FALSE
   )
@@ -240,19 +284,42 @@ structured_effects_table_row <- function(structured_mu) {
 empty_structured_effects_table <- function() {
   data.frame(
     marker = character(),
+    provider = character(),
     grouping_variable = character(),
     matrix_attachment = character(),
+    matrix_id = character(),
+    matrix_slot = character(),
+    matrix_source = character(),
+    matrix_role = character(),
+    matrix_digest = character(),
+    input_scale = character(),
+    level_alignment = character(),
+    missing_level_policy = character(),
+    bridge_marshalling = character(),
+    provenance_contract = character(),
     structure = character(),
     group1 = character(),
     group2 = character(),
     label = character(),
     block = character(),
+    block_label = character(),
+    covariance_layout = character(),
+    endpoint_set = character(),
+    coefficient_set = character(),
     q = integer(),
     n_re = integer(),
+    member_count = integer(),
+    provider_level_count = integer(),
+    observed_level_count = integer(),
     random_effect_block = character(),
     correlation_level = character(),
     dpars = I(vector("list", 0L)),
     coef_names = I(vector("list", 0L)),
+    member_levels = I(vector("list", 0L)),
+    provider_levels = I(vector("list", 0L)),
+    observed_levels = I(vector("list", 0L)),
+    endpoint_blocks = I(vector("list", 0L)),
+    endpoint_covariance_labels = I(vector("list", 0L)),
     args = I(vector("list", 0L)),
     stringsAsFactors = FALSE
   )
@@ -316,6 +383,282 @@ structured_effects_matrix_attachment <- function(args) {
     return(NA_character_)
   }
   paste(values, collapse = ":")
+}
+
+structured_effects_matrix_id <- function(structured_mu, marker, args) {
+  group <- structured_effects_group(structured_mu, marker)
+  slot <- structured_effects_matrix_slot(structured_mu, marker)
+  source <- structured_effects_matrix_source(args)
+  paste(c(marker, slot, source, group), collapse = "::")
+}
+
+structured_effects_matrix_slot <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = "tree",
+    phylo_interaction = "tree_pair",
+    structured_effects_structure(structured_mu, marker)
+  )
+}
+
+structured_effects_matrix_source <- function(args) {
+  source <- structured_effects_matrix_attachment(args)
+  if (is.na(source) || !nzchar(source)) {
+    return(NA_character_)
+  }
+  source
+}
+
+structured_effects_matrix_role <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = "tree_precision",
+    phylo_interaction = "tree_pair_precision",
+    spatial = if (identical(structured_mu$structure, "coords")) {
+      "coordinate_covariance"
+    } else {
+      "mesh_precision"
+    },
+    animal = switch(
+      structured_mu$structure,
+      pedigree = "pedigree_covariance",
+      A = "covariance",
+      Ainv = "precision",
+      "unknown"
+    ),
+    relmat = switch(
+      structured_mu$structure,
+      K = "covariance",
+      Q = "precision",
+      "unknown"
+    ),
+    "unknown"
+  )
+}
+
+structured_effects_input_scale <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = "ultrametric_tree_branch_lengths",
+    phylo_interaction = "two_ultrametric_tree_branch_lengths",
+    spatial = if (identical(structured_mu$structure, "coords")) {
+      "coordinates_to_fixed_range_covariance"
+    } else {
+      "mesh_precision_planned"
+    },
+    animal = switch(
+      structured_mu$structure,
+      pedigree = "pedigree_to_additive_covariance",
+      A = "additive_covariance",
+      Ainv = "additive_precision",
+      "unknown"
+    ),
+    relmat = switch(
+      structured_mu$structure,
+      K = "user_covariance",
+      Q = "user_precision",
+      "unknown"
+    ),
+    "unknown"
+  )
+}
+
+structured_effects_level_alignment <- function(structured_mu, marker) {
+  provider <- structured_effects_provider_levels(structured_mu, marker)
+  observed <- structured_effects_observed_levels(structured_mu, marker)
+  if (length(provider) == 0L || length(observed) == 0L) {
+    return("not_available")
+  }
+  if (!all(observed %in% provider)) {
+    return("observed_levels_missing_from_provider")
+  }
+  if (setequal(provider, observed)) {
+    return("observed_levels_equal_provider_levels")
+  }
+  "observed_levels_subset_of_provider_levels"
+}
+
+structured_effects_missing_level_policy <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = paste(
+      "error_if_observed_species_absent_from_tree;",
+      "extra_tree_tips_allowed",
+      sep = ""
+    ),
+    phylo_interaction = paste(
+      "error_if_observed_partner_absent_from_tree;",
+      "extra_tree_tips_allowed",
+      sep = ""
+    ),
+    spatial = paste(
+      "error_if_coords_missing_observed_group_or_vary_within_group;",
+      "extra_coordinate_rows_not_supported",
+      sep = ""
+    ),
+    animal = if (identical(structured_mu$structure, "pedigree")) {
+      paste(
+        "error_if_observed_id_absent_from_pedigree_or_parent_missing;",
+        "extra_pedigree_ids_allowed",
+        sep = ""
+      )
+    } else {
+      paste(
+        "error_if_observed_id_absent_from_matrix;",
+        "extra_matrix_levels_allowed",
+        sep = ""
+      )
+    },
+    relmat = paste(
+      "error_if_observed_id_absent_from_matrix;",
+      "extra_matrix_levels_allowed",
+      sep = ""
+    ),
+    "unknown"
+  )
+}
+
+structured_effects_bridge_marshalling <- function(structured_mu, marker) {
+  switch(
+    marker,
+    phylo = "tree_serialized_by_phylo_bridge_fixture",
+    phylo_interaction = "not_marshaled_by_bridge;use_relmat_Q_escape_hatch",
+    spatial = if (identical(structured_mu$structure, "coords")) {
+      paste(
+        "gaussian_bridge_converts_coords_to_fixed_covariance_K;",
+        "range_estimating_spatial_not_promoted",
+        sep = ""
+      )
+    } else {
+      "not_marshaled_by_bridge;mesh_spde_planned"
+    },
+    animal = switch(
+      structured_mu$structure,
+      pedigree = "not_marshaled_by_bridge;use_A_covariance_or_native_tmb",
+      A = "bridge_marshals_A_covariance_fixture_only",
+      Ainv = "not_marshaled_by_bridge;Ainv_precision_native_tmb_only",
+      "unknown"
+    ),
+    relmat = switch(
+      structured_mu$structure,
+      K = "bridge_marshals_K_covariance_fixture_only",
+      Q = "not_marshaled_by_bridge;Q_precision_native_tmb_only",
+      "unknown"
+    ),
+    "unknown"
+  )
+}
+
+structured_effects_provenance_contract <- function() {
+  paste0(
+    "provider;matrix_slot;matrix_source;matrix_role;matrix_digest;",
+    "provider_levels;observed_levels;level_alignment"
+  )
+}
+
+structured_effects_matrix_digest <- function(structured_mu, digits = 12L) {
+  precision <- structured_mu$precision
+  matrix <- precision$precision
+  if (is.null(matrix) || is.null(dim(matrix))) {
+    return(NA_character_)
+  }
+  dims <- dim(matrix)
+  nnzero <- if (inherits(matrix, "Matrix")) {
+    Matrix::nnzero(matrix)
+  } else {
+    sum(matrix != 0)
+  }
+  log_det <- structured_effects_numeric_scalar(
+    precision$log_det_precision,
+    default = NA_real_
+  )
+  matrix_sum <- sum(matrix)
+  diag_sum <- sum(Matrix::diag(matrix))
+  paste0(
+    "precision:",
+    dims[[1L]],
+    "x",
+    dims[[2L]],
+    ";nnzero=",
+    nnzero,
+    ";sum=",
+    structured_effects_format_number(matrix_sum, digits = digits),
+    ";diag_sum=",
+    structured_effects_format_number(diag_sum, digits = digits),
+    ";logdet=",
+    structured_effects_format_number(log_det, digits = digits)
+  )
+}
+
+structured_effects_format_number <- function(x, digits = 12L) {
+  if (!is.finite(x)) {
+    return(NA_character_)
+  }
+  formatC(x, digits = as.integer(digits), format = "fg")
+}
+
+structured_effects_numeric_scalar <- function(x, default = NA_real_) {
+  if (is.null(x) || length(x) == 0L || !is.finite(x[[1L]])) {
+    return(default)
+  }
+  as.numeric(x[[1L]])
+}
+
+structured_effects_member_levels <- function(structured_mu) {
+  levels <- structured_mu$group_levels
+  if (is.character(levels) && length(levels) > 0L) {
+    return(levels)
+  }
+  levels <- structured_mu$node_labels
+  if (is.character(levels) && length(levels) > 0L) {
+    return(levels)
+  }
+  character()
+}
+
+structured_effects_provider_levels <- function(structured_mu, marker) {
+  precision <- structured_mu$precision
+  if (identical(marker, "phylo")) {
+    levels <- precision$tip_label
+    if (is.character(levels) && length(levels) > 0L) {
+      return(levels)
+    }
+  }
+  if (identical(marker, "spatial")) {
+    levels <- precision$site_levels
+    if (is.character(levels) && length(levels) > 0L) {
+      return(levels)
+    }
+  }
+  levels <- structured_mu$node_labels
+  if (is.character(levels) && length(levels) > 0L) {
+    return(levels)
+  }
+  character()
+}
+
+structured_effects_observed_levels <- function(structured_mu, marker) {
+  if (identical(marker, "phylo_interaction")) {
+    index <- unique(structured_mu$observation_node_index)
+    levels <- structured_mu$node_labels
+    if (
+      is.numeric(index) &&
+        length(index) > 0L &&
+        is.character(levels) &&
+        length(levels) >= max(index)
+    ) {
+      return(levels[index])
+    }
+  }
+  levels <- structured_mu$species_levels
+  if (is.character(levels) && length(levels) > 0L) {
+    return(levels)
+  }
+  levels <- structured_mu$group_levels
+  if (is.character(levels) && length(levels) > 0L) {
+    return(levels)
+  }
+  character()
 }
 
 structured_effects_scalar <- function(x) {
