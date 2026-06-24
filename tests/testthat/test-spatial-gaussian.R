@@ -140,6 +140,58 @@ new_spatial_gaussian_slope_data <- function(
   )
 }
 
+new_spatial_sigma_slope_gaussian_data <- function(
+  seed = 20260634,
+  n_site = 12L,
+  n_each = 10L,
+  sd_intercept = 0.28,
+  sd_slope = 0.16,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05)
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  spatial_intercept <- as.vector(
+    t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd_intercept)
+  )
+  spatial_slope <- as.vector(
+    t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd_slope)
+  )
+  names(spatial_intercept) <- site_levels
+  names(spatial_slope) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
+  log_sigma <- beta_sigma[[1L]] +
+    spatial_intercept[site] +
+    spatial_slope[site] * x
+  y <- beta_mu[[1L]] +
+    beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_intercept = sd_intercept,
+    sd_slope = sd_slope
+  )
+}
+
 new_biv_spatial_gaussian_data <- function(
   seed = 20260582,
   n_site = 8L,
@@ -475,6 +527,104 @@ test_that("bivariate Gaussian mu supports coordinate-based spatial correlation",
   expect_false(attr(near_boundary_chk, "ok"))
 })
 
+test_that("bivariate Gaussian mu supports spatial q2 slope-only covariance", {
+  sim <- new_biv_spatial_gaussian_data(n_site = 8L, n_each = 4L)
+  dat <- sim$data
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(0 + x | p | site, coords = coords),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  fixed_mu1 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu1"))
+  fixed_mu2 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu2"))
+  structured <- fit$model$structured$phylo_mu
+  pair <- corpairs(fit, level = "spatial")
+  covariance <- summary(fit)$covariance
+  targets <- profile_targets(fit)
+  profile_names <- c(
+    "sd:mu:mu1:spatial(0 + x | p | site)",
+    "sd:mu:mu2:spatial(0 + x | p | site)",
+    "cor:spatial:cor(mu1:x,mu2:x | p | site)"
+  )
+  profile <- targets[match(profile_names, targets$parm), , drop = FALSE]
+  structured_row <- structured_effects(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(structured$type, "spatial")
+  expect_equal(structured$q, 2L)
+  expect_equal(structured$coef_names, c("x", "x"))
+  expect_equal(structured$dpars, c("mu1", "mu2"))
+  expect_named(
+    fit$sdpars$mu,
+    c("mu1:spatial(0 + x | p | site)", "mu2:spatial(0 + x | p | site)")
+  )
+  expect_named(fit$corpars$spatial, "cor(mu1:x,mu2:x | p | site)")
+  expect_equal(nrow(pair), 1L)
+  expect_equal(pair$from_coef, "x")
+  expect_equal(pair$to_coef, "x")
+  expect_equal(pair$class, "slope-slope")
+  expect_equal(pair$parameter, names(fit$corpars$spatial))
+  expect_equal(nrow(covariance), 1L)
+  expect_equal(covariance$from_coef, "x")
+  expect_equal(covariance$to_coef, "x")
+  expect_equal(covariance$class, "slope-slope")
+  expect_equal(covariance$parameter, names(fit$corpars$spatial))
+  expect_equal(profile$parm, profile_names)
+  expect_equal(
+    profile$tmb_parameter,
+    c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
+  )
+  expect_equal(profile$index, c(1L, 2L, 1L))
+  expect_equal(profile$target_type, rep("direct", 3L))
+  expect_equal(profile$profile_ready, rep(TRUE, 3L))
+  expect_equal(structured_row$endpoint_set, "mu1+mu2")
+  expect_equal(structured_row$coefficient_set, "x+x")
+  expect_equal(structured_row$endpoint_member_set, "mu1:x+mu2:x")
+  expect_equal(structured_row$endpoint_member_count, 2L)
+  expect_equal(structured_row$covariance_layout, "scalar")
+  manual_mu1 <- fit$random_effects$spatial_mu$values[
+    structured$observation_node_index
+  ] *
+    structured$value[, 1L]
+  manual_mu2 <- fit$random_effects$spatial_mu$values[
+    structured$observation_node_index + structured$n_re
+  ] *
+    structured$value[, 2L]
+  expect_equal(
+    drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    unname(manual_mu1),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    unname(manual_mu2),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "mu1"),
+    fixed_mu1 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "mu2"),
+    fixed_mu2 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    tolerance = 1e-10
+  )
+})
+
 test_that("bivariate Gaussian supports spatial q4 location-scale blocks", {
   site_levels <- paste0("site_", seq_len(8L))
   theta <- seq(0, 1.5 * pi, length.out = length(site_levels))
@@ -602,6 +752,170 @@ test_that("bivariate Gaussian supports spatial q4 location-scale blocks", {
   )
 })
 
+test_that("bivariate spatial q4 all-four one-slope block exposes q8 members", {
+  set.seed(2026062401)
+  n_site <- 7L
+  n_each <- 6L
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = site_levels,
+    group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  chol_cov <- t(chol(covariance))
+  spatial_field <- function(sd) {
+    field <- as.vector(chol_cov %*% stats::rnorm(n_site, sd = sd))
+    names(field) <- site_levels
+    field
+  }
+
+  site <- rep(site_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
+  z <- rep(c(-0.5, 0.5, 0, 1, -1, 0.25), length.out = length(site))
+  eta_mu1 <- 0.2 +
+    0.15 * x +
+    spatial_field(0.12)[site] +
+    x * spatial_field(0.08)[site]
+  eta_mu2 <- -0.15 -
+    0.10 * x +
+    spatial_field(0.10)[site] +
+    x * spatial_field(0.07)[site]
+  eta_sigma1 <- -1.2 +
+    0.05 * z +
+    spatial_field(0.06)[site] +
+    x * spatial_field(0.04)[site]
+  eta_sigma2 <- -1.1 -
+    0.04 * z +
+    spatial_field(0.05)[site] +
+    x * spatial_field(0.04)[site]
+  dat <- data.frame(
+    y1 = eta_mu1 + exp(eta_sigma1) * stats::rnorm(length(site)),
+    y2 = eta_mu2 + exp(eta_sigma2) * stats::rnorm(length(site)),
+    x = x,
+    z = z,
+    site = site
+  )
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 + x | pm | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 + x | pm | site, coords = coords),
+        sigma1 = ~ z + spatial(1 + x | ps | site, coords = coords),
+        sigma2 = ~ z + spatial(1 + x | ps | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat
+    ),
+    "require one shared covariance label"
+  )
+
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + spatial(1 + x | p | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 + x | p | site, coords = coords),
+        sigma1 = ~ z + spatial(1 + x | p | site, coords = coords),
+        sigma2 = ~ z + spatial(1 + x | p | site, coords = coords),
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 800, iter.max = 800)
+      )
+    )
+  )
+
+  q8_dpars <- rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L)
+  q8_coef <- rep(c("(Intercept)", "x"), times = 4L)
+  q8_members <- paste0(q8_dpars, ":", q8_coef)
+  sd_names <- paste0(
+    q8_dpars,
+    ":spatial(",
+    ifelse(q8_coef == "(Intercept)", "1", "0 + x"),
+    " | p | site)"
+  )
+
+  structured <- fit$model$structured$phylo_mu
+  structured_row <- structured_effects(fit)
+  q8_pairs <- corpairs(fit, level = "spatial")
+  q8_pairs_ci <- corpairs(fit, level = "spatial", conf.int = TRUE)
+  q8_targets <- profile_targets(fit)
+  q8_cor_targets <- q8_targets[
+    startsWith(q8_targets$parm, "cor:spatial:"),
+    ,
+    drop = FALSE
+  ]
+  q8_sd_targets <- q8_targets[
+    match(paste0("sd:mu:", sd_names), q8_targets$parm),
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit$opt$objective))
+  expect_true(fit$opt$convergence %in% c(0L, 1L))
+  expect_equal(structured$type, "spatial")
+  expect_equal(structured$q, 8L)
+  expect_equal(structured$dpars, q8_dpars)
+  expect_equal(structured$coef_names, q8_coef)
+  expect_equal(structured$covariance_mode, "unstructured")
+  expect_equal(structured$block_ids, rep(1L, 8L))
+  expect_equal(
+    structured_row$endpoint_member_set,
+    paste(q8_members, collapse = "+")
+  )
+  expect_equal(structured_row$endpoint_member_count, 8L)
+  expect_named(fit$sdpars$mu, sd_names)
+  expect_equal(sum(names(fit$opt$par) == "theta_phylo"), 28L)
+  expect_equal(length(fit$corpars$spatial), 28L)
+  expect_equal(nrow(q8_pairs), 28L)
+  expect_equal(q8_pairs$parameter, names(fit$corpars$spatial))
+  expect_equal(nrow(q8_pairs_ci), 28L)
+  expect_equal(nrow(q8_cor_targets), 28L)
+  expect_equal(q8_cor_targets$tmb_parameter, rep("theta_phylo", 28L))
+  expect_equal(q8_cor_targets$target_type, rep("derived", 28L))
+  expect_false(any(q8_cor_targets$profile_ready))
+  expect_equal(
+    q8_cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 28L)
+  )
+  expect_equal(q8_pairs_ci$profile_target, q8_cor_targets$parm)
+  expect_equal(
+    q8_pairs_ci$conf.status,
+    rep("derived_interval_unavailable", 28L)
+  )
+  expect_equal(q8_pairs_ci$interval_source, rep("not_available", 28L))
+  expect_true(all(is.na(q8_pairs_ci$conf.low)))
+  expect_equal(q8_sd_targets$parm, paste0("sd:mu:", sd_names))
+  expect_equal(q8_sd_targets$tmb_parameter, rep("log_sd_phylo", 8L))
+  expect_equal(q8_sd_targets$index, seq_len(8L))
+  expect_equal(q8_sd_targets$target_type, rep("direct", 8L))
+
+  fixed_mu1 <- as.vector(fit$model$X$mu1 %*% coef(fit, "mu1"))
+  fixed_sigma2 <- as.vector(fit$model$X$sigma2 %*% coef(fit, "sigma2"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu1", type = "link")),
+    fixed_mu1 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    unname(predict(fit, dpar = "sigma2", type = "link")),
+    fixed_sigma2 + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma2"),
+    tolerance = 1e-8
+  )
+})
+
 test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
   sim <- new_spatial_gaussian_slope_data()
   coords <- sim$coords
@@ -681,7 +995,125 @@ test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
   )
 })
 
-test_that("spatial one-slope support stays limited to univariate mu", {
+test_that("Gaussian sigma supports coordinate-based spatial one-slope fields", {
+  sim <- new_spatial_sigma_slope_gaussian_data()
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords)),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 600, iter.max = 600)
+    )
+  )
+
+  sd_names <- c("spatial(1 | site)", "spatial(0 + x | site)")
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$structured$phylo_mu$type, "spatial")
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    "sigma"
+  )
+  expect_equal(fit$model$structured$phylo_mu$q, 2L)
+  expect_equal(fit$model$structured$phylo_mu$coef_names, c("(Intercept)", "x"))
+  expect_null(fit$sdpars$mu)
+  expect_named(fit$sdpars$sigma, sd_names)
+  expect_true(all(is.finite(fit$sdpars$sigma[sd_names])))
+  expect_true(all(unname(fit$sdpars$sigma[sd_names]) > 0))
+  expect_equal(fit$corpars, list())
+
+  spatial_re <- ranef(fit, "spatial_mu")
+  expect_equal(spatial_re, fit$random_effects$spatial_mu)
+  expect_named(spatial_re$terms, sd_names)
+  expect_length(spatial_re$values, 2L * nrow(sim$coords))
+  expect_length(spatial_re$terms[[sd_names[[1L]]]], nrow(sim$coords))
+  expect_length(spatial_re$terms[[sd_names[[2L]]]], nrow(sim$coords))
+
+  targets <- profile_targets(fit)
+  spatial_targets <- targets[
+    targets$parm %in% paste0("sd:sigma:", sd_names),
+  ]
+  spatial_targets <- spatial_targets[
+    match(paste0("sd:sigma:", sd_names), spatial_targets$parm),
+  ]
+  expect_equal(spatial_targets$parm, paste0("sd:sigma:", sd_names))
+  expect_equal(spatial_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+  expect_equal(spatial_targets$index, 1:2)
+  expect_equal(spatial_targets$target_type, rep("direct", 2L))
+  expect_true(all(spatial_targets$profile_ready))
+
+  index <- fit$model$structured$phylo_mu$observation_node_index
+  manual_spatial <- spatial_re$terms[[sd_names[[1L]]]][index] +
+    sim$data$x * spatial_re$terms[[sd_names[[2L]]]][index]
+  expect_equal(
+    drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    unname(manual_spatial),
+    tolerance = 1e-8
+  )
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  conditional_sigma <- predict(fit, dpar = "sigma", type = "link")
+  expect_equal(
+    unname(conditional_sigma),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+  expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian supports matched one-slope spatial location-scale fields", {
+  sim <- new_spatial_sigma_slope_gaussian_data(
+    seed = 20260645,
+    n_site = 10L,
+    n_each = 8L
+  )
+  coords <- sim$coords
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + spatial(1 + x | site, coords = coords),
+      sigma ~ spatial(1 + x | site, coords = coords)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 800, iter.max = 800)
+    )
+  )
+
+  mu_names <- c("mu:spatial(1 | site)", "mu:spatial(0 + x | site)")
+  sigma_names <- c(
+    "sigma:spatial(1 | site)",
+    "sigma:spatial(0 + x | site)"
+  )
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(fit$model$structured$phylo_mu$type, "spatial")
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    c("mu", "mu", "sigma", "sigma")
+  )
+  expect_equal(fit$model$structured$phylo_mu$q, 4L)
+  expect_equal(
+    fit$model$structured$phylo_mu$coef_names,
+    c("(Intercept)", "x", "(Intercept)", "x")
+  )
+  expect_named(fit$sdpars$mu, mu_names)
+  expect_named(fit$sdpars$sigma, sigma_names)
+  expect_equal(fit$corpars, list())
+  expect_equal(
+    structured_effects(fit)$endpoint_member_set,
+    "mu:(Intercept)+mu:x+sigma:(Intercept)+sigma:x"
+  )
+
+  spatial_re <- ranef(fit, "spatial_mu")
+  expect_named(spatial_re$terms, c(mu_names, sigma_names))
+  expect_length(spatial_re$values, 4L * nrow(sim$coords))
+  expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("spatial labelled one-slope location blocks expose partial q4 members", {
   sim <- new_spatial_gaussian_slope_data(
     seed = 20260575,
     n_site = 6L,
@@ -706,15 +1138,26 @@ test_that("spatial one-slope support stays limited to univariate mu", {
       family = gaussian(),
       data = dat
     ),
-    "covariance-block labels"
+    "all-four bivariate Gaussian block"
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords)),
+      bf(y ~ x, sigma ~ spatial(1 + x + z | site, coords = coords)),
       family = gaussian(),
       data = dat
     ),
-    "residual-scale structured effects are intercept-only"
+    "intercept and one-slope structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + spatial(1 + x | site, coords = coords),
+        sigma ~ spatial(1 | site, coords = coords)
+      ),
+      family = gaussian(),
+      data = dat
+    ),
+    "matching intercept-only or one-slope structured terms"
   )
   expect_error(
     drmTMB(
@@ -742,7 +1185,72 @@ test_that("spatial one-slope support stays limited to univariate mu", {
       family = biv_gaussian(),
       data = dat
     ),
-    "intercept-only structured effects"
+    "require an explicit covariance-block label"
+  )
+
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y ~ x + spatial(1 + x | p | site, coords = coords),
+        mu2 = y2 ~ x + spatial(1 + x | p | site, coords = coords),
+        sigma1 = ~1,
+        sigma2 = ~1,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(se = FALSE)
+    )
+  )
+
+  q4_dpars <- rep(c("mu1", "mu2"), each = 2L)
+  q4_coef <- rep(c("(Intercept)", "x"), times = 2L)
+  q4_members <- paste0(q4_dpars, ":", q4_coef)
+  sd_names <- paste0(
+    q4_dpars,
+    ":spatial(",
+    ifelse(q4_coef == "(Intercept)", "1", "0 + x"),
+    " | p | site)"
+  )
+  structured <- fit$model$structured$phylo_mu
+  structured_row <- structured_effects(fit)
+  pairs <- corpairs(fit, level = "spatial")
+  targets <- profile_targets(fit)
+  cor_targets <- targets[
+    startsWith(targets$parm, "cor:spatial:"),
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit$opt$objective))
+  expect_equal(structured$type, "spatial")
+  expect_equal(structured$q, 4L)
+  expect_equal(structured$dpars, q4_dpars)
+  expect_equal(structured$coef_names, q4_coef)
+  expect_equal(structured$covariance_mode, "unstructured")
+  expect_equal(structured$block_ids, rep(1L, 4L))
+  expect_equal(
+    structured_row$endpoint_member_set,
+    paste(q4_members, collapse = "+")
+  )
+  expect_equal(structured_row$endpoint_member_count, 4L)
+  expect_named(fit$sdpars$mu, sd_names)
+  expect_equal(sum(names(fit$opt$par) == "theta_phylo"), 6L)
+  expect_equal(length(fit$corpars$spatial), 6L)
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(
+    nrow(corpairs(fit, level = "spatial", class = "location-scale")),
+    0L
+  )
+  expect_equal(nrow(cor_targets), 6L)
+  expect_equal(cor_targets$tmb_parameter, rep("theta_phylo", 6L))
+  expect_equal(cor_targets$target_type, rep("derived", 6L))
+  expect_false(any(cor_targets$profile_ready))
+  fixed_mu2 <- as.vector(fit$model$X$mu2 %*% coef(fit, "mu2"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu2", type = "link")),
+    fixed_mu2 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    tolerance = 1e-8
   )
 })
 

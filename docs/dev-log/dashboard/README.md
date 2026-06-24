@@ -724,16 +724,391 @@ as mesh/SPDE, sparse animal pedigree helpers, `relmat()` precision `Q`, q1-only
 Gaussian structured `mu` artifact evidence for `phylo()`, `spatial()`,
 `animal()`, and `relmat()`. These rows bank source-tested DGP, smoke-summary,
 and grid-writer evidence plus extractor identity. They do not promote bridge
-fixture parity, residual-scale slopes, labelled structured slope covariance,
+fixture parity, residual-scale slopes, broader labelled structured slope covariance,
 interval reliability, or coverage.
 
 `structured-re-mu-slope-parity-fixture.tsv` records the same-target bridge
 fixture gate for those one-slope Gaussian structured `mu` rows. It banks
 deterministic native/direct/R-via-Julia fixture contracts for `phylo()`,
-fixed-covariance `spatial()`, and A-matrix `animal()` cells. The `relmat()`
-row remains planned until the K-versus-Q fixture source is reconciled, so this
-sidecar does not promote broad bridge support, residual-scale slopes, labelled
-structured slope covariance, interval reliability, or coverage.
+fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`
+cells. The `relmat()` row is paired with runtime K/Q same-target parity
+evidence, but this sidecar still does not promote broad bridge support,
+sigma-slope bridge fixture parity, broader labelled structured slope covariance,
+interval reliability, or coverage.
+
+`structured-re-sigma-slope-parity-fixture.tsv` records the same-target bridge
+fixture gate for the first Gaussian structured `sigma` one-slope rows:
+`phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+`relmat()`. The `relmat()` row is paired with runtime K/Q same-target parity
+evidence from the native test file. This sidecar does not promote broad bridge
+support, matched `mu+sigma` bridge or inference claims, labelled structured
+slope covariance, interval reliability, or coverage.
+
+`structured-re-sigma-slope-interval-diagnostic-plan.tsv` and
+`structured-re-sigma-slope-interval-diagnostic-status.tsv` record the
+sigma-only one-slope interval smoke for those four providers. This is a
+separate half-cell diagnostic: sigma-only profile target names are
+`sd:sigma:provider(...)`, not the matched `mu+sigma` names
+`sd:sigma:sigma:provider(...)`. The smoke run found all eight direct SD
+targets and kept all fits converged with `pdHess = TRUE`; seven targets had
+finite Wald/profile/bootstrap intervals, while the animal `sigma:x` target had
+finite Wald/bootstrap intervals but endpoint-profile failure. The sidecars
+remain diagnostic-only and do not promote interval reliability, calibrated
+coverage, REML, AI-REML, matched `mu+sigma` support, range-estimating spatial
+support, pedigree/Ainv bridge marshalling, relmat Q bridge marshalling, or
+broad bridge support.
+
+`structured-re-sigma-slope-interval-stability-probe.tsv` records a
+follow-up sigma-only one-slope diagnostic using two stronger deterministic
+fixture variants and only Wald plus endpoint-profile intervals. It is backed
+by
+`docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-interval-stability-probe/structured-re-sigma-slope-interval-stability-probe-results.tsv`.
+All 16 variant-target combinations had finite Wald/profile intervals,
+including the animal `sigma:x` target that failed endpoint profiling in the
+smoke run. This is still diagnostic-only evidence: the linked q-series cells
+keep `interval_status = planned`, `coverage_status = planned`, and
+`denominator_policy = fixture_not_coverage`.
+
+`structured-re-sigma-slope-denominator-admission.tsv` records the first
+sigma-only one-slope denominator-admission ledger. Seven of eight direct SD
+targets are marked `diagnostic_denominator_candidate`; animal `sigma:x`
+remains `not_admitted_profile_failure` because the first Wald/profile/bootstrap
+smoke still had endpoint-profile failure for that target. Coverage remains
+`not_evaluated`, and the linked support cells do not move to interval or
+coverage support.
+
+`structured-re-sigma-slope-replicated-denominator-rule.tsv` records the
+replicated-denominator rule for those same sigma-only one-slope targets. Seven
+targets are `eligible_for_pregrid_with_retention`; animal `sigma:x` remains a
+visible holdout until the smoke endpoint-profile failure is reconciled. The
+rule requires failed profiles, nonconverged fits, nonfinite intervals, and
+bootstrap refit attempts to be retained in any future denominator.
+
+`structured-re-sigma-slope-coverage-pregrid-dry-run.tsv` records a dry-run
+manifest for a future sigma-only one-slope coverage pre-grid. It declares 150
+seeds and 1050 not-executed target-replicate cells for the seven eligible
+targets, while excluding animal `sigma:x` from the executable cell manifest.
+The nominal MCSE at 150 replicates is 0.017795, so SR150 remains insufficient
+for coverage wording and coverage remains `not_evaluated`.
+
+`structured-re-q-series-support-cells.tsv` now also records the first
+bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells:
+matching `phylo(0 + x | p | species, tree = tree)`,
+fixed-covariance `spatial(0 + x | p | site, coords = coords)`,
+`animal(0 + x | p | id, A/Ainv = ...)`, and
+`relmat(0 + x | p | id, K/Q = ...)`. These rows now have native point-fit and
+extractor evidence plus deterministic same-target fixture parity for the exact
+`mu1:x+mu2:x` endpoint set only. They do not promote intercept-plus-slope q4/q8
+structured covariance, broad bridge support, interval reliability, coverage,
+REML, or AI-REML.
+
+`structured-re-q2-slope-parity-fixture.tsv` records the corresponding q=2
+slope-only same-target fixture gate for `phylo()`, fixed-covariance
+`spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. The `relmat()` row
+is paired with runtime K/Q same-target parity evidence, but the sidecar does
+not promote Q bridge marshalling, pedigree/Ainv bridge marshalling,
+range-estimating spatial support, intervals, coverage, REML, AI-REML, or broad
+bridge support.
+
+`structured-re-q2-slope-interval-diagnostic-plan.tsv` records the next
+target-level interval diagnostic plan for the same slope-only q=2 cells. Each
+provider has three planned targets: `sd_mu1_x`, `sd_mu2_x`, and
+`cor_mu1_mu2_x`. This is plan-only evidence and keeps the linked q-series rows
+at `interval_status = planned` and `coverage_status = planned`; it does not
+promote interval reliability, interval coverage, intercept-plus-slope q4/q8,
+range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+bridge marshalling, REML, AI-REML, or broad bridge support.
+
+`structured-re-q2-slope-interval-diagnostic-status.tsv` records the first
+deterministic interval-smoke status for those 12 slope-only q=2 targets. It is
+backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-interval-smoke/structured-re-q2-slope-interval-smoke-results.tsv`
+and separates finite Wald/profile/bootstrap rows from the two correlation
+targets where Wald/bootstrap were finite but endpoint profiles failed. The
+post slope-design-fix rerun has 10 all-finite method rows and two profile
+failure rows, with all fits converged and `pdHess = TRUE`. The table is still
+diagnostic-only: the linked q-series cells keep
+`interval_status = planned` and `coverage_status = planned`.
+
+`structured-re-q2-slope-interval-stability-probe.tsv` records a follow-up
+deterministic stability probe for the same slope-only q=2 target set. It uses
+two stronger slope-signal fixtures and only Wald plus endpoint-profile
+intervals. The post slope-design-fix rerun has all 24 variant-target rows at
+finite Wald/profile status with `pdHess = TRUE`. This remains diagnostic-only
+and does not promote interval reliability, coverage, q4/q8, REML, AI-REML,
+broad bridge support, range-estimating spatial support, pedigree/Ainv bridge
+marshalling, or relmat Q bridge marshalling.
+
+`structured-re-q2-slope-denominator-admission.tsv` records the first
+denominator-admission ledger for the same q2 slope targets after the runtime
+fix. It joins the interval-smoke and stability sidecars: 10 targets are marked
+`diagnostic_denominator_candidate`, while the animal and relmat correlation
+targets remain `not_admitted_profile_failure` because endpoint profiles failed
+in the smoke run. The ledger keeps `coverage_status = not_evaluated` and the
+linked q-series cells at `interval_status = planned` and
+`coverage_status = planned`; it is not coverage-grid evidence and does not
+promote interval reliability, coverage, REML, AI-REML, q4/q8, or broad bridge
+support.
+
+`structured-re-q2-slope-denominator-extension.tsv` records a two-variant
+deterministic extension of that denominator-admission ledger. It reruns
+Wald/profile diagnostics for all 12 q2 slope targets in two stronger fixture
+variants and links back to the admission sidecar. All 24 extension rows have
+finite Wald/profile diagnostics and `pdHess = TRUE`; 20 rows are
+`extension_candidate`, while the animal and relmat correlation rows remain
+`not_admitted_from_smoke` because their earlier smoke endpoint profiles
+failed. The table keeps `coverage_status = not_evaluated`; it is not
+coverage-evaluable denominator evidence and does not promote interval
+reliability, coverage, REML, AI-REML, q4/q8, or broad bridge support.
+
+`structured-re-q2-slope-replicated-denominator-rule.tsv` records the
+predeclared rule for turning those q2 slope diagnostics into a future
+coverage pre-grid denominator. The rule keeps all 12 target rows visible,
+marks 10 rows `eligible_for_pregrid_with_retention`, and keeps the animal and
+relmat correlation rows as `visible_holdout_until_smoke_profile_reconciled`.
+It requires a predeclared 150-replicate seed manifest, retained failed
+profiles, retained nonconverged fits, retained nonfinite intervals, recorded
+bootstrap-refit attempts, and MCSE <= 0.01 before any coverage wording. The
+table is policy-only: it keeps `coverage_evaluable = FALSE` and does not
+promote interval reliability, calibrated coverage, REML, AI-REML, q4/q8,
+DRAC execution, SR150 readiness, or broad bridge support.
+
+`structured-re-q2-slope-coverage-pregrid-dry-run.tsv` records the executable
+manifest shape for that future q2 slope coverage pre-grid without running any
+coverage fits. It links to a 150-row predeclared seed manifest and a 1500-row
+target-by-seed cell manifest for the 10 currently eligible targets; the animal
+and relmat correlation targets remain visible holdouts with zero planned
+cells. The table also records that 150 replicates give nominal 0.95-coverage
+MCSE about 0.017795, so the 0.01 MCSE threshold would require 475 replicates
+before coverage wording. The dry run keeps `execution_status =
+not_executed`, `coverage_evaluable = FALSE`, and `coverage_status =
+not_evaluated`; it does not promote calibrated coverage, interval reliability,
+REML, AI-REML, q4/q8, DRAC execution, SR150 readiness, or broad bridge
+support.
+
+`structured-re-mu-sigma-slope-parity-fixture.tsv` records the matched
+`mu+sigma` one-slope same-target bridge fixture gate for `phylo()`,
+fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
+It banks deterministic native/direct/R-via-Julia fixture contracts for the four
+endpoint members while keeping labelled slope covariance, interval reliability,
+coverage, REML, AI-REML, broad bridge support, and relmat Q bridge marshalling
+out of scope.
+
+`structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv` records the
+target-level interval diagnostic plan for the same matched `mu+sigma`
+one-slope cells. It names the 16 direct SD targets to smoke with Wald,
+profile, and bootstrap intervals before any calibrated coverage wording. This
+is plan-only evidence: it does not promote interval reliability, interval
+coverage, REML, AI-REML, broad bridge support, range-estimating spatial
+support, pedigree/Ainv bridge marshalling, or relmat Q bridge marshalling.
+
+`structured-re-mu-sigma-slope-interval-diagnostic-status.tsv` records the
+first deterministic interval-smoke status for those 16 direct SD targets. It is
+backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-mu-sigma-slope-interval-smoke/structured-re-mu-sigma-slope-interval-smoke-results.tsv`
+and separates finite Wald/profile/bootstrap rows from boundary/profile-failure
+rows. The table is diagnostic-only: the linked q-series cells keep
+`interval_status = planned` and `coverage_status = planned`.
+
+`structured-re-mu-sigma-slope-interval-stability-probe.tsv` records a
+follow-up diagnostic using two stronger deterministic fixture variants and only
+Wald plus endpoint-profile intervals. It is backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-mu-sigma-slope-interval-stability-probe/structured-re-mu-sigma-slope-interval-stability-probe-results.tsv`.
+The probe found finite Wald/profile rows for 28 of 32 variant-target
+combinations; the persistent exceptions were fixed-covariance `spatial()` `mu`
+intercept and `mu:x` targets in both variants. This table remains
+diagnostic-only and does not promote interval reliability, interval coverage,
+REML, AI-REML, broad bridge support, range-estimating spatial support,
+pedigree/Ainv bridge marshalling, or relmat Q bridge marshalling.
+
+`structured-re-spatial-mu-boundary-diagnostic.tsv` drills into those
+fixed-covariance spatial `mu` failures. It is backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-spatial-mu-boundary-diagnostic/structured-re-spatial-mu-boundary-diagnostic-results.tsv`
+and compares six deterministic designs: the original finite smoke seed, the
+boundary-producing stronger seed, two alternate strong seeds, a higher
+replication version of the boundary seed, and a `mu`-dominant/low-`sigma`
+version of the boundary seed. Eight of 12 target rows had finite Wald/profile
+intervals, two had finite Wald but failed endpoint profile, and two remained
+at the Wald/profile boundary. This shows seed/design sensitivity, not
+coverage readiness, and keeps the spatial q-series interval and coverage
+statuses planned.
+
+`structured-re-spatial-mu-profile-geometry.tsv` drills one layer deeper into
+the fragile `mu:x` endpoint-profile path from the same spatial cell. It is
+backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-spatial-mu-profile-geometry/structured-re-spatial-mu-profile-geometry-results.tsv`
+and records lower and upper endpoint-profile crossings for the six diagnostic
+designs. All six upper sides succeeded. Three lower sides succeeded, while the
+three seed-202 lower sides failed with constrained-optimizer `NA/NaN gradient
+evaluation`. This geometry evidence explains the profile fragility but remains
+diagnostic-only; it does not promote interval reliability, coverage, or public
+spatial support.
+
+`structured-re-spatial-mu-profile-strategy.tsv` compares the existing
+endpoint, `auto`, and `tmbprofile` profile engines for the finite
+`smoke_seed102` control and the three seed-202 spatial `mu:x` designs that
+failed the lower-side geometry diagnostic. It is backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-spatial-mu-profile-strategy/structured-re-spatial-mu-profile-strategy-results.tsv`.
+The smoke control stayed finite under all three requested engines. The three
+problematic designs remained nonfinite under endpoint profiling and under the
+existing `auto`/`tmbprofile` fallback path, so fallback alone is not enough to
+admit those rows to interval denominators. This table remains diagnostic-only
+and does not promote interval reliability, coverage, range-estimating spatial
+support, or public support.
+
+`structured-re-spatial-mu-lower-start-diagnostic.tsv` tests whether a safer
+lower-side constrained-endpoint start can rescue the same spatial `mu:x`
+problem rows without changing runtime behavior. It is backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-spatial-mu-lower-start-diagnostic/structured-re-spatial-mu-lower-start-diagnostic-results.tsv`
+and compares the current warm curvature start with reset curvature, reset
+capped-step, and reset fixed-step variants. The smoke control stayed finite in
+all four variants, but all three problematic seed-202 designs still failed
+with `NA/NaN gradient evaluation`. These rows remain diagnostic-only and are
+not admitted to interval denominators.
+
+`structured-re-spatial-mu-domain-guard-diagnostic.tsv` tests whether the same
+spatial `mu:x` lower-side problem is caused by immediate target-domain
+non-finiteness or by the constrained optimizer path. It is backed by
+`docs/dev-log/simulation-artifacts/2026-06-24-spatial-mu-domain-guard-diagnostic/structured-re-spatial-mu-domain-guard-diagnostic-results.tsv`.
+For the finite control and all three seed-202 problem designs, fixed-nuisance
+objective and gradient evaluations were finite at all nine lower target
+offsets. Guarded lower-side prototypes that penalized nonfinite objective
+values, with and without zero-gradient fallback, still rescued only the smoke
+control; the three seed-202 designs remained nonfinite. The table is
+diagnostic-only and does not admit interval denominators or promote interval
+reliability, coverage, range-estimating spatial support, REML, AI-REML, broad
+bridge support, or public support.
+
+`structured-re-mu-sigma-slope-readiness.tsv` records the native point-fit and
+extractor identity gate for matched Gaussian structured `mu+sigma` one-slope
+cells. Each provider row names the four endpoint members, `mu:(Intercept)`,
+`mu:x`, `sigma:(Intercept)`, and `sigma:x`, links back to the separate `mu` and
+`sigma` one-slope fixture ledgers, and points to the provider test file. These
+rows do not promote bridge support, intervals, coverage, REML, or AI-REML.
+
+`structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
+contract for all-four bivariate Gaussian one-slope cells. Each provider row
+names the eight endpoint members, the matching eight direct-SD targets, and the
+28 labelled covariance pairs required before runtime can be called implemented.
+The phylo, fixed-covariance spatial, A-matrix animal, and K/Q relmat rows now
+record native point-fit/extractor evidence for their exact shared-label
+all-four cells. The identity ledger is the runtime/extractor map, not the
+bridge evidence source.
+
+`structured-re-q4-slope-parity-fixture.tsv` records deterministic same-target
+native/direct/R-via-Julia fixture evidence for the exact all-four one-slope
+`phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+`relmat()` cells. It moves only those four exact q8-shaped cells to fixture
+parity. Broad bridge support, intervals, coverage, q4 REML, AI-REML, and
+public support remain planned; pedigree/Ainv animal bridge marshalling, relmat
+Q bridge marshalling, range-estimating spatial support, and broader q8 layouts
+remain separate gates.
+
+`structured-re-q4-slope-interval-diagnostic-plan.tsv` records target-level
+interval diagnostic planning for those exact q8-shaped cells. Each provider has
+8 direct-SD rows and 28 derived-correlation rows. The direct-SD rows require a
+future deterministic Wald/profile/bootstrap smoke; the derived-correlation rows
+stay blocked until derived interval reconstruction is designed and validated.
+All 144 rows are planned-only and do not admit coverage denominators, interval
+reliability, coverage, q4 REML, AI-REML, broad bridge support, or public
+support.
+
+`structured-re-q4-slope-interval-diagnostic-status.tsv` records the first
+direct-SD smoke for those same cells. It links to
+`docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-smoke/structured-re-q4-slope-interval-smoke-results.tsv`
+and covers only the 32 direct-SD targets from the plan. All four provider fits
+converged, but all four returned `pdHess = FALSE`, so all Wald/profile/bootstrap
+method rows are recorded as `not_run_pdhess_false` with zero finite intervals.
+The status sidecar is diagnostic negative evidence only: derived correlations,
+denominator admission, interval reliability, coverage, q4 REML, AI-REML, broad
+bridge support, and public support remain planned or blocked.
+
+`structured-re-q4-slope-interval-stability-probe.tsv` records a follow-up
+Hessian-stability probe for the same 32 direct-SD q4 all-four one-slope targets.
+It links to
+`docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-stability-probe/structured-re-q4-slope-interval-stability-probe-results.tsv`
+and covers two deterministic variants: a stronger signal design and a
+more-levels design. All eight provider-variant fits converged, but all eight
+returned `pdHess = FALSE`, so the 128 Wald/profile method rows are recorded as
+`not_run_pdhess_false`. This is diagnostic negative evidence only: denominator
+admission, interval reliability, coverage, q4 REML, AI-REML, broad bridge
+support, public support, and broader q8 support remain unpromoted.
+
+`structured-re-q4-slope-hessian-geometry.tsv` records the follow-up
+Hessian-geometry audit for those same provider-variant fits. It links to
+`docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-hessian-geometry/structured-re-q4-slope-hessian-geometry-results.tsv`
+and records one row for each `strong` / `more_levels` variant crossed with
+`phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+`relmat()`. All eight fits converged with `pdHess = FALSE`; all eight had
+nonfinite `sdr$cov.fixed`, raw TMB Hessian extraction was unavailable for
+random-effect models, and all four sigma-endpoint direct SD targets were at the
+lower bound in every row. Seven rows selected the fallback optimizer. This is
+diagnostic negative evidence only: denominator admission, interval reliability,
+coverage, q4 REML, AI-REML, broad bridge support, public support, and broader
+q8 support remain unpromoted.
+
+`structured-re-q4-slope-sigma-axis-differential.tsv` records the first
+reduced-axis contrast for those q4 all-four one-slope cells. It links to
+`docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-sigma-axis-differential/structured-re-q4-slope-sigma-axis-differential-results.tsv`
+and records three rows per provider-variant: the existing all-four baseline,
+a `mu1+mu2` intercept-plus-slope partial axis, and a `sigma1+sigma2`
+intercept-plus-slope partial axis. The all-four rows reproduce the
+Hessian-blocked lower-bound sigma geometry. The `mu1+mu2` partial-axis rows now
+fit for `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and
+K-matrix `relmat()` with four direct SD targets, `pdHess = TRUE`, and finite
+positive `sdr$cov.fixed`; they are recorded as exact diagnostic native
+point-fit/extractor q4 location cells in
+`structured-re-q-series-support-cells.tsv`. The `sigma1+sigma2` partial-axis
+rows remain blocked by the current partial location-scale guard because
+matching labelled intercepts in all four endpoints are required. This is
+diagnostic runtime evidence only: it does not promote bridge parity, partial
+location-scale support, interval reliability, coverage, q4 REML, AI-REML, broad
+bridge support, public support, or broader q8 support.
+
+`structured-re-q4-location-slope-parity-fixture.tsv` records deterministic
+same-target native/direct/R-via-Julia fixture parity for the exact four-member
+q4 location `mu1+mu2` endpoint map across `phylo()`, fixed-covariance
+`spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. The linked
+q-series rows move to `fixture_parity` and `fixture_not_coverage`, but interval
+and coverage statuses remain planned. The `relmat()` row is a K-matrix contract
+only; Q precision marshalling remains separate and the sidecar does not claim
+K/Q same-target parity, partial location-scale support, interval reliability,
+coverage, q4 REML, AI-REML, broad bridge support, public support, or broader
+q8 support.
+
+`structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
+target-level interval diagnostic plan for the same exact q4 location cells. It
+contains 40 planned rows: four direct-SD targets and six derived-correlation
+targets per provider. Direct-SD rows are future Wald/profile/bootstrap smoke
+targets, while derived-correlation rows remain blocked until derived interval
+reconstruction is designed. The sidecar keeps denominators, interval
+reliability, coverage, q4 REML, AI-REML, broad bridge support, public support,
+partial location-scale support, Q precision marshalling, K/Q same-target
+parity, and broader q8 support unpromoted.
+
+`structured-re-q4-location-slope-interval-diagnostic-status.tsv` records the
+bounded deterministic direct-SD interval smoke for those q4 location cells. The
+strong fixture fit converged with `pdHess=TRUE` for `phylo()`,
+fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`;
+Wald and profile intervals were finite for all 16 direct-SD targets. Bootstrap
+is recorded as `not_run_smoke_budget` because a complete bootstrap pass is too
+slow for this local dashboard smoke and must move to a bounded denominator or
+coverage runner. The sidecar remains diagnostic only: derived-correlation
+intervals, interval reliability, coverage, q4 REML, AI-REML, broad bridge
+support, public support, partial location-scale support, Q precision
+marshalling, K/Q same-target parity, and broader q8 support stay unpromoted.
+
+`structured-re-q4-location-slope-bootstrap-budget-probe.tsv` records a
+representative bootstrap-cost probe for the same q4 location cells. It runs
+only the `phylo()` `mu1:(Intercept)` direct-SD target with two bootstrap refits
+and records fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+`relmat()` as `not_run_after_phylo_budget_probe` after the local runtime
+boundary was exposed. The next gate is a reviewed Totoro or DRAC/totoro
+provider-rotating denominator runner; this sidecar does not admit all-target
+bootstrap denominators, derived-correlation intervals, interval reliability,
+coverage, q4 REML, AI-REML, broad bridge support, public support, partial
+location-scale support, Q precision marshalling, K/Q same-target parity, or
+broader q8 support.
 
 `structured-re-type-gaps.tsv` records the remaining structured-type gaps for
 `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It

@@ -164,6 +164,7 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(phylo_mu_value);
   DATA_IVECTOR(phylo_mu_block_id);
   DATA_IVECTOR(phylo_mu_dpar);
+  DATA_IVECTOR(phylo_mu_response);
   DATA_INTEGER(phylo_mu_n_blocks);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
@@ -3150,11 +3151,25 @@ Type objective_function<Type>::operator()()
             phylo_effect2 *= sd_phylo(1);
           }
         }
-        mu1(i) += phylo_effect1;
-        mu2(i) += phylo_effect2;
-        if (q_phylo > 2) {
-          log_sigma1(i) += u_phylo(2 * n_phylo + node);
-          log_sigma2(i) += u_phylo(3 * n_phylo + node);
+        if (q_phylo == 2) {
+          mu1(i) += phylo_mu_value(i, 0) * phylo_effect1;
+          mu2(i) += phylo_mu_value(i, 1) * phylo_effect2;
+        } else {
+          for (int k = 0; k < q_phylo; ++k) {
+            Type contribution = phylo_mu_value(i, k) *
+              u_phylo(k * n_phylo + node);
+            int family = phylo_mu_dpar(k);
+            int response = phylo_mu_response(k);
+            if (family == 0 && response == 1) {
+              mu1(i) += contribution;
+            } else if (family == 0 && response == 2) {
+              mu2(i) += contribution;
+            } else if (family == 1 && response == 1) {
+              log_sigma1(i) += contribution;
+            } else if (family == 1 && response == 2) {
+              log_sigma2(i) += contribution;
+            }
+          }
         }
       }
       if (q_phylo == 2) {

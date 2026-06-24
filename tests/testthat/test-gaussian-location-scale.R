@@ -442,11 +442,11 @@ test_that("Phase 1 rejects unsupported model syntax clearly", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x, sigma ~ spatial(1 + x | id, coords = coords)),
+      bf(y ~ x, sigma ~ spatial(1 + x + z | id, coords = coords)),
       family = gaussian(),
       data = dat
     ),
-    "residual-scale structured effects are intercept-only"
+    "intercept and one-slope structured terms"
   )
   expect_error(
     drmTMB(

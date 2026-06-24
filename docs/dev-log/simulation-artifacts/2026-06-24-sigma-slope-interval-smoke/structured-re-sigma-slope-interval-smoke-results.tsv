@@ -1,0 +1,25 @@
+provider	endpoint_member	direct_sd_target	profile_target	interval_method	method_status	interval_finite	lower	upper	conf_status	method_message	method_warnings	estimate	profile_ready	profile_note	convergence	pdHess	logLik
+phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	wald	finite	TRUE	0.175459181688149	0.503019316122604	wald	NA		0.297084764974922	TRUE	ready	0	TRUE	-33.5830135715656
+phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	profile	finite	TRUE	0.160880154307241	0.478968273954686	profile	ok		0.297084764974922	TRUE	ready	0	TRUE	-33.5830135715656
+phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	bootstrap	finite	TRUE	0.228869157061249	0.300819999153057	bootstrap	2/2 successful refits		0.297084764974922	TRUE	ready	0	TRUE	-33.5830135715656
+phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	wald	finite	TRUE	0.33637128789934	0.677723282711244	wald	NA		0.477458535838401	TRUE	ready	0	TRUE	-33.5830135715656
+phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	profile	finite	TRUE	0.334184076240556	0.681502378735342	profile	ok		0.477458535838401	TRUE	ready	0	TRUE	-33.5830135715656
+phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	bootstrap	finite	TRUE	0.347029135512887	0.625303667939496	bootstrap	2/2 successful refits		0.477458535838401	TRUE	ready	0	TRUE	-33.5830135715656
+spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	wald	finite	TRUE	0.134043038693676	0.481408700634788	wald	NA		0.254026544059201	TRUE	ready	0	TRUE	-128.376617360138
+spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	profile	finite	TRUE	0.0871504909978884	0.435909829373072	profile	ok		0.254026544059201	TRUE	ready	0	TRUE	-128.376617360138
+spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	bootstrap	finite	TRUE	1.35733470453858e-05	0.244384886139214	bootstrap	2/2 successful refits		0.254026544059201	TRUE	ready	0	TRUE	-128.376617360138
+spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	wald	finite	TRUE	0.244795237795784	0.574653581563859	wald	NA		0.375063274860555	TRUE	ready	0	TRUE	-128.376617360138
+spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	profile	finite	TRUE	0.238758336693492	0.57038328140411	profile	ok		0.375063274860555	TRUE	ready	0	TRUE	-128.376617360138
+spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	bootstrap	finite	TRUE	0.278150621758827	0.441356432456657	bootstrap	2/2 successful refits		0.375063274860555	TRUE	ready	0	TRUE	-128.376617360138
+animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	wald	finite	TRUE	0.225817181959626	0.52011747741857	wald	NA		0.342711924272575	TRUE	ready	0	TRUE	-75.3796406322982
+animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	profile	finite	TRUE	0.219342128680993	0.514660015496412	profile	ok		0.342711924272575	TRUE	ready	0	TRUE	-75.3796406322982
+animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	bootstrap	finite	TRUE	0.188158252859446	0.395418311985134	bootstrap	2/2 successful refits		0.342711924272575	TRUE	ready	0	TRUE	-75.3796406322982
+animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	wald	finite	TRUE	0.000177016934420825	21.196122638726	wald	NA		0.0612541643573328	TRUE	ready	0	TRUE	-75.3796406322982
+animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	profile	nonfinite	FALSE	NA	NA	profile_failed	NA/NaN gradient evaluation	NA/NaN function evaluation	0.0612541643573328	TRUE	ready	0	TRUE	-75.3796406322982
+animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	bootstrap	finite	TRUE	1.03975155425806e-05	9.3722579885405e-05	bootstrap	2/2 successful refits		0.0612541643573328	TRUE	ready	0	TRUE	-75.3796406322982
+relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	wald	finite	TRUE	0.695854300289268	1.19784059739361	wald	NA		0.912974550991105	TRUE	ready	0	TRUE	-46.2242417402381
+relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	profile	finite	TRUE	0.708420761372797	1.22475158575433	profile	ok		0.912974550991105	TRUE	ready	0	TRUE	-46.2242417402381
+relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	bootstrap	finite	TRUE	0.928760866961355	0.951760991938169	bootstrap	2/2 successful refits		0.912974550991105	TRUE	ready	0	TRUE	-46.2242417402381
+relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	wald	finite	TRUE	0.205887759268185	0.527106614158896	wald	NA		0.32943102416836	TRUE	ready	0	TRUE	-46.2242417402381
+relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	profile	finite	TRUE	0.184250534056057	0.508971232783328	profile	ok		0.32943102416836	TRUE	ready	0	TRUE	-46.2242417402381
+relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	bootstrap	finite	TRUE	0.219092259738632	0.251687357154281	bootstrap	2/2 successful refits		0.32943102416836	TRUE	ready	0	TRUE	-46.2242417402381

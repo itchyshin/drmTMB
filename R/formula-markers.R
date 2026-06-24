@@ -163,13 +163,17 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' or ordinary NB2 `mu`, one numeric univariate Gaussian `mu` slope with
 #' independent intercept/slope SDs, matching univariate Gaussian `mu` and
 #' `sigma` intercept terms for a mean-scale phylogenetic correlation, matching
-#' terms in bivariate Gaussian `mu1` and `mu2`, or matching labelled all-four
-#' terms across Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`. A single shared
-#' label estimates the full q4 block; a `mu1`/`mu2` label plus a separate
-#' `sigma1`/`sigma2` label estimates the block-diagonal fallback. Poisson and
-#' NB2 phylogenetic slopes, zero-inflated phylogenetic effects, multiple
-#' phylogenetic slopes, residual-scale structured slopes, and phylogenetic slope
-#' correlations remain planned. The public `phylo()` API
+#' terms in bivariate Gaussian `mu1` and `mu2`, matching labelled all-four
+#' intercept terms across Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`, or the
+#' first shared-label all-four one-slope point-fit/extractor cell. A single
+#' shared intercept label estimates the full q4 block; a `mu1`/`mu2` intercept
+#' label plus a separate `sigma1`/`sigma2` intercept label estimates the
+#' block-diagonal fallback. The all-four `phylo(1 + x | p | species, tree =
+#' tree)` cell is native point-fit/extractor evidence only; bridge parity,
+#' intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
+#' multiple phylogenetic slopes, non-Gaussian phylogenetic slopes,
+#' zero-inflated phylogenetic effects, and phylogenetic slope correlations
+#' remain planned. The public `phylo()` API
 #' requires an
 #' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 #' A-inverse sparse-precision path internally.

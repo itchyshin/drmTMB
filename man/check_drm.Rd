@@ -73,7 +73,8 @@ whether either phylogenetic SD is tiny relative to the matching residual
 scale, and whether an ordinary group-level covariance block uses the same
 grouping factor. Matching bivariate coordinate-spatial q=2, \code{animal()}, and
 \code{relmat()} q=2 location effects receive the corresponding structured
-replication, SD-ratio, and boundary-correlation diagnostics. If a bivariate Gaussian fit includes a
+replication, SD-ratio, and boundary-correlation diagnostics. If a bivariate
+Gaussian fit includes a
 phylogenetic, coordinate-spatial, animal-model, or \code{relmat()} q=4
 \code{mu1}/\code{mu2}/\code{sigma1}/\code{sigma2} block, it reports level replication, location
 SDs relative to residual scales, log-\code{sigma} SDs, and whether any latent

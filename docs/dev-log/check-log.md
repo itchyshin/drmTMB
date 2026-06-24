@@ -2,6 +2,2037 @@
 
 Record meaningful development checks here.
 
+## 2026-06-24: q4 location one-slope interval diagnostic plan
+
+Goal:
+
+- Add a target-level interval diagnostic plan for the exact bivariate Gaussian
+  structured `mu1+mu2` intercept-plus-one-slope q4 location cells across
+  `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+  `relmat()`, without running interval or coverage diagnostics.
+
+Result:
+
+- Added `tools/run-structured-re-q4-location-slope-interval-plan.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-slope-interval-diagnostic-plan.tsv`
+  with 40 planned rows: 16 direct-SD targets and 24 derived-correlation targets.
+- Added dashboard contract coverage for the new sidecar in
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Wired the sidecar into `tools/validate-mission-control.py` and the mission
+  control success-count output.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-location-slope-interval-diagnostic-plan.md`.
+
+Evidence:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 3,104 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 40
+  structured RE q4 location slope interval-diagnostic plan rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is a plan-only target map for exact
+  q4 location interval diagnostics. It does not run or promote Wald, profile,
+  bootstrap, delta-method, interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad
+  bridge support, public optimizer controls, public support, partial
+  location-scale support, broader q8 support, DRAC execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply. The `relmat()`
+  rows are K-matrix targets only; Q precision marshalling remains separate and
+  this slice does not claim K/Q same-target parity for the partial q4 location
+  cell.
+
+## 2026-06-24: q4 location one-slope fixture parity
+
+Goal:
+
+- Move the exact bivariate Gaussian structured `mu1+mu2`
+  intercept-plus-one-slope q4 location cells beyond native point-fit/extractor
+  status by adding deterministic same-target fixture parity for `phylo()`,
+  fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
+
+Result:
+
+- Added q4 location one-slope payload and parity-contract helpers to
+  `inst/sim/R/sim_structured_re_bridge_fixtures.R`.
+- Added a focused bridge-fixture test covering the exact four-member q4
+  location endpoint map, four SD terms, and six labelled correlations.
+- Added
+  `tools/run-structured-re-q4-location-slope-parity-fixture.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-slope-parity-fixture.tsv`
+  with four provider rows.
+- Promoted the four linked q-series support-cell rows to
+  `native_direct_bridge_fixture`, `fixture_parity`, and
+  `fixture_not_coverage`, while keeping interval and coverage status planned.
+- Wired the sidecar into mission-control validation, dashboard tests, the
+  dashboard README, and the q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-location-slope-fixture-parity.md`.
+
+Evidence:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures', stop_on_failure = TRUE)"`
+  passed with 560 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 3,041 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE q4 location slope parity-fixture rows.
+- `git diff --check` passed.
+- A targeted overclaim scan returned only negative boundary statements in
+  existing docs and logs.
+
+Boundary:
+
+- No files were staged or committed. This is deterministic fixture parity for
+  the exact four-member q4 location endpoint map only. It does not promote
+  broad bridge support, partial location-scale support, interval reliability,
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, public optimizer controls, public support, DRAC execution,
+  SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+  The `relmat()` row is a K-matrix contract only; Q precision marshalling
+  remains separate and this slice does not claim K/Q same-target parity for the
+  partial q4 location cell.
+
+## 2026-06-24: q4 all-four one-slope sigma-axis differential
+
+Goal:
+
+- Test whether the q4 all-four one-slope Hessian blocker can be isolated by
+  comparing the all-four baseline against reduced `mu1+mu2` and `sigma1+sigma2`
+  structured intercept-plus-slope axes, without promoting partial q4 support,
+  intervals, coverage, REML, AI-REML, bridge support, public support, or broader
+  q8 claims.
+
+Result:
+
+- Added `tools/run-structured-re-q4-slope-sigma-axis-differential.R`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-sigma-axis-differential/structured-re-q4-slope-sigma-axis-differential-results.tsv`
+  with 24 rows: 2 variants times 4 providers times three model axes
+  (`all_four_slope`, `mu_axis_only`, `sigma_axis_only`).
+- Added `structured-re-q4-slope-sigma-axis-differential.tsv` with the same
+  24 rows for mission control.
+- Recorded the all-four rows as the existing Hessian-blocked baseline:
+  `pdHess = FALSE`, nonfinite `sdr$cov.fixed`, and four sigma direct SDs at
+  the lower bound.
+- Recorded all `mu_axis_only` rows as formula/runtime guard failures: bivariate
+  structured q=2 location covariance currently accepts exactly one structured
+  coefficient per endpoint, so intercept-plus-slope location-only q4 remains a
+  missing runtime cell.
+- Recorded all `sigma_axis_only` rows as formula/runtime guard failures:
+  partial location-scale blocks currently require matching labelled intercepts
+  in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+- Wired the new differential sidecar into mission-control validation and the R
+  conversion-contract test.
+- Updated the dashboard README and q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-sigma-axis-differential.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-slope-sigma-axis-differential.R`
+  passed and wrote the artifact/status TSVs.
+- The TSV summary command reported 24 rows: 8 all-four Hessian-blocked rows,
+  8 `mu_axis_only` fit-error rows, and 8 `sigma_axis_only` fit-error rows.
+- `air format tools/run-structured-re-q4-slope-sigma-axis-differential.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2959 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 24 structured
+  RE q4 slope sigma-axis differential rows.
+- `git diff --check` passed.
+- The tightened q4-slope overclaim scan for unsupported interval, coverage,
+  REML, AI-REML, supported-status, and positive partial-q4 support wording
+  returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is reduced-axis gap-map evidence only.
+  It does not implement partial q4 runtime support, admit coverage denominators,
+  claim q4 interval reliability, claim q4 interval coverage, promote q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad
+  bridge support, public optimizer controls, DRAC execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope Hessian geometry audit
+
+Goal:
+
+- Explain the persistent `pdHess = FALSE` blocker from the q4 all-four
+  one-slope direct-SD interval stability probe without promoting interval,
+  denominator, coverage, REML, AI-REML, bridge, public-support, or broader q8
+  claims.
+
+Result:
+
+- Added `tools/run-structured-re-q4-slope-hessian-geometry.R`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-hessian-geometry/structured-re-q4-slope-hessian-geometry-results.tsv`
+  with one row for each `strong` / `more_levels` variant crossed with
+  `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+  `relmat()`.
+- Added `structured-re-q4-slope-hessian-geometry.tsv` with the same eight
+  diagnostic rows for mission control.
+- Recorded all eight rows as converged but Hessian-blocked (`pdHess = FALSE`),
+  with nonfinite `sdr$cov.fixed`, unavailable raw TMB Hessian extraction for
+  random-effect models, and all four sigma-endpoint direct SD targets at the
+  lower bound in every row. Seven rows selected the fallback optimizer.
+- Wired the new geometry sidecar into mission-control validation and the R
+  conversion-contract test.
+- Updated the dashboard README and q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-hessian-geometry.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-slope-hessian-geometry.R`
+  passed and wrote the artifact/status TSVs. The run reported 7 fallback
+  optimizer warnings.
+- The TSV summary command reported 8 geometry sidecar rows, all with
+  `n_sigma_direct_sd_at_lower_bound = 4`, `cov_fixed_status = nonfinite`, and
+  geometry status split between 7 fallback-selected rows and 1 nonfallback row.
+- `Rscript --vanilla tools/run-structured-re-q4-slope-interval-stability-probe.R`
+  was rerun after the first geometry-script draft inherited the stability
+  script output paths; the stability sidecar was restored to 64 rows and the
+  artifact to 128 method rows.
+- `air format tools/run-structured-re-q4-slope-hessian-geometry.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2873 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 8 structured
+  RE q4 slope Hessian-geometry rows.
+- `git diff --check` passed.
+- The q4-slope overclaim scan for unsupported interval, coverage, REML,
+  AI-REML, and supported-status wording returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is diagnostic negative evidence only.
+  It does not admit coverage denominators, claim q4 interval reliability, claim
+  q4 interval coverage, promote q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, DRAC execution, SR150 coverage readiness, PR undrafting/merging, or
+  an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope interval stability probe
+
+Goal:
+
+- Run a deterministic Hessian-stability follow-up for the exact shared-label
+  bivariate Gaussian all-four one-slope q8-shaped cells for `phylo()`,
+  fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
+
+Result:
+
+- Added `tools/run-structured-re-q4-slope-interval-stability-probe.R`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-stability-probe/structured-re-q4-slope-interval-stability-probe-results.tsv`
+  with 128 method rows: 2 variants times 4 providers times 8 direct-SD targets
+  times Wald/profile.
+- Added `structured-re-q4-slope-interval-stability-probe.tsv` with 64
+  direct-SD stability rows.
+- Recorded all eight provider-variant fits as converged but Hessian-blocked
+  (`pdHess = FALSE`), with all Wald/profile method rows marked
+  `not_run_pdhess_false`.
+- Wired the new stability sidecar into mission-control validation and the R
+  conversion-contract test.
+- Updated the dashboard README and q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-interval-stability-probe.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-slope-interval-stability-probe.R`
+  passed and wrote the artifact/status TSVs. The run reported 7 fallback
+  optimizer warnings; the sidecar captures the diagnostic outcome as
+  Hessian-blocked, not interval-ready.
+- The TSV summary command reported 64 sidecar rows, 128 method rows, and all
+  rows as `pdhess_blocked` / `not_run_pdhess_false`.
+- `air format tools/run-structured-re-q4-slope-interval-stability-probe.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2791 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 64
+  structured RE q4 slope interval-stability probe rows.
+- `git diff --check` passed.
+- The q4-slope interval overclaim scan for unsupported interval, coverage,
+  REML, AI-REML, and supported-status wording returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is diagnostic negative evidence only.
+  It does not admit coverage denominators, claim q4 interval reliability, claim
+  q4 interval coverage, promote q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, DRAC execution, SR150 coverage readiness, PR undrafting/merging, or
+  an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope interval smoke status
+
+Goal:
+
+- Run and bank the first deterministic direct-SD interval smoke for the exact
+  shared-label bivariate Gaussian all-four one-slope q8-shaped cells for
+  `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+  `relmat()`.
+
+Result:
+
+- Added `tools/run-structured-re-q4-slope-interval-smoke.R`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-slope-interval-smoke/structured-re-q4-slope-interval-smoke-results.tsv`
+  with 96 method rows: 32 direct-SD targets times Wald, profile, and bootstrap.
+- Added `structured-re-q4-slope-interval-diagnostic-status.tsv` with 32
+  direct-SD target rows.
+- Corrected the q4 all-four one-slope sigma-axis profile-target identity in the
+  interval plan from `sd:sigma:sigma*` to `sd:mu:sigma*`, matching the shared
+  q8 structured covariance namespace exposed by `profile_targets()`.
+- Recorded all four provider fits as converged but Hessian-blocked
+  (`pdHess = FALSE`), with all interval methods marked
+  `not_run_pdhess_false` and zero finite intervals.
+- Wired the new status sidecar into mission-control validation and the R
+  conversion-contract test.
+- Updated the dashboard README and q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-interval-smoke-status.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-slope-interval-smoke.R` passed
+  and wrote the artifact/status TSVs. The run reported 18 warnings, all before
+  final status writing; the sidecar captures the diagnostic outcome as
+  Hessian-blocked, not interval-ready.
+- `air format tools/run-structured-re-q4-slope-interval-smoke.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2713 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 32 structured
+  RE q4 slope interval-diagnostic status rows.
+- `git diff --check` passed.
+- The q4-slope interval overclaim scan for unsupported interval, coverage,
+  REML, AI-REML, and supported-status wording returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is diagnostic negative evidence only.
+  It does not admit coverage denominators, claim q4 interval reliability, claim
+  q4 interval coverage, promote q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, DRAC execution, SR150 coverage readiness, PR undrafting/merging, or
+  an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope interval diagnostic plan
+
+Goal:
+
+- Add a target-level interval diagnostic plan for the exact shared-label
+  bivariate Gaussian all-four one-slope q8-shaped cells for `phylo()`,
+  fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
+
+Result:
+
+- Added `structured-re-q4-slope-interval-diagnostic-plan.tsv` with 144 planned
+  target rows: 8 direct-SD rows and 28 derived-correlation rows per provider.
+- Kept direct-SD rows as future deterministic Wald/profile/bootstrap smoke
+  targets.
+- Kept derived-correlation rows blocked on derived interval reconstruction.
+- Wired the sidecar into mission-control validation and the R conversion
+  contract test.
+- Updated the dashboard README and q-series completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-interval-diagnostic-plan.md`.
+
+Evidence:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2667 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 144 structured
+  RE q4 slope interval-diagnostic plan rows.
+- `git diff --check` passed.
+- The q4-slope interval overclaim scan for unsupported interval, coverage,
+  REML, AI-REML, and supported-status wording returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is a planned target inventory only.
+  It does not run interval diagnostics, admit coverage denominators, claim q4
+  interval reliability, claim q4 interval coverage, promote q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad
+  bridge support, public optimizer controls, DRAC execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope fixture parity
+
+Goal:
+
+- Move the exact shared-label bivariate Gaussian all-four one-slope q8-shaped
+  cells for `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and
+  K-matrix `relmat()` from native point-fit/extractor evidence to deterministic
+  same-target fixture parity.
+
+Result:
+
+- Added `phase18_structured_re_q4_slope_payload_fixture()` and
+  `phase18_structured_re_q4_slope_parity_fixture_contract()`.
+- Added `structured-re-q4-slope-parity-fixture.tsv` with four provider rows and
+  a 44-term coefficient contract: eight endpoint coefficients, eight direct SD
+  terms, and 28 derived correlation terms.
+- Promoted only the four exact q-series all-four one-slope rows to
+  `native_direct_bridge_fixture`, `fixture_parity`, and
+  `fixture_not_coverage`.
+- Left `structured-re-q4-slope-identity-preflight.tsv` as the
+  runtime/extractor identity ledger.
+- Updated bridge-fixture tests, conversion-contract tests, mission-control
+  validation, README, NEWS, ROADMAP, dashboard README, and the q-series
+  completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-fixture-parity.md`.
+
+Evidence:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"`
+  passed with 498 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2608 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE q4 slope parity-fixture rows.
+- `git diff --check` passed.
+- The q4-slope overclaim scan for unsupported interval, coverage, REML,
+  AI-REML, and supported-status wording returned no hits.
+
+Boundary:
+
+- No files were staged or committed. This is deterministic same-target fixture
+  evidence for the exact shared-label q8-shaped all-four one-slope ML cells
+  only. It does not promote pedigree/Ainv animal bridge marshalling, relmat Q
+  bridge marshalling, range-estimating spatial support, block-diagonal or
+  partial all-four layouts, two-slope q6/q8 cells, interval reliability,
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broad bridge support, public optimizer controls, DRAC
+  execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.
+
+## 2026-06-24: animal/relmat all-four one-slope runtime gate
+
+Goal:
+
+- Move the A-matrix animal and K/Q relmat all-four one-slope q-series rows
+  beyond identity preflight for the exact shared-label bivariate Gaussian cells
+  in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Result:
+
+- Added a focused `animal-relmat-gaussian` test for `q = 8`, eight SD labels,
+  28 derived animal/relmat correlations, derived-unavailable correlation
+  intervals, contribution identity for `mu1` and `sigma2`, and relmat K/Q
+  same-target parity.
+- Promoted only the A-matrix animal and K/Q relmat q-series all-four one-slope
+  rows to `native_tmb`, `point_fit`, and `extractor_ready`.
+- Updated the q4-slope identity sidecar, q-series support-cell ledger,
+  mission-control validator, conversion-contract test, formula grammar,
+  README, NEWS, ROADMAP, dashboard README, and completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-animal-relmat-q4-slope-runtime.md`.
+
+Evidence:
+
+- One-off runtime probe fits returned convergence 0, finite objectives, `q = 8`,
+  eight SD rows, 28 derived correlations, the expected eight-member endpoint
+  set, and matching relmat K/Q log likelihoods.
+- `Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"`
+  passed with 425 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2557 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with all four q4-slope
+  identity rows at `runtime_test`/`point_fit`.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is native ML point-fit and extractor
+  evidence for the exact shared-label A-matrix animal and K/Q relmat all-four
+  one-slope cells only. It does not promote pedigree/Ainv animal bridge
+  marshalling, relmat Q bridge marshalling, block-diagonal all-four one-slope,
+  bridge parity, interval reliability, coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad bridge support, public
+  optimizer controls, DRAC execution, SR150 coverage readiness, PR
+  undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: partial q4 location one-slope runtime gate
+
+Goal:
+
+- Open the exact labelled bivariate Gaussian structured `mu1+mu2`
+  intercept-plus-one-slope q4 location cells for `phylo()`, fixed-covariance
+  `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`.
+
+Result:
+
+- Added endpoint-response metadata for structured bivariate q>2 members.
+- Routed q>2 structured random-effect contributions by endpoint family and
+  response suffix instead of hard-coded first-four endpoint positions.
+- Allowed matching explicitly labelled `1 + x` structured blocks in `mu1` and
+  `mu2` for the exact partial q4 location cell.
+- Kept unlabelled `1 + x` bivariate structured location blocks guarded.
+- Kept partial location-scale `sigma1+sigma2` structured blocks guarded.
+- Updated q>2 bivariate structured start values to use endpoint identity.
+- Refreshed
+  `docs/dev-log/dashboard/structured-re-q4-slope-sigma-axis-differential.tsv`:
+  all eight `mu_axis_only` rows now fit with `pdHess = TRUE`, finite positive
+  `sdr$cov.fixed`, and four direct SD targets; all eight `sigma_axis_only`
+  rows remain fit errors from the partial location-scale guard.
+- Added four exact q4 location rows to
+  `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv`.
+- Updated dashboard/design prose, mission-control validation, and conversion
+  contracts to keep q2 slope-only, partial q4 location, and all-four q8-shaped
+  cells separate.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-partial-q4-location-slope-runtime.md` and
+  refreshed
+  `docs/dev-log/after-task/2026-06-24-q4-slope-sigma-axis-differential.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-slope-sigma-axis-differential.R`
+  passed and rewrote the differential dashboard/artifact TSVs.
+- `air format R/drmTMB.R src/drmTMB.cpp tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 2,981 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian', stop_on_failure = TRUE)"`
+  passed with 385 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian', stop_on_failure = TRUE)"`
+  passed with 262 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian', stop_on_failure = TRUE)"`
+  passed with 459 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 77
+  structured RE q-series cells plus 24 q4 slope sigma-axis differential rows.
+- `git diff --check` passed.
+- The overclaim scan found expected historical and negative-boundary guardrail
+  hits only; the new q4 location rows remain diagnostic native point-fit and
+  extractor evidence.
+
+Boundary:
+
+- No files were staged or committed. This is native ML point-fit and extractor
+  evidence for the exact `mu1+mu2` intercept-plus-one-slope structured q4
+  location cells only. It does not promote same-target bridge parity, partial
+  location-scale support, interval reliability, coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad
+  bridge support, public optimizer controls, public support, DRAC execution,
+  SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: spatial all-four one-slope runtime gate
+
+Goal:
+
+- Move exactly one provider row beyond identity preflight: the shared-label
+  fixed-covariance spatial all-four
+  `spatial(1 + x | p | site, coords = coords)` bivariate Gaussian cell in
+  `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Result:
+
+- Added a focused `spatial-gaussian` test for `q = 8`, eight SD labels, 28
+  derived spatial correlations, derived-unavailable correlation intervals, and
+  contribution identity for `mu1` and `sigma2`.
+- Promoted only the fixed-covariance spatial q-series all-four one-slope row to
+  `native_tmb`, `point_fit`, and `extractor_ready`; animal and relmat remain
+  preflight/planned.
+- Updated the q4-slope identity sidecar, q-series support-cell ledger,
+  mission-control validator, conversion-contract test, formula grammar,
+  README, NEWS, ROADMAP, dashboard README, and completion map.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-spatial-q4-slope-runtime.md`.
+
+Evidence:
+
+- One-off runtime probe fit returned convergence 0, finite objective, `q = 8`,
+  28 `theta_phylo` rows, 28 `corpars$spatial` rows, and the expected
+  eight-member endpoint set.
+- `Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"` passed
+  with 243 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2557 assertions.
+- `python3 tools/validate-mission-control.py` passed with phylo and
+  fixed-covariance spatial q4-slope rows at `runtime_test`/`point_fit` and the
+  other providers still preflight/planned.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is native ML point-fit and extractor
+  evidence for the exact shared-label fixed-covariance spatial all-four
+  one-slope cell only. It does not promote range-estimating spatial support,
+  animal, relmat, block-diagonal all-four one-slope, bridge parity, interval
+  reliability, coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+  AI-REML, non-Gaussian REML, broad bridge support, public optimizer controls,
+  DRAC execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.
+
+## 2026-06-24: sigma-only replicated denominator and pregrid dry-run
+
+Goal:
+
+- Extend the sigma-only one-slope denominator lane from admission into a
+  replicated-denominator rule and dry-run coverage pregrid manifest without
+  executing coverage fits or promoting interval reliability, calibrated
+  coverage, REML, AI-REML, matched `mu+sigma` support, q4/q8, broad bridge
+  support, DRAC execution, or SR150 readiness.
+
+Result:
+
+- Added `tools/run-structured-re-sigma-slope-replicated-denominator-rule.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-replicated-denominator-rule.tsv`
+  with eight target rows.
+- Added `tools/run-structured-re-sigma-slope-coverage-pregrid-dry-run.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-coverage-pregrid-dry-run.tsv`
+  with eight target rows.
+- Added 150-row seed and 1050-row target-replicate manifests under
+  `docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-coverage-pregrid-dry-run/`.
+- Wired the sidecars and manifests into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+
+Evidence:
+
+- Seven targets are `eligible_for_pregrid_with_retention`.
+- Animal `sigma:x` remains a visible holdout until the first smoke
+  endpoint-profile failure is reconciled.
+- The dry-run manifest has 150 seeds and 1050 not-executed target-replicate
+  cells for eligible targets only.
+- Nominal MCSE at SR150 is 0.017795, and 475 replicates are required for the
+  0.01 MCSE threshold, so SR150 remains blocked for coverage wording.
+
+Checks:
+
+- `air format tools/run-structured-re-sigma-slope-replicated-denominator-rule.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-sigma-slope-replicated-denominator-rule.R`
+  wrote eight replicated-denominator rule rows.
+- `air format tools/run-structured-re-sigma-slope-coverage-pregrid-dry-run.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-sigma-slope-coverage-pregrid-dry-run.R`
+  wrote eight dry-run rows, 150 seed rows, and 1050 cell-manifest rows.
+- `air format tools/run-structured-re-sigma-slope-replicated-denominator-rule.R tools/run-structured-re-sigma-slope-coverage-pregrid-dry-run.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported eight
+  structured RE sigma-slope replicated-denominator rule rows and eight
+  coverage-pregrid dry-run rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2513 assertions.
+- The sigma-only replicated-denominator/pregrid overclaim scan found no
+  interval-ready, coverage-ready, inference-ready, supported, coverage-accepted,
+  or interval-reliability wording.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is replicated-denominator and dry-run manifest evidence only. It does
+  not provide interval reliability, calibrated coverage, coverage-evaluable
+  denominator evidence, REML, AI-REML, q4/q8 support, matched `mu+sigma`
+  support, broad bridge support, range-estimating spatial support,
+  pedigree/Ainv bridge marshalling, relmat Q bridge marshalling, public
+  optimizer controls, DRAC execution, SR150 readiness, PR undrafting/merging,
+  or an Ayumi-facing reply.
+
+## 2026-06-24: sigma-only one-slope denominator admission
+
+Goal:
+
+- Add a conservative denominator-admission ledger for sigma-only one-slope
+  interval diagnostics without promoting interval reliability, calibrated
+  coverage, REML, AI-REML, matched `mu+sigma` support, q4/q8, or broad bridge
+  support.
+
+Result:
+
+- Added `tools/run-structured-re-sigma-slope-denominator-admission.R`, a
+  rerunnable generator that reconciles the sigma-only interval smoke with the
+  sigma-only stability probe.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-denominator-admission.tsv`
+  with eight target rows.
+- Wired the sidecar into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `docs/design/218-structured-q-series-completion-map.md`, and after-task
+  notes.
+
+Evidence:
+
+- Seven direct SD targets are marked `diagnostic_denominator_candidate`.
+- Animal `sigma:x` remains `not_admitted_profile_failure` because the first
+  Wald/profile/bootstrap smoke had endpoint-profile failure for that target,
+  even though the stronger stability probe had finite Wald/profile intervals.
+- All rows keep `coverage_status = not_evaluated` and
+  `interval_claim_status = diagnostic_only`; linked support cells remain at
+  `interval_status = planned`, `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `air format tools/run-structured-re-sigma-slope-denominator-admission.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-sigma-slope-denominator-admission.R`
+  wrote eight denominator-admission rows.
+- `air format tools/run-structured-re-sigma-slope-denominator-admission.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2413 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported eight
+  structured RE sigma-slope denominator-admission rows.
+- The sigma-only denominator overclaim scan found no interval-ready,
+  coverage-ready, inference-ready, or supported wording.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is denominator-admission diagnostic evidence only. It does not provide
+  interval reliability, calibrated coverage, coverage-evaluable denominator
+  evidence, REML, AI-REML, q4/q8 support, matched `mu+sigma` support, broad
+  bridge support, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, relmat Q bridge marshalling, public optimizer controls, DRAC
+  execution, SR150 readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: sigma-only one-slope interval stability probe
+
+Goal:
+
+- Follow up the sigma-only one-slope interval smoke with stronger deterministic
+  fixture variants across `phylo()`, fixed-covariance `spatial()`, A-matrix
+  `animal()`, and K-matrix `relmat()` without promoting interval reliability,
+  calibrated coverage, REML, AI-REML, matched `mu+sigma` support, q4/q8, or
+  broad bridge support.
+
+Result:
+
+- Added `tools/run-structured-re-sigma-slope-interval-stability-probe.R`, a
+  rerunnable generator for a sigma-only stability probe with `strong` and
+  `stronger_sigma` fixture variants.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-interval-stability-probe/structured-re-sigma-slope-interval-stability-probe-results.tsv`
+  with 32 method rows.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-interval-stability-probe.tsv`
+  with 16 variant-target status rows.
+- Wired the sidecar into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+
+Evidence:
+
+- All 16 variant-target rows had finite Wald/profile intervals.
+- Animal `sigma:x`, which had endpoint-profile failure in the first smoke run,
+  had finite Wald/profile intervals under both stronger deterministic variants.
+- All rows keep `interval_claim_status = diagnostic_only`; linked support
+  cells remain at `interval_status = planned`, `coverage_status = planned`,
+  and `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `air format tools/run-structured-re-sigma-slope-interval-stability-probe.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-sigma-slope-interval-stability-probe.R`
+  wrote 32 method rows and 16 status rows.
+- `air format tools/run-structured-re-sigma-slope-interval-stability-probe.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2371 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE sigma-slope interval-stability probe rows.
+- The sigma-only overclaim scan found no interval-ready, coverage-ready,
+  inference-ready, or supported wording for the exact sigma-only one-slope
+  cells or sidecars.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is deterministic interval-stability evidence only. It does not provide
+  interval reliability, calibrated coverage, coverage-evaluable denominator
+  evidence, REML, AI-REML, q4/q8 support, matched `mu+sigma` support, broad
+  bridge support, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, relmat Q bridge marshalling, public optimizer controls, DRAC
+  execution, SR150 readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: sigma-only one-slope interval diagnostic smoke
+
+Goal:
+
+- Add a separate sigma-only one-slope interval diagnostic for Gaussian
+  structured random effects across `phylo()`, fixed-covariance `spatial()`,
+  A-matrix `animal()`, and K-matrix `relmat()` without promoting interval
+  reliability, calibrated coverage, REML, AI-REML, matched `mu+sigma`
+  support, q4/q8, or broad bridge support.
+
+Result:
+
+- Added `tools/run-structured-re-sigma-slope-interval-smoke.R`, a rerunnable
+  generator for the sigma-only interval plan, raw method artifact, and status
+  sidecar.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-interval-diagnostic-plan.tsv`
+  with eight planned direct SD targets.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-interval-smoke/structured-re-sigma-slope-interval-smoke-results.tsv`
+  with 24 method rows.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-interval-diagnostic-status.tsv`
+  with eight status rows.
+- Wired the sidecars into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `docs/design/218-structured-q-series-completion-map.md`, and after-task
+  notes.
+
+Evidence:
+
+- The sigma-only profile target registry uses `sd:sigma:provider(...)`, not
+  the matched `mu+sigma` target spelling `sd:sigma:sigma:provider(...)`.
+- All eight direct SD targets were found; all four provider fits converged
+  with `pdHess = TRUE`.
+- Seven targets had finite Wald/profile/bootstrap intervals.
+- Animal `sigma:x` had finite Wald/bootstrap intervals and endpoint-profile
+  failure.
+- All rows keep `interval_claim_status = diagnostic_only`; linked support
+  cells remain at `interval_status = planned`, `coverage_status = planned`,
+  and `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `Rscript --vanilla tools/run-structured-re-sigma-slope-interval-smoke.R`
+  wrote eight plan rows, 24 method rows, and eight status rows.
+- `air format tools/run-structured-re-sigma-slope-interval-smoke.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed.
+- `python3 tools/validate-mission-control.py` passed and reported eight
+  structured RE sigma-slope interval plan rows and eight status rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is deterministic interval-smoke evidence only. It does not provide
+  interval reliability, calibrated coverage, coverage-evaluable denominator
+  evidence, REML, AI-REML, q4/q8 support, matched `mu+sigma` support, broad
+  bridge support, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, relmat Q bridge marshalling, public optimizer controls, DRAC
+  execution, SR150 readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q2 slope coverage pregrid dry-run manifest
+
+Goal:
+
+- Freeze the executable manifest shape for a future bivariate Gaussian
+  structured q2 slope coverage pre-grid without running coverage fits,
+  submitting DRAC jobs, or moving interval reliability, calibrated coverage,
+  REML, AI-REML, q4/q8, broad bridge support, or SR150 readiness.
+
+Result:
+
+- Added `tools/run-structured-re-q2-slope-coverage-pregrid-dry-run.R`, a
+  rerunnable dry-run manifest generator.
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-slope-coverage-pregrid-dry-run.tsv`
+  with 12 target rows.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-coverage-pregrid-dry-run/structured-re-q2-slope-coverage-pregrid-seed-manifest.tsv`
+  with 150 predeclared seeds.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-coverage-pregrid-dry-run/structured-re-q2-slope-coverage-pregrid-cell-manifest.tsv`
+  with 1500 target-by-seed dry-run cells for the 10 eligible targets.
+- Wired the dry-run sidecar and manifests into
+  `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `docs/design/218-structured-q-series-completion-map.md`, and
+  `docs/dev-log/after-task/2026-06-24-q2-slope-coverage-pregrid-dry-run.md`.
+
+Evidence:
+
+- Ten targets have `denominator_role = pregrid_target`, 150 planned
+  replicates, and 150 planned cells each.
+- The animal and relmat correlation targets remain `visible_holdout` rows
+  with zero planned cells.
+- The seed manifest uses seeds 730001..730150 and remains
+  `execution_status = not_executed`.
+- The dry run records `nominal_mcse_at_150 = 0.017795` and
+  `replicates_for_mcse_threshold = 475`, so SR150 remains insufficient for
+  0.01-MCSE coverage wording.
+- All rows keep `coverage_evaluable = FALSE`, `coverage_status =
+  not_evaluated`, and `interval_claim_status = diagnostic_only`.
+
+Checks:
+
+- `Rscript --vanilla tools/run-structured-re-q2-slope-coverage-pregrid-dry-run.R`
+  wrote 12 dashboard rows, 150 seed-manifest rows, and 1500 cell-manifest rows.
+- `air format tools/run-structured-re-q2-slope-coverage-pregrid-dry-run.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE q2 slope coverage-pregrid dry-run rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is an execution-planning dry run only. It does not provide
+  coverage-evaluable denominator evidence, calibrated coverage, interval
+  reliability, q4/q8 support, REML, AI-REML, broad bridge support,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+  bridge marshalling, public optimizer controls, DRAC execution, SR150
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q2 slope replicated-denominator rule
+
+Goal:
+
+- Define the replicated-denominator rule for a future bivariate Gaussian
+  structured q2 slope coverage pre-grid without running coverage, promoting
+  interval reliability, claiming calibrated coverage, submitting DRAC jobs, or
+  moving SR150 readiness.
+
+Result:
+
+- Added `tools/run-structured-re-q2-slope-replicated-denominator-rule.R`, a
+  rerunnable policy-sidecar generator that joins denominator-admission and
+  denominator-extension evidence.
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-slope-replicated-denominator-rule.tsv`
+  with 12 target rows.
+- Wired the sidecar into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `docs/design/218-structured-q-series-completion-map.md`, and
+  `docs/dev-log/after-task/2026-06-24-q2-slope-replicated-denominator-rule.md`.
+
+Evidence:
+
+- Ten rows are `eligible_for_pregrid_with_retention`.
+- The animal and relmat correlation rows remain
+  `visible_holdout_until_smoke_profile_reconciled`.
+- The rule requires a predeclared 150-replicate seed manifest, retained failed
+  profiles, retained nonconverged fits, retained nonfinite intervals, recorded
+  bootstrap-refit attempts, and MCSE <= 0.01 before coverage wording.
+- All rows keep `coverage_evaluable = FALSE`, `coverage_status =
+  not_evaluated`, and `interval_claim_status = diagnostic_only`.
+
+Checks:
+
+- `Rscript --vanilla tools/run-structured-re-q2-slope-replicated-denominator-rule.R`
+  wrote 12 dashboard rows.
+- `air format tools/run-structured-re-q2-slope-replicated-denominator-rule.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE q2 slope replicated-denominator rule rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is a rule/policy sidecar only. It does not provide
+  coverage-evaluable denominator evidence, calibrated coverage, interval
+  reliability, q4/q8 support, REML, AI-REML, broad bridge support,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+  bridge marshalling, public optimizer controls, DRAC execution, SR150
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q2 slope denominator-extension diagnostic
+
+Goal:
+
+- Run a small deterministic denominator-extension diagnostic for the
+  bivariate Gaussian structured q2 slope targets after the denominator
+  admission ledger, without promoting interval reliability, coverage, REML,
+  AI-REML, q4/q8, broad bridge support, DRAC execution, or SR150 readiness.
+
+Result:
+
+- Added `tools/run-structured-re-q2-slope-denominator-extension.R`.
+- Wrote
+  `docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-denominator-extension/structured-re-q2-slope-denominator-extension-results.tsv`
+  with 48 method rows.
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-slope-denominator-extension.tsv`
+  with 24 variant-target rows.
+- Wired the sidecar into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md`,
+  `docs/design/218-structured-q-series-completion-map.md`, and
+  `docs/dev-log/after-task/2026-06-24-q2-slope-denominator-extension.md`.
+
+Evidence:
+
+- All 24 extension rows have finite Wald/profile diagnostics and
+  `pdHess = TRUE`.
+- Twenty rows are `extension_candidate`.
+- The animal and relmat correlation rows in both variants are
+  `not_admitted_from_smoke` because their earlier smoke profiles failed.
+- All rows keep `coverage_status = not_evaluated` and
+  `interval_claim_status = diagnostic_only`.
+- Linked support cells remain at `interval_status = planned`,
+  `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `Rscript --vanilla tools/run-structured-re-q2-slope-denominator-extension.R`
+  wrote 48 method rows and 24 dashboard rows.
+- `air format tools/run-structured-re-q2-slope-denominator-extension.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed.
+- `python3 tools/validate-mission-control.py` passed and reported 24
+  structured RE q2 slope denominator-extension rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is deterministic denominator-extension evidence only. It does not
+  provide coverage-evaluable denominator evidence, calibrated coverage,
+  interval reliability, q4/q8 support, REML, AI-REML, broad bridge support,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+  bridge marshalling, public optimizer controls, DRAC execution, SR150
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q2 slope denominator-admission ledger
+
+Goal:
+
+- Add target-level denominator-admission accounting for the post-fix
+  bivariate Gaussian structured q2 slope interval diagnostics without
+  promoting interval reliability, coverage, REML, AI-REML, q4/q8, broad bridge
+  support, DRAC execution, or SR150 readiness.
+
+Result:
+
+- Added `tools/run-structured-re-q2-slope-denominator-admission.R`, a
+  rerunnable generator that joins
+  `structured-re-q2-slope-interval-diagnostic-status.tsv` and
+  `structured-re-q2-slope-interval-stability-probe.tsv`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q2-slope-denominator-admission.tsv`
+  with 12 target rows.
+- Wired the sidecar into `tools/validate-mission-control.py` and
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated the dashboard README, q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-24-q2-slope-denominator-admission.md`.
+
+Evidence:
+
+- Ten targets are `diagnostic_denominator_candidate`.
+- The animal and relmat correlation targets are
+  `not_admitted_profile_failure` because endpoint profiles failed in the
+  smoke run.
+- All rows keep `coverage_status = not_evaluated` and
+  `interval_claim_status = diagnostic_only`.
+- Linked support cells remain at `interval_status = planned`,
+  `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `Rscript --vanilla tools/run-structured-re-q2-slope-denominator-admission.R`
+  wrote 12 denominator-admission rows.
+- `air format tools/run-structured-re-q2-slope-denominator-admission.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE q2 slope denominator-admission rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is denominator-admission triage only. It does not provide
+  coverage-evaluable denominator evidence, calibrated coverage, interval
+  reliability, q4/q8 support, REML, AI-REML, broad bridge support,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+  bridge marshalling, public optimizer controls, DRAC execution, SR150
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: bivariate structured q2 slope design runtime fix (supersedes q2 interval diagnostics below)
+
+Goal:
+
+- Fix the bivariate Gaussian structured q2 slope likelihood path after the q2
+  interval stability probe showed fitted structured slope SDs near zero despite
+  strong simulated slope variance.
+
+Result:
+
+- Updated `src/drmTMB.cpp` so the bivariate Gaussian structured-effect q2/q4
+  branch multiplies latent structured effects by the structured design column
+  before adding them to `mu1`, `mu2`, and structured location-scale endpoints.
+- Updated `phylo_mu_contribution()` in `R/methods.R` so extractor-side
+  contributions use the same endpoint/member design multiplication.
+- Reran `tools/run-structured-re-q2-slope-interval-smoke.R` and
+  `tools/run-structured-re-q2-slope-interval-stability-probe.R`.
+- Regenerated the q2 slope interval-smoke and stability sidecars plus their
+  linked method artifacts.
+- Updated validator, R conversion-contract expectations, dashboard README,
+  q-series completion map, and q2 interval after-task notes to the post-fix
+  diagnostic pattern.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-biv-structured-q2-slope-design-runtime-fix.md`.
+
+Evidence:
+
+- Post-fix q2 interval smoke: 12 target rows; 10
+  `wald_profile_bootstrap_finite` rows and two
+  `wald_bootstrap_finite_profile_failed` correlation rows (`animal` and
+  `relmat`).
+- Post-fix q2 interval stability probe: 24 variant-target rows, all
+  `wald_profile_finite`.
+- All regenerated q2 diagnostic fits converged with `pdHess = TRUE`.
+- Linked support cells remain `interval_status = planned`,
+  `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2,091 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 73
+  structured RE q-series cells.
+- `Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"` passed
+  with 336 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"` passed
+  with 211 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"`
+  passed with 329 assertions.
+- `git diff --check` passed.
+- The q2/q-series positive-overclaim scan returned no hits.
+
+Boundary:
+
+- This supersedes the pre-fix q2 smoke and stability entries below. Those
+  entries remain historical record only. This slice does not promote q2
+  interval reliability, q2 coverage, q4 interval reliability, q4 interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broad bridge support, public optimizer controls, DRAC
+  execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.
+
+## 2026-06-24: structured q2 slope-only interval stability probe
+
+Goal:
+
+- Test whether stronger deterministic slope-only q=2 fixtures move the exact
+  bivariate Gaussian structured `mu1`/`mu2` SD and correlation targets away
+  from Wald/profile boundary failures, without promoting interval reliability,
+  coverage, REML, AI-REML, broad bridge support, range-estimating spatial
+  support, pedigree/Ainv bridge marshalling, relmat Q bridge marshalling, or
+  intercept-plus-slope q4/q8 support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-q2-slope-interval-stability-probe.R
+air format tools/run-structured-re-q2-slope-interval-stability-probe.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- The stability harness wrote 48 method rows and 24 dashboard status rows.
+- No target had finite Wald/profile intervals.
+- Six correlation rows were partially finite: Wald finite, endpoint profile
+  failed.
+- The other 18 rows were Wald/profile nonfinite.
+- The `stronger_slope` spatial and animal fits converged but recorded
+  `pdHess = FALSE`.
+- `structured-re-conversion-contracts` passed with 2,090 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 24
+  structured RE q2 slope interval-stability probe rows.
+
+Boundary:
+
+- This is diagnostic evidence against moving directly to coverage-grid design.
+  The linked q-series cells remain `interval_status = planned`,
+  `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`. No interval reliability,
+  coverage, REML, AI-REML, broad bridge support, q4/q8 support, DRAC
+  execution, or SR150 evidence is claimed.
+
+## 2026-06-24: structured q2 slope-only interval smoke status
+
+Goal:
+
+- Run and bank a deterministic interval-smoke status ledger for the exact
+  bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` cells without
+  promoting interval reliability, coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, pedigree/Ainv bridge marshalling,
+  relmat Q bridge marshalling, or intercept-plus-slope q4/q8 support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-q2-slope-interval-smoke.R
+air format tools/run-structured-re-q2-slope-interval-smoke.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*q2_mu1_mu2_one_slope.*(interval_feasible|inference_ready|supported)|q2 slope.*(coverage-ready|interval-ready|REML-ready|AI-REML-ready|supported|coverage accepted|interval reliability accepted)|structured-re-q2-slope-(parity-fixture|interval-diagnostic-plan|interval-diagnostic-status).*(coverage-ready|interval-ready|supported|inference_ready)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv docs/dev-log/dashboard/structured-re-q2-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-q2-slope-interval-diagnostic-status.tsv docs/design/01-formula-grammar.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py
+```
+
+Results:
+
+- The smoke harness wrote 36 method rows and 12 dashboard status rows.
+- One target had finite Wald/profile/bootstrap intervals: animal `mu2:x`.
+- Four targets had finite Wald/bootstrap with profile failure: phylo
+  `mu1:x+mu2:x`, spatial `mu1:x+mu2:x`, animal `mu1:x`, and animal
+  `mu1:x+mu2:x`.
+- Seven targets were bootstrap-only finite with Wald boundary or unavailable
+  Wald status and profile failure/non-finiteness.
+- The relmat K-matrix fixture converged but recorded `pdHess = FALSE`.
+- `structured-re-conversion-contracts` passed with 2,061 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE q2 slope interval-diagnostic status rows.
+- `git diff --check` passed.
+- The final positive-overclaim scan returned no hits.
+
+Boundary:
+
+- The new sidecar is deterministic smoke evidence only. The linked q-series
+  cells remain `interval_status = planned`, `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`. No interval reliability,
+  coverage, REML, AI-REML, broad bridge support, q4/q8 support, DRAC
+  execution, or SR150 evidence is claimed.
+
+## 2026-06-24: structured q2 slope-only interval diagnostic plan
+
+Goal:
+
+- Add a plan-only interval diagnostic ledger for the exact bivariate Gaussian
+  structured slope-only q=2 `mu1`/`mu2` cells without running interval smoke or
+  promoting interval reliability, coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, pedigree/Ainv bridge marshalling,
+  relmat Q bridge marshalling, or intercept-plus-slope q4/q8 support.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+```
+
+Results:
+
+- `structured-re-conversion-contracts` passed with 2,027 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE q2 slope interval-diagnostic plan rows.
+
+Boundary:
+
+- The new ledger names 12 planned targets: `sd_mu1_x`, `sd_mu2_x`, and
+  `cor_mu1_mu2_x` for `phylo()`, fixed-covariance `spatial()`, A-matrix
+  `animal()`, and K-matrix `relmat()`. The linked q-series cells remain
+  `interval_status = planned`, `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+## 2026-06-24: structured q2 slope-only fixture parity
+
+Goal:
+
+- Move the exact bivariate Gaussian structured slope-only q=2 `mu1`/`mu2`
+  cells for `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`,
+  and K-matrix `relmat()` from native point-fit/extractor evidence to
+  deterministic same-target fixture parity, without promoting intervals,
+  coverage, REML, AI-REML, broad bridge support, range-estimating spatial
+  support, pedigree/Ainv bridge marshalling, relmat Q bridge marshalling, or
+  intercept-plus-slope q4/q8 support.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*q2_mu1_mu2_one_slope.*(interval_feasible|inference_ready|supported)|slope-only q2.*(coverage-ready|interval-ready|REML-ready|AI-REML-ready|supported)|structured slope-only q=2.*(coverage result|interval reliability accepted)|q2 slope-only.*(coverage result|interval reliability accepted|REML accepted|AI-REML accepted)|structured-re-q2-slope-parity-fixture.*(coverage-ready|interval-ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv docs/design/01-formula-grammar.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py
+```
+
+Results:
+
+- `structured-re-bridge-fixtures` passed with 438 assertions.
+- `structured-re-conversion-contracts` passed with 1,990 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 73
+  structured RE q-series cells plus 4 structured RE q2 slope parity-fixture
+  rows.
+- `git diff --check` passed.
+- The final positive-overclaim scan returned no hits.
+
+Boundary:
+
+- The new sidecar and q-series rows are deterministic same-target fixture
+  evidence for the exact `mu1:x+mu2:x` slope-only q=2 cells only. The animal
+  fixture is A-matrix only; the relmat fixture is K-matrix only with runtime
+  K/Q native parity evidence. The rows do not promote Ainv/Q bridge
+  marshalling, broad bridge support, interval reliability, coverage, REML,
+  AI-REML, q4/q8 structured covariance, DRAC execution, or SR150 evidence.
+
+## 2026-06-24: structured q2 slope-only covariance
+
+Goal:
+
+- Open the first bivariate Gaussian structured slope-only q=2 `mu1`/`mu2`
+  covariance cells for `phylo()`, fixed-covariance `spatial()`, A/Ainv
+  `animal()`, and K/Q `relmat()` without promoting bridge parity, intervals,
+  coverage, REML, AI-REML, or larger intercept-plus-slope structured
+  covariance.
+
+Checks run:
+
+```sh
+air format R/parse-formula.R R/drmTMB.R R/methods.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+Rscript --vanilla -e "devtools::document()"
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*q2_mu1_mu2_one_slope.*(fixture_parity|interval_feasible|inference_ready|supported)|slope-only q2.*(coverage-ready|interval-ready|REML-ready|AI-REML-ready|supported)|structured slope-only q=2.*(coverage result|interval reliability accepted|bridge parity)|phylo\\(1 \\+ x \\| p \\| species.*implemented|spatial\\(1 \\+ x \\| p \\| site.*implemented|animal\\(1 \\+ x \\| p \\| id.*implemented|relmat\\(1 \\+ x \\| p \\| id.*implemented" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/design/01-formula-grammar.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- `phylo-gaussian` passed with 334 assertions.
+- `spatial-gaussian` passed with 209 assertions.
+- `animal-relmat-gaussian` passed with 327 assertions.
+- `structured-re-conversion-contracts` passed with 1960 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 73
+  structured RE q-series cells.
+- `git diff --check` passed.
+- The final positive-overclaim scan returned no hits.
+
+Boundary:
+
+- The new rows are native point-fit/extractor evidence for the exact
+  `mu1:x+mu2:x` slope-only q=2 cells only. They do not promote deterministic
+  fixture parity, broad bridge support, interval reliability, coverage, REML,
+  AI-REML, q4/q8 structured covariance, DRAC execution, or SR150 evidence.
+
+## 2026-06-24: spatial mu domain-guard diagnostic
+
+Goal:
+
+- Check whether fixed-covariance spatial `mu:x` lower-side endpoint-profile
+  failures are caused by immediate target-domain non-finiteness or by the
+  constrained optimizer path, without changing runtime behavior or promoting
+  interval reliability, coverage, REML, AI-REML, or broad bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-spatial-mu-domain-guard-diagnostic.R
+air format tools/run-structured-re-spatial-mu-domain-guard-diagnostic.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|spatial.*mu.*coverage-ready|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/dev-log/dashboard/structured-re-spatial-mu-boundary-diagnostic.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-geometry.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-strategy.tsv docs/dev-log/dashboard/structured-re-spatial-mu-lower-start-diagnostic.tsv docs/dev-log/dashboard/structured-re-spatial-mu-domain-guard-diagnostic.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The domain-guard diagnostic wrote four design rows.
+- Fixed-nuisance objective and gradient evaluations were finite at all nine
+  lower target offsets for the `smoke_seed102` finite control and all three
+  seed-202 problem designs.
+- The `smoke_seed102` finite control stayed finite under both guarded
+  lower-side prototype variants.
+- The three seed-202 problem designs still failed under both variants with
+  `both X-convergence and relative convergence (5)`.
+- `structured-re-conversion-contracts` passed with 1940 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported four
+  structured RE spatial-`mu` domain-guard diagnostic rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is spatial `mu:x` domain-guard diagnostic evidence only. It does not
+  promote interval reliability, interval coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, DRAC execution, or SR150 evidence.
+  The linked q-series row remains at `interval_status = planned` and
+  `coverage_status = planned`.
+
+## 2026-06-24: spatial mu lower-start diagnostic
+
+Goal:
+
+- Check whether lower-side constrained-endpoint start variants rescue the
+  fixed-covariance spatial `mu:x` endpoint-profile failures, without changing
+  runtime behavior or promoting interval reliability, coverage, REML, AI-REML,
+  or broad bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-spatial-mu-lower-start-diagnostic.R
+air format tools/run-structured-re-spatial-mu-lower-start-diagnostic.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|spatial.*mu.*coverage-ready|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/dev-log/dashboard/structured-re-spatial-mu-boundary-diagnostic.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-geometry.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-strategy.tsv docs/dev-log/dashboard/structured-re-spatial-mu-lower-start-diagnostic.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The lower-start diagnostic wrote 16 design-by-strategy rows.
+- The `smoke_seed102` finite control stayed finite under the current warm
+  curvature start, reset curvature start, reset capped-step start, and reset
+  fixed-step start.
+- The three problematic seed-202 spatial `mu:x` designs still failed under all
+  four lower-side start strategies with `NA/NaN gradient evaluation`.
+- `structured-re-conversion-contracts` passed with 1875 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE spatial-`mu` lower-start diagnostic rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is spatial `mu:x` lower-start diagnostic evidence only. It does not
+  promote interval reliability, interval coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, DRAC execution, or SR150 evidence.
+  The linked q-series row remains at `interval_status = planned` and
+  `coverage_status = planned`.
+
+## 2026-06-24: spatial mu profile strategy
+
+Goal:
+
+- Check whether the existing endpoint, `auto`, and `tmbprofile` profile
+  engines rescue the fixed-covariance spatial `mu:x` lower-side
+  endpoint-profile failures, without promoting interval reliability, coverage,
+  REML, AI-REML, or broad bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-spatial-mu-profile-strategy.R
+air format tools/run-structured-re-spatial-mu-profile-strategy.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|spatial.*mu.*coverage-ready|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/dev-log/dashboard/structured-re-spatial-mu-boundary-diagnostic.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-geometry.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-strategy.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The strategy diagnostic wrote 12 design-by-engine rows.
+- The `smoke_seed102` finite control stayed finite under endpoint, `auto`, and
+  `tmbprofile` engines.
+- The three problematic seed-202 spatial `mu:x` designs stayed nonfinite under
+  endpoint profiling and under the existing `auto`/`tmbprofile` fallback path.
+- `structured-re-conversion-contracts` passed with 1826 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE spatial-`mu` profile-strategy rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is spatial `mu:x` profile-strategy diagnostic evidence only. It does
+  not promote interval reliability, interval coverage, REML, AI-REML, broad
+  bridge support, range-estimating spatial support, DRAC execution, or SR150
+  evidence. The linked q-series row remains at `interval_status = planned` and
+  `coverage_status = planned`.
+
+## 2026-06-24: spatial mu profile geometry
+
+Goal:
+
+- Diagnose the fixed-covariance spatial `mu:x` endpoint-profile failures by
+  separating lower and upper constrained-profile crossings, without promoting
+  interval reliability, coverage, REML, AI-REML, or broad bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-spatial-mu-profile-geometry.R
+air format tools/run-structured-re-spatial-mu-profile-geometry.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|spatial.*mu.*coverage-ready|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/dev-log/dashboard/structured-re-spatial-mu-boundary-diagnostic.tsv docs/dev-log/dashboard/structured-re-spatial-mu-profile-geometry.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The geometry diagnostic wrote 12 design-by-side rows.
+- All six upper endpoint-profile crossings succeeded.
+- Three lower endpoint-profile crossings succeeded.
+- Three lower endpoint-profile crossings failed with constrained-optimizer
+  `NA/NaN gradient evaluation`: `strong_seed202`,
+  `strong_n50_seed202`, and `mu_dominant_seed202`.
+- `structured-re-conversion-contracts` passed with 1777 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE spatial-`mu` profile-geometry rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is endpoint-profile geometry evidence only. It does not promote
+  interval reliability, interval coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, DRAC execution, or SR150 evidence.
+  The linked q-series row remains at `interval_status = planned` and
+  `coverage_status = planned`.
+
+## 2026-06-24: spatial mu boundary diagnostic
+
+Goal:
+
+- Diagnose the fixed-covariance `spatial()` `mu` boundary/profile failures in
+  the matched Gaussian structured `mu+sigma` one-slope stability probe without
+  promoting interval reliability, coverage, REML, AI-REML, or broad bridge
+  support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-spatial-mu-boundary-diagnostic.R
+air format tools/run-structured-re-spatial-mu-boundary-diagnostic.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|spatial.*mu.*coverage-ready|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/dev-log/dashboard/structured-re-spatial-mu-boundary-diagnostic.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The diagnostic wrote 24 method rows and 12 dashboard status rows.
+- Eight target rows had finite Wald/profile intervals.
+- Two rows had finite Wald but failed endpoint profile:
+  `strong_n50_seed202` `mu:x` and `mu_dominant_seed202` `mu:x`.
+- Two rows stayed at the Wald/profile boundary:
+  `strong_seed202` `mu:(Intercept)` and `mu:x`.
+- `structured-re-conversion-contracts` passed with 1732 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 12
+  structured RE spatial-`mu` boundary diagnostic rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is spatial `mu` boundary diagnostic evidence only. It does not promote
+  interval reliability, interval coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, DRAC execution, or SR150
+  evidence. The linked q-series row remains at `interval_status = planned` and
+  `coverage_status = planned`.
+
+## 2026-06-24: matched mu+sigma one-slope interval stability probe
+
+Goal:
+
+- Run and bank a stronger-fixture Wald/profile stability probe for the 16
+  direct SD targets in the matched Gaussian structured `mu+sigma` one-slope
+  cells, without promoting interval reliability, coverage, REML, AI-REML, or
+  broad bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-mu-sigma-slope-interval-stability-probe.R
+air format tools/run-structured-re-mu-sigma-slope-interval-stability-probe.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-stability-probe.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The stability probe wrote 64 method rows and 32 dashboard status rows.
+- Twenty-eight variant-target rows had finite Wald/profile intervals.
+- Four rows stayed nonfinite: fixed-covariance `spatial()` `mu:(Intercept)`
+  and `mu:x` under both stronger fixture variants.
+- `structured-re-conversion-contracts` passed with 1688 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 32
+  structured RE `mu+sigma` slope interval-stability probe rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is deterministic interval-stability probe evidence only. It does not
+  promote interval reliability, interval coverage, REML, AI-REML, broad bridge
+  support, range-estimating spatial support, pedigree/Ainv bridge marshalling,
+  relmat Q bridge marshalling, DRAC execution, or SR150 evidence. The q-series
+  rows remain at `interval_status = planned` and `coverage_status = planned`.
+
+## 2026-06-24: matched mu+sigma one-slope interval smoke status
+
+Goal:
+
+- Run and bank the first deterministic Wald/profile/bootstrap interval-smoke
+  status for the 16 direct SD targets in the matched Gaussian structured
+  `mu+sigma` one-slope cells.
+
+Checks run:
+
+```sh
+Rscript --vanilla tools/run-structured-re-mu-sigma-slope-interval-smoke.R
+air format tools/run-structured-re-mu-sigma-slope-interval-smoke.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "qseries_.*mu_sigma_one_slope.*(interval_feasible|inference_ready|supported)|mu\\+sigma.*one-slope.*(interval_feasible|inference_ready|supported)|interval_status\\t(interval_feasible|inference_ready|supported)|coverage_status\\t(inference_ready|supported)" docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-status.tsv docs/dev-log/dashboard/structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- The smoke harness wrote 48 method rows and 16 dashboard status rows.
+- Five targets had finite Wald/profile/bootstrap intervals; one target had
+  finite Wald/bootstrap with profile failure; ten targets were bootstrap-only
+  finite with Wald boundary or profile failure.
+- `structured-re-conversion-contracts` passed with 1647 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE `mu+sigma` slope interval-diagnostic status rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+
+Boundary:
+
+- This is deterministic interval-smoke status only. Bootstrap used two refits,
+  so it is plumbing/finite-row evidence, not calibrated uncertainty. The
+  q-series rows remain at `interval_status = planned` and `coverage_status =
+  planned`. No interval reliability, interval coverage, REML, AI-REML, broad
+  bridge support, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, relmat Q bridge marshalling, DRAC execution, or SR150 evidence
+  is promoted.
+
+## 2026-06-24: matched mu+sigma one-slope interval diagnostic plan
+
+Goal:
+
+- Add a validator-owned target inventory for interval diagnostics on the exact
+  matched Gaussian structured `mu+sigma` one-slope cells, without promoting
+  finite intervals, interval reliability, coverage, REML, AI-REML, or broad
+  bridge support.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "mu\\+sigma.*interval_(feasible|ready|supported)|interval_status\\tinterval_feasible|coverage_status\\tsupported|qseries_.*mu_sigma_one_slope.*interval_feasible" docs/dev-log/dashboard docs/design README.md ROADMAP.md NEWS.md
+```
+
+Results:
+
+- `structured-re-conversion-contracts` passed with 1602 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE `mu+sigma` slope interval-diagnostic plan rows.
+- `git diff --check` passed.
+- The stale-promotion scan returned no hits.
+- The first focused contract run caught inconsistent claim-boundary wording in
+  the non-phylo rows; the sidecar now uses the exact "no interval reliability"
+  phrase for all providers.
+
+Boundary:
+
+- This is a plan-only interval target inventory for the 16 direct SD targets
+  formed by four providers and four endpoint members. No interval diagnostics
+  were run. It does not promote interval reliability, interval coverage, REML,
+  AI-REML, broad bridge support, range-estimating spatial support,
+  pedigree/Ainv bridge marshalling, relmat Q bridge marshalling, DRAC
+  execution, or SR150 evidence.
+
+## 2026-06-24: matched mu+sigma one-slope fixture parity
+
+Goal:
+
+- Bank deterministic same-target native/direct/R-via-Julia bridge fixture
+  evidence for the exact matched Gaussian structured `mu+sigma` one-slope
+  cells already opened for `phylo()`, fixed-covariance `spatial()`, A-matrix
+  `animal()`, and K/Q `relmat()`.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n -F -e "bridge/inference for matched slope cells" -e "bridge support for matched slope cells" -e "matched one-slope bridge" -e "native point-fit and extractor evidence only" -e "point-fit/extractor evidence only" -e "bridge fixtures and recovery grids" README.md ROADMAP.md NEWS.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md
+gh issue list --repo itchyshin/drmTMB --search "structured mu sigma slope fixture q-series" --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `structured-re-bridge-fixtures` passed with 389 assertions.
+- `structured-re-conversion-contracts` passed with 1563 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 4
+  structured RE `mu+sigma` slope parity-fixture rows plus 4 readiness rows.
+- `git diff --check` passed.
+- The stale-wording scan found no current hits in the active status/design
+  files.
+- The GitHub issue search returned `[]`, so no duplicate tracker was opened.
+
+Boundary:
+
+- This is deterministic fixture parity for the exact matched one-slope cells
+  only. It does not promote broad bridge support, range-estimating spatial
+  support, pedigree/Ainv bridge marshalling, relmat Q bridge marshalling,
+  labelled structured slope covariance, interval reliability, coverage, REML,
+  AI-REML, DRAC execution, SR150 evidence, PR undrafting or merging, or an
+  Ayumi-facing reply.
+
+## 2026-06-24: matched mu+sigma one-slope native point-fit cells
+
+Goal:
+
+- Open the exact matched Gaussian structured `mu+sigma` one-slope native
+  point-fit/extractor cells for `phylo()`, fixed-covariance `spatial()`,
+  A-matrix `animal()`, and K/Q `relmat()` after the readiness gate made the
+  required four endpoint members explicit.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R R/methods.R tests/testthat/test-structured-effects.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- `structured-effects` passed with 337 assertions.
+- `phylo-gaussian` passed with 306 assertions.
+- `spatial-gaussian` passed with 180 assertions.
+- `animal-relmat-gaussian` passed with 281 assertions.
+- `structured-re-conversion-contracts` passed with 1535 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 4
+  structured RE `mu+sigma` slope-readiness rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- The fitted runtime cells track the exact endpoint members
+  `mu:(Intercept)`, `mu:x`, `sigma:(Intercept)`, and `sigma:x`. This is native
+  point-fit/extractor evidence only. It does not promote broad bridge support,
+  range-estimating spatial support, pedigree/Ainv bridge marshalling, relmat Q
+  bridge marshalling, labelled structured slope covariance, interval
+  reliability, coverage, REML, AI-REML, DRAC execution, SR150 evidence, PR
+  undrafting or merging, or an Ayumi-facing reply.
+
+## 2026-06-24: provider sigma one-slope fixture parity
+
+Goal:
+
+- Generalize the deterministic same-target bridge fixture from the relmat-only
+  sigma one-slope row to all four currently opened Gaussian structured
+  residual-scale one-slope providers: `phylo()`, fixed-covariance `spatial()`,
+  A-matrix `animal()`, and K-matrix `relmat()`.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+gh issue list --repo itchyshin/drmTMB --search "structured sigma slope q-series" --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `structured-re-bridge-fixtures` passed with 343 assertions.
+- `structured-re-conversion-contracts` passed with 1508 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 4
+  structured RE sigma-slope parity-fixture rows.
+- `git diff --check` passed.
+- The GitHub issue search returned no direct duplicate tracker item for
+  "structured sigma slope q-series".
+
+Boundary:
+
+- This is deterministic same-target fixture evidence for the exact sigma-only
+  one-slope rows named above. It supersedes the relmat-only fixture entry by
+  adding provider-specific phylo, fixed-covariance spatial, and A-matrix animal
+  rows. It does not promote broad bridge support, range-estimating spatial
+  support, pedigree/Ainv bridge marshalling, relmat Q bridge marshalling,
+  matched `mu+sigma` structured slope cells, labelled structured slope
+  covariance, interval reliability, coverage, REML, AI-REML, DRAC execution, or
+  SR150.
+
+## 2026-06-24: relmat sigma one-slope fixture parity
+
+Goal:
+
+- Add the first deterministic same-target bridge fixture for a structured
+  sigma-only one-slope cell, limited to
+  `relmat(1 + x | id, K = K)` in Gaussian `sigma`.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- `structured-re-bridge-fixtures` passed with 322 assertions.
+- `structured-re-conversion-contracts` passed with 1509 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 1
+  structured RE sigma-slope parity-fixture row.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is a deterministic K-matrix same-target fixture for the exact relmat
+  sigma one-slope row only. It does not promote broad bridge support, relmat Q
+  marshalling through the bridge, other provider sigma fixtures, matched
+  `mu+sigma` structured slope cells, labelled structured slope covariance,
+  interval reliability, coverage, REML, AI-REML, DRAC execution, or SR150.
+
+## 2026-06-24: relmat sigma K/Q one-slope native cell
+
+Goal:
+
+- Complete the first structured residual-scale one-slope provider tranche by
+  opening the exact K/Q `relmat()` sigma-only Gaussian cell without promoting
+  matched `mu+sigma`, bridge, interval, or coverage support.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n 'residual-scale structured slopes|structured scale slopes|residual-scale.*remain planned|residual-scale.*planned' README.md ROADMAP.md docs/design/01-formula-grammar.md docs/design/02-family-registry.md docs/design/16-phylo-spatial-common-math.md docs/design/34-validation-debt-register.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/59-structural-slope-and-non-gaussian-map.md docs/design/218-structured-q-series-completion-map.md
+gh issue list --repo itchyshin/drmTMB --search "relmat sigma structured slope q-series" --limit 20 --json number,title,state,url,labels
+```
+
+Results:
+
+- `animal-relmat-gaussian` passed with 245 assertions.
+- `structured-re-conversion-contracts` passed with 1491 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 69
+  structured RE q-series cells plus the current dashboard row counts.
+- `git diff --check` passed.
+- The GitHub issue search returned no open or closed direct duplicate for
+  "relmat sigma structured slope q-series".
+
+Boundary:
+
+- This is native point-fit and extractor evidence for one exact lower-level
+  relatedness residual-scale slope cell:
+  `sigma ~ relmat(1 + x | id, K/Q = ...)`. It does not add matched
+  `mu+sigma` structured slope cells, labelled structured slope covariance,
+  structured q4/q6/q8 slope support, broad bridge support, interval
+  reliability, coverage, REML, AI-REML, DRAC execution, or SR150 evidence.
+
+## 2026-06-24: animal sigma one-slope native cell
+
+Goal:
+
+- Extend the structured residual-scale one-slope runtime lane to the A-matrix
+  `animal()` cell without moving relmat, matched `mu+sigma`, bridge, interval,
+  or coverage cells.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-animal-relmat-gaussian.R
+Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"
+```
+
+Results:
+
+- `animal-relmat-gaussian` passed with 200 assertions.
+
+Boundary:
+
+- This is native point-fit and extractor evidence for one animal A-matrix
+  residual-scale slope only. It does not add pedigree/Ainv bridge marshalling,
+  relmat, matched `mu+sigma`, q4/q6/q8 slope, bridge, interval, coverage,
+  REML, AI-REML, broad bridge, DRAC, or SR150 support.
+
+## 2026-06-24: spatial sigma one-slope native cell
+
+Goal:
+
+- Extend the structured residual-scale one-slope runtime lane from `phylo()`
+  to fixed-covariance `spatial()` without moving animal, relmat, matched
+  `mu+sigma`, bridge, interval, or coverage cells.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-gaussian-location-scale.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'gaussian-location-scale|structured-re-conversion-contracts')"
+```
+
+Results:
+
+- `spatial-gaussian` passed with 168 assertions.
+- `gaussian-location-scale` plus `structured-re-conversion-contracts` passed
+  with 1570 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+
+Boundary:
+
+- This is native point-fit and extractor evidence for one fixed-covariance
+  spatial residual-scale slope only. It does not add range-estimating spatial,
+  mesh/SPDE, animal, relmat, matched `mu+sigma`, q4/q6/q8 slope, bridge,
+  interval, coverage, REML, AI-REML, broad bridge, DRAC, or SR150 support.
+
+## 2026-06-24: first phylo sigma one-slope native cell
+
+Goal:
+
+- Open the first structured residual-scale one-slope runtime cell without
+  borrowing `mu` slope evidence or promoting matched `mu+sigma` slope support.
+- Limit the implementation to sigma-only
+  `phylo(1 + x | species, tree = tree)` in Gaussian `sigma`, with spatial,
+  animal, relmat, matched `mu+sigma`, bridge, interval, and coverage cells
+  still planned.
+
+Checks run:
+
+```sh
+air format R/drmTMB.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+```
+
+Results:
+
+- `phylo-gaussian` passed with 289 assertions.
+- `structured-re-conversion-contracts` passed with 1488 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+
+Boundary:
+
+- This is native point-fit and extractor evidence for one phylogenetic
+  residual-scale slope only. It does not add spatial, animal, relmat, matched
+  `mu+sigma`, q4/q6/q8 slope, bridge, interval, coverage, REML, AI-REML,
+  broad bridge, DRAC, or SR150 support.
+
+## 2026-06-24: relmat K/Q one-slope mu parity fixture
+
+Goal:
+
+- Close the relmat K-versus-Q gap for the one independent structured `mu`
+  slope cell without promoting broad bridge support, residual-scale slopes,
+  intervals, or coverage.
+- Move only the exact `relmat(1 + x | id, K = K)` Gaussian `mu` one-slope
+  fixture row to deterministic same-target fixture parity, with runtime
+  evidence that `K = K` and `Q = Q` reach the same target for the existing
+  `relmat(1 + x | id)` implementation.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- `animal-relmat-gaussian` passed with 178 assertions.
+- `structured-re-bridge-fixtures` passed with 300 assertions.
+- `structured-re-conversion-contracts` passed with 1481 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 69
+  structured RE q-series cells, 4 structured RE mu-slope audit rows, and 4
+  structured RE mu-slope parity-fixture rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This slice promotes the relmat one-slope
+  `mu` fixture row only. It does not add residual-scale structured slopes,
+  labelled structured slope covariance, structured q4/q6/q8 runtime cells,
+  q4 interval reliability, q4 interval coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian REML, public optimizer controls,
+  DRAC execution, SR150 evidence, or broad R-via-Julia bridge support.
+
 ## 2026-06-23: spatial and animal one-slope mu parity fixtures
 
 Goal:
@@ -65217,3 +67248,332 @@ Boundary:
   coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
   non-Gaussian AI-REML, public optimizer controls, DRAC execution, a PR #638
   undraft/merge, or an Ayumi-facing reply.
+
+## 2026-06-24: matched mu+sigma one-slope readiness gate
+
+Goal:
+
+- Bank the next structured q-series control-plane slice for matched Gaussian
+  `mu+sigma` one-slope cells without opening runtime support. The purpose was
+  to make the four required endpoint members explicit before any future runtime
+  mapping tries to combine the already banked `mu`-only and `sigma`-only slope
+  evidence.
+
+Result:
+
+- Added `endpoint_member_set`, `endpoint_member_count`, and
+  `endpoint_members` to `structured_effects()` output.
+- Added extractor tests showing that matched intercept rows are labelled as
+  `mu:(Intercept)+sigma:(Intercept)` and that matched one-slope
+  `mu+sigma` attempts remain blocked by the intercept-only location-scale
+  guard.
+- Added
+  `docs/dev-log/dashboard/structured-re-mu-sigma-slope-readiness.tsv` for
+  `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and K-matrix
+  `relmat()` cells. Each row records the required future endpoint-member set:
+  `mu:(Intercept);mu:x;sigma:(Intercept);sigma:x`.
+- Linked the four planned matched slope support cells in
+  `structured-re-q-series-support-cells.tsv` to the new readiness sidecar.
+- Wired the sidecar into `tools/validate-mission-control.py`, the dashboard
+  README, and `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task note
+  `docs/dev-log/after-task/2026-06-24-mu-sigma-slope-readiness-gate.md`.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-structured-effects.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla -e "devtools::document()"` passed and regenerated the
+  roxygen Rd files.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"`
+  passed with 333 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1531 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE `mu+sigma` slope-readiness rows.
+
+Boundary:
+
+- No files were staged or committed. This slice is an extractor/dashboard
+  readiness gate only. It does not add matched `mu+sigma` structured slope
+  runtime support, broad bridge support, relmat Q bridge marshalling, intervals,
+  coverage, REML, AI-REML, public optimizer controls, DRAC execution, SR150
+  evidence, PR undrafting or merging, or an Ayumi-facing reply.
+
+## 2026-06-24: bivariate structured q2 slope design runtime fix
+
+Goal:
+
+- Fix the bivariate Gaussian structured q2 slope likelihood path after the q2
+  interval stability probe showed fitted structured slope SDs near zero despite
+  strong simulated slope variance.
+
+Result:
+
+- Updated `src/drmTMB.cpp` so the bivariate Gaussian structured-effect q2/q4
+  branch multiplies latent structured effects by the structured design column
+  before adding them to `mu1`, `mu2`, and the structured location-scale
+  endpoints.
+- Updated `phylo_mu_contribution()` in `R/methods.R` so extractor-side
+  contributions use the same endpoint/member design multiplication.
+- Added provider-level contribution tests in
+  `tests/testthat/test-phylo-gaussian.R`,
+  `tests/testthat/test-spatial-gaussian.R`, and
+  `tests/testthat/test-animal-relmat-gaussian.R`.
+- Reran
+  `tools/run-structured-re-q2-slope-interval-smoke.R` and
+  `tools/run-structured-re-q2-slope-interval-stability-probe.R`.
+- Regenerated
+  `docs/dev-log/dashboard/structured-re-q2-slope-interval-diagnostic-status.tsv`,
+  `docs/dev-log/dashboard/structured-re-q2-slope-interval-stability-probe.tsv`,
+  and their linked method artifacts under
+  `docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-interval-smoke/`
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-interval-stability-probe/`.
+- Updated `tools/validate-mission-control.py`,
+  `tests/testthat/test-structured-re-conversion-contracts.R`,
+  `docs/dev-log/dashboard/README.md`, and
+  `docs/design/218-structured-q-series-completion-map.md` to the post-fix
+  diagnostic pattern.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-biv-structured-q2-slope-design-runtime-fix.md`
+  and updated the two earlier q2 interval after-task notes to mark the
+  superseding rerun.
+
+Evidence:
+
+- The regenerated q2 interval-smoke sidecar has 12 target rows: 10 rows are
+  `wald_profile_bootstrap_finite`, and two correlation rows (`animal` and
+  `relmat`) are `wald_bootstrap_finite_profile_failed`.
+- The regenerated q2 stability sidecar has 24 variant-target rows, all
+  `wald_profile_finite`.
+- All regenerated q2 diagnostic fits converged with `pdHess = TRUE`.
+- The linked q-series support cells remain at `interval_status = planned`,
+  `coverage_status = planned`, and
+  `denominator_policy = fixture_not_coverage`.
+
+Checks:
+
+- `air format R/methods.R tests/testthat/test-phylo-gaussian.R tests/testthat/test-spatial-gaussian.R tests/testthat/test-animal-relmat-gaussian.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2,091 assertions.
+- `python3 tools/validate-mission-control.py` passed and reported 73
+  structured RE q-series cells.
+- `Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"` passed
+  with 336 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'spatial-gaussian')"` passed
+  with 211 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'animal-relmat-gaussian')"`
+  passed with 329 assertions.
+
+Boundary:
+
+- No files were staged or committed. This slice fixes bivariate structured
+  slope runtime contribution and refreshes diagnostic evidence only. It does
+  not promote q2 interval reliability, q2 coverage, q4 interval reliability,
+  q4 interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, DRAC execution, SR150 coverage readiness, PR undrafting/merging, or
+  an Ayumi-facing reply.
+
+## 2026-06-24: q4 all-four one-slope identity preflight
+
+Goal:
+
+- Bank the endpoint/coefficient identity contract for future structured
+  all-four one-slope bivariate Gaussian cells before attempting q4 slope
+  runtime implementation.
+
+Result:
+
+- Added `tools/run-structured-re-q4-slope-identity-preflight.R`.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-slope-identity-preflight.tsv` with
+  one row each for `phylo()`, fixed-covariance `spatial()`, A-matrix
+  `animal()`, and K-matrix `relmat()`.
+- The sidecar names the exact eight endpoint members:
+  `mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x`.
+- The sidecar also records eight planned direct-SD target placeholders and 28
+  labelled covariance pairs.
+- Updated the four linked q-series all-four one-slope rows so their current
+  evidence URL points at the preflight sidecar while all runtime, extractor,
+  bridge, interval, and coverage statuses remain `planned`.
+- Wired the sidecar into `tools/validate-mission-control.py`,
+  `tests/testthat/test-structured-re-conversion-contracts.R`,
+  `docs/dev-log/dashboard/README.md`, and
+  `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-slope-identity-preflight.md`.
+
+Evidence:
+
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE q4 slope identity-preflight rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2,550 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is a q8-shaped identity preflight
+  only. It does not fit a q4 all-four one-slope model, does not provide
+  extractor output for that cell, and does not promote bridge parity, interval
+  reliability, coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, broad bridge support, public optimizer
+  controls, DRAC execution, SR150 coverage readiness, PR undrafting/merging, or
+  an Ayumi-facing reply.
+
+## 2026-06-24: phylo all-four one-slope runtime gate
+
+Goal:
+
+- Move exactly one q-series cell beyond identity preflight: the shared-label
+  phylogenetic all-four `phylo(1 + x | p | species, tree = tree)` bivariate
+  Gaussian cell in `mu1`, `mu2`, `sigma1`, and `sigma2`.
+
+Result:
+
+- Allowed labelled structured intercept-plus-one-slope terms through the parser,
+  while keeping univariate labelled one-slope structured covariance blocked.
+- Expanded the bivariate structured q4 detector to build the exact eight-member
+  q8-shaped endpoint map for the shared-label phylo cell.
+- Kept block-diagonal all-four one-slope structured covariance planned.
+- Updated prediction contributions so `mu1`, `mu2`, `sigma1`, and `sigma2`
+  each sum all matching endpoint members.
+- Added a focused `phylo-gaussian` test for `q = 8`, eight SD labels, 28
+  derived phylogenetic correlations, derived-unavailable correlation intervals,
+  and contribution identity for `mu1` and `sigma2`.
+- Promoted only the phylo q-series all-four one-slope row to `native_tmb`,
+  `point_fit`, and `extractor_ready`; spatial, animal, and relmat remain
+  preflight/planned.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-24-phylo-q4-slope-runtime.md`.
+
+Evidence:
+
+- One-off runtime probe fit returned finite objective, `q = 8`, eight SD
+  labels, 28 `corpars$phylo` rows, and finite `sigma1` link predictions.
+- `Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian')"` passed
+  with 366 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'phylo-gaussian|spatial-gaussian|animal-relmat-gaussian')"`
+  passed with 906 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 2557 assertions.
+- `python3 tools/validate-mission-control.py` passed with the phylo q4-slope
+  row at `runtime_test`/`point_fit` and the other providers still
+  preflight/planned.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is native ML point-fit and extractor
+  evidence for the exact shared-label phylo all-four one-slope cell only. It
+  does not promote spatial, animal, relmat, block-diagonal all-four one-slope,
+  bridge parity, interval reliability, coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad bridge support, public
+  optimizer controls, DRAC execution, SR150 coverage readiness, PR
+  undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q4 location one-slope bounded interval smoke
+
+Goal:
+
+- Run bounded direct-SD interval smoke for the exact q4 location `mu1+mu2`
+  one-slope cells across `phylo()`, fixed-covariance `spatial()`, A-matrix
+  `animal()`, and K-matrix `relmat()`.
+
+Result:
+
+- Added `tools/run-structured-re-q4-location-slope-interval-smoke.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-slope-interval-diagnostic-status.tsv`
+  with 16 direct-SD status rows.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-location-slope-interval-smoke/structured-re-q4-location-slope-interval-smoke-results.tsv`
+  with 48 method-level rows.
+- Recorded `pdHess=TRUE` and finite Wald/profile intervals for all 16 direct
+  SD targets on the strong fixture.
+- Recorded bootstrap as `not_run_smoke_budget`, leaving bounded bootstrap
+  denominator smoke for the next gate.
+- Added dashboard tests, mission-control validation, dashboard README/design
+  map wording, and after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-location-slope-interval-smoke-status.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-location-slope-interval-smoke.R`
+  completed and wrote the dashboard status/artifact files. The relmat fit used
+  the fallback BFGS optimizer after the `nlminb()` presets did not converge.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 3,176 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE q4 location slope interval-diagnostic status rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This is diagnostic direct-SD interval
+  smoke only. It does not promote bootstrap success, derived-correlation
+  intervals, interval reliability, interval coverage, q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, broad bridge support,
+  public optimizer controls, DRAC execution, SR150 coverage readiness, partial
+  location-scale support, Q precision marshalling, K/Q same-target parity, PR
+  undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-24: q4 location one-slope bootstrap budget probe
+
+Goal:
+
+- Test whether the q4 location direct-SD bootstrap path is locally cheap enough
+  to promote from the bounded Wald/profile smoke into an all-target denominator
+  runner.
+
+Result:
+
+- Added
+  `tools/run-structured-re-q4-location-slope-bootstrap-budget-probe.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-slope-bootstrap-budget-probe.tsv`
+  with one row per provider.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-location-slope-bootstrap-budget-probe/structured-re-q4-location-slope-bootstrap-budget-probe-results.tsv`
+  with the method-level probe rows.
+- Ran the `phylo()` `mu1:(Intercept)` target as the representative direct-SD
+  bootstrap probe. Fixed-covariance `spatial()`, A-matrix `animal()`, and
+  K-matrix `relmat()` are recorded as `not_run_after_phylo_budget_probe` rather
+  than silently omitted.
+- Updated mission-control validation, the focused conversion-contract tests,
+  the dashboard README, the q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-location-slope-bootstrap-budget-probe.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/run-structured-re-q4-location-slope-bootstrap-budget-probe.R`
+  completed and wrote the dashboard status/artifact files.
+- The phylo representative bootstrap row returned a finite two-refit bootstrap
+  interval and retained bootstrap refit accounting in `method_message`.
+- The provider-rotating denominator gate now points to Totoro or a reviewed
+  DRAC/totoro dispatch plan before any all-target denominator or coverage-grid
+  design.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 3,254 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 4 structured
+  RE q4 location slope bootstrap-budget probe rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed at the time of this check-log entry. This
+  is diagnostic bootstrap budget evidence only. It does not promote all-target
+  bootstrap denominators, derived-correlation intervals, interval reliability,
+  interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared
+  AI-REML, non-Gaussian REML, broad bridge support, public optimizer controls,
+  DRAC execution, SR150 coverage readiness, partial location-scale support,
+  Q precision marshalling, K/Q same-target parity, PR undrafting/merging, or an
+  Ayumi-facing reply.

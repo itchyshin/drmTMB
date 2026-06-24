@@ -1310,8 +1310,9 @@ route to fit the first q=2 location covariance. Matching all-four labelled
 `mu1`/`mu2`/`sigma1`/`sigma2` terms fit the first constant q=4
 location-scale covariance block. Pedigree-to-Ainv construction is fitted for
 the dense first animal route; large-pedigree sparse precision construction,
-residual-scale structured slopes, predictor-dependent relatedness `corpair()`
-regression, and generic direct-SD grammar remain planned until their
+labelled structured slope covariance, bridge/inference for matched slope
+cells, predictor-dependent relatedness `corpair()` regression, and generic
+direct-SD grammar remain planned until their
 likelihood, diagnostics, profile or bootstrap interval story, simulation
 recovery tests, and examples exist.
 

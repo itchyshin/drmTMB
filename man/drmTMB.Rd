@@ -21,11 +21,11 @@ drmTMB(
 \arguments{
 \item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
 
-\item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
-\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
+\item{family}{A response family, such as \code{\link[stats:family]{stats::gaussian()}}, \code{\link[=student]{student()}},
+\code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:family]{stats::Gamma()}} with \code{link = "log"},
 \code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
-\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"},
-\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
+\code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:family]{stats::binomial()}} with \code{link = "logit"},
+\code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:family]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
 \code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a

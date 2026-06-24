@@ -7511,6 +7511,8 @@ extract_gaussian_mu_phylo_term <- function(entry, dpar = entry$dpar) {
   phylo_term <- phylo_terms[[1L]]
   phylo_coef_names <- phylo_term$coef_names
   valid_phylo_coef <- identical(phylo_coef_names, "(Intercept)") ||
+    (length(phylo_coef_names) == 1L &&
+      identical(phylo_coef_names[[1L]], phylo_term$variables[[1L]])) ||
     (length(phylo_coef_names) == 2L &&
       identical(phylo_coef_names[[1L]], "(Intercept)") &&
       identical(phylo_coef_names[[2L]], phylo_term$variables[[1L]]))
@@ -7555,6 +7557,8 @@ extract_gaussian_mu_spatial_term <- function(entry, dpar = entry$dpar) {
   spatial_term <- spatial_terms[[1L]]
   spatial_coef_names <- spatial_term$coef_names
   valid_spatial_coef <- identical(spatial_coef_names, "(Intercept)") ||
+    (length(spatial_coef_names) == 1L &&
+      identical(spatial_coef_names[[1L]], spatial_term$variables[[1L]])) ||
     (length(spatial_coef_names) == 2L &&
       identical(spatial_coef_names[[1L]], "(Intercept)") &&
       identical(spatial_coef_names[[2L]], spatial_term$variables[[1L]]))
@@ -7606,6 +7610,8 @@ extract_gaussian_mu_known_term <- function(entry, marker, dpar = entry$dpar) {
   known_term <- known_terms[[1L]]
   known_coef_names <- known_term$coef_names
   valid_known_coef <- identical(known_coef_names, "(Intercept)") ||
+    (length(known_coef_names) == 1L &&
+      identical(known_coef_names[[1L]], known_term$variables[[1L]])) ||
     (length(known_coef_names) == 2L &&
       identical(known_coef_names[[1L]], "(Intercept)") &&
       identical(known_coef_names[[2L]], known_term$variables[[1L]]))
@@ -7673,15 +7679,31 @@ combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
   if (!is.null(sigma_term)) {
     validate_univariate_sigma_structured_term(sigma_term, marker)
   }
+  labelled_one_slope <- c(
+    mu = structured_term_has_labelled_intercept_one_slope(mu_term),
+    sigma = structured_term_has_labelled_intercept_one_slope(sigma_term)
+  )
+  if (any(labelled_one_slope)) {
+    marker_title <- structured_marker_title(marker)
+    bad <- names(labelled_one_slope)[labelled_one_slope]
+    coef_names <- unique(c(mu_term$coef_names, sigma_term$coef_names))
+    cli::cli_abort(c(
+      "{marker_title} labelled intercept-plus-slope structured covariance is only implemented for the all-four bivariate Gaussian block in this slice.",
+      "x" = "{.code {bad}} requested labelled structured coefficient{?s}: {.val {coef_names}}.",
+      "i" = "Use unlabelled {.code {marker}(1 + x | group, ...)} for the independent univariate one-slope path, or put matching labelled terms in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2} for the exact bivariate all-four block."
+    ))
+  }
   if (is.null(mu_term)) {
+    q <- length(sigma_term$coef_names)
     sigma_term$dpars <- "sigma"
-    sigma_term$q <- 1L
+    sigma_term$q <- q
     sigma_term$covariance_mode <- "scalar"
-    sigma_term$block_ids <- 1L
+    sigma_term$block_ids <- rep(1L, q)
     sigma_term$block_labels <- structured_term_default_block(sigma_term, marker)
-    sigma_term$endpoint_blocks <- sigma_term$block_labels
-    sigma_term$endpoint_covariance_labels <- structured_term_endpoint_label(
-      sigma_term
+    sigma_term$endpoint_blocks <- rep(sigma_term$block_labels[[1L]], q)
+    sigma_term$endpoint_covariance_labels <- rep(
+      structured_term_endpoint_label(sigma_term),
+      q
     )
     sigma_term$label <- format_structured_label(
       marker,
@@ -7696,14 +7718,25 @@ combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
   }
 
   validate_univariate_sigma_structured_match(mu_term, sigma_term, marker)
-  mu_term$dpars <- c("mu", "sigma")
-  mu_term$q <- 2L
+  matched_one_slope <- structured_term_is_intercept_one_slope(mu_term) &&
+    structured_term_is_intercept_one_slope(sigma_term)
+  if (matched_one_slope) {
+    mu_term$dpars <- c(
+      rep("mu", length(mu_term$coef_names)),
+      rep("sigma", length(sigma_term$coef_names))
+    )
+    mu_term$coef_names <- c(mu_term$coef_names, sigma_term$coef_names)
+    mu_term$variables <- c(mu_term$variables, sigma_term$variables)
+  } else {
+    mu_term$dpars <- c("mu", "sigma")
+  }
+  mu_term$q <- length(mu_term$dpars)
   mu_term$covariance_mode <- "scalar"
-  mu_term$block_ids <- c(1L, 1L)
+  mu_term$block_ids <- rep(1L, mu_term$q)
   mu_term$block_labels <- structured_term_default_block(mu_term, marker)
-  mu_term$endpoint_blocks <- rep(mu_term$block_labels[[1L]], 2L)
+  mu_term$endpoint_blocks <- rep(mu_term$block_labels[[1L]], mu_term$q)
   endpoint_label <- structured_term_endpoint_label(mu_term)
-  mu_term$endpoint_covariance_labels <- rep(endpoint_label, 2L)
+  mu_term$endpoint_covariance_labels <- rep(endpoint_label, mu_term$q)
   mu_term$label <- format_structured_label(
     marker,
     "1",
@@ -7715,11 +7748,14 @@ combine_univariate_structured_terms <- function(mu_term, sigma_term, marker) {
 
 validate_univariate_sigma_structured_term <- function(term, marker) {
   marker_title <- structured_marker_title(marker)
-  if (!structured_term_is_intercept_only(term)) {
+  valid_open_one_slope <- marker %in%
+    c("phylo", "spatial", "animal", "relmat") &&
+    structured_term_is_intercept_one_slope(term)
+  if (!structured_term_is_intercept_only(term) && !valid_open_one_slope) {
     cli::cli_abort(c(
       "{marker_title} residual-scale structured effects are intercept-only in this slice.",
       "x" = "{.code sigma} requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code sigma ~ {marker}(1 | {term$group}, ...)}; structured scale slopes need separate recovery tests."
+      "i" = "Use {.code sigma ~ {marker}(1 | {term$group}, ...)}; the first provider-specific residual-scale one-slope cells are open for {.fn phylo}, fixed-covariance {.fn spatial}, A-matrix {.fn animal}, and K/Q {.fn relmat}."
     ))
   }
 }
@@ -7730,11 +7766,18 @@ validate_univariate_sigma_structured_match <- function(
   marker
 ) {
   marker_title <- structured_marker_title(marker)
-  if (!structured_term_is_intercept_only(mu_term)) {
+  matched_intercept <- structured_term_is_intercept_only(mu_term) &&
+    structured_term_is_intercept_only(sigma_term)
+  matched_one_slope <- structured_term_is_intercept_one_slope(mu_term) &&
+    structured_term_is_intercept_one_slope(sigma_term) &&
+    identical(mu_term$coef_names, sigma_term$coef_names) &&
+    identical(mu_term$variables, sigma_term$variables)
+  if (!matched_intercept && !matched_one_slope) {
     cli::cli_abort(c(
-      "{marker_title} univariate location-scale blocks are intercept-only in this slice.",
+      "{marker_title} univariate location-scale blocks must use matching intercept-only or one-slope structured terms in this slice.",
       "x" = "{.code mu} requested structured coefficient{?s}: {.val {mu_term$coef_names}}.",
-      "i" = "Use matching intercept terms such as {.code {marker}(1 | {mu_term$group}, ...)} in {.code mu} and {.code sigma} first."
+      "x" = "{.code sigma} requested structured coefficient{?s}: {.val {sigma_term$coef_names}}.",
+      "i" = "Use matching terms such as {.code {marker}(1 | {mu_term$group}, ...)} or {.code {marker}(1 + x | {mu_term$group}, ...)} in both {.code mu} and {.code sigma}."
     ))
   }
   if (!structured_terms_same_source(mu_term, sigma_term, marker)) {
@@ -7760,6 +7803,19 @@ validate_univariate_sigma_structured_match <- function(
 structured_term_is_intercept_only <- function(term) {
   identical(term$coef_names, "(Intercept)") &&
     identical(term$variables, NA_character_)
+}
+
+structured_term_is_intercept_one_slope <- function(term) {
+  is.character(term$coef_names) &&
+    length(term$coef_names) == 2L &&
+    identical(term$coef_names[[1L]], "(Intercept)") &&
+    identical(term$coef_names[[2L]], term$variables[[1L]])
+}
+
+structured_term_has_labelled_intercept_one_slope <- function(term) {
+  !is.null(term) &&
+    !is.null(term$covariance_label) &&
+    structured_term_is_intercept_one_slope(term)
 }
 
 structured_terms_same_source <- function(term1, term2, marker) {
@@ -8035,6 +8091,16 @@ phylo_mu_dpar_codes <- function(phylo_mu) {
   as.integer(codes)
 }
 
+phylo_mu_response_codes <- function(phylo_mu) {
+  if (!isTRUE(phylo_mu$has)) {
+    return(0L)
+  }
+  suffix <- sub("^(mu|sigma)", "", phylo_mu_endpoint_dpars(phylo_mu))
+  response <- suppressWarnings(as.integer(suffix))
+  response[is.na(response)] <- 0L
+  as.integer(response)
+}
+
 phylo_mu_has_cross_dpar <- function(phylo_mu) {
   if (!isTRUE(phylo_mu$has) || structured_mu_q(phylo_mu) != 2L) {
     return(FALSE)
@@ -8047,9 +8113,7 @@ phylo_mu_sd_labels <- function(phylo_mu, model_type) {
     return(paste0(
       phylo_mu_dpars(phylo_mu),
       ":",
-      phylo_mu_endpoint_labels(
-        phylo_mu
-      )
+      structured_mu_coef_labels(phylo_mu)
     ))
   }
   dpars <- phylo_mu_endpoint_dpars(phylo_mu)
@@ -8058,7 +8122,7 @@ phylo_mu_sd_labels <- function(phylo_mu, model_type) {
     return(paste0(
       dpars,
       ":",
-      phylo_mu_endpoint_labels(phylo_mu)
+      structured_mu_coef_labels(phylo_mu)
     ))
   }
   q <- structured_mu_q(phylo_mu)
@@ -8085,10 +8149,7 @@ structured_mu_q <- function(phylo_mu) {
 }
 
 structured_mu_coef_labels <- function(phylo_mu) {
-  coef_names <- phylo_mu$coef_names
-  if (!is.character(coef_names) || length(coef_names) == 0L) {
-    coef_names <- "(Intercept)"
-  }
+  coef_names <- structured_mu_endpoint_coef_names(phylo_mu)
   vapply(
     coef_names,
     function(coef_name) {
@@ -8107,6 +8168,21 @@ structured_mu_coef_labels <- function(phylo_mu) {
     character(1L),
     USE.NAMES = FALSE
   )
+}
+
+structured_mu_endpoint_coef_names <- function(phylo_mu) {
+  q <- structured_mu_q(phylo_mu)
+  coef_names <- phylo_mu$coef_names
+  if (!is.character(coef_names) || length(coef_names) == 0L) {
+    coef_names <- "(Intercept)"
+  }
+  if (length(coef_names) == q) {
+    return(coef_names)
+  }
+  if (length(coef_names) == 1L) {
+    return(rep(coef_names, q))
+  }
+  coef_names[seq_len(q)]
 }
 
 phylo_mu_pair_table <- function(phylo_mu) {
@@ -8131,11 +8207,14 @@ phylo_mu_pair_table <- function(phylo_mu) {
   }
   block <- endpoint_blocks[pair_index[1L, ]]
   group <- phylo_mu$group
+  coef_names <- structured_mu_endpoint_coef_names(phylo_mu)
   data.frame(
     from_index = pair_index[1L, ],
     to_index = pair_index[2L, ],
     from_dpar = dpars[pair_index[1L, ]],
     to_dpar = dpars[pair_index[2L, ]],
+    from_coef = coef_names[pair_index[1L, ]],
+    to_coef = coef_names[pair_index[2L, ]],
     block = block,
     parameter = mapply(
       format_cross_dpar_cor_label,
@@ -8143,6 +8222,8 @@ phylo_mu_pair_table <- function(phylo_mu) {
       dpars[pair_index[2L, ]],
       group = group,
       covariance_label = block,
+      from_coef = coef_names[pair_index[1L, ]],
+      to_coef = coef_names[pair_index[2L, ]],
       USE.NAMES = FALSE
     ),
     stringsAsFactors = FALSE
@@ -8248,20 +8329,44 @@ detect_biv_structured_q4_terms <- function(
   )
   intercept_only <- vapply(
     terms,
-    function(term) {
-      identical(term$coef_names, "(Intercept)") &&
-        identical(term$variables, NA_character_)
-    },
+    structured_term_is_intercept_only,
     logical(1L)
   )
+  intercept_one_slope <- vapply(
+    terms,
+    structured_term_is_intercept_one_slope,
+    logical(1L)
+  )
+  all_intercept <- all(intercept_only)
+  all_one_slope <- all(intercept_one_slope)
 
-  if (!all(intercept_only)) {
-    bad <- names(intercept_only)[!intercept_only]
+  if (!all_intercept && !all_one_slope) {
+    bad <- names(intercept_only)[!intercept_only & !intercept_one_slope]
     cli::cli_abort(c(
-      "{marker_title} q=4 location-scale blocks are intercept-only in this phase.",
-      "x" = "{.code {bad}} include{?s} structured slope terms.",
-      "i" = "Use matching {.code {marker}(1 | p | group, ...)} terms in all four endpoints first."
+      "{marker_title} q=4 location-scale blocks need matching intercept-only or intercept-plus-one-slope terms in this slice.",
+      "x" = "{.code {bad}} requested unsupported structured coefficient{?s}.",
+      "i" = "Use matching {.code {marker}(1 | p | group, ...)} terms in all four endpoints, or matching full-block {.code {marker}(1 + x | p | group, ...)} terms in all four endpoints."
     ))
+  }
+  if (all_one_slope) {
+    coef_reference <- terms[[1L]]$coef_names
+    variables_reference <- terms[[1L]]$variables
+    same_coef <- vapply(
+      terms,
+      function(term) {
+        identical(term$coef_names, coef_reference) &&
+          identical(term$variables, variables_reference)
+      },
+      logical(1L)
+    )
+    if (!all(same_coef)) {
+      bad <- names(same_coef)[!same_coef]
+      cli::cli_abort(c(
+        "{marker_title} q=4 location-scale slope blocks require the same structured coefficient in all four endpoints.",
+        "x" = "{.code {bad}} do{?es} not match {.val {coef_reference}}.",
+        "i" = "Use matching terms such as {.code {marker}(1 + x | p | group, ...)} in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}."
+      ))
+    }
   }
   if (!all(explicit_labels)) {
     unlabeled <- names(explicit_labels)[!explicit_labels]
@@ -8278,6 +8383,14 @@ detect_biv_structured_q4_terms <- function(
   block_diagonal_q4 <- identical(labels[["mu1"]], labels[["mu2"]]) &&
     identical(labels[["sigma1"]], labels[["sigma2"]]) &&
     !identical(labels[["mu1"]], labels[["sigma1"]])
+  if (all_one_slope && !full_q4) {
+    cli::cli_abort(c(
+      "{marker_title} all-four intercept-plus-slope structured blocks require one shared covariance label in this slice.",
+      "x" = "Blocks: {.val {labels}}.",
+      "i" = "Use one full block, such as {.code {marker}(1 + x | p | group, ...)}, in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}.",
+      "i" = "The block-diagonal intercept-plus-slope layout remains a separate planned q-series cell."
+    ))
+  }
 
   if (!same_source_and_group || !(full_q4 || block_diagonal_q4)) {
     cli::cli_abort(c(
@@ -8291,15 +8404,32 @@ detect_biv_structured_q4_terms <- function(
   }
 
   term <- terms[[1L]]
-  term$dpars <- names(terms)
-  term$q <- length(terms)
+  if (all_one_slope) {
+    endpoint_names <- names(terms)
+    coef_names <- terms[[1L]]$coef_names
+    term$dpars <- rep(endpoint_names, each = length(coef_names))
+    term$coef_names <- rep(coef_names, times = length(endpoint_names))
+    term$variables <- ifelse(
+      term$coef_names == "(Intercept)",
+      NA_character_,
+      term$coef_names
+    )
+  } else {
+    term$dpars <- names(terms)
+  }
+  term$q <- length(term$dpars)
   term$covariance_mode <- if (full_q4) {
     "unstructured"
   } else {
     "block_diagonal"
   }
   term$block_ids <- if (full_q4) {
-    rep(1L, length(terms))
+    rep(1L, term$q)
+  } else if (all_one_slope) {
+    rep(
+      c(mu1 = 1L, mu2 = 1L, sigma1 = 2L, sigma2 = 2L),
+      each = length(terms[[1L]]$coef_names)
+    )
   } else {
     c(mu1 = 1L, mu2 = 1L, sigma1 = 2L, sigma2 = 2L)
   }
@@ -8308,11 +8438,19 @@ detect_biv_structured_q4_terms <- function(
   } else {
     c(labels[["mu1"]], labels[["sigma1"]])
   }
-  term$endpoint_blocks <- labels
-  term$endpoint_covariance_labels <- labels
+  term$endpoint_blocks <- if (all_one_slope) {
+    rep(labels, each = length(terms[[1L]]$coef_names))
+  } else {
+    labels
+  }
+  term$endpoint_covariance_labels <- term$endpoint_blocks
   term$label <- format_structured_label(
     marker,
-    "1",
+    if (all_one_slope) {
+      paste0("1 + ", terms[[1L]]$variables[[1L]])
+    } else {
+      "1"
+    },
     groups[[1L]],
     labels[[1L]]
   )
@@ -8329,6 +8467,124 @@ structured_marker_title <- function(marker) {
     spatial = "Spatial",
     marker
   )
+}
+
+structured_biv_q2_coef_name <- function(term, marker, dpar) {
+  coef_names <- term$coef_names
+  if (length(coef_names) == 1L) {
+    return(coef_names[[1L]])
+  }
+  marker_example <- switch(
+    marker,
+    animal = paste0(marker, "(0 + x | p | id, A = A)"),
+    relmat = paste0(marker, "(0 + x | p | id, Q = Q)"),
+    spatial = paste0(marker, "(0 + x | p | site, coords = coords)"),
+    paste0(marker, "(0 + x | p | species, tree = tree)")
+  )
+  cli::cli_abort(c(
+    "Bivariate {.fn {marker}} q=2 location covariance supports exactly one structured coefficient per endpoint.",
+    "x" = "{.code {dpar}} requested structured coefficients {.val {coef_names}}.",
+    "i" = "Use intercept-only syntax such as {.code {marker}(1 | p | group, ...)} or slope-only syntax such as {.code {marker_example}}.",
+    "i" = "Labelled intercept-plus-slope structured covariance remains a later q4/q8 slope-block gate."
+  ))
+}
+
+validate_matching_structured_biv_location_coef <- function(
+  term1,
+  term2,
+  marker
+) {
+  coef1 <- term1$coef_names
+  coef2 <- term2$coef_names
+  if (length(coef1) == 1L && length(coef2) == 1L) {
+    coef1 <- structured_biv_q2_coef_name(term1, marker, "mu1")
+    coef2 <- structured_biv_q2_coef_name(term2, marker, "mu2")
+    if (!identical(coef1, coef2)) {
+      cli::cli_abort(c(
+        "Bivariate {.fn {marker}} q=2 location covariance requires the same structured coefficient in {.code mu1} and {.code mu2}.",
+        "x" = "{.code mu1} uses {.val {coef1}}, but {.code mu2} uses {.val {coef2}}.",
+        "i" = "Use matching slope-only terms such as {.code {marker}(0 + x | p | group, ...)} in both formulas."
+      ))
+    }
+    return(coef1)
+  }
+
+  marker_title <- structured_marker_title(marker)
+  both_one_slope <- structured_term_is_intercept_one_slope(term1) &&
+    structured_term_is_intercept_one_slope(term2)
+  if (!both_one_slope) {
+    cli::cli_abort(c(
+      "Bivariate {.fn {marker}} location covariance supports intercept-only, slope-only, or labelled intercept-plus-one-slope structured coefficients in this slice.",
+      "x" = "{.code mu1} requested structured coefficients {.val {coef1}}.",
+      "x" = "{.code mu2} requested structured coefficients {.val {coef2}}.",
+      "i" = "Use intercept-only syntax such as {.code {marker}(1 | p | group, ...)}, slope-only syntax such as {.code {marker}(0 + x | p | group, ...)}, or matching labelled one-slope syntax such as {.code {marker}(1 + x | p | group, ...)}."
+    ))
+  }
+  if (!identical(coef1, coef2)) {
+    cli::cli_abort(c(
+      "{marker_title} bivariate location intercept-plus-slope blocks require the same structured coefficients in {.code mu1} and {.code mu2}.",
+      "x" = "{.code mu1} uses {.val {coef1}}, but {.code mu2} uses {.val {coef2}}.",
+      "i" = "Use matching terms such as {.code {marker}(1 + x | p | group, ...)} in both formulas."
+    ))
+  }
+  if (!identical(term1$variables, term2$variables)) {
+    cli::cli_abort(c(
+      "{marker_title} bivariate location intercept-plus-slope blocks require the same slope variable in {.code mu1} and {.code mu2}.",
+      "x" = "{.code mu1} uses {.val {term1$variables}}, but {.code mu2} uses {.val {term2$variables}}.",
+      "i" = "Use matching one-slope terms in both location formulas."
+    ))
+  }
+  if (is.null(term1$covariance_label) || is.null(term2$covariance_label)) {
+    cli::cli_abort(c(
+      "{marker_title} bivariate location intercept-plus-slope blocks require an explicit covariance-block label.",
+      "i" = "Use matching labelled terms such as {.code {marker}(1 + x | p | group, ...)} in {.code mu1} and {.code mu2}."
+    ))
+  }
+  coef1
+}
+
+finalize_biv_structured_mu_term <- function(term, marker) {
+  coef_names <- term$coef_names
+  block_label <- if (is.null(term$covariance_label)) {
+    marker
+  } else {
+    term$covariance_label
+  }
+  if (length(coef_names) == 1L) {
+    term$dpars <- c("mu1", "mu2")
+    term$q <- 2L
+    term$covariance_mode <- "scalar"
+    term$block_ids <- c(1L, 1L)
+    term$block_labels <- block_label
+    term$endpoint_blocks <- rep(block_label, 2L)
+    term$endpoint_covariance_labels <- if (is.null(term$covariance_label)) {
+      rep(NA_character_, 2L)
+    } else {
+      rep(term$covariance_label, 2L)
+    }
+    return(term)
+  }
+
+  term$dpars <- rep(c("mu1", "mu2"), each = length(coef_names))
+  term$coef_names <- rep(coef_names, times = 2L)
+  term$variables <- ifelse(
+    term$coef_names == "(Intercept)",
+    NA_character_,
+    term$coef_names
+  )
+  term$q <- length(term$dpars)
+  term$covariance_mode <- "unstructured"
+  term$block_ids <- rep(1L, term$q)
+  term$block_labels <- block_label
+  term$endpoint_blocks <- rep(block_label, term$q)
+  term$endpoint_covariance_labels <- rep(term$covariance_label, term$q)
+  term$label <- format_structured_label(
+    marker,
+    paste0("1 + ", coef_names[[2L]]),
+    term$group,
+    term$covariance_label
+  )
+  term
 }
 
 guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
@@ -8353,6 +8609,7 @@ guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
 
   term1 <- mu1_phylo$term
   term2 <- mu2_phylo$term
+  validate_matching_structured_biv_location_coef(term1, term2, "phylo")
   if (
     !identical(term1$group, term2$group) ||
       !identical(term1$tree, term2$tree)
@@ -8375,8 +8632,7 @@ guard_biv_phylo_mu_terms <- function(mu1_entry, mu2_entry) {
     ))
   }
 
-  term1$dpars <- c("mu1", "mu2")
-  term1$q <- 2L
+  term1 <- finalize_biv_structured_mu_term(term1, "phylo")
   list(mu1 = mu1_phylo, mu2 = mu2_phylo, term = term1)
 }
 
@@ -8402,17 +8658,7 @@ guard_biv_spatial_mu_terms <- function(mu1_entry, mu2_entry) {
 
   term1 <- mu1_spatial$term
   term2 <- mu2_spatial$term
-  if (
-    !identical(term1$coef_names, "(Intercept)") ||
-      !identical(term2$coef_names, "(Intercept)")
-  ) {
-    cli::cli_abort(c(
-      "Bivariate spatial location covariance currently supports intercept-only structured effects.",
-      "x" = "{.code mu1} requested structured coefficient{?s}: {.val {term1$coef_names}}.",
-      "x" = "{.code mu2} requested structured coefficient{?s}: {.val {term2$coef_names}}.",
-      "i" = "Use matching {.code spatial(1 | site, coords = coords)} terms for the first q=2 spatial path; spatial slopes remain univariate-only until separate recovery tests are added."
-    ))
-  }
+  validate_matching_structured_biv_location_coef(term1, term2, "spatial")
   if (
     !identical(term1$group, term2$group) ||
       !identical(term1$object, term2$object) ||
@@ -8436,21 +8682,7 @@ guard_biv_spatial_mu_terms <- function(mu1_entry, mu2_entry) {
     ))
   }
 
-  term1$dpars <- c("mu1", "mu2")
-  term1$q <- 2L
-  term1$covariance_mode <- "scalar"
-  term1$block_ids <- c(1L, 1L)
-  term1$block_labels <- if (is.null(term1$covariance_label)) {
-    "spatial"
-  } else {
-    term1$covariance_label
-  }
-  term1$endpoint_blocks <- rep(term1$block_labels[[1L]], 2L)
-  term1$endpoint_covariance_labels <- if (is.null(term1$covariance_label)) {
-    rep(NA_character_, 2L)
-  } else {
-    rep(term1$covariance_label, 2L)
-  }
+  term1 <- finalize_biv_structured_mu_term(term1, "spatial")
   list(mu1 = mu1_spatial, mu2 = mu2_spatial, term = term1)
 }
 
@@ -8481,6 +8713,7 @@ guard_biv_known_mu_terms <- function(mu1_entry, mu2_entry, marker) {
 
   term1 <- mu1_known$term
   term2 <- mu2_known$term
+  validate_matching_structured_biv_location_coef(term1, term2, marker)
   if (
     !identical(term1$group, term2$group) ||
       !identical(term1$object, term2$object) ||
@@ -8504,21 +8737,7 @@ guard_biv_known_mu_terms <- function(mu1_entry, mu2_entry, marker) {
     ))
   }
 
-  term1$dpars <- c("mu1", "mu2")
-  term1$q <- 2L
-  term1$covariance_mode <- "scalar"
-  term1$block_ids <- c(1L, 1L)
-  term1$block_labels <- if (is.null(term1$covariance_label)) {
-    marker
-  } else {
-    term1$covariance_label
-  }
-  term1$endpoint_blocks <- rep(term1$block_labels[[1L]], 2L)
-  term1$endpoint_covariance_labels <- if (is.null(term1$covariance_label)) {
-    rep(NA_character_, 2L)
-  } else {
-    rep(term1$covariance_label, 2L)
-  }
+  term1 <- finalize_biv_structured_mu_term(term1, marker)
   list(mu1 = mu1_known, mu2 = mu2_known, term = term1)
 }
 
@@ -9102,13 +9321,13 @@ structured_mu_design_matrix <- function(term, data, marker) {
         "x" = "Remove or recode missing, infinite, or non-finite slope values before fitting the structured slope."
       ))
     }
-    column <- match(variable, colnames(value), nomatch = 0L)
-    if (column == 0L) {
+    columns <- which(colnames(value) == variable)
+    if (length(columns) == 0L) {
       cli::cli_abort(
         "Internal error: structured slope variable {.field {variable}} was not in the coefficient design."
       )
     }
-    value[, column] <- data[[variable]]
+    value[, columns] <- data[[variable]]
   }
   value
 }
@@ -13679,7 +13898,21 @@ biv_gaussian_phylo_start <- function(phylo_mu, y_scale) {
   endpoint_scale <- if (q <= 2L) {
     y_scale[seq_len(q)]
   } else {
-    c(y_scale, rep(0.2, q - 2L))
+    vapply(
+      phylo_mu_endpoint_dpars(phylo_mu),
+      function(dpar) {
+        family <- sub("[0-9]+$", "", dpar)
+        if (identical(family, "sigma")) {
+          return(0.2)
+        }
+        response <- suppressWarnings(as.integer(sub("^mu", "", dpar)))
+        if (is.na(response) || response < 1L || response > length(y_scale)) {
+          response <- 1L
+        }
+        y_scale[[response]]
+      },
+      numeric(1L)
+    )
   }
   list(
     u_phylo = rep(0, q * phylo_mu$n_re),
@@ -14174,6 +14407,11 @@ structured_mu_tmb_data <- function(spec) {
   } else {
     0L
   }
+  phylo_mu_response <- if (q > 0L) {
+    phylo_mu_response_codes(phylo_mu)
+  } else {
+    0L
+  }
   n_phylo_mu_blocks <- if (q > 0L) {
     phylo_mu_n_blocks(phylo_mu)
   } else {
@@ -14189,6 +14427,7 @@ structured_mu_tmb_data <- function(spec) {
       phylo_mu_value = phylo_mu$value,
       phylo_mu_block_id = phylo_mu_block_id,
       phylo_mu_dpar = phylo_mu_dpar,
+      phylo_mu_response = phylo_mu_response,
       phylo_mu_n_blocks = n_phylo_mu_blocks
     ))
   }
@@ -14196,6 +14435,7 @@ structured_mu_tmb_data <- function(spec) {
     phylo_mu_value = matrix(0, nrow = 1L, ncol = 1L),
     phylo_mu_block_id = 0L,
     phylo_mu_dpar = 0L,
+    phylo_mu_response = 0L,
     phylo_mu_n_blocks = 0L
   )
 }
@@ -14207,7 +14447,11 @@ add_covariance_probe_parameter <- function(spec) {
   has_qgt2_phylo_cov <- is.list(spec$structured) &&
     is.list(spec$structured$phylo_mu) &&
     isTRUE(spec$structured$phylo_mu$has) &&
-    isTRUE(spec$structured$phylo_mu$q > 2L)
+    isTRUE(spec$structured$phylo_mu$q > 2L) &&
+    !identical(
+      phylo_mu_covariance_mode(spec$structured$phylo_mu),
+      "scalar"
+    )
   has_cor_mu_model <- is.list(spec$random) &&
     is.list(spec$random$mu) &&
     is.list(spec$random$mu$cor_model) &&

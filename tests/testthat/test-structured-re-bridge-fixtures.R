@@ -94,7 +94,7 @@ test_that("one-slope structured mu fixtures record provider-specific agreement",
   source_structured_re_bridge_fixtures()
 
   contract <- phase18_structured_re_mu_slope_parity_fixture_contract()
-  implemented <- c("phylo", "spatial", "animal")
+  implemented <- c("phylo", "spatial", "animal", "relmat")
 
   for (structured_type in implemented) {
     native <- phase18_structured_re_reconstruct_fixture(
@@ -141,36 +141,536 @@ test_that("one-slope structured mu fixtures record provider-specific agreement",
     drop = FALSE
   ]
   relmat <- contract[contract$structured_type == "relmat", , drop = FALSE]
-  expect_equal(implemented_rows$bridge_status, rep("fixture_parity", 3L))
+  expect_equal(implemented_rows$bridge_status, rep("fixture_parity", 4L))
   expect_equal(
     implemented_rows$parity_status,
-    rep("covered_same_target_fixture", 3L)
+    rep("covered_same_target_fixture", 4L)
   )
   expect_equal(
     implemented_rows$r_via_julia_status,
-    rep("fixture_available", 3L)
+    rep("fixture_available", 4L)
   )
   expect_match(
     implemented_rows$claim_boundary,
     "broad bridge support",
     fixed = TRUE
   )
-  expect_equal(relmat$bridge_status, "planned")
-  expect_equal(relmat$parity_status, "planned")
-  expect_equal(relmat$coefficient_order, "planned")
-  expect_match(relmat$next_gate, "K-versus-Q", fixed = TRUE)
+  expect_equal(relmat$matrix_slot, "K")
+  expect_match(relmat$claim_boundary, "K-matrix", fixed = TRUE)
+  expect_match(relmat$claim_boundary, "K/Q same-target parity", fixed = TRUE)
+  expect_match(relmat$next_gate, "K/Q same-target parity", fixed = TRUE)
   expect_match(
     contract$claim_boundary,
     "coverage",
     fixed = TRUE
   )
+  relmat_payload <- phase18_structured_re_mu_slope_payload_fixture(
+    structured_type = "relmat"
+  )
+  expect_match(relmat_payload$matrix$matrix_id, "relmat", fixed = TRUE)
   expect_error(
-    phase18_structured_re_mu_slope_payload_fixture(structured_type = "relmat"),
-    "K-versus-Q",
+    phase18_structured_re_mu_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
+test_that("one-slope structured sigma fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_sigma_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal", "relmat")
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q1")
+    expect_equal(native$summary$endpoint, "sigma")
+    expect_equal(
+      native$coef$term,
+      c(
+        "sigma:(Intercept)",
+        "sigma:x",
+        "sd_sigma:structured(Intercept)",
+        "sd_sigma:structured(x)"
+      )
+    )
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  expect_setequal(contract$structured_type, implemented)
+  expect_equal(contract$endpoint, rep("sigma", 4L))
+  expect_equal(contract$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(
+    contract$parity_status,
+    rep("covered_same_target_fixture", 4L)
+  )
+  expect_equal(
+    contract$coefficient_order,
+    rep(
+      "sigma:(Intercept);sigma:x;sd_sigma:structured(Intercept);sd_sigma:structured(x)",
+      4L
+    )
+  )
+  expect_equal(contract$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_match(contract$claim_boundary, "broad bridge support", fixed = TRUE)
+  expect_match(contract$claim_boundary, "matched mu+sigma", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "K-matrix",
     fixed = TRUE
   )
   expect_error(
-    phase18_structured_re_mu_slope_payload_fixture(estimator = "REML"),
+    phase18_structured_re_sigma_slope_payload_fixture(
+      structured_type = "unknown"
+    ),
+    "unsupported value",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_sigma_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
+test_that("matched mu+sigma one-slope fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_mu_sigma_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal", "relmat")
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_mu_sigma_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q1_plus_q1")
+    expect_equal(native$summary$endpoint, "mu+sigma")
+    expect_equal(
+      native$coef$term,
+      c(
+        "mu:(Intercept)",
+        "mu:x",
+        "sigma:(Intercept)",
+        "sigma:x",
+        "sd_mu:structured(Intercept)",
+        "sd_mu:structured(x)",
+        "sd_sigma:structured(Intercept)",
+        "sd_sigma:structured(x)"
+      )
+    )
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  expect_setequal(contract$structured_type, implemented)
+  expect_equal(contract$endpoint, rep("mu+sigma", 4L))
+  expect_equal(contract$dimension, rep("q1_plus_q1", 4L))
+  expect_equal(contract$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(
+    contract$parity_status,
+    rep("covered_same_target_fixture", 4L)
+  )
+  expect_equal(
+    contract$coefficient_order,
+    rep(
+      paste(
+        "mu:(Intercept);mu:x;sigma:(Intercept);sigma:x;",
+        "sd_mu:structured(Intercept);sd_mu:structured(x);",
+        "sd_sigma:structured(Intercept);sd_sigma:structured(x)",
+        sep = ""
+      ),
+      4L
+    )
+  )
+  expect_equal(contract$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_match(contract$claim_boundary, "broad bridge support", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(contract$claim_boundary, "REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "AI-REML", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "K-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "Q bridge",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_mu_sigma_slope_payload_fixture(
+      structured_type = "unknown"
+    ),
+    "unsupported value",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_mu_sigma_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
+test_that("q2 slope-only fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_q2_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal", "relmat")
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q2_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q2_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q2_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q2")
+    expect_equal(native$summary$endpoint, "mu1+mu2")
+    expect_equal(
+      native$coef$term,
+      c(
+        "mu1:x",
+        "mu2:x",
+        "sd_mu1:structured(x)",
+        "sd_mu2:structured(x)",
+        "cor_mu1_mu2:structured(x)"
+      )
+    )
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  expect_setequal(contract$structured_type, implemented)
+  expect_equal(contract$endpoint, rep("mu1+mu2", 4L))
+  expect_equal(contract$dimension, rep("q2", 4L))
+  expect_equal(contract$slope_class, rep("labelled_slope_covariance", 4L))
+  expect_equal(contract$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(
+    contract$parity_status,
+    rep("covered_same_target_fixture", 4L)
+  )
+  expect_equal(
+    contract$coefficient_order,
+    rep(
+      paste(
+        "mu1:x;mu2:x;",
+        "sd_mu1:structured(x);sd_mu2:structured(x);",
+        "cor_mu1_mu2:structured(x)",
+        sep = ""
+      ),
+      4L
+    )
+  )
+  expect_equal(contract$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_match(contract$claim_boundary, "slope-only q2", fixed = TRUE)
+  expect_match(contract$claim_boundary, "broad bridge support", fixed = TRUE)
+  expect_match(contract$claim_boundary, "q4/q8", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(contract$claim_boundary, "REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "AI-REML", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "K-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "Q bridge",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_q2_slope_payload_fixture(
+      structured_type = "unknown"
+    ),
+    "unsupported value",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_q2_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
+test_that("q4 location one-slope fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_q4_location_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal", "relmat")
+  endpoint_members <- paste0(
+    rep(c("mu1", "mu2"), each = 2L),
+    ":",
+    rep(c("(Intercept)", "x"), times = 2L)
+  )
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_location_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_location_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_location_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q4")
+    expect_equal(native$summary$endpoint, "mu1+mu2")
+    expect_equal(
+      native$coef$term[seq_along(endpoint_members)],
+      endpoint_members
+    )
+    expect_equal(nrow(native$coef), 14L)
+    expect_equal(length(grep("^sd_", native$coef$term)), 4L)
+    expect_equal(length(grep("^cor_", native$coef$term)), 6L)
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  expect_setequal(contract$structured_type, implemented)
+  expect_equal(contract$endpoint, rep("mu1+mu2", 4L))
+  expect_equal(contract$dimension, rep("q4", 4L))
+  expect_equal(contract$slope_class, rep("labelled_slope_covariance", 4L))
+  expect_equal(contract$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(
+    contract$parity_status,
+    rep("covered_same_target_fixture", 4L)
+  )
+  expect_equal(contract$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_match(contract$claim_boundary, "q4 location one-slope", fixed = TRUE)
+  expect_match(contract$claim_boundary, "four-member q4 location", fixed = TRUE)
+  expect_match(contract$claim_boundary, "broad bridge support", fixed = TRUE)
+  expect_match(contract$claim_boundary, "partial location-scale", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(contract$claim_boundary, "q4 REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "AI-REML", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A-matrix",
+    fixed = TRUE
+  )
+  relmat_boundary <- contract$claim_boundary[
+    contract$structured_type == "relmat"
+  ]
+  expect_match(relmat_boundary, "K-matrix", fixed = TRUE)
+  expect_match(relmat_boundary, "Q precision", fixed = TRUE)
+  expect_false(grepl("K/Q same-target parity", relmat_boundary, fixed = TRUE))
+  expect_error(
+    phase18_structured_re_q4_location_slope_payload_fixture(
+      structured_type = "unknown"
+    ),
+    "unsupported value",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_q4_location_slope_payload_fixture(estimator = "REML"),
+    "unsupported value",
+    fixed = TRUE
+  )
+})
+
+test_that("q4 all-four one-slope fixtures record provider-specific agreement", {
+  source_structured_re_bridge_fixtures()
+
+  contract <- phase18_structured_re_q4_slope_parity_fixture_contract()
+  implemented <- c("phylo", "spatial", "animal", "relmat")
+  endpoint_members <- paste0(
+    rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L),
+    ":",
+    rep(c("(Intercept)", "x"), times = 4L)
+  )
+
+  for (structured_type in implemented) {
+    native <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "native_tmb"
+      )
+    )
+    direct <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "direct_drmjl"
+      )
+    )
+    bridge <- phase18_structured_re_reconstruct_fixture(
+      phase18_structured_re_q4_slope_payload_fixture(
+        structured_type = structured_type,
+        route = "r_via_julia"
+      )
+    )
+    status <- phase18_structured_re_parity_status(native, direct, bridge)
+
+    expect_equal(native$summary$dimension, "q8")
+    expect_equal(native$summary$endpoint, "mu1+mu2+sigma1+sigma2")
+    expect_equal(
+      native$coef$term[seq_along(endpoint_members)],
+      endpoint_members
+    )
+    expect_equal(nrow(native$coef), 44L)
+    expect_equal(length(grep("^sd_", native$coef$term)), 8L)
+    expect_equal(length(grep("^cor_", native$coef$term)), 28L)
+    expect_equal(status$r_via_julia_status, "available")
+    expect_equal(status$parity_status, "passed")
+    expect_equal(status$max_abs_coef_delta, 0)
+    expect_equal(status$abs_loglik_delta, 0)
+  }
+
+  expect_equal(nrow(contract), 4L)
+  expect_setequal(contract$structured_type, implemented)
+  expect_equal(contract$endpoint, rep("mu1+mu2+sigma1+sigma2", 4L))
+  expect_equal(contract$dimension, rep("q8", 4L))
+  expect_equal(contract$slope_class, rep("labelled_slope_covariance", 4L))
+  expect_equal(contract$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(
+    contract$parity_status,
+    rep("covered_same_target_fixture", 4L)
+  )
+  expect_equal(contract$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_match(contract$claim_boundary, "q4 all-four one-slope", fixed = TRUE)
+  expect_match(contract$claim_boundary, "eight-member q8", fixed = TRUE)
+  expect_match(contract$claim_boundary, "broad bridge support", fixed = TRUE)
+  expect_match(contract$claim_boundary, "coverage", fixed = TRUE)
+  expect_match(contract$claim_boundary, "q4 REML", fixed = TRUE)
+  expect_match(contract$claim_boundary, "AI-REML", fixed = TRUE)
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "K-matrix",
+    fixed = TRUE
+  )
+  expect_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "Q bridge",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_q4_slope_payload_fixture(
+      structured_type = "unknown"
+    ),
+    "unsupported value",
+    fixed = TRUE
+  )
+  expect_error(
+    phase18_structured_re_q4_slope_payload_fixture(estimator = "REML"),
     "unsupported value",
     fixed = TRUE
   )

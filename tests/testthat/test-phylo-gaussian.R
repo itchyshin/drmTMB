@@ -132,6 +132,44 @@ new_sigma_only_phylo_gaussian_data <- function(
   )
 }
 
+new_sigma_only_phylo_gaussian_slope_data <- function(
+  seed = 20260634,
+  n_tip = 16L,
+  n_each = 12L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_phylo = c(`(Intercept)` = 0.30, x = 0.18)
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_intercept <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_phylo[["(Intercept)"]])
+  )
+  phylo_slope <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_tip, sd = sd_phylo[["x"]])
+  )
+  names(phylo_intercept) <- tree$tip.label
+  names(phylo_slope) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_tip)
+  log_sigma <- beta_sigma[[1L]] +
+    phylo_intercept[species] +
+    phylo_slope[species] * x
+  y <- beta_mu[[1L]] +
+    beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_phylo = sd_phylo
+  )
+}
+
 new_phylo_gaussian_slope_data <- function(
   seed = 20260573,
   n_tip = 16L,
@@ -755,6 +793,106 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631))
 })
 
+test_that("bivariate Gaussian mu supports phylogenetic q2 slope-only covariance", {
+  sim <- new_biv_phylo_gaussian_data(n_tip = 8L, n_each = 4L)
+  dat <- sim$data
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(0 + x | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(0 + x | p | species, tree = tree),
+      sigma1 = ~1,
+      sigma2 = ~1,
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 300, iter.max = 300)
+    )
+  )
+
+  fixed_mu1 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu1"))
+  fixed_mu2 <- as.vector(stats::model.matrix(~x, dat) %*% coef(fit, "mu2"))
+  structured <- fit$model$structured$phylo_mu
+  pair <- corpairs(fit, level = "phylogenetic")
+  covariance <- summary(fit)$covariance
+  targets <- profile_targets(fit)
+  profile_names <- c(
+    "sd:mu:mu1:phylo(0 + x | p | species)",
+    "sd:mu:mu2:phylo(0 + x | p | species)",
+    "cor:phylo:cor(mu1:x,mu2:x | p | species)"
+  )
+  profile <- targets[match(profile_names, targets$parm), , drop = FALSE]
+  structured_row <- structured_effects(fit)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(structured$q, 2L)
+  expect_equal(structured$coef_names, c("x", "x"))
+  expect_equal(structured$dpars, c("mu1", "mu2"))
+  expect_named(
+    fit$sdpars$mu,
+    c(
+      "mu1:phylo(0 + x | p | species)",
+      "mu2:phylo(0 + x | p | species)"
+    )
+  )
+  expect_named(fit$corpars$phylo, "cor(mu1:x,mu2:x | p | species)")
+  expect_equal(nrow(pair), 1L)
+  expect_equal(pair$from_coef, "x")
+  expect_equal(pair$to_coef, "x")
+  expect_equal(pair$class, "slope-slope")
+  expect_equal(pair$parameter, names(fit$corpars$phylo))
+  expect_equal(nrow(covariance), 1L)
+  expect_equal(covariance$from_coef, "x")
+  expect_equal(covariance$to_coef, "x")
+  expect_equal(covariance$class, "slope-slope")
+  expect_equal(covariance$parameter, names(fit$corpars$phylo))
+  expect_equal(profile$parm, profile_names)
+  expect_equal(
+    profile$tmb_parameter,
+    c("log_sd_phylo", "log_sd_phylo", "eta_cor_phylo")
+  )
+  expect_equal(profile$index, c(1L, 2L, 1L))
+  expect_equal(profile$target_type, rep("direct", 3L))
+  expect_equal(profile$profile_ready, rep(TRUE, 3L))
+  expect_equal(structured_row$endpoint_set, "mu1+mu2")
+  expect_equal(structured_row$coefficient_set, "x+x")
+  expect_equal(structured_row$endpoint_member_set, "mu1:x+mu2:x")
+  expect_equal(structured_row$endpoint_member_count, 2L)
+  expect_equal(structured_row$covariance_layout, "scalar")
+  manual_mu1 <- fit$random_effects$phylo_mu$values[
+    structured$observation_node_index
+  ] *
+    structured$value[, 1L]
+  manual_mu2 <- fit$random_effects$phylo_mu$values[
+    structured$observation_node_index + structured$n_re
+  ] *
+    structured$value[, 2L]
+  expect_equal(
+    drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    unname(manual_mu1),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    unname(manual_mu2),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "mu1"),
+    fixed_mu1 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    predict(fit, dpar = "mu2"),
+    fixed_mu2 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    tolerance = 1e-10
+  )
+})
+
 test_that("namespaced phylo markers are accepted in bivariate formulas", {
   tree <- balanced_ultrametric_tree(n_tip = 4L)
   dat <- data.frame(
@@ -1275,6 +1413,211 @@ test_that("bivariate phylogenetic q4 block is fitted with clear boundaries", {
   )
 })
 
+test_that("bivariate phylogenetic q4 all-four one-slope block exposes q8 members", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  dat <- data.frame(
+    y1 = seq(-0.2, 0.5, length.out = 8L),
+    y2 = seq(0.3, -0.4, length.out = 8L),
+    x = rep(c(-1, 1), 4L),
+    z = rep(c(0, 1), each = 4L),
+    species = rep(tree$tip.label, each = 2L)
+  )
+
+  expect_error(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 + x | pl | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 + x | pl | species, tree = tree),
+        sigma1 = ~ z + phylo(1 + x | ps | species, tree = tree),
+        sigma2 = ~ z + phylo(1 + x | ps | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat
+    ),
+    "require one shared covariance label"
+  )
+
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 + x | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 + x | p | species, tree = tree),
+        sigma1 = ~ z + phylo(1 + x | p | species, tree = tree),
+        sigma2 = ~ z + phylo(1 + x | p | species, tree = tree),
+        rho12 = ~1
+      ),
+      family = c(gaussian(), gaussian()),
+      data = dat,
+      control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 120, iter.max = 120)
+      )
+    )
+  )
+
+  q8_dpars <- rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L)
+  q8_coef <- rep(c("(Intercept)", "x"), times = 4L)
+  q8_members <- paste0(q8_dpars, ":", q8_coef)
+  sd_names <- paste0(
+    q8_dpars,
+    ":phylo(",
+    ifelse(q8_coef == "(Intercept)", "1", "0 + x"),
+    " | p | species)"
+  )
+
+  structured <- fit$model$structured$phylo_mu
+  structured_row <- structured_effects(fit)
+  q8_pairs <- corpairs(fit, level = "phylogenetic")
+  q8_pairs_ci <- corpairs(fit, level = "phylogenetic", conf.int = TRUE)
+  q8_targets <- profile_targets(fit)
+  q8_cor_targets <- q8_targets[
+    startsWith(q8_targets$parm, "cor:phylo:"),
+    ,
+    drop = FALSE
+  ]
+  q8_sd_targets <- q8_targets[
+    match(paste0("sd:mu:", sd_names), q8_targets$parm),
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit$opt$objective))
+  expect_equal(structured$q, 8L)
+  expect_equal(structured$dpars, q8_dpars)
+  expect_equal(structured$coef_names, q8_coef)
+  expect_equal(structured$covariance_mode, "unstructured")
+  expect_equal(structured$block_ids, rep(1L, 8L))
+  expect_equal(
+    structured_row$endpoint_member_set,
+    paste(q8_members, collapse = "+")
+  )
+  expect_equal(structured_row$endpoint_member_count, 8L)
+  expect_named(fit$sdpars$mu, sd_names)
+  expect_equal(sum(names(fit$opt$par) == "theta_phylo"), 28L)
+  expect_equal(length(fit$corpars$phylo), 28L)
+  expect_equal(nrow(q8_pairs), 28L)
+  expect_equal(q8_pairs$parameter, names(fit$corpars$phylo))
+  expect_equal(nrow(q8_pairs_ci), 28L)
+  expect_equal(nrow(q8_cor_targets), 28L)
+  expect_equal(q8_cor_targets$tmb_parameter, rep("theta_phylo", 28L))
+  expect_equal(q8_cor_targets$target_type, rep("derived", 28L))
+  expect_false(any(q8_cor_targets$profile_ready))
+  expect_equal(
+    q8_cor_targets$profile_note,
+    rep("derived_unstructured_correlation", 28L)
+  )
+  expect_equal(q8_pairs_ci$profile_target, q8_cor_targets$parm)
+  expect_equal(
+    q8_pairs_ci$conf.status,
+    rep("derived_interval_unavailable", 28L)
+  )
+  expect_equal(q8_pairs_ci$interval_source, rep("not_available", 28L))
+  expect_true(all(is.na(q8_pairs_ci$conf.low)))
+
+  expect_equal(q8_sd_targets$parm, paste0("sd:mu:", sd_names))
+  expect_equal(q8_sd_targets$tmb_parameter, rep("log_sd_phylo", 8L))
+  expect_equal(q8_sd_targets$index, seq_len(8L))
+  expect_equal(q8_sd_targets$target_type, rep("direct", 8L))
+
+  fixed_mu1 <- as.vector(fit$model$X$mu1 %*% coef(fit, "mu1"))
+  fixed_sigma2 <- as.vector(fit$model$X$sigma2 %*% coef(fit, "sigma2"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu1", type = "link")),
+    fixed_mu1 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    unname(predict(fit, dpar = "sigma2", type = "link")),
+    fixed_sigma2 + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma2"),
+    tolerance = 1e-8
+  )
+})
+
+test_that("bivariate phylogenetic labelled one-slope location blocks expose partial q4 members", {
+  tree <- balanced_ultrametric_tree(n_tip = 4L)
+  dat <- data.frame(
+    y1 = seq(-0.2, 0.5, length.out = 8L),
+    y2 = seq(0.3, -0.4, length.out = 8L),
+    x = rep(c(-1, 1), 4L),
+    z = rep(c(0, 1), each = 4L),
+    species = rep(tree$tip.label, each = 2L)
+  )
+
+  fit <- suppressWarnings(
+    drmTMB(
+      bf(
+        mu1 = y1 ~ x + phylo(1 + x | p | species, tree = tree),
+        mu2 = y2 ~ x + phylo(1 + x | p | species, tree = tree),
+        sigma1 = ~z,
+        sigma2 = ~z,
+        rho12 = ~1
+      ),
+      family = biv_gaussian(),
+      data = dat,
+      control = drm_control(
+        se = FALSE,
+        optimizer = list(eval.max = 120, iter.max = 120)
+      )
+    )
+  )
+
+  q4_dpars <- rep(c("mu1", "mu2"), each = 2L)
+  q4_coef <- rep(c("(Intercept)", "x"), times = 2L)
+  q4_members <- paste0(q4_dpars, ":", q4_coef)
+  sd_names <- paste0(
+    q4_dpars,
+    ":phylo(",
+    ifelse(q4_coef == "(Intercept)", "1", "0 + x"),
+    " | p | species)"
+  )
+  structured <- fit$model$structured$phylo_mu
+  structured_row <- structured_effects(fit)
+  pairs <- corpairs(fit, level = "phylogenetic")
+  targets <- profile_targets(fit)
+  cor_targets <- targets[
+    startsWith(targets$parm, "cor:phylo:"),
+    ,
+    drop = FALSE
+  ]
+
+  expect_true(is.finite(fit$opt$objective))
+  expect_equal(structured$q, 4L)
+  expect_equal(structured$dpars, q4_dpars)
+  expect_equal(structured$coef_names, q4_coef)
+  expect_equal(structured$covariance_mode, "unstructured")
+  expect_equal(structured$block_ids, rep(1L, 4L))
+  expect_equal(
+    structured_row$endpoint_member_set,
+    paste(q4_members, collapse = "+")
+  )
+  expect_equal(structured_row$endpoint_member_count, 4L)
+  expect_named(fit$sdpars$mu, sd_names)
+  expect_equal(sum(names(fit$opt$par) == "theta_phylo"), 6L)
+  expect_equal(length(fit$corpars$phylo), 6L)
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(
+    nrow(corpairs(fit, level = "phylogenetic", class = "location-scale")),
+    0L
+  )
+  expect_equal(nrow(cor_targets), 6L)
+  expect_equal(cor_targets$tmb_parameter, rep("theta_phylo", 6L))
+  expect_equal(cor_targets$target_type, rep("derived", 6L))
+  expect_false(any(cor_targets$profile_ready))
+  fixed_mu1 <- as.vector(fit$model$X$mu1 %*% coef(fit, "mu1"))
+  fixed_mu2 <- as.vector(fit$model$X$mu2 %*% coef(fit, "mu2"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu1", type = "link")),
+    fixed_mu1 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu1"),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    unname(predict(fit, dpar = "mu2", type = "link")),
+    fixed_mu2 + drmTMB:::phylo_mu_contribution(fit, dpar = "mu2"),
+    tolerance = 1e-8
+  )
+})
+
 test_that("bivariate phylogenetic q4 recovers broad simulation targets", {
   sim <- new_biv_phylo_q4_gaussian_data()
   dat <- sim$data
@@ -1597,7 +1940,26 @@ test_that("phylogenetic mu terms participate in missingness and validation", {
       family = gaussian(),
       data = dat
     ),
-    "covariance-block labels"
+    "all-four bivariate Gaussian block"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ phylo(1 + x + z | species, tree = tree)),
+      family = gaussian(),
+      data = dat
+    ),
+    "reserves only intercept and one-slope structured terms"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ x + phylo(1 + x | species, tree = tree),
+        sigma ~ phylo(1 | species, tree = tree)
+      ),
+      family = gaussian(),
+      data = dat
+    ),
+    "matching intercept-only or one-slope structured terms"
   )
 })
 
@@ -1892,6 +2254,145 @@ test_that("Gaussian supports sigma-only phylogenetic residual-scale structured e
   expect_equal(sigma_target$target_type, "direct")
   expect_true(sigma_target$profile_ready)
   expect_equal(sigma_target$profile_note, "ready")
+})
+
+test_that("Gaussian supports sigma-only one-slope phylogenetic residual-scale fields", {
+  sim <- new_sigma_only_phylo_gaussian_slope_data()
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      y ~ x,
+      sigma ~ phylo(1 + x | species, tree = tree)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 600, iter.max = 600)
+    )
+  )
+
+  sd_names <- c("phylo(1 | species)", "phylo(0 + x | species)")
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    "sigma"
+  )
+  expect_equal(fit$model$structured$phylo_mu$q, 2L)
+  expect_equal(
+    fit$model$structured$phylo_mu$coef_names,
+    c("(Intercept)", "x")
+  )
+  expect_null(fit$sdpars$mu)
+  expect_named(fit$sdpars$sigma, sd_names)
+  expect_true(all(unname(fit$sdpars$sigma[sd_names]) > 0))
+  expect_equal(fit$corpars, list())
+
+  structured_re <- ranef(fit, "phylo_mu")
+  expect_equal(structured_re, fit$random_effects$phylo_mu)
+  expect_named(structured_re$terms, sd_names)
+  expect_length(
+    structured_re$values,
+    2L * fit$model$structured$phylo_mu$n_re
+  )
+
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  conditional_sigma <- predict(fit, dpar = "sigma", type = "link")
+  expect_equal(
+    unname(conditional_sigma),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+
+  targets <- profile_targets(fit)
+  sd_targets <- targets[
+    targets$parm %in% paste0("sd:sigma:", sd_names),
+  ]
+  sd_targets <- sd_targets[
+    match(paste0("sd:sigma:", sd_names), sd_targets$parm),
+  ]
+  expect_equal(sd_targets$parm, paste0("sd:sigma:", sd_names))
+  expect_equal(sd_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+  expect_equal(sd_targets$index, 1:2)
+  expect_equal(sd_targets$target_type, rep("direct", 2L))
+  expect_true(all(sd_targets$profile_ready))
+  expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian supports matched one-slope phylogenetic location-scale fields", {
+  sim <- new_sigma_only_phylo_gaussian_slope_data(
+    seed = 20260644,
+    n_tip = 16L,
+    n_each = 8L
+  )
+  tree <- sim$tree
+
+  fit <- drmTMB(
+    bf(
+      y ~ x + phylo(1 + x | species, tree = tree),
+      sigma ~ phylo(1 + x | species, tree = tree)
+    ),
+    family = gaussian(),
+    data = sim$data,
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 800, iter.max = 800)
+    )
+  )
+
+  mu_names <- c("mu:phylo(1 | species)", "mu:phylo(0 + x | species)")
+  sigma_names <- c(
+    "sigma:phylo(1 | species)",
+    "sigma:phylo(0 + x | species)"
+  )
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    drmTMB:::phylo_mu_dpars(fit$model$structured$phylo_mu),
+    c("mu", "mu", "sigma", "sigma")
+  )
+  expect_equal(fit$model$structured$phylo_mu$q, 4L)
+  expect_equal(
+    fit$model$structured$phylo_mu$coef_names,
+    c("(Intercept)", "x", "(Intercept)", "x")
+  )
+  expect_named(fit$sdpars$mu, mu_names)
+  expect_named(fit$sdpars$sigma, sigma_names)
+  expect_equal(fit$corpars, list())
+
+  structured <- structured_effects(fit)
+  expect_equal(
+    structured$endpoint_member_set,
+    "mu:(Intercept)+mu:x+sigma:(Intercept)+sigma:x"
+  )
+
+  phylo_re <- ranef(fit, "phylo_mu")
+  expect_named(phylo_re$terms, c(mu_names, sigma_names))
+  expect_length(
+    phylo_re$values,
+    4L * fit$model$structured$phylo_mu$n_re
+  )
+
+  fixed_sigma <- as.vector(fit$model$X$sigma %*% coef(fit, "sigma"))
+  conditional_sigma <- predict(fit, dpar = "sigma", type = "link")
+  expect_equal(
+    unname(conditional_sigma),
+    fixed_sigma + drmTMB:::phylo_mu_contribution(fit, dpar = "sigma"),
+    tolerance = 1e-8
+  )
+
+  targets <- profile_targets(fit)
+  target_names <- c(
+    paste0("sd:mu:", mu_names),
+    paste0("sd:sigma:", sigma_names)
+  )
+  matched_targets <- targets[match(target_names, targets$parm), , drop = FALSE]
+  expect_equal(matched_targets$parm, target_names)
+  expect_equal(matched_targets$tmb_parameter, rep("log_sd_phylo", 4L))
+  expect_equal(matched_targets$index, 1:4)
+  expect_equal(matched_targets$target_type, rep("direct", 4L))
+  expect_true(all(matched_targets$profile_ready))
+  expect_true(is.finite(as.numeric(stats::logLik(fit))))
 })
 
 test_that("Gaussian mu supports one-slope phylogenetic fields", {

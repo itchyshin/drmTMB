@@ -25,13 +25,16 @@ univariate Gaussian \code{mu}, univariate Gaussian \code{sigma}, ordinary Poisso
 or ordinary NB2 \code{mu}, one numeric univariate Gaussian \code{mu} slope with
 independent intercept/slope SDs, matching univariate Gaussian \code{mu} and
 \code{sigma} intercept terms for a mean-scale phylogenetic correlation, matching
-terms in bivariate Gaussian \code{mu1} and \code{mu2}, or matching labelled all-four
-terms across Gaussian \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}. A single shared
-label estimates the full q4 block; a \code{mu1}/\code{mu2} label plus a separate
-\code{sigma1}/\code{sigma2} label estimates the block-diagonal fallback. Poisson and
-NB2 phylogenetic slopes, zero-inflated phylogenetic effects, multiple
-phylogenetic slopes, residual-scale structured slopes, and phylogenetic slope
-correlations remain planned. The public \code{phylo()} API
+terms in bivariate Gaussian \code{mu1} and \code{mu2}, matching labelled all-four
+intercept terms across Gaussian \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}, or the
+first shared-label all-four one-slope point-fit/extractor cell. A single
+shared intercept label estimates the full q4 block; a \code{mu1}/\code{mu2} intercept
+label plus a separate \code{sigma1}/\code{sigma2} intercept label estimates the
+block-diagonal fallback. The all-four \code{phylo(1 + x | p | species, tree = tree)} cell is native point-fit/extractor evidence only; bridge parity,
+intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
+multiple phylogenetic slopes, non-Gaussian phylogenetic slopes,
+zero-inflated phylogenetic effects, and phylogenetic slope correlations
+remain planned. The public \code{phylo()} API
 requires an
 ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
 A-inverse sparse-precision path internally.

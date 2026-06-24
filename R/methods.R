@@ -167,10 +167,10 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A data frame with one row per fitted structured-effect marker. The
-#'   `args`, `dpars`, `coef_names`, `member_levels`, `provider_levels`,
-#'   `observed_levels`, `endpoint_blocks`, and `endpoint_covariance_labels`
-#'   columns are list columns. Empty fits return the same columns with zero
-#'   rows.
+#'   `args`, `dpars`, `coef_names`, `endpoint_members`, `member_levels`,
+#'   `provider_levels`, `observed_levels`, `endpoint_blocks`, and
+#'   `endpoint_covariance_labels` columns are list columns. Empty fits return
+#'   the same columns with zero rows.
 #' @export
 #'
 #' @examples
@@ -218,6 +218,7 @@ structured_effects_table_row <- function(structured_mu) {
 
   marker <- structured_mu_type(structured_mu)
   args <- structured_effects_args(structured_mu, marker)
+  endpoint_members <- structured_effects_endpoint_members(structured_mu)
 
   data.frame(
     marker = marker,
@@ -247,11 +248,13 @@ structured_effects_table_row <- function(structured_mu) {
     block = phylo_mu_block(structured_mu),
     block_label = phylo_mu_block(structured_mu),
     covariance_layout = phylo_mu_covariance_mode(structured_mu),
-    endpoint_set = paste(phylo_mu_dpars(structured_mu), collapse = "+"),
+    endpoint_set = paste(unique(phylo_mu_dpars(structured_mu)), collapse = "+"),
     coefficient_set = paste(
       as.character(structured_mu$coef_names),
       collapse = "+"
     ),
+    endpoint_member_set = paste(endpoint_members, collapse = "+"),
+    endpoint_member_count = length(endpoint_members),
     q = structured_mu_q(structured_mu),
     n_re = structured_effects_integer(structured_mu$n_re),
     member_count = length(structured_effects_member_levels(structured_mu)),
@@ -265,6 +268,7 @@ structured_effects_table_row <- function(structured_mu) {
     correlation_level = structured_mu_corpair_level(structured_mu),
     dpars = I(list(phylo_mu_dpars(structured_mu))),
     coef_names = I(list(as.character(structured_mu$coef_names))),
+    endpoint_members = I(list(endpoint_members)),
     member_levels = I(list(structured_effects_member_levels(structured_mu))),
     provider_levels = I(list(
       structured_effects_provider_levels(structured_mu, marker)
@@ -306,6 +310,8 @@ empty_structured_effects_table <- function() {
     covariance_layout = character(),
     endpoint_set = character(),
     coefficient_set = character(),
+    endpoint_member_set = character(),
+    endpoint_member_count = integer(),
     q = integer(),
     n_re = integer(),
     member_count = integer(),
@@ -315,6 +321,7 @@ empty_structured_effects_table <- function() {
     correlation_level = character(),
     dpars = I(vector("list", 0L)),
     coef_names = I(vector("list", 0L)),
+    endpoint_members = I(vector("list", 0L)),
     member_levels = I(vector("list", 0L)),
     provider_levels = I(vector("list", 0L)),
     observed_levels = I(vector("list", 0L)),
@@ -323,6 +330,25 @@ empty_structured_effects_table <- function() {
     args = I(vector("list", 0L)),
     stringsAsFactors = FALSE
   )
+}
+
+structured_effects_endpoint_members <- function(structured_mu) {
+  q <- structured_mu_q(structured_mu)
+  if (q == 0L) {
+    return(character())
+  }
+  dpars <- phylo_mu_endpoint_dpars(structured_mu)
+  coef_names <- as.character(structured_mu$coef_names)
+  if (length(dpars) == 1L && q > 1L) {
+    dpars <- rep(dpars, q)
+  }
+  if (length(coef_names) == 1L && q > 1L) {
+    coef_names <- rep(coef_names, q)
+  }
+  if (length(dpars) != q || length(coef_names) != q) {
+    return(character())
+  }
+  paste0(dpars, ":", coef_names)
 }
 
 structured_effects_group <- function(structured_mu, marker) {
@@ -1218,14 +1244,14 @@ phylo_mu_corpairs <- function(object) {
       block = pair$block[[1L]],
       from_dpar = pair$from_dpar[[1L]],
       to_dpar = pair$to_dpar[[1L]],
-      from_coef = "(Intercept)",
-      to_coef = "(Intercept)",
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
       from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
       to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
       class = random_correlation_class(
         pair$from_dpar[[1L]],
-        "(Intercept)",
-        "(Intercept)",
+        pair$from_coef[[1L]],
+        pair$to_coef[[1L]],
         to_dpar = pair$to_dpar[[1L]]
       ),
       parameter = parameter,
@@ -1416,14 +1442,14 @@ phylo_mu_covariance_summaries <- function(object, intervals = NULL) {
       block = pair$block[[1L]],
       from_dpar = pair$from_dpar[[1L]],
       to_dpar = pair$to_dpar[[1L]],
-      from_coef = "(Intercept)",
-      to_coef = "(Intercept)",
+      from_coef = pair$from_coef[[1L]],
+      to_coef = pair$to_coef[[1L]],
       from_response = random_effect_response_name(object, pair$from_dpar[[1L]]),
       to_response = random_effect_response_name(object, pair$to_dpar[[1L]]),
       class = random_correlation_class(
         pair$from_dpar[[1L]],
-        "(Intercept)",
-        "(Intercept)",
+        pair$from_coef[[1L]],
+        pair$to_coef[[1L]],
         to_dpar = pair$to_dpar[[1L]]
       ),
       parameter = parameter,
@@ -5128,11 +5154,19 @@ phylo_mu_contribution <- function(object, dpar = NULL) {
   values <- object$random_effects[[key]]$values
   index <- phylo_mu$observation_node_index
   if (identical(object$model$model_type, "biv_gaussian")) {
-    dpars <- phylo_mu_dpars(phylo_mu)
-    dpar <- match.arg(dpar, dpars)
-    offset <- (match(dpar, dpars) - 1L) * phylo_mu$n_re
-    index <- index + offset
-    return(unname(values[index]))
+    dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+    q <- structured_mu_q(phylo_mu)
+    dpar <- match.arg(dpar, unique(dpars))
+    endpoint <- which(dpars %in% dpar)
+    value_matrix <- matrix(
+      unname(values[seq_len(q * phylo_mu$n_re)]),
+      nrow = phylo_mu$n_re,
+      ncol = q
+    )
+    return(unname(rowSums(
+      value_matrix[index, endpoint, drop = FALSE] *
+        phylo_mu$value[, endpoint, drop = FALSE]
+    )))
   }
   q <- structured_mu_q(phylo_mu)
   if (q > 1L && is.matrix(phylo_mu$value)) {

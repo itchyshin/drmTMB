@@ -304,12 +304,12 @@ phase18_structured_re_mu_slope_payload_fixture <- function(
     c("native_tmb", "direct_drmjl", "r_via_julia"),
     "route"
   )
-  implemented_structured_types <- c("phylo", "spatial", "animal")
+  implemented_structured_types <- c("phylo", "spatial", "animal", "relmat")
   if (!structured_type %in% implemented_structured_types) {
     stop(
       "The one-slope structured mu bridge fixture is banked only for phylo, ",
-      "fixed-covariance spatial, and animal A-matrix cells; relmat remains ",
-      "planned until the K-versus-Q fixture source is reconciled.",
+      "fixed-covariance spatial, animal A-matrix, and relmat K-matrix ",
+      "cells.",
       call. = FALSE
     )
   }
@@ -374,6 +374,525 @@ phase18_structured_re_mu_slope_payload_fixture <- function(
         "coverage grid not calibrated",
         "residual-scale structured slope is a separate cell",
         "independent one-slope mu fixture has no labelled covariance corpair"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_sigma_slope_payload_fixture <- function(
+  structured_type = "relmat",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  matrix_value <- phase18_structured_re_fixture_matrix("q1")
+  coef <- c(
+    "sigma:(Intercept)" = -0.10,
+    "sigma:x" = 0.22,
+    "sd_sigma:structured(Intercept)" = 0.28,
+    "sd_sigma:structured(x)" = 0.16
+  )
+  vcov <- diag(c(0.011, 0.014, 0.021, 0.023))
+  dimnames(vcov) <- list(names(coef), names(coef))
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q1_", structured_type, "_sigma_one_slope_ml"),
+      dimension = "q1",
+      structured_type = structured_type,
+      endpoint = "sigma",
+      slope_class = "independent_one_slope",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0("fixture_q1_", structured_type, "_sigma_slope"),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_sigma_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -16.789
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "mu_sigma_slope",
+        "corpair"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "not_applicable",
+        "not_applicable"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "matched mu+sigma structured slope is a separate cell",
+        "independent one-slope sigma fixture has no labelled covariance corpair"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_mu_sigma_slope_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  matrix_value <- phase18_structured_re_fixture_matrix("q1")
+  coef <- c(
+    "mu:(Intercept)" = 0.20,
+    "mu:x" = 0.45,
+    "sigma:(Intercept)" = -0.10,
+    "sigma:x" = 0.22,
+    "sd_mu:structured(Intercept)" = 0.35,
+    "sd_mu:structured(x)" = 0.18,
+    "sd_sigma:structured(Intercept)" = 0.28,
+    "sd_sigma:structured(x)" = 0.16
+  )
+  vcov <- diag(c(0.010, 0.015, 0.011, 0.014, 0.020, 0.022, 0.021, 0.023))
+  dimnames(vcov) <- list(names(coef), names(coef))
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q1_", structured_type, "_mu_sigma_one_slope_ml"),
+      dimension = "q1_plus_q1",
+      structured_type = structured_type,
+      endpoint = "mu+sigma",
+      slope_class = "independent_one_slope",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0("fixture_q1_", structured_type, "_mu_sigma_slope"),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_mu_sigma_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -17.89
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "labelled_slope_covariance",
+        "corpair",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "not_applicable",
+        "not_applicable",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "matched mu+sigma fixture keeps independent endpoint members",
+        "matched q1 plus q1 fixture has no labelled covariance corpair",
+        "q1 plus q1 REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_q2_slope_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  matrix_value <- phase18_structured_re_fixture_matrix("q2")
+  coef <- c(
+    "mu1:x" = 0.50,
+    "mu2:x" = 0.35,
+    "sd_mu1:structured(x)" = 0.42,
+    "sd_mu2:structured(x)" = 0.31,
+    "cor_mu1_mu2:structured(x)" = 0.18
+  )
+  vcov <- diag(c(0.016, 0.017, 0.025, 0.024, 0.030))
+  dimnames(vcov) <- list(names(coef), names(coef))
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q2_", structured_type, "_mu1_mu2_one_slope_ml"),
+      dimension = "q2",
+      structured_type = structured_type,
+      endpoint = "mu1+mu2",
+      slope_class = "labelled_slope_covariance",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0("fixture_q2_", structured_type, "_mu1_mu2_slope"),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_q2_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -24.567
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "intercept_plus_slope_q4",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "not_applicable",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "slope-only q2 fixture is not intercept-plus-slope q4/q8",
+        "q2 slope-only REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_q4_location_slope_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  endpoint_members <- paste0(
+    rep(c("mu1", "mu2"), each = 2L),
+    ":",
+    rep(c("(Intercept)", "x"), times = 2L)
+  )
+  member_tokens <- gsub(
+    "[:()]",
+    "_",
+    gsub("\\+", "_", endpoint_members)
+  )
+  member_tokens <- gsub("_+", "_", gsub("_$", "", member_tokens))
+  sd_terms <- paste0("sd_", endpoint_members, ":structured")
+  cor_pairs <- utils::combn(seq_along(endpoint_members), 2L)
+  cor_terms <- apply(
+    cor_pairs,
+    2L,
+    function(index) {
+      paste0(
+        "cor_",
+        member_tokens[[index[[1L]]]],
+        "_",
+        member_tokens[[index[[2L]]]],
+        ":structured"
+      )
+    }
+  )
+  coef <- c(
+    setNames(c(0.25, 0.50, -0.10, 0.35), endpoint_members),
+    setNames(c(0.42, 0.19, 0.31, 0.17), sd_terms),
+    setNames(seq(0.04, 0.18, length.out = length(cor_terms)), cor_terms)
+  )
+  vcov <- diag(seq(0.010, 0.024, length.out = length(coef)))
+  dimnames(vcov) <- list(names(coef), names(coef))
+  matrix_value <- phase18_structured_re_fixture_matrix("q4")
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0(
+        "q4_location_slope_",
+        structured_type,
+        "_mu1_mu2_ml"
+      ),
+      dimension = "q4",
+      structured_type = structured_type,
+      endpoint = "mu1+mu2",
+      slope_class = "labelled_slope_covariance",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0(
+        "fixture_q4_location_slope_",
+        structured_type,
+        "_mu1_mu2"
+      ),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_q4_location_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -33.789
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "partial_location_scale",
+        "derived_correlations",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "not_applicable",
+        "not_evaluated",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "mu1+mu2 q4 location fixture has no structured sigma endpoints",
+        "derived correlation intervals are not run by this fixture",
+        "q4 location slope REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+phase18_structured_re_q4_slope_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  endpoint_members <- paste0(
+    rep(c("mu1", "mu2", "sigma1", "sigma2"), each = 2L),
+    ":",
+    rep(c("(Intercept)", "x"), times = 4L)
+  )
+  member_tokens <- gsub(
+    "[:()]",
+    "_",
+    gsub("\\+", "_", endpoint_members)
+  )
+  member_tokens <- gsub("_+", "_", gsub("_$", "", member_tokens))
+  sd_terms <- paste0("sd_", endpoint_members, ":structured")
+  cor_pairs <- utils::combn(seq_along(endpoint_members), 2L)
+  cor_terms <- apply(
+    cor_pairs,
+    2L,
+    function(index) {
+      paste0(
+        "cor_",
+        member_tokens[[index[[1L]]]],
+        "_",
+        member_tokens[[index[[2L]]]],
+        ":structured"
+      )
+    }
+  )
+  coef <- c(
+    setNames(
+      c(0.25, 0.50, -0.10, 0.35, -1.00, 0.12, -1.10, -0.10),
+      endpoint_members
+    ),
+    setNames(c(0.42, 0.19, 0.31, 0.17, 0.22, 0.11, 0.20, 0.10), sd_terms),
+    setNames(seq(0.02, 0.29, length.out = length(cor_terms)), cor_terms)
+  )
+  vcov <- diag(seq(0.010, 0.030, length.out = length(coef)))
+  dimnames(vcov) <- list(names(coef), names(coef))
+  matrix_value <- phase18_structured_re_fixture_matrix("q4")
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q4_slope_", structured_type, "_all_four_ml"),
+      dimension = "q8",
+      structured_type = structured_type,
+      endpoint = "mu1+mu2+sigma1+sigma2",
+      slope_class = "labelled_slope_covariance",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0("fixture_q4_slope_", structured_type, "_all_four"),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_q4_slope_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -48.901
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "derived_correlations",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "derived_interval_unavailable",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "q4 all-four one-slope correlations are derived-only in this fixture",
+        "q4 slope REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
       ),
       stringsAsFactors = FALSE
     )
@@ -482,7 +1001,8 @@ phase18_structured_re_parity_status <- function(
 phase18_structured_re_mu_slope_parity_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   rows <- lapply(structured_types, function(structured_type) {
-    implemented <- structured_type %in% c("phylo", "spatial", "animal")
+    implemented <- structured_type %in%
+      c("phylo", "spatial", "animal", "relmat")
     coefficient_order <- if (implemented) {
       payload <- phase18_structured_re_mu_slope_payload_fixture(structured_type)
       paste(names(payload$estimates$coef), collapse = ";")
@@ -551,9 +1071,10 @@ phase18_structured_re_mu_slope_parity_fixture_contract <- function() {
           "coverage is promoted."
         ),
         relmat = paste(
-          "Relmat one-slope mu parity remains planned; artifact evidence does",
-          "not promote K/Q bridge marshalling, sigma slope support,",
-          "intervals, or coverage."
+          "Relmat one-slope mu fixture parity uses a K-matrix contract with",
+          "runtime K/Q same-target parity evidence; no broad bridge support,",
+          "sigma slope support, labelled covariance, interval reliability,",
+          "or coverage is promoted."
         )
       ),
       next_gate = switch(
@@ -561,7 +1082,441 @@ phase18_structured_re_mu_slope_parity_fixture_contract <- function() {
         phylo = "Use this exact fixture as the template for provider-specific same-target bridge parity; keep interval and coverage gates separate.",
         spatial = "Use this fixed-covariance fixture as the spatial same-target bridge-parity template; keep range-estimating spatial, interval, and coverage gates separate.",
         animal = "Use this A-matrix fixture as the animal same-target bridge-parity template; keep pedigree/Ainv, interval, and coverage gates separate.",
-        relmat = "Implement same-target native/direct/R-via-Julia fixture after resolving the K-versus-Q fixture source."
+        relmat = "Use this K-matrix fixture with runtime K/Q same-target parity evidence; keep sigma slopes, interval, and coverage gates separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_sigma_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_sigma_slope_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0("sigma_slope_", structured_type, "_same_target_ml"),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 + x | species, tree = tree) in sigma",
+        spatial = "spatial(1 + x | site, coords = coords) in sigma",
+        animal = "animal(1 + x | id, A = A) in sigma",
+        relmat = "relmat(1 + x | id, K = K) in sigma"
+      ),
+      structured_type = structured_type,
+      dimension = "q1",
+      endpoint = "sigma",
+      slope_class = "independent_one_slope",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo one-slope sigma fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract only; no broad bridge support,",
+          "matched mu+sigma slope cell, labelled covariance, interval",
+          "reliability, or coverage is promoted."
+        ),
+        spatial = paste(
+          "Spatial one-slope sigma fixture parity is fixed-covariance only;",
+          "no range-estimating spatial support, broad bridge support,",
+          "matched mu+sigma slope cell, labelled covariance, interval",
+          "reliability, or coverage is promoted."
+        ),
+        animal = paste(
+          "Animal one-slope sigma fixture parity uses an A-matrix contract",
+          "only; no pedigree/Ainv bridge marshalling, broad bridge support,",
+          "matched mu+sigma slope cell, labelled covariance, interval",
+          "reliability, or coverage is promoted."
+        ),
+        relmat = paste(
+          "Relmat one-slope sigma fixture parity uses a K-matrix contract",
+          "with runtime K/Q same-target parity evidence; no broad bridge",
+          "support, matched mu+sigma slope cell, labelled covariance,",
+          "interval reliability, or coverage is promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact sigma fixture as the phylo same-target bridge-parity template; keep interval and coverage gates separate.",
+        spatial = "Use this fixed-covariance sigma fixture as the spatial same-target bridge-parity template; keep range-estimating spatial, interval, and coverage gates separate.",
+        animal = "Use this A-matrix sigma fixture as the animal same-target bridge-parity template; keep pedigree/Ainv, interval, and coverage gates separate.",
+        relmat = "Use this K-matrix sigma fixture with runtime K/Q same-target parity evidence; keep intervals and coverage separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_mu_sigma_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_mu_sigma_slope_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0(
+        "mu_sigma_slope_",
+        structured_type,
+        "_same_target_ml"
+      ),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 + x | species, tree = tree) in mu and sigma",
+        spatial = "spatial(1 + x | site, coords = coords) in mu and sigma",
+        animal = "animal(1 + x | id, A = A) in mu and sigma",
+        relmat = "relmat(1 + x | id, K = K) in mu and sigma"
+      ),
+      structured_type = structured_type,
+      dimension = "q1_plus_q1",
+      endpoint = "mu+sigma",
+      slope_class = "independent_one_slope",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Matched phylo mu+sigma one-slope fixture parity is a",
+          "deterministic native/direct/R-via-Julia contract for the four",
+          "endpoint members only; no broad bridge support, labelled slope",
+          "covariance, interval reliability, coverage, REML, or AI-REML is",
+          "promoted."
+        ),
+        spatial = paste(
+          "Matched spatial mu+sigma one-slope fixture parity is",
+          "fixed-covariance only; no range-estimating spatial support, broad",
+          "bridge support, labelled slope covariance, interval reliability,",
+          "coverage, REML, or AI-REML is promoted."
+        ),
+        animal = paste(
+          "Matched animal mu+sigma one-slope fixture parity uses an A-matrix",
+          "contract only; no pedigree/Ainv bridge marshalling, broad bridge",
+          "support, labelled slope covariance, interval reliability,",
+          "coverage, REML, or AI-REML is promoted."
+        ),
+        relmat = paste(
+          "Matched relmat mu+sigma one-slope fixture parity uses a K-matrix",
+          "contract with runtime K/Q same-target parity evidence; no Q",
+          "bridge marshalling, broad bridge support, labelled slope",
+          "covariance, interval reliability, coverage, REML, or AI-REML is",
+          "promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact matched fixture for calibrated interval diagnostics; keep coverage, REML, and AI-REML separate.",
+        spatial = "Use this fixed-covariance matched fixture for calibrated interval diagnostics; keep range-estimating spatial, coverage, REML, and AI-REML separate.",
+        animal = "Use this A-matrix matched fixture for calibrated interval diagnostics; keep pedigree/Ainv, coverage, REML, and AI-REML separate.",
+        relmat = "Use this K-matrix matched fixture with runtime K/Q same-target parity evidence for calibrated interval diagnostics; keep Q bridge marshalling, coverage, REML, and AI-REML separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_q2_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_q2_slope_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0("q2_slope_", structured_type, "_same_target_ml"),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(0 + x | p | species, tree = tree) in mu1 and mu2",
+        spatial = "spatial(0 + x | p | site, coords = coords) in mu1 and mu2",
+        animal = "animal(0 + x | p | id, A = A) in mu1 and mu2",
+        relmat = "relmat(0 + x | p | id, K = K) in mu1 and mu2"
+      ),
+      structured_type = structured_type,
+      dimension = "q2",
+      endpoint = "mu1+mu2",
+      slope_class = "labelled_slope_covariance",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo slope-only q2 mu1/mu2 fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract for the two slope endpoint",
+          "members only; no broad bridge support, intercept-plus-slope",
+          "q4/q8, interval reliability, coverage, REML, or AI-REML is",
+          "promoted."
+        ),
+        spatial = paste(
+          "Spatial slope-only q2 mu1/mu2 fixture parity is fixed-covariance",
+          "only; no range-estimating spatial support, broad bridge support,",
+          "intercept-plus-slope q4/q8, interval reliability, coverage,",
+          "REML, or AI-REML is promoted."
+        ),
+        animal = paste(
+          "Animal slope-only q2 mu1/mu2 fixture parity uses an A-matrix",
+          "contract only; no pedigree/Ainv bridge marshalling, broad bridge",
+          "support, intercept-plus-slope q4/q8, interval reliability,",
+          "coverage, REML, or AI-REML is promoted."
+        ),
+        relmat = paste(
+          "Relmat slope-only q2 mu1/mu2 fixture parity uses a K-matrix",
+          "contract with runtime K/Q same-target parity evidence; no Q",
+          "bridge marshalling, broad bridge support, intercept-plus-slope",
+          "q4/q8, interval reliability, coverage, REML, or AI-REML is",
+          "promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact slope-only q2 fixture for calibrated interval diagnostics; keep intercept-plus-slope q4/q8, coverage, REML, and AI-REML separate.",
+        spatial = "Use this fixed-covariance slope-only q2 fixture for calibrated interval diagnostics; keep range-estimating spatial, coverage, REML, and AI-REML separate.",
+        animal = "Use this A-matrix slope-only q2 fixture for calibrated interval diagnostics; keep pedigree/Ainv, coverage, REML, and AI-REML separate.",
+        relmat = "Use this K-matrix slope-only q2 fixture with runtime K/Q same-target parity evidence for calibrated interval diagnostics; keep Q bridge marshalling, coverage, REML, and AI-REML separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_q4_location_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_q4_location_slope_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0(
+        "q4_location_slope_",
+        structured_type,
+        "_same_target_ml"
+      ),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 + x | p | species, tree = tree) in mu1 and mu2",
+        spatial = "spatial(1 + x | p | site, coords = coords) in mu1 and mu2",
+        animal = "animal(1 + x | p | id, A = A) in mu1 and mu2",
+        relmat = "relmat(1 + x | p | id, K = K) in mu1 and mu2"
+      ),
+      structured_type = structured_type,
+      dimension = "q4",
+      endpoint = "mu1+mu2",
+      slope_class = "labelled_slope_covariance",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo q4 location one-slope fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract for the exact four-member",
+          "q4 location endpoint map only; no broad bridge support,",
+          "partial location-scale support, interval reliability, coverage,",
+          "q4 REML, AI-REML, public support, or broader q8 support is",
+          "promoted."
+        ),
+        spatial = paste(
+          "Spatial q4 location one-slope fixture parity is fixed-covariance",
+          "only for the exact four-member q4 location endpoint map; no",
+          "range-estimating spatial support, broad bridge support, partial",
+          "location-scale support, interval reliability, coverage, q4 REML,",
+          "AI-REML, public support, or broader q8 support is promoted."
+        ),
+        animal = paste(
+          "Animal q4 location one-slope fixture parity uses an A-matrix",
+          "contract for the exact four-member q4 location endpoint map only;",
+          "no pedigree/Ainv bridge marshalling, broad bridge support, partial",
+          "location-scale support, interval reliability, coverage, q4 REML,",
+          "AI-REML, public support, or broader q8 support is promoted."
+        ),
+        relmat = paste(
+          "Relmat q4 location one-slope fixture parity uses a K-matrix",
+          "contract for the exact four-member q4 location endpoint map only;",
+          "Q precision marshalling remains separate, and no broad bridge",
+          "support, partial location-scale support, interval reliability,",
+          "coverage, q4 REML, AI-REML, public support, or broader q8 support",
+          "is promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact q4 location fixture for interval diagnostics; keep partial location-scale, coverage, q4 REML, and AI-REML separate.",
+        spatial = "Use this fixed-covariance q4 location fixture for interval diagnostics; keep range-estimating spatial, partial location-scale, coverage, q4 REML, and AI-REML separate.",
+        animal = "Use this A-matrix q4 location fixture for interval diagnostics; keep pedigree/Ainv, partial location-scale, coverage, q4 REML, and AI-REML separate.",
+        relmat = "Use this K-matrix q4 location fixture for interval diagnostics; keep Q precision marshalling, partial location-scale, coverage, q4 REML, and AI-REML separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_q4_slope_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_q4_slope_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0("q4_slope_", structured_type, "_same_target_ml"),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 + x | p | species, tree = tree) in all four endpoints",
+        spatial = "spatial(1 + x | p | site, coords = coords) in all four endpoints",
+        animal = "animal(1 + x | p | id, A = A) in all four endpoints",
+        relmat = "relmat(1 + x | p | id, K = K) in all four endpoints"
+      ),
+      structured_type = structured_type,
+      dimension = "q8",
+      endpoint = "mu1+mu2+sigma1+sigma2",
+      slope_class = "labelled_slope_covariance",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo q4 all-four one-slope fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract for the exact eight-member",
+          "q8 endpoint map only; no broad bridge support, interval",
+          "reliability, coverage, q4 REML, or AI-REML is promoted."
+        ),
+        spatial = paste(
+          "Spatial q4 all-four one-slope fixture parity is fixed-covariance",
+          "only for the exact eight-member q8 endpoint map; no",
+          "range-estimating spatial support, broad bridge support, interval",
+          "reliability, coverage, q4 REML, or AI-REML is promoted."
+        ),
+        animal = paste(
+          "Animal q4 all-four one-slope fixture parity uses an A-matrix",
+          "contract for the exact eight-member q8 endpoint map only; no",
+          "pedigree/Ainv bridge marshalling, broad bridge support, interval",
+          "reliability, coverage, q4 REML, or AI-REML is promoted."
+        ),
+        relmat = paste(
+          "Relmat q4 all-four one-slope fixture parity uses a K-matrix",
+          "contract with runtime K/Q same-target parity evidence for the",
+          "exact eight-member q8 endpoint map; no Q bridge marshalling,",
+          "broad bridge support, interval reliability, coverage, q4 REML,",
+          "or AI-REML is promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use this exact q4-slope fixture for interval diagnostics; keep coverage, q4 REML, and AI-REML separate.",
+        spatial = "Use this fixed-covariance q4-slope fixture for interval diagnostics; keep range-estimating spatial, coverage, q4 REML, and AI-REML separate.",
+        animal = "Use this A-matrix q4-slope fixture for interval diagnostics; keep pedigree/Ainv, coverage, q4 REML, and AI-REML separate.",
+        relmat = "Use this K-matrix q4-slope fixture with runtime K/Q same-target parity evidence for interval diagnostics; keep Q bridge marshalling, coverage, q4 REML, and AI-REML separate."
       ),
       stringsAsFactors = FALSE
     )

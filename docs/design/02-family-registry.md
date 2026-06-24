@@ -512,9 +512,11 @@ same structured-effect concept, but current fitted structured paths are
 Gaussian only. The first animal/`relmat()` slice fits pedigree or known-matrix
 Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma`
 correlations, matching labelled bivariate q=2 `mu1`/`mu2` location covariance,
-and matching all-four q=4 location-scale covariance; sparse large-pedigree
-construction, residual-scale structured slopes, predictor-dependent
-`corpair()` regression, and direct-SD grammar remain planned. Count, bounded,
+matching all-four q=4 location-scale covariance, and the first A/K/Q
+sigma-only plus matched `mu+sigma` one-slope native point-fit/extractor cells;
+sparse large-pedigree construction, labelled structured slope covariance,
+bridge/inference for matched slope cells, predictor-dependent `corpair()`
+regression, and direct-SD grammar remain planned. Count, bounded,
 ordinal, shape, inflation,
 hurdle, and one-inflation structured effects should wait until the ordinary
 family-specific random-effect paths have recovery tests, interval targets,

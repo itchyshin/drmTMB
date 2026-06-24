@@ -487,14 +487,17 @@ The first structured-slope path should treat the slope field as independent of
 the intercept field, and should not estimate intercept-slope `corpair()` rows.
 The fitted coordinate spatial and phylogenetic one-slope paths follow that
 rule: they estimate intercept and slope fields as independent effects with a
-shared structured precision and separate SDs. Mesh/SPDE slopes, multiple
-structured slopes, bivariate structured slopes, and slope correlations remain
-later gates. Slice 39 closes the earlier validation gap for the first
-univariate Gaussian phylogenetic one-slope path.
+shared structured precision and separate SDs. The same independent-field rule
+now covers the first sigma-only one-slope residual-scale cells for the supported
+fixed-covariance routes. Mesh/SPDE slopes, multiple structured slopes,
+matched `mu+sigma` structured slope cells, bivariate structured slopes, and
+slope correlations remain later gates. Slice 39 closes the earlier validation
+gap for the first univariate Gaussian phylogenetic one-slope path.
 Slice 187 rechecked the fitted spatial side: the slope-field SD has direct
 profile-interval coverage. Later slices added univariate residual-scale spatial
-intercepts, matching `mu1`/`mu2` coordinate fields, and a constant all-four q=4
-location-scale block, while residual-scale structured slopes,
+intercepts, the first fixed-covariance sigma-only spatial one-slope cell,
+matching `mu1`/`mu2` coordinate fields, and a constant all-four q=4
+location-scale block, while matched `mu+sigma` structured slope cells,
 predictor-dependent spatial `corpair()` rows, non-Gaussian spatial effects, and
 multiple spatial slopes remain outside the fitted surface.
 For two-response models, the most interesting later slope correlation is a
@@ -590,8 +593,9 @@ machinery, and they now share the first constant q=2 bivariate location layer.
 
 The immediate q=2 implementation lane has now landed for coordinate-spatial
 location covariance, and the constant q=4 location-scale block is fitted as a
-first slice. The univariate residual-scale spatial intercept has also landed,
-but residual-scale structured slopes and spatial `corpair()` regression remain
+first slice. The univariate residual-scale spatial intercept and first
+fixed-covariance sigma-only one-slope cell have also landed, but matched
+`mu+sigma` structured slope cells and spatial `corpair()` regression remain
 planned. Fisher admits the constant q=2 lane for a focused Phase
 18 grid through `docs/design/56-phase-18-spatial-q2-ademp.md`. The first DGP
 smoke runner, CSV grid writer, fixed-effect Wald tables, and profile-status

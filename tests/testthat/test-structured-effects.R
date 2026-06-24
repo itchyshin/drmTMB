@@ -70,6 +70,66 @@ structured_effects_fit_from_formula <- function(formula, data, env) {
   )
 }
 
+structured_effects_fit_from_univariate_structured_pair <- function(
+  mu_formula,
+  sigma_formula,
+  data,
+  env,
+  marker
+) {
+  mu_parsed <- do.call(drm_formula, list(mu_formula))
+  sigma_parsed <- do.call(drm_formula, list(sigma_formula))
+  mu_entry <- mu_parsed$entries[[1L]]
+  sigma_entry <- sigma_parsed$entries[[1L]]
+
+  mu_term <- switch(
+    marker,
+    phylo = drmTMB:::extract_gaussian_mu_phylo_term(mu_entry)$term,
+    spatial = drmTMB:::extract_gaussian_mu_spatial_term(mu_entry)$term,
+    animal = drmTMB:::extract_gaussian_mu_known_term(mu_entry, "animal")$term,
+    relmat = drmTMB:::extract_gaussian_mu_known_term(mu_entry, "relmat")$term,
+    stop("unknown marker", call. = FALSE)
+  )
+  sigma_term <- switch(
+    marker,
+    phylo = drmTMB:::extract_gaussian_mu_phylo_term(
+      sigma_entry,
+      dpar = "sigma"
+    )$term,
+    spatial = drmTMB:::extract_gaussian_mu_spatial_term(
+      sigma_entry,
+      dpar = "sigma"
+    )$term,
+    animal = drmTMB:::extract_gaussian_mu_known_term(
+      sigma_entry,
+      "animal",
+      dpar = "sigma"
+    )$term,
+    relmat = drmTMB:::extract_gaussian_mu_known_term(
+      sigma_entry,
+      "relmat",
+      dpar = "sigma"
+    )$term,
+    stop("unknown marker", call. = FALSE)
+  )
+
+  term <- drmTMB:::combine_univariate_structured_terms(
+    mu_term,
+    sigma_term,
+    marker = marker
+  )
+  structured_mu <- drmTMB:::build_structured_mu_structure(term, data, env)
+  structure(
+    list(
+      model = list(
+        model_type = "gaussian",
+        structured = list(phylo_mu = structured_mu)
+      )
+    ),
+    class = "drmTMB"
+  )
+}
+
 capture_structured_effects_error <- function(expr) {
   tryCatch(
     {
@@ -126,6 +186,9 @@ expect_single_structured_effect <- function(
   expect_equal(out$covariance_layout, "scalar")
   expect_equal(out$endpoint_set, "mu")
   expect_equal(out$coefficient_set, "(Intercept)")
+  expect_equal(out$endpoint_member_set, "mu:(Intercept)")
+  expect_equal(out$endpoint_member_count, 1L)
+  expect_equal(out$endpoint_members[[1L]], "mu:(Intercept)")
   expect_equal(out$random_effect_block, random_effect_block)
   expect_equal(out$correlation_level, correlation_level)
   expect_equal(out$provider_level_count, length(out$provider_levels[[1L]]))
@@ -183,6 +246,8 @@ test_that("structured_effects() returns an empty stable table without structure"
       "covariance_layout",
       "endpoint_set",
       "coefficient_set",
+      "endpoint_member_set",
+      "endpoint_member_count",
       "q",
       "n_re",
       "member_count",
@@ -192,6 +257,7 @@ test_that("structured_effects() returns an empty stable table without structure"
       "correlation_level",
       "dpars",
       "coef_names",
+      "endpoint_members",
       "member_levels",
       "provider_levels",
       "observed_levels",
@@ -405,6 +471,9 @@ test_that("structured_effects() exposes q-series endpoint and coefficient identi
     expect_equal(slope_row$provider, spec$provider)
     expect_equal(slope_row$endpoint_set, "mu")
     expect_equal(slope_row$coefficient_set, "(Intercept)+x")
+    expect_equal(slope_row$endpoint_member_set, "mu:(Intercept)+mu:x")
+    expect_equal(slope_row$endpoint_member_count, 2L)
+    expect_equal(slope_row$endpoint_members[[1L]], c("mu:(Intercept)", "mu:x"))
     expect_equal(slope_row$covariance_layout, "scalar")
     expect_equal(slope_row$coef_names[[1L]], c("(Intercept)", "x"))
     expect_equal(
@@ -432,6 +501,92 @@ test_that("structured_effects() exposes q-series endpoint and coefficient identi
   expect_equal(labelled_row$endpoint_blocks[[1L]], "p")
   expect_equal(labelled_row$endpoint_covariance_labels[[1L]], "p")
   expect_equal(labelled_row$matrix_id, "phylo::tree::tree::species")
+})
+
+test_that("structured_effects() makes matched endpoint-member identity explicit", {
+  sim <- structured_effects_test_data()
+  dat <- sim$data
+  tree <- sim$species_tree
+  coords <- sim$coords
+  K <- sim$K
+  env <- environment()
+
+  matched_specs <- list(
+    list(
+      marker = "phylo",
+      mu_formula = y ~ x + phylo(1 | species, tree = tree),
+      sigma_formula = sigma ~ phylo(1 | species, tree = tree),
+      endpoint_blocks = "phylo"
+    ),
+    list(
+      marker = "spatial",
+      mu_formula = y ~ x + spatial(1 | site, coords = coords),
+      sigma_formula = sigma ~ spatial(1 | site, coords = coords),
+      endpoint_blocks = "spatial"
+    ),
+    list(
+      marker = "animal",
+      mu_formula = y ~ x + animal(1 | id, A = K),
+      sigma_formula = sigma ~ animal(1 | id, A = K),
+      endpoint_blocks = "animal"
+    ),
+    list(
+      marker = "relmat",
+      mu_formula = y ~ x + relmat(1 | id, K = K),
+      sigma_formula = sigma ~ relmat(1 | id, K = K),
+      endpoint_blocks = "relmat"
+    )
+  )
+
+  for (spec in matched_specs) {
+    fit <- structured_effects_fit_from_univariate_structured_pair(
+      spec$mu_formula,
+      spec$sigma_formula,
+      dat,
+      env,
+      marker = spec$marker
+    )
+    row <- structured_effects(fit)
+    expect_equal(row$provider, spec$marker)
+    expect_equal(row$endpoint_set, "mu+sigma")
+    expect_equal(row$coefficient_set, "(Intercept)+(Intercept)")
+    expect_equal(
+      row$endpoint_member_set,
+      "mu:(Intercept)+sigma:(Intercept)"
+    )
+    expect_equal(
+      row$endpoint_members[[1L]],
+      c("mu:(Intercept)", "sigma:(Intercept)")
+    )
+    expect_equal(row$endpoint_member_count, 2L)
+    expect_equal(row$covariance_layout, "scalar")
+    expect_equal(row$endpoint_blocks[[1L]], rep(spec$endpoint_blocks, 2L))
+    expect_equal(row$q, 2L)
+  }
+
+  slope_fit <- structured_effects_fit_from_univariate_structured_pair(
+    y ~ x + phylo(1 + x | species, tree = tree),
+    sigma ~ phylo(1 + x | species, tree = tree),
+    dat,
+    env,
+    marker = "phylo"
+  )
+  slope_row <- structured_effects(slope_fit)
+  expect_equal(slope_row$endpoint_set, "mu+sigma")
+  expect_equal(
+    slope_row$coefficient_set,
+    "(Intercept)+x+(Intercept)+x"
+  )
+  expect_equal(
+    slope_row$endpoint_member_set,
+    "mu:(Intercept)+mu:x+sigma:(Intercept)+sigma:x"
+  )
+  expect_equal(
+    slope_row$endpoint_members[[1L]],
+    c("mu:(Intercept)", "mu:x", "sigma:(Intercept)", "sigma:x")
+  )
+  expect_equal(slope_row$endpoint_member_count, 4L)
+  expect_equal(slope_row$q, 4L)
 })
 
 test_that("structured_effects() records provider-level policy and missing-level rejection", {

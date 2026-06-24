@@ -1,0 +1,33 @@
+variant	provider	endpoint_member	direct_sd_target	profile_target	interval_method	method_status	interval_finite	lower	upper	conf_status	method_message	method_warnings	estimate	profile_ready	profile_note	convergence	pdHess	logLik
+strong	phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	wald	finite	TRUE	0.637631959959385	1.09919519591179	wald	NA		0.837186948743933	TRUE	ready	0	TRUE	-117.479596501285
+strong	phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	profile	finite	TRUE	0.649373200503906	1.12401434078352	profile	ok		0.837186948743933	TRUE	ready	0	TRUE	-117.479596501285
+strong	phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	wald	finite	TRUE	0.376645209689594	0.688416291298492	wald	NA		0.50920398504907	TRUE	ready	0	TRUE	-117.479596501285
+strong	phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	profile	finite	TRUE	0.381844635702411	0.700988638143147	profile	ok		0.50920398504907	TRUE	ready	0	TRUE	-117.479596501285
+strong	spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	wald	finite	TRUE	0.395298287281873	0.718363251969781	wald	NA		0.532886257234967	TRUE	ready	0	TRUE	-147.343836559967
+strong	spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	profile	finite	TRUE	0.40078305186194	0.731507195862973	profile	ok		0.532886257234967	TRUE	ready	0	TRUE	-147.343836559967
+strong	spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	wald	finite	TRUE	0.204880882196755	0.524886714052552	wald	NA		0.32793178105887	TRUE	ready	0	TRUE	-147.343836559967
+strong	spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	profile	finite	TRUE	0.188305258889058	0.508798295465118	profile	ok		0.32793178105887	TRUE	ready	0	TRUE	-147.343836559967
+strong	animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	wald	finite	TRUE	0.537172942567446	0.95665902177713	wald	NA		0.716862149762223	TRUE	ready	0	TRUE	-79.265233466261
+strong	animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	profile	finite	TRUE	0.545134464263222	0.975312977728995	profile	ok		0.716862149762223	TRUE	ready	0	TRUE	-79.265233466261
+strong	animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	wald	finite	TRUE	0.263571744443527	0.567277117775419	wald	NA		0.386675858458946	TRUE	ready	0	TRUE	-79.265233466261
+strong	animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	profile	finite	TRUE	0.261030853101986	0.568950445871954	profile	ok		0.386675858458946	TRUE	ready	0	TRUE	-79.265233466261
+strong	relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	wald	finite	TRUE	0.576042434574129	0.997014322420286	wald	NA		0.75784072046325	TRUE	ready	0	TRUE	-97.5903161909652
+strong	relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	profile	finite	TRUE	0.586240536265293	1.0190115557345	profile	ok		0.75784072046325	TRUE	ready	0	TRUE	-97.5903161909652
+strong	relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	wald	finite	TRUE	0.46139262475737	0.813889882907652	wald	NA		0.612799142736207	TRUE	ready	0	TRUE	-97.5903161909652
+strong	relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	profile	finite	TRUE	0.46891322325287	0.830761903593341	profile	ok		0.612799142736207	TRUE	ready	0	TRUE	-97.5903161909652
+stronger_sigma	phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	wald	finite	TRUE	0.665344738580376	1.14216452860288	wald	NA		0.871741452323486	TRUE	ready	0	TRUE	-75.7129983085928
+stronger_sigma	phylo	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:phylo(1 | species)	profile	finite	TRUE	0.677870979043241	1.16831978435061	profile	ok		0.871741452323486	TRUE	ready	0	TRUE	-75.7129983085928
+stronger_sigma	phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	wald	finite	TRUE	0.742173583400171	1.29800966505487	wald	NA		0.981503175950963	TRUE	ready	0	TRUE	-75.7129983085928
+stronger_sigma	phylo	sigma:x	sd_sigma_x	sd:sigma:phylo(0 + x | species)	profile	finite	TRUE	0.754752490371123	1.32562709332662	profile	ok		0.981503175950963	TRUE	ready	0	TRUE	-75.7129983085928
+stronger_sigma	spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	wald	finite	TRUE	0.436635068922972	0.774993808204438	wald	NA		0.581712536275626	TRUE	ready	0	TRUE	-164.012762470447
+stronger_sigma	spatial	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:spatial(1 | site)	profile	finite	TRUE	0.443095169493526	0.790236777547814	profile	ok		0.581712536275626	TRUE	ready	0	TRUE	-164.012762470447
+stronger_sigma	spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	wald	finite	TRUE	0.320978974948954	0.689208972373962	wald	NA		0.470341992042191	TRUE	ready	0	TRUE	-164.012762470447
+stronger_sigma	spatial	sigma:x	sd_sigma_x	sd:sigma:spatial(0 + x | site)	profile	finite	TRUE	0.318641545417874	0.689801310101292	profile	ok		0.470341992042191	TRUE	ready	0	TRUE	-164.012762470447
+stronger_sigma	animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	wald	finite	TRUE	0.649308148071478	1.12505414447773	wald	NA		0.854696918814486	TRUE	ready	0	TRUE	-188.096811221591
+stronger_sigma	animal	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:animal(1 | id)	profile	finite	TRUE	0.660955757739089	1.14995377192841	profile	ok		0.854696918814486	TRUE	ready	0	TRUE	-188.096811221591
+stronger_sigma	animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	wald	finite	TRUE	0.397550782578864	0.766885774243257	wald	NA		0.552155811070576	TRUE	ready	0	TRUE	-188.096811221591
+stronger_sigma	animal	sigma:x	sd_sigma_x	sd:sigma:animal(0 + x | id)	profile	finite	TRUE	0.402490453680139	0.778745254934335	profile	ok		0.552155811070576	TRUE	ready	0	TRUE	-188.096811221591
+stronger_sigma	relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	wald	finite	TRUE	0.473266483472935	0.82343835899663	wald	NA		0.624264188079902	TRUE	ready	0	TRUE	-202.495796343216
+stronger_sigma	relmat	sigma:(Intercept)	sd_sigma_intercept	sd:sigma:relmat(1 | id)	profile	finite	TRUE	0.481213690874072	0.841071247834871	profile	ok		0.624264188079902	TRUE	ready	0	TRUE	-202.495796343216
+stronger_sigma	relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	wald	finite	TRUE	0.571116294907317	1.00954898036103	wald	NA		0.759321982554995	TRUE	ready	0	TRUE	-202.495796343216
+stronger_sigma	relmat	sigma:x	sd_sigma_x	sd:sigma:relmat(0 + x | id)	profile	finite	TRUE	0.57988436481918	1.02982398053956	profile	ok		0.759321982554995	TRUE	ready	0	TRUE	-202.495796343216

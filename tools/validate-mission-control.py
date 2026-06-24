@@ -8,6 +8,7 @@ developer guard for status drift; it is not part of the R package runtime.
 from __future__ import annotations
 
 import json
+import math
 import pathlib
 import re
 import sys
@@ -52,6 +53,114 @@ STRUCTURED_RE_MU_SLOPE_FIXTURE_AUDIT = (
 )
 STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-mu-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-sigma-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
+    DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-plan.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-sigma-slope-interval-diagnostic-status.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE = (
+    DASHBOARD / "structured-re-sigma-slope-interval-stability-probe.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_DENOMINATOR_ADMISSION = (
+    DASHBOARD / "structured-re-sigma-slope-denominator-admission.tsv"
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-mu-sigma-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-q2-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
+    DASHBOARD / "structured-re-q2-slope-interval-diagnostic-plan.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-q2-slope-interval-diagnostic-status.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_STABILITY_PROBE = (
+    DASHBOARD / "structured-re-q2-slope-interval-stability-probe.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_ADMISSION = (
+    DASHBOARD / "structured-re-q2-slope-denominator-admission.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION = (
+    DASHBOARD / "structured-re-q2-slope-denominator-extension.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE = (
+    DASHBOARD / "structured-re-q2-slope-replicated-denominator-rule.tsv"
+)
+STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
+    DASHBOARD / "structured-re-q2-slope-coverage-pregrid-dry-run.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE = (
+    DASHBOARD / "structured-re-sigma-slope-replicated-denominator-rule.tsv"
+)
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
+    DASHBOARD / "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv"
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
+    DASHBOARD / "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv"
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-mu-sigma-slope-interval-diagnostic-status.tsv"
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE = (
+    DASHBOARD / "structured-re-mu-sigma-slope-interval-stability-probe.tsv"
+)
+STRUCTURED_RE_SPATIAL_MU_BOUNDARY_DIAGNOSTIC = (
+    DASHBOARD / "structured-re-spatial-mu-boundary-diagnostic.tsv"
+)
+STRUCTURED_RE_SPATIAL_MU_PROFILE_GEOMETRY = (
+    DASHBOARD / "structured-re-spatial-mu-profile-geometry.tsv"
+)
+STRUCTURED_RE_SPATIAL_MU_PROFILE_STRATEGY = (
+    DASHBOARD / "structured-re-spatial-mu-profile-strategy.tsv"
+)
+STRUCTURED_RE_SPATIAL_MU_LOWER_START_DIAGNOSTIC = (
+    DASHBOARD / "structured-re-spatial-mu-lower-start-diagnostic.tsv"
+)
+STRUCTURED_RE_SPATIAL_MU_DOMAIN_GUARD_DIAGNOSTIC = (
+    DASHBOARD / "structured-re-spatial-mu-domain-guard-diagnostic.tsv"
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_READINESS = (
+    DASHBOARD / "structured-re-mu-sigma-slope-readiness.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT = (
+    DASHBOARD / "structured-re-q4-slope-identity-preflight.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-q4-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-q4-location-slope-parity-fixture.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
+    DASHBOARD / "structured-re-q4-location-slope-interval-diagnostic-plan.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-q4-location-slope-interval-diagnostic-status.tsv"
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE = (
+    DASHBOARD / "structured-re-q4-location-slope-bootstrap-budget-probe.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
+    DASHBOARD / "structured-re-q4-slope-interval-diagnostic-plan.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
+    DASHBOARD / "structured-re-q4-slope-interval-diagnostic-status.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_STABILITY_PROBE = (
+    DASHBOARD / "structured-re-q4-slope-interval-stability-probe.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY = (
+    DASHBOARD / "structured-re-q4-slope-hessian-geometry.tsv"
+)
+STRUCTURED_RE_Q4_SLOPE_SIGMA_AXIS_DIFFERENTIAL = (
+    DASHBOARD / "structured-re-q4-slope-sigma-axis-differential.tsv"
 )
 STRUCTURED_RE_BALANCE_SLICE_LEDGER = DASHBOARD / "structured-re-balance-100-slices.tsv"
 STRUCTURED_RE_FINISH_SLICE_LEDGER = DASHBOARD / "structured-re-finish-100-slices.tsv"
@@ -218,6 +327,38 @@ Q4_DERIVED_CORRELATION_DELTA_GRID_MINI_RESULTS = (
     / "simulation-artifacts"
     / "2026-06-23-q4-stabilized-preflight"
     / "q4-derived-correlation-delta-grid-mini-results.tsv"
+)
+Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-24-q2-slope-coverage-pregrid-dry-run"
+    / "structured-re-q2-slope-coverage-pregrid-seed-manifest.tsv"
+)
+Q2_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-24-q2-slope-coverage-pregrid-dry-run"
+    / "structured-re-q2-slope-coverage-pregrid-cell-manifest.tsv"
+)
+SIGMA_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-24-sigma-slope-coverage-pregrid-dry-run"
+    / "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv"
+)
+SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-24-sigma-slope-coverage-pregrid-dry-run"
+    / "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv"
 )
 Q4_DERIVED_CORRELATION_DELTA_GRID_ADEMP_DRY_RUN = (
     ROOT
@@ -910,6 +1051,988 @@ STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS = (
     "bridge_status",
     "interval_status",
     "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "interval_methods",
+    "required_fit_evidence",
+    "required_interval_evidence",
+    "denominator_fields",
+    "current_blocker",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_converged",
+    "n_pdhess",
+    "n_finite_intervals",
+    "wald_status",
+    "profile_status",
+    "bootstrap_status",
+    "interval_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS = (
+    "probe_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "n_each",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "stability_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_DENOMINATOR_ADMISSION_FIELDS = (
+    "denominator_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_interval_status",
+    "source_stability_probe",
+    "source_interval_artifact",
+    "source_stability_artifact",
+    "smoke_interval_status",
+    "smoke_n_finite_intervals",
+    "smoke_wald_status",
+    "smoke_profile_status",
+    "smoke_bootstrap_status",
+    "stability_variant_count",
+    "stability_wald_profile_finite_count",
+    "stability_pdhess_true_count",
+    "denominator_admission",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_Q2_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "interval_methods",
+    "required_fit_evidence",
+    "required_interval_evidence",
+    "denominator_fields",
+    "current_blocker",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_artifact",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_converged",
+    "n_pdhess",
+    "n_finite_intervals",
+    "wald_status",
+    "profile_status",
+    "bootstrap_status",
+    "interval_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS = (
+    "probe_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_artifact",
+    "n_each",
+    "intended_sd_mu1_x",
+    "intended_sd_mu2_x",
+    "intended_cor_mu1_mu2_x",
+    "residual_sd1",
+    "residual_sd2",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "stability_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_ADMISSION_FIELDS = (
+    "denominator_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_interval_status",
+    "source_stability_probe",
+    "source_interval_artifact",
+    "source_stability_artifact",
+    "smoke_interval_status",
+    "smoke_n_finite_intervals",
+    "smoke_wald_status",
+    "smoke_profile_status",
+    "smoke_bootstrap_status",
+    "stability_variant_count",
+    "stability_wald_profile_finite_count",
+    "stability_pdhess_true_count",
+    "denominator_admission",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION_FIELDS = (
+    "extension_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_admission",
+    "source_artifact",
+    "n_each",
+    "intended_sd_mu1_x",
+    "intended_sd_mu2_x",
+    "intended_cor_mu1_mu2_x",
+    "residual_sd1",
+    "residual_sd2",
+    "admission_status",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "extension_status",
+    "denominator_extension_status",
+    "failure_class",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS = (
+    "rule_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_admission",
+    "source_extension",
+    "source_interval_status",
+    "source_stability_probe",
+    "admission_status",
+    "extension_variant_count",
+    "extension_wald_profile_finite_count",
+    "extension_candidate_count",
+    "smoke_profile_status",
+    "current_denominator_action",
+    "pregrid_min_replicates",
+    "seed_policy",
+    "failed_profile_retention",
+    "nonconverged_fit_retention",
+    "nonfinite_interval_retention",
+    "bootstrap_refit_retention",
+    "mcse_threshold",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS = (
+    "pregrid_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_rule",
+    "source_seed_manifest",
+    "source_cell_manifest",
+    "current_denominator_action",
+    "denominator_role",
+    "planned_replicates",
+    "planned_cells",
+    "seed_manifest_rows",
+    "target_cell_manifest_rows",
+    "total_cell_manifest_rows",
+    "nominal_coverage",
+    "nominal_mcse_at_150",
+    "replicates_for_mcse_threshold",
+    "mcse_threshold",
+    "mcse_threshold_status",
+    "interval_methods",
+    "retention_policy",
+    "execution_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS = (
+    "rule_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_admission",
+    "source_stability_probe",
+    "source_interval_status",
+    "admission_status",
+    "stability_variant_count",
+    "stability_wald_profile_finite_count",
+    "stability_pdhess_true_count",
+    "smoke_profile_status",
+    "current_denominator_action",
+    "pregrid_min_replicates",
+    "seed_policy",
+    "failed_profile_retention",
+    "nonconverged_fit_retention",
+    "nonfinite_interval_retention",
+    "bootstrap_refit_retention",
+    "mcse_threshold",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS = (
+    "pregrid_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_rule",
+    "source_seed_manifest",
+    "source_cell_manifest",
+    "current_denominator_action",
+    "denominator_role",
+    "planned_replicates",
+    "planned_cells",
+    "seed_manifest_rows",
+    "target_cell_manifest_rows",
+    "total_cell_manifest_rows",
+    "nominal_coverage",
+    "nominal_mcse_at_150",
+    "replicates_for_mcse_threshold",
+    "mcse_threshold",
+    "mcse_threshold_status",
+    "interval_methods",
+    "retention_policy",
+    "execution_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS = (
+    "replicate_index",
+    "seed",
+    "seed_role",
+    "source_rule",
+    "execution_status",
+)
+Q2_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS = (
+    "pregrid_cell_id",
+    "replicate_index",
+    "seed",
+    "structured_type",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "interval_methods",
+    "current_denominator_action",
+    "retention_policy",
+    "execution_status",
+    "coverage_evaluable",
+)
+SIGMA_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS = (
+    Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS
+)
+SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS = (
+    "pregrid_cell_id",
+    "replicate_index",
+    "seed",
+    "structured_type",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "interval_methods",
+    "current_denominator_action",
+    "retention_policy",
+    "execution_status",
+    "coverage_evaluable",
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "interval_methods",
+    "required_fit_evidence",
+    "required_interval_evidence",
+    "denominator_fields",
+    "current_blocker",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_converged",
+    "n_pdhess",
+    "n_finite_intervals",
+    "wald_status",
+    "profile_status",
+    "bootstrap_status",
+    "interval_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS = (
+    "probe_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "n_each",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "stability_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SPATIAL_MU_BOUNDARY_DIAGNOSTIC_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "design_id",
+    "seed",
+    "n_each",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "realized_sd_mu_intercept",
+    "realized_sd_mu_x",
+    "realized_sd_sigma_intercept",
+    "realized_sd_sigma_x",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "diagnostic_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SPATIAL_MU_PROFILE_GEOMETRY_FIELDS = (
+    "geometry_id",
+    "cell_id",
+    "design_id",
+    "seed",
+    "n_each",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "source_diagnostic",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "realized_sd_mu_intercept",
+    "realized_sd_mu_x",
+    "realized_sd_sigma_intercept",
+    "realized_sd_sigma_x",
+    "estimate",
+    "profile_ready",
+    "profile_side",
+    "side_status",
+    "side_message",
+    "side_warnings",
+    "theta_hat",
+    "curvature_se",
+    "initial_step",
+    "step_source",
+    "theta",
+    "endpoint",
+    "root_error",
+    "n_eval",
+    "bracket_step",
+    "n_bracket_step",
+    "fit_convergence",
+    "n_pdhess",
+    "logLik",
+    "diagnostic_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SPATIAL_MU_PROFILE_STRATEGY_FIELDS = (
+    "strategy_id",
+    "cell_id",
+    "design_id",
+    "requested_engine",
+    "effective_engine",
+    "seed",
+    "n_each",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "source_artifact",
+    "source_geometry",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "realized_sd_mu_intercept",
+    "realized_sd_mu_x",
+    "realized_sd_sigma_intercept",
+    "realized_sd_sigma_x",
+    "estimate",
+    "profile_ready",
+    "method_status",
+    "interval_finite",
+    "lower",
+    "upper",
+    "conf_status",
+    "method_message",
+    "method_warnings",
+    "strategy_status",
+    "interval_claim_status",
+    "denominator_admission",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SPATIAL_MU_LOWER_START_DIAGNOSTIC_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "design_id",
+    "strategy",
+    "start_mode",
+    "step_rule",
+    "optimizer_eval_max",
+    "optimizer_iter_max",
+    "seed",
+    "n_each",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "profile_side",
+    "source_artifact",
+    "source_geometry",
+    "source_strategy",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "realized_sd_mu_intercept",
+    "realized_sd_mu_x",
+    "realized_sd_sigma_intercept",
+    "realized_sd_sigma_x",
+    "estimate",
+    "profile_ready",
+    "theta_hat",
+    "curvature_se",
+    "cutoff",
+    "initial_step",
+    "step_source",
+    "theta",
+    "endpoint",
+    "root_error",
+    "n_eval",
+    "bracket_step",
+    "n_bracket_step",
+    "side_status",
+    "side_message",
+    "side_warnings",
+    "fit_convergence",
+    "n_pdhess",
+    "diagnostic_status",
+    "interval_claim_status",
+    "denominator_admission",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SPATIAL_MU_DOMAIN_GUARD_DIAGNOSTIC_FIELDS = (
+    "diagnostic_id",
+    "cell_id",
+    "design_id",
+    "seed",
+    "n_each",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "profile_side",
+    "source_artifact",
+    "source_lower_start",
+    "domain_offsets",
+    "n_domain_offsets",
+    "n_fixed_objective_finite",
+    "n_fixed_gradient_finite",
+    "n_fixed_gradient_bad_total",
+    "intended_sd_mu_intercept",
+    "intended_sd_mu_x",
+    "intended_sd_sigma_intercept",
+    "intended_sd_sigma_x",
+    "realized_sd_mu_intercept",
+    "realized_sd_mu_x",
+    "realized_sd_sigma_intercept",
+    "realized_sd_sigma_x",
+    "estimate",
+    "theta_hat",
+    "profile_ready",
+    "guarded_initial_step",
+    "fn_penalty_status",
+    "fn_penalty_endpoint",
+    "fn_penalty_root_error",
+    "fn_penalty_n_eval",
+    "fn_penalty_message",
+    "zero_gr_penalty_status",
+    "zero_gr_penalty_endpoint",
+    "zero_gr_penalty_root_error",
+    "zero_gr_penalty_n_eval",
+    "zero_gr_penalty_message",
+    "diagnostic_status",
+    "interval_claim_status",
+    "denominator_admission",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_MU_SIGMA_SLOPE_READINESS_FIELDS = (
+    "readiness_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "dimension_pattern",
+    "endpoint_set",
+    "slope_class",
+    "desired_endpoint_member_set",
+    "current_separate_mu_evidence",
+    "current_separate_sigma_evidence",
+    "extractor_identity_gate",
+    "runtime_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT_FIELDS = (
+    "identity_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "dimension_pattern",
+    "endpoint_set",
+    "slope_class",
+    "desired_endpoint_member_set",
+    "coefficient_order",
+    "planned_direct_sd_target_set",
+    "direct_sd_target_count",
+    "labelled_covariance_pair_count",
+    "covariance_layout",
+    "extractor_identity_gate",
+    "runtime_status",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "source_qseries_status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
+    STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE_FIELDS = (
+    "probe_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_interval_status",
+    "source_interval_artifact",
+    "source_bootstrap_artifact",
+    "bootstrap_replicates",
+    "bootstrap_seed",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_converged",
+    "n_pdhess",
+    "bootstrap_status",
+    "bootstrap_finite",
+    "bootstrap_lower",
+    "bootstrap_upper",
+    "conf_status",
+    "method_message",
+    "method_warnings",
+    "estimate",
+    "profile_ready",
+    "profile_note",
+    "probe_status",
+    "denominator_status",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS = (
+    STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS = (
+    STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+)
+STRUCTURED_RE_Q4_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS = (
+    "probe_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_artifact",
+    "n_levels",
+    "n_each",
+    "intended_sd_mu1_intercept",
+    "intended_sd_mu1_x",
+    "intended_sd_mu2_intercept",
+    "intended_sd_mu2_x",
+    "intended_sd_sigma1_intercept",
+    "intended_sd_sigma1_x",
+    "intended_sd_sigma2_intercept",
+    "intended_sd_sigma2_x",
+    "observed_target_rows",
+    "n_fit_ok",
+    "n_pdhess",
+    "estimate",
+    "wald_status",
+    "profile_status",
+    "stability_status",
+    "failure_class",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY_FIELDS = (
+    "geometry_id",
+    "cell_id",
+    "variant",
+    "formula_cell",
+    "structured_type",
+    "source_stability_probe",
+    "source_stability_artifact",
+    "source_artifact",
+    "n_levels",
+    "n_each",
+    "intended_sd_mu1_intercept",
+    "intended_sd_mu1_x",
+    "intended_sd_mu2_intercept",
+    "intended_sd_mu2_x",
+    "intended_sd_sigma1_intercept",
+    "intended_sd_sigma1_x",
+    "intended_sd_sigma2_intercept",
+    "intended_sd_sigma2_x",
+    "fit_convergence",
+    "n_pdhess",
+    "logLik",
+    "max_abs_gradient_fixed",
+    "optimizer_attempt_count",
+    "optimizer_selected",
+    "optimizer_selected_preset",
+    "optimizer_selected_status",
+    "fallback_selected",
+    "optimizer_attempt_presets",
+    "optimizer_attempt_statuses",
+    "cov_fixed_status",
+    "cov_fixed_dim",
+    "cov_fixed_finite_count",
+    "cov_fixed_total",
+    "min_cov_fixed_eigenvalue",
+    "max_cov_fixed_eigenvalue",
+    "n_cov_fixed_nonpositive_eigenvalues",
+    "raw_hessian_status",
+    "raw_hessian_message",
+    "direct_sd_target_count",
+    "n_profile_ready_direct_sd",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "n_direct_sd_at_lower_bound",
+    "n_mu_direct_sd_at_lower_bound",
+    "n_sigma_direct_sd_at_lower_bound",
+    "min_mu_direct_sd_estimate",
+    "min_sigma_direct_sd_estimate",
+    "max_abs_derived_correlation",
+    "n_abs_derived_correlation_gt_0_95",
+    "n_derived_correlation_zero",
+    "geometry_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_SLOPE_SIGMA_AXIS_DIFFERENTIAL_FIELDS = (
+    "differential_id",
+    "cell_id",
+    "variant",
+    "model_axis",
+    "formula_cell",
+    "structured_type",
+    "structured_endpoint_set",
+    "structured_member_count",
+    "source_hessian_geometry",
+    "source_artifact",
+    "n_levels",
+    "n_each",
+    "intended_sd_mu1_intercept",
+    "intended_sd_mu1_x",
+    "intended_sd_mu2_intercept",
+    "intended_sd_mu2_x",
+    "intended_sd_sigma1_intercept",
+    "intended_sd_sigma1_x",
+    "intended_sd_sigma2_intercept",
+    "intended_sd_sigma2_x",
+    "fit_convergence",
+    "n_pdhess",
+    "logLik",
+    "max_abs_gradient_fixed",
+    "optimizer_attempt_count",
+    "optimizer_selected",
+    "optimizer_selected_preset",
+    "optimizer_selected_status",
+    "fallback_selected",
+    "optimizer_attempt_presets",
+    "optimizer_attempt_statuses",
+    "cov_fixed_status",
+    "cov_fixed_dim",
+    "cov_fixed_finite_count",
+    "cov_fixed_total",
+    "min_cov_fixed_eigenvalue",
+    "max_cov_fixed_eigenvalue",
+    "n_cov_fixed_nonpositive_eigenvalues",
+    "raw_hessian_status",
+    "raw_hessian_message",
+    "direct_sd_target_count",
+    "n_profile_ready_direct_sd",
+    "min_direct_sd_estimate",
+    "max_direct_sd_estimate",
+    "n_direct_sd_at_lower_bound",
+    "n_mu_direct_sd_at_lower_bound",
+    "n_sigma_direct_sd_at_lower_bound",
+    "min_mu_direct_sd_estimate",
+    "min_sigma_direct_sd_estimate",
+    "max_abs_derived_correlation",
+    "n_abs_derived_correlation_gt_0_95",
+    "n_derived_correlation_zero",
+    "differential_status",
+    "interval_claim_status",
+    "status",
     "evidence_url",
     "claim_boundary",
     "next_gate",
@@ -2911,14 +4034,22 @@ STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS = {
     "qseries_spatial_q1_mu_one_slope",
     "qseries_animal_q1_mu_one_slope",
     "qseries_relmat_q1_mu_one_slope",
-    "qseries_phylo_q1_sigma_one_slope_planned",
-    "qseries_spatial_q1_sigma_one_slope_planned",
-    "qseries_animal_q1_sigma_one_slope_planned",
-    "qseries_relmat_q1_sigma_one_slope_planned",
+    "qseries_phylo_q1_sigma_one_slope",
+    "qseries_spatial_q1_sigma_one_slope",
+    "qseries_animal_q1_sigma_one_slope",
+    "qseries_relmat_q1_sigma_one_slope",
     "qseries_phylo_q2_mu1_mu2_intercept",
     "qseries_spatial_q2_mu1_mu2_intercept",
     "qseries_animal_q2_mu1_mu2_intercept",
     "qseries_relmat_q2_mu1_mu2_intercept",
+    "qseries_phylo_q2_mu1_mu2_one_slope",
+    "qseries_spatial_q2_mu1_mu2_one_slope",
+    "qseries_animal_q2_mu1_mu2_one_slope",
+    "qseries_relmat_q2_mu1_mu2_one_slope",
+    "qseries_phylo_q4_mu1_mu2_one_slope",
+    "qseries_spatial_q4_mu1_mu2_one_slope",
+    "qseries_animal_q4_mu1_mu2_one_slope",
+    "qseries_relmat_q4_mu1_mu2_one_slope",
     "qseries_phylo_q2_plus_q2_intercept",
     "qseries_spatial_q2_plus_q2_sigma_rejected",
     "qseries_animal_q2_plus_q2_sigma_rejected",
@@ -2941,6 +4072,18 @@ STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS = {
     "qseries_nongaussian_structured_slopes_planned",
     "qseries_phylo_direct_sd_univariate",
     "qseries_phylo_direct_sd_bivariate",
+}
+STRUCTURED_RE_Q4_LOCATION_SLOPE_CELLS = {
+    "qseries_phylo_q4_mu1_mu2_one_slope",
+    "qseries_spatial_q4_mu1_mu2_one_slope",
+    "qseries_animal_q4_mu1_mu2_one_slope",
+    "qseries_relmat_q4_mu1_mu2_one_slope",
+}
+STRUCTURED_RE_Q8_RUNTIME_CELLS = {
+    "qseries_phylo_q4_all_four_one_slope_planned",
+    "qseries_spatial_q4_all_four_one_slope_planned",
+    "qseries_animal_q4_all_four_one_slope_planned",
+    "qseries_relmat_q4_all_four_one_slope_planned",
 }
 STRUCTURED_RE_INPUT_SCOPES = {
     "tree",
@@ -3150,6 +4293,126 @@ def main() -> int:
     )
     structured_re_mu_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_sigma_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_sigma_slope_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_sigma_slope_interval_stability_probe_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE
+    )
+    structured_re_sigma_slope_denominator_admission_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_DENOMINATOR_ADMISSION
+    )
+    structured_re_mu_sigma_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_MU_SIGMA_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_q2_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_q2_slope_interval_diagnostic_plan_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_q2_slope_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_q2_slope_interval_stability_probe_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_INTERVAL_STABILITY_PROBE
+    )
+    structured_re_q2_slope_denominator_admission_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_ADMISSION
+    )
+    structured_re_q2_slope_denominator_extension_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION
+    )
+    structured_re_q2_slope_replicated_denominator_rule_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE
+    )
+    structured_re_q2_slope_coverage_pregrid_dry_run_rows = read_tsv(
+        STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN
+    )
+    structured_re_sigma_slope_replicated_denominator_rule_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE
+    )
+    structured_re_sigma_slope_coverage_pregrid_dry_run_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN
+    )
+    q2_slope_coverage_pregrid_seed_manifest_rows = read_tsv(
+        Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST
+    )
+    q2_slope_coverage_pregrid_cell_manifest_rows = read_tsv(
+        Q2_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST
+    )
+    sigma_slope_coverage_pregrid_seed_manifest_rows = read_tsv(
+        SIGMA_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST
+    )
+    sigma_slope_coverage_pregrid_cell_manifest_rows = read_tsv(
+        SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST
+    )
+    structured_re_mu_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
+        STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_mu_sigma_slope_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_mu_sigma_slope_interval_stability_probe_rows = read_tsv(
+        STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE
+    )
+    structured_re_spatial_mu_boundary_diagnostic_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_MU_BOUNDARY_DIAGNOSTIC
+    )
+    structured_re_spatial_mu_profile_geometry_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_MU_PROFILE_GEOMETRY
+    )
+    structured_re_spatial_mu_profile_strategy_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_MU_PROFILE_STRATEGY
+    )
+    structured_re_spatial_mu_lower_start_diagnostic_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_MU_LOWER_START_DIAGNOSTIC
+    )
+    structured_re_spatial_mu_domain_guard_diagnostic_rows = read_tsv(
+        STRUCTURED_RE_SPATIAL_MU_DOMAIN_GUARD_DIAGNOSTIC
+    )
+    structured_re_mu_sigma_slope_readiness_rows = read_tsv(
+        STRUCTURED_RE_MU_SIGMA_SLOPE_READINESS
+    )
+    structured_re_q4_slope_identity_preflight_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT
+    )
+    structured_re_q4_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_q4_location_slope_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_q4_location_slope_interval_diagnostic_plan_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_q4_location_slope_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_q4_location_slope_bootstrap_budget_probe_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE
+    )
+    structured_re_q4_slope_interval_diagnostic_plan_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
+    )
+    structured_re_q4_slope_interval_diagnostic_status_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_STATUS
+    )
+    structured_re_q4_slope_interval_stability_probe_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_INTERVAL_STABILITY_PROBE
+    )
+    structured_re_q4_slope_hessian_geometry_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY
+    )
+    structured_re_q4_slope_sigma_axis_differential_rows = read_tsv(
+        STRUCTURED_RE_Q4_SLOPE_SIGMA_AXIS_DIFFERENTIAL
     )
     structured_re_balance_slice_rows = read_tsv(STRUCTURED_RE_BALANCE_SLICE_LEDGER)
     structured_re_finish_slice_rows = read_tsv(STRUCTURED_RE_FINISH_SLICE_LEDGER)
@@ -4697,11 +5960,57 @@ def main() -> int:
             row.get("dimension_pattern") in {"q6", "q8"}
             and row.get("structure_provider") != "ordinary"
             and row.get("fit_status") not in {"planned", "unsupported", "blocked"}
+            and row_id not in STRUCTURED_RE_Q8_RUNTIME_CELLS
         ):
             errors.append(
                 f"{row_id}: structured {row.get('dimension_pattern')} must remain "
                 "planned, unsupported, or blocked until runtime evidence exists"
             )
+        if row_id in STRUCTURED_RE_Q4_LOCATION_SLOPE_CELLS:
+            expected_values = {
+                "family_class": "gaussian",
+                "family": "biv_gaussian()",
+                "dimension_pattern": "q4",
+                "endpoint_set": "mu1+mu2",
+                "slope_class": "labelled_slope_covariance",
+                "covariance_layout": (
+                    "labelled_structured_location_intercept_slope_covariance"
+                ),
+                "route": "native_direct_bridge_fixture",
+                "estimator_requested": "ML",
+                "estimator_effective": "ML",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "authority_status": "source",
+                "evidence_url": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-q4-location-slope-parity-fixture.tsv"
+                ),
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if "1 + x | p" not in row.get("formula_cell", ""):
+                errors.append(f"{row_id}: formula_cell must name the labelled slope")
+            claim_boundary = row.get("claim_boundary", "")
+            for phrase in (
+                "same-target fixture",
+                "exact four-member q4 location endpoint map",
+                "broad bridge support",
+                "partial location-scale support",
+                "interval reliability",
+                "coverage",
+                "q4 REML",
+                "AI-REML",
+                "public support",
+                "broader q8 support",
+            ):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: claim_boundary must mention {phrase}")
     missing_q_series_cells = sorted(
         STRUCTURED_RE_REQUIRED_Q_SERIES_CELLS - q_series_cell_ids
     )
@@ -4801,7 +6110,7 @@ def main() -> int:
         for field in ("interval_status", "coverage_status"):
             if row.get(field) != "planned":
                 errors.append(f"{row_id}: {field} must remain planned")
-        implemented_mu_slope_parity = {"phylo", "spatial", "animal"}
+        implemented_mu_slope_parity = {"phylo", "spatial", "animal", "relmat"}
         if provider in implemented_mu_slope_parity:
             for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
                 if row.get(field) != "fixture_available":
@@ -4831,6 +6140,13 @@ def main() -> int:
                 "claim_boundary", ""
             ):
                 errors.append(f"{row_id}: animal claim_boundary must name A-matrix")
+            if provider == "relmat":
+                if "K-matrix" not in row.get("claim_boundary", ""):
+                    errors.append(f"{row_id}: relmat claim_boundary must name K-matrix")
+                if "K/Q same-target parity" not in row.get("claim_boundary", ""):
+                    errors.append(f"{row_id}: relmat claim_boundary must name K/Q parity")
+                if "K/Q same-target parity" not in row.get("next_gate", ""):
+                    errors.append(f"{row_id}: relmat next_gate must keep K/Q boundary")
         else:
             for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
                 if row.get(field) != "planned":
@@ -4848,6 +6164,7347 @@ def main() -> int:
             errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
         if not evidence_reference_exists(row.get("evidence_url", "")):
             errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    expected_sigma_slope_parity_fixtures = {
+        "phylo": "sigma_slope_phylo_same_target_ml",
+        "spatial": "sigma_slope_spatial_same_target_ml",
+        "animal": "sigma_slope_animal_same_target_ml",
+        "relmat": "sigma_slope_relmat_same_target_ml",
+    }
+    seen_sigma_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_sigma_slope_parity_fixture_rows) != len(
+        expected_sigma_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-sigma-slope-parity-fixture.tsv has "
+            f"{len(structured_re_sigma_slope_parity_fixture_rows)} rows; expected "
+            f"{len(expected_sigma_slope_parity_fixtures)}"
+        )
+    for row in structured_re_sigma_slope_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE sigma slope parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_sigma_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_sigma_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_sigma_slope_parity_fixtures:
+            errors.append(
+                f"duplicate structured RE sigma slope parity fixture id: {row_id}"
+            )
+        seen_sigma_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q1":
+            errors.append(f"{row_id}: dimension must remain q1")
+        if row.get("endpoint") != "sigma":
+            errors.append(f"{row_id}: endpoint must remain sigma")
+        if row.get("slope_class") != "independent_one_slope":
+            errors.append(f"{row_id}: slope_class must remain independent_one_slope")
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        if row.get("coefficient_order") != (
+            "sigma:(Intercept);sigma:x;sd_sigma:structured(Intercept);"
+            "sd_sigma:structured(x)"
+        ):
+            errors.append(f"{row_id}: coefficient_order changed")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        expected_matrix_slot = {
+            "phylo": "tree",
+            "spatial": "coords",
+            "animal": "A",
+            "relmat": "K",
+        }[provider]
+        expected_input_scale = {
+            "phylo": "ultrametric_tree_branch_lengths",
+            "spatial": "coordinates_to_fixed_covariance_K",
+            "animal": "additive_covariance",
+            "relmat": "user_covariance",
+        }[provider]
+        if row.get("matrix_slot") != expected_matrix_slot:
+            errors.append(
+                f"{row_id}: matrix_slot must remain {expected_matrix_slot}"
+            )
+        if row.get("input_scale") != expected_input_scale:
+            errors.append(
+                f"{row_id}: input_scale must remain {expected_input_scale}"
+            )
+        if "broad bridge support" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: claim_boundary must keep broad bridge unsupported")
+        if "matched mu+sigma" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: claim_boundary must keep matched mu+sigma blocked")
+        if provider == "spatial" and "fixed-covariance" not in row.get(
+            "claim_boundary", ""
+        ):
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if provider == "animal" and "A-matrix" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: animal claim_boundary must name A-matrix")
+        if provider == "relmat" and "K-matrix" not in row.get("claim_boundary", ""):
+            errors.append(f"{row_id}: relmat claim_boundary must name K-matrix")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+
+    qseries_by_cell = {
+        row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
+    }
+    expected_sigma_interval_profiles = {
+        "phylo": {
+            "sigma:(Intercept)": "sd:sigma:phylo(1 | species)",
+            "sigma:x": "sd:sigma:phylo(0 + x | species)",
+        },
+        "spatial": {
+            "sigma:(Intercept)": "sd:sigma:spatial(1 | site)",
+            "sigma:x": "sd:sigma:spatial(0 + x | site)",
+        },
+        "animal": {
+            "sigma:(Intercept)": "sd:sigma:animal(1 | id)",
+            "sigma:x": "sd:sigma:animal(0 + x | id)",
+        },
+        "relmat": {
+            "sigma:(Intercept)": "sd:sigma:relmat(1 | id)",
+            "sigma:x": "sd:sigma:relmat(0 + x | id)",
+        },
+    }
+    expected_sigma_interval_sd_targets = {
+        "sigma:(Intercept)": "sd_sigma_intercept",
+        "sigma:x": "sd_sigma_x",
+    }
+    expected_sigma_interval_count = sum(
+        len(endpoint_members)
+        for endpoint_members in expected_sigma_interval_profiles.values()
+    )
+    seen_sigma_interval_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_sigma_slope_interval_diagnostic_plan_rows)
+        != expected_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-interval-diagnostic-plan.tsv has "
+            f"{len(structured_re_sigma_slope_interval_diagnostic_plan_rows)} rows; "
+            f"expected {expected_sigma_interval_count}"
+        )
+    for row in structured_re_sigma_slope_interval_diagnostic_plan_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE sigma slope interval diagnostic plan>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-interval-diagnostic-plan.tsv "
+                "fields do not match the plan contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = f"sigma_slope_interval_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (provider, endpoint_member)
+        if target_key in seen_sigma_interval_targets:
+            errors.append(
+                "duplicate structured RE sigma interval diagnostic target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_sigma_interval_targets.add(target_key)
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for method in ("wald", "profile", "bootstrap"):
+            if method not in row.get("interval_methods", ""):
+                errors.append(f"{row_id}: interval_methods must include {method}")
+        for required in (
+            "point_fit",
+            "extractor_ready",
+            "profile_targets_direct_ready",
+            "same_target_fixture_parity",
+        ):
+            if required not in row.get("required_fit_evidence", ""):
+                errors.append(f"{row_id}: required_fit_evidence must include {required}")
+        if "finite_intervals_by_method" not in row.get(
+            "required_interval_evidence",
+            "",
+        ):
+            errors.append(f"{row_id}: required_interval_evidence must require finite intervals")
+        if "coverage_mcse<=0.01" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence must require MCSE")
+        for field in (
+            "coverage_denominator",
+            "n_total",
+            "n_fit_ok",
+            "n_failed_fit",
+            "n_pdhess",
+            "n_interval_finite",
+            "n_interval_unavailable",
+            "coverage_mcse",
+        ):
+            if field not in row.get("denominator_fields", ""):
+                errors.append(f"{row_id}: denominator_fields must include {field}")
+        if row.get("current_blocker") != "interval_diagnostics_not_run":
+            errors.append(f"{row_id}: current_blocker must remain interval_diagnostics_not_run")
+        if row.get("status") != "planned":
+            errors.append(f"{row_id}: interval diagnostic plan must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        for forbidden_claim in (
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "matched mu+sigma support",
+            "broad bridge support",
+        ):
+            if forbidden_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must reject {forbidden_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if "before calibrated coverage wording" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage wording gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_sigma_interval_targets = {
+        (provider, endpoint_member)
+        for provider, endpoint_members in expected_sigma_interval_profiles.items()
+        for endpoint_member in endpoint_members
+    }
+    missing_sigma_interval_targets = sorted(
+        expected_sigma_interval_targets - seen_sigma_interval_targets
+    )
+    if missing_sigma_interval_targets:
+        errors.append(
+            "structured-re-sigma-slope-interval-diagnostic-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_interval_targets
+            )
+        )
+
+    seen_sigma_interval_status_targets: set[tuple[str, str]] = set()
+    sigma_plan_target_keys = {
+        (row.get("structured_type", ""), row.get("endpoint_member", ""))
+        for row in structured_re_sigma_slope_interval_diagnostic_plan_rows
+    }
+    expected_sigma_wald_bootstrap_targets = {("animal", "sigma:x")}
+    expected_sigma_all_finite_targets = (
+        expected_sigma_interval_targets - expected_sigma_wald_bootstrap_targets
+    )
+    if (
+        len(structured_re_sigma_slope_interval_diagnostic_status_rows)
+        != expected_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-interval-diagnostic-status.tsv has "
+            f"{len(structured_re_sigma_slope_interval_diagnostic_status_rows)} rows; "
+            f"expected {expected_sigma_interval_count}"
+        )
+    for row in structured_re_sigma_slope_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE sigma slope interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = f"sigma_slope_interval_status_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (provider, endpoint_member)
+        if target_key in seen_sigma_interval_status_targets:
+            errors.append(
+                "duplicate structured RE sigma interval diagnostic status target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_sigma_interval_status_targets.add(target_key)
+        if target_key not in sigma_plan_target_keys:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_converged", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        if row.get("bootstrap_status") != "finite":
+            errors.append(f"{row_id}: bootstrap_status must remain finite")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_sigma_all_finite_targets:
+            expected_method_status = {
+                "n_finite_intervals": "3",
+                "wald_status": "finite",
+                "profile_status": "finite",
+                "interval_status": "wald_profile_bootstrap_finite",
+                "failure_class": "none",
+            }
+            if "Repeat with more deterministic fixtures" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require repeated diagnostics")
+        elif target_key in expected_sigma_wald_bootstrap_targets:
+            expected_method_status = {
+                "n_finite_intervals": "2",
+                "wald_status": "finite",
+                "profile_status": "nonfinite",
+                "interval_status": "wald_bootstrap_finite_profile_failed",
+                "failure_class": "profile_failed_or_nonfinite",
+            }
+            if "boundary/profile failures" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose profile failure")
+        else:
+            errors.append(f"{row_id}: unexpected sigma interval diagnostic status target")
+            expected_method_status = {}
+        for field, expected in expected_method_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "sigma-only one-slope interval smoke only",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "matched mu+sigma support",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_sigma_interval_status_targets = sorted(
+        expected_sigma_interval_targets - seen_sigma_interval_status_targets
+    )
+    if missing_sigma_interval_status_targets:
+        errors.append(
+            "structured-re-sigma-slope-interval-diagnostic-status.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_interval_status_targets
+            )
+        )
+
+    expected_sigma_stability_variants = {
+        "strong": {
+            "n_each": "22",
+            "intended_sd_sigma_intercept": 0.60,
+            "intended_sd_sigma_x": 0.45,
+        },
+        "stronger_sigma": {
+            "n_each": "24",
+            "intended_sd_sigma_intercept": 0.85,
+            "intended_sd_sigma_x": 0.65,
+        },
+    }
+    expected_sigma_stability_count = expected_sigma_interval_count * len(
+        expected_sigma_stability_variants
+    )
+    seen_sigma_stability_targets: set[tuple[str, str, str]] = set()
+    sigma_stability_finite_count = 0
+    if (
+        len(structured_re_sigma_slope_interval_stability_probe_rows)
+        != expected_sigma_stability_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-interval-stability-probe.tsv has "
+            f"{len(structured_re_sigma_slope_interval_stability_probe_rows)} rows; "
+            f"expected {expected_sigma_stability_count}"
+        )
+    for row in structured_re_sigma_slope_interval_stability_probe_rows:
+        row_id = row.get(
+            "probe_id",
+            "<structured RE sigma slope interval stability probe>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-interval-stability-probe.tsv "
+                "fields do not match the probe contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if variant not in expected_sigma_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        variant_expectations = expected_sigma_stability_variants[variant]
+        if row.get("n_each") != variant_expectations["n_each"]:
+            errors.append(
+                f"{row_id}: n_each must remain {variant_expectations['n_each']}"
+            )
+        for field in ("intended_sd_sigma_intercept", "intended_sd_sigma_x"):
+            expect_float_close(
+                errors,
+                row_id,
+                field,
+                row.get(field),
+                variant_expectations[field],
+            )
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = (
+            f"sigma_slope_interval_stability_{variant}_{provider}_{endpoint_token}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: probe_id must be {expected_id}")
+        target_key = (variant, provider, endpoint_member)
+        if target_key in seen_sigma_stability_targets:
+            errors.append(
+                "duplicate structured RE sigma interval stability target: "
+                f"{variant} {provider} {endpoint_member}"
+            )
+        seen_sigma_stability_targets.add(target_key)
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        try:
+            float(row.get("estimate", ""))
+        except ValueError:
+            errors.append(f"{row_id}: estimate must be numeric")
+        expected_probe_status = {
+            "wald_status": "finite",
+            "profile_status": "finite",
+            "stability_status": "wald_profile_finite",
+            "failure_class": "none",
+        }
+        sigma_stability_finite_count += 1
+        for field, expected in expected_probe_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if "bootstrap denominators" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep bootstrap denominators gated")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "sigma-only one-slope stability probe only",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "matched mu+sigma support",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_sigma_stability_targets = {
+        (variant, provider, endpoint_member)
+        for variant in expected_sigma_stability_variants
+        for provider, endpoint_members in expected_sigma_interval_profiles.items()
+        for endpoint_member in endpoint_members
+    }
+    missing_sigma_stability_targets = sorted(
+        expected_sigma_stability_targets - seen_sigma_stability_targets
+    )
+    if missing_sigma_stability_targets:
+        errors.append(
+            "structured-re-sigma-slope-interval-stability-probe.tsv missing targets: "
+            + ", ".join(
+                f"{variant}:{provider}:{endpoint_member}"
+                for variant, provider, endpoint_member in missing_sigma_stability_targets
+            )
+        )
+    if sigma_stability_finite_count != expected_sigma_stability_count:
+        errors.append(
+            "structured-re-sigma-slope-interval-stability-probe.tsv must keep "
+            f"{expected_sigma_stability_count} finite Wald/profile rows, saw "
+            f"{sigma_stability_finite_count}"
+        )
+
+    expected_sigma_denominator_holdout = {("animal", "sigma:x")}
+    expected_sigma_denominator_candidates = (
+        expected_sigma_interval_targets - expected_sigma_denominator_holdout
+    )
+    seen_sigma_denominator_targets: set[tuple[str, str]] = set()
+    sigma_denominator_candidate_count = 0
+    sigma_denominator_holdout_count = 0
+    if (
+        len(structured_re_sigma_slope_denominator_admission_rows)
+        != expected_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-denominator-admission.tsv has "
+            f"{len(structured_re_sigma_slope_denominator_admission_rows)} rows; "
+            f"expected {expected_sigma_interval_count}"
+        )
+    for row in structured_re_sigma_slope_denominator_admission_rows:
+        row_id = row.get(
+            "denominator_id",
+            "<structured RE sigma slope denominator admission>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_DENOMINATOR_ADMISSION_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-denominator-admission.tsv "
+                "fields do not match the denominator contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_DENOMINATOR_ADMISSION_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = f"sigma_slope_denominator_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: denominator_id must be {expected_id}")
+        target_key = (provider, endpoint_member)
+        if target_key in seen_sigma_denominator_targets:
+            errors.append(
+                "duplicate structured RE sigma denominator target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_sigma_denominator_targets.add(target_key)
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for source_field in (
+            "source_interval_status",
+            "source_stability_probe",
+            "source_interval_artifact",
+            "source_stability_artifact",
+        ):
+            if not evidence_reference_exists(row.get(source_field, "")):
+                errors.append(f"{row_id}: {source_field} does not resolve locally")
+        for field, expected in (
+            ("stability_variant_count", "2"),
+            ("stability_wald_profile_finite_count", "2"),
+            ("stability_pdhess_true_count", "2"),
+            ("coverage_status", "not_evaluated"),
+            ("interval_claim_status", "diagnostic_only"),
+            ("status", "covered"),
+            ("smoke_bootstrap_status", "finite"),
+        ):
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if target_key in expected_sigma_denominator_candidates:
+            expected_denominator_status = {
+                "smoke_interval_status": "wald_profile_bootstrap_finite",
+                "smoke_n_finite_intervals": "3",
+                "smoke_wald_status": "finite",
+                "smoke_profile_status": "finite",
+                "denominator_admission": "diagnostic_denominator_candidate",
+            }
+            sigma_denominator_candidate_count += 1
+            if "MCSE-calibrated denominator accounting" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(f"{row_id}: next_gate must keep MCSE accounting gated")
+        elif target_key in expected_sigma_denominator_holdout:
+            expected_denominator_status = {
+                "smoke_interval_status": "wald_bootstrap_finite_profile_failed",
+                "smoke_n_finite_intervals": "2",
+                "smoke_wald_status": "finite",
+                "smoke_profile_status": "nonfinite",
+                "denominator_admission": "not_admitted_profile_failure",
+            }
+            sigma_denominator_holdout_count += 1
+            if "endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose profile failure")
+        else:
+            errors.append(f"{row_id}: unexpected sigma denominator target")
+            expected_denominator_status = {}
+        for field, expected in expected_denominator_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "denominator-admission diagnostic only",
+            "no interval reliability",
+            "interval coverage",
+            "coverage acceptance",
+            "matched mu+sigma support",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_sigma_denominator_targets = sorted(
+        expected_sigma_interval_targets - seen_sigma_denominator_targets
+    )
+    if missing_sigma_denominator_targets:
+        errors.append(
+            "structured-re-sigma-slope-denominator-admission.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_denominator_targets
+            )
+        )
+    if sigma_denominator_candidate_count != 7:
+        errors.append(
+            "structured-re-sigma-slope-denominator-admission.tsv must keep "
+            f"7 diagnostic candidates, saw {sigma_denominator_candidate_count}"
+        )
+    if sigma_denominator_holdout_count != 1:
+        errors.append(
+            "structured-re-sigma-slope-denominator-admission.tsv must keep "
+            f"1 profile-failure holdout, saw {sigma_denominator_holdout_count}"
+        )
+
+    expected_sigma_replicated_holdout = expected_sigma_denominator_holdout
+    expected_sigma_replicated_eligible = expected_sigma_denominator_candidates
+    seen_sigma_replicated_targets: set[tuple[str, str]] = set()
+    sigma_replicated_eligible_count = 0
+    sigma_replicated_holdout_count = 0
+    if (
+        len(structured_re_sigma_slope_replicated_denominator_rule_rows)
+        != expected_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-replicated-denominator-rule.tsv has "
+            f"{len(structured_re_sigma_slope_replicated_denominator_rule_rows)} rows; "
+            f"expected {expected_sigma_interval_count}"
+        )
+    for row in structured_re_sigma_slope_replicated_denominator_rule_rows:
+        row_id = row.get("rule_id", "<structured RE sigma slope denominator rule>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-replicated-denominator-rule.tsv "
+                "fields do not match the rule contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        target_key = (provider, endpoint_member)
+        if target_key in seen_sigma_replicated_targets:
+            errors.append(
+                "duplicate structured RE sigma replicated denominator target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_sigma_replicated_targets.add(target_key)
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = (
+            "sigma_slope_replicated_denominator_rule_"
+            + provider
+            + "_"
+            + endpoint_token
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: rule_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_sources = {
+            "source_admission": "docs/dev-log/dashboard/structured-re-sigma-slope-denominator-admission.tsv",
+            "source_stability_probe": "docs/dev-log/dashboard/structured-re-sigma-slope-interval-stability-probe.tsv",
+            "source_interval_status": "docs/dev-log/dashboard/structured-re-sigma-slope-interval-diagnostic-status.tsv",
+        }
+        for field, expected in expected_sources.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must be {expected}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        for field, expected in (
+            ("stability_variant_count", "2"),
+            ("stability_wald_profile_finite_count", "2"),
+            ("stability_pdhess_true_count", "2"),
+            ("pregrid_min_replicates", "150"),
+            ("seed_policy", "predeclared_seed_manifest_required_before_execution"),
+            ("failed_profile_retention", "retain_in_denominator"),
+            ("nonconverged_fit_retention", "retain_in_denominator"),
+            ("nonfinite_interval_retention", "retain_in_denominator"),
+            (
+                "bootstrap_refit_retention",
+                "record_attempts_and_retain_target_denominator",
+            ),
+            ("mcse_threshold", "0.01"),
+            ("coverage_evaluable", "FALSE"),
+            ("coverage_status", "not_evaluated"),
+            ("interval_claim_status", "diagnostic_only"),
+            ("status", "covered"),
+        ):
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if target_key in expected_sigma_replicated_holdout:
+            if row.get("admission_status") != "not_admitted_profile_failure":
+                errors.append(
+                    f"{row_id}: admission_status must remain not_admitted_profile_failure"
+                )
+            if row.get("smoke_profile_status") != "nonfinite":
+                errors.append(f"{row_id}: smoke_profile_status must remain nonfinite")
+            if (
+                row.get("current_denominator_action")
+                != "visible_holdout_until_smoke_profile_reconciled"
+            ):
+                errors.append(f"{row_id}: current_denominator_action must be holdout")
+            if "reconcile the smoke endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require smoke-profile reconciliation")
+            sigma_replicated_holdout_count += 1
+        elif target_key in expected_sigma_replicated_eligible:
+            if row.get("admission_status") != "diagnostic_denominator_candidate":
+                errors.append(
+                    f"{row_id}: admission_status must remain diagnostic_denominator_candidate"
+                )
+            if row.get("smoke_profile_status") != "finite":
+                errors.append(f"{row_id}: smoke_profile_status must remain finite")
+            if (
+                row.get("current_denominator_action")
+                != "eligible_for_pregrid_with_retention"
+            ):
+                errors.append(f"{row_id}: current_denominator_action must be eligible")
+            if "MCSE <= 0.01" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must include the MCSE gate")
+            sigma_replicated_eligible_count += 1
+        else:
+            errors.append(f"{row_id}: unexpected sigma replicated denominator target")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "replicated-denominator rule only",
+            "no coverage-evaluable denominator evidence",
+            "calibrated coverage",
+            "interval reliability",
+            "matched mu+sigma support",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "DRAC execution",
+            "SR150 readiness",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_sigma_replicated_targets = sorted(
+        expected_sigma_interval_targets - seen_sigma_replicated_targets
+    )
+    if missing_sigma_replicated_targets:
+        errors.append(
+            "structured-re-sigma-slope-replicated-denominator-rule.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_replicated_targets
+            )
+        )
+    if sigma_replicated_eligible_count != 7:
+        errors.append(
+            "structured-re-sigma-slope-replicated-denominator-rule.tsv must keep "
+            f"7 eligible rows, saw {sigma_replicated_eligible_count}"
+        )
+    if sigma_replicated_holdout_count != 1:
+        errors.append(
+            "structured-re-sigma-slope-replicated-denominator-rule.tsv must keep "
+            f"1 holdout row, saw {sigma_replicated_holdout_count}"
+        )
+
+    expected_sigma_pregrid_sources = {
+        "source_rule": "docs/dev-log/dashboard/structured-re-sigma-slope-replicated-denominator-rule.tsv",
+        "source_seed_manifest": "docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-coverage-pregrid-dry-run/structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv",
+        "source_cell_manifest": "docs/dev-log/simulation-artifacts/2026-06-24-sigma-slope-coverage-pregrid-dry-run/structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv",
+    }
+    expected_sigma_pregrid_retention = (
+        "retain_failed_profiles;retain_nonconverged_fits;"
+        "retain_nonfinite_intervals;record_bootstrap_refit_attempts"
+    )
+    expected_sigma_pregrid_cells = expected_sigma_replicated_eligible
+    if len(sigma_slope_coverage_pregrid_seed_manifest_rows) != 150:
+        errors.append(
+            "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv has "
+            f"{len(sigma_slope_coverage_pregrid_seed_manifest_rows)} rows; expected 150"
+        )
+    seen_sigma_pregrid_seed_indexes: set[str] = set()
+    seen_sigma_pregrid_seeds: set[str] = set()
+    for row in sigma_slope_coverage_pregrid_seed_manifest_rows:
+        row_id = row.get("replicate_index", "<sigma slope pregrid seed>")
+        if set(row.keys()) != set(
+            SIGMA_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS
+        ):
+            errors.append(
+                "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv "
+                f"fields do not match the manifest contract at replicate {row_id}"
+            )
+        for field in SIGMA_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS:
+            if not row.get(field):
+                errors.append(f"sigma pregrid seed {row_id}: {field} is empty")
+        seen_sigma_pregrid_seed_indexes.add(row.get("replicate_index", ""))
+        seen_sigma_pregrid_seeds.add(row.get("seed", ""))
+        if row.get("seed_role") != "predeclared_sigma_slope_pregrid":
+            errors.append(f"sigma pregrid seed {row_id}: seed_role changed")
+        if (
+            row.get("source_rule")
+            != "docs/dev-log/dashboard/structured-re-sigma-slope-replicated-denominator-rule.tsv"
+        ):
+            errors.append(f"sigma pregrid seed {row_id}: source_rule changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"sigma pregrid seed {row_id}: execution_status must be not_executed")
+    expected_sigma_seed_indexes = {str(i) for i in range(1, 151)}
+    expected_sigma_seed_values = {str(740000 + i) for i in range(1, 151)}
+    if seen_sigma_pregrid_seed_indexes != expected_sigma_seed_indexes:
+        errors.append("sigma pregrid seed manifest indexes must be 1..150")
+    if seen_sigma_pregrid_seeds != expected_sigma_seed_values:
+        errors.append("sigma pregrid seed manifest seeds must be 740001..740150")
+
+    sigma_pregrid_cell_counts: dict[tuple[str, str], int] = {}
+    seen_sigma_pregrid_cell_ids: set[str] = set()
+    if len(sigma_slope_coverage_pregrid_cell_manifest_rows) != 1050:
+        errors.append(
+            "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv has "
+            f"{len(sigma_slope_coverage_pregrid_cell_manifest_rows)} rows; expected 1050"
+        )
+    for row in sigma_slope_coverage_pregrid_cell_manifest_rows:
+        row_id = row.get("pregrid_cell_id", "<sigma slope pregrid cell>")
+        if set(row.keys()) != set(SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv "
+                "fields do not match the manifest contract"
+            )
+        for field in SIGMA_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_sigma_pregrid_cell_ids:
+            errors.append(f"duplicate sigma pregrid cell id: {row_id}")
+        seen_sigma_pregrid_cell_ids.add(row_id)
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        sigma_pregrid_cell_counts[target_key] = (
+            sigma_pregrid_cell_counts.get(target_key, 0) + 1
+        )
+        if target_key not in expected_sigma_pregrid_cells:
+            errors.append(f"{row_id}: holdout or unexpected target appears in cell manifest")
+        elif provider in expected_sigma_interval_profiles:
+            expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+            expected_profile = expected_sigma_interval_profiles[provider][
+                endpoint_member
+            ]
+            if row.get("direct_sd_target") != expected_direct_sd:
+                errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+            if row.get("profile_target") != expected_profile:
+                errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if row.get("replicate_index") not in expected_sigma_seed_indexes:
+            errors.append(f"{row_id}: replicate_index is outside 1..150")
+        if row.get("seed") not in expected_sigma_seed_values:
+            errors.append(f"{row_id}: seed is outside the predeclared seed manifest")
+        if row.get("interval_methods") != "wald;endpoint_profile;bootstrap":
+            errors.append(f"{row_id}: interval_methods changed")
+        if row.get("current_denominator_action") != "eligible_for_pregrid_with_retention":
+            errors.append(f"{row_id}: current_denominator_action must be eligible")
+        if row.get("retention_policy") != expected_sigma_pregrid_retention:
+            errors.append(f"{row_id}: retention_policy changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"{row_id}: execution_status must be not_executed")
+        if row.get("coverage_evaluable") != "FALSE":
+            errors.append(f"{row_id}: coverage_evaluable must remain FALSE")
+    for target in expected_sigma_pregrid_cells:
+        if sigma_pregrid_cell_counts.get(target) != 150:
+            errors.append(
+                "sigma pregrid cell manifest must have 150 rows for "
+                f"{target[0]}/{target[1]}"
+            )
+    for target in expected_sigma_replicated_holdout:
+        if sigma_pregrid_cell_counts.get(target, 0) != 0:
+            errors.append(
+                "sigma pregrid cell manifest must not include held-out target "
+                f"{target[0]}/{target[1]}"
+            )
+
+    seen_sigma_coverage_pregrid_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)
+        != expected_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv has "
+            f"{len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} rows; "
+            f"expected {expected_sigma_interval_count}"
+        )
+    for row in structured_re_sigma_slope_coverage_pregrid_dry_run_rows:
+        row_id = row.get("pregrid_id", "<structured RE sigma slope pregrid>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-coverage-pregrid-dry-run.tsv "
+                "fields do not match the pregrid contract"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        target_key = (provider, endpoint_member)
+        if target_key in seen_sigma_coverage_pregrid_targets:
+            errors.append(
+                "duplicate structured RE sigma coverage pregrid target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_sigma_coverage_pregrid_targets.add(target_key)
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = f"sigma_slope_coverage_pregrid_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: pregrid_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q1_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for field, expected in expected_sigma_pregrid_sources.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must be {expected}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        expected_counts = {
+            "seed_manifest_rows": "150",
+            "total_cell_manifest_rows": "1050",
+            "nominal_coverage": "0.95",
+            "nominal_mcse_at_150": "0.017795",
+            "replicates_for_mcse_threshold": "475",
+            "mcse_threshold": "0.01",
+        }
+        for field, expected in expected_counts.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if row.get("mcse_threshold_status") != "not_met_by_sr150":
+            errors.append(f"{row_id}: mcse_threshold_status must remain not_met_by_sr150")
+        if row.get("interval_methods") != "wald;endpoint_profile;bootstrap":
+            errors.append(f"{row_id}: interval_methods changed")
+        if row.get("retention_policy") != expected_sigma_pregrid_retention:
+            errors.append(f"{row_id}: retention_policy changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"{row_id}: execution_status must remain not_executed")
+        if row.get("coverage_evaluable") != "FALSE":
+            errors.append(f"{row_id}: coverage_evaluable must remain FALSE")
+        if row.get("coverage_status") != "not_evaluated":
+            errors.append(f"{row_id}: coverage_status must remain not_evaluated")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_sigma_replicated_holdout:
+            if (
+                row.get("current_denominator_action")
+                != "visible_holdout_until_smoke_profile_reconciled"
+            ):
+                errors.append(f"{row_id}: current_denominator_action must be holdout")
+            if row.get("denominator_role") != "visible_holdout":
+                errors.append(f"{row_id}: denominator_role must remain visible_holdout")
+            if row.get("planned_replicates") != "0":
+                errors.append(f"{row_id}: planned_replicates must remain 0")
+            if row.get("planned_cells") != "0":
+                errors.append(f"{row_id}: planned_cells must remain 0")
+            if row.get("target_cell_manifest_rows") != "0":
+                errors.append(f"{row_id}: target_cell_manifest_rows must remain 0")
+            if "Reconcile the smoke endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require smoke-profile reconciliation")
+        else:
+            if row.get("current_denominator_action") != "eligible_for_pregrid_with_retention":
+                errors.append(f"{row_id}: current_denominator_action must be eligible")
+            if row.get("denominator_role") != "pregrid_target":
+                errors.append(f"{row_id}: denominator_role must remain pregrid_target")
+            if row.get("planned_replicates") != "150":
+                errors.append(f"{row_id}: planned_replicates must remain 150")
+            if row.get("planned_cells") != "150":
+                errors.append(f"{row_id}: planned_cells must remain 150")
+            if row.get("target_cell_manifest_rows") != "150":
+                errors.append(f"{row_id}: target_cell_manifest_rows must remain 150")
+            if "do not use SR150 for coverage wording" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep SR150 blocked")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "coverage pre-grid dry-run only",
+            "no coverage-evaluable denominator evidence",
+            "calibrated coverage",
+            "interval reliability",
+            "matched mu+sigma support",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "DRAC execution",
+            "SR150 readiness",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_sigma_coverage_pregrid_targets = sorted(
+        expected_sigma_interval_targets - seen_sigma_coverage_pregrid_targets
+    )
+    if missing_sigma_coverage_pregrid_targets:
+        errors.append(
+            "structured-re-sigma-slope-coverage-pregrid-dry-run.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_coverage_pregrid_targets
+            )
+        )
+
+    expected_q2_slope_cells = {
+        "phylo": {
+            "cell_id": "qseries_phylo_q2_mu1_mu2_one_slope",
+            "evidence_url": "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
+        },
+        "spatial": {
+            "cell_id": "qseries_spatial_q2_mu1_mu2_one_slope",
+            "evidence_url": "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
+        },
+        "animal": {
+            "cell_id": "qseries_animal_q2_mu1_mu2_one_slope",
+            "evidence_url": "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
+        },
+        "relmat": {
+            "cell_id": "qseries_relmat_q2_mu1_mu2_one_slope",
+            "evidence_url": "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv",
+        },
+    }
+    for provider, expected in expected_q2_slope_cells.items():
+        row_id = expected["cell_id"]
+        row = qseries_by_cell.get(row_id)
+        if row is None:
+            errors.append(f"{row_id}: q2 slope-only support cell is missing")
+            continue
+        if row.get("structure_provider") != provider:
+            errors.append(f"{row_id}: structure_provider must remain {provider}")
+        if row.get("family") != "biv_gaussian()":
+            errors.append(f"{row_id}: family must remain biv_gaussian()")
+        if row.get("dimension_pattern") != "q2":
+            errors.append(f"{row_id}: dimension_pattern must remain q2")
+        if row.get("endpoint_set") != "mu1+mu2":
+            errors.append(f"{row_id}: endpoint_set must remain mu1+mu2")
+        if row.get("slope_class") != "labelled_slope_covariance":
+            errors.append(f"{row_id}: slope_class must be labelled_slope_covariance")
+        if row.get("covariance_layout") != "labelled_structured_slope_covariance":
+            errors.append(
+                f"{row_id}: covariance_layout must be labelled_structured_slope_covariance"
+            )
+        if "0 + x | p" not in row.get("formula_cell", ""):
+            errors.append(f"{row_id}: formula_cell must be the slope-only q2 cell")
+        if row.get("route") != "native_direct_bridge_fixture":
+            errors.append(
+                f"{row_id}: route must remain native_direct_bridge_fixture"
+            )
+        if row.get("fit_status") != "point_fit":
+            errors.append(f"{row_id}: fit_status must remain point_fit")
+        if row.get("extractor_status") != "extractor_ready":
+            errors.append(f"{row_id}: extractor_status must remain extractor_ready")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must remain fixture_parity")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if row.get("denominator_policy") != "fixture_not_coverage":
+            errors.append(
+                f"{row_id}: denominator_policy must remain fixture_not_coverage"
+            )
+        if row.get("evidence_url") != expected["evidence_url"]:
+            errors.append(
+                f"{row_id}: evidence_url must remain {expected['evidence_url']}"
+            )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "slope-only",
+            "same-target fixture",
+            "broad bridge support",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if provider == "animal" and "A/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A/Ainv")
+        if provider == "relmat" and "K/Q" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must name K/Q")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+
+    expected_q2_slope_parity_fixtures = {
+        "phylo": "q2_slope_phylo_same_target_ml",
+        "spatial": "q2_slope_spatial_same_target_ml",
+        "animal": "q2_slope_animal_same_target_ml",
+        "relmat": "q2_slope_relmat_same_target_ml",
+    }
+    seen_q2_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_q2_slope_parity_fixture_rows) != len(
+        expected_q2_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-q2-slope-parity-fixture.tsv has "
+            f"{len(structured_re_q2_slope_parity_fixture_rows)} rows; expected "
+            f"{len(expected_q2_slope_parity_fixtures)}"
+        )
+    for row in structured_re_q2_slope_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE q2 slope parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_q2_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_q2_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_q2_slope_parity_fixtures:
+            errors.append(f"duplicate structured RE q2 slope parity fixture id: {row_id}")
+        seen_q2_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q2":
+            errors.append(f"{row_id}: dimension must remain q2")
+        if row.get("endpoint") != "mu1+mu2":
+            errors.append(f"{row_id}: endpoint must remain mu1+mu2")
+        if row.get("slope_class") != "labelled_slope_covariance":
+            errors.append(
+                f"{row_id}: slope_class must remain labelled_slope_covariance"
+            )
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        if row.get("coefficient_order") != (
+            "mu1:x;mu2:x;sd_mu1:structured(x);sd_mu2:structured(x);"
+            "cor_mu1_mu2:structured(x)"
+        ):
+            errors.append(f"{row_id}: coefficient_order changed")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if provider in expected_q2_slope_parity_fixtures:
+            expected_matrix_slot = {
+                "phylo": "tree",
+                "spatial": "coords",
+                "animal": "A",
+                "relmat": "K",
+            }[provider]
+            expected_input_scale = {
+                "phylo": "ultrametric_tree_branch_lengths",
+                "spatial": "coordinates_to_fixed_covariance_K",
+                "animal": "additive_covariance",
+                "relmat": "user_covariance",
+            }[provider]
+            if row.get("matrix_slot") != expected_matrix_slot:
+                errors.append(
+                    f"{row_id}: matrix_slot must remain {expected_matrix_slot}"
+                )
+            if row.get("input_scale") != expected_input_scale:
+                errors.append(
+                    f"{row_id}: input_scale must remain {expected_input_scale}"
+                )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "slope-only q2",
+            "broad bridge support",
+            "q4/q8",
+            "interval reliability",
+            "coverage",
+            "REML",
+            "AI-REML",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if provider == "animal" and "A-matrix" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A-matrix")
+        if provider == "relmat":
+            if "K-matrix" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must name K-matrix")
+            if "Q bridge" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+            if "K/Q same-target parity" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must name K/Q parity")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        if provider in expected_q2_slope_parity_fixtures:
+            expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+            qseries_row = qseries_by_cell.get(expected_cell)
+            if qseries_row is None:
+                errors.append(f"{row_id}: linked q-series support cell is missing")
+            else:
+                if (
+                    qseries_row.get("evidence_url")
+                    != "docs/dev-log/dashboard/structured-re-q2-slope-parity-fixture.tsv"
+                ):
+                    errors.append(f"{row_id}: linked q-series evidence_url changed")
+                if qseries_row.get("route") != "native_direct_bridge_fixture":
+                    errors.append(
+                        f"{row_id}: linked q-series route must be native_direct_bridge_fixture"
+                    )
+                if qseries_row.get("fit_status") != "point_fit":
+                    errors.append(
+                        f"{row_id}: linked q-series fit_status must remain point_fit"
+                    )
+                if qseries_row.get("extractor_status") != "extractor_ready":
+                    errors.append(
+                        f"{row_id}: linked q-series extractor_status must remain extractor_ready"
+                    )
+                if qseries_row.get("bridge_status") != "fixture_parity":
+                    errors.append(
+                        f"{row_id}: linked q-series bridge_status must be fixture_parity"
+                    )
+                for field in ("interval_status", "coverage_status"):
+                    if qseries_row.get(field) != "planned":
+                        errors.append(
+                            f"{row_id}: linked q-series {field} must remain planned"
+                        )
+                if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                    errors.append(
+                        f"{row_id}: linked q-series denominator_policy must be fixture_not_coverage"
+                    )
+
+    expected_q2_slope_interval_profiles = {
+        "phylo": {
+            "mu1:x": (
+                "sd_mu1_x",
+                "sd:mu:mu1:phylo(0 + x | p | species)",
+                "direct_sd",
+            ),
+            "mu2:x": (
+                "sd_mu2_x",
+                "sd:mu:mu2:phylo(0 + x | p | species)",
+                "direct_sd",
+            ),
+            "mu1:x+mu2:x": (
+                "cor_mu1_mu2_x",
+                "cor:phylo:cor(mu1:x,mu2:x | p | species)",
+                "direct_correlation",
+            ),
+        },
+        "spatial": {
+            "mu1:x": (
+                "sd_mu1_x",
+                "sd:mu:mu1:spatial(0 + x | p | site)",
+                "direct_sd",
+            ),
+            "mu2:x": (
+                "sd_mu2_x",
+                "sd:mu:mu2:spatial(0 + x | p | site)",
+                "direct_sd",
+            ),
+            "mu1:x+mu2:x": (
+                "cor_mu1_mu2_x",
+                "cor:spatial:cor(mu1:x,mu2:x | p | site)",
+                "direct_correlation",
+            ),
+        },
+        "animal": {
+            "mu1:x": (
+                "sd_mu1_x",
+                "sd:mu:mu1:animal(0 + x | p | id)",
+                "direct_sd",
+            ),
+            "mu2:x": (
+                "sd_mu2_x",
+                "sd:mu:mu2:animal(0 + x | p | id)",
+                "direct_sd",
+            ),
+            "mu1:x+mu2:x": (
+                "cor_mu1_mu2_x",
+                "cor:animal:cor(mu1:x,mu2:x | p | id)",
+                "direct_correlation",
+            ),
+        },
+        "relmat": {
+            "mu1:x": (
+                "sd_mu1_x",
+                "sd:mu:mu1:relmat(0 + x | p | id)",
+                "direct_sd",
+            ),
+            "mu2:x": (
+                "sd_mu2_x",
+                "sd:mu:mu2:relmat(0 + x | p | id)",
+                "direct_sd",
+            ),
+            "mu1:x+mu2:x": (
+                "cor_mu1_mu2_x",
+                "cor:relmat:cor(mu1:x,mu2:x | p | id)",
+                "direct_correlation",
+            ),
+        },
+    }
+    expected_q2_slope_interval_count = sum(
+        len(targets) for targets in expected_q2_slope_interval_profiles.values()
+    )
+    seen_q2_slope_interval_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q2_slope_interval_diagnostic_plan_rows)
+        != expected_q2_slope_interval_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-interval-diagnostic-plan.tsv has "
+            f"{len(structured_re_q2_slope_interval_diagnostic_plan_rows)} rows; "
+            f"expected {expected_q2_slope_interval_count}"
+        )
+    for row in structured_re_q2_slope_interval_diagnostic_plan_rows:
+        row_id = row.get("diagnostic_id", "<structured RE q2 slope interval plan>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-interval-diagnostic-plan.tsv "
+                "fields do not match the plan contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (provider, endpoint_member)
+        if target_key in seen_q2_slope_interval_targets:
+            errors.append(
+                "duplicate structured RE q2 slope interval target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q2_slope_interval_targets.add(target_key)
+        expected_id = "q2_slope_interval_" + provider + "_" + {
+            "mu1:x": "mu1_x",
+            "mu2:x": "mu2_x",
+            "mu1:x+mu2:x": "cor_mu1_mu2_x",
+        }[endpoint_member]
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        if row.get("cell_id") != f"qseries_{provider}_q2_mu1_mu2_one_slope":
+            errors.append(f"{row_id}: cell_id does not match provider {provider}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if row.get("interval_methods") != "wald;profile;bootstrap":
+            errors.append(f"{row_id}: interval_methods changed")
+        for phrase in (
+            "point_fit",
+            "extractor_ready",
+            "profile_targets_direct_ready",
+            "same_target_fixture_parity",
+        ):
+            if phrase not in row.get("required_fit_evidence", ""):
+                errors.append(f"{row_id}: required_fit_evidence must mention {phrase}")
+        if "finite_intervals_by_method" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence changed")
+        if "coverage_mcse<=0.01" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence must keep MCSE gate")
+        for field_name in (
+            "coverage_denominator",
+            "n_interval_finite",
+            "coverage_mcse",
+        ):
+            if field_name not in row.get("denominator_fields", ""):
+                errors.append(f"{row_id}: denominator_fields must mention {field_name}")
+        if row.get("current_blocker") != "interval_diagnostics_not_run":
+            errors.append(f"{row_id}: current_blocker must remain interval_diagnostics_not_run")
+        if row.get("status") != "planned":
+            errors.append(f"{row_id}: interval diagnostic plan must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "interval reliability",
+            "interval coverage",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if "before calibrated coverage" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must point before calibrated coverage")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(f"qseries_{provider}_q2_mu1_mu2_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    expected_q2_slope_interval_targets = {
+        (provider, endpoint_member)
+        for provider, targets in expected_q2_slope_interval_profiles.items()
+        for endpoint_member in targets
+    }
+    missing_q2_slope_interval_targets = sorted(
+        expected_q2_slope_interval_targets - seen_q2_slope_interval_targets
+    )
+    if missing_q2_slope_interval_targets:
+        errors.append(
+            "structured-re-q2-slope-interval-diagnostic-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_q2_slope_interval_targets
+            )
+        )
+
+    seen_q2_slope_interval_status_targets: set[tuple[str, str]] = set()
+    q2_plan_target_keys = {
+        (row.get("structured_type", ""), row.get("endpoint_member", ""))
+        for row in structured_re_q2_slope_interval_diagnostic_plan_rows
+    }
+    expected_q2_slope_interval_status_wald_bootstrap = {
+        ("animal", "mu1:x+mu2:x"),
+        ("relmat", "mu1:x+mu2:x"),
+    }
+    expected_q2_slope_interval_status_all_finite = (
+        expected_q2_slope_interval_targets
+        - expected_q2_slope_interval_status_wald_bootstrap
+    )
+    expected_q2_slope_interval_status_bootstrap_only = (
+        expected_q2_slope_interval_targets
+        - (
+            expected_q2_slope_interval_status_all_finite
+            | expected_q2_slope_interval_status_wald_bootstrap
+        )
+    )
+    if (
+        len(structured_re_q2_slope_interval_diagnostic_status_rows)
+        != expected_q2_slope_interval_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-interval-diagnostic-status.tsv has "
+            f"{len(structured_re_q2_slope_interval_diagnostic_status_rows)} rows; "
+            f"expected {expected_q2_slope_interval_count}"
+        )
+    for row in structured_re_q2_slope_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE q2 slope interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (provider, endpoint_member)
+        if target_key in seen_q2_slope_interval_status_targets:
+            errors.append(
+                "duplicate structured RE q2 slope interval diagnostic status target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q2_slope_interval_status_targets.add(target_key)
+        if target_key not in q2_plan_target_keys:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+        expected_id = "q2_slope_interval_status_" + provider + "_" + {
+            "mu1:x": "mu1_x",
+            "mu2:x": "mu2_x",
+            "mu1:x+mu2:x": "cor_mu1_mu2_x",
+        }[endpoint_member]
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_converged"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        if row.get("n_pdhess") != "1":
+            errors.append(f"{row_id}: n_pdhess must remain 1")
+        if row.get("bootstrap_status") != "finite":
+            errors.append(f"{row_id}: bootstrap_status must remain finite")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_q2_slope_interval_status_all_finite:
+            expected_method_status = {
+                "n_finite_intervals": "3",
+                "wald_status": "finite",
+                "profile_status": "finite",
+                "interval_status": "wald_profile_bootstrap_finite",
+                "failure_class": "none",
+            }
+            if "Repeat with more deterministic fixtures" not in row.get(
+                "next_gate", ""
+            ):
+                errors.append(f"{row_id}: next_gate must require repeated diagnostics")
+        elif target_key in expected_q2_slope_interval_status_wald_bootstrap:
+            expected_method_status = {
+                "n_finite_intervals": "2",
+                "wald_status": "finite",
+                "profile_status": "nonfinite",
+                "interval_status": "wald_bootstrap_finite_profile_failed",
+                "failure_class": "profile_failed_or_nonfinite",
+            }
+            if "Diagnose nonfinite or failed interval methods" not in row.get(
+                "next_gate", ""
+            ):
+                errors.append(f"{row_id}: next_gate must diagnose failed methods")
+        elif target_key in expected_q2_slope_interval_status_bootstrap_only:
+            expected_method_status = {
+                "n_finite_intervals": "1",
+                "wald_status": "nonfinite",
+                "profile_status": "nonfinite",
+                "interval_status": "bootstrap_only_finite_boundary",
+                "failure_class": "wald_boundary_or_nonfinite;profile_failed_or_nonfinite",
+            }
+            if "Diagnose nonfinite or failed interval methods" not in row.get(
+                "next_gate", ""
+            ):
+                errors.append(f"{row_id}: next_gate must diagnose failed methods")
+        else:
+            errors.append(f"{row_id}: unexpected interval diagnostic status target")
+            expected_method_status = {}
+        for field, expected in expected_method_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "interval smoke only",
+            "no interval reliability",
+            "interval coverage",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_q2_slope_interval_status_targets = sorted(
+        expected_q2_slope_interval_targets - seen_q2_slope_interval_status_targets
+    )
+    if missing_q2_slope_interval_status_targets:
+        errors.append(
+            "structured-re-q2-slope-interval-diagnostic-status.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_q2_slope_interval_status_targets
+            )
+        )
+
+    expected_q2_slope_stability_variants = {
+        "strong": {
+            "n_each": "28",
+            "intended_sd_mu1_x": "0.95",
+            "intended_sd_mu2_x": "0.85",
+            "intended_cor_mu1_mu2_x": "0.25",
+            "residual_sd1": "0.22",
+            "residual_sd2": "0.24",
+        },
+        "stronger_slope": {
+            "n_each": "36",
+            "intended_sd_mu1_x": "1.35",
+            "intended_sd_mu2_x": "1.15",
+            "intended_cor_mu1_mu2_x": "0.2",
+            "residual_sd1": "0.18",
+            "residual_sd2": "0.2",
+        },
+    }
+    expected_q2_slope_stability_count = (
+        expected_q2_slope_interval_count
+        * len(expected_q2_slope_stability_variants)
+    )
+    expected_q2_slope_stability_partial: set[tuple[str, str, str]] = set()
+    expected_q2_slope_stability_pdhess_zero: set[tuple[str, str]] = set()
+    seen_q2_slope_stability_targets: set[tuple[str, str, str]] = set()
+    if (
+        len(structured_re_q2_slope_interval_stability_probe_rows)
+        != expected_q2_slope_stability_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-interval-stability-probe.tsv has "
+            f"{len(structured_re_q2_slope_interval_stability_probe_rows)} rows; "
+            f"expected {expected_q2_slope_stability_count}"
+        )
+    for row in structured_re_q2_slope_interval_stability_probe_rows:
+        row_id = row.get("probe_id", "<structured RE q2 slope stability probe>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q2_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-interval-stability-probe.tsv "
+                "fields do not match the probe contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if variant not in expected_q2_slope_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (variant, provider, endpoint_member)
+        if target_key in seen_q2_slope_stability_targets:
+            errors.append(
+                "duplicate structured RE q2 slope stability target: "
+                f"{variant}/{provider}/{endpoint_member}"
+            )
+        seen_q2_slope_stability_targets.add(target_key)
+        expected_id = "q2_slope_interval_stability_" + variant + "_" + provider + "_" + {
+            "mu1:x": "mu1_x",
+            "mu2:x": "mu2_x",
+            "mu1:x+mu2:x": "cor_mu1_mu2_x",
+        }[endpoint_member]
+        if row_id != expected_id:
+            errors.append(f"{row_id}: probe_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for field, expected in expected_q2_slope_stability_variants[variant].items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        if row.get("observed_target_rows") != "1":
+            errors.append(f"{row_id}: observed_target_rows must remain 1")
+        if row.get("n_fit_ok") != "1":
+            errors.append(f"{row_id}: n_fit_ok must remain 1")
+        expected_pdhess = (
+            "0"
+            if (variant, provider) in expected_q2_slope_stability_pdhess_zero
+            else "1"
+        )
+        if row.get("n_pdhess") != expected_pdhess:
+            errors.append(f"{row_id}: n_pdhess must remain {expected_pdhess}")
+        if row.get("profile_status") != "finite":
+            errors.append(f"{row_id}: profile_status must remain finite")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_q2_slope_stability_partial:
+            errors.append(f"{row_id}: no partial q2 slope stability targets are expected")
+        expected_method_status = {
+            "wald_status": "finite",
+            "stability_status": "wald_profile_finite",
+            "failure_class": "none",
+        }
+        for field, expected in expected_method_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if "Repeat with more seeds and bootstrap denominators" not in row.get(
+            "next_gate", ""
+        ):
+            errors.append(f"{row_id}: next_gate must require repeated diagnostics")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "stability probe only",
+            "no interval reliability",
+            "interval coverage",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    expected_q2_slope_stability_targets = {
+        (variant, provider, endpoint_member)
+        for variant in expected_q2_slope_stability_variants
+        for provider, targets in expected_q2_slope_interval_profiles.items()
+        for endpoint_member in targets
+    }
+    missing_q2_slope_stability_targets = sorted(
+        expected_q2_slope_stability_targets - seen_q2_slope_stability_targets
+    )
+    if missing_q2_slope_stability_targets:
+        errors.append(
+            "structured-re-q2-slope-interval-stability-probe.tsv missing targets: "
+            + ", ".join(
+                f"{variant}/{provider}/{endpoint_member}"
+                for variant, provider, endpoint_member in missing_q2_slope_stability_targets
+            )
+        )
+
+    seen_q2_slope_denominator_targets: set[tuple[str, str]] = set()
+    q2_denominator_not_admitted = {
+        ("animal", "mu1:x+mu2:x"),
+        ("relmat", "mu1:x+mu2:x"),
+    }
+    if (
+        len(structured_re_q2_slope_denominator_admission_rows)
+        != expected_q2_slope_interval_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-denominator-admission.tsv has "
+            f"{len(structured_re_q2_slope_denominator_admission_rows)} rows; "
+            f"expected {expected_q2_slope_interval_count}"
+        )
+    for row in structured_re_q2_slope_denominator_admission_rows:
+        row_id = row.get("denominator_id", "<structured RE q2 slope denominator>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_ADMISSION_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-denominator-admission.tsv "
+                "fields do not match the denominator contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_ADMISSION_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (provider, endpoint_member)
+        if target_key in seen_q2_slope_denominator_targets:
+            errors.append(
+                "duplicate structured RE q2 slope denominator target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q2_slope_denominator_targets.add(target_key)
+        expected_id = (
+            "q2_slope_denominator_"
+            + provider
+            + "_"
+            + endpoint_member.replace(":", "_").replace("+", "_")
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: denominator_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_sources = {
+            "source_interval_status": "docs/dev-log/dashboard/structured-re-q2-slope-interval-diagnostic-status.tsv",
+            "source_stability_probe": "docs/dev-log/dashboard/structured-re-q2-slope-interval-stability-probe.tsv",
+            "source_interval_artifact": "docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-interval-smoke/structured-re-q2-slope-interval-smoke-results.tsv",
+            "source_stability_artifact": "docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-interval-stability-probe/structured-re-q2-slope-interval-stability-probe-results.tsv",
+        }
+        for field, expected in expected_sources.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must be {expected}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        if row.get("stability_variant_count") != "2":
+            errors.append(f"{row_id}: stability_variant_count must remain 2")
+        if row.get("stability_wald_profile_finite_count") != "2":
+            errors.append(
+                f"{row_id}: stability_wald_profile_finite_count must remain 2"
+            )
+        if row.get("stability_pdhess_true_count") != "2":
+            errors.append(f"{row_id}: stability_pdhess_true_count must remain 2")
+        if row.get("smoke_bootstrap_status") != "finite":
+            errors.append(f"{row_id}: smoke_bootstrap_status must remain finite")
+        if target_key in q2_denominator_not_admitted:
+            expected_denominator_status = {
+                "smoke_interval_status": "wald_bootstrap_finite_profile_failed",
+                "smoke_n_finite_intervals": "2",
+                "smoke_wald_status": "finite",
+                "smoke_profile_status": "nonfinite",
+                "denominator_admission": "not_admitted_profile_failure",
+            }
+            if "Diagnose endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose profile failure")
+        else:
+            expected_denominator_status = {
+                "smoke_interval_status": "wald_profile_bootstrap_finite",
+                "smoke_n_finite_intervals": "3",
+                "smoke_wald_status": "finite",
+                "smoke_profile_status": "finite",
+                "denominator_admission": "diagnostic_denominator_candidate",
+            }
+            if "Repeat across more seeds" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require repeated seeds")
+        for field, expected in expected_denominator_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if row.get("coverage_status") != "not_evaluated":
+            errors.append(f"{row_id}: coverage_status must remain not_evaluated")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "denominator-admission diagnostic only",
+            "no interval reliability",
+            "interval coverage",
+            "coverage acceptance",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must be fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_q2_slope_denominator_targets = sorted(
+        expected_q2_slope_interval_targets - seen_q2_slope_denominator_targets
+    )
+    if missing_q2_slope_denominator_targets:
+        errors.append(
+            "structured-re-q2-slope-denominator-admission.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_q2_slope_denominator_targets
+            )
+        )
+
+    expected_q2_denominator_extension_variants = {
+        "extension_seed_a": {
+            "n_each": "30",
+            "intended_sd_mu1_x": "1.05",
+            "intended_sd_mu2_x": "0.9",
+            "intended_cor_mu1_mu2_x": "0.2",
+            "residual_sd1": "0.2",
+            "residual_sd2": "0.22",
+        },
+        "extension_seed_b": {
+            "n_each": "34",
+            "intended_sd_mu1_x": "1.2",
+            "intended_sd_mu2_x": "1",
+            "intended_cor_mu1_mu2_x": "0.3",
+            "residual_sd1": "0.19",
+            "residual_sd2": "0.21",
+        },
+    }
+    expected_q2_denominator_extension_count = expected_q2_slope_interval_count * len(
+        expected_q2_denominator_extension_variants
+    )
+    seen_q2_denominator_extension_targets: set[tuple[str, str, str]] = set()
+    if (
+        len(structured_re_q2_slope_denominator_extension_rows)
+        != expected_q2_denominator_extension_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-denominator-extension.tsv has "
+            f"{len(structured_re_q2_slope_denominator_extension_rows)} rows; "
+            f"expected {expected_q2_denominator_extension_count}"
+        )
+    for row in structured_re_q2_slope_denominator_extension_rows:
+        row_id = row.get("extension_id", "<structured RE q2 slope denominator extension>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-denominator-extension.tsv "
+                "fields do not match the extension contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_DENOMINATOR_EXTENSION_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if variant not in expected_q2_denominator_extension_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (variant, provider, endpoint_member)
+        if target_key in seen_q2_denominator_extension_targets:
+            errors.append(
+                "duplicate structured RE q2 denominator extension target: "
+                f"{variant}/{provider}/{endpoint_member}"
+            )
+        seen_q2_denominator_extension_targets.add(target_key)
+        expected_id = (
+            "q2_slope_denominator_extension_"
+            + variant
+            + "_"
+            + provider
+            + "_"
+            + {
+                "mu1:x": "mu1_x",
+                "mu2:x": "mu2_x",
+                "mu1:x+mu2:x": "cor_mu1_mu2_x",
+            }[endpoint_member]
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: extension_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for field, expected in expected_q2_denominator_extension_variants[variant].items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if (
+            row.get("source_admission")
+            != "docs/dev-log/dashboard/structured-re-q2-slope-denominator-admission.tsv"
+        ):
+            errors.append(f"{row_id}: source_admission changed")
+        if (
+            row.get("source_artifact")
+            != "docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-denominator-extension/structured-re-q2-slope-denominator-extension-results.tsv"
+        ):
+            errors.append(f"{row_id}: source_artifact changed")
+        for field in ("source_admission", "source_artifact", "evidence_url"):
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        for field in ("wald_status", "profile_status"):
+            if row.get(field) != "finite":
+                errors.append(f"{row_id}: {field} must remain finite")
+        if row.get("extension_status") != "wald_profile_finite":
+            errors.append(f"{row_id}: extension_status must remain wald_profile_finite")
+        if row.get("failure_class") != "none":
+            errors.append(f"{row_id}: failure_class must remain none")
+        if row.get("coverage_status") != "not_evaluated":
+            errors.append(f"{row_id}: coverage_status must remain not_evaluated")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if (provider, endpoint_member) in q2_denominator_not_admitted:
+            if row.get("admission_status") != "not_admitted_profile_failure":
+                errors.append(
+                    f"{row_id}: admission_status must remain not_admitted_profile_failure"
+                )
+            if row.get("denominator_extension_status") != "not_admitted_from_smoke":
+                errors.append(
+                    f"{row_id}: denominator_extension_status must remain not_admitted_from_smoke"
+                )
+            if "Keep target out of coverage denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep target out of denominators")
+        else:
+            if row.get("admission_status") != "diagnostic_denominator_candidate":
+                errors.append(
+                    f"{row_id}: admission_status must remain diagnostic_denominator_candidate"
+                )
+            if row.get("denominator_extension_status") != "extension_candidate":
+                errors.append(
+                    f"{row_id}: denominator_extension_status must remain extension_candidate"
+                )
+            if "MCSE before coverage wording" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep MCSE gate")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "denominator-extension diagnostic only",
+            "no interval reliability",
+            "coverage acceptance",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    expected_q2_denominator_extension_targets = {
+        (variant, provider, endpoint_member)
+        for variant in expected_q2_denominator_extension_variants
+        for provider, targets in expected_q2_slope_interval_profiles.items()
+        for endpoint_member in targets
+    }
+    missing_q2_denominator_extension_targets = sorted(
+        expected_q2_denominator_extension_targets
+        - seen_q2_denominator_extension_targets
+    )
+    if missing_q2_denominator_extension_targets:
+        errors.append(
+            "structured-re-q2-slope-denominator-extension.tsv missing targets: "
+            + ", ".join(
+                f"{variant}/{provider}/{endpoint_member}"
+                for variant, provider, endpoint_member in missing_q2_denominator_extension_targets
+            )
+        )
+
+    seen_q2_replicated_denominator_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q2_slope_replicated_denominator_rule_rows)
+        != expected_q2_slope_interval_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-replicated-denominator-rule.tsv has "
+            f"{len(structured_re_q2_slope_replicated_denominator_rule_rows)} rows; "
+            f"expected {expected_q2_slope_interval_count}"
+        )
+    for row in structured_re_q2_slope_replicated_denominator_rule_rows:
+        row_id = row.get("rule_id", "<structured RE q2 slope denominator rule>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-replicated-denominator-rule.tsv "
+                "fields do not match the rule contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_REPLICATED_DENOMINATOR_RULE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (provider, endpoint_member)
+        if target_key in seen_q2_replicated_denominator_targets:
+            errors.append(
+                "duplicate structured RE q2 replicated denominator target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q2_replicated_denominator_targets.add(target_key)
+        expected_id = (
+            "q2_slope_replicated_denominator_rule_"
+            + provider
+            + "_"
+            + endpoint_member.replace(":", "_").replace("+", "_")
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: rule_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_sources = {
+            "source_admission": "docs/dev-log/dashboard/structured-re-q2-slope-denominator-admission.tsv",
+            "source_extension": "docs/dev-log/dashboard/structured-re-q2-slope-denominator-extension.tsv",
+            "source_interval_status": "docs/dev-log/dashboard/structured-re-q2-slope-interval-diagnostic-status.tsv",
+            "source_stability_probe": "docs/dev-log/dashboard/structured-re-q2-slope-interval-stability-probe.tsv",
+        }
+        for field, expected in expected_sources.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must be {expected}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        if row.get("extension_variant_count") != "2":
+            errors.append(f"{row_id}: extension_variant_count must remain 2")
+        if row.get("extension_wald_profile_finite_count") != "2":
+            errors.append(
+                f"{row_id}: extension_wald_profile_finite_count must remain 2"
+            )
+        if row.get("pregrid_min_replicates") != "150":
+            errors.append(f"{row_id}: pregrid_min_replicates must remain 150")
+        if row.get("seed_policy") != "predeclared_seed_manifest_required_before_execution":
+            errors.append(f"{row_id}: seed_policy changed")
+        retention_fields = (
+            "failed_profile_retention",
+            "nonconverged_fit_retention",
+            "nonfinite_interval_retention",
+        )
+        for field in retention_fields:
+            if row.get(field) != "retain_in_denominator":
+                errors.append(f"{row_id}: {field} must retain in denominator")
+        if (
+            row.get("bootstrap_refit_retention")
+            != "record_attempts_and_retain_target_denominator"
+        ):
+            errors.append(f"{row_id}: bootstrap_refit_retention changed")
+        if row.get("mcse_threshold") != "0.01":
+            errors.append(f"{row_id}: mcse_threshold must remain 0.01")
+        if row.get("coverage_evaluable") != "FALSE":
+            errors.append(f"{row_id}: coverage_evaluable must remain FALSE")
+        if row.get("coverage_status") != "not_evaluated":
+            errors.append(f"{row_id}: coverage_status must remain not_evaluated")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in q2_denominator_not_admitted:
+            if row.get("admission_status") != "not_admitted_profile_failure":
+                errors.append(
+                    f"{row_id}: admission_status must remain not_admitted_profile_failure"
+                )
+            if row.get("extension_candidate_count") != "0":
+                errors.append(f"{row_id}: extension_candidate_count must remain 0")
+            if row.get("smoke_profile_status") != "nonfinite":
+                errors.append(f"{row_id}: smoke_profile_status must remain nonfinite")
+            if (
+                row.get("current_denominator_action")
+                != "visible_holdout_until_smoke_profile_reconciled"
+            ):
+                errors.append(f"{row_id}: current_denominator_action must be holdout")
+            if "reconcile the smoke endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require smoke-profile reconciliation")
+        else:
+            if row.get("admission_status") != "diagnostic_denominator_candidate":
+                errors.append(
+                    f"{row_id}: admission_status must remain diagnostic_denominator_candidate"
+                )
+            if row.get("extension_candidate_count") != "2":
+                errors.append(f"{row_id}: extension_candidate_count must remain 2")
+            if row.get("smoke_profile_status") != "finite":
+                errors.append(f"{row_id}: smoke_profile_status must remain finite")
+            if (
+                row.get("current_denominator_action")
+                != "eligible_for_pregrid_with_retention"
+            ):
+                errors.append(f"{row_id}: current_denominator_action must be eligible")
+            if "MCSE <= 0.01" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must include the MCSE gate")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "replicated-denominator rule only",
+            "no coverage-evaluable denominator evidence",
+            "calibrated coverage",
+            "interval reliability",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "DRAC execution",
+            "SR150 readiness",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_q2_replicated_denominator_targets = sorted(
+        expected_q2_slope_interval_targets - seen_q2_replicated_denominator_targets
+    )
+    if missing_q2_replicated_denominator_targets:
+        errors.append(
+            "structured-re-q2-slope-replicated-denominator-rule.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_q2_replicated_denominator_targets
+            )
+        )
+
+    expected_q2_pregrid_sources = {
+        "source_rule": "docs/dev-log/dashboard/structured-re-q2-slope-replicated-denominator-rule.tsv",
+        "source_seed_manifest": "docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-coverage-pregrid-dry-run/structured-re-q2-slope-coverage-pregrid-seed-manifest.tsv",
+        "source_cell_manifest": "docs/dev-log/simulation-artifacts/2026-06-24-q2-slope-coverage-pregrid-dry-run/structured-re-q2-slope-coverage-pregrid-cell-manifest.tsv",
+    }
+    expected_q2_pregrid_retention = (
+        "retain_failed_profiles;retain_nonconverged_fits;"
+        "retain_nonfinite_intervals;record_bootstrap_refit_attempts"
+    )
+    expected_q2_pregrid_cells = {
+        target
+        for target in expected_q2_slope_interval_targets
+        if target not in q2_denominator_not_admitted
+    }
+    if len(q2_slope_coverage_pregrid_seed_manifest_rows) != 150:
+        errors.append(
+            "structured-re-q2-slope-coverage-pregrid-seed-manifest.tsv has "
+            f"{len(q2_slope_coverage_pregrid_seed_manifest_rows)} rows; expected 150"
+        )
+    seen_q2_pregrid_seed_indexes: set[str] = set()
+    seen_q2_pregrid_seeds: set[str] = set()
+    for row in q2_slope_coverage_pregrid_seed_manifest_rows:
+        row_id = row.get("replicate_index", "<q2 slope pregrid seed>")
+        if set(row.keys()) != set(Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS):
+            errors.append(
+                "structured-re-q2-slope-coverage-pregrid-seed-manifest.tsv "
+                f"fields do not match the manifest contract at replicate {row_id}"
+            )
+        for field in Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST_FIELDS:
+            if not row.get(field):
+                errors.append(f"q2 pregrid seed {row_id}: {field} is empty")
+        seen_q2_pregrid_seed_indexes.add(row.get("replicate_index", ""))
+        seen_q2_pregrid_seeds.add(row.get("seed", ""))
+        if row.get("seed_role") != "predeclared_q2_slope_pregrid":
+            errors.append(f"q2 pregrid seed {row_id}: seed_role changed")
+        if (
+            row.get("source_rule")
+            != "docs/dev-log/dashboard/structured-re-q2-slope-replicated-denominator-rule.tsv"
+        ):
+            errors.append(f"q2 pregrid seed {row_id}: source_rule changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"q2 pregrid seed {row_id}: execution_status must be not_executed")
+    expected_seed_indexes = {str(i) for i in range(1, 151)}
+    expected_seed_values = {str(730000 + i) for i in range(1, 151)}
+    if seen_q2_pregrid_seed_indexes != expected_seed_indexes:
+        errors.append("q2 pregrid seed manifest indexes must be 1..150")
+    if seen_q2_pregrid_seeds != expected_seed_values:
+        errors.append("q2 pregrid seed manifest seeds must be 730001..730150")
+
+    q2_pregrid_cell_counts: dict[tuple[str, str], int] = {}
+    seen_q2_pregrid_cell_ids: set[str] = set()
+    if len(q2_slope_coverage_pregrid_cell_manifest_rows) != 1500:
+        errors.append(
+            "structured-re-q2-slope-coverage-pregrid-cell-manifest.tsv has "
+            f"{len(q2_slope_coverage_pregrid_cell_manifest_rows)} rows; expected 1500"
+        )
+    for row in q2_slope_coverage_pregrid_cell_manifest_rows:
+        row_id = row.get("pregrid_cell_id", "<q2 slope pregrid cell>")
+        if set(row.keys()) != set(Q2_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-coverage-pregrid-cell-manifest.tsv "
+                "fields do not match the manifest contract"
+            )
+        for field in Q2_SLOPE_COVERAGE_PREGRID_CELL_MANIFEST_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id in seen_q2_pregrid_cell_ids:
+            errors.append(f"duplicate q2 pregrid cell id: {row_id}")
+        seen_q2_pregrid_cell_ids.add(row_id)
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        q2_pregrid_cell_counts[target_key] = q2_pregrid_cell_counts.get(target_key, 0) + 1
+        if target_key not in expected_q2_pregrid_cells:
+            errors.append(f"{row_id}: holdout or unexpected target appears in cell manifest")
+        elif provider in expected_q2_slope_interval_profiles:
+            expected_estimand, expected_profile, _ = expected_q2_slope_interval_profiles[
+                provider
+            ][endpoint_member]
+            if row.get("estimand") != expected_estimand:
+                errors.append(f"{row_id}: estimand must be {expected_estimand}")
+            if row.get("profile_target") != expected_profile:
+                errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if row.get("replicate_index") not in expected_seed_indexes:
+            errors.append(f"{row_id}: replicate_index is outside 1..150")
+        if row.get("seed") not in expected_seed_values:
+            errors.append(f"{row_id}: seed is outside the predeclared seed manifest")
+        if row.get("interval_methods") != "wald;endpoint_profile;bootstrap":
+            errors.append(f"{row_id}: interval_methods changed")
+        if row.get("current_denominator_action") != "eligible_for_pregrid_with_retention":
+            errors.append(f"{row_id}: current_denominator_action must be eligible")
+        if row.get("retention_policy") != expected_q2_pregrid_retention:
+            errors.append(f"{row_id}: retention_policy changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"{row_id}: execution_status must be not_executed")
+        if row.get("coverage_evaluable") != "FALSE":
+            errors.append(f"{row_id}: coverage_evaluable must remain FALSE")
+    for target in expected_q2_pregrid_cells:
+        if q2_pregrid_cell_counts.get(target) != 150:
+            errors.append(
+                "q2 pregrid cell manifest must have 150 rows for "
+                f"{target[0]}/{target[1]}"
+            )
+    for target in q2_denominator_not_admitted:
+        if q2_pregrid_cell_counts.get(target, 0) != 0:
+            errors.append(
+                "q2 pregrid cell manifest must not include held-out target "
+                f"{target[0]}/{target[1]}"
+            )
+
+    seen_q2_coverage_pregrid_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)
+        != expected_q2_slope_interval_count
+    ):
+        errors.append(
+            "structured-re-q2-slope-coverage-pregrid-dry-run.tsv has "
+            f"{len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)} rows; "
+            f"expected {expected_q2_slope_interval_count}"
+        )
+    for row in structured_re_q2_slope_coverage_pregrid_dry_run_rows:
+        row_id = row.get("pregrid_id", "<structured RE q2 slope pregrid>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q2-slope-coverage-pregrid-dry-run.tsv "
+                "fields do not match the pregrid contract"
+            )
+        for field in STRUCTURED_RE_Q2_SLOPE_COVERAGE_PREGRID_DRY_RUN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_q2_slope_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_targets = expected_q2_slope_interval_profiles[provider]
+        if endpoint_member not in provider_targets:
+            errors.append(f"{row_id}: unexpected endpoint_member {endpoint_member!r}")
+            continue
+        expected_estimand, expected_profile, expected_kind = provider_targets[
+            endpoint_member
+        ]
+        target_key = (provider, endpoint_member)
+        if target_key in seen_q2_coverage_pregrid_targets:
+            errors.append(
+                "duplicate structured RE q2 coverage pregrid target: "
+                f"{provider}/{endpoint_member}"
+            )
+        seen_q2_coverage_pregrid_targets.add(target_key)
+        expected_id = (
+            "q2_slope_coverage_pregrid_"
+            + provider
+            + "_"
+            + endpoint_member.replace(":", "_").replace("+", "_")
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: pregrid_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q2_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("target_kind") != expected_kind:
+            errors.append(f"{row_id}: target_kind must be {expected_kind}")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for field, expected in expected_q2_pregrid_sources.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must be {expected}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        expected_counts = {
+            "seed_manifest_rows": "150",
+            "total_cell_manifest_rows": "1500",
+            "nominal_coverage": "0.95",
+            "nominal_mcse_at_150": "0.017795",
+            "replicates_for_mcse_threshold": "475",
+            "mcse_threshold": "0.01",
+        }
+        for field, expected in expected_counts.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if row.get("mcse_threshold_status") != "not_met_by_sr150":
+            errors.append(f"{row_id}: mcse_threshold_status must remain not_met_by_sr150")
+        if row.get("interval_methods") != "wald;endpoint_profile;bootstrap":
+            errors.append(f"{row_id}: interval_methods changed")
+        if row.get("retention_policy") != expected_q2_pregrid_retention:
+            errors.append(f"{row_id}: retention_policy changed")
+        if row.get("execution_status") != "not_executed":
+            errors.append(f"{row_id}: execution_status must remain not_executed")
+        if row.get("coverage_evaluable") != "FALSE":
+            errors.append(f"{row_id}: coverage_evaluable must remain FALSE")
+        if row.get("coverage_status") != "not_evaluated":
+            errors.append(f"{row_id}: coverage_status must remain not_evaluated")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in q2_denominator_not_admitted:
+            if row.get("current_denominator_action") != "visible_holdout_until_smoke_profile_reconciled":
+                errors.append(f"{row_id}: current_denominator_action must be holdout")
+            if row.get("denominator_role") != "visible_holdout":
+                errors.append(f"{row_id}: denominator_role must remain visible_holdout")
+            if row.get("planned_replicates") != "0":
+                errors.append(f"{row_id}: planned_replicates must remain 0")
+            if row.get("planned_cells") != "0":
+                errors.append(f"{row_id}: planned_cells must remain 0")
+            if row.get("target_cell_manifest_rows") != "0":
+                errors.append(f"{row_id}: target_cell_manifest_rows must remain 0")
+            if "Reconcile the smoke endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require smoke-profile reconciliation")
+        else:
+            if row.get("current_denominator_action") != "eligible_for_pregrid_with_retention":
+                errors.append(f"{row_id}: current_denominator_action must be eligible")
+            if row.get("denominator_role") != "pregrid_target":
+                errors.append(f"{row_id}: denominator_role must remain pregrid_target")
+            if row.get("planned_replicates") != "150":
+                errors.append(f"{row_id}: planned_replicates must remain 150")
+            if row.get("planned_cells") != "150":
+                errors.append(f"{row_id}: planned_cells must remain 150")
+            if row.get("target_cell_manifest_rows") != "150":
+                errors.append(f"{row_id}: target_cell_manifest_rows must remain 150")
+            if "do not use SR150 for coverage wording" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep SR150 blocked")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "coverage pre-grid dry-run only",
+            "no coverage-evaluable denominator evidence",
+            "calibrated coverage",
+            "interval reliability",
+            "q4/q8",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "DRAC execution",
+            "SR150 readiness",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must block pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must block Q bridge")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(
+                    f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage"
+                )
+    missing_q2_coverage_pregrid_targets = sorted(
+        expected_q2_slope_interval_targets - seen_q2_coverage_pregrid_targets
+    )
+    if missing_q2_coverage_pregrid_targets:
+        errors.append(
+            "structured-re-q2-slope-coverage-pregrid-dry-run.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_q2_coverage_pregrid_targets
+            )
+        )
+
+    expected_mu_sigma_slope_parity_fixtures = {
+        "phylo": "mu_sigma_slope_phylo_same_target_ml",
+        "spatial": "mu_sigma_slope_spatial_same_target_ml",
+        "animal": "mu_sigma_slope_animal_same_target_ml",
+        "relmat": "mu_sigma_slope_relmat_same_target_ml",
+    }
+    seen_mu_sigma_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_mu_sigma_slope_parity_fixture_rows) != len(
+        expected_mu_sigma_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-mu-sigma-slope-parity-fixture.tsv has "
+            f"{len(structured_re_mu_sigma_slope_parity_fixture_rows)} rows; expected "
+            f"{len(expected_mu_sigma_slope_parity_fixtures)}"
+        )
+    for row in structured_re_mu_sigma_slope_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE mu+sigma slope parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_MU_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-mu-sigma-slope-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_MU_SIGMA_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_mu_sigma_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_mu_sigma_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_mu_sigma_slope_parity_fixtures:
+            errors.append(
+                f"duplicate structured RE mu+sigma slope parity fixture id: {row_id}"
+            )
+        seen_mu_sigma_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q1_plus_q1":
+            errors.append(f"{row_id}: dimension must remain q1_plus_q1")
+        if row.get("endpoint") != "mu+sigma":
+            errors.append(f"{row_id}: endpoint must remain mu+sigma")
+        if row.get("slope_class") != "independent_one_slope":
+            errors.append(f"{row_id}: slope_class must remain independent_one_slope")
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        if row.get("coefficient_order") != (
+            "mu:(Intercept);mu:x;sigma:(Intercept);sigma:x;"
+            "sd_mu:structured(Intercept);sd_mu:structured(x);"
+            "sd_sigma:structured(Intercept);sd_sigma:structured(x)"
+        ):
+            errors.append(f"{row_id}: coefficient_order changed")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if provider in expected_mu_sigma_slope_parity_fixtures:
+            expected_matrix_slot = {
+                "phylo": "tree",
+                "spatial": "coords",
+                "animal": "A",
+                "relmat": "K",
+            }[provider]
+            expected_input_scale = {
+                "phylo": "ultrametric_tree_branch_lengths",
+                "spatial": "coordinates_to_fixed_covariance_K",
+                "animal": "additive_covariance",
+                "relmat": "user_covariance",
+            }[provider]
+            if row.get("matrix_slot") != expected_matrix_slot:
+                errors.append(
+                    f"{row_id}: matrix_slot must remain {expected_matrix_slot}"
+                )
+            if row.get("input_scale") != expected_input_scale:
+                errors.append(
+                    f"{row_id}: input_scale must remain {expected_input_scale}"
+                )
+        claim_boundary = row.get("claim_boundary", "")
+        if "broad bridge support" not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must keep broad bridge unsupported")
+        if "coverage" not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
+        if "REML" not in claim_boundary or "AI-REML" not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must block REML and AI-REML")
+        if provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if provider == "animal" and "A-matrix" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A-matrix")
+        if provider == "relmat":
+            if "K-matrix" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must name K-matrix")
+            if "Q bridge" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+            if "K/Q same-target parity" not in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must name K/Q parity")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        if provider in expected_mu_sigma_slope_parity_fixtures:
+            expected_cell = f"qseries_{provider}_q1_mu_sigma_one_slope"
+            qseries_row = qseries_by_cell.get(expected_cell)
+            if qseries_row is None:
+                errors.append(f"{row_id}: linked q-series support cell is missing")
+            else:
+                if (
+                    qseries_row.get("evidence_url")
+                    != "docs/dev-log/dashboard/structured-re-mu-sigma-slope-parity-fixture.tsv"
+                ):
+                    errors.append(f"{row_id}: linked q-series evidence_url changed")
+                if qseries_row.get("route") != "native_direct_bridge_fixture":
+                    errors.append(
+                        f"{row_id}: linked q-series route must be native_direct_bridge_fixture"
+                    )
+                if qseries_row.get("fit_status") != "point_fit":
+                    errors.append(
+                        f"{row_id}: linked q-series fit_status must remain point_fit"
+                    )
+                if qseries_row.get("extractor_status") != "extractor_ready":
+                    errors.append(
+                        f"{row_id}: linked q-series extractor_status must remain extractor_ready"
+                    )
+                if qseries_row.get("bridge_status") != "fixture_parity":
+                    errors.append(
+                        f"{row_id}: linked q-series bridge_status must be fixture_parity"
+                    )
+                for field in ("interval_status", "coverage_status"):
+                    if qseries_row.get(field) != "planned":
+                        errors.append(
+                            f"{row_id}: linked q-series {field} must remain planned"
+                        )
+                if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                    errors.append(
+                        f"{row_id}: linked q-series denominator_policy must be fixture_not_coverage"
+                    )
+                if "four endpoint members" not in qseries_row.get("claim_boundary", ""):
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must name the identity gate"
+                    )
+                if "same-target fixture" not in qseries_row.get("claim_boundary", ""):
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must name fixture evidence"
+                    )
+
+    expected_mu_sigma_interval_profiles = {
+        "phylo": {
+            "mu:(Intercept)": "sd:mu:mu:phylo(1 | species)",
+            "mu:x": "sd:mu:mu:phylo(0 + x | species)",
+            "sigma:(Intercept)": "sd:sigma:sigma:phylo(1 | species)",
+            "sigma:x": "sd:sigma:sigma:phylo(0 + x | species)",
+        },
+        "spatial": {
+            "mu:(Intercept)": "sd:mu:mu:spatial(1 | site)",
+            "mu:x": "sd:mu:mu:spatial(0 + x | site)",
+            "sigma:(Intercept)": "sd:sigma:sigma:spatial(1 | site)",
+            "sigma:x": "sd:sigma:sigma:spatial(0 + x | site)",
+        },
+        "animal": {
+            "mu:(Intercept)": "sd:mu:mu:animal(1 | id)",
+            "mu:x": "sd:mu:mu:animal(0 + x | id)",
+            "sigma:(Intercept)": "sd:sigma:sigma:animal(1 | id)",
+            "sigma:x": "sd:sigma:sigma:animal(0 + x | id)",
+        },
+        "relmat": {
+            "mu:(Intercept)": "sd:mu:mu:relmat(1 | id)",
+            "mu:x": "sd:mu:mu:relmat(0 + x | id)",
+            "sigma:(Intercept)": "sd:sigma:sigma:relmat(1 | id)",
+            "sigma:x": "sd:sigma:sigma:relmat(0 + x | id)",
+        },
+    }
+    expected_mu_sigma_interval_sd_targets = {
+        "mu:(Intercept)": "sd_mu_intercept",
+        "mu:x": "sd_mu_x",
+        "sigma:(Intercept)": "sd_sigma_intercept",
+        "sigma:x": "sd_sigma_x",
+    }
+    seen_mu_sigma_interval_targets: set[tuple[str, str]] = set()
+    expected_mu_sigma_interval_count = sum(
+        len(endpoint_members)
+        for endpoint_members in expected_mu_sigma_interval_profiles.values()
+    )
+    if (
+        len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)
+        != expected_mu_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv has "
+            f"{len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)} rows; "
+            f"expected {expected_mu_sigma_interval_count}"
+        )
+    for row in structured_re_mu_sigma_slope_interval_diagnostic_plan_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE mu+sigma slope interval diagnostic plan>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv "
+                "fields do not match the plan contract"
+            )
+        for field in STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_mu_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_mu_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_mu_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        endpoint_token = endpoint_token.replace("_x", "_x")
+        expected_id = f"mu_sigma_slope_interval_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (provider, endpoint_member)
+        if target_key in seen_mu_sigma_interval_targets:
+            errors.append(
+                "duplicate structured RE mu+sigma interval diagnostic target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_mu_sigma_interval_targets.add(target_key)
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_mu_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        for method in ("wald", "profile", "bootstrap"):
+            if method not in row.get("interval_methods", ""):
+                errors.append(f"{row_id}: interval_methods must include {method}")
+        for required in (
+            "point_fit",
+            "extractor_ready",
+            "profile_targets_direct_ready",
+            "same_target_fixture_parity",
+        ):
+            if required not in row.get("required_fit_evidence", ""):
+                errors.append(f"{row_id}: required_fit_evidence must include {required}")
+        if "finite_intervals_by_method" not in row.get(
+            "required_interval_evidence",
+            "",
+        ):
+            errors.append(f"{row_id}: required_interval_evidence must require finite intervals")
+        if "coverage_mcse<=0.01" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence must require MCSE")
+        for field in (
+            "coverage_denominator",
+            "n_total",
+            "n_fit_ok",
+            "n_failed_fit",
+            "n_pdhess",
+            "n_interval_finite",
+            "n_interval_unavailable",
+            "coverage_mcse",
+        ):
+            if field not in row.get("denominator_fields", ""):
+                errors.append(f"{row_id}: denominator_fields must include {field}")
+        if row.get("current_blocker") != "interval_diagnostics_not_run":
+            errors.append(f"{row_id}: current_blocker must remain interval_diagnostics_not_run")
+        if row.get("status") != "planned":
+            errors.append(f"{row_id}: interval diagnostic plan must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        for forbidden_claim in (
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if forbidden_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must reject {forbidden_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if "before calibrated coverage wording" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage wording gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_mu_sigma_interval_targets = {
+        (provider, endpoint_member)
+        for provider, endpoint_members in expected_mu_sigma_interval_profiles.items()
+        for endpoint_member in endpoint_members
+    }
+    missing_mu_sigma_interval_targets = sorted(
+        expected_mu_sigma_interval_targets - seen_mu_sigma_interval_targets
+    )
+    if missing_mu_sigma_interval_targets:
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_mu_sigma_interval_targets
+            )
+        )
+
+    seen_mu_sigma_interval_status_targets: set[tuple[str, str]] = set()
+    plan_target_keys = {
+        (row.get("structured_type", ""), row.get("endpoint_member", ""))
+        for row in structured_re_mu_sigma_slope_interval_diagnostic_plan_rows
+    }
+    expected_all_finite_targets = {
+        ("phylo", "mu:(Intercept)"),
+        ("phylo", "mu:x"),
+        ("spatial", "mu:(Intercept)"),
+        ("spatial", "mu:x"),
+        ("relmat", "mu:(Intercept)"),
+    }
+    expected_wald_bootstrap_targets = {
+        ("relmat", "sigma:(Intercept)"),
+    }
+    expected_bootstrap_only_targets = expected_mu_sigma_interval_targets - (
+        expected_all_finite_targets | expected_wald_bootstrap_targets
+    )
+    if (
+        len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)
+        != expected_mu_sigma_interval_count
+    ):
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-diagnostic-status.tsv has "
+            f"{len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)} rows; "
+            f"expected {expected_mu_sigma_interval_count}"
+        )
+    for row in structured_re_mu_sigma_slope_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE mu+sigma slope interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-mu-sigma-slope-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in expected_mu_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_mu_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_mu_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = f"mu_sigma_slope_interval_status_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (provider, endpoint_member)
+        if target_key in seen_mu_sigma_interval_status_targets:
+            errors.append(
+                "duplicate structured RE mu+sigma interval diagnostic status target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_mu_sigma_interval_status_targets.add(target_key)
+        if target_key not in plan_target_keys:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_mu_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_converged", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        if row.get("bootstrap_status") != "finite":
+            errors.append(f"{row_id}: bootstrap_status must remain finite")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_all_finite_targets:
+            expected_method_status = {
+                "n_finite_intervals": "3",
+                "wald_status": "finite",
+                "profile_status": "finite",
+                "interval_status": "wald_profile_bootstrap_finite",
+                "failure_class": "none",
+            }
+            if "Repeat with more deterministic fixtures" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must require repeated diagnostics")
+        elif target_key in expected_wald_bootstrap_targets:
+            expected_method_status = {
+                "n_finite_intervals": "2",
+                "wald_status": "finite",
+                "profile_status": "nonfinite",
+                "interval_status": "wald_bootstrap_finite_profile_failed",
+                "failure_class": "profile_failed_or_nonfinite",
+            }
+            if "boundary/profile failures" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose profile failure")
+        elif target_key in expected_bootstrap_only_targets:
+            expected_method_status = {
+                "n_finite_intervals": "1",
+                "wald_status": "nonfinite",
+                "profile_status": "nonfinite",
+                "interval_status": "bootstrap_only_finite_boundary",
+                "failure_class": "wald_boundary_or_nonfinite;profile_failed_or_nonfinite",
+            }
+            if "boundary/profile failures" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose boundary/profile failures")
+        else:
+            errors.append(f"{row_id}: unexpected interval diagnostic status target")
+            expected_method_status = {}
+        for field, expected in expected_method_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "interval smoke only",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_mu_sigma_interval_status_targets = sorted(
+        expected_mu_sigma_interval_targets - seen_mu_sigma_interval_status_targets
+    )
+    if missing_mu_sigma_interval_status_targets:
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-diagnostic-status.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_mu_sigma_interval_status_targets
+            )
+        )
+
+    expected_mu_sigma_stability_variants = {
+        "strong": {
+            "intended_sd_mu_intercept": 0.60,
+            "intended_sd_mu_x": 0.45,
+            "intended_sd_sigma_intercept": 0.55,
+            "intended_sd_sigma_x": 0.40,
+        },
+        "stronger_sigma": {
+            "intended_sd_mu_intercept": 0.50,
+            "intended_sd_mu_x": 0.35,
+            "intended_sd_sigma_intercept": 0.80,
+            "intended_sd_sigma_x": 0.60,
+        },
+    }
+    expected_mu_sigma_stability_count = expected_mu_sigma_interval_count * len(
+        expected_mu_sigma_stability_variants
+    )
+    expected_mu_sigma_stability_nonfinite_targets = {
+        ("strong", "spatial", "mu:(Intercept)"),
+        ("strong", "spatial", "mu:x"),
+        ("stronger_sigma", "spatial", "mu:(Intercept)"),
+        ("stronger_sigma", "spatial", "mu:x"),
+    }
+    seen_mu_sigma_stability_targets: set[tuple[str, str, str]] = set()
+    mu_sigma_stability_finite_count = 0
+    mu_sigma_stability_nonfinite_count = 0
+    if (
+        len(structured_re_mu_sigma_slope_interval_stability_probe_rows)
+        != expected_mu_sigma_stability_count
+    ):
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-stability-probe.tsv has "
+            f"{len(structured_re_mu_sigma_slope_interval_stability_probe_rows)} rows; "
+            f"expected {expected_mu_sigma_stability_count}"
+        )
+    for row in structured_re_mu_sigma_slope_interval_stability_probe_rows:
+        row_id = row.get(
+            "probe_id",
+            "<structured RE mu+sigma slope interval stability probe>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-mu-sigma-slope-interval-stability-probe.tsv "
+                "fields do not match the probe contract"
+            )
+        for field in STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if variant not in expected_mu_sigma_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        for field, expected in expected_mu_sigma_stability_variants[variant].items():
+            expect_float_close(errors, row_id, field, row.get(field), expected)
+        if row.get("n_each") != "20":
+            errors.append(f"{row_id}: n_each must remain 20")
+        if provider not in expected_mu_sigma_interval_profiles:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        provider_profiles = expected_mu_sigma_interval_profiles[provider]
+        if endpoint_member not in provider_profiles:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_cell = f"qseries_{provider}_q1_mu_sigma_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = (
+            f"mu_sigma_slope_interval_stability_{variant}_{provider}_{endpoint_token}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: probe_id must be {expected_id}")
+        target_key = (variant, provider, endpoint_member)
+        if target_key in seen_mu_sigma_stability_targets:
+            errors.append(
+                "duplicate structured RE mu+sigma interval stability target: "
+                f"{variant} {provider} {endpoint_member}"
+            )
+        seen_mu_sigma_stability_targets.add(target_key)
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_direct_sd = expected_mu_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = provider_profiles[endpoint_member]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        try:
+            float(row.get("estimate", ""))
+        except ValueError:
+            errors.append(f"{row_id}: estimate must be numeric")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_mu_sigma_stability_nonfinite_targets:
+            expected_probe_status = {
+                "wald_status": "nonfinite",
+                "profile_status": "nonfinite",
+                "stability_status": "wald_profile_nonfinite_boundary",
+                "failure_class": "wald_boundary_or_nonfinite;profile_failed_or_nonfinite",
+            }
+            mu_sigma_stability_nonfinite_count += 1
+            if "persistent spatial boundary/profile failures" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(f"{row_id}: next_gate must diagnose persistent spatial failures")
+        else:
+            expected_probe_status = {
+                "wald_status": "finite",
+                "profile_status": "finite",
+                "stability_status": "wald_profile_finite",
+                "failure_class": "none",
+            }
+            mu_sigma_stability_finite_count += 1
+            if "bootstrap denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep bootstrap denominators gated")
+        for field, expected in expected_probe_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "stability probe only",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_mu_sigma_stability_targets = {
+        (variant, provider, endpoint_member)
+        for variant in expected_mu_sigma_stability_variants
+        for provider, endpoint_members in expected_mu_sigma_interval_profiles.items()
+        for endpoint_member in endpoint_members
+    }
+    missing_mu_sigma_stability_targets = sorted(
+        expected_mu_sigma_stability_targets - seen_mu_sigma_stability_targets
+    )
+    if missing_mu_sigma_stability_targets:
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-stability-probe.tsv missing targets: "
+            + ", ".join(
+                f"{variant}:{provider}:{endpoint_member}"
+                for variant, provider, endpoint_member in missing_mu_sigma_stability_targets
+            )
+        )
+    if mu_sigma_stability_finite_count != 28:
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-stability-probe.tsv must keep "
+            f"28 finite Wald/profile rows, saw {mu_sigma_stability_finite_count}"
+        )
+    if mu_sigma_stability_nonfinite_count != 4:
+        errors.append(
+            "structured-re-mu-sigma-slope-interval-stability-probe.tsv must keep "
+            f"4 spatial-mu boundary rows, saw {mu_sigma_stability_nonfinite_count}"
+        )
+
+    expected_spatial_mu_boundary_designs = {
+        "smoke_seed102": {
+            "seed": "102",
+            "n_each": "10",
+            "intended_sd_mu_intercept": 0.40,
+            "intended_sd_mu_x": 0.24,
+            "intended_sd_sigma_intercept": 0.22,
+            "intended_sd_sigma_x": 0.14,
+        },
+        "strong_seed202": {
+            "seed": "202",
+            "n_each": "20",
+            "intended_sd_mu_intercept": 0.60,
+            "intended_sd_mu_x": 0.45,
+            "intended_sd_sigma_intercept": 0.55,
+            "intended_sd_sigma_x": 0.40,
+        },
+        "strong_seed102": {
+            "seed": "102",
+            "n_each": "20",
+            "intended_sd_mu_intercept": 0.60,
+            "intended_sd_mu_x": 0.45,
+            "intended_sd_sigma_intercept": 0.55,
+            "intended_sd_sigma_x": 0.40,
+        },
+        "strong_seed302": {
+            "seed": "302",
+            "n_each": "20",
+            "intended_sd_mu_intercept": 0.60,
+            "intended_sd_mu_x": 0.45,
+            "intended_sd_sigma_intercept": 0.55,
+            "intended_sd_sigma_x": 0.40,
+        },
+        "strong_n50_seed202": {
+            "seed": "202",
+            "n_each": "50",
+            "intended_sd_mu_intercept": 0.60,
+            "intended_sd_mu_x": 0.45,
+            "intended_sd_sigma_intercept": 0.55,
+            "intended_sd_sigma_x": 0.40,
+        },
+        "mu_dominant_seed202": {
+            "seed": "202",
+            "n_each": "20",
+            "intended_sd_mu_intercept": 0.80,
+            "intended_sd_mu_x": 0.60,
+            "intended_sd_sigma_intercept": 0.12,
+            "intended_sd_sigma_x": 0.08,
+        },
+    }
+    expected_spatial_mu_boundary_count = (
+        len(expected_spatial_mu_boundary_designs) * 2
+    )
+    expected_spatial_mu_boundary_targets = {
+        (design_id, endpoint_member)
+        for design_id in expected_spatial_mu_boundary_designs
+        for endpoint_member in ("mu:(Intercept)", "mu:x")
+    }
+    expected_spatial_mu_boundary_nonfinite = {
+        ("strong_seed202", "mu:(Intercept)"),
+        ("strong_seed202", "mu:x"),
+    }
+    expected_spatial_mu_boundary_partial = {
+        ("strong_n50_seed202", "mu:x"),
+        ("mu_dominant_seed202", "mu:x"),
+    }
+    seen_spatial_mu_boundary_targets: set[tuple[str, str]] = set()
+    spatial_mu_boundary_finite_count = 0
+    spatial_mu_boundary_partial_count = 0
+    spatial_mu_boundary_nonfinite_count = 0
+    if (
+        len(structured_re_spatial_mu_boundary_diagnostic_rows)
+        != expected_spatial_mu_boundary_count
+    ):
+        errors.append(
+            "structured-re-spatial-mu-boundary-diagnostic.tsv has "
+            f"{len(structured_re_spatial_mu_boundary_diagnostic_rows)} rows; "
+            f"expected {expected_spatial_mu_boundary_count}"
+        )
+    for row in structured_re_spatial_mu_boundary_diagnostic_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE spatial mu boundary diagnostic>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_MU_BOUNDARY_DIAGNOSTIC_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-spatial-mu-boundary-diagnostic.tsv "
+                "fields do not match the diagnostic contract"
+            )
+        for field in STRUCTURED_RE_SPATIAL_MU_BOUNDARY_DIAGNOSTIC_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        design_id = row.get("design_id")
+        endpoint_member = row.get("endpoint_member")
+        if design_id not in expected_spatial_mu_boundary_designs:
+            errors.append(f"{row_id}: invalid design_id {design_id!r}")
+            continue
+        design = expected_spatial_mu_boundary_designs[design_id]
+        if row.get("seed") != design["seed"]:
+            errors.append(f"{row_id}: seed must remain {design['seed']}")
+        if row.get("n_each") != design["n_each"]:
+            errors.append(f"{row_id}: n_each must remain {design['n_each']}")
+        for field in (
+            "intended_sd_mu_intercept",
+            "intended_sd_mu_x",
+            "intended_sd_sigma_intercept",
+            "intended_sd_sigma_x",
+        ):
+            expect_float_close(errors, row_id, field, row.get(field), design[field])
+        for field in (
+            "realized_sd_mu_intercept",
+            "realized_sd_mu_x",
+            "realized_sd_sigma_intercept",
+            "realized_sd_sigma_x",
+            "estimate",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+        if row.get("cell_id") != "qseries_spatial_q1_mu_sigma_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must remain qseries_spatial_q1_mu_sigma_one_slope"
+            )
+        if row.get("formula_cell") != "spatial(1 + x | site, coords = coords) in mu and sigma":
+            errors.append(f"{row_id}: formula_cell changed unexpectedly")
+        if row.get("structured_type") != "spatial":
+            errors.append(f"{row_id}: structured_type must remain spatial")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if endpoint_member not in {"mu:(Intercept)", "mu:x"}:
+            errors.append(f"{row_id}: invalid endpoint_member {endpoint_member!r}")
+            continue
+        expected_direct_sd = expected_mu_sigma_interval_sd_targets[endpoint_member]
+        if row.get("direct_sd_target") != expected_direct_sd:
+            errors.append(f"{row_id}: direct_sd_target must be {expected_direct_sd}")
+        expected_profile = expected_mu_sigma_interval_profiles["spatial"][
+            endpoint_member
+        ]
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+        )
+        endpoint_token = endpoint_token.replace("_Intercept", "_intercept")
+        expected_id = f"spatial_mu_boundary_{design_id}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (design_id, endpoint_member)
+        if target_key in seen_spatial_mu_boundary_targets:
+            errors.append(
+                "duplicate structured RE spatial mu boundary target: "
+                f"{design_id} {endpoint_member}"
+            )
+        seen_spatial_mu_boundary_targets.add(target_key)
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        for count_field in ("observed_target_rows", "n_fit_ok", "n_pdhess"):
+            if row.get(count_field) != "1":
+                errors.append(f"{row_id}: {count_field} must remain 1")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if target_key in expected_spatial_mu_boundary_nonfinite:
+            expected_diagnostic_status = {
+                "wald_status": "nonfinite",
+                "profile_status": "nonfinite",
+                "diagnostic_status": "wald_profile_nonfinite_boundary",
+                "failure_class": "wald_boundary_or_nonfinite;profile_failed_or_nonfinite",
+            }
+            spatial_mu_boundary_nonfinite_count += 1
+            if "Avoid this design as a coverage denominator" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(f"{row_id}: next_gate must reject coverage denominator use")
+        elif target_key in expected_spatial_mu_boundary_partial:
+            expected_diagnostic_status = {
+                "wald_status": "finite",
+                "profile_status": "nonfinite",
+                "diagnostic_status": "wald_finite_profile_nonfinite",
+                "failure_class": "profile_failed_or_nonfinite",
+            }
+            spatial_mu_boundary_partial_count += 1
+            if "endpoint-profile failure" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must diagnose profile failure")
+        else:
+            expected_diagnostic_status = {
+                "wald_status": "finite",
+                "profile_status": "finite",
+                "diagnostic_status": "wald_profile_finite",
+                "failure_class": "none",
+            }
+            spatial_mu_boundary_finite_count += 1
+            if "replicated denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep denominators gated")
+        for field, expected in expected_diagnostic_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "spatial-mu boundary diagnostic only",
+            "range-estimating spatial support",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get("qseries_spatial_q1_mu_sigma_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_spatial_mu_boundary_targets = sorted(
+        expected_spatial_mu_boundary_targets - seen_spatial_mu_boundary_targets
+    )
+    if missing_spatial_mu_boundary_targets:
+        errors.append(
+            "structured-re-spatial-mu-boundary-diagnostic.tsv missing targets: "
+            + ", ".join(
+                f"{design_id}:{endpoint_member}"
+                for design_id, endpoint_member in missing_spatial_mu_boundary_targets
+            )
+        )
+    if spatial_mu_boundary_finite_count != 8:
+        errors.append(
+            "structured-re-spatial-mu-boundary-diagnostic.tsv must keep "
+            f"8 finite Wald/profile rows, saw {spatial_mu_boundary_finite_count}"
+        )
+    if spatial_mu_boundary_partial_count != 2:
+        errors.append(
+            "structured-re-spatial-mu-boundary-diagnostic.tsv must keep "
+            f"2 Wald-only/profile-failed rows, saw {spatial_mu_boundary_partial_count}"
+        )
+    if spatial_mu_boundary_nonfinite_count != 2:
+        errors.append(
+            "structured-re-spatial-mu-boundary-diagnostic.tsv must keep "
+            f"2 seed-202 boundary rows, saw {spatial_mu_boundary_nonfinite_count}"
+        )
+
+    expected_spatial_mu_geometry_designs = expected_spatial_mu_boundary_designs
+    expected_spatial_mu_geometry_count = len(expected_spatial_mu_geometry_designs) * 2
+    expected_spatial_mu_geometry_lower_errors = {
+        "strong_seed202",
+        "strong_n50_seed202",
+        "mu_dominant_seed202",
+    }
+    expected_spatial_mu_geometry_targets = {
+        (design_id, profile_side)
+        for design_id in expected_spatial_mu_geometry_designs
+        for profile_side in ("lower", "upper")
+    }
+    seen_spatial_mu_geometry_targets: set[tuple[str, str]] = set()
+    spatial_mu_geometry_ok_count = 0
+    spatial_mu_geometry_error_count = 0
+    if (
+        len(structured_re_spatial_mu_profile_geometry_rows)
+        != expected_spatial_mu_geometry_count
+    ):
+        errors.append(
+            "structured-re-spatial-mu-profile-geometry.tsv has "
+            f"{len(structured_re_spatial_mu_profile_geometry_rows)} rows; "
+            f"expected {expected_spatial_mu_geometry_count}"
+        )
+    for row in structured_re_spatial_mu_profile_geometry_rows:
+        row_id = row.get(
+            "geometry_id",
+            "<structured RE spatial mu profile geometry>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_MU_PROFILE_GEOMETRY_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-spatial-mu-profile-geometry.tsv "
+                "fields do not match the profile-geometry contract"
+            )
+        for field in STRUCTURED_RE_SPATIAL_MU_PROFILE_GEOMETRY_FIELDS:
+            if field in {
+                "side_warnings",
+                "theta",
+                "endpoint",
+                "root_error",
+                "n_eval",
+                "bracket_step",
+                "n_bracket_step",
+            }:
+                continue
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        design_id = row.get("design_id")
+        profile_side = row.get("profile_side")
+        if design_id not in expected_spatial_mu_geometry_designs:
+            errors.append(f"{row_id}: invalid design_id {design_id!r}")
+            continue
+        design = expected_spatial_mu_geometry_designs[design_id]
+        if row.get("seed") != design["seed"]:
+            errors.append(f"{row_id}: seed must remain {design['seed']}")
+        if row.get("n_each") != design["n_each"]:
+            errors.append(f"{row_id}: n_each must remain {design['n_each']}")
+        for field in (
+            "intended_sd_mu_intercept",
+            "intended_sd_mu_x",
+            "intended_sd_sigma_intercept",
+            "intended_sd_sigma_x",
+        ):
+            expect_float_close(errors, row_id, field, row.get(field), design[field])
+        if profile_side not in {"lower", "upper"}:
+            errors.append(f"{row_id}: invalid profile_side {profile_side!r}")
+            continue
+        expected_id = f"spatial_mu_x_profile_geometry_{design_id}_{profile_side}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: geometry_id must be {expected_id}")
+        target_key = (design_id, profile_side)
+        if target_key in seen_spatial_mu_geometry_targets:
+            errors.append(
+                "duplicate structured RE spatial mu profile geometry target: "
+                f"{design_id} {profile_side}"
+            )
+        seen_spatial_mu_geometry_targets.add(target_key)
+        if row.get("cell_id") != "qseries_spatial_q1_mu_sigma_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must remain qseries_spatial_q1_mu_sigma_one_slope"
+            )
+        if row.get("formula_cell") != "spatial(1 + x | site, coords = coords) in mu and sigma":
+            errors.append(f"{row_id}: formula_cell changed unexpectedly")
+        if row.get("structured_type") != "spatial":
+            errors.append(f"{row_id}: structured_type must remain spatial")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("endpoint_member") != "mu:x":
+            errors.append(f"{row_id}: endpoint_member must remain mu:x")
+        if row.get("direct_sd_target") != "sd_mu_x":
+            errors.append(f"{row_id}: direct_sd_target must remain sd_mu_x")
+        if row.get("profile_target") != "sd:mu:mu:spatial(0 + x | site)":
+            errors.append(
+                f"{row_id}: profile_target must remain sd:mu:mu:spatial(0 + x | site)"
+            )
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("source_diagnostic", "")):
+            errors.append(f"{row_id}: source_diagnostic does not resolve locally")
+        if row.get("profile_ready") != "TRUE":
+            errors.append(f"{row_id}: profile_ready must remain TRUE")
+        if row.get("fit_convergence") != "0":
+            errors.append(f"{row_id}: fit_convergence must remain 0")
+        if row.get("n_pdhess") != "1":
+            errors.append(f"{row_id}: n_pdhess must remain 1")
+        for field in (
+            "realized_sd_mu_intercept",
+            "realized_sd_mu_x",
+            "realized_sd_sigma_intercept",
+            "realized_sd_sigma_x",
+            "estimate",
+            "theta_hat",
+            "curvature_se",
+            "initial_step",
+            "logLik",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if field not in {"theta_hat", "logLik"} and value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+        if profile_side == "upper":
+            expected_geometry_status = {
+                "side_status": "ok",
+                "side_message": "ok",
+                "diagnostic_status": "side_profile_ok",
+            }
+            spatial_mu_geometry_ok_count += 1
+        elif design_id in expected_spatial_mu_geometry_lower_errors:
+            expected_geometry_status = {
+                "side_status": "error",
+                "side_message": "NA/NaN gradient evaluation",
+                "diagnostic_status": "lower_endpoint_optimizer_error",
+            }
+            spatial_mu_geometry_error_count += 1
+        else:
+            expected_geometry_status = {
+                "side_status": "ok",
+                "side_message": "ok",
+                "diagnostic_status": "side_profile_ok",
+            }
+            spatial_mu_geometry_ok_count += 1
+        for field, expected in expected_geometry_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        if row.get("diagnostic_status") == "side_profile_ok":
+            for field in (
+                "theta",
+                "endpoint",
+                "root_error",
+                "n_eval",
+                "bracket_step",
+                "n_bracket_step",
+            ):
+                try:
+                    value = float(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be numeric for ok sides")
+                    continue
+                if field in {"endpoint", "n_eval"} and value <= 0:
+                    errors.append(f"{row_id}: {field} must be positive for ok sides")
+            if row.get("next_gate", "").find("denominator replication") == -1:
+                errors.append(f"{row_id}: next_gate must keep denominators gated")
+        else:
+            for field in ("theta", "endpoint", "root_error", "n_eval"):
+                if row.get(field) != "NA":
+                    errors.append(f"{row_id}: {field} must be NA for failed sides")
+            if "NA/NaN function evaluation" not in row.get("side_warnings", ""):
+                errors.append(f"{row_id}: failed side must record NA/NaN warning")
+            if "lower-side constrained-optimizer geometry" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(f"{row_id}: next_gate must diagnose lower-side geometry")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "endpoint-profile geometry diagnostic only",
+            "range-estimating spatial support",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get("qseries_spatial_q1_mu_sigma_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_spatial_mu_geometry_targets = sorted(
+        expected_spatial_mu_geometry_targets - seen_spatial_mu_geometry_targets
+    )
+    if missing_spatial_mu_geometry_targets:
+        errors.append(
+            "structured-re-spatial-mu-profile-geometry.tsv missing targets: "
+            + ", ".join(
+                f"{design_id}:{profile_side}"
+                for design_id, profile_side in missing_spatial_mu_geometry_targets
+            )
+        )
+    if spatial_mu_geometry_ok_count != 9:
+        errors.append(
+            "structured-re-spatial-mu-profile-geometry.tsv must keep "
+            f"9 side-profile-ok rows, saw {spatial_mu_geometry_ok_count}"
+        )
+    if spatial_mu_geometry_error_count != 3:
+        errors.append(
+            "structured-re-spatial-mu-profile-geometry.tsv must keep "
+            f"3 lower-side optimizer-error rows, saw {spatial_mu_geometry_error_count}"
+        )
+
+    expected_spatial_mu_strategy_designs = {
+        design_id: expected_spatial_mu_boundary_designs[design_id]
+        for design_id in (
+            "smoke_seed102",
+            "strong_seed202",
+            "strong_n50_seed202",
+            "mu_dominant_seed202",
+        )
+    }
+    expected_spatial_mu_strategy_engines = {"endpoint", "auto", "tmbprofile"}
+    expected_spatial_mu_strategy_count = (
+        len(expected_spatial_mu_strategy_designs)
+        * len(expected_spatial_mu_strategy_engines)
+    )
+    seen_spatial_mu_strategy_targets: set[tuple[str, str]] = set()
+    spatial_mu_strategy_finite_count = 0
+    spatial_mu_strategy_nonfinite_count = 0
+    if (
+        len(structured_re_spatial_mu_profile_strategy_rows)
+        != expected_spatial_mu_strategy_count
+    ):
+        errors.append(
+            "structured-re-spatial-mu-profile-strategy.tsv has "
+            f"{len(structured_re_spatial_mu_profile_strategy_rows)} rows; "
+            f"expected {expected_spatial_mu_strategy_count}"
+        )
+    for row in structured_re_spatial_mu_profile_strategy_rows:
+        row_id = row.get(
+            "strategy_id",
+            "<structured RE spatial mu profile strategy>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_MU_PROFILE_STRATEGY_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-spatial-mu-profile-strategy.tsv "
+                "fields do not match the profile-strategy contract"
+            )
+        for field in STRUCTURED_RE_SPATIAL_MU_PROFILE_STRATEGY_FIELDS:
+            if field in {"method_warnings", "lower", "upper"}:
+                continue
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        design_id = row.get("design_id")
+        engine = row.get("requested_engine")
+        if design_id not in expected_spatial_mu_strategy_designs:
+            errors.append(f"{row_id}: invalid design_id {design_id!r}")
+            continue
+        if engine not in expected_spatial_mu_strategy_engines:
+            errors.append(f"{row_id}: invalid requested_engine {engine!r}")
+            continue
+        design = expected_spatial_mu_strategy_designs[design_id]
+        if row.get("seed") != design["seed"]:
+            errors.append(f"{row_id}: seed must remain {design['seed']}")
+        if row.get("n_each") != design["n_each"]:
+            errors.append(f"{row_id}: n_each must remain {design['n_each']}")
+        for field in (
+            "intended_sd_mu_intercept",
+            "intended_sd_mu_x",
+            "intended_sd_sigma_intercept",
+            "intended_sd_sigma_x",
+        ):
+            expect_float_close(errors, row_id, field, row.get(field), design[field])
+        expected_id = f"spatial_mu_x_profile_strategy_{design_id}_{engine}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: strategy_id must be {expected_id}")
+        target_key = (design_id, engine)
+        if target_key in seen_spatial_mu_strategy_targets:
+            errors.append(
+                "duplicate structured RE spatial mu profile strategy target: "
+                f"{design_id} {engine}"
+            )
+        seen_spatial_mu_strategy_targets.add(target_key)
+        if row.get("cell_id") != "qseries_spatial_q1_mu_sigma_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must remain qseries_spatial_q1_mu_sigma_one_slope"
+            )
+        if row.get("structured_type") != "spatial":
+            errors.append(f"{row_id}: structured_type must remain spatial")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("endpoint_member") != "mu:x":
+            errors.append(f"{row_id}: endpoint_member must remain mu:x")
+        if row.get("direct_sd_target") != "sd_mu_x":
+            errors.append(f"{row_id}: direct_sd_target must remain sd_mu_x")
+        if row.get("profile_target") != "sd:mu:mu:spatial(0 + x | site)":
+            errors.append(
+                f"{row_id}: profile_target must remain sd:mu:mu:spatial(0 + x | site)"
+            )
+        if row.get("profile_ready") != "TRUE":
+            errors.append(f"{row_id}: profile_ready must remain TRUE")
+        if row.get("denominator_admission") != "not_admitted":
+            errors.append(f"{row_id}: denominator_admission must remain not_admitted")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        if not evidence_reference_exists(row.get("source_geometry", "")):
+            errors.append(f"{row_id}: source_geometry does not resolve locally")
+        for field in (
+            "realized_sd_mu_intercept",
+            "realized_sd_mu_x",
+            "realized_sd_sigma_intercept",
+            "realized_sd_sigma_x",
+            "estimate",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+        if engine == "auto":
+            expected_effective_engine = (
+                "endpoint" if design_id == "smoke_seed102" else "tmbprofile"
+            )
+        else:
+            expected_effective_engine = engine
+        if row.get("effective_engine") != expected_effective_engine:
+            errors.append(
+                f"{row_id}: effective_engine must be {expected_effective_engine}"
+            )
+        if design_id == "smoke_seed102":
+            expected_strategy_status = {
+                "method_status": "finite",
+                "interval_finite": "TRUE",
+                "conf_status": "profile",
+                "method_message": "ok",
+                "strategy_status": "finite_control",
+            }
+            spatial_mu_strategy_finite_count += 1
+            for field in ("lower", "upper"):
+                try:
+                    value = float(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be numeric for finite control")
+                    continue
+                if value <= 0:
+                    errors.append(f"{row_id}: {field} must be positive for finite control")
+            if "replicated denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep denominators gated")
+        else:
+            expected_status = (
+                "boundary_not_rescued"
+                if design_id == "strong_seed202"
+                else "lower_side_not_rescued"
+            )
+            expected_message = (
+                "NA/NaN gradient evaluation"
+                if engine == "endpoint"
+                else "nonfinite_interval"
+            )
+            expected_strategy_status = {
+                "method_status": "nonfinite",
+                "interval_finite": "FALSE",
+                "conf_status": "profile_failed",
+                "method_message": expected_message,
+                "strategy_status": expected_status,
+            }
+            spatial_mu_strategy_nonfinite_count += 1
+            if row.get("lower") != "NA" or row.get("upper") != "NA":
+                errors.append(f"{row_id}: nonfinite strategy rows must keep NA bounds")
+            if "out of coverage denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must exclude coverage denominators")
+        for field, expected in expected_strategy_status.items():
+            if row.get(field) != expected:
+                errors.append(f"{row_id}: {field} must remain {expected}")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "profile-strategy diagnostic only",
+            "range-estimating spatial support",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "coverage denominator admission",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get("qseries_spatial_q1_mu_sigma_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_spatial_mu_strategy_targets = {
+        (design_id, engine)
+        for design_id in expected_spatial_mu_strategy_designs
+        for engine in expected_spatial_mu_strategy_engines
+    }
+    missing_spatial_mu_strategy_targets = sorted(
+        expected_spatial_mu_strategy_targets - seen_spatial_mu_strategy_targets
+    )
+    if missing_spatial_mu_strategy_targets:
+        errors.append(
+            "structured-re-spatial-mu-profile-strategy.tsv missing targets: "
+            + ", ".join(
+                f"{design_id}:{engine}"
+                for design_id, engine in missing_spatial_mu_strategy_targets
+            )
+        )
+    if spatial_mu_strategy_finite_count != 3:
+        errors.append(
+            "structured-re-spatial-mu-profile-strategy.tsv must keep "
+            f"3 finite-control rows, saw {spatial_mu_strategy_finite_count}"
+        )
+    if spatial_mu_strategy_nonfinite_count != 9:
+        errors.append(
+            "structured-re-spatial-mu-profile-strategy.tsv must keep "
+            f"9 non-rescued rows, saw {spatial_mu_strategy_nonfinite_count}"
+        )
+
+    expected_spatial_mu_lower_start_designs = expected_spatial_mu_strategy_designs
+    expected_spatial_mu_lower_start_strategies = {
+        "baseline_warm_curvature": ("warm", "curvature", "curvature"),
+        "reset_curvature": ("reset", "curvature", "curvature"),
+        "reset_capped_step1": ("reset", "capped_1", "curvature_capped_1"),
+        "reset_fixed_step025": ("reset", "fixed_025", "fixed_025"),
+    }
+    expected_spatial_mu_lower_start_count = (
+        len(expected_spatial_mu_lower_start_designs)
+        * len(expected_spatial_mu_lower_start_strategies)
+    )
+    seen_spatial_mu_lower_start_targets: set[tuple[str, str]] = set()
+    spatial_mu_lower_start_finite_count = 0
+    spatial_mu_lower_start_boundary_count = 0
+    spatial_mu_lower_start_not_rescued_count = 0
+    if (
+        len(structured_re_spatial_mu_lower_start_diagnostic_rows)
+        != expected_spatial_mu_lower_start_count
+    ):
+        errors.append(
+            "structured-re-spatial-mu-lower-start-diagnostic.tsv has "
+            f"{len(structured_re_spatial_mu_lower_start_diagnostic_rows)} rows; "
+            f"expected {expected_spatial_mu_lower_start_count}"
+        )
+    for row in structured_re_spatial_mu_lower_start_diagnostic_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE spatial mu lower-start diagnostic>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_MU_LOWER_START_DIAGNOSTIC_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-spatial-mu-lower-start-diagnostic.tsv "
+                "fields do not match the lower-start contract"
+            )
+        for field in STRUCTURED_RE_SPATIAL_MU_LOWER_START_DIAGNOSTIC_FIELDS:
+            if field in {
+                "side_warnings",
+                "theta",
+                "endpoint",
+                "root_error",
+                "n_eval",
+                "bracket_step",
+                "n_bracket_step",
+            }:
+                continue
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        design_id = row.get("design_id")
+        strategy = row.get("strategy")
+        if design_id not in expected_spatial_mu_lower_start_designs:
+            errors.append(f"{row_id}: invalid design_id {design_id!r}")
+            continue
+        if strategy not in expected_spatial_mu_lower_start_strategies:
+            errors.append(f"{row_id}: invalid strategy {strategy!r}")
+            continue
+        start_mode, step_rule, step_source = expected_spatial_mu_lower_start_strategies[
+            strategy
+        ]
+        design = expected_spatial_mu_lower_start_designs[design_id]
+        expected_id = f"spatial_mu_x_lower_start_{design_id}_{strategy}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        target_key = (design_id, strategy)
+        if target_key in seen_spatial_mu_lower_start_targets:
+            errors.append(
+                "duplicate structured RE spatial mu lower-start target: "
+                f"{design_id} {strategy}"
+            )
+        seen_spatial_mu_lower_start_targets.add(target_key)
+        if row.get("start_mode") != start_mode:
+            errors.append(f"{row_id}: start_mode must remain {start_mode}")
+        if row.get("step_rule") != step_rule:
+            errors.append(f"{row_id}: step_rule must remain {step_rule}")
+        if row.get("step_source") != step_source:
+            errors.append(f"{row_id}: step_source must remain {step_source}")
+        if row.get("optimizer_eval_max") != "1200":
+            errors.append(f"{row_id}: optimizer_eval_max must remain 1200")
+        if row.get("optimizer_iter_max") != "1200":
+            errors.append(f"{row_id}: optimizer_iter_max must remain 1200")
+        if row.get("seed") != design["seed"]:
+            errors.append(f"{row_id}: seed must remain {design['seed']}")
+        if row.get("n_each") != design["n_each"]:
+            errors.append(f"{row_id}: n_each must remain {design['n_each']}")
+        for field in (
+            "intended_sd_mu_intercept",
+            "intended_sd_mu_x",
+            "intended_sd_sigma_intercept",
+            "intended_sd_sigma_x",
+        ):
+            expect_float_close(errors, row_id, field, row.get(field), design[field])
+        if row.get("cell_id") != "qseries_spatial_q1_mu_sigma_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must remain qseries_spatial_q1_mu_sigma_one_slope"
+            )
+        if row.get("structured_type") != "spatial":
+            errors.append(f"{row_id}: structured_type must remain spatial")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("endpoint_member") != "mu:x":
+            errors.append(f"{row_id}: endpoint_member must remain mu:x")
+        if row.get("direct_sd_target") != "sd_mu_x":
+            errors.append(f"{row_id}: direct_sd_target must remain sd_mu_x")
+        if row.get("profile_target") != "sd:mu:mu:spatial(0 + x | site)":
+            errors.append(
+                f"{row_id}: profile_target must remain sd:mu:mu:spatial(0 + x | site)"
+            )
+        if row.get("profile_side") != "lower":
+            errors.append(f"{row_id}: profile_side must remain lower")
+        if row.get("profile_ready") != "TRUE":
+            errors.append(f"{row_id}: profile_ready must remain TRUE")
+        if row.get("denominator_admission") != "not_admitted":
+            errors.append(f"{row_id}: denominator_admission must remain not_admitted")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        for evidence_field in ("source_artifact", "source_geometry", "source_strategy"):
+            if not evidence_reference_exists(row.get(evidence_field, "")):
+                errors.append(f"{row_id}: {evidence_field} does not resolve locally")
+        for field in (
+            "realized_sd_mu_intercept",
+            "realized_sd_mu_x",
+            "realized_sd_sigma_intercept",
+            "realized_sd_sigma_x",
+            "estimate",
+            "theta_hat",
+            "curvature_se",
+            "cutoff",
+            "initial_step",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if field != "theta_hat" and value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+        if row.get("fit_convergence") != "0":
+            errors.append(f"{row_id}: fit_convergence must remain 0")
+        if row.get("n_pdhess") != "1":
+            errors.append(f"{row_id}: n_pdhess must remain 1")
+        if design_id == "smoke_seed102":
+            spatial_mu_lower_start_finite_count += 1
+            if row.get("diagnostic_status") != "finite_control":
+                errors.append(f"{row_id}: diagnostic_status must be finite_control")
+            if row.get("side_status") != "ok":
+                errors.append(f"{row_id}: side_status must be ok for finite control")
+            if row.get("side_message") != "ok":
+                errors.append(f"{row_id}: side_message must be ok for finite control")
+            for field in ("theta", "endpoint", "root_error", "bracket_step"):
+                try:
+                    value = float(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be numeric for finite control")
+                    continue
+                if field == "root_error":
+                    if value >= 1e-3:
+                        errors.append(f"{row_id}: root_error must stay below 1e-3")
+                elif field != "theta" and value <= 0:
+                    errors.append(f"{row_id}: {field} must be positive for finite control")
+            for field in ("n_eval", "n_bracket_step"):
+                try:
+                    int(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be an integer for finite control")
+            if "replicated denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep denominators gated")
+        else:
+            expected_status = (
+                "boundary_not_rescued"
+                if design_id == "strong_seed202"
+                else "lower_side_not_rescued"
+            )
+            if expected_status == "boundary_not_rescued":
+                spatial_mu_lower_start_boundary_count += 1
+            else:
+                spatial_mu_lower_start_not_rescued_count += 1
+            if row.get("diagnostic_status") != expected_status:
+                errors.append(f"{row_id}: diagnostic_status must be {expected_status}")
+            if row.get("side_status") != "error":
+                errors.append(f"{row_id}: side_status must be error for non-rescued rows")
+            if row.get("side_message") != "NA/NaN gradient evaluation":
+                errors.append(
+                    f"{row_id}: side_message must remain NA/NaN gradient evaluation"
+                )
+            if "NA/NaN function evaluation" not in row.get("side_warnings", ""):
+                errors.append(
+                    f"{row_id}: side_warnings must retain NA/NaN function evaluation"
+                )
+            for field in (
+                "theta",
+                "endpoint",
+                "root_error",
+                "n_eval",
+                "bracket_step",
+                "n_bracket_step",
+            ):
+                if row.get(field) != "NA":
+                    errors.append(f"{row_id}: {field} must remain NA for non-rescued rows")
+            if "out of coverage denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must exclude coverage denominators")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "lower-side start diagnostic only",
+            "range-estimating spatial support",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "coverage denominator admission",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get("qseries_spatial_q1_mu_sigma_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    expected_spatial_mu_lower_start_targets = {
+        (design_id, strategy)
+        for design_id in expected_spatial_mu_lower_start_designs
+        for strategy in expected_spatial_mu_lower_start_strategies
+    }
+    missing_spatial_mu_lower_start_targets = sorted(
+        expected_spatial_mu_lower_start_targets
+        - seen_spatial_mu_lower_start_targets
+    )
+    if missing_spatial_mu_lower_start_targets:
+        errors.append(
+            "structured-re-spatial-mu-lower-start-diagnostic.tsv missing targets: "
+            + ", ".join(
+                f"{design_id}:{strategy}"
+                for design_id, strategy in missing_spatial_mu_lower_start_targets
+            )
+        )
+    if spatial_mu_lower_start_finite_count != 4:
+        errors.append(
+            "structured-re-spatial-mu-lower-start-diagnostic.tsv must keep "
+            f"4 finite-control rows, saw {spatial_mu_lower_start_finite_count}"
+        )
+    if spatial_mu_lower_start_boundary_count != 4:
+        errors.append(
+            "structured-re-spatial-mu-lower-start-diagnostic.tsv must keep "
+            f"4 boundary-not-rescued rows, saw {spatial_mu_lower_start_boundary_count}"
+        )
+    if spatial_mu_lower_start_not_rescued_count != 8:
+        errors.append(
+            "structured-re-spatial-mu-lower-start-diagnostic.tsv must keep "
+            f"8 lower-side-not-rescued rows, saw {spatial_mu_lower_start_not_rescued_count}"
+        )
+
+    expected_spatial_mu_domain_guard_designs = expected_spatial_mu_lower_start_designs
+    expected_domain_offsets = "0;-0.001;-0.01;-0.05;-0.1;-0.25;-0.5;-1;-3"
+    seen_spatial_mu_domain_guard_designs: set[str] = set()
+    spatial_mu_domain_guard_finite_count = 0
+    spatial_mu_domain_guard_boundary_count = 0
+    spatial_mu_domain_guard_lower_count = 0
+    if len(structured_re_spatial_mu_domain_guard_diagnostic_rows) != len(
+        expected_spatial_mu_domain_guard_designs
+    ):
+        errors.append(
+            "structured-re-spatial-mu-domain-guard-diagnostic.tsv has "
+            f"{len(structured_re_spatial_mu_domain_guard_diagnostic_rows)} rows; "
+            f"expected {len(expected_spatial_mu_domain_guard_designs)}"
+        )
+    for row in structured_re_spatial_mu_domain_guard_diagnostic_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE spatial mu domain-guard diagnostic>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_SPATIAL_MU_DOMAIN_GUARD_DIAGNOSTIC_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-spatial-mu-domain-guard-diagnostic.tsv "
+                "fields do not match the domain-guard contract"
+            )
+        for field in STRUCTURED_RE_SPATIAL_MU_DOMAIN_GUARD_DIAGNOSTIC_FIELDS:
+            if field in {
+                "fn_penalty_endpoint",
+                "fn_penalty_root_error",
+                "fn_penalty_n_eval",
+                "zero_gr_penalty_endpoint",
+                "zero_gr_penalty_root_error",
+                "zero_gr_penalty_n_eval",
+            }:
+                continue
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        design_id = row.get("design_id")
+        if design_id not in expected_spatial_mu_domain_guard_designs:
+            errors.append(f"{row_id}: invalid design_id {design_id!r}")
+            continue
+        design = expected_spatial_mu_domain_guard_designs[design_id]
+        expected_id = f"spatial_mu_x_domain_guard_{design_id}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        if design_id in seen_spatial_mu_domain_guard_designs:
+            errors.append(
+                f"duplicate structured RE spatial mu domain-guard design: {design_id}"
+            )
+        seen_spatial_mu_domain_guard_designs.add(design_id)
+        if row.get("seed") != design["seed"]:
+            errors.append(f"{row_id}: seed must remain {design['seed']}")
+        if row.get("n_each") != design["n_each"]:
+            errors.append(f"{row_id}: n_each must remain {design['n_each']}")
+        for field in (
+            "intended_sd_mu_intercept",
+            "intended_sd_mu_x",
+            "intended_sd_sigma_intercept",
+            "intended_sd_sigma_x",
+        ):
+            expect_float_close(errors, row_id, field, row.get(field), design[field])
+        if row.get("cell_id") != "qseries_spatial_q1_mu_sigma_one_slope":
+            errors.append(
+                f"{row_id}: cell_id must remain qseries_spatial_q1_mu_sigma_one_slope"
+            )
+        if row.get("structured_type") != "spatial":
+            errors.append(f"{row_id}: structured_type must remain spatial")
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("endpoint_member") != "mu:x":
+            errors.append(f"{row_id}: endpoint_member must remain mu:x")
+        if row.get("direct_sd_target") != "sd_mu_x":
+            errors.append(f"{row_id}: direct_sd_target must remain sd_mu_x")
+        if row.get("profile_target") != "sd:mu:mu:spatial(0 + x | site)":
+            errors.append(
+                f"{row_id}: profile_target must remain sd:mu:mu:spatial(0 + x | site)"
+            )
+        if row.get("profile_side") != "lower":
+            errors.append(f"{row_id}: profile_side must remain lower")
+        if row.get("domain_offsets") != expected_domain_offsets:
+            errors.append(f"{row_id}: domain_offsets changed")
+        if row.get("n_domain_offsets") != "9":
+            errors.append(f"{row_id}: n_domain_offsets must remain 9")
+        if row.get("n_fixed_objective_finite") != "9":
+            errors.append(f"{row_id}: all fixed-objective domain checks must be finite")
+        if row.get("n_fixed_gradient_finite") != "9":
+            errors.append(f"{row_id}: all fixed-gradient domain checks must be finite")
+        if row.get("n_fixed_gradient_bad_total") != "0":
+            errors.append(f"{row_id}: fixed-gradient bad total must remain 0")
+        if row.get("profile_ready") != "TRUE":
+            errors.append(f"{row_id}: profile_ready must remain TRUE")
+        if row.get("guarded_initial_step") != "0.25":
+            errors.append(f"{row_id}: guarded_initial_step must remain 0.25")
+        if row.get("denominator_admission") != "not_admitted":
+            errors.append(f"{row_id}: denominator_admission must remain not_admitted")
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must remain diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must remain covered")
+        for evidence_field in ("source_artifact", "source_lower_start"):
+            if not evidence_reference_exists(row.get(evidence_field, "")):
+                errors.append(f"{row_id}: {evidence_field} does not resolve locally")
+        for field in (
+            "realized_sd_mu_intercept",
+            "realized_sd_mu_x",
+            "realized_sd_sigma_intercept",
+            "realized_sd_sigma_x",
+            "estimate",
+            "theta_hat",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if field != "theta_hat" and value <= 0:
+                errors.append(f"{row_id}: {field} must be positive")
+        if design_id == "smoke_seed102":
+            spatial_mu_domain_guard_finite_count += 1
+            if row.get("diagnostic_status") != "finite_control":
+                errors.append(f"{row_id}: diagnostic_status must be finite_control")
+            for prefix in ("fn_penalty", "zero_gr_penalty"):
+                if row.get(f"{prefix}_status") != "finite":
+                    errors.append(f"{row_id}: {prefix}_status must remain finite")
+                if row.get(f"{prefix}_message") != "ok":
+                    errors.append(f"{row_id}: {prefix}_message must remain ok")
+                for field in (
+                    f"{prefix}_endpoint",
+                    f"{prefix}_root_error",
+                    f"{prefix}_n_eval",
+                ):
+                    try:
+                        value = float(row.get(field, ""))
+                    except ValueError:
+                        errors.append(f"{row_id}: {field} must be numeric for finite control")
+                        continue
+                    if field.endswith("_root_error"):
+                        if value >= 1e-3:
+                            errors.append(f"{row_id}: {field} must stay below 1e-3")
+                    elif value <= 0:
+                        errors.append(f"{row_id}: {field} must be positive")
+            if "replicated denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must keep denominators gated")
+        else:
+            expected_status = (
+                "optimizer_path_boundary_not_rescued"
+                if design_id == "strong_seed202"
+                else "optimizer_path_lower_not_rescued"
+            )
+            if expected_status == "optimizer_path_boundary_not_rescued":
+                spatial_mu_domain_guard_boundary_count += 1
+            else:
+                spatial_mu_domain_guard_lower_count += 1
+            if row.get("diagnostic_status") != expected_status:
+                errors.append(f"{row_id}: diagnostic_status must be {expected_status}")
+            for prefix in ("fn_penalty", "zero_gr_penalty"):
+                if row.get(f"{prefix}_status") != "nonfinite":
+                    errors.append(f"{row_id}: {prefix}_status must remain nonfinite")
+                if "both X-convergence" not in row.get(f"{prefix}_message", ""):
+                    errors.append(f"{row_id}: {prefix}_message must retain convergence failure")
+                for field in (
+                    f"{prefix}_endpoint",
+                    f"{prefix}_root_error",
+                    f"{prefix}_n_eval",
+                ):
+                    if row.get(field) != "NA":
+                        errors.append(f"{row_id}: {field} must remain NA")
+            if "out of coverage denominators" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: next_gate must exclude coverage denominators")
+        claim_boundary = row.get("claim_boundary", "")
+        for required_claim in (
+            "domain-guard diagnostic only",
+            "range-estimating spatial support",
+            "no interval reliability",
+            "interval coverage",
+            "REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "coverage denominator admission",
+        ):
+            if required_claim not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must include {required_claim}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get("qseries_spatial_q1_mu_sigma_one_slope")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(f"{row_id}: linked q-series bridge_status must remain fixture_parity")
+            if qseries_row.get("interval_status") != "planned":
+                errors.append(f"{row_id}: linked q-series interval_status must remain planned")
+            if qseries_row.get("coverage_status") != "planned":
+                errors.append(f"{row_id}: linked q-series coverage_status must remain planned")
+            if qseries_row.get("denominator_policy") != "fixture_not_coverage":
+                errors.append(f"{row_id}: linked q-series denominator_policy must remain fixture_not_coverage")
+    missing_spatial_mu_domain_guard_designs = sorted(
+        set(expected_spatial_mu_domain_guard_designs)
+        - seen_spatial_mu_domain_guard_designs
+    )
+    if missing_spatial_mu_domain_guard_designs:
+        errors.append(
+            "structured-re-spatial-mu-domain-guard-diagnostic.tsv missing designs: "
+            + ", ".join(missing_spatial_mu_domain_guard_designs)
+        )
+    if spatial_mu_domain_guard_finite_count != 1:
+        errors.append(
+            "structured-re-spatial-mu-domain-guard-diagnostic.tsv must keep "
+            f"1 finite-control row, saw {spatial_mu_domain_guard_finite_count}"
+        )
+    if spatial_mu_domain_guard_boundary_count != 1:
+        errors.append(
+            "structured-re-spatial-mu-domain-guard-diagnostic.tsv must keep "
+            f"1 boundary-not-rescued row, saw {spatial_mu_domain_guard_boundary_count}"
+        )
+    if spatial_mu_domain_guard_lower_count != 2:
+        errors.append(
+            "structured-re-spatial-mu-domain-guard-diagnostic.tsv must keep "
+            f"2 lower-not-rescued rows, saw {spatial_mu_domain_guard_lower_count}"
+        )
+
+    expected_mu_sigma_slope_readiness = {
+        "phylo": "mu_sigma_slope_phylo_identity",
+        "spatial": "mu_sigma_slope_spatial_identity",
+        "animal": "mu_sigma_slope_animal_identity",
+        "relmat": "mu_sigma_slope_relmat_identity",
+    }
+    qseries_by_cell = {
+        row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
+    }
+    seen_mu_sigma_slope_readiness: set[str] = set()
+    if len(structured_re_mu_sigma_slope_readiness_rows) != len(
+        expected_mu_sigma_slope_readiness
+    ):
+        errors.append(
+            "structured-re-mu-sigma-slope-readiness.tsv has "
+            f"{len(structured_re_mu_sigma_slope_readiness_rows)} rows; expected "
+            f"{len(expected_mu_sigma_slope_readiness)}"
+        )
+    for row in structured_re_mu_sigma_slope_readiness_rows:
+        row_id = row.get("readiness_id", "<structured RE mu+sigma slope readiness>")
+        if set(row.keys()) != set(STRUCTURED_RE_MU_SIGMA_SLOPE_READINESS_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-mu-sigma-slope-readiness.tsv fields "
+                "do not match the readiness contract"
+            )
+        for field in STRUCTURED_RE_MU_SIGMA_SLOPE_READINESS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_mu_sigma_slope_readiness:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_mu_sigma_slope_readiness[provider]:
+            errors.append(f"{row_id}: readiness_id does not match provider {provider!r}")
+        if row_id in seen_mu_sigma_slope_readiness:
+            errors.append(f"duplicate structured RE mu+sigma slope readiness id: {row_id}")
+        seen_mu_sigma_slope_readiness.add(row_id)
+        expected_cell = f"qseries_{provider}_q1_mu_sigma_one_slope"
+        cell_id = row.get("cell_id")
+        if cell_id != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("dimension_pattern") != "q1_plus_q1":
+            errors.append(f"{row_id}: dimension_pattern must remain q1_plus_q1")
+        if row.get("endpoint_set") != "mu+sigma":
+            errors.append(f"{row_id}: endpoint_set must remain mu+sigma")
+        if row.get("slope_class") != "independent_one_slope":
+            errors.append(f"{row_id}: slope_class must remain independent_one_slope")
+        if (
+            row.get("desired_endpoint_member_set")
+            != "mu:(Intercept);mu:x;sigma:(Intercept);sigma:x"
+        ):
+            errors.append(f"{row_id}: desired_endpoint_member_set changed")
+        if (
+            row.get("current_separate_mu_evidence")
+            != "docs/dev-log/dashboard/structured-re-mu-slope-parity-fixture.tsv"
+        ):
+            errors.append(f"{row_id}: current_separate_mu_evidence changed")
+        if (
+            row.get("current_separate_sigma_evidence")
+            != "docs/dev-log/dashboard/structured-re-sigma-slope-parity-fixture.tsv"
+        ):
+            errors.append(f"{row_id}: current_separate_sigma_evidence changed")
+        if row.get("extractor_identity_gate") != "endpoint_member_identity_ready":
+            errors.append(f"{row_id}: extractor_identity_gate changed")
+        if row.get("runtime_status") != "point_fit":
+            errors.append(f"{row_id}: runtime_status must remain point_fit")
+        for field in ("bridge_status", "interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        if "point-fit" not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must name point-fit evidence")
+        if "coverage" not in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must mention coverage boundary")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        if "bridge fixture" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must name bridge fixture evidence")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(cell_id or "")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if (
+                qseries_row.get("evidence_url")
+                != "docs/dev-log/dashboard/structured-re-mu-sigma-slope-parity-fixture.tsv"
+            ):
+                errors.append(f"{row_id}: linked q-series evidence_url changed")
+            if qseries_row.get("route") != "native_direct_bridge_fixture":
+                errors.append(
+                    f"{row_id}: linked q-series route must be native_direct_bridge_fixture"
+                )
+            if qseries_row.get("fit_status") != "point_fit":
+                errors.append(f"{row_id}: linked q-series fit_status must remain point_fit")
+            if qseries_row.get("extractor_status") != "extractor_ready":
+                errors.append(
+                    f"{row_id}: linked q-series extractor_status must remain extractor_ready"
+                )
+            if qseries_row.get("bridge_status") != "fixture_parity":
+                errors.append(
+                    f"{row_id}: linked q-series bridge_status must be fixture_parity"
+                )
+            for field in ("interval_status", "coverage_status"):
+                if qseries_row.get(field) != "planned":
+                    errors.append(f"{row_id}: linked q-series {field} must remain planned")
+            if "four endpoint members" not in qseries_row.get("claim_boundary", ""):
+                errors.append(
+                    f"{row_id}: linked q-series claim_boundary must name the identity gate"
+                )
+            if "same-target fixture" not in qseries_row.get("claim_boundary", ""):
+                errors.append(
+                    f"{row_id}: linked q-series claim_boundary must name fixture evidence"
+                )
+            if "interval diagnostics" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                )
+
+    expected_q4_slope_identity = {
+        "phylo": "q4_slope_phylo_identity_preflight",
+        "spatial": "q4_slope_spatial_identity_preflight",
+        "animal": "q4_slope_animal_identity_preflight",
+        "relmat": "q4_slope_relmat_identity_preflight",
+    }
+    expected_q4_slope_members = (
+        "mu1:(Intercept);mu1:x;mu2:(Intercept);mu2:x;"
+        "sigma1:(Intercept);sigma1:x;sigma2:(Intercept);sigma2:x"
+    )
+    expected_q4_slope_coef_order = (
+        "(Intercept);x;(Intercept);x;(Intercept);x;(Intercept);x"
+    )
+    expected_q4_slope_sd_targets = (
+        "sd_mu1_intercept;sd_mu1_x;sd_mu2_intercept;sd_mu2_x;"
+        "sd_sigma1_intercept;sd_sigma1_x;sd_sigma2_intercept;sd_sigma2_x"
+    )
+    q4_slope_runtime_providers = {"phylo", "spatial", "animal", "relmat"}
+    seen_q4_slope_identity: set[str] = set()
+    if len(structured_re_q4_slope_identity_preflight_rows) != len(
+        expected_q4_slope_identity
+    ):
+        errors.append(
+            "structured-re-q4-slope-identity-preflight.tsv has "
+            f"{len(structured_re_q4_slope_identity_preflight_rows)} rows; expected "
+            f"{len(expected_q4_slope_identity)}"
+        )
+    for row in structured_re_q4_slope_identity_preflight_rows:
+        row_id = row.get("identity_id", "<structured RE q4 slope identity>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-identity-preflight.tsv fields "
+                "do not match the identity-preflight contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_q4_slope_identity:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+        elif row_id != expected_q4_slope_identity[provider]:
+            errors.append(f"{row_id}: identity_id does not match provider {provider!r}")
+        if row_id in seen_q4_slope_identity:
+            errors.append(f"duplicate structured RE q4 slope identity id: {row_id}")
+        seen_q4_slope_identity.add(row_id)
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        cell_id = row.get("cell_id")
+        if cell_id != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        if row.get("dimension_pattern") != "q8":
+            errors.append(f"{row_id}: dimension_pattern must remain q8")
+        if row.get("endpoint_set") != "mu1+mu2+sigma1+sigma2":
+            errors.append(
+                f"{row_id}: endpoint_set must remain mu1+mu2+sigma1+sigma2"
+            )
+        if row.get("slope_class") != "labelled_slope_covariance":
+            errors.append(f"{row_id}: slope_class must remain labelled_slope_covariance")
+        if row.get("desired_endpoint_member_set") != expected_q4_slope_members:
+            errors.append(f"{row_id}: desired_endpoint_member_set changed")
+        if row.get("coefficient_order") != expected_q4_slope_coef_order:
+            errors.append(f"{row_id}: coefficient_order changed")
+        if row.get("planned_direct_sd_target_set") != expected_q4_slope_sd_targets:
+            errors.append(f"{row_id}: planned_direct_sd_target_set changed")
+        if row.get("direct_sd_target_count") != "8":
+            errors.append(f"{row_id}: direct_sd_target_count must remain 8")
+        if row.get("labelled_covariance_pair_count") != "28":
+            errors.append(f"{row_id}: labelled_covariance_pair_count must remain 28")
+        if (
+            row.get("covariance_layout")
+            != "labelled_structured_endpoint_covariance"
+        ):
+            errors.append(f"{row_id}: covariance_layout changed")
+        expected_identity_gate = (
+            "runtime_test" if provider in q4_slope_runtime_providers
+            else "preflight_only"
+        )
+        if row.get("extractor_identity_gate") != expected_identity_gate:
+            errors.append(
+                f"{row_id}: extractor_identity_gate must be {expected_identity_gate}"
+            )
+        expected_runtime_status = (
+            "point_fit" if provider in q4_slope_runtime_providers else "planned"
+        )
+        if row.get("runtime_status") != expected_runtime_status:
+            errors.append(
+                f"{row_id}: runtime_status must be {expected_runtime_status}"
+            )
+        for field in ("bridge_status", "interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if (
+            row.get("source_qseries_status")
+            != "docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv"
+        ):
+            errors.append(f"{row_id}: source_qseries_status changed")
+        claim_boundary = row.get("claim_boundary", "")
+        required_boundary_phrases = (
+            (
+                "runtime point-fit",
+                "extractor evidence",
+                "coverage",
+                "q4 REML",
+                "AI-REML",
+                "broad bridge support",
+            )
+            if provider in q4_slope_runtime_providers
+            else (
+                "preflight only",
+                "runtime",
+                "coverage",
+                "q4 REML",
+                "AI-REML",
+                "broad bridge support",
+            )
+        )
+        for phrase in required_boundary_phrases:
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase!r}")
+        if provider == "spatial" and "range-estimating" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must block range-estimating support")
+        if provider == "animal" and "pedigree/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name pedigree/Ainv")
+        if provider == "relmat" and "Q bridge" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must keep Q bridge blocked")
+        next_gate = row.get("next_gate", "")
+        if provider in q4_slope_runtime_providers:
+            if "bridge fixture" not in next_gate:
+                errors.append(f"{row_id}: next_gate must name bridge fixture evidence")
+        elif "runtime mapping" not in next_gate:
+            errors.append(f"{row_id}: next_gate must name runtime mapping")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(cell_id or "")
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if (
+                qseries_row.get("evidence_url")
+                != "docs/dev-log/dashboard/structured-re-q4-slope-parity-fixture.tsv"
+            ):
+                errors.append(f"{row_id}: linked q-series evidence_url changed")
+            if qseries_row.get("dimension_pattern") != "q8":
+                errors.append(f"{row_id}: linked q-series dimension_pattern must be q8")
+            if qseries_row.get("endpoint_set") != "mu1+mu2+sigma1+sigma2":
+                errors.append(f"{row_id}: linked q-series endpoint_set changed")
+            if qseries_row.get("slope_class") != "labelled_slope_covariance":
+                errors.append(f"{row_id}: linked q-series slope_class changed")
+            if (
+                qseries_row.get("covariance_layout")
+                != "labelled_structured_endpoint_covariance"
+            ):
+                errors.append(f"{row_id}: linked q-series covariance_layout changed")
+            expected_qseries_values = {
+                "route": "planned",
+                "fit_status": "planned",
+                "extractor_status": "planned",
+                "bridge_status": "planned",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "no_denominator_until_fit",
+            }
+            if provider in q4_slope_runtime_providers:
+                expected_qseries_values.update(
+                    {
+                        "route": "native_direct_bridge_fixture",
+                        "fit_status": "point_fit",
+                        "extractor_status": "extractor_ready",
+                        "bridge_status": "fixture_parity",
+                        "denominator_policy": "fixture_not_coverage",
+                    }
+                )
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+            qseries_boundary = qseries_row.get("claim_boundary", "")
+            required_qseries_phrases = (
+                (
+                    "native ML point-fit",
+                    "exact eight-member endpoint map",
+                    "same-target fixture",
+                    "broad bridge support",
+                    "coverage",
+                    "q4 REML",
+                    "AI-REML",
+                    "public support remain planned",
+                )
+                if provider in q4_slope_runtime_providers
+                else (
+                    "eight-member identity preflight",
+                    "runtime",
+                    "coverage",
+                    "q4 REML",
+                    "AI-REML",
+                    "public support remains planned",
+                )
+            )
+            for phrase in required_qseries_phrases:
+                if phrase not in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must mention {phrase!r}"
+                    )
+            qseries_next_gate = qseries_row.get("next_gate", "")
+            if provider in q4_slope_runtime_providers:
+                if "interval diagnostics" not in qseries_next_gate:
+                    errors.append(
+                        f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                    )
+            elif "runtime mapping" not in qseries_next_gate:
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name runtime mapping"
+                )
+
+    expected_q4_location_slope_parity_fixtures = {
+        "phylo": "q4_location_slope_phylo_same_target_ml",
+        "spatial": "q4_location_slope_spatial_same_target_ml",
+        "animal": "q4_location_slope_animal_same_target_ml",
+        "relmat": "q4_location_slope_relmat_same_target_ml",
+    }
+    expected_q4_location_slope_members = [
+        "mu1:(Intercept)",
+        "mu1:x",
+        "mu2:(Intercept)",
+        "mu2:x",
+    ]
+
+    def q4_location_slope_member_token(member: str) -> str:
+        return member.replace(":", "_").replace("(", "").replace(")", "")
+
+    expected_q4_location_slope_sd_terms = [
+        f"sd_{member}:structured" for member in expected_q4_location_slope_members
+    ]
+    expected_q4_location_slope_cor_terms: list[str] = []
+    for left_index, left_member in enumerate(expected_q4_location_slope_members):
+        for right_member in expected_q4_location_slope_members[left_index + 1:]:
+            expected_q4_location_slope_cor_terms.append(
+                "cor_"
+                f"{q4_location_slope_member_token(left_member)}_"
+                f"{q4_location_slope_member_token(right_member)}:structured"
+            )
+    expected_q4_location_slope_coef_order = ";".join(
+        expected_q4_location_slope_members
+        + expected_q4_location_slope_sd_terms
+        + expected_q4_location_slope_cor_terms
+    )
+    expected_q4_location_slope_matrix_slot = {
+        "phylo": "tree",
+        "spatial": "coords",
+        "animal": "A",
+        "relmat": "K",
+    }
+    expected_q4_location_slope_input_scale = {
+        "phylo": "ultrametric_tree_branch_lengths",
+        "spatial": "coordinates_to_fixed_covariance_K",
+        "animal": "additive_covariance",
+        "relmat": "user_covariance",
+    }
+    seen_q4_location_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_q4_location_slope_parity_fixture_rows) != len(
+        expected_q4_location_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-parity-fixture.tsv has "
+            f"{len(structured_re_q4_location_slope_parity_fixture_rows)} rows; "
+            f"expected {len(expected_q4_location_slope_parity_fixtures)}"
+        )
+    for row in structured_re_q4_location_slope_parity_fixture_rows:
+        row_id = row.get(
+            "fixture_id",
+            "<structured RE q4 location slope parity fixture>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-parity-fixture.tsv "
+                "fields do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_q4_location_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if row_id != expected_q4_location_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_q4_location_slope_parity_fixtures:
+            errors.append(
+                f"duplicate structured RE q4 location slope parity fixture id: {row_id}"
+            )
+        seen_q4_location_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q4":
+            errors.append(f"{row_id}: dimension must remain q4")
+        if row.get("endpoint") != "mu1+mu2":
+            errors.append(f"{row_id}: endpoint must remain mu1+mu2")
+        if row.get("slope_class") != "labelled_slope_covariance":
+            errors.append(
+                f"{row_id}: slope_class must remain labelled_slope_covariance"
+            )
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if row.get("coefficient_order") != expected_q4_location_slope_coef_order:
+            errors.append(f"{row_id}: coefficient_order changed")
+        coefficient_terms = row.get("coefficient_order", "").split(";")
+        if len(coefficient_terms) != 14:
+            errors.append(f"{row_id}: coefficient_order must contain 14 terms")
+        if coefficient_terms[:4] != expected_q4_location_slope_members:
+            errors.append(f"{row_id}: first four coefficient terms changed")
+        if len([term for term in coefficient_terms if term.startswith("sd_")]) != 4:
+            errors.append(f"{row_id}: coefficient_order must keep four SD terms")
+        if len([term for term in coefficient_terms if term.startswith("cor_")]) != 6:
+            errors.append(f"{row_id}: coefficient_order must keep six correlation terms")
+        if row.get("matrix_slot") != expected_q4_location_slope_matrix_slot[provider]:
+            errors.append(
+                f"{row_id}: matrix_slot must remain "
+                f"{expected_q4_location_slope_matrix_slot[provider]}"
+            )
+        if row.get("input_scale") != expected_q4_location_slope_input_scale[provider]:
+            errors.append(
+                f"{row_id}: input_scale must remain "
+                f"{expected_q4_location_slope_input_scale[provider]}"
+            )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 location one-slope",
+            "four-member q4 location",
+            "broad bridge support",
+            "partial location-scale support",
+            "interval reliability",
+            "coverage",
+            "q4 REML",
+            "AI-REML",
+            "public support",
+            "broader q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial":
+            for phrase in ("fixed-covariance", "range-estimating"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: spatial claim_boundary must mention {phrase}")
+        if provider == "animal":
+            for phrase in ("A-matrix", "pedigree/Ainv"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: animal claim_boundary must mention {phrase}")
+        if provider == "relmat":
+            for phrase in ("K-matrix", "Q precision"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: relmat claim_boundary must mention {phrase}")
+            if "K/Q same-target parity" in claim_boundary:
+                errors.append(f"{row_id}: relmat claim_boundary must not claim K/Q parity")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if (
+                qseries_row.get("evidence_url")
+                != "docs/dev-log/dashboard/structured-re-q4-location-slope-parity-fixture.tsv"
+            ):
+                errors.append(f"{row_id}: linked q-series evidence_url changed")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+            qseries_boundary = qseries_row.get("claim_boundary", "")
+            for phrase in (
+                "native ML point-fit",
+                "exact four-member q4 location endpoint map",
+                "same-target fixture",
+                "broad bridge support",
+                "partial location-scale support",
+                "coverage",
+                "q4 REML",
+                "AI-REML",
+                "public support",
+                "broader q8 support",
+            ):
+                if phrase not in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must mention {phrase!r}"
+                    )
+            if provider == "spatial" and "range-estimating" not in qseries_boundary:
+                errors.append(f"{row_id}: linked spatial q-series must block range-estimating support")
+            if provider == "animal" and "pedigree/Ainv" not in qseries_boundary:
+                errors.append(f"{row_id}: linked animal q-series must name pedigree/Ainv")
+            if provider == "relmat":
+                if "Q precision" not in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked relmat q-series must keep Q precision separate"
+                    )
+                if "K/Q same-target parity" in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked relmat q-series must not claim K/Q parity"
+                    )
+            if "interval diagnostics" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                )
+
+    q4_location_slope_provider_groups = {
+        "phylo": "species",
+        "spatial": "site",
+        "animal": "id",
+        "relmat": "id",
+    }
+    q4_location_slope_provider_claim_phrases = {
+        "spatial": "range-estimating",
+        "animal": "pedigree/Ainv",
+        "relmat": "Q precision",
+    }
+    q4_location_slope_endpoint_details = {
+        "mu1:(Intercept)": ("mu", "mu1", "1", "sd_mu1_intercept"),
+        "mu1:x": ("mu", "mu1", "0 + x", "sd_mu1_x"),
+        "mu2:(Intercept)": ("mu", "mu2", "1", "sd_mu2_intercept"),
+        "mu2:x": ("mu", "mu2", "0 + x", "sd_mu2_x"),
+    }
+    expected_q4_location_slope_interval_direct_targets: dict[
+        tuple[str, str], tuple[str, str]
+    ] = {}
+    expected_q4_location_slope_interval_derived_targets: dict[
+        tuple[str, str], tuple[str, str]
+    ] = {}
+    for provider, group in q4_location_slope_provider_groups.items():
+        for member in expected_q4_location_slope_members:
+            family_axis, endpoint, term, estimand = q4_location_slope_endpoint_details[
+                member
+            ]
+            expected_q4_location_slope_interval_direct_targets[(provider, member)] = (
+                estimand,
+                f"sd:{family_axis}:{endpoint}:{provider}({term} | p | {group})",
+            )
+        for left_index, left_member in enumerate(expected_q4_location_slope_members):
+            for right_member in expected_q4_location_slope_members[left_index + 1:]:
+                endpoint_member = f"{left_member}+{right_member}"
+                estimand = (
+                    "cor_"
+                    f"{q4_location_slope_member_token(left_member)}_"
+                    f"{q4_location_slope_member_token(right_member)}"
+                )
+                expected_q4_location_slope_interval_derived_targets[
+                    (provider, endpoint_member)
+                ] = (
+                    estimand,
+                    f"derived:{provider}:cor({left_member},{right_member} | p | {group})",
+                )
+    expected_q4_location_slope_interval_targets = (
+        set(expected_q4_location_slope_interval_direct_targets)
+        | set(expected_q4_location_slope_interval_derived_targets)
+    )
+    seen_q4_location_slope_interval_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)
+        != len(expected_q4_location_slope_interval_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-interval-diagnostic-plan.tsv has "
+            f"{len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} rows; "
+            f"expected {len(expected_q4_location_slope_interval_targets)}"
+        )
+    for row in structured_re_q4_location_slope_interval_diagnostic_plan_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE q4 location slope interval diagnostic plan>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-interval-diagnostic-plan.tsv "
+                "fields do not match the plan contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in q4_location_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        target_key = (provider, endpoint_member or "")
+        if target_key in seen_q4_location_slope_interval_targets:
+            errors.append(
+                "duplicate structured RE q4 location slope interval diagnostic target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_q4_location_slope_interval_targets.add(target_key)
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if row.get("formula_cell") != qseries_row.get("formula_cell"):
+                errors.append(f"{row_id}: formula_cell must match q-series row")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+        target_kind = row.get("target_kind")
+        if target_kind == "direct_sd":
+            expected_target = expected_q4_location_slope_interval_direct_targets.get(
+                target_key
+            )
+            if expected_target is None:
+                errors.append(
+                    f"{row_id}: unexpected direct-SD endpoint_member {endpoint_member!r}"
+                )
+                continue
+            expected_estimand, expected_profile = expected_target
+            expected_id = f"q4_location_slope_interval_{provider}_{expected_estimand}"
+            if row_id != expected_id:
+                errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+            if row.get("interval_methods") != "wald;profile;bootstrap":
+                errors.append(f"{row_id}: direct-SD interval_methods changed")
+            for required in (
+                "point_fit",
+                "extractor_ready",
+                "profile_targets_direct_ready",
+                "same_target_fixture_parity",
+            ):
+                if required not in row.get("required_fit_evidence", ""):
+                    errors.append(
+                        f"{row_id}: required_fit_evidence must include {required}"
+                    )
+            if row.get("current_blocker") != "interval_diagnostics_not_run":
+                errors.append(
+                    f"{row_id}: current_blocker must remain interval_diagnostics_not_run"
+                )
+            if "finite_direct_sd_intervals_by_method" not in row.get(
+                "required_interval_evidence",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: direct rows must require finite direct-SD intervals"
+                )
+            if "target-level" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: direct next_gate must name target-level smoke")
+        elif target_kind == "derived_correlation":
+            expected_target = expected_q4_location_slope_interval_derived_targets.get(
+                target_key
+            )
+            if expected_target is None:
+                errors.append(
+                    f"{row_id}: unexpected derived endpoint_member {endpoint_member!r}"
+                )
+                continue
+            expected_estimand, expected_profile = expected_target
+            expected_id = f"q4_location_slope_interval_{provider}_{expected_estimand}"
+            if row_id != expected_id:
+                errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+            if row.get("interval_methods") != "delta;profile;bootstrap":
+                errors.append(f"{row_id}: derived interval_methods changed")
+            for required in (
+                "point_fit",
+                "extractor_ready",
+                "corpairs_point_reconstruction",
+                "same_target_fixture_parity",
+                "derived_interval_reconstruction_planned",
+            ):
+                if required not in row.get("required_fit_evidence", ""):
+                    errors.append(
+                        f"{row_id}: required_fit_evidence must include {required}"
+                    )
+            if (
+                row.get("current_blocker")
+                != "derived_correlation_interval_reconstruction_not_available"
+            ):
+                errors.append(
+                    f"{row_id}: current_blocker must block derived reconstruction"
+                )
+            if "finite_derived_correlation_intervals_by_method" not in row.get(
+                "required_interval_evidence",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived rows must require finite derived intervals"
+                )
+            if "derived-correlation interval reconstruction" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived next_gate must name reconstruction work"
+                )
+            if "derived correlation interval reconstruction is not available" not in row.get(
+                "claim_boundary",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived claim_boundary must keep reconstruction blocked"
+                )
+        else:
+            errors.append(f"{row_id}: invalid target_kind {target_kind!r}")
+            continue
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if "coverage_mcse<=0.01" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence must keep MCSE gate")
+        for field_name in (
+            "coverage_denominator",
+            "n_total",
+            "n_fit_ok",
+            "n_failed_fit",
+            "n_pdhess",
+            "n_interval_finite",
+            "n_interval_unavailable",
+            "coverage_mcse",
+        ):
+            if field_name not in row.get("denominator_fields", ""):
+                errors.append(f"{row_id}: denominator_fields must include {field_name}")
+        if row.get("status") != "planned":
+            errors.append(f"{row_id}: interval diagnostic plan must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 location one-slope",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "broader q8 support",
+            "partial location-scale support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_location_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if provider == "relmat" and "K/Q same-target parity" in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must not claim K/Q parity")
+        if "before calibrated coverage wording" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage wording gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q4_location_slope_interval_targets = sorted(
+        expected_q4_location_slope_interval_targets
+        - seen_q4_location_slope_interval_targets
+    )
+    if missing_q4_location_slope_interval_targets:
+        errors.append(
+            "structured-re-q4-location-slope-interval-diagnostic-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_location_slope_interval_targets
+            )
+        )
+
+    q4_location_slope_interval_direct_plan = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_location_slope_interval_diagnostic_plan_rows
+        if row.get("target_kind") == "direct_sd"
+    }
+    seen_q4_location_slope_interval_status_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_location_slope_interval_diagnostic_status_rows)
+        != len(expected_q4_location_slope_interval_direct_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-interval-diagnostic-status.tsv has "
+            f"{len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} rows; "
+            f"expected {len(expected_q4_location_slope_interval_direct_targets)}"
+        )
+    for row in structured_re_q4_location_slope_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE q4 location slope interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider or "", endpoint_member or "")
+        if provider not in q4_location_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        expected_target = expected_q4_location_slope_interval_direct_targets.get(
+            target_key
+        )
+        if expected_target is None:
+            errors.append(
+                f"{row_id}: unexpected q4 location slope interval status target "
+                f"{provider}:{endpoint_member}"
+            )
+            continue
+        if target_key in seen_q4_location_slope_interval_status_targets:
+            errors.append(
+                "duplicate structured RE q4 location slope interval diagnostic status target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_q4_location_slope_interval_status_targets.add(target_key)
+        endpoint_token = (
+            (endpoint_member or "")
+            .replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = (
+            f"q4_location_slope_interval_status_{provider}_{endpoint_token}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        plan_row = q4_location_slope_interval_direct_plan.get(target_key)
+        if plan_row is None:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+        else:
+            for field in (
+                "cell_id",
+                "formula_cell",
+                "target_kind",
+                "estimand",
+                "profile_target",
+            ):
+                if row.get(field) != plan_row.get(field):
+                    errors.append(f"{row_id}: {field} must match the plan sidecar")
+        expected_estimand, expected_profile = expected_target
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_source_artifact = (
+            "docs/dev-log/simulation-artifacts/"
+            "2026-06-24-q4-location-slope-interval-smoke/"
+            "structured-re-q4-location-slope-interval-smoke-results.tsv"
+        )
+        if row.get("source_artifact") != expected_source_artifact:
+            errors.append(f"{row_id}: source_artifact path changed")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        expected_status_values = {
+            "observed_target_rows": "1",
+            "n_fit_ok": "1",
+            "n_converged": "1",
+            "n_pdhess": "1",
+            "n_finite_intervals": "2",
+            "wald_status": "finite",
+            "profile_status": "finite",
+            "bootstrap_status": "not_run_smoke_budget",
+            "interval_status": "wald_profile_finite_bootstrap_failed",
+            "failure_class": "bootstrap_not_run_smoke_budget",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_status_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 location one-slope",
+            "direct-SD interval smoke",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "partial location-scale support",
+            "broader q8 support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_location_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if provider == "relmat" and "K/Q same-target parity" in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must not claim K/Q parity")
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    missing_q4_location_slope_interval_status_targets = sorted(
+        set(expected_q4_location_slope_interval_direct_targets)
+        - seen_q4_location_slope_interval_status_targets
+    )
+    if missing_q4_location_slope_interval_status_targets:
+        errors.append(
+            "structured-re-q4-location-slope-interval-diagnostic-status.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_location_slope_interval_status_targets
+            )
+        )
+
+    expected_q4_location_slope_bootstrap_member = "mu1:(Intercept)"
+    expected_q4_location_slope_bootstrap_source_status = (
+        "docs/dev-log/dashboard/"
+        "structured-re-q4-location-slope-interval-diagnostic-status.tsv"
+    )
+    expected_q4_location_slope_bootstrap_source_artifact = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-interval-smoke/"
+        "structured-re-q4-location-slope-interval-smoke-results.tsv"
+    )
+    expected_q4_location_slope_bootstrap_artifact = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-bootstrap-budget-probe/"
+        "structured-re-q4-location-slope-bootstrap-budget-probe-results.tsv"
+    )
+    seen_q4_location_slope_bootstrap_probes: set[str] = set()
+    if len(structured_re_q4_location_slope_bootstrap_budget_probe_rows) != len(
+        q4_location_slope_provider_groups
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-budget-probe.tsv has "
+            f"{len(structured_re_q4_location_slope_bootstrap_budget_probe_rows)} rows; "
+            f"expected {len(q4_location_slope_provider_groups)}"
+        )
+    for row in structured_re_q4_location_slope_bootstrap_budget_probe_rows:
+        row_id = row.get(
+            "probe_id",
+            "<structured RE q4 location slope bootstrap budget probe>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-bootstrap-budget-probe.tsv "
+                "fields do not match the budget-probe contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in q4_location_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if provider in seen_q4_location_slope_bootstrap_probes:
+            errors.append(f"duplicate q4 location slope bootstrap probe provider: {provider}")
+        seen_q4_location_slope_bootstrap_probes.add(provider)
+        expected_id = (
+            f"q4_location_slope_bootstrap_budget_{provider}_mu1_intercept"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: probe_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if row.get("formula_cell") != qseries_row.get("formula_cell"):
+                errors.append(f"{row_id}: formula_cell must match q-series row")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("endpoint_member") != expected_q4_location_slope_bootstrap_member:
+            errors.append(
+                f"{row_id}: endpoint_member must remain "
+                f"{expected_q4_location_slope_bootstrap_member}"
+            )
+        expected_estimand, expected_profile = (
+            expected_q4_location_slope_interval_direct_targets[
+                (provider, expected_q4_location_slope_bootstrap_member)
+            ]
+        )
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_paths = {
+            "source_interval_status": expected_q4_location_slope_bootstrap_source_status,
+            "source_interval_artifact": expected_q4_location_slope_bootstrap_source_artifact,
+            "source_bootstrap_artifact": expected_q4_location_slope_bootstrap_artifact,
+        }
+        for field, expected_value in expected_paths.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} path changed")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        expected_common = {
+            "bootstrap_replicates": "2",
+            "bootstrap_seed": "41",
+            "denominator_status": "representative_bootstrap_probe_only",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if provider == "phylo":
+            expected_phylo = {
+                "observed_target_rows": "1",
+                "n_fit_ok": "1",
+                "n_converged": "1",
+                "n_pdhess": "1",
+                "bootstrap_status": "finite",
+                "bootstrap_finite": "TRUE",
+                "conf_status": "bootstrap",
+                "profile_ready": "TRUE",
+                "profile_note": "ready",
+                "probe_status": "bootstrap_budget_probe_finite",
+            }
+            for field, expected_value in expected_phylo.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if "successful refits" not in row.get("method_message", ""):
+                errors.append(f"{row_id}: method_message must retain refit accounting")
+            for field in ("bootstrap_lower", "bootstrap_upper", "estimate"):
+                try:
+                    value = float(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be numeric")
+                    continue
+                if not math.isfinite(value):
+                    errors.append(f"{row_id}: {field} must be finite")
+            try:
+                lower = float(row.get("bootstrap_lower", ""))
+                upper = float(row.get("bootstrap_upper", ""))
+                if not lower < upper:
+                    errors.append(f"{row_id}: bootstrap interval must be ordered")
+            except ValueError:
+                pass
+        else:
+            expected_not_run = {
+                "observed_target_rows": "0",
+                "n_fit_ok": "0",
+                "n_converged": "0",
+                "n_pdhess": "0",
+                "bootstrap_status": "not_run_after_phylo_budget_probe",
+                "bootstrap_finite": "FALSE",
+                "bootstrap_lower": "NA",
+                "bootstrap_upper": "NA",
+                "conf_status": "not_run_after_phylo_budget_probe",
+                "estimate": "NA",
+                "profile_ready": "FALSE",
+                "profile_note": "NA",
+                "probe_status": "bootstrap_budget_probe_not_run_budget",
+            }
+            for field, expected_value in expected_not_run.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if "bootstrap omitted" not in row.get("method_message", ""):
+                errors.append(f"{row_id}: method_message must say bootstrap was omitted")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "bootstrap budget probe only",
+            "no all-target bootstrap denominator",
+            "no derived-correlation intervals",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "partial location-scale support",
+            "broader q8 support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_location_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if provider == "relmat" and "K/Q same-target parity" in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must not claim K/Q parity")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("Totoro", "DRAC", "coverage-grid design"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q4_location_slope_bootstrap_probes = sorted(
+        set(q4_location_slope_provider_groups)
+        - seen_q4_location_slope_bootstrap_probes
+    )
+    if missing_q4_location_slope_bootstrap_probes:
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-budget-probe.tsv missing providers: "
+            + ", ".join(missing_q4_location_slope_bootstrap_probes)
+        )
+
+    expected_q4_slope_parity_fixtures = {
+        "phylo": "q4_slope_phylo_same_target_ml",
+        "spatial": "q4_slope_spatial_same_target_ml",
+        "animal": "q4_slope_animal_same_target_ml",
+        "relmat": "q4_slope_relmat_same_target_ml",
+    }
+    expected_q4_slope_parity_members = expected_q4_slope_members.split(";")
+
+    def q4_slope_member_token(member: str) -> str:
+        return member.replace(":", "_").replace("(", "").replace(")", "")
+
+    expected_q4_slope_parity_sd_terms = [
+        f"sd_{member}:structured" for member in expected_q4_slope_parity_members
+    ]
+    expected_q4_slope_parity_cor_terms: list[str] = []
+    for left_index, left_member in enumerate(expected_q4_slope_parity_members):
+        for right_member in expected_q4_slope_parity_members[left_index + 1:]:
+            expected_q4_slope_parity_cor_terms.append(
+                "cor_"
+                f"{q4_slope_member_token(left_member)}_"
+                f"{q4_slope_member_token(right_member)}:structured"
+            )
+    expected_q4_slope_parity_coef_order = ";".join(
+        expected_q4_slope_parity_members
+        + expected_q4_slope_parity_sd_terms
+        + expected_q4_slope_parity_cor_terms
+    )
+    expected_q4_slope_parity_matrix_slot = {
+        "phylo": "tree",
+        "spatial": "coords",
+        "animal": "A",
+        "relmat": "K",
+    }
+    expected_q4_slope_parity_input_scale = {
+        "phylo": "ultrametric_tree_branch_lengths",
+        "spatial": "coordinates_to_fixed_covariance_K",
+        "animal": "additive_covariance",
+        "relmat": "user_covariance",
+    }
+    seen_q4_slope_parity_fixtures: set[str] = set()
+    if len(structured_re_q4_slope_parity_fixture_rows) != len(
+        expected_q4_slope_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-q4-slope-parity-fixture.tsv has "
+            f"{len(structured_re_q4_slope_parity_fixture_rows)} rows; expected "
+            f"{len(expected_q4_slope_parity_fixtures)}"
+        )
+    for row in structured_re_q4_slope_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE q4 slope parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_q4_slope_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if row_id != expected_q4_slope_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_q4_slope_parity_fixtures:
+            errors.append(f"duplicate structured RE q4 slope parity fixture id: {row_id}")
+        seen_q4_slope_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q8":
+            errors.append(f"{row_id}: dimension must remain q8")
+        if row.get("endpoint") != "mu1+mu2+sigma1+sigma2":
+            errors.append(f"{row_id}: endpoint must remain mu1+mu2+sigma1+sigma2")
+        if row.get("slope_class") != "labelled_slope_covariance":
+            errors.append(
+                f"{row_id}: slope_class must remain labelled_slope_covariance"
+            )
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if row.get("coefficient_order") != expected_q4_slope_parity_coef_order:
+            errors.append(f"{row_id}: coefficient_order changed")
+        coefficient_terms = row.get("coefficient_order", "").split(";")
+        if len(coefficient_terms) != 44:
+            errors.append(f"{row_id}: coefficient_order must contain 44 terms")
+        if coefficient_terms[:8] != expected_q4_slope_parity_members:
+            errors.append(f"{row_id}: first eight coefficient terms changed")
+        if len([term for term in coefficient_terms if term.startswith("sd_")]) != 8:
+            errors.append(f"{row_id}: coefficient_order must keep eight SD terms")
+        if len([term for term in coefficient_terms if term.startswith("cor_")]) != 28:
+            errors.append(f"{row_id}: coefficient_order must keep 28 correlation terms")
+        if row.get("matrix_slot") != expected_q4_slope_parity_matrix_slot[provider]:
+            errors.append(
+                f"{row_id}: matrix_slot must remain "
+                f"{expected_q4_slope_parity_matrix_slot[provider]}"
+            )
+        if row.get("input_scale") != expected_q4_slope_parity_input_scale[provider]:
+            errors.append(
+                f"{row_id}: input_scale must remain "
+                f"{expected_q4_slope_parity_input_scale[provider]}"
+            )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four one-slope",
+            "eight-member q8",
+            "broad bridge support",
+            "interval reliability",
+            "coverage",
+            "q4 REML",
+            "AI-REML",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial":
+            for phrase in ("fixed-covariance", "range-estimating"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: spatial claim_boundary must mention {phrase}")
+        if provider == "animal":
+            for phrase in ("A-matrix", "pedigree/Ainv"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: animal claim_boundary must mention {phrase}")
+        if provider == "relmat":
+            for phrase in ("K-matrix", "Q bridge", "K/Q same-target parity"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: relmat claim_boundary must mention {phrase}")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if (
+                qseries_row.get("evidence_url")
+                != "docs/dev-log/dashboard/structured-re-q4-slope-parity-fixture.tsv"
+            ):
+                errors.append(f"{row_id}: linked q-series evidence_url changed")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+            qseries_boundary = qseries_row.get("claim_boundary", "")
+            for phrase in (
+                "native ML point-fit",
+                "exact eight-member endpoint map",
+                "same-target fixture",
+                "broad bridge support",
+                "coverage",
+                "q4 REML",
+                "AI-REML",
+                "public support",
+            ):
+                if phrase not in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must mention {phrase!r}"
+                    )
+            if provider == "spatial" and "range-estimating" not in qseries_boundary:
+                errors.append(f"{row_id}: linked spatial q-series must block range-estimating support")
+            if provider == "animal" and "pedigree/Ainv" not in qseries_boundary:
+                errors.append(f"{row_id}: linked animal q-series must name pedigree/Ainv")
+            if provider == "relmat" and "Q bridge" not in qseries_boundary:
+                errors.append(f"{row_id}: linked relmat q-series must block Q bridge")
+            if "interval diagnostics" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                )
+
+    q4_slope_provider_groups = {
+        "phylo": "species",
+        "spatial": "site",
+        "animal": "id",
+        "relmat": "id",
+    }
+    q4_slope_provider_claim_phrases = {
+        "spatial": "range-estimating",
+        "animal": "pedigree/Ainv",
+        "relmat": "Q bridge",
+    }
+    q4_slope_endpoint_details = {
+        "mu1:(Intercept)": ("mu", "mu1", "1", "sd_mu1_intercept"),
+        "mu1:x": ("mu", "mu1", "0 + x", "sd_mu1_x"),
+        "mu2:(Intercept)": ("mu", "mu2", "1", "sd_mu2_intercept"),
+        "mu2:x": ("mu", "mu2", "0 + x", "sd_mu2_x"),
+        "sigma1:(Intercept)": ("mu", "sigma1", "1", "sd_sigma1_intercept"),
+        "sigma1:x": ("mu", "sigma1", "0 + x", "sd_sigma1_x"),
+        "sigma2:(Intercept)": ("mu", "sigma2", "1", "sd_sigma2_intercept"),
+        "sigma2:x": ("mu", "sigma2", "0 + x", "sd_sigma2_x"),
+    }
+    expected_q4_slope_interval_direct_targets: dict[
+        tuple[str, str], tuple[str, str]
+    ] = {}
+    expected_q4_slope_interval_derived_targets: dict[
+        tuple[str, str], tuple[str, str]
+    ] = {}
+    for provider, group in q4_slope_provider_groups.items():
+        for member in expected_q4_slope_parity_members:
+            family_axis, endpoint, term, estimand = q4_slope_endpoint_details[member]
+            expected_q4_slope_interval_direct_targets[(provider, member)] = (
+                estimand,
+                f"sd:{family_axis}:{endpoint}:{provider}({term} | p | {group})",
+            )
+        for left_index, left_member in enumerate(expected_q4_slope_parity_members):
+            for right_member in expected_q4_slope_parity_members[left_index + 1:]:
+                endpoint_member = f"{left_member}+{right_member}"
+                estimand = (
+                    "cor_"
+                    f"{q4_slope_member_token(left_member)}_"
+                    f"{q4_slope_member_token(right_member)}"
+                )
+                expected_q4_slope_interval_derived_targets[
+                    (provider, endpoint_member)
+                ] = (
+                    estimand,
+                    f"derived:{provider}:cor({left_member},{right_member} | p | {group})",
+                )
+    expected_q4_slope_interval_targets = (
+        set(expected_q4_slope_interval_direct_targets)
+        | set(expected_q4_slope_interval_derived_targets)
+    )
+    seen_q4_slope_interval_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_slope_interval_diagnostic_plan_rows)
+        != len(expected_q4_slope_interval_targets)
+    ):
+        errors.append(
+            "structured-re-q4-slope-interval-diagnostic-plan.tsv has "
+            f"{len(structured_re_q4_slope_interval_diagnostic_plan_rows)} rows; "
+            f"expected {len(expected_q4_slope_interval_targets)}"
+        )
+    for row in structured_re_q4_slope_interval_diagnostic_plan_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE q4 slope interval diagnostic plan>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-interval-diagnostic-plan.tsv "
+                "fields do not match the plan contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if provider not in q4_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        target_key = (provider, endpoint_member or "")
+        if target_key in seen_q4_slope_interval_targets:
+            errors.append(
+                "duplicate structured RE q4 slope interval diagnostic target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_q4_slope_interval_targets.add(target_key)
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if row.get("formula_cell") != qseries_row.get("formula_cell"):
+                errors.append(f"{row_id}: formula_cell must match q-series row")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+        target_kind = row.get("target_kind")
+        if target_kind == "direct_sd":
+            expected_target = expected_q4_slope_interval_direct_targets.get(target_key)
+            if expected_target is None:
+                errors.append(
+                    f"{row_id}: unexpected direct-SD endpoint_member {endpoint_member!r}"
+                )
+                continue
+            expected_estimand, expected_profile = expected_target
+            expected_id = f"q4_slope_interval_{provider}_{expected_estimand}"
+            if row_id != expected_id:
+                errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+            if row.get("interval_methods") != "wald;profile;bootstrap":
+                errors.append(f"{row_id}: direct-SD interval_methods changed")
+            for required in (
+                "point_fit",
+                "extractor_ready",
+                "profile_targets_direct_ready",
+                "same_target_fixture_parity",
+            ):
+                if required not in row.get("required_fit_evidence", ""):
+                    errors.append(
+                        f"{row_id}: required_fit_evidence must include {required}"
+                    )
+            if row.get("current_blocker") != "interval_diagnostics_not_run":
+                errors.append(
+                    f"{row_id}: current_blocker must remain interval_diagnostics_not_run"
+                )
+            if "finite_direct_sd_intervals_by_method" not in row.get(
+                "required_interval_evidence",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: direct rows must require finite direct-SD intervals"
+                )
+            if "target-level" not in row.get("next_gate", ""):
+                errors.append(f"{row_id}: direct next_gate must name target-level smoke")
+        elif target_kind == "derived_correlation":
+            expected_target = expected_q4_slope_interval_derived_targets.get(target_key)
+            if expected_target is None:
+                errors.append(
+                    f"{row_id}: unexpected derived endpoint_member {endpoint_member!r}"
+                )
+                continue
+            expected_estimand, expected_profile = expected_target
+            expected_id = f"q4_slope_interval_{provider}_{expected_estimand}"
+            if row_id != expected_id:
+                errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+            if row.get("interval_methods") != "delta;profile;bootstrap":
+                errors.append(f"{row_id}: derived interval_methods changed")
+            for required in (
+                "point_fit",
+                "extractor_ready",
+                "corpairs_point_reconstruction",
+                "same_target_fixture_parity",
+                "derived_interval_reconstruction_planned",
+            ):
+                if required not in row.get("required_fit_evidence", ""):
+                    errors.append(
+                        f"{row_id}: required_fit_evidence must include {required}"
+                    )
+            if (
+                row.get("current_blocker")
+                != "derived_correlation_interval_reconstruction_not_available"
+            ):
+                errors.append(
+                    f"{row_id}: current_blocker must block derived reconstruction"
+                )
+            if "finite_derived_correlation_intervals_by_method" not in row.get(
+                "required_interval_evidence",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived rows must require finite derived intervals"
+                )
+            if "derived-correlation interval reconstruction" not in row.get(
+                "next_gate",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived next_gate must name reconstruction work"
+                )
+            if "derived correlation interval reconstruction is not available" not in row.get(
+                "claim_boundary",
+                "",
+            ):
+                errors.append(
+                    f"{row_id}: derived claim_boundary must keep reconstruction blocked"
+                )
+        else:
+            errors.append(f"{row_id}: invalid target_kind {target_kind!r}")
+            continue
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if "coverage_mcse<=0.01" not in row.get("required_interval_evidence", ""):
+            errors.append(f"{row_id}: required_interval_evidence must keep MCSE gate")
+        for field_name in (
+            "coverage_denominator",
+            "n_total",
+            "n_fit_ok",
+            "n_failed_fit",
+            "n_pdhess",
+            "n_interval_finite",
+            "n_interval_unavailable",
+            "coverage_mcse",
+        ):
+            if field_name not in row.get("denominator_fields", ""):
+                errors.append(f"{row_id}: denominator_fields must include {field_name}")
+        if row.get("status") != "planned":
+            errors.append(f"{row_id}: interval diagnostic plan must remain planned")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four one-slope",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "before calibrated coverage wording" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage wording gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q4_slope_interval_targets = sorted(
+        expected_q4_slope_interval_targets - seen_q4_slope_interval_targets
+    )
+    if missing_q4_slope_interval_targets:
+        errors.append(
+            "structured-re-q4-slope-interval-diagnostic-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_slope_interval_targets
+            )
+        )
+
+    q4_slope_interval_direct_plan = {
+        (row.get("structured_type", ""), row.get("endpoint_member", "")): row
+        for row in structured_re_q4_slope_interval_diagnostic_plan_rows
+        if row.get("target_kind") == "direct_sd"
+    }
+    seen_q4_slope_interval_status_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_slope_interval_diagnostic_status_rows)
+        != len(expected_q4_slope_interval_direct_targets)
+    ):
+        errors.append(
+            "structured-re-q4-slope-interval-diagnostic-status.tsv has "
+            f"{len(structured_re_q4_slope_interval_diagnostic_status_rows)} rows; "
+            f"expected {len(expected_q4_slope_interval_direct_targets)}"
+        )
+    for row in structured_re_q4_slope_interval_diagnostic_status_rows:
+        row_id = row.get(
+            "diagnostic_id",
+            "<structured RE q4 slope interval diagnostic status>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-interval-diagnostic-status.tsv "
+                "fields do not match the status contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_STATUS_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider or "", endpoint_member or "")
+        if provider not in q4_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        expected_target = expected_q4_slope_interval_direct_targets.get(target_key)
+        if expected_target is None:
+            errors.append(
+                f"{row_id}: unexpected q4 slope interval status target "
+                f"{provider}:{endpoint_member}"
+            )
+            continue
+        if target_key in seen_q4_slope_interval_status_targets:
+            errors.append(
+                "duplicate structured RE q4 slope interval diagnostic status target: "
+                f"{provider} {endpoint_member}"
+            )
+        seen_q4_slope_interval_status_targets.add(target_key)
+        endpoint_token = (
+            endpoint_member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = f"q4_slope_interval_status_{provider}_{endpoint_token}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: diagnostic_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        plan_row = q4_slope_interval_direct_plan.get(target_key)
+        if plan_row is None:
+            errors.append(f"{row_id}: status target is missing from the plan sidecar")
+        else:
+            for field in (
+                "cell_id",
+                "formula_cell",
+                "target_kind",
+                "estimand",
+                "profile_target",
+            ):
+                if row.get(field) != plan_row.get(field):
+                    errors.append(f"{row_id}: {field} must match the plan sidecar")
+        expected_estimand, expected_profile = expected_target
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        expected_status_values = {
+            "observed_target_rows": "1",
+            "n_fit_ok": "1",
+            "n_converged": "1",
+            "n_pdhess": "0",
+            "n_finite_intervals": "0",
+            "wald_status": "not_run_pdhess_false",
+            "profile_status": "not_run_pdhess_false",
+            "bootstrap_status": "not_run_pdhess_false",
+            "interval_status": "no_finite_intervals",
+            "failure_class": "fit_pdhess_false",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_status_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four one-slope",
+            "direct-SD interval smoke only",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    missing_q4_slope_interval_status_targets = sorted(
+        set(expected_q4_slope_interval_direct_targets)
+        - seen_q4_slope_interval_status_targets
+    )
+    if missing_q4_slope_interval_status_targets:
+        errors.append(
+            "structured-re-q4-slope-interval-diagnostic-status.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_slope_interval_status_targets
+            )
+        )
+
+    q4_slope_stability_variants = {
+        "strong": {
+            "n_levels": "8",
+            "n_each": "24",
+            "intended_sd_mu1_intercept": 0.70,
+            "intended_sd_mu1_x": 0.48,
+            "intended_sd_mu2_intercept": 0.62,
+            "intended_sd_mu2_x": 0.44,
+            "intended_sd_sigma1_intercept": 0.50,
+            "intended_sd_sigma1_x": 0.34,
+            "intended_sd_sigma2_intercept": 0.46,
+            "intended_sd_sigma2_x": 0.30,
+        },
+        "more_levels": {
+            "n_levels": "16",
+            "n_each": "12",
+            "intended_sd_mu1_intercept": 0.62,
+            "intended_sd_mu1_x": 0.42,
+            "intended_sd_mu2_intercept": 0.56,
+            "intended_sd_mu2_x": 0.38,
+            "intended_sd_sigma1_intercept": 0.42,
+            "intended_sd_sigma1_x": 0.28,
+            "intended_sd_sigma2_intercept": 0.40,
+            "intended_sd_sigma2_x": 0.26,
+        },
+    }
+    expected_q4_slope_stability_count = len(
+        expected_q4_slope_interval_direct_targets
+    ) * len(q4_slope_stability_variants)
+    seen_q4_slope_stability_targets: set[tuple[str, str, str]] = set()
+    if (
+        len(structured_re_q4_slope_interval_stability_probe_rows)
+        != expected_q4_slope_stability_count
+    ):
+        errors.append(
+            "structured-re-q4-slope-interval-stability-probe.tsv has "
+            f"{len(structured_re_q4_slope_interval_stability_probe_rows)} rows; "
+            f"expected {expected_q4_slope_stability_count}"
+        )
+    for row in structured_re_q4_slope_interval_stability_probe_rows:
+        row_id = row.get(
+            "probe_id",
+            "<structured RE q4 slope interval stability probe>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-interval-stability-probe.tsv "
+                "fields do not match the probe contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_INTERVAL_STABILITY_PROBE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        if variant not in q4_slope_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        if provider not in q4_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        target_key = (provider, endpoint_member or "")
+        expected_target = expected_q4_slope_interval_direct_targets.get(target_key)
+        if expected_target is None:
+            errors.append(
+                f"{row_id}: unexpected q4 slope stability target "
+                f"{provider}:{endpoint_member}"
+            )
+            continue
+        stability_key = (variant, provider, endpoint_member or "")
+        if stability_key in seen_q4_slope_stability_targets:
+            errors.append(
+                "duplicate structured RE q4 slope stability target: "
+                f"{variant}/{provider}/{endpoint_member}"
+            )
+        seen_q4_slope_stability_targets.add(stability_key)
+        endpoint_token = (
+            (endpoint_member or "")
+            .replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("+", "_")
+            .replace("_Intercept", "_intercept")
+        )
+        expected_id = (
+            f"q4_slope_interval_stability_{variant}_{provider}_{endpoint_token}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: probe_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        plan_row = q4_slope_interval_direct_plan.get(target_key)
+        if plan_row is None:
+            errors.append(f"{row_id}: stability target is missing from the plan sidecar")
+        else:
+            for field in (
+                "cell_id",
+                "formula_cell",
+                "target_kind",
+                "estimand",
+                "profile_target",
+            ):
+                if row.get(field) != plan_row.get(field):
+                    errors.append(f"{row_id}: {field} must match the plan sidecar")
+        expected_estimand, expected_profile = expected_target
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        variant_expectations = q4_slope_stability_variants[variant]
+        for field in ("n_levels", "n_each"):
+            if row.get(field) != variant_expectations[field]:
+                errors.append(f"{row_id}: {field} must remain {variant_expectations[field]}")
+        for field in (
+            "intended_sd_mu1_intercept",
+            "intended_sd_mu1_x",
+            "intended_sd_mu2_intercept",
+            "intended_sd_mu2_x",
+            "intended_sd_sigma1_intercept",
+            "intended_sd_sigma1_x",
+            "intended_sd_sigma2_intercept",
+            "intended_sd_sigma2_x",
+        ):
+            expect_float_close(
+                errors,
+                row_id,
+                field,
+                row.get(field),
+                variant_expectations[field],
+            )
+        if not evidence_reference_exists(row.get("source_artifact", "")):
+            errors.append(f"{row_id}: source_artifact does not resolve locally")
+        expected_status_values = {
+            "observed_target_rows": "1",
+            "n_fit_ok": "1",
+            "n_pdhess": "0",
+            "wald_status": "not_run_pdhess_false",
+            "profile_status": "not_run_pdhess_false",
+            "stability_status": "pdhess_blocked",
+            "failure_class": "fit_pdhess_false",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_status_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        try:
+            float(row.get("estimate", ""))
+        except ValueError:
+            errors.append(f"{row_id}: estimate must be numeric")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four one-slope",
+            "direct-SD interval stability probe only",
+            "derived-correlation intervals still blocked",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "Hessian failures" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must diagnose Hessian failures")
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if "coverage-grid design" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep coverage-grid design gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    expected_q4_slope_stability_targets = {
+        (variant, provider, endpoint_member)
+        for variant in q4_slope_stability_variants
+        for provider, endpoint_member in expected_q4_slope_interval_direct_targets
+    }
+    missing_q4_slope_stability_targets = sorted(
+        expected_q4_slope_stability_targets - seen_q4_slope_stability_targets
+    )
+    if missing_q4_slope_stability_targets:
+        errors.append(
+            "structured-re-q4-slope-interval-stability-probe.tsv missing targets: "
+            + ", ".join(
+                f"{variant}:{provider}:{endpoint_member}"
+                for variant, provider, endpoint_member in missing_q4_slope_stability_targets
+            )
+        )
+
+    expected_q4_slope_geometry_count = len(q4_slope_stability_variants) * len(
+        q4_slope_provider_groups
+    )
+    seen_q4_slope_geometry_targets: set[tuple[str, str]] = set()
+    q4_slope_geometry_fallback_count = 0
+    q4_slope_geometry_statuses: set[str] = set()
+    if (
+        len(structured_re_q4_slope_hessian_geometry_rows)
+        != expected_q4_slope_geometry_count
+    ):
+        errors.append(
+            "structured-re-q4-slope-hessian-geometry.tsv has "
+            f"{len(structured_re_q4_slope_hessian_geometry_rows)} rows; "
+            f"expected {expected_q4_slope_geometry_count}"
+        )
+    for row in structured_re_q4_slope_hessian_geometry_rows:
+        row_id = row.get(
+            "geometry_id",
+            "<structured RE q4 slope Hessian geometry>",
+        )
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-hessian-geometry.tsv "
+                "fields do not match the geometry contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_HESSIAN_GEOMETRY_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        if variant not in q4_slope_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        if provider not in q4_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        geometry_key = (variant, provider)
+        if geometry_key in seen_q4_slope_geometry_targets:
+            errors.append(
+                "duplicate structured RE q4 slope Hessian-geometry target: "
+                f"{variant}/{provider}"
+            )
+        seen_q4_slope_geometry_targets.add(geometry_key)
+        expected_id = f"q4_slope_hessian_geometry_{variant}_{provider}"
+        if row_id != expected_id:
+            errors.append(f"{row_id}: geometry_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        variant_expectations = q4_slope_stability_variants[variant]
+        for field in ("n_levels", "n_each"):
+            if row.get(field) != variant_expectations[field]:
+                errors.append(f"{row_id}: {field} must remain {variant_expectations[field]}")
+        for field in (
+            "intended_sd_mu1_intercept",
+            "intended_sd_mu1_x",
+            "intended_sd_mu2_intercept",
+            "intended_sd_mu2_x",
+            "intended_sd_sigma1_intercept",
+            "intended_sd_sigma1_x",
+            "intended_sd_sigma2_intercept",
+            "intended_sd_sigma2_x",
+        ):
+            expect_float_close(
+                errors,
+                row_id,
+                field,
+                row.get(field),
+                variant_expectations[field],
+            )
+        expected_paths = {
+            "source_stability_probe": "docs/dev-log/dashboard/structured-re-q4-slope-interval-stability-probe.tsv",
+            "source_stability_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-24-q4-slope-interval-stability-probe/"
+                "structured-re-q4-slope-interval-stability-probe-results.tsv"
+            ),
+            "source_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-24-q4-slope-hessian-geometry/"
+                "structured-re-q4-slope-hessian-geometry-results.tsv"
+            ),
+        }
+        for field, expected_path in expected_paths.items():
+            if row.get(field) != expected_path:
+                errors.append(f"{row_id}: {field} must remain {expected_path}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        expected_status_values = {
+            "fit_convergence": "0",
+            "n_pdhess": "0",
+            "cov_fixed_status": "nonfinite",
+            "cov_fixed_dim": "45x45",
+            "cov_fixed_finite_count": "0",
+            "cov_fixed_total": "2025",
+            "min_cov_fixed_eigenvalue": "NA",
+            "max_cov_fixed_eigenvalue": "NA",
+            "n_cov_fixed_nonpositive_eigenvalues": "NA",
+            "raw_hessian_status": "unavailable_random_effects",
+            "direct_sd_target_count": "8",
+            "n_profile_ready_direct_sd": "8",
+            "n_direct_sd_at_lower_bound": "4",
+            "n_mu_direct_sd_at_lower_bound": "0",
+            "n_sigma_direct_sd_at_lower_bound": "4",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_status_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        if (
+            "Hessian not yet implemented for models with random effects."
+            not in row.get("raw_hessian_message", "")
+        ):
+            errors.append(f"{row_id}: raw_hessian_message must name random effects")
+        fallback_value = row.get("fallback_selected")
+        if fallback_value not in {"TRUE", "FALSE"}:
+            errors.append(f"{row_id}: fallback_selected must be TRUE or FALSE")
+        fallback_selected = fallback_value == "TRUE"
+        if fallback_selected:
+            q4_slope_geometry_fallback_count += 1
+        geometry_status = row.get("geometry_status", "")
+        q4_slope_geometry_statuses.add(geometry_status)
+        expected_geometry_status = "sigma_sd_lower_bound;nonfinite_cov_fixed"
+        if fallback_selected:
+            expected_geometry_status += ";fallback_selected"
+        if geometry_status != expected_geometry_status:
+            errors.append(
+                f"{row_id}: geometry_status must be {expected_geometry_status}"
+            )
+        if fallback_selected and not row.get("optimizer_selected_preset", "").startswith(
+            "fallback:"
+        ):
+            errors.append(f"{row_id}: fallback row must name a fallback optimizer")
+        if not fallback_selected and row.get("optimizer_selected_preset", "").startswith(
+            "fallback:"
+        ):
+            errors.append(f"{row_id}: nonfallback row must not name fallback optimizer")
+        for field in (
+            "logLik",
+            "max_abs_gradient_fixed",
+            "min_direct_sd_estimate",
+            "max_direct_sd_estimate",
+            "min_mu_direct_sd_estimate",
+            "min_sigma_direct_sd_estimate",
+            "max_abs_derived_correlation",
+        ):
+            try:
+                value = float(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be numeric")
+                continue
+            if field == "max_abs_gradient_fixed" and not (0 <= value < 0.05):
+                errors.append(f"{row_id}: max_abs_gradient_fixed outside diagnostic bound")
+            if field == "min_sigma_direct_sd_estimate" and not (0.049 <= value <= 0.051):
+                errors.append(f"{row_id}: min_sigma_direct_sd_estimate must be near lower bound")
+            if field == "min_mu_direct_sd_estimate" and not (value > 0.05):
+                errors.append(f"{row_id}: min_mu_direct_sd_estimate should stay off lower bound")
+            if field == "max_abs_derived_correlation" and not (0 <= value <= 1):
+                errors.append(f"{row_id}: max_abs_derived_correlation must be in [0, 1]")
+        for field in (
+            "optimizer_attempt_count",
+            "n_abs_derived_correlation_gt_0_95",
+            "n_derived_correlation_zero",
+        ):
+            try:
+                int(row.get(field, ""))
+            except ValueError:
+                errors.append(f"{row_id}: {field} must be an integer")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "Hessian-geometry diagnostic only",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "broader q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if "lower-bound geometry" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must name lower-bound geometry")
+        if "denominator accounting" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    expected_q4_slope_geometry_targets = {
+        (variant, provider)
+        for variant in q4_slope_stability_variants
+        for provider in q4_slope_provider_groups
+    }
+    missing_q4_slope_geometry_targets = sorted(
+        expected_q4_slope_geometry_targets - seen_q4_slope_geometry_targets
+    )
+    if missing_q4_slope_geometry_targets:
+        errors.append(
+            "structured-re-q4-slope-hessian-geometry.tsv missing targets: "
+            + ", ".join(
+                f"{variant}:{provider}"
+                for variant, provider in missing_q4_slope_geometry_targets
+            )
+        )
+    if q4_slope_geometry_fallback_count != 7:
+        errors.append(
+            "structured-re-q4-slope-hessian-geometry.tsv must retain exactly "
+            f"7 fallback-selected rows; observed {q4_slope_geometry_fallback_count}"
+        )
+    expected_q4_slope_geometry_statuses = {
+        "sigma_sd_lower_bound;nonfinite_cov_fixed",
+        "sigma_sd_lower_bound;nonfinite_cov_fixed;fallback_selected",
+    }
+    if q4_slope_geometry_statuses != expected_q4_slope_geometry_statuses:
+        errors.append(
+            "structured-re-q4-slope-hessian-geometry.tsv geometry_status set "
+            f"changed: {sorted(q4_slope_geometry_statuses)}"
+        )
+
+    q4_slope_differential_axes = {
+        "all_four_slope": {
+            "structured_endpoint_set": "mu1+mu2+sigma1+sigma2",
+            "structured_member_count": "8",
+        },
+        "mu_axis_only": {
+            "structured_endpoint_set": "mu1+mu2",
+            "structured_member_count": "4",
+        },
+        "sigma_axis_only": {
+            "structured_endpoint_set": "sigma1+sigma2",
+            "structured_member_count": "4",
+        },
+    }
+    expected_q4_slope_differential_count = (
+        len(q4_slope_stability_variants)
+        * len(q4_slope_provider_groups)
+        * len(q4_slope_differential_axes)
+    )
+    seen_q4_slope_differential_targets: set[tuple[str, str, str]] = set()
+    q4_slope_differential_all_four_fallback_count = 0
+    q4_slope_differential_mu_axis_fallback_count = 0
+    q4_slope_differential_axis_counts = {
+        axis: 0 for axis in q4_slope_differential_axes
+    }
+    if (
+        len(structured_re_q4_slope_sigma_axis_differential_rows)
+        != expected_q4_slope_differential_count
+    ):
+        errors.append(
+            "structured-re-q4-slope-sigma-axis-differential.tsv has "
+            f"{len(structured_re_q4_slope_sigma_axis_differential_rows)} rows; "
+            f"expected {expected_q4_slope_differential_count}"
+        )
+    for row in structured_re_q4_slope_sigma_axis_differential_rows:
+        row_id = row.get(
+            "differential_id",
+            "<structured RE q4 slope sigma-axis differential>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_SLOPE_SIGMA_AXIS_DIFFERENTIAL_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-slope-sigma-axis-differential.tsv "
+                "fields do not match the differential contract"
+            )
+        for field in STRUCTURED_RE_Q4_SLOPE_SIGMA_AXIS_DIFFERENTIAL_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        variant = row.get("variant")
+        provider = row.get("structured_type")
+        model_axis = row.get("model_axis")
+        if variant not in q4_slope_stability_variants:
+            errors.append(f"{row_id}: invalid variant {variant!r}")
+            continue
+        if provider not in q4_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if model_axis not in q4_slope_differential_axes:
+            errors.append(f"{row_id}: invalid model_axis {model_axis!r}")
+            continue
+        q4_slope_differential_axis_counts[model_axis] += 1
+        differential_key = (variant, provider, model_axis)
+        if differential_key in seen_q4_slope_differential_targets:
+            errors.append(
+                "duplicate structured RE q4 slope sigma-axis differential target: "
+                f"{variant}/{provider}/{model_axis}"
+            )
+        seen_q4_slope_differential_targets.add(differential_key)
+        expected_id = (
+            "q4_slope_sigma_axis_differential_"
+            f"{variant}_{provider}_{model_axis}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: differential_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_all_four_one_slope_planned"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        axis_contract = q4_slope_differential_axes[model_axis]
+        for field, expected_value in axis_contract.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        variant_expectations = q4_slope_stability_variants[variant]
+        for field in ("n_levels", "n_each"):
+            if row.get(field) != variant_expectations[field]:
+                errors.append(f"{row_id}: {field} must remain {variant_expectations[field]}")
+        for field in (
+            "intended_sd_mu1_intercept",
+            "intended_sd_mu1_x",
+            "intended_sd_mu2_intercept",
+            "intended_sd_mu2_x",
+            "intended_sd_sigma1_intercept",
+            "intended_sd_sigma1_x",
+            "intended_sd_sigma2_intercept",
+            "intended_sd_sigma2_x",
+        ):
+            expect_float_close(
+                errors,
+                row_id,
+                field,
+                row.get(field),
+                variant_expectations[field],
+            )
+        expected_paths = {
+            "source_hessian_geometry": "docs/dev-log/dashboard/structured-re-q4-slope-hessian-geometry.tsv",
+            "source_artifact": (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-24-q4-slope-sigma-axis-differential/"
+                "structured-re-q4-slope-sigma-axis-differential-results.tsv"
+            ),
+        }
+        for field, expected_path in expected_paths.items():
+            if row.get(field) != expected_path:
+                errors.append(f"{row_id}: {field} must remain {expected_path}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        if model_axis == "all_four_slope":
+            expected_status_values = {
+                "fit_convergence": "0",
+                "n_pdhess": "0",
+                "cov_fixed_status": "nonfinite",
+                "cov_fixed_dim": "45x45",
+                "cov_fixed_finite_count": "0",
+                "cov_fixed_total": "2025",
+                "raw_hessian_status": "unavailable_random_effects",
+                "direct_sd_target_count": "8",
+                "n_profile_ready_direct_sd": "8",
+                "n_direct_sd_at_lower_bound": "4",
+                "n_mu_direct_sd_at_lower_bound": "0",
+                "n_sigma_direct_sd_at_lower_bound": "4",
+            }
+            for field, expected_value in expected_status_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if (
+                "Hessian not yet implemented for models with random effects."
+                not in row.get("raw_hessian_message", "")
+            ):
+                errors.append(
+                    f"{row_id}: raw_hessian_message must name random effects"
+                )
+            fallback_value = row.get("fallback_selected")
+            if fallback_value not in {"TRUE", "FALSE"}:
+                errors.append(f"{row_id}: fallback_selected must be TRUE or FALSE")
+            fallback_selected = fallback_value == "TRUE"
+            if fallback_selected:
+                q4_slope_differential_all_four_fallback_count += 1
+            expected_differential_status = (
+                "baseline;sigma_sd_lower_bound;nonfinite_cov_fixed"
+            )
+            if fallback_selected:
+                expected_differential_status += ";fallback_selected"
+            if row.get("differential_status") != expected_differential_status:
+                errors.append(
+                    f"{row_id}: differential_status must be "
+                    f"{expected_differential_status}"
+                )
+            try:
+                gradient = float(row.get("max_abs_gradient_fixed", ""))
+            except ValueError:
+                errors.append(f"{row_id}: max_abs_gradient_fixed must be numeric")
+                gradient = -1.0
+            if not (0 <= gradient < 0.05):
+                errors.append(f"{row_id}: max_abs_gradient_fixed outside bound")
+        elif model_axis == "mu_axis_only":
+            expected_mu_axis_values = {
+                "fit_convergence": "0",
+                "n_pdhess": "1",
+                "optimizer_selected_status": "ok",
+                "cov_fixed_status": "finite_positive",
+                "cov_fixed_dim": "19x19",
+                "cov_fixed_finite_count": "361",
+                "cov_fixed_total": "361",
+                "n_cov_fixed_nonpositive_eigenvalues": "0",
+                "raw_hessian_status": "unavailable_random_effects",
+                "direct_sd_target_count": "4",
+                "n_profile_ready_direct_sd": "4",
+                "n_direct_sd_at_lower_bound": "0",
+                "n_mu_direct_sd_at_lower_bound": "0",
+                "n_sigma_direct_sd_at_lower_bound": "0",
+            }
+            for field, expected_value in expected_mu_axis_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            if (
+                "Hessian not yet implemented for models with random effects."
+                not in row.get("raw_hessian_message", "")
+            ):
+                errors.append(
+                    f"{row_id}: raw_hessian_message must name random effects"
+                )
+            try:
+                attempts = int(row.get("optimizer_attempt_count", ""))
+            except ValueError:
+                errors.append(f"{row_id}: optimizer_attempt_count must be numeric")
+                attempts = 0
+            if attempts < 1:
+                errors.append(f"{row_id}: optimizer_attempt_count must be positive")
+            fallback_value = row.get("fallback_selected")
+            if fallback_value not in {"TRUE", "FALSE"}:
+                errors.append(f"{row_id}: fallback_selected must be TRUE or FALSE")
+            fallback_selected = fallback_value == "TRUE"
+            if fallback_selected:
+                q4_slope_differential_mu_axis_fallback_count += 1
+            expected_differential_status = (
+                "mu_axis_only;pdhess_true;no_direct_sd_lower_bound;"
+                "cov_fixed_finite_positive"
+            )
+            if fallback_selected:
+                expected_differential_status += ";fallback_selected"
+            if row.get("differential_status") != expected_differential_status:
+                errors.append(
+                    f"{row_id}: differential_status must be "
+                    f"{expected_differential_status}"
+                )
+            try:
+                gradient = float(row.get("max_abs_gradient_fixed", ""))
+            except ValueError:
+                errors.append(f"{row_id}: max_abs_gradient_fixed must be numeric")
+                gradient = -1.0
+            if not (0 <= gradient < 0.05):
+                errors.append(f"{row_id}: max_abs_gradient_fixed outside bound")
+            for field in ("min_direct_sd_estimate", "max_direct_sd_estimate"):
+                try:
+                    value = float(row.get(field, ""))
+                except ValueError:
+                    errors.append(f"{row_id}: {field} must be numeric")
+                    continue
+                if value <= 0:
+                    errors.append(f"{row_id}: {field} must be positive")
+            try:
+                correlation = float(row.get("max_abs_derived_correlation", ""))
+            except ValueError:
+                errors.append(
+                    f"{row_id}: max_abs_derived_correlation must be numeric"
+                )
+                correlation = -1.0
+            if not (0 <= correlation < 1):
+                errors.append(
+                    f"{row_id}: max_abs_derived_correlation must be in [0, 1)"
+                )
+        else:
+            expected_error_values = {
+                "fit_convergence": "NA",
+                "n_pdhess": "0",
+                "logLik": "NA",
+                "max_abs_gradient_fixed": "NA",
+                "optimizer_attempt_count": "0",
+                "optimizer_selected": "NA",
+                "optimizer_selected_preset": "NA",
+                "optimizer_selected_status": "fit_error",
+                "fallback_selected": "FALSE",
+                "optimizer_attempt_presets": "NA",
+                "optimizer_attempt_statuses": "fit_error",
+                "cov_fixed_status": "missing",
+                "cov_fixed_dim": "NA",
+                "cov_fixed_finite_count": "0",
+                "cov_fixed_total": "0",
+                "raw_hessian_status": "not_run_fit_error",
+                "direct_sd_target_count": "0",
+                "n_profile_ready_direct_sd": "0",
+                "min_direct_sd_estimate": "NA",
+                "max_direct_sd_estimate": "NA",
+                "n_direct_sd_at_lower_bound": "NA",
+                "n_mu_direct_sd_at_lower_bound": "NA",
+                "n_sigma_direct_sd_at_lower_bound": "NA",
+                "min_mu_direct_sd_estimate": "NA",
+                "min_sigma_direct_sd_estimate": "NA",
+                "max_abs_derived_correlation": "NA",
+                "n_abs_derived_correlation_gt_0_95": "NA",
+                "n_derived_correlation_zero": "NA",
+                "differential_status": f"{model_axis};fit_error",
+            }
+            for field, expected_value in expected_error_values.items():
+                if row.get(field) != expected_value:
+                    errors.append(f"{row_id}: {field} must be {expected_value}")
+            message = row.get("raw_hessian_message", "")
+            if model_axis == "sigma_axis_only":
+                for phrase in (
+                    "Partial",
+                    "location-scale blocks are not implemented",
+                    "Use matching labelled intercepts",
+                ):
+                    if phrase not in message:
+                        errors.append(
+                            f"{row_id}: sigma_axis_only error must mention {phrase!r}"
+                        )
+        if row.get("interval_claim_status") != "diagnostic_only":
+            errors.append(f"{row_id}: interval_claim_status must be diagnostic_only")
+        if row.get("status") != "covered":
+            errors.append(f"{row_id}: status must be covered")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "sigma-axis differential diagnostic only",
+            f"model_axis = {model_axis}",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "broader q8 support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        next_gate = row.get("next_gate", "")
+        if model_axis == "all_four_slope":
+            if "lower-bound sigma geometry" not in next_gate:
+                errors.append(f"{row_id}: next_gate must name sigma lower-bound geometry")
+        elif model_axis == "mu_axis_only":
+            if "sigma-suppressed" not in next_gate:
+                errors.append(f"{row_id}: next_gate must name sigma-suppressed geometry")
+        elif "reduced-axis q4 geometry" not in next_gate:
+            errors.append(f"{row_id}: next_gate must name reduced-axis q4 geometry")
+        if "denominator accounting" not in next_gate:
+            errors.append(f"{row_id}: next_gate must keep denominator accounting gated")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+    expected_q4_slope_differential_targets = {
+        (variant, provider, model_axis)
+        for variant in q4_slope_stability_variants
+        for provider in q4_slope_provider_groups
+        for model_axis in q4_slope_differential_axes
+    }
+    missing_q4_slope_differential_targets = sorted(
+        expected_q4_slope_differential_targets
+        - seen_q4_slope_differential_targets
+    )
+    if missing_q4_slope_differential_targets:
+        errors.append(
+            "structured-re-q4-slope-sigma-axis-differential.tsv missing targets: "
+            + ", ".join(
+                f"{variant}:{provider}:{model_axis}"
+                for variant, provider, model_axis in missing_q4_slope_differential_targets
+            )
+        )
+    for axis, count in q4_slope_differential_axis_counts.items():
+        expected_count = len(q4_slope_stability_variants) * len(
+            q4_slope_provider_groups
+        )
+        if count != expected_count:
+            errors.append(
+                "structured-re-q4-slope-sigma-axis-differential.tsv has "
+                f"{count} {axis} rows; expected {expected_count}"
+            )
+    if q4_slope_differential_all_four_fallback_count != 7:
+        errors.append(
+            "structured-re-q4-slope-sigma-axis-differential.tsv must retain "
+            "exactly 7 all-four fallback-selected rows; observed "
+            f"{q4_slope_differential_all_four_fallback_count}"
+        )
+    if q4_slope_differential_mu_axis_fallback_count != 2:
+        errors.append(
+            "structured-re-q4-slope-sigma-axis-differential.tsv must retain "
+            "exactly 2 mu-axis fallback-selected rows; observed "
+            f"{q4_slope_differential_mu_axis_fallback_count}"
+        )
 
     if len(structured_re_balance_slice_rows) != 100:
         errors.append(
@@ -11212,6 +19869,42 @@ def main() -> int:
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"
+        f", {len(structured_re_sigma_slope_parity_fixture_rows)} structured RE sigma-slope parity-fixture rows"
+        f", {len(structured_re_sigma_slope_interval_diagnostic_plan_rows)} structured RE sigma-slope interval-diagnostic plan rows"
+        f", {len(structured_re_sigma_slope_interval_diagnostic_status_rows)} structured RE sigma-slope interval-diagnostic status rows"
+        f", {len(structured_re_sigma_slope_interval_stability_probe_rows)} structured RE sigma-slope interval-stability probe rows"
+        f", {len(structured_re_sigma_slope_denominator_admission_rows)} structured RE sigma-slope denominator-admission rows"
+        f", {len(structured_re_mu_sigma_slope_parity_fixture_rows)} structured RE mu+sigma slope parity-fixture rows"
+        f", {len(structured_re_q2_slope_parity_fixture_rows)} structured RE q2 slope parity-fixture rows"
+        f", {len(structured_re_q2_slope_interval_diagnostic_plan_rows)} structured RE q2 slope interval-diagnostic plan rows"
+        f", {len(structured_re_q2_slope_interval_diagnostic_status_rows)} structured RE q2 slope interval-diagnostic status rows"
+        f", {len(structured_re_q2_slope_interval_stability_probe_rows)} structured RE q2 slope interval-stability probe rows"
+        f", {len(structured_re_q2_slope_denominator_admission_rows)} structured RE q2 slope denominator-admission rows"
+        f", {len(structured_re_q2_slope_denominator_extension_rows)} structured RE q2 slope denominator-extension rows"
+        f", {len(structured_re_q2_slope_replicated_denominator_rule_rows)} structured RE q2 slope replicated-denominator rule rows"
+        f", {len(structured_re_q2_slope_coverage_pregrid_dry_run_rows)} structured RE q2 slope coverage-pregrid dry-run rows"
+        f", {len(structured_re_sigma_slope_replicated_denominator_rule_rows)} structured RE sigma-slope replicated-denominator rule rows"
+        f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"
+        f", {len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)} structured RE mu+sigma slope interval-diagnostic plan rows"
+        f", {len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)} structured RE mu+sigma slope interval-diagnostic status rows"
+        f", {len(structured_re_mu_sigma_slope_interval_stability_probe_rows)} structured RE mu+sigma slope interval-stability probe rows"
+        f", {len(structured_re_spatial_mu_boundary_diagnostic_rows)} structured RE spatial-mu boundary-diagnostic rows"
+        f", {len(structured_re_spatial_mu_profile_geometry_rows)} structured RE spatial-mu profile-geometry rows"
+        f", {len(structured_re_spatial_mu_profile_strategy_rows)} structured RE spatial-mu profile-strategy rows"
+        f", {len(structured_re_spatial_mu_lower_start_diagnostic_rows)} structured RE spatial-mu lower-start diagnostic rows"
+        f", {len(structured_re_spatial_mu_domain_guard_diagnostic_rows)} structured RE spatial-mu domain-guard diagnostic rows"
+        f", {len(structured_re_mu_sigma_slope_readiness_rows)} structured RE mu+sigma slope-readiness rows"
+        f", {len(structured_re_q4_slope_identity_preflight_rows)} structured RE q4 slope identity-preflight rows"
+        f", {len(structured_re_q4_slope_parity_fixture_rows)} structured RE q4 slope parity-fixture rows"
+        f", {len(structured_re_q4_location_slope_parity_fixture_rows)} structured RE q4 location slope parity-fixture rows"
+        f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
+        f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"
+        f", {len(structured_re_q4_location_slope_bootstrap_budget_probe_rows)} structured RE q4 location slope bootstrap-budget probe rows"
+        f", {len(structured_re_q4_slope_interval_diagnostic_plan_rows)} structured RE q4 slope interval-diagnostic plan rows"
+        f", {len(structured_re_q4_slope_interval_diagnostic_status_rows)} structured RE q4 slope interval-diagnostic status rows"
+        f", {len(structured_re_q4_slope_interval_stability_probe_rows)} structured RE q4 slope interval-stability probe rows"
+        f", {len(structured_re_q4_slope_hessian_geometry_rows)} structured RE q4 slope Hessian-geometry rows"
+        f", {len(structured_re_q4_slope_sigma_axis_differential_rows)} structured RE q4 slope sigma-axis differential rows"
         f", {len(structured_re_balance_slice_rows)} structured RE balance-slice rows"
         f", {len(structured_re_finish_slice_rows)} structured RE finish-slice rows"
         f", {len(member_roster_rows)} member roster rows"
