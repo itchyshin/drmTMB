@@ -1,0 +1,101 @@
+slice_id	wave	order	area	repo	route	primary_gate	status	bridge_status	claim_boundary	depends_on	evidence_url	next_action
+S001	Truth freeze	1	Dual worktree status	drmTMB+DRM.jl	mission-control	status audit	banked	planned	no promotion	none	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	rerun git status before every edit wave
+S002	Truth freeze	2	Finish matrix debt	drmTMB	mission-control	gap extraction	banked	planned	no release claim	S001	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	keep planned and partial rows row-specific
+S003	Truth freeze	3	Dashboard schema	drmTMB	mission-control	validator source map	banked	planned	no dashboard overclaim	S001	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	validate dashboard JSON and TSV together
+S004	Truth freeze	4	Bridge dependency graph	drmTMB+DRM.jl	bridge	parity graph	banked	planned	no bridge promotion	S002	docs/design/180-r-julia-100-slice-finish-run.md	use graph before relaxing any Julia gate
+S005	Truth freeze	5	Public claim guards	drmTMB	docs	claim lint	banked	planned	no public optimizer claim	S003	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	extend validator when new claim surfaces appear
+S006	Truth freeze	6	Route vocabulary	drmTMB+DRM.jl	bridge	terminology freeze	banked	planned	exact Gaussian REML only	S004	docs/design/180-r-julia-100-slice-finish-run.md	keep ML Laplace and observed information named separately
+S007	Truth freeze	7	CI target list	drmTMB+DRM.jl	ci	check gate map	banked	planned	no green CI equals support	S003	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	map checks to each promoted row
+S008	Truth freeze	8	Stale surface scan	drmTMB	dashboard	stale text scan	banked	planned	no stale dashboard claim	S005	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	scan README ROADMAP NEWS docs vignettes dashboard
+S009	Truth freeze	9	Ayumi parked constraint	drmTMB	memory	phylo balance note	banked	unsupported	no Ayumi reply	S006	/Users/z3437171/.codex/memories/extensions/ad_hoc/notes/2026-06-22-ayumi-phylo-balance-constraint.md	revisit only after the 100-slice run
+S010	Truth freeze	10	Wave 1 evidence	drmTMB	mission-control	check-log sync	banked	planned	no capability promotion	S001;S009	docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md	refresh live dashboard and checkpoint
+S011	DRM exact Gaussian	11	External comparator probe	DRM.jl	loconly REML	comparator package probe	banked	unsupported	exact Gaussian only	S010	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-comparator-version-probe.md	write optional comparator runner
+S012	DRM exact Gaussian	12	Comparator script	DRM.jl	loconly REML	developer script	banked	unsupported	no dependency promotion	S011	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-external-comparator-probe-script.md	compare external fit against fixture
+S013	DRM exact Gaussian	13	External fixture fit	DRM.jl	loconly REML	same-estimand fit check	banked	unsupported	no coverage claim	S012	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-external-fit-feasibility.md	choose replicate-capable comparator or tip-level fixture
+S014	DRM exact Gaussian	14	Derivative FD check	DRM.jl	loconly REML	score cross-check	banked	unsupported	exact Gaussian only	S013	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-derivative-fd-status.md	broaden derivative status to a small grid
+S015	DRM exact Gaussian	15	Line search diagnostics	DRM.jl	loconly REML	optimizer trace	banked	unsupported	no optimizer promotion	S014	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-line-search-status.md	broaden line-search status to condition grid
+S016	DRM exact Gaussian	16	Boundary grid	DRM.jl	loconly REML	boundary stress	banked	unsupported	no interval claim	S015	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-boundary-grid-status.md	extend boundary grid if broader failure accounting is needed
+S017	DRM exact Gaussian	17	Profile sanity	DRM.jl	loconly REML	profile axes	banked	unsupported	no coverage claim	S016	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-profile-status.md	keep profile axes diagnostic-only until interval coverage is evaluated
+S018	DRM exact Gaussian	18	Variance status row	DRM.jl	loconly REML	status export	banked	unsupported	internal diagnostic only	S017	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-loconly-reml-variance-component-status.md	add R-via-Julia parity rows only after bridge status exists
+S019	DRM exact Gaussian	19	Two-structured source map	DRM.jl	Gaussian structured	source map	banked	unsupported	no bridge promotion	S018	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-exact-gaussian-structured-source-map.md	decide Documenter diagnostic surface without changing claims
+S020	DRM exact Gaussian	20	Documenter diagnostic page	DRM.jl	docs	Documenter evidence	banked	unsupported	internal diagnostic only	S019	/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/docs/dev-log/after-task/2026-06-22-exact-gaussian-diagnostics-documenter.md	start R-side q4 target inventory with same claim guards
+S021	Native R Gaussian phylo	21	q4 target inventory	drmTMB	phylo q4	target table	banked	experimental	no q4 AI-REML	S010	docs/dev-log/after-task/2026-06-22-q4-target-estimator-inventory.md	audit balanced phylo support across location and scale axes
+S022	Native R Gaussian phylo	22	Univariate phylo balance	drmTMB	phylo location scale	support matrix	banked	planned	no Ayumi reply	S021	docs/dev-log/after-task/2026-06-22-univariate-phylo-balance-inventory.md	add focused tests for currently supported combinations
+S023	Native R Gaussian phylo	23	Supported combo tests	drmTMB	phylo location scale	fit tests	banked	planned	no unsupported promotion	S022	docs/dev-log/after-task/2026-06-22-phylo-supported-combo-tests.md	add early informative errors for unsupported neighbours
+S024	Native R Gaussian phylo	24	Unsupported combo errors	drmTMB	phylo location scale	error tests	banked	planned	no hidden partial support	S023	docs/dev-log/after-task/2026-06-22-phylo-unsupported-neighbour-errors.md	expand scale-side phylo clamp-active diagnostics
+S025	Native R Gaussian phylo	25	Scale-side clamp grid	drmTMB	phylo scale	diagnostic grid	banked	planned	weak identification visible	S024	docs/dev-log/after-task/2026-06-22-scale-phylo-diagnostic-grid.md	compare logLik and profile statuses across targets
+S026	Native R Gaussian phylo	26	logLik profile parity	drmTMB	phylo q4	status parity	banked	experimental	no interval promotion	S025	docs/dev-log/after-task/2026-06-22-phylo-profile-loglik-status.md	standardize refit counts and failure reasons
+S027	Native R Gaussian phylo	27	Bootstrap accounting	drmTMB	phylo q4	refit accounting	banked	experimental	no coverage claim	S026	docs/dev-log/after-task/2026-06-22-bootstrap-refit-accounting.md	link q2 and q4 status without collapsing them
+S028	Native R Gaussian phylo	28	q2 q4 target table	drmTMB	phylo q2 q4	target table	banked	experimental	target-specific only	S027	docs/dev-log/after-task/2026-06-22-phylo-q2-q4-target-map.md	expose status fields without overclaiming uncertainty
+S029	Native R Gaussian phylo	29	Summary status fields	drmTMB	phylo extractors	extractor status	banked	experimental	no Wald promotion	S028	docs/dev-log/after-task/2026-06-22-phylo-extractor-status-fields.md	sync dashboard after native phylo wave
+S030	Native R Gaussian phylo	30	Native phylo dashboard sync	drmTMB	dashboard	matrix sync	banked	experimental	no Ayumi claim	S029	docs/dev-log/after-task/2026-06-22-native-phylo-dashboard-sync.md	define row-specific payload fields
+S031	R-Julia bridge	31	Bridge payload schema	drmTMB+DRM.jl	bridge	schema tuple	banked	planned	no bridge promotion	S020;S030	docs/dev-log/after-task/2026-06-22-bridge-payload-schema.md	carry target estimator and effective estimator
+S032	R-Julia bridge	32	Bridge provenance fields	drmTMB+DRM.jl	bridge	provenance	banked	planned	no hidden estimator swap	S031	docs/dev-log/after-task/2026-06-22-bridge-provenance-fields.md	add gated row without user promotion
+S033	R-Julia bridge	33	Loconly bridge draft row	drmTMB+DRM.jl	loconly bridge	draft row	banked	planned	exact Gaussian only	S032	docs/dev-log/after-task/2026-06-22-loconly-bridge-draft-row.md	test JSON or TSV payload stability
+S034	R-Julia bridge	34	Serialization tests	drmTMB+DRM.jl	bridge	payload roundtrip	banked	planned	no public bridge claim	S033	docs/dev-log/after-task/2026-06-22-bridge-payload-serialization.md	reconstruct status object with boundaries
+S035	R-Julia bridge	35	R reconstruction object	drmTMB	bridge	reconstruction status	banked	experimental	no inference promotion	S034	docs/dev-log/after-task/2026-06-22-bridge-reconstruction-status.md	test DRM_JL_JULIA_HOME and JULIA_HOME paths
+S036	R-Julia bridge	36	Julia home CI smoke	drmTMB	bridge	environment smoke	banked	experimental	default engine path only	S035	docs/dev-log/after-task/2026-06-22-julia-home-ci-smoke.md	keep live Julia bridge tests separately gated
+S037	R-Julia bridge	37	Route rejection messages	drmTMB	bridge	error clarity	banked	intentional_error	no silent widening	S036	docs/dev-log/after-task/2026-06-22-bridge-route-rejection-messages.md	keep intentional errors row-specific
+S038	R-Julia bridge	38	Capability comparison regen	drmTMB	bridge	artifact regeneration	banked	experimental	no support promotion	S037	docs/dev-log/after-task/2026-06-22-capability-comparison-regeneration.md	add first same-target R versus Julia smoke
+S039	R-Julia bridge	39	Row-specific parity smoke	drmTMB+DRM.jl	bridge	parity smoke	banked	experimental	no release claim	S038	docs/dev-log/after-task/2026-06-22-row-specific-parity-smoke.md	sync dashboard after bridge wave
+S040	R-Julia bridge	40	Bridge dashboard sync	drmTMB	dashboard	matrix sync	banked	experimental	no bridge promotion	S039	docs/dev-log/after-task/2026-06-22-bridge-dashboard-sync.md	map binomial native versus Julia bridge boundary
+S041	Native non-Gaussian	41	Binomial bridge map	drmTMB	binomial	scope map	banked	unsupported	native TMB only	S010	docs/dev-log/after-task/2026-06-22-binomial-bridge-map.md	polish fixed-effect binomial docs
+S042	Native non-Gaussian	42	Binomial docs polish	drmTMB	binomial	docs	banked	unsupported	no random effect claim	S041	docs/dev-log/after-task/2026-06-22-binomial-docs-polish.md	add profile feasibility status row
+S043	Native non-Gaussian	43	Binomial profile row	drmTMB	binomial	profile feasibility	banked	unsupported	no profile promotion	S042	docs/dev-log/after-task/2026-06-22-binomial-profile-row.md	harden coefficient parity rows
+S044	Native non-Gaussian	44	Count family parity	drmTMB	Poisson NB2 Gamma	coefficient parity	queued	planned	no REML wording	S043	planned	harden coefficient parity rows
+S045	Native non-Gaussian	45	Non-Gaussian RE boundary	drmTMB	non-Gaussian	random effect boundary	queued	planned	no AI-REML claim	S044	planned	add random-effect boundary guard
+S046	Native non-Gaussian	46	No-REML wording lint	drmTMB	docs	language lint	queued	unsupported	no non-Gaussian REML	S045	planned	extend scans for non-Gaussian REML drift
+S047	Native non-Gaussian	47	Cross-family route map	drmTMB	cross family	source map	queued	unsupported	no rho12 formula claim	S046	planned	map cross-family route and latent rho boundary
+S048	Native non-Gaussian	48	Family status rows	drmTMB	non-Gaussian	status rows	queued	planned	no coverage claim	S047	planned	export family simulation-status rows
+S049	Native non-Gaussian	49	Bridge rejection table	drmTMB	bridge	intentional errors	queued	intentional_error	no bridge widening	S048	planned	update rejection table for non-Gaussian cells
+S050	Native non-Gaussian	50	Non-Gaussian docs sync	drmTMB	dashboard	matrix sync	queued	planned	no release claim	S049	planned	sync docs and dashboard after wave
+S051	Correlations slopes	51	Independent slope syntax	drmTMB	random slopes	syntax tests	queued	planned	no correlated slope claim	S010	planned	test independent random-slope syntax
+S052	Correlations slopes	52	Correlated slope design	drmTMB	random slopes	design note	queued	planned	no implementation claim	S051	planned	write correlated-slope design boundary
+S053	Correlations slopes	53	rho12 recovery row	drmTMB	rho12	recovery diagnostic	queued	planned	target-specific only	S052	planned	add fixed-effect rho12 recovery row
+S054	Correlations slopes	54	Bivariate sigma covariance	drmTMB	bivariate sigma	boundary row	queued	planned	no interval claim	S053	planned	add sigma covariance boundary row
+S055	Correlations slopes	55	q2 correlation grid	drmTMB	q2 correlation	grid hardening	queued	planned	no q4 promotion	S054	planned	harden q2 correlation grid
+S056	Correlations slopes	56	High-q transform audit	drmTMB	high q	transform audit	queued	planned	no q8 coverage claim	S055	planned	audit transforms for q4 q8 and higher
+S057	Correlations slopes	57	q4 q8 diagnostic split	drmTMB	high q	status split	queued	planned	no high-q collapse	S056	planned	separate q4 and q8 evidence rows
+S058	Correlations slopes	58	Mixed-family latent rho map	drmTMB	mixed family	source map	queued	unsupported	no rho12 formula claim	S057	planned	map latent rho versus residual rho12
+S059	Correlations slopes	59	Correlation extractors	drmTMB	correlations	extractor status	queued	planned	no Wald promotion	S058	planned	add extractor status fields
+S060	Correlations slopes	60	Correlation visual	drmTMB	visuals	figure	queued	planned	no release claim	S059	planned	add correlation diagnostic visual
+S061	Structural dependencies	61	relmat PSD tests	drmTMB	relmat	PSD tests	queued	planned	no broad structure claim	S010	planned	harden PSD and name-alignment tests
+S062	Structural dependencies	62	Phylo visual	drmTMB	phylo	visual	queued	planned	no Ayumi claim	S061	planned	add tree covariance visual
+S063	Structural dependencies	63	Animal row	drmTMB	animal	status row	queued	planned	row-specific only	S062	planned	harden animal-model evidence row
+S064	Structural dependencies	64	Spatial row	drmTMB	spatial	status row	queued	planned	row-specific only	S063	planned	harden spatial evidence row
+S065	Structural dependencies	65	Kernel row	drmTMB	kernel	status row	queued	planned	row-specific only	S064	planned	harden kernel evidence row
+S066	Structural dependencies	66	SPDE planned row	drmTMB	SPDE	planned row	queued	planned	no implementation claim	S065	planned	add SPDE planned status only
+S067	Structural dependencies	67	Structural recovery smoke	drmTMB	structural	recovery smoke	queued	planned	no coverage claim	S066	planned	add recovery smoke for one structural row
+S068	Structural dependencies	68	Structural bridge guards	drmTMB+DRM.jl	bridge	payload guards	queued	intentional_error	no bridge widening	S067	planned	guard unsupported structural bridge payloads
+S069	Structural dependencies	69	Structural errors	drmTMB	structural	error messages	queued	planned	no silent fallback	S068	planned	improve incompatibility errors
+S070	Structural dependencies	70	Structure dashboard sync	drmTMB	dashboard	matrix sync	queued	planned	no release claim	S069	planned	sync dashboard after structural wave
+S071	Missing values	71	Complete-mask parity	drmTMB	missing data	likelihood parity	queued	planned	complete data unchanged	S010	planned	test all-true mask parity
+S072	Missing values	72	Gaussian response missing	drmTMB	missing data	Gaussian smoke	queued	planned	no non-Gaussian claim	S071	planned	add Gaussian response-missing smoke
+S073	Missing values	73	Predictor missing message	drmTMB	missing data	error clarity	queued	planned	no impute promotion	S072	planned	improve predictor-missing model rejection
+S074	Missing values	74	Non-Gaussian missing guard	drmTMB	missing data	intentional guard	queued	intentional_error	no non-Gaussian mask claim	S073	planned	guard unsupported non-Gaussian missing response
+S075	Missing values	75	Missing bridge guard	drmTMB	bridge	intentional guard	queued	intentional_error	no bridge claim	S074	planned	guard missing-data bridge payloads
+S076	Missing values	76	Missingness heatmap	drmTMB	visuals	figure	queued	planned	no inference claim	S075	planned	add missingness heatmap visual
+S077	Missing values	77	mi impute source map	drmTMB	missing data	source map	queued	planned	no implementation widening	S076	planned	map mi and impute_model boundaries
+S078	Missing values	78	Missing tests	drmTMB	missing data	test bundle	queued	planned	no release claim	S077	planned	add targeted missing-data tests
+S079	Missing values	79	Missing docs	drmTMB	missing data	docs	queued	planned	no broad missingness claim	S078	planned	sync missing-data docs
+S080	Missing values	80	Missing dashboard sync	drmTMB	dashboard	matrix sync	queued	planned	no release claim	S079	planned	sync dashboard after missing wave
+S081	Validation benchmarks	81	ADEMP index	drmTMB	validation	index	queued	planned	no coverage claim	S010	planned	index ADEMP rows by capability
+S082	Validation benchmarks	82	Small simulation harness	drmTMB	validation	harness	queued	planned	no promotion by smoke	S081	planned	standardize small simulation runner
+S083	Validation benchmarks	83	MCSE coverage guard	drmTMB	validation	coverage guard	queued	planned	coverage only when evaluated	S082	planned	require MCSE when coverage is claimed
+S084	Validation benchmarks	84	Profile status table	drmTMB	validation	profile table	queued	planned	target-specific only	S083	planned	standardize profile status fields
+S085	Validation benchmarks	85	Bootstrap status table	drmTMB	validation	bootstrap table	queued	planned	target-specific only	S084	planned	standardize bootstrap status fields
+S086	Validation benchmarks	86	Comparator rows	drmTMB+DRM.jl	validation	comparator table	queued	planned	same estimand only	S085	planned	add comparator status table
+S087	Validation benchmarks	87	Runtime benchmark	drmTMB+DRM.jl	benchmarks	route benchmark	queued	experimental	no speed headline	S086	planned	benchmark native bridge and direct Julia separately
+S088	Validation benchmarks	88	Runtime decomposition	drmTMB+DRM.jl	benchmarks	decomposition	queued	experimental	no speed headline	S087	planned	separate cold warm marshalling and kernel time
+S089	Validation benchmarks	89	Cross-row TSV exporter	drmTMB	validation	exporter	queued	planned	no claim promotion	S088	planned	export unified status rows
+S090	Validation benchmarks	90	CI artifact links	drmTMB	ci	artifact links	queued	planned	no green CI equals support	S089	planned	link CI artifacts to dashboard rows
+S091	Public finish	91	README truth table	drmTMB	docs	README sync	queued	planned	no release claim	S090	planned	sync README capability truth table
+S092	Public finish	92	ROADMAP NEWS sync	drmTMB	docs	roadmap news	queued	planned	no CRAN claim	S091	planned	sync ROADMAP and NEWS
+S093	Public finish	93	pkgdown article pass	drmTMB	pkgdown	article pass	queued	planned	no release claim	S092	planned	update articles and navigation
+S094	Public finish	94	DRM Documenter pass	DRM.jl	Documenter	docs pass	queued	unsupported	no bridge claim	S093	planned	sync Julia docs for implemented rows
+S095	Public finish	95	Visual gallery pass	drmTMB	visuals	gallery	queued	planned	no coverage claim	S094	planned	add or refresh capability visuals
+S096	Public finish	96	Overclaim lints	drmTMB	validation	lint hardening	queued	planned	no public overclaim	S095	planned	harden validators for final docs
+S097	Public finish	97	Check bundle	drmTMB+DRM.jl	ci	check bundle	queued	planned	no CRAN submission	S096	planned	run devtools check pkgdown and Julia tests
+S098	Public finish	98	Split PRs	drmTMB+DRM.jl	git	PR split	queued	planned	no mixed claims	S097	planned	split implementation and mission-control PRs
+S099	Public finish	99	Release gate audit	drmTMB	release	audit	queued	planned	no CRAN without decision	S098	planned	run release readiness audit without upload
+S100	Public finish	100	Recovery checkpoint	drmTMB+DRM.jl	handoff	checkpoint	queued	planned	no Ayumi reply	S099	planned	write clean checkpoint and Ayumi arc start packet

@@ -1,10 +1,170 @@
 {
-  "updated": "2026-06-19 17:12 MDT",
+  "updated": "2026-06-23 10:31 MDT",
   "active_work": [
+    {
+      "when": "2026-06-23 10:31 MDT",
+      "who": "Grace",
+      "text": "The r63 DRAC/totoro dispatch pack validates and renders structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv. The pack generates an eight-task DRAC SLURM array template for shards 1-8, a separate shard-9 totoro worker, private shard roots, forced compute then no-force resume commands, and an aggregate-afterok script that waits for all nine shard manifests and runs with compute-rate MCSE enabled. It is dry-run/not-submitted dispatch safety evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 10:30 MDT",
+      "who": "Curie",
+      "text": "The r62 local sixteen-shard MCSE pre-grid validates and renders structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv. The q4 derived-correlation delta-grid runner used sixteen private shard roots over 96 seed-scale cells, then a no-force resume pass recorded 96 skipped_existing actions against 96 computed cells. The aggregate script verified 576 retained denominator rows, 555 finite delta rows, 306 warning rows, 192 failure-class denominator rows, 126 boundary-clamped rows, zero coverage-evaluable rows, and diagnostic MCSE fields for failure, warning, and boundary-clamp rates. Coverage remains not_evaluable. This is local MCSE and denominator evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 09:45 MDT",
+      "who": "Curie",
+      "text": "The r61 local eight-shard medium rehearsal validates and renders structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv. The q4 derived-correlation delta-grid runner used eight private shard roots over 48 seed-scale cells, then a no-force resume pass recorded 48 skipped_existing actions against 48 computed cells. The aggregate script verified 288 retained denominator rows, 276 finite delta rows, 156 warning rows, 108 failure-class denominator rows, 61 boundary-clamped rows, and zero coverage-evaluable rows. This is medium local resumability, private-output, denominator-retention, and aggregate evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 09:18 MDT",
+      "who": "Curie",
+      "text": "The r60 local four-shard rehearsal validates and renders structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv. The q4 derived-correlation delta-grid runner used four private shard roots over 12 seed-scale cells, then a no-force resume pass recorded 12 skipped_existing actions against 12 computed cells. The aggregate script verified 72 retained denominator rows, 71 finite delta rows, 24 warning rows, 18 failure-class denominator rows, 17 boundary-clamped rows, and zero coverage-evaluable rows. This is local resumability, private-output, denominator-retention, and aggregate evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:59 MDT",
+      "who": "Grace",
+      "text": "The r59 aggregate-hardening slice keeps the local q4 derived-correlation two-shard rehearsal as smoke evidence, but tightens the aggregate script and tests before any larger sweep. The aggregate summary now carries target-level denominator, warning, failure, boundary-clamp, rate, and MCSE-placeholder fields; the script has an explicit repo-root option and rejects missing shard manifests, missing cell outputs, count mismatches, and duplicate computed cell IDs. The focused R contract test exercises those negative paths in tempdirs. This is race-safety and denominator-accounting plumbing only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:34 MDT",
+      "who": "Curie",
+      "text": "The r58 Curie/Grace/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv. The local rehearsal ran two private shards for the q4 derived-correlation delta-grid runner, with two seeds crossed by scale levels 0.35 and 0.50. Each shard wrote a private cell root, manifest, and run log; the no-force resume pass recorded skipped_existing actions. The aggregate script verified four unique seed-scale cells, four computed actions, four skipped actions, 24 retained denominator rows, 24 finite delta diagnostic rows, six boundary-clamped rows, and zero coverage-evaluable rows. This is local private-output aggregation evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:12 MDT",
+      "who": "Curie",
+      "text": "The r57 Curie/Grace/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv. The executable dry-run script run-calibrated-grid-delta-drac-shard-plan.R maps the r53 ADEMP-sized q4 derived-correlation delta grid onto nine CPU worker slots: drac01-drac08 plus totoro. The generated plan assigns 1000 seed-scale cells and 6000 target rows by round-robin seed-scale cell index, with private per-shard cell roots, manifests, and run logs so DRAC jobs do not append to one shared file. The aggregate gate requires all shard manifests, 1000 unique cell IDs, 6000 target rows, denominator retention, and MCSE fields before SR150 can move. This is DRAC/totoro execution-planning evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 07:31 MDT",
+      "who": "Curie",
+      "text": "The r56 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv. The executable runner run-calibrated-grid-delta-resumable-smoke.R ran on totoro as a CPU-only 24-cell pilot: eight seeds (202607500-202607507) crossed with scale levels 0.35, 0.50, and 0.65. The compute pass recorded 24 computed per-cell TSV outputs with 144 retained q4 derived-correlation denominator rows; the resume pass reran without force and recorded 24 skipped_existing actions against those outputs. The manifest records resume_skip_verified, 24 observed cells, 142 finite delta rows, 144 retained denominator rows, 48 warning rows, 30 failure-class denominator rows, and 27 boundary-clamped rows. This is r56 totoro resumability pilot evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:34 MDT",
+      "who": "Curie",
+      "text": "The r53 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv. The executable dry-run script run-calibrated-grid-delta-ademp-dry-run.R freezes the ADEMP-sized q4 derived-correlation delta grid at 500 replicates per scale, scale levels 0.35 and 0.50, seed range 202607500-202607999, 1000 seed-scale cells, and 6000 planned target rows. It records nominal 0.95 coverage MCSE = 0.009747, failure-rate MCSE at reference rate 0.05 = 0.009747, denominator retention for failures/warnings/unavailable/clamped/finite rows, and boundary-clamp accounting. This is ADEMP dry-run planning evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:23 MDT",
+      "who": "Curie",
+      "text": "The r52 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-mini-status.tsv. The executable mini-grid script run-calibrated-grid-delta-mini.R ran two seeds across scale levels 0.35 and 0.50, wrote 24 retained q4 derived-correlation target rows with full-vector theta_phylo report reconstruction, finite diagnostic delta endpoints, diagnostic true-value accounting, boundary-clamp counts, and mini-grid coverage/failure-rate MCSE fields. This is replicated mini-grid accounting evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie",
+      "text": "The r51 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv. The executable smoke script run-calibrated-grid-delta-smoke.R ran the stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote six grid-shaped derived-correlation rows with full-vector theta_phylo report reconstruction, finite delta diagnostic endpoints, retained denominator rows, and single-replicate MCSE placeholders. This is executable grid-plumbing evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie",
+      "text": "The r50 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-contract.tsv. The contract converts the r49 finite-difference mechanics into calibrated-grid requirements: seed/scale identity, full-vector theta_phylo report reconstruction, finite or unavailable interval fields, the exact six derived-correlation targets, failed-fit and warning rows retained in denominators, coverage and failure-rate MCSE fields, per-target failure reasons, and explicit no-coverage boundary wording. This is a grid-extension contract only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher",
+      "text": "The r49 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-diagnostic.tsv. The executable diagnostic script run-derived-correlation-delta-diagnostic.R ran the stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), perturbed the full TMB parameter vector at the six theta_phylo positions, verified phylo_q4_corr report values against corpairs(), and wrote six finite one-replicate Wald delta diagnostic intervals from the theta_phylo covariance block. This is finite-difference diagnostic mechanics evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher",
+      "text": "The r48 mission-control widget validates and renders structured-re-q4-derived-correlation-interval-smoke.tsv. The executable smoke script run-derived-correlation-interval-smoke.R ran one known stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote six corpairs(conf.int = TRUE) derived-correlation rows, mapped profile targets, retained point estimates, kept derived intervals unavailable with no endpoints, and marks MCSE fields as insufficient_replicates. This is diagnostic smoke evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher",
+      "text": "The r47 mission-control widget validates and renders structured-re-q4-derived-correlation-interval-contract.tsv. The contract records all six q4 derived-correlation targets, links each row to the corpairs point-source map and the r46 smoke artifact, keeps current_interval_status = not_available, and requires Sigma_a payload fields, target-level warning/failure fields, delta/profile/bootstrap reconstruction, denominator accounting, coverage_mcse, and failure_rate_mcse before any interval wording. This is a derived-correlation interval contract only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie",
+      "text": "The r46 mission-control widget validates and renders structured-re-q4-stabilized-grid-smoke-status.tsv. The executable smoke script run-calibrated-grid-smoke.R ran one known stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote ten target-level rows, kept four finite direct-SD Wald rows separate from six derived-correlation interval rows that remain not reconstructed, and marks MCSE fields as insufficient_replicates. This is calibrated-grid plumbing evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Grace + Fisher + Rose",
+      "text": "The r45 mission-control widget now validates and renders structured-re-q4-stabilized-grid-runner-contract.tsv. The executable dry-run script run-calibrated-grid-dry-run.R accepts only --n-rep=0 and writes q4-stabilized-calibrated-grid-dry-run.tsv with seed start, scale levels, four direct SD targets, six derived-correlation targets, denominator fields, warning fields, output schema, and MCSE columns. This is a dry-run grid contract only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher + Curie + Rose",
+      "text": "The r44 mission-control widget now validates and renders structured-re-q4-stabilized-coverage-design.tsv. The design translates r43 direct-profile evidence into calibrated-grid requirements: 500 planned replicates, all denominator rows retained, pdHess=false rows counted, the gradient-warning holdout predeclared, duplicate-x profile warnings reported, derived-correlation intervals separated, bootstrap refit accounting required, route-specific evidence kept apart, and MCSE required before any coverage wording. This is design evidence only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Gauss + Fisher + Curie + Rose",
+      "text": "The r43 mission-control widget now validates and renders structured-re-q4-stabilized-eligible-profile.tsv. The three remaining profile-eligible denominator rows produced 12/12 finite direct q4 SD profile intervals with conf.status=profile and profile.boundary=false; the run emitted two regularize.values duplicate-x warnings, and the denominator ledger still retains 3 pdHess=false rows plus 1 gradient-warning holdout. This is diagnostic profile evidence only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher + Curie + Gauss + Rose",
+      "text": "The r42 mission-control widget now validates and renders structured-re-q4-stabilized-profile-denominator-status.tsv. The stabilized q4 profile denominator has 8 seed-scale rows: 1 all-direct profile success, 3 eligible-but-unprofiled rows, 3 pdHess=false singular-convergence blockers, and 1 gradient-warning holdout. This is denominator accounting only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Gauss + Fisher + Curie + Rose",
+      "text": "The r41 mission-control widget now validates and renders structured-re-q4-stabilized-all-direct-profile.tsv. On the same stabilized scale-0.50 seed-202606902 row, all four direct q4 SD targets produced finite fast TMB::tmbprofile intervals with conf.status=profile and profile.boundary=false. This is one-row all-direct profile smoke evidence only and does not promote derived q4 correlation intervals, q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Gauss + Fisher + Curie + Rose",
+      "text": "The r40 mission-control widget now validates and renders structured-re-q4-stabilized-profile-smoke.tsv. One stabilized scale-0.50 seed-202606902 direct q4 SD target produced a finite fast TMB::tmbprofile interval with conf.status=profile and profile.boundary=false; profile_targets() kept derived q4 correlations not profile-ready. This is one direct-SD profile smoke only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Fisher + Gauss + Rose",
+      "text": "The r39 mission-control widget now validates and renders structured-re-q4-stabilized-denominator-extension.tsv. The scale-wise denominator extension has 2/4 pdHess=true finite-Wald rows at scale 0.35 and 3/4 at scale 0.50, with one scale-0.50 gradient-warning row retained in the denominator. This is denominator-preflight evidence only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap intervals, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Gauss + Fisher + Rose",
+      "text": "The r38 mission-control widget now validates and renders structured-re-q4-stabilized-preflight.tsv. The compact SR150 q4 preflight found two seed-902 rows with optimizer convergence, pdHess=true, interior fitted correlations, and 4/4 finite Wald direct-SD interval rows, while two seed-901 rows remain singular-convergence pdHess=false evidence. This unblocks replicated finite-interval diagnostics and denominator accounting; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap intervals, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Gauss + Fisher + Rose",
+      "text": "The r37 mission-control widget now validates and renders structured-re-q4-stabilized-fixture-design.tsv. The new SR150 sidecar turns the q4 interval blocker into six measurable exit gates: direct SD signal away from zero, interior fitted correlations, positive Hessian diagnostics, finite direct-SD interval status, denominator accounting, and route-specific parity. This is fixture-design contract evidence only and does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
     {
       "when": "now",
       "who": "Ada",
-      "text": "Mission-control metrics remain 25/68 verified, 1 active, 0 blocked, and 1 deferred. Direct DRM.jl smoke evidence is banked on DRM.jl main, and the Julia-via-R clean-main bridge audit removed stale local DRM.jl and Julia-home defaults from live bridge tests. `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates."
+      "text": "Mission control now validates and serves the complete SC201-SC400 structured-RE conversion ledger. All 200 conversion rows are banked as infrastructure, contract, design, synchronization, or closeout rows. SR001-SR100 is now 92 banked and 8 blocked after q1 mean-phylo Route A parity moved from blocker to banked evidence; SR101-SR200 is now 90 banked, 10 blocked, and 0 queued after q1 mean-phylo parity, q1 sigma-only bridge REML admission, q1 sigma-only ML parity, q1 matched mu+sigma ML parity, q1 spatial-mu ML parity, q1 relmat-mu ML parity, q1 animal-mu ML parity, q1 Poisson phylo ML/Laplace parity, q1 unsupported-route preflight errors, q1 coefficient-scale mapping, the q1 acceptance gate, the q2 payload-boundary contract, the q2 spatial, animal, and relmat native fixtures, the q2-plus-q2 boundary contract, the q2 scale-only rejection boundary, the q2 coefficient-ordering map, the q2 phylo residual-correlation direct DRM.jl point-export and R-via-Julia parity fixture plus retained private diagnostic primitive, relmat and animal known-covariance direct exports, fixed-covariance spatial direct evidence, q2 phylo/spatial/animal/relmat R-via-Julia parity fixture evidence, the q2 payload provenance map, the q4 phylogenetic covariance target map, the q4 profile-target bridge map, the q4 scale-axis interval-failure ledger, the q4 direct DRM.jl export contract, the q4 deterministic fixture, the q4 tolerance policy, the q4 same-fixture parity probe, the q4 calibrated parity probe, the q4 corpairs point parity gate, the q4 point parity acceptance gate, the ADEMP coverage design, SR142-SR149 coverage-calibration scaffold/accounting rows, SR151-SR159 native REML scope status rows, SR160-SR170 scope-gate rows, SR171-SR180 R docs/API sync rows, SR181-SR190 Julia twin sync rows, and SR191-SR200 closeout gates were banked or blocked with explicit evidence; SR130 is banked at fixture scope because q2 phylo, spatial, animal, and relmat now have native/direct/R-via-Julia same-target fixture evidence, with spatial limited to fixed-covariance coordinates; the q2 direct point exports and q2 phylo/animal/relmat R-via-Julia parity fixtures are narrow exact-Gaussian ML fixture evidence only; SR131, SR133, and SR140 are banked as calibrated q4 all-four/corpairs/point-parity evidence only after the DRM.jl q4 default tolerance change; q4 interval and coverage evidence remain blocked under SR150; SR150 remains blocked until real calibrated grids with finite-interval accounting and MCSE exist; SR160 remains blocked until exact REML derivations, route-specific tests, docs, and claim scans exist; SR191-SR198 remain blocked until current Ayumi issue text, exact approved reply text, posting evidence, URL evidence, and commit approval exist. Q2 phylo same-target residual-correlation direct/R-via-Julia ML fixture evidence is banked narrowly, relmat and animal direct/R-via-Julia known-covariance fixture evidence is banked, fixed-covariance spatial direct/R-via-Julia evidence is banked without range-estimating spatial support, a private q2 diagnostic R primitive is retained as non-public bridge evidence, spatial q2 R-via-Julia bridge parity is available only for the fixed-covariance formula fixture, one-axis and three-axis q2 phylo partials remain intentional pre-JuliaCall errors, q4 corpairs calibrated point parity is banked but interval reliability remains blocked, q4 profile-target availability is target-map evidence only, q4 scale-axis interval rows are blocker evidence only, q4 direct DRM.jl exports are direct-Julia point evidence only, DRM.jl q4 point-matrix export is payload evidence only, the q4 deterministic fixture is fixture data only, q4 tolerances are policy only, the first q4 same-fixture parity probe is retained negative evidence superseded by the calibrated probe, and the q4 calibrated parity probe and corpairs gate are calibrated point-parity evidence only, ADEMP rows are design only, coverage-calibration rows are scaffold/policy/template only, native REML scope rows are status or negative-evidence rows only, scope-gate rows are scope or negative-evidence rows only, R docs/API sync rows are source-truth hygiene only, Julia twin sync rows are provenance and gate evidence only, and closeout rows are approval and checkpoint evidence only. No q1 sigma-side native REML, q2 REML, broad q2 bridge support, broad q4 bridge support, q4 REML row, HSquared AI-REML wording, public optimizer control, interval coverage claim, mesh/SPDE, NB2 parity, non-phylo count bridge support, range-estimating q2 spatial support, relmat Q bridge marshalling, animal pedigree/Ainv bridge marshalling, direct-SD grammar, structured rho12, non-Gaussian q2/q4 covariance, sigma-predictor structured bridge support, commit, PR, or Ayumi reply is promoted by this widget work."
+    },
+    {
+      "when": "current tranche",
+      "who": "Noether + Rose",
+      "text": "SR135 is now banked as a q4 requested/effective estimator audit. The new q4 REML sidecar separates native TMB q4 ML, unsupported native TMB q4 REML, direct DRM.jl q4 Patterson-Thompson REML, experimental R-via-Julia q4 Patterson-Thompson REML, and the unsupported HSquared AI-REML transfer boundary. SR101-SR200 is now 90 banked and 10 blocked after the fixed-covariance q2 spatial fixture gate moved; this does not promote native q4 REML, HSquared AI-REML, public bridge support, interval reliability, interval coverage, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Fisher",
+      "text": "SR142-SR144 now point to diagnostic coverage-pilot evidence instead of scaffold-only wording: q1 has 3 target rows and 1 finite Wald interval, q2 has 6 target rows and 0 finite intervals, and q4 has 8 target rows, 0 converged rows, and 0 finite intervals. SR150 remains blocked because this is not a calibrated coverage grid and does not promote interval reliability or interval coverage."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher + Curie + Rose",
+      "text": "SR150 now has a validated q4 interval diagnostic plan sidecar with 4 direct SD rows and 6 derived-correlation rows. This only identifies required finite-interval, denominator, and MCSE evidence; q4 interval reliability, interval coverage, q4 REML, AI-REML, and broad bridge support remain blocked."
+    },
+    {
+      "when": "current tranche",
+      "who": "Fisher + Curie + Grace",
+      "text": "SR150 now has a validated q4 interval diagnostic status sidecar generated from the existing coverage pilot rows: each direct SD target has two attempted q4 pilot rows, zero converged rows, zero positive-Hessian rows, and zero finite Wald intervals; each derived correlation target remains not reconstructed. This is blocker evidence only."
+    },
+    {
+      "when": "current tranche",
+      "who": "Gauss + Fisher",
+      "text": "A q4 convergence probe found that default/careful/robust optimizers all remain nonconverged with pdHess=false on the original 10-tip m=2 pilot shape. A denser 10-tip m=4 toy fixture reaches optimizer convergence for all three presets, but pdHess remains false, so interval reliability remains blocked on Hessian/uncertainty diagnostics rather than only optimizer convergence."
+    },
+    {
+      "when": "current tranche",
+      "who": "Gauss + Fisher + Noether",
+      "text": "The converged 10-tip m=4 q4 toy fit has tiny fixed-gradient magnitude but an indefinite covariance/Hessian diagnostic: min cov.fixed eigenvalue is negative, direct q4 SD estimates are near zero, derived correlations are near +/-1, and Wald direct-SD intervals remain 0/4 finite. This points the next fix toward boundary-separated q4 fixtures and Hessian diagnostics, not interval wording."
+    },
+    {
+      "when": "current tranche",
+      "who": "Curie + Gauss + Fisher",
+      "text": "A stronger q4 boundary-separated probe with larger direct SD truth, mild target correlations, 16/24 tips, m=6, two seeds, and default/careful/robust optimizer presets still retained pdHess=false in every row. Two 24-tip seed777 rows reached optimizer convergence, but the Hessian remained non-positive and fitted derived correlations stayed near boundary, so finite interval diagnostics remain blocked."
     }
   ]
 }

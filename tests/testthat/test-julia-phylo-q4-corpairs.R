@@ -233,7 +233,14 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
       )
 
       pairs <- drmTMB::corpairs(fj)
+      phylo_pairs <- drmTMB::corpairs(fj, level = "phylogenetic")
       mm <- drmTMB::corpairs(fj, class = "mean-mean")
+      q4_export <- fj$bridge$q4_point_export
+      export_axes <- q4_export$axes
+      export_pairs <- utils::combn(seq_along(export_axes), 2L)
+      export_estimates <- q4_export$correlation[
+        cbind(export_pairs[1L, ], export_pairs[2L, ])
+      ]
       list(
         class = class(fj),
         engine = fj$engine,
@@ -241,13 +248,14 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
         converged = drmTMB::is_converged(fj),
         true_rho_mean = rho_mean,
         n_rows = nrow(pairs),
-        n_phylo = nrow(drmTMB::corpairs(fj, level = "phylogenetic")),
+        n_phylo = nrow(phylo_pairs),
         n_residual = nrow(drmTMB::corpairs(fj, level = "residual")),
-        classes = drmTMB::corpairs(fj, level = "phylogenetic")$class,
+        classes = phylo_pairs$class,
         estimates = pairs$estimate,
+        direct_wrapper_cor_delta = max(abs(export_estimates - phylo_pairs$estimate)),
         mean1_mean2 = if (nrow(mm) == 1L) mm$estimate else NA_real_,
         phylo_levels = unique(
-          drmTMB::corpairs(fj, level = "phylogenetic")$level
+          phylo_pairs$level
         )
       )
     },
@@ -308,6 +316,7 @@ test_that("q4 bivariate phylo location-scale corpairs surfaces among-axis correl
   # Every reconstructed among-axis correlation is finite and a valid correlation.
   expect_true(all(is.finite(res$estimates)))
   expect_true(all(res$estimates >= -1 & res$estimates <= 1))
+  expect_equal(res$direct_wrapper_cor_delta, 0, tolerance = 1e-12)
 
   # The headline: the mean1-mean2 phylo correlation is recovered in the right
   # ballpark of the true 0.6 (finite-sample point estimate, single fit -- assert

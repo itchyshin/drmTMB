@@ -1,0 +1,21 @@
+wave_id	slice_range	lead_member	required_members	optional_members	bank_condition	blocked_condition
+mission_control_restore	SC201-SC210	grace	ada;rose	emmy	Live widget serves every validator-owned dashboard TSV	Any validator-owned TSV is absent from served copy
+member_board_v1	SC211-SC220	ada	rose;grace;emmy	boole	Roster discussion and wave-assignment schemas validate and render	Member signoff or discussion rows are missing
+status_vocabulary_cleanup	SC221-SC230	rose	boole;fisher	pat	Covered means scoped fit or evidence not whole capability	Any row collapses fit inference bridge or coverage scope
+q1_bridge_payload_contract	SC231-SC240	emmy	grace;boole	ada	Payload has version target estimator matrix and digest fields	Structured payload provenance is missing
+q1_bridge_reconstruction	SC241-SC250	emmy	fisher;ada	grace	coef vcov summary and unavailable status maps are explicit	Reconstruction status cannot explain missing surfaces
+q1_parity_fixture	SC251-SC260	ada	emmy;fisher;grace	gauss	Native R/TMB direct DRM.jl and R-via-Julia use same target	Any route differs in target estimator or tolerance
+q2_target_contract	SC261-SC270	noether	boole;fisher	emmy	q2 targets are separate from q2_plus_q2 and q4	Target naming lets q2 evidence imply q4 support
+q2_native_evidence	SC271-SC280	gauss	fisher;curie	noether	Fixture-level likelihood and extractor evidence is banked only as such	Evidence text implies inference or coverage support
+q2_bridge_boundary	SC281-SC290	emmy	grace;rose	boole	Unsupported or experimental rows fail with row-specific reasons	Bridge errors are generic or occur after avoidable Julia setup
+q4_target_contract	SC291-SC300	noether	gauss;fisher	boole	Direct SD targets are separate from derived correlations	Derived correlations look interval-ready
+q4_extractor_parity	SC301-SC310	emmy	fisher;rose	florence	Point and extractor status is explicit with no interval claim	Extractor evidence is promoted to Wald or coverage language
+q4_bridge_boundary	SC311-SC320	ada	emmy;grace	noether	Smoke remains smoke unless full parity exists	q4 bridge smoke is described as support
+reml_scope_gate	SC321-SC330	noether	gauss;fisher	rose	Exact-Gaussian mean-side phylo only unless derivation and tests exist	Any q4 native or non-Gaussian AI-REML wording appears
+ademp_q1_design	SC331-SC340	curie	fisher;jason	grace	DGP estimands methods performance and MCSE are written	Coverage grid lacks failed-fit denominators or MCSE
+ademp_q2_design	SC341-SC350	curie	fisher;gauss	noether	Failed fits and unavailable intervals stay in denominators	q2 coverage excludes failed or interval-unavailable fits
+ademp_q4_design	SC351-SC360	curie	fisher;noether	gauss	q4 coverage remains planned until calibrated grid passes	Pilot accounting is described as reliability
+structured_type_gaps	SC361-SC370	boole	pat;darwin	jason	phylo spatial animal relmat and phylo_interaction table is honest	Type gaps are collapsed into broad structured support
+r_docs_api_sync	SC371-SC380	boole	pat;rose	darwin	Grammar limitations examples errors and NEWS wording agree	Public wording says runnable where only planned or diagnostic
+julia_twin_sync	SC381-SC390	grace	emmy;ada	fisher	Direct DRM.jl evidence names branch SHA and bridge impact	Sibling evidence is local-only but treated as public
+closeout_package	SC391-SC400	rose	ada;grace;fisher	florence	Validator served widget check-log after-task and checkpoint complete	Any closeout artifact is missing or stale

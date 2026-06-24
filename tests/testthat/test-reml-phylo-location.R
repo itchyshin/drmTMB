@@ -127,6 +127,17 @@ test_that("REML still rejects a scale-side phylogenetic effect", {
   expect_error(
     drmTMB(
       bf(
+        y ~ x,
+        sigma ~ phylo(1 | species, tree = tree)
+      ),
+      data = fx$data,
+      REML = TRUE
+    ),
+    "scale-side"
+  )
+  expect_error(
+    drmTMB(
+      bf(
         y ~ x + phylo(1 | p | species, tree = tree),
         sigma ~ 1 + phylo(1 | p | species, tree = tree)
       ),

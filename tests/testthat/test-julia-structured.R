@@ -8,7 +8,7 @@
 # to `drm(...)` through the matching keyword:
 #   relmat(1 | g, K = K)   -> drm(...; K = K)
 #   animal(1 | g, A = A)   -> drm(...; A = A)
-#   spatial(1 | g, coords) -> drm(...; coords = ...)   (Gaussian only)
+#   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #
 # Supported families are DRM.jl's general-covariance set: Gaussian, Poisson, NB2,
 # Gamma. (Beta / Binomial fit only `phylo()` in DRM.jl and are rejected here.)
@@ -16,9 +16,9 @@
 # and non-Gaussian `spatial()` have no bridge route and are rejected with a
 # pointer to `engine = "tmb"` or to `relmat(1 | g, K = K)`.
 #
-# Native drmTMB does fit these structured effects on the TMB side, but the Julia
-# route is net-new for the bridge; these live tests assert a finite-and-sane floor
-# (finite logLik + positive variance component) rather than coefficient parity.
+# Native drmTMB does fit these structured effects on the TMB side. The q1
+# Gaussian relmat/animal/spatial parity rows live in `test-julia-tmb-parity.R`;
+# this file keeps the routing/gating contract plus one non-Gaussian finite smoke.
 #
 # These tests cover (a) pure R-side routing / gating (no Julia), which always
 # runs, and (b) one live Poisson relmat round-trip, guarded so it is SKIPPED --
@@ -241,6 +241,126 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
       env
     ),
     "1 \\| group"
+  )
+})
+
+test_that("Gaussian spatial payload uses the native fixed-range K target", {
+  env <- environment()
+  coords <- data.frame(
+    x = c(0, 1, 0),
+    y = c(0, 0, 1),
+    row.names = c("a", "b", "c")
+  )
+  dat <- data.frame(
+    site = c("a", "b", "c", "a"),
+    x = stats::rnorm(4),
+    y = stats::rnorm(4)
+  )
+
+  payload <- drmTMB:::drm_julia_structured_payload(
+    bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+    "gaussian",
+    dat,
+    env
+  )
+
+  native <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = dat$site,
+    group = "site"
+  )
+  expect_equal(payload$kwarg, "K")
+  expect_match(payload$formula$mu, "relmat(1 | site)", fixed = TRUE)
+  expect_equal(payload$matrix, solve(as.matrix(native$precision)))
+  expect_equal(names(payload$structured_sd_scales), "spatial(1 | site)")
+})
+
+test_that("bivariate q2 known structured payload admits relmat and animal only", {
+  env <- environment()
+  K <- diag(3)
+  A <- diag(3)
+  dat <- data.frame(
+    id = rep(c("a", "b", "c"), each = 2),
+    x = stats::rnorm(6),
+    y1 = stats::rnorm(6),
+    y2 = stats::rnorm(6)
+  )
+  relmat_form <- bf(
+    mu1 = y1 ~ x + relmat(1 | p | id, K = K),
+    mu2 = y2 ~ x + relmat(1 | p | id, K = K),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  relmat_payload <- drmTMB:::drm_julia_biv_known_structured_payload(
+    relmat_form,
+    "biv_gaussian",
+    dat,
+    env
+  )
+  expect_equal(relmat_payload$kwarg, "K")
+  expect_equal(relmat_payload$bivariate_dimension, "q2")
+  expect_equal(relmat_payload$structured_type, "relmat")
+  expect_equal(relmat_payload$covariance_label, "p")
+  expect_equal(relmat_payload$formula$mu1, "y1 ~ x + relmat(1 | id)")
+  expect_equal(relmat_payload$formula$mu2, "y2 ~ x + relmat(1 | id)")
+  expect_false("p" %in% names(relmat_payload$data))
+
+  animal_form <- bf(
+    mu1 = y1 ~ x + animal(1 | p | id, A = A),
+    mu2 = y2 ~ x + animal(1 | p | id, A = A),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  animal_payload <- drmTMB:::drm_julia_biv_known_structured_payload(
+    animal_form,
+    "biv_gaussian",
+    dat,
+    env
+  )
+  expect_equal(animal_payload$kwarg, "A")
+  expect_equal(animal_payload$structured_type, "animal")
+  expect_equal(animal_payload$formula$mu1, "y1 ~ x + animal(1 | id)")
+
+  spatial_form <- bf(
+    mu1 = y1 ~ x + spatial(1 | p | id, coords = K),
+    mu2 = y2 ~ x + spatial(1 | p | id, coords = K),
+    sigma1 = ~1,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  spatial_payload <- drmTMB:::drm_julia_biv_known_structured_payload(
+    spatial_form,
+    "biv_gaussian",
+    dat,
+    env
+  )
+  expect_equal(spatial_payload$kwarg, "K")
+  expect_equal(spatial_payload$structured_type, "spatial")
+  expect_equal(spatial_payload$covariance_label, "p")
+  expect_equal(spatial_payload$formula$mu1, "y1 ~ x + relmat(1 | id)")
+  expect_equal(spatial_payload$formula$mu2, "y2 ~ x + relmat(1 | id)")
+  expect_equal(
+    names(spatial_payload$structured_sd_scales),
+    c("spatial(1 | p | id)", "spatial(1 | p | id)")
+  )
+
+  bad_sigma <- bf(
+    mu1 = y1 ~ x + relmat(1 | p | id, K = K),
+    mu2 = y2 ~ x + relmat(1 | p | id, K = K),
+    sigma1 = ~x,
+    sigma2 = ~1,
+    rho12 = ~1
+  )
+  expect_error(
+    drmTMB:::drm_julia_biv_known_structured_payload(
+      bad_sigma,
+      "biv_gaussian",
+      dat,
+      env
+    ),
+    "sigma1 ~ 1"
   )
 })
 

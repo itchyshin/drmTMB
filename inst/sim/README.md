@@ -213,6 +213,13 @@ Current pilot files:
   its evidence design follows the bivariate-slope ADEMP
   `docs/design/145-phase6c-bivariate-slope-ademp.md` and the recovery-lane
   pattern in `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
+- `R/sim_structured_re_ademp.R` and
+  `run/sim_write_structured_re_ademp_scaffold.R` stage the structured
+  random-effect q1/q2/q4 ADEMP scaffold for `phylo()`, coordinate `spatial()`,
+  `animal()`, and `relmat()` cells. This is a registry, seed, MCSE-policy, and
+  denominator-accounting scaffold only: it does not run a calibrated grid, it
+  does not promote R-via-Julia bridge support, and it does not make a coverage
+  claim.
 - `run/sim_summary_biv_gaussian_q6_location_recovery.R` and
   `run/sim_write_biv_gaussian_q6_location_recovery_grid.R` give the q6
   `mu1`/`mu2` location lane (`(1 + x + z | p | id)` in both location formulas)

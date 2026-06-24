@@ -1,7 +1,7 @@
 {
   "title": "Finishing the twin - DRM.jl + drmTMB",
-  "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now running R-first: native drmTMB support/status first, Julia acceleration and parity second. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
-  "updated": "2026-06-19 17:12 MDT",
+  "subtitle": "Evidence-led mission control for the DRM.jl <-> drmTMB twin, now with a validated member board, structured-RE sidecar ledgers, and SC201-SC400 conversion rows banked as infrastructure/design/closeout state only. A slice is not done unless engine support, R bridge support, point estimates, CI/status, tests, docs/articles, visuals, issue evidence, and Rose audit agree.",
+  "updated": "2026-06-23 10:31 MDT",
   "metrics": {
     "verified": 25,
     "active": 1,
@@ -452,10 +452,10 @@
     },
     {
       "name": "DRM.jl",
-      "branch": "main evidence worktree",
+      "branch": "codex/ai-reml-gaussian-mme-pilot",
       "head": "f46035d",
-      "dirty": false,
-      "note": "DRM.jl #295 merged green. Clean evidence worktree at /Users/z3437171/.codex/worktrees/540b/DRM.jl-direct-main; the user's saved DRM.jl checkout may still be dirty."
+      "dirty": true,
+      "note": "Clean implementation worktree at /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot for exact-Gaussian AI-REML transfer slices; the user's saved DRM.jl checkout on shannon/ayumi-integration remains untouched and may still be dirty."
     },
     {
       "name": "gllvmTMB",
@@ -561,10 +561,24 @@
       "issue_label": "drmTMB#569",
       "lane": "Critical Path",
       "status": "banked",
-      "owners": ["Ada", "Boole", "Gauss", "Noether", "Fisher", "Curie", "Pat", "Darwin"],
+      "owners": [
+        "Ada",
+        "Boole",
+        "Gauss",
+        "Noether",
+        "Fisher",
+        "Curie",
+        "Pat",
+        "Darwin"
+      ],
       "family": "stats::binomial(link = \"logit\")",
-      "response_encoding": ["0/1", "cbind(successes, failures)"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "0/1",
+        "cbind(successes, failures)"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -587,10 +601,23 @@
       "issue_label": "drmTMB#569",
       "lane": "Issue Ledger",
       "status": "banked",
-      "owners": ["Boole", "Noether", "Fisher", "Curie", "Pat", "Rose"],
+      "owners": [
+        "Boole",
+        "Noether",
+        "Fisher",
+        "Curie",
+        "Pat",
+        "Rose"
+      ],
       "family": "Y_i ~ Binomial(n_i, mu_i); logit(mu_i) = eta_i",
-      "response_encoding": ["0/1 vector", "two-column cbind(successes, failures)", "no weights-as-trials"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "0/1 vector",
+        "two-column cbind(successes, failures)",
+        "no weights-as-trials"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -613,10 +640,27 @@
       "issue_label": "drmTMB#544",
       "lane": "Critical Path",
       "status": "partial",
-      "owners": ["Ada", "Boole", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Ada",
+        "Boole",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "engine = \"julia\" intentional gate registry",
-      "response_encoding": ["R syntax cells", "DRM.jl evidence cells"],
-      "dpars": ["mu", "sigma", "nu", "rho12", "zi", "zoi", "coi"],
+      "response_encoding": [
+        "R syntax cells",
+        "DRM.jl evidence cells"
+      ],
+      "dpars": [
+        "mu",
+        "sigma",
+        "nu",
+        "rho12",
+        "zi",
+        "zoi",
+        "coi"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "experimental",
       "point": "partial",
@@ -639,9 +683,19 @@
       "issue_label": "drmTMB#577",
       "lane": "Issue Ledger",
       "status": "banked",
-      "owners": ["Ada", "Emmy", "Grace", "Rose", "Florence"],
+      "owners": [
+        "Ada",
+        "Emmy",
+        "Grace",
+        "Rose",
+        "Florence"
+      ],
       "family": "row-oriented issue-led capability widget",
-      "response_encoding": ["finish_board rows", "validator checks", "served dashboard"],
+      "response_encoding": [
+        "finish_board rows",
+        "validator checks",
+        "served dashboard"
+      ],
       "dpars": [],
       "engine_tmb": "unsupported",
       "engine_julia": "unsupported",
@@ -665,10 +719,26 @@
       "issue_label": "drmTMB#60",
       "lane": "Twin Claim Board",
       "status": "partial",
-      "owners": ["Ada", "Noether", "Fisher", "Darwin", "Pat", "Rose"],
+      "owners": [
+        "Ada",
+        "Noether",
+        "Fisher",
+        "Darwin",
+        "Pat",
+        "Rose"
+      ],
       "family": "bivariate Gaussian residual rho12 ~ predictors",
-      "response_encoding": ["two responses", "residual coscale only"],
-      "dpars": ["mu1", "mu2", "sigma1", "sigma2", "rho12"],
+      "response_encoding": [
+        "two responses",
+        "residual coscale only"
+      ],
+      "dpars": [
+        "mu1",
+        "mu2",
+        "sigma1",
+        "sigma2",
+        "rho12"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "planned",
       "point": "partial",
@@ -691,10 +761,20 @@
       "issue_label": "maintainer note",
       "lane": "Twin Claim Board",
       "status": "deferred",
-      "owners": ["Ada", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Ada",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "direct DRM.jl Binomial documentation alignment",
-      "response_encoding": ["claim alignment only", "no Codex DRM.jl code changes"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "claim alignment only",
+        "no Codex DRM.jl code changes"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "unsupported",
       "engine_julia": "partial",
       "point": "partial",
@@ -704,7 +784,7 @@
       "tests": "planned",
       "docs": "planned",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "",
       "blocker": "Owner decides whether to open a DRM.jl issue or maintainer note. Codex does not modify DRM.jl code, and drmTMB makes no binomial Julia-bridge claim.",
@@ -717,9 +797,18 @@
       "issue_label": "gllvmTMB#488",
       "lane": "Cross-Package Lessons",
       "status": "partial",
-      "owners": ["Jason", "Boole", "Emmy", "Grace", "Rose"],
+      "owners": [
+        "Jason",
+        "Boole",
+        "Emmy",
+        "Grace",
+        "Rose"
+      ],
       "family": "bridge capability ledger and cbind-binomial transport lesson",
-      "response_encoding": ["visible/hidden article discipline", "bridge matrix rows"],
+      "response_encoding": [
+        "visible/hidden article discipline",
+        "bridge matrix rows"
+      ],
       "dpars": [],
       "engine_tmb": "partial",
       "engine_julia": "partial",
@@ -730,7 +819,7 @@
       "tests": "planned",
       "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
       "evidence_url": "https://github.com/itchyshin/gllvmTMB/issues/488",
       "blocker": "Borrow the capability-ledger pattern, not gllvmTMB's broader multivariate model scope.",
@@ -739,28 +828,35 @@
     {
       "id": "HSquared-validation-status-lesson",
       "package": "HSquared / hsquared",
-      "issue": "",
-      "issue_label": "scout note",
+      "issue": "https://github.com/itchyshin/DRM.jl/issues/291",
+      "issue_label": "DRM.jl#291 / drmTMB#555",
       "lane": "Cross-Package Lessons",
-      "status": "planned",
-      "owners": ["Jason", "Fisher", "Grace", "Rose"],
+      "status": "partial",
+      "owners": [
+        "Jason",
+        "Fisher",
+        "Grace",
+        "Rose"
+      ],
       "family": "validation-status helper and public-claims register",
-      "response_encoding": ["Gaussian REML/AI-REML boundary only"],
+      "response_encoding": [
+        "Gaussian REML/AI-REML boundary only"
+      ],
       "dpars": [],
       "engine_tmb": "unsupported",
-      "engine_julia": "planned",
+      "engine_julia": "partial",
       "point": "planned",
       "wald": "planned",
       "profile": "planned",
       "bootstrap": "planned",
-      "tests": "planned",
-      "docs": "planned",
+      "tests": "partial",
+      "docs": "partial",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release_gate": "planned",
-      "evidence_url": "",
-      "blocker": "Borrow status discipline; do not transfer AI-REML language to Laplace or non-Gaussian cells.",
-      "last_verified": "2026-06-16"
+      "evidence_url": "docs/design/178-ai-reml-hsquared-transfer-gate.md",
+      "blocker": "Transfer note, clean DRM.jl worktree, location-only Gaussian supplied-variance REML helper, dense same-estimand comparator, boundary classifier, Takahashi trace and PEV diagnostics plus PEV summaries, AI-vs-observed information diagnostic, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference optimizer experiment with ai_reml_ready=false, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, dense-score and sparse-score optimizer experiments, observed-Hessian status, diagnostic payload, status/schema rows, boundary fixtures, tiny deterministic recovery-grid diagnostics, a weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, a larger interior stress row, and a versioned no-dependency external-comparator fixture (`loconly-gaussian-phylo-reml-v1`, artifact_status=fixture_defined) are banked. This is still an internal exact-Gaussian pilot: no q4, Laplace, non-Gaussian, R bridge, interval coverage, Ayumi-facing, or 10k interval claim is promoted.",
+      "last_verified": "2026-06-22"
     },
     {
       "id": "drmTMB-binomial-evidence-gates",
@@ -769,10 +865,21 @@
       "issue_label": "drmTMB#569",
       "lane": "Evidence Gates",
       "status": "banked",
-      "owners": ["Fisher", "Curie", "Grace", "Florence", "Rose"],
+      "owners": [
+        "Fisher",
+        "Curie",
+        "Grace",
+        "Florence",
+        "Rose"
+      ],
       "family": "glm parity plus MCSE-backed fixed-effect Wald intervals",
-      "response_encoding": ["Phase 18 binomial_fixed_effect lane", "500 reps x 6 fixed-effect cells"],
-      "dpars": ["mu"],
+      "response_encoding": [
+        "Phase 18 binomial_fixed_effect lane",
+        "500 reps x 6 fixed-effect cells"
+      ],
+      "dpars": [
+        "mu"
+      ],
       "engine_tmb": "covered",
       "engine_julia": "unsupported",
       "point": "covered",
@@ -795,10 +902,28 @@
       "issue_label": "drmTMB#59",
       "lane": "Evidence Gates",
       "status": "active",
-      "owners": ["Gauss", "Fisher", "Curie", "Grace", "Rose", "Florence", "Pat"],
+      "owners": [
+        "Gauss",
+        "Fisher",
+        "Curie",
+        "Grace",
+        "Rose",
+        "Florence",
+        "Pat"
+      ],
       "family": "numerical guard sensitivity audit",
-      "response_encoding": ["correlation open-interval guards", "finite-variance Student-t shape floor", "support floors", "Gaussian log(sigma) clamp", "skew-normal tail log floor"],
-      "dpars": ["sigma", "nu", "rho12"],
+      "response_encoding": [
+        "correlation open-interval guards",
+        "finite-variance Student-t shape floor",
+        "support floors",
+        "Gaussian log(sigma) clamp",
+        "skew-normal tail log floor"
+      ],
+      "dpars": [
+        "sigma",
+        "nu",
+        "rho12"
+      ],
       "engine_tmb": "partial",
       "engine_julia": "unsupported",
       "point": "partial",
@@ -821,9 +946,20 @@
       "issue_label": "drmTMB#342",
       "lane": "Release Readiness",
       "status": "partial",
-      "owners": ["Ada", "Grace", "Rose", "Pat"],
+      "owners": [
+        "Ada",
+        "Grace",
+        "Rose",
+        "Pat"
+      ],
       "family": "release gate separated from local package health",
-      "response_encoding": ["local checks", "3-OS CI", "pkgdown", "issue ledger", "owner decision"],
+      "response_encoding": [
+        "local checks",
+        "3-OS CI",
+        "pkgdown",
+        "issue ledger",
+        "owner decision"
+      ],
       "dpars": [],
       "engine_tmb": "planned",
       "engine_julia": "planned",
@@ -884,7 +1020,7 @@
       "visual": "covered",
       "simulation": "partial",
       "release": "planned",
-      "next": "Clean-main bridge-test audit is banked: stale local DRM.jl and Julia-home defaults were removed from live bridge tests, and `devtools::test(filter = \"julia\")` passed against merged DRM.jl main with the known Route A skip. Review remaining R-gated Julia-covered cells before any row-specific bridge promotion; do not imply user-selectable Julia-side controls.",
+      "next": "Clean-main bridge-test audit is banked: stale local DRM.jl and Julia-home defaults were removed from live bridge tests, and newer structured-RE evidence now banks separate q1 mean-phylo Route A ML parity, q1 sigma-only phylo ML parity, q1 matched mu+sigma phylo ML parity, q1 spatial-mu ML parity, q1 relmat-mu ML parity, q1 animal-mu ML parity, q1 Poisson phylo ML/Laplace parity, q1 unsupported-route preflight-error fixtures, q1 coefficient-scale maps, the q1 parity acceptance gate, the q2 payload-boundary contract, q2 spatial, animal, and relmat native fixtures, the q2-plus-q2 boundary contract, the q2 scale-only rejection boundary, the q2 coefficient-ordering map, q2 animal/relmat R-via-Julia same-target fixtures, and q2 known-covariance payload provenance rows. Review remaining R-gated Julia-covered cells before any row-specific bridge promotion; do not imply user-selectable Julia-side controls.",
       "evidence_url": "docs/dev-log/after-task/2026-06-19-julia-via-r-clean-main-bridge-audit.md"
     },
     {
@@ -972,7 +1108,7 @@
       "bootstrap": "planned",
       "docs": "planned",
       "visual": "planned",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
       "next": "Use DRM.jl#280-style recovery and bridge labels before user-facing promotion.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
@@ -1024,18 +1160,18 @@
     },
     {
       "area": "AI-REML-inspired algorithms",
-      "engine": "planned",
+      "engine": "partial",
       "bridge": "unsupported",
       "point": "planned",
       "wald": "planned",
       "profile": "planned",
       "bootstrap": "planned",
-      "docs": "planned",
+      "docs": "partial",
       "visual": "unsupported",
-      "simulation": "planned",
+      "simulation": "partial",
       "release": "planned",
-      "next": "Borrow hsquared only as a design analogue for exact Gaussian MME cells; use the actual method name for Laplace/non-Gaussian cells.",
-      "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
+      "next": "Exact-Gaussian location-only DRM.jl helper and away-run diagnostics are banked: dense same-estimand comparator, boundary classifier, PEV diagnostics/summaries, FD-stability and local-profile diagnostics, dense and sparse-Woodbury restricted-score diagnostics, sparse average-information diagnostic, guarded average-information update experiment with ai_reml_ready=false, finite-difference, dense-score, and sparse-score optimizer experiments with ai_reml_ready=false, observed-Hessian status, diagnostic payload, status/schema rows, micro scaling smoke, tiny deterministic recovery-grid diagnostics, weak-signal boundary recovery probe, machine-readable simulation-status rows, row validator, TSV writer, optional medium stress row, broader recovery-grid helper, weak-signal condition-grid helper, a larger interior stress row, and a versioned no-dependency external-comparator fixture (`loconly-gaussian-phylo-reml-v1`) with artifact_status=fixture_defined while external_comparator_status remains planned. Simulation evidence is partial and coverage is not evaluated. Still no R bridge, public optimizer, external comparator dependency, q4/Laplace/non-Gaussian AI-REML, or 10k interval claim.",
+      "evidence_url": "docs/design/178-ai-reml-hsquared-transfer-gate.md"
     },
     {
       "area": "Missing values",
@@ -1100,9 +1236,89 @@
   ],
   "active_work": [
     {
+      "when": "2026-06-23 10:31 MDT",
+      "who": "Grace",
+      "text": "The r63 DRAC/totoro dispatch pack validates and renders structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv. The pack generates an eight-task DRAC SLURM array template for shards 1-8, a separate shard-9 totoro worker, private shard roots, forced compute then no-force resume commands, and an aggregate-afterok script that waits for all nine shard manifests and runs with compute-rate MCSE enabled. It is dry-run/not-submitted dispatch safety evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 10:30 MDT",
+      "who": "Curie",
+      "text": "The r62 local sixteen-shard MCSE pre-grid validates and renders structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv. The q4 derived-correlation delta-grid runner used sixteen private shard roots over 96 seed-scale cells, then a no-force resume pass recorded 96 skipped_existing actions against 96 computed cells. The aggregate script verified 576 retained denominator rows, 555 finite delta rows, 306 warning rows, 192 failure-class denominator rows, 126 boundary-clamped rows, zero coverage-evaluable rows, and diagnostic MCSE fields for failure, warning, and boundary-clamp rates. Coverage remains not_evaluable. This is local MCSE and denominator evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 09:45 MDT",
+      "who": "Curie",
+      "text": "The r61 local eight-shard medium rehearsal validates and renders structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv. The q4 derived-correlation delta-grid runner used eight private shard roots over 48 seed-scale cells, then a no-force resume pass recorded 48 skipped_existing actions against 48 computed cells. The aggregate script verified 288 retained denominator rows, 276 finite delta rows, 156 warning rows, 108 failure-class denominator rows, 61 boundary-clamped rows, and zero coverage-evaluable rows. This is medium local resumability, private-output, denominator-retention, and aggregate evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 09:18 MDT",
+      "who": "Curie",
+      "text": "The r60 local four-shard rehearsal validates and renders structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv. The q4 derived-correlation delta-grid runner used four private shard roots over 12 seed-scale cells, then a no-force resume pass recorded 12 skipped_existing actions against 12 computed cells. The aggregate script verified 72 retained denominator rows, 71 finite delta rows, 24 warning rows, 18 failure-class denominator rows, 17 boundary-clamped rows, and zero coverage-evaluable rows. This is local resumability, private-output, denominator-retention, and aggregate evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:59 MDT",
+      "who": "Grace",
+      "text": "The r59 aggregate-hardening slice keeps the local q4 derived-correlation two-shard rehearsal as smoke evidence, but tightens the aggregate script and tests before any larger sweep. The aggregate summary now carries target-level denominator, warning, failure, boundary-clamp, rate, and MCSE-placeholder fields; the script has an explicit repo-root option and rejects missing shard manifests, missing cell outputs, count mismatches, and duplicate computed cell IDs. The focused R contract test exercises those negative paths in tempdirs. This is race-safety and denominator-accounting plumbing only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:34 MDT",
+      "who": "Curie",
+      "text": "The r58 Curie/Grace/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv. The local rehearsal ran two private shards for the q4 derived-correlation delta-grid runner, with two seeds crossed by scale levels 0.35 and 0.50. Each shard wrote a private cell root, manifest, and run log; the no-force resume pass recorded skipped_existing actions. The aggregate script verified four unique seed-scale cells, four computed actions, four skipped actions, 24 retained denominator rows, 24 finite delta diagnostic rows, six boundary-clamped rows, and zero coverage-evaluable rows. This is local private-output aggregation evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, DRAC readiness, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 08:12 MDT",
+      "who": "Curie",
+      "text": "The r57 Curie/Grace/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv. The executable dry-run script run-calibrated-grid-delta-drac-shard-plan.R maps the r53 ADEMP-sized q4 derived-correlation delta grid onto nine CPU worker slots: drac01-drac08 plus totoro. The generated plan assigns 1000 seed-scale cells and 6000 target rows by round-robin seed-scale cell index, with private per-shard cell roots, manifests, and run logs so DRAC jobs do not append to one shared file. The aggregate gate requires all shard manifests, 1000 unique cell IDs, 6000 target rows, denominator retention, and MCSE fields before SR150 can move. This is DRAC/totoro execution-planning evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 07:31 MDT",
+      "who": "Curie",
+      "text": "The r56 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv. The executable runner run-calibrated-grid-delta-resumable-smoke.R ran on totoro as a CPU-only 24-cell pilot: eight seeds (202607500-202607507) crossed with scale levels 0.35, 0.50, and 0.65. The compute pass recorded 24 computed per-cell TSV outputs with 144 retained q4 derived-correlation denominator rows; the resume pass reran without force and recorded 24 skipped_existing actions against those outputs. The manifest records resume_skip_verified, 24 observed cells, 142 finite delta rows, 144 retained denominator rows, 48 warning rows, 30 failure-class denominator rows, and 27 boundary-clamped rows. This is r56 totoro resumability pilot evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, SR150 unblocking, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:34 MDT",
+      "who": "Curie",
+      "text": "The r53 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv. The executable dry-run script run-calibrated-grid-delta-ademp-dry-run.R freezes the ADEMP-sized q4 derived-correlation delta grid at 500 replicates per scale, scale levels 0.35 and 0.50, seed range 202607500-202607999, 1000 seed-scale cells, and 6000 planned target rows. It records nominal 0.95 coverage MCSE = 0.009747, failure-rate MCSE at reference rate 0.05 = 0.009747, denominator retention for failures/warnings/unavailable/clamped/finite rows, and boundary-clamp accounting. This is ADEMP dry-run planning evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:23 MDT",
+      "who": "Curie",
+      "text": "The r52 Curie/Fisher/Rose-reviewed mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-mini-status.tsv. The executable mini-grid script run-calibrated-grid-delta-mini.R ran two seeds across scale levels 0.35 and 0.50, wrote 24 retained q4 derived-correlation target rows with full-vector theta_phylo report reconstruction, finite diagnostic delta endpoints, diagnostic true-value accounting, boundary-clamp counts, and mini-grid coverage/failure-rate MCSE fields. This is replicated mini-grid accounting evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:11 MDT",
+      "who": "Curie",
+      "text": "The r51 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv. The executable smoke script run-calibrated-grid-delta-smoke.R ran the stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote six grid-shaped derived-correlation rows with full-vector theta_phylo report reconstruction, finite delta diagnostic endpoints, retained denominator rows, and single-replicate MCSE placeholders. This is executable grid-plumbing evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 06:02 MDT",
+      "who": "Curie",
+      "text": "The r50 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-grid-contract.tsv. The contract converts the r49 finite-difference mechanics into calibrated-grid requirements: seed/scale identity, full-vector theta_phylo report reconstruction, finite or unavailable interval fields, the exact six derived-correlation targets, failed-fit and warning rows retained in denominators, coverage and failure-rate MCSE fields, per-target failure reasons, and explicit no-coverage boundary wording. This is a grid-extension contract only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 05:50 MDT",
+      "who": "Fisher",
+      "text": "The r49 mission-control widget validates and renders structured-re-q4-derived-correlation-delta-diagnostic.tsv. The executable diagnostic script run-derived-correlation-delta-diagnostic.R ran the stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), perturbed the full TMB parameter vector at the six theta_phylo positions, verified phylo_q4_corr report values against corpairs(), and wrote six finite one-replicate Wald delta diagnostic intervals from the theta_phylo covariance block. This is finite-difference diagnostic mechanics evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 05:36 MDT",
+      "who": "Fisher",
+      "text": "The r48 mission-control widget validates and renders structured-re-q4-derived-correlation-interval-smoke.tsv. The executable smoke script run-derived-correlation-interval-smoke.R ran one known stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote six corpairs(conf.int = TRUE) derived-correlation rows, mapped profile targets, retained point estimates, kept derived intervals unavailable with no endpoints, and marks MCSE fields as insufficient_replicates. This is diagnostic smoke evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 05:27 MDT",
+      "who": "Fisher",
+      "text": "The r47 mission-control widget validates and renders structured-re-q4-derived-correlation-interval-contract.tsv. The contract records all six q4 derived-correlation targets, links each row to the corpairs point-source map and the r46 smoke artifact, keeps current_interval_status = not_available, and requires Sigma_a payload fields, target-level warning/failure fields, delta/profile/bootstrap reconstruction, denominator accounting, coverage_mcse, and failure_rate_mcse before any interval wording. This is a derived-correlation interval contract only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
+      "when": "2026-06-23 05:18 MDT",
+      "who": "Curie",
+      "text": "The r46 mission-control widget validates and renders structured-re-q4-stabilized-grid-smoke-status.tsv. The executable smoke script run-calibrated-grid-smoke.R ran one known stabilized q4 Gaussian phylo replicate (seed 202606902, scale 0.50), wrote ten target-level rows, kept four finite direct-SD Wald rows separate from six derived-correlation interval rows that remain not reconstructed, and marks MCSE fields as insufficient_replicates. This is calibrated-grid plumbing evidence only; it does not promote q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a commit, PR, or Ayumi reply."
+    },
+    {
       "when": "now",
       "who": "Ada",
-      "text": "Julia-via-R clean-main bridge audit: direct DRM.jl smoke evidence is banked on DRM.jl main, stale local DRM.jl and Julia-home defaults were removed from live R bridge tests, and `devtools::test(filter = \"julia\")` passed against the clean merged DRM.jl main worktree with the known Route A skip. No bridge row is promoted: plain non-phylo binomial, q4/q8 bridge parity, release, CRAN, recovery, coverage, power, and selectable engine_control claims remain separate gates. Metrics remain 25/68 banked_or_verified, 1 active, 0 blocked, and 1 deferred."
+      "text": "The R/Julia 100-slice finish run is ledgered: `docs/dev-log/dashboard/finish-100-slices.tsv` has exactly 100 rows. Rows S001-S010 bank the truth-freeze wave, S011-S020 bank the DRM.jl exact-Gaussian comparator, derivative, line-search, boundary, profile, variance-status, source-map, and Documenter diagnostic rows, S021-S030 bank the R-side native phylo wave, S031 banks the bridge payload schema, S032 banks bridge provenance fields, S033 banks the gated loconly bridge draft row, S034 banks TSV serialization stability, S035 banks internal R reconstruction status, S036 banks the Julia-home CI smoke helper contract, S037 banks route rejection-message coverage, S038 banks capability/gate artifact regeneration evidence, S039 banks row-specific parity smoke, S040 banks bridge dashboard sync, S041 banks the binomial bridge map, S042 banks binomial docs polish, and S043 banks binomial profile-status evidence. S044-S100 remain queued. The structured-RE finish board separately banks q1 mean-phylo Route A ML parity, q1 sigma-only phylo ML parity, q1 matched mu+sigma phylo ML parity, q1 spatial-mu ML parity, q1 relmat-mu ML parity, q1 animal-mu ML parity, q1 Poisson phylo ML/Laplace parity, q1 unsupported-route preflight errors, q1 coefficient-scale mapping, the q1 parity acceptance gate, the q2 payload-boundary contract, the q2 spatial, animal, and relmat native fixtures, the q2-plus-q2 boundary contract, the q2 scale-only rejection boundary, the q2 coefficient-ordering map, q2 animal/relmat R-via-Julia same-target fixtures, and q2 known-covariance payload provenance rows. The current validator checks the ledger schema, order, dependencies, bridge statuses, and evidence for banked rows, plus the guarded q4, phylo balance, scale diagnostic, profile/logLik, bootstrap accounting, q2/q4 target, extractor-status, bridge payload schema, bridge provenance, loconly bridge draft, bridge serialization, bridge reconstruction, Julia-home smoke, bridge rejection-message, capability-regeneration, bridge parity-smoke, binomial bridge-map, binomial profile-status, structured q2 bridge-boundary, structured q2 payload-contract, structured q2 coefficient-order map, and q2 native-evidence tables. HSquared transfer work remains exact-Gaussian-only: no external comparator dependency, bridge row, public optimizer, q2/q4/non-Gaussian AI-REML route, interval coverage, Ayumi-facing claim, or 10k sigma-phylo interval claim is promoted. Metrics remain legacy finish-board only until the finish-board counter is refreshed."
     },
     {
       "when": "2026-06-19",
@@ -1483,6 +1699,56 @@
     }
   ],
   "evidence": [
+    {
+      "when": "2026-06-23 10:31 MDT",
+      "who": "Grace",
+      "text": "r63 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/write-calibrated-grid-delta-drac-dispatch-pack.R, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-drac-dispatch-pack/q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-drac-dispatch-pack/slurm/, and docs/dev-log/after-task/2026-06-23-q4-derived-correlation-drac-dispatch-pack.md."
+    },
+    {
+      "when": "2026-06-23 10:30 MDT",
+      "who": "Grace",
+      "text": "r62 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid/aggregate/q4-derived-correlation-delta-grid-local_sixteen_shard_mcse_pregrid-aggregate-manifest.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid/aggregate/q4-derived-correlation-delta-grid-local_sixteen_shard_mcse_pregrid-aggregate-summary.tsv, and docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-sixteen-shard-mcse-pregrid.md."
+    },
+    {
+      "when": "2026-06-23 09:45 MDT",
+      "who": "Grace",
+      "text": "r61 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal/aggregate/q4-derived-correlation-delta-grid-local_eight_shard_medium_rehearsal-aggregate-manifest.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal/aggregate/q4-derived-correlation-delta-grid-local_eight_shard_medium_rehearsal-aggregate-summary.tsv, and docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-eight-shard-medium-rehearsal.md."
+    },
+    {
+      "when": "2026-06-23 09:18 MDT",
+      "who": "Grace",
+      "text": "r60 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-four-shard-rehearsal/aggregate/q4-derived-correlation-delta-grid-local_four_shard_rehearsal-aggregate-manifest.tsv, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-four-shard-rehearsal/aggregate/q4-derived-correlation-delta-grid-local_four_shard_rehearsal-aggregate-summary.tsv, and docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-four-shard-rehearsal.md."
+    },
+    {
+      "when": "2026-06-23 08:59 MDT",
+      "who": "Grace",
+      "text": "r59 evidence files: docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R, docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/aggregate/q4-derived-correlation-delta-grid-two_shard_rehearsal-aggregate-summary.tsv, tests/testthat/test-structured-re-conversion-contracts.R, and docs/dev-log/after-task/2026-06-23-q4-derived-correlation-aggregate-hardening.md."
+    },
+    {
+      "when": "2026-06-23 08:34 MDT",
+      "who": "Grace",
+      "text": "r58 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv and docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/aggregate/q4-derived-correlation-delta-grid-two_shard_rehearsal-aggregate-manifest.tsv."
+    },
+    {
+      "when": "2026-06-23 08:12 MDT",
+      "who": "Grace",
+      "text": "r57 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv and docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-drac-shard-plan.tsv."
+    },
+    {
+      "when": "2026-06-23 05:36 MDT",
+      "who": "Grace",
+      "text": "r48 evidence files: docs/dev-log/dashboard/structured-re-q4-derived-correlation-interval-smoke.tsv and docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-interval-smoke-results.tsv."
+    },
+    {
+      "when": "2026-06-23 05:27 MDT",
+      "who": "Grace",
+      "text": "r47 evidence file: docs/dev-log/dashboard/structured-re-q4-derived-correlation-interval-contract.tsv, validated against the r46 smoke artifact and q4 phylocov target map."
+    },
+    {
+      "when": "2026-06-23 05:18 MDT",
+      "who": "Grace",
+      "text": "r46 evidence files: docs/dev-log/dashboard/structured-re-q4-stabilized-grid-smoke-status.tsv and docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-smoke-results.tsv."
+    },
     {
       "when": "2026-06-17",
       "who": "Status matrix",

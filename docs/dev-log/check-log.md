@@ -2,6 +2,1170 @@
 
 Record meaningful development checks here.
 
+## 2026-06-23: spatial and animal one-slope mu parity fixtures
+
+Goal:
+
+- Extend the one-slope Gaussian structured `mu` same-target parity fixture lane
+  from `phylo()` to the next two provider-safe cells:
+  fixed-covariance `spatial(1 + x | site, coords = coords)` and
+  A-matrix `animal(1 + x | id, A = A)`.
+- Keep `relmat()` planned because the current Phase 18 artifact fit uses
+  `relmat(..., Q = Q)`, while the R-via-Julia bridge contract marshals
+  `relmat(..., K = K)` only. That K-versus-Q boundary needs its own fixture
+  reconciliation before promotion.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phase18-spatial-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-animal-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-relmat-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+python3 -m py_compile tools/validate-mission-control.py && rm -rf tools/__pycache__
+python3 tools/validate-mission-control.py
+git diff --check
+rg -n "Spatial one-slope mu parity remains planned|Animal one-slope mu parity remains planned|spatial.*add bridge or parity|animal.*add A/Ainv bridge|mu_slope_(spatial|animal)_same_target_ml|K-versus-Q" docs tests inst tools R
+rg -n "relmat\\(1 \\+ x \\| id, Q = Q\\)|relmat\\(1 \\+ x \\| id, K = K\\)|bridge_marshals_K_covariance_fixture_only|Q_precision_native_tmb_only|phase18_fit_relmat_mu_slope" R docs inst/sim tests/testthat
+gh issue list --repo itchyshin/drmTMB --search "structured slope relmat mu slope" --limit 10 --json number,title,state,url
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+```
+
+Results:
+
+- `phase18_structured_re_mu_slope_payload_fixture()` now admits
+  `phylo()`, fixed-covariance `spatial()`, and A-matrix `animal()` one-slope
+  `mu` cells; `relmat()` still errors with the K-versus-Q fixture-source
+  boundary.
+- `structured-re-mu-slope-parity-fixture.tsv` now marks phylo, spatial, and
+  animal as `fixture_parity`; relmat remains `planned`.
+- `qseries_spatial_q1_mu_one_slope` and
+  `qseries_animal_q1_mu_one_slope` now point at the parity sidecar with
+  `route = native_direct_bridge_fixture` and
+  `bridge_status = fixture_parity`. Their interval and coverage statuses
+  remain `planned`.
+- `structured-re-bridge-fixtures` passed with 293 assertions.
+- `structured-re-conversion-contracts` passed with 1481 assertions.
+- `phase18-spatial-mu-slope` passed with 30 assertions.
+- `phase18-animal-mu-slope` passed with 48 assertions.
+- `phase18-relmat-mu-slope` passed with 48 assertions; this confirms the
+  current relmat artifact source while keeping relmat bridge parity planned.
+- `structured-effects` passed with 268 assertions.
+- `python3 tools/validate-mission-control.py` passed and reports 69 structured
+  RE q-series cells, 4 structured RE mu-slope audit rows, and 4 structured RE
+  mu-slope parity-fixture rows.
+- `git diff --check` passed.
+- Issue search found existing open umbrellas #147, #33, and #491; no new issue
+  was opened and no issue comment was posted.
+- PR #638 remains draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  R-CMD-check at head `009528d609519039bb8df13d84db779408f06499`.
+
+Boundary:
+
+- Spatial parity is fixed-covariance fixture evidence only; it does not promote
+  range-estimating spatial, mesh/SPDE, residual-scale slopes, intervals, or
+  coverage.
+- Animal parity is A-matrix fixture evidence only; it does not promote
+  pedigree/Ainv bridge marshalling, residual-scale slopes, intervals, or
+  coverage.
+- Relmat remains planned for bridge parity until the K-versus-Q fixture source
+  is reconciled.
+- No q4 interval reliability, q4 interval coverage, q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML, DRAC execution, or
+  SR150 evidence is promoted.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-spatial-animal-parity-fixtures.md`
+
+## 2026-06-23: phylo one-slope mu parity fixture
+
+Goal:
+
+- Complete the first same-target bridge/parity fixture for the q-series
+  one-slope Gaussian structured `mu` lane. This slice banks only the exact
+  `phylo(1 + x | species, tree = tree)` ML fixture across native, direct
+  DRM.jl, and R-via-Julia routes.
+- Keep `spatial()`, `animal()`, and `relmat()` one-slope `mu` parity rows
+  planned, and keep residual-scale slopes, labelled structured slope
+  covariance, intervals, coverage, REML, and broad bridge support separate.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+python3 -m py_compile tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 -m py_compile tools/validate-mission-control.py && rm -rf tools/__pycache__
+python3 tools/validate-mission-control.py
+git diff --check
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+```
+
+Results:
+
+- Added `phase18_structured_re_mu_slope_payload_fixture()` for the exact
+  `phylo()` one-slope `mu` ML same-target fixture and
+  `phase18_structured_re_mu_slope_parity_fixture_contract()` for the
+  provider-level planned/fixture map.
+- Added `structured-re-mu-slope-parity-fixture.tsv` with one fixture-parity row
+  for `phylo()` and planned rows for `spatial()`, `animal()`, and `relmat()`.
+- Updated `qseries_phylo_q1_mu_one_slope` to
+  `route = native_direct_bridge_fixture` and
+  `bridge_status = fixture_parity`; interval and coverage remain `planned`.
+- Added R and mission-control validator checks that preserve the phylo-only
+  fixture boundary and require non-phylo rows to remain planned.
+- `structured-re-bridge-fixtures` passed with 277 assertions.
+- `structured-re-conversion-contracts` passed with 1480 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reports 69 structured
+  RE q-series cells, 4 structured RE mu-slope audit rows, and 4 structured RE
+  mu-slope parity-fixture rows.
+- `git diff --check` passed.
+- PR #638 remains draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  R-CMD-check at head `009528d609519039bb8df13d84db779408f06499`.
+
+Boundary:
+
+- This is deterministic same-target fixture parity for one `phylo()` `mu` slope
+  cell. It is not broad bridge support, `sigma` slope support, labelled
+  structured slope covariance, q4 interval reliability, q4 interval coverage,
+  q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian AI-REML, DRAC execution, or SR150 evidence.
+
+Next slice plan:
+
+1. Implement the fixed-covariance `spatial()` same-target one-slope `mu`
+   native/direct/R-via-Julia fixture.
+2. Add the `animal()` A-matrix same-target one-slope `mu` fixture.
+3. Resolve the relmat K-versus-Q source boundary, then add the relmat
+   same-target one-slope `mu` fixture.
+4. Only after those exact `mu` parity fixtures are banked, start the separate
+   `sigma` one-slope tranche.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-phylo-parity-fixture.md`
+
+## 2026-06-23: structured provider-contract gate
+
+Goal:
+
+- Bank the provider-contract layer promised by the structured q-series
+  completion map before adding new runtime q-cells. The slice exposes fitted
+  provider levels, observed levels, level alignment, input scale,
+  missing-level policy, and bridge-marshalling boundary through
+  `structured_effects()`, and extends the q2 payload provenance sidecar with
+  provider-specific matrix-slot and marshalling fields.
+- Verify one independent Gaussian structured `mu` slope identity at extractor
+  level across `phylo()`, `spatial()`, `animal()`, and `relmat()` while keeping
+  bridge parity, intervals, coverage, residual-scale slopes, labelled
+  structured slope covariance, q4/q6/q8 structured slopes, and REML claims
+  unchanged.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+air format R/methods.R tests/testthat/test-structured-effects.R tests/testthat/test-structured-re-bridge-fixtures.R inst/sim/R/sim_structured_re_bridge_fixtures.R
+air format tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R
+Rscript --vanilla -e "devtools::document()"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+Rscript --vanilla -e "devtools::test(filter = 'phase18-phylo-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-spatial-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-animal-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-relmat-mu-slope')"
+Rscript --vanilla -e "devtools::test(filter = 'phase18-random-slope-grid-writers')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+git diff --check
+```
+
+Results:
+
+- `structured-effects` passed with 268 assertions.
+- `structured-re-bridge-fixtures` passed with 260 assertions.
+- `structured-re-conversion-contracts` passed with 1470 assertions.
+- `git diff --check` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and still reports 69
+  structured RE q-series cells.
+- `devtools::document()` passed. It also generated unrelated Rd churn from the
+  local roxygen version; those unrelated changes were manually removed, leaving
+  only the `structured_effects()` return-value update.
+
+Claim boundary:
+
+- This is a metadata, provenance, and extractor-verification slice. It does not
+  promote broad structured bridge support, q4 interval reliability, q4 interval
+  coverage, q4 native-TMB REML, q4 AI-REML, HSquared AI-REML, non-Gaussian
+  AI-REML, or SR150.
+
+## 2026-06-23: structured mu-slope artifact fixture audit
+
+Goal:
+
+- Complete the next recommended q-series slice by reconciling stale provider
+  contract next-gates for structured q1 `mu` intercept rows, then bank a
+  validator-owned audit of the existing one-slope Gaussian structured `mu`
+  artifact evidence.
+
+Checks run:
+
+```sh
+gh pr checks 638 --repo itchyshin/drmTMB --json name,state,workflow,link,bucket
+gh pr view 638 --repo itchyshin/drmTMB --json title,isDraft,headRefOid,mergeStateStatus,url
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+```
+
+Results so far:
+
+- PR #638 is still draft, merge-clean, and green on Ubuntu, macOS, and Windows
+  at head `009528d609519039bb8df13d84db779408f06499`.
+- Added `structured-re-mu-slope-fixture-audit.tsv` with four rows for
+  `phylo()`, `spatial()`, `animal()`, and `relmat()` one-slope Gaussian
+  structured `mu` artifact evidence.
+- Wired the new sidecar into `tools/validate-mission-control.py`; validation
+  passed and now reports 4 structured RE mu-slope audit rows.
+- Updated stale q-series next gates for structured q1 `mu` intercept rows and
+  one-slope `mu` rows without changing fit, bridge, interval, or coverage
+  status.
+- `phase18-phylo-mu-slope` passed with 49 assertions.
+- `phase18-spatial-mu-slope` passed with 30 assertions.
+- `phase18-animal-mu-slope` passed with 48 assertions.
+- `phase18-relmat-mu-slope` passed with 48 assertions.
+- `phase18-random-slope-grid-writers` passed with 25 assertions.
+- `structured-effects` passed with 268 assertions.
+- `structured-re-conversion-contracts` passed with 1470 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- The audit rows bank source-tested DGP, smoke-summary, grid-writer, and
+  extractor identity evidence. They are not bridge parity, interval
+  reliability, coverage, residual-scale structured slopes, labelled structured
+  slope covariance, structured q4/q6/q8 support, REML, or AI-REML evidence.
+
+Next slice plan:
+
+1. Add same-target one-slope `mu` bridge/parity fixture design rows for
+   `phylo()`, fixed-covariance `spatial()`, `animal()`, and `relmat()`.
+2. Implement only the narrowest native/direct/R-via-Julia fixture that already
+   has a source-tested DGP and artifact writer.
+3. Keep `sigma` one-slope cells separate until each provider has its own
+   parser/runtime and extractor evidence.
+4. Leave structured labelled slope covariance, q4/q6/q8 slopes, REML,
+   intervals, and coverage blocked until the exact cell-specific evidence
+   exists.
+
+After-task:
+
+- `docs/dev-log/after-task/2026-06-23-structured-mu-slope-fixture-audit.md`
+
+## 2026-06-23: q2 spatial fixed-covariance bridge fixture
+
+Goal:
+
+- Move q2 spatial from direct DRM.jl fixture-only evidence to one narrow
+  fixed-covariance same-target complete-response exact-Gaussian ML fixture
+  across native R/TMB, direct DRM.jl, and R-via-Julia, while keeping
+  range-estimating spatial, mesh/SPDE, q2 REML, q4, interval reliability,
+  interval coverage, and broad bridge support unpromoted.
+
+Checks run before dashboard reconciliation:
+
+```sh
+git status --short --branch
+git diff --check
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot test/test_bridge_q2_direct_export.jl
+Rscript --vanilla -e "devtools::test(filter = 'julia-structured|julia-gate-vs-engine')"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_RELMAT_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+```
+
+Results so far:
+
+- Both active worktrees were checked before editing; `git diff --check` was
+  clean.
+- DRM.jl focused q2 direct-export tests passed with 116 assertions after the
+  direct status rows were updated to mark `phylo`, `spatial`, `animal`, and
+  `relmat` as experimental fixture evidence.
+- Focused R bridge/gate tests passed with 202 assertions and one optional skip
+  after q2 spatial was removed from the intentional Julia rejection registry.
+- The live R parity run passed with 126 assertions, including q2 `relmat`,
+  `animal`, and fixed-covariance `spatial` native/direct/bridge same-target
+  fixtures.
+
+Post-edit validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'julia-structured|julia-gate-vs-engine|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/version.txt
+curl -fsS http://127.0.0.1:8765/structured-re-q2-acceptance-gate.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-q2-direct-drmjl-export.tsv >/dev/null
+```
+
+Post-edit results:
+
+- The focused R suite passed with 648 assertions and one optional skip.
+- `tools/validate-mission-control.py` passed with 4 q2 acceptance-gate rows, 4
+  q2 direct-DRM.jl export rows, 7 q2 bridge-boundary rows, 10 Julia
+  twin-status rows, 36 closeout-package rows, and 52 executable-evidence rows.
+- `status.json` and `sweep.json` parsed cleanly, `sh -n` passed, and `git diff
+  --check` passed in both active worktrees.
+- The served dashboard remained live at `http://127.0.0.1:8765/`; direct HTTP
+  spot-checks showed build `r31` and the q2 spatial acceptance row as
+  `covered`/`experimental` with a fixed-covariance boundary.
+
+Boundary:
+
+- This banks only one fixed-covariance q2 spatial ML same-target fixture. It
+  does not promote range-estimating spatial support, mesh/SPDE, q2 REML, q4,
+  interval reliability, interval coverage, public optimizer controls, a commit,
+  PR, or an Ayumi-facing reply.
+
+## 2026-06-23: q2 phylo residual-correlation bridge fixture
+
+Goal:
+
+- Move q2 phylo from private restricted diagnostic evidence to one narrow
+  same-target complete-response exact-Gaussian ML fixture across native R/TMB,
+  direct DRM.jl, and R-via-Julia, while keeping aggregate q2 acceptance blocked
+  for spatial, animal, and relmat.
+
+Checks run before dashboard edits:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot test/test_bridge_q2_direct_export.jl
+Rscript --vanilla -e "devtools::test(filter = 'julia-bridge')"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+```
+
+Results:
+
+- DRM.jl focused q2 direct-export tests passed with 66 assertions, including
+  the new q2 phylo residual-correlation route, retained restricted diagonal
+  diagnostic, and private bridge primitive.
+- The focused R bridge gate passed with 106 assertions after q2 bivariate phylo
+  payloads were split from q4 all-four phylo payloads.
+- The live R parity run passed with 82 assertions, including one q2 phylo ML
+  native/direct/bridge same-target fixture.
+- Mission-control sidecars now mark the q2 phylo row as narrow experimental
+  fixture evidence and keep spatial, animal, and relmat q2 rows blocked or
+  planned.
+
+Post-edit validation:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts|julia-gate-vs-engine')"
+Rscript --vanilla -e "devtools::test(filter = 'julia-bridge')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q2-acceptance-gate.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-julia-twin-status.tsv >/dev/null
+```
+
+Post-edit results:
+
+- Focused dashboard/gate R tests passed with 804 assertions.
+- `julia-bridge` passed with 106 assertions.
+- `tools/validate-mission-control.py` passed with 4 q2 acceptance-gate rows, 10
+  Julia twin-status rows, 36 closeout-package rows, and 52 executable-evidence
+  rows.
+- `status.json` and `sweep.json` parsed cleanly, `sh -n` passed, and
+  `git diff --check` passed in both active worktrees.
+- The served dashboard remained live at `http://127.0.0.1:8765/`; direct HTTP
+  spot-checks showed build `r28` and the q2 phylo acceptance row as
+  `covered`/`experimental`.
+
+Boundary:
+
+- This banks only one q2 phylo ML same-target fixture. It does not promote
+  broad q2 bridge support, spatial/animal/relmat q2 direct routes, q2 REML, q4
+  support, interval coverage, public optimizer controls, a commit, PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR128 q2 restricted direct DRM.jl point export
+
+Goal:
+
+- Refine SR128 from an unavailable-status-only row into restricted direct q2
+  phylo point-export evidence, while keeping SR130 blocked until full q2
+  residual-correlation direct support and q2-specific R-via-Julia support exist.
+
+Checks run:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q2_direct_export.jl
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-q2-phylo-point-export')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts|structured-re-bridge-fixtures')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- DRM.jl now has `_bridge_q2_point_export()` and `drm_bridge_q2_phylo()` for
+  restricted q2 phylo point export from the diagonal-residual coevolution
+  engine. The focused Julia file passed 51 assertions: 20 status-contract
+  assertions, 19 point-export assertions, and 12 private bridge-primitive
+  assertions.
+- The private R diagnostic primitive `drm_julia_call_q2_phylo_point_export()`
+  passed with 11 assertions when pointed at the active DRM.jl worktree.
+- `structured-re-q2-direct-drmjl-export.tsv` now distinguishes
+  `available_restricted_phylo_point_export` for phylo from unavailable
+  spatial, animal, and relmat direct q2 statuses.
+- The focused R fixture/dashboard guard passed with 639 assertions across
+  `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`.
+- `python3 tools/validate-mission-control.py` passed with 4 q2 direct-DRM.jl
+  export rows and the updated Julia twin status rows.
+
+Boundary:
+
+- This banks restricted direct-Julia q2 phylo point evidence and a private R
+  diagnostic primitive only. It does not bank the full q2 residual-correlation
+  direct route, public q2 R-via-Julia bridge support, spatial/animal/relmat q2
+  direct fits, q2 REML, interval coverage, public bridge support, a commit, PR,
+  or Ayumi-facing reply. SR130 remains blocked.
+
+## 2026-06-22: SR150 coverage acceptance gate
+
+Goal:
+
+- Convert the SR150 interval-coverage blocker from narrative status into an
+  executable ADEMP calibration gate that can consume replicate rows, MCSE policy,
+  and denominator accounting.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- Added `phase18_structured_re_ademp_calibration_gate()` and the scaffold
+  artifact `structured-re-ademp-calibration-gate.csv`.
+- Added `structured-re-coverage-acceptance-gate.tsv` with q1, q2, q4, and
+  integrated SR150 rows. Every row remains blocked until calibrated grids with
+  finite-interval accounting and MCSE exist.
+- Focused R tests passed with 464 assertions, 0 failures, 0 warnings, and
+  0 skips.
+- `python3 tools/validate-mission-control.py` passed with 4
+  coverage-acceptance gate rows, 36 closeout-package rows, and 52
+  executable-evidence rows.
+
+Boundary:
+
+- This banks blocker infrastructure only. It does not promote interval
+  coverage, interval reliability, q2 bridge support, q4 REML, AI-REML, public
+  bridge support, a commit, PR, or Ayumi-facing reply.
+
+## 2026-06-22: q1 Route A live bridge parity
+
+Goal:
+
+- Retire the stale q1 Gaussian mean-phylo Route A all-node bridge blocker by
+  asserting a deterministic ML parity fixture across native R/TMB, direct
+  DRM.jl bridge output, and the reconstructed `engine = "julia"` drmTMB object.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+git status --short --branch
+git diff --check
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+git status --short --branch
+git diff --check
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity")'
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- The live focused bridge parity file passed with no skips:
+  `test-julia-tmb-parity` reported 16/16 passing assertions in 53.3 seconds.
+- `drm_julia_bridge_options()` now uses a route-specific `g_tol = 1e-8` only
+  for the Gaussian mean-only phylo payload. Other univariate phylo routes keep
+  their existing smoke-range tolerance until they have their own parity
+  fixtures.
+- The Route A fixture now checks native R/TMB, direct DRM.jl bridge output, and
+  the reconstructed R-via-Julia object on the same deterministic q1 Gaussian
+  mean-phylo ML data set.
+- Mission-control validation passed with 27 structured-RE matrix rows, 100
+  structured-RE balance rows, 100 structured-RE finish rows, 6 q1
+  parity-fixture rows, and 12 executable-evidence rows.
+- `structured-re-balance-100-slices.tsv` moved to 92 `banked` and 8 `blocked`
+  rows; `structured-re-finish-100-slices.tsv` moved to 11 `banked`, 22
+  `blocked`, and 67 `queued` rows.
+
+Boundary:
+
+- This banks only the q1 Gaussian mean-phylo ML Route A parity fixture. It does
+  not promote q1 sigma-phylo, q1 mu+sigma, q2, q4, REML, interval coverage,
+  non-Gaussian phylo, public optimizer controls, Ayumi-facing text, or broad
+  R-bridge support.
+
+## 2026-06-22: q1 sigma-phylo bridge REML admission
+
+Goal:
+
+- Fix the R-via-Julia Gaussian sigma-only phylo admission path so
+  `sigma ~ phylo(1 | species)` no longer requires a matching mean-side phylo
+  term, then record sigma-only and balanced mu+sigma REML bridge evidence
+  without claiming native TMB REML parity or interval coverage.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e 'devtools::test(filter = "julia-sigma-phylo-reml")'
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity|julia-sigma-phylo-reml")'
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- The first expanded sigma-phylo test exposed a real admission mismatch:
+  `drm_julia_reml_supported()` allowed sigma-side REML, but
+  `drm_julia_phylo_payload()` rejected sigma-only phylo unless `mu` also had a
+  phylo term.
+- `drm_julia_phylo_payload()` now admits the Gaussian sigma-only phylo branch
+  as `locscale_mode = "sigma_only"` when the sigma term is intercept-only.
+- The focused sigma-phylo REML file passed with 64/64 assertions and no skips.
+  It now fits both sigma-only and balanced mu+sigma Gaussian phylo models with
+  `requested_REML = TRUE`, `effective_REML = TRUE`, finite log-likelihoods,
+  finite positive sigma-side SDs, and convergence.
+- The combined q1 bridge-focused run passed with 80/80 assertions and no skips
+  across `julia-tmb-parity` and `julia-sigma-phylo-reml`.
+- Mission-control validation passed with 13 executable-evidence rows. The
+  structured-RE finish ledger moved to 12 `banked`, 21 `blocked`, and 67
+  `queued` rows.
+
+Boundary:
+
+- This is bridge-only exact-Gaussian REML admission evidence for q1 sigma-only
+  and balanced q1 mu+sigma phylo routes. Native TMB REML parity, same-target ML
+  parity for the balanced route, q2, q4, calibrated intervals, non-Gaussian
+  REML, and broad public bridge support remain unclaimed.
+
+## 2026-06-22: q4 bridge corpairs point-extractor evidence
+
+Goal:
+
+- Bank live q4 bridge point-extractor evidence for among-axis `corpairs()`
+  reconstruction while keeping full q4 all-four parity, REML, intervals, and
+  coverage blocked or unsupported.
+
+Checks run:
+
+```sh
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e 'devtools::test(filter = "julia-phylo-q4-corpairs")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Results:
+
+- The live q4 bridge corpairs test passed with 27/27 assertions and no skips in
+  27.4 seconds.
+- `structured-re-q4-extractor-parity.tsv`,
+  `structured-re-q4-bridge-boundary.tsv`, and
+  `structured-re-balance-matrix.tsv` now point q4 bridge/corpairs point
+  evidence to `tests/testthat/test-julia-phylo-q4-corpairs.R`.
+- Mission-control validation passed with 14 executable-evidence rows.
+
+Boundary:
+
+- This is q4 point-extractor evidence only. It does not bank full native
+  R/TMB/direct DRM.jl/R-via-Julia q4 parity, q4 REML, q4 AI-REML, profile or
+  bootstrap interval coverage, or derived-correlation interval support.
+
+## 2026-06-22: Structured random-effect balance 100-slice disposition
+
+Goal:
+
+- Reframe the Ayumi follow-on plan from a phylo-only reading to a structured
+  random-effect balance ledger across `phylo()`, `spatial()`, `animal()`,
+  `relmat()`, and q1-only `phylo_interaction()`, while keeping inference,
+  native REML, direct DRM.jl, R-via-Julia, and public reply gates separate.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+git status --short --branch
+git diff --check
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+git status --short --branch
+git diff --check
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+curl -I -L --max-time 15 https://github.com/Ayumi-495/LS_ecogeographical-rules/issues/2
+tools/validate-mission-control.py
+git diff --check
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-bridge-payload-serialization.R"); testthat::test_file("tests/testthat/test-julia-home-path.R"); testthat::test_file("tests/testthat/test-julia-gate-vs-engine.R")'
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml docs/design/206-ayumi-follow-on-implementation-slices.md docs/design/207-structured-random-effect-balance-100-slices.md docs/design/208-structured-q2-native-ml-status.md docs/design/209-structured-q4-native-ml-status.md docs/design/210-structured-slope-status.md docs/design/211-structured-reml-status.md docs/design/212-structured-inference-status.md docs/design/213-structured-bridge-readiness.md docs/design/214-structured-docs-closeout.md docs/design/215-structured-closeout-gates.md docs/dev-log/dashboard/README.md docs/dev-log/dashboard/structured-re-balance-matrix.tsv docs/dev-log/dashboard/structured-re-balance-100-slices.tsv
+Rscript tools/codex-checkpoint.R --goal "structured random-effect balance 100-slice disposition" --next "review blocked SR064-SR066 coverage pilots, SR073-SR075 bridge parity, and Ayumi issue access/approval gates before public reply"
+```
+
+Results:
+
+- Both active worktrees started clean with respect to whitespace:
+  `git diff --check` returned no output in drmTMB and in
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+- The external Ayumi issue URL returned HTTP 404 from this environment on
+  2026-06-22, so the closeout rows treat live issue refresh and posting as
+  blocked.
+- `tools/validate-mission-control.py` passed with
+  `27 structured RE matrix rows` and `100 structured RE balance-slice rows`.
+- Focused bridge/gate helper tests passed:
+  `test-bridge-payload-serialization.R` 4/4,
+  `test-julia-home-path.R` 7/7, and
+  `test-julia-gate-vs-engine.R` 143/143.
+- The forbidden-claim scan returned no matches.
+- `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv` now has
+  88 `banked` rows and 12 `blocked` rows.
+- Recovery checkpoint written:
+  `docs/dev-log/recovery-checkpoints/2026-06-22-140258-codex-checkpoint.md`.
+
+Blocked rows:
+
+- SR064-SR066: q1/q2/q4 coverage pilots need labelled replicated known-truth
+  pilots with MCSE before coverage language.
+- SR073-SR075: q1/q2/q4 bridge parity is not row-complete.
+- SR091, SR093, SR095-SR097: live issue access, reply drafting, approval,
+  posting, and posted-URL recording are blocked.
+- SR099: no staging or commit without explicit approval.
+- SR100 is banked by this tracked check-log entry; the local recovery snapshot
+  was written to
+  `docs/dev-log/recovery-checkpoints/2026-06-22-140258-codex-checkpoint.md`,
+  which is intentionally gitignored.
+
+Boundary:
+
+- This pass banks mission-control status, not new fitting behavior. Native ML
+  q1/q2/q4 point support remains separate from interval coverage. Native REML
+  remains exact-Gaussian and mean-side phylo only. Direct DRM.jl evidence is not
+  R-via-Julia support. No q4 REML, q4 AI-REML, HSquared AI-REML, public
+  optimizer, non-Gaussian REML, Ayumi reply, or 10,440-tip interval claim was
+  added.
+
+## 2026-06-22: AI-REML comparator gate mission-control sync
+
+Goal:
+
+- Mirror the DRM.jl no-dependency external-comparator gate into drmTMB
+  mission control after the comparator status became row-shaped, while keeping
+  bridge, q4, non-Gaussian, coverage, public optimizer, Ayumi-facing, and
+  10k-scale interval claims unchanged.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-comparator-gate-sync.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/dev-log/dashboard/status.json
+```
+
+Results:
+
+- DRM.jl PR #297 now includes commit `ed30a46`, which adds
+  `_loconly_reml_external_comparator_status()` with
+  `external_comparator_status = planned`, target validation, and no external
+  dependency.
+- The drmTMB transfer ledger, dashboard active row, and local issue draft now
+  mention the planned comparator gate while keeping simulation partial and
+  bridge unsupported.
+- Mission-control validation remained:
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+
+Boundary:
+
+- The current covered comparator is still the internal dense GLS same-estimand
+  oracle. No external package dependency, optional comparator script, R bridge
+  row, q4 evidence, interval coverage, public optimizer, Ayumi-facing, or
+  10k-scale interval claim was added.
+
+## 2026-06-22: AI-REML row-contract hardening and mission-control lints
+
+Goal:
+
+- Package the banked exact-Gaussian location-only DRM.jl diagnostics and
+  drmTMB mission-control sync into focused commits, then harden the row-contract
+  lane with schema-drift tests, malformed-contract writer failure, provenance
+  rows, optional large-stress skip semantics, a comparator scout note, and
+  dashboard drift lints.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-simulation-status.jl --output docs/dev-log/validation-status/2026-06-21-loconly-reml-simulation-status.tsv
+tmp=$(mktemp -d)/loconly-status-medium.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-medium-stress --output "$tmp" && wc -l "$tmp"
+tmp=$(mktemp -d)/loconly-status-large.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-large-stress --output "$tmp" && wc -l "$tmp"
+git diff --check
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-row-contract-hardening.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md tools/validate-mission-control.py
+```
+
+Results:
+
+- DRM.jl commit `dc2ee87` banked the existing location-only Gaussian REML
+  diagnostics. drmTMB commit `8544aff4` banked the mission-control transfer
+  docs. DRM.jl commit `7968a5c` then hardened the row contract.
+- The focused DRM.jl test passed: 370/370 assertions. The default TSV writer
+  produced four rows; optional medium stress produced five rows; optional large
+  stress produced five rows with `large_interior_stress_skipped` because no
+  explicit runtime budget was supplied.
+- `tools/validate-mission-control.py` now blocks a dashboard row from marking
+  simulation `covered` while saying coverage is not evaluated, and blocks exact
+  `ai_reml_ready = true` wording unless a promoted optimizer gate is present.
+- Mission-control JSON parsed and validator output stayed:
+  `mission_control_ok: 25/68 banked_or_verified, 1 active, 17 matrix rows,
+  11 finish rows, 15 Julia gate rows, 9 Julia capability rows`.
+- A fresh recovery checkpoint was written to
+  `docs/dev-log/recovery-checkpoints/2026-06-22-051517-codex-checkpoint.md`.
+
+Boundary:
+
+- The lane remains exact-Gaussian developer evidence only. The row contract has
+  `coverage_status = not_evaluated` and `ai_reml_ready = false`; it does not
+  promote a drmTMB R bridge row, q4, Laplace, non-Gaussian, Ayumi-facing, or
+  10k-scale interval claim.
+
+## 2026-06-21: AI-REML simulation-status rows
+
+Goal:
+
+- Add a compact machine-readable simulation-status surface for the
+  exact-Gaussian location-only REML guarded update experiment, then sync the
+  drmTMB mission-control evidence without changing bridge, q4, Ayumi, or
+  10k-scale interval claims. The full 20-slice pass adds the row schema,
+  validator, TSV writer, optional medium stress row, broader recovery grid, and
+  weak-signal condition grid.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-simulation-status.jl --output docs/dev-log/validation-status/2026-06-21-loconly-reml-simulation-status.tsv
+tmp=$(mktemp -d)/loconly-status-medium.tsv; julia --project=. tools/loconly-reml-simulation-status.jl --with-medium-stress --output "$tmp" && wc -l "$tmp"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-simulation-status-rows.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 348/348 assertions. It now
+  covers `_loconly_reml_simulation_status()` with four rows:
+  `stable_recovery`, `condition_grid`, `weak_signal_boundary_probe`, and
+  `larger_interior_stress`, plus the row schema, validator, TSV writer,
+  optional medium stress row, broader recovery-grid helper, and weak-signal
+  condition-grid helper.
+- The default TSV writer produced four rows. The optional medium-stress script
+  path produced five rows in a temporary TSV.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 21:05 MDT`.
+
+Boundary:
+
+- This is exact-Gaussian developer simulation evidence only. The row set has
+  `coverage_status = not_evaluated` and `ai_reml_ready = false`; it does not
+  promote a drmTMB R bridge row, q4, Laplace, non-Gaussian, Ayumi-facing, or
+  10k-scale interval claim.
+
+## 2026-06-21: AI-REML weak-signal boundary recovery probe
+
+Goal:
+
+- Add an explicitly labelled weak-signal point-recovery probe for the
+  exact-Gaussian location-only REML guarded update experiment, where boundary
+  states are allowed diagnostic outcomes.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-weak-signal-boundary-probe.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 277/277 assertions. It now
+  covers a weak-signal recovery probe with `boundary_states_allowed`, boundary
+  count/rate, nested recovery diagnostics, and no universal convergence
+  requirement.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 20:33 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not evaluate
+  coverage, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML recovery-grid diagnostics
+
+Goal:
+
+- Add tiny deterministic point-recovery diagnostics for the exact-Gaussian
+  location-only REML guarded update experiment, including a single-cell recovery
+  grid and a row-separated condition grid.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-recovery-grid-diagnostics.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 267/267 assertions. It now
+  covers a tiny deterministic recovery grid, convergence/bias/RMSE/MCSE fields,
+  boundary counts, an ADEMP-shaped diagnostic payload, and a two-cell
+  row-separated condition grid.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 20:29 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not evaluate
+  coverage, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML guarded update experiment gate
+
+Goal:
+
+- Add and bank a guarded two-parameter average-information update experiment for
+  the exact-Gaussian location-only REML pilot, compared against the
+  finite-difference, dense-score, and sparse-score optimizer diagnostics, while
+  keeping public and q4 claims unchanged.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-guarded-update-experiment.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 229/229 assertions. It now
+  covers a guarded average-information update experiment, descent step-halving,
+  iteration trace records, endpoint agreement with the finite-difference,
+  dense-score, and sparse-score optimizer diagnostics, final comparator and
+  boundary labels, and singular fixed-effect information failure behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:23 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not promote a
+  drmTMB R bridge row, does not alter q4, Laplace, non-Gaussian, Ayumi-facing,
+  or 10k-scale interval claims, and does not touch the parked DRM.jl
+  `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML sparse information diagnostic gate
+
+Goal:
+
+- Add and bank a sparse average-information diagnostic for the exact-Gaussian
+  location-only REML pilot, compared against the dense AI diagnostic and
+  finite-difference observed Hessian, while keeping public and q4 claims
+  unchanged.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-sparse-information-diagnostic.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 205/205 assertions. It now
+  covers a sparse average-information diagnostic, dense-AI parity,
+  finite-difference observed-Hessian comparison, payload inclusion, and
+  singular fixed-effect information failure behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:12 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement a
+  validated variance-component update, does not promote a drmTMB R bridge row,
+  does not alter q4, Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval
+  claims, and does not touch the parked DRM.jl `shannon/ayumi-integration`
+  drafts.
+
+## 2026-06-21: AI-REML sparse-score diagnostic gate
+
+Goal:
+
+- Add and bank a sparse-Woodbury restricted-score diagnostic for the
+  exact-Gaussian location-only REML pilot, compare it with the dense oracle and
+  finite differences, then refresh mission-control evidence without promoting a
+  bridge or q4 claim.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|AI-REML optimizer" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-sparse-score-diagnostic.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 194/194 assertions. It now
+  covers a sparse-Woodbury restricted-score diagnostic, trace/quadratic
+  decomposition fields, sparse-score agreement with the dense score and finite
+  differences, a sparse-score optimizer experiment, payload/schema inclusion,
+  and near-zero/singular boundary behavior.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 16:06 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement a
+  validated average-information update, does not promote a drmTMB R bridge row,
+  does not alter q4, Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval
+  claims, and does not touch the parked DRM.jl `shannon/ayumi-integration`
+  drafts.
+
+## 2026-06-21: AI-REML dense-score optimizer diagnostic
+
+Goal:
+
+- Add a dense analytic restricted-score diagnostic and dense-score optimizer
+  experiment for the exact-Gaussian location-only REML pilot.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-dense-score-optimizer.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 161/161 assertions in 7.9
+  seconds. It now covers the dense analytic restricted score against finite
+  differences and a dense-score optimizer experiment against the
+  finite-difference optimizer diagnostic.
+- Mission-control dashboard source and served copy were refreshed to
+  `2026-06-21 15:56 MDT`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement
+  AI-REML, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML away-run FD/local-profile stability
+
+Goal:
+
+- Continue the exact-Gaussian diagnostic lane with FD gradient/Hessian stability,
+  local-profile sanity, optimizer accounting, PEV summaries, and dashboard sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-awayrun-fd-profile-stability.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 137/137 assertions in 7.1
+  seconds. It now covers FD gradient/Hessian stability, local-profile sanity,
+  optimizer start accounting, optimizer FD/local-profile subdiagnostics, PEV
+  summaries, payload inclusion, and the existing dense-comparator/boundary
+  checks.
+- Updated the transfer-gate ledger with the away-run 20-slice batch, refreshed
+  the AI-REML-inspired capability matrix row, and served the mission-control
+  dashboard at `updated = "2026-06-21 15:50 MDT"`.
+
+Boundary:
+
+- This is still exact-Gaussian developer evidence only. It does not implement
+  AI-REML, does not promote a drmTMB R bridge row, does not alter q4, Laplace,
+  non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does not touch
+  the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML next 20 comparator/boundary hardening
+
+Goal:
+
+- Run the next 20 exact-Gaussian hardening slices after the post-gate
+  diagnostics: dense comparator, boundary classifier, optimizer observed-Hessian
+  gates, combined diagnostic payload, PEV shrinkage check, status refresh, and
+  mission-control sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-next20-comparator-boundary.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 122/122 assertions in 7.0
+  seconds. It now covers dense same-estimand REML components, sparse-vs-dense
+  comparator diagnostics, boundary labels, optimizer dense-comparator and
+  observed-Hessian status, diagnostic payload shape, PEV shrinkage, and the
+  previous status/schema fixtures.
+- Updated `docs/design/178-ai-reml-hsquared-transfer-gate.md` with a
+  20-slice completion ledger and refreshed the AI-REML-inspired matrix row.
+- Dashboard validation passed with `25/68 banked_or_verified`, `1 active`,
+  `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and `9 Julia
+  capability rows`. The live dashboard at `http://127.0.0.1:8765/` served
+  `updated = "2026-06-21 15:42 MDT"`.
+
+Boundary:
+
+- This batch remains exact-Gaussian developer evidence only. It does not
+  implement AI-REML, does not promote a drmTMB R bridge row, does not alter q4,
+  Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does
+  not touch the parked DRM.jl `shannon/ayumi-integration` drafts.
+
+## 2026-06-21: AI-REML post-gate exact-Gaussian diagnostics
+
+Goal:
+
+- Execute the second local HSquared transfer batch after the exact-Gaussian
+  gate: optimizer experiment, same-estimand dense comparator, selected-inverse
+  PEV diagnostic, validation/status row, bridge schema draft, micro scaling
+  smoke, q4 exclusion note, issue-comment draft, and dashboard sync.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-postgate-slices.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+Results:
+
+- The clean DRM.jl worktree's focused test passed: 88/88 assertions in 6.2
+  seconds. It now covers the dense GLS same-estimand oracle, Takahashi trace and
+  PEV diagnostics, AI-vs-observed diagnostic, finite-difference optimizer
+  experiment with `ai_reml_ready = false`, status/schema tuple, boundary
+  fixtures, and a tiny balanced-tree scaling smoke.
+- Added the local issue-comment draft at
+  `docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md`.
+  Nothing was posted to GitHub.
+- Added `docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md` so
+  q4 Patterson-Thompson language cannot drift into HSquared AI-REML wording.
+- Dashboard validation passed with `25/68 banked_or_verified`, `1 active`,
+  `17 matrix rows`, `11 finish rows`, `15 Julia gate rows`, and `9 Julia
+  capability rows`. The live dashboard at `http://127.0.0.1:8765/` served the
+  updated `2026-06-21 15:34 MDT` status.
+
+Boundary:
+
+- This batch is still exact-Gaussian developer evidence only. It does not
+  implement AI-REML, does not promote a drmTMB R bridge row, does not alter q4,
+  Laplace, non-Gaussian, Ayumi-facing, or 10k-scale interval claims, and does
+  not touch the parked DRM.jl `shannon/ayumi-integration` drafts.
+
 ## 2026-06-21: takeover branch and worktree cleanup
 
 Goal:
@@ -3475,6 +4639,7 @@ rg -n 'Phase 6c Random-Slope Sprint Closeout|#436|#437|#438|#439|#440|#441|#442|
 rg -n 'Sprint parent closeout|Slice 80|#436.*capability-ledger|#437, #438' ROADMAP.md docs/dev-log/check-log.md
 rg -n 'Phase 6c.*(broad recovery|coverage|power) claims are now supported|diagnostic pilot.*creates.*(coverage|power)|sister.*(speed|coverage|recovery|convergence).*drmTMB evidence|random effects in `rho12` (are )?(fitted|implemented)|p8/q8 (is|are) (fitted|implemented|supported)|#436.*closes #33|#436.*closes #59|#436.*closes #60|#436.*closes #147|#436.*closes #265|#436.*closes #342|#436.*closes #61|#436.*closes #5' ROADMAP.md docs/design/152-phase6c-random-slope-sprint-closeout.md README.md NEWS.md vignettes
 git diff --check
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)|engine_control" docs/design/216-structured-random-effect-finish-100-slices.md docs/dev-log/dashboard/structured-re-finish-100-slices.tsv docs/dev-log/dashboard/README.md docs/dev-log/after-task/2026-06-22-structured-re-finish-100-plan.md
 ```
 
 Results:
@@ -58288,3 +59453,5767 @@ Student-t shape models. It does not promote Student-t profile/bootstrap
 coverage, random effects, bivariate responses, structured effects, true
 `nu <= 2` stress behavior, Julia bridge parity, release readiness, CRAN
 readiness, or non-Gaussian REML/AI-REML language.
+
+## 2026-06-21: AI-REML transfer gate from HSquared
+
+The R-Julia finish matrix now points to a dedicated transfer note at
+`docs/design/178-ai-reml-hsquared-transfer-gate.md`. The note records the
+read-only scout pass over `hsquared` / `HSquared.jl`: the transferable pieces are
+sparse Gaussian MME algebra, Henderson determinant identities, Takahashi
+selected-inverse traces/diagonals, provenance fields, and validation-status
+discipline. The non-transferable piece is the AI-REML label for bivariate q4,
+Laplace, or non-Gaussian distributional routes.
+
+Checks run:
+
+```sh
+sed -n '1,260p' /Users/z3437171/shinichi-brain/AGENTS.md
+sed -n '1,260p' /Users/z3437171/shinichi-brain/memory/00-INDEX.md
+rg -n "drmTMB|DRM\\.jl|HSquared|hsquared|AI-REML|REML|TMB|Julia" /Users/z3437171/shinichi-brain/memory/PROJECTS.md /Users/z3437171/shinichi-brain/memory/LESSONS.md /Users/z3437171/shinichi-brain/memory/DECISIONS.md
+sed -n '1,220p' /Users/z3437171/Dropbox/Github\ Local/DRM.jl/AGENTS.md
+git status --short --branch
+git log --oneline --decorate -5
+git -C /Users/z3437171/Dropbox/Github\ Local/DRM.jl fetch --all --prune
+git -C /Users/z3437171/Dropbox/Github\ Local/DRM.jl worktree add -b codex/ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot origin/main
+git -C /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot status --short --branch
+git -C /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot log --oneline -1
+sed -n '1,220p' /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/HANDOVER.md
+sed -n '1,160p' /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/ROADMAP.md
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/src/location_only.jl | sed -n '1,470p'
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/src/gaussian_structured.jl | sed -n '250,620p'
+nl -ba /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_two_structured_gaussian_sparse.jl | sed -n '1,290p'
+```
+
+Result: `drmTMB` was clean on `main` before the branch
+`codex/ai-reml-transfer-slices` was created. The user's DRM.jl checkout is on
+`shannon/ayumi-integration` with parked, uncommitted Ayumi drafts, so this slice
+kept that checkout read-only. A clean implementation worktree was created at
+`/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot` from
+`origin/main` (`f46035d`, PR #295 merge).
+
+The DRM.jl source map picked the first exact-Gaussian pilot: the
+location-only Gaussian phylogenetic mean cell in `src/location_only.jl`, where
+`LocOnlyProblem` already exposes a sparse Woodbury marginal likelihood, profiled
+fixed effects, and exact Takahashi traces. The two-structured Gaussian sparse
+path in `src/gaussian_structured.jl` is a second candidate because
+`test/test_two_structured_gaussian_sparse.jl` already anchors dense-vs-sparse
+log likelihood, point estimates, and dense finite-difference gradients. The
+sigma-phylo location-scale and q4 REML files are exclusion anchors, not pilot
+targets, because their objectives are augmented/location-scale rather than the
+HSquared Gaussian animal-model object.
+
+Follow-up implementation in the clean DRM.jl worktree added the engine slices
+after the map: an internal supplied-variance restricted objective for the
+location-only Gaussian phylogenetic mean cell, a Takahashi trace diagnostic
+reporting `trace_mode = :takahashi_selinv`, an AI-vs-observed information
+diagnostic, and boundary fixtures. The focused DRM.jl test passed:
+
+```sh
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-21-ai-reml-hsquared-transfer-gate.md docs/design/168-r-julia-finish-capability-matrix.md
+```
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0].text, hsquared: (.finish_board[] | select(.id=="HSquared-validation-status-lesson") | {status, engine_julia, docs, evidence_url})}'
+```
+
+Result: 36/36 assertions passed in 5.2 s after the AI-information and boundary
+fixture additions. `git diff --check` passed in both worktrees. The
+claim-boundary scan hit expected
+negative-boundary wording in the new transfer note and historical guardrail
+entries in `docs/dev-log/check-log.md`; no Ayumi reply text was changed.
+Both dashboard JSON files parsed cleanly. Mission-control validation passed
+with `25/68 banked_or_verified`, `1 active`, `17 matrix rows`, `11 finish rows`,
+`15 Julia gate rows`, and `9 Julia capability rows`. The dashboard was already
+listening at `http://127.0.0.1:8765/` and served the updated
+`HSquared-validation-status-lesson` row as `partial` with the transfer note as
+evidence.
+
+Claim boundary: this is a design and validation-gate slice plus an internal
+exact-Gaussian REML helper in a clean DRM.jl worktree. It does not implement an
+average-information optimizer in `drmTMB` or `DRM.jl`, does not promote q4 REML,
+does not claim 10k-scale intervals, and does not reopen the parked Ayumi reply.
+
+## 2026-06-22: AI-REML comparator fixture mission-control refresh
+
+The DRM.jl exact-Gaussian location-only REML lane added a versioned
+no-dependency same-estimand comparator fixture,
+`loconly-gaussian-phylo-reml-v1`. The fixture pins a small balanced-tree
+Gaussian location-only problem plus dense GLS REML reference values, validates
+the target as `gaussian_loconly_phylo_reml`, and marks the phylolm-style row
+`artifact_status = fixture_defined` while keeping `external_comparator_status =
+planned`, `dependency_status = not_added`, `coverage_status = not_evaluated`,
+and `ai_reml_ready = false`.
+
+The drmTMB mission-control dashboard, sweep summary, local issue draft, and
+after-task report now mirror that fixture status without changing the public
+claim boundary. The local issue draft remains unposted.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+gh pr view 297 --json statusCheckRollup,mergeStateStatus,headRefOid,url,title
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+gh pr view 638 --json statusCheckRollup,mergeStateStatus,headRefOid,url,title
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/design/178-ai-reml-hsquared-transfer-gate.md docs/design/179-q4-patterson-thompson-is-not-hsquared-ai-reml.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-ai-reml-comparator-gate-sync.md docs/dev-log/issue-drafts/2026-06-21-drmjl291-drmtmb555-ai-reml-postgate.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/status.json | jq '{updated, metrics, active_work: .active_work[0].text, hsquared: (.finish_board[] | select(.id=="HSquared-validation-status-lesson") | {status, engine_julia, simulation, last_verified})}'
+```
+
+Result: DRM.jl PR #297 was green and clean at
+`9a2c044ac6d0690784e198c6211789070cc49562`; drmTMB PR #638 was green and clean
+before this mission-control refresh at `4eb9286ce727ebcfe5c505801241e3cd6ccf79ac`.
+Both dashboard JSON files parsed cleanly. Mission-control validation passed.
+`git diff --check` passed. The claim-boundary scan hit only quoted forbidden
+phrases, guardrail text, historical boundary notes, or the scan command itself.
+The live dashboard was refreshed from the updated local JSON.
+
+Claim boundary: this is still exact-Gaussian location-only developer evidence.
+It does not add an external comparator dependency, promote an R bridge, promote
+a public optimizer, evaluate interval coverage, promote q4/Laplace/non-Gaussian
+AI-REML, reopen Ayumi-facing text, or change the 10k sigma-phylo interval
+blockers.
+
+## 2026-06-22: 100-slice R/Julia finish-run truth freeze
+
+The requested next 100 R/Julia/bridge slices now have a mission-control ledger:
+`docs/dev-log/dashboard/finish-100-slices.tsv`. The ledger has exactly 100 rows.
+Rows 1-10 bank the truth-freeze wave; rows 11-100 remain queued until
+implementation, tests, docs, issue evidence, and dashboard state catch up.
+
+`docs/design/180-r-julia-100-slice-finish-run.md` records the run contract,
+wave order, bridge dependency graph, claim guards, and first-wave scope. The
+mission-control validator now checks the 100-slice ledger schema, sequence,
+wave membership, dependencies, bridge statuses, and evidence for banked rows.
+The dashboard serve script copies the ledger into `/tmp/drm-dashboard`.
+
+Checks run:
+
+```sh
+git status --short --branch
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+python3 - <<'PY'
+import csv
+from pathlib import Path
+rows = list(csv.DictReader(Path("docs/dev-log/dashboard/finish-100-slices.tsv").open(), delimiter="\t"))
+print(len(rows), rows[0]["slice_id"], rows[-1]["slice_id"])
+PY
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|10k sigma|10,440.*interval|Ayumi reply|public estimator claim|ai_reml_ready = true|engine_control" docs/design/168-r-julia-finish-capability-matrix.md docs/design/180-r-julia-100-slice-finish-run.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-hundred-slice-truth-freeze.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/dashboard/finish-100-slices.tsv tools/validate-mission-control.py
+tools/start-mission-control.sh --background
+curl -s http://127.0.0.1:8765/finish-100-slices.tsv | awk 'NR==1 || NR==2 || NR==101 {print}'
+```
+
+Result: both dashboard JSON files parsed cleanly; the 100-slice ledger parsed as
+100 rows from `S001` to `S100`; mission-control validation passed; `git diff
+--check` passed; and the live dashboard served the new ledger. The claim-boundary
+scan hit only guardrail text, quoted forbidden phrases, or the scan command.
+
+Claim boundary: this is a queue and validation slice. It does not implement
+slices 11-100, does not promote bridge support, does not add a public optimizer,
+does not claim interval coverage, and does not reopen Ayumi-facing text.
+
+## 2026-06-22: S011 DRM.jl exact-Gaussian comparator version probe
+
+DRM.jl slice S011 now banks a no-dependency external-comparator version-probe
+contract for the exact-Gaussian location-only phylogenetic REML diagnostic lane.
+The DRM.jl status object records an unselected phylolm-style candidate, the
+`loconly-gaussian-phylo-reml-v1` fixture id and version, the required
+same-estimand evidence gates, and `version_probe_status = defined_not_run`.
+
+Mission-control row S011 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. Its bridge
+status remains `unsupported`; S012 is the optional developer comparator runner.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-comparator-version-probe.md docs/dev-log/after-task/2026-06-22-loconly-reml-comparator-version-probe.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)" README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd _pkgdown.yml docs/design/206-ayumi-follow-on-implementation-slices.md docs/design/207-structured-random-effect-balance-100-slices.md docs/dev-log/dashboard/README.md docs/dev-log/dashboard/structured-re-balance-matrix.tsv docs/dev-log/dashboard/structured-re-balance-100-slices.tsv
+```
+
+Result: the focused DRM.jl test passed locally with 429/429 assertions. The
+DRM.jl and drmTMB `git diff --check` runs were clean. The claim-boundary scan
+hit only the quoted scan command in the new DRM.jl evidence files. Both
+dashboard JSON files parsed cleanly, and the mission-control validator passed.
+
+Claim boundary: S011 is direct Julia developer diagnostic evidence for the
+exact-Gaussian location-only REML target only. It does not select or add an
+external dependency, run an external comparator, promote the R bridge, promote a
+public optimizer, evaluate interval coverage, touch q4, touch non-Gaussian or
+Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S012 DRM.jl external comparator probe script
+
+DRM.jl slice S012 now banks the optional developer package/version probe script
+for the exact-Gaussian location-only REML external-comparator lane. The script
+writes `docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv`.
+In this developer environment it recorded local `phylolm` version 2.6.5 while
+keeping `fit_status = not_run`, `same_estimand_status =
+requires_fixture_reproduction`, `dependency_status = not_added`,
+`coverage_status = not_evaluated`, and `ai_reml_ready = false`.
+
+Mission-control row S012 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S013 is
+retargeted to the same-estimand external fixture fit check.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+julia --project=. tools/loconly-reml-external-comparator-probe.jl --output docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl tools/loconly-reml-external-comparator-probe.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-external-comparator-probe-script.md docs/dev-log/after-task/2026-06-22-loconly-reml-external-comparator-probe-script.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md docs/dev-log/validation-status/README.md docs/dev-log/validation-status/2026-06-22-loconly-reml-external-comparator-probe.tsv
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 459/459 assertions. The
+probe script wrote one row and recorded local `phylolm` version 2.6.5. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S012 ledger update.
+
+Claim boundary: S012 records optional package availability/version only. It
+does not add an external dependency, run the external comparator, compare
+same-estimand estimates, promote the R bridge, promote a public optimizer,
+evaluate interval coverage, touch q4, touch non-Gaussian or Laplace routes, or
+reopen Ayumi-facing text.
+
+## 2026-06-22: S013 DRM.jl external fit feasibility block
+
+DRM.jl slice S013 now banks a fit-feasibility row for the exact-Gaussian
+location-only REML external-comparator lane. Local `phylolm` 2.6.5 is present,
+but the current `loconly-gaussian-phylo-reml-v1` fixture has 12 observations
+for 6 species, two observations per species, and within-species covariate
+variation. Because `phylolm` is a tip-level phylogenetic linear model, running
+it on this fixture would not be a same-estimand comparator. The row therefore
+records `fit_status = not_run`, `same_estimand_status =
+not_same_estimand_current_fixture`, and blocker
+`repeated_observation_fixture_not_tip_level`.
+
+Mission-control row S013 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S014
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl tools/loconly-reml-external-comparator-probe.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-external-fit-feasibility.md docs/dev-log/after-task/2026-06-22-loconly-reml-external-fit-feasibility.md docs/dev-log/scout/2026-06-22-loconly-reml-external-comparator.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 483/483 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S013 ledger update.
+
+Claim boundary: S013 is negative same-estimand evidence. It does not add an
+external dependency, run `phylolm`, compare external estimates, promote the R
+bridge, promote a public optimizer, evaluate interval coverage, touch q4, touch
+non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S014 DRM.jl derivative finite-difference status
+
+DRM.jl slice S014 now banks row-shaped derivative finite-difference status for
+the exact-Gaussian location-only REML fixture. The status rows rebuild
+`loconly-gaussian-phylo-reml-v1` and record dense score versus finite
+difference, plus sparse Woodbury score versus finite difference and dense
+score. The focused test pins both rows and rejects a row whose FD discrepancy
+exceeds tolerance.
+
+Mission-control row S014 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S015
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-derivative-fd-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-derivative-fd-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 506/506 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S014 ledger update.
+
+Claim boundary: S014 is fixture-level score derivative evidence. It does not
+add or promote an optimizer, promote the R bridge, evaluate interval coverage,
+touch q4, touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S015 DRM.jl guarded line-search status
+
+DRM.jl slice S015 now banks row-shaped guarded line-search status for the
+exact-Gaussian location-only REML optimizer experiment. The status row rebuilds
+the `loconly-gaussian-phylo-reml-v1` fixture, runs the guarded sparse
+average-information update from two starts, records the accepted line-search
+state, and preserves the readiness reason that no simulation, bridge, or
+coverage gate is implemented.
+
+Mission-control row S015 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S016
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-line-search-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-line-search-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 531/531 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S015 ledger update.
+
+Claim boundary: S015 is an optimizer-experiment diagnostic. It does not promote
+a public optimizer, promote the R bridge, evaluate interval coverage, touch q4,
+touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S016 DRM.jl near-zero variance boundary grid
+
+DRM.jl slice S016 now banks a row-shaped near-zero variance boundary grid for
+the exact-Gaussian location-only REML diagnostic lane. The status wraps the
+weak-signal condition grid into rows for `low_phylo_signal` and
+`near_zero_phylo_signal`, records convergence and boundary rates, and keeps
+boundary states as expected diagnostic outcomes rather than failures or interval
+coverage.
+
+Mission-control row S016 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S017
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-boundary-grid-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-boundary-grid-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 550/550 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S016 ledger update.
+
+Claim boundary: S016 is boundary-behavior simulation-diagnostic evidence. It
+does not evaluate coverage, promote a public optimizer, promote the R bridge,
+touch q4, touch non-Gaussian or Laplace routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S017 DRM.jl local profile-axis sanity status
+
+DRM.jl slice S017 now banks a row-shaped local profile-axis sanity diagnostic
+for the exact-Gaussian location-only REML fixture. The status rebuilds
+`loconly-gaussian-phylo-reml-v1`, runs the guarded sparse
+average-information update from two starts, and records finite one-step
+profile-axis checks on the residual and phylogenetic log-standard-deviation
+axes. The rows keep profile diagnostics separate from interval coverage.
+
+Mission-control row S017 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S018
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-profile-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-profile-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 572/572 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S017 ledger update.
+
+Claim boundary: S017 is a profile-axis sanity diagnostic. It does not evaluate
+interval coverage, promote profile-likelihood intervals, promote a public
+optimizer, promote the R bridge, touch q4, touch non-Gaussian or Laplace
+routes, or reopen Ayumi-facing text.
+
+## 2026-06-22: S018 DRM.jl variance-component point-status rows
+
+DRM.jl slice S018 now banks row-shaped variance-component point-status output
+for the exact-Gaussian location-only REML fixture. The status rebuilds
+`loconly-gaussian-phylo-reml-v1`, runs the guarded sparse
+average-information update from two starts, and records residual and
+phylogenetic variance-component rows with log-standard-deviation,
+standard-deviation, variance, point-status, interval-status, boundary-status,
+and coverage-status fields.
+
+Mission-control row S018 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S019
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_location_only_reml_mme.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" src/location_only.jl test/test_location_only_reml_mme.jl docs/dev-log/check-log.d/2026-06-22-loconly-reml-variance-component-status.md docs/dev-log/after-task/2026-06-22-loconly-reml-variance-component-status.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused DRM.jl test passed locally with 600/600 assertions. The
+DRM.jl `git diff --check` run was clean, and its claim-boundary scan hit only
+the quoted scan command in the new evidence files. Mission-control validation
+and `git diff --check` passed after the S018 ledger update.
+
+Claim boundary: S018 is a variance-component point-status diagnostic. It does
+not evaluate interval coverage, promote intervals, promote a public optimizer,
+promote the R bridge, touch q4, touch non-Gaussian or Laplace routes, or reopen
+Ayumi-facing text.
+
+## 2026-06-22: S019 DRM.jl exact-Gaussian structured source map
+
+DRM.jl slice S019 now banks the second exact-Gaussian sparse source-map
+candidate for later row-contract transfer. The new scout note maps
+`loconly_gaussian_phylo_reml` in `src/location_only.jl` as the current
+row-contract donor and `two_structured_gaussian_sparse` in
+`src/gaussian_structured.jl` as the next candidate because it already uses a
+sparse augmented Gaussian route, Woodbury identities, and Takahashi selected
+inverse entries.
+
+Mission-control row S019 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S020
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=. test/test_two_structured_gaussian_sparse.jl
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/dev-log/scout/2026-06-22-exact-gaussian-structured-source-map.md docs/dev-log/validation-status/README.md docs/dev-log/check-log.d/2026-06-22-exact-gaussian-structured-source-map.md docs/dev-log/after-task/2026-06-22-exact-gaussian-structured-source-map.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the focused two-structured sparse Gaussian test passed locally with
+46/46 assertions. The DRM.jl `git diff --check` run was clean, and its
+claim-boundary scan hit only the quoted scan command in the new evidence files.
+Mission-control validation and `git diff --check` passed after the S019 ledger
+update.
+
+Claim boundary: S019 is a source-map slice. It does not relabel the
+two-structured Gaussian ML route as REML/AI-REML, promote q4, promote the R
+bridge, evaluate interval coverage, touch non-Gaussian or Laplace routes, or
+reopen Ayumi-facing text.
+
+## 2026-06-22: S020 DRM.jl Documenter exact-Gaussian diagnostics page
+
+DRM.jl slice S020 now banks a Documenter-facing exact-Gaussian diagnostics
+page under `docs/src/diagnostics-and-validation/exact-gaussian-diagnostics.md`.
+The page records the location-only REML row-contract donor, the
+two-structured Gaussian sparse candidate, evidence gates, and claim boundaries.
+`docs/make.jl` now includes the page under Diagnostics & Validation, and the
+developer source map no longer lists `location_only.jl` as an unwired example.
+
+Mission-control row S020 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the DRM.jl after-task report. S021
+remains queued.
+
+Checks run:
+
+```sh
+cd "/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot"
+julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+cd docs
+julia --project=. --startup-file=no - <<'JL'
+using Documenter
+using DocumenterVitepress
+using DRM
+makedocs(...)
+JL
+cd ..
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/make.jl docs/src/diagnostics-and-validation/exact-gaussian-diagnostics.md docs/src/developer-notes/source-map.md docs/dev-log/check-log.d/2026-06-22-exact-gaussian-diagnostics-documenter.md docs/dev-log/after-task/2026-06-22-exact-gaussian-diagnostics-documenter.md
+cd "/Users/z3437171/Dropbox/Github Local/drmTMB"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the docs environment was instantiated after developing the local
+checkout into the ignored docs manifest. The no-deploy `makedocs` build
+completed and Vitepress rendered successfully. Existing warnings remained:
+absolute links in `index.md`, unlisted docstrings, missing optional
+logo/favicon assets, chunk-size warning, and npm audit noise. The DRM.jl
+`git diff --check` run was clean, and its claim-boundary scan hit only the
+quoted scan command in the new evidence files. Mission-control validation and
+`git diff --check` passed after the S020 ledger update.
+
+Claim boundary: S020 is a Documenter diagnostic page. It does not promote
+AI-REML readiness, q4, the R bridge, interval coverage, non-Gaussian or Laplace
+routes, or Ayumi-facing text.
+
+## 2026-06-22: S021 R-side q4 target and estimator inventory
+
+drmTMB slice S021 now banks a guarded R-side q4 target and estimator inventory.
+The new `docs/dev-log/dashboard/q4-target-inventory.tsv` separates native TMB
+ML q4 evidence, unsupported native TMB q4 REML, experimental Julia bridge q4
+REML, profile-target extraction from the Julia phylocov block, and native TMB
+bootstrap smoke or negative evidence. The paired design note is
+`docs/design/181-q4-target-estimator-inventory.md`.
+
+Mission-control row S021 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the local after-task report. S022 remains
+queued for balanced `phylo()` support across location and scale axes.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep.json
+tools/validate-mission-control.py
+git diff --check
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|non-Gaussian REML|q4 AI-REML|10k-scale intervals|Ayumi reply|public estimator claim|ai_reml_ready = true" docs/dev-log/dashboard/q4-target-inventory.tsv docs/design/181-q4-target-estimator-inventory.md docs/dev-log/dashboard/README.md tools/validate-mission-control.py tools/start-mission-control.sh docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-22-q4-target-estimator-inventory.md
+```
+
+Result: mission-control validation passed with 6 q4 target rows. JSON parsing
+and `git diff --check` were clean. The claim-boundary scan hit only negative
+boundary wording and the quoted scan command in the new evidence files.
+
+Claim boundary: S021 is an inventory slice. It does not add q4 support, relax a
+Julia bridge gate, promote q4 AI-REML, claim interval coverage, make the 30-tip
+bootstrap smoke a calibrated interval result, make the 100-tip native bootstrap
+negative result a fallback, or change Ayumi-facing text.
+
+## 2026-06-22: S022 univariate phylo balance inventory
+
+drmTMB slice S022 now banks a guarded location/scale `phylo()` balance
+inventory. The new `docs/dev-log/dashboard/phylo-balance-inventory.tsv`
+separates native TMB ML, native TMB REML, and experimental R-to-Julia bridge
+rows for univariate mean-only, residual-scale-only, matched mean-scale, and
+bivariate q4 phylogenetic Gaussian combinations. The paired design note is
+`docs/design/182-univariate-phylo-balance-inventory.md`.
+
+Mission-control row S022 in `docs/dev-log/dashboard/finish-100-slices.tsv` is
+now `banked` with evidence pointing to the local after-task report. S023 remains
+queued for focused tests of currently supported combinations.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::load_all(quiet = TRUE); set.seed(62022); tree <- ape::rcoal(8); tree$tip.label <- paste0("sp", seq_len(8)); species <- rep(tree$tip.label, each = 5); x <- stats::rnorm(length(species)); y <- stats::rnorm(length(species), 0.2 + 0.3 * x, exp(-0.6)); dat <- data.frame(y = y, x = x, species = factor(species, levels = tree$tip.label)); fit <- drmTMB::drmTMB(drmTMB::bf(y ~ x, sigma ~ phylo(1 | species, tree = tree)), family = stats::gaussian(), data = dat, control = drmTMB::drm_control(se = FALSE, optimizer = list(eval.max = 300, iter.max = 300))); cat("convergence=", fit$opt$convergence, "\n", sep = ""); cat("sdpars_sigma=", paste(names(fit$sdpars$sigma), collapse = ";"), "\n", sep = "")'
+```
+
+Result: the local sigma-only native ML smoke returned `convergence=0` and
+`sdpars_sigma=phylo(1 | species)`. Validator, JSON, focused-test, whitespace,
+and claim-boundary checks are recorded in the after-task report after the final
+S022 validation pass.
+
+Claim boundary: S022 is an inventory slice. It does not change model code,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S023 supported phylo combo tests
+
+drmTMB slice S023 now banks a focused native TMB ML test for the univariate
+Gaussian `sigma`-only phylogenetic row:
+
+```r
+bf(
+  y ~ x,
+  sigma ~ phylo(1 | species, tree = tree)
+)
+```
+
+The test in `tests/testthat/test-phylo-gaussian.R` checks convergence, the
+internal structured dpar contract, `sdpars$sigma`, absence of a latent
+correlation row, conditional `sigma` prediction, and the direct
+`sd:sigma:phylo(1 | species)` profile target. The
+`phylo-balance-inventory.tsv` row `uni_sigma_phylo_native_ml` is now `covered`
+for fit and test status. Mission-control row S023 is now `banked`; S024 remains
+queued for unsupported-neighbour errors.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 9 phylo balance rows, and `git diff --check` was clean.
+
+Claim boundary: S023 adds focused test coverage only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S024 unsupported phylo neighbour errors
+
+drmTMB slice S024 now pins the unsupported native TMB REML neighbour for the
+univariate Gaussian `sigma`-only phylogenetic row:
+
+```r
+bf(
+  y ~ x,
+  sigma ~ phylo(1 | species, tree = tree)
+)
+```
+
+The focused test in `tests/testthat/test-reml-phylo-location.R` expects the
+same early scale-side structured-effect error used by the matched `mu + sigma`
+REML rejection. The balance inventory now includes
+`uni_sigma_phylo_native_reml` as an explicit unsupported row, next to the
+covered native ML row.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "reml-phylo-location", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `reml-phylo-location` tests passed, mission-control validation
+passed with 10 phylo balance rows, and `git diff --check` was clean.
+
+Claim boundary: S024 adds a guard test only. It does not change ML support,
+REML support, bridge support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S025 scale-side phylo diagnostic grid
+
+drmTMB slice S025 now banks a small scale-side phylogenetic diagnostic grid.
+`tests/testthat/test-scale-phylo-identifiability.R` now forces a narrow
+log-sigma clamp on a scale-side phylo fit and checks that `check_drm()` reports
+both `logsigma_clamp_active = warning` and
+`scale_phylo_identifiability = note`. The new
+`docs/dev-log/dashboard/scale-phylo-diagnostics.tsv` records four guarded
+diagnostic rows, and the mission-control validator checks the table schema,
+expected statuses, evidence paths, and AI-REML readiness guard.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "scale-phylo-identifiability", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `scale-phylo-identifiability` tests passed, mission-control
+validation passed with 4 scale phylo diagnostic rows, and `git diff --check`
+was clean.
+
+Claim boundary: S025 adds diagnostics only. It does not change model behavior,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S026 phylo profile/logLik status parity
+
+drmTMB slice S026 now banks a guarded phylogenetic profile/log-likelihood
+status table. The sigma-only native ML phylo test now checks finite
+`logLik(fit)`, a direct `sd:sigma:phylo(1 | species)` profile target,
+`profile_ready = TRUE`, and `profile_note = "ready"`. The new
+`docs/dev-log/dashboard/phylo-profile-loglik-status.tsv` keeps direct-ready SD
+targets separate from derived q4 correlations and keeps interval status
+`not_evaluated` unless evidence proves otherwise.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 6 phylo profile/logLik rows, and `git diff --check` was clean.
+
+Claim boundary: S026 adds status parity only. It does not change model behavior,
+formula grammar, REML support, bridge support, q4 support, interval coverage,
+non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S027 bootstrap refit accounting
+
+drmTMB slice S027 now banks
+`docs/dev-log/dashboard/bootstrap-refit-accounting.tsv`, a guarded table for
+requested, successful, and failed bootstrap refits. It separates public direct
+target diagnostics, scalar phylogenetic SDs, structured location-scale targets,
+native q4 30-tip plumbing success, native q4 100-tip careful/robust negative
+evidence, and Julia q4 bridge plumbing evidence. The table records
+failure-reason visibility and keeps interval claim status at
+`not_calibrated_coverage`, `plumbing_only`, or `unavailable`.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 7 bootstrap accounting rows, and
+`git diff --check` was clean.
+
+Claim boundary: S027 adds accounting only. It does not run new bootstrap jobs,
+change bootstrap algorithms, claim interval coverage, promote native q4
+uncertainty, change bridge support, use non-Gaussian REML wording, change
+HSquared AI-REML status, or draft Ayumi-facing text.
+
+## 2026-06-22: S028 phylo q2/q4 target map
+
+drmTMB slice S028 now banks
+`docs/dev-log/dashboard/phylo-q2-q4-target-map.tsv`, a guarded map linking q2
+and q4 phylogenetic target evidence without collapsing their statuses. The map
+separates native TMB q2 location ML, q2 corpair regression, unsupported native
+q2 REML, native TMB full q4 ML, native TMB block-diagonal q2-plus-q2 ML,
+unsupported native q4 REML, and experimental Julia q4 REML bridge rows.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 7 q2/q4 target-map rows, and
+`git diff --check` was clean.
+
+Claim boundary: S028 adds target mapping only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S029 phylo extractor status fields
+
+drmTMB slice S029 now pins q2 and q4 extractor status fields in
+`tests/testthat/test-phylo-gaussian.R` and banks
+`docs/dev-log/dashboard/phylo-extractor-status.tsv`. The table records
+`corpairs()` point-only status, q2 profile newdata requirements, q4 derived
+interval unavailability, q4 summary covariance status, profile-target
+readiness, and block-diagonal q2-plus-q2 point-only status.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `phylo-gaussian` tests passed, mission-control validation
+passed with 7 phylo extractor-status rows, and `git diff --check` was clean.
+
+Claim boundary: S029 adds extractor-status assertions and a status table only.
+It does not change model behavior, formula grammar, REML support, bridge
+support, q4 support, interval coverage, non-Gaussian REML wording, HSquared
+AI-REML status, or Ayumi-facing text.
+
+## 2026-06-22: S030 native phylo dashboard sync
+
+drmTMB slice S030 refreshed the live mission-control dashboard after the native
+R Gaussian phylo wave. The start script validated and served the dashboard, and
+HTTP readback confirmed the new q2/q4 target map, extractor-status table, and
+bootstrap accounting rows were reachable from `http://127.0.0.1:8765/`.
+
+Checks run:
+
+```sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/finish-100-slices.tsv | awk 'NR==1 || NR==29 || NR==30 || NR==31 {print}'
+curl -fsS http://127.0.0.1:8765/phylo-q2-q4-target-map.tsv | awk 'NR==1 || NR==5 {print}'
+curl -fsS http://127.0.0.1:8765/phylo-extractor-status.tsv | awk 'NR==1 || NR==5 {print}'
+curl -fsS http://127.0.0.1:8765/bootstrap-refit-accounting.tsv | awk 'NR==1 || NR==6 {print}'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: the dashboard was already listening at
+`http://127.0.0.1:8765/`; served readback showed S028 and S029 banked, S030
+queued before this ledger update, the native full q4 target-map row, the q4
+derived extractor-status row, and the 100-tip native q4 bootstrap negative
+accounting row. A second readback after the ledger update showed S030 banked
+and S031 queued.
+
+Claim boundary: S030 is a dashboard sync only. It does not change model
+behavior, formula grammar, REML support, bridge support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, or Ayumi-facing
+text.
+
+## 2026-06-22: S031 bridge payload schema
+
+drmTMB slice S031 now banks
+`docs/dev-log/dashboard/bridge-payload-schema.tsv`, a row-specific bridge
+payload schema table. The table names required payload fields for default
+Gaussian location-scale fits, Gaussian response masks, location-only
+exact-Gaussian REML diagnostics, univariate sigma-phylo REML, bivariate q4
+phylo REML, large-p phylogenetic count models, general covariance structured
+models, cross-family latent-rho models, and intentional-error payloads.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 9 bridge payload-schema rows,
+and `git diff --check` was clean.
+
+Claim boundary: S031 defines schema only. It does not relax bridge gates,
+change model behavior, formula grammar, REML support, q4 support, interval
+coverage, non-Gaussian REML wording, HSquared AI-REML status, public
+`engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S032 bridge provenance fields
+
+drmTMB slice S032 now banks
+`docs/dev-log/dashboard/bridge-provenance-fields.tsv`, a provenance table for
+bridge payloads. The table names required fields for requested versus effective
+estimator, target identity, data rows, formula grammar, matrix payloads,
+runtime versions and dirty flags, inference status, R reconstruction maps, and
+unsupported-payload guards.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 9 bridge provenance rows, and
+`git diff --check` was clean.
+
+Claim boundary: S032 defines provenance only. It does not serialize a payload,
+relax bridge gates, change model behavior, formula grammar, REML support, q4
+support, interval coverage, non-Gaussian REML wording, HSquared AI-REML status,
+public `engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S033 location-only bridge draft row
+
+drmTMB slice S033 now banks
+`docs/dev-log/dashboard/loconly-bridge-draft.tsv`, a single gated draft row for
+the exact-Gaussian location-only phylogenetic REML diagnostic. The row keeps
+direct DRM.jl diagnostic evidence separate from native R, R-via-Julia, parity,
+and bridge status, which all remain planned.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control validation passed with 1 location-only bridge draft
+row, and `git diff --check` was clean.
+
+Claim boundary: S033 adds a draft row only. It does not serialize a payload,
+relax bridge gates, change model behavior, formula grammar, REML support, q4
+support, interval coverage, non-Gaussian REML wording, HSquared AI-REML status,
+public `engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S034 bridge payload serialization
+
+drmTMB slice S034 now adds a focused base-R TSV serialization test for the
+exact-Gaussian location-only bridge draft row. The test round-trips the schema
+tuple and verifies that a missing `effective_estimator` field is detected. The
+new `docs/dev-log/dashboard/bridge-serialization-status.tsv` records TSV as
+covered and JSON as planned.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "bridge-payload-serialization", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused serialization tests passed, mission-control validation passed
+with 2 bridge serialization rows, and `git diff --check` was clean.
+
+Claim boundary: S034 adds internal serialization stability only. It does not
+define a public payload format, introduce a JSON dependency, relax bridge
+gates, change model behavior, formula grammar, REML support, q4 support,
+interval coverage, non-Gaussian REML wording, HSquared AI-REML status, public
+`engine_control` status, or Ayumi-facing text.
+
+## 2026-06-22: S035 bridge reconstruction status
+
+drmTMB slice S035 now adds internal `drm_julia_reconstruction_status()` in
+`R/julia-bridge.R`. The helper returns a diagnostic-only one-row status object
+for `drmTMB_julia` fits and records requested/effective estimator, payload,
+coefficient, covariance, profile-target, corpair, bridge, and inference
+promotion statuses. The new
+`docs/dev-log/dashboard/bridge-reconstruction-status.tsv` records the covered
+synthetic Gaussian status row and the planned location-only reconstruction row.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-inference", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-inference` tests passed, mission-control validation
+passed with 2 bridge reconstruction rows, and `git diff --check` was clean.
+
+Claim boundary: S035 adds an internal reconstruction-status helper only. It
+does not add R-via-Julia fitting, relax bridge gates, change model behavior,
+formula grammar, REML support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, public `engine_control` status, or
+Ayumi-facing text.
+
+## 2026-06-22: S036 Julia-home CI smoke
+
+drmTMB slice S036 now adds focused test coverage for the R-side Julia home
+helper contract used by live Julia bridge tests. The tests cover
+`DRM_JL_JULIA_HOME` precedence, `JULIA_HOME` fallback, explicit child setup,
+and caller-scoped restoration. The new
+`docs/dev-log/dashboard/julia-home-smoke.tsv` records this as environment
+smoke evidence only.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-home-path", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-home-path` tests passed, mission-control validation
+passed with 4 Julia-home smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S036 tests environment helper behavior only. It does not add
+R-via-Julia fitting, relax bridge gates, change model behavior, formula
+grammar, REML support, q4 support, interval coverage, non-Gaussian REML
+wording, HSquared AI-REML status, public `engine_control` status, or
+Ayumi-facing text.
+
+## 2026-06-22: S037 bridge route rejection messages
+
+drmTMB slice S037 now makes intentional R-to-Julia bridge rejection messages a
+tested contract. `expect_julia_gate()` still checks that each gate errors before
+Julia setup, and now also checks that the message carries route-specific
+guidance. The new `docs/dev-log/dashboard/bridge-rejection-messages.tsv`
+mirrors the intentional-gate registry and is validated by mission control.
+
+Checks run:
+
+```sh
+Rscript -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `julia-gate-vs-engine` tests passed, mission-control
+validation passed with 15 bridge rejection-message rows, and `git diff --check`
+was clean.
+
+Claim boundary: S037 keeps every covered row at `intentional_error`. It does
+not add R-via-Julia fitting, relax bridge gates, change formula grammar, change
+REML support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S038 capability comparison regeneration
+
+drmTMB slice S038 now records regeneration evidence for the generated Julia
+bridge capability and gate artifacts. The writer scripts regenerated 9
+capability rows and 15 intentional-gate rows to both dashboard and
+`inst/extdata/` outputs, with no content diff in those generated TSVs.
+
+Checks run:
+
+```sh
+Rscript tools/write-julia-capability-comparison.R
+Rscript tools/write-julia-gate-registry.R
+git diff -- docs/dev-log/dashboard/julia-capabilities.tsv inst/extdata/julia-capabilities.tsv docs/dev-log/dashboard/julia-gates.tsv inst/extdata/julia-gates.tsv
+Rscript -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: artifact-matching `julia-gate-vs-engine` tests passed, generated
+capability/gate TSVs had no content diff after regeneration, mission-control
+validation passed with 2 capability regeneration rows, and `git diff --check`
+was clean.
+
+Claim boundary: S038 records artifact regeneration only. It does not add
+R-via-Julia fitting, relax bridge gates, change formula grammar, change REML
+support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S039 row-specific parity smoke
+
+drmTMB slice S039 now records same-target native TMB versus R-to-Julia bridge
+parity smoke evidence in
+`docs/dev-log/dashboard/bridge-parity-smoke-status.tsv`. Route C
+(`gaussian()` location-scale with `sigma ~ x`) and Route B (bivariate Gaussian
+residual `rho12`) passed their existing parity assertions. Route A
+(`gaussian()` phylo-mean with `sigma ~ 1`) remains explicitly skipped because
+of the known all-node log-likelihood bug.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH="/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot" \
+DRM_JL_JULIA_HOME="/Users/z3437171/.juliaup/bin" \
+JULIA_HOME="/Users/z3437171/.juliaup/bin" \
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity", reporter = "summary")'
+
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: Route C and Route B parity assertions passed, Route A remained skipped
+with its known all-node log-likelihood reason, mission-control validation
+passed with 3 bridge parity-smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S039 records row-specific parity smoke only. It does not add
+R-via-Julia fitting beyond existing tested routes, relax bridge gates, change
+formula grammar, change REML support, add q4 interval coverage, claim
+non-Gaussian REML, expose public `engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S040 bridge dashboard sync
+
+drmTMB slice S040 now banks the bridge-wave dashboard refresh after S031-S039.
+The served `/tmp/drm-dashboard` copy was refreshed and read back for
+`finish-100-slices.tsv`, `bridge-parity-smoke-status.tsv`,
+`capability-regeneration-status.tsv`, and `bridge-rejection-messages.tsv`.
+
+Checks run:
+
+```sh
+sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/finish-100-slices.tsv
+curl -fsS http://127.0.0.1:8765/bridge-parity-smoke-status.tsv
+curl -fsS http://127.0.0.1:8765/capability-regeneration-status.tsv
+curl -fsS http://127.0.0.1:8765/bridge-rejection-messages.tsv
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: served readback confirmed the bridge-wave dashboard rows and then
+confirmed S036-S040 banked with S041 queued; mission-control validation passed
+with 3 bridge parity-smoke rows, and `git diff --check` was clean.
+
+Claim boundary: S040 refreshes mission-control state only. It does not add
+R-via-Julia fitting, relax bridge gates, change formula grammar, change REML
+support, add q4 interval coverage, claim non-Gaussian REML, expose public
+`engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: S041 binomial bridge map
+
+drmTMB slice S041 now records
+`docs/dev-log/dashboard/binomial-bridge-map.tsv`, separating native TMB
+fixed-effect `stats::binomial(link = "logit")` evidence, native unsupported
+neighbours, intentional non-phylo Julia bridge rejection, experimental
+Binomial phylo bridge status, and direct DRM.jl alignment.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "binomial-response|julia-gate-vs-engine", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `binomial-response` and `julia-gate-vs-engine` tests passed,
+mission-control validation passed with 6 binomial bridge-map rows, and
+`git diff --check` was clean.
+
+Claim boundary: S041 is a scope map only. It does not add R-via-Julia binomial
+fitting, relax bridge gates, add binomial random effects, change formula
+grammar, claim non-Gaussian REML, expose public `engine_control`, or touch
+Ayumi-facing text.
+
+## 2026-06-22: S042 binomial docs polish
+
+drmTMB slice S042 now tightens README and NEWS binomial wording. The public
+text names native TMB fixed-effect `stats::binomial(link = "logit")` support,
+the two supported response encodings, the `beta_binomial()` path for
+extra-binomial variation through `sigma`, and unsupported binomial neighbours
+including non-phylogenetic `engine = "julia"` fits.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: mission-control/public-claim validation passed, dashboard JSON parsed,
+and `git diff --check` was clean.
+
+Claim boundary: S042 changes prose only. It does not add R-via-Julia binomial
+fitting, relax bridge gates, add binomial random effects, change formula
+grammar, claim non-Gaussian REML, expose public `engine_control`, or touch
+Ayumi-facing text.
+
+## 2026-06-22: S043 binomial profile row
+
+drmTMB slice S043 now records target-scoped profile feasibility for fixed-effect
+binomial rows in `docs/dev-log/dashboard/binomial-profile-status.tsv`.
+`profile_targets()` exposes direct fixed-effect `mu` targets, the default
+`confint(method = "profile")` call still requires explicit `parm` names, and an
+explicit low-budget `fixef:mu:x` profile returns structured
+`profile_failed`/`nonfinite_interval` status.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "binomial-response", reporter = "summary")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: focused `binomial-response` tests passed, dashboard JSON parsed,
+mission-control validation passed with 3 binomial profile-status rows, and
+`git diff --check` was clean.
+
+Claim boundary: S043 records target visibility and failure-status evidence
+only. It does not promote binomial profile intervals, evaluate coverage, add
+random effects, relax Julia bridge gates, claim non-Gaussian REML, expose
+public `engine_control`, or touch Ayumi-facing text.
+
+## 2026-06-22: Ayumi phylo-balance research plan
+
+Goal:
+
+- Research the parked Ayumi phylo-balance concern and write a balance-first
+  100-slice plan for the next Ayumi-facing arc, without drafting or posting a
+  reply.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: dashboard JSON parsed, mission-control validation passed, and
+`git diff --check` was clean.
+
+Boundary:
+
+- The direct Ayumi issue URL was inaccessible from this session, so
+  `docs/design/197-ayumi-phylo-balance-research-100-slices.md` records that
+  limitation and uses local evidence plus internal issue trackers. No Ayumi
+  reply or issue comment was drafted or posted.
+
+## 2026-06-22: Ayumi phylo-balance execution ledger A001-A020
+
+Goal:
+
+- Start implementing the Ayumi phylo-balance 100-slice plan by banking the
+  rehydration and semantics waves as validator-owned mission-control state.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: dashboard JSON parsed, mission-control validation passed with 100
+Ayumi balance-slice rows, 8 Ayumi balance vocabulary rows, and 6 Ayumi balance
+tracker rows, and `git diff --check` was clean.
+
+Boundary:
+
+- A001-A020 record issue access, tracker status, forbidden wording, route
+  vocabulary, and reply gates. They do not add model capability, do not draft
+  or post a new Ayumi reply, and do not promote native REML, q4 REML,
+  R-to-Julia bridge support, or interval coverage.
+
+## 2026-06-22: Ayumi native ML balance targets A021-A025
+
+Goal:
+
+- Bank the first native ML Ayumi balance rows by tying univariate `phylo()`
+  support to explicit direct profile-target rows and early mismatch errors.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+air format tests/testthat/test-phylo-gaussian.R
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed before and after formatting.
+A021-A025 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A021-A025 prove native TMB ML fit/target status and malformed matched-term
+  errors only. They do not run bootstrap, evaluate coverage, promote native
+  REML, relax bridge gates, claim q4 REML, or draft an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML bootstrap accounting A026
+
+Goal:
+
+- Add a tiny native ML bootstrap plumbing smoke for univariate phylo targets
+  that records refit counts and per-refit diagnostics without making a coverage
+  claim.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phylo-gaussian.R
+git diff --check
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed. A026 is banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A026 is bootstrap plumbing/accounting evidence only: two-refit smokes for
+  native ML mean-side and scale-side univariate phylo targets. It does not
+  evaluate coverage, promote matched-cell bootstrap stability, claim
+  Ayumi-scale runtime, relax REML boundaries, or draft an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML recovery smokes A027-A028
+
+Goal:
+
+- Add broad known-truth recovery smokes for native ML sigma-only and matched
+  mean-plus-scale univariate phylogenetic Gaussian cells.
+
+Checks run:
+
+```sh
+air format tests/testthat/test-phylo-gaussian.R
+git diff --check
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused `phylo-gaussian` tests passed. A027-A028 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A027-A028 are broad single-replicate recovery smokes only. They do not
+  provide MCSE, coverage, bias/RMSE grids, Ayumi-data recovery, beak rescue,
+  native REML support, q4 REML support, or an Ayumi reply.
+
+## 2026-06-22: Ayumi native ML diagnostic summary A029-A030
+
+Goal:
+
+- Bank scale-side diagnostic readback and a concise native ML balance summary
+  for the Ayumi arc.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "scale-phylo-identifiability", reporter = "summary")'
+```
+
+Result: focused `scale-phylo-identifiability` tests passed. A029-A030 are
+banked in `docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, and the
+native ML summary is in `docs/design/198-ayumi-native-ml-balance-summary.md`.
+
+Boundary:
+
+- A029-A030 summarize native ML balance only. They do not solve native
+  scale-side REML, matched native REML, q4 REML, Julia speed, beak rescue,
+  Ayumi-scale runtime, interval coverage, or public reply wording.
+
+## 2026-06-22: Ayumi native REML asymmetry A031-A040
+
+Goal:
+
+- Bank the native REML wave by separating exact-Gaussian mean-side phylo REML
+  evidence from unsupported scale-side, matched `mu`/`sigma`, q2, and q4
+  native REML cells.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "reml-phylo-location", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "reml-bivariate", reporter = "summary")'
+rg -n "balanced native REML|native balanced REML|balanced.*REML|scale-side.*REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|native.*q4.*REML|non-Gaussian REML|engine_control" README.md ROADMAP.md NEWS.md docs vignettes R tests
+git diff -U0 -- docs/design/199-native-reml-phylo-asymmetry-gap.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv | rg -n "balanced native REML|native balanced REML|balanced.*REML|scale-side.*REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|native.*q4.*REML|non-Gaussian REML|engine_control" || true
+```
+
+Result: focused REML tests passed. A031-A040 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, with the derivation
+gap and deferred estimator contract recorded in
+`docs/design/199-native-reml-phylo-asymmetry-gap.md`.
+
+Boundary:
+
+- A031-A040 do not implement balanced native REML. They preserve the
+  exact-Gaussian mean-side-only native REML boundary, keep scale-side and
+  matched phylo REML unsupported, keep q2/q4 native REML unsupported, and do
+  not promote the Julia bridge, interval coverage, or Ayumi-facing reply text.
+
+## 2026-06-22: Ayumi Julia bridge readiness A041-A050
+
+Goal:
+
+- Bank the Julia bridge wave while keeping native R/TMB, direct DRM.jl, and
+  R-via-Julia evidence separate for mean-only, sigma-side, and matched
+  phylogenetic Gaussian REML rows.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-sigma-phylo-reml", reporter = "summary")'
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine", reporter = "summary")'
+DRM_JL_PHYLO_PATH='/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot' /usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-sigma-phylo-reml", reporter = "summary")'
+/Users/z3437171/.juliaup/bin/julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot -e 'using DRM; st = DRM._loconly_reml_simulation_status(); println(st)'
+air format R/julia-bridge.R tests/testthat/test-julia-sigma-phylo-reml.R
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "julia-inference", reporter = "summary")'
+```
+
+Result: pure R bridge gates passed; gate-vs-engine tests passed; the live
+matched sigma-phylo REML bridge smoke passed when pointed at the active DRM.jl
+worktree; the direct loc-only helper reported diagnostic rows with
+`ai_reml_ready = false`. A041-A050 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A041-A050 do not promote the bridge. Mean-only phylo REML remains native
+  R/TMB only, sigma-side and matched sigma-phylo REML bridge cells remain
+  experimental, and no public optimizer, q4 native REML, interval coverage,
+  non-Gaussian REML, or Ayumi reply claim was added.
+
+## 2026-06-22: Ayumi bivariate q4 truth A051-A060
+
+Goal:
+
+- Bank the bivariate q4 wave while separating native ML point/status evidence
+  from native q4 REML, interval coverage, q2-plus-q2, and Julia bridge claims.
+
+Checks run:
+
+```sh
+/usr/local/bin/Rscript --vanilla -e 'devtools::test(filter = "phylo-gaussian", reporter = "summary")'
+```
+
+Result: focused phylogenetic Gaussian tests passed. A051-A060 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`, and the q4 target
+inventory now includes the 250-tip profile-budget status row.
+
+Boundary:
+
+- A051-A060 do not implement native q4 REML, promote q4 bridge support, turn
+  q2-plus-q2 into full q4, make derived q4 correlations interval-ready, claim
+  bootstrap/profile coverage, claim HSquared AI-REML, or claim 10,440-tip
+  sigma-phylo intervals.
+
+## 2026-06-22: Ayumi data readiness A061-A070
+
+Goal:
+
+- Bank the Ayumi-data wave from current local availability and persisted
+  artifacts without launching expensive raw-bundle reruns.
+
+Checks run:
+
+```sh
+ls -la /tmp/ayumi-ls-ecogeo/for_test 2>/dev/null || true
+find . -path ./.git -prune -o \( -iname '*.rds' -o -iname '*birds*tarsus*' -o -iname '*ayumi*q4*' \) -print
+/usr/local/bin/Rscript --vanilla -e 'for (p in c("inst/sim/run/ayumi_model_a_plus_evidence.R", "tools/ayumi-q4-status-harness.R", "tools/ayumi-convergence-stress.R", "tools/ayumi-mass-beak-pv2-rerun.R")) { parse(p); cat("parse ok:", p, "\n") }'
+/usr/local/bin/Rscript --vanilla -e 'files <- c("docs/dev-log/ayumi-convergence/slices-1189-1208/mass-beak-current/fits.rds", "docs/dev-log/ayumi-convergence/slices-391-402/mass-beak-pv2-q4-main/fits.rds"); for (p in files) { x <- readRDS(p); cat("rds ok:", p, "class=", paste(class(x), collapse = "/"), "\n") }'
+```
+
+Result: the raw `/tmp/ayumi-ls-ecogeo/for_test` bundle was absent in this
+session. The Model A+ and q4 harness scripts parsed, and persisted Mass+Beak
+RDS artifacts read cleanly. A061-A070 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`.
+
+Boundary:
+
+- A061-A070 do not claim fresh real-data reruns, do not promote q4 inference,
+  do not run a large Julia ladder, do not claim interval coverage, and do not
+  draft or post an Ayumi reply.
+
+## 2026-06-22: Ayumi inference gap ledger A071-A080
+
+Goal:
+
+- Bank the inference-status wave by separating Wald, profile, bootstrap,
+  coverage, boundary, direct Julia, and bridge-promotion claims.
+
+Checks run:
+
+```sh
+/Users/z3437171/.juliaup/bin/julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot -e 'using DRM; names_to_check = (:fit_q4_sparse_tmb, :profile_sigma_a, :bootstrap_sigma_a, :confint, :drm); for n in names_to_check println(string(n), "=", isdefined(DRM, n)) end'
+```
+
+Result: direct DRM.jl source availability for q4/profile/bootstrap entry
+points was confirmed in the active implementation worktree. A071-A080 are
+banked in `docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`; the
+coverage ledger is in
+`docs/dev-log/dashboard/ayumi-inference-coverage-ledger.tsv`; the boundary
+ledger is in `docs/dev-log/dashboard/ayumi-boundary-status-ledger.tsv`; and the
+summary is in `docs/design/203-ayumi-inference-gap-ledger.md`.
+
+Boundary:
+
+- A071-A080 do not claim calibrated coverage, do not promote the R bridge, do
+  not add native q4 REML, do not convert direct DRM.jl source availability into
+  Ayumi-scale interval support, and do not draft or post an Ayumi reply.
+
+## 2026-06-22: Ayumi literature/docs A081-A090
+
+Goal:
+
+- Bank the literature/docs wave by connecting the public location-scale
+  motivation, local identifiability evidence, and current route-specific
+  drmTMB/DRM.jl boundaries.
+
+Checks run:
+
+```sh
+web check: https://ayumi-495.github.io/Eco_location-scale_model/
+web search: Simpson et al. 2017 PC priors; Chung et al. 2013 penalized variance components; de Villemereuil and Nakagawa 2014; Nakagawa et al. 2025 PLSM
+```
+
+Result: A081-A090 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`. The synthesis is
+in `docs/design/204-ayumi-literature-docs-summary.md`; README, formula grammar,
+and known limitations now state the native ML versus native REML boundary and
+keep direct DRM.jl interval machinery separate from R bridge promotion.
+
+Boundary:
+
+- A081-A090 do not add a public vignette, do not claim brms/glmmTMB parity, do
+  not infer calibrated q4 intervals from literature, and do not draft or post
+  an Ayumi issue reply.
+
+## 2026-06-22: Ayumi reply-readiness gate A091-A099
+
+Goal:
+
+- Bank reply-prep governance without drafting or posting an Ayumi issue reply.
+
+Checks run:
+
+```sh
+process check: no GitHub issue action; no Ayumi-facing reply text created
+```
+
+Result: A091-A098 are banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv` as a
+non-postable readiness gate, and A099 is blocked until explicit maintainer
+approval. The readiness gate is in
+`docs/design/205-ayumi-reply-readiness-gate.md`.
+
+Boundary:
+
+- A091-A099 do not draft a reply, do not post a reply, do not touch the
+  external issue, and do not promote native q4 REML, AI-REML, bridge support,
+  public optimizer controls, or 10,440-tip intervals.
+
+## 2026-06-22: Ayumi phylo-balance 100-slice closeout A100
+
+Goal:
+
+- Close the local 100-slice Ayumi phylogenetic balance arc with a durable
+  after-arc report and recovery checkpoint.
+
+Checks run:
+
+```sh
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result: A100 is banked in
+`docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv`. The closeout report
+is `docs/dev-log/after-task/2026-06-22-ayumi-phylo-balance-100-closeout.md`.
+
+Boundary:
+
+- This closeout does not draft or post an Ayumi reply, does not touch the
+  external issue, and does not promote native q4 REML, AI-REML, bridge support,
+  public optimizer controls, or 10,440-tip intervals.
+
+## 2026-06-22: Ayumi phylo-balance 100-slice completion audit
+
+Goal:
+
+- Verify from current worktree evidence that the Ayumi phylogenetic balance
+  research and 100-slice plan are complete without treating the blocked public
+  reply gate as authorization to draft or post.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+(cd /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot && git status --short --branch && git diff --check)
+awk -F '\t' 'NR==1 {print "header_fields=" NF; next} {status[$8]++; if (NF != 13) print "bad_field_count", NR, NF, $1; expected=sprintf("A%03d", NR-1); if ($1 != expected) print "bad_id", NR, $1, expected; if ($8 != "banked" && $8 != "blocked") print "bad_status", NR, $1, $8; if ($8 == "banked" && $12 == "planned") print "banked_without_evidence", NR, $1} END {for (s in status) print "status", s, status[s]}' docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv
+awk -F '\t' 'NR>1 && $12 != "planned" {print $1 "\t" $12}' docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv | while IFS=$'\t' read -r id path; do if [ ! -e "$path" ]; then printf 'missing_evidence\t%s\t%s\n' "$id" "$path"; fi; done
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-reml-phylo-location.R"); testthat::test_file("tests/testthat/test-scale-phylo-identifiability.R")'
+git diff -U0 -- README.md docs/design/01-formula-grammar.md docs/dev-log/known-limitations.md docs/design/197-ayumi-phylo-balance-research-100-slices.md docs/design/198-ayumi-native-ml-balance-summary.md docs/design/199-native-reml-phylo-asymmetry-gap.md docs/design/200-ayumi-julia-bridge-balance-readiness.md docs/design/201-ayumi-bivariate-q4-truth.md docs/design/202-ayumi-data-readiness-summary.md docs/design/203-ayumi-inference-gap-ledger.md docs/design/204-ayumi-literature-docs-summary.md docs/design/205-ayumi-reply-readiness-gate.md docs/dev-log/dashboard/ayumi-phylo-balance-100-slices.tsv docs/dev-log/dashboard/ayumi-inference-coverage-ledger.tsv docs/dev-log/dashboard/ayumi-boundary-status-ledger.tsv docs/dev-log/after-task/2026-06-22-ayumi-phylo-balance-100-closeout.md | rg -n "balanced native REML|native balanced REML|q4 AI-REML|AI-REML solves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|non-Gaussian REML|engine_control|No R bridge promotion|No public optimizer promotion" || true
+```
+
+Result:
+
+- The Ayumi 100-slice ledger has 13 fields, exactly 100 slice rows, 99 banked
+  rows, and one blocked row: A099, the explicit approved-issue-reply gate.
+- No banked row lacks an evidence path, and no recorded evidence path is
+  missing.
+- Mission-control validation passed with 100 Ayumi balance-slice rows, 8 Ayumi
+  balance vocabulary rows, 6 Ayumi balance tracker rows, 8 Ayumi inference
+  coverage rows, and 8 Ayumi boundary-status rows.
+- Focused phylogenetic checks passed after loading the package with
+  `devtools::load_all()`: `test-phylo-gaussian.R` 269 pass,
+  `test-reml-phylo-location.R` 8 pass, and
+  `test-scale-phylo-identifiability.R` 13 pass.
+- The overclaim scan hit only negative guardrail wording, not a promotion of
+  native q4 REML, q4 AI-REML, bridge support, public optimizer controls, or
+  10,440-tip intervals.
+
+Boundary:
+
+- Completion means the local research plan, ledgers, evidence packet, and
+  guarded closeout are done. It does not mean an Ayumi reply has been drafted or
+  posted, and it does not convert direct DRM.jl q4/profile/bootstrap evidence
+  into R bridge support or interval-coverage evidence.
+
+## 2026-06-22: Ayumi reply draft and follow-on implementation plan
+
+Goal:
+
+- Open the post-research Ayumi arc by drafting a local, non-posted reply and
+  defining the next implementation slices for remaining native REML, inference,
+  bridge, data, docs, and public-reply gaps.
+
+Checks run:
+
+```sh
+rg -n "balanced native REML|native balanced REML|q4 AI-REML|AI-REML solves|AI-REML validates|HSquared proves|10k sigma-phylo interval|10,440-tip sigma-phylo interval|non-Gaussian REML|engine_control|public optimizer|R bridge support|native q4 REML" docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md || true
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)" docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md || true
+```
+
+Result: the local reply draft is
+`docs/dev-log/ayumi-convergence/2026-06-22-ayumi-phylo-balance-reply-draft.md`.
+The next 100 implementation slices are
+`docs/design/206-ayumi-follow-on-implementation-slices.md`. The broad scan hits
+only negative guardrail wording; the positive-claim scan is clean.
+
+Update: a pasted snapshot of `Ayumi-495/LS_ecogeographical-rules#2` was
+supplied after the draft was committed. Direct URL access was still unreliable
+from this session, but the pasted text is enough to confirm the issue context
+and that Ayumi's Bayesian results are not in yet. The draft now carries that
+guard explicitly.
+
+Boundary:
+
+- No issue comment was posted. A099 remains blocked until the exact final issue
+  comment is approved and the live issue thread has been refreshed. Do not
+  compare against Bayesian results until Ayumi has shared them.
+
+## 2026-06-22: Structured random-effect balance start
+
+Goal:
+
+- Start the broader structured random-effect balance arc requested after the
+  Ayumi phylo-balance closeout: q1, q2, q2-plus-q2, and q4 status for
+  `phylo()`, `spatial()`, `animal()`, `relmat()`, and q1
+  `phylo_interaction()`.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+(cd /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot && git status --short --branch && git diff --check)
+python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/drm-status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/drm-sweep.json
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- SR001-SR010 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv`.
+- `docs/dev-log/dashboard/structured-re-balance-matrix.tsv` records 27
+  structured random-effect cells across `phylo()`, `spatial()`, `animal()`,
+  `relmat()`, and `phylo_interaction()`.
+- `tools/validate-mission-control.py` now owns the structured matrix and
+  100-slice ledger schema, required row IDs, status vocabularies, evidence
+  links, wave ordering, dependencies, and AI-REML overclaim guard.
+- The status-inventory overclaim scan returned no positive hits.
+
+Boundary:
+
+- This tranche does not implement new model code. It banks the corrected scope,
+  evidence matrix, and next 100-slice ledger. SR011-SR100 remain queued. Native
+  broad structured REML, q4 interval coverage, public optimizer controls,
+  R-to-Julia bridge support, and non-Gaussian REML remain unclaimed.
+
+## 2026-06-22: Structured native ML q1 evidence SR011-SR020
+
+Goal:
+
+- Bank current focused native ML q1 evidence for `phylo()`, coordinate
+  `spatial()`, `animal()`, `relmat()`, and q1 `phylo_interaction()`.
+
+Checks run:
+
+```sh
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-spatial-gaussian.R"); testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R"); testthat::test_file("tests/testthat/test-phylo-interaction.R"); testthat::test_file("tests/testthat/test-count-structured-mu.R")'
+```
+
+Result:
+
+- `test-phylo-gaussian.R`: 269 pass.
+- `test-spatial-gaussian.R`: 144 pass.
+- `test-animal-relmat-gaussian.R`: 156 pass.
+- `test-phylo-interaction.R`: 55 pass.
+- `test-count-structured-mu.R`: 124 pass.
+- SR011-SR020 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv`.
+
+Boundary:
+
+- This is native TMB ML q1 evidence only. It does not promote native REML,
+  q2/q4, bridge parity, public optimizer controls, or calibrated interval
+  coverage. `phylo_interaction()` remains q1-only.
+
+## 2026-06-22: Structured native ML q2 evidence SR021-SR030
+
+Goal:
+
+- Bank current native ML q2 location evidence and scale-side q2 decisions for
+  `phylo()`, coordinate `spatial()`, `animal()`, and `relmat()`.
+
+Checks run:
+
+```sh
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-spatial-gaussian.R"); testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R"); testthat::test_file("tests/testthat/test-phylo-interaction.R"); testthat::test_file("tests/testthat/test-count-structured-mu.R")'
+NOT_CRAN=true Rscript - <<'RS'
+devtools::load_all(quiet = TRUE)
+# Direct scale-only q2 smoke used named coords and Q objects in scope.
+# Result: spatial/animal/relmat sigma1/sigma2-only q2 formulas reject as
+# partial location-scale blocks.
+RS
+```
+
+Result:
+
+- q2 location evidence is current in `test-phylo-gaussian.R`,
+  `test-spatial-gaussian.R`, and `test-animal-relmat-gaussian.R`.
+- A direct scale-only q2 smoke rejected coordinate `spatial()`, `animal()`, and
+  `relmat()` `sigma1`/`sigma2`-only formulas as partial location-scale blocks.
+- The q2 status note is
+  `docs/design/208-structured-q2-native-ml-status.md`.
+- SR021-SR030 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv`.
+
+Boundary:
+
+- This is native TMB ML q2 fit/extractor and decision evidence only. It does
+  not promote q4, native REML, AI-REML, bridge parity, public optimizer
+  controls, or interval coverage.
+
+## 2026-06-22: Structured native ML q4 evidence SR031-SR040
+
+Goal:
+
+- Bank current native ML q4 point/extractor evidence for `phylo()`, coordinate
+  `spatial()`, `animal()`, and `relmat()` while keeping interval, REML, and
+  bridge claims separate.
+
+Checks run:
+
+```sh
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-spatial-gaussian.R"); testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R"); testthat::test_file("tests/testthat/test-phylo-interaction.R"); testthat::test_file("tests/testthat/test-count-structured-mu.R")'
+```
+
+Result:
+
+- q4 point/extractor evidence is current in `test-phylo-gaussian.R`,
+  `test-spatial-gaussian.R`, and `test-animal-relmat-gaussian.R`.
+- The q4 status note is
+  `docs/design/209-structured-q4-native-ml-status.md`.
+- SR031-SR040 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv`.
+
+Boundary:
+
+- This is native TMB ML q4 point/extractor evidence only. q4 correlations are
+  derived interval-unavailable targets in the current native surface. No native
+  q4 REML, HSquared AI-REML, bridge parity, public optimizer controls, or
+  calibrated interval coverage is claimed.
+
+## 2026-06-22: Structured slope evidence SR041-SR050
+
+Goal:
+
+- Bank current structured one-slope status for `phylo()`, coordinate
+  `spatial()`, `animal()`, and `relmat()`.
+
+Checks run:
+
+```sh
+NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-phylo-gaussian.R"); testthat::test_file("tests/testthat/test-spatial-gaussian.R"); testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R"); testthat::test_file("tests/testthat/test-phylo-interaction.R"); testthat::test_file("tests/testthat/test-count-structured-mu.R")'
+```
+
+Result:
+
+- Structured one-slope evidence is current in `test-phylo-gaussian.R`,
+  `test-spatial-gaussian.R`, and `test-animal-relmat-gaussian.R`.
+- The slope status note is `docs/design/210-structured-slope-status.md`.
+- SR041-SR050 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv`.
+
+Boundary:
+
+- This is independent one-slope univariate Gaussian `mu` evidence only. It does
+  not promote correlated structured slopes, bivariate structured slopes,
+  residual-scale structured slopes, non-Gaussian structured slopes, REML,
+  AI-REML, bridge parity, public optimizer controls, or coverage.
+
+## 2026-06-22: Structured coverage unblock pilots SR064-SR066
+
+Goal:
+
+- Unblock the q1, q2, and q4 structured random-effect coverage-pilot rows only
+  as labelled pilot accounting, not as interval-coverage validation.
+
+Checks run:
+
+```sh
+NOT_CRAN=true Rscript docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/run-pilot.R
+awk -F '\t' 'NR>1 {c[$8]++} END {for (k in c) print k, c[k]}' docs/dev-log/dashboard/structured-re-balance-100-slices.tsv
+tools/validate-mission-control.py
+git diff --check
+rg -n "(supports|implements|implemented|available|ready|promotes|validates|proves).*(native q4 REML|q4 AI-REML|HSquared AI-REML|R bridge support|10,440-tip|non-Gaussian REML|public optimizer)|10,440-tip.*(ready|supported|available|implemented)|AI-REML (solves|validates|supports)" docs/design/207-structured-random-effect-balance-100-slices.md docs/design/212-structured-inference-status.md docs/design/215-structured-closeout-gates.md docs/dev-log/after-task/2026-06-22-structured-coverage-unblock-pilots.md docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/README.md docs/dev-log/dashboard/structured-re-balance-100-slices.tsv
+```
+
+Result:
+
+- The pilot runner completed with warnings and wrote:
+  `docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-rows.csv`
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-summary.csv`.
+- The runner was corrected before banking because the first summary counted
+  unavailable intervals as finite. Finite intervals are now counted from finite
+  lower and upper bounds.
+- Corrected pilot summary:
+  q1 had 3 fit rows, 3 converged positive-Hessian rows, 3 interval rows, 1
+  finite interval, and finite-interval coverage 1/1; q2 had 6 fit/converged
+  rows, 0 positive-Hessian rows, and 0 finite intervals; q4 had 8 fit-target
+  rows, 0 converged rows, 0 positive-Hessian rows, and 0 finite intervals.
+- SR064-SR066 are banked in
+  `docs/dev-log/dashboard/structured-re-balance-100-slices.tsv` with evidence
+  at
+  `docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/README.md`.
+- The structured 100-slice ledger now reports 91 `banked` rows and 9 `blocked`
+  rows.
+- `tools/validate-mission-control.py` passed with `27 structured RE matrix rows`
+  and `100 structured RE balance-slice rows`.
+- `git diff --check` returned no output.
+- The forbidden-claim scan returned no matches on the updated structured
+  coverage and closeout files.
+
+Boundary:
+
+- This banks target identity, fit status, Hessian status, interval
+  availability, and MCSE accounting. It does not bank interval reliability, q4
+  coverage, Ayumi-scale coverage, native q4 REML, R-via-Julia bridge support,
+  non-Gaussian REML, or AI-REML.
+
+## 2026-06-22: Structured bridge unblock smoke SR073-SR075
+
+Goal:
+
+- Test whether the q1, q2, and q4 bridge-blocked rows could be moved from
+  blocked to banked using live bridge evidence from the active DRM.jl worktree.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_RELMAT_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot NOT_CRAN=true Rscript -e 'devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-julia-sigma-phylo-reml.R"); testthat::test_file("tests/testthat/test-julia-structured.R"); testthat::test_file("tests/testthat/test-julia-phylo-q4-corpairs.R")'
+```
+
+Result:
+
+- `test-julia-sigma-phylo-reml.R`: 52 pass.
+- `test-julia-structured.R`: 47 pass.
+- `test-julia-phylo-q4-corpairs.R`: 27 pass.
+- The run is useful live smoke evidence for the REML gate, structured bridge
+  finite-and-sane route checks, and q4 `corpairs()` reconstruction.
+- SR073-SR075 remain blocked because the required row-complete parity evidence
+  is still absent: native R/TMB, direct DRM.jl, and R-via-Julia must agree on
+  the row-specific target before a bridge parity row can be banked.
+
+Boundary:
+
+- This does not promote public bridge support, public optimizer controls,
+  native q4 REML, non-Gaussian REML, or AI-REML. It sharpens the blocker only.
+
+## 2026-06-22: Structured random-effect finish 100-slice plan SR101-SR200
+
+Goal:
+
+- Open the next structured random-effect 100-slice tranche after the 91/9
+  balance disposition, with bridge parity, calibrated coverage, native REML
+  boundaries, structured-type gaps, R docs, Julia twin sync, and Ayumi closeout
+  gates separated.
+
+Checks run:
+
+```sh
+tools/validate-mission-control.py
+awk -F '\t' 'NR>1 {c[$8]++} END {for (k in c) print k, c[k]}' docs/dev-log/dashboard/structured-re-finish-100-slices.tsv
+awk -F '\t' 'NR==1 {print NF, $0} NR>1 && NF!=13 {print NR, NF, $0}' docs/dev-log/dashboard/structured-re-finish-100-slices.tsv
+git diff --check
+```
+
+Result:
+
+- Added `docs/dev-log/dashboard/structured-re-finish-100-slices.tsv` with
+  SR101-SR200.
+- Added `docs/design/216-structured-random-effect-finish-100-slices.md`.
+- Updated `tools/validate-mission-control.py` to validate the new ledger:
+  exactly 100 rows, `SR101`-`SR200`, order 101-200, 10 rows per wave, valid
+  statuses, valid bridge statuses, dependency order, evidence paths for banked
+  rows, and the AI-REML overclaim guard.
+- Updated `docs/dev-log/dashboard/README.md` to distinguish the first
+  structured balance ledger from the second structured finish ledger.
+- `tools/validate-mission-control.py` passed with `100 structured RE
+  finish-slice rows`.
+- Opening disposition: 10 `banked`, 23 `blocked`, and 67 `queued` rows.
+- Field-count audit found 13 fields in the header and no malformed rows.
+- `git diff --check` returned no output.
+- The forbidden-claim scan returned no matches on the new finish ledger,
+  design note, dashboard README text, and after-task report.
+
+Boundary:
+
+- SR101-SR110 are banked as governance and planning rows. The capability rows
+  remain queued or blocked until evidence exists. This does not add public
+  bridge support, native q4 REML, HSquared AI-REML, non-Gaussian REML, public
+  optimizer controls, interval coverage reliability, an Ayumi reply, or a
+  commit.
+
+## 2026-06-22: Mission-control member board and SC201-SC400 widget
+
+Goal:
+
+- Restore the local mission-control widget, make member review/discussion a
+  validator-owned artifact, and expose the next SC201-SC400 structured
+  random-effect conversion ledger without promoting any package capability.
+
+Checks run:
+
+```sh
+git status --short --branch
+git diff --check
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+python3 -m py_compile tools/validate-mission-control.py
+python3 tools/validate-mission-control.py
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-balance-matrix.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/member-roster.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/member-discussions.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-conversion-200-slices.tsv >/dev/null
+```
+
+Result:
+
+- `tools/start-mission-control.sh` now copies every dashboard TSV by pattern
+  and still refreshes repo truth in the served `status.json`.
+- `tools/validate-mission-control.py` now validates the copy-all-TSV launcher
+  rule, 13 member roster rows, 13 discussion rows, 20 wave-assignment rows, and
+  200 SC201-SC400 conversion rows.
+- Added `member-roster.tsv`, `member-discussions.tsv`,
+  `member-wave-assignments.tsv`, and
+  `structured-re-conversion-200-slices.tsv`.
+- The browser widget now renders 13 member cards, 13 discussion cards, 21
+  member-wave rows including the header, 201 conversion-slice rows including
+  the header, sidecar blocker cards, and structured ledger summaries.
+- Browser verification reported no console errors. The visible sidecar counts
+  are SR001-SR100: 91 banked and 9 blocked; SR101-SR200: 10 banked, 23 blocked,
+  and 67 queued; SC201-SC220: 20 banked infrastructure rows; SC221-SC400: 180
+  queued rows.
+- The dashboard is live at `http://127.0.0.1:8765/` from `/tmp/drm-dashboard`
+  in a detached local `python3 -m http.server` process.
+- Recovery checkpoint written:
+  `docs/dev-log/recovery-checkpoints/2026-06-22-163601-codex-checkpoint.md`.
+
+Boundary:
+
+- This is mission-control and dashboard infrastructure only. It does not bank
+  bridge parity, interval coverage, native q4 REML, non-Gaussian REML,
+  HSquared AI-REML, public optimizer controls, an Ayumi reply, or a commit.
+
+## 2026-06-22: Structured RE conversion contracts SC221-SC400
+
+Goal:
+
+- Bank at least 50 additional SC201-SC400 slices before 17:30 MDT while keeping
+  the work to validator-owned contract/status infrastructure.
+
+Checks run:
+
+```sh
+date '+%Y-%m-%d %H:%M:%S %Z'
+git status --short --branch
+git diff --check
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+rg -n "AI-REML|HSquared|coverage|bridge support|public optimizer|q4 REML" \
+  docs/dev-log/dashboard/structured-re-*.tsv \
+  docs/dev-log/dashboard/sweep.json \
+  docs/dev-log/dashboard/README.md
+```
+
+Result:
+
+- Added ten structured-RE conversion contract ledgers:
+  `structured-re-status-vocabulary.tsv`,
+  `structured-re-q1-bridge-payload-contract.tsv`,
+  `structured-re-q1-reconstruction-map.tsv`,
+  `structured-re-q1-parity-fixture-contract.tsv`,
+  `structured-re-q2-target-contract.tsv`,
+  `structured-re-q2-native-evidence.tsv`,
+  `structured-re-q2-bridge-boundary.tsv`,
+  `structured-re-q4-target-contract.tsv`,
+  `structured-re-q4-extractor-parity.tsv`, and
+  `structured-re-q4-bridge-boundary.tsv`.
+- Added six more closeout/design ledgers:
+  `structured-re-reml-scope-gate.tsv`,
+  `structured-re-ademp-design.tsv`,
+  `structured-re-type-gaps.tsv`,
+  `structured-re-r-docs-api-sync.tsv`,
+  `structured-re-julia-twin-sync.tsv`, and
+  `structured-re-closeout-package.tsv`, plus
+  `docs/design/217-structured-reml-and-ademp-conversion-gates.md`.
+- Updated `tools/validate-mission-control.py` to validate those ledgers,
+  including schemas, existing evidence links, status vocabularies, q1 payload
+  matrix-digest requirements, q2-vs-q4 separation, q4 interval-unavailable
+  guards, REML forbidden-wording rows, ADEMP MCSE and denominator policy,
+  active twin branch/head evidence, member IDs, and AI-REML overclaim guards.
+- Banked SC221-SC400. The conversion ledger now reports 200 `banked` rows and
+  0 `queued` rows.
+- The validator passed with 7 structured RE vocabulary rows, 5 q1
+  payload-contract rows, 6 q1 reconstruction-map rows, 6 q1 parity-fixture
+  rows, 6 q2 target-contract rows, 5 q2 native-evidence rows, 6 q2
+  bridge-boundary rows, 5 q4 target-contract rows, 4 q4 extractor-parity rows,
+  6 q4 bridge-boundary rows, 6 REML scope-gate rows, 3 ADEMP design rows, 5
+  structured type-gap rows, 5 R docs/API sync rows, 4 Julia twin-sync rows, and
+  6 closeout-package rows.
+- Updated the dashboard widget to render all contract groups and bumped the
+  dashboard build to `r12`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-22-structured-re-conversion-contracts.md`.
+
+Boundary:
+
+- SC221-SC400 bank contract and governance state only. They do not bank
+  executable R-via-Julia parity, q2 native REML, q4 native REML, q4 intervals,
+  calibrated coverage, broad bridge support, public optimizer controls, an
+  Ayumi reply, or a commit.
+
+## 2026-06-22: Structured RE executable contract guards and ADEMP scaffold
+
+Goal:
+
+- Turn the banked q1/q2/q4 structured random-effect contracts into executable
+  guards and add an ADEMP scaffold that stages cells, seeds, MCSE policy, and
+  failed-fit/interval denominator accounting without promoting bridge support
+  or coverage.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_ademp.R \
+  inst/sim/run/sim_write_structured_re_ademp_scaffold.R \
+  tests/testthat/test-structured-re-conversion-contracts.R \
+  tests/testthat/test-structured-re-ademp-scaffold.R
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); res <- testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R'); stopifnot(all(vapply(res, function(x) is.null(x[['failure']]) && is.null(x[['error']]), logical(1))))"
+Rscript --vanilla -e "devtools::load_all(quiet = TRUE); res <- testthat::test_file('tests/testthat/test-structured-re-ademp-scaffold.R'); stopifnot(all(vapply(res, function(x) is.null(x[['failure']]) && is.null(x[['error']]), logical(1))))"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 \
+  sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-q1-bridge-payload-contract.tsv >/dev/null
+```
+
+Result:
+
+- Added `tests/testthat/test-structured-re-conversion-contracts.R`: 65
+  passing assertions guard the q1 bridge payload/reconstruction/parity
+  contracts, q2 target/bridge/REML separation, q4 smoke/extractor/interval
+  boundaries, and ADEMP design denominator/MCSE wording.
+- Added `inst/sim/R/sim_structured_re_ademp.R`,
+  `inst/sim/run/sim_write_structured_re_ademp_scaffold.R`, and
+  `tests/testthat/test-structured-re-ademp-scaffold.R`: 34 passing assertions
+  cover q1/q2/q4 condition registry rows, reproducible Phase 18 seed tables,
+  the 0.95 coverage MCSE target of 475 required replicates with a 500-replicate
+  default, failed-fit and unavailable-interval denominator accounting, and a
+  resumable scaffold writer.
+- `devtools::test(filter = 'structured-re')` passed with 99 assertions, 0
+  failures, 0 warnings, and 0 skips.
+- Added `structured-re-executable-evidence.tsv`; the validator now checks its
+  schema, evidence paths, statuses, claim classes, non-empty commands, and
+  AI-REML overclaim guard. The dashboard widget build is `r13` and renders the
+  executable-evidence group.
+- `tools/validate-mission-control.py` passed and reported 6
+  executable-evidence rows. `git diff --check` was clean. The local dashboard
+  served `status.json`, `structured-re-executable-evidence.tsv`, and
+  `structured-re-q1-bridge-payload-contract.tsv`.
+
+Boundary:
+
+- This banks executable guards and runner scaffolds only. It does not bank
+  R-via-Julia parity, q2 native REML, q4 native REML, q4 interval coverage,
+  non-Gaussian REML, broad bridge support, public optimizer controls, or any
+  Ayumi-facing reply.
+
+## 2026-06-22: Structured RE fixture adapters and pilot accounting
+
+Goal:
+
+- Finish the next five structured RE execution slices: q1 parity fixture,
+  q1 payload/reconstruction hardening, q2 same-target fixture, q4 extractor
+  boundary fixture, and ADEMP pilot adapters.
+
+Checks run:
+
+```sh
+air format inst/sim/R/sim_structured_re_bridge_fixtures.R \
+  inst/sim/R/sim_structured_re_ademp.R \
+  inst/sim/run/sim_write_structured_re_ademp_scaffold.R \
+  tests/testthat/test-structured-re-bridge-fixtures.R \
+  tests/testthat/test-structured-re-ademp-scaffold.R
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- Added `sim_structured_re_bridge_fixtures.R` with deterministic q1 payload,
+  matrix digest, reconstruction, bridge parity status, q2 same-target, and q4
+  extractor-boundary helpers.
+- Added `test-structured-re-bridge-fixtures.R`: 42 passing assertions. The q1
+  parity fixture banks the known Route A all-node logLik blocker rather than
+  promoting R-via-Julia bridge support.
+- Extended `sim_structured_re_ademp.R` and
+  `sim_write_structured_re_ademp_scaffold.R` so the scaffold writes mock pilot
+  replicate and denominator CSVs. `test-structured-re-ademp-scaffold.R` now has
+  48 passing assertions.
+- `devtools::test(filter = 'structured-re')` passed with 155 assertions, 0
+  failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed and reported 12
+  executable-evidence rows. The executable-evidence TSV now uses
+  `devtools::test(filter = ...)` commands so evidence rows fail hard when a
+  targeted file fails.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-22-structured-re-fixture-adapters.md`.
+
+Boundary:
+
+- This banks deterministic fixture adapters and ADEMP pilot accounting only. It
+  does not bank live native/direct/bridge parity, q2 or q4 bridge support, q4
+  intervals, calibrated coverage, non-Gaussian REML, broad bridge support, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: q2 and q4 bridge boundary evidence
+
+Goal:
+
+- Bank the current q2 and q4 bridge truth without promoting either route to
+  broad bridge support: q2 phylo location remains an intentional pre-JuliaCall
+  rejection, while q4 has live point-extractor evidence for reconstructed
+  among-axis correlations only.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e 'devtools::test(filter = "julia-gate-vs-engine")'
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e 'devtools::test(filter = "julia-phylo-q4-corpairs")'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- `devtools::test(filter = "julia-gate-vs-engine")` passed with 143
+  assertions, 0 failures, 0 warnings, and 0 skips. The q2 phylo bridge route
+  is intentionally rejected before JuliaCall as a partial q4 payload, with the
+  exact target and next gate recorded in
+  `docs/dev-log/dashboard/structured-re-q2-bridge-boundary.tsv`.
+- `devtools::test(filter = "julia-phylo-q4-corpairs")` passed with 27
+  assertions, 0 failures, 0 warnings, and 0 skips. The q4 bridge route now has
+  live corpairs point-extractor evidence, but no full native/direct/R-via-Julia
+  parity, interval, or coverage claim.
+- `tools/validate-mission-control.py` passed and reported 15 executable-evidence
+  rows. `git diff --check` was clean.
+
+Boundary:
+
+- Native q2 ML fit status remains separate from q2 R-via-Julia bridge support.
+  q2 bridge work needs a q2-specific payload contract before parity can be
+  tested. q4 corpairs evidence is point/extractor evidence only; it does not
+  bank q4 interval parity, native q4 REML, q4 coverage, non-Gaussian REML, broad
+  R bridge support, public optimizer controls, or an Ayumi-facing reply.
+
+## 2026-06-22: DRM.jl exact-Gaussian REML twin sync
+
+Goal:
+
+- Refresh the DRM.jl side of the structured-RE twin sync with current
+  exact-Gaussian location-only REML diagnostic evidence from the active
+  implementation worktree.
+
+Checks run:
+
+```sh
+julia --project=. test/test_location_only_reml_mme.jl
+```
+
+Result:
+
+- In `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot` at
+  `e016fc15b4fb`, the focused test passed:
+  - supplied-variance REML and traces: 208/208 assertions;
+  - boundary diagnostics: 144/144 assertions;
+  - status schema and scaling smoke: 248/248 assertions.
+- `docs/dev-log/dashboard/structured-re-julia-twin-sync.tsv` now has a
+  dedicated `drmjl_loconly_reml_test` row so the dashboard distinguishes direct
+  DRM.jl exact-Gaussian diagnostic evidence from R-via-Julia bridge support.
+
+Boundary:
+
+- This is direct Julia diagnostic evidence only. It does not promote q4,
+  Laplace, non-Gaussian, interval coverage, Ayumi-facing, public optimizer, or
+  R bridge support. REML and AI-REML wording remains exact-Gaussian and
+  route-specific.
+
+## 2026-06-22: O081-O100 structured-RE docs/API claim cleanup
+
+Goal:
+
+- Synchronize the current dashboard/design wording after the q1/q2/q4 evidence
+  changes and prove that stale blocker language and forbidden support wording
+  are not leaking into current source surfaces.
+
+Checks run:
+
+```sh
+air format R/julia-bridge.R \
+  tests/testthat/test-julia-tmb-parity.R \
+  tests/testthat/test-julia-sigma-phylo-reml.R \
+  tests/testthat/test-structured-re-bridge-fixtures.R
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e 'devtools::test(filter = "julia-tmb-parity|julia-sigma-phylo-reml|julia-gate-vs-engine|julia-phylo-q4-corpairs|structured-re-bridge-fixtures")'
+rg -n "known_all_node_logLik_bug|Route A skip|route_a.*blocked|91 banked|9 blocked|10 banked, 23 blocked|SR001-SR100 remains 91|SR101-SR200 remains 10" \
+  README.md ROADMAP.md NEWS.md docs/design docs/dev-log/dashboard vignettes R tests \
+  --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n "AI-REML solves|AI-REML validates|HSquared proves|q4 AI-REML|10k sigma-phylo interval ready|10k-scale intervals|public bridge support|broad R bridge support|non-Gaussian REML" \
+  README.md ROADMAP.md NEWS.md docs/design docs/dev-log/dashboard vignettes R tests \
+  --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- The focused bridge/documentation test run passed with 292 assertions, 0
+  failures, 0 warnings, and 0 skips:
+  - `julia-gate-vs-engine`: 143 assertions;
+  - `julia-phylo-q4-corpairs`: 27 assertions;
+  - `julia-sigma-phylo-reml`: 64 assertions;
+  - `julia-tmb-parity`: 16 assertions;
+  - `structured-re-bridge-fixtures`: 42 assertions.
+- Current dashboard/design wording now reports `SR001-SR100` as 92 banked and
+  8 blocked, and `SR101-SR200` as 12 banked, 21 blocked, and 67 queued.
+- Stale Route A blocker language was removed from current status sources and
+  replaced with the route-specific q1 mean-phylo ML parity boundary.
+- Forbidden-claim scans found only guardrail or negative statements in current
+  source surfaces; no new public bridge support, q4 AI-REML, non-Gaussian REML,
+  public optimizer, interval coverage, or 10k interval claim was added.
+- `tools/validate-mission-control.py` passed with 5 Julia twin-sync rows, and
+  `git diff --check` was clean.
+
+Boundary:
+
+- This is documentation/API claim cleanup and focused route evidence. It does
+  not promote q1 sigma/mu+sigma same-target ML parity, q2 bridge support, q4
+  bridge support, native q4 REML, calibrated interval coverage, non-Gaussian
+  REML, public optimizer controls, commits, PRs, or Ayumi-facing text.
+
+## 2026-06-22: O101-O120 structured-RE closeout gates
+
+Goal:
+
+- Close the planned O001-O120 tranche with current validation, served-widget
+  evidence, and a durable recovery checkpoint while leaving staging, commits,
+  public bridge promotion, and Ayumi-facing action untouched.
+
+Checks run:
+
+```sh
+git status --short --branch
+git log --oneline --decorate -8
+tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json
+python3 -m json.tool docs/dev-log/dashboard/sweep.json
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 \
+  sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json
+curl -fsS http://127.0.0.1:8765/sweep.json
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv
+curl -fsS http://127.0.0.1:8765/structured-re-balance-matrix.tsv
+curl -fsS http://127.0.0.1:8765/structured-re-julia-twin-sync.tsv
+curl -fsS http://127.0.0.1:8765/bridge-parity-smoke-status.tsv
+Rscript tools/codex-checkpoint.R \
+  --goal "O001-O120 structured RE bridge evidence closeout" \
+  --next "Review the O001-O120 checkpoint, then choose the next q1 sigma/mu+sigma ML parity or q2 payload-contract slice." \
+  --sections 5 \
+  --output docs/dev-log/recovery-checkpoints/2026-06-22-o001-o120-structured-re-bridge-checkpoint.md
+```
+
+Result:
+
+- `git status --short --branch` reported
+  `codex/ai-reml-transfer-slices` ahead of origin by 6 commits with unstaged
+  local O001-O120 changes only. The active DRM.jl worktree
+  `codex/ai-reml-gaussian-mme-pilot` remained clean and ahead of origin by 1.
+- `tools/validate-mission-control.py` passed with 27 structured-RE matrix rows,
+  100 structured-RE balance rows, 100 structured-RE finish rows, 200 conversion
+  rows, 15 executable-evidence rows, and 5 Julia twin-sync rows.
+- `status.json` and `sweep.json` parsed as JSON. `sh -n
+  tools/start-mission-control.sh` passed. `git diff --check` was clean in both
+  active worktrees.
+- The dashboard was already listening at `http://127.0.0.1:8765/`. Direct
+  served fetches passed for `status.json`, `sweep.json`,
+  `structured-re-finish-100-slices.tsv`, `structured-re-balance-matrix.tsv`,
+  `structured-re-julia-twin-sync.tsv`, and `bridge-parity-smoke-status.tsv`.
+- The planned recovery checkpoint path is
+  `docs/dev-log/recovery-checkpoints/2026-06-22-o001-o120-structured-re-bridge-checkpoint.md`.
+
+Boundary:
+
+- O001-O120 is a local evidence tranche. It banks q1 mean-phylo Route A ML
+  parity, q1 sigma-only bridge REML admission, q1 matched mu+sigma bridge REML
+  admission, q2 intentional-error evidence, q4 corpairs point-extractor
+  evidence, refreshed DRM.jl exact-Gaussian diagnostic sync, and served widget
+  state. It does not stage, commit, post to Ayumi, promote q2/q4 bridge
+  support, promote native q4 REML, claim interval coverage, claim non-Gaussian
+  REML, expose public optimizer controls, or broaden R bridge support.
+
+## 2026-06-22: O121-O140 q1 sigma-only parity and mu+sigma blocker split
+
+Goal:
+
+- Turn the next q1 bridge parity slice into executable evidence without
+  over-promoting the balanced `mu` plus `sigma` phylo route.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-sigma-phylo-reml')"
+git status --short --branch
+git log --oneline --decorate -8
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 \
+  sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json >/dev/null
+curl -fsS http://127.0.0.1:8765/sweep.json >/dev/null
+curl -fsS http://127.0.0.1:8765/bridge-parity-smoke-status.tsv |
+  rg -n "q1_gaussian_sigma_phylo_ml|q1_gaussian_mu_sigma_phylo_ml"
+curl -fsS http://127.0.0.1:8765/structured-re-q1-parity-fixture-contract.tsv |
+  rg -n "q1_sigma_phylo|q1_mu_sigma"
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv |
+  rg -n "q1_sigma_phylo_ml|q1_mu_sigma_phylo_ml"
+```
+
+Result:
+
+- `julia-tmb-parity` passed with 28 assertions, 0 failures, 0 warnings, and
+  0 skips.
+- `julia-sigma-phylo-reml` passed with 64 assertions, 0 failures, 0 warnings,
+  and 0 skips.
+- The repeated-species q1 sigma-only phylo ML fixture is now banked as live
+  parity across native R/TMB, direct DRM.jl bridge output, and R-via-Julia:
+  log-likelihood tolerance `1e-6`, fixed-effect tolerance `1e-5`, and
+  `sd_sigma` tolerance `1e-4`.
+- The matched q1 Gaussian `mu` plus `sigma` phylo route is deliberately still
+  blocked. The diagnostic found direct DRM.jl and R-via-Julia agreement, but
+  the native R/TMB same-target log-likelihood was not within the parity gate
+  on the repeated-species fixture.
+- `tools/validate-mission-control.py` passed with 8 bridge parity-smoke rows,
+  6 q1 parity-fixture rows, and 17 executable-evidence rows. `status.json`
+  and `sweep.json` parsed cleanly, `sh -n tools/start-mission-control.sh`
+  passed, and `git diff --check` stayed clean.
+- The served dashboard at `http://127.0.0.1:8765/` returned the new
+  `q1_gaussian_sigma_phylo_ml` covered row and
+  `q1_gaussian_mu_sigma_phylo_ml` blocked row.
+
+Boundary:
+
+- This banks one q1 sigma-only ML parity fixture and one q1 matched
+  `mu` plus `sigma` negative diagnostic. It does not promote broad q1 bridge
+  support, public bridge support, native sigma-side REML, interval coverage,
+  q2/q4 bridge support, q4 REML, HSquared AI-REML, non-Gaussian REML, a commit,
+  a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: O141-O160 q1 matched mu+sigma coupled bridge parity
+
+Goal:
+
+- Resolve the q1 matched `mu` plus `sigma` phylo ML parity blocker without
+  promoting REML, intervals, q2, q4, or non-Gaussian bridge support.
+
+Checks run:
+
+```sh
+julia --project=. test/test_bridge.jl
+Rscript --vanilla -e "devtools::test(filter = 'julia-bridge')"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-sigma-phylo-reml')"
+```
+
+Result:
+
+- DRM.jl `test/test_bridge.jl` passed with 51 assertions in 18.0 seconds.
+- `julia-bridge` passed with 97 assertions, 0 failures, 0 warnings, and
+  0 skips.
+- `julia-tmb-parity` passed with 33 assertions, 0 failures, 0 warnings, and
+  0 skips in 68.7 seconds.
+- `julia-sigma-phylo-reml` passed with 66 assertions, 0 failures, 0 warnings,
+  and 0 skips in 21.6 seconds.
+- The q1 matched `mu` plus `sigma` phylo ML route now sends
+  `phylo_coupled = TRUE` through the Julia bridge for ML only. R reconstructs
+  the Julia `recov_*` block into `sdpars$mu`, `sdpars$sigma`, and
+  `corpars$phylo`.
+- SR113 is now banked as one repeated-species ML parity fixture across native
+  R/TMB, direct DRM.jl, and R-via-Julia with tolerances `logLik < 1e-6`,
+  fixed effects `< 2e-5`, structured SDs `< 1e-4`, and phylogenetic
+  correlation `< 1e-4`.
+
+Boundary:
+
+- This banks one q1 matched `mu` plus `sigma` ML parity fixture. REML remains
+  bridge-only admission evidence for the sigma-phylo cells; coupled
+  mean-sigma phylo REML is not implemented. This does not promote public bridge
+  support, interval coverage, q2/q4 bridge support, q4 REML, HSquared AI-REML,
+  non-Gaussian REML, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR114 q1 relmat-mu ML parity
+
+Goal:
+
+- Bank the q1 Gaussian `relmat()` mean-side bridge row as row-specific ML
+  parity across native R/TMB, direct DRM.jl, and R-via-Julia.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+```
+
+Result:
+
+- `julia-tmb-parity` passed with 45 assertions, 0 failures, 0 warnings, and
+  0 skips in 88.9 seconds.
+- The new q1 Gaussian `relmat(1 | id, K = K)` fixture compares one K-matrix
+  mean-side ML target across native R/TMB, direct DRM.jl structured bridge
+  output, and R-via-Julia reconstruction.
+- SR114 is now banked. Dashboard rows now mark `sr_relmat_q1_gaussian_mu`,
+  `q1_mu_relmat_gaussian_fixture`, `q1_gaussian_mu_relmat_ml`, and
+  `q1_relmat_mu_ml_live_parity_tests` as covered or banked experimental
+  evidence for that row.
+
+Boundary:
+
+- This banks only one q1 Gaussian relmat mean-side ML parity fixture. It does
+  not promote `Q` marshalling, REML, interval coverage, sigma-side relmat,
+  q2/q4 bridge support, non-Gaussian bridge support, broad public bridge
+  support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR115 q1 animal-mu ML parity
+
+Goal:
+
+- Bank the q1 Gaussian `animal()` mean-side bridge row as row-specific ML
+  parity across native R/TMB, direct DRM.jl, and R-via-Julia.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"
+```
+
+Result:
+
+- `julia-tmb-parity` passed with 57 assertions, 0 failures, 0 warnings, and
+  0 skips in 104.4 seconds.
+- The new q1 Gaussian `animal(1 | id, A = A)` fixture compares one A-matrix
+  mean-side ML target across native R/TMB, direct DRM.jl structured bridge
+  output, and R-via-Julia reconstruction.
+- SR115 is now banked. Dashboard rows now mark `sr_animal_q1_gaussian_mu`,
+  `q1_mu_animal_gaussian_fixture`, `q1_gaussian_mu_animal_ml`, and
+  `q1_animal_mu_ml_live_parity_tests` as covered or banked experimental
+  evidence for that row.
+
+Boundary:
+
+- This banks only one q1 Gaussian animal mean-side ML parity fixture. It does
+  not promote pedigree or `Ainv` bridge marshalling, REML, interval coverage,
+  sigma-side animal, q2/q4 bridge support, non-Gaussian bridge support, broad
+  public bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR116 q1 spatial-mu ML parity
+
+Goal:
+
+- Bank the q1 Gaussian coordinate-spatial mean-side bridge row as row-specific
+  ML parity across native R/TMB, direct DRM.jl, and R-via-Julia.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-structured|julia-tmb-parity')"
+```
+
+Result:
+
+- `julia-structured` and `julia-tmb-parity` passed with 122 assertions,
+  0 failures, 0 warnings, and 0 skips in 137.3 seconds.
+- A scratch fit found the original blocker: native drmTMB fixed the spatial
+  range at the median positive distance, while DRM.jl's coordinate-spatial
+  route estimated the range. The bridge now converts Gaussian spatial coords
+  to the native fixed-range covariance K and calls DRM.jl internally through a
+  `relmat(1 | site)` payload.
+- SR116 is now banked. Dashboard rows now mark `sr_spatial_q1_gaussian_mu`,
+  `q1_mu_spatial_gaussian_fixture`, `q1_gaussian_mu_spatial_ml`, and
+  `q1_spatial_mu_ml_live_parity_tests` as covered or banked experimental
+  evidence for that row.
+
+Boundary:
+
+- This banks only one q1 Gaussian coordinate-spatial mean-side ML parity
+  fixture. It does not promote mesh/SPDE, REML, interval coverage, sigma-side
+  spatial, q2/q4 bridge support, non-Gaussian bridge support, broad public
+  bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR117 q1 Poisson phylo ML/Laplace bridge parity
+
+Goal:
+
+- Bank the q1 count-phylo bridge row only where existing executable evidence
+  supports it: one Poisson `phylo()` mean-side ML/Laplace fixture with dense
+  native TMB and R-via-Julia parity tolerances.
+
+Checks run:
+
+```sh
+DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot \
+  Rscript --vanilla -e "devtools::test(filter = 'julia-phylo-count')"
+```
+
+Result:
+
+- `julia-phylo-count` passed with 29 assertions, 0 failures, 0 warnings, and
+  0 skips in 17.3 seconds.
+- The live q1 Poisson `phylo()` bridge fixture checks finite/sane fit status
+  and approximate dense-TMB parity for log-likelihood, fixed coefficients, and
+  the structured SD.
+- SR117 is now banked. Dashboard rows now mark `sr_phylo_q1_count_mu`,
+  `q1_poisson_mu_phylo_ml`, `q1_poisson_phylo_ml_live_parity_tests`, and
+  `q1_mu_phylo_poisson_fixture` as experimental row-specific evidence.
+
+Boundary:
+
+- This banks one q1 Poisson phylo mean-side ML/Laplace bridge parity fixture.
+  It does not promote NB2 parity, REML, interval coverage, q2/q4 bridge
+  support, non-phylo count bridge support, broad public bridge support, a
+  commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR118 q1 unsupported-route preflight errors
+
+Goal:
+
+- Bank q1 negative bridge evidence for unsupported structured routes: sigma
+  predictors and precision slots are intentional R-side Julia gates, and bad
+  covariance shapes fail during preflight before any bridge support claim.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'julia-gate-vs-engine|julia-structured')"
+```
+
+Result:
+
+- `julia-gate-vs-engine` and `julia-structured` passed with 185 assertions,
+  0 failures, and 0 warnings. One live Julia structured smoke was skipped
+  because the DRM.jl general-covariance engine was not available in that
+  subprocess; that skip is outside this negative-evidence row.
+- SR118 is now banked. The dashboard keeps `structured_sigma_predictor` and
+  `structured_precision_slot` in the one-to-one gate registry and adds
+  `q1_unsupported_route_preflight_tests` as executable evidence for the
+  sigma-predictor, precision-slot, and malformed-covariance preflight checks.
+
+Boundary:
+
+- This banks intentional error behavior only. It does not promote sigma-side
+  structured bridge support, precision-matrix bridge support, malformed matrix
+  repair, live Julia support, interval coverage, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR119 q1 coefficient-scale map
+
+Goal:
+
+- Bank the q1 coefficient-scale map that keeps fixed coefficients, structured
+  SD coefficients, and coupled phylogenetic Cholesky reconstruction on their
+  explicit scales before the q1 acceptance gate is closed.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'julia-inference|structured-re-conversion-contracts')"
+```
+
+Result:
+
+- `julia-inference` and `structured-re-conversion-contracts` passed with
+  133 assertions, 0 failures, and 0 warnings. One optional live Julia inference
+  smoke skipped because the DRM.jl phylo engine was not configured for that
+  subprocess; the synthetic reconstruction and dashboard-contract checks ran.
+- SR119 is now banked. `structured-re-q1-reconstruction-map.tsv` now includes
+  fixed link-scale coefficients, response-scale structured SD reconstruction,
+  and coupled phylo recov-to-corpars reconstruction rows.
+
+Boundary:
+
+- This banks scale mapping only. It does not promote interval coverage, q2/q4
+  bridge support, NB2 parity, non-phylo count bridge support, broad public
+  bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR120 q1 parity acceptance gate
+
+Goal:
+
+- Bank the q1 transition gate by proving the q1 parity fixture inventory,
+  tolerance rows, coefficient-scale maps, and negative preflight evidence are
+  all present before q2 bridge work begins.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with its q1 acceptance gate
+  assertions covering banked q1 parity fixtures, nonempty tolerances,
+  R-via-Julia evidence paths, q1 scale-map rows, negative preflight evidence,
+  and the closeout-package acceptance row.
+- SR120 is now banked. This closes the q1 bridge parity wave as local
+  mission-control evidence and moves the next work to q2 target-specific
+  payload design.
+
+Boundary:
+
+- This is a transition gate, not broad bridge support. It does not promote
+  interval coverage, NB2 parity, q2/q4 bridge support, public optimizer
+  controls, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR121 q2 payload boundary contract
+
+Goal:
+
+- Bank the q2 bridge entry point as a payload-shape and coefficient-ordering
+  contract while keeping R-via-Julia q2 parity unavailable.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 160 assertions, 0 failures, 0 warnings, and 0 skips.
+- Mission-control validation passed with 5 q2 payload-contract rows, 9 closeout
+  rows, and 25 executable-evidence rows after the ledger update.
+- SR121 is now banked as an intentional-error boundary row. SR101-SR200 is now
+  21 banked, 19 blocked, and 60 queued.
+
+Boundary:
+
+- This banks q2 payload shape, coefficient ordering, and negative bridge
+  evidence only. It does not promote q2 R-via-Julia support, q2 REML,
+  q2-plus-q2, q4, interval coverage, broad public bridge support, a commit, a
+  PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR122 q2 spatial native fixture
+
+Goal:
+
+- Bank coordinate-spatial q2 location evidence as native R/TMB point evidence
+  while keeping R-via-Julia q2 bridge support planned.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'phase18-spatial-q2-smoke')"
+```
+
+Result:
+
+- `phase18-spatial-q2-smoke` passed with 20 assertions, 0 failures, 0 warnings,
+  and 0 skips.
+- SR122 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  22 banked, 19 blocked, and 59 queued.
+
+Boundary:
+
+- This banks coordinate-spatial q2 native ML point evidence only. It does not
+  promote R-via-Julia bridge parity, q2 REML, q2-plus-q2, q4, mesh/SPDE,
+  interval coverage, public bridge support, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-22: SR123-SR124 q2 animal and relmat native fixtures
+
+Goal:
+
+- Bank animal-model and `relmat()` q2 location evidence as native R/TMB point
+  evidence while keeping R-via-Julia q2 bridge support planned.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'phase18-animal-relmat-q2-smoke')"
+```
+
+Result:
+
+- `phase18-animal-relmat-q2-smoke` passed with 43 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- SR123 and SR124 are now banked with `bridge_status = planned`. SR101-SR200 is
+  now 24 banked, 19 blocked, and 57 queued.
+
+Boundary:
+
+- This banks animal and relmat q2 native ML point evidence only. It does not
+  promote R-via-Julia bridge parity, pedigree/Ainv bridge marshalling,
+  Q/precision bridge marshalling, q2 REML, q2-plus-q2, q4, interval coverage,
+  public bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR125 q2-plus-q2 boundary contract
+
+Goal:
+
+- Bank the q2-plus-q2 scale-block boundary as target vocabulary while keeping it
+  separate from q2, full q4, and R-via-Julia bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+```
+
+Result:
+
+- The q2 fixture and dashboard-contract tests keep `q2_plus_q2_phylo_ml`
+  separate from q2, full q4, and q2/q4 REML.
+- SR125 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  25 banked, 19 blocked, and 56 queued.
+
+Boundary:
+
+- This banks target vocabulary and negative boundary evidence only. It does not
+  promote q2-plus-q2 R-via-Julia support, q2 bridge parity, full q4 covariance,
+  q4 derived correlations, q2/q4 REML, interval coverage, public bridge support,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR126 q2 scale-only rejection boundary
+
+Goal:
+
+- Bank scale-only q2 structured random-effect rejection evidence for
+  `spatial()`, `animal()`, and `relmat()` while keeping it separate from q2
+  bridge support.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-q2-rejections|structured-re-conversion-contracts')"
+```
+
+Result:
+
+- `structured-re-q2-rejections` and `structured-re-conversion-contracts` passed
+  with 125 assertions, 0 failures, 0 warnings, and 0 skips.
+- SR126 is now banked with `bridge_status = intentional_error`. SR101-SR200 is
+  now 26 banked, 19 blocked, and 55 queued.
+
+Boundary:
+
+- This banks negative evidence only: scale-only q2 structured blocks reject
+  before optimization as partial location-scale blocks. It does not promote
+  q2 R-via-Julia bridge support, balanced q2 location-scale support, q2 REML,
+  q2-plus-q2 support, q4, interval coverage, public bridge support, a commit,
+  a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR127 q2 coefficient ordering map
+
+Goal:
+
+- Bank q2 coefficient-ordering evidence for `phylo()`, `spatial()`, `animal()`,
+  and `relmat()` as a fixture-level contract before any q2 route promotion.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 189 assertions, 0 failures, 0 warnings, and 0 skips.
+- SR127 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  27 banked, 19 blocked, and 54 queued.
+
+Boundary:
+
+- This banks fixture-derived coefficient ordering only: fixed effects,
+  structured SDs, and the q2 structured correlation have one explicit order.
+  It does not promote q2 R-via-Julia bridge support, pedigree/Ainv or Q
+  precision marshalling, q2 REML, q2-plus-q2 support, q4, interval coverage,
+  public bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR128 q2 direct DRM.jl export status
+
+Goal:
+
+- Bank the direct DRM.jl q2 export/status contract for `phylo()`, `spatial()`,
+  `animal()`, and `relmat()` while keeping direct q2 fits unavailable.
+
+Checks run:
+
+```sh
+julia --project=. test/test_bridge_q2_direct_export.jl
+```
+
+Result:
+
+- `q2 direct export status contract` passed with 17 assertions.
+- SR128 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  28 banked, 19 blocked, and 53 queued.
+
+Boundary:
+
+- This banks direct DRM.jl unavailable-status contract evidence only. It does
+  not promote direct q2 fit support, q2 R-via-Julia bridge support, q2 REML,
+  q4 support, interval coverage, public bridge support, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR129 q2 payload provenance
+
+Goal:
+
+- Bank q2 payload provenance as row-shaped evidence for source repositories,
+  branches, heads, payload version, estimator, endpoint, matrix ID, matrix
+  digest, matrix levels, version fields, and dirty-state policy.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 216 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 4 q2 payload-provenance rows.
+- SR129 is now banked with `bridge_status = experimental`. SR101-SR200 is now
+  29 banked, 19 blocked, and 52 queued.
+
+Boundary:
+
+- This banks provenance-contract evidence only. It does not promote q2
+  R-via-Julia bridge support, direct q2 fit support, q2 REML, q4 support,
+  interval coverage, public bridge support, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-22: SR130 q2 parity acceptance blocker
+
+Goal:
+
+- Evaluate whether q2 bridge parity can be accepted after SR121-SR129.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- The q2 parity acceptance gate is blocked, not banked as support.
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 239 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 4 q2 acceptance-gate rows.
+- SR130 is now blocked with `bridge_status = planned`. SR101-SR200 is now
+  29 banked, 20 blocked, and 51 queued.
+
+Boundary:
+
+- Native q2 point fixtures, payload contracts, provenance rows, coefficient
+  maps, and direct-unavailable status rows do not satisfy q2 parity acceptance.
+  Acceptance still needs direct q2 fits, q2-specific R-via-Julia routes, and a
+  same-target tolerance policy. This does not promote q2 bridge support, direct
+  q2 fit support, q2 REML, q4 support, interval coverage, public bridge
+  support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR132 q4 phylogenetic covariance target map
+
+Goal:
+
+- Bank q4 phylogenetic covariance target names for four direct SD targets and
+  six derived among-axis correlation targets before any q4 all-four parity
+  claim.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 258 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 10 q4 phylocov target-map
+  rows.
+- SR132 is now banked with `bridge_status = experimental`. SR101-SR200 is now
+  30 banked, 20 blocked, and 50 queued.
+
+Boundary:
+
+- This banks target-map contract evidence only. It does not promote q4 all-four
+  parity, q4 REML, HSquared AI-REML, interval coverage, public bridge support,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR133 q4 corpairs parity blocker
+
+Goal:
+
+- Evaluate whether q4 `corpairs()` evidence can be treated as native/direct/
+  bridge parity.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+```
+
+Result:
+
+- The q4 `corpairs()` parity gate is blocked, not banked as parity support.
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 275 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with one q4 corpairs-parity gate
+  row.
+- SR133 is now blocked with `bridge_status = experimental`. SR101-SR200 is now
+  30 banked, 21 blocked, and 49 queued.
+
+Boundary:
+
+- Live bridge point extraction and R-side Sigma_a reconstruction do not
+  establish same-fixture native R/TMB, direct DRM.jl, and R-via-Julia
+  `corpairs()` parity. This does not promote q4 all-four parity, q4 REML,
+  HSquared AI-REML, interval coverage, public bridge support, a commit, a PR,
+  or an Ayumi-facing reply.
+
+## 2026-06-22: SR134 q4 profile-target bridge map
+
+Goal:
+
+- Bank a q4 profile-target bridge map for the four direct phylogenetic
+  covariance SD axes without promoting interval reliability or q4 parity.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/status.json >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-q4-profile-target-bridge-map.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 298 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 4 q4 profile-target
+  bridge-map rows.
+- Widget direct fetches passed for `status.json`, the SR134 TSV, the finish
+  ledger, and executable evidence.
+- SR134 is now banked with `bridge_status = experimental`. SR101-SR200 is now
+  31 banked, 21 blocked, and 48 queued.
+
+Boundary:
+
+- This banks profile-target label mapping only. It does not promote q4 all-four
+  parity, q4 `corpairs()` parity, q4 REML, HSquared AI-REML, interval
+  reliability, interval coverage, public bridge support, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR136 q4 scale-axis interval failures
+
+Goal:
+
+- Bank target-specific q4 sigma-axis interval blockers for `sd_sigma1` and
+  `sd_sigma2`.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q4-scale-axis-interval-failures.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 325 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 2 q4 scale-axis
+  interval-failure rows.
+- Widget direct fetches passed for the SR136 TSV, the finish ledger, the
+  closeout package, and executable evidence.
+- SR136 is now banked with `bridge_status = experimental`. SR101-SR200 is now
+  32 banked, 21 blocked, and 47 queued.
+
+Boundary:
+
+- This banks failure-ledger evidence only. Native q4 refit failures and direct
+  DRM.jl scale-axis undercoverage are blockers/design input, not bridge
+  support. This does not promote q4 interval reliability, interval coverage, q4
+  all-four parity, q4 REML, HSquared AI-REML, public bridge support, a commit,
+  a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR137 q4 direct DRM.jl export
+
+Goal:
+
+- Bank direct DRM.jl q4 point SD export rows for `sd_mu1`, `sd_mu2`,
+  `sd_sigma1`, and `sd_sigma2`.
+
+Checks run:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q4_direct_export.jl
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q4-direct-drmjl-export.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- Focused DRM.jl q4 direct export status test passed with 19 assertions.
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 347 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 4 q4 direct-DRM.jl export
+  rows.
+- Widget direct fetches passed for the SR137 TSV, finish ledger, closeout
+  package, and executable evidence.
+- SR137 is now banked with `bridge_status = experimental`. SR101-SR200 is now
+  33 banked, 21 blocked, and 46 queued.
+
+Boundary:
+
+- This banks direct-Julia point-target export evidence only. It does not
+  promote R-via-Julia q4 bridge parity, q4 all-four parity, q4 REML, HSquared
+  AI-REML, interval reliability, interval coverage, broad bridge support, a
+  commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR138 q4 deterministic fixture
+
+Goal:
+
+- Bank a deterministic balanced8 q4 fixture with known `Sigma_a` metadata for
+  later same-target native/direct/bridge point comparisons.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q4-deterministic-fixture.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 376 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 1 q4 deterministic fixture
+  row.
+- Widget direct fetches passed for the SR138 TSV, finish ledger, closeout
+  package, and executable evidence.
+- SR138 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  34 banked, 21 blocked, and 45 queued.
+
+Boundary:
+
+- This banks deterministic fixture data only. It does not promote native/direct/
+  bridge q4 parity, q4 REML, HSquared AI-REML, interval reliability, interval
+  coverage, bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR139 q4 tolerance policy
+
+Goal:
+
+- Predeclare q4 point-parity tolerances for log likelihood, fixed
+  coefficients, direct SD targets, and derived correlations before acceptance.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q4-tolerance-policy.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 397 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 4 q4 tolerance-policy rows.
+- Widget direct fetches passed for the SR139 TSV, finish ledger, closeout
+  package, and executable evidence.
+- SR139 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  35 banked, 21 blocked, and 44 queued.
+
+Boundary:
+
+- This banks tolerance policy only. It does not promote q4 parity acceptance,
+  R-via-Julia bridge support, q4 REML, HSquared AI-REML, interval reliability,
+  interval coverage, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR140 q4 parity acceptance blocker
+
+Goal:
+
+- Evaluate q4 parity acceptance after banking target maps, direct export,
+  deterministic fixture, and tolerance policy.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-q4-parity-acceptance-gate.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-bridge-fixtures` and `structured-re-conversion-contracts`
+  passed with 424 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 1 q4 parity-acceptance gate
+  row.
+- Widget direct fetches passed for the SR140 TSV, finish ledger, closeout
+  package, and executable evidence.
+- SR140 is now blocked with `bridge_status = experimental`. SR101-SR200 is now
+  35 banked, 22 blocked, and 43 queued.
+
+Boundary:
+
+- This records blocker evidence only. Same-fixture native/direct/bridge q4
+  point comparison, q4 `corpairs()` parity, and interval reliability are
+  missing. No q4 parity, bridge support, q4 REML, HSquared AI-REML, interval
+  coverage, commit, PR, or Ayumi-facing reply is promoted.
+
+## 2026-06-22: SR141 ADEMP coverage design
+
+Goal:
+
+- Bank q1, q2, and q4 ADEMP coverage-design rows before any coverage grid,
+  interval-reliability wording, or calibrated coverage claim can move forward.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-ademp-design.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with 241 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 3 ADEMP design rows, 26
+  closeout-package rows, and 42 executable-evidence rows.
+- Widget direct fetches passed for the ADEMP design ledger, finish ledger,
+  closeout package, and executable evidence.
+- SR141 is now banked with `bridge_status = planned`. SR101-SR200 is now
+  36 banked, 22 blocked, and 42 queued.
+
+Boundary:
+
+- This banks ADEMP design only. It names DGPs, estimands, methods, performance
+  measures, MCSE targets, failed-fit denominator accounting, and interval
+  policies, but it does not run a calibrated grid or promote interval coverage,
+  q4 parity, q4 REML, HSquared AI-REML, bridge support, commit, PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR142-SR149 coverage calibration status
+
+Goal:
+
+- Bank the coverage-calibration infrastructure rows after SR141 while keeping
+  SR150 blocked until real calibrated grids with finite-interval accounting and
+  MCSE exist.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold|structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-coverage-calibration-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-ademp-scaffold` and `structured-re-conversion-contracts`
+  passed with 301 assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 8 coverage-calibration rows,
+  27 closeout-package rows, and 43 executable-evidence rows.
+- Widget build `r14` served the coverage-calibration status ledger, finish
+  ledger, closeout package, and executable evidence.
+- SR142-SR149 are now banked with `bridge_status = planned`. SR101-SR200 is
+  now 44 banked, 22 blocked, and 34 queued.
+
+Boundary:
+
+- This banks scaffold, policy, accounting, taxonomy, and report-template
+  evidence only. It does not run a calibrated grid, estimate interval coverage,
+  promote q2 bridge support, promote q4 parity, promote q4 REML, claim
+  HSquared AI-REML, commit, PR, or produce an Ayumi-facing reply. SR150 remains
+  blocked.
+
+## 2026-06-22: SR151-SR159 native REML scope status
+
+Goal:
+
+- Bank the native REML scope rows as source-map, rejection, wording,
+  diagnostics-schema, optimizer-gate, and non-Gaussian wording evidence while
+  keeping unsupported REML capability unsupported.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-native-reml-scope-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with 269 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 9 native-REML scope rows, 28
+  closeout-package rows, and 44 executable-evidence rows.
+- Widget build `r15` served the native-REML scope ledger, finish ledger,
+  closeout package, and executable evidence.
+- SR151-SR159 are now banked. SR101-SR200 is now 53 banked, 18 blocked, and
+  29 queued.
+
+Boundary:
+
+- This banks status and negative evidence only. It does not promote q1
+  sigma-side native REML, q2 REML, q4 REML, q4 Patterson-Thompson as HSquared
+  AI-REML, non-Gaussian REML, public optimizer controls, interval coverage,
+  bridge support, commit, PR, or an Ayumi-facing reply. SR160 remains the REML
+  acceptance gate.
+
+## 2026-06-22: SR160-SR170 scope gate status
+
+Goal:
+
+- Record the REML acceptance blocker and bank structured-type gap rows as
+  scoped status evidence without promoting missing features.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-scope-gate-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with 280 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 11 scope-gate rows, 29
+  closeout-package rows, and 45 executable-evidence rows.
+- Widget build `r16` served the scope-gate ledger, finish ledger, closeout
+  package, and executable evidence.
+- SR160 is now a blocked acceptance gate; SR161-SR170 are banked scope rows.
+  SR101-SR200 is now 63 banked, 14 blocked, and 23 queued.
+
+Boundary:
+
+- This banks scope and negative evidence only. It does not implement mesh/SPDE,
+  large sparse pedigree helpers, precision-Q bridge marshalling, generic
+  direct-SD grammar, correlated structured slopes, structured `rho12`,
+  non-Gaussian q2/q4 structured covariance, REML support, bridge support,
+  interval coverage, public optimizer controls, commit, PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-22: SR171-SR180 R docs/API sync status
+
+Goal:
+
+- Bank R documentation/API synchronization rows with concrete source files,
+  scan commands, and a served dashboard surface while keeping public wording
+  conservative.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-r-docs-sync-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with 291 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 10 R docs sync-status rows,
+  30 closeout-package rows, and 46 executable-evidence rows.
+- `status.json` and `sweep.json` parsed cleanly, `sh -n
+  tools/start-mission-control.sh` passed, and `git diff --check` passed.
+- Widget build `r17` served the new R docs sync-status ledger, finish ledger,
+  closeout package, and executable evidence.
+- SR171-SR180 are now banked. SR101-SR200 is now 73 banked, 14 blocked, and
+  13 queued.
+
+Boundary:
+
+- This banks documentation synchronization and claim-scan evidence only. It
+  does not promote q2 bridge support, q4 parity, native q4 REML, HSquared
+  AI-REML, non-Gaussian REML, public optimizer controls, interval coverage,
+  commit, PR, or an Ayumi-facing reply.
+
+## 2026-06-22: SR181-SR190 Julia twin sync status
+
+Goal:
+
+- Bank current DRM.jl and drmTMB twin-sync evidence with exact branches, SHAs,
+  dirty-state summaries, runtime versions, focused Julia tests, R gate tests,
+  and dashboard validation.
+
+Checks run:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q2_direct_export.jl
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q4_direct_export.jl
+Rscript --vanilla -e "devtools::test(filter = 'julia-gate-vs-engine|structured-re-conversion-contracts')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-julia-twin-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- Julia q2 direct-export status contract passed with 17 assertions.
+- Julia q4 direct-export status contract passed with 19 assertions.
+- The combined R gate/contract run passed with 434 assertions.
+- The post-edit `structured-re-conversion-contracts` run passed with 304
+  assertions, 0 failures, 0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 10 Julia twin-status rows, 31
+  closeout-package rows, and 47 executable-evidence rows.
+- `status.json` and `sweep.json` parsed cleanly, `sh -n
+  tools/start-mission-control.sh` passed, and `git diff --check` passed in both
+  active worktrees.
+- Widget build `r18` served the Julia twin-status ledger, finish ledger,
+  closeout package, and executable evidence.
+- SR181-SR190 are now banked. SR101-SR200 is now 83 banked, 14 blocked, and
+  3 queued.
+
+Boundary:
+
+- This banks twin provenance and gate evidence only. It does not promote q2
+  direct fit support, q2 bridge support, q4 parity, q4 REML, AI-REML, interval
+  coverage, public bridge support, release readiness, commit, PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-22: SR191-SR200 Ayumi closeout gates
+
+Goal:
+
+- Close the SR101-SR200 finish ledger honestly: SR191-SR198 remain blocked on
+  current issue text, exact reply approval, posting evidence, URL evidence, and
+  commit approval; SR199-SR200 bank checkpoint and next-start handoff evidence.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 tools/validate-mission-control.py
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+git diff --check
+DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background
+curl -fsS http://127.0.0.1:8765/structured-re-ayumi-closeout-status.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-finish-100-slices.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-closeout-package.tsv >/dev/null
+curl -fsS http://127.0.0.1:8765/structured-re-executable-evidence.tsv >/dev/null
+```
+
+Result:
+
+- `structured-re-conversion-contracts` passed with 313 assertions, 0 failures,
+  0 warnings, and 0 skips.
+- `tools/validate-mission-control.py` passed with 10 Ayumi closeout-status rows,
+  32 closeout-package rows, and 48 executable-evidence rows.
+- `status.json` and `sweep.json` parsed cleanly, `sh -n
+  tools/start-mission-control.sh` passed, and `git diff --check` passed in both
+  active worktrees.
+- Widget build `r19` served the Ayumi closeout-status ledger, finish ledger,
+  closeout package, and executable evidence.
+- SR191-SR198 remain blocked by approval/current-text/public-action gates.
+  SR199-SR200 are banked. SR101-SR200 is now 85 banked, 15 blocked, and
+  0 queued.
+
+Boundary:
+
+- This banks blocker, checkpoint, and handoff evidence only. It does not post
+  to Ayumi, draft an approved reply, stage, commit, open a PR, promote bridge
+  support, promote q4 REML, use AI-REML wording, or claim interval coverage.
+
+## 2026-06-22: Q4 same-fixture parity probe blocker
+
+Goal:
+
+- Convert the next q4 parity blocker into validator-owned evidence by recording
+  a same-data native R/TMB versus R-via-Julia probe without promoting q4 parity.
+
+Checks run:
+
+```sh
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"
+Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"
+python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null
+python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null
+sh -n tools/start-mission-control.sh
+python3 tools/validate-mission-control.py
+git diff --check
+```
+
+Result:
+
+- The live q4 probe found useful negative evidence: native TMB reported false
+  convergence (`code 1`), R-via-Julia converged, absolute log-likelihood delta
+  was `0.0006700136`, and maximum q4 `corpairs()` delta was `0.3958341`, above
+  the predeclared `0.05` q4 correlation tolerance.
+- Added `structured-re-q4-same-fixture-parity-probe.tsv` and served it in the
+  widget build `r20`.
+- `structured-re-bridge-fixtures` passed with 202 assertions.
+- `structured-re-conversion-contracts` passed with 328 assertions.
+- `tools/validate-mission-control.py` passed with 1 q4 same-fixture parity-probe
+  row, 33 closeout-package rows, and 49 executable-evidence rows.
+- `status.json`, `sweep.json`, and `tools/start-mission-control.sh` syntax
+  checks passed. `git diff --check` passed in both active worktrees.
+
+Boundary:
+
+- This is negative evidence only. It does not promote q4 parity, q4 REML,
+  HSquared AI-REML, R-via-Julia q4 bridge support, direct DRM.jl
+  same-fixture comparison support, interval reliability, interval coverage,
+  commit, PR, or an Ayumi-facing reply.
+
+Follow-up in the same tranche:
+
+- DRM.jl now exports a `q4_point_export` payload when a bridge fit carries a
+  4-by-4 `fit.ranef.Sigma_a` matrix. The payload records the raw Sigma matrix,
+  per-axis SDs, the derived correlation matrix, and the same no-parity/no-REML
+  boundary.
+- The focused Julia q4 direct-export test now passes 36 assertions: 19 for the
+  direct-export status contract, 16 for the point-matrix payload, and 1 for
+  log-Cholesky label order.
+- This removes the missing direct-export sub-blocker only for the first probe.
+  The later calibrated probe adds converged native/direct/R-via-Julia rows and
+  fixes direct-to-wrapper reconstruction, but q4 parity still remains blocked
+  by the native-vs-Julia logLik tolerance.
+
+## 2026-06-22: Q4 calibrated parity probe and bridge reconstruction fix
+
+Goal:
+
+- Diagnose the q4 same-fixture blocker after the first probe by finding
+  native-converged fixtures and comparing native R/TMB, direct DRM.jl, and
+  R-via-Julia q4 point outputs under the predeclared tolerance policy.
+
+Checks run:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q4_direct_export.jl
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-phylo-q4-corpairs')"
+```
+
+Result:
+
+- Native q4 calibration found two converged 32-tip candidate fixtures:
+  `q4_balanced32_seed20260802_n4` and `q4_balanced32_seed31_n8`.
+- A bridge reconstruction bug was exposed and fixed: DRM.jl's q4 phylocov
+  coefficient names were ordered as `L11,L21,L22,L31,...` while the engine packs
+  column-major lower-triangle log-Cholesky entries as
+  `L11,L21,L31,L41,L22,L32,L42,L33,L43,L44`.
+- After fixing the label order, direct DRM.jl's raw `q4_point_export` and the
+  R wrapper's `corpairs()` agree to floating precision on the calibrated
+  fixtures.
+- Q4 full parity remains blocked: native-vs-R-via-Julia logLik deltas were
+  `0.0090694327` and `0.019462523`, both above the predeclared `1e-3`
+  tolerance. The second fixture also exceeded the fixed-effect tolerance.
+- Added `structured-re-q4-calibrated-parity-probe.tsv` and the after-task report
+  `docs/dev-log/after-task/2026-06-22-q4-calibrated-parity-probe.md`.
+- The focused Julia q4 direct-export test now passes 36 assertions.
+- The live R q4 corpairs bridge test now passes 28 assertions, including direct
+  raw-matrix to R-wrapper correlation agreement.
+
+Boundary:
+
+- This banks bridge reconstruction evidence and calibrated blocker evidence
+  only. It does not promote q4 all-four parity, q4 REML, HSquared AI-REML,
+  interval reliability, interval coverage, public bridge support, a commit, a
+  PR, or an Ayumi-facing reply.
+
+## 2026-06-22: Q4 calibrated point parity unblocked by DRM.jl q4 tolerance
+
+Goal:
+
+- Diagnose the calibrated q4 native-vs-Julia logLik blocker and move only the
+  evidence that the predeclared point-parity tolerances support.
+
+Commands:
+
+```sh
+julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot /Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot/test/test_bridge_q4_direct_export.jl
+DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-phylo-q4-corpairs')"
+```
+
+Result:
+
+- Added private DRM.jl bridge passthrough keys for q4 diagnostic optimizer
+  controls, without exposing an R-side optimizer-control surface.
+- Tuning DRM.jl's q4 default tolerance from `1e-3` to `1e-4` closed the
+  calibrated point-parity blocker. Increasing `q4_iterations` alone did not move
+  the log likelihood.
+- `q4_balanced32_seed20260802_n4`: native-vs-R-via-Julia logLik delta
+  `3.40338728506e-05`, max fixed-effect delta `0.002035353033554`, max SD delta
+  `0.000891728220382`, and max derived-correlation delta `0.00683683079288`.
+- `q4_balanced32_seed31_n8`: native-vs-R-via-Julia logLik delta
+  `7.54770563276e-05`, max fixed-effect delta `0.000701704920776`, max SD delta
+  `0.000599065985335`, and max derived-correlation delta `0.00197031823787`.
+- Direct DRM.jl raw q4 point export still matches R wrapper reconstruction to
+  floating precision.
+- SR131, SR133, and SR140 are now banked as calibrated q4 all-four/corpairs
+  point-parity evidence. The earlier failed same-fixture probe is retained as
+  covered negative evidence superseded by the calibrated probe. SR150 and q4
+  interval-reliability rows remain blocked until calibrated finite-interval
+  evidence, failed-fit denominators, and MCSE exist.
+
+Boundary:
+
+- This does not promote broad q4 bridge support, q4 REML, HSquared AI-REML,
+  interval reliability, interval coverage, public optimizer controls, a commit,
+  a PR, or an Ayumi-facing reply.
+
+## 2026-06-22: Q4 REML requested/effective audit
+
+Goal:
+
+- Bank SR135 by making q4 requested estimator labels and effective estimator
+  behavior explicit across native TMB, direct DRM.jl, R-via-Julia, and HSquared
+  transfer boundary rows.
+
+Result:
+
+- Added the validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-reml-requested-effective-audit.tsv`.
+- The audit distinguishes native q4 ML point evidence, unsupported native TMB
+  q4 REML, direct DRM.jl q4 Patterson-Thompson REML, experimental R-via-Julia
+  q4 Patterson-Thompson REML, and unsupported HSquared AI-REML transfer.
+- SR135 is now banked as a requested/effective estimator audit only. SR160
+  remains blocked as the broader REML acceptance gate.
+
+Boundary:
+
+- This does not promote native q4 REML, HSquared AI-REML, public bridge support,
+  interval reliability, interval coverage, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-22: Coverage calibration diagnostic pilot status
+
+Goal:
+
+- Move SR142-SR144 from scaffold-only wording to diagnostic-pilot status where
+  the existing structured coverage pilot artifact has real target rows, while
+  keeping SR150 blocked.
+
+Result:
+
+- Updated `structured-re-coverage-calibration-status.tsv` so q1 records three
+  target rows and one finite Wald interval, q2 records six target rows and zero
+  finite intervals, and q4 records eight target rows, zero converged rows, and
+  zero finite intervals.
+- Added conversion-contract assertions for the pilot artifact under
+  `docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/`.
+- Focused R tests passed 433 assertions across
+  `structured-re-ademp-scaffold` and `structured-re-conversion-contracts`.
+- Mission-control validation passed after the status refresh.
+
+Boundary:
+
+- SR150 remains blocked. This is tiny diagnostic pilot and failure-accounting
+  evidence only; it does not promote calibrated interval coverage, q4 interval
+  reliability, q2 bridge support, q4 REML, HSquared AI-REML, public bridge
+  support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q2 known-matrix direct DRM.jl fixtures
+
+Goal:
+
+- Move the q2 direct-DRM.jl non-phylo rows from unavailable-status evidence to
+  direct fixture evidence without promoting aggregate q2 bridge support.
+
+Result:
+
+- Added DRM.jl known-precision and known-covariance constructors for the
+  general-q exact-Gaussian coevolution block.
+- Updated q2 direct-export status so `phylo()` has same-target
+  residual-correlation evidence, `animal()` and `relmat()` have
+  known-covariance residual-correlation direct evidence, and `spatial()` has
+  fixed-covariance direct evidence only.
+- Kept SR130 blocked: spatial/animal/relmat still need R-via-Julia
+  same-target bridge routes and tolerance checks.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q2-known-matrix-direct-drmjl-fixtures.md`.
+
+Checks:
+
+- `julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot test/test_bridge_q2_direct_export.jl`
+  passed 102 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts')"`
+  passed 664 assertions.
+- `python3 tools/validate-mission-control.py` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r37`, `status.json`,
+  `sweep.json`, `structured-re-q4-stabilized-fixture-design.tsv`, and
+  `structured-re-q4-boundary-separated-probe.tsv` from
+  `http://127.0.0.1:8765/`.
+- `git diff --check` was clean in both active worktrees.
+- Live dashboard fetches returned `version.txt` = `r29`, valid JSON, and the
+  updated q2 direct and q2 acceptance TSV rows.
+
+Boundary:
+
+- This is direct DRM.jl fixture evidence only. It does not promote
+  R-via-Julia q2 bridge support beyond the narrow phylo fixture, q2 REML, q4,
+  range-estimating q2 spatial support, interval reliability, interval coverage,
+  public bridge support, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q2 known structured R-via-Julia bridge parity
+
+Goal:
+
+- Move q2 `animal()` and `relmat()` known-covariance rows from direct-only
+  evidence to narrow native/direct/R-via-Julia parity evidence while keeping
+  aggregate q2 acceptance blocked on q2 `spatial()`.
+
+Result:
+
+- Added the q2 bivariate Gaussian known-structured R bridge route for
+  `animal()` A-matrix and `relmat()` K-matrix fixtures.
+- Kept q2 `spatial()` rejected before JuliaCall; it still lacks an
+  R-via-Julia same-target route and tolerance evidence.
+- Updated q2 payload provenance, coefficient-order, direct export, acceptance,
+  balance, executable-evidence, Julia twin, closeout, status, and sweep rows so
+  only spatial remains the q2 aggregate blocker.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q2-known-structured-bridge-parity.md`.
+
+Checks:
+
+- `julia --project=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot test/test_bridge_q2_direct_export.jl`
+  passed 111 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'julia-structured|julia-gate-vs-engine')"`
+  passed 204 assertions with one optional skip.
+- `DRM_JL_PHYLO_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_RELMAT_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot DRM_JL_PATH=/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot Rscript --vanilla -e "devtools::test(filter = 'julia-tmb-parity')"`
+  passed 111 assertions with no skips.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts|julia-structured|julia-gate-vs-engine')"`
+  passed 646 assertions with one optional skip.
+- `python3 tools/validate-mission-control.py` passed with 16 Julia gate rows,
+  16 bridge rejection-message rows, 4 q2 acceptance-gate rows, and 52
+  executable-evidence rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live widget refresh served `version.txt = r30`, `status.json`, `sweep.json`,
+  `structured-re-q2-acceptance-gate.tsv`,
+  `structured-re-q2-direct-drmjl-export.tsv`,
+  `structured-re-q2-payload-provenance.tsv`, and
+  `bridge-rejection-messages.tsv` from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is complete-response exact-Gaussian ML fixture evidence only. It does
+  not promote q2 REML, q4, HSquared AI-REML, interval reliability, interval
+  coverage, range-estimating q2 spatial support, relmat Q precision marshalling,
+  animal pedigree/Ainv bridge marshalling, broad public bridge support, a
+  commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 interval diagnostic plan sidecar
+
+Goal:
+
+- Make the q4 interval blocker visible at the direct-SD and
+  derived-correlation target level without promoting interval reliability.
+
+Result:
+
+- Added `phase18_structured_re_q4_interval_diagnostic_plan()` and wired it into
+  the structured RE ADEMP scaffold writer.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-interval-diagnostic-plan.tsv` with
+  4 direct SD rows and 6 derived-correlation rows.
+- Updated the SR143/SR150 q2 coverage wording so q2 fixture parity is no longer
+  listed as missing evidence; q2 remains blocked on finite intervals and
+  calibrated replicates.
+- Updated the mission-control widget to render the q4 interval diagnostic plan.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-plan.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold|structured-re-conversion-contracts')"`
+  passed 541 assertions.
+- `python3 tools/validate-mission-control.py` passed with 10 q4
+  interval-diagnostic plan rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r32`, `status.json`,
+  `sweep.json`, `structured-re-q4-interval-diagnostic-plan.tsv`, and
+  `structured-re-coverage-acceptance-gate.tsv` from
+  `http://127.0.0.1:8765/`.
+- In-app browser attachment timed out during optional visual verification; the
+  served-copy verification is command-line evidence only for this slice.
+
+Boundary:
+
+- This is diagnostic-plan and denominator-contract evidence only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, broad bridge support, a public optimizer control, a commit, a PR, or
+  an Ayumi-facing reply.
+
+## 2026-06-23: Q4 interval diagnostic status sidecar
+
+Goal:
+
+- Convert the q4 coverage-pilot failure pattern into target-level diagnostic
+  status rows while keeping SR150 blocked.
+
+Result:
+
+- Added `phase18_structured_re_q4_interval_diagnostic_status()`.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-interval-diagnostic-status.tsv`
+  from the existing structured coverage pilot rows.
+- Direct SD targets now each retain two attempted q4 pilot rows, zero converged
+  rows, zero positive-Hessian rows, and zero finite Wald intervals.
+- Derived q4 correlation targets now explicitly record that interval
+  reconstruction is not available.
+- Updated the mission-control widget to render q4 interval diagnostic status.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-interval-diagnostic-status.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-ademp-scaffold|structured-re-conversion-contracts')"`
+  passed 574 assertions.
+- `python3 tools/validate-mission-control.py` passed with 10 q4
+  interval-diagnostic plan rows and 10 q4 interval-diagnostic status rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r33`, `status.json`,
+  `sweep.json`, `structured-re-q4-interval-diagnostic-plan.tsv`,
+  `structured-re-q4-interval-diagnostic-status.tsv`, and
+  `structured-re-coverage-acceptance-gate.tsv` from
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is blocker evidence and denominator accounting only. It does not promote
+  q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad
+  bridge support, a public optimizer control, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-23: Q4 convergence probe
+
+Goal:
+
+- Check whether the q4 interval blocker is only optimizer-preset failure or
+  whether Hessian/uncertainty reliability remains blocked after optimizer
+  convergence.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-convergence-probe.tsv`.
+- The original 10-tip, `m = 2`, q4 pilot shape remains nonconverged with
+  `pdHess = false` under default, careful, and robust optimizer presets.
+- A denser 10-tip, `m = 4`, toy fixture reaches optimizer convergence under all
+  three presets, but every row still has `pdHess = false`.
+- Updated the mission-control widget to render the q4 convergence probe.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-convergence-probe.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 488 assertions.
+- `python3 tools/validate-mission-control.py` passed with 15 q4
+  convergence-probe rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r34`, `status.json`,
+  `sweep.json`, `structured-re-q4-convergence-probe.tsv`, and
+  `structured-re-q4-interval-diagnostic-status.tsv` from
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is convergence diagnostic evidence only. It does not promote q4 interval
+  reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge
+  support, a public optimizer control, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-23: Q4 Hessian diagnostic status
+
+Goal:
+
+- Localize why the q4 toy fit can converge while still producing no reliable
+  intervals.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-hessian-diagnostic-status.tsv`.
+- The converged 10-tip, `m = 4`, q4 toy fit has tiny fixed gradients but an
+  indefinite covariance/Hessian diagnostic.
+- Direct q4 SD estimates are near zero, derived q4 correlations are near +/-1,
+  and direct-SD Wald intervals remain 0/4 finite.
+- Updated the mission-control widget to render the Hessian diagnostic status.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-hessian-diagnostic-status.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 498 assertions.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  Hessian-diagnostic status rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r35`, `status.json`,
+  `sweep.json`, `structured-re-q4-hessian-diagnostic-status.tsv`, and
+  `structured-re-q4-convergence-probe.tsv` from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is Hessian/boundary diagnostic evidence only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad
+  bridge support, a public optimizer control, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-23: Q4 boundary-separated probe
+
+Goal:
+
+- Test whether stronger q4 direct SD truth, mild target correlations, and
+  denser sampling can clear the `pdHess = false` blocker before any interval
+  claim.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-boundary-separated-probe.tsv`.
+- Ran 12 q4 toy probe rows across 16/24 tips, two seeds, and
+  default/careful/robust optimizer presets.
+- Two 24-tip seed-777 rows reached optimizer convergence, but every row still
+  had `pdHess = false`.
+- Fitted derived correlations stayed near boundary, so finite interval
+  diagnostics remain blocked.
+- Updated the mission-control widget to render the boundary-separated probe.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-boundary-separated-probe.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 509 assertions.
+- `python3 tools/validate-mission-control.py` passed with 12 q4
+  boundary-separated probe rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r36`, `status.json`,
+  `sweep.json`, `structured-re-q4-boundary-separated-probe.tsv`, and
+  `structured-re-q4-hessian-diagnostic-status.tsv` from
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is boundary-separated diagnostic evidence only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML, broad
+  bridge support, a public optimizer control, a commit, a PR, or an
+  Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized fixture design
+
+Goal:
+
+- Turn the q4 interval blocker into measurable stabilized-fixture exit gates
+  before any more interval or coverage wording can move.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-fixture-design.tsv`.
+- The sidecar records six required gates: direct SD signal, interior fitted
+  correlations, positive Hessian diagnostics, finite direct-SD intervals,
+  denominator accounting, and route-specific parity.
+- Updated the mission-control widget to render the stabilized fixture design
+  beside the q4 boundary-separated and Hessian diagnostic tables.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-fixture-design.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 520 assertions.
+- `python3 tools/validate-mission-control.py` passed with 6 q4 stabilized
+  fixture-design rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+
+Boundary:
+
+- This is a fixture-design contract only. It does not promote q4 interval
+  reliability, interval coverage, q4 REML, HSquared AI-REML, broad bridge
+  support, a public optimizer control, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-23: Q4 stabilized preflight
+
+Goal:
+
+- Run a compact stabilized q4 preflight after the boundary-separated and
+  Hessian diagnostics localized the blocker to `pdHess = false`,
+  near-boundary correlations, and zero finite Wald direct-SD intervals.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-preflight.tsv`.
+- Added reproducibility artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/`
+  with `run.R`, `README.md`, and
+  `q4-stabilized-preflight-results.tsv`.
+- The preflight used a balanced 32-tip tree, eight observations per species,
+  mild among-axis target correlations (`0.05` off-diagonal), two scale-axis
+  signal levels (`0.35`, `0.50`), and two seeds (`202606901`, `202606902`).
+- Two seed-902 rows reached optimizer convergence with `pdHess = TRUE`,
+  interior fitted derived correlations, and 4/4 finite Wald direct-SD interval
+  rows.
+- Two seed-901 companion rows still ended with singular convergence and
+  `pdHess = false`, so denominator and failed-fit accounting remain active.
+- Updated the mission-control widget to render the stabilized preflight.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-preflight.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 539 assertions.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run.R`
+  reproduced the two positive `pdHess = TRUE` finite-Wald rows and the two
+  singular-convergence `pdHess = false` rows.
+- `python3 tools/validate-mission-control.py` passed with 4 q4 stabilized
+  preflight rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r38`, `status.json`,
+  `sweep.json`, `structured-re-q4-stabilized-preflight.tsv`, and
+  `structured-re-q4-stabilized-fixture-design.tsv` from
+  `http://127.0.0.1:8765/`.
+- The live dashboard also served
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/README.md`
+  and `q4-stabilized-preflight-results.tsv`.
+
+Boundary:
+
+- This is q4 stabilized preflight evidence only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap intervals, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized denominator extension
+
+Goal:
+
+- Extend the compact q4 stabilized preflight into scale-wise denominator
+  evidence before any profile/bootstrap or calibrated coverage work.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-denominator-extension.tsv`.
+- Added companion artifact rows in
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-denominator-extension-results.tsv`.
+- Scale `0.35` has 4/4 returned fits, 2/4 `pdHess = TRUE` rows, and 2/4
+  finite-Wald direct-SD rows.
+- Scale `0.50` has 4/4 returned fits, 3/4 `pdHess = TRUE` rows, and 3/4
+  finite-Wald direct-SD rows, with one gradient-warning row.
+- Updated the mission-control widget to render the denominator extension.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-denominator-extension.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 553 assertions.
+- `python3 tools/validate-mission-control.py` passed with 2 q4 stabilized
+  denominator-extension rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r39`,
+  `structured-re-q4-stabilized-denominator-extension.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-denominator-extension-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is q4 stabilized denominator-preflight evidence only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap intervals, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized profile smoke
+
+Goal:
+
+- Check whether a stabilized q4 row with finite Wald direct-SD intervals can
+  also evaluate a single direct-SD profile interval.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-profile-smoke.tsv`.
+- Added companion artifact row
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-profile-smoke-results.tsv`.
+- `profile_targets()` marked four direct q4 SD targets profile-ready and six
+  derived q4 correlations not profile-ready for the scale `0.50`, seed
+  `202606902` stabilized row.
+- A fast profile interval for
+  `sd:mu:sigma1:phylo(1 | p | species)` returned finite endpoints
+  (`0.2956858`, `0.7575208`), `conf.status = profile`, and
+  `profile.boundary = false`.
+- Updated the mission-control widget to render the profile smoke.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-profile-smoke.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 567 assertions.
+- `python3 tools/validate-mission-control.py` passed with 1 q4 stabilized
+  profile-smoke row.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r40`,
+  `structured-re-q4-stabilized-profile-smoke.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-profile-smoke-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is one q4 direct-SD profile smoke only. It does not promote q4 interval
+  reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized all-direct profile smoke
+
+Goal:
+
+- Check whether the stabilized q4 row used for the single-target profile smoke
+  can evaluate finite profile intervals for all four direct q4 SD axes.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-all-direct-profile.tsv`.
+- Added companion artifact rows in
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-all-direct-profile-results.tsv`.
+- The scale `0.50`, seed `202606902` row returned finite ordered fast
+  `TMB::tmbprofile` intervals for `mu1`, `mu2`, `sigma1`, and `sigma2` direct
+  q4 SD targets, with `conf.status = profile`,
+  `profile.boundary = false`, and `profile.message = ok` on all four rows.
+- Updated the mission-control widget to render the all-direct profile smoke as
+  build `r41`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-all-direct-profile.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 583 assertions.
+- `python3 tools/validate-mission-control.py` passed with 4 q4 stabilized
+  all-direct profile rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r41`,
+  `structured-re-q4-stabilized-all-direct-profile.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-all-direct-profile-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is one-row q4 direct-SD profile smoke evidence only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized profile denominator status
+
+Goal:
+
+- Turn the stabilized q4 preflight and denominator-extension rows into an
+  explicit profile-denominator ledger before running larger profile or coverage
+  work.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-profile-denominator-status.tsv`.
+- The denominator map retains eight stabilized q4 rows: four at scale `0.35`
+  and four at scale `0.50`.
+- Five rows have `pdHess = TRUE` and finite Wald direct-SD status.
+- One `pdHess = TRUE` row is held out of profile eligibility because
+  `max_gradient = 0.0048295879`.
+- One row has all four direct profile intervals banked as finite.
+- Three rows are profile-eligible but not yet profiled.
+- Three rows remain blocked by singular convergence and `pdHess = false`.
+- Updated the mission-control widget to render the profile-denominator status
+  as build `r42`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-profile-denominator-status.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 597 assertions.
+- `python3 tools/validate-mission-control.py` passed with 8 q4 stabilized
+  profile-denominator rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r42` and
+  `structured-re-q4-stabilized-profile-denominator-status.tsv` from
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is q4 profile-denominator accounting only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized eligible profile extension
+
+Goal:
+
+- Profile all four direct q4 SD axes for the three stabilized denominator rows
+  that were profile-eligible but not yet attempted.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-eligible-profile.tsv`.
+- Added companion artifact rows in
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-eligible-profile-results.tsv`.
+- The three newly attempted denominator rows were seed `202606902`, scale
+  `0.35`; seed `202606903`, scale `0.35`; and seed `202606904`, scale `0.50`.
+- All twelve direct q4 SD profile rows returned finite ordered endpoints,
+  `conf.status = profile`, `profile.boundary = false`, and
+  `profile.message = ok`.
+- The profile run emitted two `regularize.values()` duplicate-`x` warnings; the
+  dashboard sidecar retains this warning context.
+- Updated
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-profile-denominator-status.tsv`
+  so all four profile-eligible denominator rows are attempted and finite while
+  the three `pdHess = false` rows and one gradient-warning row remain visible.
+- Updated the mission-control widget to render the eligible-profile status as
+  build `r43`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-eligible-profile.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 611 assertions.
+- `python3 tools/validate-mission-control.py` passed with 12 q4 stabilized
+  eligible-profile rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r43`,
+  `structured-re-q4-stabilized-eligible-profile.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-eligible-profile-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is eligible-denominator direct-SD profile evidence only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized coverage design
+
+Goal:
+
+- Convert the r43 stabilized q4 direct-profile evidence into a calibrated
+  coverage-design gate without promoting interval reliability or coverage.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-coverage-design.tsv`.
+- The design records that direct q4 SD profile intervals are finite for all
+  four profile-eligible stabilized denominator rows.
+- The design keeps the three `pdHess = false` rows, one gradient-warning row,
+  and two duplicate-`x` profile warnings in scope for any future denominator.
+- The design separates direct q4 SD profiles from derived q4 correlation
+  intervals, bootstrap refit accounting, route-specific bridge status, and MCSE
+  reporting.
+- The design preserves the planned calibrated replicate count of 500 rows before
+  coverage wording.
+- Updated the mission-control widget to render the coverage design as build
+  `r44`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-coverage-design.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 623 assertions.
+- `python3 tools/validate-mission-control.py` passed with 8 q4 stabilized
+  coverage-design rows.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r44` and
+  `structured-re-q4-stabilized-coverage-design.tsv` from
+  `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is q4 stabilized coverage-design evidence only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized grid runner contract
+
+Goal:
+
+- Add an executable dry-run contract for the future calibrated q4 profile and
+  coverage grid before any long replicate run is launched.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-grid-runner-contract.tsv`.
+- Added dry-run script
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-dry-run.R`.
+- Added generated dry-run artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-dry-run.tsv`.
+- The dry-run contract names the seed start, scale levels, four direct SD
+  targets, six derived-correlation targets, denominator fields, warning fields,
+  output schema, MCSE fields, and claim boundary.
+- The script deliberately accepts only `--n-rep=0` so it cannot accidentally run
+  a large grid.
+- Updated the mission-control widget to render the grid-runner contract as build
+  `r45`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-grid-runner-contract.md`.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 639 assertions.
+- `python3 tools/validate-mission-control.py` passed with 8 q4 stabilized
+  grid-runner contract rows.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-dry-run.R --n-rep=0`
+  wrote `q4-stabilized-calibrated-grid-dry-run.tsv`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `git diff --check` passed in both active worktrees.
+- Live dashboard refresh served `version.txt = r45`,
+  `structured-re-q4-stabilized-grid-runner-contract.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-dry-run.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is a dry-run grid contract only. It does not promote q4 interval
+  reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 stabilized grid smoke
+
+Goal:
+
+- Add an executable one-replicate q4 calibrated-grid smoke path after the r45
+  dry-run contract, without promoting q4 interval reliability or coverage.
+
+Result:
+
+- Added smoke runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-smoke.R`.
+- The runner permits only `--n-rep=1` and defaults to the known stabilized q4
+  Gaussian phylo seed `202606902` at scale `0.50`.
+- Generated
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-smoke-results.tsv`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-stabilized-grid-smoke-status.tsv`.
+- The raw smoke artifact has ten target-level rows: four finite direct-SD Wald
+  rows and six derived-correlation rows whose interval reconstruction remains
+  explicitly unavailable.
+- All rows retain denominator fields, warning context, unavailable reasons,
+  coverage indicator fields, and MCSE columns; MCSE status remains
+  `insufficient_replicates`.
+- Updated the mission-control widget to render the smoke sidecar as build
+  `r46`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-stabilized-grid-smoke.md`.
+
+Checks:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-smoke.R`
+  passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-smoke.R --n-rep=1`
+  wrote `q4-stabilized-calibrated-grid-smoke-results.tsv`.
+- `python3 tools/validate-mission-control.py` passed with 8 q4 stabilized
+  grid-smoke rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 666 assertions.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- Live dashboard refresh served `version.txt = r46`,
+  `structured-re-q4-stabilized-grid-smoke-status.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-smoke-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is q4 calibrated-grid smoke evidence only. It does not promote q4
+  interval reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation interval contract
+
+Goal:
+
+- Convert the r46 q4 smoke output's derived-correlation interval gap into an
+  explicit reconstruction contract before any larger calibrated q4 grid is run.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-interval-contract.tsv`.
+- The sidecar records all six q4 derived-correlation targets:
+  `cor_mu1_mu2`, `cor_mu1_sigma1`, `cor_mu1_sigma2`,
+  `cor_mu2_sigma1`, `cor_mu2_sigma2`, and `cor_sigma1_sigma2`.
+- Each row links the `corpairs` point-source map to the r46 smoke artifact
+  `q4-stabilized-calibrated-grid-smoke-results.tsv`.
+- Each row keeps `current_interval_status = not_available`.
+- Each row requires `Sigma_a`, target identity, fit status, `pdHess`,
+  warning context, failure reason, denominator policy, `coverage_mcse`, and
+  `failure_rate_mcse` fields before derived-correlation intervals can be
+  interpreted.
+- Updated the mission-control widget to render the contract as build `r47`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-interval-contract.md`.
+
+Checks:
+
+- `python3 tools/validate-mission-control.py` passed with 6 q4
+  derived-correlation interval-contract rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed 684 assertions.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- Live dashboard refresh served `version.txt = r47`,
+  `structured-re-q4-derived-correlation-interval-contract.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-stabilized-calibrated-grid-smoke-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is a q4 derived-correlation interval contract only. It does not promote
+  q4 interval reliability, interval coverage, q4 REML, HSquared AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation interval smoke
+
+Goal:
+
+- Add an executable one-replicate smoke path for q4 derived-correlation
+  interval status while keeping interval endpoints explicitly unavailable.
+
+Result:
+
+- Added executable smoke runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-interval-smoke.R`.
+- The runner uses the known stabilized q4 Gaussian phylo seed `202606902` at
+  scale `0.50` and writes six `corpairs(conf.int = TRUE)` derived-correlation
+  rows.
+- Added raw artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-interval-smoke-results.tsv`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-interval-smoke.tsv`.
+- The sidecar and raw artifact record mapped profile targets, reconstructed
+  point estimates, unavailable interval endpoints, retained failure reasons,
+  denominator fields, and `insufficient_replicates` MCSE status.
+- Updated the mission-control widget to render the smoke sidecar as build
+  `r48`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-interval-smoke.md`.
+
+Checks:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-interval-smoke.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-interval-smoke.R --n-rep=1`
+  passed and wrote `q4-derived-correlation-interval-smoke-results.tsv`.
+- `python3 tools/validate-mission-control.py` passed with six q4
+  derived-correlation interval-smoke rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 730 assertions after the profile-target fixed-string assertion
+  was corrected.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` and
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- Live dashboard refresh served `version.txt = r48`,
+  `structured-re-q4-derived-correlation-interval-smoke.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-interval-smoke-results.tsv`
+  from `http://127.0.0.1:8765/`.
+
+Boundary:
+
+- This is q4 derived-correlation interval smoke evidence only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta diagnostic
+
+Goal:
+
+- Add a private finite-difference delta diagnostic for q4 derived correlations
+  while keeping interval reliability and coverage wording blocked.
+
+Result:
+
+- Added executable diagnostic runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-delta-diagnostic.R`.
+- The runner uses the known stabilized q4 Gaussian phylo seed `202606902` at
+  scale `0.50`, perturbs the full TMB parameter vector at the six
+  `theta_phylo` positions, reads the reported `phylo_q4_corr` matrix, and uses
+  the `theta_phylo` covariance block for a one-replicate finite-difference
+  delta diagnostic.
+- Added raw artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-diagnostic-results.tsv`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-diagnostic.tsv`.
+- The raw artifact records six finite diagnostic intervals; `corpairs()`
+  estimates match report-derived estimates to less than `1e-8`; all rows retain
+  `insufficient_replicates` MCSE status and `not_evaluated` coverage status.
+- Updated the mission-control widget to render the diagnostic sidecar as build
+  `r49`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-delta-diagnostic.md`.
+
+Checks:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-delta-diagnostic.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-derived-correlation-delta-diagnostic.R --n-rep=1`
+  passed and wrote `q4-derived-correlation-delta-diagnostic-results.tsv`.
+- `python3 tools/validate-mission-control.py` passed with six q4
+  derived-correlation delta-diagnostic rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 783 assertions.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- Live dashboard refresh served `version.txt = r49`,
+  `structured-re-q4-derived-correlation-delta-diagnostic.tsv`, and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-diagnostic-results.tsv`
+  from `http://127.0.0.1:8765/`.
+- `git diff --check` passed in both active worktrees.
+
+Boundary:
+
+- This is q4 derived-correlation finite-difference diagnostic evidence only.
+  It does not promote q4 interval reliability, interval coverage, q4 REML,
+  HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a public
+  optimizer control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid contract
+
+Goal:
+
+- Convert the r49 finite-difference delta diagnostic into a calibrated-grid
+  extension contract without modifying the existing r46 smoke artifact or
+  claiming interval reliability.
+
+Result:
+
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-contract.tsv`.
+- The sidecar records eight grid-extension rows: entrypoint, seed/scale
+  identity, full-vector `theta_phylo` report reconstruction, finite or
+  unavailable interval fields, exact six-target set, denominator policy, MCSE
+  policy, and claim-boundary policy.
+- Updated the mission-control validator, focused dashboard contract test,
+  widget table list, dashboard README, status JSON, sweep JSON, and build
+  version `r50`.
+- The contract requires future executable grid work to retain failed fits,
+  warning rows, unavailable intervals, finite intervals, per-target failure
+  reasons, `coverage_mcse`, and `failure_rate_mcse`.
+- Wrote after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-delta-grid-contract.md`.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with eight q4
+  derived-correlation delta-grid contract rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 799 assertions.
+- Live dashboard refresh served `version.txt = r50`,
+  `structured-re-q4-derived-correlation-delta-grid-contract.tsv`, and parseable
+  `status.json` plus `sweep.json` from `http://127.0.0.1:8765/`.
+- `git diff --check` passed in both active worktrees.
+
+Boundary:
+
+- This is a q4 derived-correlation delta-grid contract only. It does not
+  promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid smoke
+
+Goal:
+
+- Add a separate executable one-replicate smoke runner that writes the r50
+  grid-shaped finite-difference delta fields without modifying earlier r46 or
+  r49 artifacts.
+
+Result:
+
+- Added executable runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-smoke.R`.
+- Added raw artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-smoke-results.tsv`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv`.
+- The raw artifact writes six q4 derived-correlation rows with seed/scale
+  identity, full-vector `theta_phylo` report reconstruction,
+  `corpairs()`/report agreement below `1e-8`, finite diagnostic delta
+  endpoints, retained denominator rows, `not_evaluated` coverage status, and
+  single-replicate MCSE placeholders.
+- Updated the mission-control validator, focused dashboard contract test,
+  widget table list, dashboard README, status JSON, sweep JSON, and build
+  version `r51`.
+
+Checks:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-smoke.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-smoke.R --n-rep=1`
+  passed and wrote `q4-derived-correlation-delta-grid-smoke-results.tsv`.
+- `python3 tools/validate-mission-control.py` passed with eight q4
+  derived-correlation delta-grid smoke rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 852 assertions.
+- Live dashboard refresh served `version.txt = r51`,
+  `structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-smoke-results.tsv`,
+  and parseable `status.json` plus `sweep.json` from
+  `http://127.0.0.1:8765/`.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation calibrated-grid delta smoke evidence only. It
+  does not promote q4 interval reliability, interval coverage, q4 REML,
+  HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a public
+  optimizer control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid mini
+
+Goal:
+
+- Scale the r51 one-replicate q4 derived-correlation delta smoke into a small
+  replicated mini-grid that retains every seed-scale-target row and exposes
+  diagnostic MCSE fields without promoting interval coverage.
+
+Result:
+
+- Added executable runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-mini.R`.
+- Added raw artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-mini-results.tsv`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-mini-status.tsv`.
+- The raw artifact writes 24 q4 derived-correlation rows from two seeds across
+  scale levels 0.35 and 0.50. All 24 rows are fit-ok, converged, pdHess-true,
+  finite diagnostic delta rows with full-vector `theta_phylo` report
+  reconstruction; five rows are boundary-clamped and retained in the
+  denominator.
+- Updated the mission-control validator, focused dashboard contract test,
+  widget table list, dashboard README, status JSON, sweep JSON,
+  executable-evidence ledger, and build version `r52`.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-mini.R --n-rep=2 --sd-scales=0.35,0.50`
+  passed and wrote `q4-derived-correlation-delta-grid-mini-results.tsv`.
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-mini.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with eight q4
+  derived-correlation delta-grid mini rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 908 assertions.
+- Live dashboard refresh served `version.txt = r52`,
+  `structured-re-q4-derived-correlation-delta-grid-mini-status.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-mini-results.tsv`,
+  and parseable `status.json` plus `sweep.json` from
+  `http://127.0.0.1:8765/`.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation mini-grid diagnostic/accounting evidence only.
+  It does not promote q4 interval reliability, interval coverage, q4 REML,
+  HSquared AI-REML, profile/bootstrap coverage, broad bridge support, a public
+  optimizer control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid ADEMP contract
+
+Goal:
+
+- Turn the r52 mini-grid into an ADEMP-sized dry-run contract for the next q4
+  derived-correlation delta grid, with predeclared seed ranges, denominator
+  fields, boundary-clamp accounting, and MCSE thresholds.
+
+Result:
+
+- Added executable dry-run
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-ademp-dry-run.R`.
+- Added raw artifact
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-ademp-dry-run.tsv`.
+- Added ADEMP design note
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-ademp-design.md`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv`.
+- The dry-run freezes 500 planned replicates per scale level, seed range
+  202607500-202607999, scale levels 0.35 and 0.50, 1000 seed-scale cells, 6000
+  planned target rows, nominal 0.95 coverage MCSE 0.009747, and reference
+  failure-rate MCSE 0.009747.
+- Updated the mission-control validator, focused dashboard contract test,
+  widget table list, dashboard README, status JSON, sweep JSON,
+  executable-evidence ledger, and build version `r53`.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-ademp-dry-run.R --n-rep=500`
+  passed and wrote `q4-derived-correlation-delta-grid-ademp-dry-run.tsv`.
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-ademp-dry-run.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 964 assertions.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid ADEMP contract rows and 54
+  executable-evidence rows.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r53`; direct fetches passed for `version.txt`,
+  `status.json`, `sweep.json`,
+  `structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-ademp-dry-run.tsv`,
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-ademp-design.md`.
+- Final handoff audit normalized the raw dry-run `denominator_policy` from the
+  accidental internal-space form to the underscore-separated contract form, then
+  regenerated the TSV from the source script.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation ADEMP dry-run planning evidence only. It does
+  not promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid resumable smoke
+
+Goal:
+
+- Implement the next r54 step after the ADEMP dry-run contract: a resumable
+  per-cell q4 derived-correlation delta-grid runner, verified with a tiny local
+  compute-then-resume smoke rather than a full calibrated campaign.
+
+Result:
+
+- Added optional `--output-dir` and `--output-file` arguments to
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-smoke.R`
+  while preserving its default r51 output path.
+- Added executable resumable runner
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R`.
+- Ran the runner once with force/reset to compute one seed-scale cell
+  (seed 202607500, scale 0.35) and again without force to record
+  `skipped_existing` for the same per-cell output.
+- Added generated artifacts
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-manifest.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-run-log.tsv`,
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke/q4_delta_resumable_sd035_seed202607500/q4_delta_resumable_sd035_seed202607500.tsv`.
+- The manifest records one observed cell, one computed action, one skipped
+  action, six retained target rows, six finite delta rows, six denominator
+  rows, two boundary-clamped rows, and `resume_skip_verified`.
+- Added validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`.
+- Updated the mission-control validator, focused dashboard contract test,
+  widget table list, dashboard README, status JSON, sweep JSON,
+  executable-evidence ledger, and build version `r54`.
+
+Checks:
+
+- `air format docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-smoke.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R`
+  passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=1 --sd-scales=0.35 --cell-limit=1 --run-label=compute --force=true --reset-output=true --reset-log=true`
+  passed and wrote one per-cell TSV.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=1 --sd-scales=0.35 --cell-limit=1 --run-label=resume --force=false`
+  passed and recorded `skipped_existing`.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid resumable-smoke rows and 55
+  executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1044 assertions.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r54`; direct fetches passed for `version.txt`,
+  `status.json`, `sweep.json`,
+  `structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-manifest.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-run-log.tsv`,
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke/q4_delta_resumable_sd035_seed202607500/q4_delta_resumable_sd035_seed202607500.tsv`.
+- Scoped claim scans for the new resumability artifacts found the expected
+  boundary wording and no promotion of q4 interval reliability, interval
+  coverage, q4 REML, HSquared AI-REML, or broad bridge support.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation resumability plumbing evidence only. It does
+  not promote q4 interval reliability, interval coverage, q4 REML, HSquared
+  AI-REML, profile/bootstrap coverage, broad bridge support, a public optimizer
+  control, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid resumable pilot
+
+Goal:
+
+- Bank r55 as a modest multi-cell resumability pilot before spending totoro or
+  DRAC CPU time on a calibrated q4 derived-correlation delta-grid campaign.
+
+Result:
+
+- Ran the resumable q4 derived-correlation delta-grid runner with
+  `--n-rep=2`, `--sd-scales=0.35,0.50`, and `--cell-limit=4`.
+- Ran a compute pass with run label `r55_compute`, then a no-force resume pass
+  with run label `r55_resume`.
+- The manifest records four observed seed-scale cells, four computed actions,
+  four skipped-existing actions, 24 observed target rows, 24 finite delta rows,
+  24 retained denominator rows, six boundary-clamped rows, zero warnings, zero
+  failures, `mcse_status=insufficient_replicates_resumability_smoke`, and
+  `resumability_status=resume_skip_verified`.
+- Updated the validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`,
+  the mission-control validator, focused dashboard contract test, dashboard
+  README, status JSON, sweep JSON, executable-evidence ledger, and build
+  version `r55`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-delta-grid-resumable-pilot.md`.
+- Added recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-06-23-071733-codex-checkpoint.md`
+  with the r55 status and next totoro/DRAC compute rung.
+- Replanned the compute ladder around available CPU resources: keep tiny
+  contracts local, use `totoro` for larger CPU-only resumability pilots once a
+  reusable SSH ControlMaster socket is available to this process, then use DRAC
+  arrays for calibrated ADEMP campaigns. GPU work remains out of scope.
+
+Checks:
+
+- `git status --short --branch` and `git diff --check` passed in both active
+  worktrees before editing.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=2 --sd-scales=0.35,0.50 --cell-limit=4 --run-label=r55_compute --force=true --reset-output=true --reset-log=true`
+  passed and wrote four per-cell TSV outputs.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=2 --sd-scales=0.35,0.50 --cell-limit=4 --run-label=r55_resume --force=false`
+  passed and recorded four `skipped_existing` actions.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid resumable-smoke rows and 55
+  executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1045 assertions.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r55`; Python `urllib` direct fetches passed for
+  `version.txt`, `status.json`, `sweep.json`,
+  `structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-manifest.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-run-log.tsv`,
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke/q4_delta_resumable_sd050_seed202607501/q4_delta_resumable_sd050_seed202607501.tsv`.
+- `Rscript tools/codex-checkpoint.R --goal "r55 q4 derived-correlation delta-grid resumable pilot" --next "Prime a shared totoro SSH ControlMaster for this process, then run a larger CPU-only resumability pilot before any DRAC calibrated ADEMP grid."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-071733-codex-checkpoint.md`.
+- Scoped stale-r54/count scans returned no live stale-count references in the
+  r55-updated validator, dashboard, and test surfaces. Scoped claim scans found
+  expected negative boundary wording only.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation multi-cell resumability pilot evidence only.
+  It does not promote q4 interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, HSquared AI-REML, non-Gaussian AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  SR150 unblocking, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: Q4 derived-correlation delta grid totoro pilot
+
+Goal:
+
+- Bank r56 as the first totoro-backed CPU-only pilot for the q4
+  derived-correlation delta-grid resumable runner before moving to DRAC arrays.
+
+Result:
+
+- Verified the shared SSH ControlMaster socket to `totoro` and confirmed the
+  login environment reports 384 CPUs.
+- Installed missing `TMB` and `ape` packages into the `snakagaw` R 4.5 user
+  library on `totoro`.
+- Synced a scratch copy of the current drmTMB worktree to
+  `/home/snakagaw/codex-runs/drmTMB-r56/`, excluding `.git/` and `.Rproj.user/`.
+- Removed copied local compiled artifacts from the remote scratch copy after
+  Linux rejected the local `src/drmTMB.so` with `invalid ELF header`.
+- Ran the resumable q4 derived-correlation delta-grid runner on `totoro` with
+  `--n-rep=8`, `--sd-scales=0.35,0.50,0.65`, and `--cell-limit=24`.
+- Ran a compute pass with run label `r56_totoro_compute`, then a no-force
+  resume pass with run label `r56_totoro_resume`.
+- The manifest records 24 observed seed-scale cells, 24 computed actions,
+  24 skipped-existing actions, 144 observed target rows, 142 finite delta rows,
+  144 retained denominator rows, 48 warning rows, 30 failure-class denominator
+  rows, 27 boundary-clamped rows, zero coverage-evaluable rows,
+  `mcse_status=insufficient_replicates_resumability_smoke`, and
+  `resumability_status=resume_skip_verified`.
+- Pulled only the r56 simulation artifacts back from `totoro`, leaving remote
+  build products out of the local checkout.
+- Updated the validator-owned dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`,
+  the mission-control validator, focused dashboard contract test, dashboard
+  README, status JSON, sweep JSON, executable-evidence ledger, and build
+  version `r56`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-delta-grid-totoro-pilot.md`.
+- Added recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-06-23-073825-codex-checkpoint.md`
+  with the r56 status and next DRAC/shard plan.
+
+Checks:
+
+- `ssh -o BatchMode=yes -o ControlPath=~/.ssh/cm-%r@%h:%p totoro 'hostname; whoami; getconf _NPROCESSORS_ONLN; pwd'`
+  passed and reported `totoro`, `snakagaw`, 384 CPUs, and `/home/snakagaw`.
+- `Rscript --vanilla -e 'install.packages("TMB", repos = "https://cloud.r-project.org", Ncpus = 4)'`
+  passed on `totoro`.
+- `Rscript --vanilla -e 'install.packages("ape", repos = "https://cloud.r-project.org", Ncpus = 4)'`
+  passed on `totoro`.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=8 --sd-scales=0.35,0.50,0.65 --cell-limit=24 --run-label=r56_totoro_compute --force=true --reset-output=true --reset-log=true --allow-large=true`
+  passed on `totoro` and wrote 24 per-cell TSV outputs.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=8 --sd-scales=0.35,0.50,0.65 --cell-limit=24 --run-label=r56_totoro_resume --force=false --allow-large=true`
+  passed on `totoro` and recorded 24 `skipped_existing` actions.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`,
+  `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`, and
+  `sh -n tools/start-mission-control.sh` passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1049 assertions.
+- `python3 -m py_compile tools/validate-mission-control.py && python3 tools/validate-mission-control.py`
+  passed with 8 q4 derived-correlation delta-grid resumable-smoke rows and 55
+  executable-evidence rows.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r56`; Python `urllib` direct fetches passed for
+  `version.txt`, `status.json`, `sweep.json`,
+  `structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-manifest.tsv`,
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke-run-log.tsv`,
+  and
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-resumable-smoke/q4_delta_resumable_sd065_seed202607507/q4_delta_resumable_sd065_seed202607507.tsv`.
+- `Rscript tools/codex-checkpoint.R --goal "r56 q4 derived-correlation delta-grid totoro pilot" --next "Prepare DRAC job-array or shard/aggregate plan for calibrated ADEMP grid; keep SR150 blocked until MCSE-calibrated denominator evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-073825-codex-checkpoint.md`.
+- Final `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation totoro resumability pilot evidence only. It
+  does not promote q4 interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, HSquared AI-REML, non-Gaussian AI-REML,
+  profile/bootstrap coverage, broad bridge support, a public optimizer control,
+  SR150 unblocking, a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23 08:12 MDT — r57 q4 derived-correlation DRAC shard plan
+
+Goal:
+
+- Bank a race-safe DRAC/totoro shard plan for the ADEMP-sized q4
+  derived-correlation delta grid before any calibrated-grid dispatch.
+
+Result:
+
+- Added optional shard controls to
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R`:
+  `--n-shards`, `--shard-index`, `--manifest-dir`, `--manifest-file`,
+  `--run-log-dir`, and `--run-log-file`.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-drac-shard-plan.R`.
+- Generated
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-drac-shard-plan.tsv`
+  with nine planned worker rows: `drac01` through `drac08` plus `totoro`.
+- The plan maps 500 replicates per scale across scale levels `0.35` and `0.50`,
+  giving 1000 seed-scale cells and 6000 target rows. One shard has 112 cells;
+  eight shards have 111 cells.
+- Each shard command writes a private cell output root, manifest, and run log.
+  No DRAC job appends to a shared run log.
+- Added dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv`.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, and build marker `r57`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-drac-shard-plan.md`.
+- Added recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-06-23-075606-codex-checkpoint.md`
+  with the next two-shard rehearsal gate.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-drac-shard-plan.R`
+  passed and wrote the 9-shard plan artifact.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-drac-shard-plan.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid DRAC shard-plan rows and 56
+  executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1106 assertions.
+- `git diff --check` passed in both active worktrees:
+  `/Users/z3437171/Dropbox/Github Local/drmTMB` and
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+- `Rscript tools/codex-checkpoint.R --goal "r57 q4 derived-correlation DRAC shard plan" --next "Run a two-shard rehearsal using private shard roots, aggregate outputs, verify unique cell IDs and denominator MCSE fields, then keep SR150 blocked until calibrated evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-075606-codex-checkpoint.md`.
+
+Boundary:
+
+- This is q4 derived-correlation DRAC/totoro execution-planning evidence only.
+  It does not run the calibrated grid, promote q4 interval reliability, promote
+  interval coverage, promote q4 REML, promote native-TMB q4 REML, promote
+  HSquared AI-REML, promote non-Gaussian AI-REML, promote broad bridge support,
+  unblock SR150, create a commit, open a PR, or prepare an Ayumi-facing reply.
+- The HSquared AI-REML lane stays study-first before any future transfer work.
+  Do not mix that study with this q4 derived-correlation grid.
+
+## 2026-06-23 08:34 MDT — r58 q4 derived-correlation two-shard rehearsal
+
+Goal:
+
+- Prove private shard output, resume skipping, and aggregation locally before
+  spending DRAC or claiming SR150 progress.
+
+Result:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`.
+- Ran two local private shards of the q4 derived-correlation delta-grid runner
+  with two seeds and scale levels `0.35` and `0.50`.
+- Ran a forced compute pass for each shard and a no-force resume pass for each
+  shard.
+- Aggregated the two private shard manifests and run logs.
+- The aggregate manifest records four unique seed-scale cells, four computed
+  actions, four skipped-existing actions, 24 observed target rows, 24 finite
+  delta rows, 24 retained denominator rows, zero warning rows, zero
+  failure-class rows, six boundary-clamped rows, zero coverage-evaluable rows,
+  and `aggregate_status = "aggregate_verified"`.
+- Added dashboard sidecar
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv`.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, executable-evidence ledger, and
+  build marker `r58`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-two-shard-rehearsal.md`.
+- Added recovery checkpoint
+  `docs/dev-log/recovery-checkpoints/2026-06-23-080746-codex-checkpoint.md`.
+- Added process guard to `docs/dev-log/team-improvements.md`: DRAC should be
+  used only when local or `totoro` evidence is insufficient for the current
+  gate.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=2 --sd-scales=0.35,0.50 --cell-limit=4 --n-shards=2 --shard-index=1 --run-label=r58_two_shard_compute_01 --output-root=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_01/cells --manifest-dir=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_01 --manifest-file=q4-derived-correlation-delta-grid-shard_01-manifest.tsv --run-log-dir=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_01 --run-log-file=q4-derived-correlation-delta-grid-shard_01-run-log.tsv --force=true --reset-output=true --reset-log=true`
+  passed.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R --n-rep=2 --sd-scales=0.35,0.50 --cell-limit=4 --n-shards=2 --shard-index=2 --run-label=r58_two_shard_compute_02 --output-root=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_02/cells --manifest-dir=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_02 --manifest-file=q4-derived-correlation-delta-grid-shard_02-manifest.tsv --run-log-dir=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/shard_02 --run-log-file=q4-derived-correlation-delta-grid-shard_02-run-log.tsv --force=true --reset-output=true --reset-log=true`
+  passed.
+- Matching no-force resume commands for shard 1 and shard 2 passed and
+  recorded skipped-existing actions.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R --n-shards=2 --expected-cells=4 --expected-target-rows=24 --aggregate-label=two_shard_rehearsal`
+  first caught a vectorized `rel_path()` bug, then passed after the helper was
+  fixed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-resumable-smoke.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-delta-drac-shard-plan.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `sh -n tools/start-mission-control.sh` passed.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid two-shard rehearsal rows and 57
+  executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1159 assertions.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r58`; direct Python `urllib` fetches passed for
+  `version.txt`,
+  `structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv`,
+  the two-shard aggregate manifest, and the two-shard aggregate summary.
+- `Rscript tools/codex-checkpoint.R --goal "r58 q4 derived-correlation local two-shard rehearsal" --next "Use local or totoro for the next larger shard rehearsal unless runtime proves DRAC is needed; keep SR150 blocked until observed MCSE-calibrated evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-080746-codex-checkpoint.md`.
+
+Boundary:
+
+- This is local two-shard aggregation and resumability evidence only. It does
+  not promote q4 interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, HSquared AI-REML, non-Gaussian AI-REML,
+  broad bridge support, DRAC readiness, SR150 unblocking, a commit, a PR, or
+  an Ayumi-facing reply.
+
+## 2026-06-23 08:59 MDT — r59 q4 derived-correlation aggregate hardening
+
+Goal:
+
+- Harden the q4 derived-correlation aggregate gate before any larger local,
+  `totoro`, or DRAC sweep.
+
+Result:
+
+- Added explicit `--repo-root` support to
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`.
+- Made the aggregate script reject missing cell output files and duplicate
+  computed cell IDs.
+- Fixed aggregate-status precedence so count mismatches and duplicate computed
+  cell IDs are not overwritten by resume-status failures.
+- Expanded
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal/aggregate/q4-derived-correlation-delta-grid-two_shard_rehearsal-aggregate-summary.tsv`
+  with target-level denominator rows, warning rows, failure rows,
+  boundary-clamped rows, coverage-evaluable rows, rates, and MCSE placeholder
+  fields.
+- Added focused testthat negative-path checks for missing shard manifests,
+  missing cell outputs, count mismatches, and duplicate computed cell IDs using
+  tempdir shard copies.
+- Updated mission-control validator, focused R contract test, dashboard README,
+  status JSON, sweep JSON, executable-evidence ledger, after-task report, and
+  build marker `r59`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-aggregate-hardening.md`.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R --n-shards=2 --expected-cells=4 --expected-target-rows=24 --aggregate-label=two_shard_rehearsal`
+  passed and regenerated the two-shard aggregate manifest and expanded summary.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 8 q4
+  derived-correlation delta-grid two-shard rehearsal rows and 58
+  executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1184 assertions.
+- `Rscript tools/codex-checkpoint.R --goal "r59 q4 derived-correlation aggregate hardening" --next "Run a larger local or totoro shard rehearsal with the hardened aggregate gate; keep DRAC gated until local/totoro runtime is insufficient and keep SR150 blocked until calibrated denominator and coverage MCSE evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-082817-codex-checkpoint.md`.
+
+Boundary:
+
+- This is q4 derived-correlation aggregate race-safety and denominator
+  accounting evidence only. It does not promote q4 interval reliability,
+  interval coverage, q4 REML, native-TMB q4 REML, HSquared AI-REML,
+  non-Gaussian AI-REML, broad bridge support, DRAC readiness, SR150 unblocking,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23 09:18 MDT — r60 q4 derived-correlation local four-shard rehearsal
+
+Goal:
+
+- Run a larger local four-shard q4 derived-correlation rehearsal with the r59
+  hardened aggregate gate, keeping DRAC gated until local or `totoro` evidence
+  proves a throughput need.
+
+Result:
+
+- Ran four private local shards over twelve seed-scale cells, using six seeds
+  crossed with scale levels `0.35` and `0.50`.
+- Ran forced compute passes for all four shards, then no-force resume passes
+  that recorded twelve skipped-existing actions against twelve computed cell
+  outputs.
+- Aggregated the four private shard manifests and run logs with
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv`.
+- The aggregate manifest records twelve unique cells, twelve computed actions,
+  twelve skipped-existing actions, 72 observed target rows, 71 finite delta
+  diagnostic rows, 72 retained denominator rows, 24 warning rows, 18
+  failure-class denominator rows, 17 boundary-clamped rows, and zero
+  coverage-evaluable rows.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, executable-evidence ledger,
+  after-task report, and build marker `r60`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-four-shard-rehearsal.md`.
+
+Checks:
+
+- Four compute commands passed with `--n-rep=6 --sd-scales=0.35,0.50
+  --cell-limit=12 --n-shards=4 --allow-large=true`, private output roots,
+  private manifests, private run logs, and `--force=true`.
+- Four resume commands passed with the same shard layout and `--force=false`.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R --shard-root=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-four-shard-rehearsal --n-shards=4 --expected-cells=12 --expected-target-rows=72 --aggregate-label=local_four_shard_rehearsal`
+  passed and wrote the aggregate manifest and summary.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null`
+  passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with eight r60 local
+  four-shard dashboard rows and 59 executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1254 assertions.
+- `sh -n tools/start-mission-control.sh` passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r60`; direct Python `urllib` fetches passed for
+  `version.txt`, `status.json`, `sweep.json`, and
+  `structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv`.
+- `Rscript tools/codex-checkpoint.R --goal "r60 q4 derived-correlation local four-shard rehearsal" --next "Run a medium local or totoro shard rehearsal with the r60 aggregate gate; keep DRAC gated until local/totoro runtime is insufficient and keep SR150 blocked until calibrated denominator and coverage MCSE evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-084957-codex-checkpoint.md`.
+- `git diff --check` passed in
+  `/Users/z3437171/Dropbox/Github Local/drmTMB`.
+- `git diff --check` passed in
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation local four-shard resumability,
+  private-output, denominator-retention, and aggregate evidence only. It does
+  not promote q4 interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, HSquared AI-REML, non-Gaussian AI-REML, broad bridge
+  support, DRAC readiness, SR150 unblocking, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-23 09:45 MDT — r61 q4 derived-correlation local eight-shard medium rehearsal
+
+Goal:
+
+- Run a medium local eight-shard q4 derived-correlation rehearsal with the r60
+  aggregate gate, keeping DRAC gated until local or `totoro` evidence proves a
+  throughput need.
+
+Result:
+
+- `totoro` non-interactive SSH was tested with `BatchMode=yes` and failed with
+  `Permission denied (publickey,password)`, so the slice proceeded locally.
+- Ran eight private local shards over 48 seed-scale cells, using 24 seeds
+  crossed with scale levels `0.35` and `0.50`.
+- Ran forced compute passes for all eight shards, then no-force resume passes
+  that recorded 48 skipped-existing actions against 48 computed cell outputs.
+- Aggregated the eight private shard manifests and run logs with
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv`.
+- The aggregate manifest records 48 unique cells, 48 computed actions, 48
+  skipped-existing actions, 288 observed target rows, 276 finite delta
+  diagnostic rows, 288 retained denominator rows, 156 warning rows, 108
+  failure-class denominator rows, 61 boundary-clamped rows, and zero
+  coverage-evaluable rows.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, executable-evidence ledger,
+  after-task report, and build marker `r61`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-eight-shard-medium-rehearsal.md`.
+
+Checks:
+
+- Eight compute commands passed with `--n-rep=24 --sd-scales=0.35,0.50
+  --cell-limit=48 --n-shards=8 --allow-large=true`, private output roots,
+  private manifests, private run logs, and `--force=true`.
+- Eight resume commands passed with the same shard layout and `--force=false`.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R --shard-root=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal --n-shards=8 --expected-cells=48 --expected-target-rows=288 --aggregate-label=local_eight_shard_medium_rehearsal`
+  passed and wrote the aggregate manifest and summary.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with eight r61 local
+  eight-shard medium dashboard rows and 60 executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1324 assertions.
+- `sh -n tools/start-mission-control.sh` passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed and served build `r61`; direct Python `urllib` fetches passed for
+  `version.txt`, `status.json`, `sweep.json`, and
+  `structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv`.
+- `Rscript tools/codex-checkpoint.R --goal "r61 q4 derived-correlation local eight-shard medium rehearsal" --next "Restore non-interactive totoro access or continue local shards for a calibrated-denominator pre-grid; keep DRAC gated until local/totoro runtime is insufficient and keep SR150 blocked until calibrated denominator and coverage MCSE evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-090312-codex-checkpoint.md`.
+
+Boundary:
+
+- This is q4 derived-correlation local eight-shard medium resumability,
+  private-output, denominator-retention, and aggregate evidence only. It does
+  not promote q4 interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, HSquared AI-REML, non-Gaussian AI-REML, broad bridge
+  support, DRAC readiness, SR150 unblocking, a commit, a PR, or an Ayumi-facing
+  reply.
+
+## 2026-06-23 10:30 MDT — r62 q4 derived-correlation local sixteen-shard MCSE pre-grid
+
+Goal:
+
+- Run a local calibrated-denominator pre-grid with opt-in diagnostic MCSE
+  fields for warning, failure, and boundary-clamp rates, while keeping coverage
+  non-evaluable and DRAC gated.
+
+Result:
+
+- Added `--compute-rate-mcse=true` to
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`.
+- Default aggregate behavior remains backward-compatible: prior r58-r61
+  aggregate outputs keep MCSE placeholders unless the new flag is enabled.
+- Ran sixteen private local shards over 96 seed-scale cells, using 48 seeds
+  crossed with scale levels `0.35` and `0.50`.
+- Ran forced compute passes for all sixteen shards, then no-force resume passes
+  that recorded 96 skipped-existing actions against 96 computed cell outputs.
+- Aggregated the sixteen private shard manifests and run logs with
+  diagnostic MCSE enabled.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv`.
+- The aggregate manifest records 96 unique cells, 96 computed actions, 96
+  skipped-existing actions, 576 observed target rows, 555 finite delta
+  diagnostic rows, 576 retained denominator rows, 306 warning rows, 192
+  failure-class denominator rows, 126 boundary-clamped rows, zero
+  coverage-evaluable rows, `coverage_mcse =
+  "not_evaluable_local_sixteen_shard_mcse_pregrid"`, and a cell-level
+  failure-rate MCSE of `0.0483650833406674`.
+- The aggregate summary records target-level diagnostic MCSEs for failure,
+  warning, and boundary-clamp rates; coverage remains `not_evaluable`.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, executable-evidence ledger,
+  after-task report, and build marker `r62`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-23-q4-derived-correlation-local-sixteen-shard-mcse-pregrid.md`.
+
+Checks:
+
+- Sixteen compute commands passed with `--n-rep=48 --sd-scales=0.35,0.50
+  --cell-limit=96 --n-shards=16 --allow-large=true`, private output roots,
+  private manifests, private run logs, and `--force=true`.
+- Sixteen resume commands passed with the same shard layout and
+  `--force=false`.
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R --shard-root=docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid --n-shards=16 --expected-cells=96 --expected-target-rows=576 --aggregate-label=local_sixteen_shard_mcse_pregrid --compute-rate-mcse=true`
+  passed and wrote the aggregate manifest and summary.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/aggregate-calibrated-grid-delta-shards.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json >/dev/null`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json >/dev/null` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `python3 tools/validate-mission-control.py` passed with eight r62 local
+  sixteen-shard MCSE pre-grid dashboard rows and 61 executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1397 assertions.
+- `sh -n tools/start-mission-control.sh` passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed validation and found the dashboard listening at
+  `http://127.0.0.1:8765/`.
+- Direct Python `urllib` fetches passed for `version.txt`, `status.json`,
+  `sweep.json`, and
+  `structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv`;
+  the live build marker was `r62`.
+- `Rscript tools/codex-checkpoint.R --goal "r62 q4 derived-correlation local sixteen-shard MCSE pre-grid" --next "Choose the next calibrated-denominator slice: either a larger local/totoro pre-grid if runtime remains acceptable, or prepare a DRAC job-array only after carrying forward private shard roots, compute-then-resume logs, aggregate_status=aggregate_verified, diagnostic MCSE fields, and coverage not_evaluable boundaries. Keep SR150 blocked until coverage-evaluable denominator and calibrated coverage MCSE evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-094312-codex-checkpoint.md`.
+- `git diff --check` passed in
+  `/Users/z3437171/Dropbox/Github Local/drmTMB`.
+- `git diff --check` passed in
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation local sixteen-shard MCSE pre-grid,
+  private-output, denominator-retention, diagnostic-rate MCSE, and aggregate
+  evidence only. It does not promote q4 interval reliability, interval
+  coverage, q4 REML, native-TMB q4 REML, HSquared AI-REML, non-Gaussian
+  AI-REML, broad bridge support, DRAC readiness, SR150 unblocking, a commit, a
+  PR, or an Ayumi-facing reply.
+
+## 2026-06-23 - r63 q4 derived-correlation DRAC/totoro dispatch pack
+
+Goal:
+
+- Prepare a dry-run DRAC/totoro dispatch pack for the ADEMP-sized q4
+  derived-correlation delta grid, without submitting cluster jobs or making any
+  coverage/interval claim.
+
+Result:
+
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/write-calibrated-grid-delta-drac-dispatch-pack.R`.
+- Generated
+  `docs/dev-log/dashboard/structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv`.
+- Generated
+  `docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-drac-dispatch-pack/`
+  with:
+  - an eight-task DRAC SLURM array template for shards 1-8;
+  - a DRAC worker script with forced compute plus no-force resume passes;
+  - a separate shard-9 `totoro` worker script;
+  - an aggregate-afterok script requiring nine shard manifests and
+    `--compute-rate-mcse=true`;
+  - a README and manifest.
+- Updated mission-control widget, validator, focused R contract test,
+  dashboard README, status JSON, sweep JSON, executable-evidence ledger,
+  after-task report, and build marker `r63`.
+
+Checks:
+
+- `Rscript --vanilla docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/write-calibrated-grid-delta-drac-dispatch-pack.R`
+  passed and regenerated the dispatch pack.
+- `sh -n` passed for all four generated shell templates.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/write-calibrated-grid-delta-drac-dispatch-pack.R`
+  passed.
+- `python3 -m json.tool docs/dev-log/dashboard/status.json` passed.
+- `python3 -m json.tool docs/dev-log/dashboard/sweep.json` passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `python3 tools/validate-mission-control.py` passed with eight r63 DRAC
+  dispatch-pack dashboard rows and 62 executable-evidence rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1457 assertions.
+- `sh -n tools/start-mission-control.sh` passed.
+- `DRMTMB_DASHBOARD_DIR=/tmp/drm-dashboard DRMTMB_DASHBOARD_PORT=8765 sh tools/start-mission-control.sh --background`
+  passed validation and found the dashboard listening at
+  `http://127.0.0.1:8765/`.
+- Direct Python `urllib` fetches passed for `version.txt`, `status.json`,
+  `sweep.json`, and
+  `structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv`; the
+  live build marker was `r63`.
+- `Rscript tools/codex-checkpoint.R --goal "r63 q4 derived-correlation DRAC/totoro dispatch pack" --next "Use the r63 dry-run dispatch pack only after selecting a DRAC account/host and login path; keep DRAC compute unsubmitted until all private-shard, compute/resume, and aggregate-afterok scripts are reviewed. SR150 remains blocked until coverage-evaluable denominator and calibrated coverage MCSE evidence exists."`
+  passed and wrote
+  `docs/dev-log/recovery-checkpoints/2026-06-23-101603-codex-checkpoint.md`.
+- `git diff --check` passed in
+  `/Users/z3437171/Dropbox/Github Local/drmTMB`.
+- `git diff --check` passed in
+  `/Users/z3437171/worktrees/DRM-ai-reml-gaussian-mme-pilot`.
+
+Boundary:
+
+- This is q4 derived-correlation DRAC/totoro dry-run dispatch safety evidence
+  only. It does not submit DRAC jobs, run new compute, unblock SR150, or promote
+  q4 interval reliability, interval coverage, q4 REML, native-TMB q4 REML,
+  HSquared AI-REML, non-Gaussian AI-REML, broad bridge support, DRAC readiness,
+  a commit, a PR, or an Ayumi-facing reply.
+
+## 2026-06-23: q2 helper/dashboard drift correction after PR #638 review
+
+Goal:
+
+- Fix a source/test drift found during draft PR #638 diff review: the
+  mission-control dashboard sidecars bank q2 ML bridge acceptance rows for
+  phylo, fixed covariance spatial, animal, and relmat fixtures, but
+  `phase18_structured_re_q2_*()` helpers still described the non-phylo rows as
+  planned or blocked.
+
+Result:
+
+- Updated `inst/sim/R/sim_structured_re_bridge_fixtures.R` so the q2 payload
+  fixture, fixture contract, coefficient-order map, payload-provenance table,
+  and acceptance gate mirror the r63 dashboard status boundary for all four q2
+  ML structured types.
+- Updated `tests/testthat/test-structured-re-bridge-fixtures.R` to require the
+  current q2 fixture boundary and keep q2-plus and q2 REML outside the claim
+  boundary.
+- Added after-task note
+  `docs/dev-log/after-task/2026-06-23-q2-helper-dashboard-drift-correction.md`.
+
+Checks:
+
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"`
+  passed with 254 assertions.
+- A custom source-vs-dashboard check passed for q2 acceptance-gate,
+  coefficient-order, and payload-provenance status columns.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1457 assertions.
+- `git diff --check` passed.
+- `python3 tools/validate-mission-control.py` passed with the r63 dashboard
+  evidence set.
+
+Boundary:
+
+- No files were staged or committed. PR #638 remains draft-only local review
+  work. This correction does not undraft, merge, submit DRAC jobs, unblock
+  SR150, or promote q4 interval reliability, q4 interval coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML,
+  broad bridge support, public optimizer controls, or an Ayumi-facing reply.
+
+## 2026-06-23: q-series support-cell completion map
+
+Goal:
+
+- Implement the final q-series planning decision by making the exact
+  support-cell row the unit of truth before any new structured random-effect
+  runtime cells are added.
+
+Result:
+
+- Added `docs/dev-log/dashboard/structured-re-q-series-support-cells.tsv` with
+  69 exact q-series cells spanning ordinary comparators, structured
+  intercepts, one-slope `mu` cells, explicit planned `sigma` slope half-cells,
+  q2 fixtures, q2-plus rejections, q4 point rows, q6/q8 planned rows, count q1
+  rows, and direct-SD targets.
+- Added `docs/design/218-structured-q-series-completion-map.md` to define the
+  support-cell schema, evidence ladder, authority rule, current boundary, and
+  runtime implementation order.
+- Wired the q-series table into `tools/validate-mission-control.py`, the
+  dashboard README, and `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Reconciled q4 drift in
+  `docs/design/216-structured-random-effect-finish-100-slices.md` and the
+  SR132 next-gate text in `structured-re-finish-100-slices.tsv`.
+- Tightened the stale q8 residual-scale error hint in `R/drmTMB.R` and the
+  experimental q4 Julia-bridge REML wording in `NEWS.md`.
+- Added after-task note
+  `docs/dev-log/after-task/2026-06-23-q-series-support-cell-map.md`.
+
+Checks:
+
+- `air format R/drmTMB.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed; removed
+  `tools/__pycache__`.
+- `python3 tools/validate-mission-control.py` passed and reported 69
+  structured RE q-series cells.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts')"`
+  passed with 1470 assertions.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures')"`
+  passed with 254 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This slice is a control-plane and
+  documentation implementation only. It does not add new runtime q-series
+  cells, undraft or merge PR #638, submit DRAC jobs, unblock SR150, promote
+  q4 interval reliability, q4 interval coverage, q4 REML, native-TMB q4 REML,
+  q4 AI-REML, HSquared AI-REML, non-Gaussian AI-REML, broad bridge support,
+  public optimizer controls, or an Ayumi-facing reply.
+
+## 2026-06-23: structured-effect extractor identity gate
+
+Goal:
+
+- Implement the next q-series architecture gate by giving structured-effect
+  extractors neutral provider, matrix-source, endpoint, member, and coefficient
+  identity before adding new runtime q-cells.
+
+Result:
+
+- Extended `structured_effects()` with provider-neutral columns:
+  `provider`, `matrix_id`, `matrix_slot`, `matrix_source`, `matrix_role`,
+  `matrix_digest`, `block_label`, `covariance_layout`, `endpoint_set`,
+  `coefficient_set`, `member_count`, `member_levels`, `endpoint_blocks`, and
+  `endpoint_covariance_labels`.
+- Added compact resolved-precision fingerprints so future provider contract
+  tests can compare the precision actually passed downstream without exporting
+  full matrices.
+- Extended `tests/testthat/test-structured-effects.R` to cover `phylo()`,
+  `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()` identities,
+  including covariance-source (`A`, `K`) versus precision-source (`Ainv`, `Q`)
+  rows.
+- Updated `NEWS.md`, `man/structured_effects.Rd`, and
+  `docs/design/218-structured-q-series-completion-map.md` for the new
+  extractor identity gate.
+
+Checks:
+
+- `Rscript --vanilla -e "devtools::document()"` passed; unrelated generated
+  Rd churn from the local roxygen version was removed, leaving only the
+  `structured_effects.Rd` change tied to this slice.
+- `air format R/methods.R tests/testthat/test-structured-effects.R R/drmTMB.R tests/testthat/test-structured-re-conversion-contracts.R tests/testthat/test-structured-re-bridge-fixtures.R inst/sim/R/sim_structured_re_bridge_fixtures.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-effects')"`
+  passed with 178 assertions.
+- `git diff --check` passed.
+
+Boundary:
+
+- No files were staged or committed. This slice changes extractor metadata and
+  tests only. It does not add residual-scale structured slopes, structured
+  q4/q6/q8 runtime cells, bridge support, q4 interval reliability, q4 interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian AI-REML, public optimizer controls, DRAC execution, a PR #638
+  undraft/merge, or an Ayumi-facing reply.

@@ -19,8 +19,10 @@ structured_effects(object, ...)
 }
 \value{
 A data frame with one row per fitted structured-effect marker. The
-\code{args}, \code{dpars}, and \code{coef_names} columns are list columns. Empty fits
-return the same columns with zero rows.
+\code{args}, \code{dpars}, \code{coef_names}, \code{member_levels}, \code{provider_levels},
+\code{observed_levels}, \code{endpoint_blocks}, and \code{endpoint_covariance_labels}
+columns are list columns. Empty fits return the same columns with zero
+rows.
 }
 \description{
 \code{structured_effects()} returns the structured random-effect markers that

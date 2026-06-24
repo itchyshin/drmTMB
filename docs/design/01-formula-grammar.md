@@ -769,11 +769,15 @@ sigma ~ relmat(1 | id, Q = Q)
 
 Matching intercept-only structured terms in `mu` and `sigma` fit two latent
 fields on the same structured precision and estimate one latent structured
-`mu`-`sigma` correlation. Residual-scale structured slopes, interaction
-slopes, structured `rho12` effects, and bivariate structured effects beyond
-the fitted q=2 location paths and the fitted phylo/spatial/animal/`relmat()`
-constant q=4 blocks remain planned until the fitted paths have simulation and
-comparator coverage. The near-term ceiling remains two `mu` slopes.
+`mu`-`sigma` correlation under native ML. Native `REML = TRUE` is currently
+exact-Gaussian and mean-side-only for phylogenetic structured effects; it
+rejects scale-side, matched `mu`/`sigma`, q2, and q4 phylogenetic REML layouts
+until a separate restricted-likelihood design is validated. Residual-scale
+structured slopes, interaction slopes, structured `rho12` effects, and
+bivariate structured effects beyond the fitted q=2 location paths and the
+fitted phylo/spatial/animal/`relmat()` constant q=4 blocks remain planned until
+the fitted paths have simulation and comparator coverage. The near-term ceiling
+remains two `mu` slopes.
 Intercept-slope `corpair()` rows stay distant-future; a later
 coefficient-aware design can target a bivariate slope1-slope2
 plasticity-syndrome correlation for the same covariate across responses.
@@ -936,7 +940,7 @@ Not every parameter should accept random effects at the same development stage.
 | `relmat(1 + x | id, K = K)` / `relmat(1 + x | id, Q = Q)` | Implemented one numeric relatedness random slope for univariate Gaussian `mu`; it estimates independent `relmat(1 | id)` and `relmat(0 + x | id)` fields with no slope correlation. Labels such as `relmat(1 + x | p | id, Q = Q)` are rejected until structured slope correlations are designed. |
 | `phylo(1 + x | species, tree = tree)` | Implemented one numeric phylogenetic random slope for univariate Gaussian `mu`; it estimates independent `phylo(1 | species)` and `phylo(0 + x | species)` fields with no slope correlation. Labels such as `phylo(1 + x | p | species, tree = tree)` are rejected until structured slope correlations are designed. |
 | `spatial(1 | site, coords = coords)` | Implemented first structured spatial random intercept for univariate Gaussian `mu`, univariate Gaussian `sigma`, and matching `mu`/`sigma` location-scale blocks; coordinates define a fixed coordinate covariance foundation. Mesh/SPDE fitting remains planned. |
-| `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Labels such as `spatial(1 + x | p | site, coords = coords)` are rejected until structured slope correlations are designed. Slice 187 adds direct profile-interval coverage for the slope-field SD and keeps multiple spatial slopes planned. |
+| `spatial(1 + x | site, coords = coords)` | Implemented one numeric structured spatial random slope for univariate Gaussian `mu`; it estimates independent `spatial(1 | site)` and `spatial(0 + x | site)` fields with no slope correlation. Labels such as `spatial(1 + x | p | site, coords = coords)` are rejected until structured slope correlations are designed. Profile-interval and coverage wording for the slope-field SD remains tied to row-specific diagnostic evidence rather than this grammar row. |
 | `spatial(1 | p | site, coords = coords)` in bivariate `mu1`/`mu2` | Implemented first bivariate q=2 Gaussian location-covariance slice when matching labelled terms appear in `mu1` and `mu2`. |
 | `spatial(1 | p | site, coords = coords)` in all four bivariate `mu1`/`mu2`/`sigma1`/`sigma2` endpoints | Implemented first q=4 Gaussian location-scale slice; it reports four endpoint SDs and six derived latent spatial correlations. Mesh/SPDE, spatial slopes in bivariate blocks, residual-scale structured slopes, `corpair()` regressions, and direct-SD grammar remain planned. |
 
@@ -1005,6 +1009,14 @@ Not every parameter should accept random effects at the same development stage.
   `Q` for relatedness and precision inputs; keep `V` for known sampling covariance in
   the preferred `meta_V(V = V)` design. `gr()` is deprecated legacy syntax
   and should not be taught as a second public low-level path.
+- For phylogenetic structured effects, native ML and native REML have different
+  support surfaces. Native ML fits univariate Gaussian `mu`, `sigma`, and
+  matched `mu+sigma` intercept cells and diagnostic bivariate q4
+  location-scale cells. Native `REML = TRUE` is exact-Gaussian and
+  mean-side-only in current drmTMB: scale-side, matched `mu+sigma`, q2, and q4
+  phylogenetic REML requests should reject early rather than fitting a hidden
+  fallback. Direct DRM.jl q4 REML/profile/bootstrap rows are not R formula
+  grammar support until the R bridge has row-specific parity evidence.
 - Spatial syntax mirrors this pattern with terms such as
   `spatial(1 | site, coords = coords)` and
   `spatial(1 + x | site, coords = coords)`. The fitted coordinate paths use

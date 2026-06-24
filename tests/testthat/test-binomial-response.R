@@ -140,6 +140,38 @@ test_that("binomial method surface returns event-probability quantities", {
   )
 })
 
+test_that("binomial profile status is explicit and target-scoped", {
+  dat <- new_binomial_bernoulli_data(n = 80, seed = 2026061607)
+  fit <- drmTMB(
+    bf(y ~ x + z),
+    family = stats::binomial(),
+    data = dat
+  )
+
+  targets <- profile_targets(fit)
+  expect_setequal(
+    targets$parm,
+    c("fixef:mu:(Intercept)", "fixef:mu:x", "fixef:mu:z")
+  )
+  expect_true(all(targets$profile_ready))
+  expect_equal(unique(targets$target_type), "direct")
+  expect_error(
+    confint(fit, method = "profile"),
+    "explicit target names"
+  )
+
+  prof <- confint(
+    fit,
+    parm = "fixef:mu:x",
+    method = "profile",
+    profile_maxit = 4
+  )
+  expect_equal(prof$parm, "fixef:mu:x")
+  expect_equal(prof$method, "profile")
+  expect_equal(prof$conf.status, "profile_failed")
+  expect_equal(prof$profile.message, "nonfinite_interval")
+})
+
 test_that("binomial rejects unsupported response encodings and routes", {
   dat <- new_binomial_bernoulli_data(n = 80, seed = 2026061606)
   dat$prop <- c(0.2, rep(0:1, length.out = nrow(dat) - 1L))

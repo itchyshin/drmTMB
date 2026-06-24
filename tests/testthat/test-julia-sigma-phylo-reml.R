@@ -1,11 +1,12 @@
 # Gaussian σ-phylo location-scale REML via engine = "julia" (Ayumi #2).
 #
-# DRM.jl now fits the Gaussian location-scale phylo cell -- phylo(1 | g) on the
-# mean AND on sigma -- and the bivariate q4 phylogenetic location-scale model by
-# restricted maximum likelihood (`drm(...; method = :REML)`). These are
-# capabilities the native TMB engine lacks, so the bridge must let
-# `method = "REML"` through the REML gate for THESE cells while still rejecting
-# (warn + fall back to ML) the cells DRM.jl does not yet REML-fit:
+# DRM.jl now fits Gaussian sigma-phylo location-scale cells -- phylo(1 | g) on
+# sigma, with or without a matching mean-side phylo term -- and the bivariate q4
+# phylogenetic location-scale model by restricted maximum likelihood
+# (`drm(...; method = :REML)`). These are capabilities the native TMB engine
+# lacks, so the bridge must let `method = "REML"` through the REML gate for
+# THESE cells while still rejecting (warn + fall back to ML) the cells DRM.jl
+# does not yet REML-fit:
 #   * mean-only phylo Gaussian (phylo on mu, sigma ~ 1)
 #   * the phylo-only families (Poisson / NB2 / Gamma / Beta / Binomial)
 #   * cross-family and general-covariance (relmat / animal / spatial) routes
@@ -17,6 +18,10 @@
 test_that("sigma-phylo detector fires only for a phylo term on sigma", {
   tree <- ape::rcoal(6)
 
+  sigma_only <- drmTMB::bf(
+    y ~ x,
+    sigma ~ phylo(1 | species, tree = tree)
+  )
   sigma_phylo <- drmTMB::bf(
     y ~ x + phylo(1 | species, tree = tree),
     sigma ~ phylo(1 | species, tree = tree)
@@ -27,6 +32,7 @@ test_that("sigma-phylo detector fires only for a phylo term on sigma", {
   )
   fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
 
+  expect_true(drmTMB:::drm_julia_has_sigma_phylo_term(sigma_only))
   expect_true(drmTMB:::drm_julia_has_sigma_phylo_term(sigma_phylo))
   expect_false(drmTMB:::drm_julia_has_sigma_phylo_term(mean_only))
   expect_false(drmTMB:::drm_julia_has_sigma_phylo_term(fixed_locscale))
@@ -51,7 +57,7 @@ test_that("bridge options forward method = REML only when REML is requested", {
   )
 
   # σ-phylo location-scale (univariate phylo_payload): REML key alongside the
-  # g_tol the sparse all-node phylo route already used. ML stays byte-identical.
+  # g_tol the sparse all-node phylo route already used.
   uni_payload <- list(bivariate = FALSE)
   expect_identical(
     drmTMB:::drm_julia_bridge_options(uni_payload, method = "REML"),
@@ -60,6 +66,23 @@ test_that("bridge options forward method = REML only when REML is requested", {
   expect_identical(
     drmTMB:::drm_julia_bridge_options(uni_payload, method = "ML"),
     list(g_tol = 1e-4)
+  )
+
+  # ML mu+sigma q1 phylo parity uses DRM.jl's coupled covariance block to match
+  # native TMB. REML stays on the existing separate-block DRM.jl route because
+  # coupled mean-sigma phylo REML is not implemented.
+  locscale_payload <- list(
+    bivariate = FALSE,
+    family_type = "gaussian",
+    locscale_mode = "phylo_locscale"
+  )
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(locscale_payload, method = "ML"),
+    list(g_tol = 1e-6, phylo_coupled = TRUE)
+  )
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(locscale_payload, method = "REML"),
+    list(g_tol = 1e-4, method = "REML")
   )
 
   # Bivariate q4 phylo uses DRM.jl optimizer defaults, but REML is still a real
@@ -79,6 +102,10 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   tree <- ape::rcoal(8)
 
   fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
+  sigma_only <- drmTMB::bf(
+    y ~ x,
+    sigma ~ phylo(1 | species, tree = tree)
+  )
   sigma_phylo <- drmTMB::bf(
     y ~ x + phylo(1 | species, tree = tree),
     sigma ~ phylo(1 | species, tree = tree)
@@ -97,6 +124,7 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   count_phylo <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
 
   expect_true(drmTMB:::drm_julia_reml_supported(fixed_locscale, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(sigma_only, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(sigma_phylo, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
   expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
@@ -348,7 +376,7 @@ drm_sigma_phylo_reml_path <- function() {
   drm_test_drmjl_path()
 }
 
-drm_sigma_phylo_reml_fit <- function(n_tip = 32L) {
+drm_sigma_phylo_reml_fits <- function(n_tip = 32L) {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_sigma_phylo_reml_path()
   callr::r(
@@ -374,27 +402,51 @@ drm_sigma_phylo_reml_fit <- function(n_tip = 32L) {
       y <- stats::rnorm(n_tip, mean = mu, sd = exp(log_sigma))
       dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
 
-      form <- drmTMB::bf(
+      sigma_only <- drmTMB::bf(
+        y ~ x,
+        sigma ~ phylo(1 | species, tree = tree)
+      )
+      mu_sigma <- drmTMB::bf(
         y ~ x + phylo(1 | species, tree = tree),
         sigma ~ phylo(1 | species, tree = tree)
       )
 
-      fj <- drmTMB::drmTMB(
-        form,
-        family = stats::gaussian(),
-        data = dat,
-        engine = "julia",
-        REML = TRUE
-      )
+      summarize <- function(form) {
+        fj <- drmTMB::drmTMB(
+          form,
+          family = stats::gaussian(),
+          data = dat,
+          engine = "julia",
+          REML = TRUE
+        )
+        sd_name <- "phylo(1 | species)"
+        sd_mu <- if (sd_name %in% names(fj$sdpars$mu)) {
+          fj$sdpars$mu[[sd_name]]
+        } else {
+          NA_real_
+        }
+        sd_sigma <- if (sd_name %in% names(fj$sdpars$sigma)) {
+          fj$sdpars$sigma[[sd_name]]
+        } else {
+          NA_real_
+        }
+        list(
+          class = class(fj),
+          engine = fj$engine,
+          nobs = stats::nobs(fj),
+          loglik = as.numeric(stats::logLik(fj)),
+          coef_mu = unname(stats::coef(fj, "mu")),
+          sd_mu = unname(sd_mu),
+          sd_sigma = unname(sd_sigma),
+          converged = drmTMB::is_converged(fj),
+          requested_REML = isTRUE(fj$requested_REML),
+          effective_REML = isTRUE(fj$effective_REML)
+        )
+      }
+
       list(
-        class = class(fj),
-        engine = fj$engine,
-        nobs = stats::nobs(fj),
-        loglik = as.numeric(stats::logLik(fj)),
-        coef_mu = unname(stats::coef(fj, "mu")),
-        sd_mu = unname(fj$sdpars$mu[["phylo(1 | species)"]]),
-        sd_sigma = unname(fj$sdpars$sigma[["phylo(1 | species)"]]),
-        converged = drmTMB::is_converged(fj)
+        sigma_only = summarize(sigma_only),
+        mu_sigma = summarize(mu_sigma)
       )
     },
     args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip)),
@@ -413,7 +465,7 @@ test_that("Gaussian sigma-phylo REML fit via engine = 'julia' is finite and sane
   )
 
   res <- tryCatch(
-    drm_sigma_phylo_reml_fit(n_tip = 32L),
+    drm_sigma_phylo_reml_fits(n_tip = 32L),
     error = function(e) {
       msg <- conditionMessage(e)
       # An engine predating the σ-phylo REML work rejects method = :REML for
@@ -434,12 +486,17 @@ test_that("Gaussian sigma-phylo REML fit via engine = 'julia' is finite and sane
     }
   )
 
-  expect_true("drmTMB_julia" %in% res$class)
-  expect_equal(res$engine, "julia")
-  expect_equal(res$nobs, 32L)
-  expect_true(is.finite(res$loglik))
-  expect_true(all(is.finite(res$coef_mu)))
-  expect_true(is.finite(res$sd_mu) && res$sd_mu > 0)
-  expect_true(is.finite(res$sd_sigma) && res$sd_sigma > 0)
-  expect_true(isTRUE(res$converged))
+  for (fit in res) {
+    expect_true("drmTMB_julia" %in% fit$class)
+    expect_equal(fit$engine, "julia")
+    expect_equal(fit$nobs, 32L)
+    expect_true(is.finite(fit$loglik))
+    expect_true(all(is.finite(fit$coef_mu)))
+    expect_true(is.finite(fit$sd_sigma) && fit$sd_sigma > 0)
+    expect_true(isTRUE(fit$converged))
+    expect_true(isTRUE(fit$requested_REML))
+    expect_true(isTRUE(fit$effective_REML))
+  }
+  expect_true(is.na(res$sigma_only$sd_mu))
+  expect_true(is.finite(res$mu_sigma$sd_mu) && res$mu_sigma$sd_mu > 0)
 })

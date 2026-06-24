@@ -98,6 +98,31 @@ test_that("confint(method = 'wald') marshals fixed-effect intervals (link scale)
   )
 })
 
+test_that("reconstruction status object is diagnostic-only", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit()
+
+  status <- drmTMB:::drm_julia_reconstruction_status(fit)
+
+  expect_s3_class(status, "drmTMB_julia_reconstruction_status")
+  expect_equal(nrow(status), 1L)
+  expect_equal(status$model_type, "gaussian")
+  expect_equal(status$estimator, "ML")
+  expect_equal(status$requested_estimator, "ML")
+  expect_equal(status$effective_estimator, "ML")
+  expect_equal(status$payload_status, "missing")
+  expect_equal(status$coefficient_status, "present")
+  expect_equal(status$vcov_status, "ok")
+  expect_equal(status$profile_target_status, "present")
+  expect_equal(status$corpairs_status, "absent")
+  expect_equal(status$bridge_status, "diagnostic_only")
+  expect_equal(status$inference_promotion, "none")
+  expect_error(
+    drmTMB:::drm_julia_reconstruction_status(list()),
+    "requires"
+  )
+})
+
 test_that("confint(method = 'wald') accepts compact and set aliases", {
   skip_if_not_installed("ape")
   fit <- drm_julia_inference_synthetic_fit()
@@ -187,6 +212,61 @@ test_that("a partial / missing bridge covariance yields NA Wald intervals", {
   expect_true(all(is.na(ci$lower)))
   expect_true(all(is.na(ci$upper)))
   expect_true(all(ci$conf.status == "wald_unavailable"))
+})
+
+test_that("Julia structured coefficient scale map reconstructs SDs and recov correlations", {
+  skip_if_not_installed("ape")
+  tree <- ape::rcoal(4)
+  tree$tip.label <- paste0("sp", seq_len(4))
+
+  mean_form <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ 1
+  )
+  mean_params <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c("resd_phylo(1 | species)" = log(1.25)),
+    formula = mean_form,
+    sd_scales = c("phylo(1 | species)" = sqrt(2))
+  )
+  expect_equal(
+    unname(mean_params$sdpars$mu[["phylo(1 | species)"]]),
+    1.25 * sqrt(2)
+  )
+  expect_equal(length(mean_params$sdpars$sigma), 0L)
+  expect_equal(length(mean_params$corpars), 0L)
+
+  locscale_form <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ phylo(1 | species, tree = tree)
+  )
+  log_l11 <- log(1.1)
+  log_l22 <- log(0.9)
+  l21 <- 0.2
+  locscale_params <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c(
+      "recov_mu:phylo(1 | species):L11" = log_l11,
+      "recov_sigma:phylo(1 | species):L22" = log_l22,
+      "recov_mu_sigma:phylo(1 | species):L21" = l21
+    ),
+    formula = locscale_form,
+    sd_scales = c("phylo(1 | species)" = sqrt(2))
+  )
+  expected_sigma_sd <- sqrt(l21^2 + exp(log_l22)^2) * sqrt(2)
+  expected_rho <- l21 / sqrt(l21^2 + exp(log_l22)^2)
+
+  expect_equal(
+    unname(locscale_params$sdpars$mu[["mu:phylo(1 | species)"]]),
+    exp(log_l11) * sqrt(2)
+  )
+  expect_equal(
+    unname(locscale_params$sdpars$sigma[["sigma:phylo(1 | species)"]]),
+    expected_sigma_sd
+  )
+  expect_equal(
+    names(locscale_params$corpars$phylo),
+    "cor(mu:(Intercept),sigma:(Intercept) | phylo | species)"
+  )
+  expect_equal(unname(locscale_params$corpars$phylo), expected_rho)
 })
 
 # --- Live Poisson phylo round-trip ------------------------------------------

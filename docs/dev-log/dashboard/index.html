@@ -78,7 +78,7 @@ h1 { margin: 0; font-size: clamp(24px, 3vw, 36px); letter-spacing: 0; }
   gap: 12px;
   margin: 24px 0 14px;
 }
-.card, .panel, .phase, .agent, .matrix-row, .gate-row, .repo, .finish-section, .finish-card {
+.card, .panel, .phase, .agent, .matrix-row, .gate-row, .repo, .finish-section, .finish-card, .discussion-card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -210,6 +210,23 @@ h2 { font-size: 18px; margin: 26px 0 12px; letter-spacing: 0; }
 .agent-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .agent-name { font-weight: 700; }
 .agent-role { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.agent-detail { margin-top: 7px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.agent-detail strong { color: var(--text); font-weight: 650; }
+.discussion-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.discussion-card { padding: 12px; min-height: 150px; }
+.discussion-top { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+.discussion-title { font-weight: 700; overflow-wrap: anywhere; }
+.discussion-meta { margin-top: 5px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.ledger-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
 .matrix {
   display: grid;
   gap: 8px;
@@ -260,8 +277,10 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 @media (max-width: 900px) {
   .top, .two-col, .grid { grid-template-columns: 1fr; }
   .finish-board { grid-template-columns: 1fr; }
+  .discussion-board { grid-template-columns: 1fr; }
   .repo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ledger-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .phase-head { grid-template-columns: 72px 1fr; }
   .phase-owner, .phase-head .pill { justify-self: start; }
@@ -274,6 +293,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   .wrap { padding-left: 12px; padding-right: 12px; }
   .repo-grid { grid-template-columns: 1fr; }
   .team { grid-template-columns: 1fr; }
+  .ledger-summary { grid-template-columns: 1fr; }
   .status-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -322,6 +342,21 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
   <h2>Team</h2>
   <section class="team" id="team"></section>
 
+  <h2>Member discussions</h2>
+  <section class="discussion-board" id="member-discussions"></section>
+
+  <h2>Member wave assignments</h2>
+  <section class="gate-table" id="member-waves"></section>
+
+  <h2>Structured RE ledgers</h2>
+  <section class="panel" id="structured-ledgers"></section>
+
+  <h2>Structured RE contracts</h2>
+  <section class="gate-table" id="structured-contracts"></section>
+
+  <h2>Conversion slices SC201-SC400</h2>
+  <section class="gate-table" id="conversion-slices"></section>
+
   <h2>Master capability matrix</h2>
   <section class="matrix" id="matrix"></section>
 
@@ -336,7 +371,7 @@ code { background: var(--soft); border-radius: 5px; padding: 1px 5px; font-size:
 </main>
 
 <script>
-const BUILD = "r7";
+const BUILD = "r63";
 const FINISH_SECTIONS = [
   "Critical Path",
   "Issue Ledger",
@@ -366,6 +401,12 @@ const esc = (x) => text(x).replace(/[&<>"']/g, (m) => ({
 const pill = (x) => `<span class="pill ${statusClass(x)}">${esc(x)}</span>`;
 const link = (x, label) => x ? `<a href="${esc(x)}">${esc(label || x)}</a>` : "";
 const values = (x) => Array.isArray(x) ? x : (x ? [x] : []);
+const splitList = (x) => text(x).split(";").map((part) => part.trim()).filter(Boolean);
+const countBy = (rows, field) => rows.reduce((acc, row) => {
+  const key = row[field] || "unknown";
+  acc[key] = (acc[key] || 0) + 1;
+  return acc;
+}, {});
 const itemList = (items, empty) => (items && items.length)
   ? items.map((x) => `<div class="activity"><div class="stamp">${esc(x.when || x.status || "")}</div><div><span class="who">${esc(x.who || x.kind || "")}</span> ${esc(x.text || x.item || "")} ${link(x.url, x.link_label)}</div></div>`).join("")
   : `<div class="activity"><div class="stamp">idle</div><div>${esc(empty)}</div></div>`;
@@ -398,13 +439,21 @@ function mergeStatus(base, overlay) {
   });
 }
 
-function renderMetrics(data) {
+function renderMetrics(data, sidecars) {
   const metrics = data.metrics || {};
+  const balanceCounts = countBy(sidecars.balanceSlices || [], "status");
+  const finishCounts = countBy(sidecars.finishSlices || [], "status");
+  const conversionCounts = countBy(sidecars.conversionSlices || [], "status");
   const cards = [
-    ["Banked + verified", metrics.verified || 0, "Slices with linked evidence"],
-    ["Active", metrics.active || 0, "Slices currently moving"],
-    ["Blocked", metrics.blocked || 0, "Blocked by claim or access"],
-    ["Deferred", metrics.deferred || 0, "Explicitly out of this slice"]
+    ["Legacy banked + verified", metrics.verified || 0, "Finish-board slices with linked evidence"],
+    ["Legacy active", metrics.active || 0, "Finish-board slices currently moving"],
+    ["Legacy blocked", metrics.blocked || 0, "Legacy metric only; see sidecar blockers"],
+    ["Deferred", metrics.deferred || 0, "Explicitly out of this slice"],
+    ["Structured balance blocked", balanceCounts.blocked || 0, "SR001-SR100 sidecar blockers"],
+    ["Structured finish blocked", finishCounts.blocked || 0, "SR101-SR200 sidecar blockers"],
+    ["Conversion banked", conversionCounts.banked || 0, "SC201-SC400 banked infrastructure rows"],
+    ["Conversion queued", conversionCounts.queued || 0, "SC201-SC400 planned execution rows"],
+    ["Member discussions", (sidecars.discussions || []).length, "Validated reviewer decisions and open questions"]
   ];
   document.getElementById("metrics").innerHTML = cards.map(([label, value, note]) =>
     `<article class="card"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
@@ -486,10 +535,195 @@ function renderFinishBoard(data) {
   document.getElementById("finish-board").innerHTML = sections || "<article class=\"panel\">No finish-board rows recorded.</article>";
 }
 
-function renderTeam(data) {
-  document.getElementById("team").innerHTML = (data.agents || []).map((agent) =>
-    `<article class="agent"><div class="agent-top"><span class="agent-name">${esc(agent.name)}</span>${pill(agent.status)}</div><div class="agent-role">${esc(agent.role)}</div></article>`
+function renderTeam(data, roster, discussions) {
+  const discussionCounts = countBy(discussions || [], "member_id");
+  const fallback = (data.agents || []).map((agent) => ({
+    member_id: String(agent.name || "").toLowerCase(),
+    canonical_name: agent.name,
+    role_slug: agent.role,
+    status: agent.status,
+    authority: agent.role,
+    can_do: "",
+    current_waves: "",
+    improvement_target: "",
+    required_signoff_for: ""
+  }));
+  const rows = roster && roster.length ? roster : fallback;
+  document.getElementById("team").innerHTML = rows.map((agent) =>
+    `<article class="agent">
+      <div class="agent-top"><span class="agent-name">${esc(agent.canonical_name)}</span>${pill(agent.status)}</div>
+      <div class="agent-role">${esc(agent.role_slug || agent.authority)}</div>
+      <div class="agent-detail"><strong>Can do:</strong> ${esc(agent.can_do)}</div>
+      <div class="agent-detail"><strong>Waves:</strong> ${esc(agent.current_waves)}</div>
+      <div class="agent-detail"><strong>Improve:</strong> ${esc(agent.improvement_target)}</div>
+      <div class="agent-detail"><strong>Signs off:</strong> ${esc(agent.required_signoff_for)}</div>
+      <div class="agent-detail"><strong>Discussion rows:</strong> ${esc(discussionCounts[agent.member_id] || 0)}</div>
+    </article>`
   ).join("");
+}
+
+function renderDiscussions(discussions, roster) {
+  const names = Object.fromEntries((roster || []).map((row) => [row.member_id, row.canonical_name]));
+  document.getElementById("member-discussions").innerHTML = (discussions || []).map((row) =>
+    `<article class="discussion-card">
+      <div class="discussion-top">
+        <div>
+          <div class="discussion-title">${esc(row.slice_id)} ${esc(names[row.member_id] || row.member_id)}</div>
+          <div class="discussion-meta">${esc(row.evidence_class)} ${link(row.evidence_path, "evidence")}</div>
+        </div>
+        ${pill(row.decision_status)}
+      </div>
+      <div class="discussion-meta"><strong>Stance:</strong> ${esc(row.stance)}</div>
+      <div class="discussion-meta"><strong>Claim:</strong> ${esc(row.exact_claim)}</div>
+      <div class="discussion-meta"><strong>Negative evidence:</strong> ${esc(row.negative_evidence)}</div>
+      <div class="discussion-meta"><strong>Sibling impact:</strong> ${esc(row.sibling_impact)}</div>
+      <div class="discussion-meta"><strong>Next gate:</strong> ${esc(row.next_gate)}</div>
+    </article>`
+  ).join("");
+}
+
+function renderMemberWaves(assignments, roster) {
+  const names = Object.fromEntries((roster || []).map((row) => [row.member_id, row.canonical_name]));
+  const head = ["Wave", "Range", "Lead", "Required", "Bank condition", "Blocked condition"];
+  const rows = (assignments || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.wave_id)}</strong></div>
+      <div class="cell">${esc(row.slice_range)}</div>
+      <div class="cell">${esc(names[row.lead_member] || row.lead_member)}</div>
+      <div class="cell">${splitList(row.required_members).map((id) => esc(names[id] || id)).join(", ")}</div>
+      <div class="cell">${esc(row.bank_condition)}</div>
+      <div class="cell">${esc(row.blocked_condition)}</div>
+    </article>`
+  ).join("");
+  document.getElementById("member-waves").innerHTML =
+    `<article class="gate-row gate-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${rows}`;
+}
+
+function renderStructuredLedgers(sidecars) {
+  const ledgers = [
+    ["SR001-SR100 balance", sidecars.balanceSlices || []],
+    ["SR101-SR200 finish", sidecars.finishSlices || []],
+    ["SC201-SC400 conversion", sidecars.conversionSlices || []]
+  ];
+  document.getElementById("structured-ledgers").innerHTML =
+    `<div class="ledger-summary">${ledgers.map(([label, rows]) => {
+      const counts = countBy(rows, "status");
+      return `<article class="status-cell">
+        <div class="label">${esc(label)}</div>
+        <div>${pill("banked")} ${esc(counts.banked || 0)}</div>
+        <div>${pill("blocked")} ${esc(counts.blocked || 0)}</div>
+        <div>${pill("queued")} ${esc(counts.queued || 0)}</div>
+      </article>`;
+    }).join("")}</div>
+    <div class="note">Sidecar counts are validator-owned dashboard state; fit, inference, bridge, REML, and coverage claims remain row-specific.</div>`;
+}
+
+function renderStructuredContracts(sidecars) {
+  const groups = [
+    ["Vocabulary", sidecars.statusVocabulary || [], ["term", "allowed_scope", "not_claimed", "status"]],
+    ["Q1 payload", sidecars.q1PayloadContracts || [], ["contract_id", "target", "required_payload_fields", "bridge_status"]],
+    ["Q1 reconstruction", sidecars.q1ReconstructionMaps || [], ["map_id", "extractor", "unavailable_status", "bridge_status"]],
+    ["Q1 parity fixtures", sidecars.q1ParityFixtures || [], ["fixture_id", "parity_quantity", "r_via_julia_path", "bridge_status"]],
+    ["Q2 targets", sidecars.q2TargetContracts || [], ["target_id", "dimension", "separated_from", "bridge_status"]],
+    ["Q2 native evidence", sidecars.q2NativeEvidence || [], ["evidence_id", "structured_type", "inference_status", "status"]],
+    ["Q2 bridge boundary", sidecars.q2BridgeBoundaries || [], ["boundary_id", "bridge_status", "negative_evidence", "status"]],
+    ["Q2 payload", sidecars.q2PayloadContracts || [], ["contract_id", "target", "required_payload_fields", "bridge_status"]],
+    ["Q2 payload provenance", sidecars.q2PayloadProvenance || [], ["provenance_id", "source_head", "dirty_state_policy", "bridge_status"]],
+    ["Q2 coefficient order", sidecars.q2CoefficientOrders || [], ["map_id", "coefficient_order", "tolerance_quantity", "bridge_status"]],
+    ["Q2 direct DRM.jl export", sidecars.q2DirectDrmjlExports || [], ["export_id", "direct_status", "unavailable_reason", "bridge_status"]],
+    ["Q2 acceptance gate", sidecars.q2AcceptanceGates || [], ["gate_id", "acceptance_status", "missing_evidence", "bridge_status"]],
+    ["Q4 targets", sidecars.q4TargetContracts || [], ["target_id", "direct_sd_targets", "interval_status", "status"]],
+    ["Q4 phylocov target map", sidecars.q4PhylocovTargetMaps || [], ["map_id", "target_kind", "direct_sd_target", "bridge_status"]],
+    ["Q4 profile target bridge map", sidecars.q4ProfileTargetBridgeMaps || [], ["map_id", "native_profile_target", "bridge_profile_target", "bridge_status"]],
+    ["Q4 scale-axis interval failures", sidecars.q4ScaleAxisIntervalFailures || [], ["failure_id", "direct_sd_target", "interval_claim_status", "direct_drmjl_status"]],
+    ["Q4 interval diagnostic plan", sidecars.q4IntervalDiagnosticPlans || [], ["diagnostic_id", "target_kind", "required_interval_evidence", "status"]],
+    ["Q4 interval diagnostic status", sidecars.q4IntervalDiagnosticStatus || [], ["diagnostic_id", "target_kind", "n_finite_intervals", "interval_claim_status"]],
+    ["Q4 convergence probe", sidecars.q4ConvergenceProbes || [], ["probe_id", "optimizer_preset", "converged", "pdHess"]],
+    ["Q4 boundary-separated probe", sidecars.q4BoundarySeparatedProbes || [], ["probe_id", "n_tip", "converged", "pdHess"]],
+    ["Q4 Hessian diagnostic status", sidecars.q4HessianDiagnosticStatus || [], ["diagnostic_id", "metric", "value", "diagnostic_class"]],
+    ["Q4 stabilized fixture design", sidecars.q4StabilizedFixtureDesign || [], ["design_id", "blocker", "acceptance_metric", "acceptance_threshold"]],
+    ["Q4 stabilized preflight", sidecars.q4StabilizedPreflights || [], ["preflight_id", "sd_scale", "pdHess", "finite_wald_direct_sd_intervals"]],
+    ["Q4 stabilized denominator extension", sidecars.q4StabilizedDenominatorExtensions || [], ["summary_id", "sd_scale", "n_pdhess", "n_finite_wald_direct_sd_intervals"]],
+    ["Q4 stabilized profile smoke", sidecars.q4StabilizedProfileSmokes || [], ["smoke_id", "parm", "conf_status", "profile_boundary"]],
+    ["Q4 stabilized all-direct profile", sidecars.q4StabilizedAllDirectProfiles || [], ["profile_id", "axis", "conf_status", "profile_boundary"]],
+    ["Q4 stabilized profile denominator", sidecars.q4StabilizedProfileDenominators || [], ["denominator_id", "profile_eligible", "profile_status", "blocker"]],
+    ["Q4 stabilized eligible profile", sidecars.q4StabilizedEligibleProfiles || [], ["profile_id", "axis", "conf_status", "warning_context"]],
+    ["Q4 stabilized coverage design", sidecars.q4StabilizedCoverageDesigns || [], ["design_id", "design_component", "planned_n_rep", "blocked_until"]],
+    ["Q4 stabilized grid runner", sidecars.q4StabilizedGridRunnerContracts || [], ["contract_id", "mode", "output_artifact", "validation_gate"]],
+    ["Q4 stabilized grid smoke", sidecars.q4StabilizedGridSmokeStatus || [], ["smoke_id", "observed_replicates", "observed_target_rows", "mcse_status"]],
+    ["Q4 derived-correlation interval contract", sidecars.q4DerivedCorrelationIntervalContracts || [], ["contract_id", "derived_correlation_target", "current_interval_status", "reconstruction_route"]],
+    ["Q4 derived-correlation interval smoke", sidecars.q4DerivedCorrelationIntervalSmokes || [], ["smoke_id", "derived_correlation_target", "point_status", "interval_status"]],
+    ["Q4 derived-correlation delta diagnostic", sidecars.q4DerivedCorrelationDeltaDiagnostics || [], ["diagnostic_id", "derived_correlation_target", "interval_status", "mcse_status"]],
+    ["Q4 derived-correlation delta grid contract", sidecars.q4DerivedCorrelationDeltaGridContracts || [], ["contract_id", "contract_component", "denominator_policy", "mcse_policy"]],
+    ["Q4 derived-correlation delta grid smoke", sidecars.q4DerivedCorrelationDeltaGridSmokes || [], ["smoke_id", "observed_target_rows", "finite_delta_rows", "mcse_status"]],
+    ["Q4 derived-correlation delta grid mini", sidecars.q4DerivedCorrelationDeltaGridMinis || [], ["mini_id", "observed_seed_scale_cells", "finite_delta_rows", "boundary_clamped_rows", "mcse_status"]],
+    ["Q4 derived-correlation delta ADEMP grid", sidecars.q4DerivedCorrelationDeltaGridAdempContracts || [], ["contract_id", "planned_n_rep", "planned_target_rows", "coverage_mcse_at_nominal"]],
+    ["Q4 derived-correlation delta resumable smoke", sidecars.q4DerivedCorrelationDeltaGridResumables || [], ["smoke_id", "computed_actions", "skipped_actions", "resumability_status"]],
+    ["Q4 derived-correlation delta DRAC shard plan", sidecars.q4DerivedCorrelationDeltaGridDracShardPlans || [], ["plan_id", "planned_workers", "planned_seed_scale_cells", "aggregate_gate"]],
+    ["Q4 derived-correlation delta DRAC dispatch pack", sidecars.q4DerivedCorrelationDeltaGridDracDispatchPacks || [], ["pack_id", "planned_drac_array_tasks", "compute_status", "aggregate_gate"]],
+    ["Q4 derived-correlation delta two-shard rehearsal", sidecars.q4DerivedCorrelationDeltaGridTwoShardRehearsals || [], ["rehearsal_id", "unique_cells", "skipped_actions", "aggregate_status"]],
+    ["Q4 derived-correlation delta local four-shard rehearsal", sidecars.q4DerivedCorrelationDeltaGridLocalFourShardRehearsals || [], ["rehearsal_id", "unique_cells", "warning_rows", "failure_rows", "aggregate_status"]],
+    ["Q4 derived-correlation delta local eight-shard medium rehearsal", sidecars.q4DerivedCorrelationDeltaGridLocalEightShardMediumRehearsals || [], ["rehearsal_id", "unique_cells", "warning_rows", "failure_rows", "aggregate_status"]],
+    ["Q4 derived-correlation delta local sixteen-shard MCSE pre-grid", sidecars.q4DerivedCorrelationDeltaGridLocalSixteenShardMcsePregrids || [], ["rehearsal_id", "unique_cells", "failure_rows", "coverage_evaluable_rows", "mcse_status"]],
+    ["Q4 direct DRM.jl export", sidecars.q4DirectDrmjlExports || [], ["export_id", "direct_sd_target", "direct_status", "bridge_status"]],
+    ["Q4 deterministic fixture", sidecars.q4DeterministicFixtures || [], ["fixture_id", "n_species", "n_obs", "fit_status"]],
+    ["Q4 tolerance policy", sidecars.q4TolerancePolicies || [], ["policy_id", "quantity", "tolerance", "acceptance_use"]],
+    ["Q4 same-fixture parity probe", sidecars.q4SameFixtureParityProbes || [], ["probe_id", "native_tmb_status", "max_abs_cor_delta", "acceptance_status"]],
+    ["Q4 calibrated parity probe", sidecars.q4CalibratedParityProbes || [], ["probe_id", "loglik_delta_native_bridge", "max_abs_cor_direct_bridge", "acceptance_status"]],
+    ["Q4 parity acceptance gate", sidecars.q4ParityAcceptanceGates || [], ["gate_id", "acceptance_status", "missing_evidence", "bridge_status"]],
+    ["Q4 extractor parity", sidecars.q4ExtractorParity || [], ["extractor_id", "source", "interval_status", "bridge_status"]],
+    ["Q4 corpairs parity gate", sidecars.q4CorpairsParityGates || [], ["gate_id", "parity_status", "missing_evidence", "bridge_status"]],
+    ["Q4 bridge boundary", sidecars.q4BridgeBoundaries || [], ["boundary_id", "smoke_status", "parity_required", "bridge_status"]],
+    ["Q4 REML requested/effective audit", sidecars.q4RemlRequestedEffectiveAudits || [], ["audit_id", "requested_estimator", "effective_estimator", "bridge_status"]],
+    ["REML scope", sidecars.remlScopeGates || [], ["gate_id", "target", "forbidden_wording", "status"]],
+    ["ADEMP design", sidecars.adempDesigns || [], ["design_id", "dimension", "mcse_target", "interval_policy"]],
+    ["Coverage calibration", sidecars.coverageCalibrationStatus || [], ["calibration_id", "slice_id", "grid_status", "status"]],
+    ["Coverage acceptance gate", sidecars.coverageAcceptanceGates || [], ["gate_id", "slice_id", "gate_status", "missing_evidence"]],
+    ["Native REML scope status", sidecars.nativeRemlScopeStatus || [], ["scope_id", "slice_id", "effective_estimator", "support_status"]],
+    ["Scope gate status", sidecars.scopeGateStatus || [], ["gate_id", "slice_id", "support_status", "status"]],
+    ["Type gaps", sidecars.typeGaps || [], ["gap_id", "structured_type", "missing_cell", "status"]],
+    ["R docs/API", sidecars.rDocsApiSync || [], ["sync_id", "surface", "missing_or_deferred", "status"]],
+    ["R docs sync status", sidecars.rDocsSyncStatus || [], ["sync_id", "slice_id", "deferred_terms", "status"]],
+    ["Julia twin", sidecars.juliaTwinSync || [], ["sync_id", "repo", "head", "bridge_impact"]],
+    ["Julia twin status", sidecars.juliaTwinStatus || [], ["sync_id", "slice_id", "test_result", "status"]],
+    ["Ayumi closeout status", sidecars.ayumiCloseoutStatus || [], ["gate_id", "slice_id", "current_status", "status"]],
+    ["Closeout", sidecars.closeoutPackage || [], ["closeout_id", "item", "claim_boundary", "status"]],
+    ["Executable evidence", sidecars.executableEvidence || [], ["evidence_id", "scope", "evidence_class", "status"]]
+  ];
+  const body = groups.map(([label, rows, fields]) =>
+    `<article class="finish-section">
+      <h3>${esc(label)} <span class="note">${esc(rows.length)} rows</span></h3>
+      <div class="finish-stack">${rows.map((row) =>
+        `<article class="finish-card">
+          <div class="finish-top">
+            <div class="finish-title">${esc(row[fields[0]] || "")}</div>
+            ${pill(row.status || row.bridge_status || "planned")}
+          </div>
+          <div class="finish-meta"><strong>${esc(fields[1])}:</strong> ${esc(row[fields[1]] || "")}</div>
+          <div class="finish-meta"><strong>${esc(fields[2])}:</strong> ${esc(row[fields[2]] || "")}</div>
+          <div class="finish-meta"><strong>${esc(fields[3])}:</strong> ${esc(row[fields[3]] || "")}</div>
+          <div class="note">${esc(row.claim_boundary || row.next_gate || "")}</div>
+        </article>`
+      ).join("")}</div>
+    </article>`
+  ).join("");
+  document.getElementById("structured-contracts").innerHTML = `<div class="finish-board">${body}</div>`;
+}
+
+function renderConversionSlices(rows) {
+  const head = ["Slice", "Wave", "Area", "Lead", "Required", "Status"];
+  const body = (rows || []).map((row) =>
+    `<article class="gate-row">
+      <div class="cell"><strong>${esc(row.slice_id)}</strong><div class="note">${esc(row.order)}</div></div>
+      <div class="cell">${esc(row.wave)}</div>
+      <div class="cell">${esc(row.area)}<div class="note">${esc(row.primary_gate)}</div></div>
+      <div class="cell">${esc(row.lead_member)}</div>
+      <div class="cell">${esc(row.required_members)}</div>
+      <div class="cell">${pill(row.status)}<div class="note">${esc(row.bank_condition)}</div></div>
+    </article>`
+  ).join("");
+  document.getElementById("conversion-slices").innerHTML =
+    `<article class="gate-row gate-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${body}`;
 }
 
 function renderMatrix(data) {
@@ -546,15 +780,20 @@ function renderCapabilities(capabilities) {
     `<article class="gate-row gate-head">${head.map((x) => `<div>${esc(x)}</div>`).join("")}</article>${rows}`;
 }
 
-function render(data, gates, capabilities) {
+function render(data, gates, capabilities, sidecars) {
   document.getElementById("title").textContent = data.title || "drmTMB mission control";
   document.getElementById("subtitle").textContent = data.subtitle || "";
   document.getElementById("updated").textContent = "live - " + (data.updated || "unknown");
-  renderMetrics(data);
+  renderMetrics(data, sidecars);
   renderFinishBoard(data);
   renderRepos(data);
   renderPhases(data);
-  renderTeam(data);
+  renderTeam(data, sidecars.roster, sidecars.discussions);
+  renderDiscussions(sidecars.discussions, sidecars.roster);
+  renderMemberWaves(sidecars.assignments, sidecars.roster);
+  renderStructuredLedgers(sidecars);
+  renderStructuredContracts(sidecars);
+  renderConversionSlices(sidecars.conversionSlices);
   renderMatrix(data);
   renderGates(gates);
   renderCapabilities(capabilities);
@@ -575,7 +814,84 @@ async function tick() {
     try { overlay = await readJson("sweep.json"); } catch (err) {}
     const gates = parseTsv(await readText("julia-gates.tsv"));
     const capabilities = parseTsv(await readText("julia-capabilities.tsv"));
-    render(mergeStatus(base, overlay), gates, capabilities);
+    const sidecars = {
+      roster: parseTsv(await readText("member-roster.tsv")),
+      discussions: parseTsv(await readText("member-discussions.tsv")),
+      assignments: parseTsv(await readText("member-wave-assignments.tsv")),
+      balanceSlices: parseTsv(await readText("structured-re-balance-100-slices.tsv")),
+      finishSlices: parseTsv(await readText("structured-re-finish-100-slices.tsv")),
+      conversionSlices: parseTsv(await readText("structured-re-conversion-200-slices.tsv")),
+      statusVocabulary: parseTsv(await readText("structured-re-status-vocabulary.tsv")),
+      q1PayloadContracts: parseTsv(await readText("structured-re-q1-bridge-payload-contract.tsv")),
+      q1ReconstructionMaps: parseTsv(await readText("structured-re-q1-reconstruction-map.tsv")),
+      q1ParityFixtures: parseTsv(await readText("structured-re-q1-parity-fixture-contract.tsv")),
+      q2TargetContracts: parseTsv(await readText("structured-re-q2-target-contract.tsv")),
+      q2NativeEvidence: parseTsv(await readText("structured-re-q2-native-evidence.tsv")),
+      q2BridgeBoundaries: parseTsv(await readText("structured-re-q2-bridge-boundary.tsv")),
+      q2PayloadContracts: parseTsv(await readText("structured-re-q2-payload-contract.tsv")),
+      q2PayloadProvenance: parseTsv(await readText("structured-re-q2-payload-provenance.tsv")),
+      q2CoefficientOrders: parseTsv(await readText("structured-re-q2-coefficient-order-map.tsv")),
+      q2DirectDrmjlExports: parseTsv(await readText("structured-re-q2-direct-drmjl-export.tsv")),
+      q2AcceptanceGates: parseTsv(await readText("structured-re-q2-acceptance-gate.tsv")),
+      q4TargetContracts: parseTsv(await readText("structured-re-q4-target-contract.tsv")),
+      q4PhylocovTargetMaps: parseTsv(await readText("structured-re-q4-phylocov-target-map.tsv")),
+      q4ProfileTargetBridgeMaps: parseTsv(await readText("structured-re-q4-profile-target-bridge-map.tsv")),
+      q4ScaleAxisIntervalFailures: parseTsv(await readText("structured-re-q4-scale-axis-interval-failures.tsv")),
+      q4IntervalDiagnosticPlans: parseTsv(await readText("structured-re-q4-interval-diagnostic-plan.tsv")),
+      q4IntervalDiagnosticStatus: parseTsv(await readText("structured-re-q4-interval-diagnostic-status.tsv")),
+      q4ConvergenceProbes: parseTsv(await readText("structured-re-q4-convergence-probe.tsv")),
+      q4BoundarySeparatedProbes: parseTsv(await readText("structured-re-q4-boundary-separated-probe.tsv")),
+      q4HessianDiagnosticStatus: parseTsv(await readText("structured-re-q4-hessian-diagnostic-status.tsv")),
+      q4StabilizedFixtureDesign: parseTsv(await readText("structured-re-q4-stabilized-fixture-design.tsv")),
+      q4StabilizedPreflights: parseTsv(await readText("structured-re-q4-stabilized-preflight.tsv")),
+      q4StabilizedDenominatorExtensions: parseTsv(await readText("structured-re-q4-stabilized-denominator-extension.tsv")),
+      q4StabilizedProfileSmokes: parseTsv(await readText("structured-re-q4-stabilized-profile-smoke.tsv")),
+      q4StabilizedAllDirectProfiles: parseTsv(await readText("structured-re-q4-stabilized-all-direct-profile.tsv")),
+      q4StabilizedProfileDenominators: parseTsv(await readText("structured-re-q4-stabilized-profile-denominator-status.tsv")),
+      q4StabilizedEligibleProfiles: parseTsv(await readText("structured-re-q4-stabilized-eligible-profile.tsv")),
+      q4StabilizedCoverageDesigns: parseTsv(await readText("structured-re-q4-stabilized-coverage-design.tsv")),
+      q4StabilizedGridRunnerContracts: parseTsv(await readText("structured-re-q4-stabilized-grid-runner-contract.tsv")),
+      q4StabilizedGridSmokeStatus: parseTsv(await readText("structured-re-q4-stabilized-grid-smoke-status.tsv")),
+      q4DerivedCorrelationIntervalContracts: parseTsv(await readText("structured-re-q4-derived-correlation-interval-contract.tsv")),
+      q4DerivedCorrelationIntervalSmokes: parseTsv(await readText("structured-re-q4-derived-correlation-interval-smoke.tsv")),
+      q4DerivedCorrelationDeltaDiagnostics: parseTsv(await readText("structured-re-q4-derived-correlation-delta-diagnostic.tsv")),
+      q4DerivedCorrelationDeltaGridContracts: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-contract.tsv")),
+      q4DerivedCorrelationDeltaGridSmokes: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv")),
+      q4DerivedCorrelationDeltaGridMinis: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-mini-status.tsv")),
+      q4DerivedCorrelationDeltaGridAdempContracts: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv")),
+      q4DerivedCorrelationDeltaGridResumables: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv")),
+      q4DerivedCorrelationDeltaGridDracShardPlans: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv")),
+      q4DerivedCorrelationDeltaGridDracDispatchPacks: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv")),
+      q4DerivedCorrelationDeltaGridTwoShardRehearsals: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv")),
+      q4DerivedCorrelationDeltaGridLocalFourShardRehearsals: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv")),
+      q4DerivedCorrelationDeltaGridLocalEightShardMediumRehearsals: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv")),
+      q4DerivedCorrelationDeltaGridLocalSixteenShardMcsePregrids: parseTsv(await readText("structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv")),
+      q4DirectDrmjlExports: parseTsv(await readText("structured-re-q4-direct-drmjl-export.tsv")),
+      q4DeterministicFixtures: parseTsv(await readText("structured-re-q4-deterministic-fixture.tsv")),
+      q4TolerancePolicies: parseTsv(await readText("structured-re-q4-tolerance-policy.tsv")),
+      q4SameFixtureParityProbes: parseTsv(await readText("structured-re-q4-same-fixture-parity-probe.tsv")),
+      q4CalibratedParityProbes: parseTsv(await readText("structured-re-q4-calibrated-parity-probe.tsv")),
+      q4ParityAcceptanceGates: parseTsv(await readText("structured-re-q4-parity-acceptance-gate.tsv")),
+      q4ExtractorParity: parseTsv(await readText("structured-re-q4-extractor-parity.tsv")),
+      q4CorpairsParityGates: parseTsv(await readText("structured-re-q4-corpairs-parity-gate.tsv")),
+      q4BridgeBoundaries: parseTsv(await readText("structured-re-q4-bridge-boundary.tsv")),
+      q4RemlRequestedEffectiveAudits: parseTsv(await readText("structured-re-q4-reml-requested-effective-audit.tsv")),
+      remlScopeGates: parseTsv(await readText("structured-re-reml-scope-gate.tsv")),
+      adempDesigns: parseTsv(await readText("structured-re-ademp-design.tsv")),
+      coverageCalibrationStatus: parseTsv(await readText("structured-re-coverage-calibration-status.tsv")),
+      coverageAcceptanceGates: parseTsv(await readText("structured-re-coverage-acceptance-gate.tsv")),
+      nativeRemlScopeStatus: parseTsv(await readText("structured-re-native-reml-scope-status.tsv")),
+      scopeGateStatus: parseTsv(await readText("structured-re-scope-gate-status.tsv")),
+      typeGaps: parseTsv(await readText("structured-re-type-gaps.tsv")),
+      rDocsApiSync: parseTsv(await readText("structured-re-r-docs-api-sync.tsv")),
+      rDocsSyncStatus: parseTsv(await readText("structured-re-r-docs-sync-status.tsv")),
+      juliaTwinSync: parseTsv(await readText("structured-re-julia-twin-sync.tsv")),
+      juliaTwinStatus: parseTsv(await readText("structured-re-julia-twin-status.tsv")),
+      ayumiCloseoutStatus: parseTsv(await readText("structured-re-ayumi-closeout-status.tsv")),
+      closeoutPackage: parseTsv(await readText("structured-re-closeout-package.tsv")),
+      executableEvidence: parseTsv(await readText("structured-re-executable-evidence.tsv"))
+    };
+    render(mergeStatus(base, overlay), gates, capabilities, sidecars);
   } catch (err) {
     document.getElementById("subtitle").textContent = "Dashboard data did not load. Check status.json and sweep.json.";
   }

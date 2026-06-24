@@ -7189,7 +7189,7 @@ parse_random_sigma_term <- function(expr, dpar) {
       "Only bivariate residual-scale random intercepts are implemented for {.code {dpar}}.",
       "x" = "Use matching terms such as {.code {dpar} = ~ z + (1 | p | id)}.",
       "i" = "Residual-scale random slopes in bivariate models remain planned.",
-      "i" = "Do not use all-four slope terms to request a q=8 endpoint covariance block; that larger double-hierarchical surface is deliberately closed in this phase."
+      "i" = "The ordinary all-four q8 diagnostic route requires matching one-slope terms in {.code mu1}, {.code mu2}, {.code sigma1}, and {.code sigma2}; this error is for a residual-scale-only or mismatched q8-shaped request."
     ))
   }
 

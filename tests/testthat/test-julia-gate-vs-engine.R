@@ -15,7 +15,31 @@ expect_julia_gate <- function(gate_id, expr, regexp) {
   if (!missing(regexp)) {
     expect_equal(regexp, gate$message_pattern)
   }
-  expect_error(force(expr), regexp = gate$message_pattern)
+  err <- tryCatch(force(expr), error = function(cnd) cnd)
+  expect_s3_class(err, "error")
+  if (!inherits(err, "error")) {
+    return(invisible(err))
+  }
+  message <- conditionMessage(err)
+  expect_match(message, gate$message_pattern)
+  expect_match(
+    message,
+    paste(
+      c(
+        "engine\\s*=\\s*\"tmb\"",
+        "Supported:",
+        "drop",
+        "complete responses and predictors",
+        "large-p phylogenetic speed edge",
+        "coefficient-scale parity tests",
+        "latent engine",
+        "not wired"
+      ),
+      collapse = "|"
+    ),
+    ignore.case = TRUE
+  )
+  invisible(err)
 }
 
 new_gate_tree <- function(n = 6) {
@@ -34,7 +58,7 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "base_missing_response_nongaussian",
     "base_unsupported_family",
     "base_nonphylo_count",
-    "biv_partial_phylo_q4",
+    "biv_invalid_partial_phylo",
     "biv_rho12_phylo",
     "structured_unsupported_family",
     "structured_sigma_predictor",
@@ -286,7 +310,7 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
   )
 })
 
-test_that("bivariate q4 phylo gates are intentional and pre-JuliaCall", {
+test_that("bivariate invalid phylo gates are intentional and pre-JuliaCall", {
   tree <- new_gate_tree(6)
   dat <- data.frame(
     y1 = rnorm(6),
@@ -295,22 +319,22 @@ test_that("bivariate q4 phylo gates are intentional and pre-JuliaCall", {
     species = tree$tip.label
   )
 
-  partial_q4 <- bf(
+  partial_phylo <- bf(
     mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
-    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x,
     sigma1 = ~1,
     sigma2 = ~1,
     rho12 = ~1
   )
   expect_julia_gate(
-    "biv_partial_phylo_q4",
+    "biv_invalid_partial_phylo",
     drmTMB(
-      partial_q4,
+      partial_phylo,
       family = biv_gaussian(),
       data = dat,
       engine = "julia"
     ),
-    "Missing phylogenetic axis"
+    "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis"
   )
 
   rho12_phylo <- bf(

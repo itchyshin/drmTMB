@@ -226,10 +226,10 @@ The next finish-plan constraint is no longer another native artifact by
 default; it is companion-package evidence. PR #295 banked direct DRM.jl smoke
 evidence from a clean DRM.jl worktree, and the Julia-via-R clean-main bridge
 audit now makes the R bridge tests use explicit DRM.jl checkout variables and
-`devtools::test(filter = "julia")` passed against that merged DRM.jl main
-worktree with the known Route A skip. The saved DRM.jl checkout can be dirty
-with Ayumi files, so future direct-Julia and Julia-via-R implementation should
-keep using a clean worktree from `origin/main`. No bridge-row promotion,
+newer structured-RE evidence now banks one deterministic q1 mean-phylo Route A
+ML parity fixture. The saved DRM.jl checkout can be dirty with Ayumi files, so
+future direct-Julia and Julia-via-R implementation should keep using a clean
+worktree from `origin/main`. No broad bridge-row promotion,
 release, CRAN, recovery, coverage, power, or selectable `engine_control` claim
 follows from these companion evidence slices alone.
 

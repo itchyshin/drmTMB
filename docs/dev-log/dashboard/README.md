@@ -20,8 +20,12 @@ The validator checks that `version.txt` matches the HTML build constant, phase
 counts match slice statuses, metrics match the phase slices, canonical team
 names are used, the finish-board rows have valid issue, owner, status, and
 evidence fields, and the dashboard matrix has the same number of rows as
-`docs/design/168-r-julia-finish-capability-matrix.md`. It also checks that
-README, ROADMAP, NEWS, pkgdown navigation, this dashboard README, and any local
+`docs/design/168-r-julia-finish-capability-matrix.md`. It also validates the
+100-row finish-run ledger in `finish-100-slices.tsv`, validates the guarded q4
+target and estimator inventory in `q4-target-inventory.tsv`, validates the
+location/scale `phylo()` balance inventory in
+`phylo-balance-inventory.tsv`, checks that README, ROADMAP, NEWS, pkgdown
+navigation, this dashboard README, and any local
 Documenter.jl sources link back to
 `docs/design/168-r-julia-finish-capability-matrix.md`, and rejects
 public-facing release-promotion wording or reserved Julia-control claims outside
@@ -51,9 +55,708 @@ Regenerate `julia-gates.tsv` from `drm_julia_intentional_gates()` with
 dashboard copy and an `inst/extdata/` copy so tests can compare artifacts inside
 `R CMD check`, where `docs/` is not installed.
 
+The 100-slice finish-run ledger is hand-curated mission-control state, not a
+generated package artifact. Keep it at exactly 100 rows. Rows 1-10 record the
+truth-freeze wave; rows 11-100 stay `queued` until implementation, tests, docs,
+issue evidence, and dashboard state catch up. A row marked `banked` or
+`verified` must point to existing evidence.
+
+`q4-target-inventory.tsv` is the guarded R-side q4 target and estimator
+inventory. It separates native TMB ML evidence, unsupported native q4 REML,
+experimental Julia bridge q4 REML, profile-target extraction, and bootstrap
+smoke or negative evidence. The validator checks its schema, statuses, and
+evidence paths so q4 target rows cannot drift into bridge, interval-coverage, or
+AI-REML claims.
+
+`phylo-balance-inventory.tsv` is the guarded location/scale `phylo()` inventory.
+It separates native TMB ML, native TMB REML, and experimental R-to-Julia bridge
+rows so univariate mean-side support, residual-scale support, matched
+mean-scale support, and q4 diagnostics do not collapse into one balanced-support
+claim.
+
+`scale-phylo-diagnostics.tsv` records the scale-side phylogenetic diagnostic
+surface. It separates clamp-active warnings from scale-side identifiability
+notes and records that diagnostic rows are not interval-coverage evidence.
+
+`phylo-profile-loglik-status.tsv` records finite log-likelihood and
+profile-target readiness for selected phylogenetic Gaussian rows. It keeps
+direct-ready SD targets separate from derived q4 correlation targets and treats
+interval coverage as unevaluated unless a row explicitly proves otherwise.
+
+`bootstrap-refit-accounting.tsv` records requested, successful, and failed
+bootstrap refits plus failure-reason visibility. It is an accounting table, not
+a coverage table.
+
+`phylo-q2-q4-target-map.tsv` records the q2/q4 phylogenetic target split. It
+keeps bivariate location-only q2 evidence, block-diagonal q2-plus-q2 evidence,
+full four-axis q4 evidence, unsupported native REML rows, and experimental
+Julia bridge rows separate so direct-ready lower-dimensional targets cannot be
+read as q4 interval support.
+
+`phylo-extractor-status.tsv` records q2 and q4 extractor status fields from
+`corpairs()`, `summary(fit)$covariance`, and `profile_targets()`. It keeps
+point-only extraction, profile/newdata requirements, derived interval
+unavailability, and covariance status fields visible without promoting Wald or
+coverage claims.
+
+`bridge-payload-schema.tsv` records row-specific R-to-Julia bridge payload
+fields. It names the data, formula, estimator, covariance, target, inference,
+and unsupported-payload fields that each bridge route must carry before parity
+or promotion language can be considered.
+
+`bridge-provenance-fields.tsv` records provenance groups that must travel with
+bridge payloads: requested and effective estimators, target identity, data-row
+and missingness policy, formula grammar, matrix origin, runtime versions, dirty
+flags, inference status, reconstruction maps, and intentional-error guard
+metadata.
+
+`loconly-bridge-draft.tsv` records the single gated exact-Gaussian
+location-only phylogenetic REML diagnostic draft row. It marks direct DRM.jl
+diagnostic evidence and mission-control schema/provenance coverage while
+leaving native R, R-via-Julia, parity, and bridge support planned.
+
+`bridge-serialization-status.tsv` records the internal serialization status for
+bridge draft rows. The first covered row is a base-R TSV round-trip for the
+location-only schema tuple; JSON remains planned and is not a public payload
+surface.
+
+`bridge-reconstruction-status.tsv` records internal R reconstruction status for
+Julia bridge objects. The first covered row uses a synthetic bridge object and
+keeps missing payload pieces, profile targets, corpairs, and inference promotion
+explicit.
+
+`julia-home-smoke.tsv` records the R-side Julia home helper smoke tests. It
+checks `DRM_JL_JULIA_HOME` precedence, `JULIA_HOME` fallback, explicit child
+setup, and caller-scoped restoration without invoking Julia or promoting a
+bridge route.
+
+`bridge-rejection-messages.tsv` records intentional R-to-Julia bridge rejection
+message coverage. It mirrors the current gate registry so every `intentional_error`
+row has a tested pre-JuliaCall error and route guidance.
+
+`capability-regeneration-status.tsv` records the generated bridge artifacts,
+their source functions, writer scripts, dashboard outputs, `inst/extdata/`
+outputs, and row counts. It is regeneration evidence, not a support-promotion
+table.
+
+`bridge-parity-smoke-status.tsv` records row-specific native TMB versus
+R-to-Julia bridge parity smoke evidence. It names the exact Gaussian cells,
+parity targets, tolerances, and skipped/blocked rows instead of treating a
+passing smoke test as broad bridge support.
+
+`binomial-bridge-map.tsv` records the native TMB binomial first slice,
+intentional non-phylo Julia bridge rejection, experimental Binomial phylo bridge
+row, and direct DRM.jl alignment as separate rows.
+
+`binomial-profile-status.tsv` records target-scoped profile feasibility for
+fixed-effect binomial rows. It keeps direct `mu` profile targets, explicit
+`parm` requirements, structured failure rows, and interval-promotion status
+separate.
+
+`ayumi-phylo-balance-100-slices.tsv` records the Ayumi phylo-balance arc as a
+separate 100-slice ledger from the R/Julia finish run. Its first two waves
+rehydrate issue access, tracker evidence, forbidden wording, route vocabulary,
+and reply gates before any new Ayumi-facing prose is drafted.
+
+`ayumi-phylo-balance-vocabulary.tsv` defines the balance terms used by the
+Ayumi arc. It keeps univariate balance, q4 balance, partial native REML,
+experimental bridge support, diagnostic point fits, MAP vocabulary, reply
+gates, and issue-access limits as validator-owned rows.
+
+`ayumi-phylo-balance-trackers.tsv` records the current issue/source map for the
+Ayumi arc. It distinguishes the unreadable external Ayumi issue URL from the
+internal drmTMB/DRM.jl trackers and from tracker evidence that a prior reply
+exists but is not independently readable in this session.
+
+`ayumi-inference-coverage-ledger.tsv` records Wald, profile, bootstrap, and
+coverage status for the Ayumi balance cells. It is deliberately conservative:
+direct-ready profile targets, bootstrap plumbing, known undercoverage, and
+unevaluated coverage remain different statuses.
+
+`ayumi-boundary-status-ledger.tsv` records the boundary and fit-status facts
+that affect Ayumi interpretation: `pdHess = FALSE`, log-`sigma` clamps,
+near-boundary residual `rho12`, q4 covariance warnings, profile failures, and
+direct Julia collapsed-axis profiles.
+
+`structured-re-balance-matrix.tsv` records q1, q2, q2-plus-q2, and q4
+structured random-effect status across `phylo()`, `spatial()`, `animal()`,
+`relmat()`, and the q1-only `phylo_interaction()` route. It separates fit
+status, inference status, and bridge status so location-side support,
+scale-side support, all-four q4 point fits, count-model q1 fits, and
+unsupported interval or bridge claims cannot collapse into one balance claim.
+
+`structured-re-q-series-support-cells.tsv` records the exact q-series
+completion cells for structured random effects and ordinary comparators. It
+names the formula cell, family, provider, dimension pattern, endpoint set,
+slope class, covariance layout, route, requested/effective estimator, fit,
+extractor, bridge, interval, coverage, authority, denominator, evidence, and
+next-gate fields for each row. This file is the row-level source of truth for
+q-series completion planning: a balanced `mu+sigma` row, a q2 fixture, a q4
+point row, an ordinary q8 diagnostic route, or a direct-SD profile target
+never promotes neighbouring half-cells, structured q6/q8, REML, intervals,
+coverage, broad bridge support, or public optimizer controls unless the exact
+cell row says so.
+
+`structured-re-balance-100-slices.tsv` records the structured random-effect
+balance arc. SR001-SR060 bank the corrected scope, native ML q1/q2/q4, slope,
+and native exact-Gaussian REML status. SR061-SR090 bank inference, bridge
+readiness, and documentation status where evidence exists, while blocking
+coverage pilots and bridge parity rows that are not yet proven. SR091-SR100
+record closeout gates for live Ayumi issue access, Bayesian-result comparison,
+reply approval, posting, final validation, commit approval, and recovery
+checkpointing.
+
+`structured-re-finish-100-slices.tsv` records the next structured random-effect
+finish arc. SR101-SR110 bank the carryover scope, evidence ladder, and
+validator ownership for the second 100-slice tranche. SR111-SR140 focus on q1,
+q2, and q4 bridge parity, where a row can be promoted only after native R/TMB,
+direct DRM.jl, and R-via-Julia evidence agree on the same target. SR141-SR150
+scale pilot coverage accounting into calibrated simulation design. SR151-SR180
+cover native REML boundaries, structured-type gaps, R docs, and user-facing
+error/status text. SR181-SR190 synchronize direct DRM.jl evidence and
+gate-vs-engine checks. SR191-SR200 keep the Ayumi reply, posting, commit, and
+handoff gates explicit.
+
+`structured-re-q4-reml-requested-effective-audit.tsv` records the SR135
+requested-versus-effective estimator audit for q4. It separates native TMB q4
+ML, unsupported native TMB q4 REML, direct DRM.jl q4 Patterson-Thompson REML,
+experimental R-via-Julia q4 Patterson-Thompson REML, and the unsupported
+HSquared AI-REML transfer boundary. It is an audit table only: no native q4
+REML, HSquared AI-REML, public bridge support, interval reliability, or interval
+coverage claim is promoted by those rows.
+
+`structured-re-q4-calibrated-parity-probe.tsv` records the calibrated q4
+same-fixture probes that found native-converged 32-tip candidates after the
+direct DRM.jl log-Cholesky label-order fix. It separates direct DRM.jl to
+R-wrapper reconstruction coverage and calibrated q4 point parity from interval
+reliability, interval coverage, q4 REML, HSquared AI-REML, and public bridge
+support.
+
+`structured-re-r-docs-sync-status.tsv` records the SR171-SR180 documentation
+and error-message synchronization gate. It points each row to source files and
+exact scan commands for formula grammar, known limitations, README/pkgdown
+status, rejection-message wording, examples/vignettes, forbidden-claim scans,
+and the docs acceptance gate. These rows bank source-truth hygiene only; they
+do not promote R-via-Julia bridge support, q4 REML, HSquared AI-REML,
+non-Gaussian REML, public optimizer controls, or interval coverage.
+
+`structured-re-julia-twin-status.tsv` records the SR181-SR190 Julia twin sync
+gate. It names the active drmTMB and DRM.jl branches, full SHAs, dirty-state
+lists, focused Julia q2/q4 direct-export test results, R bridge/parity test
+results, Julia/R/JuliaCall versions, local issue/source-map status, and the twin
+acceptance gate. These rows are provenance and guard evidence only. The q2
+phylo result is one complete-response exact-Gaussian ML fixture; the file does
+not promote broad q2 bridge support, q2 REML, q4 REML, AI-REML, interval
+coverage, public bridge support, or release readiness.
+
+`structured-re-ayumi-closeout-status.tsv` records the SR191-SR200 closeout
+gates. SR191-SR198 stay blocked until current Ayumi issue text, exact reply
+text, maintainer approval, public posting, posted URL evidence, and explicit
+commit approval exist. SR199-SR200 bank only the recovery checkpoint and next
+start point. This file deliberately records that no Ayumi reply, public issue
+comment, commit, bridge promotion, REML promotion, AI-REML claim, or interval
+coverage claim was made.
+
+`member-roster.tsv`, `member-discussions.tsv`, and
+`member-wave-assignments.tsv` are the mission-control member board. They turn
+the standing Ada/Rose/Grace/etc. review perspectives into validator-owned
+dashboard state: what each member can do, which waves they own, what they
+should improve, which claims they sign off, and what discussion record blocks
+or accepts a row transition.
+
+`structured-re-conversion-200-slices.tsv` records the SC201-SC400 conversion
+ledger. Its rows do not promote package behaviour by themselves; they track
+the next 200 execution slices needed to move scoped `partial` or `planned`
+structured random-effect rows toward `covered` matrix status or `banked`
+slice-ledger status.
+
+`structured-re-executable-evidence.tsv` records the first executable guards
+added after the conversion ledger: q1/q2/q4 contract tests, the ADEMP
+scaffold tests, and tiny diagnostic-pilot artifact checks. These rows bank
+testable boundaries, runner/accounting scaffolds, and pilot failure accounting
+only. They do not promote bridge support, native q2/q4 REML, q4 interval
+coverage, non-Gaussian REML, or any Ayumi-facing reply text.
+
+`structured-re-status-vocabulary.tsv` defines the row-level meaning of
+`covered`, `partial`, `planned`, `banked`, `blocked`, `experimental`, and
+`unsupported` for this structured random-effect arc. It keeps `covered` scoped
+to an exact matrix/status row and keeps `banked` scoped to a slice-ledger row
+with evidence.
+
+`structured-re-q1-bridge-payload-contract.tsv` records the q1 bridge payload
+fields that must exist before q1 bridge parity can be attempted. It names
+target, estimator, matrix digest, endpoint fields, provenance, and unsupported
+payload pieces without promoting R-via-Julia support.
+
+`structured-re-q1-reconstruction-map.tsv` records how future q1 bridge payloads
+should reconstruct `coef`, `vcov`, summary, profile-target, and unavailable
+status fields. It is an extractor/status map, not interval or coverage
+evidence.
+
+`structured-re-q1-parity-fixture-contract.tsv` records deterministic q1 parity
+fixture contracts for native R/TMB, direct DRM.jl, and future R-via-Julia
+routes. Rows marked `covered` here mean the fixture contract is specified; they
+do not mean executable bridge parity has passed.
+
+`structured-re-q2-target-contract.tsv` records the q2 target vocabulary. It
+keeps q2 location covariance targets separate from q2-plus-q2 block evidence
+and full q4 derived correlations, and it keeps native q2 REML unsupported
+until an exact-Gaussian derivation and tests exist.
+
+`structured-re-q2-native-evidence.tsv` records fixture-level native q2 evidence
+for `phylo()`, `spatial()`, `animal()`, and `relmat()` rows. It is deliberately
+point-only and does not promote q4, REML, bridge, or interval coverage claims.
+
+`structured-re-q2-bridge-boundary.tsv` records the q2 bridge split. The phylo
+row is experimental for one complete-response exact-Gaussian ML `mu1`/`mu2`
+fixture, the `animal()` and `relmat()` rows are experimental for one
+known-covariance bridge fixture each, and the `spatial()` row is experimental
+for one fixed-covariance coordinate fixture. Q2 REML, one-axis and three-axis
+phylo partials, scale-only partial blocks, range-estimating spatial routes,
+mesh/SPDE routes, and broad bridge support remain unsupported or planned.
+
+`structured-re-q2-payload-contract.tsv` records the q2 payload shape and
+coefficient-ordering contract. It keeps `mu1`/`mu2` location covariance separate
+from q2-plus-q2, q4, REML, and interval coverage. The q2 phylo row is backed by
+one narrow R-via-Julia fixture, the q2 `animal()` and `relmat()` rows are backed
+by known-covariance R-via-Julia fixtures, and the q2 `spatial()` row is backed
+by one fixed-covariance R-via-Julia fixture.
+
+`structured-re-q2-payload-provenance.tsv` records the q2 payload provenance
+obligations as row-shaped evidence: source repositories, branches, heads,
+payload version, matrix ID, matrix digest, matrix slot, input scale,
+missing-level policy, bridge-marshalling boundary, endpoint, required matrix
+levels, version fields, and dirty-state policy. It is a provenance contract
+only; the phylo, `spatial()`, `animal()`, and `relmat()` rows support one
+narrow fixture each. The spatial row is fixed-covariance only. None of these
+rows promotes broad q2 bridge support.
+
+`structured-re-q2-coefficient-order-map.tsv` records the fixture-derived q2
+coefficient order for `phylo()`, `spatial()`, `animal()`, and `relmat()`. It is
+a coefficient-map contract only; all four rows have narrow fixture evidence,
+with the q2 `spatial()` row limited to fixed-covariance coordinates.
+
+`structured-re-q2-direct-drmjl-export.tsv` records the direct DRM.jl q2 export
+status for `phylo()`, `spatial()`, `animal()`, and `relmat()`. The phylo row is
+covered for one complete-response exact-Gaussian ML residual-correlation
+same-target fixture. The `animal()` and `relmat()` rows now have direct
+known-covariance and R-via-Julia same-target fixture evidence, and the
+`spatial()` row has fixed-covariance direct and R-via-Julia fixture evidence.
+This does not promote range-estimating q2 spatial support, broad q2 bridge
+support, q2 REML, q4 support, or interval coverage.
+
+`structured-re-q2-acceptance-gate.tsv` records q2 parity acceptance by
+structured type. The phylo row is covered for one complete-response
+exact-Gaussian ML native/direct/bridge fixture, the `animal()` and `relmat()`
+rows are covered for known-covariance native/direct/bridge fixtures, and the
+`spatial()` row is covered for one fixed-covariance coordinate native/direct/
+bridge fixture. Aggregate q2 acceptance is fixture-scoped only; it does not
+promote range-estimating spatial support, q2 REML, q4 support, broad public
+bridge support, or interval coverage.
+
+`structured-re-q4-target-contract.tsv` records q4 target classes. It separates
+direct structured-standard-deviation targets from derived cross-axis
+correlations and keeps native q4 REML unsupported.
+
+`structured-re-q4-phylocov-target-map.tsv` records the q4 phylogenetic
+covariance target names: four direct SD targets and six derived among-axis
+correlation targets. It aligns target names to log-Cholesky source labels and
+extractors, but does not promote q4 parity, q4 REML, AI-REML, or interval
+coverage.
+
+`structured-re-q4-profile-target-bridge-map.tsv` records the q4 profile-target
+label bridge for the four direct SD axes. It maps native R/TMB
+`sd:mu:<axis>:phylo(1 | p | species)` labels to bridge-facing
+`sd:<axis>:phylo(1 | species)` labels and keeps interval reliability,
+same-fixture parity, q4 REML, AI-REML, and interval coverage out of scope.
+
+`structured-re-q4-scale-axis-interval-failures.tsv` records the target-specific
+sigma-axis interval blockers for q4 `phylo()` fits. It keeps native 100-tip
+bootstrap refit failures and direct DRM.jl scale-axis undercoverage visible
+without promoting q4 interval reliability, coverage, REML, AI-REML, or bridge
+support.
+
+`structured-re-q4-interval-diagnostic-plan.tsv` records the SR150 q4 interval
+diagnostic requirements before any calibrated coverage wording can move. It has
+four direct SD rows and six derived-correlation rows, requires finite intervals,
+denominator fields, and MCSE accounting, and remains plan-only: it does not
+promote q4 interval reliability, interval coverage, q4 REML, AI-REML, or broad
+bridge support.
+
+`structured-re-q4-interval-diagnostic-status.tsv` records the observed q4
+interval blocker from the existing coverage pilot rows. The direct SD rows have
+two attempted q4 pilot rows each, zero converged rows, zero positive-Hessian
+rows, and zero finite Wald intervals; the derived-correlation rows remain not
+reconstructed. This is blocker evidence only and does not promote q4 interval
+reliability, interval coverage, q4 REML, AI-REML, or broad bridge support.
+
+`structured-re-q4-convergence-probe.tsv` records a small optimizer-preset probe
+for the q4 interval blocker. The original 10-tip, `m = 2` pilot shape remains
+nonconverged under default, careful, and robust presets. A denser 10-tip,
+`m = 4` toy fixture reaches optimizer convergence under all three presets, but
+every row still has `pdHess = false`; finite intervals and coverage wording
+therefore remain blocked on Hessian/uncertainty diagnostics.
+
+`structured-re-q4-boundary-separated-probe.tsv` records a stronger q4 toy probe
+with larger direct SD truth, mild target correlations, denser sampling, and
+default/careful/robust optimizer presets. Two 24-tip rows reach optimizer
+convergence, but every row still has `pdHess = false` and the fitted derived
+correlations remain near boundary, so q4 finite intervals and coverage wording
+remain blocked.
+
+`structured-re-q4-hessian-diagnostic-status.tsv` records the next diagnostic
+layer for the converged 10-tip, `m = 4` toy fit. The fixed-gradient magnitude is
+small, but `cov.fixed` has a negative eigenvalue, direct q4 SD estimates are
+near zero, derived correlations are near +/-1, and direct-SD Wald intervals
+remain 0/4 finite. This points the next gate toward boundary-separated fixtures
+and Hessian diagnostics, not interval wording.
+
+`structured-re-q4-stabilized-fixture-design.tsv` records the six gates a future
+q4 fixture must clear before interval diagnostics can move: direct SD estimates
+away from zero, interior fitted correlations, a positive Hessian, finite
+direct-SD intervals, denominator accounting, and route-specific parity. It is a
+fixture-design contract only, not q4 interval reliability, interval coverage,
+q4 REML, AI-REML, or broad bridge support.
+
+`structured-re-q4-stabilized-preflight.tsv` records the first compact
+stabilized q4 preflight. Two of four 32-tip, eight-replicate rows reach
+`pdHess = TRUE` with interior fitted correlations and 4/4 finite Wald direct-SD
+interval rows; two companion rows remain singular-convergence,
+`pdHess = false` negative evidence. This is preflight evidence only: it unblocks
+the next finite-interval diagnostic design, not q4 interval reliability,
+coverage, q4 REML, AI-REML, profile/bootstrap, or broad bridge support. The
+runnable artifact lives under
+`docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/`.
+
+`structured-re-q4-stabilized-denominator-extension.tsv` summarizes the first
+scale-wise denominator extension for the same stabilized fixture. Across four
+seeds per scale level, scale `0.35` has 2/4 `pdHess = TRUE` finite-Wald rows
+and scale `0.50` has 3/4, with one scale-`0.50` gradient-warning row. This is
+denominator-preflight evidence only, not calibrated coverage or interval
+reliability.
+
+`structured-re-q4-stabilized-profile-smoke.tsv` records the first single-target
+profile smoke on the stabilized q4 fixture. The scale-`0.50`, seed-`202606902`
+row produced a finite fast `TMB::tmbprofile` interval for
+`sd:mu:sigma1:phylo(1 | p | species)` with `conf.status = profile` and
+`profile.boundary = false`. It is one direct-SD profile smoke only, not q4
+interval reliability, interval coverage, q4 REML, AI-REML, profile/bootstrap
+coverage, or broad bridge support.
+
+`structured-re-q4-stabilized-all-direct-profile.tsv` records the all-four
+direct-SD profile smoke on the same stabilized q4 row. The four direct q4 SD
+targets in `mu1`, `mu2`, `sigma1`, and `sigma2` all returned finite ordered
+fast `TMB::tmbprofile` intervals with `conf.status = profile` and
+`profile.boundary = false`. It is one-row direct-SD profile evidence only, not
+derived q4 correlation intervals, q4 interval reliability, interval coverage,
+q4 REML, AI-REML, profile/bootstrap coverage, or broad bridge support.
+
+`structured-re-q4-stabilized-profile-denominator-status.tsv` records the
+profile-denominator status for the eight stabilized q4 seed-scale rows. It
+keeps the four all-direct profile successes beside one gradient-warning holdout
+and three `pdHess = false` rows. This is denominator accounting for the next
+profile pass, not q4 interval reliability, interval coverage, q4 REML,
+AI-REML, or broad bridge support.
+
+`structured-re-q4-stabilized-eligible-profile.tsv` records the 12 direct-SD
+profile rows from the three additional profile-eligible denominator fits. All
+rows returned finite ordered endpoints with `conf.status = profile` and
+`profile.boundary = false`, while the run-level warning context records two
+`regularize.values()` duplicate-`x` warnings. This is diagnostic profile
+evidence only, not coverage or reliability evidence.
+
+`structured-re-q4-stabilized-coverage-design.tsv` records the calibrated q4
+coverage-design gate opened by the stabilized profile diagnostics. It separates
+direct-SD profile-grid readiness, `pdHess = false` denominator rows, the
+gradient-warning holdout, profile duplicate-`x` warnings, derived-correlation
+interval unavailability, bootstrap refit accounting, route-specific evidence,
+and MCSE reporting. It is design evidence only; no q4 interval reliability,
+interval coverage, q4 REML, AI-REML, or broad bridge support is promoted.
+
+`structured-re-q4-stabilized-grid-runner-contract.tsv` records the executable
+dry-run contract for the future calibrated q4 grid. The script
+`docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/run-calibrated-grid-dry-run.R`
+accepts only `--n-rep=0` and writes
+`q4-stabilized-calibrated-grid-dry-run.tsv`, which names direct SD targets,
+derived-correlation targets, denominator fields, warning fields, output schema,
+and MCSE columns before any long grid is launched.
+
+`structured-re-q4-stabilized-grid-smoke-status.tsv` records the first
+executable q4 calibrated-grid smoke output from
+`run-calibrated-grid-smoke.R`. The one-replicate smoke uses the known
+stabilized seed `202606902` at scale `0.50`, writes ten target-level rows, keeps
+four finite direct-SD Wald rows separate from six unavailable
+derived-correlation interval rows, and labels all MCSE fields as
+`insufficient_replicates`. It is plumbing evidence only, not q4 interval
+reliability, interval coverage, q4 REML, AI-REML, or broad bridge support.
+
+`structured-re-q4-derived-correlation-interval-contract.tsv` records the six q4
+derived-correlation targets that remain interval-unavailable after the r46
+smoke output. The contract ties each `corpairs` point target to the raw smoke
+artifact, names `Sigma_a` and target-level warning/failure fields required for
+future reconstruction, and requires delta/profile/bootstrap methods with
+denominator and MCSE accounting before any interval or coverage wording.
+
+`structured-re-q4-derived-correlation-interval-smoke.tsv` records the first
+executable derived-correlation interval smoke. The companion artifact
+`q4-derived-correlation-interval-smoke-results.tsv` fits the stabilized q4
+Gaussian phylo smoke fixture and writes the six `corpairs(conf.int = TRUE)`
+derived-correlation rows with profile targets mapped, point estimates
+reconstructed, interval endpoints unavailable, denominator fields retained,
+and MCSE fields marked `insufficient_replicates`. It is not q4 interval
+reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-diagnostic.tsv` records the first
+finite-difference delta diagnostic for the six q4 derived correlations. The
+companion artifact `q4-derived-correlation-delta-diagnostic-results.tsv`
+perturbs the full TMB parameter vector at the six `theta_phylo` positions,
+reads the reported `phylo_q4_corr` matrix, verifies that the reconstructed
+values match `corpairs()`, and writes finite one-replicate diagnostic
+intervals from the `theta_phylo` covariance block. This is diagnostic
+mechanics evidence only, not q4 interval reliability, interval coverage, q4
+REML, AI-REML, or broad bridge support.
+
+`structured-re-q4-derived-correlation-delta-grid-contract.tsv` records the
+next gate for scaling the finite-difference delta diagnostic into a calibrated
+q4 grid. It requires the future grid runner to retain seed/scale identity,
+full-vector `theta_phylo` report reconstruction, finite or unavailable interval
+fields, the exact six-target set, failed-fit and warning rows in denominators,
+coverage and failure-rate MCSE fields, and no-coverage boundary wording. It is
+a grid-extension contract only, not interval reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-smoke-status.tsv` records the
+first executable grid-shaped delta smoke for q4 derived correlations. The
+companion artifact `q4-derived-correlation-delta-grid-smoke-results.tsv` writes
+the six derived-correlation targets with seed/scale identity, full-vector
+`theta_phylo` report reconstruction, finite diagnostic delta endpoints, retained
+denominator rows, and single-replicate MCSE placeholders. It is executable
+plumbing evidence only, not interval reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-mini-status.tsv` records the
+first replicated mini-grid for q4 derived-correlation delta diagnostics. The
+companion artifact `q4-derived-correlation-delta-grid-mini-results.tsv` runs two
+seeds across scale levels 0.35 and 0.50, writes 24 retained target rows, keeps
+boundary-clamped rows visible, and populates diagnostic coverage and
+failure-rate MCSE fields. It is mini-grid accounting evidence only, not interval
+reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-ademp-contract.tsv` records the
+ADEMP-sized dry-run contract for the next calibrated q4 derived-correlation
+delta grid. The companion artifact
+`q4-derived-correlation-delta-grid-ademp-dry-run.tsv` freezes a 500-replicate
+seed range for each scale level, 1000 planned seed-scale cells, 6000 planned
+target rows, a nominal 0.95 coverage MCSE of 0.009747, denominator retention
+for failures and clamped rows, and a route-specific no-coverage boundary. It is
+execution planning evidence only, not interval reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-resumable-smoke.tsv` records the
+r56 totoro resumable-runner pilot for the same q4 derived-correlation delta grid.
+The runner delegates 24 seed-scale cells to the finite-difference delta smoke
+(eight seeds crossed with scale levels 0.35, 0.50, and 0.65), writes one TSV per
+cell, records 24 compute actions, reruns without force, and records 24
+skipped-existing actions against the same outputs. The manifest and run log keep
+warnings, pdHess=false rows, unavailable delta intervals, and boundary-clamped
+rows in the denominator. They prove remote CPU resumability plumbing only; they
+are not calibrated interval reliability or coverage evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-drac-shard-plan.tsv` records
+the r57 DRAC/totoro shard plan for the ADEMP-sized q4 derived-correlation delta
+grid. The companion artifact
+`q4-derived-correlation-delta-grid-drac-shard-plan.tsv` maps 1000 seed-scale
+cells and 6000 target rows over nine CPU worker slots: eight DRAC labels and
+one `totoro` label. Each shard has a private cell directory, manifest, and run
+log, so no compute job appends to a shared file. The aggregate gate remains
+blocked until every shard manifest exists, the aggregate sees 1000 unique cell
+IDs and 6000 target rows, and denominator, coverage, failure, warning, boundary
+clamp, and MCSE fields are present. This is execution-planning evidence only,
+not q4 interval reliability, interval coverage, q4 REML, AI-REML, HSquared
+transfer, broad bridge support, or SR150 acceptance evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-drac-dispatch-pack.tsv` records
+the r63 dry-run dispatch pack for the same 1000-cell grid. The companion
+directory `q4-derived-correlation-delta-grid-drac-dispatch-pack/` contains an
+eight-task DRAC SLURM array template, a DRAC worker script that runs forced
+compute then no-force resume passes in private shard roots, a separate shard-9
+`totoro` worker script, an aggregate-afterok script with
+`--compute-rate-mcse=true`, and a README. The pack is CPU-only and remains
+dry-run/not-submitted until the maintainer selects the actual DRAC account or
+host and logs in. It is dispatch safety evidence only, not q4 interval
+reliability, interval coverage, q4 REML, AI-REML, HSquared transfer, broad
+bridge support, DRAC readiness, or SR150 acceptance evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-two-shard-rehearsal.tsv`
+records the r58 local two-shard rehearsal for the same q4 derived-correlation
+delta-grid contract. The rehearsal uses two private shard roots, runs a compute
+pass and a no-force resume pass, then aggregates the shard manifests and run
+logs with `aggregate-calibrated-grid-delta-shards.R`. The aggregate sees four
+unique seed-scale cells, four computed actions, four skipped-existing actions,
+24 retained target rows, 24 finite delta diagnostic rows, and six
+boundary-clamped rows. It proves private-output aggregation and resume behavior
+on a tiny local grid only; it is not q4 interval reliability, interval coverage,
+q4 REML, AI-REML, HSquared transfer, broad bridge support, or SR150 acceptance
+evidence. DRAC remains gated behind local or `totoro` insufficiency.
+
+The r59 aggregate-hardening update keeps the same two-shard rehearsal evidence
+but makes the aggregate summary carry target-level denominator, warning,
+failure, boundary-clamp, rate, and MCSE-placeholder fields. The focused contract
+test also runs tempdir negative paths for missing shard manifests, missing cell
+outputs, count mismatches, and duplicate computed cell IDs. This is aggregate
+race-safety plumbing only; it is not coverage or interval-reliability evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-local-four-shard-rehearsal.tsv`
+records the r60 local four-shard rehearsal with the hardened aggregate gate. The
+rehearsal uses four private shard roots over twelve seed-scale cells, runs a
+compute pass and a no-force resume pass, then aggregates the shard manifests and
+run logs. The aggregate sees twelve unique cells, twelve computed actions,
+twelve skipped-existing actions, 72 retained target rows, 71 finite delta
+diagnostic rows, 24 warning rows, 18 failure-class denominator rows, 17
+boundary-clamped rows, and zero coverage-evaluable rows. This is local
+resumability, private-output, denominator-retention, and aggregate evidence
+only. It is not q4 interval reliability, interval coverage, q4 REML, AI-REML,
+HSquared transfer, broad bridge support, DRAC readiness, or SR150 acceptance
+evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-local-eight-shard-medium-rehearsal.tsv`
+records the r61 local medium rehearsal with eight private shard roots over 48
+seed-scale cells. Each shard wrote six computed cells and six skipped-existing
+resume rows. The aggregate sees 48 unique cells, 48 computed actions, 48
+skipped-existing actions, 288 retained target rows, 276 finite delta diagnostic
+rows, 156 warning rows, 108 failure-class denominator rows, 61
+boundary-clamped rows, and zero coverage-evaluable rows. This is medium local
+resumability, private-output, denominator-retention, and aggregate evidence
+only. It is not q4 interval reliability, interval coverage, q4 REML, AI-REML,
+HSquared transfer, broad bridge support, DRAC readiness, or SR150 acceptance
+evidence.
+
+`structured-re-q4-derived-correlation-delta-grid-local-sixteen-shard-mcse-pregrid.tsv`
+records the r62 local MCSE pre-grid with sixteen private shard roots over 96
+seed-scale cells. Each shard wrote six computed cells and six skipped-existing
+resume rows. The aggregate sees 96 unique cells, 96 computed actions, 96
+skipped-existing actions, 576 retained target rows, 555 finite delta diagnostic
+rows, 306 warning rows, 192 failure-class denominator rows, 126
+boundary-clamped rows, and zero coverage-evaluable rows. The aggregate summary
+computes diagnostic MCSE fields for failure, warning, and boundary-clamp rates
+while keeping coverage `not_evaluable`. This is local MCSE and denominator
+evidence only. It is not q4 interval reliability, interval coverage, q4 REML,
+AI-REML, HSquared transfer, broad bridge support, DRAC readiness, or SR150
+acceptance evidence.
+
+`structured-re-q4-direct-drmjl-export.tsv` records the direct DRM.jl q4 point
+SD export contract for `sd_mu1`, `sd_mu2`, `sd_sigma1`, and `sd_sigma2` from
+`fit.ranef.Sigma_a`. It is direct-Julia point-target evidence only, not
+R-via-Julia q4 bridge parity, q4 REML, AI-REML, interval reliability, or
+interval coverage.
+
+`structured-re-q4-deterministic-fixture.tsv` records the reusable q4 fixture
+metadata for a deterministic 8-species, 16-observation balanced-tree dataset
+with known `Sigma_a`. It is fixture data only, not a native/direct/bridge
+parity result.
+
+`structured-re-q4-tolerance-policy.tsv` records the predeclared q4 point-parity
+tolerances for log likelihood, fixed coefficients, direct SD targets, and
+derived correlations on the deterministic fixture. It is a policy table only,
+not parity acceptance.
+
+`structured-re-q4-same-fixture-parity-probe.tsv` records the first live
+same-data q4 parity probe after the tolerance policy. The current row is
+negative evidence: native TMB did not converge on the probe, direct DRM.jl now
+has a point-matrix export but has not yet been compared on this same fixture,
+and the native versus R-via-Julia `corpairs()` delta exceeded the predeclared q4
+correlation tolerance. It is not q4 parity, q4 REML, AI-REML, bridge support,
+interval reliability, or interval coverage.
+
+`structured-re-q4-parity-acceptance-gate.tsv` records the calibrated q4
+point-parity acceptance gate. It covers same-fixture native R/TMB, direct
+DRM.jl, and R-via-Julia point comparison only; interval reliability, interval
+coverage, q4 REML, AI-REML, and broad bridge-support wording remain blocked.
+
+`structured-re-q4-extractor-parity.tsv` records q4 point/extractor status for
+summary covariance, profile targets, corpairs, and planned bridge
+reconstruction. It is not interval coverage evidence.
+
+`structured-re-q4-corpairs-parity-gate.tsv` records calibrated q4 corpairs
+point parity. It covers same-fixture native R/TMB, direct DRM.jl, and
+R-via-Julia derived correlations only; interval reliability, interval coverage,
+q4 REML, AI-REML, and broad bridge-support wording remain blocked.
+
+`structured-re-q4-bridge-boundary.tsv` records q4 bridge boundaries. Calibrated
+point parity is separated from interval reliability, interval coverage, q4
+REML, AI-REML, and broad bridge-support wording.
+
+`structured-re-reml-scope-gate.tsv` records where REML wording is allowed and
+where it is forbidden. It keeps REML exact-Gaussian and route-specific, blocks
+native q2/q4 REML promotion until derivations and tests exist, and keeps q4
+Patterson-Thompson REML separate from HSquared AI-REML.
+
+`structured-re-ademp-design.tsv` records the ADEMP q1, q2, and q4 design
+contracts. It names aims, data-generating mechanisms, estimands, methods,
+performance measures, MCSE targets, failed-fit denominators, and interval
+policies before any calibrated simulation grid is run. The companion design
+note is `docs/design/217-structured-reml-and-ademp-conversion-gates.md`.
+
+`structured-re-coverage-calibration-status.tsv` records SR142-SR149 as
+coverage-calibration infrastructure: q1/q2/q4 diagnostic-pilot status,
+interval-method separation, bootstrap refit accounting fields, MCSE targets,
+failure taxonomy, and a report template. It is not a calibrated coverage
+result; q1 has only one finite pilot interval, and q2/q4 have no finite pilot
+intervals.
+
+`structured-re-coverage-acceptance-gate.tsv` records SR150 as the stricter
+coverage-acceptance blocker. It requires planned replicate counts, finite
+interval accounting, denominator retention, and MCSE before review. The current
+rows remain blocked because the diagnostic pilots are not calibrated coverage
+evidence; q2 fixture parity is now banked separately, but q2 still has no
+finite pilot intervals and no calibrated coverage evidence.
+
+`structured-re-native-reml-scope-status.tsv` records SR151-SR159 as native
+REML scope evidence. It keeps requested and effective estimator fields visible
+for source maps, q1 allowed cells, sigma/q2/q4 rejection or feasibility rows,
+Patterson-Thompson wording, public optimizer controls, and non-Gaussian
+wording scans.
+
+`structured-re-scope-gate-status.tsv` records SR160-SR170 as scope gates. It
+keeps the blocked REML acceptance gate separate from structured-type gaps such
+as mesh/SPDE, sparse animal pedigree helpers, `relmat()` precision `Q`, q1-only
+`phylo_interaction()`, direct-SD grammar, structured slopes, structured
+`rho12`, and non-Gaussian q2/q4 structured covariance.
+
+`structured-re-mu-slope-fixture-audit.tsv` records the current one-slope
+Gaussian structured `mu` artifact evidence for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`. These rows bank source-tested DGP, smoke-summary,
+and grid-writer evidence plus extractor identity. They do not promote bridge
+fixture parity, residual-scale slopes, labelled structured slope covariance,
+interval reliability, or coverage.
+
+`structured-re-mu-slope-parity-fixture.tsv` records the same-target bridge
+fixture gate for those one-slope Gaussian structured `mu` rows. It banks
+deterministic native/direct/R-via-Julia fixture contracts for `phylo()`,
+fixed-covariance `spatial()`, and A-matrix `animal()` cells. The `relmat()`
+row remains planned until the K-versus-Q fixture source is reconciled, so this
+sidecar does not promote broad bridge support, residual-scale slopes, labelled
+structured slope covariance, interval reliability, or coverage.
+
+`structured-re-type-gaps.tsv` records the remaining structured-type gaps for
+`phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It
+states what users can run now and which cells remain missing or deferred.
+
+`structured-re-r-docs-api-sync.tsv` records the R documentation and API sync
+surface. It keeps dashboard/internal wording separate from public examples and
+does not widen formula grammar or user-facing support.
+
+`structured-re-julia-twin-sync.tsv` records the active DRM.jl and drmTMB
+branches and heads used by this dashboard pass. It also records that the parked
+`/Users/z3437171/Dropbox/Github Local/DRM.jl` Ayumi checkout was not edited.
+
+`structured-re-closeout-package.tsv` records validator, served-widget,
+check-log, after-task, hard-boundary, and git-boundary closeout rows. It is a
+local recovery surface, not a staging, commit, pull-request, or public support
+claim.
+
 Rows marked `verified`, `banked`, or `covered` need evidence. Local evidence
 files linked from the dashboard are copied into `/tmp/drm-dashboard` by the
-start script so the served page can resolve them.
+start script so the served page can resolve them. The start script copies every
+dashboard TSV by pattern, and the validator rejects copy-list drift when new
+TSV ledgers are added.
 
 The `drmTMB` Repo Truth row is refreshed in the served `/tmp` copy at launch
 time from `git branch`, `git rev-parse`, and `git status --porcelain`. The

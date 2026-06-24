@@ -1,0 +1,2 @@
+draft_id	target	estimator	native_r_status	direct_drmjl_status	r_via_julia_status	payload_schema_status	provenance_status	parity_status	bridge_status	evidence_url	claim_boundary	next_gate
+loconly_gaussian_phylo_reml_diagnostic	gaussian_loconly_phylo_reml	supplied_variance_reml	planned	covered	planned	covered	covered	planned	planned	docs/dev-log/dashboard/bridge-payload-schema.tsv	Exact-Gaussian location-only REML diagnostic row only; no R bridge promotion or public estimator.	Add serialization tests only after tuple fields are stable.

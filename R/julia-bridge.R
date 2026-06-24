@@ -25,7 +25,7 @@ drm_julia_intentional_gates <- function() {
       "base_missing_response_nongaussian",
       "base_unsupported_family",
       "base_nonphylo_count",
-      "biv_partial_phylo_q4",
+      "biv_invalid_partial_phylo",
       "biv_rho12_phylo",
       "structured_unsupported_family",
       "structured_sigma_predictor",
@@ -48,7 +48,7 @@ drm_julia_intentional_gates <- function() {
       "missing response",
       "family",
       "non-phylo family",
-      "partial q4 phylo",
+      "invalid partial bivariate phylo",
       "rho12 phylo",
       "structured family",
       "structured sigma",
@@ -82,7 +82,7 @@ drm_julia_intentional_gates <- function() {
       "missing = miss_control(response = \"include\") with poisson()",
       "family = student()",
       "family = nbinom2() without phylo()",
-      "bivariate q4 phylo on mu1/mu2 only",
+      "bivariate phylo on only one axis or on three axes",
       "phylo() term in rho12",
       "relmat() with beta()",
       "structured relmat() with sigma ~ x",
@@ -100,7 +100,7 @@ drm_julia_intentional_gates <- function() {
       "not audited for non-Gaussian masks",
       "no coefficient-scale parity test",
       "large-p phylo route only",
-      "q4 PLSM route is narrower than R grammar",
+      "bivariate phylo route admits q2 mu1/mu2 or q4 all four axes only",
       "unsupported q4 PLSM axis",
       "general-covariance route is narrower than R grammar",
       "general-covariance route is narrower than R grammar",
@@ -117,7 +117,7 @@ drm_julia_intentional_gates <- function() {
       "missing.*route",
       "Gaussian one-/two-response",
       "only with a .*phylo.* random intercept",
-      "Missing phylogenetic axis",
+      "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
       "Unsupported phylogenetic axis",
       "only for univariate Gaussian, Poisson, NB2, or Gamma",
       "requires .*sigma ~ 1",
@@ -140,7 +140,7 @@ drm_julia_intentional_gates <- function() {
       "Observed-response masks are admitted only for Gaussian bridge cells.",
       "The R bridge has no coefficient-scale parity tests for this family.",
       "The Julia speed edge for these families is the large-p phylo route.",
-      "DRM.jl q4 PLSM bridge expects phylo terms on mu1, mu2, sigma1, and sigma2.",
+      "DRM.jl bivariate phylo bridge expects either q2 terms on mu1/mu2 or q4 terms on mu1, mu2, sigma1, and sigma2.",
       "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
       "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
       "DRM.jl general-covariance bridge currently requires sigma ~ 1.",
@@ -289,6 +289,28 @@ drmTMB_julia_bridge <- function(
       call = call
     ))
   }
+  family_type <- drm_julia_bridge_family_type(family)
+  if (
+    identical(family_type, "biv_gaussian") &&
+      drm_julia_has_structured_term(formula)
+  ) {
+    drm_julia_warn_reml_unsupported(
+      REML,
+      "bivariate q2 known-covariance structured-effect"
+    )
+    return(drmTMB_julia_biv_known_structured_bridge(
+      formula = formula,
+      family = family,
+      data = data,
+      env = env,
+      weights_missing = weights_missing,
+      control = control,
+      impute = impute,
+      missing = missing,
+      REML = REML,
+      call = call
+    ))
+  }
   if (drm_julia_has_structured_term(formula)) {
     drm_julia_warn_reml_unsupported(REML, "structured-effect")
     return(drmTMB_julia_structured_bridge(
@@ -305,16 +327,17 @@ drmTMB_julia_bridge <- function(
     ))
   }
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} does not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted fits until the bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} does not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for imputation workflows until the bridge has an imputation payload."
+    ))
   }
-  family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
   if (!drm_julia_missing_supported(missing_control, family_type)) {
     cli::cli_abort(c(
@@ -332,11 +355,12 @@ drmTMB_julia_bridge <- function(
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
-  # Gaussian cells: the fixed-effect location-scale model, and the sigma-phylo
-  # location-scale model (phylo on mu AND sigma), which DRM.jl now fits by
-  # restricted maximum likelihood (Ayumi #2). The mean-only phylo Gaussian route
-  # (sigma ~ 1) and the phylo-only families still return ML on the DRM.jl side,
-  # so warn and fit ML rather than silently mislead. Bivariate q4 phylo
+  # Gaussian cells: the fixed-effect location-scale model, and Gaussian
+  # location-scale models with a phylo term on sigma (with or without a matching
+  # mean-side phylo term), which DRM.jl now fits by restricted maximum
+  # likelihood (Ayumi #2). The mean-only phylo Gaussian route (sigma ~ 1) and
+  # the phylo-only families still return ML on the DRM.jl side, so warn and fit
+  # ML rather than silently mislead. Bivariate q4 phylo
   # (`biv_gaussian` with phylo on all four axes) IS now supported — DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
@@ -499,11 +523,12 @@ drm_julia_has_phylo_term <- function(formula) {
 }
 
 # TRUE when any formula entry carries a phylo() term on the `sigma` axis. This
-# marks the Gaussian location-scale phylo cell (phylo on mu AND sigma), the one
-# phylogenetic route DRM.jl now fits by restricted maximum likelihood
-# (`drm(...; method = :REML)`) -- the sigma-phylo capability the native TMB engine
-# lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and the phylo-only
-# families have no `sigma` phylo term, so REML stays gated for them.
+# marks the Gaussian sigma-phylo location-scale cells, with or without a
+# matching mean-side phylo term, that DRM.jl now fits by restricted maximum
+# likelihood (`drm(...; method = :REML)`) -- the sigma-phylo capability the
+# native TMB engine lacks (Ayumi #2). Mean-only phylo Gaussian (sigma ~ 1) and
+# the phylo-only families have no `sigma` phylo term, so REML stays gated for
+# them.
 drm_julia_has_sigma_phylo_term <- function(formula) {
   sigma_phylo_terms <- unlist(
     lapply(formula$entries, function(entry) {
@@ -520,12 +545,40 @@ drm_julia_has_sigma_phylo_term <- function(formula) {
   length(sigma_phylo_terms) > 0L
 }
 
+drm_julia_biv_phylo_dpars <- function(formula) {
+  phylo_terms <- unlist(
+    lapply(formula$entries, function(entry) {
+      Filter(
+        function(term) identical(term$type, "phylo"),
+        entry$structured
+      )
+    }),
+    recursive = FALSE
+  )
+  if (length(phylo_terms) == 0L) {
+    return(character())
+  }
+  vapply(phylo_terms, `[[`, character(1L), "dpar")
+}
+
+drm_julia_biv_phylo_dimension <- function(formula) {
+  dpars <- drm_julia_biv_phylo_dpars(formula)
+  if (setequal(dpars, c("mu1", "mu2"))) {
+    return("q2")
+  }
+  if (setequal(dpars, c("mu1", "mu2", "sigma1", "sigma2"))) {
+    return("q4")
+  }
+  NA_character_
+}
+
 drm_julia_reml_supported <- function(formula, family_type) {
   has_phylo <- drm_julia_has_phylo_term(formula)
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
   (identical(family_type, "gaussian") &&
     (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
-    (identical(family_type, "biv_gaussian") && isTRUE(has_phylo))
+    (identical(family_type, "biv_gaussian") &&
+      identical(drm_julia_biv_phylo_dimension(formula), "q4"))
 }
 
 drm_julia_reml_cell_label <- function(formula, family_type) {
@@ -581,6 +634,11 @@ drm_julia_bridge_payload <- function(
       FALSE
     } else {
       isTRUE(phylo_payload$bivariate)
+    },
+    bivariate_dimension = if (is.null(phylo_payload)) {
+      NA_character_
+    } else {
+      phylo_payload$bivariate_dimension
     }
   )
 }
@@ -624,6 +682,9 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
     return(list())
   }
   if (isTRUE(phylo_payload$bivariate)) {
+    if (identical(phylo_payload$bivariate_dimension, "q2")) {
+      return(list(g_tol = 1e-4))
+    }
     # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
     # override): the direct-fit parity check matched the bridge to 0 with
     # defaults. REML still has to be forwarded explicitly.
@@ -633,15 +694,31 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
     return(list())
   }
 
-  # The sparse all-node Gaussian phylo route is L-BFGS-based in DRM.jl's
-  # current default. The direct AVONET/Hackett benchmark shows the exact-gradient
-  # sparse route is insensitive to this tolerance over the bridge-smoke range,
-  # while keeping the R payload explicit and reproducible. The sigma-phylo
-  # location-scale cell adds `method = "REML"` here when the caller forwards it.
-  if (reml) {
-    return(list(g_tol = 1e-4, method = "REML"))
+  # The sparse all-node Gaussian mean-only route needs a tighter tolerance to
+  # meet the R-vs-Julia parity gate on the Route A fixture. Other univariate
+  # phylo routes retain the original smoke-range tolerance until their own
+  # parity fixtures justify a route-specific change.
+  g_tol <- if (
+    identical(phylo_payload$family_type, "gaussian") &&
+      identical(phylo_payload$locscale_mode, "mean_only")
+  ) {
+    1e-8
+  } else if (
+    identical(phylo_payload$family_type, "gaussian") &&
+      identical(phylo_payload$locscale_mode, "phylo_locscale") &&
+      !reml
+  ) {
+    1e-6
+  } else {
+    1e-4
   }
-  list(g_tol = 1e-4)
+  if (reml) {
+    return(list(g_tol = g_tol, method = "REML"))
+  }
+  if (identical(phylo_payload$locscale_mode, "phylo_locscale")) {
+    return(list(g_tol = g_tol, phylo_coupled = TRUE))
+  }
+  list(g_tol = g_tol)
 }
 
 # Emit a single warning (and fall back to ML) when REML is requested for a
@@ -715,6 +792,57 @@ drm_julia_call_bridge <- function(
   )
 }
 
+drm_julia_call_q2_phylo_point_export <- function(
+  Y,
+  X,
+  species,
+  tree,
+  options = list()
+) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} q2 phylo diagnostics require the {.pkg JuliaCall} package.",
+      i = "Install it with {.code install.packages(\"JuliaCall\")}, then retry."
+    ))
+  }
+  Y <- drm_julia_as_matrix(Y)
+  X <- drm_julia_as_matrix(X)
+  if (ncol(Y) != 2L) {
+    cli::cli_abort(
+      "{.fn drm_julia_call_q2_phylo_point_export} requires {.arg Y} to have exactly two columns."
+    )
+  }
+  if (nrow(X) != nrow(Y)) {
+    cli::cli_abort(
+      "{.fn drm_julia_call_q2_phylo_point_export} requires {.arg X} and {.arg Y} to have the same number of rows."
+    )
+  }
+  species <- as.character(species)
+  if (length(species) != nrow(Y)) {
+    cli::cli_abort(
+      "{.fn drm_julia_call_q2_phylo_point_export} requires {.arg species} to have one value per row of {.arg Y}."
+    )
+  }
+  info <- validate_phylo_tree(tree, species = species)
+  tree_payload <- drm_julia_phylo_tree_payload(tree, info = info)
+  species_index <- match(species, tree_payload$tip_order)
+  if (anyNA(species_index)) {
+    cli::cli_abort(
+      "{.fn drm_julia_call_q2_phylo_point_export} could not map every species to the phylogenetic tree tips."
+    )
+  }
+
+  drm_julia_setup()
+  JuliaCall::julia_call(
+    "drmTMB_drm_bridge_q2_phylo",
+    Y,
+    X,
+    as.integer(species_index),
+    tree_payload$newick,
+    if (length(options) == 0L) NULL else options
+  )
+}
+
 drm_julia_call_inference <- function(
   object,
   method,
@@ -766,6 +894,9 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   if (length(phylo_terms) == 0L) {
     return(NULL)
   }
+  bivariate <- FALSE
+  bivariate_dimension <- NA_character_
+  locscale_mode <- NA_character_
   # Univariate Gaussian keeps the verified sparse all-node route. Poisson, NB2,
   # Gamma, Beta, and Binomial add the non-Gaussian phylo (count / location-scale /
   # mean-only) routes; bivariate Gaussian (q=4 PLSM) admits intercept phylo on
@@ -786,11 +917,27 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       phylo_terms
     )
 
-    # Cluster 4: location-scale phylo (phylo on mu + phylo on sigma sharing the
-    # same group and tree). This routes to DRM.jl's coupled `(1|tag|phylo(g))`
-    # engine for NB2/Gamma/Beta. Validated BEFORE the intercept-only guard below
-    # so the check on sigma phylo terms is bypassed for this sub-path.
+    # Cluster 4: location-scale phylo. Gaussian admits the sigma-only REML path
+    # (`sigma ~ phylo(1 | g)`) and the balanced mu+sigma path. The latter routes
+    # to DRM.jl's coupled `(1|tag|phylo(g))` engine for the location-scale family
+    # set. These branches are validated BEFORE the intercept-only guard below so
+    # the check on sigma phylo terms is bypassed for these sub-paths.
     if (
+      length(mu_phylo_terms) == 0L &&
+        length(sigma_phylo_terms) == 1L &&
+        identical(family_type, "gaussian")
+    ) {
+      sigma_term <- sigma_phylo_terms[[1L]]
+      if (!identical(sigma_term$coef_names, "(Intercept)")) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} sigma-only phylo REML supports only an intercept phylo term on sigma.",
+          i = "Use {.code sigma ~ phylo(1 | group, tree = tree)}."
+        ))
+      }
+      rep_term <- sigma_term
+      labels <- sigma_term$label
+      locscale_mode <- "sigma_only"
+    } else if (
       length(mu_phylo_terms) == 1L &&
         length(sigma_phylo_terms) == 1L &&
         family_type %in% drm_julia_locscale_phylo_families()
@@ -817,7 +964,6 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       }
       rep_term <- mu_term
       labels <- c(mu_term$label, sigma_term$label)
-      bivariate <- FALSE
       locscale_mode <- "phylo_locscale"
     } else {
       # Standard intercept-only phylo on mu (mean-only or simple sigma ~ 1).
@@ -869,7 +1015,6 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       }
       rep_term <- term
       labels <- term$label
-      bivariate <- FALSE
     }
   } else if (identical(family_type, "biv_gaussian")) {
     allowed <- c("mu1", "mu2", "sigma1", "sigma2")
@@ -881,11 +1026,18 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
         i = "Use native {.code engine = \"tmb\"} for phylogenetic {.code rho12} or other axes."
       ))
     }
-    if (!all(allowed %in% dpars)) {
+    bivariate_dimension <- if (setequal(dpars, c("mu1", "mu2"))) {
+      "q2"
+    } else if (setequal(dpars, allowed)) {
+      "q4"
+    } else {
+      NA_character_
+    }
+    if (is.na(bivariate_dimension)) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} routes the bivariate q=4 PLSM only when {.fn phylo} is on all four axes {.val {allowed}}.",
-        x = "Missing phylogenetic axis: {.val {setdiff(allowed, dpars)}}.",
-        i = "Use native {.code engine = \"tmb\"} for partial bivariate phylogenetic structure."
+        "{.code engine = \"julia\"} requires either q2 {.code mu1/mu2} or q4 all-four-axis bivariate {.fn phylo} cells.",
+        x = "Phylogenetic axes supplied: {.val {dpars}}.",
+        i = "Use native {.code engine = \"tmb\"} for one-axis or three-axis partial bivariate phylogenetic structure."
       ))
     }
     if (
@@ -896,7 +1048,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       ))
     ) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} currently supports only intercept {.code phylo(1 | group, tree = tree)} terms in the bivariate q=4 route.",
+        "{.code engine = \"julia\"} currently supports only intercept {.code phylo(1 | group, tree = tree)} terms in bivariate q2/q4 routes.",
         i = "Use native {.code engine = \"tmb\"} for phylogenetic slopes in the location-scale model."
       ))
     }
@@ -932,6 +1084,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       identical(cache$full_tree, tree) &&
       identical(cache$full_group, rep_term$group) &&
       identical(cache$full_label, labels) &&
+      identical(cache$full_bivariate_dimension, bivariate_dimension) &&
       identical(cache$full_species, species)
   ) {
     return(cache$full_payload)
@@ -949,6 +1102,9 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     group = rep_term$group,
     row_order = row_order,
     bivariate = bivariate,
+    bivariate_dimension = bivariate_dimension,
+    family_type = family_type,
+    locscale_mode = locscale_mode,
     structured_sd_scales = stats::setNames(
       rep(tree_payload$sd_scale, length(labels)),
       labels
@@ -957,6 +1113,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   cache$full_tree <- tree
   cache$full_group <- rep_term$group
   cache$full_label <- labels
+  cache$full_bivariate_dimension <- bivariate_dimension
   cache$full_species <- species
   cache$full_payload <- payload
   payload
@@ -1056,16 +1213,17 @@ drm_julia_strip_structured_kwargs <- function(expr) {
 }
 
 # Collapse drmTMB's labelled covariance-block grammar `re | label | group` to
-# DRM.jl's `re | group` inside phylo() calls. DRM.jl implies the q=4 4x4 Sigma_a
-# from the four location/scale axes sharing one tree + grouping factor, so the
-# block label is dropped on the way across the bridge. No-op for the plain
-# `re | group` form (univariate route and unlabelled bivariate terms).
+# DRM.jl's `re | group` inside structured-marker calls. DRM.jl implies the q2 or
+# q4 Sigma_a from the axes sharing one structured marker + grouping factor, so
+# the block label is dropped on the way across the bridge. The original R
+# formula is still retained on the fitted object for extractor labels.
 drm_julia_collapse_phylo_block <- function(expr) {
   if (!is.call(expr)) {
     return(expr)
   }
   parts <- as.list(expr)
-  if (identical(parts[[1L]], as.name("phylo"))) {
+  marker <- if (is.name(parts[[1L]])) as.character(parts[[1L]]) else NULL
+  if (marker %in% names(drm_julia_structured_marker_kwargs())) {
     nm <- names(parts)
     for (i in seq_along(parts)) {
       if (i == 1L) {
@@ -1213,14 +1371,20 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   )
   JuliaCall::julia_command(
     paste(
+      "drmTMB_drm_bridge_q2_phylo(Y, X, species, tree, options) =",
+      "DRM.drm_bridge_q2_phylo(Y = Y, X = X, species = species, tree = tree, options = options)"
+    )
+  )
+  JuliaCall::julia_command(
+    paste(
       "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads) =",
       "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads)"
     )
   )
   # General-covariance structured route: the user-supplied K / A / coords matrix
-  # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge,
-  # which routes relmat -> K, animal -> A, spatial -> coords (Gaussian) / K
-  # (counts/Gamma) into the matching `drm()` keyword.
+  # crosses as a Julia array (or `nothing`) and is forwarded to DRM.drm_bridge.
+  # Gaussian spatial coords are converted to native drmTMB's fixed-range K target
+  # before crossing, then reconstructed under the user's spatial() label.
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
@@ -1280,7 +1444,9 @@ new_drmTMB_julia <- function(
     formula = formula,
     sd_scales = structured_sd_scales
   )
-  fixed <- !startsWith(names(coefficients), "resd_")
+  structured_coef <- startsWith(names(coefficients), "resd_") |
+    startsWith(names(coefficients), "recov_")
+  fixed <- !structured_coef
   fixed_coefficients <- coefficients[fixed]
   coefficient_blocks <- split(
     fixed_coefficients,
@@ -1343,7 +1509,7 @@ new_drmTMB_julia <- function(
     coef_vector = fixed_coefficients,
     sdpars = structured_parameters$sdpars,
     structured_sd_scales = structured_sd_scales,
-    corpars = list(),
+    corpars = structured_parameters$corpars,
     vcov = V,
     logLik = as.numeric(result$loglik),
     aic = as.numeric(result$aic),
@@ -1374,6 +1540,66 @@ new_drmTMB_julia <- function(
     )
   )
   class(out) <- "drmTMB_julia"
+  out
+}
+
+drm_julia_reconstruction_status <- function(object) {
+  if (!inherits(object, "drmTMB_julia")) {
+    cli::cli_abort(
+      "{.fn drm_julia_reconstruction_status} requires a {.cls drmTMB_julia} object."
+    )
+  }
+  scalar_chr <- function(x, default = NA_character_) {
+    if (is.null(x) || length(x) == 0L) {
+      return(default)
+    }
+    as.character(x[[1L]])
+  }
+  profile_targets <- tryCatch(
+    drm_julia_profile_targets(object),
+    error = function(cnd) empty_profile_targets()
+  )
+  corpairs <- object$corpairs
+  has_corpairs <- is.data.frame(corpairs) && nrow(corpairs) > 0L
+  if (!has_corpairs && is.list(corpairs)) {
+    has_corpairs <- length(corpairs) > 0L
+  }
+  out <- data.frame(
+    model_type = scalar_chr(object$model$model_type),
+    estimator = scalar_chr(object$estimator),
+    requested_estimator = if (isTRUE(object$requested_REML)) {
+      "REML"
+    } else {
+      "ML"
+    },
+    effective_estimator = if (isTRUE(object$effective_REML)) {
+      "REML"
+    } else {
+      "ML"
+    },
+    payload_status = if (is.list(object$bridge_payload)) {
+      "present"
+    } else {
+      "missing"
+    },
+    coefficient_status = if (length(object$coef_vector) > 0L) {
+      "present"
+    } else {
+      "missing"
+    },
+    vcov_status = scalar_chr(object$uncertainty$status, "unavailable"),
+    profile_target_status = if (nrow(profile_targets) > 0L) {
+      "present"
+    } else {
+      "absent"
+    },
+    corpairs_status = if (has_corpairs) "present" else "absent",
+    bridge_status = "diagnostic_only",
+    inference_promotion = "none",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  class(out) <- c("drmTMB_julia_reconstruction_status", class(out))
   out
 }
 
@@ -1532,9 +1758,11 @@ drm_julia_structured_parameters <- function(
   sd_scales = NULL
 ) {
   empty_sdpars <- list(mu = numeric(), sigma = numeric())
+  empty_corpars <- list()
   structured <- coefficients[startsWith(names(coefficients), "resd_")]
-  if (length(structured) == 0L) {
-    return(list(sdpars = empty_sdpars))
+  recov <- coefficients[startsWith(names(coefficients), "recov_")]
+  if (length(structured) == 0L && length(recov) == 0L) {
+    return(list(sdpars = empty_sdpars, corpars = empty_corpars))
   }
 
   # Structured terms that yield a `resd_<group>` SD block on the Julia side:
@@ -1571,7 +1799,66 @@ drm_julia_structured_parameters <- function(
     }
     sdpars[[dpar]][[labels[[i]]]] <- exp(unname(structured[[i]])) * scale
   }
-  list(sdpars = sdpars)
+
+  corpars <- empty_corpars
+  if (length(recov) == 3L) {
+    recov_labels <- sub("^recov_", "", names(recov))
+    recov <- stats::setNames(as.numeric(unname(recov)), recov_labels)
+    recov_value <- function(suffix) {
+      hit <- grep(paste0(":", suffix, "$"), names(recov))
+      if (length(hit) != 1L) {
+        return(NA_real_)
+      }
+      unname(recov[[hit]])
+    }
+    log_l11 <- recov_value("L11")
+    log_l22 <- recov_value("L22")
+    l21 <- recov_value("L21")
+    phylo_terms <- Filter(
+      function(term) identical(term$type, "phylo"),
+      terms
+    )
+    mu_terms <- Filter(
+      function(term) identical(term$dpar, "mu"),
+      phylo_terms
+    )
+    sigma_terms <- Filter(
+      function(term) identical(term$dpar, "sigma"),
+      phylo_terms
+    )
+    if (
+      length(mu_terms) == 1L &&
+        length(sigma_terms) == 1L &&
+        all(is.finite(c(log_l11, log_l22, l21)))
+    ) {
+      scale_for <- function(label) {
+        if (!is.null(sd_scales) && length(sd_scales) > 0L) {
+          hits <- which(names(sd_scales) == label)
+          if (length(hits) > 0L) {
+            return(unname(sd_scales[[hits[[1L]]]]))
+          }
+        }
+        1
+      }
+      l11 <- exp(log_l11)
+      l22 <- exp(log_l22)
+      sd_mu <- l11 * scale_for(mu_terms[[1L]]$label)
+      sd_sigma <- sqrt(l21^2 + l22^2) * scale_for(sigma_terms[[1L]]$label)
+      rho <- l21 / sqrt(l21^2 + l22^2)
+      mu_label <- paste0("mu:", mu_terms[[1L]]$label)
+      sigma_label <- paste0("sigma:", sigma_terms[[1L]]$label)
+      sdpars$mu[[mu_label]] <- sd_mu
+      sdpars$sigma[[sigma_label]] <- sd_sigma
+      cor_name <- paste0(
+        "cor(mu:(Intercept),sigma:(Intercept) | phylo | ",
+        mu_terms[[1L]]$group,
+        ")"
+      )
+      corpars$phylo <- stats::setNames(rho, cor_name)
+    }
+  }
+
+  list(sdpars = sdpars, corpars = corpars)
 }
 
 drm_julia_vcov <- function(x, coef_names) {
@@ -2465,16 +2752,16 @@ drm_julia_residual_rho12_corpair <- function(object, rho) {
   )
 }
 
-# Among-axis phylogenetic correlations for a q=4 bivariate location-scale bridge
-# fit. The four shared-phylogenetic axes (mu1, mu2, sigma1, sigma2) carry a 4x4
-# group-level covariance Sigma_a, stored on the fit by the bridge as the 10
+# Among-axis structured correlations for q2/q4 bivariate bridge fits. The
+# shared structured axes carry a 2x2 or 4x4 group-level covariance Sigma_a,
+# stored on the fit by the bridge as the 3 or 10
 # log-Cholesky entries `phylocov$"Sigma_a:Lij"` (diagonal on the log scale,
 # off-diagonals raw; Sigma_a = L L'). This reconstructs Sigma_a, converts it to
 # the among-axis correlation matrix, and emits one corpairs row per cross-axis
 # pair -- the interpretable coevolution correlations (mean1-mean2 etc.) that the
-# native `corpairs.drmTMB` surfaces via `phylo_mu_corpairs()`. The bridge never
-# populates `object$corpars`, so this rebuilds the rows directly from Sigma_a.
-# Returns an empty list for any non-q=4 / non-phylo fit.
+# native `corpairs.drmTMB` surfaces for phylo / relmat / animal q2 and q4
+# blocks. The bridge never populates `object$corpars`, so this rebuilds the rows
+# directly from Sigma_a. Returns an empty list for any non-q2/q4 fit.
 drm_julia_phylo_corpairs <- function(object) {
   Sigma_a <- drm_julia_phylocov_matrix(object)
   if (is.null(Sigma_a)) {
@@ -2484,7 +2771,11 @@ drm_julia_phylo_corpairs <- function(object) {
   if (is.null(info)) {
     return(list())
   }
-  axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  axes <- if (nrow(Sigma_a) == 2L) {
+    c("mu1", "mu2")
+  } else {
+    c("mu1", "mu2", "sigma1", "sigma2")
+  }
   responses <- drm_julia_response_names(object)
 
   d <- sqrt(diag(Sigma_a))
@@ -2501,7 +2792,7 @@ drm_julia_phylo_corpairs <- function(object) {
     to_dpar <- axes[[j]]
     estimate <- R[i, j]
     new_corpair_row(
-      level = "phylogenetic",
+      level = info$level,
       group = info$group,
       block = info$block,
       from_dpar = from_dpar,
@@ -2534,21 +2825,28 @@ drm_julia_phylo_corpairs <- function(object) {
   })
 }
 
-# Reconstruct the 4x4 among-axis covariance Sigma_a from the bridge's stored
-# log-Cholesky factor, or NULL if this fit has no q=4 `phylocov` block. The 10
-# entries are named "Sigma_a:L11", "Sigma_a:L21", ... "Sigma_a:L44"; the diagonal
-# is exponentiated (working scale), off-diagonals are taken as-is.
+# Reconstruct the q2/q4 among-axis covariance Sigma_a from the bridge's stored
+# log-Cholesky factor, or NULL if this fit has no supported `phylocov` block. The
+# entries are named "Sigma_a:L11", "Sigma_a:L21", ...; the diagonal is
+# exponentiated (working scale), off-diagonals are taken as-is.
 drm_julia_phylocov_matrix <- function(object) {
   if (!identical(object$model$model_type, "biv_gaussian")) {
     return(NULL)
   }
   phylocov <- object$coefficients[["phylocov"]]
-  if (is.null(phylocov) || length(phylocov) != 10L) {
+  if (is.null(phylocov)) {
     return(NULL)
   }
-  L <- matrix(0, 4L, 4L)
-  for (col in seq_len(4L)) {
-    for (rw in col:4L) {
+  q <- if (length(phylocov) == 3L) {
+    2L
+  } else if (length(phylocov) == 10L) {
+    4L
+  } else {
+    return(NULL)
+  }
+  L <- matrix(0, q, q)
+  for (col in seq_len(q)) {
+    for (rw in col:q) {
       nm <- sprintf("Sigma_a:L%d%d", rw, col)
       value <- phylocov[[nm]]
       if (is.null(value) || !is.finite(value)) {
@@ -2560,11 +2858,12 @@ drm_julia_phylocov_matrix <- function(object) {
   L %*% t(L)
 }
 
-# Shared group and covariance-block labels for the q=4 phylo location-scale
-# block, read off the fit's phylo() formula terms. The bridge guard guarantees
-# all four axes share one grouping factor and tree, so the first phylo term is
-# representative. `block` is the explicit covariance label (e.g. "p"); NA when
-# the term was written without one. Returns NULL if no phylo term is present.
+# Shared level, group, and covariance-block labels for q2/q4 structured
+# bivariate blocks, read off the fit's formula terms. The bridge guards
+# guarantee that all axes share one grouping factor and block, so the first term
+# is representative. `block` is the explicit covariance label (e.g. "p"); NA
+# when the term was written without one. Returns NULL if no supported structured
+# term is present.
 drm_julia_phylo_block_info <- function(object) {
   entries <- object$formula$entries
   if (is.null(entries)) {
@@ -2572,12 +2871,17 @@ drm_julia_phylo_block_info <- function(object) {
   }
   for (entry in entries) {
     for (term in entry$structured) {
-      if (identical(term$type, "phylo")) {
+      if (term$type %in% c("phylo", "relmat", "animal", "spatial")) {
         block <- term$covariance_label
         if (is.null(block) || !nzchar(block)) {
           block <- NA_character_
         }
-        return(list(group = term$group, block = block))
+        level <- if (identical(term$type, "phylo")) {
+          "phylogenetic"
+        } else {
+          term$type
+        }
+        return(list(level = level, group = term$group, block = block))
       }
     }
   }
@@ -2803,7 +3107,7 @@ predict.drmTMB_julia <- function(
 #
 #   relmat(1 | g, K = K)   -> drm(...; K = K)        (relatedness / GRM / kernel)
 #   animal(1 | g, A = A)   -> drm(...; A = A)        (additive relationship matrix)
-#   spatial(1 | g, coords) -> drm(...; coords = ..)  (Gaussian: coordinate spatial)
+#   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #   spatial(1 | g, K = K)  -> drm(...; K = K)        (counts/Gamma: precomputed cov)
 #
 # DRM.jl rescales the covariance to a unit-diagonal correlation, so the recovered
@@ -2851,6 +3155,225 @@ drm_julia_collect_structured_terms <- function(formula) {
   )
 }
 
+drmTMB_julia_biv_known_structured_bridge <- function(
+  formula,
+  family,
+  data,
+  env,
+  weights_missing,
+  control,
+  impute,
+  missing,
+  REML = FALSE,
+  call
+) {
+  if (!isTRUE(weights_missing)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models do not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted structured fits until the bridge has a weights payload."
+    ))
+  }
+  if (!is.null(impute)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models do not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for structured imputation workflows until the bridge has an imputation payload."
+    ))
+  }
+  family_type <- drm_julia_bridge_family_type(family)
+  missing_control <- drm_parse_missing_control(missing)
+  if (
+    !identical(missing_control$predictor, "fail") ||
+      !identical(missing_control$response, "drop")
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models require complete responses and predictors.",
+      i = "Use {.code missing = miss_control(response = \"drop\", predictor = \"fail\")}, or use native {.code engine = \"tmb\"} for missing-data routes."
+    ))
+  }
+  if (!drm_julia_default_control(control)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models currently accept only default {.arg control}.",
+      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
+    ))
+  }
+
+  payload <- drm_julia_biv_known_structured_payload(
+    formula = formula,
+    family_type = family_type,
+    data = data,
+    env = env
+  )
+  result <- drm_julia_call_structured(
+    formula = payload$formula,
+    family = "biv_gaussian",
+    data = payload$data,
+    matrix = payload$matrix,
+    kwarg = payload$kwarg,
+    options = payload$options
+  )
+  new_drmTMB_julia(
+    result = result,
+    call = call,
+    formula = formula,
+    family = family,
+    data = data,
+    family_type = family_type,
+    structured_sd_scales = payload$structured_sd_scales,
+    bridge_payload = payload,
+    requested_REML = isTRUE(REML),
+    effective_REML = FALSE
+  )
+}
+
+drm_julia_biv_known_structured_payload <- function(
+  formula,
+  family_type,
+  data,
+  env
+) {
+  if (!identical(family_type, "biv_gaussian")) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} bivariate q2 structured payloads require {.fn biv_gaussian}."
+    )
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 2L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models require matching structured terms in {.code mu1} and {.code mu2}.",
+      i = "Use matching {.code relmat(1 | p | group, K = K)} or {.code animal(1 | p | group, A = A)} terms in both location formulas, or use native {.code engine = \"tmb\"}."
+    ))
+  }
+  dpars <- vapply(terms, `[[`, character(1L), "dpar")
+  if (!setequal(dpars, c("mu1", "mu2"))) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models route only {.code mu1}/{.code mu2} terms.",
+      x = "Structured axes supplied: {.val {dpars}}.",
+      i = "Use native {.code engine = \"tmb\"} for q4, scale-side, or partial structured layouts."
+    ))
+  }
+  type <- unique(vapply(terms, `[[`, character(1L), "type"))
+  if (length(type) != 1L) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires the q2 structured terms on {.code mu1} and {.code mu2} to use the same marker type."
+    )
+  }
+  if (!type %in% c("relmat", "animal", "spatial")) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models route only {.fn relmat}, {.fn animal}, or fixed-covariance {.fn spatial}.",
+      i = "Use the existing {.fn phylo} bivariate bridge route for q2 phylogenetic fits."
+    ))
+  }
+  if (
+    !all(vapply(
+      terms,
+      function(term) identical(term$coef_names, "(Intercept)"),
+      logical(1L)
+    ))
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models support only intercept markers.",
+      i = "Use syntax such as {.code relmat(1 | p | group, K = K)} in both location formulas."
+    ))
+  }
+  groups <- vapply(terms, `[[`, character(1L), "group")
+  objects <- vapply(terms, `[[`, character(1L), "object")
+  structures <- vapply(terms, `[[`, character(1L), "structure")
+  blocks <- vapply(
+    terms,
+    function(term) {
+      block <- term$covariance_label
+      if (is.null(block) || !nzchar(block)) {
+        return(NA_character_)
+      }
+      block
+    },
+    character(1L)
+  )
+  if (length(unique(groups)) != 1L) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires q2 structured terms on {.code mu1} and {.code mu2} to share one grouping variable."
+    )
+  }
+  if (length(unique(objects)) != 1L || length(unique(structures)) != 1L) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires q2 structured terms on {.code mu1} and {.code mu2} to share one matrix object and matrix slot."
+    )
+  }
+  if (!(all(is.na(blocks)) || length(unique(blocks)) == 1L)) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires q2 structured terms on {.code mu1} and {.code mu2} to share one covariance-block label."
+    )
+  }
+  if (!groups[[1L]] %in% names(data)) {
+    cli::cli_abort(
+      "Structured grouping variable {.field {groups[[1L]]}} was not found in {.arg data}."
+    )
+  }
+  scale_entries <- Filter(
+    function(entry) entry$dpar %in% c("sigma1", "sigma2", "rho12"),
+    formula$entries
+  )
+  if (
+    length(scale_entries) > 0L &&
+      !all(vapply(
+        scale_entries,
+        function(entry) drm_julia_is_intercept_rhs(entry$rhs),
+        logical(1L)
+      ))
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} bivariate q2 structured models require {.code sigma1 ~ 1}, {.code sigma2 ~ 1}, and {.code rho12 ~ 1}.",
+      i = "Use native {.code engine = \"tmb\"} for predictor-dependent residual scale or residual correlation."
+    ))
+  }
+
+  term <- terms[[1L]]
+  resolved <- drm_julia_structured_matrix(
+    term = term,
+    family_type = family_type,
+    env = env,
+    data = data
+  )
+  formula_spec <- drm_julia_formula_spec(formula)
+  matrix <- resolved$matrix
+  kwarg <- resolved$kwarg
+  if (identical(type, "spatial")) {
+    native_spatial <- drm_spatial_coords_precision(
+      matrix,
+      site = data[[groups[[1L]]]],
+      group = groups[[1L]]
+    )
+    matrix <- solve(as.matrix(native_spatial$precision))
+    kwarg <- "K"
+    formula_spec$mu1 <- sub(
+      "spatial(",
+      "relmat(",
+      formula_spec$mu1,
+      fixed = TRUE
+    )
+    formula_spec$mu2 <- sub(
+      "spatial(",
+      "relmat(",
+      formula_spec$mu2,
+      fixed = TRUE
+    )
+  }
+  labels <- vapply(terms, `[[`, character(1L), "label")
+  list(
+    formula = formula_spec,
+    data = drm_julia_bridge_data(data, formula),
+    matrix = matrix,
+    kwarg = kwarg,
+    options = list(g_tol = 1e-4),
+    row_order = NULL,
+    structured_sd_scales = stats::setNames(rep(1, length(labels)), labels),
+    bivariate = TRUE,
+    bivariate_dimension = "q2",
+    structured_type = type,
+    covariance_label = if (all(is.na(blocks))) NA_character_ else blocks[[1L]]
+  )
+}
+
 drmTMB_julia_structured_bridge <- function(
   formula,
   family,
@@ -2864,14 +3387,16 @@ drmTMB_julia_structured_bridge <- function(
   call
 ) {
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} structured models do not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models do not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted structured fits until the bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} structured models do not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} structured models do not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for structured imputation workflows until the bridge has an imputation payload."
+    ))
   }
   family_type <- drm_julia_bridge_family_type(family)
   missing_control <- drm_parse_missing_control(missing)
@@ -2984,12 +3509,30 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     env = env,
     data = data
   )
+  formula_spec <- drm_julia_formula_spec(formula)
+  matrix <- resolved$matrix
+  kwarg <- resolved$kwarg
+  if (identical(term$type, "spatial") && identical(family_type, "gaussian")) {
+    native_spatial <- drm_spatial_coords_precision(
+      matrix,
+      site = data[[term$group]],
+      group = term$group
+    )
+    matrix <- solve(as.matrix(native_spatial$precision))
+    kwarg <- "K"
+    formula_spec[[term$dpar]] <- sub(
+      "spatial(",
+      "relmat(",
+      formula_spec[[term$dpar]],
+      fixed = TRUE
+    )
+  }
 
   list(
-    formula = drm_julia_formula_spec(formula),
+    formula = formula_spec,
     data = drm_julia_bridge_data(data, formula),
-    matrix = resolved$matrix,
-    kwarg = resolved$kwarg,
+    matrix = matrix,
+    kwarg = kwarg,
     options = list(),
     structured_sd_scales = stats::setNames(1, term$label)
   )
@@ -3017,12 +3560,12 @@ drm_julia_structured_matrix <- function(term, family_type, env, data) {
     }
     kwarg <- "A"
   } else {
-    # spatial: DRM.jl estimates the spatial range jointly from raw `coords`, which
-    # is a GAUSSIAN-only path. The drmTMB grammar only lets `spatial()` carry
-    # `coords` / `mesh` (never `K`), so a non-Gaussian spatial fit has no bridge
-    # form -- pass the precomputed spatial covariance through `relmat(1 | g, K = K)`
-    # instead (DRM.jl fits an identical general-covariance random intercept).
-    if (!identical(family_type, "gaussian")) {
+    # spatial: native drmTMB fixes the coordinate-spatial range at the median
+    # positive distance. The bridge preserves that target by converting Gaussian
+    # spatial coords to a fixed covariance K in `drm_julia_structured_payload`.
+    # Non-Gaussian spatial has no native-compatible bridge form here; pass a
+    # precomputed spatial covariance through `relmat(1 | g, K = K)` instead.
+    if (!family_type %in% c("gaussian", "biv_gaussian")) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} routes {.fn spatial} only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl).",
         i = "For a {.val {family_type}} spatial random intercept, pass a precomputed spatial covariance as {.code relmat(1 | {term$group}, K = K)}, or use {.code engine = \"tmb\"}."
@@ -3215,14 +3758,16 @@ drmTMB_julia_xfam_bridge <- function(
   call
 ) {
   if (!isTRUE(weights_missing)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} cross-family models do not support {.arg weights} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg weights} yet.",
+      i = "Use native {.code engine = \"tmb\"} for weighted fits until the cross-family bridge has a weights payload."
+    ))
   }
   if (!is.null(impute)) {
-    cli::cli_abort(
-      "{.code engine = \"julia\"} cross-family models do not support {.arg impute} yet."
-    )
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family models do not support {.arg impute} yet.",
+      i = "Use native {.code engine = \"tmb\"} for imputation workflows until the cross-family bridge has an imputation payload."
+    ))
   }
   missing_control <- drm_parse_missing_control(missing)
   if (
