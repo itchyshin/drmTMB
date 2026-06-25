@@ -235,6 +235,15 @@ Totoro or reviewed DRAC execution, and adds scheduler-exit retention. The rows
 remain `not_executed` and `coverage_evaluable = FALSE`; they do not move the
 support cells beyond planned interval and coverage status.
 
+`structured-re-sigma-slope-coverage-runner-contract.tsv` records the
+fail-closed runner contract for that dispatch review. It links each selected
+runner row back to the exact dispatch row and pre-grid seed/cell manifests,
+writes shard-specific provider manifests and run logs, and refuses execution
+modes other than dry-run. This is race-safety and recovery evidence only: it
+does not submit Totoro or DRAC jobs, create coverage-evaluable denominator
+evidence, satisfy the MCSE threshold, or move interval, coverage, REML,
+AI-REML, q4/q8, bridge, public-support, or SR150 readiness claims.
+
 `structured-re-q2-slope-parity-fixture.tsv` records the slope-only q=2
 `mu1`/`mu2` same-target fixture gate for `phylo()`, fixed-covariance
 `spatial()`, A-matrix `animal()`, and K-matrix `relmat()`. It moves only the

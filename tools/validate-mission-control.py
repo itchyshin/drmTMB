@@ -105,6 +105,9 @@ STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_PREGRID_DRY_RUN = (
 STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW = (
     DASHBOARD / "structured-re-sigma-slope-coverage-dispatch-review.tsv"
 )
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT = (
+    DASHBOARD / "structured-re-sigma-slope-coverage-runner-contract.tsv"
+)
 STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv"
 )
@@ -400,6 +403,22 @@ SIGMA_SLOPE_COVERAGE_DISPATCH_TARGET_MANIFEST = (
     / "simulation-artifacts"
     / "2026-06-25-sigma-slope-coverage-dispatch-review"
     / "structured-re-sigma-slope-coverage-dispatch-target-manifest.tsv"
+)
+SIGMA_SLOPE_COVERAGE_RUNNER_TARGET_MANIFEST = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-sigma-slope-coverage-runner-contract"
+    / "structured-re-sigma-slope-coverage-runner-target-manifest.tsv"
+)
+SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-sigma-slope-coverage-runner-contract"
+    / "structured-re-sigma-slope-coverage-runner-run-log.tsv"
 )
 Q4_DERIVED_CORRELATION_DELTA_GRID_ADEMP_DRY_RUN = (
     ROOT
@@ -1517,6 +1536,68 @@ STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW_FIELDS = (
     "interval_claim_status",
     "status",
     "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT_FIELDS = (
+    "runner_id",
+    "dispatch_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "direct_sd_target",
+    "profile_target",
+    "mode",
+    "selected",
+    "source_dispatch_manifest",
+    "source_seed_manifest",
+    "source_cell_manifest",
+    "selected_manifest",
+    "run_log",
+    "planned_replicates",
+    "planned_cells",
+    "seed_start",
+    "seed_end",
+    "interval_methods",
+    "retention_policy",
+    "scheduler_status",
+    "compute_status",
+    "denominator_status",
+    "mcse_threshold_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "execution_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG_FIELDS = (
+    "run_id",
+    "mode",
+    "shard_id",
+    "provider_filter",
+    "endpoint_member_filter",
+    "selected_targets",
+    "selected_structured_types",
+    "selected_endpoint_members",
+    "source_dispatch_manifest",
+    "source_seed_manifest",
+    "source_cell_manifest",
+    "selected_manifest",
+    "dashboard_contract",
+    "execution_status",
+    "scheduler_status",
+    "compute_status",
+    "denominator_status",
+    "mcse_threshold_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
     "claim_boundary",
     "next_gate",
 )
@@ -4647,6 +4728,9 @@ def main() -> int:
     structured_re_sigma_slope_coverage_dispatch_review_rows = read_tsv(
         STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_DISPATCH_REVIEW
     )
+    structured_re_sigma_slope_coverage_runner_contract_rows = read_tsv(
+        STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT
+    )
     q2_slope_coverage_pregrid_seed_manifest_rows = read_tsv(
         Q2_SLOPE_COVERAGE_PREGRID_SEED_MANIFEST
     )
@@ -4661,6 +4745,12 @@ def main() -> int:
     )
     sigma_slope_coverage_dispatch_target_manifest_rows = read_tsv(
         SIGMA_SLOPE_COVERAGE_DISPATCH_TARGET_MANIFEST
+    )
+    sigma_slope_coverage_runner_target_manifest_rows = read_tsv(
+        SIGMA_SLOPE_COVERAGE_RUNNER_TARGET_MANIFEST
+    )
+    sigma_slope_coverage_runner_run_log_rows = read_tsv(
+        SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG
     )
     structured_re_mu_sigma_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_MU_SIGMA_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -7978,6 +8068,314 @@ def main() -> int:
                 "structured-re-sigma-slope-coverage-dispatch-review.tsv must not include "
                 f"held-out target {target[0]}/{target[1]}"
             )
+
+    sigma_runner_dispatch_by_id = {
+        row.get("dispatch_id", ""): row
+        for row in structured_re_sigma_slope_coverage_dispatch_review_rows
+    }
+    expected_sigma_runner_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-sigma-slope-coverage-runner-contract/"
+        "structured-re-sigma-slope-coverage-runner-target-manifest.tsv"
+    )
+    expected_sigma_runner_log = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-sigma-slope-coverage-runner-contract/"
+        "structured-re-sigma-slope-coverage-runner-run-log.tsv"
+    )
+    expected_sigma_runner_dashboard = (
+        "docs/dev-log/dashboard/"
+        "structured-re-sigma-slope-coverage-runner-contract.tsv"
+    )
+    expected_sigma_runner_source = (
+        "docs/dev-log/dashboard/"
+        "structured-re-sigma-slope-coverage-dispatch-review.tsv"
+    )
+    expected_sigma_runner_seed_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-sigma-slope-coverage-pregrid-dry-run/"
+        "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv"
+    )
+    expected_sigma_runner_cell_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-sigma-slope-coverage-pregrid-dry-run/"
+        "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv"
+    )
+    if (
+        len(structured_re_sigma_slope_coverage_runner_contract_rows)
+        != len(expected_sigma_pregrid_cells)
+    ):
+        errors.append(
+            "structured-re-sigma-slope-coverage-runner-contract.tsv has "
+            f"{len(structured_re_sigma_slope_coverage_runner_contract_rows)} rows; "
+            f"expected {len(expected_sigma_pregrid_cells)}"
+        )
+    if (
+        sigma_slope_coverage_runner_target_manifest_rows
+        != structured_re_sigma_slope_coverage_runner_contract_rows
+    ):
+        errors.append(
+            "structured-re-sigma-slope-coverage-runner-target-manifest.tsv must "
+            "match the dashboard runner contract"
+        )
+    if len(sigma_slope_coverage_runner_run_log_rows) != 1:
+        errors.append(
+            "structured-re-sigma-slope-coverage-runner-run-log.tsv must have one row"
+        )
+
+    seen_sigma_runner_targets: set[tuple[str, str]] = set()
+    for row in structured_re_sigma_slope_coverage_runner_contract_rows:
+        row_id = row.get("runner_id", "<structured RE sigma slope runner contract>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-sigma-slope-coverage-runner-contract.tsv "
+                "fields do not match the runner-contract schema"
+            )
+        for field in STRUCTURED_RE_SIGMA_SLOPE_COVERAGE_RUNNER_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        dispatch_id = row.get("dispatch_id", "")
+        dispatch_row = sigma_runner_dispatch_by_id.get(dispatch_id)
+        if dispatch_row is None:
+            errors.append(f"{row_id}: dispatch_id does not link to dispatch review")
+            continue
+        expected_runner_id = f"sigma_slope_coverage_runner_{dispatch_id}"
+        if row_id != expected_runner_id:
+            errors.append(f"{row_id}: runner_id must be {expected_runner_id}")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        if target_key not in expected_sigma_pregrid_cells:
+            errors.append(f"{row_id}: unexpected runner target {target_key!r}")
+        if target_key in seen_sigma_runner_targets:
+            errors.append(f"duplicate sigma slope coverage runner target: {target_key!r}")
+        seen_sigma_runner_targets.add(target_key)
+        for field in (
+            "cell_id",
+            "formula_cell",
+            "structured_type",
+            "target_kind",
+            "endpoint_member",
+            "direct_sd_target",
+            "profile_target",
+            "planned_replicates",
+            "planned_cells",
+            "seed_start",
+            "seed_end",
+            "interval_methods",
+            "retention_policy",
+            "mcse_threshold_status",
+        ):
+            if row.get(field) != dispatch_row.get(field):
+                errors.append(f"{row_id}: {field} must match the dispatch review")
+        expected_runner_paths = {
+            "source_dispatch_manifest": expected_sigma_runner_source,
+            "source_seed_manifest": expected_sigma_runner_seed_manifest,
+            "source_cell_manifest": expected_sigma_runner_cell_manifest,
+            "selected_manifest": expected_sigma_runner_manifest,
+            "run_log": expected_sigma_runner_log,
+        }
+        for field, expected_value in expected_runner_paths.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        expected_runner_common = {
+            "mode": "dry-run",
+            "selected": "TRUE",
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "denominator_status": "runner_contract_only",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "execution_status": "validated_not_executed",
+            "status": "covered",
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-25-sigma-slope-coverage-runner-contract.md"
+            ),
+        }
+        for field, expected_value in expected_runner_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "runner contract only",
+            "no pre-grid cells executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no coverage-evaluable denominator evidence",
+            "no MCSE-calibrated coverage",
+            "no interval reliability",
+            "no matched mu+sigma support",
+            "no q4/q8 support",
+            "no REML",
+            "no AI-REML",
+            "no broad bridge support",
+            "no public support",
+            "no SR150 readiness",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if "coverage_evaluable = TRUE" in claim_boundary:
+            errors.append(f"{row_id}: claim_boundary must not imply evaluable coverage")
+        next_gate = row.get("next_gate", "")
+        for phrase in (
+            "one provider shard",
+            "Totoro",
+            "DRAC",
+            "fit errors",
+            "nonconvergence",
+            "pdHess false",
+            "scheduler exit status",
+            "denominator accounting",
+            "coverage wording",
+        ):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_sigma_runner_targets = sorted(
+        expected_sigma_pregrid_cells - seen_sigma_runner_targets
+    )
+    if missing_sigma_runner_targets:
+        errors.append(
+            "structured-re-sigma-slope-coverage-runner-contract.tsv missing targets: "
+            + ", ".join(
+                f"{provider}/{endpoint_member}"
+                for provider, endpoint_member in missing_sigma_runner_targets
+            )
+        )
+    for target in expected_sigma_replicated_holdout:
+        if target in seen_sigma_runner_targets:
+            errors.append(
+                "structured-re-sigma-slope-coverage-runner-contract.tsv must not include "
+                f"held-out target {target[0]}/{target[1]}"
+            )
+
+    if sigma_slope_coverage_runner_run_log_rows:
+        run_log = sigma_slope_coverage_runner_run_log_rows[0]
+        run_id = run_log.get("run_id", "<sigma slope runner run log>")
+        if set(run_log.keys()) != set(SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG_FIELDS):
+            errors.append(
+                "structured-re-sigma-slope-coverage-runner-run-log.tsv fields "
+                "do not match the run-log schema"
+            )
+        expected_run_log_common = {
+            "run_id": "sigma_slope_coverage_runner_contract_all-targets",
+            "mode": "dry-run",
+            "shard_id": "all-targets",
+            "provider_filter": "all",
+            "endpoint_member_filter": "all",
+            "selected_targets": str(len(expected_sigma_pregrid_cells)),
+            "selected_manifest": expected_sigma_runner_manifest,
+            "dashboard_contract": expected_sigma_runner_dashboard,
+            "source_dispatch_manifest": expected_sigma_runner_source,
+            "source_seed_manifest": expected_sigma_runner_seed_manifest,
+            "source_cell_manifest": expected_sigma_runner_cell_manifest,
+            "execution_status": "validated_not_executed",
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "denominator_status": "runner_contract_only",
+            "mcse_threshold_status": "not_met_by_sr150",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+        }
+        for field, expected_value in expected_run_log_common.items():
+            if run_log.get(field) != expected_value:
+                errors.append(f"{run_id}: {field} must be {expected_value}")
+        for provider in ("phylo", "spatial", "animal", "relmat"):
+            if provider not in run_log.get("selected_structured_types", ""):
+                errors.append(f"{run_id}: selected_structured_types must include {provider}")
+        for endpoint_member in ("sigma:(Intercept)", "sigma:x"):
+            if endpoint_member not in run_log.get("selected_endpoint_members", ""):
+                errors.append(f"{run_id}: selected_endpoint_members must include {endpoint_member}")
+        for phrase in (
+            "runner contract only",
+            "no pre-grid cells executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "no coverage-evaluable denominator evidence",
+            "no MCSE-calibrated coverage",
+            "no interval reliability",
+            "no REML",
+            "no AI-REML",
+            "no SR150 readiness",
+        ):
+            if phrase not in run_log.get("claim_boundary", ""):
+                errors.append(f"{run_id}: claim_boundary must mention {phrase}")
+
+    for provider in ("phylo", "spatial", "animal", "relmat"):
+        shard_id = f"provider-{provider}"
+        shard_manifest_ref = (
+            "docs/dev-log/simulation-artifacts/"
+            "2026-06-25-sigma-slope-coverage-runner-contract/"
+            f"structured-re-sigma-slope-coverage-runner-target-manifest-{shard_id}.tsv"
+        )
+        shard_log_ref = (
+            "docs/dev-log/simulation-artifacts/"
+            "2026-06-25-sigma-slope-coverage-runner-contract/"
+            f"structured-re-sigma-slope-coverage-runner-run-log-{shard_id}.tsv"
+        )
+        shard_manifest_rows = read_tsv(ROOT / shard_manifest_ref)
+        shard_log_rows = read_tsv(ROOT / shard_log_ref)
+        expected_shard_count = sum(
+            1 for target in expected_sigma_pregrid_cells if target[0] == provider
+        )
+        if len(shard_manifest_rows) != expected_shard_count:
+            errors.append(
+                f"{shard_manifest_ref} has {len(shard_manifest_rows)} rows; "
+                f"expected {expected_shard_count}"
+            )
+        if len(shard_log_rows) != 1:
+            errors.append(f"{shard_log_ref} must have one row")
+        for row in shard_manifest_rows:
+            row_id = row.get("runner_id", f"<sigma slope runner {shard_id}>")
+            if row.get("structured_type") != provider:
+                errors.append(f"{row_id}: shard manifest provider must be {provider}")
+            if row.get("selected_manifest") != shard_manifest_ref:
+                errors.append(f"{row_id}: shard selected_manifest must be shard-specific")
+            if row.get("run_log") != shard_log_ref:
+                errors.append(f"{row_id}: shard run_log must be shard-specific")
+            if row.get("selected_manifest") == expected_sigma_runner_manifest:
+                errors.append(f"{row_id}: shard manifest must not overwrite all-target manifest")
+            if row.get("run_log") == expected_sigma_runner_log:
+                errors.append(f"{row_id}: shard log must not overwrite all-target run log")
+            if row.get("mode") != "dry-run":
+                errors.append(f"{row_id}: shard mode must remain dry-run")
+            if row.get("denominator_status") != "runner_contract_only":
+                errors.append(f"{row_id}: shard denominator_status changed")
+        if shard_log_rows:
+            shard_log = shard_log_rows[0]
+            shard_run_id = shard_log.get("run_id", f"<sigma slope runner log {shard_id}>")
+            if set(shard_log.keys()) != set(SIGMA_SLOPE_COVERAGE_RUNNER_RUN_LOG_FIELDS):
+                errors.append(f"{shard_log_ref} fields do not match the run-log schema")
+            expected_shard_common = {
+                "mode": "dry-run",
+                "shard_id": shard_id,
+                "provider_filter": provider,
+                "endpoint_member_filter": "all",
+                "selected_targets": str(expected_shard_count),
+                "selected_manifest": shard_manifest_ref,
+                "dashboard_contract": expected_sigma_runner_dashboard,
+                "execution_status": "validated_not_executed",
+                "scheduler_status": "dry_run_not_submitted",
+                "compute_status": "not_executed",
+                "denominator_status": "runner_contract_only",
+                "mcse_threshold_status": "not_met_by_sr150",
+                "coverage_evaluable": "FALSE",
+                "coverage_status": "not_evaluated",
+                "interval_claim_status": "diagnostic_only",
+                "status": "covered",
+            }
+            for field, expected_value in expected_shard_common.items():
+                if shard_log.get(field) != expected_value:
+                    errors.append(f"{shard_run_id}: {field} must be {expected_value}")
 
     expected_q2_slope_cells = {
         "phylo": {
@@ -22157,6 +22555,7 @@ def main() -> int:
         f", {len(structured_re_sigma_slope_replicated_denominator_rule_rows)} structured RE sigma-slope replicated-denominator rule rows"
         f", {len(structured_re_sigma_slope_coverage_pregrid_dry_run_rows)} structured RE sigma-slope coverage-pregrid dry-run rows"
         f", {len(structured_re_sigma_slope_coverage_dispatch_review_rows)} structured RE sigma-slope coverage-dispatch review rows"
+        f", {len(structured_re_sigma_slope_coverage_runner_contract_rows)} structured RE sigma-slope coverage-runner contract rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_plan_rows)} structured RE mu+sigma slope interval-diagnostic plan rows"
         f", {len(structured_re_mu_sigma_slope_interval_diagnostic_status_rows)} structured RE mu+sigma slope interval-diagnostic status rows"
         f", {len(structured_re_mu_sigma_slope_interval_stability_probe_rows)} structured RE mu+sigma slope interval-stability probe rows"

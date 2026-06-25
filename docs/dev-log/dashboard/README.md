@@ -831,6 +831,18 @@ the 740001-740150 seed range, and adds scheduler-exit retention. No jobs were
 submitted, animal `sigma:x` remains excluded, and the linked support cells keep
 planned interval and coverage status.
 
+`structured-re-sigma-slope-coverage-runner-contract.tsv` records the
+fail-closed dry-run runner contract for those same seven sigma-only one-slope
+coverage targets. It validates the dispatch-review manifest, writes a selected
+target manifest and run log, and refuses execution modes other than dry-run.
+The runner also writes provider-filtered dry-run manifests with shard-specific
+filenames so later Totoro or reviewed DRAC rehearsals cannot overwrite the
+full seven-row contract. Every row remains `dry_run_not_submitted`,
+`not_executed`, `runner_contract_only`, and `coverage_evaluable = FALSE`; this
+sidecar does not submit jobs, admit a coverage-evaluable denominator, promote
+MCSE-calibrated coverage, interval reliability, REML, AI-REML, q4/q8 support,
+broad bridge support, public support, or SR150 readiness.
+
 `structured-re-q-series-support-cells.tsv` now also records the first
 bivariate Gaussian structured slope-only q=2 `mu1`/`mu2` covariance cells:
 matching `phylo(0 + x | p | species, tree = tree)`,

@@ -2,6 +2,68 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: sigma slope coverage runner contract
+
+Goal:
+
+- Add a fail-closed dry-run runner contract for the sigma-only one-slope
+  coverage pre-grid targets so later Totoro or reviewed DRAC execution has
+  selected target manifests, shard-specific filenames, run logs, and recovery
+  boundaries before any compute job is submitted.
+
+Result:
+
+- Added
+  `tools/plan-structured-re-sigma-slope-coverage-runner-contract.R`, a
+  rerunnable dry-run planner that reads
+  `structured-re-sigma-slope-coverage-dispatch-review.tsv` and refuses
+  non-dry-run modes.
+- Added
+  `docs/dev-log/dashboard/structured-re-sigma-slope-coverage-runner-contract.tsv`
+  with seven selected sigma-only one-slope runner-contract rows. Animal
+  `sigma:x` remains excluded as the visible holdout.
+- Added all-target and provider-shard dry-run manifests and run logs under
+  `docs/dev-log/simulation-artifacts/2026-06-25-sigma-slope-coverage-runner-contract/`.
+- Wired the runner contract into `tools/validate-mission-control.py`, including
+  schema, dispatch-linkage, source-path, all-target manifest, run-log, shard
+  manifest, shard log, status, and claim-boundary checks.
+- Added dashboard contract coverage in
+  `tests/testthat/test-structured-re-conversion-contracts.R`.
+- Updated `docs/dev-log/dashboard/README.md` and
+  `docs/design/218-structured-q-series-completion-map.md`.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-25-sigma-slope-coverage-runner-contract.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/plan-structured-re-sigma-slope-coverage-runner-contract.R`
+  wrote seven runner-contract rows, the all-target manifest, the all-target run
+  log, and provider-specific dry-run shard files.
+- `Rscript --vanilla tools/plan-structured-re-sigma-slope-coverage-runner-contract.R --mode=execute`
+  failed closed with `Only --mode=dry-run is supported by this runner-contract
+  planner.`
+- `air format tools/plan-structured-re-sigma-slope-coverage-runner-contract.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported seven
+  structured RE sigma-slope coverage-runner contract rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,463 assertions.
+- `git diff --check` passed.
+- `gh issue list --repo itchyshin/drmTMB --search "sigma slope coverage runner contract q-series" --limit 20 --json number,title,state,url,labels`
+  returned no matching issues.
+- `rg -n "sigma.*coverage.*(supported|inference-ready|coverage-ready|coverage accepted|coverage_evaluable = TRUE)|qseries_.*sigma_one_slope.*(interval_feasible|inference_ready|supported)|SR150.*(ready|accepted)|DRAC execution.*(complete|submitted)|Totoro.*(submitted|complete)|sigma.*runner.*(executed|submitted|coverage accepted)" README.md ROADMAP.md NEWS.md docs/design/218-structured-q-series-completion-map.md docs/dev-log/dashboard/README.md docs/dev-log/dashboard/structured-re-sigma-slope-coverage-runner-contract.tsv docs/dev-log/dashboard/structured-re-sigma-slope-coverage-dispatch-review.tsv docs/dev-log/dashboard/structured-re-sigma-slope-coverage-pregrid-dry-run.tsv docs/dev-log/check-log.md`
+  found only explicit not-submitted, not-executed, or boundary language.
+
+Boundary:
+
+- No Totoro or DRAC jobs were submitted. No pre-grid cells were executed. This
+  is runner-contract and race-safety evidence only: no coverage-evaluable
+  denominator evidence, MCSE-calibrated coverage, interval reliability,
+  matched `mu+sigma` support, q4/q8 support, REML, AI-REML, broad bridge
+  support, public support, public optimizer controls, or SR150 readiness is
+  promoted.
+
 ## 2026-06-25: sigma slope coverage dispatch review
 
 Goal:

@@ -3236,6 +3236,327 @@ test_that("sigma-slope coverage dispatch review remains not submitted", {
   )
 })
 
+test_that("sigma-slope coverage runner contract stays dry-run", {
+  runner <- structured_re_read_dashboard_tsv(
+    "structured-re-sigma-slope-coverage-runner-contract.tsv"
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-sigma-slope-coverage-dispatch-review.tsv"
+  )
+  target_manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-sigma-slope-coverage-runner-contract",
+      "structured-re-sigma-slope-coverage-runner-target-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  run_log <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-sigma-slope-coverage-runner-contract",
+      "structured-re-sigma-slope-coverage-runner-run-log.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    runner,
+    c(
+      "runner_id",
+      "dispatch_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "direct_sd_target",
+      "profile_target",
+      "mode",
+      "selected",
+      "source_dispatch_manifest",
+      "source_seed_manifest",
+      "source_cell_manifest",
+      "selected_manifest",
+      "run_log",
+      "planned_replicates",
+      "planned_cells",
+      "seed_start",
+      "seed_end",
+      "interval_methods",
+      "retention_policy",
+      "scheduler_status",
+      "compute_status",
+      "denominator_status",
+      "mcse_threshold_status",
+      "coverage_evaluable",
+      "coverage_status",
+      "interval_claim_status",
+      "execution_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(target_manifest, runner)
+  expect_equal(nrow(runner), 7L)
+  expect_equal(nrow(run_log), 1L)
+  expect_equal(
+    runner$runner_id,
+    paste0("sigma_slope_coverage_runner_", dispatch$dispatch_id)
+  )
+  expect_equal(runner$dispatch_id, dispatch$dispatch_id)
+  expect_equal(runner$cell_id, dispatch$cell_id)
+  expect_equal(runner$formula_cell, dispatch$formula_cell)
+  expect_equal(runner$structured_type, dispatch$structured_type)
+  expect_equal(runner$target_kind, dispatch$target_kind)
+  expect_equal(runner$endpoint_member, dispatch$endpoint_member)
+  expect_equal(runner$direct_sd_target, dispatch$direct_sd_target)
+  expect_equal(runner$profile_target, dispatch$profile_target)
+  expect_equal(runner$planned_replicates, dispatch$planned_replicates)
+  expect_equal(runner$planned_cells, dispatch$planned_cells)
+  expect_equal(runner$seed_start, dispatch$seed_start)
+  expect_equal(runner$seed_end, dispatch$seed_end)
+  expect_equal(runner$interval_methods, dispatch$interval_methods)
+  expect_equal(runner$retention_policy, dispatch$retention_policy)
+  expect_equal(
+    runner$mcse_threshold_status,
+    dispatch$mcse_threshold_status
+  )
+  expect_equal(runner$mode, rep("dry-run", 7L))
+  expect_equal(runner$selected, rep(TRUE, 7L))
+  expect_equal(
+    runner$source_dispatch_manifest,
+    rep(
+      paste(
+        "docs/dev-log/dashboard",
+        "structured-re-sigma-slope-coverage-dispatch-review.tsv",
+        sep = "/"
+      ),
+      7L
+    )
+  )
+  expect_equal(
+    runner$source_seed_manifest,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-24-sigma-slope-coverage-pregrid-dry-run",
+        "structured-re-sigma-slope-coverage-pregrid-seed-manifest.tsv",
+        sep = "/"
+      ),
+      7L
+    )
+  )
+  expect_equal(
+    runner$source_cell_manifest,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-24-sigma-slope-coverage-pregrid-dry-run",
+        "structured-re-sigma-slope-coverage-pregrid-cell-manifest.tsv",
+        sep = "/"
+      ),
+      7L
+    )
+  )
+  expect_equal(
+    runner$selected_manifest,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-25-sigma-slope-coverage-runner-contract",
+        "structured-re-sigma-slope-coverage-runner-target-manifest.tsv",
+        sep = "/"
+      ),
+      7L
+    )
+  )
+  expect_equal(
+    runner$run_log,
+    rep(
+      paste(
+        "docs/dev-log/simulation-artifacts",
+        "2026-06-25-sigma-slope-coverage-runner-contract",
+        "structured-re-sigma-slope-coverage-runner-run-log.tsv",
+        sep = "/"
+      ),
+      7L
+    )
+  )
+  expect_equal(runner$scheduler_status, rep("dry_run_not_submitted", 7L))
+  expect_equal(runner$compute_status, rep("not_executed", 7L))
+  expect_equal(
+    runner$denominator_status,
+    rep("runner_contract_only", 7L)
+  )
+  expect_equal(runner$coverage_evaluable, rep(FALSE, 7L))
+  expect_equal(runner$coverage_status, rep("not_evaluated", 7L))
+  expect_equal(runner$interval_claim_status, rep("diagnostic_only", 7L))
+  expect_equal(runner$execution_status, rep("validated_not_executed", 7L))
+  expect_equal(runner$status, rep("covered", 7L))
+  expect_false(any(
+    runner$structured_type == "animal" &
+      runner$endpoint_member == "sigma:x"
+  ))
+
+  structured_re_expect_all_match(runner$claim_boundary, "runner contract only")
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no pre-grid cells executed"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no Totoro job submitted"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no DRAC job submitted"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no coverage-evaluable denominator evidence"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no MCSE-calibrated coverage"
+  )
+  structured_re_expect_all_match(
+    runner$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(runner$claim_boundary, "no matched mu+sigma")
+  structured_re_expect_all_match(runner$claim_boundary, "no q4/q8")
+  structured_re_expect_all_match(runner$claim_boundary, "no REML")
+  structured_re_expect_all_match(runner$claim_boundary, "no AI-REML")
+  structured_re_expect_all_match(runner$claim_boundary, "no broad bridge")
+  structured_re_expect_all_match(runner$claim_boundary, "no public support")
+  structured_re_expect_all_match(runner$claim_boundary, "no SR150 readiness")
+  structured_re_expect_all_match(runner$next_gate, "one provider shard")
+  structured_re_expect_all_match(runner$next_gate, "Totoro")
+  structured_re_expect_all_match(runner$next_gate, "DRAC")
+  structured_re_expect_all_match(runner$next_gate, "fit errors")
+  structured_re_expect_all_match(runner$next_gate, "nonconvergence")
+  structured_re_expect_all_match(runner$next_gate, "pdHess false")
+  structured_re_expect_all_match(runner$next_gate, "scheduler exit status")
+  structured_re_expect_all_match(runner$next_gate, "denominator accounting")
+  structured_re_expect_all_match(runner$next_gate, "coverage wording")
+
+  expect_equal(run_log$selected_targets, 7L)
+  expect_equal(run_log$mode, "dry-run")
+  expect_equal(run_log$shard_id, "all-targets")
+  expect_equal(run_log$provider_filter, "all")
+  expect_equal(run_log$endpoint_member_filter, "all")
+  expect_equal(run_log$execution_status, "validated_not_executed")
+  expect_equal(run_log$scheduler_status, "dry_run_not_submitted")
+  expect_equal(run_log$compute_status, "not_executed")
+  expect_equal(run_log$denominator_status, "runner_contract_only")
+  expect_equal(run_log$mcse_threshold_status, "not_met_by_sr150")
+  expect_equal(run_log$coverage_evaluable, FALSE)
+  expect_equal(run_log$coverage_status, "not_evaluated")
+  expect_equal(run_log$interval_claim_status, "diagnostic_only")
+  expect_equal(run_log$status, "covered")
+
+  for (provider in c("phylo", "spatial", "animal", "relmat")) {
+    shard_id <- paste0("provider-", provider)
+    shard_manifest <- utils::read.delim(
+      structured_re_artifact_path(
+        "docs",
+        "dev-log",
+        "simulation-artifacts",
+        "2026-06-25-sigma-slope-coverage-runner-contract",
+        paste0(
+          "structured-re-sigma-slope-coverage-runner-target-manifest-",
+          shard_id,
+          ".tsv"
+        )
+      ),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    shard_log <- utils::read.delim(
+      structured_re_artifact_path(
+        "docs",
+        "dev-log",
+        "simulation-artifacts",
+        "2026-06-25-sigma-slope-coverage-runner-contract",
+        paste0(
+          "structured-re-sigma-slope-coverage-runner-run-log-",
+          shard_id,
+          ".tsv"
+        )
+      ),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    expected_n <- sum(runner$structured_type == provider)
+    expect_equal(nrow(shard_manifest), expected_n)
+    expect_equal(nrow(shard_log), 1L)
+    expect_equal(shard_manifest$structured_type, rep(provider, expected_n))
+    expect_equal(shard_manifest$mode, rep("dry-run", expected_n))
+    expect_equal(
+      shard_manifest$selected_manifest,
+      rep(
+        paste(
+          "docs/dev-log/simulation-artifacts",
+          "2026-06-25-sigma-slope-coverage-runner-contract",
+          paste0(
+            "structured-re-sigma-slope-coverage-runner-target-manifest-",
+            shard_id,
+            ".tsv"
+          ),
+          sep = "/"
+        ),
+        expected_n
+      )
+    )
+    expect_equal(
+      shard_manifest$run_log,
+      rep(
+        paste(
+          "docs/dev-log/simulation-artifacts",
+          "2026-06-25-sigma-slope-coverage-runner-contract",
+          paste0(
+            "structured-re-sigma-slope-coverage-runner-run-log-",
+            shard_id,
+            ".tsv"
+          ),
+          sep = "/"
+        ),
+        expected_n
+      )
+    )
+    expect_false(any(
+      shard_manifest$selected_manifest %in% runner$selected_manifest
+    ))
+    expect_false(any(shard_manifest$run_log %in% runner$run_log))
+    expect_equal(shard_log$selected_targets, expected_n)
+    expect_equal(shard_log$shard_id, shard_id)
+    expect_equal(shard_log$provider_filter, provider)
+    expect_equal(shard_log$endpoint_member_filter, "all")
+    expect_equal(shard_log$execution_status, "validated_not_executed")
+    expect_equal(shard_log$compute_status, "not_executed")
+    expect_equal(shard_log$denominator_status, "runner_contract_only")
+    expect_equal(shard_log$coverage_evaluable, FALSE)
+    expect_equal(shard_log$coverage_status, "not_evaluated")
+  }
+})
+
 test_that("matched mu+sigma one-slope readiness records native point fits only", {
   readiness <- structured_re_read_dashboard_tsv(
     "structured-re-mu-sigma-slope-readiness.tsv"
