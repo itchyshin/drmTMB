@@ -655,6 +655,122 @@ phase18_structured_re_q2_slope_payload_fixture <- function(
   )
 }
 
+phase18_structured_re_q4_intercept_payload_fixture <- function(
+  structured_type = "phylo",
+  estimator = "ML",
+  route = "native_tmb"
+) {
+  structured_type <- phase18_structured_re_fixture_match_one(
+    structured_type,
+    c("phylo", "spatial", "animal", "relmat"),
+    "structured_type"
+  )
+  estimator <- phase18_structured_re_fixture_match_one(
+    estimator,
+    "ML",
+    "estimator"
+  )
+  route <- phase18_structured_re_fixture_match_one(
+    route,
+    c("native_tmb", "direct_drmjl", "r_via_julia"),
+    "route"
+  )
+
+  endpoint_members <- paste0(
+    c("mu1", "mu2", "sigma1", "sigma2"),
+    ":(Intercept)"
+  )
+  sd_terms <- paste0(
+    "sd_",
+    c("mu1", "mu2", "sigma1", "sigma2"),
+    ":structured(Intercept)"
+  )
+  cor_pairs <- utils::combn(c("mu1", "mu2", "sigma1", "sigma2"), 2L)
+  cor_terms <- apply(
+    cor_pairs,
+    2L,
+    function(pair) {
+      paste0(
+        "cor_",
+        pair[[1L]],
+        "_",
+        pair[[2L]],
+        ":structured(Intercept)"
+      )
+    }
+  )
+  coef <- c(
+    setNames(c(0.25, -0.10, -1.00, -1.10), endpoint_members),
+    setNames(c(0.42, 0.31, 0.22, 0.20), sd_terms),
+    setNames(seq(0.04, 0.18, length.out = length(cor_terms)), cor_terms)
+  )
+  vcov <- diag(seq(0.010, 0.024, length.out = length(coef)))
+  dimnames(vcov) <- list(names(coef), names(coef))
+  matrix_value <- phase18_structured_re_fixture_matrix("q4")
+
+  list(
+    payload_version = "structured_re_bridge_payload_v1",
+    target = data.frame(
+      target_id = paste0("q4_intercept_", structured_type, "_all_four_ml"),
+      dimension = "q4",
+      structured_type = structured_type,
+      endpoint = "mu1+mu2+sigma1+sigma2",
+      slope_class = "intercept_only",
+      estimator = estimator,
+      route = route,
+      stringsAsFactors = FALSE
+    ),
+    matrix = list(
+      matrix_id = paste0(
+        "fixture_q4_intercept_",
+        structured_type,
+        "_all_four"
+      ),
+      matrix_digest = phase18_structured_re_matrix_digest(matrix_value),
+      value = matrix_value
+    ),
+    provenance = data.frame(
+      source_ref = "inst/sim/R/sim_structured_re_bridge_fixtures.R",
+      fixture_status = "deterministic_q4_intercept_fixture",
+      dirty_flag = "not_applicable",
+      stringsAsFactors = FALSE
+    ),
+    estimates = list(
+      coef = coef,
+      vcov = vcov,
+      logLik = -39.012
+    ),
+    fit_status = "fixture_only",
+    inference = data.frame(
+      extractor = c(
+        "profile",
+        "bootstrap",
+        "coverage",
+        "derived_correlations",
+        "REML",
+        "AI_REML"
+      ),
+      status = c(
+        "not_evaluated",
+        "not_evaluated",
+        "not_evaluated",
+        "derived_interval_unavailable",
+        "unsupported",
+        "unsupported"
+      ),
+      unavailable_reason = c(
+        "profile grid not run",
+        "bootstrap refits not run",
+        "coverage grid not calibrated",
+        "q4 all-four intercept correlations are derived-only in this fixture",
+        "q4 intercept REML is not banked by this fixture",
+        "AI-REML is outside this fixture contract"
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 phase18_structured_re_q4_location_slope_payload_fixture <- function(
   structured_type = "phylo",
   estimator = "ML",
@@ -1340,6 +1456,94 @@ phase18_structured_re_q2_slope_parity_fixture_contract <- function() {
         spatial = "Use this fixed-covariance slope-only q2 fixture for calibrated interval diagnostics; keep range-estimating spatial, coverage, REML, and AI-REML separate.",
         animal = "Use this A-matrix slope-only q2 fixture for calibrated interval diagnostics; keep pedigree/Ainv, coverage, REML, and AI-REML separate.",
         relmat = "Use this K-matrix slope-only q2 fixture with runtime K/Q same-target parity evidence for calibrated interval diagnostics; keep Q bridge marshalling, coverage, REML, and AI-REML separate."
+      ),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+phase18_structured_re_q4_intercept_parity_fixture_contract <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  rows <- lapply(structured_types, function(structured_type) {
+    payload <- phase18_structured_re_q4_intercept_payload_fixture(
+      structured_type
+    )
+    data.frame(
+      fixture_id = paste0("q4_intercept_", structured_type, "_same_target_ml"),
+      formula_cell = switch(
+        structured_type,
+        phylo = "phylo(1 | p | species, tree = tree) in all four endpoints",
+        spatial = "spatial(1 | p | site, coords = coords) in all four endpoints",
+        animal = "animal(1 | p | id, A = A) in all four endpoints",
+        relmat = "relmat(1 | p | id, K = K) in all four endpoints"
+      ),
+      structured_type = structured_type,
+      dimension = "q4",
+      endpoint = "mu1+mu2+sigma1+sigma2",
+      slope_class = "intercept_only",
+      estimator = "ML",
+      native_status = "fixture_available",
+      direct_drmjl_status = "fixture_available",
+      r_via_julia_status = "fixture_available",
+      coefficient_order = paste(names(payload$estimates$coef), collapse = ";"),
+      matrix_slot = switch(
+        structured_type,
+        phylo = "tree",
+        spatial = "coords",
+        animal = "A",
+        relmat = "K"
+      ),
+      input_scale = switch(
+        structured_type,
+        phylo = "ultrametric_tree_branch_lengths",
+        spatial = "coordinates_to_fixed_covariance_K",
+        animal = "additive_covariance",
+        relmat = "user_covariance"
+      ),
+      parity_status = "covered_same_target_fixture",
+      bridge_status = "fixture_parity",
+      interval_status = "planned",
+      coverage_status = "planned",
+      evidence_url = "tests/testthat/test-structured-re-bridge-fixtures.R",
+      claim_boundary = switch(
+        structured_type,
+        phylo = paste(
+          "Phylo q4 all-four intercept fixture parity is a deterministic",
+          "native/direct/R-via-Julia contract for the exact four-endpoint",
+          "q4 map only; no interval reliability, interval coverage, q4",
+          "REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad",
+          "bridge support, or public support is promoted."
+        ),
+        spatial = paste(
+          "Spatial q4 all-four intercept fixture parity is fixed-covariance",
+          "only for the exact four-endpoint q4 map; no range-estimating",
+          "spatial support, interval reliability, interval coverage, q4",
+          "REML, native-TMB q4 REML, q4 AI-REML, broad bridge support, or",
+          "public support is promoted."
+        ),
+        animal = paste(
+          "Animal q4 all-four intercept fixture parity uses an A-matrix",
+          "contract for the exact four-endpoint q4 map only; no",
+          "pedigree/Ainv bridge marshalling, interval reliability, interval",
+          "coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, broad bridge",
+          "support, or public support is promoted."
+        ),
+        relmat = paste(
+          "Relmat q4 all-four intercept fixture parity uses a K-matrix",
+          "contract for the exact four-endpoint q4 map only; Q precision",
+          "marshalling remains separate, and no Q bridge marshalling,",
+          "interval reliability, interval coverage, q4 REML, native-TMB q4",
+          "REML, q4 AI-REML, broad bridge support, or public support is",
+          "promoted."
+        )
+      ),
+      next_gate = switch(
+        structured_type,
+        phylo = "Use the existing q4 phylo parity gate for calibrated interval diagnostics; keep coverage, q4 REML, and AI-REML separate.",
+        spatial = "Use this fixed-covariance q4 intercept fixture for interval diagnostics; keep range-estimating spatial, coverage, q4 REML, and AI-REML separate.",
+        animal = "Use this A-matrix q4 intercept fixture for interval diagnostics; keep pedigree/Ainv, coverage, q4 REML, and AI-REML separate.",
+        relmat = "Use this K-matrix q4 intercept fixture for interval diagnostics; keep Q bridge marshalling, coverage, q4 REML, and AI-REML separate."
       ),
       stringsAsFactors = FALSE
     )

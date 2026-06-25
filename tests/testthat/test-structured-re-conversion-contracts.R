@@ -4467,6 +4467,176 @@ test_that("q4 all-four one-slope parity fixture records exact bridge fixture onl
   )
 })
 
+test_that("q4 all-four intercept parity fixture records provider bridge fixture", {
+  fixture <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-parity-fixture.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    fixture,
+    c(
+      "fixture_id",
+      "formula_cell",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "estimator",
+      "native_status",
+      "direct_drmjl_status",
+      "r_via_julia_status",
+      "coefficient_order",
+      "matrix_slot",
+      "input_scale",
+      "parity_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(fixture), 4L)
+  expect_setequal(
+    fixture$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(fixture$dimension, rep("q4", 4L))
+  expect_equal(fixture$endpoint, rep("mu1+mu2+sigma1+sigma2", 4L))
+  expect_equal(fixture$slope_class, rep("intercept_only", 4L))
+  expect_equal(fixture$estimator, rep("ML", 4L))
+  expect_equal(fixture$native_status, rep("fixture_available", 4L))
+  expect_equal(fixture$direct_drmjl_status, rep("fixture_available", 4L))
+  expect_equal(fixture$r_via_julia_status, rep("fixture_available", 4L))
+  expect_equal(fixture$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(fixture$interval_status, rep("planned", 4L))
+  expect_equal(fixture$coverage_status, rep("planned", 4L))
+
+  expected_endpoint_members <- c(
+    "mu1:(Intercept)",
+    "mu2:(Intercept)",
+    "sigma1:(Intercept)",
+    "sigma2:(Intercept)"
+  )
+  coefficient_terms <- strsplit(
+    fixture$coefficient_order[[1L]],
+    ";",
+    fixed = TRUE
+  )[[1L]]
+  expect_length(coefficient_terms, 14L)
+  expect_equal(coefficient_terms[seq_len(4L)], expected_endpoint_members)
+  expect_equal(sum(grepl("^sd_", coefficient_terms)), 4L)
+  expect_equal(sum(grepl("^cor_", coefficient_terms)), 6L)
+  expect_equal(
+    fixture$coefficient_order,
+    rep(fixture$coefficient_order[[1L]], 4L)
+  )
+  expect_equal(fixture$matrix_slot, c("tree", "coords", "A", "K"))
+  expect_equal(
+    fixture$input_scale,
+    c(
+      "ultrametric_tree_branch_lengths",
+      "coordinates_to_fixed_covariance_K",
+      "additive_covariance",
+      "user_covariance"
+    )
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary,
+    "q4 all-four intercept"
+  )
+  structured_re_expect_all_match(fixture$claim_boundary, "four-endpoint q4")
+  structured_re_expect_all_match(fixture$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(fixture$claim_boundary, "interval reliability")
+  structured_re_expect_all_match(fixture$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(fixture$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(fixture$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(fixture$claim_boundary, "q4 AI-REML")
+  structured_re_expect_all_match(fixture$next_gate, "interval diagnostics")
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "spatial"],
+    "range-estimating"
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "animal"],
+    "pedigree/Ainv"
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "relmat"],
+    "Q bridge"
+  )
+
+  provider_rows <- qseries[
+    qseries$cell_id %in%
+      paste0(
+        "qseries_",
+        c("spatial", "animal", "relmat"),
+        "_q4_all_four_intercept"
+      ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(provider_rows), 3L)
+  provider_rows <- provider_rows[
+    match(
+      paste0(
+        "qseries_",
+        c("spatial", "animal", "relmat"),
+        "_q4_all_four_intercept"
+      ),
+      provider_rows$cell_id
+    ),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    provider_rows$route,
+    rep("native_direct_bridge_fixture", 3L)
+  )
+  expect_equal(provider_rows$fit_status, rep("point_fit", 3L))
+  expect_equal(provider_rows$extractor_status, rep("extractor_ready", 3L))
+  expect_equal(provider_rows$bridge_status, rep("fixture_parity", 3L))
+  expect_equal(provider_rows$interval_status, rep("planned", 3L))
+  expect_equal(provider_rows$coverage_status, rep("planned", 3L))
+  expect_equal(
+    provider_rows$evidence_url,
+    rep(
+      "docs/dev-log/dashboard/structured-re-q4-intercept-parity-fixture.tsv",
+      3L
+    )
+  )
+  expect_equal(
+    provider_rows$denominator_policy,
+    rep("fixture_not_coverage", 3L)
+  )
+  structured_re_expect_all_match(
+    provider_rows$claim_boundary,
+    "native ML point-fit"
+  )
+  structured_re_expect_all_match(
+    provider_rows$claim_boundary,
+    "exact four-endpoint q4 map"
+  )
+  structured_re_expect_all_match(
+    provider_rows$claim_boundary,
+    "same-target fixture"
+  )
+  structured_re_expect_all_match(
+    provider_rows$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(provider_rows$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(provider_rows$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(
+    provider_rows$next_gate,
+    "interval diagnostics"
+  )
+})
+
 test_that("q4 all-four one-slope interval plan remains target-level", {
   plan <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-interval-diagnostic-plan.tsv"

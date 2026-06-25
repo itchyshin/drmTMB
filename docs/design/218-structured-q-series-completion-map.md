@@ -314,6 +314,16 @@ separate rows. The sidecar links the four provider rows to the separate
 gate itself did not promote bridge support, intervals, coverage, REML, or
 AI-REML.
 
+`structured-re-q4-intercept-parity-fixture.tsv` records deterministic
+same-target native/direct/R-via-Julia fixture evidence for exact all-four
+intercept q4 cells. Spatial, animal, and relmat now have the same fixture-parity
+ledger shape as phylo, while the phylo support cell still points to the older
+q4 parity acceptance gate. This closes the provider q4 intercept fixture gap
+without promoting interval reliability, interval coverage, q4 REML,
+native-TMB q4 REML, q4 AI-REML, broad bridge support, public support,
+range-estimating spatial support, pedigree/Ainv animal bridge marshalling, or
+relmat Q bridge marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four one-slope bivariate Gaussian cells. The required
 endpoint-member set is

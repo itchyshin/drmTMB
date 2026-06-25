@@ -67814,3 +67814,50 @@ Boundary:
   non-Gaussian REML, q2/q4/q8 support, broad bridge support, public optimizer
   controls, public support, DRAC/Totoro execution, SR150 coverage readiness, PR
   undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: q4 intercept provider fixture parity
+
+Goal:
+
+- Close the spatial, animal, and relmat q4 all-four intercept bridge-status gap
+  by adding deterministic same-target fixture parity for the exact
+  four-endpoint q4 map, while keeping q4 intervals, coverage, REML, AI-REML,
+  broad bridge support, public support, and provider-specific marshalling
+  unpromoted.
+
+Result:
+
+- Added q4 all-four intercept payload and contract helpers to
+  `inst/sim/R/sim_structured_re_bridge_fixtures.R`.
+- Added `tools/run-structured-re-q4-intercept-parity-fixture.R` and generated
+  `structured-re-q4-intercept-parity-fixture.tsv` with four provider rows.
+- Updated `qseries_spatial_q4_all_four_intercept`,
+  `qseries_animal_q4_all_four_intercept`, and
+  `qseries_relmat_q4_all_four_intercept` to fixture-parity status, while
+  leaving interval and coverage status planned.
+- Updated dashboard tests, mission-control validation, dashboard README, the
+  q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-25-q4-intercept-provider-fixture-parity.md`.
+
+Evidence:
+
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R tools/run-structured-re-q4-intercept-parity-fixture.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-parity-fixture.R`
+  wrote 4 q4 intercept fixture rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,176 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 4 q4
+  intercept parity-fixture rows.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is deterministic same-target fixture parity and native
+  point-fit/extractor evidence only. It does not add calibrated interval
+  diagnostics, finite interval denominators, interval reliability, interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, range-estimating spatial support, pedigree/Ainv bridge
+  marshalling, Q bridge marshalling, broad bridge support, public support,
+  DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.

@@ -135,6 +135,9 @@ STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT = (
 STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-q4-slope-parity-fixture.tsv"
 )
+STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE = (
+    DASHBOARD / "structured-re-q4-intercept-parity-fixture.tsv"
+)
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE = (
     DASHBOARD / "structured-re-q4-location-slope-parity-fixture.tsv"
 )
@@ -1836,6 +1839,9 @@ STRUCTURED_RE_Q4_SLOPE_IDENTITY_PREFLIGHT_FIELDS = (
     "next_gate",
 )
 STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE_FIELDS = (
+    STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
+)
+STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE_FIELDS = (
     STRUCTURED_RE_MU_SLOPE_PARITY_FIXTURE_FIELDS
 )
 STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE_FIELDS = (
@@ -4457,6 +4463,9 @@ def main() -> int:
     )
     structured_re_q4_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_Q4_SLOPE_PARITY_FIXTURE
+    )
+    structured_re_q4_intercept_parity_fixture_rows = read_tsv(
+        STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE
     )
     structured_re_q4_location_slope_parity_fixture_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_PARITY_FIXTURE
@@ -12712,6 +12721,199 @@ def main() -> int:
                     f"{row_id}: linked q-series next_gate must name interval diagnostics"
                 )
 
+    expected_q4_intercept_parity_fixtures = {
+        "phylo": "q4_intercept_phylo_same_target_ml",
+        "spatial": "q4_intercept_spatial_same_target_ml",
+        "animal": "q4_intercept_animal_same_target_ml",
+        "relmat": "q4_intercept_relmat_same_target_ml",
+    }
+    expected_q4_intercept_members = [
+        "mu1:(Intercept)",
+        "mu2:(Intercept)",
+        "sigma1:(Intercept)",
+        "sigma2:(Intercept)",
+    ]
+    expected_q4_intercept_sd_terms = [
+        "sd_mu1:structured(Intercept)",
+        "sd_mu2:structured(Intercept)",
+        "sd_sigma1:structured(Intercept)",
+        "sd_sigma2:structured(Intercept)",
+    ]
+    expected_q4_intercept_cor_terms = [
+        "cor_mu1_mu2:structured(Intercept)",
+        "cor_mu1_sigma1:structured(Intercept)",
+        "cor_mu1_sigma2:structured(Intercept)",
+        "cor_mu2_sigma1:structured(Intercept)",
+        "cor_mu2_sigma2:structured(Intercept)",
+        "cor_sigma1_sigma2:structured(Intercept)",
+    ]
+    expected_q4_intercept_coef_order = ";".join(
+        expected_q4_intercept_members
+        + expected_q4_intercept_sd_terms
+        + expected_q4_intercept_cor_terms
+    )
+    expected_q4_intercept_matrix_slot = {
+        "phylo": "tree",
+        "spatial": "coords",
+        "animal": "A",
+        "relmat": "K",
+    }
+    expected_q4_intercept_input_scale = {
+        "phylo": "ultrametric_tree_branch_lengths",
+        "spatial": "coordinates_to_fixed_covariance_K",
+        "animal": "additive_covariance",
+        "relmat": "user_covariance",
+    }
+    seen_q4_intercept_parity_fixtures: set[str] = set()
+    if len(structured_re_q4_intercept_parity_fixture_rows) != len(
+        expected_q4_intercept_parity_fixtures
+    ):
+        errors.append(
+            "structured-re-q4-intercept-parity-fixture.tsv has "
+            f"{len(structured_re_q4_intercept_parity_fixture_rows)} rows; expected "
+            f"{len(expected_q4_intercept_parity_fixtures)}"
+        )
+    for row in structured_re_q4_intercept_parity_fixture_rows:
+        row_id = row.get("fixture_id", "<structured RE q4 intercept parity fixture>")
+        if set(row.keys()) != set(STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE_FIELDS):
+            errors.append(
+                f"{row_id}: structured-re-q4-intercept-parity-fixture.tsv fields "
+                "do not match the fixture contract"
+            )
+        for field in STRUCTURED_RE_Q4_INTERCEPT_PARITY_FIXTURE_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        if provider not in expected_q4_intercept_parity_fixtures:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if row_id != expected_q4_intercept_parity_fixtures[provider]:
+            errors.append(f"{row_id}: fixture_id does not match provider {provider!r}")
+        if row_id in seen_q4_intercept_parity_fixtures:
+            errors.append(f"duplicate structured RE q4 intercept parity fixture id: {row_id}")
+        seen_q4_intercept_parity_fixtures.add(row_id)
+        if row.get("dimension") != "q4":
+            errors.append(f"{row_id}: dimension must remain q4")
+        if row.get("endpoint") != "mu1+mu2+sigma1+sigma2":
+            errors.append(f"{row_id}: endpoint must remain mu1+mu2+sigma1+sigma2")
+        if row.get("slope_class") != "intercept_only":
+            errors.append(f"{row_id}: slope_class must remain intercept_only")
+        if row.get("estimator") != "ML":
+            errors.append(f"{row_id}: estimator must remain ML")
+        for field in ("native_status", "direct_drmjl_status", "r_via_julia_status"):
+            if row.get(field) != "fixture_available":
+                errors.append(f"{row_id}: {field} must be fixture_available")
+        if row.get("parity_status") != "covered_same_target_fixture":
+            errors.append(f"{row_id}: parity_status must be covered_same_target_fixture")
+        if row.get("bridge_status") != "fixture_parity":
+            errors.append(f"{row_id}: bridge_status must be fixture_parity")
+        for field in ("interval_status", "coverage_status"):
+            if row.get(field) != "planned":
+                errors.append(f"{row_id}: {field} must remain planned")
+        if row.get("coefficient_order") != expected_q4_intercept_coef_order:
+            errors.append(f"{row_id}: coefficient_order changed")
+        coefficient_terms = row.get("coefficient_order", "").split(";")
+        if len(coefficient_terms) != 14:
+            errors.append(f"{row_id}: coefficient_order must contain 14 terms")
+        if coefficient_terms[:4] != expected_q4_intercept_members:
+            errors.append(f"{row_id}: first four coefficient terms changed")
+        if len([term for term in coefficient_terms if term.startswith("sd_")]) != 4:
+            errors.append(f"{row_id}: coefficient_order must keep four SD terms")
+        if len([term for term in coefficient_terms if term.startswith("cor_")]) != 6:
+            errors.append(f"{row_id}: coefficient_order must keep six correlation terms")
+        if row.get("matrix_slot") != expected_q4_intercept_matrix_slot[provider]:
+            errors.append(
+                f"{row_id}: matrix_slot must remain "
+                f"{expected_q4_intercept_matrix_slot[provider]}"
+            )
+        if row.get("input_scale") != expected_q4_intercept_input_scale[provider]:
+            errors.append(
+                f"{row_id}: input_scale must remain "
+                f"{expected_q4_intercept_input_scale[provider]}"
+            )
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "q4 all-four intercept",
+            "four-endpoint q4",
+            "broad bridge support",
+            "interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "native-TMB q4 REML",
+            "q4 AI-REML",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if provider == "spatial":
+            for phrase in ("fixed-covariance", "range-estimating"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: spatial claim_boundary must mention {phrase}")
+        if provider == "animal":
+            for phrase in ("A-matrix", "pedigree/Ainv"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: animal claim_boundary must mention {phrase}")
+        if provider == "relmat":
+            for phrase in ("K-matrix", "Q bridge"):
+                if phrase not in claim_boundary:
+                    errors.append(f"{row_id}: relmat claim_boundary must mention {phrase}")
+        if "interval diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must move to interval diagnostics")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+        if provider == "phylo":
+            continue
+        expected_cell = f"qseries_{provider}_q4_all_four_intercept"
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if (
+                qseries_row.get("evidence_url")
+                != "docs/dev-log/dashboard/structured-re-q4-intercept-parity-fixture.tsv"
+            ):
+                errors.append(f"{row_id}: linked q-series evidence_url changed")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+            qseries_boundary = qseries_row.get("claim_boundary", "")
+            for phrase in (
+                "native ML point-fit",
+                "exact four-endpoint q4 map",
+                "same-target fixture",
+                "broad bridge support",
+                "interval reliability",
+                "interval coverage",
+                "q4 REML",
+                "native-TMB q4 REML",
+                "q4 AI-REML",
+                "public support",
+            ):
+                if phrase not in qseries_boundary:
+                    errors.append(
+                        f"{row_id}: linked q-series claim_boundary must mention {phrase!r}"
+                    )
+            if provider == "spatial" and "range-estimating" not in qseries_boundary:
+                errors.append(f"{row_id}: linked spatial q-series must block range-estimating support")
+            if provider == "animal" and "pedigree/Ainv" not in qseries_boundary:
+                errors.append(f"{row_id}: linked animal q-series must name pedigree/Ainv")
+            if provider == "relmat" and "Q bridge" not in qseries_boundary:
+                errors.append(f"{row_id}: linked relmat q-series must block Q bridge")
+            if "interval diagnostics" not in qseries_row.get("next_gate", ""):
+                errors.append(
+                    f"{row_id}: linked q-series next_gate must name interval diagnostics"
+                )
+
     q4_slope_provider_groups = {
         "phylo": "species",
         "spatial": "site",
@@ -20353,6 +20555,7 @@ def main() -> int:
         f", {len(structured_re_mu_sigma_slope_readiness_rows)} structured RE mu+sigma slope-readiness rows"
         f", {len(structured_re_q4_slope_identity_preflight_rows)} structured RE q4 slope identity-preflight rows"
         f", {len(structured_re_q4_slope_parity_fixture_rows)} structured RE q4 slope parity-fixture rows"
+        f", {len(structured_re_q4_intercept_parity_fixture_rows)} structured RE q4 intercept parity-fixture rows"
         f", {len(structured_re_q4_location_slope_parity_fixture_rows)} structured RE q4 location slope parity-fixture rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"

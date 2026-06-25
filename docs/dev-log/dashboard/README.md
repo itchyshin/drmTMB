@@ -990,6 +990,17 @@ cells. Each provider row names the four endpoint members, `mu:(Intercept)`,
 `sigma` one-slope fixture ledgers, and points to the provider test file. These
 rows do not promote bridge support, intervals, coverage, REML, or AI-REML.
 
+`structured-re-q4-intercept-parity-fixture.tsv` records deterministic
+same-target native/direct/R-via-Julia fixture evidence for exact all-four
+intercept `phylo()`, fixed-covariance `spatial()`, A-matrix `animal()`, and
+K-matrix `relmat()` cells. It moves the spatial, animal, and relmat q4
+all-four intercept support-cell rows to fixture parity; the phylo row already
+has the older q4 parity acceptance gate. This is still point/fixture evidence
+only: interval reliability, interval coverage, q4 REML, native-TMB q4 REML, q4
+AI-REML, broad bridge support, public support, range-estimating spatial
+support, pedigree/Ainv animal bridge marshalling, and relmat Q bridge
+marshalling remain separate gates.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four bivariate Gaussian one-slope cells. Each provider row
 names the eight endpoint members, the matching eight direct-SD targets, and the
