@@ -160,8 +160,10 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
 #' and NB2 q=1 location effects. Use `phylo(1 | species, tree = tree)` in
 #' univariate Gaussian `mu`, univariate Gaussian `sigma`, ordinary Poisson `mu`,
-#' or ordinary NB2 `mu`, one numeric univariate Gaussian `mu` slope with
-#' independent intercept/slope SDs, matching univariate Gaussian `mu` and
+#' or ordinary NB2 `mu`, `phylo(1 + x | species, tree = tree)` for the
+#' unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate
+#' Gaussian `mu` slope with independent intercept/slope SDs, matching
+#' univariate Gaussian `mu` and
 #' `sigma` intercept terms for a mean-scale phylogenetic correlation, matching
 #' terms in bivariate Gaussian `mu1` and `mu2`, matching labelled all-four
 #' intercept terms across Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`, or the
@@ -171,7 +173,8 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' block-diagonal fallback. The all-four `phylo(1 + x | p | species, tree =
 #' tree)` cell is native point-fit/extractor evidence only; bridge parity,
 #' intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
-#' multiple phylogenetic slopes, non-Gaussian phylogenetic slopes,
+#' Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
+#' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
 #' remain planned. The public `phylo()` API
 #' requires an
@@ -188,6 +191,7 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' @examples
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 #' bf(count ~ x + phylo(1 | species, tree = tree))
+#' bf(count ~ x + phylo(1 + x | species, tree = tree))
 phylo <- function(term, tree) {
   invisible(NULL)
 }

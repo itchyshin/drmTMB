@@ -6627,8 +6627,8 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, plus ordinary Poisson/NB2 q=1 {.code mu} slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
-      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, structured count slopes, and structured count scale routes, remain deferred until family-specific recovery evidence is stable."
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}.",
+      "i" = "Structured non-Gaussian paths beyond those first count gates, including bounded, ordinal, shape, inflation, hurdle, labelled count covariance, pure or multiple structured count slopes, and structured count scale routes, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
   }
@@ -6868,11 +6868,13 @@ validate_count_structured_mu_term <- function(
       "i" = "Use {.code {example}}; labelled q=2/q=4 and predictor-dependent structured correlation routes remain planned."
     ))
   }
-  if (!identical(term$coef_names, "(Intercept)")) {
+  count_supported_term <- structured_term_is_intercept_only(term) ||
+    structured_term_is_intercept_one_slope(term)
+  if (!isTRUE(count_supported_term)) {
     cli::cli_abort(c(
-      "{family_label} structured {.code mu} effects currently support only q=1 random intercepts.",
+      "{family_label} structured {.code mu} effects currently support only unlabelled intercept-only or one-slope structured terms.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code {example}} for this count structured-dependence gate; count structured slopes need separate recovery and diagnostics."
+      "i" = "Use {.code {example}} or the corresponding {.code 1 + x} one-slope form for this count structured-dependence gate; labelled count covariance, multiple slopes, and structured count scale routes remain planned."
     ))
   }
   invisible(NULL)

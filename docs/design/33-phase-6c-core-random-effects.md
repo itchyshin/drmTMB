@@ -117,7 +117,7 @@ Slice 188 publishes that gate as a pre-simulation status table:
 | Bivariate ordinary covariance | Matching labelled random-intercept blocks, q=4 all-four intercept blocks, matching slope-only `mu1`/`mu2`, same-response q2 `mu`/`sigma`, and `sigma1`/`sigma2` blocks, and matching q=4/q=6 `mu1`/`mu2` location blocks with smoke artifact routing | p8/q8 all-four slope endpoints and formal q > 2 simulation recovery |
 | Phylogenetic structured effects | Intercept-level univariate `mu` and `sigma`, matching univariate `mu`/`sigma` correlation, one numeric univariate `mu` slope with independent fields, bivariate, direct-SD, q=2 correlation-regression, and q=4 location-scale paths | Multiple phylogenetic slopes, residual-scale structured slopes, bivariate phylogenetic slopes, direct-SD formulas combined with structured `sigma`, and richer structured-slope covariance |
 | Coordinate spatial structured effects | Univariate Gaussian `mu` and `sigma` intercepts, matching univariate `mu`/`sigma` correlation, one numeric `mu` slope with independent coordinate fields, constant bivariate `mu1`/`mu2` q=2 covariance, and constant q=4 location-scale covariance | Mesh/SPDE, multiple slopes, residual-scale structured slopes, slope correlations, spatial direct-SD surfaces, spatial `corpair()`, and non-Gaussian spatial effects |
-| Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson/NB2 `mu` random intercepts, independent numeric slopes, ordinary NB2 log-`sigma` random intercepts, and ordinary Poisson/NB2 q=1 structured `mu` intercepts for `phylo()`, `spatial()`, `animal()`, and `relmat()` in bounded source-test and smoke gates | Correlated non-Gaussian `mu` slopes, NB2 `sigma` slopes or structured scale effects, other scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, structured count slopes or labels, and structured non-Gaussian paths beyond the q=1 count `mu` intercept slices |
+| Non-Gaussian families | Fixed-effect likelihoods plus ordinary Poisson/NB2 `mu` random intercepts, independent numeric slopes, ordinary NB2 log-`sigma` random intercepts, ordinary Poisson/NB2 q=1 structured `mu` intercept terms for `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, and `relmat()`, and unlabelled intercept-plus-one-slope terms for `phylo()`, `spatial()`, `animal()`, and `relmat()` in bounded source-test and smoke gates | Correlated non-Gaussian `mu` slopes, NB2 `sigma` slopes or structured scale effects, other scale/shape/ZI/one-inflation/hurdle/ordinal random effects, cross-parameter covariance blocks, pure, multiple, or labelled structured count slopes, and structured non-Gaussian paths beyond the q=1 count `mu` slices |
 
 Slice 236 re-audits the same promise before broader Phase 18 work starts. The
 current boundary is:
@@ -171,9 +171,11 @@ correlations among those latent effects. Those correlations require labelled
 covariance blocks, stable output names, `corpairs()` rows, profile-target
 status, and simulation evidence that the data can distinguish the parameters.
 The count path therefore fits only ordinary Poisson/NB2 `mu` random intercepts,
-independent numeric slopes, and q=1 structured `mu` intercepts through
-`phylo()`, `spatial()`, `animal()`, or `relmat()`. For percentage or proportion
-data, zero-one inflation is a bounded response likelihood problem first; `zoi`
+independent numeric slopes, q=1 structured `mu` intercept terms through
+`phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and
+unlabelled intercept-plus-one-slope terms through `phylo()`, `spatial()`,
+`animal()`, or `relmat()`. For percentage or proportion data, zero-one inflation is a bounded
+response likelihood problem first; `zoi`
 and `coi` random effects should wait for evidence beyond the fixed-effect
 `zero_one_beta()` likelihood.
 

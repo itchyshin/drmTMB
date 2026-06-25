@@ -32,8 +32,9 @@ first slices, not as broad non-Gaussian random-effect parity.
 Tweedie, zero-one beta, hurdle or zero-inflated count random effects, ordinal
 random effects, shape random effects, non-Gaussian `sigma` random effects
 outside the narrow NB2 random-intercept gate, correlated slopes, labelled
-non-Gaussian covariance, structured non-Gaussian slopes, and mixed-response
-bivariate models remain planned or blocked.
+non-Gaussian covariance, structured non-Gaussian slopes beyond the exact
+ordinary Poisson/NB2 q1 count cells, and mixed-response bivariate models remain
+planned or blocked.
 
 ## A - Aims
 

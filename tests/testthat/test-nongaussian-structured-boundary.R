@@ -13,14 +13,18 @@ test_that("non-Gaussian structured effects have an explicit boundary", {
     )
   )
   dat_pos <- transform(dat_count, y = y + 1)
+  testthat::skip_if_not_installed("ape")
+  tree <- ape::stree(3L, type = "star")
+  tree$tip.label <- levels(dat_count$id)
+  tree$edge.length <- rep(1, nrow(tree$edge))
 
   expect_error(
     drmTMB(
-      bf(y ~ x + phylo(1 + x | id, tree = tree)),
+      bf(y ~ x + phylo(0 + x | id, tree = tree)),
       family = stats::poisson(link = "log"),
       data = dat_count
     ),
-    "q=1 random intercepts"
+    "intercept-only or one-slope"
   )
   expect_error(
     drmTMB(

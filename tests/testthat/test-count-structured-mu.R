@@ -66,6 +66,112 @@ new_count_structured_mu_data <- function(
   )
 }
 
+new_count_structured_mu_slope_data <- function(
+  seed = 2026062513,
+  n_level = 8L,
+  n_each = 20L,
+  sd_intercept = 0.25,
+  sd_slope = 0.45,
+  sigma_nb2 = 0.20
+) {
+  set.seed(seed)
+  levels <- paste0("id", seq_len(n_level))
+  site <- rep(levels, each = n_each)
+  id <- site
+  x <- stats::rnorm(length(site))
+
+  theta <- seq(0, 1.75 * pi, length.out = n_level)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_level) / (4 * n_level),
+    y = sin(theta)
+  )
+  rownames(coords) <- levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = levels,
+    group = "site"
+  )
+  spatial_covariance <- solve(as.matrix(precision$precision))
+
+  K <- outer(seq_len(n_level), seq_len(n_level), function(i, j) 0.35^abs(i - j))
+  diag(K) <- diag(K) + 0.15
+  dimnames(K) <- list(levels, levels)
+  Q <- solve(K)
+
+  tree <- ape::stree(n_level, type = "balanced")
+  tree$tip.label <- levels
+  tree$edge.length <- rep(1, nrow(tree$edge))
+  phylo_covariance <- drmTMB:::drm_phylo_tip_covariance(tree)
+  phylo_covariance <- phylo_covariance[levels, levels]
+
+  draw_fields <- function(covariance) {
+    chol_covariance <- chol(covariance + diag(1e-8, nrow(covariance)))
+    intercept <- as.vector(
+      t(chol_covariance) %*% stats::rnorm(nrow(covariance), sd = sd_intercept)
+    )
+    slope <- as.vector(
+      t(chol_covariance) %*% stats::rnorm(nrow(covariance), sd = sd_slope)
+    )
+    names(intercept) <- rownames(covariance)
+    names(slope) <- rownames(covariance)
+    list(intercept = intercept, slope = slope)
+  }
+
+  fields <- list(
+    phylo = draw_fields(phylo_covariance),
+    spatial = draw_fields(spatial_covariance),
+    known = draw_fields(K)
+  )
+  beta_mu <- c(`(Intercept)` = 0.55, x = -0.15)
+  eta <- list(
+    phylo = beta_mu[[1L]] +
+      beta_mu[[2L]] * x +
+      fields$phylo$intercept[site] +
+      x * fields$phylo$slope[site],
+    spatial = beta_mu[[1L]] +
+      beta_mu[[2L]] * x +
+      fields$spatial$intercept[site] +
+      x * fields$spatial$slope[site],
+    known = beta_mu[[1L]] +
+      beta_mu[[2L]] * x +
+      fields$known$intercept[id] +
+      x * fields$known$slope[id]
+  )
+
+  data <- data.frame(
+    poisson_phylo = stats::rpois(length(site), lambda = exp(eta$phylo)),
+    poisson_spatial = stats::rpois(length(site), lambda = exp(eta$spatial)),
+    poisson_known = stats::rpois(length(site), lambda = exp(eta$known)),
+    nb2_phylo = stats::rnbinom(
+      length(site),
+      size = 1 / sigma_nb2^2,
+      mu = exp(eta$phylo)
+    ),
+    nb2_spatial = stats::rnbinom(
+      length(site),
+      size = 1 / sigma_nb2^2,
+      mu = exp(eta$spatial)
+    ),
+    nb2_known = stats::rnbinom(
+      length(site),
+      size = 1 / sigma_nb2^2,
+      mu = exp(eta$known)
+    ),
+    x = x,
+    site = site,
+    id = id
+  )
+
+  list(
+    data = data,
+    coords = coords,
+    tree = tree,
+    Q = Q,
+    beta_mu = beta_mu,
+    sigma_nb2 = sigma_nb2
+  )
+}
+
 expect_count_structured_mu_fit <- function(fit, type, group) {
   label <- paste0(type, "(1 | ", group, ")")
   key <- paste0(type, "_mu")
@@ -85,6 +191,52 @@ expect_count_structured_mu_fit <- function(fit, type, group) {
   expect_equal(sd_target$tmb_parameter, "log_sd_phylo")
   expect_equal(sd_target$target_type, "direct")
   expect_true(sd_target$profile_ready)
+
+  fixed_link <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
+  expect_equal(
+    unname(predict(fit, dpar = "mu", type = "link")),
+    fixed_link + drmTMB:::phylo_mu_contribution(fit),
+    tolerance = 1e-8
+  )
+  expect_true(all(predict(fit, dpar = "mu") > 0))
+
+  checks <- check_drm(fit)
+  structured_check <- checks[checks$check == paste0(type, "_mu_diagnostics"), ]
+  expect_equal(nrow(structured_check), 1L)
+  expect_equal(structured_check$status, "ok")
+  expect_true(attr(checks, "ok"))
+}
+
+expect_count_structured_mu_slope_fit <- function(fit, type, group) {
+  labels <- c(
+    paste0(type, "(1 | ", group, ")"),
+    paste0(type, "(0 + x | ", group, ")")
+  )
+  key <- paste0(type, "_mu")
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_equal(fit$model$structured$phylo_mu$type, type)
+  expect_equal(fit$model$structured$phylo_mu$q, 2L)
+  expect_equal(
+    fit$model$structured$phylo_mu$coef_names,
+    c("(Intercept)", "x")
+  )
+  expect_setequal(names(fit$sdpars$mu), labels)
+  expect_true(all(unname(fit$sdpars$mu[labels]) > 0))
+  expect_equal(names(ranef(fit)), key)
+  expect_setequal(names(fit$random_effects[[key]]$terms), labels)
+
+  targets <- profile_targets(fit)
+  sd_targets <- targets[
+    targets$parm %in% paste0("sd:mu:", labels),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(sd_targets), 2L)
+  expect_equal(sd_targets$tmb_parameter, rep("log_sd_phylo", 2L))
+  expect_equal(sd_targets$target_type, rep("direct", 2L))
+  expect_true(all(sd_targets$profile_ready))
 
   fixed_link <- as.vector(fit$model$X$mu %*% coef(fit, "mu"))
   expect_equal(
@@ -167,6 +319,75 @@ test_that("nbinom2 mu supports q1 spatial, animal, and relmat intercepts", {
   expect_true(all(sigma(fit_relmat) > 0))
 })
 
+test_that("Poisson and nbinom2 mu support one structured count slope", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data()
+  dat <- sim$data
+  coords <- sim$coords
+  tree <- sim$tree
+  Q <- sim$Q
+
+  poisson_phylo <- drmTMB(
+    bf(poisson_phylo ~ x + phylo(1 + x | site, tree = tree)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  poisson_spatial <- drmTMB(
+    bf(poisson_spatial ~ x + spatial(1 + x | site, coords = coords)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  poisson_animal <- drmTMB(
+    bf(poisson_known ~ x + animal(1 + x | id, Ainv = Q)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+  poisson_relmat <- drmTMB(
+    bf(poisson_known ~ x + relmat(1 + x | id, Q = Q)),
+    family = stats::poisson(link = "log"),
+    data = dat
+  )
+
+  expect_count_structured_mu_slope_fit(poisson_phylo, "phylo", "site")
+  expect_count_structured_mu_slope_fit(poisson_spatial, "spatial", "site")
+  expect_count_structured_mu_slope_fit(poisson_animal, "animal", "id")
+  expect_count_structured_mu_slope_fit(poisson_relmat, "relmat", "id")
+
+  nb2_phylo <- drmTMB(
+    bf(nb2_phylo ~ x + phylo(1 + x | site, tree = tree), sigma ~ 1),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 700, iter.max = 700)
+  )
+  nb2_spatial <- drmTMB(
+    bf(nb2_spatial ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 700, iter.max = 700)
+  )
+  nb2_animal <- drmTMB(
+    bf(nb2_known ~ x + animal(1 + x | id, Ainv = Q), sigma ~ 1),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 700, iter.max = 700)
+  )
+  nb2_relmat <- drmTMB(
+    bf(nb2_known ~ x + relmat(1 + x | id, Q = Q), sigma ~ 1),
+    family = nbinom2(),
+    data = dat,
+    control = list(eval.max = 700, iter.max = 700)
+  )
+
+  expect_count_structured_mu_slope_fit(nb2_phylo, "phylo", "site")
+  expect_count_structured_mu_slope_fit(nb2_spatial, "spatial", "site")
+  expect_count_structured_mu_slope_fit(nb2_animal, "animal", "id")
+  expect_count_structured_mu_slope_fit(nb2_relmat, "relmat", "id")
+  expect_true(all(sigma(nb2_phylo) > 0))
+  expect_true(all(sigma(nb2_spatial) > 0))
+  expect_true(all(sigma(nb2_animal) > 0))
+  expect_true(all(sigma(nb2_relmat) > 0))
+})
+
 test_that("count structured mu keeps planned neighboring routes closed", {
   sim <- new_count_structured_mu_data(n_level = 6L, n_each = 4L)
   dat <- sim$data
@@ -175,11 +396,11 @@ test_that("count structured mu keeps planned neighboring routes closed", {
 
   expect_error(
     drmTMB(
-      bf(poisson_spatial ~ x + spatial(1 + x | site, coords = coords)),
+      bf(poisson_spatial ~ x + spatial(0 + x | site, coords = coords)),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "q=1 random intercepts"
+    "intercept-only or one-slope"
   )
   expect_error(
     drmTMB(

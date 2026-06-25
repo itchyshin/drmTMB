@@ -22,8 +22,10 @@ response-specific direct-SD formulas for location effects, labelled
 bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
 and NB2 q=1 location effects. Use \code{phylo(1 | species, tree = tree)} in
 univariate Gaussian \code{mu}, univariate Gaussian \code{sigma}, ordinary Poisson \code{mu},
-or ordinary NB2 \code{mu}, one numeric univariate Gaussian \code{mu} slope with
-independent intercept/slope SDs, matching univariate Gaussian \code{mu} and
+or ordinary NB2 \code{mu}, \code{phylo(1 + x | species, tree = tree)} for the
+unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate
+Gaussian \code{mu} slope with independent intercept/slope SDs, matching
+univariate Gaussian \code{mu} and
 \code{sigma} intercept terms for a mean-scale phylogenetic correlation, matching
 terms in bivariate Gaussian \code{mu1} and \code{mu2}, matching labelled all-four
 intercept terms across Gaussian \code{mu1}, \code{mu2}, \code{sigma1}, and \code{sigma2}, or the
@@ -32,7 +34,8 @@ shared intercept label estimates the full q4 block; a \code{mu1}/\code{mu2} inte
 label plus a separate \code{sigma1}/\code{sigma2} intercept label estimates the
 block-diagonal fallback. The all-four \code{phylo(1 + x | p | species, tree = tree)} cell is native point-fit/extractor evidence only; bridge parity,
 intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
-multiple phylogenetic slopes, non-Gaussian phylogenetic slopes,
+Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
+non-Gaussian phylogenetic slopes,
 zero-inflated phylogenetic effects, and phylogenetic slope correlations
 remain planned. The public \code{phylo()} API
 requires an
@@ -42,4 +45,5 @@ A-inverse sparse-precision path internally.
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 bf(count ~ x + phylo(1 | species, tree = tree))
+bf(count ~ x + phylo(1 + x | species, tree = tree))
 }

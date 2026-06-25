@@ -141,7 +141,15 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     "qseries_phylo_interaction_q1_mu",
     "qseries_phylo_poisson_q1_mu_intercept",
     "qseries_phylo_nbinom2_q1_mu_intercept",
-    "qseries_nongaussian_structured_slopes_planned",
+    "qseries_phylo_poisson_q1_mu_one_slope",
+    "qseries_phylo_nbinom2_q1_mu_one_slope",
+    "qseries_spatial_poisson_q1_mu_one_slope",
+    "qseries_spatial_nbinom2_q1_mu_one_slope",
+    "qseries_animal_poisson_q1_mu_one_slope",
+    "qseries_animal_nbinom2_q1_mu_one_slope",
+    "qseries_relmat_poisson_q1_mu_one_slope",
+    "qseries_relmat_nbinom2_q1_mu_one_slope",
+    "qseries_nongaussian_structured_slope_neighbors_planned",
     "qseries_phylo_direct_sd_univariate",
     "qseries_phylo_direct_sd_bivariate"
   )
@@ -3747,10 +3755,13 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
     )
   )
   expect_equal(snapshot, stack)
-  expect_equal(nrow(stack), 15L)
+  expected_prs <- 639:655
+  expected_stack_rows <- length(expected_prs)
+  expected_stacked_rows <- expected_stack_rows - 1L
+  expect_equal(nrow(stack), expected_stack_rows)
   expect_equal(nrow(run_log), 1L)
-  expect_equal(stack$merge_order, seq_len(15L))
-  expect_equal(stack$pr_number, 639:653)
+  expect_equal(stack$merge_order, seq_len(expected_stack_rows))
+  expect_equal(stack$pr_number, expected_prs)
   expect_equal(
     stack$stack_row_id,
     paste0("structured_re_pr_stack_merge_", stack$pr_number)
@@ -3761,29 +3772,38 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
     stack$pr_url,
     paste0("https://github.com/itchyshin/drmTMB/pull/", stack$pr_number)
   )
-  expect_equal(stack$draft_status, rep("draft", 15L))
-  expect_equal(stack$merge_state_status, rep("CLEAN", 15L))
+  expect_equal(stack$draft_status, rep("draft", expected_stack_rows))
+  expect_equal(stack$merge_state_status, rep("CLEAN", expected_stack_rows))
   expect_equal(
     stack$pr_rollup_status[[1L]],
     "attached_pr_checks_green_on_main_base"
   )
   expect_equal(
     stack$pr_rollup_status[-1L],
-    rep("commit_checks_green_pr_rollup_empty_on_stacked_base", 14L)
+    rep(
+      "commit_checks_green_pr_rollup_empty_on_stacked_base",
+      expected_stacked_rows
+    )
   )
-  expect_equal(stack$commit_check_status, rep("three_platform_success", 15L))
-  expect_equal(stack$platform_success_count, rep(3L, 15L))
+  expect_equal(
+    stack$commit_check_status,
+    rep("three_platform_success", expected_stack_rows)
+  )
+  expect_equal(stack$platform_success_count, rep(3L, expected_stack_rows))
   structured_re_expect_all_match(stack$platform_successes, "ubuntu-latest")
   structured_re_expect_all_match(stack$platform_successes, "macos-latest")
   structured_re_expect_all_match(stack$platform_successes, "windows-latest")
-  expect_equal(stack$merge_gate, rep("human_approval_required", 15L))
+  expect_equal(
+    stack$merge_gate,
+    rep("human_approval_required", expected_stack_rows)
+  )
   expect_equal(
     stack$retarget_requirement[[1L]],
     "none_first_pr_targets_main"
   )
   expect_equal(
     stack$retarget_requirement[-1L],
-    rep("retarget_to_main_after_previous_merge", 14L)
+    rep("retarget_to_main_after_previous_merge", expected_stacked_rows)
   )
   expect_equal(
     stack$normal_pr_check_requirement[[1L]],
@@ -3791,21 +3811,36 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
   )
   expect_equal(
     stack$normal_pr_check_requirement[-1L],
-    rep("rerun_after_retarget_to_main", 14L)
+    rep("rerun_after_retarget_to_main", expected_stacked_rows)
   )
-  expect_equal(stack$compute_status, rep("not_executed", 15L))
-  expect_equal(stack$drac_status, rep("not_submitted", 15L))
-  expect_equal(stack$totoro_status, rep("not_submitted", 15L))
-  expect_equal(stack$coverage_claim_status, rep("not_evaluated", 15L))
-  expect_equal(stack$interval_claim_status, rep("not_promoted", 15L))
-  expect_equal(stack$reml_claim_status, rep("not_promoted", 15L))
-  expect_equal(stack$public_support_status, rep("not_promoted", 15L))
-  expect_equal(stack$stack_status, rep("merge_readiness_snapshot", 15L))
+  expect_equal(stack$compute_status, rep("not_executed", expected_stack_rows))
+  expect_equal(stack$drac_status, rep("not_submitted", expected_stack_rows))
+  expect_equal(stack$totoro_status, rep("not_submitted", expected_stack_rows))
+  expect_equal(
+    stack$coverage_claim_status,
+    rep("not_evaluated", expected_stack_rows)
+  )
+  expect_equal(
+    stack$interval_claim_status,
+    rep("not_promoted", expected_stack_rows)
+  )
+  expect_equal(
+    stack$reml_claim_status,
+    rep("not_promoted", expected_stack_rows)
+  )
+  expect_equal(
+    stack$public_support_status,
+    rep("not_promoted", expected_stack_rows)
+  )
+  expect_equal(
+    stack$stack_status,
+    rep("merge_readiness_snapshot", expected_stack_rows)
+  )
   expect_equal(
     stack$dashboard_snapshot,
     rep(
       "docs/dev-log/dashboard/structured-re-pr-stack-merge-readiness.tsv",
-      15L
+      expected_stack_rows
     )
   )
   expect_equal(
@@ -3817,7 +3852,7 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
         "structured-re-pr-stack-merge-readiness-snapshot.tsv",
         sep = "/"
       ),
-      15L
+      expected_stack_rows
     )
   )
   expect_equal(
@@ -3829,7 +3864,7 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
         "structured-re-pr-stack-merge-readiness-run-log.tsv",
         sep = "/"
       ),
-      15L
+      expected_stack_rows
     )
   )
 
@@ -3883,14 +3918,14 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
   structured_re_expect_all_match(stack$next_gate, "relmat runtime slices")
 
   expect_equal(run_log$mode, "dry-run")
-  expect_equal(run_log$stack_rows, 15L)
-  expect_equal(run_log$first_pr, 639L)
-  expect_equal(run_log$last_pr, 653L)
-  expect_equal(run_log$draft_rows, 15L)
-  expect_equal(run_log$clean_rows, 15L)
-  expect_equal(run_log$commit_check_success_rows, 15L)
+  expect_equal(run_log$stack_rows, expected_stack_rows)
+  expect_equal(run_log$first_pr, min(expected_prs))
+  expect_equal(run_log$last_pr, max(expected_prs))
+  expect_equal(run_log$draft_rows, expected_stack_rows)
+  expect_equal(run_log$clean_rows, expected_stack_rows)
+  expect_equal(run_log$commit_check_success_rows, expected_stack_rows)
   expect_equal(run_log$attached_pr_rollup_rows, 1L)
-  expect_equal(run_log$stacked_pr_rollup_empty_rows, 14L)
+  expect_equal(run_log$stacked_pr_rollup_empty_rows, expected_stacked_rows)
   expect_equal(run_log$execution_status, "validated_snapshot_not_executed")
   expect_equal(run_log$merge_status, "not_merged")
   expect_equal(run_log$compute_status, "not_executed")

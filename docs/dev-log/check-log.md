@@ -2,6 +2,67 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope q1 cells
+
+Goal:
+
+- Admit exact ordinary Poisson/NB2 unlabelled structured `mu`
+  intercept-plus-one-slope cells for `phylo()`, fixed-covariance `spatial()`,
+  `animal()`, and `relmat()`, while keeping `phylo_interaction()` count support
+  intercept-only.
+
+Result:
+
+- Relaxed the count structured validator from intercept-only to intercept-only
+  or one unlabelled intercept-plus-one-slope term.
+- Added focused Poisson/NB2 point-fit, extractor, profile-target, prediction,
+  and `check_drm()` tests for phylo, fixed-covariance spatial, animal, and
+  relmat one-slope count cells.
+- Replaced the aggregate planned q-series row with eight exact one-slope rows
+  plus one planned-neighbour row, then updated the mission-control validator
+  required-cell set.
+- Synced README, ROADMAP, NEWS, formula grammar, family registry, likelihood,
+  simulation/readiness, dashboard, and q-series completion docs to separate
+  admitted exact q1 count one-slope cells from planned pure, multiple,
+  labelled, q2/q4, scale, bridge, interval, coverage, and REML/AI-REML routes.
+- Fixed a stale structured-RE conversion-contract expectation that still
+  assumed 15 PR stack rows ending at PR #653 after the dashboard ledger already
+  contained 17 rows ending at PR #655.
+
+Evidence:
+
+- `Rscript --vanilla -e "devtools::test(filter = 'count-structured-mu', stop_on_failure = TRUE)"`
+  passed with 280 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "devtools::test(filter = 'poisson-mean|nbinom2-location-scale|nongaussian-structured-boundary|count-structured-mu', stop_on_failure = TRUE)"`
+  passed with 659 assertions after three stale neighbouring-route tests were
+  updated to reject pure count slopes rather than the newly admitted
+  intercept-plus-one-slope count cell.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  initially exposed the stale 15-row PR-stack expectation, then passed after
+  the expectation was updated to the 17-row dashboard ledger.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 85 structured
+  RE q-series cells.
+- `Rscript --vanilla -e "devtools::document()"` refreshed `man/phylo.Rd`.
+- `gh issue list --repo itchyshin/drmTMB --search "count structured mu one slope q-series" --limit 20 --json number,title,state,url,labels`
+  returned no matching issues.
+- `git diff --check` passed.
+- Manual R-CMD-check run
+  `https://github.com/itchyshin/drmTMB/actions/runs/28179604462` failed on
+  macOS because three older boundary tests still expected Poisson/NB2
+  `phylo(1 + x | ...)` count terms to error. The follow-up local affected-suite
+  check above verifies those stale assertions now reject pure slopes instead.
+
+Boundary:
+
+- This is source-test/native point-fit evidence for exact ordinary Poisson/NB2
+  q1 count `mu` cells only. It does not admit zero-inflated structured count
+  effects, pure or multiple structured count slopes, labelled count covariance,
+  structured count `sigma` or shape effects, simultaneous structured count
+  types, q2/q4 count covariance, broad bridge support, interval reliability,
+  coverage, REML, AI-REML, public support, DRAC/Totoro execution, SR150
+  readiness, or an Ayumi-facing reply.
+
 ## 2026-06-25: relmat K/Q one-slope native parity ledger
 
 Goal:

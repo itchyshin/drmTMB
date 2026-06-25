@@ -84,11 +84,11 @@ then narrows the first real candidate to Poisson q1 phylogenetic `mu`.
 | 381 | Family inventory separates ordinary counts, zero-inflated counts, hurdle counts, bounded responses, ordinal responses, robust continuous responses, and mixed-response bivariate candidates. | Do not infer structured support for all non-Gaussian families from the Poisson q1 row. |
 | 382 | Component inventory separates `mu`, `sigma`, `zi`, `hu`, shape or `nu`, future second shape `tau`, cutpoints, and residual coscale `rho12`. | Do not place structured random effects in `sigma`, `zi`, `hu`, shape, cutpoints, or `rho12` without a family-specific contract. |
 | 383 | Layer inventory scores `phylo()`, `spatial()`, `animal()`, and `relmat()` separately before selecting a first fitted route. | Do not promote Gaussian spatial, animal, or `relmat()` evidence to count models. |
-| 384 | Poisson q1 is the algebra gate: one non-zero-inflated Poisson response, `mu` only, one phylogenetic structured intercept. | No Poisson slopes, q2/q4 covariance, zero inflation, hurdle probability, or cross-parameter covariance. |
-| 385 | NB2 q1 remains the first practical count target after Poisson, because overdispersion can compete with structured SD. | NB2 routes beyond the ordinary q=1 `mu` intercept, plus `spatial()`, `animal()`, and `relmat()` count routes, remain planned until focused recovery grids are informative. |
+| 384 | Poisson q1 is the algebra gate: one non-zero-inflated Poisson response, `mu` only, one structured intercept or unlabelled intercept-plus-one-slope term. | No pure or multiple Poisson structured slopes, q2/q4 covariance, zero inflation, hurdle probability, or cross-parameter covariance. |
+| 385 | NB2 q1 remains the first practical count target after Poisson, because overdispersion can compete with structured SD. | NB2 routes beyond the ordinary q=1 `mu` intercept or unlabelled one-slope terms, plus broad recovery evidence for `spatial()`, `animal()`, and `relmat()` count routes, remain planned until focused recovery grids are informative. |
 | 386 | Zero-inflation stays fixed-effect-only until a separate probability-component use case, diagnostic, and prediction contract exists. | No structured `zi` random effects. |
 | 387 | Hurdle probability stays fixed-effect-only until hurdle-specific recovery and interpretation are specified. | No structured `hu` random effects. |
-| 388 | Correlated or structured count slopes wait until q1 intercept recovery is reliable. | No count slope covariance, no structured count slopes, and no q2/q4 count blocks. |
+| 388 | Correlated, labelled, pure, or multiple structured count slopes wait until q1 intercept and unlabelled one-slope recovery is reliable. | No count slope covariance beyond the exact unlabelled one-slope cells and no q2/q4 count blocks. |
 
 The candidate order is:
 

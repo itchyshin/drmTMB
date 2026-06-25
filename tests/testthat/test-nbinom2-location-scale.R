@@ -415,11 +415,11 @@ test_that("nbinom2 phylogenetic mu keeps planned neighboring routes closed", {
 
   expect_error(
     drmTMB(
-      bf(count ~ x + phylo(1 + x | species, tree = tree), sigma ~ z),
+      bf(count ~ x + phylo(0 + x | species, tree = tree), sigma ~ z),
       family = nbinom2(),
       data = dat
     ),
-    "q=1 random intercepts"
+    "intercept-only or one-slope"
   )
   expect_error(
     drmTMB(

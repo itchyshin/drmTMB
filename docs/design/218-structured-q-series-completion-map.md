@@ -115,9 +115,10 @@ The current table records these broad facts without promoting beyond them:
   reliability, q4 interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
   HSquared AI-REML, and non-Gaussian AI-REML remain outside support.
 - Ordinary q6/q8 diagnostic routes do not imply structured q6/q8 support.
-- Poisson and NB2 q1 structured `mu` intercept rows are first non-Gaussian
-  point-fit slices. They do not imply non-Gaussian structured slopes, q2/q4,
-  REML, or interval support.
+- Poisson and NB2 q1 structured `mu` intercept and unlabelled one-slope rows
+  are first non-Gaussian point-fit slices. They do not imply pure, multiple, or
+  labelled non-Gaussian structured slopes, zero-inflated structure, structured
+  count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
 - Direct SD target visibility does not create derived-correlation interval
   support. Direct SD profile feasibility and derived correlation interval
   reliability are separate cells.

@@ -78,8 +78,8 @@ is the current routing contract:
 | `4` | `family = lognormal()` | `drm_build_lognormal_ls_spec()` | Univariate lognormal location-scale models for positive responses, with `mu` and `sigma` defined on the log-response scale and ordinary `mu` random intercepts or independent numeric slopes. |
 | `5` | `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` | Univariate Gamma mean-CV models for positive responses, with `mu` as the response mean, `sigma` as the coefficient of variation, and ordinary `mu` random intercepts or independent numeric slopes. |
 | `16` | `family = tweedie()` | `drm_build_tweedie_ls_spec()` | Univariate fixed-effect Tweedie mean-scale-power models for non-negative semicontinuous responses, with exact zeros allowed, `mu` as the response mean, public `sigma = sqrt(phi)`, and intercept-only `nu = 1 + plogis(eta_nu)`. |
-| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
-| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, and one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
+| `6` | `family = poisson(link = "log")` | `drm_build_poisson_spec()` | Univariate Poisson mean models for non-negative integer counts, with `mu` as the count mean, including ordinary `mu` random intercepts, independent numeric slopes, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()`, and the MD9a first non-Gaussian response missing-predictor route for one fixed-effect binary `mi()` predictor. |
+| `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
 | `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. |
@@ -2098,22 +2098,27 @@ drmTMB(
 
 Ordinary unlabelled `mu` random intercepts and independent numeric slopes add
 the usual grouped latent effects to `eta_mu_i`. The first structured
-non-Gaussian path adds one q=1 structured `mu` intercept:
+non-Gaussian path adds either one q=1 structured `mu` intercept or an
+unlabelled intercept-plus-one-slope pair:
 
 ```text
-eta_mu_i = o_i + X_mu[i, ] beta_mu + a_level[i]
-a ~ Normal(0, sd_structured^2 A_structured)
+eta_mu_i = o_i + X_mu[i, ] beta_mu + a0_level[i] + x_i a1_level[i]
+a0 ~ Normal(0, sd_structured_intercept^2 A_structured)
+a1 ~ Normal(0, sd_structured_slope^2 A_structured)
 ```
 
 where `A_structured` is the tree, pair-of-trees Kronecker field, coordinate,
 animal-model, or user-supplied relatedness covariance implied by `phylo()`,
-`phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. The TMB template
+`phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`. The
+`phylo_interaction()` count route remains intercept-only; the one-slope count
+route is currently for `phylo()`, `spatial()`, `animal()`, and `relmat()`. The TMB template
 still uses the sparse precision `Q_phylo`, the latent vector `u_phylo`, and the
 direct SD target `log_sd_phylo` for this shared
 q=1 count route. This route is implemented for ordinary non-zero-inflated
-Poisson with one unlabelled q=1 structured `mu` intercept. It is not a labelled
-q=2/q=4 count block, not a structured count slope, not a zero-inflated
-structured route, and not simultaneous structured dependence. The
+Poisson and NB2 with one unlabelled q=1 structured `mu` intercept or
+intercept-plus-one-slope term. It is not a pure structured slope, not a
+multiple-slope route, not a labelled q=2/q=4 count block, not a
+zero-inflated structured route, and not simultaneous structured dependence. The
 simulation-runner and artifact contract for promoting the phylogenetic route
 beyond smoke-level evidence is recorded in
 `docs/design/72-poisson-phylo-q1-runner-contract.md`; the spatial, animal, and

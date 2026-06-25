@@ -25,8 +25,10 @@ beta-binomial/zero-truncated NB2 `mu`. Broader all-four endpoint bivariate
 random slopes and
 most structured non-Gaussian dependence remain planned. The fitted structured
 non-Gaussian routes are narrow ordinary Poisson/NB2 q=1 `mu` intercept slices
-for `phylo()`, `spatial()`, `animal()`, and `relmat()`; they are
-source-test, smoke, or diagnostic lanes, not broad count parity.
+for `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, and `relmat()`,
+plus unlabelled intercept-plus-one-slope slices for `phylo()`, `spatial()`,
+`animal()`, and `relmat()`; they are source-test, native point-fit/extractor,
+smoke, or diagnostic lanes, not broad count parity.
 
 ## Random-Slope Parity
 
@@ -40,8 +42,8 @@ source-test, smoke, or diagnostic lanes, not broad count parity.
 | `animal()` Gaussian effects | Yes | `animal(1 | id, pedigree/A/Ainv = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `animal(1 + x | id, A = A)` fits independent animal-model intercept and slope fields for univariate Gaussian `mu`, sigma-only residual scale, and matched `mu+sigma` location-scale cells with deterministic same-target fixtures; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Sparse large-pedigree construction, multiple animal slopes, animal slope correlations, predictor-dependent `corpair()`, direct-SD grammar, and broad bridge/inference beyond deterministic same-target fixtures |
 | `relmat()` Gaussian effects | Yes | `relmat(1 | id, K/Q = ...)` fits univariate Gaussian `mu` and/or `sigma` intercepts; `relmat(1 + x | id, K/Q = ...)` fits independent relatedness intercept and slope fields for univariate Gaussian `mu`, sigma-only residual scale, and matched `mu+sigma` location-scale cells with K/Q target parity and deterministic same-target fixtures; matching bivariate q=2 location covariance and constant all-four q=4 location-scale blocks are fitted | Multiple `relmat()` slopes, relatedness slope correlations, predictor-dependent `corpair()`, direct-SD grammar, and broad bridge/inference beyond deterministic same-target fixtures |
 | Selected non-Gaussian `mu` group effects | Yes, first slice | Student-t, lognormal, Gamma, beta, beta-binomial, and zero-truncated NB2 `mu` random intercepts and independent numeric slopes such as `(0 + x | id)` | Correlated slopes, labelled covariance blocks, non-Gaussian `sigma` or shape random effects, zero-one beta random effects, hurdle/inflation random effects, and structured dependence |
-| Ordinary Poisson `mu` group effects | Yes, first slice | Non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes on the log-mean predictor; one q=1 structured log-mean intercept can use `phylo()`, `spatial()`, `animal()`, or `relmat()` | Correlated Poisson slopes, labelled covariance blocks, zero-inflated Poisson random effects, Poisson structured slopes, simultaneous structured types, and structured count covariance |
-| Ordinary NB2 group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor; `sigma ~ z + (1 | id)` fits the first grouped overdispersion random intercept on log-`sigma`; one q=1 structured log-mean intercept can use `phylo()`, `spatial()`, `animal()`, or `relmat()` with fixed-effect `sigma` | Correlated NB2 slopes, NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated NB2 random effects, NB2 structured slopes or structured `sigma`, labelled covariance, and simultaneous structured types |
+| Ordinary Poisson `mu` group effects | Yes, first slice | Non-zero-inflated Poisson `mu` random intercepts and independent numeric slopes on the log-mean predictor; one q=1 structured log-mean intercept or unlabelled intercept-plus-one-slope term can use `phylo()`, `spatial()`, `animal()`, or `relmat()` | Correlated Poisson slopes, labelled covariance blocks, zero-inflated Poisson random effects, pure or multiple structured count slopes, simultaneous structured types, and structured count covariance |
+| Ordinary NB2 group effects | Yes, first slice | Non-zero-inflated NB2 `mu` random intercepts and independent numeric slopes on the log-mean predictor; `sigma ~ z + (1 | id)` fits the first grouped overdispersion random intercept on log-`sigma`; one q=1 structured log-mean intercept or unlabelled intercept-plus-one-slope term can use `phylo()`, `spatial()`, `animal()`, or `relmat()` with fixed-effect `sigma` | Correlated NB2 slopes, NB2 `sigma` slopes, joint `mu`/`sigma` random effects, zero-inflated NB2 random effects, pure or multiple NB2 structured slopes, structured `sigma`, labelled covariance, and simultaneous structured types |
 | `sd(group)` random-effect SD models | No slope-specific SD route | Fitted for unlabelled Gaussian `mu` random-intercept SD surfaces such as `sd(id) ~ x_group` | Coefficient-specific random-slope SD formulas such as `sd(id, coef = "x") ~ ...` |
 | Meta-analysis known `V` | Not a random-slope layer | `meta_V(V = V)` treats sampling covariance as known input data | Variance-component meta-analysis and phylogenetic-plus-study extensions |
 
@@ -79,7 +81,7 @@ slopes, the q2 scale-slope gap is opened for matching `sigma1`/`sigma2`, and
 the first same-response q2 `mu`/`sigma` slope gap is opened with smoke/recovery
 routing. The next slope gaps are q8 coverage/power evidence, multiple
 structured slopes, structured slope correlations, and non-Gaussian structured
-effects.
+effects beyond the exact ordinary Poisson/NB2 q=1 count cells.
 
 The #440 bivariate slope-only evidence gate is recorded in
 `docs/design/145-phase6c-bivariate-slope-evidence-gate.md`. Its decision is
@@ -119,11 +121,11 @@ issues, not by broadening the fitted-surface claim here.
 | --- | --- | --- | --- |
 | Fixed-effect non-Gaussian families | Yes | Poisson, NB2, zero-inflated counts, truncated/hurdle NB2, beta, beta-binomial, Gamma, lognormal, Student-t, and fixed-effect ordinal routes where listed in the family registry | Fixed-effect support does not imply random effects or structural dependence |
 | Selected ordinary non-Gaussian `mu` random effects | Yes, first slice | Student-t, zero-truncated NB2, lognormal, Gamma, beta, and beta-binomial fit ordinary unlabelled `mu` random intercepts such as `(1 | id)` and independent numeric slopes such as `(0 + x | id)` | Correlated slopes, labelled covariance, `sigma` or shape random effects, and structured dependence |
-| Ordinary Poisson mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and one q=1 structured log-mean intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` | `zi` random effects, correlated slopes, labelled covariance, structured slopes, and simultaneous structured count types |
-| Ordinary NB2 mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, ordinary log-`sigma` random intercepts, and one q=1 structured log-mean intercept from `phylo()`, `spatial()`, `animal()`, or `relmat()` | NB2 `sigma` slopes or structured effects, zero-inflation random effects, correlated slopes, structured count slopes, labelled covariance, and simultaneous structured count types |
+| Ordinary Poisson mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and one q=1 structured log-mean intercept or unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` | `zi` random effects, correlated slopes, labelled covariance, pure or multiple structured count slopes, and simultaneous structured count types |
+| Ordinary NB2 mixed models | Yes, first slice | Non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, ordinary log-`sigma` random intercepts, and one q=1 structured log-mean intercept or unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` | NB2 `sigma` slopes or structured effects, zero-inflation random effects, correlated slopes, pure or multiple structured count slopes, labelled covariance, and simultaneous structured count types |
 | Non-Gaussian `sigma`, shape, inflation, hurdle, zero-one, or one-inflation random effects | Mostly no | Fixed-effect formulas exist for selected families and parameters; ordinary NB2 has a first log-`sigma` random-intercept gate | Random effects in these distributional parameters are otherwise blocked or planned |
 | Ordinal mixed models | No | Fixed-effect cumulative-logit ordinal location | Ordinal random effects, ordinal scale/discrimination, structured ordinal effects |
-| Structured non-Gaussian dependence | First Poisson/NB2 slices only | Ordinary Poisson and ordinary NB2 fit one q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` effect in `mu`, with `sdpars`, marker-specific `ranef()` blocks, `profile_targets()`, and `check_drm()` evidence | Zero-inflated structured effects, structured count slopes, labelled q=2/q=4 count blocks, NB2 structured `sigma`, simultaneous structured types, and non-count spatial/animal/`relmat()` routes remain planned until family-specific recovery evidence exists |
+| Structured non-Gaussian dependence | First Poisson/NB2 slices only | Ordinary Poisson and ordinary NB2 fit one q=1 `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()` intercept effect in `mu`, plus unlabelled intercept-plus-one-slope terms for `phylo()`, `spatial()`, `animal()`, and `relmat()`, with `sdpars`, marker-specific `ranef()` blocks, `profile_targets()`, and `check_drm()` evidence | Zero-inflated structured effects, pure or multiple structured count slopes, labelled q=2/q=4 count blocks, NB2 structured `sigma`, simultaneous structured types, and non-count spatial/animal/`relmat()` routes remain planned until family-specific recovery evidence exists |
 | Mixed-response bivariate non-Gaussian models | No | All-Gaussian bivariate models are fitted | Gaussian-count, count-count, ordinal-mixed, and other mixed-response bivariate likelihoods remain planned |
 
 For applied users, the current route is therefore:
@@ -134,13 +136,14 @@ For applied users, the current route is therefore:
   a plain grouping factor is enough;
 - use ordinary NB2 `sigma ~ z + (1 | id)` only when the question is grouped
   overdispersion heterogeneity with no simultaneous `mu` random effects;
-- use ordinary Poisson or NB2 `phylo(1 | species, tree = tree)`,
-  `spatial(1 | site, coords = coords)`, `animal(1 | id, ...)`, or
-  `relmat(1 | id, ...)` only when the count question is one q=1 structured
-  log-mean intercept and, for NB2, fixed `sigma` overdispersion is enough;
-- do not fit zero-inflated structured count models, structured count slopes,
-  labelled count covariance, simultaneous structured count types, or
-  structured effects in NB2 `sigma`.
+- use ordinary Poisson or NB2 `phylo(1 + x | species, tree = tree)`,
+  `spatial(1 + x | site, coords = coords)`, `animal(1 + x | id, ...)`, or
+  `relmat(1 + x | id, ...)` only when the count question is one q=1 structured
+  log-mean intercept or unlabelled intercept-plus-one-slope cell and, for NB2,
+  fixed `sigma` overdispersion is enough;
+- do not fit zero-inflated structured count models, pure or multiple structured
+  count slopes, labelled count covariance, simultaneous structured count types,
+  or structured effects in NB2 `sigma`.
 
 That boundary is conservative, but useful. Non-Gaussian links, latent
 structured matrices, zero inflation, and distributional scale or shape

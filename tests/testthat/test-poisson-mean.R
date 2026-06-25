@@ -391,11 +391,11 @@ test_that("Poisson q1 phylogenetic structured intercept rejects nearby planned r
 
   expect_error(
     drmTMB(
-      bf(count ~ x + phylo(1 + x | species, tree = tree)),
+      bf(count ~ x + phylo(0 + x | species, tree = tree)),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "q=1 random intercepts"
+    "intercept-only or one-slope"
   )
   expect_error(
     drmTMB(

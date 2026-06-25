@@ -197,6 +197,17 @@ never promotes neighbouring half-cells, structured q6/q8, REML, intervals,
 coverage, broad bridge support, or public optimizer controls unless the exact
 cell row says so.
 
+The same q-series support-cell table now includes provider-specific Poisson
+and NB2 q1 `mu` one-slope rows for `phylo()`, fixed-covariance `spatial()`,
+`animal()`, and `relmat()`. Those rows cite
+`tests/testthat/test-count-structured-mu.R` as native TMB ML/Laplace
+point-fit and extractor evidence for the exact unlabelled
+intercept-plus-one-slope count cells only. Bridge support, intervals,
+coverage, REML, AI-REML, q2/q4 count covariance, zero-inflated structured
+effects, labelled count covariance, pure or multiple count slopes, and
+structured count scale routes remain planned or unsupported unless an exact
+future support-cell row says otherwise.
+
 `structured-re-q2-plus-q2-sigma-rejection-contract.tsv` records the exact
 pre-optimization rejection evidence for the fixed-covariance `spatial()`,
 A-matrix `animal()`, and `relmat()` scale-only `sigma1+sigma2` q2-plus-q2

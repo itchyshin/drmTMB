@@ -26,7 +26,9 @@ The current package already has broad but uneven structured support:
 - `phylo_interaction()` is a q1 pair-level structured field, not a q2/q4
   endpoint-covariance family.
 - Ordinary Poisson and NB2 fit one q1 structured `mu` intercept for
-  `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`.
+  `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`,
+  and one unlabelled intercept-plus-one-slope term for `phylo()`, `spatial()`,
+  `animal()`, and `relmat()`.
 
 The uneven parts are just as important:
 

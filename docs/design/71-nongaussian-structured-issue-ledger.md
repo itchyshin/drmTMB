@@ -152,8 +152,8 @@ Required pages:
 - after-task report.
 
 The docs must say that Poisson q1 phylogenetic `mu` is separate from NB2 q1
-phylogenetic `mu`; neither route is `zi`, `hu`, spatial, animal, `relmat()`,
-q2/q4, or a structured count slope route.
+phylogenetic `mu`; neither route is `zi`, `hu`, q2/q4, a labelled count
+covariance route, or a pure or multiple structured count slope route.
 ```
 
 ## Slice 411-414: NB2 q1 ADEMP Skeleton
