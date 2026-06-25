@@ -45,9 +45,9 @@ the stack-control source of truth synchronized with already-green draft PRs.
   `codex/pr-stack-readiness-656-662`.
 - `git diff --check` passed.
 - `Rscript --vanilla tools/plan-structured-re-pr-stack-merge-readiness.R --mode=dry-run`
-  passed and wrote 24 PR stack merge-readiness rows.
+  passed and wrote 25 PR stack merge-readiness rows.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
-- `python3 tools/validate-mission-control.py` passed and reported 24
+- `python3 tools/validate-mission-control.py` passed and reported 25
   structured RE PR stack merge-readiness rows.
 - `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-pr-stack-merge-readiness-extension-656-663.md')"`
   passed.
