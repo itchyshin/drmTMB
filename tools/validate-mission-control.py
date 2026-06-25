@@ -48,6 +48,9 @@ STRUCTURED_RE_BALANCE_MATRIX = DASHBOARD / "structured-re-balance-matrix.tsv"
 STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS = (
     DASHBOARD / "structured-re-q-series-support-cells.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT = (
+    DASHBOARD / "structured-re-count-slope-fixture-recovery-contract.tsv"
+)
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 )
@@ -1099,6 +1102,31 @@ STRUCTURED_RE_Q_SERIES_SUPPORT_CELL_FIELDS = (
     "evidence_url",
     "claim_boundary",
     "denominator_policy",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT_FIELDS = (
+    "contract_id",
+    "cell_id",
+    "formula_cell",
+    "family",
+    "structured_type",
+    "dimension",
+    "endpoint",
+    "slope_class",
+    "estimator_effective",
+    "runtime_evidence_url",
+    "matrix_slot",
+    "input_scale",
+    "coefficient_order",
+    "native_runtime_status",
+    "fixture_contract_status",
+    "recovery_contract_status",
+    "recovery_design",
+    "denominator_policy",
+    "bridge_status",
+    "interval_status",
+    "coverage_status",
+    "claim_boundary",
     "next_gate",
 )
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT_FIELDS = (
@@ -4788,6 +4816,9 @@ def main() -> int:
     structured_re_q_series_support_cell_rows = read_tsv(
         STRUCTURED_RE_Q_SERIES_SUPPORT_CELLS
     )
+    structured_re_count_slope_fixture_recovery_contract_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT
+    )
     structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
     )
@@ -6579,6 +6610,179 @@ def main() -> int:
             "structured-re-q-series-support-cells.tsv lacks required cells: "
             + ", ".join(missing_q_series_cells)
         )
+
+    q_series_cell_map = {
+        row.get("cell_id", ""): row for row in structured_re_q_series_support_cell_rows
+    }
+    expected_count_slope_contracts = {
+        "count_slope_phylo_poisson_q1_mu_one_slope": (
+            "qseries_phylo_poisson_q1_mu_one_slope",
+            "poisson()",
+            "phylo",
+            "tree",
+        ),
+        "count_slope_phylo_nbinom2_q1_mu_one_slope": (
+            "qseries_phylo_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "phylo",
+            "tree",
+        ),
+        "count_slope_spatial_poisson_q1_mu_one_slope": (
+            "qseries_spatial_poisson_q1_mu_one_slope",
+            "poisson()",
+            "spatial",
+            "coords",
+        ),
+        "count_slope_spatial_nbinom2_q1_mu_one_slope": (
+            "qseries_spatial_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "spatial",
+            "coords",
+        ),
+        "count_slope_animal_poisson_q1_mu_one_slope": (
+            "qseries_animal_poisson_q1_mu_one_slope",
+            "poisson()",
+            "animal",
+            "A/Ainv",
+        ),
+        "count_slope_animal_nbinom2_q1_mu_one_slope": (
+            "qseries_animal_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "animal",
+            "A/Ainv",
+        ),
+        "count_slope_relmat_poisson_q1_mu_one_slope": (
+            "qseries_relmat_poisson_q1_mu_one_slope",
+            "poisson()",
+            "relmat",
+            "K/Q",
+        ),
+        "count_slope_relmat_nbinom2_q1_mu_one_slope": (
+            "qseries_relmat_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "relmat",
+            "K/Q",
+        ),
+    }
+    seen_count_slope_contracts: set[str] = set()
+    if len(structured_re_count_slope_fixture_recovery_contract_rows) != len(
+        expected_count_slope_contracts
+    ):
+        errors.append(
+            "structured-re-count-slope-fixture-recovery-contract.tsv has "
+            f"{len(structured_re_count_slope_fixture_recovery_contract_rows)} "
+            f"rows; expected {len(expected_count_slope_contracts)}"
+        )
+    for row in structured_re_count_slope_fixture_recovery_contract_rows:
+        row_id = row.get("contract_id", "<structured RE count slope contract>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-fixture-recovery-contract.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_FIXTURE_RECOVERY_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id not in expected_count_slope_contracts:
+            errors.append(f"{row_id}: unexpected count slope contract id")
+            continue
+        if row_id in seen_count_slope_contracts:
+            errors.append(f"duplicate structured RE count slope contract id: {row_id}")
+        seen_count_slope_contracts.add(row_id)
+        expected_cell, expected_family, expected_provider, expected_slot = (
+            expected_count_slope_contracts[row_id]
+        )
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must be {expected_cell}")
+        if row.get("family") != expected_family:
+            errors.append(f"{row_id}: family must be {expected_family}")
+        if row.get("structured_type") != expected_provider:
+            errors.append(f"{row_id}: structured_type must be {expected_provider}")
+        if row.get("matrix_slot") != expected_slot:
+            errors.append(f"{row_id}: matrix_slot must be {expected_slot}")
+        if row.get("dimension") != "q1":
+            errors.append(f"{row_id}: dimension must remain q1")
+        if row.get("endpoint") != "mu":
+            errors.append(f"{row_id}: endpoint must remain mu")
+        if row.get("slope_class") != "independent_one_slope":
+            errors.append(f"{row_id}: slope_class must remain independent_one_slope")
+        if row.get("estimator_effective") != "ML_Laplace":
+            errors.append(f"{row_id}: estimator_effective must remain ML_Laplace")
+        if row.get("native_runtime_status") != "point_fit_extractor_ready":
+            errors.append(f"{row_id}: native_runtime_status changed")
+        if row.get("fixture_contract_status") != "planned_not_banked":
+            errors.append(f"{row_id}: fixture_contract_status must be planned_not_banked")
+        if row.get("recovery_contract_status") != "designed_not_run":
+            errors.append(f"{row_id}: recovery_contract_status must be designed_not_run")
+        if row.get("recovery_design") != "paired_family_provider_fixed_seed_recovery_grid":
+            errors.append(f"{row_id}: recovery_design changed")
+        if row.get("denominator_policy") != "not_coverage_evidence":
+            errors.append(f"{row_id}: denominator_policy must be not_coverage_evidence")
+        for field, expected_status in (
+            ("bridge_status", "unsupported"),
+            ("interval_status", "unsupported"),
+            ("coverage_status", "planned"),
+        ):
+            if row.get(field) != expected_status:
+                errors.append(f"{row_id}: {field} must be {expected_status}")
+        coefficient_order = (
+            "mu:(Intercept);mu:x;sd_mu:structured(Intercept);"
+            "sd_mu:structured(x)"
+        )
+        if row.get("coefficient_order") != coefficient_order:
+            errors.append(f"{row_id}: coefficient_order changed")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "native TMB ML/Laplace point-fit evidence only",
+            "fixture parity",
+            "calibrated recovery",
+            "coverage",
+            "q2",
+            "q4",
+            "REML",
+            "AI-REML",
+            "public support",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if expected_provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if expected_provider == "animal" and "A/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A/Ainv")
+        if expected_provider == "relmat" and "K/Q" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must name K/Q")
+        if "calibrated recovery diagnostics" not in row.get("next_gate", ""):
+            errors.append(f"{row_id}: next_gate must name calibrated recovery")
+        if not evidence_reference_exists(row.get("runtime_evidence_url", "")):
+            errors.append(f"{row_id}: runtime_evidence_url does not resolve")
+        q_series_row = q_series_cell_map.get(expected_cell)
+        if q_series_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            expected_q_series_values = {
+                "formula_cell": row.get("formula_cell"),
+                "family_class": "non_gaussian",
+                "family": expected_family,
+                "structure_provider": expected_provider,
+                "dimension_pattern": "q1",
+                "endpoint_set": "mu",
+                "slope_class": "independent_one_slope",
+                "route": "native_tmb",
+                "estimator_effective": "ML_Laplace",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "unsupported",
+                "interval_status": "unsupported",
+                "coverage_status": "planned",
+                "evidence_url": row.get("runtime_evidence_url"),
+                "denominator_policy": "not_coverage_evidence",
+            }
+            for field, expected_value in expected_q_series_values.items():
+                if q_series_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked q-series {field} changed")
 
     expected_mu_slope_audits = {
         "phylo": "mu_slope_phylo_artifact_audit",
@@ -23308,6 +23512,7 @@ def main() -> int:
         f", {len(ayumi_boundary_status_rows)} Ayumi boundary-status rows"
         f", {len(structured_re_balance_matrix_rows)} structured RE matrix rows"
         f", {len(structured_re_q_series_support_cell_rows)} structured RE q-series cells"
+        f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"

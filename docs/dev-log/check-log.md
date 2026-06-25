@@ -2,6 +2,59 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope fixture/recovery contract
+
+Goal:
+
+- Bank the exact next-gate contract for ordinary Poisson/NB2 q1 structured
+  `mu` intercept-plus-one-slope cells in `phylo()`, fixed-covariance
+  `spatial()`, `animal()`, and `relmat()`.
+
+Result:
+
+- Added `structured-re-count-slope-fixture-recovery-contract.tsv` with eight
+  rows linking the existing native TMB ML/Laplace point-fit/extractor evidence
+  to planned same-target fixture and calibrated recovery gates.
+- Added mission-control validation for row schema, provider/family identity,
+  matrix slot, coefficient order, conservative statuses, claim-boundary
+  wording, and linked q-series support-cell consistency.
+- Added an R dashboard contract test that cross-checks the sidecar against
+  `structured-re-q-series-support-cells.tsv`.
+- Updated the dashboard README and q-series completion map so the ordinary
+  count one-slope next gate is explicit without promoting bridge support,
+  intervals, coverage, REML, AI-REML, q2/q4, public support, labelled or
+  multiple count slopes, structured count scale routes, or zero-inflated
+  structured effects.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells and 8 structured RE count-slope fixture/recovery contract
+  rows.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-count-slope-fixture-recovery-contract.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search "count structured mu one-slope fixture recovery" --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the clean local R library.
+  The current local R startup/library state is inconsistent: non-vanilla R
+  startup points arm64 R 4.6 at an old
+  `x86_64-pc-linux-gnu-library/4.4` library, while `--vanilla` lacks the
+  devtools/testthat package stack.
+
+Boundaries:
+
+- This is a sidecar/validator/dashboard contract slice, not new runtime model
+  support.
+- It does not claim fixture parity, calibrated recovery, bridge support,
+  intervals, coverage, q2/q4 count covariance, REML, AI-REML, public support,
+  labelled or multiple count slopes, structured count scale routes, or
+  zero-inflated structured effects.
+
 ## 2026-06-25: phylo_interaction count q1 support-cell split
 
 Goal:

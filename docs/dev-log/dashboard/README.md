@@ -208,6 +208,15 @@ effects, labelled count covariance, pure or multiple count slopes, and
 structured count scale routes remain planned or unsupported unless an exact
 future support-cell row says otherwise.
 
+`structured-re-count-slope-fixture-recovery-contract.tsv` records the next
+evidence gate for those eight ordinary count one-slope cells. It ties each
+Poisson/NB2 provider row to the existing native TMB ML/Laplace point-fit and
+extractor evidence, while keeping fixture parity `planned_not_banked` and
+calibrated recovery `designed_not_run`. It does not promote bridge support,
+intervals, coverage, REML, AI-REML, q2/q4 count covariance, public support,
+labelled or multiple count slopes, structured count scale routes, or
+zero-inflated structured effects.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

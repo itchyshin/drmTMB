@@ -495,6 +495,203 @@ test_that("phylo_interaction count q1 support cells stay family-specific", {
   expect_match(nb2_row$claim_boundary, "structured sigma", fixed = TRUE)
 })
 
+test_that("count structured mu one-slope fixture recovery contract stays conservative", {
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-fixture-recovery-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    contract,
+    c(
+      "contract_id",
+      "cell_id",
+      "formula_cell",
+      "family",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "estimator_effective",
+      "runtime_evidence_url",
+      "matrix_slot",
+      "input_scale",
+      "coefficient_order",
+      "native_runtime_status",
+      "fixture_contract_status",
+      "recovery_contract_status",
+      "recovery_design",
+      "denominator_policy",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(contract), 8L)
+  expect_equal(anyDuplicated(contract$contract_id), 0L)
+
+  expected <- data.frame(
+    contract_id = c(
+      "count_slope_phylo_poisson_q1_mu_one_slope",
+      "count_slope_phylo_nbinom2_q1_mu_one_slope",
+      "count_slope_spatial_poisson_q1_mu_one_slope",
+      "count_slope_spatial_nbinom2_q1_mu_one_slope",
+      "count_slope_animal_poisson_q1_mu_one_slope",
+      "count_slope_animal_nbinom2_q1_mu_one_slope",
+      "count_slope_relmat_poisson_q1_mu_one_slope",
+      "count_slope_relmat_nbinom2_q1_mu_one_slope"
+    ),
+    cell_id = c(
+      "qseries_phylo_poisson_q1_mu_one_slope",
+      "qseries_phylo_nbinom2_q1_mu_one_slope",
+      "qseries_spatial_poisson_q1_mu_one_slope",
+      "qseries_spatial_nbinom2_q1_mu_one_slope",
+      "qseries_animal_poisson_q1_mu_one_slope",
+      "qseries_animal_nbinom2_q1_mu_one_slope",
+      "qseries_relmat_poisson_q1_mu_one_slope",
+      "qseries_relmat_nbinom2_q1_mu_one_slope"
+    ),
+    formula_cell = c(
+      "phylo(1 + x | species, tree = tree) in mu",
+      "phylo(1 + x | species, tree = tree) in mu",
+      "spatial(1 + x | site, coords = coords) in mu",
+      "spatial(1 + x | site, coords = coords) in mu",
+      "animal(1 + x | id, A/Ainv = A/Ainv) in mu",
+      "animal(1 + x | id, A/Ainv = A/Ainv) in mu",
+      "relmat(1 + x | id, K/Q = K/Q) in mu",
+      "relmat(1 + x | id, K/Q = K/Q) in mu"
+    ),
+    family = rep(c("poisson()", "nbinom2()"), 4L),
+    structured_type = rep(c("phylo", "spatial", "animal", "relmat"), each = 2L),
+    matrix_slot = c(
+      "tree",
+      "tree",
+      "coords",
+      "coords",
+      "A/Ainv",
+      "A/Ainv",
+      "K/Q",
+      "K/Q"
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  contract <- contract[
+    match(expected$contract_id, contract$contract_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(contract$contract_id, expected$contract_id)
+  expect_equal(contract$cell_id, expected$cell_id)
+  expect_equal(contract$formula_cell, expected$formula_cell)
+  expect_equal(contract$family, expected$family)
+  expect_equal(contract$structured_type, expected$structured_type)
+  expect_equal(contract$matrix_slot, expected$matrix_slot)
+  expect_equal(sum(contract$family == "poisson()"), 4L)
+  expect_equal(sum(contract$family == "nbinom2()"), 4L)
+
+  expect_equal(contract$dimension, rep("q1", 8L))
+  expect_equal(contract$endpoint, rep("mu", 8L))
+  expect_equal(contract$slope_class, rep("independent_one_slope", 8L))
+  expect_equal(contract$estimator_effective, rep("ML_Laplace", 8L))
+  expect_equal(
+    contract$runtime_evidence_url,
+    rep("tests/testthat/test-count-structured-mu.R", 8L)
+  )
+  expect_equal(
+    contract$coefficient_order,
+    rep(
+      paste0(
+        "mu:(Intercept);mu:x;sd_mu:structured(Intercept);",
+        "sd_mu:structured(x)"
+      ),
+      8L
+    )
+  )
+  expect_equal(
+    contract$native_runtime_status,
+    rep("point_fit_extractor_ready", 8L)
+  )
+  expect_equal(
+    contract$fixture_contract_status,
+    rep("planned_not_banked", 8L)
+  )
+  expect_equal(
+    contract$recovery_contract_status,
+    rep("designed_not_run", 8L)
+  )
+  expect_equal(
+    contract$recovery_design,
+    rep("paired_family_provider_fixed_seed_recovery_grid", 8L)
+  )
+  expect_equal(contract$denominator_policy, rep("not_coverage_evidence", 8L))
+  expect_equal(contract$bridge_status, rep("unsupported", 8L))
+  expect_equal(contract$interval_status, rep("unsupported", 8L))
+  expect_equal(contract$coverage_status, rep("planned", 8L))
+
+  for (phrase in c(
+    "ML/Laplace point-fit evidence only",
+    "fixture parity",
+    "calibrated recovery",
+    "intervals",
+    "coverage",
+    "q2",
+    "q4",
+    "REML",
+    "AI-REML",
+    "public support",
+    "broad bridge support"
+  )) {
+    structured_re_expect_all_match(contract$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    contract$next_gate,
+    "calibrated recovery diagnostics"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary[contract$structured_type == "spatial"],
+    "fixed-covariance"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary[contract$structured_type == "animal"],
+    "A/Ainv"
+  )
+  structured_re_expect_all_match(
+    contract$claim_boundary[contract$structured_type == "relmat"],
+    "K/Q"
+  )
+
+  expect_true(all(contract$cell_id %in% qseries$cell_id))
+  qseries_rows <- qseries[
+    match(contract$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(qseries_rows$formula_cell, contract$formula_cell)
+  expect_equal(qseries_rows$family_class, rep("non_gaussian", 8L))
+  expect_equal(qseries_rows$family, contract$family)
+  expect_equal(qseries_rows$structure_provider, contract$structured_type)
+  expect_equal(qseries_rows$dimension_pattern, contract$dimension)
+  expect_equal(qseries_rows$endpoint_set, contract$endpoint)
+  expect_equal(qseries_rows$slope_class, contract$slope_class)
+  expect_equal(qseries_rows$route, rep("native_tmb", 8L))
+  expect_equal(qseries_rows$estimator_effective, contract$estimator_effective)
+  expect_equal(qseries_rows$fit_status, rep("point_fit", 8L))
+  expect_equal(qseries_rows$extractor_status, rep("extractor_ready", 8L))
+  expect_equal(qseries_rows$bridge_status, contract$bridge_status)
+  expect_equal(qseries_rows$interval_status, contract$interval_status)
+  expect_equal(qseries_rows$coverage_status, contract$coverage_status)
+  expect_equal(qseries_rows$evidence_url, contract$runtime_evidence_url)
+  expect_equal(
+    qseries_rows$denominator_policy,
+    contract$denominator_policy
+  )
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
