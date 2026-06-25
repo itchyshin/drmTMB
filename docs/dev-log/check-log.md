@@ -67577,3 +67577,52 @@ Boundary:
   DRAC execution, SR150 coverage readiness, partial location-scale support,
   Q precision marshalling, K/Q same-target parity, PR undrafting/merging, or an
   Ayumi-facing reply.
+
+## 2026-06-24: q4 location one-slope bootstrap dispatch plan
+
+Goal:
+
+- Convert the q4 location one-slope bootstrap budget result into a reviewable
+  Totoro/DRAC dispatch manifest without submitting compute.
+
+Result:
+
+- Added
+  `tools/plan-structured-re-q4-location-slope-bootstrap-dispatch.R`.
+- Added
+  `docs/dev-log/dashboard/structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv`
+  with all 16 direct-SD provider/target cells.
+- Added
+  `docs/dev-log/simulation-artifacts/2026-06-24-q4-location-slope-bootstrap-dispatch-plan/structured-re-q4-location-slope-bootstrap-dispatch-target-manifest.tsv`
+  as the target manifest.
+- Updated mission-control validation, the focused conversion-contract tests,
+  the dashboard README, the q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-24-q4-location-slope-bootstrap-dispatch-plan.md`.
+
+Evidence:
+
+- `Rscript --vanilla tools/plan-structured-re-q4-location-slope-bootstrap-dispatch.R`
+  completed and wrote the dashboard sidecar and target manifest.
+- Each row records `scheduler_status = dry_run_not_submitted`,
+  `compute_status = not_executed`, `denominator_status = dispatch_plan_only`,
+  and `coverage_evaluable = FALSE`.
+- The representative budget source endpoint is explicit
+  `mu1:(Intercept)`, so the dispatch rows are not target-level bootstrap
+  evidence for the remaining direct-SD targets.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 16
+  structured RE q4 location slope bootstrap-dispatch plan rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed.
+- `git diff --check` passed.
+
+Boundary:
+
+- This is dry-run dispatch planning only. It does not submit Totoro jobs,
+  submit DRAC jobs, admit all-target bootstrap denominators, promote
+  derived-correlation intervals, interval reliability, interval coverage, q4
+  REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML,
+  broad bridge support, public optimizer controls, public support, partial
+  location-scale support, Q precision marshalling, K/Q same-target parity,
+  broader q8 support, SR150 coverage readiness, PR undrafting/merging, or an
+  Ayumi-facing reply.

@@ -3822,6 +3822,198 @@ test_that("q4 location one-slope bootstrap budget probe stays diagnostic-only", 
   )
 })
 
+test_that("q4 location one-slope bootstrap dispatch plan stays not submitted", {
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+  manifest <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-24-q4-location-slope-bootstrap-dispatch-plan",
+      "structured-re-q4-location-slope-bootstrap-dispatch-target-manifest.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  expect_named(
+    dispatch,
+    c(
+      "dispatch_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "source_interval_status",
+      "source_interval_artifact",
+      "source_budget_probe",
+      "source_budget_artifact",
+      "source_budget_endpoint_member",
+      "source_budget_status",
+      "target_manifest",
+      "planned_runner",
+      "planned_backends",
+      "planned_shard",
+      "provider_rotation_index",
+      "target_index",
+      "bootstrap_replicates",
+      "bootstrap_seed",
+      "retention_policy",
+      "scheduler_status",
+      "compute_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "coverage_status",
+      "interval_claim_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(manifest, dispatch)
+  expect_equal(nrow(dispatch), 16L)
+  expect_equal(dispatch$provider_rotation_index, seq_len(16L))
+  expect_equal(dispatch$bootstrap_seed, 4100L + seq_len(16L))
+  expect_equal(dispatch$bootstrap_replicates, rep(2L, 16L))
+  expect_equal(dispatch$target_index, rep(seq_len(4L), each = 4L))
+  expect_setequal(
+    dispatch$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(
+    unname(as.integer(table(dispatch$structured_type)[
+      c("animal", "phylo", "relmat", "spatial")
+    ])),
+    rep(4L, 4L)
+  )
+  expect_setequal(
+    dispatch$endpoint_member,
+    c("mu1:(Intercept)", "mu1:x", "mu2:(Intercept)", "mu2:x")
+  )
+  expect_equal(
+    unname(as.integer(table(dispatch$endpoint_member))),
+    rep(4L, 4L)
+  )
+  expect_equal(dispatch$target_kind, rep("direct_sd", 16L))
+  expect_equal(
+    dispatch$source_budget_endpoint_member,
+    rep("mu1:(Intercept)", 16L)
+  )
+  expect_equal(
+    dispatch$source_budget_status[dispatch$structured_type == "phylo"],
+    rep("bootstrap_budget_probe_finite", 4L)
+  )
+  expect_equal(
+    dispatch$source_budget_status[dispatch$structured_type != "phylo"],
+    rep("bootstrap_budget_probe_not_run_budget", 12L)
+  )
+  structured_re_expect_all_match(
+    dispatch$planned_runner,
+    "planned; not executed"
+  )
+  expect_equal(
+    dispatch$planned_backends,
+    rep("totoro_cpu_worker;drac_slurm_array", 16L)
+  )
+  expect_equal(
+    dispatch$scheduler_status,
+    rep("dry_run_not_submitted", 16L)
+  )
+  expect_equal(dispatch$compute_status, rep("not_executed", 16L))
+  expect_equal(dispatch$denominator_status, rep("dispatch_plan_only", 16L))
+  expect_equal(dispatch$coverage_evaluable, rep(FALSE, 16L))
+  expect_equal(dispatch$coverage_status, rep("not_evaluated", 16L))
+  expect_equal(dispatch$interval_claim_status, rep("diagnostic_only", 16L))
+  expect_equal(dispatch$status, rep("covered", 16L))
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "retain_failed_profiles"
+  )
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "record_bootstrap_refit_attempts"
+  )
+  structured_re_expect_all_match(
+    dispatch$retention_policy,
+    "retain_scheduler_exit_status"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "bootstrap dispatch plan only"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no submitted Totoro job"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no submitted DRAC job"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no all-target bootstrap denominator evidence"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no derived-correlation intervals"
+  )
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "no interval reliability"
+  )
+  structured_re_expect_all_match(dispatch$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(dispatch$claim_boundary, "q4 REML")
+  structured_re_expect_all_match(dispatch$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "broad bridge support"
+  )
+  structured_re_expect_all_match(dispatch$claim_boundary, "public support")
+  structured_re_expect_all_match(
+    dispatch$claim_boundary,
+    "partial location-scale"
+  )
+  structured_re_expect_all_match(dispatch$claim_boundary, "broader q8 support")
+  structured_re_expect_all_match(dispatch$claim_boundary, "calibrated coverage")
+  structured_re_expect_all_match(dispatch$next_gate, "Totoro")
+  structured_re_expect_all_match(dispatch$next_gate, "DRAC")
+  structured_re_expect_all_match(dispatch$next_gate, "target outcome")
+  structured_re_expect_all_match(dispatch$next_gate, "coverage-grid design")
+  expect_false(any(grepl(
+    "K/Q same-target parity",
+    dispatch$claim_boundary[dispatch$structured_type == "relmat"],
+    fixed = TRUE
+  )))
+
+  qseries_dispatch <- qseries[
+    qseries$cell_id %in% unique(dispatch$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(qseries_dispatch), 4L)
+  expect_equal(qseries_dispatch$route, rep("native_direct_bridge_fixture", 4L))
+  expect_equal(qseries_dispatch$fit_status, rep("point_fit", 4L))
+  expect_equal(qseries_dispatch$extractor_status, rep("extractor_ready", 4L))
+  expect_equal(qseries_dispatch$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(qseries_dispatch$interval_status, rep("planned", 4L))
+  expect_equal(qseries_dispatch$coverage_status, rep("planned", 4L))
+  expect_equal(
+    qseries_dispatch$denominator_policy,
+    rep("fixture_not_coverage", 4L)
+  )
+})
+
 test_that("q4 all-four one-slope parity fixture records exact bridge fixture only", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-parity-fixture.tsv"

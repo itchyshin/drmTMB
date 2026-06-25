@@ -147,6 +147,9 @@ STRUCTURED_RE_Q4_LOCATION_SLOPE_INTERVAL_DIAGNOSTIC_STATUS = (
 STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE = (
     DASHBOARD / "structured-re-q4-location-slope-bootstrap-budget-probe.tsv"
 )
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN = (
+    DASHBOARD / "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv"
+)
 STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN = (
     DASHBOARD / "structured-re-q4-slope-interval-diagnostic-plan.tsv"
 )
@@ -1871,6 +1874,41 @@ STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE_FIELDS = (
     "profile_note",
     "probe_status",
     "denominator_status",
+    "coverage_status",
+    "interval_claim_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN_FIELDS = (
+    "dispatch_id",
+    "cell_id",
+    "formula_cell",
+    "structured_type",
+    "target_kind",
+    "endpoint_member",
+    "estimand",
+    "profile_target",
+    "source_interval_status",
+    "source_interval_artifact",
+    "source_budget_probe",
+    "source_budget_artifact",
+    "source_budget_endpoint_member",
+    "source_budget_status",
+    "target_manifest",
+    "planned_runner",
+    "planned_backends",
+    "planned_shard",
+    "provider_rotation_index",
+    "target_index",
+    "bootstrap_replicates",
+    "bootstrap_seed",
+    "retention_policy",
+    "scheduler_status",
+    "compute_status",
+    "denominator_status",
+    "coverage_evaluable",
     "coverage_status",
     "interval_claim_status",
     "status",
@@ -4398,6 +4436,9 @@ def main() -> int:
     )
     structured_re_q4_location_slope_bootstrap_budget_probe_rows = read_tsv(
         STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_BUDGET_PROBE
+    )
+    structured_re_q4_location_slope_bootstrap_dispatch_plan_rows = read_tsv(
+        STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN
     )
     structured_re_q4_slope_interval_diagnostic_plan_rows = read_tsv(
         STRUCTURED_RE_Q4_SLOPE_INTERVAL_DIAGNOSTIC_PLAN
@@ -12067,6 +12108,235 @@ def main() -> int:
         errors.append(
             "structured-re-q4-location-slope-bootstrap-budget-probe.tsv missing providers: "
             + ", ".join(missing_q4_location_slope_bootstrap_probes)
+        )
+
+    expected_q4_location_slope_bootstrap_dispatch_source_status = (
+        "docs/dev-log/dashboard/"
+        "structured-re-q4-location-slope-interval-diagnostic-status.tsv"
+    )
+    expected_q4_location_slope_bootstrap_dispatch_source_artifact = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-interval-smoke/"
+        "structured-re-q4-location-slope-interval-smoke-results.tsv"
+    )
+    expected_q4_location_slope_bootstrap_dispatch_source_budget = (
+        "docs/dev-log/dashboard/"
+        "structured-re-q4-location-slope-bootstrap-budget-probe.tsv"
+    )
+    expected_q4_location_slope_bootstrap_dispatch_budget_artifact = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-bootstrap-budget-probe/"
+        "structured-re-q4-location-slope-bootstrap-budget-probe-results.tsv"
+    )
+    expected_q4_location_slope_bootstrap_dispatch_manifest = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-24-q4-location-slope-bootstrap-dispatch-plan/"
+        "structured-re-q4-location-slope-bootstrap-dispatch-target-manifest.tsv"
+    )
+    q4_location_slope_dispatch_endpoint_order = {
+        "mu1:(Intercept)": "1",
+        "mu1:x": "2",
+        "mu2:(Intercept)": "3",
+        "mu2:x": "4",
+    }
+    q4_location_slope_dispatch_provider_shards = {
+        "phylo": "provider_shard_01_phylo",
+        "spatial": "provider_shard_02_spatial",
+        "animal": "provider_shard_03_animal",
+        "relmat": "provider_shard_04_relmat",
+    }
+    q4_location_slope_dispatch_budget_status = {
+        "phylo": "bootstrap_budget_probe_finite",
+        "spatial": "bootstrap_budget_probe_not_run_budget",
+        "animal": "bootstrap_budget_probe_not_run_budget",
+        "relmat": "bootstrap_budget_probe_not_run_budget",
+    }
+
+    def q4_location_slope_dispatch_token(member: str) -> str:
+        return (
+            member.replace(":", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .lower()
+        )
+
+    expected_q4_location_slope_bootstrap_dispatch_targets = set(
+        expected_q4_location_slope_interval_direct_targets
+    )
+    seen_q4_location_slope_bootstrap_dispatch_targets: set[tuple[str, str]] = set()
+    if (
+        len(structured_re_q4_location_slope_bootstrap_dispatch_plan_rows)
+        != len(expected_q4_location_slope_bootstrap_dispatch_targets)
+    ):
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv has "
+            f"{len(structured_re_q4_location_slope_bootstrap_dispatch_plan_rows)} rows; "
+            f"expected {len(expected_q4_location_slope_bootstrap_dispatch_targets)}"
+        )
+    for row in structured_re_q4_location_slope_bootstrap_dispatch_plan_rows:
+        row_id = row.get(
+            "dispatch_id",
+            "<structured RE q4 location slope bootstrap dispatch plan>",
+        )
+        if set(row.keys()) != set(
+            STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv "
+                "fields do not match the dispatch-plan contract"
+            )
+        for field in STRUCTURED_RE_Q4_LOCATION_SLOPE_BOOTSTRAP_DISPATCH_PLAN_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        provider = row.get("structured_type")
+        endpoint_member = row.get("endpoint_member")
+        target_key = (provider, endpoint_member)
+        if provider not in q4_location_slope_provider_groups:
+            errors.append(f"{row_id}: invalid structured_type {provider!r}")
+            continue
+        if target_key not in expected_q4_location_slope_bootstrap_dispatch_targets:
+            errors.append(f"{row_id}: unexpected dispatch target {target_key!r}")
+            continue
+        if target_key in seen_q4_location_slope_bootstrap_dispatch_targets:
+            errors.append(f"duplicate q4 location slope bootstrap dispatch target: {target_key!r}")
+        seen_q4_location_slope_bootstrap_dispatch_targets.add(target_key)
+        expected_id = (
+            "q4_location_slope_bootstrap_dispatch_"
+            f"{provider}_{q4_location_slope_dispatch_token(endpoint_member)}"
+        )
+        if row_id != expected_id:
+            errors.append(f"{row_id}: dispatch_id must be {expected_id}")
+        expected_cell = f"qseries_{provider}_q4_mu1_mu2_one_slope"
+        if row.get("cell_id") != expected_cell:
+            errors.append(f"{row_id}: cell_id must remain {expected_cell}")
+        qseries_row = qseries_by_cell.get(expected_cell)
+        if qseries_row is None:
+            errors.append(f"{row_id}: linked q-series support cell is missing")
+        else:
+            if row.get("formula_cell") != qseries_row.get("formula_cell"):
+                errors.append(f"{row_id}: formula_cell must match q-series row")
+            expected_qseries_values = {
+                "route": "native_direct_bridge_fixture",
+                "fit_status": "point_fit",
+                "extractor_status": "extractor_ready",
+                "bridge_status": "fixture_parity",
+                "interval_status": "planned",
+                "coverage_status": "planned",
+                "denominator_policy": "fixture_not_coverage",
+            }
+            for field, expected_value in expected_qseries_values.items():
+                if qseries_row.get(field) != expected_value:
+                    errors.append(
+                        f"{row_id}: linked q-series {field} must be {expected_value}"
+                    )
+        if row.get("target_kind") != "direct_sd":
+            errors.append(f"{row_id}: target_kind must remain direct_sd")
+        expected_estimand, expected_profile = (
+            expected_q4_location_slope_interval_direct_targets[target_key]
+        )
+        if row.get("estimand") != expected_estimand:
+            errors.append(f"{row_id}: estimand must be {expected_estimand}")
+        if row.get("profile_target") != expected_profile:
+            errors.append(f"{row_id}: profile_target must be {expected_profile}")
+        expected_paths = {
+            "source_interval_status": expected_q4_location_slope_bootstrap_dispatch_source_status,
+            "source_interval_artifact": expected_q4_location_slope_bootstrap_dispatch_source_artifact,
+            "source_budget_probe": expected_q4_location_slope_bootstrap_dispatch_source_budget,
+            "source_budget_artifact": expected_q4_location_slope_bootstrap_dispatch_budget_artifact,
+            "target_manifest": expected_q4_location_slope_bootstrap_dispatch_manifest,
+        }
+        for field, expected_value in expected_paths.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} path changed")
+            if not evidence_reference_exists(row.get(field, "")):
+                errors.append(f"{row_id}: {field} does not resolve locally")
+        if row.get("source_budget_endpoint_member") != "mu1:(Intercept)":
+            errors.append(f"{row_id}: source_budget_endpoint_member must disclose the representative target")
+        if row.get("source_budget_status") != q4_location_slope_dispatch_budget_status[provider]:
+            errors.append(
+                f"{row_id}: source_budget_status must be "
+                f"{q4_location_slope_dispatch_budget_status[provider]}"
+            )
+        if "planned; not executed" not in row.get("planned_runner", ""):
+            errors.append(f"{row_id}: planned_runner must stay explicitly unexecuted")
+        if row.get("planned_backends") != "totoro_cpu_worker;drac_slurm_array":
+            errors.append(f"{row_id}: planned_backends changed")
+        if row.get("planned_shard") != q4_location_slope_dispatch_provider_shards[provider]:
+            errors.append(f"{row_id}: planned_shard does not match provider")
+        try:
+            provider_rotation_index = int(row.get("provider_rotation_index", ""))
+            bootstrap_seed = int(row.get("bootstrap_seed", ""))
+            if bootstrap_seed != 4100 + provider_rotation_index:
+                errors.append(f"{row_id}: bootstrap_seed must follow provider-rotation index")
+        except ValueError:
+            errors.append(f"{row_id}: provider_rotation_index and bootstrap_seed must be integers")
+        if row.get("target_index") != q4_location_slope_dispatch_endpoint_order[endpoint_member]:
+            errors.append(f"{row_id}: target_index does not match endpoint order")
+        expected_common = {
+            "bootstrap_replicates": "2",
+            "retention_policy": (
+                "retain_failed_profiles;retain_nonconverged_fits;"
+                "retain_nonfinite_intervals;record_bootstrap_refit_attempts;"
+                "retain_scheduler_exit_status"
+            ),
+            "scheduler_status": "dry_run_not_submitted",
+            "compute_status": "not_executed",
+            "denominator_status": "dispatch_plan_only",
+            "coverage_evaluable": "FALSE",
+            "coverage_status": "not_evaluated",
+            "interval_claim_status": "diagnostic_only",
+            "status": "covered",
+            "evidence_url": (
+                "docs/dev-log/after-task/"
+                "2026-06-24-q4-location-slope-bootstrap-dispatch-plan.md"
+            ),
+        }
+        for field, expected_value in expected_common.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "bootstrap dispatch plan only",
+            "no submitted Totoro job",
+            "no submitted DRAC job",
+            "no all-target bootstrap denominator evidence",
+            "no derived-correlation intervals",
+            "no interval reliability",
+            "interval coverage",
+            "q4 REML",
+            "AI-REML",
+            "broad bridge support",
+            "public support",
+            "partial location-scale support",
+            "broader q8 support",
+            "calibrated coverage wording",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        provider_phrase = q4_location_slope_provider_claim_phrases.get(provider)
+        if provider_phrase and provider_phrase not in claim_boundary:
+            errors.append(
+                f"{row_id}: provider claim_boundary must mention {provider_phrase}"
+            )
+        if provider == "relmat" and "K/Q same-target parity" in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must not claim K/Q parity")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("Totoro", "DRAC", "target outcome", "coverage-grid design"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        if not evidence_reference_exists(row.get("evidence_url", "")):
+            errors.append(f"{row_id}: evidence_url does not resolve to local evidence")
+    missing_q4_location_slope_bootstrap_dispatch_targets = sorted(
+        expected_q4_location_slope_bootstrap_dispatch_targets
+        - seen_q4_location_slope_bootstrap_dispatch_targets
+    )
+    if missing_q4_location_slope_bootstrap_dispatch_targets:
+        errors.append(
+            "structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv missing targets: "
+            + ", ".join(
+                f"{provider}:{endpoint_member}"
+                for provider, endpoint_member in missing_q4_location_slope_bootstrap_dispatch_targets
+            )
         )
 
     expected_q4_slope_parity_fixtures = {
@@ -19900,6 +20170,7 @@ def main() -> int:
         f", {len(structured_re_q4_location_slope_interval_diagnostic_plan_rows)} structured RE q4 location slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_location_slope_interval_diagnostic_status_rows)} structured RE q4 location slope interval-diagnostic status rows"
         f", {len(structured_re_q4_location_slope_bootstrap_budget_probe_rows)} structured RE q4 location slope bootstrap-budget probe rows"
+        f", {len(structured_re_q4_location_slope_bootstrap_dispatch_plan_rows)} structured RE q4 location slope bootstrap-dispatch plan rows"
         f", {len(structured_re_q4_slope_interval_diagnostic_plan_rows)} structured RE q4 slope interval-diagnostic plan rows"
         f", {len(structured_re_q4_slope_interval_diagnostic_status_rows)} structured RE q4 slope interval-diagnostic status rows"
         f", {len(structured_re_q4_slope_interval_stability_probe_rows)} structured RE q4 slope interval-stability probe rows"

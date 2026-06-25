@@ -1110,6 +1110,16 @@ coverage, q4 REML, AI-REML, broad bridge support, public support, partial
 location-scale support, Q precision marshalling, K/Q same-target parity, or
 broader q8 support.
 
+`structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv` records the
+reviewable dry-run dispatch manifest for that next gate. It names all 16
+direct-SD provider/target cells, assigns provider-rotating shards, records the
+representative budget probe source endpoint, and keeps scheduler and compute
+status at `dry_run_not_submitted` and `not_executed`. The sidecar is a Totoro
+or DRAC/totoro execution plan only; it does not submit jobs, admit all-target
+bootstrap denominators, promote interval reliability or coverage, or change
+q4 REML, AI-REML, bridge, public-support, partial location-scale, Q precision,
+K/Q parity, or broader q8 boundaries.
+
 `structured-re-type-gaps.tsv` records the remaining structured-type gaps for
 `phylo()`, `spatial()`, `animal()`, `relmat()`, and `phylo_interaction()`. It
 states what users can run now and which cells remain missing or deferred.

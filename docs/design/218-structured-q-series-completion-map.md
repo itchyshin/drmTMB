@@ -419,6 +419,17 @@ reliability, interval coverage, q4 REML, AI-REML, broad bridge support, public
 support, partial location-scale support, Q precision marshalling, K/Q
 same-target parity, or broader q8 support.
 
+`structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv` records the
+reviewable dry-run dispatch manifest for the next q4 location bootstrap gate.
+It keeps all 16 direct-SD provider/target cells visible, assigns
+provider-rotating shards, and records `dry_run_not_submitted` plus
+`not_executed` for every row. The representative budget source remains
+explicitly `mu1:(Intercept)`, so the manifest cannot be read as target-level
+bootstrap evidence. This sidecar is not a denominator result, interval
+reliability result, coverage result, q4 REML result, AI-REML result, broad
+bridge result, public-support result, partial location-scale result, Q
+precision result, K/Q parity result, or broader q8 result.
+
 `structured-re-mu-sigma-slope-parity-fixture.tsv` records the next exact gate:
 deterministic same-target native/direct/R-via-Julia fixtures for matched
 `mu+sigma` one-slope cells in `phylo()`, fixed-covariance `spatial()`,
@@ -641,7 +652,15 @@ The efficient completion order is:
    are explicitly not run in this local budget sidecar. The next denominator
    work should use Totoro or a reviewed DRAC/totoro dispatch plan and must
    retain all provider/target outcomes before any coverage-grid design.
-20. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+20. Banked in the stacked follow-up slice: add the q4 location direct-SD
+   bootstrap dispatch plan. It names all 16 provider/target cells, assigns
+   provider-rotating shards, links the representative `mu1:(Intercept)` budget
+   source, and keeps every row at `dry_run_not_submitted` and `not_executed`.
+   This is reviewable execution planning only; no Totoro or DRAC job has been
+   submitted and no denominator, interval-reliability, coverage, REML,
+   AI-REML, bridge, public-support, Q precision, K/Q parity, partial
+   location-scale, or broader q8 status moves.
+21. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 
