@@ -4807,6 +4807,162 @@ test_that("q4 all-four one-slope interval plan remains target-level", {
   )
 })
 
+test_that("q4 all-four intercept interval plan remains target-level", {
+  plan <- structured_re_read_dashboard_tsv(
+    "structured-re-q4-intercept-interval-diagnostic-plan.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    plan,
+    c(
+      "diagnostic_id",
+      "cell_id",
+      "formula_cell",
+      "structured_type",
+      "target_kind",
+      "endpoint_member",
+      "estimand",
+      "profile_target",
+      "interval_methods",
+      "required_fit_evidence",
+      "required_interval_evidence",
+      "denominator_fields",
+      "current_blocker",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(plan), 40L)
+  expect_setequal(
+    plan$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  for (provider in c("phylo", "spatial", "animal", "relmat")) {
+    provider_rows <- plan[plan$structured_type == provider, , drop = FALSE]
+    expect_equal(nrow(provider_rows), 10L)
+    expect_equal(sum(provider_rows$target_kind == "direct_sd"), 4L)
+    expect_equal(sum(provider_rows$target_kind == "derived_correlation"), 6L)
+    expect_equal(
+      provider_rows$cell_id,
+      rep(paste0("qseries_", provider, "_q4_all_four_intercept"), 10L)
+    )
+  }
+
+  direct_rows <- plan[plan$target_kind == "direct_sd", , drop = FALSE]
+  derived_rows <- plan[
+    plan$target_kind == "derived_correlation",
+    ,
+    drop = FALSE
+  ]
+  expect_setequal(
+    direct_rows$endpoint_member,
+    paste0(c("mu1", "mu2", "sigma1", "sigma2"), ":(Intercept)")
+  )
+  expect_setequal(
+    direct_rows$estimand,
+    c(
+      "sd_mu1_intercept",
+      "sd_mu2_intercept",
+      "sd_sigma1_intercept",
+      "sd_sigma2_intercept"
+    )
+  )
+  expect_setequal(
+    derived_rows$estimand,
+    c(
+      "cor_mu1_mu2",
+      "cor_mu1_sigma1",
+      "cor_mu1_sigma2",
+      "cor_mu2_sigma1",
+      "cor_mu2_sigma2",
+      "cor_sigma1_sigma2"
+    )
+  )
+
+  structured_re_expect_all_match(
+    direct_rows$required_fit_evidence,
+    "profile_targets_direct_ready"
+  )
+  structured_re_expect_all_match(
+    direct_rows$required_interval_evidence,
+    "finite_direct_sd_intervals_by_method"
+  )
+  expect_equal(
+    direct_rows$current_blocker,
+    rep("interval_diagnostics_not_run", 16L)
+  )
+  structured_re_expect_all_match(
+    derived_rows$required_fit_evidence,
+    "corpairs_point_reconstruction"
+  )
+  structured_re_expect_all_match(
+    derived_rows$required_fit_evidence,
+    "derived_interval_reconstruction_planned"
+  )
+  structured_re_expect_all_match(
+    derived_rows$required_interval_evidence,
+    "finite_derived_correlation_intervals_by_method"
+  )
+  expect_equal(
+    derived_rows$current_blocker,
+    rep("derived_correlation_interval_reconstruction_not_available", 24L)
+  )
+
+  structured_re_expect_all_match(plan$interval_methods, "profile")
+  structured_re_expect_all_match(plan$interval_methods, "bootstrap")
+  structured_re_expect_all_match(plan$required_fit_evidence, "point_fit")
+  structured_re_expect_all_match(plan$required_fit_evidence, "extractor_ready")
+  structured_re_expect_all_match(
+    plan$required_interval_evidence,
+    "coverage_mcse<=0.01"
+  )
+  structured_re_expect_all_match(
+    plan$denominator_fields,
+    "coverage_denominator"
+  )
+  structured_re_expect_all_match(plan$denominator_fields, "coverage_mcse")
+  expect_equal(plan$status, rep("planned", 40L))
+  structured_re_expect_all_match(plan$claim_boundary, "q4 all-four intercept")
+  structured_re_expect_all_match(plan$claim_boundary, "no interval reliability")
+  structured_re_expect_all_match(plan$claim_boundary, "interval coverage")
+  structured_re_expect_all_match(plan$claim_boundary, "native-TMB q4 REML")
+  structured_re_expect_all_match(plan$claim_boundary, "HSquared AI-REML")
+  structured_re_expect_all_match(plan$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(
+    plan$claim_boundary,
+    "calibrated coverage wording"
+  )
+  structured_re_expect_all_match(
+    derived_rows$claim_boundary,
+    "derived correlation interval reconstruction is not available"
+  )
+  structured_re_expect_all_match(
+    plan$claim_boundary[plan$structured_type == "spatial"],
+    "range-estimating"
+  )
+  structured_re_expect_all_match(
+    plan$claim_boundary[plan$structured_type == "animal"],
+    "pedigree/Ainv"
+  )
+  structured_re_expect_all_match(
+    plan$claim_boundary[plan$structured_type == "relmat"],
+    "Q bridge"
+  )
+
+  qseries_plan <- qseries[qseries$cell_id %in% plan$cell_id, , drop = FALSE]
+  expect_equal(nrow(qseries_plan), 4L)
+  expect_equal(qseries_plan$fit_status, rep("point_fit", 4L))
+  expect_equal(qseries_plan$extractor_status, rep("extractor_ready", 4L))
+  expect_equal(qseries_plan$bridge_status, rep("fixture_parity", 4L))
+  expect_equal(qseries_plan$interval_status, rep("planned", 4L))
+  expect_equal(qseries_plan$coverage_status, rep("planned", 4L))
+})
+
 test_that("q4 all-four one-slope interval status stays Hessian-blocked", {
   status <- structured_re_read_dashboard_tsv(
     "structured-re-q4-slope-interval-diagnostic-status.tsv"

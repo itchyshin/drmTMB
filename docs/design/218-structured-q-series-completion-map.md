@@ -324,6 +324,17 @@ native-TMB q4 REML, q4 AI-REML, broad bridge support, public support,
 range-estimating spatial support, pedigree/Ainv animal bridge marshalling, or
 relmat Q bridge marshalling.
 
+`structured-re-q4-intercept-interval-diagnostic-plan.tsv` records the
+provider-scoped interval diagnostic plan for those exact all-four intercept q4
+cells. It contains four direct-SD targets and six derived-correlation targets
+per provider. The direct-SD rows are future deterministic target-smoke targets,
+while the derived-correlation rows stay blocked until interval reconstruction is
+designed and validated. The sidecar does not admit coverage denominators,
+interval reliability, coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
+HSquared AI-REML, broad bridge support, public support, range-estimating
+spatial support, pedigree/Ainv animal bridge marshalling, or relmat Q bridge
+marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four one-slope bivariate Gaussian cells. The required
 endpoint-member set is
@@ -642,6 +653,14 @@ The efficient completion order is:
    range-estimating spatial support, partial labelled endpoint layouts,
    intervals, coverage, q4 REML, AI-REML, public support, and broader q8
    variants in separate rows.
+12a. Banked in this slice: add the q4 all-four intercept interval diagnostic
+   plan for the same exact provider cells. This creates 40 planned target rows:
+   16 direct-SD future smoke targets and 24 derived-correlation rows blocked on
+   interval reconstruction. It does not promote interval reliability, coverage,
+   q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge
+   support, public support, coverage denominators, range-estimating spatial
+   support, pedigree/Ainv animal bridge marshalling, or relmat Q bridge
+   marshalling.
 13. Banked in this slice: add the q4 all-four one-slope interval diagnostic
    plan for the same four exact provider cells. This creates 144 planned target
    rows: 32 direct-SD future smoke targets and 112 derived-correlation rows

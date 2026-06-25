@@ -1551,6 +1551,208 @@ phase18_structured_re_q4_intercept_parity_fixture_contract <- function() {
   do.call(rbind, rows)
 }
 
+phase18_structured_re_q4_intercept_interval_diagnostic_plan <- function() {
+  structured_types <- c("phylo", "spatial", "animal", "relmat")
+  endpoint_members <- c("mu1", "mu2", "sigma1", "sigma2")
+  endpoint_labels <- paste0(endpoint_members, ":(Intercept)")
+  cor_pairs <- utils::combn(endpoint_members, 2L, simplify = FALSE)
+
+  rows <- lapply(structured_types, function(structured_type) {
+    contract <- phase18_structured_re_q4_intercept_parity_fixture_contract()
+    provider_contract <- contract[
+      contract$structured_type == structured_type,
+      ,
+      drop = FALSE
+    ]
+    if (nrow(provider_contract) != 1L) {
+      stop("missing q4 intercept fixture contract for ", structured_type)
+    }
+
+    formula_cell <- provider_contract$formula_cell[[1L]]
+    cell_id <- paste0("qseries_", structured_type, "_q4_all_four_intercept")
+    group_label <- switch(
+      structured_type,
+      phylo = "species",
+      spatial = "site",
+      animal = "id",
+      relmat = "id"
+    )
+    provider_boundary <- switch(
+      structured_type,
+      phylo = "Phylo",
+      spatial = "Fixed-covariance spatial",
+      animal = "Animal A-matrix",
+      relmat = "Relmat K-matrix"
+    )
+    provider_clause <- switch(
+      structured_type,
+      phylo = "",
+      spatial = " no range-estimating spatial support,",
+      animal = " no pedigree/Ainv bridge marshalling,",
+      relmat = " no Q bridge marshalling,"
+    )
+    next_gate <- switch(
+      structured_type,
+      phylo = "Run deterministic phylo target-level Wald/profile/bootstrap smoke before calibrated coverage wording.",
+      spatial = "Run deterministic fixed-covariance target-level Wald/profile/bootstrap smoke before calibrated coverage wording.",
+      animal = "Run deterministic A-matrix target-level Wald/profile/bootstrap smoke before calibrated coverage wording.",
+      relmat = "Run deterministic K-matrix target-level Wald/profile/bootstrap smoke before calibrated coverage wording."
+    )
+
+    direct_rows <- lapply(seq_along(endpoint_members), function(index) {
+      endpoint <- endpoint_members[[index]]
+      endpoint_label <- endpoint_labels[[index]]
+      data.frame(
+        diagnostic_id = paste(
+          "q4_intercept_interval",
+          structured_type,
+          "sd",
+          endpoint,
+          sep = "_"
+        ),
+        cell_id = cell_id,
+        formula_cell = formula_cell,
+        structured_type = structured_type,
+        target_kind = "direct_sd",
+        endpoint_member = endpoint_label,
+        estimand = paste0("sd_", endpoint, "_intercept"),
+        profile_target = paste0(
+          "sd:mu:",
+          endpoint,
+          ":",
+          structured_type,
+          "(1 | p | ",
+          group_label,
+          ")"
+        ),
+        interval_methods = "wald;profile;bootstrap",
+        required_fit_evidence = paste(
+          "point_fit",
+          "extractor_ready",
+          "profile_targets_direct_ready",
+          "same_target_fixture_parity",
+          sep = ";"
+        ),
+        required_interval_evidence = paste(
+          "finite_direct_sd_intervals_by_method",
+          "coverage_mcse<=0.01",
+          sep = ";"
+        ),
+        denominator_fields = paste(
+          "coverage_denominator",
+          "n_total",
+          "n_fit_ok",
+          "n_failed_fit",
+          "n_pdhess",
+          "n_interval_finite",
+          "n_interval_unavailable",
+          "coverage_mcse",
+          sep = ";"
+        ),
+        current_blocker = "interval_diagnostics_not_run",
+        status = "planned",
+        evidence_url = "docs/dev-log/after-task/2026-06-25-q4-intercept-interval-diagnostic-plan.md",
+        claim_boundary = paste0(
+          provider_boundary,
+          " q4 all-four intercept direct-SD interval diagnostic plan only;",
+          provider_clause,
+          " no interval reliability, interval coverage, q4 REML,",
+          " native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad",
+          " bridge support, public support, or calibrated coverage wording",
+          " is promoted."
+        ),
+        next_gate = next_gate,
+        stringsAsFactors = FALSE
+      )
+    })
+
+    cor_rows <- lapply(cor_pairs, function(pair) {
+      left <- pair[[1L]]
+      right <- pair[[2L]]
+      axis_pair <- paste(left, right, sep = "_")
+      data.frame(
+        diagnostic_id = paste(
+          "q4_intercept_interval",
+          structured_type,
+          "cor",
+          axis_pair,
+          sep = "_"
+        ),
+        cell_id = cell_id,
+        formula_cell = formula_cell,
+        structured_type = structured_type,
+        target_kind = "derived_correlation",
+        endpoint_member = paste0(
+          left,
+          ":(Intercept)+",
+          right,
+          ":(Intercept)"
+        ),
+        estimand = paste0("cor_", axis_pair),
+        profile_target = paste0(
+          "derived:",
+          structured_type,
+          ":cor(",
+          left,
+          ":(Intercept),",
+          right,
+          ":(Intercept) | p | ",
+          group_label,
+          ")"
+        ),
+        interval_methods = "delta;profile;bootstrap",
+        required_fit_evidence = paste(
+          "point_fit",
+          "extractor_ready",
+          "corpairs_point_reconstruction",
+          "same_target_fixture_parity",
+          "derived_interval_reconstruction_planned",
+          sep = ";"
+        ),
+        required_interval_evidence = paste(
+          "finite_derived_correlation_intervals_by_method",
+          "coverage_mcse<=0.01",
+          sep = ";"
+        ),
+        denominator_fields = paste(
+          "coverage_denominator",
+          "n_total",
+          "n_fit_ok",
+          "n_failed_fit",
+          "n_pdhess",
+          "n_interval_finite",
+          "n_interval_unavailable",
+          "coverage_mcse",
+          sep = ";"
+        ),
+        current_blocker = "derived_correlation_interval_reconstruction_not_available",
+        status = "planned",
+        evidence_url = "docs/dev-log/after-task/2026-06-25-q4-intercept-interval-diagnostic-plan.md",
+        claim_boundary = paste0(
+          provider_boundary,
+          " q4 all-four intercept derived-correlation interval diagnostic",
+          " plan only; derived correlation interval reconstruction is not",
+          " available, and",
+          provider_clause,
+          " no interval reliability, interval coverage, q4 REML,",
+          " native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad",
+          " bridge support, public support, or calibrated coverage wording",
+          " is promoted."
+        ),
+        next_gate = paste(
+          "Design derived-correlation interval reconstruction before",
+          "calibrated coverage wording."
+        ),
+        stringsAsFactors = FALSE
+      )
+    })
+
+    do.call(rbind, c(direct_rows, cor_rows))
+  })
+
+  do.call(rbind, rows)
+}
+
 phase18_structured_re_q4_location_slope_parity_fixture_contract <- function() {
   structured_types <- c("phylo", "spatial", "animal", "relmat")
   rows <- lapply(structured_types, function(structured_type) {

@@ -67861,3 +67861,50 @@ Boundary:
   marshalling, Q bridge marshalling, broad bridge support, public support,
   DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
   Ayumi-facing reply.
+
+## 2026-06-25: q4 intercept interval diagnostic plan
+
+Goal:
+
+- Turn the newly banked q4 all-four intercept provider fixture parity into an
+  explicit target-level interval diagnostic plan, while keeping finite
+  intervals, denominators, interval reliability, interval coverage, q4 REML,
+  native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad bridge support,
+  public support, and DRAC/Totoro execution unpromoted.
+
+Result:
+
+- Added `phase18_structured_re_q4_intercept_interval_diagnostic_plan()` to
+  `inst/sim/R/sim_structured_re_bridge_fixtures.R`.
+- Added `tools/run-structured-re-q4-intercept-interval-diagnostic-plan.R` and
+  generated
+  `docs/dev-log/dashboard/structured-re-q4-intercept-interval-diagnostic-plan.tsv`
+  with 40 provider-target rows: four direct-SD targets and six
+  derived-correlation targets per provider.
+- Updated the four q4 all-four intercept support-cell `next_gate` fields to
+  point at the new interval-diagnostic plan while leaving interval and coverage
+  statuses planned.
+- Updated dashboard tests, mission-control validation, dashboard README, the
+  q-series completion map, and after-task report
+  `docs/dev-log/after-task/2026-06-25-q4-intercept-interval-diagnostic-plan.md`.
+
+Evidence:
+
+- `air format inst/sim/R/sim_structured_re_bridge_fixtures.R tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R tools/run-structured-re-q4-intercept-interval-diagnostic-plan.R`
+  passed.
+- `Rscript --vanilla tools/run-structured-re-q4-intercept-interval-diagnostic-plan.R`
+  wrote 40 q4 intercept interval-diagnostic plan rows.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,264 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 40 q4
+  intercept interval-diagnostic plan rows.
+
+Boundary:
+
+- This is an interval diagnostic plan contract only. It does not run interval
+  diagnostics, admit coverage denominators, claim finite intervals, claim q4
+  interval reliability, claim q4 interval coverage, add q4 REML, native-TMB q4
+  REML, q4 AI-REML, HSquared AI-REML, non-Gaussian REML, range-estimating
+  spatial support, pedigree/Ainv bridge marshalling, Q bridge marshalling,
+  broad bridge support, public support, DRAC/Totoro execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.

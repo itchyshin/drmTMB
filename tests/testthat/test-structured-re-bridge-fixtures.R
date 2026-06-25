@@ -826,6 +826,96 @@ test_that("q4 all-four intercept fixtures record provider-specific agreement", {
   )
 })
 
+test_that("q4 all-four intercept interval plan follows fixture targets", {
+  source_structured_re_bridge_fixtures()
+
+  plan <- phase18_structured_re_q4_intercept_interval_diagnostic_plan()
+
+  expect_equal(nrow(plan), 40L)
+  expect_setequal(
+    plan$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  for (structured_type in c("phylo", "spatial", "animal", "relmat")) {
+    provider_rows <- plan[
+      plan$structured_type == structured_type,
+      ,
+      drop = FALSE
+    ]
+    expect_equal(nrow(provider_rows), 10L)
+    expect_equal(sum(provider_rows$target_kind == "direct_sd"), 4L)
+    expect_equal(sum(provider_rows$target_kind == "derived_correlation"), 6L)
+    expect_equal(
+      provider_rows$cell_id,
+      rep(paste0("qseries_", structured_type, "_q4_all_four_intercept"), 10L)
+    )
+  }
+
+  direct_rows <- plan[plan$target_kind == "direct_sd", , drop = FALSE]
+  derived_rows <- plan[
+    plan$target_kind == "derived_correlation",
+    ,
+    drop = FALSE
+  ]
+  expect_setequal(
+    direct_rows$endpoint_member,
+    paste0(c("mu1", "mu2", "sigma1", "sigma2"), ":(Intercept)")
+  )
+  expect_setequal(
+    derived_rows$estimand,
+    c(
+      "cor_mu1_mu2",
+      "cor_mu1_sigma1",
+      "cor_mu1_sigma2",
+      "cor_mu2_sigma1",
+      "cor_mu2_sigma2",
+      "cor_sigma1_sigma2"
+    )
+  )
+  expect_equal(
+    direct_rows$current_blocker,
+    rep("interval_diagnostics_not_run", 16L)
+  )
+  expect_equal(
+    derived_rows$current_blocker,
+    rep("derived_correlation_interval_reconstruction_not_available", 24L)
+  )
+  expect_match(
+    direct_rows$required_fit_evidence,
+    "profile_targets_direct_ready"
+  )
+  expect_match(
+    derived_rows$required_fit_evidence,
+    "corpairs_point_reconstruction"
+  )
+  expect_match(
+    derived_rows$claim_boundary,
+    "derived correlation interval reconstruction is not available",
+    fixed = TRUE
+  )
+  expect_equal(plan$status, rep("planned", 40L))
+  expect_match(plan$claim_boundary, "q4 all-four intercept", fixed = TRUE)
+  expect_match(plan$claim_boundary, "no interval reliability", fixed = TRUE)
+  expect_match(plan$claim_boundary, "interval coverage", fixed = TRUE)
+  expect_match(plan$claim_boundary, "native-TMB q4 REML", fixed = TRUE)
+  expect_match(plan$claim_boundary, "HSquared AI-REML", fixed = TRUE)
+  expect_match(
+    plan$claim_boundary[plan$structured_type == "spatial"],
+    "range-estimating",
+    fixed = TRUE
+  )
+  expect_match(
+    plan$claim_boundary[plan$structured_type == "animal"],
+    "pedigree/Ainv",
+    fixed = TRUE
+  )
+  expect_match(
+    plan$claim_boundary[plan$structured_type == "relmat"],
+    "Q bridge",
+    fixed = TRUE
+  )
+})
+
 test_that("q2 fixture contract separates q2 from q2-plus-q2 and q4", {
   source_structured_re_bridge_fixtures()
 

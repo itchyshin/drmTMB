@@ -1001,6 +1001,16 @@ AI-REML, broad bridge support, public support, range-estimating spatial
 support, pedigree/Ainv animal bridge marshalling, and relmat Q bridge
 marshalling remain separate gates.
 
+`structured-re-q4-intercept-interval-diagnostic-plan.tsv` records the
+provider-scoped target plan for deterministic q4 all-four intercept interval
+diagnostics. Each provider has four direct-SD rows and six derived-correlation
+rows. The direct-SD rows require a future deterministic Wald/profile/bootstrap
+smoke; the derived-correlation rows remain blocked until interval reconstruction
+is designed. This is a plan contract only, not interval reliability, interval
+coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML, broad
+bridge support, public support, range-estimating spatial support,
+pedigree/Ainv animal bridge marshalling, or relmat Q bridge marshalling.
+
 `structured-re-q4-slope-identity-preflight.tsv` records the q8-shaped identity
 contract for all-four bivariate Gaussian one-slope cells. Each provider row
 names the eight endpoint members, the matching eight direct-SD targets, and the
