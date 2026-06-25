@@ -60,7 +60,7 @@ clean_text <- function(x) {
   trimws(x)
 }
 
-observed_utc <- "2026-06-25T13:00:48Z"
+observed_utc <- "2026-06-25T19:58:58Z"
 platforms_success <- paste(
   "ubuntu-latest (release)",
   "macos-latest (release)",
@@ -86,13 +86,13 @@ run_log_ref <- paste(
 )
 evidence_ref <- paste(
   "docs/dev-log/after-task",
-  "2026-06-25-pr-stack-merge-readiness.md",
+  "2026-06-25-pr-stack-merge-readiness-extension-656-662.md",
   sep = "/"
 )
 
 stack <- data.frame(
-  merge_order = seq_len(17),
-  pr_number = 639:655,
+  merge_order = seq_len(24),
+  pr_number = 639:662,
   title = c(
     "[codex] Bank structured q-series completion slices",
     "[codex] Plan q4 location bootstrap dispatch",
@@ -110,7 +110,14 @@ stack <- data.frame(
     "Bank sigma slope coverage dispatch review",
     "Bank sigma slope coverage runner contract",
     "Bank q-series PR stack merge-readiness",
-    "Bank q2-plus-q2 sigma rejection contract"
+    "Bank q2-plus-q2 sigma rejection contract",
+    "Bank relmat K/Q one-slope native parity ledger",
+    "Admit count structured mu one-slope cells",
+    "Split phylo interaction count q1 support cells",
+    "Bank count slope fixture recovery contract",
+    "Bank count slope native fixture status",
+    "Bank count slope recovery runner contract",
+    "Bank count slope recovery dispatch review"
   ),
   base_ref = c(
     "main",
@@ -129,7 +136,14 @@ stack <- data.frame(
     "codex/relmat-q-payload-marshalling-gate",
     "codex/sigma-slope-coverage-dispatch-review",
     "codex/sigma-slope-runner-contract",
-    "codex/q-series-pr-stack-merge-readiness"
+    "codex/q-series-pr-stack-merge-readiness",
+    "codex/q2-plus-q2-sigma-rejection-contract",
+    "codex/relmat-kq-one-slope-fixtures",
+    "codex/count-structured-mu-one-slope",
+    "codex/phylo-interaction-nb2-count-cell",
+    "codex/count-slope-fixture-recovery-contract",
+    "codex/count-slope-native-fixture-status",
+    "codex/count-slope-recovery-runner-contract"
   ),
   head_ref = c(
     "codex/structured-relmat-kq-mu-slope-fixture",
@@ -148,7 +162,14 @@ stack <- data.frame(
     "codex/sigma-slope-coverage-dispatch-review",
     "codex/sigma-slope-runner-contract",
     "codex/q-series-pr-stack-merge-readiness",
-    "codex/q2-plus-q2-sigma-rejection-contract"
+    "codex/q2-plus-q2-sigma-rejection-contract",
+    "codex/relmat-kq-one-slope-fixtures",
+    "codex/count-structured-mu-one-slope",
+    "codex/phylo-interaction-nb2-count-cell",
+    "codex/count-slope-fixture-recovery-contract",
+    "codex/count-slope-native-fixture-status",
+    "codex/count-slope-recovery-runner-contract",
+    "codex/count-slope-recovery-dispatch-review"
   ),
   head_sha = c(
     "d6b951fe9f3b6fabd1a9d4246bf3346d4ca86e8e",
@@ -167,7 +188,14 @@ stack <- data.frame(
     "4ac0e200032ad333920ad6eef6e69901f16890fc",
     "fdb7f78510d24f107f293e7339f4925bf6e3923d",
     "f540fc711f558aeb2829f2d739d50401931ebcf0",
-    "691bad99956bf593732395be88bc1269c76f37fc"
+    "691bad99956bf593732395be88bc1269c76f37fc",
+    "fd2950e15257c4f0dffab288827394af8e9e261d",
+    "a35e5e10a90263290641ddc39b264eac5e6c16ba",
+    "95cce5ceb91bc836007745fa20184d3be9f7c3e6",
+    "6ce0efa63cd29122823d4de34855e44cae3a56f4",
+    "36dba36573d7e5859b7795e91b054e2c87490f9a",
+    "3d26dca7b7018dde8268d9ce84d98ae47db07401",
+    "3cdd294401af42d5ba93ab2ee18a262a5f47517b"
   ),
   r_cmd_check_run_id = c(
     "28138055013",
@@ -186,7 +214,14 @@ stack <- data.frame(
     "28164197137",
     "28166541285",
     "28168795112",
-    "28170403815"
+    "28170403815",
+    "28175177624",
+    "28180855796",
+    "28183541915",
+    "28186188654",
+    "28188540878",
+    "28190850945",
+    "28192932086"
   ),
   stringsAsFactors = FALSE
 )
@@ -318,7 +353,10 @@ run_log <- data.frame(
     "repos/itchyshin/drmTMB/commits/<sha>/check-runs;",
     "gh run view 28168795112 --repo itchyshin/drmTMB --json",
     "status,conclusion,jobs; gh run view 28170403815 --repo",
-    "itchyshin/drmTMB --json status,conclusion,jobs"
+    "itchyshin/drmTMB --json status,conclusion,jobs;",
+    "for run in 28175177624 28180855796 28183541915 28186188654",
+    "28188540878 28190850945 28192932086; do gh run view $run",
+    "--repo itchyshin/drmTMB --json status,conclusion,jobs; done"
   )),
   execution_status = "validated_snapshot_not_executed",
   merge_status = "not_merged",

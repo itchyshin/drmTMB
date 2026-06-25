@@ -2,6 +2,57 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: q-series PR stack merge-readiness extension 656-662
+
+Goal:
+
+- Extend the q-series merge-readiness ledger so it covers verified-green draft
+  PR #656 through PR #662, while leaving PR #663 pending until its
+  R-CMD-check run completes.
+
+Result:
+
+- Extended `structured-re-pr-stack-merge-readiness.tsv` from 17 rows ending at
+  PR #655 to 24 rows ending at PR #662.
+- Regenerated the mirrored artifact snapshot and dry-run run log under
+  `docs/dev-log/simulation-artifacts/2026-06-25-pr-stack-merge-readiness/`.
+- Updated `tools/plan-structured-re-pr-stack-merge-readiness.R`,
+  `tools/validate-mission-control.py`, and
+  `tests/testthat/test-structured-re-conversion-contracts.R` so the 24-row
+  stack ledger, head SHAs, run IDs, merge order, and conservative boundaries
+  stay checked.
+- Updated the dashboard README and q-series completion map to record PR #639
+  through PR #662 as the current green ledger and PR #663 as pending.
+- Added after-task report
+  `docs/dev-log/after-task/2026-06-25-pr-stack-merge-readiness-extension-656-662.md`.
+
+Evidence:
+
+- Live `gh pr view` checks showed PR #656 through PR #662 draft and `CLEAN`.
+- Live `gh run list --workflow R-CMD-check` checks found successful runs
+  28175177624, 28180855796, 28183541915, 28186188654, 28188540878,
+  28190850945, and 28192932086 for the exact #656-#662 head SHAs.
+- `Rscript --vanilla tools/plan-structured-re-pr-stack-merge-readiness.R --mode=dry-run`
+  passed and wrote 24 PR stack merge-readiness rows.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 24
+  structured RE PR stack merge-readiness rows.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-pr-stack-merge-readiness-extension-656-662.md')"`
+  passed.
+- `Rscript --no-environ --no-init-file -e "testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R', stop_on_failure = TRUE)"`
+  could not run because `testthat` is absent from the clean local R library.
+- `gh issue list --repo itchyshin/drmTMB --search '"PR stack merge-readiness" "656" "662"' --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+
+Boundary:
+
+- This is merge-readiness evidence only. It does not add PR #663 while its run
+  remains pending, undraft or merge any PR, submit Totoro or DRAC jobs, create
+  coverage-evaluable denominator evidence, promote MCSE-calibrated coverage,
+  interval reliability, q4 REML, native-TMB q4 REML, q4 AI-REML,
+  HSquared AI-REML, non-Gaussian REML, AI-REML, broad bridge support, public
+  support, SR150 readiness, or an Ayumi-facing reply.
+
 ## 2026-06-25: count structured mu one-slope recovery shard-pack contract
 
 Goal:

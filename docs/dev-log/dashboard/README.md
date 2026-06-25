@@ -923,11 +923,12 @@ MCSE-calibrated coverage, interval reliability, REML, AI-REML, q4/q8 support,
 broad bridge support, public support, or SR150 readiness.
 
 `structured-re-pr-stack-merge-readiness.tsv` records the ordered draft PR stack
-for the current q-series lane (#639 through #655). It separates merge-clean
+for the current q-series lane (#639 through #662). It separates merge-clean
 state from ordinary PR-attached checks: #639 has attached green checks against
-`main`, while #640 through #655 have green commit-level R-CMD-check evidence
-and must rerun normal PR checks after each retargets to `main`. This sidecar
-does not undraft, merge, submit Totoro or DRAC jobs, admit coverage-evaluable
+`main`, while #640 through #662 have green commit-level R-CMD-check evidence
+and must rerun normal PR checks after each retargets to `main`. PR #663 is not
+included until its manual R-CMD-check run finishes. This sidecar does not
+undraft, merge, submit Totoro or DRAC jobs, admit coverage-evaluable
 denominators, or promote interval, REML, AI-REML, bridge, public-support, or
 SR150 readiness claims. Its next gate is explicit maintainer approval, then
 merge from #639 upward with mission-control validation and normal PR checks

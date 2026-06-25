@@ -10348,6 +10348,69 @@ def main() -> int:
             "run_id": "28170403815",
             "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
         },
+        {
+            "merge_order": "18",
+            "pr_number": "656",
+            "base_ref": "codex/q2-plus-q2-sigma-rejection-contract",
+            "head_ref": "codex/relmat-kq-one-slope-fixtures",
+            "head_sha": "fd2950e15257c4f0dffab288827394af8e9e261d",
+            "run_id": "28175177624",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "19",
+            "pr_number": "657",
+            "base_ref": "codex/relmat-kq-one-slope-fixtures",
+            "head_ref": "codex/count-structured-mu-one-slope",
+            "head_sha": "a35e5e10a90263290641ddc39b264eac5e6c16ba",
+            "run_id": "28180855796",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "20",
+            "pr_number": "658",
+            "base_ref": "codex/count-structured-mu-one-slope",
+            "head_ref": "codex/phylo-interaction-nb2-count-cell",
+            "head_sha": "95cce5ceb91bc836007745fa20184d3be9f7c3e6",
+            "run_id": "28183541915",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "21",
+            "pr_number": "659",
+            "base_ref": "codex/phylo-interaction-nb2-count-cell",
+            "head_ref": "codex/count-slope-fixture-recovery-contract",
+            "head_sha": "6ce0efa63cd29122823d4de34855e44cae3a56f4",
+            "run_id": "28186188654",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "22",
+            "pr_number": "660",
+            "base_ref": "codex/count-slope-fixture-recovery-contract",
+            "head_ref": "codex/count-slope-native-fixture-status",
+            "head_sha": "36dba36573d7e5859b7795e91b054e2c87490f9a",
+            "run_id": "28188540878",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "23",
+            "pr_number": "661",
+            "base_ref": "codex/count-slope-native-fixture-status",
+            "head_ref": "codex/count-slope-recovery-runner-contract",
+            "head_sha": "3d26dca7b7018dde8268d9ce84d98ae47db07401",
+            "run_id": "28190850945",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
+        {
+            "merge_order": "24",
+            "pr_number": "662",
+            "base_ref": "codex/count-slope-recovery-runner-contract",
+            "head_ref": "codex/count-slope-recovery-dispatch-review",
+            "head_sha": "3cdd294401af42d5ba93ab2ee18a262a5f47517b",
+            "run_id": "28192932086",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
     ]
     expected_pr_stack_by_number = {
         row["pr_number"]: row for row in expected_pr_stack
@@ -10439,7 +10502,7 @@ def main() -> int:
             "run_log": expected_pr_stack_run_log,
             "evidence_url": (
                 "docs/dev-log/after-task/"
-                "2026-06-25-pr-stack-merge-readiness.md"
+                "2026-06-25-pr-stack-merge-readiness-extension-656-662.md"
             ),
         }
         for field, expected_value in expected_common.items():
@@ -10520,7 +10583,7 @@ def main() -> int:
             "mode": "dry-run",
             "stack_rows": str(len(expected_pr_stack)),
             "first_pr": "639",
-            "last_pr": "655",
+            "last_pr": "662",
             "draft_rows": str(len(expected_pr_stack)),
             "clean_rows": str(len(expected_pr_stack)),
             "commit_check_success_rows": str(len(expected_pr_stack)),

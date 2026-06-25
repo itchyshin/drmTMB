@@ -4832,7 +4832,7 @@ test_that("structured RE PR stack merge-readiness keeps the stack ordered", {
     )
   )
   expect_equal(snapshot, stack)
-  expected_prs <- 639:655
+  expected_prs <- 639:662
   expected_stack_rows <- length(expected_prs)
   expected_stacked_rows <- expected_stack_rows - 1L
   expect_equal(nrow(stack), expected_stack_rows)
