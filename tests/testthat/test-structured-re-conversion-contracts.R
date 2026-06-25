@@ -1293,6 +1293,217 @@ test_that("count structured mu one-slope recovery dispatch review is not submitt
   expect_equal(runner_rows$coverage_evaluable, dispatch$coverage_evaluable)
 })
 
+test_that("count structured mu one-slope recovery shard pack is dry-run only", {
+  shard_pack <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-shard-pack-contract.tsv"
+  )
+  shard_index <- utils::read.delim(
+    structured_re_artifact_path(
+      "docs",
+      "dev-log",
+      "simulation-artifacts",
+      "2026-06-25-count-slope-recovery-shard-pack-contract",
+      "structured-re-count-slope-recovery-shard-pack-index.tsv"
+    ),
+    sep = "\t",
+    quote = "",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-dispatch-review.tsv"
+  )
+  runner <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-runner-contract.tsv"
+  )
+
+  expect_named(
+    shard_pack,
+    c(
+      "pack_id",
+      "dispatch_id",
+      "runner_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "shard_id",
+      "shard_scope",
+      "shard_manifest",
+      "shard_run_log",
+      "output_namespace",
+      "planned_replicates",
+      "seed_start",
+      "seed_end",
+      "scheduler_surface",
+      "submission_status",
+      "compute_status",
+      "recovery_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "write_isolation",
+      "resume_gate",
+      "aggregate_gate",
+      "retention_policy",
+      "human_approval_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(shard_index, shard_pack)
+  expect_equal(nrow(shard_pack), 8L)
+  expect_equal(anyDuplicated(shard_pack$pack_id), 0L)
+  expect_equal(anyDuplicated(shard_pack$shard_manifest), 0L)
+  expect_equal(anyDuplicated(shard_pack$shard_run_log), 0L)
+  expect_setequal(
+    shard_pack$structured_type,
+    c("phylo", "spatial", "animal", "relmat")
+  )
+  expect_equal(sum(shard_pack$family == "poisson()"), 4L)
+  expect_equal(sum(shard_pack$family == "nbinom2()"), 4L)
+
+  expect_equal(shard_pack$shard_scope, rep("provider_family", 8L))
+  expect_equal(shard_pack$planned_replicates, rep(80L, 8L))
+  expect_equal(shard_pack$seed_start, rep(760001L, 8L))
+  expect_equal(shard_pack$seed_end, rep(760080L, 8L))
+  expect_equal(
+    shard_pack$scheduler_surface,
+    rep("totoro_or_drac_after_human_review", 8L)
+  )
+  expect_equal(shard_pack$submission_status, rep("not_submitted", 8L))
+  expect_equal(shard_pack$compute_status, rep("not_executed", 8L))
+  expect_equal(shard_pack$recovery_status, rep("shard_pack_only", 8L))
+  expect_equal(shard_pack$denominator_status, rep("not_coverage_evidence", 8L))
+  expect_equal(shard_pack$coverage_evaluable, rep(FALSE, 8L))
+  expect_equal(shard_pack$human_approval_status, rep("pending", 8L))
+  expect_equal(shard_pack$status, rep("covered", 8L))
+  expect_equal(
+    shard_pack$evidence_url,
+    rep(
+      "docs/dev-log/after-task/2026-06-25-count-slope-recovery-shard-pack-contract.md",
+      8L
+    )
+  )
+
+  for (phrase in c(
+    "private_provider_family_manifest",
+    "private_provider_family_run_log",
+    "no_shared_output_files",
+    "no_overwrite_existing_outputs"
+  )) {
+    structured_re_expect_all_match(shard_pack$write_isolation, phrase)
+  }
+  structured_re_expect_all_match(
+    shard_pack$resume_gate,
+    "resume_from_shard_manifest_only"
+  )
+  structured_re_expect_all_match(
+    shard_pack$aggregate_gate,
+    "blocked_until_all_8_shard_manifests_exist"
+  )
+  structured_re_expect_all_match(
+    shard_pack$retention_policy,
+    "retain_scheduler_exit_status"
+  )
+  for (phrase in c(
+    "shard-pack contract only",
+    "no human execution approval recorded",
+    "no recovery simulation executed",
+    "no Totoro job submitted",
+    "no DRAC job submitted",
+    "coverage evidence",
+    "REML",
+    "AI-REML",
+    "public support",
+    "broad bridge support"
+  )) {
+    structured_re_expect_all_match(shard_pack$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(shard_pack$next_gate, "Shinichi")
+  structured_re_expect_all_match(shard_pack$next_gate, "scheduler exit status")
+
+  dispatch_rows <- dispatch[
+    match(shard_pack$dispatch_id, dispatch$dispatch_id),
+    ,
+    drop = FALSE
+  ]
+  runner_rows <- runner[
+    match(shard_pack$runner_id, runner$runner_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(dispatch_rows$dispatch_id))
+  expect_false(anyNA(runner_rows$runner_id))
+  expect_equal(dispatch_rows$cell_id, shard_pack$cell_id)
+  expect_equal(dispatch_rows$family, shard_pack$family)
+  expect_equal(dispatch_rows$structured_type, shard_pack$structured_type)
+  expect_equal(dispatch_rows$shard_id, shard_pack$shard_id)
+  expect_equal(runner_rows$cell_id, shard_pack$cell_id)
+  expect_equal(runner_rows$family, shard_pack$family)
+  expect_equal(runner_rows$structured_type, shard_pack$structured_type)
+
+  for (i in seq_len(nrow(shard_pack))) {
+    row <- shard_pack[i, , drop = FALSE]
+    manifest <- utils::read.delim(
+      structured_re_artifact_path(strsplit(
+        row$shard_manifest,
+        "/",
+        fixed = TRUE
+      )[[1]]),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    run_log <- utils::read.delim(
+      structured_re_artifact_path(strsplit(
+        row$shard_run_log,
+        "/",
+        fixed = TRUE
+      )[[1]]),
+      sep = "\t",
+      quote = "",
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+
+    expect_equal(nrow(manifest), 1L)
+    expect_equal(nrow(run_log), 1L)
+    expect_equal(manifest$runner_id, row$runner_id)
+    expect_equal(manifest$cell_id, row$cell_id)
+    expect_equal(manifest$family, row$family)
+    expect_equal(manifest$structured_type, row$structured_type)
+    expect_equal(manifest$selected_manifest, row$shard_manifest)
+    expect_equal(manifest$run_log, row$shard_run_log)
+    expect_equal(manifest$recovery_status, "shard_pack_only")
+    expect_equal(manifest$compute_status, "not_executed")
+    expect_equal(manifest$coverage_evaluable, FALSE)
+    expect_equal(run_log$shard_id, row$shard_id)
+    expect_equal(run_log$provider_filter, row$structured_type)
+    expect_equal(run_log$family_filter, row$family)
+    expect_equal(run_log$selected_targets, 1L)
+    expect_equal(run_log$selected_manifest, row$shard_manifest)
+    expect_equal(
+      run_log$dashboard_contract,
+      paste0(
+        "docs/dev-log/dashboard/",
+        "structured-re-count-slope-recovery-shard-pack-contract.tsv"
+      )
+    )
+    expect_equal(run_log$execution_status, "validated_not_executed")
+    expect_equal(run_log$scheduler_status, "dry_run_not_submitted")
+    expect_equal(run_log$compute_status, "not_executed")
+    expect_equal(run_log$coverage_evaluable, FALSE)
+    expect_match(
+      run_log$claim_boundary,
+      "no recovery simulation executed",
+      fixed = TRUE
+    )
+    expect_match(run_log$claim_boundary, "no coverage evidence", fixed = TRUE)
+  }
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"

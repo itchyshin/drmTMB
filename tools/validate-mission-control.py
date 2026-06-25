@@ -60,6 +60,9 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT = (
 STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW = (
     DASHBOARD / "structured-re-count-slope-recovery-dispatch-review.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT = (
+    DASHBOARD / "structured-re-count-slope-recovery-shard-pack-contract.tsv"
+)
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 )
@@ -456,6 +459,14 @@ COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG = (
     / "simulation-artifacts"
     / "2026-06-25-count-slope-recovery-runner-contract"
     / "structured-re-count-slope-recovery-runner-run-log.tsv"
+)
+COUNT_SLOPE_RECOVERY_SHARD_PACK_INDEX = (
+    ROOT
+    / "docs"
+    / "dev-log"
+    / "simulation-artifacts"
+    / "2026-06-25-count-slope-recovery-shard-pack-contract"
+    / "structured-re-count-slope-recovery-shard-pack-index.tsv"
 )
 PR_STACK_MERGE_READINESS_SNAPSHOT = (
     ROOT
@@ -1267,6 +1278,61 @@ STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW_FIELDS = (
     "dispatch_gate_status",
     "status",
     "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT_FIELDS = (
+    "pack_id",
+    "dispatch_id",
+    "runner_id",
+    "cell_id",
+    "family",
+    "structured_type",
+    "shard_id",
+    "shard_scope",
+    "shard_manifest",
+    "shard_run_log",
+    "output_namespace",
+    "planned_replicates",
+    "seed_start",
+    "seed_end",
+    "scheduler_surface",
+    "submission_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "write_isolation",
+    "resume_gate",
+    "aggregate_gate",
+    "retention_policy",
+    "human_approval_status",
+    "status",
+    "evidence_url",
+    "claim_boundary",
+    "next_gate",
+)
+COUNT_SLOPE_RECOVERY_SHARD_PACK_RUN_LOG_FIELDS = (
+    "run_id",
+    "mode",
+    "shard_id",
+    "provider_filter",
+    "family_filter",
+    "selected_targets",
+    "selected_structured_types",
+    "selected_families",
+    "source_dispatch_review",
+    "source_runner_contract",
+    "selected_manifest",
+    "dashboard_contract",
+    "execution_status",
+    "scheduler_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "coverage_status",
+    "status",
     "claim_boundary",
     "next_gate",
 )
@@ -4969,6 +5035,9 @@ def main() -> int:
     structured_re_count_slope_recovery_dispatch_review_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW
     )
+    structured_re_count_slope_recovery_shard_pack_contract_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT
+    )
     structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
     )
@@ -5058,6 +5127,9 @@ def main() -> int:
     )
     count_slope_recovery_runner_run_log_rows = read_tsv(
         COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG
+    )
+    count_slope_recovery_shard_pack_index_rows = read_tsv(
+        COUNT_SLOPE_RECOVERY_SHARD_PACK_INDEX
     )
     structured_re_pr_stack_merge_readiness_rows = read_tsv(
         STRUCTURED_RE_PR_STACK_MERGE_READINESS
@@ -7703,6 +7775,361 @@ def main() -> int:
             ):
                 if runner_row.get(field) != expected_value:
                     errors.append(f"{row_id}: linked runner {field} changed")
+
+    count_slope_recovery_dispatch_map = {
+        row.get("dispatch_id", ""): row
+        for row in structured_re_count_slope_recovery_dispatch_review_rows
+    }
+    expected_count_slope_shard_pack_rows = {}
+    for (
+        dispatch_id,
+        (
+            expected_runner,
+            expected_cell,
+            expected_family,
+            expected_provider,
+            expected_shard,
+            expected_output_namespace,
+        ),
+    ) in expected_count_slope_recovery_dispatch_rows.items():
+        provider_family_slug = expected_shard.replace("-", "_")
+        expected_count_slope_shard_pack_rows[
+            f"count_slope_recovery_shard_pack_{provider_family_slug}_q1_mu_one_slope"
+        ] = (
+            dispatch_id,
+            expected_runner,
+            expected_cell,
+            expected_family,
+            expected_provider,
+            expected_shard,
+            expected_output_namespace,
+            (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-25-count-slope-recovery-shard-pack-contract/"
+                f"structured-re-count-slope-recovery-target-manifest-{expected_shard}.tsv"
+            ),
+            (
+                "docs/dev-log/simulation-artifacts/"
+                "2026-06-25-count-slope-recovery-shard-pack-contract/"
+                f"structured-re-count-slope-recovery-run-log-{expected_shard}.tsv"
+            ),
+        )
+    expected_count_slope_shard_pack_dashboard = (
+        "docs/dev-log/dashboard/"
+        "structured-re-count-slope-recovery-shard-pack-contract.tsv"
+    )
+    expected_count_slope_shard_pack_index = (
+        "docs/dev-log/simulation-artifacts/"
+        "2026-06-25-count-slope-recovery-shard-pack-contract/"
+        "structured-re-count-slope-recovery-shard-pack-index.tsv"
+    )
+    expected_count_slope_shard_pack_evidence = (
+        "docs/dev-log/after-task/"
+        "2026-06-25-count-slope-recovery-shard-pack-contract.md"
+    )
+    if len(structured_re_count_slope_recovery_shard_pack_contract_rows) != len(
+        expected_count_slope_shard_pack_rows
+    ):
+        errors.append(
+            "structured-re-count-slope-recovery-shard-pack-contract.tsv has "
+            f"{len(structured_re_count_slope_recovery_shard_pack_contract_rows)} "
+            f"rows; expected {len(expected_count_slope_shard_pack_rows)}"
+        )
+    if (
+        count_slope_recovery_shard_pack_index_rows
+        != structured_re_count_slope_recovery_shard_pack_contract_rows
+    ):
+        errors.append(
+            "structured-re-count-slope-recovery-shard-pack index must match "
+            "the dashboard shard-pack contract exactly"
+        )
+    seen_count_slope_shard_pack_rows: set[str] = set()
+    for row in structured_re_count_slope_recovery_shard_pack_contract_rows:
+        row_id = row.get("pack_id", "<structured RE count slope shard pack>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-recovery-shard-pack-contract.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_RECOVERY_SHARD_PACK_CONTRACT_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id not in expected_count_slope_shard_pack_rows:
+            errors.append(f"{row_id}: unexpected count slope shard-pack id")
+            continue
+        if row_id in seen_count_slope_shard_pack_rows:
+            errors.append(f"duplicate structured RE count slope shard-pack id: {row_id}")
+        seen_count_slope_shard_pack_rows.add(row_id)
+        (
+            expected_dispatch,
+            expected_runner,
+            expected_cell,
+            expected_family,
+            expected_provider,
+            expected_shard,
+            expected_output_namespace,
+            expected_shard_manifest,
+            expected_shard_run_log,
+        ) = expected_count_slope_shard_pack_rows[row_id]
+        expected_values = {
+            "dispatch_id": expected_dispatch,
+            "runner_id": expected_runner,
+            "cell_id": expected_cell,
+            "family": expected_family,
+            "structured_type": expected_provider,
+            "shard_id": expected_shard,
+            "shard_scope": "provider_family",
+            "shard_manifest": expected_shard_manifest,
+            "shard_run_log": expected_shard_run_log,
+            "output_namespace": expected_output_namespace,
+            "planned_replicates": "80",
+            "seed_start": "760001",
+            "seed_end": "760080",
+            "scheduler_surface": "totoro_or_drac_after_human_review",
+            "submission_status": "not_submitted",
+            "compute_status": "not_executed",
+            "recovery_status": "shard_pack_only",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "human_approval_status": "pending",
+            "status": "covered",
+            "evidence_url": expected_count_slope_shard_pack_evidence,
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for path_field in ("shard_manifest", "shard_run_log", "evidence_url"):
+            if not evidence_reference_exists(row.get(path_field, "")):
+                errors.append(f"{row_id}: {path_field} does not resolve")
+        for field, phrases in {
+            "write_isolation": (
+                "private_provider_family_manifest",
+                "private_provider_family_run_log",
+                "no_shared_output_files",
+                "no_overwrite_existing_outputs",
+            ),
+            "resume_gate": (
+                "resume_from_shard_manifest_only",
+                "append_attempt_log",
+                "preserve_failed_attempts",
+            ),
+            "aggregate_gate": (
+                "blocked_until_all_8_shard_manifests_exist",
+                "expect_8_targets",
+                "not_coverage_aggregate",
+            ),
+            "retention_policy": (
+                "retain_fit_errors",
+                "retain_nonconverged_fits",
+                "retain_scheduler_exit_status",
+            ),
+        }.items():
+            for phrase in phrases:
+                if phrase not in row.get(field, ""):
+                    errors.append(f"{row_id}: {field} must mention {phrase}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "shard-pack contract only",
+            "no human execution approval recorded",
+            "no recovery simulation executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "bridge parity",
+            "interval reliability",
+            "coverage evidence",
+            "q2",
+            "q4",
+            "REML",
+            "AI-REML",
+            "public support",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        if expected_provider == "spatial" and "fixed-covariance" not in claim_boundary:
+            errors.append(f"{row_id}: spatial claim_boundary must be fixed-covariance")
+        if expected_provider == "animal" and "A/Ainv" not in claim_boundary:
+            errors.append(f"{row_id}: animal claim_boundary must name A/Ainv")
+        if expected_provider == "relmat" and "K/Q" not in claim_boundary:
+            errors.append(f"{row_id}: relmat claim_boundary must name K/Q")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("Shinichi", "one shard", "Totoro", "DRAC", "scheduler exit status"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        dispatch_row = count_slope_recovery_dispatch_map.get(expected_dispatch)
+        if dispatch_row is None:
+            errors.append(f"{row_id}: linked recovery dispatch row is missing")
+        else:
+            for field, expected_value in (
+                ("runner_id", expected_runner),
+                ("cell_id", expected_cell),
+                ("family", expected_family),
+                ("structured_type", expected_provider),
+                ("shard_id", expected_shard),
+                ("output_namespace", expected_output_namespace),
+                ("submission_status", "not_submitted"),
+                ("compute_status", "not_executed"),
+                ("denominator_status", "not_coverage_evidence"),
+                ("coverage_evaluable", "FALSE"),
+            ):
+                if dispatch_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked dispatch {field} changed")
+        runner_row = count_slope_recovery_runner_map.get(expected_runner)
+        if runner_row is None:
+            errors.append(f"{row_id}: linked recovery runner row is missing")
+            continue
+        for field, expected_value in (
+            ("cell_id", expected_cell),
+            ("family", expected_family),
+            ("structured_type", expected_provider),
+            ("planned_replicates", "80"),
+            ("seed_start", "760001"),
+            ("seed_end", "760080"),
+            ("scheduler_status", "dry_run_not_submitted"),
+            ("compute_status", "not_executed"),
+            ("denominator_status", "not_coverage_evidence"),
+            ("coverage_evaluable", "FALSE"),
+            ("status", "covered"),
+        ):
+            if runner_row.get(field) != expected_value:
+                errors.append(f"{row_id}: linked runner {field} changed")
+        shard_manifest_rows = []
+        if evidence_reference_exists(expected_shard_manifest):
+            shard_manifest_rows = read_tsv(ROOT / expected_shard_manifest)
+        if len(shard_manifest_rows) != 1:
+            errors.append(f"{row_id}: shard manifest must have one row")
+        else:
+            shard_manifest = shard_manifest_rows[0]
+            if set(shard_manifest.keys()) != set(
+                STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT_FIELDS
+            ):
+                errors.append(f"{row_id}: shard manifest fields do not match runner schema")
+            expected_manifest_values = {
+                "runner_id": expected_runner,
+                "contract_id": runner_row.get("contract_id", ""),
+                "fixture_id": runner_row.get("fixture_id", ""),
+                "cell_id": expected_cell,
+                "formula_cell": runner_row.get("formula_cell", ""),
+                "family": expected_family,
+                "structured_type": expected_provider,
+                "dimension": "q1",
+                "endpoint": "mu",
+                "slope_class": "independent_one_slope",
+                "estimator_effective": "ML_Laplace",
+                "mode": "dry-run",
+                "selected": "TRUE",
+                "selected_manifest": expected_shard_manifest,
+                "run_log": expected_shard_run_log,
+                "planned_replicates": "80",
+                "seed_start": "760001",
+                "seed_end": "760080",
+                "scheduler_status": "dry_run_not_submitted",
+                "compute_status": "not_executed",
+                "recovery_status": "shard_pack_only",
+                "denominator_status": "not_coverage_evidence",
+                "coverage_evaluable": "FALSE",
+                "bridge_status": "unsupported",
+                "interval_status": "unsupported",
+                "coverage_status": "planned",
+                "status": "covered",
+                "evidence_url": expected_count_slope_shard_pack_evidence,
+            }
+            for field, expected_value in expected_manifest_values.items():
+                if shard_manifest.get(field) != expected_value:
+                    errors.append(f"{row_id}: shard manifest {field} must be {expected_value}")
+            if shard_manifest.get("selected_manifest") == expected_count_slope_recovery_manifest:
+                errors.append(f"{row_id}: shard manifest must not reuse all-target manifest")
+            if shard_manifest.get("run_log") == expected_count_slope_recovery_run_log:
+                errors.append(f"{row_id}: shard run log must not reuse all-target run log")
+            for phrase in (
+                "shard-pack contract only",
+                "no recovery simulation executed",
+                "no Totoro job submitted",
+                "no DRAC job submitted",
+                "coverage evidence",
+                "REML",
+                "AI-REML",
+                "public support",
+            ):
+                if phrase not in shard_manifest.get("claim_boundary", ""):
+                    errors.append(
+                        f"{row_id}: shard manifest claim_boundary must mention {phrase}"
+                    )
+        shard_log_rows = []
+        if evidence_reference_exists(expected_shard_run_log):
+            shard_log_rows = read_tsv(ROOT / expected_shard_run_log)
+        if len(shard_log_rows) != 1:
+            errors.append(f"{row_id}: shard run log must have one row")
+        else:
+            shard_log = shard_log_rows[0]
+            if set(shard_log.keys()) != set(
+                COUNT_SLOPE_RECOVERY_SHARD_PACK_RUN_LOG_FIELDS
+            ):
+                errors.append(f"{row_id}: shard run-log fields do not match schema")
+            expected_run_id = (
+                "count_slope_recovery_shard_pack_run_"
+                f"{expected_shard.replace('-', '_')}"
+            )
+            expected_log_values = {
+                "run_id": expected_run_id,
+                "mode": "dry-run",
+                "shard_id": expected_shard,
+                "provider_filter": expected_provider,
+                "family_filter": expected_family,
+                "selected_targets": "1",
+                "selected_structured_types": expected_provider,
+                "selected_families": expected_family,
+                "source_dispatch_review": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-count-slope-recovery-dispatch-review.tsv"
+                ),
+                "source_runner_contract": (
+                    "docs/dev-log/dashboard/"
+                    "structured-re-count-slope-recovery-runner-contract.tsv"
+                ),
+                "selected_manifest": expected_shard_manifest,
+                "dashboard_contract": expected_count_slope_shard_pack_dashboard,
+                "execution_status": "validated_not_executed",
+                "scheduler_status": "dry_run_not_submitted",
+                "compute_status": "not_executed",
+                "recovery_status": "shard_pack_only",
+                "denominator_status": "not_coverage_evidence",
+                "coverage_evaluable": "FALSE",
+                "coverage_status": "planned",
+                "status": "covered",
+            }
+            for field, expected_value in expected_log_values.items():
+                if shard_log.get(field) != expected_value:
+                    errors.append(f"{row_id}: shard run-log {field} must be {expected_value}")
+            for path_field in (
+                "source_dispatch_review",
+                "source_runner_contract",
+                "selected_manifest",
+                "dashboard_contract",
+            ):
+                if not evidence_reference_exists(shard_log.get(path_field, "")):
+                    errors.append(f"{row_id}: shard run-log {path_field} does not resolve")
+            for phrase in (
+                "shard-pack contract only",
+                "no human execution approval recorded",
+                "no recovery simulation executed",
+                "no Totoro job submitted",
+                "no DRAC job submitted",
+                "no coverage evidence",
+                "no REML",
+                "no AI-REML",
+                "no public support",
+                "no broad bridge support",
+            ):
+                if phrase not in shard_log.get("claim_boundary", ""):
+                    errors.append(
+                        f"{row_id}: shard run-log claim_boundary must mention {phrase}"
+                    )
+            for phrase in ("human approval", "Totoro", "DRAC", "scheduler exit status"):
+                if phrase not in shard_log.get("next_gate", ""):
+                    errors.append(f"{row_id}: shard run-log next_gate must mention {phrase}")
 
     expected_mu_slope_audits = {
         "phylo": "mu_slope_phylo_artifact_audit",
@@ -24436,6 +24863,7 @@ def main() -> int:
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"
         f", {len(structured_re_count_slope_recovery_dispatch_review_rows)} structured RE count-slope recovery-dispatch review rows"
+        f", {len(structured_re_count_slope_recovery_shard_pack_contract_rows)} structured RE count-slope recovery-shard-pack rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"

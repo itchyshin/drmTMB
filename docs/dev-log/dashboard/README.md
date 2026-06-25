@@ -241,6 +241,16 @@ policy, and retained failure accounting, while keeping
 `dispatch_gate_status = ready_for_human_review`. It is not human approval and
 not execution evidence.
 
+`structured-re-count-slope-recovery-shard-pack-contract.tsv` records the
+next dry-run shard-pack contract for those eight provider/family cells. The
+companion artifact directory contains an index plus one target manifest and
+one run log per shard, so a later approved Totoro or DRAC execution can use
+private provider/family files without overwriting the all-target runner
+contract. Every row remains `submission_status = not_submitted`,
+`compute_status = not_executed`, `recovery_status = shard_pack_only`, and
+`coverage_evaluable = FALSE`; this is not recovery, coverage, interval,
+bridge, REML, AI-REML, public-support, or broad bridge evidence.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB

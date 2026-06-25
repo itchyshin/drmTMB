@@ -2,6 +2,63 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope recovery shard-pack contract
+
+Goal:
+
+- Bank a dry-run shard-pack contract for the eight ordinary Poisson/NB2 q1
+  structured `mu` one-slope recovery rows without recording human approval,
+  submitting Totoro or DRAC jobs, executing recovery simulations, or promoting
+  recovery, coverage, intervals, bridge parity, REML, AI-REML, q2/q4, or
+  public support.
+
+Result:
+
+- Added `structured-re-count-slope-recovery-shard-pack-contract.tsv` with
+  eight provider/family rows linked to the existing recovery-runner contract
+  and dispatch review.
+- Added a matching shard-pack index plus one target manifest and one run log
+  per provider/family shard under
+  `docs/dev-log/simulation-artifacts/2026-06-25-count-slope-recovery-shard-pack-contract/`.
+- Added mission-control validation for shard identity, private manifest and
+  run-log paths, linked dispatch/runner rows, no-execution status, retained
+  failure accounting, and conservative claim boundaries.
+- Added an R dashboard contract test that checks the shard-pack sidecar,
+  artifact index, per-shard manifests, per-shard run logs, and joins back to
+  the runner and dispatch rows.
+- Updated the dashboard README and q-series completion map.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells, 8 structured RE count-slope recovery-dispatch review rows,
+  and 8 structured RE count-slope recovery-shard-pack rows.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-count-slope-recovery-shard-pack-contract.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search '"count slope recovery shard pack"' --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the clean local R library.
+  Non-vanilla startup points arm64 R 4.6 at an old
+  `x86_64-pc-linux-gnu-library/4.4` library.
+- `Rscript --no-environ --no-init-file -e "testthat::test_file('tests/testthat/test-structured-re-conversion-contracts.R', stop_on_failure = TRUE)"`
+  could not run because `testthat` is also absent from the clean local R
+  library.
+
+Boundaries:
+
+- This banks a dry-run shard-pack contract only.
+- It does not record human execution approval, submit Totoro or DRAC jobs,
+  execute recovery simulations, create coverage-evaluable denominator
+  evidence, promote MCSE-calibrated coverage, interval reliability, bridge
+  parity, q2/q4 count covariance, REML, AI-REML, public support, labelled or
+  multiple count slopes, structured count scale routes, zero-inflated
+  structured effects, or broad bridge support.
+
 ## 2026-06-25: count structured mu one-slope recovery dispatch review
 
 Goal:

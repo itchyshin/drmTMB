@@ -900,7 +900,15 @@ The efficient completion order is:
    submitted, and no recovery, coverage, interval, bridge, REML, AI-REML,
    q2/q4 count covariance, public support, or broad bridge support status
    moves.
-28. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+28. Banked in this stacked follow-up slice: add the count one-slope recovery
+   shard-pack contract. This turns the dispatch preflight into concrete
+   provider/family manifest and run-log filenames, one per shard, with private
+   write paths and append-only resume expectations. It is still dry-run
+   evidence only: no human execution approval has been recorded, no Totoro or
+   DRAC job has been submitted, and no recovery, denominator, coverage,
+   interval, bridge, REML, AI-REML, q2/q4 count covariance, public support, or
+   broad bridge status moves.
+29. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 
