@@ -629,6 +629,129 @@ test_that("relmat q4 location K/Q parity sidecar is native-only", {
   structured_re_expect_all_match(parity$next_gate, "payload marshalling")
 })
 
+test_that("relmat Q payload-marshalling gate blocks bridge promotion", {
+  gate <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-payload-marshalling-gate.tsv"
+  )
+  boundary <- structured_re_read_dashboard_tsv(
+    "structured-re-relmat-q-bridge-boundary.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    gate,
+    c(
+      "gate_id",
+      "boundary_id",
+      "cell_id",
+      "formula_cell",
+      "dimension_pattern",
+      "endpoint_set",
+      "slope_class",
+      "native_q_status",
+      "required_payload_fields",
+      "required_payload_checks",
+      "payload_schema_status",
+      "payload_review_status",
+      "direct_drmjl_q_status",
+      "r_via_julia_q_status",
+      "bridge_q_status",
+      "acceptance_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(gate), 6L)
+  expect_equal(anyDuplicated(gate$gate_id), 0L)
+  expect_equal(anyDuplicated(gate$boundary_id), 0L)
+  expect_setequal(gate$boundary_id, boundary$boundary_id)
+
+  boundary_rows <- boundary[
+    match(gate$boundary_id, boundary$boundary_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(gate$cell_id, boundary_rows$cell_id)
+  expect_equal(gate$formula_cell, boundary_rows$formula_cell)
+  expect_equal(gate$dimension_pattern, boundary_rows$dimension_pattern)
+  expect_equal(gate$endpoint_set, boundary_rows$endpoint_set)
+  expect_equal(gate$slope_class, boundary_rows$slope_class)
+  expect_equal(gate$native_q_status, boundary_rows$native_q_status)
+  expect_equal(gate$direct_drmjl_q_status, boundary_rows$direct_drmjl_q_status)
+  expect_equal(gate$r_via_julia_q_status, boundary_rows$r_via_julia_q_status)
+  expect_equal(gate$bridge_q_status, boundary_rows$bridge_q_status)
+
+  qseries_rows <- qseries[match(gate$cell_id, qseries$cell_id), , drop = FALSE]
+  expect_equal(qseries_rows$structure_provider, rep("relmat", 6L))
+  expect_equal(qseries_rows$bridge_status, rep("fixture_parity", 6L))
+  expect_equal(qseries_rows$interval_status, rep("planned", 6L))
+  expect_equal(qseries_rows$coverage_status, rep("planned", 6L))
+
+  expect_equal(
+    gate$native_q_status,
+    rep("runtime_kq_same_target_parity", 6L)
+  )
+  expect_equal(gate$payload_schema_status, rep("planned", 6L))
+  expect_equal(gate$payload_review_status, rep("not_reviewed", 6L))
+  expect_equal(gate$direct_drmjl_q_status, rep("unsupported", 6L))
+  expect_equal(gate$r_via_julia_q_status, rep("unsupported", 6L))
+  expect_equal(gate$bridge_q_status, rep("unsupported", 6L))
+  expect_equal(
+    gate$acceptance_status,
+    rep("blocked_pending_payload_contract_review", 6L)
+  )
+  expect_equal(gate$status, rep("covered", 6L))
+
+  structured_re_expect_all_match(gate$required_payload_fields, "matrix_digest")
+  structured_re_expect_all_match(
+    gate$required_payload_fields,
+    "precision_source"
+  )
+  structured_re_expect_all_match(
+    gate$required_payload_fields,
+    "level_alignment"
+  )
+  structured_re_expect_all_match(
+    gate$required_payload_fields,
+    "coefficient_order"
+  )
+  structured_re_expect_all_match(gate$required_payload_fields, "provenance")
+  structured_re_expect_all_match(gate$required_payload_checks, "digest_user_Q")
+  structured_re_expect_all_match(
+    gate$required_payload_checks,
+    "no_implicit_K_conversion"
+  )
+  structured_re_expect_all_match(
+    gate$claim_boundary,
+    "native Q runtime parity is not Q bridge evidence"
+  )
+  structured_re_expect_all_match(gate$claim_boundary, "direct DRM.jl Q support")
+  structured_re_expect_all_match(gate$claim_boundary, "R-via-Julia Q support")
+  structured_re_expect_all_match(gate$claim_boundary, "broad bridge support")
+  structured_re_expect_all_match(gate$claim_boundary, "interval reliability")
+  structured_re_expect_all_match(gate$claim_boundary, "coverage")
+  structured_re_expect_all_match(gate$claim_boundary, "REML")
+  structured_re_expect_all_match(gate$claim_boundary, "AI-REML")
+  structured_re_expect_all_match(gate$claim_boundary, "public support")
+  expect_match(
+    gate$claim_boundary[
+      gate$gate_id == "relmat_q_payload_gate_q4_mu1_mu2_one_slope"
+    ],
+    "native-TMB q4 REML",
+    fixed = TRUE
+  )
+  structured_re_expect_all_match(gate$next_gate, "DRM.jl payload contract")
+  structured_re_expect_all_match(gate$next_gate, "Q precision source")
+  structured_re_expect_all_match(gate$next_gate, "matrix digest")
+  structured_re_expect_all_match(gate$next_gate, "level alignment")
+  structured_re_expect_all_match(gate$next_gate, "coefficient order")
+  structured_re_expect_all_match(gate$next_gate, "provenance")
+})
+
 test_that("q2 slope-only parity fixture dashboard is provider-specific", {
   fixture <- structured_re_read_dashboard_tsv(
     "structured-re-q2-slope-parity-fixture.tsv"

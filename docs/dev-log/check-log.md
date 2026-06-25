@@ -68156,3 +68156,43 @@ Boundary:
   reliability, interval coverage, q4 REML, native-TMB q4 REML, q4 AI-REML,
   HSquared AI-REML, non-Gaussian REML, public support, DRAC/Totoro execution,
   SR150 coverage readiness, PR undrafting/merging, or an Ayumi-facing reply.
+
+## 2026-06-25: relmat Q payload-marshalling gate
+
+Goal:
+
+- Turn the relmat `Q` bridge next-gate into a checked support-cell acceptance
+  gate before any direct DRM.jl or R-via-Julia payload implementation.
+
+Result:
+
+- Added
+  `docs/dev-log/dashboard/structured-re-relmat-q-payload-marshalling-gate.tsv`
+  with six rows matching the relmat `K/Q` bridge-boundary cells.
+- Each row requires explicit payload fields for matrix id, matrix digest,
+  input scale, `Q` precision source, level alignment, missing-level policy,
+  coefficient order, and provenance before bridge status can move.
+- Updated mission-control validation, dashboard contract tests, dashboard
+  README, and the q-series completion map.
+
+Evidence:
+
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `git diff --check` passed.
+- `python3 tools/validate-mission-control.py` passed and reported 6 relmat `Q`
+  payload-marshalling gate rows.
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,269 assertions, 0 failures, 0 warnings, and 0 skips.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  passed with 4,985 assertions, 0 failures, 0 warnings, and 0 skips.
+
+Boundary:
+
+- This is an acceptance-gate slice only. It does not implement relmat `Q`
+  payload marshalling, direct DRM.jl `Q` export, R-via-Julia `Q` transport,
+  broad bridge support, public support, interval reliability, interval
+  coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, broader q8 support, DRAC/Totoro execution, SR150 coverage
+  readiness, PR undrafting/merging, or an Ayumi-facing reply.

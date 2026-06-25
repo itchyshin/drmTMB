@@ -463,6 +463,16 @@ implement Q precision marshalling, broad bridge support, interval reliability,
 coverage, q4 REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
 non-Gaussian REML, public support, or broader q8 support.
 
+`structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
+gate for future relmat `Q` precision payload work. It covers the same six
+relmat `K/Q` rows as the bridge-boundary sidecar and requires an explicit
+payload contract for `matrix_id`, `matrix_digest`, input scale, `Q` precision
+source, level alignment, missing-level policy, coefficient order, and
+provenance before direct DRM.jl or R-via-Julia bridge status can move. This
+gate keeps native `Q` runtime parity separate from bridge evidence and does not
+promote broad bridge support, intervals, coverage, REML, AI-REML, public
+support, or broader q8 support.
+
 `structured-re-q4-location-slope-interval-diagnostic-plan.tsv` records the
 target-level interval diagnostic plan for those same exact q4 location cells.
 It names 16 direct-SD targets and 24 derived-correlation targets across

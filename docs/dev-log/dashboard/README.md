@@ -332,6 +332,15 @@ runtime evidence only. Every row keeps `bridge_q_status`,
 ledger does not promote relmat Q bridge marshalling, broad bridge support,
 interval reliability, coverage, REML, or AI-REML.
 
+`structured-re-relmat-q-payload-marshalling-gate.tsv` records the acceptance
+gate before any relmat `Q` precision bridge work. Each row links back to the
+relmat `K/Q` bridge-boundary row and requires an explicit payload contract for
+matrix digest, input scale, `Q` precision source, level alignment, missing-level
+policy, coefficient order, and provenance. The rows keep direct DRM.jl,
+R-via-Julia, and R bridge `Q` statuses unsupported; native `Q` runtime parity
+is not bridge evidence and does not promote intervals, coverage, REML, AI-REML,
+public support, or broader q8 support.
+
 `structured-re-relmat-q4-location-kq-native-parity.tsv` records the one-row
 native R/TMB K/Q same-target parity result for
 `relmat(1 + x | p | id, K/Q = ...)` in `mu1` and `mu2`. It is a runtime
