@@ -121,8 +121,9 @@ The current table records these broad facts without promoting beyond them:
   count scale routes, q2/q4, REML, AI-REML, interval support, or coverage.
 - The ordinary count one-slope rows now have an explicit fixture/recovery
   contract sidecar. It records existing native TMB ML/Laplace point-fit and
-  extractor evidence, while fixture parity remains `planned_not_banked` and
-  calibrated recovery remains `designed_not_run`.
+  extractor evidence, while native deterministic fixture status is now
+  `native_fixture_banked` and calibrated recovery remains `designed_not_run`.
+  Native fixture status is not bridge parity.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -866,12 +867,19 @@ The efficient completion order is:
    one-slope fixture/recovery contract for Poisson and NB2 `mu` cells across
    `phylo()`, fixed-covariance `spatial()`, `animal()`, and `relmat()`. This
    names the exact same-target fixture and calibrated recovery gates after
-   existing native TMB ML/Laplace point-fit and extractor evidence; fixture
-   parity, calibrated recovery, bridge support, intervals, coverage, q2/q4
-   count covariance, REML, AI-REML, public support, labelled or multiple count
-   slopes, structured count scale routes, and zero-inflated structure remain
-   unpromoted.
-25. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+   existing native TMB ML/Laplace point-fit and extractor evidence; bridge
+   parity, calibrated recovery, broad bridge support, intervals, coverage,
+   q2/q4 count covariance, REML, AI-REML, public support, labelled or multiple
+   count slopes, structured count scale routes, and zero-inflated structure
+   remain unpromoted.
+25. Banked in this stacked follow-up slice: add the eight-row native-only
+   deterministic fixture-status sidecar for those same ordinary count
+   one-slope cells. This moves only the native fixture status to
+   `native_fixture_banked`; it does not move bridge parity, calibrated
+   recovery, intervals, coverage, q2/q4 count covariance, REML, AI-REML,
+   public support, labelled or multiple count slopes, structured count scale
+   routes, or zero-inflated structure.
+26. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

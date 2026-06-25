@@ -2,6 +2,58 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope native fixture status
+
+Goal:
+
+- Bank native-only deterministic fixture status for the eight ordinary
+  Poisson/NB2 q1 structured `mu` one-slope cells without promoting bridge
+  parity, recovery, intervals, coverage, REML, AI-REML, q2/q4, or public
+  support.
+
+Result:
+
+- Added `structured-re-count-slope-native-fixture-status.tsv` with eight
+  native TMB deterministic fixture rows linked to the existing
+  `tests/testthat/test-count-structured-mu.R` point-fit/extractor tests.
+- Updated `structured-re-count-slope-fixture-recovery-contract.tsv` so the
+  fixture gate is `native_fixture_banked` while calibrated recovery remains
+  `designed_not_run`.
+- Added mission-control validation for the new fixture sidecar and its links
+  back to the fixture/recovery contract and q-series support-cell rows.
+- Added an R dashboard contract test that keeps the native fixture rung
+  separate from bridge parity, calibrated recovery, intervals, coverage,
+  q2/q4, REML, AI-REML, public support, labelled/multiple count slopes,
+  structured count scale routes, and zero-inflated structured effects.
+- Updated the dashboard README and q-series completion map to record the
+  native fixture rung as distinct from bridge parity.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells, 8 structured RE count-slope fixture/recovery contract rows,
+  and 8 structured RE count-slope native-fixture rows.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-count-slope-native-fixture-status.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search "count structured mu native fixture" --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the clean local R library.
+  Non-vanilla startup points arm64 R 4.6 at an old
+  `x86_64-pc-linux-gnu-library/4.4` library.
+
+Boundaries:
+
+- This banks native deterministic fixture status only.
+- It does not claim bridge parity, calibrated recovery, intervals, coverage,
+  q2/q4 count covariance, REML, AI-REML, public support, labelled or multiple
+  count slopes, structured count scale routes, zero-inflated structured
+  effects, or broad bridge support.
+
 ## 2026-06-25: count structured mu one-slope fixture/recovery contract
 
 Goal:

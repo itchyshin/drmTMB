@@ -618,7 +618,7 @@ test_that("count structured mu one-slope fixture recovery contract stays conserv
   )
   expect_equal(
     contract$fixture_contract_status,
-    rep("planned_not_banked", 8L)
+    rep("native_fixture_banked", 8L)
   )
   expect_equal(
     contract$recovery_contract_status,
@@ -635,7 +635,8 @@ test_that("count structured mu one-slope fixture recovery contract stays conserv
 
   for (phrase in c(
     "ML/Laplace point-fit evidence only",
-    "fixture parity",
+    "deterministic native fixture status banked",
+    "bridge parity",
     "calibrated recovery",
     "intervals",
     "coverage",
@@ -689,6 +690,224 @@ test_that("count structured mu one-slope fixture recovery contract stays conserv
   expect_equal(
     qseries_rows$denominator_policy,
     contract$denominator_policy
+  )
+})
+
+test_that("count structured mu one-slope native fixture status stays native-only", {
+  fixture <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-native-fixture-status.tsv"
+  )
+  contract <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-fixture-recovery-contract.tsv"
+  )
+  qseries <- structured_re_read_dashboard_tsv(
+    "structured-re-q-series-support-cells.tsv"
+  )
+
+  expect_named(
+    fixture,
+    c(
+      "fixture_id",
+      "contract_id",
+      "cell_id",
+      "formula_cell",
+      "family",
+      "structured_type",
+      "dimension",
+      "endpoint",
+      "slope_class",
+      "estimator_effective",
+      "fixture_route",
+      "fixture_evidence_url",
+      "runtime_evidence_url",
+      "matrix_slot",
+      "input_scale",
+      "coefficient_order",
+      "native_runtime_status",
+      "native_fixture_status",
+      "bridge_status",
+      "interval_status",
+      "coverage_status",
+      "denominator_policy",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(fixture), 8L)
+  expect_equal(anyDuplicated(fixture$fixture_id), 0L)
+
+  expected <- data.frame(
+    fixture_id = c(
+      "count_slope_native_fixture_phylo_poisson_q1_mu_one_slope",
+      "count_slope_native_fixture_phylo_nbinom2_q1_mu_one_slope",
+      "count_slope_native_fixture_spatial_poisson_q1_mu_one_slope",
+      "count_slope_native_fixture_spatial_nbinom2_q1_mu_one_slope",
+      "count_slope_native_fixture_animal_poisson_q1_mu_one_slope",
+      "count_slope_native_fixture_animal_nbinom2_q1_mu_one_slope",
+      "count_slope_native_fixture_relmat_poisson_q1_mu_one_slope",
+      "count_slope_native_fixture_relmat_nbinom2_q1_mu_one_slope"
+    ),
+    contract_id = c(
+      "count_slope_phylo_poisson_q1_mu_one_slope",
+      "count_slope_phylo_nbinom2_q1_mu_one_slope",
+      "count_slope_spatial_poisson_q1_mu_one_slope",
+      "count_slope_spatial_nbinom2_q1_mu_one_slope",
+      "count_slope_animal_poisson_q1_mu_one_slope",
+      "count_slope_animal_nbinom2_q1_mu_one_slope",
+      "count_slope_relmat_poisson_q1_mu_one_slope",
+      "count_slope_relmat_nbinom2_q1_mu_one_slope"
+    ),
+    cell_id = c(
+      "qseries_phylo_poisson_q1_mu_one_slope",
+      "qseries_phylo_nbinom2_q1_mu_one_slope",
+      "qseries_spatial_poisson_q1_mu_one_slope",
+      "qseries_spatial_nbinom2_q1_mu_one_slope",
+      "qseries_animal_poisson_q1_mu_one_slope",
+      "qseries_animal_nbinom2_q1_mu_one_slope",
+      "qseries_relmat_poisson_q1_mu_one_slope",
+      "qseries_relmat_nbinom2_q1_mu_one_slope"
+    ),
+    family = rep(c("poisson()", "nbinom2()"), 4L),
+    structured_type = rep(c("phylo", "spatial", "animal", "relmat"), each = 2L),
+    matrix_slot = c(
+      "tree",
+      "tree",
+      "coords",
+      "coords",
+      "A/Ainv",
+      "A/Ainv",
+      "K/Q",
+      "K/Q"
+    ),
+    stringsAsFactors = FALSE
+  )
+
+  fixture <- fixture[
+    match(expected$fixture_id, fixture$fixture_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(fixture$fixture_id, expected$fixture_id)
+  expect_equal(fixture$contract_id, expected$contract_id)
+  expect_equal(fixture$cell_id, expected$cell_id)
+  expect_equal(fixture$family, expected$family)
+  expect_equal(fixture$structured_type, expected$structured_type)
+  expect_equal(fixture$matrix_slot, expected$matrix_slot)
+
+  expect_equal(fixture$dimension, rep("q1", 8L))
+  expect_equal(fixture$endpoint, rep("mu", 8L))
+  expect_equal(fixture$slope_class, rep("independent_one_slope", 8L))
+  expect_equal(fixture$estimator_effective, rep("ML_Laplace", 8L))
+  expect_equal(
+    fixture$fixture_route,
+    rep("native_tmb_deterministic_seed_fixture", 8L)
+  )
+  expect_equal(
+    fixture$fixture_evidence_url,
+    rep("tests/testthat/test-count-structured-mu.R", 8L)
+  )
+  expect_equal(
+    fixture$runtime_evidence_url,
+    rep("tests/testthat/test-count-structured-mu.R", 8L)
+  )
+  expect_equal(
+    fixture$coefficient_order,
+    rep(
+      paste0(
+        "mu:(Intercept);mu:x;sd_mu:structured(Intercept);",
+        "sd_mu:structured(x)"
+      ),
+      8L
+    )
+  )
+  expect_equal(
+    fixture$native_runtime_status,
+    rep("point_fit_extractor_ready", 8L)
+  )
+  expect_equal(fixture$native_fixture_status, rep("native_fixture_banked", 8L))
+  expect_equal(fixture$bridge_status, rep("unsupported", 8L))
+  expect_equal(fixture$interval_status, rep("unsupported", 8L))
+  expect_equal(fixture$coverage_status, rep("planned", 8L))
+  expect_equal(fixture$denominator_policy, rep("not_coverage_evidence", 8L))
+
+  for (phrase in c(
+    "native fixture is banked",
+    "deterministic native TMB ML/Laplace point-fit and extractor tests only",
+    "bridge parity",
+    "calibrated recovery",
+    "coverage",
+    "q2",
+    "q4",
+    "REML",
+    "AI-REML",
+    "public support",
+    "broad bridge support"
+  )) {
+    structured_re_expect_all_match(fixture$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(
+    fixture$next_gate,
+    "calibrated recovery diagnostics"
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "spatial"],
+    "fixed-covariance"
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "animal"],
+    "A/Ainv"
+  )
+  structured_re_expect_all_match(
+    fixture$claim_boundary[fixture$structured_type == "relmat"],
+    "K/Q"
+  )
+
+  expect_true(all(fixture$contract_id %in% contract$contract_id))
+  contract_rows <- contract[
+    match(fixture$contract_id, contract$contract_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(contract_rows$cell_id, fixture$cell_id)
+  expect_equal(contract_rows$formula_cell, fixture$formula_cell)
+  expect_equal(contract_rows$family, fixture$family)
+  expect_equal(contract_rows$structured_type, fixture$structured_type)
+  expect_equal(
+    contract_rows$fixture_contract_status,
+    rep("native_fixture_banked", 8L)
+  )
+  expect_equal(
+    contract_rows$recovery_contract_status,
+    rep("designed_not_run", 8L)
+  )
+  expect_equal(contract_rows$bridge_status, fixture$bridge_status)
+  expect_equal(contract_rows$interval_status, fixture$interval_status)
+  expect_equal(contract_rows$coverage_status, fixture$coverage_status)
+
+  expect_true(all(fixture$cell_id %in% qseries$cell_id))
+  qseries_rows <- qseries[
+    match(fixture$cell_id, qseries$cell_id),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(qseries_rows$formula_cell, fixture$formula_cell)
+  expect_equal(qseries_rows$family_class, rep("non_gaussian", 8L))
+  expect_equal(qseries_rows$family, fixture$family)
+  expect_equal(qseries_rows$structure_provider, fixture$structured_type)
+  expect_equal(qseries_rows$dimension_pattern, fixture$dimension)
+  expect_equal(qseries_rows$endpoint_set, fixture$endpoint)
+  expect_equal(qseries_rows$slope_class, fixture$slope_class)
+  expect_equal(qseries_rows$route, rep("native_tmb", 8L))
+  expect_equal(qseries_rows$estimator_effective, fixture$estimator_effective)
+  expect_equal(qseries_rows$fit_status, rep("point_fit", 8L))
+  expect_equal(qseries_rows$extractor_status, rep("extractor_ready", 8L))
+  expect_equal(qseries_rows$bridge_status, fixture$bridge_status)
+  expect_equal(qseries_rows$interval_status, fixture$interval_status)
+  expect_equal(qseries_rows$coverage_status, fixture$coverage_status)
+  expect_equal(qseries_rows$evidence_url, fixture$runtime_evidence_url)
+  expect_equal(
+    qseries_rows$denominator_policy,
+    fixture$denominator_policy
   )
 })
 

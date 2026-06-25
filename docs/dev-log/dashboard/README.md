@@ -211,11 +211,18 @@ future support-cell row says otherwise.
 `structured-re-count-slope-fixture-recovery-contract.tsv` records the next
 evidence gate for those eight ordinary count one-slope cells. It ties each
 Poisson/NB2 provider row to the existing native TMB ML/Laplace point-fit and
-extractor evidence, while keeping fixture parity `planned_not_banked` and
-calibrated recovery `designed_not_run`. It does not promote bridge support,
-intervals, coverage, REML, AI-REML, q2/q4 count covariance, public support,
-labelled or multiple count slopes, structured count scale routes, or
-zero-inflated structured effects.
+extractor evidence, while keeping calibrated recovery `designed_not_run`. The
+native deterministic fixture step is now `native_fixture_banked`; this is not
+bridge parity. It does not promote bridge support, intervals, coverage, REML,
+AI-REML, q2/q4 count covariance, public support, labelled or multiple count
+slopes, structured count scale routes, or zero-inflated structured effects.
+
+`structured-re-count-slope-native-fixture-status.tsv` records the eight exact
+native-only deterministic fixture rows behind that status. Each row cites
+`tests/testthat/test-count-structured-mu.R`; all rows remain ML/Laplace
+native TMB point/extractor fixtures only, with bridge parity, calibrated
+recovery, intervals, coverage, REML, AI-REML, q2/q4 count covariance, and
+public support still separate gates.
 
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
