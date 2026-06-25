@@ -262,10 +262,9 @@ evidence, satisfy the MCSE threshold, or move interval, coverage, REML,
 AI-REML, q4/q8, bridge, public-support, or SR150 readiness claims.
 
 `structured-re-pr-stack-merge-readiness.tsv` is the stack-control ledger for
-the q-series completion lane. It records PR #639 through #662 in merge order,
+the q-series completion lane. It records PR #639 through #663 in merge order,
 their draft status, merge-clean state, head SHAs, and commit-level R-CMD-check
-run IDs. PR #663 remains outside this ledger until its run finishes. The ledger
-deliberately separates those commit-level checks from
+run IDs. The ledger deliberately separates those commit-level checks from
 ordinary PR-attached checks: only the first PR targets `main`, and each stacked
 successor must retarget to `main` and refresh normal PR checks after the prior
 layer lands. The ledger is not an implementation, inference, or compute gate;
@@ -910,10 +909,9 @@ The efficient completion order is:
     interval, bridge, REML, AI-REML, q2/q4 count covariance, public support, or
     broad bridge status moves.
 29. Banked in this stacked follow-up slice: extend the PR stack merge-readiness
-    ledger from PR #655 through PR #662 after verifying green three-platform
-    R-CMD-check runs for PR #656, #657, #658, #659, #660, #661, and #662. PR
-    #663 remains pending outside the ledger until its run completes. This is
-    stack-control evidence only; no PR is undrafted or merged, no Totoro or
+    ledger from PR #655 through PR #663 after verifying green three-platform
+    R-CMD-check runs for PR #656, #657, #658, #659, #660, #661, #662, and
+    #663. This is stack-control evidence only; no PR is undrafted or merged, no Totoro or
     DRAC job is submitted, and no recovery, denominator, coverage, interval,
     bridge, REML, AI-REML, public-support, or SR150 status moves.
 30. Leave two-slope structured q6/q8 cells planned until the one-slope cells,

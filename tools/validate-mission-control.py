@@ -10411,6 +10411,15 @@ def main() -> int:
             "run_id": "28192932086",
             "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
         },
+        {
+            "merge_order": "25",
+            "pr_number": "663",
+            "base_ref": "codex/count-slope-recovery-dispatch-review",
+            "head_ref": "codex/count-slope-recovery-shard-pack-contract",
+            "head_sha": "4334213acff3e47fdae849f7d7f787a0748e9ce4",
+            "run_id": "28195628489",
+            "rollup": "commit_checks_green_pr_rollup_empty_on_stacked_base",
+        },
     ]
     expected_pr_stack_by_number = {
         row["pr_number"]: row for row in expected_pr_stack
@@ -10502,7 +10511,7 @@ def main() -> int:
             "run_log": expected_pr_stack_run_log,
             "evidence_url": (
                 "docs/dev-log/after-task/"
-                "2026-06-25-pr-stack-merge-readiness-extension-656-662.md"
+                "2026-06-25-pr-stack-merge-readiness-extension-656-663.md"
             ),
         }
         for field, expected_value in expected_common.items():
@@ -10583,7 +10592,7 @@ def main() -> int:
             "mode": "dry-run",
             "stack_rows": str(len(expected_pr_stack)),
             "first_pr": "639",
-            "last_pr": "662",
+            "last_pr": "663",
             "draft_rows": str(len(expected_pr_stack)),
             "clean_rows": str(len(expected_pr_stack)),
             "commit_check_success_rows": str(len(expected_pr_stack)),

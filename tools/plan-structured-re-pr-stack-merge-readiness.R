@@ -86,13 +86,13 @@ run_log_ref <- paste(
 )
 evidence_ref <- paste(
   "docs/dev-log/after-task",
-  "2026-06-25-pr-stack-merge-readiness-extension-656-662.md",
+  "2026-06-25-pr-stack-merge-readiness-extension-656-663.md",
   sep = "/"
 )
 
 stack <- data.frame(
-  merge_order = seq_len(24),
-  pr_number = 639:662,
+  merge_order = seq_len(25),
+  pr_number = 639:663,
   title = c(
     "[codex] Bank structured q-series completion slices",
     "[codex] Plan q4 location bootstrap dispatch",
@@ -117,7 +117,8 @@ stack <- data.frame(
     "Bank count slope fixture recovery contract",
     "Bank count slope native fixture status",
     "Bank count slope recovery runner contract",
-    "Bank count slope recovery dispatch review"
+    "Bank count slope recovery dispatch review",
+    "Bank count slope recovery shard pack contract"
   ),
   base_ref = c(
     "main",
@@ -143,7 +144,8 @@ stack <- data.frame(
     "codex/phylo-interaction-nb2-count-cell",
     "codex/count-slope-fixture-recovery-contract",
     "codex/count-slope-native-fixture-status",
-    "codex/count-slope-recovery-runner-contract"
+    "codex/count-slope-recovery-runner-contract",
+    "codex/count-slope-recovery-dispatch-review"
   ),
   head_ref = c(
     "codex/structured-relmat-kq-mu-slope-fixture",
@@ -169,7 +171,8 @@ stack <- data.frame(
     "codex/count-slope-fixture-recovery-contract",
     "codex/count-slope-native-fixture-status",
     "codex/count-slope-recovery-runner-contract",
-    "codex/count-slope-recovery-dispatch-review"
+    "codex/count-slope-recovery-dispatch-review",
+    "codex/count-slope-recovery-shard-pack-contract"
   ),
   head_sha = c(
     "d6b951fe9f3b6fabd1a9d4246bf3346d4ca86e8e",
@@ -195,7 +198,8 @@ stack <- data.frame(
     "6ce0efa63cd29122823d4de34855e44cae3a56f4",
     "36dba36573d7e5859b7795e91b054e2c87490f9a",
     "3d26dca7b7018dde8268d9ce84d98ae47db07401",
-    "3cdd294401af42d5ba93ab2ee18a262a5f47517b"
+    "3cdd294401af42d5ba93ab2ee18a262a5f47517b",
+    "4334213acff3e47fdae849f7d7f787a0748e9ce4"
   ),
   r_cmd_check_run_id = c(
     "28138055013",
@@ -221,7 +225,8 @@ stack <- data.frame(
     "28186188654",
     "28188540878",
     "28190850945",
-    "28192932086"
+    "28192932086",
+    "28195628489"
   ),
   stringsAsFactors = FALSE
 )
@@ -355,7 +360,7 @@ run_log <- data.frame(
     "status,conclusion,jobs; gh run view 28170403815 --repo",
     "itchyshin/drmTMB --json status,conclusion,jobs;",
     "for run in 28175177624 28180855796 28183541915 28186188654",
-    "28188540878 28190850945 28192932086; do gh run view $run",
+    "28188540878 28190850945 28192932086 28195628489; do gh run view $run",
     "--repo itchyshin/drmTMB --json status,conclusion,jobs; done"
   )),
   execution_status = "validated_snapshot_not_executed",
