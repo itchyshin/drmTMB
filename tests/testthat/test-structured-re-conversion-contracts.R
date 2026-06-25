@@ -1165,6 +1165,134 @@ test_that("count structured mu one-slope recovery runner contract is dry-run onl
   expect_match(run_log$claim_boundary, "no coverage evidence", fixed = TRUE)
 })
 
+test_that("count structured mu one-slope recovery dispatch review is not submitted", {
+  dispatch <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-dispatch-review.tsv"
+  )
+  runner <- structured_re_read_dashboard_tsv(
+    "structured-re-count-slope-recovery-runner-contract.tsv"
+  )
+
+  expect_named(
+    dispatch,
+    c(
+      "dispatch_id",
+      "runner_id",
+      "cell_id",
+      "family",
+      "structured_type",
+      "shard_id",
+      "shard_scope",
+      "selected_manifest",
+      "run_log",
+      "planned_replicates",
+      "seed_start",
+      "seed_end",
+      "output_namespace",
+      "overwrite_policy",
+      "concurrency_policy",
+      "resume_policy",
+      "retention_policy",
+      "scheduler_target",
+      "submission_status",
+      "compute_status",
+      "recovery_status",
+      "denominator_status",
+      "coverage_evaluable",
+      "dispatch_gate_status",
+      "status",
+      "evidence_url",
+      "claim_boundary",
+      "next_gate"
+    )
+  )
+  expect_equal(nrow(dispatch), 8L)
+  expect_equal(anyDuplicated(dispatch$dispatch_id), 0L)
+  expect_equal(dispatch$shard_scope, rep("provider_family", 8L))
+  expect_equal(dispatch$planned_replicates, rep(80L, 8L))
+  expect_equal(dispatch$seed_start, rep(760001L, 8L))
+  expect_equal(dispatch$seed_end, rep(760080L, 8L))
+  expect_equal(
+    dispatch$scheduler_target,
+    rep("totoro_or_drac_after_human_review", 8L)
+  )
+  expect_equal(dispatch$submission_status, rep("not_submitted", 8L))
+  expect_equal(dispatch$compute_status, rep("not_executed", 8L))
+  expect_equal(dispatch$recovery_status, rep("runner_contract_only", 8L))
+  expect_equal(dispatch$denominator_status, rep("not_coverage_evidence", 8L))
+  expect_equal(dispatch$coverage_evaluable, rep(FALSE, 8L))
+  expect_equal(dispatch$dispatch_gate_status, rep("ready_for_human_review", 8L))
+  expect_equal(dispatch$status, rep("covered", 8L))
+  expect_equal(
+    dispatch$evidence_url,
+    rep(
+      "docs/dev-log/after-task/2026-06-25-count-slope-recovery-dispatch-review.md",
+      8L
+    )
+  )
+
+  for (phrase in c(
+    "no_overwrite_existing_outputs",
+    "write_shard_scoped_paths",
+    "require_empty_or_resume_manifest"
+  )) {
+    structured_re_expect_all_match(dispatch$overwrite_policy, phrase)
+  }
+  for (phrase in c(
+    "single_provider_family_shard",
+    "no_shared_output_files",
+    "seed_partition_locked"
+  )) {
+    structured_re_expect_all_match(dispatch$concurrency_policy, phrase)
+  }
+  for (phrase in c(
+    "resume_from_manifest_only",
+    "append_attempt_log",
+    "preserve_failed_attempts"
+  )) {
+    structured_re_expect_all_match(dispatch$resume_policy, phrase)
+  }
+  for (phrase in c(
+    "dispatch review only",
+    "no human execution approval recorded",
+    "no recovery simulation executed",
+    "no Totoro job submitted",
+    "no DRAC job submitted",
+    "bridge parity",
+    "interval reliability",
+    "coverage",
+    "q2",
+    "q4",
+    "REML",
+    "AI-REML",
+    "public support",
+    "broad bridge support"
+  )) {
+    structured_re_expect_all_match(dispatch$claim_boundary, phrase)
+  }
+  structured_re_expect_all_match(dispatch$next_gate, "Ask Shinichi")
+  structured_re_expect_all_match(dispatch$next_gate, "shard-specific run log")
+
+  runner_rows <- runner[
+    match(dispatch$runner_id, runner$runner_id),
+    ,
+    drop = FALSE
+  ]
+  expect_false(anyNA(runner_rows$runner_id))
+  expect_equal(runner_rows$cell_id, dispatch$cell_id)
+  expect_equal(runner_rows$family, dispatch$family)
+  expect_equal(runner_rows$structured_type, dispatch$structured_type)
+  expect_equal(runner_rows$selected_manifest, dispatch$selected_manifest)
+  expect_equal(runner_rows$run_log, dispatch$run_log)
+  expect_equal(runner_rows$planned_replicates, dispatch$planned_replicates)
+  expect_equal(runner_rows$seed_start, dispatch$seed_start)
+  expect_equal(runner_rows$seed_end, dispatch$seed_end)
+  expect_equal(runner_rows$compute_status, dispatch$compute_status)
+  expect_equal(runner_rows$recovery_status, dispatch$recovery_status)
+  expect_equal(runner_rows$denominator_status, dispatch$denominator_status)
+  expect_equal(runner_rows$coverage_evaluable, dispatch$coverage_evaluable)
+})
+
 test_that("q2-plus-q2 scale-side rejection contract stays explicit", {
   rejection <- structured_re_read_dashboard_tsv(
     "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"

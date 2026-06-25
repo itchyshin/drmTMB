@@ -57,6 +57,9 @@ STRUCTURED_RE_COUNT_SLOPE_NATIVE_FIXTURE_STATUS = (
 STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT = (
     DASHBOARD / "structured-re-count-slope-recovery-runner-contract.tsv"
 )
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW = (
+    DASHBOARD / "structured-re-count-slope-recovery-dispatch-review.tsv"
+)
 STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT = (
     DASHBOARD / "structured-re-q2-plus-q2-sigma-rejection-contract.tsv"
 )
@@ -1234,6 +1237,36 @@ COUNT_SLOPE_RECOVERY_RUNNER_RUN_LOG_FIELDS = (
     "coverage_evaluable",
     "coverage_status",
     "status",
+    "claim_boundary",
+    "next_gate",
+)
+STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW_FIELDS = (
+    "dispatch_id",
+    "runner_id",
+    "cell_id",
+    "family",
+    "structured_type",
+    "shard_id",
+    "shard_scope",
+    "selected_manifest",
+    "run_log",
+    "planned_replicates",
+    "seed_start",
+    "seed_end",
+    "output_namespace",
+    "overwrite_policy",
+    "concurrency_policy",
+    "resume_policy",
+    "retention_policy",
+    "scheduler_target",
+    "submission_status",
+    "compute_status",
+    "recovery_status",
+    "denominator_status",
+    "coverage_evaluable",
+    "dispatch_gate_status",
+    "status",
+    "evidence_url",
     "claim_boundary",
     "next_gate",
 )
@@ -4933,6 +4966,9 @@ def main() -> int:
     structured_re_count_slope_recovery_runner_contract_rows = read_tsv(
         STRUCTURED_RE_COUNT_SLOPE_RECOVERY_RUNNER_CONTRACT
     )
+    structured_re_count_slope_recovery_dispatch_review_rows = read_tsv(
+        STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW
+    )
     structured_re_q2_plus_q2_sigma_rejection_contract_rows = read_tsv(
         STRUCTURED_RE_Q2_PLUS_Q2_SIGMA_REJECTION_CONTRACT
     )
@@ -7458,6 +7494,215 @@ def main() -> int:
                     "structured-re-count-slope-recovery-runner-run-log.tsv "
                     f"claim_boundary must mention {phrase}"
                 )
+
+    count_slope_recovery_runner_map = {
+        row.get("runner_id", ""): row
+        for row in structured_re_count_slope_recovery_runner_contract_rows
+    }
+    expected_count_slope_recovery_dispatch_rows = {
+        "count_slope_recovery_dispatch_phylo_poisson_q1_mu_one_slope": (
+            "count_slope_recovery_runner_phylo_poisson_q1_mu_one_slope",
+            "qseries_phylo_poisson_q1_mu_one_slope",
+            "poisson()",
+            "phylo",
+            "phylo-poisson",
+            "count-slope-recovery/phylo/poisson/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_phylo_nbinom2_q1_mu_one_slope": (
+            "count_slope_recovery_runner_phylo_nbinom2_q1_mu_one_slope",
+            "qseries_phylo_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "phylo",
+            "phylo-nbinom2",
+            "count-slope-recovery/phylo/nbinom2/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_spatial_poisson_q1_mu_one_slope": (
+            "count_slope_recovery_runner_spatial_poisson_q1_mu_one_slope",
+            "qseries_spatial_poisson_q1_mu_one_slope",
+            "poisson()",
+            "spatial",
+            "spatial-poisson",
+            "count-slope-recovery/spatial/poisson/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_spatial_nbinom2_q1_mu_one_slope": (
+            "count_slope_recovery_runner_spatial_nbinom2_q1_mu_one_slope",
+            "qseries_spatial_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "spatial",
+            "spatial-nbinom2",
+            "count-slope-recovery/spatial/nbinom2/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_animal_poisson_q1_mu_one_slope": (
+            "count_slope_recovery_runner_animal_poisson_q1_mu_one_slope",
+            "qseries_animal_poisson_q1_mu_one_slope",
+            "poisson()",
+            "animal",
+            "animal-poisson",
+            "count-slope-recovery/animal/poisson/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_animal_nbinom2_q1_mu_one_slope": (
+            "count_slope_recovery_runner_animal_nbinom2_q1_mu_one_slope",
+            "qseries_animal_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "animal",
+            "animal-nbinom2",
+            "count-slope-recovery/animal/nbinom2/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_relmat_poisson_q1_mu_one_slope": (
+            "count_slope_recovery_runner_relmat_poisson_q1_mu_one_slope",
+            "qseries_relmat_poisson_q1_mu_one_slope",
+            "poisson()",
+            "relmat",
+            "relmat-poisson",
+            "count-slope-recovery/relmat/poisson/q1-mu-one-slope",
+        ),
+        "count_slope_recovery_dispatch_relmat_nbinom2_q1_mu_one_slope": (
+            "count_slope_recovery_runner_relmat_nbinom2_q1_mu_one_slope",
+            "qseries_relmat_nbinom2_q1_mu_one_slope",
+            "nbinom2()",
+            "relmat",
+            "relmat-nbinom2",
+            "count-slope-recovery/relmat/nbinom2/q1-mu-one-slope",
+        ),
+    }
+    expected_count_slope_dispatch_evidence = (
+        "docs/dev-log/after-task/"
+        "2026-06-25-count-slope-recovery-dispatch-review.md"
+    )
+    seen_count_slope_recovery_dispatch_rows: set[str] = set()
+    if len(structured_re_count_slope_recovery_dispatch_review_rows) != len(
+        expected_count_slope_recovery_dispatch_rows
+    ):
+        errors.append(
+            "structured-re-count-slope-recovery-dispatch-review.tsv has "
+            f"{len(structured_re_count_slope_recovery_dispatch_review_rows)} "
+            f"rows; expected {len(expected_count_slope_recovery_dispatch_rows)}"
+        )
+    for row in structured_re_count_slope_recovery_dispatch_review_rows:
+        row_id = row.get("dispatch_id", "<structured RE count slope recovery dispatch>")
+        if set(row.keys()) != set(
+            STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW_FIELDS
+        ):
+            errors.append(
+                f"{row_id}: structured-re-count-slope-recovery-dispatch-review.tsv "
+                "fields do not match the contract"
+            )
+        for field in STRUCTURED_RE_COUNT_SLOPE_RECOVERY_DISPATCH_REVIEW_FIELDS:
+            if not row.get(field):
+                errors.append(f"{row_id}: {field} is empty")
+        if row_id not in expected_count_slope_recovery_dispatch_rows:
+            errors.append(f"{row_id}: unexpected count slope recovery dispatch id")
+            continue
+        if row_id in seen_count_slope_recovery_dispatch_rows:
+            errors.append(f"duplicate structured RE count slope dispatch id: {row_id}")
+        seen_count_slope_recovery_dispatch_rows.add(row_id)
+        (
+            expected_runner,
+            expected_cell,
+            expected_family,
+            expected_provider,
+            expected_shard,
+            expected_output_namespace,
+        ) = expected_count_slope_recovery_dispatch_rows[row_id]
+        expected_values = {
+            "runner_id": expected_runner,
+            "cell_id": expected_cell,
+            "family": expected_family,
+            "structured_type": expected_provider,
+            "shard_id": expected_shard,
+            "shard_scope": "provider_family",
+            "selected_manifest": expected_count_slope_recovery_manifest,
+            "run_log": expected_count_slope_recovery_run_log,
+            "planned_replicates": "80",
+            "seed_start": "760001",
+            "seed_end": "760080",
+            "output_namespace": expected_output_namespace,
+            "scheduler_target": "totoro_or_drac_after_human_review",
+            "submission_status": "not_submitted",
+            "compute_status": "not_executed",
+            "recovery_status": "runner_contract_only",
+            "denominator_status": "not_coverage_evidence",
+            "coverage_evaluable": "FALSE",
+            "dispatch_gate_status": "ready_for_human_review",
+            "status": "covered",
+            "evidence_url": expected_count_slope_dispatch_evidence,
+        }
+        for field, expected_value in expected_values.items():
+            if row.get(field) != expected_value:
+                errors.append(f"{row_id}: {field} must be {expected_value}")
+        for path_field in ("selected_manifest", "run_log", "evidence_url"):
+            if not evidence_reference_exists(row.get(path_field, "")):
+                errors.append(f"{row_id}: {path_field} does not resolve")
+        for field, phrases in {
+            "overwrite_policy": (
+                "no_overwrite_existing_outputs",
+                "write_shard_scoped_paths",
+                "require_empty_or_resume_manifest",
+            ),
+            "concurrency_policy": (
+                "single_provider_family_shard",
+                "no_shared_output_files",
+                "seed_partition_locked",
+            ),
+            "resume_policy": (
+                "resume_from_manifest_only",
+                "append_attempt_log",
+                "preserve_failed_attempts",
+            ),
+            "retention_policy": (
+                "retain_fit_errors",
+                "retain_nonconverged_fits",
+                "retain_scheduler_exit_status",
+            ),
+        }.items():
+            for phrase in phrases:
+                if phrase not in row.get(field, ""):
+                    errors.append(f"{row_id}: {field} must mention {phrase}")
+        claim_boundary = row.get("claim_boundary", "")
+        for phrase in (
+            "dispatch review only",
+            "no human execution approval recorded",
+            "no recovery simulation executed",
+            "no Totoro job submitted",
+            "no DRAC job submitted",
+            "bridge parity",
+            "interval reliability",
+            "coverage",
+            "q2",
+            "q4",
+            "REML",
+            "AI-REML",
+            "public support",
+            "broad bridge support",
+        ):
+            if phrase not in claim_boundary:
+                errors.append(f"{row_id}: claim_boundary must mention {phrase}")
+        next_gate = row.get("next_gate", "")
+        for phrase in ("Ask Shinichi", "Totoro", "DRAC", "shard-specific run log"):
+            if phrase not in next_gate:
+                errors.append(f"{row_id}: next_gate must mention {phrase}")
+        runner_row = count_slope_recovery_runner_map.get(expected_runner)
+        if runner_row is None:
+            errors.append(f"{row_id}: linked recovery runner row is missing")
+        else:
+            for field, expected_value in (
+                ("cell_id", expected_cell),
+                ("family", expected_family),
+                ("structured_type", expected_provider),
+                ("selected_manifest", row.get("selected_manifest")),
+                ("run_log", row.get("run_log")),
+                ("planned_replicates", "80"),
+                ("seed_start", "760001"),
+                ("seed_end", "760080"),
+                ("scheduler_status", "dry_run_not_submitted"),
+                ("compute_status", "not_executed"),
+                ("recovery_status", "runner_contract_only"),
+                ("denominator_status", "not_coverage_evidence"),
+                ("coverage_evaluable", "FALSE"),
+                ("status", "covered"),
+            ):
+                if runner_row.get(field) != expected_value:
+                    errors.append(f"{row_id}: linked runner {field} changed")
 
     expected_mu_slope_audits = {
         "phylo": "mu_slope_phylo_artifact_audit",
@@ -24190,6 +24435,7 @@ def main() -> int:
         f", {len(structured_re_count_slope_fixture_recovery_contract_rows)} structured RE count-slope fixture/recovery contract rows"
         f", {len(structured_re_count_slope_native_fixture_status_rows)} structured RE count-slope native-fixture rows"
         f", {len(structured_re_count_slope_recovery_runner_contract_rows)} structured RE count-slope recovery-runner rows"
+        f", {len(structured_re_count_slope_recovery_dispatch_review_rows)} structured RE count-slope recovery-dispatch review rows"
         f", {len(structured_re_q2_plus_q2_sigma_rejection_contract_rows)} structured RE q2-plus-q2 sigma rejection rows"
         f", {len(structured_re_mu_slope_fixture_audit_rows)} structured RE mu-slope audit rows"
         f", {len(structured_re_mu_slope_parity_fixture_rows)} structured RE mu-slope parity-fixture rows"

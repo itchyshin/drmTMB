@@ -126,7 +126,10 @@ The current table records these broad facts without promoting beyond them:
   Native fixture status is not bridge parity. The follow-up recovery-runner
   contract is also now banked as a dry-run manifest and run log only; no
   recovery simulation, Totoro job, DRAC job, coverage-evaluable denominator,
-  interval reliability, coverage, or public support has moved.
+  interval reliability, coverage, or public support has moved. A dispatch
+  preflight sidecar now names provider/family shard boundaries and
+  race-safety rules, but it is not human approval and no job has been
+  submitted.
 - `phylo_interaction()` count cells are kept as separate Poisson and NB2 q1
   `mu` intercept rows. They are not covered by the ordinary-provider one-slope
   count rows, and they do not imply bridge support, q2/q4 endpoint covariance,
@@ -889,7 +892,15 @@ The efficient completion order is:
    Totoro/DRAC review gate, but no recovery simulation has been executed and no
    coverage-evaluable denominator, interval reliability, coverage, bridge
    parity, REML, AI-REML, q2/q4 count covariance, or public support has moved.
-27. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
+27. Banked in this stacked follow-up slice: add the eight-row recovery
+   dispatch preflight for those count one-slope runner rows. This records
+   provider/family shard scope, output namespaces, no-overwrite rules, seed
+   partition locking, resume policy, retained failure accounting, and the
+   Totoro/DRAC human-review gate; it is not human approval, no job is
+   submitted, and no recovery, coverage, interval, bridge, REML, AI-REML,
+   q2/q4 count covariance, public support, or broad bridge support status
+   moves.
+28. Leave two-slope structured q6/q8 cells planned until the one-slope cells,
    metadata wrappers, provider contracts, bridge parity, interval diagnostics,
    and coverage denominators are stable.
 

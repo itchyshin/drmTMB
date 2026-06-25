@@ -2,6 +2,53 @@
 
 Record meaningful development checks here.
 
+## 2026-06-25: count structured mu one-slope recovery dispatch review
+
+Goal:
+
+- Bank a dispatch preflight for the eight ordinary Poisson/NB2 q1 structured
+  `mu` one-slope recovery-runner rows without submitting Totoro or DRAC jobs
+  or promoting recovery, coverage, intervals, bridge parity, REML, AI-REML,
+  q2/q4, or public support.
+
+Result:
+
+- Added `structured-re-count-slope-recovery-dispatch-review.tsv` with eight
+  provider/family dispatch-review rows linked to the recovery-runner contract.
+- Added mission-control validation for shard identity, selected manifest and
+  run-log paths, seed range, output namespace, no-overwrite rules, concurrency
+  policy, resume policy, retained failure accounting, and conservative claim
+  boundaries.
+- Added an R dashboard contract test that joins dispatch rows back to
+  `structured-re-count-slope-recovery-runner-contract.tsv`.
+- Updated the dashboard README and q-series completion map.
+
+Checks:
+
+- `air format tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `python3 -m py_compile tools/validate-mission-control.py` passed.
+- `python3 tools/validate-mission-control.py` passed with 86 structured RE
+  q-series cells, 8 structured RE count-slope recovery-runner rows, and 8
+  structured RE count-slope recovery-dispatch review rows.
+- `git diff --check` passed.
+- `Rscript --no-environ --no-init-file -e "source('/Users/z3437171/shinichi-brain/tools/check-after-task.R'); main_check_after_task('docs/dev-log/after-task/2026-06-25-count-slope-recovery-dispatch-review.md')"`
+  passed.
+- `gh issue list --repo itchyshin/drmTMB --search '"count slope recovery dispatch review"' --limit 20 --json number,title,state,url,labels`
+  returned `[]`.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
+  could not run because `devtools` is absent from the clean local R library.
+  Non-vanilla startup points arm64 R 4.6 at an old
+  `x86_64-pc-linux-gnu-library/4.4` library.
+
+Boundaries:
+
+- This banks an agent dispatch preflight only.
+- It is not human approval, not executed recovery, not coverage-evaluable
+  denominator evidence, not MCSE-calibrated coverage, not interval reliability,
+  not bridge parity, not q2/q4 count covariance, not REML, not AI-REML, and
+  not public support.
+
 ## 2026-06-25: count structured mu one-slope recovery runner contract
 
 Goal:

@@ -233,6 +233,14 @@ nonconvergence, `pdHess`, boundary-warning, nonfinite-estimate, seed/provider,
 and scheduler-exit retention requirements before any recovery or
 public-support wording can move.
 
+`structured-re-count-slope-recovery-dispatch-review.tsv` records the
+provider/family dispatch preflight for those runner rows. It names shard
+scopes, output namespaces, no-overwrite rules, seed partition locking, resume
+policy, and retained failure accounting, while keeping
+`submission_status = not_submitted`, `compute_status = not_executed`, and
+`dispatch_gate_status = ready_for_human_review`. It is not human approval and
+not execution evidence.
+
 For `phylo_interaction()`, the q-series support-cell table keeps Poisson and
 NB2 q1 `mu` intercept support as separate family-specific rows backed by
 `tests/testthat/test-phylo-interaction.R`. Those rows remain native TMB
