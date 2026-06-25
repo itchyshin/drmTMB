@@ -296,10 +296,11 @@ evidence.
 `structured-re-q1-parity-fixture-contract.tsv` records deterministic q1 parity
 fixture contracts for native R/TMB, direct DRM.jl, and future R-via-Julia
 routes. Rows marked `covered` here mean the fixture contract is specified; they
-do not mean executable bridge parity has passed. The relmat scale-side rows are
-K-matrix fixture contracts paired with separate native K/Q point-fit evidence;
-they do not promote Q precision bridge marshalling, intervals, REML, coverage,
-or broader public support.
+do not mean executable bridge parity has passed. The spatial, animal, and
+relmat scale-side rows are provider-scoped fixture contracts paired with
+separate native point-fit evidence; they do not promote range-estimating
+spatial support, pedigree/Ainv or Q precision bridge marshalling, intervals,
+REML, coverage, or broader public support.
 
 `structured-re-q2-target-contract.tsv` records the q2 target vocabulary. It
 keeps q2 location covariance targets separate from q2-plus-q2 block evidence

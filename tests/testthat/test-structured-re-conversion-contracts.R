@@ -93,7 +93,11 @@ test_that("q-series support-cell dashboard owns exact structured rows", {
     "qseries_phylo_q1_sigma_intercept",
     "qseries_phylo_q1_mu_sigma_intercept",
     "qseries_phylo_q1_mu_one_slope",
+    "qseries_spatial_q1_sigma_intercept",
+    "qseries_spatial_q1_mu_sigma_intercept",
     "qseries_spatial_q1_mu_one_slope",
+    "qseries_animal_q1_sigma_intercept",
+    "qseries_animal_q1_mu_sigma_intercept",
     "qseries_animal_q1_mu_one_slope",
     "qseries_relmat_q1_mu_one_slope",
     "qseries_relmat_q1_sigma_intercept",
@@ -7352,23 +7356,56 @@ test_that("q1 reconstruction and parity ledgers keep unavailable routes explicit
   expect_true(any(grepl("coverage", parity$next_gate, fixed = TRUE)))
   expect_true(any(grepl("NB2", parity$next_gate, fixed = TRUE)))
 
-  relmat_scale <- parity[
+  provider_scale <- parity[
     parity$target %in%
-      c("gaussian_q1_sigma_relmat", "gaussian_q1_mu_sigma_relmat"),
+      c(
+        "gaussian_q1_sigma_spatial",
+        "gaussian_q1_mu_sigma_spatial",
+        "gaussian_q1_sigma_animal",
+        "gaussian_q1_mu_sigma_animal",
+        "gaussian_q1_sigma_relmat",
+        "gaussian_q1_mu_sigma_relmat"
+      ),
     ,
     drop = FALSE
   ]
-  expect_equal(nrow(relmat_scale), 2L)
-  expect_equal(relmat_scale$status, rep("covered", 2L))
-  expect_equal(relmat_scale$bridge_status, rep("experimental", 2L))
+  expect_equal(nrow(provider_scale), 6L)
+  expect_equal(provider_scale$status, rep("covered", 6L))
+  expect_equal(provider_scale$bridge_status, rep("experimental", 6L))
+  structured_re_expect_all_match(
+    provider_scale$claim_boundary,
+    "remain separate"
+  )
+
+  spatial_scale <- provider_scale[
+    grepl("spatial", provider_scale$target, fixed = TRUE),
+    ,
+    drop = FALSE
+  ]
+  animal_scale <- provider_scale[
+    grepl("animal", provider_scale$target, fixed = TRUE),
+    ,
+    drop = FALSE
+  ]
+  relmat_scale <- provider_scale[
+    grepl("relmat", provider_scale$target, fixed = TRUE),
+    ,
+    drop = FALSE
+  ]
+  structured_re_expect_all_match(
+    spatial_scale$claim_boundary,
+    "fixed-covariance"
+  )
+  structured_re_expect_all_match(
+    spatial_scale$claim_boundary,
+    "range-estimating"
+  )
+  structured_re_expect_all_match(animal_scale$claim_boundary, "A-matrix")
+  structured_re_expect_all_match(animal_scale$claim_boundary, "pedigree")
   structured_re_expect_all_match(relmat_scale$claim_boundary, "K-matrix")
   structured_re_expect_all_match(
     relmat_scale$claim_boundary,
     "Q bridge marshalling"
-  )
-  structured_re_expect_all_match(
-    relmat_scale$claim_boundary,
-    "remain separate"
   )
 })
 
@@ -7394,7 +7431,7 @@ test_that("q1 parity acceptance gate ties fixtures, maps, and negative evidence"
     ,
     drop = FALSE
   ]
-  expect_true(nrow(banked_q1) >= 9L)
+  expect_true(nrow(banked_q1) >= 13L)
   expect_true(all(grepl("coef", banked_q1$parity_quantity, fixed = TRUE)))
   expect_true(all(grepl("logLik", banked_q1$parity_quantity, fixed = TRUE)))
   expect_true(all(nzchar(banked_q1$tolerance)))
@@ -7402,12 +7439,20 @@ test_that("q1 parity acceptance gate ties fixtures, maps, and negative evidence"
   expect_setequal(
     c(
       "gaussian_q1_mu_relmat",
+      "gaussian_q1_sigma_spatial",
+      "gaussian_q1_mu_sigma_spatial",
+      "gaussian_q1_sigma_animal",
+      "gaussian_q1_mu_sigma_animal",
       "gaussian_q1_sigma_relmat",
       "gaussian_q1_mu_sigma_relmat"
     ),
     intersect(
       c(
         "gaussian_q1_mu_relmat",
+        "gaussian_q1_sigma_spatial",
+        "gaussian_q1_mu_sigma_spatial",
+        "gaussian_q1_sigma_animal",
+        "gaussian_q1_mu_sigma_animal",
         "gaussian_q1_sigma_relmat",
         "gaussian_q1_mu_sigma_relmat"
       ),

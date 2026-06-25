@@ -67763,3 +67763,54 @@ Boundary:
   support, broad bridge support, public optimizer controls, public support,
   DRAC/Totoro execution, SR150 coverage readiness, PR undrafting/merging, or an
   Ayumi-facing reply.
+
+## 2026-06-25: q1 scale provider fixture parity
+
+Goal:
+
+- Balance the q1 Gaussian scale-side intercept fixture inventory by adding
+  deterministic fixture-parity rows for spatial and animal `sigma` and matched
+  `mu+sigma` cells, while retaining relmat boundaries and avoiding bridge,
+  interval, coverage, REML, AI-REML, q2/q4/q8, or public support promotion.
+
+Result:
+
+- Expanded the q1 provider scale fixture test to cover `spatial`, `animal`, and
+  `relmat` `sigma` and `mu_sigma` deterministic payloads across native, direct,
+  and R-via-Julia fixture routes.
+- Added `q1_sigma_spatial_gaussian_fixture`,
+  `q1_mu_sigma_spatial_gaussian_fixture`,
+  `q1_sigma_animal_gaussian_fixture`, and
+  `q1_mu_sigma_animal_gaussian_fixture` rows to
+  `structured-re-q1-parity-fixture-contract.tsv`.
+- Updated `qseries_spatial_q1_sigma_intercept`,
+  `qseries_spatial_q1_mu_sigma_intercept`,
+  `qseries_animal_q1_sigma_intercept`, and
+  `qseries_animal_q1_mu_sigma_intercept` to fixture-parity status, while keeping
+  intervals and coverage planned and denominator policy at `fixture_not_coverage`.
+- Updated dashboard tests, dashboard README, the q-series completion map, and
+  after-task report
+  `docs/dev-log/after-task/2026-06-25-q1-scale-provider-fixture-parity.md`.
+
+Evidence:
+
+- `air format tests/testthat/test-structured-re-bridge-fixtures.R tests/testthat/test-structured-re-conversion-contracts.R`
+  passed.
+- `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts|spatial-gaussian|animal-relmat-gaussian', stop_on_failure = TRUE)"`
+  passed with 4,787 assertions, 0 failures, 0 warnings, and 0 skips.
+- `python3 tools/validate-mission-control.py` passed and reported 13 q1
+  parity-fixture rows.
+- `git diff --check` passed.
+- `Rscript /Users/z3437171/shinichi-brain/tools/check-after-task.R docs/dev-log/after-task/2026-06-25-q1-scale-provider-fixture-parity.md`
+  passed.
+
+Boundary:
+
+- This is deterministic fixture-parity and native point-fit/extractor evidence
+  only. It does not add live spatial or animal scale-side bridge parity,
+  range-estimating spatial support, mesh/SPDE support, pedigree/Ainv bridge
+  marshalling, Q precision bridge marshalling, calibrated intervals, coverage
+  evidence, REML, native-TMB q4 REML, q4 AI-REML, HSquared AI-REML,
+  non-Gaussian REML, q2/q4/q8 support, broad bridge support, public optimizer
+  controls, public support, DRAC/Totoro execution, SR150 coverage readiness, PR
+  undrafting/merging, or an Ayumi-facing reply.
